@@ -19,7 +19,7 @@
 console.log('🚀 Performance baseline script starting...');
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ErrorCode } from '@revealui/scripts/errors.js';
@@ -97,6 +97,18 @@ async function runAutocannonTest(
     // Build autocannon command
     const baseUrl = process.env.BASE_URL || 'http://localhost:4000';
     const url = endpointConfig.url.replace('http://localhost:4000', baseUrl);
+
+    // Validate the URL to prevent command injection via endpoint config
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        logger.error(`Invalid URL protocol for ${endpointName}: ${parsed.protocol}`);
+        return null;
+      }
+    } catch {
+      logger.error(`Invalid URL for ${endpointName}: ${url}`);
+      return null;
+    }
 
     const args = ['dlx', 'autocannon', '--json'];
 
@@ -184,15 +196,14 @@ async function main() {
   const endpointsFile = resolve(testsDir, 'endpoints.json');
 
   // Load endpoints configuration
-  if (!existsSync(endpointsFile)) {
+  let endpointsConfig: Record<string, EndpointConfig>;
+  try {
+    endpointsConfig = JSON.parse(readFileSync(endpointsFile, 'utf-8'));
+  } catch {
     logger.error(`Endpoints configuration not found: ${endpointsFile}`);
     logger.info('Please ensure endpoints.json exists in packages/test/load-tests/');
     process.exit(ErrorCode.EXECUTION_ERROR);
   }
-
-  const endpointsConfig: Record<string, EndpointConfig> = JSON.parse(
-    readFileSync(endpointsFile, 'utf-8'),
-  );
   logger.info(`Loaded ${Object.keys(endpointsConfig).length} endpoint configurations`);
 
   const results: PerformanceMetrics[] = [];

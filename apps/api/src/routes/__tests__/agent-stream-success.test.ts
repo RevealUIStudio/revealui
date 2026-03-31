@@ -15,8 +15,11 @@
  * prevent Biome from converting these back to arrow functions.
  */
 
+import { Hono } from 'hono';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 // ---------------------------------------------------------------------------
-// Mocks — must be declared before imports (Vitest hoists vi.mock() calls)
+// Mocks — must be declared before the route import (Vitest hoists vi.mock() calls)
 // ---------------------------------------------------------------------------
 
 /** Capture SSE events written by the route handler during each test. */
@@ -77,8 +80,6 @@ vi.mock('@revealui/ai/orchestration/streaming-runtime', () => ({
   }),
 }));
 
-import { Hono } from 'hono';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import agentStream from '../agent-stream.js';
 
 // ---------------------------------------------------------------------------

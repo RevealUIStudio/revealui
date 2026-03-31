@@ -57,34 +57,52 @@ const OSS_PACKAGE_NAMES = [
   'utils',
 ];
 
-// Patterns that must not appear in published package source
-const INTERNAL_SOURCE_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
+// Patterns that must not appear in published package source.
+// Uses string-based checks instead of regex where possible.
+interface SourcePattern {
+  check: (content: string) => boolean;
+  reason: string;
+}
+
+const INTERNAL_SOURCE_PATTERNS: SourcePattern[] = [
   {
-    pattern: /\/home\/[a-zA-Z0-9_-]+\/projects\//,
+    check: (content) => content.includes('/home/') && content.includes('/projects/'),
     reason: 'absolute Linux home path (machine-specific)',
   },
   {
-    pattern: /C:\\Users\\[a-zA-Z0-9_-]+\\/,
+    check: (content) => content.includes('C:\\Users\\'),
     reason: 'absolute Windows user path (machine-specific)',
   },
   {
-    pattern: /\/mnt\/wsl-dev\//,
+    check: (content) => content.includes('/mnt/wsl-dev/'),
     reason: 'DevPod mount path (machine-specific)',
   },
   {
-    pattern: /MASTER_PLAN\.md/,
+    check: (content) => content.includes('MASTER_PLAN.md'),
     reason: 'MASTER_PLAN.md reference (internal planning doc)',
   },
   {
-    pattern: /business\//,
+    check: (content) => content.includes('business/'),
     reason: 'business/ directory reference (internal)',
   },
   {
-    pattern: /founder@revealui\.com/,
+    check: (content) => content.includes('founder@revealui.com'),
     reason: 'founder email address (internal identity)',
   },
   {
-    pattern: /(?<!github\.com\/|githubusercontent\.com\/)RevealUIStudio\/[a-zA-Z]/,
+    check: (content) => {
+      // Check for RevealUIStudio/ not preceded by github.com/ or githubusercontent.com/
+      const needle = 'RevealUIStudio/';
+      let idx = content.indexOf(needle);
+      while (idx !== -1) {
+        const prefix = content.substring(Math.max(0, idx - 30), idx);
+        if (!(prefix.includes('github.com/') || prefix.includes('githubusercontent.com/'))) {
+          return true;
+        }
+        idx = content.indexOf(needle, idx + 1);
+      }
+      return false;
+    },
     reason: 'GitHub org path reference (internal)',
   },
 ];
@@ -106,19 +124,52 @@ const TEXT_SCAN_EXTENSIONS = new Set([
   '.cts',
 ]);
 
-const PRO_SOURCE_ALIAS_PATTERNS: Array<{ pattern: RegExp; reason: string }> = [
+const PRO_PACKAGE_DIRS = ['ai', 'mcp', 'editors', 'services', 'harnesses'];
+
+const PRO_SOURCE_ALIAS_PATTERNS: SourcePattern[] = [
   {
-    pattern: /(?:^|['"\s])(?:\.\.\/)+(?:ai|mcp|editors|services|harnesses)\/src(?:\/|['"]|$)/,
+    check: (content) => {
+      // Check for relative paths into Pro source trees: ../ai/src, ../mcp/src, etc.
+      for (const dir of PRO_PACKAGE_DIRS) {
+        if (
+          content.includes(`../${dir}/src/`) ||
+          content.includes(`../${dir}/src'`) ||
+          content.includes(`../${dir}/src"`)
+        ) {
+          return true;
+        }
+      }
+      return false;
+    },
     reason: 'relative alias into a Pro source tree',
   },
   {
-    pattern:
-      /(?:^|['"\s])(?:\.\.\/)+(?:(?:ee\/)?packages\/)?(?:ai|mcp|editors|services|harnesses)\/src(?:\/|['"]|$)/,
+    check: (content) => {
+      // Check for paths like packages/ai/src or ee/packages/ai/src
+      for (const dir of PRO_PACKAGE_DIRS) {
+        if (content.includes(`packages/${dir}/src`) || content.includes(`ee/packages/${dir}/src`)) {
+          return true;
+        }
+      }
+      return false;
+    },
     reason: 'relative path into packages/<pro>/src',
   },
   {
-    pattern:
-      /['"](?:\.\.\/)*(?:(?:ee\/)?packages\/)?(?:ai|mcp|editors|services|harnesses)\/src['"]/,
+    check: (content) => {
+      // Check for quoted direct source alias: '../ai/src' or "packages/ai/src"
+      for (const dir of PRO_PACKAGE_DIRS) {
+        if (
+          content.includes(`'${dir}/src'`) ||
+          content.includes(`"${dir}/src"`) ||
+          content.includes(`'packages/${dir}/src'`) ||
+          content.includes(`"packages/${dir}/src"`)
+        ) {
+          return true;
+        }
+      }
+      return false;
+    },
     reason: 'direct source alias to a Pro package',
   },
 ];
@@ -197,11 +248,13 @@ function checkOssImportBoundary(): string[] {
       const relPath = relative(REPO_ROOT, file);
 
       for (const commercial of COMMERCIAL_PACKAGES) {
-        // Match both: from '@revealui/ai' and from '@revealui/ai/something'
-        const importPattern = new RegExp(
-          `from ['"]${commercial.replace('/', '\\/')}(\\/[^'"]*)?['"]`,
-        );
-        if (importPattern.test(content)) {
+        // Check for: from '@revealui/ai' or from "@revealui/ai" or from '@revealui/ai/...'
+        if (
+          content.includes(`from '${commercial}'`) ||
+          content.includes(`from "${commercial}"`) ||
+          content.includes(`from '${commercial}/`) ||
+          content.includes(`from "${commercial}/`)
+        ) {
           violations.push(`  ${relPath}: OSS package imports commercial package ${commercial}`);
         }
       }
@@ -232,8 +285,8 @@ function checkInternalReferences(): string[] {
       const content = readFileSync(file, 'utf8');
       const relPath = relative(REPO_ROOT, file);
 
-      for (const { pattern, reason } of INTERNAL_SOURCE_PATTERNS) {
-        if (pattern.test(content)) {
+      for (const { check, reason } of INTERNAL_SOURCE_PATTERNS) {
+        if (check(content)) {
           violations.push(`  ${relPath}: contains ${reason}`);
         }
       }
@@ -300,8 +353,8 @@ function checkProSourceAliases(): string[] {
       continue;
     }
 
-    for (const { pattern, reason } of PRO_SOURCE_ALIAS_PATTERNS) {
-      if (pattern.test(content)) {
+    for (const { check, reason } of PRO_SOURCE_ALIAS_PATTERNS) {
+      if (check(content)) {
         violations.push(`  ${relPath}: contains ${reason}`);
       }
     }
@@ -322,35 +375,29 @@ function checkPublicRepoProDependencies(): string[] {
     ...collectSourceFiles(join(PACKAGES_DIR, 'dev')),
   ];
 
-  const staticImportPatterns = COMMERCIAL_PACKAGES.flatMap((pkg) => {
-    const escaped = pkg.replace('/', '\\/');
-    return [
-      {
-        packageName: pkg,
-        pattern: new RegExp(
-          `(^|\\n)\\s*import\\s+(?:[^'";]+?\\s+from\\s+)?['"]${escaped}(\\/[^'"]*)?['"]`,
-          'm',
-        ),
-      },
-      {
-        packageName: pkg,
-        pattern: new RegExp(
-          `(^|\\n)\\s*export\\s+[^'";]+?from\\s+['"]${escaped}(\\/[^'"]*)?['"]`,
-          'm',
-        ),
-      },
-    ];
-  });
-
   for (const file of files) {
     const content = readFileSync(file, 'utf8');
     const relPath = relative(REPO_ROOT, file);
+    const lines = content.split('\n');
 
-    for (const { packageName, pattern } of staticImportPatterns) {
-      if (pattern.test(content)) {
-        violations.push(
-          `  ${relPath}: hard static import/export of optional Pro package ${packageName}`,
-        );
+    for (const packageName of COMMERCIAL_PACKAGES) {
+      // Check each line for static import/export of a Pro package
+      for (const line of lines) {
+        const trimmed = line.trimStart();
+        // Skip non-import/export lines early
+        if (!(trimmed.startsWith('import') || trimmed.startsWith('export'))) continue;
+        // Check if the line references this Pro package
+        if (
+          trimmed.includes(`'${packageName}'`) ||
+          trimmed.includes(`"${packageName}"`) ||
+          trimmed.includes(`'${packageName}/`) ||
+          trimmed.includes(`"${packageName}/`)
+        ) {
+          violations.push(
+            `  ${relPath}: hard static import/export of optional Pro package ${packageName}`,
+          );
+          break; // One violation per file per package is enough
+        }
       }
     }
   }

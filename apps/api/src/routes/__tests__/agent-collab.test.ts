@@ -644,7 +644,7 @@ describe('agent-collab route', () => {
 
       expect(res.status).toBe(200);
       const json = (await res.json()) as Record<string, unknown>;
-      expect(json.wsUrl as string).toMatch(/^wss:\/\/collab\.example\.com\//);
+      expect((json.wsUrl as string).startsWith('wss://collab.example.com/')).toBe(true);
     });
   });
 });

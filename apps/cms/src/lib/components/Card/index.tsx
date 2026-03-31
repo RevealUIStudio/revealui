@@ -57,30 +57,28 @@ export const Card = (props: {
       <CardContent className="pt-4">
         {showCategories && hasCategories && (
           <div className="uppercase text-sm mb-4">
-            {showCategories && hasCategories && (
-              <div>
-                {categories?.map((category, index) => {
-                  if (typeof category === 'object' && category !== null) {
-                    const { id, title: titleFromCategory } = category;
+            <div>
+              {categories?.map((category, index) => {
+                if (typeof category === 'object' && category !== null) {
+                  const { id, title: titleFromCategory } = category;
 
-                    const categoryTitle = titleFromCategory || 'Untitled category';
-                    const categoryKey =
-                      typeof id === 'number' || typeof id === 'string' ? id : categoryTitle;
+                  const categoryTitle = titleFromCategory || 'Untitled category';
+                  const categoryKey =
+                    typeof id === 'number' || typeof id === 'string' ? id : categoryTitle;
 
-                    const isLast = index === categories.length - 1;
+                  const isLast = index === categories.length - 1;
 
-                    return (
-                      <Fragment key={categoryKey}>
-                        {categoryTitle}
-                        {!isLast && <Fragment>, &nbsp;</Fragment>}
-                      </Fragment>
-                    );
-                  }
+                  return (
+                    <Fragment key={categoryKey}>
+                      {categoryTitle}
+                      {!isLast && <Fragment>, &nbsp;</Fragment>}
+                    </Fragment>
+                  );
+                }
 
-                  return null;
-                })}
-              </div>
-            )}
+                return null;
+              })}
+            </div>
           </div>
         )}
         {titleToUse && (

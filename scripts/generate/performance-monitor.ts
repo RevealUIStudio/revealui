@@ -17,7 +17,7 @@
  */
 
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const rootDir = join(import.meta.dirname, '../..');
@@ -88,11 +88,20 @@ function getFileMetrics(filePath: string): { path: string; size: number; lines: 
  */
 function countTables(): number {
   const zodSchemasPath = join(rootDir, 'packages/contracts/src/generated/zod-schemas.ts');
-  if (!existsSync(zodSchemasPath)) return 0;
-
-  const content = readFileSync(zodSchemasPath, 'utf-8');
-  const matches = content.match(/export const \w+SelectSchema/g) || [];
-  return matches.length;
+  try {
+    const content = readFileSync(zodSchemasPath, 'utf-8');
+    // Count lines that contain "SelectSchema" in an export const declaration
+    let count = 0;
+    for (const line of content.split('\n')) {
+      const trimmed = line.trimStart();
+      if (trimmed.startsWith('export const ') && trimmed.includes('SelectSchema')) {
+        count++;
+      }
+    }
+    return count;
+  } catch {
+    return 0;
+  }
 }
 
 /**
@@ -196,7 +205,10 @@ async function measurePerformance(): Promise<GenerationMetrics> {
  * Load metrics history
  */
 function loadHistory(): MetricsHistory {
-  if (!existsSync(metricsFile)) {
+  try {
+    const content = readFileSync(metricsFile, 'utf-8');
+    return JSON.parse(content);
+  } catch {
     return {
       runs: [],
       summary: {
@@ -207,9 +219,6 @@ function loadHistory(): MetricsHistory {
       },
     };
   }
-
-  const content = readFileSync(metricsFile, 'utf-8');
-  return JSON.parse(content);
 }
 
 /**

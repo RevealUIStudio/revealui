@@ -115,8 +115,26 @@ function isPlaceholder(value: string): boolean {
     value.includes('user:password') ||
     value === '' ||
     value.startsWith('your-') ||
-    /^[A-Za-z0-9_-]+-placeholder$/.test(value)
+    (value.endsWith('-placeholder') &&
+      isAlphanumericDashUnderscore(value.slice(0, -'-placeholder'.length)))
   );
+}
+
+/**
+ * Check if a string contains only alphanumeric, dash, or underscore characters.
+ */
+function isAlphanumericDashUnderscore(s: string): boolean {
+  if (s.length === 0) return false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    const isAlphaNum =
+      (c >= 48 && c <= 57) || // 0-9
+      (c >= 65 && c <= 90) || // A-Z
+      (c >= 97 && c <= 122); // a-z
+    const isDashOrUnderscore = c === 45 || c === 95; // - or _
+    if (!(isAlphaNum || isDashOrUnderscore)) return false;
+  }
+  return true;
 }
 
 /**

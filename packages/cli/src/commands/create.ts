@@ -168,9 +168,21 @@ function resolveTemplateName(template: ProjectConfig['template']): string {
  * Best-effort — if the network is unavailable or the repo doesn't exist yet, skip silently.
  */
 async function pullContentRules(projectPath: string): Promise<void> {
-  const baseUrl =
+  const rawBaseUrl =
     process.env.REVEALUI_RULES_URL ??
     'https://raw.githubusercontent.com/RevealUIStudio/editor-configs/main/harnesses';
+
+  // Validate URL protocol to prevent file:// or other dangerous schemes
+  let baseUrl: string;
+  try {
+    const parsed = new URL(rawBaseUrl);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      return; // silently skip non-HTTP URLs
+    }
+    baseUrl = rawBaseUrl;
+  } catch {
+    return; // invalid URL — skip
+  }
 
   const spinner = ora('Pulling AI coding rules...').start();
   try {
@@ -203,6 +215,8 @@ async function pullContentRules(projectPath: string): Promise<void> {
           });
           if (!fileRes.ok) continue;
           const content = await fileRes.text();
+          // Reject paths containing traversal sequences before resolving
+          if (relPath.includes('..') || relPath.startsWith('/')) continue;
           const absolutePath = path.resolve(projectPath, relPath);
           // Verify resolved path stays within project (prevent path traversal)
           if (!absolutePath.startsWith(path.resolve(projectPath))) continue;
