@@ -125,6 +125,14 @@ export function csrfMiddleware(options?: CsrfMiddlewareOptions): MiddlewareHandl
 function getCookie(c: Context, name: string): string | undefined {
   const header = c.req.header('Cookie');
   if (!header) return undefined;
-  const match = header.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match?.[1];
+  for (const part of header.split(';')) {
+    const trimmed = part.trim();
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    if (key === name) {
+      return trimmed.slice(eqIdx + 1);
+    }
+  }
+  return undefined;
 }

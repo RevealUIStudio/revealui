@@ -63,8 +63,7 @@ export const SessionBaseSchema = SessionObjectSchema.refine(
 ).refine(
   (data) => {
     // Validate token hash format (should be a hash, not plain text)
-    const isValidHash = /^[a-f0-9]{64}$/i.test(data.tokenHash) || data.tokenHash.startsWith('$2');
-    return isValidHash;
+    return validateTokenHash(data.tokenHash);
   },
   {
     message: 'Token hash must be a valid SHA-256 or bcrypt hash',
@@ -172,11 +171,63 @@ export function isSessionNearExpiration(session: Session, thresholdMinutes = 60)
 // =============================================================================
 
 /**
+ * Check if a string is exactly 64 hex characters (SHA-256 hash)
+ */
+function isSha256Hex(s: string): boolean {
+  if (s.length !== 64) return false;
+  for (const ch of s) {
+    const c = ch.charCodeAt(0);
+    const isDigit = c >= 48 && c <= 57;
+    const isLowerHex = c >= 97 && c <= 102;
+    const isUpperHex = c >= 65 && c <= 70;
+    if (!(isDigit || isLowerHex || isUpperHex)) return false;
+  }
+  return true;
+}
+
+/**
  * Validate session token hash format
  */
 export function validateTokenHash(tokenHash: string): boolean {
   // SHA-256 hash (64 hex characters) or bcrypt hash (starts with $2)
-  return /^[a-f0-9]{64}$/i.test(tokenHash) || tokenHash.startsWith('$2');
+  return isSha256Hex(tokenHash) || tokenHash.startsWith('$2');
+}
+
+/**
+ * Check if a string is a valid IPv4 address
+ */
+function isValidIpv4(ip: string): boolean {
+  const parts = ip.split('.');
+  if (parts.length !== 4) return false;
+  for (const part of parts) {
+    if (part.length === 0 || part.length > 3) return false;
+    for (const ch of part) {
+      const c = ch.charCodeAt(0);
+      if (c < 48 || c > 57) return false;
+    }
+    const num = Number.parseInt(part, 10);
+    if (num > 255) return false;
+  }
+  return true;
+}
+
+/**
+ * Check if a string is a valid IPv6 address
+ */
+function isValidIpv6(ip: string): boolean {
+  const groups = ip.split(':');
+  if (groups.length < 3 || groups.length > 8) return false;
+  for (const group of groups) {
+    if (group.length > 4) return false;
+    for (const ch of group) {
+      const c = ch.charCodeAt(0);
+      const isDigit = c >= 48 && c <= 57;
+      const isLowerHex = c >= 97 && c <= 102;
+      const isUpperHex = c >= 65 && c <= 70;
+      if (!(isDigit || isLowerHex || isUpperHex)) return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -184,17 +235,7 @@ export function validateTokenHash(tokenHash: string): boolean {
  */
 export function validateIpAddress(ip: string | null): boolean {
   if (!ip) return true; // Nullable field
-
-  // IPv4
-  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
-  if (ipv4Regex.test(ip)) {
-    const parts = ip.split('.');
-    return parts.every((part) => Number.parseInt(part, 10) <= 255);
-  }
-
-  // IPv6
-  const ipv6Regex = /^([0-9a-f]{0,4}:){2,7}[0-9a-f]{0,4}$/i;
-  return ipv6Regex.test(ip);
+  return isValidIpv4(ip) || isValidIpv6(ip);
 }
 
 // =============================================================================

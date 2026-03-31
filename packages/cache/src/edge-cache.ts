@@ -495,12 +495,10 @@ export function getPersonalizationConfig(request: NextRequest): PersonalizationC
  * Detect device type
  */
 function getDeviceType(userAgent: string): 'mobile' | 'tablet' | 'desktop' {
-  if (/mobile/i.test(userAgent) && !/tablet|ipad/i.test(userAgent)) {
-    return 'mobile';
-  }
-  if (/tablet|ipad/i.test(userAgent)) {
-    return 'tablet';
-  }
+  const ua = userAgent.toLowerCase();
+  const isTablet = ua.includes('tablet') || ua.includes('ipad');
+  if (isTablet) return 'tablet';
+  if (ua.includes('mobile')) return 'mobile';
   return 'desktop';
 }
 

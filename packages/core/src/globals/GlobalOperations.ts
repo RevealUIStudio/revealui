@@ -1,4 +1,8 @@
-import { validateColumnName, validateSlug } from '../collections/operations/sqlAdapter.js';
+import {
+  escapeIdentifier,
+  validateColumnName,
+  validateSlug,
+} from '../collections/operations/sqlAdapter.js';
 import { afterRead } from '../fields/hooks/afterRead/index.js';
 import { getRelationshipFields } from '../relationships/analyzer.js';
 import type {
@@ -47,7 +51,9 @@ export class RevealUIGlobal {
 
     if (this.db?.query) {
       const slug = this.config.slug;
-      if (!/^[a-z][a-z0-9_-]{0,62}$/.test(slug)) {
+      try {
+        validateSlug(slug);
+      } catch {
         throw new Error(
           `Invalid global slug: "${slug}". Must be lowercase alphanumeric with hyphens/underscores.`,
         );
@@ -144,7 +150,9 @@ export class RevealUIGlobal {
 
     if (this.db?.query) {
       const slug = this.config.slug;
-      if (!/^[a-z][a-z0-9_-]{0,62}$/.test(slug)) {
+      try {
+        validateSlug(slug);
+      } catch {
         throw new Error(
           `Invalid global slug: "${slug}". Must be lowercase alphanumeric with hyphens/underscores.`,
         );
@@ -160,9 +168,7 @@ export class RevealUIGlobal {
         // Validate column names against allowlist (prevent arbitrary column writes)
         const keys = Object.keys(data);
         for (const key of keys) validateColumnName(key);
-        const setClause = keys
-          .map((key, i) => `"${key.replace(/"/g, '""')}" = $${i + 1}`)
-          .join(', ');
+        const setClause = keys.map((key, i) => `"${escapeIdentifier(key)}" = $${i + 1}`).join(', ');
         const values = keys.map((key) => {
           const value = data[key];
           // Serialize non-primitive values to JSON strings for SQLite compatibility
@@ -195,7 +201,7 @@ export class RevealUIGlobal {
           }
           return value;
         });
-        const query = `INSERT INTO "${tableName}" (id, ${columns.map((c) => `"${c.replace(/"/g, '""')}"`).join(', ')}) VALUES ($1, ${placeholders})`;
+        const query = `INSERT INTO "${tableName}" (id, ${columns.map((c) => `"${escapeIdentifier(c)}"`).join(', ')}) VALUES ($1, ${placeholders})`;
         await this.db.query(query, [id, ...values]);
       }
 

@@ -69,6 +69,18 @@ function getBaseUrl(req: Request): string {
   return `${proto}://${url.host}`;
 }
 
+/** Validate agent ID: 1-256 word characters or hyphens */
+function isValidAgentId(id: string): boolean {
+  if (id.length < 1 || id.length > 256) return false;
+  for (const ch of id) {
+    const c = ch.charCodeAt(0);
+    const isAlpha = (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
+    const isDigit = c >= 48 && c <= 57;
+    if (!(isAlpha || isDigit || c === 95 || c === 45)) return false; // _ or -
+  }
+  return true;
+}
+
 // Build an LLMClient from BYOK headers (X-AI-Provider + X-AI-Api-Key).
 // Keys are never stored — they exist only for the duration of this request.
 const VALID_PROVIDERS = new Set<string>(LLM_PROVIDERS);
@@ -176,7 +188,7 @@ app.openapi(
       );
     }
     const { id: agentId } = c.req.valid('param');
-    if (!/^[\w-]{1,256}$/.test(agentId)) {
+    if (!isValidAgentId(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
     const baseUrl = getBaseUrl(c.req.raw);
@@ -446,7 +458,7 @@ a2a.openapi(
       );
     }
     const { id: agentId } = c.req.valid('param');
-    if (!/^[\w-]{1,256}$/.test(agentId)) {
+    if (!isValidAgentId(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
     const baseUrl = getBaseUrl(c.req.raw);
@@ -505,7 +517,7 @@ a2a.openapi(
       );
     }
     const { id: agentId } = c.req.valid('param');
-    if (!/^[\w-]{1,256}$/.test(agentId)) {
+    if (!isValidAgentId(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
     const def = aiMod.agentCardRegistry.getDef(agentId);
@@ -550,7 +562,7 @@ a2a.openapi(
       return c.json({ error: 'Authentication required' }, 401);
     }
     const { id: agentId } = c.req.valid('param');
-    if (!/^[\w-]{1,256}$/.test(agentId)) {
+    if (!isValidAgentId(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
     try {
@@ -630,7 +642,7 @@ a2a.openapi(
       );
     }
     const { id: agentId } = c.req.valid('param');
-    if (!/^[\w-]{1,256}$/.test(agentId)) {
+    if (!isValidAgentId(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
     if (!aiMod.agentCardRegistry.has(agentId)) {
@@ -727,7 +739,7 @@ a2a.openapi(
   }),
   async (c) => {
     const { id: agentId } = c.req.valid('param');
-    if (!/^[\w-]{1,256}$/.test(agentId)) {
+    if (!isValidAgentId(agentId)) {
       return c.json({ error: 'Invalid agent ID format' }, 400);
     }
 

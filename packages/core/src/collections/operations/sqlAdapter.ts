@@ -16,10 +16,23 @@ export type QueryableCollectionDb = {
  */
 
 /** Only lowercase alphanumeric, hyphens, and underscores (1-63 chars, PostgreSQL identifier limit). */
-const VALID_SLUG = /^[a-z][a-z0-9_-]{0,62}$/;
+function isValidSlug(s: string): boolean {
+  if (s.length < 1 || s.length > 63) return false;
+  // First char must be lowercase letter
+  const first = s.charCodeAt(0);
+  if (first < 97 || first > 122) return false;
+  for (let i = 1; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    const isLower = c >= 97 && c <= 122;
+    const isDigit = c >= 48 && c <= 57;
+    // underscore = 95, hyphen = 45
+    if (!(isLower || isDigit || c === 95 || c === 45)) return false;
+  }
+  return true;
+}
 
 export function validateSlug(slug: string): void {
-  if (!VALID_SLUG.test(slug)) {
+  if (!isValidSlug(slug)) {
     throw new Error(
       `Invalid collection slug: "${slug}". Slugs must start with a lowercase letter and contain only lowercase alphanumeric characters, hyphens, and underscores (max 63 chars).`,
     );
@@ -27,10 +40,23 @@ export function validateSlug(slug: string): void {
 }
 
 /** Only lowercase alphanumeric and underscores (PostgreSQL column name safe). */
-const VALID_COLUMN = /^[a-z_][a-z0-9_]{0,62}$/;
+function isValidColumnName(s: string): boolean {
+  if (s.length < 1 || s.length > 63) return false;
+  // First char must be lowercase letter or underscore
+  const first = s.charCodeAt(0);
+  const firstIsLower = first >= 97 && first <= 122;
+  if (!(firstIsLower || first === 95)) return false;
+  for (let i = 1; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    const isLower = c >= 97 && c <= 122;
+    const isDigit = c >= 48 && c <= 57;
+    if (!(isLower || isDigit || c === 95)) return false;
+  }
+  return true;
+}
 
 export function validateColumnName(column: string): void {
-  if (!VALID_COLUMN.test(column)) {
+  if (!isValidColumnName(column)) {
     throw new Error(
       `Invalid column name: "${column}". Column names must start with a lowercase letter or underscore and contain only lowercase alphanumeric characters and underscores.`,
     );
@@ -38,7 +64,7 @@ export function validateColumnName(column: string): void {
 }
 
 export function escapeIdentifier(identifier: string): string {
-  return identifier.replace(/"/g, '""');
+  return identifier.split('"').join('""');
 }
 
 export function collectionTable(configSlug: string): string {

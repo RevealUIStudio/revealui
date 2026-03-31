@@ -37,6 +37,18 @@ function assertWorkspaceAccess(
   }
 }
 
+/** Validate collection name: alphanumeric, underscores, hyphens only */
+function isValidCollectionName(name: string): boolean {
+  if (name.length === 0) return false;
+  for (const ch of name) {
+    const c = ch.charCodeAt(0);
+    const isAlpha = (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
+    const isDigit = c >= 48 && c <= 57;
+    if (!(isAlpha || isDigit || c === 95 || c === 45)) return false;
+  }
+  return true;
+}
+
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
 // =============================================================================
@@ -91,7 +103,7 @@ app.openapi(
     const { workspaceId, collection } = c.req.valid('param');
     assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
 
-    if (!/^[a-zA-Z0-9_-]+$/.test(collection)) {
+    if (!isValidCollectionName(collection)) {
       return c.json({ success: false, error: 'Invalid collection name' }, 400);
     }
 

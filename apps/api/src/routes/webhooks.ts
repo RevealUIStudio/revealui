@@ -1952,18 +1952,17 @@ app.openapi(stripeWebhookRoute, async (c) => {
           lastPaymentError: paymentIntent.last_payment_error?.message ?? 'unknown',
         });
         // Stripe retries automatically per the retry schedule.
-        // Log structured event for external notification pipeline (email/Slack).
-        // TODO: Wire up transactional email (e.g., Resend) to notify customer of payment failure
-        // with retry information and support contact link.
-        logger.info('payment.failed.notification', {
-          type: 'customer_notification',
-          customerId: failedCustomerId,
-          paymentIntentId: paymentIntent.id,
-          amount: paymentIntent.amount,
-          currency: paymentIntent.currency,
-          errorMessage: paymentIntent.last_payment_error?.message ?? 'unknown',
-          retrySchedule: 'stripe_automatic',
-        });
+        // Notify the customer so they can update their payment method proactively.
+        if (failedCustomerId) {
+          const failedEmail = await findUserEmailByCustomerId(db, failedCustomerId);
+          if (failedEmail) {
+            sendPaymentFailedEmail(failedEmail).catch((err) => {
+              logger.error('Failed to send payment failed email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
+          }
+        }
         auditLicenseEvent(db, 'payment.intent.failed', 'warn', {
           paymentIntentId: paymentIntent.id,
           customerId: failedCustomerId,

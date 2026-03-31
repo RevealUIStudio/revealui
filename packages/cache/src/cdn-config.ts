@@ -538,16 +538,22 @@ export function shouldCacheResponse(status: number, headers: Headers): boolean {
 export function getCacheTTL(headers: Headers): number {
   const cacheControl = headers.get('cache-control') || '';
 
-  // Check s-maxage first (CDN)
-  const sMaxAgeMatch = cacheControl.match(/s-maxage=(\d+)/);
-  if (sMaxAgeMatch?.[1]) {
-    return parseInt(sMaxAgeMatch[1], 10);
+  // Check s-maxage first (CDN), then max-age
+  for (const directive of cacheControl.split(',')) {
+    const trimmed = directive.trim();
+    if (trimmed.startsWith('s-maxage=')) {
+      const val = trimmed.slice('s-maxage='.length);
+      const num = Number.parseInt(val, 10);
+      if (!Number.isNaN(num)) return num;
+    }
   }
-
-  // Check max-age
-  const maxAgeMatch = cacheControl.match(/max-age=(\d+)/);
-  if (maxAgeMatch?.[1]) {
-    return parseInt(maxAgeMatch[1], 10);
+  for (const directive of cacheControl.split(',')) {
+    const trimmed = directive.trim();
+    if (trimmed.startsWith('max-age=')) {
+      const val = trimmed.slice('max-age='.length);
+      const num = Number.parseInt(val, 10);
+      if (!Number.isNaN(num)) return num;
+    }
   }
 
   // Check Expires header
