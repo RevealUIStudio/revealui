@@ -1,0 +1,128 @@
+name: Release Canary
+
+# Publishes canary/snapshot releases to npm on every push to `test`.
+# Uses Changesets snapshot mode to generate `0.0.0-canary-<timestamp>` versions.
+# These are ephemeral — no commits, no tags, no GitHub releases.
+#
+# Install canary versions with:
+#   pnpm add @revealui/core@canary
+#
+# Prerequisites: same OIDC trusted publishing setup as release.yml,
+# but the workflow name must also be registered: release-canary.yml
+
+on:
+  push:
+    branches:
+      - test
+
+permissions:
+  contents: read # no tags or releases needed
+  id-token: write # OIDC token for npm provenance
+
+concurrency:
+  group: release-canary
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+
+jobs:
+  canary:
+    name: Publish canary to npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: npm-publish
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for changesets
+        id: changesets
+        run: |
+          # Count .md files in .changeset/ (excluding README and config)
+          COUNT=$(find .changeset -name '*.md' ! -name 'README.md' | wc -l)
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No changesets found — skipping canary release."
+          else
+            echo "Found $COUNT changeset(s) — proceeding with canary release."
+          fi
+
+      - name: Apply snapshot versions
+        if: steps.changesets.outputs.count != '0'
+        run: pnpm changeset version --snapshot canary
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build all packages
+        if: steps.changesets.outputs.count != '0'
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Validate build artifacts
+        if: steps.changesets.outputs.count != '0'
+        run: |
+          echo "Checking dist/ output for OSS packages..."
+          FAILED=0
+          for pkg in auth cli config contracts core create-revealui db presentation router setup sync utils; do
+            DIR="packages/$pkg/dist"
+            if [ ! -d "$DIR" ] || [ -z "$(ls -A "$DIR" 2>/dev/null)" ]; then
+              echo "FAIL $pkg: dist/ is empty or missing"
+              FAILED=1
+            else
+              COUNT=$(ls "$DIR"/*.js 2>/dev/null | wc -l)
+              echo "OK $pkg: $COUNT .js files"
+            fi
+          done
+          if [ "$FAILED" -eq 1 ]; then
+            echo ""
+            echo "Build artifact validation failed"
+            exit 1
+          fi
+          echo ""
+          echo "All build artifacts validated"
+
+      - name: Publish canary to npm
+        if: steps.changesets.outputs.count != '0'
+        run: pnpm changeset publish --tag canary --no-git-checks --provenance
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        if: steps.changesets.outputs.count != '0'
+        run: |
+          echo "## Canary Release Published" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Snapshot versions published to npm with the \`canary\` dist-tag." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Install with:" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "pnpm add @revealui/core@canary" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Summary (skipped)
+        if: steps.changesets.outputs.count == '0'
+        run: |
+          echo "## Canary Release Skipped" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "No changesets found — nothing to publish." >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,183 @@
+{
+  "Profiles": [
+    {
+      "Name": "RevealUI",
+      "Guid": "revealui-terminal-profile-7C3AED",
+      "Dynamic Profile Parent Name": "Default",
+      "Custom Directory": "No",
+      "Working Directory": "",
+      "Scrollback Lines": 10000,
+      "Unlimited Scrollback": false,
+      "Normal Font": "JetBrainsMonoNF-Regular 14",
+      "Non Ascii Font": "JetBrainsMonoNF-Regular 14",
+      "Use Non-ASCII Font": false,
+      "ASCII Anti Aliased": true,
+      "Non-ASCII Anti Aliased": true,
+      "Ambiguous Double Width": false,
+      "Minimum Contrast": 0,
+      "Cursor Type": 1,
+      "Cursor Color": {
+        "Red Component": 0.486,
+        "Green Component": 0.227,
+        "Blue Component": 0.929,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Cursor Text Color": {
+        "Red Component": 0.894,
+        "Green Component": 0.894,
+        "Blue Component": 0.906,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Background Color": {
+        "Red Component": 0.039,
+        "Green Component": 0.039,
+        "Blue Component": 0.059,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Foreground Color": {
+        "Red Component": 0.894,
+        "Green Component": 0.894,
+        "Blue Component": 0.906,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Bold Color": {
+        "Red Component": 0.980,
+        "Green Component": 0.980,
+        "Blue Component": 0.980,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Selection Color": {
+        "Red Component": 0.247,
+        "Green Component": 0.247,
+        "Blue Component": 0.275,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Selected Text Color": {
+        "Red Component": 0.894,
+        "Green Component": 0.894,
+        "Blue Component": 0.906,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 0 Color": {
+        "Red Component": 0.094,
+        "Green Component": 0.094,
+        "Blue Component": 0.106,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 1 Color": {
+        "Red Component": 0.937,
+        "Green Component": 0.267,
+        "Blue Component": 0.267,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 2 Color": {
+        "Red Component": 0.133,
+        "Green Component": 0.773,
+        "Blue Component": 0.369,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 3 Color": {
+        "Red Component": 0.918,
+        "Green Component": 0.702,
+        "Blue Component": 0.031,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 4 Color": {
+        "Red Component": 0.231,
+        "Green Component": 0.510,
+        "Blue Component": 0.965,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 5 Color": {
+        "Red Component": 0.659,
+        "Green Component": 0.333,
+        "Blue Component": 0.969,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 6 Color": {
+        "Red Component": 0.024,
+        "Green Component": 0.714,
+        "Blue Component": 0.831,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 7 Color": {
+        "Red Component": 0.894,
+        "Green Component": 0.894,
+        "Blue Component": 0.906,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 8 Color": {
+        "Red Component": 0.247,
+        "Green Component": 0.247,
+        "Blue Component": 0.275,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 9 Color": {
+        "Red Component": 0.973,
+        "Green Component": 0.443,
+        "Blue Component": 0.443,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 10 Color": {
+        "Red Component": 0.290,
+        "Green Component": 0.871,
+        "Blue Component": 0.502,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 11 Color": {
+        "Red Component": 0.980,
+        "Green Component": 0.800,
+        "Blue Component": 0.082,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 12 Color": {
+        "Red Component": 0.376,
+        "Green Component": 0.647,
+        "Blue Component": 0.980,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 13 Color": {
+        "Red Component": 0.753,
+        "Green Component": 0.518,
+        "Blue Component": 0.988,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 14 Color": {
+        "Red Component": 0.133,
+        "Green Component": 0.827,
+        "Blue Component": 0.933,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Ansi 15 Color": {
+        "Red Component": 0.980,
+        "Green Component": 0.980,
+        "Blue Component": 0.980,
+        "Alpha Component": 1,
+        "Color Space": "sRGB"
+      },
+      "Tags": ["RevealUI"]
+    }
+  ]
+}

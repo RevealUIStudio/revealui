@@ -1,0 +1,53 @@
+# RevealUI GNOME Terminal Profile
+#
+# Install:
+#   1. Create a new profile in GNOME Terminal (or use the UUID below)
+#   2. Run: dconf load /org/gnome/terminal/legacy/profiles:/:revealui/ < gnome-terminal-revealui.dconf
+#
+# To generate a fresh UUID: uuidgen
+# Then replace the path above with: /org/gnome/terminal/legacy/profiles:/:YOUR-UUID/
+#
+# After loading, add the UUID to the profile list:
+#   EXISTING=$(dconf read /org/gnome/terminal/legacy/profiles:/list)
+#   dconf write /org/gnome/terminal/legacy/profiles:/list "${EXISTING%]*}, 'revealui']"
+
+[/]
+visible-name='RevealUI'
+audible-bell=false
+scrollback-lines=10000
+scrollback-unlimited=false
+
+# Font: JetBrains Mono 14pt
+use-system-font=false
+font='JetBrains Mono 14'
+
+# Use custom colors (not system theme)
+use-theme-colors=false
+
+# Primary colors
+foreground-color='#E4E4E7'
+background-color='#0A0A0F'
+bold-color='#FAFAFA'
+bold-color-same-as-fg=false
+
+# Cursor: violet-600
+cursor-foreground-color='#0A0A0F'
+cursor-background-color='#7C3AED'
+cursor-colors-set=true
+cursor-shape='block'
+cursor-blink-mode='on'
+
+# Selection
+highlight-foreground-color='#E4E4E7'
+highlight-background-color='#3F3F46'
+highlight-colors-set=true
+
+# Background transparency (0 = opaque, 1 = fully transparent)
+background-transparency-percent=4
+use-transparent-background=true
+
+# ANSI palette (16 colors):
+# black, red, green, yellow, blue, magenta, cyan, white,
+# bright-black, bright-red, bright-green, bright-yellow,
+# bright-blue, bright-magenta, bright-cyan, bright-white
+palette=['#18181B', '#EF4444', '#22C55E', '#EAB308', '#3B82F6', '#A855F7', '#06B6D4', '#E4E4E7', '#3F3F46', '#F87171', '#4ADE80', '#FACC15', '#60A5FA', '#C084FC', '#22D3EE', '#FAFAFA']

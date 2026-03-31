@@ -1,0 +1,98 @@
+# RevealUI Alacritty Configuration
+# Alacritty v0.13+ (TOML format)
+#
+# Usage: Copy to ~/.config/alacritty/alacritty.toml
+#   or import with: [general] import = ["path/to/alacritty-revealui.toml"]
+
+[general]
+live_config_reload = true
+
+# Window
+[window]
+padding = { x = 8, y = 8 }
+opacity = 0.96
+title = "RevealUI"
+dynamic_title = true
+decorations = "Full"
+
+# Scrollback
+[scrolling]
+history = 10000
+multiplier = 3
+
+# Font: JetBrains Mono with fallbacks
+[font]
+size = 14.0
+
+[font.normal]
+family = "JetBrains Mono"
+style = "Regular"
+
+[font.bold]
+family = "JetBrains Mono"
+style = "Bold"
+
+[font.italic]
+family = "JetBrains Mono"
+style = "Italic"
+
+[font.bold_italic]
+family = "JetBrains Mono"
+style = "Bold Italic"
+
+# Color scheme: RevealUI brand
+# Purple accent on near-black background, Tailwind CSS zinc palette
+[colors.primary]
+background = "#0A0A0F"
+foreground = "#E4E4E7"
+
+[colors.cursor]
+cursor = "#7C3AED"   # violet-600
+text = "#0A0A0F"
+
+[colors.vi_mode_cursor]
+cursor = "#7C3AED"
+text = "#0A0A0F"
+
+[colors.selection]
+background = "#3F3F46"  # zinc-700
+text = "#E4E4E7"
+
+[colors.search.matches]
+background = "#7C3AED"
+foreground = "#FAFAFA"
+
+[colors.search.focused_match]
+background = "#A855F7"
+foreground = "#FAFAFA"
+
+# Normal ANSI colors
+[colors.normal]
+black   = "#18181B"  # zinc-900
+red     = "#EF4444"  # red-500
+green   = "#22C55E"  # green-500
+yellow  = "#EAB308"  # yellow-500
+blue    = "#3B82F6"  # blue-500
+magenta = "#A855F7"  # purple-500
+cyan    = "#06B6D4"  # cyan-500
+white   = "#E4E4E7"  # zinc-200
+
+# Bright ANSI colors
+[colors.bright]
+black   = "#3F3F46"  # zinc-700
+red     = "#F87171"  # red-400
+green   = "#4ADE80"  # green-400
+yellow  = "#FACC15"  # yellow-400
+blue    = "#60A5FA"  # blue-400
+magenta = "#C084FC"  # purple-400
+cyan    = "#22D3EE"  # cyan-400
+white   = "#FAFAFA"  # zinc-50
+
+# Cursor
+[cursor.style]
+shape = "Block"
+blinking = "On"
+
+[cursor.vi_mode_style]
+shape = "Block"
+blinking = "Off"

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  RevealUI Terminal.app Profile
+
+  Terminal.app stores colors as NSArchiver binary blobs, which cannot be
+  hand-authored in XML. This profile sets the structural options (font,
+  scrollback, window size) but the color scheme must be configured manually.
+
+  Installation:
+    1. Double-click this file (or Terminal > Settings > Profiles > Import)
+    2. Open the profile settings and set colors manually:
+
+       Background:   #0A0A0F
+       Text:         #E4E4E7
+       Bold:         #FAFAFA
+       Cursor:       #7C3AED
+       Selection:    #3F3F46
+
+       ANSI colors (Normal / Bright):
+       Black:    #18181B / #3F3F46
+       Red:      #EF4444 / #F87171
+       Green:    #22C55E / #4ADE80
+       Yellow:   #EAB308 / #FACC15
+       Blue:     #3B82F6 / #60A5FA
+       Magenta:  #A855F7 / #C084FC
+       Cyan:     #06B6D4 / #22D3EE
+       White:    #E4E4E7 / #FAFAFA
+-->
+<plist version="1.0">
+<dict>
+	<key>name</key>
+	<string>RevealUI</string>
+	<key>type</key>
+	<string>Window Settings</string>
+
+	<!-- Font: JetBrains Mono 14pt -->
+	<!-- Terminal.app reads the font name from this string -->
+	<key>FontName</key>
+	<string>JetBrainsMonoNF-Regular</string>
+	<key>FontSize</key>
+	<integer>14</integer>
+	<key>FontAntialias</key>
+	<true/>
+	<key>FontWidthSpacing</key>
+	<real>1.0</real>
+	<key>FontHeightSpacing</key>
+	<real>1.0</real>
+
+	<!-- Window settings -->
+	<key>WindowTitle</key>
+	<string>RevealUI</string>
+	<key>columnCount</key>
+	<integer>120</integer>
+	<key>rowCount</key>
+	<integer>36</integer>
+
+	<!-- Scrollback: 10,000 lines -->
+	<key>ScrollbackLines</key>
+	<integer>10000</integer>
+
+	<!-- Cursor -->
+	<key>CursorBlink</key>
+	<true/>
+	<key>CursorType</key>
+	<integer>0</integer>
+
+	<!-- Shell exit behavior: close if clean exit -->
+	<key>shellExitAction</key>
+	<integer>1</integer>
+
+	<!-- Use custom colors (not system defaults) -->
+	<key>useOptionAsMetaKey</key>
+	<false/>
+</dict>
+</plist>
