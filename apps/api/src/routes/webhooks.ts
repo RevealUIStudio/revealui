@@ -41,6 +41,7 @@ import {
   sendRefundProcessedEmail,
   sendTierFallbackAlert,
   sendTrialEndingEmail,
+  sendTrialExpiredEmail,
   sendWebhookFailureAlert,
 } from '../lib/webhook-emails.js';
 import { resetDbStatusCache } from '../middleware/license.js';
@@ -1349,6 +1350,22 @@ app.openapi(stripeWebhookRoute, async (c) => {
               subscriptionId: subscription.id,
               tier: newTier,
             });
+
+            // If this was a trial → active conversion, notify the customer that
+            // their trial has ended and billing has begun.
+            const prev = event.data.previous_attributes as Record<string, unknown> | undefined;
+            if (prev?.status === 'trialing') {
+              emailToSend = async () => {
+                const email = await findUserEmailByCustomerId(db, customerId);
+                if (email) {
+                  sendTrialExpiredEmail(email, newTier).catch((err) => {
+                    logger.error('Failed to send trial expired email', undefined, {
+                      detail: err instanceof Error ? err.message : 'unknown',
+                    });
+                  });
+                }
+              };
+            }
           }
 
           // Handle terminal subscription states that aren't covered above
