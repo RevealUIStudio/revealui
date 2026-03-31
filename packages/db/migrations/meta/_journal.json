@@ -43,6 +43,13 @@
       "when": 1774921923636,
       "tag": "0005_daily_hardball",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1774926441223,
+      "tag": "0006_pink_unicorn",
+      "breakpoints": true
     }
   ]
 }
