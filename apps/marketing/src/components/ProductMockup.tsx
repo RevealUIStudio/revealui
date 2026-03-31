@@ -188,7 +188,7 @@ export function ProductMockup() {
         {/* Status bar */}
         <div className="px-5 py-2 bg-blue-600/20 border-t border-gray-800 flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-green-400" />
-          <span className="text-xs text-gray-400 font-mono">TypeScript · RevealUI v0.5.2</span>
+          <span className="text-xs text-gray-400 font-mono">TypeScript · RevealUI v0.3.4</span>
         </div>
       </div>
     </div>
