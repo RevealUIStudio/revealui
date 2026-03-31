@@ -18,11 +18,12 @@ name: Deploy
 #   3. Add repository variable TURBO_TEAM   — Vercel team slug (e.g. "revealuistudio")
 
 on:
-  # H-06: Deploy only after CI succeeds (was: push to main/test)
+  # H-06: Deploy only after CI succeeds on main (production).
+  # Test deploys are manual-only (workflow_dispatch) to stay within Hobby plan limits.
   workflow_run:
     workflows: ["CI"]
     types: [completed]
-    branches: [main, test]
+    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
