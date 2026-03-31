@@ -1,3 +1,10 @@
+---
+title: "CMS Guide"
+description: "Collections, access control, hooks, rich text, media, and admin dashboard"
+category: guide
+audience: developer
+---
+
 # RevealUI CMS Guide
 
 **Purpose**: Complete guide to using the RevealUI CMS

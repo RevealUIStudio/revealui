@@ -1,3 +1,10 @@
+---
+title: "System Architecture"
+description: "RevealUI system architecture reference — apps, packages, data flow, and deployment"
+category: architecture
+audience: developer
+---
+
 # RevealUI System Architecture
 
 **Last Updated:** 2026-03-16

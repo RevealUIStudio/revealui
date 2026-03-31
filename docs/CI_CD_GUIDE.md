@@ -1,3 +1,10 @@
+---
+title: "CI/CD Deployment Guide"
+description: "GitHub Actions, Vercel deployment, preview environments, and release pipeline"
+category: operations
+audience: maintainer
+---
+
 # RevealUI CI/CD Deployment Guide
 
 **Last Updated**: March 2026

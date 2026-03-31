@@ -1,3 +1,10 @@
+---
+title: "Code Standards"
+description: "Code style, formatting, Biome configuration, and naming conventions"
+category: guide
+audience: contributor
+---
+
 # Code Style & Formatting Standards
 
 This document describes the code style, linting, and formatting standards for the RevealUI monorepo, including best practices for ensuring LLMs generate consistent code.

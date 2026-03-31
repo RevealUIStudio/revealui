@@ -1,3 +1,10 @@
+---
+title: "Roadmap"
+description: "Product roadmap with planned features, timelines, and priorities"
+category: planning
+audience: developer
+---
+
 # RevealUI Roadmap
 
 > The agentic business runtime. Build your business, not your boilerplate.

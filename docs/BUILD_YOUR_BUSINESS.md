@@ -1,3 +1,10 @@
+---
+title: "Build Your First Business"
+description: "Step-by-step tutorial for building a SaaS product with RevealUI"
+category: tutorial
+audience: developer
+---
+
 # Build Your First Business with RevealUI
 
 This tutorial walks you from zero to a deployed SaaS product in under an hour. You'll build a simple product catalog with user accounts, billing, and an admin dashboard — the same foundation you'd use for any software business.

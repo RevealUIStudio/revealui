@@ -1,3 +1,10 @@
+---
+title: "Example Projects"
+description: "Sample applications and use cases built with RevealUI"
+category: tutorial
+audience: developer
+---
+
 # Example Projects
 
 Three complete examples showing how to build real products with RevealUI. Each example includes the full collection definitions, config, and API usage patterns.

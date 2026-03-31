@@ -1,3 +1,10 @@
+---
+title: "Performance Testing"
+description: "Load testing, benchmarks, optimization targets, and monitoring"
+category: operations
+audience: maintainer
+---
+
 # Performance Testing and Optimization
 
 This comprehensive guide covers performance testing strategy, budgets, testing procedures, monitoring, and optimization for RevealUI.

@@ -1,3 +1,10 @@
+---
+title: "Documentation Index"
+description: "Entry point and navigation hub for all RevealUI documentation"
+category: index
+audience: developer
+---
+
 # RevealUI Documentation
 
 The agentic business runtime. Build your business, not your boilerplate.

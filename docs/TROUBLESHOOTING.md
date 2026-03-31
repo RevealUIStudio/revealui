@@ -1,3 +1,10 @@
+---
+title: "Troubleshooting"
+description: "Common issues, error messages, and solutions for RevealUI development"
+category: guide
+audience: developer
+---
+
 # Troubleshooting Guide
 
 **Last Updated**: 2026-02-01

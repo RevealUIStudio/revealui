@@ -1,3 +1,10 @@
+---
+title: "Forge — Self-Hosted Deployment"
+description: "Enterprise self-hosted deployment with multi-tenant architecture and white-labeling"
+category: guide
+audience: enterprise
+---
+
 # RevealUI Forge — Self-Hosted Deployment
 
 Forge is the enterprise tier of RevealUI. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.

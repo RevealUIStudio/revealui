@@ -1,3 +1,10 @@
+---
+title: "The VAUGHN Protocol"
+description: "Multi-agent coordination protocol — Verified, Autonomous, Unified, Governed, Harmonized, Networked"
+category: philosophy
+audience: developer
+---
+
 # The VAUGHN Protocol
 
 **Versioned Agent Unification, Governance, Handoff, and Normalization**

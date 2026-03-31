@@ -1,3 +1,10 @@
+---
+title: "The JOSHUA Stack"
+description: "Six engineering principles — Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive"
+category: philosophy
+audience: developer
+---
+
 # The JOSHUA Stack
 
 Six engineering principles that govern every architectural decision in RevealUI.
