@@ -68,7 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <LivePreviewListener />
 
               <Header />
-              {children}
+              <main>{children}</main>
               <Footer />
             </ErrorBoundary>
           </Providers>
@@ -85,12 +85,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     return (
       <html lang="en">
         <body>
-          <div style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
+          <main style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
             <p style={{ color: '#525252' }}>
               CMS is initializing. Some features may be unavailable.
             </p>
-          </div>
-          {children}
+            {children}
+          </main>
         </body>
       </html>
     );
