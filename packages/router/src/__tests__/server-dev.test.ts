@@ -22,7 +22,7 @@ const { loggerInfo, honoGet, honoFetch, HonoMock, serveMock } = vi.hoisted(() =>
   };
 });
 
-vi.mock('@revealui/core/observability/logger', () => ({
+vi.mock('@revealui/utils/logger', () => ({
   logger: {
     error: vi.fn(),
     warn: vi.fn(),

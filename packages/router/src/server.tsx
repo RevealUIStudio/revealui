@@ -1,4 +1,4 @@
-import { logger } from '@revealui/core/observability/logger';
+import { logger } from '@revealui/utils/logger';
 import type { Context } from 'hono';
 import { renderToReadableStream, renderToString } from 'react-dom/server';
 import { RouterProvider, Routes } from './components';
