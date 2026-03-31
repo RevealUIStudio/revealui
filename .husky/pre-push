@@ -37,6 +37,13 @@ if [ -n "$RANGE" ]; then
   fi
 fi
 
+# ── Sentinel file: signals to auto-commit hook that a gate is running ──
+GIT_DIR=$(git rev-parse --git-dir)
+GATE_SENTINEL="$GIT_DIR/gate-in-progress"
+cleanup_sentinel() { rm -f "$GATE_SENTINEL"; }
+trap cleanup_sentinel EXIT
+echo $$ > "$GATE_SENTINEL"
+
 # ── Save dirty files to /tmp (never use git stash — it loses data on pop) ──
 # Skip if the coordinated push script already handled this
 SAVE_DIR=""

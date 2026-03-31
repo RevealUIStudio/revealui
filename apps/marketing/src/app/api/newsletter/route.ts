@@ -55,11 +55,13 @@ export async function POST(request: Request) {
     if (res.ok) {
       return NextResponse.json({ message: 'Welcome aboard. Check your inbox for a confirmation.' });
     }
-    // API not available or returned error — still accept gracefully
   } catch {
-    // API unavailable — accept gracefully
+    // API unavailable
   }
 
-  // Graceful fallback — accept subscription even if API is down
-  return NextResponse.json({ message: 'Welcome aboard. You will hear from us soon.' });
+  // API down or errored — tell the user so they can retry
+  return NextResponse.json(
+    { message: 'Our service is temporarily unavailable. Please try again in a few minutes.' },
+    { status: 503 },
+  );
 }
