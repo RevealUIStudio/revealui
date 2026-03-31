@@ -50,6 +50,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     ...blogPostEntries,
     {
+      url: `${baseUrl}/coming-soon`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
       url: `${baseUrl}/contact`,
       lastModified: new Date(),
       changeFrequency: 'yearly',
