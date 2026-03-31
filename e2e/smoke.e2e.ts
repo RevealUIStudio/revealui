@@ -118,17 +118,19 @@ test.describe('Marketing page', () => {
   test('Pricing page renders tier cards', async ({ page }) => {
     await page.goto(`${MarketingBase}/pricing`, { waitUntil: 'domcontentloaded' });
     // Verify at least one pricing tier heading is visible
-    await expect(page.getByText(/free|pro|enterprise/i).first()).toBeVisible();
+    await expect(page.getByText(/free|pro|max|enterprise/i).first()).toBeVisible();
   });
 
   test('Waitlist POST returns success', async ({ request }) => {
     const response = await request.post(`${MarketingBase}/api/waitlist`, {
       data: { email: `smoke-test-${Date.now()}@example.com`, source: 'smoke-test' },
     });
-    // 201 (new signup) or 200 (duplicate) — both are success
-    expect([200, 201]).toContain(response.status());
-    const body = (await response.json()) as Record<string, unknown>;
-    expect(body.success).toBe(true);
+    // 201 (new signup), 200 (duplicate), or 410 (waitlist closed post-launch)
+    expect([200, 201, 410]).toContain(response.status());
+    if (response.status() !== 410) {
+      const body = (await response.json()) as Record<string, unknown>;
+      expect(body.success).toBe(true);
+    }
   });
 
   test('Marketing homepage has no critical accessibility violations', async ({ page }) => {
