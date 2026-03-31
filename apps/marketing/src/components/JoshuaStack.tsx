@@ -51,7 +51,7 @@ const principles = [
 
 export function JoshuaStack() {
   return (
-    <section className="py-24 bg-white sm:py-32">
+    <section className="py-24 bg-[#fafafa] sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
@@ -61,8 +61,8 @@ export function JoshuaStack() {
             The JOSHUA Stack
           </p>
           <p className="mt-4 text-base leading-7 text-gray-500">
-            Six principles that govern every architectural decision in RevealUI. Not marketing —
-            engineering constraints we hold ourselves to.
+            Not the only way to build software — but a proven way. Six principles that give you a
+            defensible starting point. Evolve them as your product grows.
           </p>
         </div>
         <div className="mx-auto mt-10 max-w-xs border-t border-gray-200" />

@@ -52,7 +52,7 @@ No assembly required. No consulting 12 different documentation sites. No decisio
 
 ## The JOSHUA Stack
 
-Six principles govern every architectural decision in RevealUI:
+Six principles that give you a tested starting point for every architectural decision. Not the only way — a way that works. Evolve it as you grow:
 
 | Principle | What it means |
 | --- | --- |

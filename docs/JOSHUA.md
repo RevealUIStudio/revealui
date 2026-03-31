@@ -4,6 +4,8 @@ Six engineering principles that govern every architectural decision in RevealUI.
 
 **Justifiable. Orthogonal. Sovereign. Hermetic. Unified. Adaptive.**
 
+The JOSHUA Stack is not a prescription — it's a starting point. We're not claiming this is the only way to build software. We're saying it's *a* way — a tested, coherent set of defaults that work well together. If you're not sure what to pick, start here. As your product and team evolve, adapt the principles to fit. The best architecture is the one that grows with you.
+
 ---
 
 ## Justifiable
@@ -115,6 +117,8 @@ When evaluating a proposed change, ask:
 6. **Is it Adaptive?** Can a user swap this component? Does it degrade gracefully without the Pro tier?
 
 If a change violates a principle, it's not automatically rejected — but the violation must be documented and justified. The principle is the default; exceptions require reasoning.
+
+Remember: these are starting coordinates, not a cage. The JOSHUA Stack gives you a decision you can defend on day one. When your context changes — and it will — you'll know exactly which principle you're bending and why.
 
 ---
 
