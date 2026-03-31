@@ -1,6 +1,6 @@
 {
   "name": "@revealui/router",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Lightweight internal router for RevealUI apps (docs, marketing). Not a general-purpose router.",
   "license": "MIT",
   "dependencies": {

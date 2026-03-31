@@ -1,5 +1,11 @@
 # @revealui/db
 
+## 0.3.2
+
+### Patch Changes
+
+- fix(db): add soft-delete (`deletedAt`) columns to orders and licenses tables for financial audit compliance, fix dual-DB boundary so `agentMemories` exports from rest schema instead of vector, remove orphaned migration file
+
 ## 0.3.1
 
 ### Patch Changes

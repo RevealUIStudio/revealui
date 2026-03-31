@@ -1,5 +1,13 @@
 # @revealui/security
 
+## 0.2.2
+
+### Patch Changes
+
+- fix(security): RFC 6238 TOTP compliance — base32 decode key and 8-byte big-endian counter encoding so generated codes match standard authenticator apps
+- Updated dependencies
+  - @revealui/contracts@1.3.2
+
 ## 0.2.1
 
 ### Patch Changes

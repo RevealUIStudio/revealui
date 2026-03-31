@@ -1,6 +1,6 @@
 {
   "name": "@revealui/sync",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "ElectricSQL sync utilities for RevealUI",
   "license": "MIT",
   "dependencies": {
