@@ -354,7 +354,7 @@ jobs:
         run: pnpm --filter api start &
         env:
           SKIP_ENV_VALIDATION: "true"
-          NODE_ENV: "test"
+          NODE_ENV: "development"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
 
       - name: Start CMS server
