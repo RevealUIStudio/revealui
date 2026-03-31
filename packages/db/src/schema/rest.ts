@@ -9,18 +9,20 @@
  * - Agent contexts, conversations, actions (but NOT agent_memories)
  */
 
-// Export agent schemas except agentMemories
-// Note: AgentMemory types are exported from './vector.js' instead
+// Export agent schemas — agentMemories lives in NeonDB (same as all other tables)
+// despite having a vector column, because its FK constraints reference NeonDB tables.
 export * from './accounts.js';
 export {
   type AgentAction,
   type AgentContext,
   type AgentCreditBalance,
+  type AgentMemory,
   type AgentTaskUsage,
   type AiMemorySession,
   agentActions,
   agentContexts,
   agentCreditBalance,
+  agentMemories,
   agentTaskUsage,
   aiMemorySessions,
   type Conversation,

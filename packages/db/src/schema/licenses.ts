@@ -59,12 +59,16 @@ export const licenses = pgTable(
 
     /** npm username for @revealui Pro package access provisioning */
     npmUsername: text('npm_username'),
+
+    /** Soft-delete — license records must never be hard-deleted for audit trail */
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
     index('licenses_customer_id_idx').on(table.customerId),
     index('licenses_user_id_idx').on(table.userId),
     index('licenses_status_idx').on(table.status),
     index('licenses_subscription_id_idx').on(table.subscriptionId),
+    index('licenses_deleted_at_idx').on(table.deletedAt),
     uniqueIndex('licenses_customer_subscription_unique').on(table.customerId, table.subscriptionId),
   ],
 );

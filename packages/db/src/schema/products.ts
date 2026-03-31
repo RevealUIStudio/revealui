@@ -140,11 +140,15 @@ export const orders = pgTable(
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+
+    /** Soft-delete — financial records must never be hard-deleted */
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
     index('orders_customer_id_idx').on(table.customerId),
     index('orders_status_idx').on(table.status),
     index('orders_created_at_idx').on(table.createdAt),
+    index('orders_deleted_at_idx').on(table.deletedAt),
   ],
 );
 

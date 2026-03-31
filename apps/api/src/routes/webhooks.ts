@@ -1411,12 +1411,19 @@ app.openapi(stripeWebhookRoute, async (c) => {
           }
 
           // Stripe paused subscriptions (payment collection paused by merchant).
-          // Log for observability — license stays active during pause.
+          // Revoke access — paused means no payment, so no entitlement.
           if (subscription.status === 'paused') {
-            logger.warn('Subscription paused — payment collection suspended', {
-              customerId,
-              subscriptionId: subscription.id,
-            });
+            // Expire licenses scoped to this subscription
+            await tx
+              .update(licenses)
+              .set({ status: 'expired', updatedAt: new Date() })
+              .where(
+                and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.subscriptionId, subscription.id),
+                ),
+              );
+
             await syncHostedSubscriptionState(tx, {
               customerId,
               subscriptionId: subscription.id,
@@ -1426,6 +1433,18 @@ app.openapi(stripeWebhookRoute, async (c) => {
               currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
               cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
               graceUntil: null,
+            });
+
+            logger.warn('Subscription paused — access revoked', {
+              customerId,
+              subscriptionId: subscription.id,
+            });
+            resetLicenseState();
+            resetDbStatusCache();
+            auditLicenseEvent(tx, 'license.paused', 'warn', {
+              customerId,
+              subscriptionId: subscription.id,
+              subscriptionStatus: 'paused',
             });
           }
         }); // end transaction
@@ -1787,7 +1806,19 @@ app.openapi(stripeWebhookRoute, async (c) => {
           }
 
           if (wonCustomerId) {
-            // Restore revoked licenses for this customer
+            // Restore revoked licenses and resolve subscription context so
+            // entitlements are fully reinstated (tier, features, limits).
+            const revokedLicenses = await db
+              .select({
+                subscriptionId: licenses.subscriptionId,
+                tier: licenses.tier,
+              })
+              .from(licenses)
+              .where(and(eq(licenses.customerId, wonCustomerId), eq(licenses.status, 'revoked')))
+              .limit(1);
+
+            const restoredSub = revokedLicenses[0];
+
             await db
               .update(licenses)
               .set({ status: 'active', updatedAt: new Date() })
@@ -1795,8 +1826,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
             await syncHostedSubscriptionState(db, {
               customerId: wonCustomerId,
-              subscriptionId: null,
+              subscriptionId: restoredSub?.subscriptionId ?? null,
+              tier: (restoredSub?.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? null,
               status: 'active',
+              graceUntil: null,
             });
 
             resetLicenseState();
@@ -1812,6 +1845,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               customerId: wonCustomerId,
               chargeId: wonChargeId,
               disputeId: dispute.id,
+              restoredTier: restoredSub?.tier ?? 'unknown',
             });
           }
           break;

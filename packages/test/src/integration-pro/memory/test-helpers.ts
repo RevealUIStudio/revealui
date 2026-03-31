@@ -6,7 +6,7 @@
 
 import type { AgentMemory } from '@revealui/contracts/agents';
 import { getVectorClient, resetClient } from '@revealui/db/client';
-import { agentMemories } from '@revealui/db/schema/vector';
+import { agentMemories } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 
 async function generateTestEmbedding(text: string) {

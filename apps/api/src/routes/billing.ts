@@ -511,6 +511,7 @@ app.openapi(checkoutRoute, async (c) => {
       payment_method_types: ['card'],
       billing_address_collection: 'required',
       tax_id_collection: { enabled: true },
+      automatic_tax: { enabled: true },
       ...discountConfig,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       subscription_data: {
@@ -995,6 +996,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
       payment_method_types: ['card'],
       billing_address_collection: 'required',
       tax_id_collection: { enabled: true },
+      automatic_tax: { enabled: true },
       allow_promotion_codes: true,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       payment_intent_data: {
@@ -1121,6 +1123,7 @@ app.openapi(creditCheckoutRoute, async (c) => {
       customer: customerId,
       mode: 'payment',
       payment_method_types: ['card'],
+      automatic_tax: { enabled: true },
       allow_promotion_codes: true,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       payment_intent_data: {

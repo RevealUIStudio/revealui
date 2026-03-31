@@ -167,7 +167,7 @@ export default buildConfig({
         ...defaultFeatures,
         FixedToolbarFeature(),
         // EmbedFeature(),
-        TreeViewFeature(),
+        ...(process.env.NODE_ENV === 'development' ? [TreeViewFeature()] : []),
         UnderlineFeature(),
         BoldFeature(),
         ItalicFeature(),

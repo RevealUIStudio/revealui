@@ -3,8 +3,6 @@
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { SystemHealthMonitor } from '@/lib/components/SystemHealthMonitor';
 
-export const dynamic = 'force-dynamic';
-
 export default function MonitoringPage() {
   return (
     <LicenseGate feature="dashboard">

@@ -7,8 +7,6 @@ import { AgentCard } from '@/lib/components/agents/agent-card';
 import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
-export const dynamic = 'force-dynamic';
-
 type Tab = 'agents' | 'mcp';
 
 interface AgentWithId {
