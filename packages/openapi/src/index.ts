@@ -1,14 +1,27 @@
-// Class & factory
+/**
+ * @revealui/openapi — OpenAPI integration for Hono with Zod validation.
+ *
+ * Generates OpenAPI 3.x specs from typed route definitions and provides
+ * request validation middleware. Powers the Swagger UI at `/docs`.
+ *
+ * @packageDocumentation
+ */
 
+/** Add `.openapi()` method to Zod types for OpenAPI schema generation. */
 export { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-// Zod re-export (convenience — consumers can import from either place)
+
+/** Zod re-export — consumers can import from either `zod` or this package. */
 export { z } from 'zod';
+
+/** Define a typed route with request/response schemas for OpenAPI generation. */
 export { createRoute } from './create-route.js';
 
-// Helpers
+/** Shorthand helper for OpenAPI schema references (`$ref`). */
 export { $ } from './helpers.js';
+
+/** Extended Hono app with OpenAPI route registration and spec generation. */
 export { OpenAPIHono } from './openapi-hono.js';
-// Types — matches upstream public API surface
+
 export type {
   DeepSimplify,
   HonoToOpenAPIHono,
@@ -25,5 +38,6 @@ export type {
   RouteHandler,
   RouteHook,
 } from './types.js';
-// Validation middleware
+
+/** Validate request body/query/params against a Zod schema as Hono middleware. */
 export { zValidator } from './zod-validator.js';
