@@ -1,4 +1,4 @@
-import { logger } from '@revealui/core/observability/logger';
+import { logger } from '@revealui/utils/logger';
 import type React from 'react';
 import { createElement } from 'react';
 import type {

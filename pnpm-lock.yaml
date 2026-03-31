@@ -1354,9 +1354,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.19.10
         version: 1.19.11(hono@4.12.9)
-      '@revealui/core':
+      '@revealui/utils':
         specifier: workspace:*
-        version: link:../core
+        version: link:../utils
       hono:
         specifier: ^4.12.7
         version: 4.12.9
