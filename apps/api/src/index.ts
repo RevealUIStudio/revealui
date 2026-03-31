@@ -201,6 +201,25 @@ app.use(
   }),
 );
 app.use('*', honoLogger());
+/** Check if origin matches Vercel preview URL pattern: https://revealui*-revealuistudios-projects.vercel.app */
+function isVercelPreviewOrigin(origin: string): boolean {
+  if (!origin.startsWith('https://revealui')) return false;
+  return origin.endsWith('-revealuistudios-projects.vercel.app');
+}
+
+/** Check if origin matches test/dev subdomain: https://(dev|test).(cms.|api.|docs.)?revealui.com */
+function isTestSubdomainOrigin(origin: string): boolean {
+  if (!origin.startsWith('https://')) return false;
+  const host = origin.slice(8); // strip https://
+  const validSuffixes = [
+    'revealui.com',
+    'cms.revealui.com',
+    'api.revealui.com',
+    'docs.revealui.com',
+  ];
+  return validSuffixes.some((suffix) => host === `dev.${suffix}` || host === `test.${suffix}`);
+}
+
 // Manual CORS middleware — Hono's cors() middleware was not reliably setting
 // Access-Control-Allow-Origin headers in the Vercel serverless runtime.
 app.use('*', async (c, next) => {
@@ -210,8 +229,7 @@ app.use('*', async (c, next) => {
   // Pattern: revealui-<app>-<hash>-revealuistudios-projects.vercel.app
   const isPreviewAllowed =
     process.env.VERCEL_ENV === 'preview' &&
-    (/^https:\/\/revealui[\w-]*-revealuistudios-projects\.vercel\.app$/.test(origin) ||
-      /^https:\/\/(dev|test)\.(cms\.|api\.|docs\.)?revealui\.com$/.test(origin));
+    (isVercelPreviewOrigin(origin) || isTestSubdomainOrigin(origin));
 
   const isAllowed = corsOrigins.includes(origin) || isPreviewAllowed;
 

@@ -71,6 +71,13 @@ function getBaseUrl(req: Request): string {
   return `${proto}://${url.host}`;
 }
 
+/** Check if hostname is in the 172.16.0.0/12 private range (172.16–172.31) */
+function isPrivate172(h: string): boolean {
+  if (!h.startsWith('172.')) return false;
+  const second = parseInt(h.split('.')[1] ?? '', 10);
+  return second >= 16 && second <= 31;
+}
+
 /**
  * SSRF guard: validate that a developer-supplied MCP server URL is safe to proxy.
  * Blocks loopback, link-local, private RFC-1918 ranges, and non-HTTP(S) schemes.
@@ -96,13 +103,13 @@ function assertUrlSafe(rawUrl: string): void {
     h === 'localhost' ||
     h === '0.0.0.0' ||
     h === '::1' ||
-    /^127\./.test(h) ||
-    /^169\.254\./.test(h) || // link-local / AWS metadata
-    /^10\./.test(h) ||
-    /^172\.(1[6-9]|2\d|3[01])\./.test(h) ||
-    /^192\.168\./.test(h) ||
-    /^fd[0-9a-f]{2}:/i.test(h) || // IPv6 ULA
-    /^fc[0-9a-f]{2}:/i.test(h);
+    h.startsWith('127.') ||
+    h.startsWith('169.254.') || // link-local / AWS metadata
+    h.startsWith('10.') ||
+    isPrivate172(h) ||
+    h.startsWith('192.168.') ||
+    h.startsWith('fd') || // IPv6 ULA
+    h.startsWith('fc');
 
   if (blocked) {
     throw new Error('URL resolves to a private or reserved address');

@@ -449,7 +449,16 @@ export function generateSlug(title: string): string {
  * Validate slug format
  */
 export function isValidSlug(slug: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+  if (slug.length === 0) return false;
+  if (slug.startsWith('-') || slug.endsWith('-') || slug.includes('--')) return false;
+  for (let i = 0; i < slug.length; i++) {
+    const c = slug.charCodeAt(i);
+    const isLower = c >= 97 && c <= 122;
+    const isDigit = c >= 48 && c <= 57;
+    const isHyphen = c === 45;
+    if (!(isLower || isDigit || isHyphen)) return false;
+  }
+  return true;
 }
 
 // =============================================================================

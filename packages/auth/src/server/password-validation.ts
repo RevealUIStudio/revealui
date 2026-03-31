@@ -4,6 +4,15 @@
  * Password strength validation and requirements.
  */
 
+/** Check if any character in the string falls within the given char code range (inclusive) */
+function hasCharInRange(str: string, low: number, high: number): boolean {
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code >= low && code <= high) return true;
+  }
+  return false;
+}
+
 export interface PasswordValidationResult {
   valid: boolean;
   errors: string[];
@@ -26,22 +35,17 @@ export function validatePasswordStrength(password: string): PasswordValidationRe
     errors.push('Password must be less than 128 characters');
   }
 
-  if (!/[a-z]/.test(password)) {
+  if (!hasCharInRange(password, 97, 122)) {
     errors.push('Password must contain at least one lowercase letter');
   }
 
-  if (!/[A-Z]/.test(password)) {
+  if (!hasCharInRange(password, 65, 90)) {
     errors.push('Password must contain at least one uppercase letter');
   }
 
-  if (!/[0-9]/.test(password)) {
+  if (!hasCharInRange(password, 48, 57)) {
     errors.push('Password must contain at least one number');
   }
-
-  // Optional: special characters (not too strict)
-  // if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-  //   errors.push('Password must contain at least one special character')
-  // }
 
   return {
     valid: errors.length === 0,
