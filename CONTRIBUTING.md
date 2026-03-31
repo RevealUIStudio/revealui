@@ -119,7 +119,7 @@ revealui/
 │   ├── core/           # CMS engine, REST API, plugins
 │   ├── db/             # Drizzle ORM schema (76 tables, dual-DB)
 │   ├── dev/            # Shared configs (Biome, TS, Tailwind)
-│   ├── presentation/   # 56 UI components (Tailwind v4)
+│   ├── presentation/   # 52 UI components (Tailwind v4)
 │   ├── router/         # File-based router with SSR
 │   ├── setup/          # Environment setup utilities
 │   ├── sync/           # ElectricSQL real-time sync

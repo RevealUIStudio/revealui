@@ -28,7 +28,7 @@ describe('SocialProof', () => {
     expect(html).toContain('to first deploy');
     expect(html).toContain('5');
     expect(html).toContain('business primitives');
-    expect(html).toContain('56');
+    expect(html).toContain('52');
     expect(html).toContain('UI components');
     expect(html).toContain('MIT');
     expect(html).toContain('licensed');
@@ -56,7 +56,7 @@ describe('SocialProof', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
     expect(html).toContain('Content Engine');
-    expect(html).toContain('56 Native UI Components');
+    expect(html).toContain('52 Native UI Components');
     expect(html).toContain('Real-Time Sync');
     expect(html).toContain('AI Agents (Pro)');
     expect(html).toContain('Stripe Billing Built In');

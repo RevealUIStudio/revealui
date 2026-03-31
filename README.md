@@ -35,7 +35,7 @@ You have:
 - **Content management** — define collections in TypeScript, get a full REST API and admin UI instantly
 - **Billing** — Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard** — manage users, content, billing, and settings out of the box
-- **56 UI components** — built with Tailwind CSS v4, zero external UI dependencies
+- **52 UI components** — built with Tailwind CSS v4, zero external UI dependencies
 - **Type-safe throughout** — Zod schemas shared between client, server, and database
 
 No assembly required. No consulting 12 different documentation sites. No decisions about which auth library to use.
@@ -148,7 +148,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
 | [`@revealui/db`](packages/db)                           | Drizzle ORM schema (76 tables), dual-DB client    |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
-| [`@revealui/presentation`](packages/presentation)       | 56 UI components (Tailwind v4, zero ext deps)     |
+| [`@revealui/presentation`](packages/presentation)       | 52 UI components (Tailwind v4, zero ext deps)     |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |
 | [`@revealui/router`](packages/router)                   | Lightweight file-based router with SSR            |
 | [`@revealui/config`](packages/config)                   | Type-safe environment configuration               |

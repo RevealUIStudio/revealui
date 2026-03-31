@@ -29,7 +29,7 @@ export function ValueProposition() {
   ];
 
   return (
-    <section className="py-24 bg-white sm:py-32">
+    <section id="value-proposition" className="py-24 bg-white sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
