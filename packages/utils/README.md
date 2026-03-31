@@ -97,6 +97,20 @@ pnpm test
 pnpm dev
 ```
 
+## When to Use This
+
+- You need structured logging with context propagation and pluggable handlers
+- You want SSL configuration or connection string parsing for PostgreSQL
+- You're building a package that must avoid depending on `core` or `db` (breaks circular deps)
+- **Not** for setup-time logging with progress bars — use `@revealui/setup/utils`
+- **Not** for Zod validation schemas — use `@revealui/contracts`
+
+## JOSHUA Alignment
+
+- **Orthogonal**: Zero dependencies — sits at the bottom of the dependency graph so core, db, and contracts can all import without cycles
+- **Unified**: One logger API with child loggers and pluggable handlers replaces ad-hoc `console.*` across the entire codebase
+- **Justifiable**: Every export exists to break a real circular dependency — no speculative utilities
+
 ## Related
 
 - [Core Package](../core/README.md) — Uses utils for logging and error handling

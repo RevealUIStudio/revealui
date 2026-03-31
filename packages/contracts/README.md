@@ -155,6 +155,20 @@ pnpm test
 pnpm build
 ```
 
+## When to Use This
+
+- You need shared Zod schemas and TypeScript types used across API, CMS, and client
+- You're validating data at boundaries (API input, database rows, form submissions)
+- You want dual representation (human/agent) for CMS entities
+- **Not** for database queries — use `@revealui/db` with Drizzle ORM
+- **Not** for runtime config validation — use `@revealui/config`
+
+## JOSHUA Alignment
+
+- **Unified**: One schema drives TypeScript types, runtime validation, API docs, and database bridges across every surface
+- **Hermetic**: Validation at the boundary ensures no unvalidated data crosses layer lines
+- **Orthogonal**: Foundation, entities, content, agents, and actions are cleanly separated subpath exports with no circular dependencies
+
 ## License
 
 MIT

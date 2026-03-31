@@ -145,6 +145,20 @@ pnpm test
 pnpm dev
 ```
 
+## When to Use This
+
+- You're building a content-driven app and need collections, admin UI, and CRUD out of the box
+- You need RBAC/ABAC access control, GDPR compliance, or feature gating by license tier
+- You want a rich text editor (Lexical) integrated with your CMS
+- **Not** for standalone UI components — use `@revealui/presentation`
+- **Not** for raw database queries — use `@revealui/db` directly
+
+## JOSHUA Alignment
+
+- **Sovereign**: Self-hosted CMS engine — no SaaS dependency for content management, auth, or storage
+- **Unified**: One `buildConfig()` call wires collections, globals, plugins, security, and feature gates into a single configuration
+- **Adaptive**: Plugin system and tier-based feature gating let the platform evolve without breaking existing deployments
+
 ## Related
 
 - [Contracts Package](../contracts/README.md) — Zod schemas and TypeScript types

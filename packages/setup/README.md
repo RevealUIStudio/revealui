@@ -145,7 +145,7 @@ Pre-built validators:
 #### `REQUIRED_ENV_VARS`
 
 Default required environment variables for RevealUI:
-- `REVEALUI_SECRET` - Application secret (session signing, CSRF, HMAC operations; min 32 chars)
+- `REVEALUI_SECRET` - JWT secret (min 32 chars)
 - `POSTGRES_URL` - Database connection string
 - `BLOB_READ_WRITE_TOKEN` - Vercel Blob token
 - `STRIPE_SECRET_KEY` - Stripe secret key
@@ -300,6 +300,20 @@ pnpm test
 # Coverage
 pnpm test:coverage
 ```
+
+## When to Use This
+
+- You're building setup scripts or CLI tools that need environment variable management
+- You need cryptographically secure secret generation for JWT keys or database passwords
+- You want consistent, colored logging with progress bars for setup flows
+- **Not** for runtime config access — use `@revealui/config` after setup is complete
+- **Not** for end-user-facing logging — use `@revealui/utils/logger` in application code
+
+## JOSHUA Alignment
+
+- **Justifiable**: Every utility exists because `@revealui/cli` and setup scripts need it — no speculative abstractions
+- **Hermetic**: Validation catches missing or malformed variables before they propagate into runtime
+- **Sovereign**: Generates secrets locally with `crypto.randomBytes` — no external service required
 
 ## License
 

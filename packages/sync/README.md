@@ -182,6 +182,20 @@ pnpm --filter @revealui/sync test       # Run tests
 pnpm --filter @revealui/sync typecheck  # Type check
 ```
 
+## When to Use This
+
+- You need real-time data sync between your database and React UI via ElectricSQL
+- You want CRDT-based collaborative editing (Yjs) for multi-user document workflows
+- You need React hooks that subscribe to live database changes with automatic mutation support
+- **Not** for batch data loading or static pages — use server components with `@revealui/db` directly
+- **Not** for offline-first mobile apps — ElectricSQL targets web clients with persistent connections
+
+## JOSHUA Alignment
+
+- **Adaptive**: Shape subscriptions dynamically sync only the data your component needs — scales from one user to many
+- **Sovereign**: Sync runs through your own CMS proxy and PostgreSQL — no third-party real-time service required
+- **Hermetic**: All mutations go through authenticated REST endpoints; ElectricSQL replication is read-only on the client
+
 ## License
 
 MIT
