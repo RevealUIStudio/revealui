@@ -11,12 +11,14 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tauri::Emitter;
 use tokio::sync::Mutex;
+use ts_rs::TS;
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 /// Authentication method for SSH connections.
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, TS)]
 #[serde(tag = "method")]
+#[ts(export, export_to = "bindings/")]
 pub enum SshAuth {
     #[serde(rename = "password")]
     Password { password: String },
@@ -28,21 +30,24 @@ pub enum SshAuth {
 }
 
 /// Event payload sent from backend to frontend with terminal output.
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct SshOutputEvent {
     pub session_id: String,
     pub data: String, // base64-encoded bytes
 }
 
 /// Event payload for session disconnect notifications.
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct SshDisconnectEvent {
     pub session_id: String,
     pub reason: String,
 }
 
 /// Event payload for host key verification notifications.
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct SshHostKeyEvent {
     pub host: String,
     pub port: u16,

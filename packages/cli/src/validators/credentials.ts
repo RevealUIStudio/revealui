@@ -65,6 +65,22 @@ export async function validateSupabaseUrl(url: string): Promise<CredentialValida
   }
 }
 
+export async function validateNpmToken(token: string): Promise<CredentialValidation> {
+  if (!token.startsWith('npm_')) {
+    return {
+      valid: false,
+      message: 'npm token must start with npm_',
+    };
+  }
+  if (token.length < 20) {
+    return {
+      valid: false,
+      message: 'npm token appears invalid (too short)',
+    };
+  }
+  return { valid: true };
+}
+
 export async function validateOpenAIKey(key: string): Promise<CredentialValidation> {
   if (!key.startsWith('sk-')) {
     return {

@@ -3,8 +3,6 @@
 import { useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
-export const dynamic = 'force-dynamic';
-
 // =============================================================================
 // Types
 // =============================================================================

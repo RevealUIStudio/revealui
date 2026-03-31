@@ -1,3 +1,10 @@
+---
+title: "Pro Guide"
+description: "RevealUI Pro tier — AI agents, MCP servers, editor integrations, and licensing"
+category: guide
+audience: developer
+---
+
 # RevealUI Pro Guide
 
 Commercial guide to RevealUI Pro: packaging, MCP integrations, BYOK, editors, harnesses, services, x402 payments, marketplace flows, and licensing.

@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import AgentChat from '@/lib/components/Agent';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
-export const dynamic = 'force-dynamic';
-
 interface Conversation {
   id: string;
   title: string | null;

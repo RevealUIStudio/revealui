@@ -28,17 +28,12 @@ vi.mock('stripe', () => ({
 }));
 
 let circuitBreakerShouldThrow = false;
-vi.mock('@revealui/core/error-handling', () => ({
-  CircuitBreaker: class {
-    async execute<T>(fn: () => Promise<T>): Promise<T> {
-      if (circuitBreakerShouldThrow) throw new CircuitBreakerOpenErrorStub();
-      return fn();
-    }
-  },
-  CircuitBreakerOpenError: class CircuitBreakerOpenErrorStub extends Error {},
-}));
 
-class CircuitBreakerOpenErrorStub extends Error {}
+// NOTE: @revealui/core/error-handling is NOT hoisted here — the vi.doMock in
+// beforeAll (after vi.resetModules) is the sole mock factory. A hoisted vi.mock
+// used a *different* class for throwing vs exporting, causing `instanceof
+// CircuitBreakerOpenError` to fail non-deterministically when Vitest's module
+// linker resolved the hoisted factory instead of the doMock factory.
 
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), warn: mockLoggerWarn, error: mockLoggerError },

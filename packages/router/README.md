@@ -344,6 +344,20 @@ const route: Route = {
 | Data Loading | ✅ | ✅ | ✅ |
 | Learning Curve | Low | Medium | Low |
 
+## When to Use This
+
+- You need a lightweight, type-safe router with built-in SSR for a Hono + React app
+- You want file-based routing conventions with data loaders and layouts
+- You need a ~5KB router that avoids the bundle size of React Router or TanStack Router
+- **Not** for Next.js apps — Next.js has its own App Router
+- **Not** for API-only services — use Hono's native routing directly
+
+## JOSHUA Alignment
+
+- **Orthogonal**: Routing, data loading, and SSR are cleanly separated — loaders run independently of components
+- **Hermetic**: SSR hydration uses a sealed data channel (`__REVEALUI_DATA__`) with no implicit global state
+- **Sovereign**: No framework lock-in — works with any Hono server and standard React
+
 ## License
 
 MIT - RevealUI

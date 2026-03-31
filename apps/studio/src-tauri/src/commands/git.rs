@@ -2,30 +2,35 @@ use std::path::Path;
 
 use git2::{DiffFormat, DiffOptions, Repository, Status, StatusOptions};
 use serde::Serialize;
+use ts_rs::TS;
 
 use super::error::StudioError;
 
 // ── Branch / push / pull / log types ────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct GitBranch {
     pub name: String,
     pub is_current: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct GitPushResult {
     pub success: bool,
     pub message: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct GitPullResult {
     pub success: bool,
     pub message: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct GitCommitInfo {
     pub sha: String,
     pub short_sha: String,
@@ -36,14 +41,16 @@ pub struct GitCommitInfo {
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct GitFileEntry {
     pub path: String,
     /// One of: "modified" | "new" | "deleted" | "renamed" | "untracked" | "conflicted"
     pub status: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct GitStatusResult {
     pub branch: String,
     pub staged: Vec<GitFileEntry>,
@@ -430,7 +437,8 @@ pub fn git_read_file(repo_path: String, file_path: String) -> Result<String, Stu
 
 /// Both file versions for a side-by-side diff viewer (e.g. CodeMirror MergeView).
 /// New files have an empty `original`; deleted files have an empty `modified`.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct GitDiffContent {
     pub original: String,
     pub modified: String,

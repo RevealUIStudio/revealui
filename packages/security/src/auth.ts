@@ -258,10 +258,50 @@ function base32Encode(buffer: Uint8Array): string {
 }
 
 /**
- * HMAC-SHA1 implementation for TOTP
+ * Base32 decode (RFC 4648) — converts base32 string back to raw bytes.
+ * Required by RFC 6238: the HMAC key must be the decoded binary secret,
+ * not the base32-encoded string.
  */
-function totpHmac(key: string, message: string): Uint8Array {
-  const hmacDigest = createHmac('sha1', key).update(message).digest();
+function base32Decode(encoded: string): Uint8Array {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const stripped = encoded.replace(/=+$/, '').toUpperCase();
+  const bytes: number[] = [];
+  let bits = 0;
+  let value = 0;
+
+  for (const char of stripped) {
+    const idx = alphabet.indexOf(char);
+    if (idx === -1) continue;
+    value = (value << 5) | idx;
+    bits += 5;
+
+    if (bits >= 8) {
+      bytes.push((value >>> (bits - 8)) & 0xff);
+      bits -= 8;
+    }
+  }
+
+  return new Uint8Array(bytes);
+}
+
+/**
+ * Encode a 64-bit counter as an 8-byte big-endian buffer (RFC 4226 §5.2).
+ * Standard authenticator apps expect this encoding — NOT a decimal string.
+ */
+function counterToBytes(counter: number): Buffer {
+  const buf = Buffer.alloc(8);
+  // Write as two 32-bit big-endian integers (JS numbers are safe up to 2^53)
+  buf.writeUInt32BE(Math.floor(counter / 0x100000000), 0);
+  buf.writeUInt32BE(counter >>> 0, 4);
+  return buf;
+}
+
+/**
+ * HMAC-SHA1 for TOTP (RFC 6238 §4).
+ * Key: raw decoded bytes. Message: 8-byte big-endian counter.
+ */
+function totpHmac(decodedKey: Uint8Array, counterBuf: Buffer): Uint8Array {
+  const hmacDigest = createHmac('sha1', decodedKey).update(counterBuf).digest();
   return new Uint8Array(hmacDigest);
 }
 
@@ -280,11 +320,15 @@ function generateSecret(): string {
 }
 
 /**
- * Generate TOTP code
+ * Generate TOTP code (RFC 6238 compliant).
+ * Secret is base32-encoded — decoded before HMAC.
+ * Counter is encoded as 8-byte big-endian — matches all standard authenticator apps.
  */
 function generateCode(secret: string, timestamp?: number): string {
   const time = Math.floor((timestamp || Date.now()) / 30000);
-  const hmacDigest = totpHmac(secret, time.toString());
+  const decodedKey = base32Decode(secret);
+  const counterBuf = counterToBytes(time);
+  const hmacDigest = totpHmac(decodedKey, counterBuf);
   // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid
   const offset = hmacDigest[hmacDigest.length - 1]! & 0x0f;
   // biome-ignore lint/style/noNonNullAssertion: HMAC-SHA1 always produces 20 bytes; buffer indices are guaranteed valid

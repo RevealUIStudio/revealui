@@ -60,10 +60,21 @@ app.post('/sweep-grace-periods', async (c) => {
     const expiredAccountIds: string[] = [];
     for (const entitlement of expiredGrace) {
       await db.transaction(async (tx) => {
-        await tx
+        // Re-check status inside the transaction to prevent TOCTOU race:
+        // a webhook may have already renewed this subscription between the
+        // outer SELECT and this UPDATE. The WHERE clause ensures we only
+        // expire entitlements still in 'past_due' state.
+        const updated = await tx
           .update(accountEntitlements)
           .set({ status: 'expired', graceUntil: null, updatedAt: now })
-          .where(eq(accountEntitlements.accountId, entitlement.accountId));
+          .where(
+            and(
+              eq(accountEntitlements.accountId, entitlement.accountId),
+              eq(accountEntitlements.status, 'past_due'),
+            ),
+          );
+
+        if (!updated.rowCount) return; // Status already changed — skip this account
 
         await tx
           .update(accountSubscriptions)
@@ -82,9 +93,9 @@ app.post('/sweep-grace-periods', async (c) => {
             .set({ status: 'expired', updatedAt: now })
             .where(eq(licenses.customerId, sub.stripeCustomerId));
         }
-      });
 
-      expiredAccountIds.push(entitlement.accountId);
+        expiredAccountIds.push(entitlement.accountId);
+      });
     }
 
     // Clear in-memory license cache so next request re-evaluates

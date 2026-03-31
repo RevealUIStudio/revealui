@@ -1,6 +1,7 @@
 {
   "name": "api",
   "version": "0.1.0",
+  "description": "REST API server with OpenAPI spec and Swagger UI for RevealUI",
   "private": true,
   "dependencies": {
     "@coinbase/x402": "^2.1.0",
@@ -34,8 +35,8 @@
     "node": ">=24.13.0"
   },
   "peerDependencies": {
-    "@revealui/ai": "^0.2.0",
-    "@revealui/services": "^0.2.2"
+    "@revealui/ai": "^0.2.4",
+    "@revealui/services": "^0.2.6"
   },
   "peerDependenciesMeta": {
     "@revealui/ai": {

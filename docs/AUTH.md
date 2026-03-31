@@ -1,3 +1,10 @@
+---
+title: "Authentication System"
+description: "Session-based auth, OAuth, password reset, rate limiting, and brute force protection"
+category: guide
+audience: developer
+---
+
 # RevealUI Authentication System
 
 **Last Updated:** 2026-03-05

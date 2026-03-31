@@ -1,6 +1,7 @@
 {
   "name": "@revealui/config",
   "version": "0.3.0",
+  "description": "Type-safe environment configuration with Zod validation and lazy proxy loading",
   "license": "MIT",
   "dependencies": {
     "dotenv": "^17.2.4",

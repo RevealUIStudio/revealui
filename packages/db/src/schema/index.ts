@@ -45,10 +45,10 @@ export {
 export * from './rest.js';
 export * from './vector.js';
 
-// Note: We don't export * from './agents.js' to avoid duplicate agentMemories export
-// agentMemories is already exported via './vector'
-// Other agent tables and types are exported via './rest'
-// If you need AgentMemory types, import from '@revealui/db/schema/vector' or '@revealui/contracts/agents'
+// Note: We don't export * from './agents.js' to avoid duplicate exports.
+// agentMemories is exported via './rest' (it lives in NeonDB due to FK constraints).
+// Other agent tables and types are also exported via './rest'.
+// RAG tables are exported via './vector' (they live in Supabase).
 
 // =============================================================================
 // Relations (defined separately to avoid circular imports)

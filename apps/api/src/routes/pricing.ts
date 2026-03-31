@@ -42,25 +42,26 @@ function getStripeClient(): Stripe | null {
 
 // ---------------------------------------------------------------------------
 // Server-side fallback prices (private — never exported or in contracts)
+//
+// These are used when Stripe is unreachable (circuit breaker open, key missing).
+// Override via FALLBACK_PRICING_JSON env var to keep prices in sync without redeploying.
+// Format: JSON string with keys "subscriptions", "credits", "perpetual".
 // ---------------------------------------------------------------------------
 
-const FALLBACK_SUBSCRIPTION_PRICES: Record<string, { price: string; period?: string }> = {
+const HARDCODED_SUBSCRIPTION_PRICES: Record<string, { price: string; period?: string }> = {
   free: { price: '$0' },
   pro: { price: '$49', period: '/month' },
   max: { price: '$149', period: '/month' },
   enterprise: { price: '$299', period: '/month' },
 };
 
-const FALLBACK_CREDIT_PRICES = new Map<
-  string,
-  { price: string; priceNote: string; costPer: string }
->([
+const HARDCODED_CREDIT_PRICES: [string, { price: string; priceNote: string; costPer: string }][] = [
   ['Starter', { price: '$10', priceNote: 'one-time', costPer: '$0.001/task' }],
   ['Standard', { price: '$50', priceNote: 'one-time', costPer: '$0.00083/task' }],
   ['Scale', { price: '$250', priceNote: 'one-time', costPer: '$0.00071/task' }],
-]);
+];
 
-const FALLBACK_PERPETUAL_PRICES: Record<
+const HARDCODED_PERPETUAL_PRICES: Record<
   string,
   { price: string; priceNote: string; renewal: string }
 > = {
@@ -80,6 +81,45 @@ const FALLBACK_PERPETUAL_PRICES: Record<
     renewal: '$499/yr for continued support',
   },
 };
+
+function loadFallbackPrices(): {
+  subscriptions: Record<string, { price: string; period?: string }>;
+  credits: Map<string, { price: string; priceNote: string; costPer: string }>;
+  perpetual: Record<string, { price: string; priceNote: string; renewal: string }>;
+} {
+  const envJson = process.env.FALLBACK_PRICING_JSON;
+  if (envJson) {
+    try {
+      const parsed = JSON.parse(envJson);
+      return {
+        subscriptions: parsed.subscriptions ?? HARDCODED_SUBSCRIPTION_PRICES,
+        credits: new Map(Object.entries(parsed.credits ?? {})) as Map<
+          string,
+          { price: string; priceNote: string; costPer: string }
+        >,
+        perpetual: parsed.perpetual ?? HARDCODED_PERPETUAL_PRICES,
+      };
+    } catch {
+      logger.error('Failed to parse FALLBACK_PRICING_JSON — using hardcoded defaults');
+    }
+  }
+  if (process.env.NODE_ENV === 'production' && !envJson) {
+    logger.warn(
+      'FALLBACK_PRICING_JSON not set — fallback prices use hardcoded defaults which may become stale',
+    );
+  }
+  return {
+    subscriptions: HARDCODED_SUBSCRIPTION_PRICES,
+    credits: new Map(HARDCODED_CREDIT_PRICES),
+    perpetual: HARDCODED_PERPETUAL_PRICES,
+  };
+}
+
+const {
+  subscriptions: FALLBACK_SUBSCRIPTION_PRICES,
+  credits: FALLBACK_CREDIT_PRICES,
+  perpetual: FALLBACK_PERPETUAL_PRICES,
+} = loadFallbackPrices();
 
 // ---------------------------------------------------------------------------
 // Stripe → pricing merge logic

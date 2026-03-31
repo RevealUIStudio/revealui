@@ -1,3 +1,10 @@
+---
+title: "Core API Stability"
+description: "API stability guarantees, versioning policy, and breaking change process for @revealui/core"
+category: reference
+audience: developer
+---
+
 # @revealui/core — API Stability Reference
 
 **Version:** 0.2.x

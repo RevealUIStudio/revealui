@@ -1,3 +1,10 @@
+---
+title: "System Architecture"
+description: "RevealUI system architecture reference — apps, packages, data flow, and deployment"
+category: architecture
+audience: developer
+---
+
 # RevealUI System Architecture
 
 **Last Updated:** 2026-03-16
@@ -58,7 +65,7 @@
 
 ## Executive Summary
 
-RevealUI implements a hybrid multi-database architecture with comprehensive type safety, integrating multiple specialized systems for optimal performance and scalability:
+RevealUI implements a hybrid multi-database architecture with comprehensive type safety, integrating multiple specialized systems for optimal performance and scalability. Every architectural decision is guided by the **[JOSHUA Stack](./JOSHUA.md)** principles — Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
 
 ### Core Systems
 
@@ -873,8 +880,7 @@ Frontend → Generated Types → API Route → Contract Validation → Type Adap
 
 ```typescript
 // Server: apps/cms/src/app/api/chat/route.ts
-import { streamText } from 'ai'
-import { openai } from '@ai-sdk/openai'
+import { streamText, convertToModelMessages } from 'ai'
 import { getVectorClient } from '@revealui/db/client'
 
 export async function POST(request: NextRequest) {
@@ -889,25 +895,26 @@ export async function POST(request: NextRequest) {
     .orderBy(sql`embedding <-> ${queryEmbedding}::vector`)
     .limit(5)
 
-  // 2. Use memories as context in AI SDK
-  const result = await streamText({
-    model: openai('gpt-4'),
-    messages,
+  // 2. Use memories as context — model string routes through AI Gateway
+  const result = streamText({
+    model: 'anthropic/claude-sonnet-4.6',
+    messages: await convertToModelMessages(messages),
     system: `Relevant memories: ${relevantMemories.map(m => m.content).join('\n')}`,
   })
 
-  return result.toDataStreamResponse()
+  return result.toUIMessageStreamResponse()
 }
 
 // Client: apps/cms/src/lib/components/Agent/index.tsx
-import { useChat } from 'ai/react'
+import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from '@ai-sdk/react'
 
 export function AgentChat() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api/chat',
+  const { messages, status, sendMessage } = useChat({
+    transport: new DefaultChatTransport({ api: '/api/chat' }),
   })
 
-  return <Chat messages={messages} input={input} handleSubmit={handleSubmit} />
+  return <Chat messages={messages} status={status} onSend={sendMessage} />
 }
 ```
 
@@ -1581,9 +1588,8 @@ NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 # Vercel Blob Storage
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
-# AI Providers
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
+# AI Providers — BYOK (user provides their own keys via CMS settings)
+# See docs/PRO.md for provider configuration
 ```
 
 ### Database Connections

@@ -12,14 +12,16 @@
  * RAG tables also require pgvector and follow the same pattern.
  */
 
-// Re-export for convenience (these types are also available from @revealui/contracts/agents)
 export type {
   AgentMemory,
   AgentMemory as AgentMemoryType,
   NewAgentMemory,
   NewAgentMemory as NewAgentMemoryType,
 } from './agents.js';
-// Vector-capable schemas (require pgvector, but live in NeonDB due to FK constraints)
+// Re-export table + types for convenience.
+// agentMemories lives in NeonDB (not Supabase) due to FK constraints on sites/users,
+// but is re-exported here because published @revealui/ai imports it from this path.
 export { agentMemories } from './agents.js';
+
 // RAG tables (pgvector-backed, stored on Supabase)
 export * from './rag.js';

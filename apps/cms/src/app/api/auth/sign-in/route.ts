@@ -134,11 +134,11 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
         process.env.NODE_ENV === 'production'
           ? (() => {
               if (!process.env.SESSION_COOKIE_DOMAIN) {
-                logger.error(
-                  'SESSION_COOKIE_DOMAIN env var is required in production — session cookie will not be set cross-subdomain',
+                throw new Error(
+                  'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth',
                 );
               }
-              return process.env.SESSION_COOKIE_DOMAIN || undefined;
+              return process.env.SESSION_COOKIE_DOMAIN;
             })()
           : undefined,
     });

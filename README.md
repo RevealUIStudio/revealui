@@ -50,6 +50,19 @@ No assembly required. No consulting 12 different documentation sites. No decisio
 | **Payments**     | Stripe checkout, subscriptions, trials, webhooks, grace periods, usage meters      |
 | **Intelligence** | AI agents, MCP servers, BYOK multi-provider, task history _(Pro)_                  |
 
+## The JOSHUA Stack
+
+Six principles that give you a tested starting point for every architectural decision. Not the only way — a way that works. Evolve it as you grow:
+
+| Principle | What it means |
+| --- | --- |
+| **Justifiable** | Every default earns its place. No magic, no hidden complexity, no decisions you can't explain to your team. |
+| **Orthogonal** | Clean separation of concerns across 23 packages. Use what you need, replace what you don't. Zero circular dependencies. |
+| **Sovereign** | Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No vendor holds your business hostage. |
+| **Hermetic** | Auth doesn't leak into billing. Content doesn't tangle with payments. Sealed boundaries, clean contracts between every layer. |
+| **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |
+| **Adaptive** | AI agents, MCP servers, and workflows are built into the foundation. Swap providers, add capabilities, evolve with your business. |
+
 ## Ecosystem
 
 RevealUI is the runtime at the center of a four-project ecosystem:
@@ -222,7 +235,9 @@ revealui/
 
 - **[Build Your Business](docs/BUILD_YOUR_BUSINESS.md)** — End-to-end tutorial: scaffold, collections, pricing, billing, deploy
 - **[Quick Start](docs/QUICK_START.md)** — From zero to running app
+- **[The JOSHUA Stack](docs/JOSHUA.md)** — Six engineering principles and the evidence behind them
 - **[Architecture](docs/ARCHITECTURE.md)** — How the pieces fit together
+- **[The VAUGHN Protocol](docs/VAUGHN.md)** — Multi-agent coordination across heterogeneous AI tools
 - **[Pro](docs/PRO.md)** — AI features, MCP, marketplace, and trust controls
 - **[Database Guide](docs/DATABASE.md)** — Schema, migrations, queries
 - **[Auth Guide](docs/AUTH.md)** — Authentication, sessions, RBAC

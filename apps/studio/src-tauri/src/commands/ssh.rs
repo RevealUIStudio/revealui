@@ -5,6 +5,7 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
 use serde::{Deserialize, Serialize};
 use tauri::State;
+use ts_rs::TS;
 
 use super::error::StudioError;
 use crate::ssh::{SshAuth, SshState};
@@ -104,7 +105,8 @@ pub async fn ssh_resize(
 // ── Bookmarks ────────────────────────────────────────────────────────────────
 
 /// A saved SSH connection profile. Never stores passwords — only key paths.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct SshBookmark {
     pub id: String,
     pub label: String,

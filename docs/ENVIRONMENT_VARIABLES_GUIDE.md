@@ -1,3 +1,10 @@
+---
+title: "Environment Variables"
+description: "Complete reference for all environment variables across apps and packages"
+category: reference
+audience: developer
+---
+
 # Environment Variables - Complete Guide
 
 **Project**: RevealUI Framework

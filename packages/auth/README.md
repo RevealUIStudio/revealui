@@ -90,6 +90,20 @@ pnpm typecheck
 pnpm test
 ```
 
+## When to Use This
+
+- You need session-based auth with database-backed sessions for a RevealUI app
+- You want built-in brute force protection and rate limiting without external services
+- You need React hooks for client-side session management (`useSession`, `useSignIn`, `useSignOut`)
+- **Not** for OAuth-only flows — use a dedicated OAuth provider and wire tokens through this package
+- **Not** for stateless JWT auth — this package uses database sessions by design
+
+## JOSHUA Alignment
+
+- **Sovereign**: Sessions live in your PostgreSQL database, not a third-party auth service
+- **Hermetic**: HTTP-only, SameSite cookies and SHA-256 token hashing prevent cross-boundary leaks
+- **Justifiable**: Every security layer (bcrypt, progressive lockout, rate limiting) exists because the threat model demands it
+
 ## Related
 
 - [Core Package](../core/README.md) — CMS engine (uses auth for access control)

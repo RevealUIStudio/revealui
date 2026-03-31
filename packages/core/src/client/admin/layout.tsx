@@ -21,9 +21,9 @@ export function RootLayout({ children, serverFunction }: RootLayoutProps) {
       </Head>
       <body className="antialiased">
         <ServerFunctionProvider serverFunction={serverFunction}>
-          <div id="revealui-admin" className="min-h-screen">
+          <main id="revealui-admin" className="min-h-screen">
             {children}
-          </div>
+          </main>
         </ServerFunctionProvider>
       </body>
     </html>

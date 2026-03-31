@@ -292,6 +292,15 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Validate generated types are in sync (hard fail)
+        run: |
+          pnpm --filter @revealui/db generate:all
+          if [ -n "$(git diff --name-only)" ]; then
+            echo "::error::Generated types are out of sync. Run 'pnpm --filter @revealui/db generate:all' and commit."
+            git diff --stat
+            exit 1
+          fi
+
   # ---------------------------------------------------------------------------
   # Phase 4: E2E smoke tests (hard fail — Playwright chromium only)
   # ---------------------------------------------------------------------------
@@ -328,6 +337,8 @@ jobs:
         run: pnpm --filter api start &
         env:
           SKIP_ENV_VALIDATION: "true"
+          NODE_ENV: "test"
+          POSTGRES_URL: "postgresql://localhost:5432/smoke"
 
       - name: Start CMS server
         run: pnpm --filter cms start &
@@ -349,6 +360,11 @@ jobs:
             echo "All three servers ready" && break || \
             echo "Waiting for servers... ($i/40)" && sleep 3
           done
+          # Fail if any server didn't start
+          curl -sf http://localhost:3004/health/live > /dev/null 2>&1 && \
+          curl -sf http://localhost:4000 > /dev/null 2>&1 && \
+          curl -sf http://localhost:3002 > /dev/null 2>&1 || \
+          (echo "::error::Servers failed to start within 120s" && exit 1)
 
       - name: Run E2E smoke tests
         run: pnpm test:e2e -- --project=chromium e2e/smoke.e2e.ts

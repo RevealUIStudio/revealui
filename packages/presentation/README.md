@@ -1,10 +1,10 @@
 # @revealui/presentation
 
-56 native UI components for RevealUI — built with React 19, Tailwind CSS v4, and CVA. Zero external UI library dependencies (only clsx + class-variance-authority).
+50+ native UI components for RevealUI — built with React 19, Tailwind CSS v4, and CVA. Zero external UI library dependencies (only clsx + class-variance-authority).
 
 ## Features
 
-- **56 Components** — Forms, data display, feedback, navigation, media, and layout
+- **48 Components** — Forms, data display, feedback, navigation, media, and layout
 - **6 Primitives** — Low-level building blocks (Box, Flex, Grid, Heading, Text, Slot)
 - **14 Hooks** — Focus trap, click outside, popover, roving tabindex, scroll lock, and more
 - **Headless + Styled** — Many components ship both unstyled (headless) and styled (CVA) variants
@@ -158,6 +158,20 @@ pnpm dev
 2. Export from the respective `index.ts`
 3. Use CVA for variant-based styling
 4. Follow WCAG 2.1 accessibility patterns
+
+## When to Use This
+
+- You need accessible, styled UI components (buttons, forms, cards, dialogs) for a RevealUI app
+- You want headless + styled variants so you can choose between full control and quick defaults
+- You need React hooks for common UI patterns (focus trap, click outside, popover positioning)
+- **Not** for CMS admin UI — `@revealui/core/admin` provides the admin dashboard
+- **Not** for rich text editing — use `@revealui/core/richtext/client` (Lexical-based)
+
+## JOSHUA Alignment
+
+- **Sovereign**: Zero external UI library dependencies — only clsx and CVA, so you own every component
+- **Orthogonal**: Components, primitives, and hooks are independent subpath exports with no cross-cutting entanglement
+- **Justifiable**: Every component ships headless and styled variants because different contexts need different levels of control
 
 ## Related
 

@@ -206,11 +206,14 @@ app.use('*', honoLogger());
 app.use('*', async (c, next) => {
   const origin = c.req.header('origin') || c.req.header('Origin') || '';
 
-  const isAllowed =
-    corsOrigins.includes(origin) ||
-    (process.env.VERCEL_ENV === 'preview' &&
-      (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin) ||
-        /^https:\/\/(dev|test)\.(cms\.|api\.|docs\.)?revealui\.com$/.test(origin)));
+  // Preview CORS: allow project-scoped Vercel preview URLs and test subdomains.
+  // Pattern: revealui-<app>-<hash>-revealuistudios-projects.vercel.app
+  const isPreviewAllowed =
+    process.env.VERCEL_ENV === 'preview' &&
+    (/^https:\/\/revealui[\w-]*-revealuistudios-projects\.vercel\.app$/.test(origin) ||
+      /^https:\/\/(dev|test)\.(cms\.|api\.|docs\.)?revealui\.com$/.test(origin));
+
+  const isAllowed = corsOrigins.includes(origin) || isPreviewAllowed;
 
   if (isAllowed) {
     c.header('Access-Control-Allow-Origin', origin);
@@ -299,6 +302,10 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-portal': { maxRequests: 10, windowMs: ONE_MINUTE },
     'billing-refund': { maxRequests: 3, windowMs: ONE_MINUTE },
     'billing-rvui-payment': { maxRequests: 5, windowMs: ONE_MINUTE },
+    'billing-checkout-credits': { maxRequests: 5, windowMs: ONE_MINUTE },
+    'billing-subscription': { maxRequests: 30, windowMs: ONE_MINUTE },
+    'billing-usage': { maxRequests: 30, windowMs: ONE_MINUTE },
+    'billing-credits': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-metrics': { maxRequests: 10, windowMs: ONE_MINUTE },
     'content-batch': { maxRequests: 10, windowMs: ONE_MINUTE },
     'content-export': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
@@ -379,6 +386,14 @@ app.use('/api/billing/refund', routeLimit('billing-refund'));
 app.use('/api/v1/billing/refund', routeLimit('billing-refund'));
 app.use('/api/billing/rvui-payment', routeLimit('billing-rvui-payment'));
 app.use('/api/v1/billing/rvui-payment', routeLimit('billing-rvui-payment'));
+app.use('/api/billing/checkout-credits', routeLimit('billing-checkout-credits'));
+app.use('/api/v1/billing/checkout-credits', routeLimit('billing-checkout-credits'));
+app.use('/api/billing/subscription', routeLimit('billing-subscription'));
+app.use('/api/v1/billing/subscription', routeLimit('billing-subscription'));
+app.use('/api/billing/usage', routeLimit('billing-usage'));
+app.use('/api/v1/billing/usage', routeLimit('billing-usage'));
+app.use('/api/billing/credits', routeLimit('billing-credits'));
+app.use('/api/v1/billing/credits', routeLimit('billing-credits'));
 app.use('/api/billing/metrics', routeLimit('billing-metrics'));
 app.use('/api/v1/billing/metrics', routeLimit('billing-metrics'));
 

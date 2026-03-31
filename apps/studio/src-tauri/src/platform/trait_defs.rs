@@ -1,4 +1,5 @@
 use serde::Serialize;
+use ts_rs::TS;
 
 /// Cross-platform abstraction for Studio operations.
 ///
@@ -48,7 +49,8 @@ pub trait PlatformOps {
     fn tailscale_down(&self) -> Result<String, String>;
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct SystemStatus {
     pub wsl_running: bool,
     pub distribution: String,
@@ -56,7 +58,8 @@ pub struct SystemStatus {
     pub systemd_status: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct MountStatus {
     pub mounted: bool,
     pub mount_point: String,
@@ -67,7 +70,8 @@ pub struct MountStatus {
     pub use_percent: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct SyncResult {
     pub drive: String,
     pub repo: String,
@@ -75,8 +79,9 @@ pub struct SyncResult {
     pub branch: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
 #[cfg(target_os = "windows")]
+#[ts(export, export_to = "bindings/", rename = "RepoInfo")]
 pub struct RepoEntry {
     pub name: String,
     pub c_path: String,
@@ -84,7 +89,8 @@ pub struct RepoEntry {
     pub identity: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct AppInfo {
     pub name: String,
     pub display_name: String,
@@ -92,13 +98,15 @@ pub struct AppInfo {
     pub url: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct AppStatus {
     pub app: AppInfo,
     pub running: bool,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct SetupStatus {
     pub wsl_running: bool,
     pub nix_installed: bool,
@@ -107,7 +115,8 @@ pub struct SetupStatus {
     pub git_email: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct TailscaleStatus {
     pub running: bool,
     pub ip: Option<String>,
@@ -115,7 +124,8 @@ pub struct TailscaleStatus {
     pub peers: Vec<TailscalePeer>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct TailscalePeer {
     pub hostname: String,
     pub ip: String,

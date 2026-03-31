@@ -1,5 +1,25 @@
 # @revealui/auth
 
+## 0.3.4
+
+### Patch Changes
+
+- fix(auth): passkey rpId reads from PASSKEY_RP_ID env var, throws in production if still localhost
+- Updated dependencies
+  - @revealui/db@0.3.3
+  - @revealui/contracts@1.3.3
+  - @revealui/core@0.5.2
+
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @revealui/contracts@1.3.2
+  - @revealui/db@0.3.2
+  - @revealui/core@0.5.1
+
 ## 0.3.2
 
 ### Patch Changes

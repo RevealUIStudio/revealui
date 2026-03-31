@@ -122,6 +122,20 @@ await db.insert(users).values({
 })
 ```
 
+## When to Use This
+
+- You need type-safe database queries against the RevealUI schema (users, posts, agents, vectors)
+- You're running migrations or generating types from the Drizzle schema
+- You want a pre-configured client for Neon, Supabase, or Vercel Postgres
+- **Not** for validation logic — use `@revealui/contracts` for Zod schemas
+- **Not** for direct SQL — use Drizzle's query builder or `db.execute()` for raw queries
+
+## JOSHUA Alignment
+
+- **Unified**: One schema definition (50 tables) drives types, queries, and migrations across all apps
+- **Orthogonal**: Schema files are cleanly separated by domain (cms, users, agents, vector, crdt) with no cross-domain entanglement
+- **Sovereign**: Your database, your schema, your migrations — no hosted schema service in the loop
+
 ## Related Documentation
 
 - [Database Guide](../../docs/DATABASE.md) - Complete database setup and configuration

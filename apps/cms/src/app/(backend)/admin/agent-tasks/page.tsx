@@ -3,8 +3,6 @@
 import { useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
-export const dynamic = 'force-dynamic';
-
 const MS_PER_HOUR = 60 * 60 * 1000;
 const FILTER_24H_MS = 24 * MS_PER_HOUR;
 const FILTER_7D_MS = 7 * 24 * MS_PER_HOUR;

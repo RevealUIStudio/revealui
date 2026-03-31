@@ -1,6 +1,15 @@
+---
+title: "Documentation Index"
+description: "Entry point and navigation hub for all RevealUI documentation"
+category: index
+audience: developer
+---
+
 # RevealUI Documentation
 
 The agentic business runtime. Build your business, not your boilerplate.
+
+Built on the **[JOSHUA Stack](./JOSHUA.md)** — Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive. Six engineering principles that govern every architectural decision.
 
 ## Getting Started
 
@@ -10,6 +19,7 @@ The agentic business runtime. Build your business, not your boilerplate.
 
 ## Core Guides
 
+- [The JOSHUA Stack](./JOSHUA.md) — Six engineering principles: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive
 - [Architecture](./ARCHITECTURE.md) — System design, dual database, multi-tenant patterns
 - [CMS Guide](./CMS_GUIDE.md) — Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md) — Authentication, sessions, RBAC, security policy
@@ -39,6 +49,11 @@ The agentic business runtime. Build your business, not your boilerplate.
 - [Component Catalog](./COMPONENT_CATALOG.md) — 56 native UI components
 - [AI](./AI.md) — AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md) — MCP servers, BYOK, editor integrations, harnesses, services, x402, marketplace, Forge
+
+## Agent Coordination
+
+- [The VAUGHN Protocol](./VAUGHN.md) — Agent normalization, capability model, lifecycle events, and multi-tool coordination
+- [Blog: Three AI Agents, One Codebase](./blog/03-multi-agent-coordination.md) — The problem that led to the Holster
 
 ## Pro & Forge
 

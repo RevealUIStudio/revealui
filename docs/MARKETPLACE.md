@@ -1,3 +1,10 @@
+---
+title: "MCP Marketplace"
+description: "MCP server marketplace — discovery, publishing, invocation, and monetization"
+category: guide
+audience: developer
+---
+
 # MCP Marketplace
 
 The RevealUI MCP Marketplace lets developers publish Model Context Protocol (MCP) servers with a per-call price. Callers pay in USDC on Base via the x402 protocol. RevealUI takes 20%; you earn 80%.

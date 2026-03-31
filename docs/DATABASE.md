@@ -1,3 +1,10 @@
+---
+title: "Database Management"
+description: "Drizzle ORM schema, migrations, dual-database setup (NeonDB + Supabase), and seeding"
+category: guide
+audience: developer
+---
+
 # Database Management Guide
 
 This guide describes the RevealUI database workflow and the underlying database scripts it orchestrates across different development environments.

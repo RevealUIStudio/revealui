@@ -187,9 +187,14 @@ describe('POST /sweep-grace-periods — expired entitlements', () => {
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
     mockWhere.mockResolvedValue(expiredAccounts);
     mockTransaction.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
-      const txWhere = vi.fn().mockResolvedValue([]);
+      // First update (entitlements) returns rowCount to satisfy TOCTOU guard
+      const txEntitlementWhere = vi.fn().mockResolvedValue({ rowCount: 1 });
+      const txOtherWhere = vi.fn().mockResolvedValue([]);
       const txLimit = vi.fn().mockResolvedValue([]);
-      const txSet = vi.fn().mockReturnValue({ where: txWhere });
+      let updateCallCount = 0;
+      const txSet = vi.fn().mockImplementation(() => ({
+        where: ++updateCallCount === 1 ? txEntitlementWhere : txOtherWhere,
+      }));
       const txFrom = vi
         .fn()
         .mockReturnValue({ where: vi.fn().mockReturnValue({ limit: txLimit }) });
@@ -245,8 +250,6 @@ describe('POST /sweep-grace-periods — transaction with stripeCustomerId', () =
   it('updates licenses when subscription has stripeCustomerId', async () => {
     let txUpdateCount = 0;
     mockTransaction.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
-      const txWhere = vi.fn().mockResolvedValue([]);
-      const txSet = vi.fn().mockReturnValue({ where: txWhere });
       const txLimit = vi.fn().mockResolvedValue([{ stripeCustomerId: 'cus_123' }]);
       const txFrom = vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({ limit: txLimit }),
@@ -254,7 +257,9 @@ describe('POST /sweep-grace-periods — transaction with stripeCustomerId', () =
       const tx = {
         update: vi.fn(() => {
           txUpdateCount++;
-          return { set: txSet };
+          // First update (entitlements) returns rowCount for TOCTOU guard
+          const txWhere = vi.fn().mockResolvedValue(txUpdateCount === 1 ? { rowCount: 1 } : []);
+          return { set: vi.fn().mockReturnValue({ where: txWhere }) };
         }),
         select: vi.fn().mockReturnValue({ from: txFrom }),
       };
@@ -269,8 +274,6 @@ describe('POST /sweep-grace-periods — transaction with stripeCustomerId', () =
   it('skips license update when no stripeCustomerId', async () => {
     let txUpdateCount = 0;
     mockTransaction.mockImplementation(async (cb: (tx: unknown) => Promise<void>) => {
-      const txWhere = vi.fn().mockResolvedValue([]);
-      const txSet = vi.fn().mockReturnValue({ where: txWhere });
       const txLimit = vi.fn().mockResolvedValue([{ stripeCustomerId: null }]);
       const txFrom = vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({ limit: txLimit }),
@@ -278,7 +281,8 @@ describe('POST /sweep-grace-periods — transaction with stripeCustomerId', () =
       const tx = {
         update: vi.fn(() => {
           txUpdateCount++;
-          return { set: txSet };
+          const txWhere = vi.fn().mockResolvedValue(txUpdateCount === 1 ? { rowCount: 1 } : []);
+          return { set: vi.fn().mockReturnValue({ where: txWhere }) };
         }),
         select: vi.fn().mockReturnValue({ from: txFrom }),
       };

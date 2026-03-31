@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   keywords: [
     'open source',
     'agentic business runtime',
+    'JOSHUA Stack',
     'SaaS',
     'auth',
     'billing',

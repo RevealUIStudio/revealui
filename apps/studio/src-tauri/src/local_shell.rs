@@ -7,16 +7,19 @@ use base64::engine::general_purpose::STANDARD as BASE64;
 use portable_pty::{CommandBuilder, MasterPty, NativePtySystem, PtySize, PtySystem};
 use serde::Serialize;
 use tauri::Emitter;
+use ts_rs::TS;
 
 /// Event payload sent from local shell to frontend.
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct ShellOutputEvent {
     pub session_id: String,
     pub data: String, // base64-encoded
 }
 
 /// Event payload for shell exit.
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct ShellExitEvent {
     pub session_id: String,
     pub reason: String,

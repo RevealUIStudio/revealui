@@ -1,6 +1,7 @@
 {
   "name": "marketing",
   "version": "0.1.0",
+  "description": "Marketing site and waitlist for RevealUI",
   "private": true,
   "dependencies": {
     "@revealui/contracts": "workspace:*",

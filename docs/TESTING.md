@@ -1,3 +1,10 @@
+---
+title: "Testing Guide"
+description: "Vitest unit tests, Playwright E2E, test utilities, and coverage targets"
+category: guide
+audience: contributor
+---
+
 # Testing Guide
 
 Reference guide to testing in the RevealUI monorepo.

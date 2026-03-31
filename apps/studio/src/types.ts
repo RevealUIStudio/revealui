@@ -1,62 +1,43 @@
-/** Mirrors Rust SystemStatus struct */
-export interface SystemStatus {
-  wsl_running: boolean;
-  distribution: string;
-  tier: string;
-  systemd_status: string;
-}
+// Auto-generated types are in ./generated/ — do not manually edit those files.
+// To regenerate: bash apps/studio/scripts/generate-types.sh
 
-/** Mirrors Rust MountStatus struct */
-export interface MountStatus {
-  mounted: boolean;
-  mount_point: string;
-  device: string | null;
-  size_total: string | null;
-  size_used: string | null;
-  size_available: string | null;
-  use_percent: string | null;
-}
+// ── Re-exports from generated Rust bindings (ts-rs) ─────────────────────────
 
-/** Mirrors Rust RepoInfo struct */
-export interface RepoInfo {
-  name: string;
-  c_path: string | null;
-  e_path: string | null;
-  identity: 'personal' | 'professional';
-}
+export type { AppInfo } from './generated/AppInfo';
+export type { AppStatus } from './generated/AppStatus';
+export type { DeployApps } from './generated/DeployApps';
+export type { DeployConfig } from './generated/DeployConfig';
+export type { DevelopConfig } from './generated/DevelopConfig';
+export type { GitBranch } from './generated/GitBranch';
+export type { GitCommitInfo } from './generated/GitCommitInfo';
+export type { GitDiffContent } from './generated/GitDiffContent';
+export type { GitFileEntry } from './generated/GitFileEntry';
+export type { GitPullResult } from './generated/GitPullResult';
+export type { GitPushResult } from './generated/GitPushResult';
+export type { GitStatusResult } from './generated/GitStatusResult';
+export type { MountStatus } from './generated/MountStatus';
+export type { RepoInfo } from './generated/RepoInfo';
+export type { SecretInfo } from './generated/SecretInfo';
+export type { SetupStatus } from './generated/SetupStatus';
+export type { ShellExitEvent } from './generated/ShellExitEvent';
+export type { ShellOutputEvent } from './generated/ShellOutputEvent';
+export type { SshAuth } from './generated/SshAuth';
+export type { SshBookmark } from './generated/SshBookmark';
+export type { SshDisconnectEvent } from './generated/SshDisconnectEvent';
+export type { SshHostKeyEvent } from './generated/SshHostKeyEvent';
+export type { SshOutputEvent } from './generated/SshOutputEvent';
+export type { StudioConfig } from './generated/StudioConfig';
+export type { SyncResult } from './generated/SyncResult';
+export type { SystemStatus } from './generated/SystemStatus';
+export type { TailscalePeer } from './generated/TailscalePeer';
+export type { TailscaleStatus } from './generated/TailscaleStatus';
+export type { VercelDeployment } from './generated/VercelDeployment';
+export type { VercelProject } from './generated/VercelProject';
 
-/** Mirrors Rust SyncResult struct */
-export interface SyncResult {
-  drive: string;
-  repo: string;
-  status: SyncStatus;
-  branch: string;
-}
+// ── TS-only types (no Rust mirror) ──────────────────────────────────────────
 
+/** SyncResult.status is a plain string in Rust; this union narrows it on the TS side. */
 export type SyncStatus = 'ok' | 'dirty' | 'diverged' | 'skip' | 'reset_failed' | 'error';
-
-/** Mirrors Rust AppInfo struct */
-export interface AppInfo {
-  name: string;
-  display_name: string;
-  port: number;
-  url: string;
-}
-
-/** Mirrors Rust AppStatus struct */
-export interface AppStatus {
-  app: AppInfo;
-  running: boolean;
-}
-
-/** Mirrors Rust SetupStatus struct */
-export interface SetupStatus {
-  wsl_running: boolean;
-  nix_installed: boolean;
-  devbox_mounted: boolean;
-  git_name: string;
-  git_email: string;
-}
 
 export type Page =
   | 'dashboard'
@@ -72,71 +53,13 @@ export type Page =
   | 'settings'
   | 'deploy';
 
-/** SSH authentication — password or key file */
-export type SshAuth =
-  | { method: 'password'; password: string }
-  | { method: 'key'; key_path: string; passphrase?: string | null };
-
 /** SSH connection parameters */
 export interface SshConnectParams {
   host: string;
   port: number;
   username: string;
-  auth: SshAuth;
+  auth: import('./generated/SshAuth').SshAuth;
 }
-
-/** SSH output event from backend */
-export interface SshOutputEvent {
-  session_id: string;
-  data: string; // base64-encoded
-}
-
-/** SSH disconnect event from backend */
-export interface SshDisconnectEvent {
-  session_id: string;
-  reason: string;
-}
-
-/** Local shell output event from backend */
-export interface ShellOutputEvent {
-  session_id: string;
-  data: string; // base64-encoded
-}
-
-/** Local shell exit event from backend */
-export interface ShellExitEvent {
-  session_id: string;
-  reason: string;
-}
-
-/** Saved SSH connection profile — never stores passwords */
-export interface SshBookmark {
-  id: string;
-  label: string;
-  host: string;
-  port: number;
-  username: string;
-  auth_method: 'password' | 'key';
-  key_path?: string | null;
-}
-
-/** SSH host key verification event from backend */
-export interface SshHostKeyEvent {
-  host: string;
-  port: number;
-  fingerprint: string;
-  key_type: string;
-  /** "new" = TOFU (added to known_hosts), "match" = verified, "mismatch" = REJECTED */
-  status: 'new' | 'match' | 'mismatch';
-}
-
-/** Mirrors Rust SecretInfo struct from revvault-core */
-export interface SecretInfo {
-  path: string;
-  namespace: string;
-}
-
-// ── Git Panel ─────────────────────────────────────────────────────────────
 
 /** One of: "modified" | "new" | "deleted" | "renamed" | "untracked" | "conflicted" */
 export type GitFileStatusKind =
@@ -147,56 +70,7 @@ export type GitFileStatusKind =
   | 'untracked'
   | 'conflicted';
 
-/** Mirrors Rust GitFileEntry struct */
-export interface GitFileEntry {
-  path: string;
-  status: GitFileStatusKind;
-}
-
-/** Mirrors Rust GitStatusResult struct */
-export interface GitStatusResult {
-  branch: string;
-  staged: GitFileEntry[];
-  unstaged: GitFileEntry[];
-  untracked: GitFileEntry[];
-}
-
-// ── Branch management ─────────────────────────────────────────────────────
-
-/** Mirrors Rust GitBranch struct */
-export interface GitBranch {
-  name: string;
-  is_current: boolean;
-}
-
-/** Mirrors Rust GitPushResult struct */
-export interface GitPushResult {
-  success: boolean;
-  message: string;
-}
-
-/** Mirrors Rust GitPullResult struct */
-export interface GitPullResult {
-  success: boolean;
-  message: string;
-}
-
-/** Mirrors Rust GitDiffContent struct — both file versions for a side-by-side diff viewer */
-export interface GitDiffContent {
-  original: string;
-  modified: string;
-}
-
-/** Mirrors Rust GitCommitInfo struct */
-export interface GitCommitInfo {
-  sha: string;
-  short_sha: string;
-  message: string;
-  author: string;
-  timestamp: number; // Unix seconds
-}
-
-// ── Agent Panel ───────────────────────────────────────────────────────────────
+// ── Agent Panel ─────────────────────────────────────────────────────────────
 
 /** One active row from the workboard.md Active Sessions table */
 export interface AgentSession {
@@ -206,62 +80,6 @@ export interface AgentSession {
   task: string;
   files: string;
   updated: string;
-}
-
-/** Mirrors Rust TailscaleStatus struct */
-export interface TailscaleStatus {
-  running: boolean;
-  ip: string | null;
-  hostname: string | null;
-  peers: TailscalePeer[];
-}
-
-/** Mirrors Rust TailscalePeer struct */
-export interface TailscalePeer {
-  hostname: string;
-  ip: string;
-  online: boolean;
-  os: string;
-}
-
-/** Persistent config — mirrors Rust StudioConfig */
-export interface StudioConfig {
-  intent: 'deploy' | 'develop' | null;
-  setupComplete: boolean;
-  completedSteps: string[];
-  deploy?: DeployConfig;
-  develop?: DevelopConfig;
-}
-
-export interface DeployConfig {
-  vercelTeamId?: string;
-  domain?: string;
-  apps?: { api?: string; cms?: string; marketing?: string };
-  neonProjectId?: string;
-  supabaseEnabled: boolean;
-  emailProvider?: 'resend' | 'smtp';
-}
-
-export interface DevelopConfig {
-  repoPath?: string;
-  wslDistro?: string;
-  nixInstalled: boolean;
-}
-
-/** Vercel API types */
-export interface VercelProject {
-  id: string;
-  name: string;
-  framework: string | null;
-  accountId?: string;
-}
-
-/** Mirrors Rust VercelDeployment struct (Vercel API response) */
-export interface VercelDeployment {
-  uid: string;
-  url: string | null;
-  state: string | null;
-  created: number | null;
 }
 
 /** Deploy wizard step IDs */
@@ -276,7 +94,7 @@ export type DeployStep =
   | 'deploy'
   | 'verify';
 
-/** Health check result */
+/** Health check result (TS-only — Rust command returns u16 directly) */
 export interface HealthCheckResult {
   url: string;
   status: number | null;

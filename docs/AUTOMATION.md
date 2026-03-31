@@ -1,3 +1,10 @@
+---
+title: "Automation Guide"
+description: "CI/CD automation, git hooks, pre-commit checks, and deployment scripts"
+category: operations
+audience: maintainer
+---
+
 # Automation Guide
 
 Comprehensive guide to automation, AI agents, code quality analysis, and development integrations in the RevealUI Framework.

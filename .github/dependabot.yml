@@ -66,39 +66,42 @@ updates:
         patterns:
           - "*"
 
-  # Monitor Docker base images
+  # Monitor Docker base images (ignore non-LTS Node major bumps)
   - package-ecosystem: "docker"
     directory: "/apps/cms"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: "monthly"
       timezone: "UTC"
     labels:
       - "dependencies"
       - "docker"
       - "automated"
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "docker"
     directory: "/apps/docs"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: "monthly"
       timezone: "UTC"
     labels:
       - "dependencies"
       - "docker"
       - "automated"
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "docker"
     directory: "/apps/marketing"
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: "monthly"
       timezone: "UTC"
     labels:
       - "dependencies"
       - "docker"
       - "automated"
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]

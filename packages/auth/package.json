@@ -1,6 +1,6 @@
 {
   "name": "@revealui/auth",
-  "version": "0.3.2",
+  "version": "0.3.4",
   "description": "Authentication system for RevealUI - database-backed sessions with Better Auth patterns",
   "keywords": [
     "auth",

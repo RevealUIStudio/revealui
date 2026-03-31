@@ -259,37 +259,45 @@ export const syncMetadata = pgTable('sync_metadata', {
 // Agent Actions Table (Audit log of agent actions)
 // =============================================================================
 
-export const agentActions = pgTable('agent_actions', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const agentActions = pgTable(
+  'agent_actions',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Schema versioning
-  version: integer('version').notNull().default(1),
+    // Schema versioning
+    version: integer('version').notNull().default(1),
 
-  // Relationships
-  conversationId: text('conversation_id').references(() => conversations.id, {
-    onDelete: 'cascade',
-  }),
-  agentId: text('agent_id').notNull(),
+    // Relationships
+    conversationId: text('conversation_id').references(() => conversations.id, {
+      onDelete: 'cascade',
+    }),
+    agentId: text('agent_id').notNull(),
 
-  // Action details
-  tool: text('tool').notNull(),
-  params: jsonb('params'),
-  result: jsonb('result'),
+    // Action details
+    tool: text('tool').notNull(),
+    params: jsonb('params'),
+    result: jsonb('result'),
 
-  // Status: pending, running, completed, failed, cancelled
-  status: text('status').notNull().default('pending'),
-  error: text('error'),
+    // Status: pending, running, completed, failed, cancelled
+    status: text('status').notNull().default('pending'),
+    error: text('error'),
 
-  // Timing
-  startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
-  completedAt: timestamp('completed_at', { withTimezone: true }),
-  durationMs: integer('duration_ms'),
+    // Timing
+    startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    durationMs: integer('duration_ms'),
 
-  // Context for understanding the action
-  reasoning: text('reasoning'),
-  confidence: real('confidence'),
-});
+    // Context for understanding the action
+    reasoning: text('reasoning'),
+    confidence: real('confidence'),
+  },
+  (table) => [
+    index('agent_actions_conversation_id_idx').on(table.conversationId),
+    index('agent_actions_agent_id_idx').on(table.agentId),
+    index('agent_actions_status_idx').on(table.status),
+  ],
+);
 
 // =============================================================================
 // AI Memory Sessions Table (Ownership binding for CRDT memory sessions)

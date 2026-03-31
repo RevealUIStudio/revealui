@@ -1,3 +1,10 @@
+---
+title: "Local-First Setup"
+description: "Development environment setup for local-first development with ElectricSQL"
+category: guide
+audience: developer
+---
+
 # Local-First Setup
 
 Run RevealUI entirely on your own hardware — no cloud AI API, no remote secret storage, fully reproducible dev environment.

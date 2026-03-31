@@ -321,7 +321,7 @@ function AccountSettingsContent() {
               {!user.hasPassword ? (
                 <p className="mt-2 text-sm text-zinc-400">
                   No password set.{' '}
-                  <a href="/forgot-password" className="text-zinc-200 underline hover:no-underline">
+                  <a href="/reset-password" className="text-zinc-200 underline hover:no-underline">
                     Use password reset
                   </a>{' '}
                   to set one.

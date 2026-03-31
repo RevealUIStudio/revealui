@@ -1,3 +1,10 @@
+---
+title: "@revealui/ai"
+description: "AI agents, LLM providers, CRDT memory, and orchestration for RevealUI Pro"
+category: package-guide
+audience: developer
+---
+
 # @revealui/ai
 
 AI agents, LLM providers, CRDT memory, and the A2A protocol for RevealUI Pro.

@@ -56,6 +56,38 @@ describe('TwoFactorAuth', () => {
 
     expect(TwoFactorAuth.verifyCode(secret, '000000')).toBe(false);
   });
+
+  // RFC 6238 Appendix B test vectors — SHA-1, 8-digit mode adapted to 6-digit.
+  // The reference secret is the ASCII string "12345678901234567890" (20 bytes),
+  // which base32-encodes to "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ".
+  it('should produce RFC 6238 compliant codes matching standard authenticator apps', () => {
+    const rfc6238Secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+
+    // RFC 6238 Appendix B: T = 59s → time step 1 → SHA-1 TOTP = 94287082 (8-digit)
+    // 6-digit truncation: last 6 digits = 287082
+    const codeAt59 = TwoFactorAuth.generateCode(rfc6238Secret, 59000);
+    expect(codeAt59).toBe('287082');
+
+    // T = 1111111109s → time step 37037036 → SHA-1 TOTP = 07081804 (8-digit)
+    // 6-digit: 081804
+    const codeAt1111111109 = TwoFactorAuth.generateCode(rfc6238Secret, 1111111109000);
+    expect(codeAt1111111109).toBe('081804');
+
+    // T = 1111111111s → time step 37037037 → SHA-1 TOTP = 14050471 (8-digit)
+    // 6-digit: 050471
+    const codeAt1111111111 = TwoFactorAuth.generateCode(rfc6238Secret, 1111111111000);
+    expect(codeAt1111111111).toBe('050471');
+
+    // T = 1234567890s → time step 41152263 → SHA-1 TOTP = 89005924 (8-digit)
+    // 6-digit: 005924
+    const codeAt1234567890 = TwoFactorAuth.generateCode(rfc6238Secret, 1234567890000);
+    expect(codeAt1234567890).toBe('005924');
+
+    // T = 2000000000s → time step 66666666 → SHA-1 TOTP = 69279037 (8-digit)
+    // 6-digit: 279037
+    const codeAt2000000000 = TwoFactorAuth.generateCode(rfc6238Secret, 2000000000000);
+    expect(codeAt2000000000).toBe('279037');
+  });
 });
 
 describe('Authorization', () => {

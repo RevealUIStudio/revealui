@@ -30,29 +30,36 @@ import { users } from './users.js';
 // Boards
 // =============================================================================
 
-export const boards = pgTable('boards', {
-  id: text('id').primaryKey(),
-  schemaVersion: text('schema_version').notNull().default('1'),
+export const boards = pgTable(
+  'boards',
+  {
+    id: text('id').primaryKey(),
+    schemaVersion: text('schema_version').notNull().default('1'),
 
-  /** Tenant scoping (null = global/default board) */
-  tenantId: text('tenant_id'),
+    /** Tenant scoping (null = global/default board) */
+    tenantId: text('tenant_id'),
 
-  name: text('name').notNull(),
-  slug: text('slug').notNull(),
-  description: text('description'),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
+    description: text('description'),
 
-  /** Board owner */
-  ownerId: text('owner_id').references(() => users.id, { onDelete: 'set null' }),
+    /** Board owner */
+    ownerId: text('owner_id').references(() => users.id, { onDelete: 'set null' }),
 
-  /** Whether this is the default board for new tickets */
-  isDefault: boolean('is_default').notNull().default(false),
+    /** Whether this is the default board for new tickets */
+    isDefault: boolean('is_default').notNull().default(false),
 
-  /** Extensible board settings (e.g., default assignee, WIP limits) */
-  settings: jsonb('settings').default('{}').notNull(),
+    /** Extensible board settings (e.g., default assignee, WIP limits) */
+    settings: jsonb('settings').default('{}').notNull(),
 
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-});
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('boards_tenant_id_idx').on(table.tenantId),
+    index('boards_owner_id_idx').on(table.ownerId),
+  ],
+);
 
 export type Board = typeof boards.$inferSelect;
 export type NewBoard = typeof boards.$inferInsert;
@@ -94,23 +101,27 @@ export type NewBoardColumn = typeof boardColumns.$inferInsert;
 // Ticket Labels
 // =============================================================================
 
-export const ticketLabels = pgTable('ticket_labels', {
-  id: text('id').primaryKey(),
+export const ticketLabels = pgTable(
+  'ticket_labels',
+  {
+    id: text('id').primaryKey(),
 
-  /** Tenant scoping (null = global labels) */
-  tenantId: text('tenant_id'),
+    /** Tenant scoping (null = global labels) */
+    tenantId: text('tenant_id'),
 
-  name: text('name').notNull(),
-  slug: text('slug').notNull(),
+    name: text('name').notNull(),
+    slug: text('slug').notNull(),
 
-  /** Display color (hex) */
-  color: text('color').notNull().default('#6366f1'),
+    /** Display color (hex) */
+    color: text('color').notNull().default('#6366f1'),
 
-  description: text('description'),
+    description: text('description'),
 
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-});
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('ticket_labels_tenant_id_idx').on(table.tenantId)],
+);
 
 export type TicketLabel = typeof ticketLabels.$inferSelect;
 export type NewTicketLabel = typeof ticketLabels.$inferInsert;

@@ -1,3 +1,10 @@
+---
+title: "Documentation Assessment"
+description: "Audit of documentation completeness and accuracy across all packages"
+category: internal
+audience: maintainer
+---
+
 # Documentation vs Reality Assessment
 
 _Generated: 2026-03-28 | Branch: test | Commit: ce5f1ea8_

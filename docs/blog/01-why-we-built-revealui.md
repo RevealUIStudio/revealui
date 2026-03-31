@@ -44,7 +44,11 @@ The fundamental issue is that these tools were designed in isolation. They don't
 
 ## The RevealUI approach
 
-RevealUI treats those five primitives as a single, cohesive system. Here's what that looks like in practice.
+RevealUI treats those five primitives as a single, cohesive system. The architecture follows what I call the **JOSHUA Stack** — six engineering principles that govern every decision: **Justifiable** (every default earns its place), **Orthogonal** (clean separation between packages), **Sovereign** (you own everything, deploy anywhere), **Hermetic** (sealed boundaries between concerns), **Unified** (one schema, zero drift), and **Adaptive** (AI and extensibility built into the foundation, not bolted on).
+
+I want to be clear about something: I'm not claiming this is the only way to build software. I'm saying it's *a* way — one that I've tested across three companies and thousands of decisions. If you're staring at a blank repo wondering which ORM, which auth strategy, which deployment model, the JOSHUA Stack gives you a defensible answer for each one. Start here. Evolve from here. The principles are starting coordinates, not a cage.
+
+Here's what that looks like in practice.
 
 ### Getting started
 
@@ -213,7 +217,7 @@ I also open-sourced the MCP framework (hypervisor, adapter base classes, and dat
 
 ## What makes RevealUI different
 
-RevealUI is not a CMS with plugins bolted on. It's not a boilerplate you clone and hack. It's a cohesive system designed from the ground up so that every primitive knows about every other primitive.
+RevealUI is not a CMS with plugins bolted on. It's not a boilerplate you clone and hack. It's a cohesive system designed from the ground up so that every primitive knows about every other primitive. This is the JOSHUA Stack's **Unified** and **Hermetic** principles in practice — one schema shared across every layer, but with sealed boundaries between concerns so auth never leaks into billing and content never tangles with payments.
 
 When a user signs up, the auth system creates their session, assigns their default role, and checks their license tier. When they access content, the collection's `access.read` function can reference their tier, their role, or any custom claim. When they upgrade via Stripe, the webhook handler updates their license, which updates their feature flags, which unlocks gated content and capabilities — all in the same request cycle.
 
@@ -232,7 +236,7 @@ Some numbers on what's actually shipped:
 
 I want to be honest about where RevealUI is and isn't the right choice.
 
-**It's opinionated.** The stack is React 19, Next.js 16, Hono, Drizzle ORM, NeonDB, Tailwind v4. If you need Vue or Svelte on the frontend, RevealUI isn't for you today. The API layer (Hono) is framework-agnostic and serves standard REST, so you could consume it from any frontend — but the admin dashboard and CMS are React.
+**It's opinionated.** That's the **Justifiable** principle — every choice has a reason you can explain in one sentence. React 19, Next.js 16, Hono, Drizzle ORM, NeonDB, Tailwind v4. If you need Vue or Svelte on the frontend, RevealUI isn't for you today. The API layer (Hono) is framework-agnostic and serves standard REST, so you could consume it from any frontend — but the admin dashboard and CMS are React. The point isn't that these are the *right* choices for every team — it's that they're a coherent set of choices that work well together. If you're not sure what to pick, this is a slam dunk starting point. When your needs outgrow a specific tool, swap it — the **Orthogonal** architecture means nothing is welded shut.
 
 **It's early.** This is a v0 launch. The core is stable (5,500+ tests, full TypeScript strict mode, comprehensive security hardening), but the ecosystem is young. There's no plugin marketplace yet. The template library is small. The community is just getting started.
 

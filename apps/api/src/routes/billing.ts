@@ -511,6 +511,7 @@ app.openapi(checkoutRoute, async (c) => {
       payment_method_types: ['card'],
       billing_address_collection: 'required',
       tax_id_collection: { enabled: true },
+      automatic_tax: { enabled: true },
       ...discountConfig,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       subscription_data: {
@@ -746,10 +747,19 @@ app.openapi(upgradeRoute, async (c) => {
     throw new HTTPException(400, { message: 'Subscription has no items.' });
   }
 
-  // R5-H10: Reject concurrent subscription modifications
+  // R5-H10: Reject concurrent subscription modifications (with 15-min staleness expiry)
   if (subscription.metadata?.pending_change) {
-    throw new HTTPException(409, {
-      message: 'A subscription change is already in progress. Please wait and try again.',
+    const pendingAt = Number(subscription.metadata.pending_change_at || 0);
+    const isStale = pendingAt > 0 && Date.now() - pendingAt > 15 * 60 * 1000;
+    if (!isStale) {
+      throw new HTTPException(409, {
+        message: 'A subscription change is already in progress. Please wait and try again.',
+      });
+    }
+    logger.warn('Stale pending_change detected, allowing override', {
+      subscriptionId: subscription.id,
+      pendingChange: subscription.metadata.pending_change,
+      pendingAt,
     });
   }
 
@@ -764,6 +774,7 @@ app.openapi(upgradeRoute, async (c) => {
           tier: targetTier,
           revealui_user_id: user.id,
           pending_change: `upgrade:${targetTier}`,
+          pending_change_at: String(Date.now()),
         },
         proration_behavior: 'create_prorations',
       },
@@ -845,10 +856,19 @@ app.openapi(downgradeRoute, async (c) => {
     throw new HTTPException(400, { message: 'No active subscription found to downgrade.' });
   }
 
-  // R5-H10: Reject concurrent subscription modifications
+  // R5-H10: Reject concurrent subscription modifications (with 15-min staleness expiry)
   if (subscription.metadata?.pending_change) {
-    throw new HTTPException(409, {
-      message: 'A subscription change is already in progress. Please wait and try again.',
+    const pendingAt = Number(subscription.metadata.pending_change_at || 0);
+    const isStale = pendingAt > 0 && Date.now() - pendingAt > 15 * 60 * 1000;
+    if (!isStale) {
+      throw new HTTPException(409, {
+        message: 'A subscription change is already in progress. Please wait and try again.',
+      });
+    }
+    logger.warn('Stale pending_change detected, allowing override', {
+      subscriptionId: subscription.id,
+      pendingChange: subscription.metadata.pending_change,
+      pendingAt,
     });
   }
 
@@ -860,7 +880,7 @@ app.openapi(downgradeRoute, async (c) => {
       subscription.id,
       {
         cancel_at_period_end: true,
-        metadata: { pending_change: 'downgrade:free' },
+        metadata: { pending_change: 'downgrade:free', pending_change_at: String(Date.now()) },
       },
       { idempotencyKey: `downgrade-${subscription.id}-free-${user.id}` },
     ),
@@ -995,6 +1015,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
       payment_method_types: ['card'],
       billing_address_collection: 'required',
       tax_id_collection: { enabled: true },
+      automatic_tax: { enabled: true },
       allow_promotion_codes: true,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       payment_intent_data: {
@@ -1121,6 +1142,7 @@ app.openapi(creditCheckoutRoute, async (c) => {
       customer: customerId,
       mode: 'payment',
       payment_method_types: ['card'],
+      automatic_tax: { enabled: true },
       allow_promotion_codes: true,
       line_items: [{ price: resolvedPriceId, quantity: 1 }],
       payment_intent_data: {
