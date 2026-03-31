@@ -109,7 +109,7 @@ export function ProductMockup() {
                   d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
                 />
               </svg>
-              app.revealui.com/admin
+              cms.revealui.com/admin
             </div>
           </div>
         </div>
@@ -188,7 +188,7 @@ export function ProductMockup() {
         {/* Status bar */}
         <div className="px-5 py-2 bg-blue-600/20 border-t border-gray-800 flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-green-400" />
-          <span className="text-xs text-gray-400 font-mono">TypeScript · RevealUI v0.5.0</span>
+          <span className="text-xs text-gray-400 font-mono">TypeScript · RevealUI v0.3.4</span>
         </div>
       </div>
     </div>
