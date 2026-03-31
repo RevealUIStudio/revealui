@@ -31,17 +31,17 @@ describe('ValueProposition', () => {
   it('contains all three value proposition cards', () => {
     const result = ValueProposition();
     const html = JSON.stringify(result);
-    expect(html).toContain('Own Your Stack');
-    expect(html).toContain('AI Agents Built In');
-    expect(html).toContain('Production Stack Included');
+    expect(html).toContain('Sovereign by Default');
+    expect(html).toContain('Adaptive Intelligence');
+    expect(html).toContain('Unified Truth');
   });
 
   it('contains feature descriptions', () => {
     const result = ValueProposition();
     const html = JSON.stringify(result);
-    expect(html).toContain('MIT-licensed business infrastructure');
-    expect(html).toContain('A2A protocol agent system');
-    expect(html).toContain('Session auth, RBAC');
+    expect(html).toContain('MIT-licensed core');
+    expect(html).toContain('AI agents, MCP servers');
+    expect(html).toContain('One Zod schema defines the contract');
   });
 
   it('contains links to documentation', () => {
