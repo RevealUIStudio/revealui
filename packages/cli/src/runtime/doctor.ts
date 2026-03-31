@@ -1,6 +1,12 @@
 import { commandExists, isTcpReachable } from '../utils/command.js';
 import { detectDbTarget, resolveLocalDbConfig } from '../utils/db.js';
 import { findWorkspaceRoot } from '../utils/workspace.js';
+import {
+  validateNeonUrl,
+  validateNpmToken,
+  validateStripeKey,
+  validateSupabaseUrl,
+} from '../validators/credentials.js';
 import { validateNodeVersion } from '../validators/node-version.js';
 
 export interface DoctorCheck {
@@ -34,6 +40,161 @@ function getMcpDetail(env: NodeJS.ProcessEnv): { ok: boolean; detail: string } {
   };
 }
 
+/**
+ * Credential and environment variable checks.
+ *
+ * Each entry defines: env var name, whether it's required or optional,
+ * a human label, and an optional format validator.
+ */
+interface EnvVarSpec {
+  key: string;
+  label: string;
+  required: boolean;
+  validate?: (value: string) => Promise<{ valid: boolean; message?: string }>;
+}
+
+const ENV_VAR_SPECS: EnvVarSpec[] = [
+  // Core
+  {
+    key: 'REVEALUI_SECRET',
+    label: 'App secret',
+    required: false,
+  },
+  {
+    key: 'REVEALUI_ADMIN_EMAIL',
+    label: 'Admin email',
+    required: false,
+  },
+  // Database
+  {
+    key: 'POSTGRES_URL',
+    label: 'PostgreSQL URL',
+    required: true,
+    validate: validateNeonUrl,
+  },
+  // Stripe
+  {
+    key: 'STRIPE_SECRET_KEY',
+    label: 'Stripe secret key',
+    required: false,
+    validate: validateStripeKey,
+  },
+  {
+    key: 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+    label: 'Stripe publishable key',
+    required: false,
+    validate: async (v) => ({
+      valid: v.startsWith('pk_test_') || v.startsWith('pk_live_'),
+      message: 'Must start with pk_test_ or pk_live_',
+    }),
+  },
+  {
+    key: 'STRIPE_WEBHOOK_SECRET',
+    label: 'Stripe webhook secret',
+    required: false,
+    validate: async (v) => ({
+      valid: v.startsWith('whsec_'),
+      message: 'Must start with whsec_',
+    }),
+  },
+  // Supabase
+  {
+    key: 'NEXT_PUBLIC_SUPABASE_URL',
+    label: 'Supabase URL',
+    required: false,
+    validate: validateSupabaseUrl,
+  },
+  {
+    key: 'SUPABASE_SERVICE_ROLE_KEY',
+    label: 'Supabase service role key',
+    required: false,
+    validate: async (v) => ({
+      valid: v.startsWith('eyJ'),
+      message: 'Must be a JWT (starts with eyJ)',
+    }),
+  },
+  // Services
+  {
+    key: 'RESEND_API_KEY',
+    label: 'Resend API key',
+    required: false,
+    validate: async (v) => ({
+      valid: v.startsWith('re_'),
+      message: 'Must start with re_',
+    }),
+  },
+  // npm
+  {
+    key: 'NPM_TOKEN',
+    label: 'npm publish token',
+    required: false,
+    validate: validateNpmToken,
+  },
+  // License
+  {
+    key: 'REVEALUI_LICENSE_PRIVATE_KEY',
+    label: 'License signing key',
+    required: false,
+  },
+  // CRON
+  {
+    key: 'REVEALUI_CRON_SECRET',
+    label: 'Cron secret',
+    required: false,
+  },
+  // AI
+  {
+    key: 'GROQ_API_KEY',
+    label: 'Groq API key',
+    required: false,
+    validate: async (v) => ({
+      valid: v.startsWith('gsk_'),
+      message: 'Must start with gsk_',
+    }),
+  },
+];
+
+function maskValue(value: string): string {
+  if (value.length <= 8) return '***';
+  return `${value.slice(0, 4)}...${value.slice(-4)}`;
+}
+
+async function gatherCredentialChecks(env: NodeJS.ProcessEnv): Promise<DoctorCheck[]> {
+  const checks: DoctorCheck[] = [];
+
+  for (const spec of ENV_VAR_SPECS) {
+    const value = env[spec.key];
+
+    if (!value) {
+      checks.push({
+        id: `env:${spec.key}`,
+        ok: !spec.required,
+        detail: spec.required ? `${spec.label} — missing (required)` : `${spec.label} — not set`,
+      });
+      continue;
+    }
+
+    if (spec.validate) {
+      const result = await spec.validate(value);
+      checks.push({
+        id: `env:${spec.key}`,
+        ok: result.valid,
+        detail: result.valid
+          ? `${spec.label} — ${maskValue(value)}`
+          : `${spec.label} — ${result.message} (got ${maskValue(value)})`,
+      });
+    } else {
+      checks.push({
+        id: `env:${spec.key}`,
+        ok: true,
+        detail: `${spec.label} — set`,
+      });
+    }
+  }
+
+  return checks;
+}
+
 export async function gatherDoctorReport(
   cwd = process.cwd(),
   env: NodeJS.ProcessEnv = process.env,
@@ -52,6 +213,7 @@ export async function gatherDoctorReport(
   const postgresReachable =
     dbTarget === 'local' ? await isTcpReachable('127.0.0.1', 5432, 1000) : false;
   const mcp = getMcpDetail(env);
+  const credentials = await gatherCredentialChecks(env);
 
   return {
     workspaceRoot,
@@ -120,6 +282,7 @@ export async function gatherDoctorReport(
         ok: mcp.ok,
         detail: mcp.detail,
       },
+      ...credentials,
     ],
   };
 }

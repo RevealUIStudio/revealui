@@ -9,6 +9,11 @@ import {
   runAgentReplCommand,
   runAgentStatusCommand,
 } from './commands/agent.js';
+import {
+  runAuthSetTokenCommand,
+  runAuthStatusCommand,
+  runAuthVerifyCommand,
+} from './commands/auth.js';
 import { runCreateFlow } from './commands/create-flow.js';
 import {
   runDbCleanupCommand,
@@ -263,6 +268,36 @@ export function createCli(): Command {
     .option('--json', 'Output machine-readable JSON', false)
     .action(async (options: { json?: boolean }) => {
       await runDevProfileShowCommand(options);
+    });
+
+  const auth = program
+    .command('auth')
+    .description('Manage npm registry authentication and publish tokens');
+
+  auth
+    .command('status')
+    .description('Show current npm authentication state')
+    .option('--json', 'Output machine-readable JSON', false)
+    .action(async (options: { json?: boolean }) => {
+      await runAuthStatusCommand(options);
+    });
+
+  auth
+    .command('set-token')
+    .description('Store an npm token via RevVault and configure .npmrc')
+    .option('--token <value>', 'npm token (or set NPM_TOKEN env var)')
+    .option('--skip-vault', 'Skip RevVault storage', false)
+    .option('--skip-npmrc', 'Skip .npmrc modification', false)
+    .action(async (options: { token?: string; skipVault?: boolean; skipNpmrc?: boolean }) => {
+      await runAuthSetTokenCommand(options);
+    });
+
+  auth
+    .command('verify')
+    .description('Verify the full npm auth chain (env → RevVault → .npmrc → registry)')
+    .option('--json', 'Output machine-readable JSON', false)
+    .action(async (options: { json?: boolean }) => {
+      await runAuthVerifyCommand(options);
     });
 
   program
