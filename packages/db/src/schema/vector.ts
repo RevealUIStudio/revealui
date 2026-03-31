@@ -12,18 +12,16 @@
  * RAG tables also require pgvector and follow the same pattern.
  */
 
-// Re-export for convenience (these types are also available from @revealui/contracts/agents)
 export type {
   AgentMemory,
   AgentMemory as AgentMemoryType,
   NewAgentMemory,
   NewAgentMemory as NewAgentMemoryType,
 } from './agents.js';
-
-// NOTE: agentMemories lives in NeonDB (not Supabase) due to FK constraints on
-// sites and users. It is NOT re-exported here to prevent drizzle.config.supabase.ts
-// from creating it in the wrong database. Import agentMemories directly from
-// '@revealui/db/schema/agents' when needed.
+// Re-export table + types for convenience.
+// agentMemories lives in NeonDB (not Supabase) due to FK constraints on sites/users,
+// but is re-exported here because published @revealui/ai imports it from this path.
+export { agentMemories } from './agents.js';
 
 // RAG tables (pgvector-backed, stored on Supabase)
 export * from './rag.js';
