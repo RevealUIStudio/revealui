@@ -206,11 +206,14 @@ app.use('*', honoLogger());
 app.use('*', async (c, next) => {
   const origin = c.req.header('origin') || c.req.header('Origin') || '';
 
-  const isAllowed =
-    corsOrigins.includes(origin) ||
-    (process.env.VERCEL_ENV === 'preview' &&
-      (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin) ||
-        /^https:\/\/(dev|test)\.(cms\.|api\.|docs\.)?revealui\.com$/.test(origin)));
+  // Preview CORS: allow project-scoped Vercel preview URLs and test subdomains.
+  // Pattern: revealui-<app>-<hash>-revealuistudios-projects.vercel.app
+  const isPreviewAllowed =
+    process.env.VERCEL_ENV === 'preview' &&
+    (/^https:\/\/revealui[\w-]*-revealuistudios-projects\.vercel\.app$/.test(origin) ||
+      /^https:\/\/(dev|test)\.(cms\.|api\.|docs\.)?revealui\.com$/.test(origin));
+
+  const isAllowed = corsOrigins.includes(origin) || isPreviewAllowed;
 
   if (isAllowed) {
     c.header('Access-Control-Allow-Origin', origin);

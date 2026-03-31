@@ -47,19 +47,31 @@ export interface PasskeyConfig {
 const DEFAULT_CONFIG: PasskeyConfig = {
   maxPasskeysPerUser: 10,
   challengeTtlMs: 5 * 60 * 1000,
-  rpId: 'localhost',
-  rpName: 'RevealUI',
-  origin: 'http://localhost:4000',
+  rpId: process.env.PASSKEY_RP_ID || 'localhost',
+  rpName: process.env.PASSKEY_RP_NAME || 'RevealUI',
+  origin: process.env.PASSKEY_ORIGIN || 'http://localhost:4000',
 };
 
 let config: PasskeyConfig = { ...DEFAULT_CONFIG };
+let _productionChecked = false;
 
 export function configurePasskey(overrides: Partial<PasskeyConfig>): void {
   config = { ...DEFAULT_CONFIG, ...overrides };
+  _productionChecked = false;
 }
 
 export function resetPasskeyConfig(): void {
   config = { ...DEFAULT_CONFIG };
+}
+
+function assertProductionConfig(): void {
+  if (_productionChecked) return;
+  _productionChecked = true;
+  if (process.env.NODE_ENV === 'production' && config.rpId === 'localhost') {
+    throw new Error(
+      'Passkey rpId is "localhost" in production. Set PASSKEY_RP_ID or call configurePasskey() at startup.',
+    );
+  }
 }
 
 // =============================================================================
@@ -82,6 +94,7 @@ export async function generateRegistrationChallenge(
   userEmail: string,
   existingCredentialIds?: string[],
 ): Promise<PublicKeyCredentialCreationOptionsJSON> {
+  assertProductionConfig();
   const excludeCredentials = existingCredentialIds?.map((id) => ({
     id,
   }));
@@ -218,6 +231,7 @@ export async function storePasskey(
 export async function generateAuthenticationChallenge(
   allowCredentials?: { id: string; transports?: string[] }[],
 ): Promise<PublicKeyCredentialRequestOptionsJSON> {
+  assertProductionConfig();
   const options = await generateAuthenticationOptions({
     rpID: config.rpId,
     allowCredentials: allowCredentials?.map((cred) => ({

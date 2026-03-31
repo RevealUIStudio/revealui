@@ -366,7 +366,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
         'sub_pro',
         {
           cancel_at_period_end: true,
-          metadata: { pending_change: 'downgrade:free' },
+          metadata: { pending_change: 'downgrade:free', pending_change_at: expect.any(String) },
         },
         { idempotencyKey: 'downgrade-sub_pro-free-user-123' },
       );

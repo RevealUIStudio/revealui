@@ -787,6 +787,7 @@ describe('POST /upgrade', () => {
           tier: 'enterprise',
           revealui_user_id: MOCK_USER.id,
           pending_change: 'upgrade:enterprise',
+          pending_change_at: expect.any(String),
         },
         proration_behavior: 'create_prorations',
       },

@@ -1923,16 +1923,33 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        const failedCustomerId =
+          typeof paymentIntent.customer === 'string'
+            ? paymentIntent.customer
+            : (paymentIntent.customer?.id ?? null);
         logger.warn('Payment intent failed', {
           paymentIntentId: paymentIntent.id,
+          customerId: failedCustomerId,
           amount: paymentIntent.amount,
           currency: paymentIntent.currency,
           lastPaymentError: paymentIntent.last_payment_error?.message ?? 'unknown',
         });
-        // Stripe retries automatically per the retry schedule — no action required here.
-        // Audit for ops visibility.
+        // Stripe retries automatically per the retry schedule.
+        // Log structured event for external notification pipeline (email/Slack).
+        // TODO: Wire up transactional email (e.g., Resend) to notify customer of payment failure
+        // with retry information and support contact link.
+        logger.info('payment.failed.notification', {
+          type: 'customer_notification',
+          customerId: failedCustomerId,
+          paymentIntentId: paymentIntent.id,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+          errorMessage: paymentIntent.last_payment_error?.message ?? 'unknown',
+          retrySchedule: 'stripe_automatic',
+        });
         auditLicenseEvent(db, 'payment.intent.failed', 'warn', {
           paymentIntentId: paymentIntent.id,
+          customerId: failedCustomerId,
           amount: paymentIntent.amount,
         });
         break;
