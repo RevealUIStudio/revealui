@@ -67,7 +67,46 @@ export function sanitizeName(name: string, maxLength: number = 100): string {
     idx = sanitized.toLowerCase().indexOf('javascript:');
   }
 
+  // Strip inline event handlers (onclick=, onerror=, onload=, etc.)
+  sanitized = stripEventHandlers(sanitized);
+
   return sanitized;
+}
+
+/** Check if a character code is a lowercase ASCII letter (a-z) */
+function isLowerAlpha(code: number): boolean {
+  return code >= 97 && code <= 122;
+}
+
+/**
+ * Strip inline event handler attributes (onclick=, onerror=, onload=, etc.)
+ * Matches "on" followed by one or more letters followed by "=" (case-insensitive)
+ */
+function stripEventHandlers(input: string): string {
+  let result = '';
+  let i = 0;
+  while (i < input.length) {
+    // Check for "on" prefix (case-insensitive)
+    if (
+      i + 2 < input.length &&
+      (input[i] === 'o' || input[i] === 'O') &&
+      (input[i + 1] === 'n' || input[i + 1] === 'N')
+    ) {
+      // Check if followed by letters then '='
+      let j = i + 2;
+      while (j < input.length && isLowerAlpha(input.charCodeAt(j) | 0x20)) {
+        j++;
+      }
+      if (j > i + 2 && j < input.length && input[j] === '=') {
+        // Skip "onclick=" (from i to j inclusive)
+        i = j + 1;
+        continue;
+      }
+    }
+    result += input[i];
+    i++;
+  }
+  return result;
 }
 
 /** Strip HTML tags by walking the string character by character */
