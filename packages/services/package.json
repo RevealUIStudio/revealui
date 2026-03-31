@@ -14,8 +14,8 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@solana/kit": "^6.5.0",
-    "@supabase/ssr": "^0.9.0",
-    "@supabase/supabase-js": "^2.95.3",
+    "@supabase/ssr": "^0.10.0",
+    "@supabase/supabase-js": "^2.101.0",
     "@vercel/node": "^5.6.3",
     "drizzle-orm": "catalog:",
     "stripe": "^21.0.1"
