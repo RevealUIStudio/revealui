@@ -61,18 +61,14 @@ export const copyBillingDetailsToCustomer = async (
   const updateParams: Stripe.CustomerUpdateParams = {
     name,
     phone,
-    ...(address
-      ? {
-          address: {
-            city: address.city ?? undefined,
-            country: address.country ?? undefined,
-            line1: address.line1 ?? undefined,
-            line2: address.line2 ?? undefined,
-            postal_code: address.postal_code ?? undefined,
-            state: address.state ?? undefined,
-          },
-        }
-      : {}),
+    address: {
+      city: address.city ?? undefined,
+      country: address.country ?? undefined,
+      line1: address.line1 ?? undefined,
+      line2: address.line2 ?? undefined,
+      postal_code: address.postal_code ?? undefined,
+      state: address.state ?? undefined,
+    },
   };
 
   await protectedStripe.customers.update(customerId, updateParams);

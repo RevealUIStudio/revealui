@@ -42,7 +42,7 @@ export const Card = (props: {
 
   const hasCategories = categories && Array.isArray(categories) && categories.length > 0;
   const titleToUse = titleFromProps || title;
-  const sanitizedDescription = description?.replace(/\s/g, ' '); // replace non-breaking space with white space
+  const sanitizedDescription = description?.split('\u00a0').join(' ');
   const href = `/${relationTo}/${slug}`;
 
   return (

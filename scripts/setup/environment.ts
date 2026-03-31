@@ -142,11 +142,15 @@ function generatePassword(length = 16): string {
  * Updates a value in the env file content string.
  */
 function updateEnvValue(content: string, key: string, value: string): string {
-  const regex = new RegExp(`^${key}=.*$`, 'm');
-  if (regex.test(content)) {
-    return content.replace(regex, `${key}=${value}`);
+  const newLine = `${key}=${value}`;
+  const lines = content.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith(`${key}=`)) {
+      lines[i] = newLine;
+      return lines.join('\n');
+    }
   }
-  return `${content.trimEnd()}\n${key}=${value}\n`;
+  return `${content.trimEnd()}\n${newLine}\n`;
 }
 
 /**

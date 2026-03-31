@@ -20,7 +20,6 @@
  *   pnpm setup:mcp
  */
 
-import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { createLogger } from '@revealui/scripts/logger.js';
@@ -30,10 +29,6 @@ import { config } from 'dotenv';
 const logger = createLogger();
 
 config();
-
-// Check for .env.local
-const envLocalPath = join(process.cwd(), '.env.local');
-const _envLocalExists = existsSync(envLocalPath);
 
 async function setupMCP() {
   try {

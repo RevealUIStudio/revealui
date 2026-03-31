@@ -17,7 +17,7 @@
  */
 
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const rootDir = join(import.meta.dirname, '../..');
@@ -74,10 +74,10 @@ function measureTime(fn: () => void): number {
 function getFileMetrics(filePath: string): { path: string; size: number; lines: number } {
   const fullPath = join(rootDir, filePath);
   try {
-    const stats = statSync(fullPath);
+    // Read file content in one operation to avoid TOCTOU race with separate stat
     const content = readFileSync(fullPath, 'utf-8');
     const lines = content.split('\n').length;
-    return { path: filePath, size: stats.size, lines };
+    return { path: filePath, size: Buffer.byteLength(content, 'utf-8'), lines };
   } catch {
     return { path: filePath, size: 0, lines: 0 };
   }
