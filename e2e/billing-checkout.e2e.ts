@@ -161,7 +161,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
       data: { tier: 'pro' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie!.split(';')[0],
+        cookie: sessionCookie?.split(';')[0],
       },
     });
 
@@ -180,7 +180,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
       data: { tier: 'pro' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie!.split(';')[0],
+        cookie: sessionCookie?.split(';')[0],
       },
     });
 
@@ -202,7 +202,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
       data: { bundle: 'starter' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie!.split(';')[0],
+        cookie: sessionCookie?.split(';')[0],
       },
     });
 
@@ -220,7 +220,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
     const response = await page.request.post(`${ApiBase}/api/billing/portal`, {
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie!.split(';')[0],
+        cookie: sessionCookie?.split(';')[0],
       },
     });
 
@@ -248,7 +248,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
       },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie!.split(';')[0],
+        cookie: sessionCookie?.split(';')[0],
       },
     });
 
@@ -274,7 +274,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
       data: { tier: 'pro' },
       headers: {
         'Content-Type': 'application/json',
-        cookie: sessionCookie!.split(';')[0],
+        cookie: sessionCookie?.split(';')[0],
       },
     });
     expect(checkoutRes.ok()).toBe(true);

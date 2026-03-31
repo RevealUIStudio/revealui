@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { MCPHypervisor, MCPTenantContext } from '../hypervisor.js';
-import { executePipeline, type PipelineStep } from '../pipeline.js';
+import { executePipeline } from '../pipeline.js';
 
 // ---------------------------------------------------------------------------
 // Mock hypervisor factory
