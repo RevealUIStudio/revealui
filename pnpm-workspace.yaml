@@ -4,7 +4,7 @@ packages:
 
 
 catalog:
-  '@biomejs/biome': ^2.4.8
+  '@biomejs/biome': ^2.4.10
   '@neondatabase/serverless': ^1.0.2
   '@playwright/test': ^1.58.2
   '@tailwindcss/postcss': ^4.1.18
