@@ -8,7 +8,15 @@ function Card({
 }: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> }) {
   return (
     <div
-      className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
+      className={cn(
+        'rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md',
+        className,
+      )}
+      style={{
+        borderRadius: 'var(--rvui-radius-lg, 16px)',
+        transition:
+          'box-shadow var(--rvui-duration-normal, 200ms) var(--rvui-ease, cubic-bezier(0.22, 1, 0.36, 1))',
+      }}
       ref={ref}
       {...props}
     />

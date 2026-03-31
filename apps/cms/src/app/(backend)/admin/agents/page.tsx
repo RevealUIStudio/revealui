@@ -93,12 +93,21 @@ function AgentCardsPanel() {
 
   if (loading) {
     return (
-      <output aria-label="Loading" className="flex h-32 items-center justify-center">
-        <div
-          className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200"
-          aria-hidden="true"
-        />
-      </output>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+            key={i}
+            className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-800/40 p-4"
+          >
+            <div className="mb-3 h-5 w-2/3 rounded bg-zinc-700" />
+            <div className="space-y-2">
+              <div className="h-3 w-full rounded bg-zinc-700/60" />
+              <div className="h-3 w-4/5 rounded bg-zinc-700/60" />
+            </div>
+          </div>
+        ))}
+      </div>
     );
   }
 
@@ -125,16 +134,42 @@ function AgentCardsPanel() {
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {agents.map(({ card, agentId }) => (
-          <AgentCard key={agentId} card={card} agentId={agentId} />
-        ))}
-        {agents.length === 0 && (
-          <p className="col-span-3 py-12 text-center text-sm text-zinc-500">
-            No agents registered yet.
+      {agents.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 px-6 py-16 text-center">
+          <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-zinc-800 text-zinc-400">
+            <svg
+              className="size-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09ZM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456Z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-sm font-semibold text-white">No agents registered</h3>
+          <p className="mt-1 max-w-sm text-sm text-zinc-400">
+            Create your first AI agent to get started with automated tasks and workflows.
           </p>
-        )}
-      </div>
+          <Link
+            href="/admin/agents/new"
+            className="mt-6 rounded-lg bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200"
+          >
+            Create Agent
+          </Link>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {agents.map(({ card, agentId }) => (
+            <AgentCard key={agentId} card={card} agentId={agentId} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -163,12 +198,21 @@ function McpServersPanel() {
 
   if (loading) {
     return (
-      <output aria-label="Loading" className="flex h-32 items-center justify-center">
-        <div
-          className="h-5 w-5 animate-spin rounded-full border-2 border-zinc-600 border-t-zinc-200"
-          aria-hidden="true"
-        />
-      </output>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders
+            key={i}
+            className="animate-pulse rounded-lg border border-zinc-800 bg-zinc-800/40 p-4"
+          >
+            <div className="mb-3 h-5 w-1/2 rounded bg-zinc-700" />
+            <div className="space-y-2">
+              <div className="h-3 w-full rounded bg-zinc-700/60" />
+              <div className="h-3 w-3/5 rounded bg-zinc-700/60" />
+            </div>
+          </div>
+        ))}
+      </div>
     );
   }
 
@@ -196,11 +240,39 @@ function McpServersPanel() {
         </span>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {servers.map((server) => (
-          <McpServerCard key={server.id} server={server} />
-        ))}
-      </div>
+      {servers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-700 px-6 py-16 text-center">
+          <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-zinc-800 text-zinc-400">
+            <svg
+              className="size-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M5.25 14.25h13.5m-13.5 0a3 3 0 01-3-3m3 3a3 3 0 100 6h13.5a3 3 0 100-6m-16.5-3a3 3 0 013-3h13.5a3 3 0 013 3m-19.5 0a4.5 4.5 0 01.9-2.7L5.737 5.1a3.375 3.375 0 012.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 01.9 2.7m0 0a3 3 0 01-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-sm font-semibold text-white">No MCP servers connected</h3>
+          <p className="mt-1 max-w-sm text-sm text-zinc-400">
+            Start your development environment with MCP support to connect servers.
+          </p>
+          <code className="mt-4 rounded-lg bg-zinc-800 px-3 py-1.5 font-mono text-xs text-zinc-300">
+            revealui dev up --include mcp
+          </code>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {servers.map((server) => (
+            <McpServerCard key={server.id} server={server} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

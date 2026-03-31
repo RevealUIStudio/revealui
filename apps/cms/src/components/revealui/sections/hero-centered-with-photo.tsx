@@ -1,8 +1,8 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps, ReactNode } from 'react';
 import { Container } from '@/components/revealui/elements/container';
 import { Heading } from '@/components/revealui/elements/heading';
 import { Text } from '@/components/revealui/elements/text';
+import { cn } from '@/lib/utils/cn';
 
 export function HeroCenteredWithPhoto({
   eyebrow,
@@ -22,7 +22,7 @@ export function HeroCenteredWithPhoto({
   footer?: ReactNode;
 } & ComponentProps<'section'>) {
   return (
-    <section className={clsx('py-16', className)} {...props}>
+    <section className={cn('py-16', className)} {...props}>
       <Container className="flex flex-col gap-16">
         <div className="flex flex-col gap-32">
           <div className="flex flex-col items-center gap-6">

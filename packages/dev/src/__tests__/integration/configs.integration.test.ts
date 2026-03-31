@@ -98,7 +98,7 @@ describe('Dev Package Configs Integration', () => {
       const config = await import('dev/vite');
       expect(config.default.build?.target).toBeDefined();
       expect(config.default.build?.sourcemap).toBe(true);
-      expect(config.default.build?.rollupOptions).toBeDefined();
+      expect(config.default.build?.rolldownOptions).toBeDefined();
     });
 
     it('should have resolve aliases', async () => {

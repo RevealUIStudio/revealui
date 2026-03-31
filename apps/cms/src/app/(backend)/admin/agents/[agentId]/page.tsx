@@ -1,7 +1,7 @@
 'use client';
 
 import type { A2AAgentCard } from '@revealui/contracts';
-import Link from 'next/link';
+import { Breadcrumb } from '@revealui/presentation/client';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
 import { AgentMemory } from '@/lib/components/agents/agent-memory';
@@ -151,15 +151,14 @@ export default function AgentDetailPage({ params }: PageProps) {
     <LicenseGate feature="ai">
       <div className="min-h-screen">
         {/* Breadcrumb header */}
-        <div className="flex items-center gap-3 border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-          <Link
-            href="/admin/agents"
-            className="text-sm text-zinc-500 transition-colors hover:text-zinc-300"
-          >
-            Agents
-          </Link>
-          <span className="text-zinc-700">/</span>
-          <span className="text-sm text-white">{agentId}</span>
+        <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
+          <Breadcrumb
+            items={[
+              { label: 'Admin', href: '/admin' },
+              { label: 'Agents', href: '/admin/agents' },
+              { label: card?.name ?? agentId },
+            ]}
+          />
         </div>
 
         <div className="p-6">

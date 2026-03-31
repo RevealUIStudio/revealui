@@ -46,8 +46,12 @@ vi.mock('@revealui/auth/server', () => ({
   }),
 }));
 
-vi.mock('@revealui/core/features', () => ({
-  isFeatureEnabled: vi.fn().mockReturnValue(true),
+vi.mock('@/lib/middleware/ai-feature-gate', () => ({
+  checkAIFeatureGate: vi.fn().mockReturnValue(null),
+}));
+
+vi.mock('@revealui/db', () => ({
+  getClient: vi.fn().mockReturnValue({}),
 }));
 
 vi.mock('@revealui/ai/embeddings', () => ({
@@ -65,6 +69,7 @@ vi.mock('@revealui/ai/llm/server', () => ({
     getResponseCacheStats: vi.fn().mockReturnValue(undefined),
     getSemanticCacheStats: vi.fn().mockReturnValue(undefined),
   })),
+  createLLMClientForUser: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('@revealui/ai/memory/vector', () => ({

@@ -1,4 +1,5 @@
 import { ButtonCVA } from '@revealui/presentation';
+import { NewsletterSignup } from './NewsletterSignup';
 
 export function GetStarted() {
   return (
@@ -40,6 +41,14 @@ export function GetStarted() {
                 </svg>
               </a>
             </ButtonCVA>
+          </div>
+
+          {/* Newsletter */}
+          <div className="mt-16 pt-10 border-t border-gray-800">
+            <p className="text-sm font-medium text-gray-400 mb-4">
+              Not ready to start? Get product updates and engineering insights.
+            </p>
+            <NewsletterSignup variant="stacked" />
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 {
-  description = "RevealUI - Headless CMS Framework Development Environment";
+  description = "RevealUI - Business Operating System Software Development Environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -13,18 +13,6 @@
 
         # Use Node.js 24 LTS (Krypton)
         nodejs = pkgs.nodejs_24;
-
-        # revealui developer CLI
-        revealuiCLI = pkgs.buildGoModule {
-          pname = "revealui";
-          version = "0.1.0";
-          src = ./cmd/revealui;
-          vendorHash = "sha256-hocnLCzWN8srQcO3BMNkd2lt0m54Qe7sqAhUxVZlz1k=";
-          meta = {
-            description = "RevealUI developer CLI";
-            mainProgram = "revealui";
-          };
-        };
 
       in {
         devShells.default = pkgs.mkShell {
@@ -213,8 +201,8 @@ PGHBA
             # Silence NPM_TOKEN expansion warning
             export NPM_TOKEN="''${NPM_TOKEN:-}"
 
-            # Add project bin to PATH for custom scripts
-            export PATH="$PWD/bin:$PWD/node_modules/.bin:$PATH"
+            # Add node_modules/.bin to PATH for project scripts
+            export PATH="$PWD/node_modules/.bin:$PATH"
 
             # Set development environment
             export NODE_ENV="''${NODE_ENV:-development}"
@@ -337,10 +325,6 @@ PGHBA
             export NODE_ENV="test"
           '';
         };
-
-        # revealui CLI — install with: nix profile install .#revealui
-        packages.revealui = revealuiCLI;
-        packages.default = revealuiCLI;
 
         # Shell for database operations only
         devShells.db = pkgs.mkShell {

@@ -7,6 +7,11 @@ vi.mock('next/link', () => ({
     createElement('a', { href: href as string, ...props }, children as string),
 }));
 
+// Mock NewsletterSignup (uses client-side state)
+vi.mock('../NewsletterSignup', () => ({
+  NewsletterSignup: () => createElement('div', { 'data-testid': 'newsletter-signup' }),
+}));
+
 import { Footer } from '../Footer';
 
 describe('Footer', () => {
@@ -55,7 +60,7 @@ describe('Footer', () => {
     expect(html).toContain('Discussions');
     expect(html).toContain('Sponsor');
     expect(html).toContain('Contact');
-    expect(html).toContain('mailto:support@revealui.com');
+    expect(html).toContain('/contact');
   });
 
   it('contains social media links', () => {
@@ -78,7 +83,7 @@ describe('Footer', () => {
   it('contains the brand description', () => {
     const result = Footer();
     const html = JSON.stringify(result);
-    expect(html).toContain('Business Operating System Software (B.O.S.S.)');
+    expect(html).toContain('agentic business runtime');
     expect(html).toContain('pre-wired');
   });
 });

@@ -1,15 +1,17 @@
 import { getSession } from '@revealui/auth/server';
 import { ChatRequestContract } from '@revealui/contracts';
 import { apiClient } from '@revealui/core/admin/utils/apiClient';
-import { isFeatureEnabled } from '@revealui/core/features';
 import { logger } from '@revealui/core/utils/logger/server';
+import { getClient } from '@revealui/db';
 import type { NextRequest } from 'next/server';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { rateLimit } from '@/lib/middleware/rate-limit';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 import config from '../../../../revealui.config';
 
 export const dynamic = 'force-dynamic';
@@ -62,6 +64,7 @@ async function loadChatAIDeps() {
   return {
     generateEmbedding: embeddingsMod.generateEmbedding,
     createLLMClientFromEnv: llmServerMod.createLLMClientFromEnv,
+    createLLMClientForUser: llmServerMod.createLLMClientForUser,
     VectorMemoryService: vectorMod.VectorMemoryService,
     createCMSTools: cmsMod.createCMSTools,
     ToolRegistry: registryMod.ToolRegistry,
@@ -168,19 +171,15 @@ export async function POST(request: NextRequest) {
   }
 
   // Require authenticated session with a Pro (or higher) license
-  const authSession = await getSession(request.headers);
+  const authSession = await getSession(request.headers, extractRequestContext(request));
   if (!authSession) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  if (!isFeatureEnabled('aiLocal')) {
-    return new Response(
-      JSON.stringify({ error: 'Forbidden', reason: 'AI features not available' }),
-      { status: 403, headers: { 'Content-Type': 'application/json' } },
-    );
-  }
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
 
   try {
     // Parse and validate request body
@@ -243,16 +242,37 @@ export async function POST(request: NextRequest) {
       name?: string;
     }
 
-    // Create LLM client from env (supports Vultr, OpenAI, Anthropic)
+    // Create LLM client — try user's BYOK key first, fall back to env config
     // biome-ignore lint/suspicious/noExplicitAny: LLMClient type from @revealui/ai (optional Pro dep) — typed chat() signature requires ToolCall[] but our generic messages use unknown[]
     let llmClient: any;
+    let llmSource: 'byok' | 'env' = 'env';
     try {
-      logger.info('Creating LLM client', {
-        provider: process.env.LLM_PROVIDER,
-        hasApiKey: !!process.env.VULTR_API_KEY,
-        model: process.env.LLM_MODEL,
-      });
-      llmClient = aiDeps.createLLMClientFromEnv();
+      // Try BYOK: use user's stored API key if available
+      if (aiDeps.createLLMClientForUser && authSession.user.id) {
+        try {
+          const db = getClient();
+          const byokClient = await aiDeps.createLLMClientForUser(authSession.user.id, db);
+          if (byokClient) {
+            llmClient = byokClient;
+            llmSource = 'byok';
+          }
+        } catch (byokErr) {
+          logger.warn('BYOK client creation failed, falling back to env', {
+            userId: authSession.user.id,
+            error: byokErr instanceof Error ? byokErr.message : String(byokErr),
+          });
+        }
+      }
+
+      // Fall back to environment-configured LLM provider
+      if (!llmClient) {
+        logger.info('Creating LLM client from env', {
+          provider: process.env.LLM_PROVIDER,
+          hasApiKey: !!process.env.VULTR_API_KEY,
+          model: process.env.LLM_MODEL,
+        });
+        llmClient = aiDeps.createLLMClientFromEnv();
+      }
     } catch (_err) {
       return createApplicationErrorResponse(
         'LLM provider not configured',
@@ -260,6 +280,8 @@ export async function POST(request: NextRequest) {
         503,
       );
     }
+
+    logger.info('LLM client ready', { source: llmSource, userId: authSession.user.id });
 
     // 1. Generate embedding for the user's message and search for context
     let memoryContext = '';

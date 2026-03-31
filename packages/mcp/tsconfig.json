@@ -1,0 +1,19 @@
+{
+  "extends": "../dev/src/ts/library.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "noEmit": false,
+    "allowJs": false
+  },
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/__tests__",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "src/servers/code-validator.ts",
+    "src/servers/vultr-test.ts"
+  ]
+}

@@ -6,6 +6,7 @@ import { withRateLimit } from '@/lib/middleware/rate-limit';
 import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,7 @@ async function deleteAllUserDocs(
 async function gdprDeleteHandler(request: NextRequest) {
   try {
     // Require authentication
-    const session = await getSession(request.headers);
+    const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Authentication required', 'UNAUTHORIZED', 401);
     }

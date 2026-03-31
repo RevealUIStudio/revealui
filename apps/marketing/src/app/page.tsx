@@ -1,4 +1,5 @@
 import { Audiences } from '@/components/Audiences';
+import { EcosystemSection } from '@/components/EcosystemSection';
 import { Footer } from '@/components/Footer';
 import { GetStarted } from '@/components/GetStarted';
 import { HeroSection } from '@/components/HeroSection';
@@ -11,6 +12,7 @@ export default function Home() {
       <HeroSection />
       <ValueProposition />
       <SocialProof />
+      <EcosystemSection />
       <Audiences />
       <GetStarted />
       <Footer />

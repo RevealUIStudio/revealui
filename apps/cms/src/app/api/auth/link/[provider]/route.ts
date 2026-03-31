@@ -9,6 +9,7 @@
 
 import { generateOAuthState, getSession, isRecoverySession } from '@revealui/auth/server';
 import { type NextRequest, NextResponse } from 'next/server';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -31,7 +32,7 @@ export async function GET(
   }
 
   // Require authentication — only logged-in users can link providers
-  const sessionData = await getSession(request.headers);
+  const sessionData = await getSession(request.headers, extractRequestContext(request));
   if (!sessionData) {
     return NextResponse.redirect(new URL('/login?error=session_required', baseUrl));
   }

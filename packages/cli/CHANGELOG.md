@@ -1,5 +1,23 @@
 # @revealui/cli
 
+## 0.4.0
+
+### Minor Changes
+
+- Add `revealui agent` command and OSS AI rules pull during project scaffolding
+
+### Patch Changes
+
+- @revealui/ai@0.2.2
+
+## 0.3.4
+
+### Patch Changes
+
+- f89b9ff: Upgrade production dependencies: lexical 0.40→0.42, @vercel/blob 2.2→2.3, drizzle-orm 0.45.1→0.45.2, ora 8→9, commander 13→14, inquirer 12→13
+- Updated dependencies [f89b9ff]
+  - @revealui/setup@0.3.1
+
 ## 0.3.3
 
 ### Patch Changes

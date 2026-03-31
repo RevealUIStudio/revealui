@@ -88,10 +88,9 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
 
     // Backup code verified — create a full session
     const userAgent = request.headers.get('user-agent') ?? undefined;
-    const xff = request.headers.get('x-forwarded-for');
     const ipAddress =
-      (xff ? xff.split(',').pop()?.trim() : undefined) ??
-      request.headers.get('x-real-ip') ??
+      request.headers.get('x-real-ip') ||
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       undefined;
 
     const { token: sessionToken } = await createSession(payload.userId, {

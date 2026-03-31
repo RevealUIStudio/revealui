@@ -80,7 +80,6 @@ function mapUserDocument(row: DbUser): RevealDocument {
     id: row.id,
     name: row.name,
     email: row.email,
-    password: row.password,
     role: row.role,
     status: row.status,
     type: row.type,

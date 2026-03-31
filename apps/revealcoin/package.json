@@ -29,7 +29,8 @@
     "lint": "biome check .",
     "start": "next start",
     "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "vercel-build": "cd ../.. && pnpm turbo build --filter=revealcoin"
   },
   "type": "module"
 }

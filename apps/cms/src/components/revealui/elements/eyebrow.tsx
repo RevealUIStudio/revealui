@@ -1,10 +1,10 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 export function Eyebrow({ children, className, ...props }: ComponentProps<'div'>) {
   return (
     <div
-      className={clsx('text-sm/7 font-semibold text-mist-700 dark:text-mist-400', className)}
+      className={cn('text-sm/7 font-semibold text-mist-700 dark:text-mist-400', className)}
       {...props}
     >
       {children}

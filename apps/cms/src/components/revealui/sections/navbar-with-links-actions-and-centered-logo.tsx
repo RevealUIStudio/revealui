@@ -1,9 +1,9 @@
 'use client';
 
 import { useEscapeKey, useFocusTrap, useScrollLock } from '@revealui/presentation';
-import { clsx } from 'clsx/lite';
 import Link from 'next/link';
 import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 export function NavbarLink({
   children,
@@ -14,7 +14,7 @@ export function NavbarLink({
   return (
     <Link
       href={href}
-      className={clsx(
+      className={cn(
         'group inline-flex items-center justify-between gap-2 text-3xl/10 font-medium text-mist-950 lg:text-sm/7 dark:text-white',
         className,
       )}
@@ -45,7 +45,7 @@ export function NavbarLogo({
   href,
   ...props
 }: { href: string } & Omit<ComponentProps<typeof Link>, 'href'>) {
-  return <Link href={href} {...props} className={clsx('inline-flex items-stretch', className)} />;
+  return <Link href={href} {...props} className={cn('inline-flex items-stretch', className)} />;
 }
 
 export function NavbarWithLinksActionsAndCenteredLogo({
@@ -69,10 +69,7 @@ export function NavbarWithLinksActionsAndCenteredLogo({
   useFocusTrap(panelRef, menuOpen);
 
   return (
-    <header
-      className={clsx('sticky top-0 z-10 bg-mist-100 dark:bg-mist-950', className)}
-      {...props}
-    >
+    <header className={cn('sticky top-0 z-10 bg-mist-100 dark:bg-mist-950', className)} {...props}>
       <style>{`:root { --scroll-padding-top: 5.25rem }`}</style>
       <nav>
         <div className="mx-auto flex h-(--scroll-padding-top) max-w-7xl items-center gap-4 px-6 lg:px-10">

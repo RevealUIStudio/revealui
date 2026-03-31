@@ -1,6 +1,6 @@
 {
   "name": "@revealui/db",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "MIT",
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

@@ -54,12 +54,10 @@ export function createErrorResponseData(
     };
   }
 
-  // Unknown error
-  const errorMessage = error instanceof Error ? error.message : String(error);
-
+  // Unknown error — never expose raw error messages to clients
   return {
     error: 'INTERNAL_ERROR',
-    message: errorMessage,
+    message: 'An unexpected error occurred',
     code: 'INTERNAL_ERROR',
     ...(context && { details: context }),
   };

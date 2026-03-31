@@ -1,6 +1,5 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import { createContext, use, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -9,6 +8,7 @@ import { useControllableState } from '../hooks/use-controllable-state.js';
 import { useEscapeKey } from '../hooks/use-escape-key.js';
 import { usePopover } from '../hooks/use-popover.js';
 import { useTransition } from '../hooks/use-transition.js';
+import { cn } from '../utils/cn.js';
 
 // ---------------------------------------------------------------------------
 // Context
@@ -232,7 +232,7 @@ export function Combobox<T>({
         ref={controlRef}
         data-slot="control"
         {...(disabled ? { 'data-disabled': '' } : {})}
-        className={clsx([
+        className={cn([
           className,
           'relative block w-full',
           'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-white before:shadow-sm',
@@ -268,7 +268,7 @@ export function Combobox<T>({
           onKeyDown={handleInputKeyDown}
           placeholder={placeholder}
           {...(disabled ? { 'data-disabled': '' } : {})}
-          className={clsx([
+          className={cn([
             className,
             'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
             'pr-[calc(--spacing(10)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pr-[calc(--spacing(9)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
@@ -331,7 +331,7 @@ export function Combobox<T>({
             id={listboxId}
             {...popoverProps}
             {...transitionProps}
-            className={clsx(
+            className={cn(
               '[--anchor-gap:--spacing(2)] [--anchor-padding:--spacing(4)] sm:data-[anchor~=start]:[--anchor-offset:-4px]',
               'isolate min-w-[calc(var(--input-width)+8px)] scroll-py-1 rounded-xl p-1 select-none empty:invisible',
               'outline outline-transparent focus:outline-hidden',
@@ -401,7 +401,7 @@ export function ComboboxOption<T>({
   const isSelected = selectedValue === value;
   const isActive = activeIndex === index;
 
-  const sharedClasses = clsx(
+  const sharedClasses = cn(
     'flex min-w-0 items-center',
     '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 sm:*:data-[slot=icon]:size-4',
     '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
@@ -429,7 +429,7 @@ export function ComboboxOption<T>({
       onClick={() => {
         if (!disabled) select(value);
       }}
-      className={clsx(
+      className={cn(
         'group/option grid w-full cursor-default grid-cols-[1fr_--spacing(5)] items-baseline gap-x-2 rounded-lg py-2.5 pr-2 pl-3.5 sm:grid-cols-[1fr_--spacing(4)] sm:py-1.5 sm:pr-2 sm:pl-3',
         'text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
         'outline-hidden data-focus:bg-blue-500 data-focus:text-white',
@@ -437,7 +437,7 @@ export function ComboboxOption<T>({
         'data-disabled:opacity-50',
       )}
     >
-      <span className={clsx(className, sharedClasses)}>{children}</span>
+      <span className={cn(className, sharedClasses)}>{children}</span>
       <svg
         className="relative col-start-2 hidden size-5 self-center stroke-current group-data-selected/option:inline sm:size-4"
         viewBox="0 0 16 16"
@@ -458,7 +458,7 @@ export function ComboboxLabel({ className, ...props }: React.ComponentPropsWitho
   return (
     <span
       {...props}
-      className={clsx(className, 'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0')}
+      className={cn(className, 'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0')}
     />
   );
 }
@@ -475,7 +475,7 @@ export function ComboboxDescription({
   return (
     <span
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'flex flex-1 overflow-hidden text-zinc-500 group-data-focus/option:text-white before:w-2 before:min-w-0 before:shrink dark:text-zinc-400',
       )}

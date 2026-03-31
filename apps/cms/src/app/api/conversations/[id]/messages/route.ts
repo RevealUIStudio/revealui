@@ -6,10 +6,11 @@
  */
 
 import { getSession } from '@revealui/auth/server';
-import { isFeatureEnabled } from '@revealui/core/features';
 import { getClient } from '@revealui/db';
 import { addMessage, getConversationById, getMessages } from '@revealui/db/queries/conversations';
 import type { NextRequest } from 'next/server';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -19,10 +20,10 @@ interface RouteParams {
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
-  const session = await getSession(request.headers);
+  const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!isFeatureEnabled('aiLocal'))
-    return Response.json({ error: 'AI features not available' }, { status: 403 });
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
 
   const { id } = await params;
   const db = getClient();
@@ -38,10 +39,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
-  const session = await getSession(request.headers);
+  const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  if (!isFeatureEnabled('aiLocal'))
-    return Response.json({ error: 'AI features not available' }, { status: 403 });
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
 
   const { id } = await params;
   const body = (await request.json()) as { role: string; content: string };

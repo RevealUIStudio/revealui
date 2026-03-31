@@ -2,10 +2,10 @@ import { Badge } from '@revealui/presentation';
 
 export function SocialProof() {
   const stats = [
-    { value: '28', label: 'workspaces' },
-    { value: '200K+', label: 'lines of TypeScript' },
-    { value: '10,000+', label: 'tests' },
-    { value: '6', label: 'apps' },
+    { value: '3 min', label: 'to first deploy' },
+    { value: '5', label: 'business primitives' },
+    { value: '56', label: 'UI components' },
+    { value: 'MIT', label: 'licensed' },
   ];
 
   const techStack = [
@@ -28,7 +28,7 @@ export function SocialProof() {
       iconColor: 'text-blue-400',
     },
     {
-      title: '50+ Native UI Components',
+      title: '56 Native UI Components',
       description:
         'Tailwind v4, zero external UI dependencies. Buttons, forms, tables, modals, sidebars — all styled to your brand with CVA variants.',
       icon: 'M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3',
@@ -37,7 +37,7 @@ export function SocialProof() {
     {
       title: 'Real-Time Sync',
       description:
-        'ElectricSQL keeps editors, clients, and agents in sync instantly — no polling, no manual refresh, no conflicts.',
+        'ElectricSQL-powered sync foundation for editors, clients, and agents — no polling, no manual refresh. Collaborative editing coming soon.',
       icon: 'M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5',
       iconColor: 'text-cyan-400',
     },
@@ -51,7 +51,7 @@ export function SocialProof() {
     {
       title: 'Stripe Billing Built In',
       description:
-        'Checkout, subscriptions, webhook handling, license keys, and billing portal — wired end-to-end and verified in production.',
+        'Checkout, subscriptions, webhook handling, license keys, and billing portal — pre-wired end-to-end and production-ready.',
       icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z',
       iconColor: 'text-amber-400',
     },

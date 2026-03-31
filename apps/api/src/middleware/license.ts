@@ -9,6 +9,7 @@ import { type FeatureFlags, getRequiredTier, isFeatureEnabled } from '@revealui/
 import {
   getCurrentTier,
   getLicensePayload,
+  getMaxFreemiumTasks,
   isLicensed,
   type LicenseTier,
 } from '@revealui/core/license';
@@ -314,6 +315,15 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
         : (requestEntitlements?.features?.ai ?? isFeatureEnabled('ai'));
 
     if (aiEnabled) {
+      await next();
+      return;
+    }
+
+    // Free tier: allow AI sampling (50 cloud tasks/month via platform Groq key)
+    const samplingEnabled = isFeatureEnabled('aiSampling');
+    const freemiumQuota = getMaxFreemiumTasks();
+    if (samplingEnabled && freemiumQuota > 0) {
+      c.set('aiAccessMode', 'sampling');
       await next();
       return;
     }

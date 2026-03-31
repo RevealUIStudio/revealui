@@ -1,5 +1,6 @@
 'use client';
 
+import { Breadcrumb } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useReducer } from 'react';
@@ -228,17 +229,14 @@ export default function NewAgentPage() {
       <div className="min-h-screen">
         {/* Header */}
         <div className="border-b border-zinc-800 bg-zinc-900 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/agents"
-              className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
-            >
-              ← Agents
-            </Link>
-            <span className="text-zinc-700">/</span>
-            <h1 className="text-xl font-semibold text-white">New Agent</h1>
-          </div>
-          <p className="mt-0.5 text-sm text-zinc-400">Scaffold a new AI agent from a template</p>
+          <Breadcrumb
+            items={[
+              { label: 'Admin', href: '/admin' },
+              { label: 'Agents', href: '/admin/agents' },
+              { label: 'New Agent' },
+            ]}
+          />
+          <p className="mt-2 text-sm text-zinc-400">Scaffold a new AI agent from a template</p>
         </div>
 
         <div className="mx-auto max-w-2xl p-6">

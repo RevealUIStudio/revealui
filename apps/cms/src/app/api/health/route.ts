@@ -2,6 +2,7 @@ import { getSession } from '@revealui/auth/server';
 import { list } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,7 @@ interface HealthCheck {
  */
 export async function GET(request: Request) {
   // Auth check — unauthenticated requests get minimal status only
-  const session = await getSession(request.headers);
+  const session = await getSession(request.headers, extractRequestContext(request));
   const isAuthenticated = session?.user?.role === 'admin';
 
   if (!isAuthenticated) {

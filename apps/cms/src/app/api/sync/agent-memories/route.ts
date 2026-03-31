@@ -11,7 +11,7 @@ import crypto from 'node:crypto';
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { agentMemories } from '@revealui/db/schema';
+import { agentMemories, eq, sites } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
@@ -19,6 +19,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (aiGate) return aiGate;
 
   try {
-    const session = await getSession(request.headers);
+    const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
@@ -88,6 +89,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const db = getClient();
+
+    // Validate site ownership — non-admins can only create memories for their own sites
+    if (session.user.role !== 'admin') {
+      const [site] = await db
+        .select({ ownerId: sites.ownerId })
+        .from(sites)
+        .where(eq(sites.id, body.site_id))
+        .limit(1);
+      if (!site || site.ownerId !== session.user.id) {
+        return createApplicationErrorResponse(
+          'Access denied: you do not own this site',
+          'FORBIDDEN',
+          403,
+        );
+      }
+    }
     const id = crypto.randomUUID();
     const now = new Date();
 

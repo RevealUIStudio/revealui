@@ -1,6 +1,6 @@
 {
   "name": "@revealui/cli",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Create RevealUI projects with a single command",
   "keywords": [
     "cli",
@@ -28,6 +28,14 @@
     "inquirer": "^13.3.2",
     "jose": "^6.1.3",
     "ora": "^9.3.0"
+  },
+  "peerDependencies": {
+    "@revealui/ai": "^0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@revealui/ai": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/inquirer": "^9.0.7",

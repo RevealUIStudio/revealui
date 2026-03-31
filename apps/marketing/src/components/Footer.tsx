@@ -1,5 +1,6 @@
 import { BuiltWithRevealUI } from '@revealui/presentation';
 import Link from 'next/link';
+import { NewsletterSignup } from './NewsletterSignup';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -10,9 +11,18 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="text-2xl font-bold tracking-tight text-white mb-4">RevealUI</div>
             <p className="text-gray-400 text-sm leading-6 max-w-sm">
-              Business Operating System Software (B.O.S.S.). Users, content, products, payments, and
-              AI — pre-wired, open source, and ready to deploy.
+              The agentic business runtime. Users, content, products, payments, and AI — pre-wired,
+              open source, and ready to deploy.
             </p>
+            <div className="mt-6">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+                Stay in the loop
+              </p>
+              <NewsletterSignup />
+              <p className="mt-2 text-xs text-gray-400">
+                Product updates and engineering insights. No spam.
+              </p>
+            </div>
             <div className="mt-6 flex gap-4">
               <a
                 href="https://github.com/RevealUIStudio/revealui"
@@ -91,6 +101,11 @@ export function Footer() {
                   Coming Soon
                 </Link>
               </li>
+              <li>
+                <Link href="/#ecosystem" className="hover:text-white transition-colors">
+                  Ecosystem
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -120,7 +135,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://community.revealui.com"
+                  href="https://revnation.discourse.group"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
@@ -134,10 +149,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="mailto:support@revealui.com"
-                  className="hover:text-white transition-colors"
-                >
+                <Link href="/contact" className="hover:text-white transition-colors">
                   Contact
                 </Link>
               </li>

@@ -1,6 +1,6 @@
 # RevealUI CMS
 
-Headless CMS with admin dashboard, content management, account billing, and system monitoring — powered by Next.js 16.
+Admin dashboard with content management, account billing, and system monitoring — powered by Next.js 16.
 
 ## Features
 
@@ -18,7 +18,7 @@ Headless CMS with admin dashboard, content management, account billing, and syst
 - **Styling**: Tailwind CSS v4
 - **Database**: Drizzle ORM (NeonDB)
 - **Auth**: `@revealui/auth` (bcrypt, sessions, rate limiting)
-- **UI Components**: `@revealui/presentation` (50+ native components)
+- **UI Components**: `@revealui/presentation` (56 native components)
 - **Rich Text**: Lexical editor
 - **Payments**: Stripe (checkout, billing portal, webhooks)
 - **Monitoring**: Sentry

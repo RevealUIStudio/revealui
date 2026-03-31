@@ -1,6 +1,6 @@
-import clsx from 'clsx';
 import type React from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
+import { cn } from '../utils/cn.js';
 import { Link } from './link.js';
 
 const styles = {
@@ -177,14 +177,14 @@ export function Button({ color, outline, plain, className, children, ref, ...pro
   const disabled = 'disabled' in props ? props.disabled : false;
   const interactiveProps = useDataInteractive({ disabled: disabled ?? false });
 
-  const classes = clsx(
+  const classes = cn(
     className,
     styles.base,
     outline
       ? styles.outline
       : plain
         ? styles.plain
-        : clsx(styles.solid, styles.colors[color ?? 'dark/zinc']),
+        : cn(styles.solid, styles.colors[color ?? 'dark/zinc']),
   );
 
   return typeof props.href === 'string' ? (
@@ -196,7 +196,7 @@ export function Button({ color, outline, plain, className, children, ref, ...pro
       type="button"
       {...props}
       {...interactiveProps}
-      className={clsx(classes, 'cursor-default')}
+      className={cn(classes, 'cursor-default')}
       ref={ref as React.Ref<HTMLButtonElement>}
     >
       <TouchTarget>{children}</TouchTarget>

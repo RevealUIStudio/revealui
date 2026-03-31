@@ -160,7 +160,7 @@ export function SystemHealthPanel({
     return (
       <div ref={ref} className={`bg-white dark:bg-gray-800 rounded-lg shadow p-6 ${className}`}>
         <h2 className="text-lg font-semibold mb-4">System Health</h2>
-        <p className="text-gray-500 dark:text-gray-400">No health checks available</p>
+        <p className="text-gray-600 dark:text-gray-400">No health checks available</p>
       </div>
     );
   }
@@ -184,7 +184,7 @@ export function SystemHealthPanel({
             />
           </div>
         </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-gray-600 dark:text-gray-400">
           Last updated: {formatTimestamp(lastUpdated)}
         </p>
       </div>
@@ -215,7 +215,7 @@ export function SystemHealthPanel({
                   </span>
                   {check.latency !== undefined && (
                     <span
-                      className="text-sm text-gray-500 dark:text-gray-400"
+                      className="text-sm text-gray-600 dark:text-gray-400"
                       data-testid={`${name}-latency`}
                     >
                       ({check.latency} ms)

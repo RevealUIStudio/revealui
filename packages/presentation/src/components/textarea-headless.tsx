@@ -1,7 +1,7 @@
-import clsx from 'clsx';
 import type React from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { useFieldControlProps } from '../hooks/use-field-context.js';
+import { cn } from '../utils/cn.js';
 
 type TextareaProps = {
   className?: string;
@@ -25,7 +25,7 @@ export function Textarea({
   return (
     <span
       data-slot="control"
-      className={clsx([
+      className={cn([
         className,
         // Basic layout
         'relative block w-full',
@@ -47,7 +47,7 @@ export function Textarea({
         {...fieldProps}
         data-invalid={invalid ? '' : undefined}
         data-disabled={disabled ? '' : undefined}
-        className={clsx([
+        className={cn([
           // Basic layout
           'relative block h-full w-full appearance-none rounded-lg px-[calc(--spacing(3.5)-1px)] py-[calc(--spacing(2.5)-1px)] sm:px-[calc(--spacing(3)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
           // Typography

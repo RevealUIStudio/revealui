@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockGetSession = vi.fn();
 const mockCheckRateLimit = vi.fn();
 const mockCheckAIFeatureGate = vi.fn();
+const mockCheckAIMemoryFeatureGate = vi.fn();
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -21,6 +22,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 vi.mock('@/lib/middleware/ai-feature-gate', () => ({
   checkAIFeatureGate: (...args: unknown[]) => mockCheckAIFeatureGate(...args),
+  checkAIMemoryFeatureGate: (...args: unknown[]) => mockCheckAIMemoryFeatureGate(...args),
 }));
 
 vi.mock('@/lib/utils/error-response', () => {
@@ -75,7 +77,7 @@ function makeRequest(body?: unknown) {
 describe('POST /api/memory/search', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIMemoryFeatureGate.mockReturnValue(null);
     mockCheckRateLimit.mockResolvedValue({
       allowed: true,
       remaining: 29,
@@ -91,7 +93,7 @@ describe('POST /api/memory/search', () => {
 
   it('returns feature gate response when AI is disabled', async () => {
     const { NextResponse } = require('next/server');
-    mockCheckAIFeatureGate.mockReturnValue(
+    mockCheckAIMemoryFeatureGate.mockReturnValue(
       NextResponse.json({ error: 'AI disabled' }, { status: 403 }),
     );
 
@@ -161,7 +163,7 @@ describe('POST /api/memory/search', () => {
 describe('POST /api/memory/search-text', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockCheckAIFeatureGate.mockReturnValue(null);
+    mockCheckAIMemoryFeatureGate.mockReturnValue(null);
   });
 
   async function loadRoute() {
@@ -171,7 +173,7 @@ describe('POST /api/memory/search-text', () => {
 
   it('returns feature gate response when AI is disabled', async () => {
     const { NextResponse } = require('next/server');
-    mockCheckAIFeatureGate.mockReturnValue(
+    mockCheckAIMemoryFeatureGate.mockReturnValue(
       NextResponse.json({ error: 'AI disabled' }, { status: 403 }),
     );
 

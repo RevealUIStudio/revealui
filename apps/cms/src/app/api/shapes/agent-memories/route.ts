@@ -18,6 +18,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   try {
     // Validate session using RevealUI auth
-    const session = await getSession(request.headers);
+    const session = await getSession(request.headers, extractRequestContext(request));
 
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);

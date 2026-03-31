@@ -9,8 +9,9 @@
 import { checkRateLimit, getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
-import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
+import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 /** Rate limit: 30 requests per minute per user */
 const MEMORY_SEARCH_RATE_LIMIT = {
@@ -39,11 +40,11 @@ export const runtime = 'nodejs';
  * }
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
+  const aiGate = checkAIMemoryFeatureGate();
   if (aiGate) return aiGate;
 
   try {
-    const authSession = await getSession(request.headers);
+    const authSession = await getSession(request.headers, extractRequestContext(request));
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -123,10 +124,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         { status: 503 },
       );
     }
+    // Strip siteId from options for non-admins to prevent cross-tenant data access
     const service = new mod.VectorMemoryService();
+    const isAdmin = authSession.user.role === 'admin';
     const safeOptions = {
       ...((options as Record<string, unknown>) ?? {}),
-      ...(authSession.user.role !== 'admin' ? { userId: authSession.user.id } : {}),
+      ...(!isAdmin ? { userId: authSession.user.id, siteId: undefined } : {}),
     };
     const results = await service.searchSimilar(queryEmbedding, safeOptions);
 

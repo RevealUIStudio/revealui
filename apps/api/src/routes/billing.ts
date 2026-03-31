@@ -13,6 +13,7 @@ import {
   accountEntitlements,
   accountMemberships,
   accountSubscriptions,
+  agentCreditBalance,
   agentTaskUsage,
   billingCatalog,
   licenses,
@@ -35,6 +36,17 @@ const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7'
 /** How far ahead to look for expiring support contracts (overridable via env, default 30 days) */
 const SUPPORT_RENEWAL_WINDOW_MS =
   Number.parseInt(process.env.REVEALUI_SUPPORT_RENEWAL_DAYS ?? '30', 10) * 24 * 60 * 60 * 1000;
+
+/**
+ * Canonical monthly tier prices in USD (whole dollars).
+ * Single source of truth — used for RVUI payment recording and MRR fallbacks.
+ * Must match the marketing site and Stripe product catalog.
+ */
+const CANONICAL_TIER_PRICES: Record<string, number> = {
+  pro: 49,
+  max: 149,
+  enterprise: 299,
+};
 
 /**
  * Computes a Stripe meter event timestamp for the last second of a billing cycle.
@@ -257,7 +269,7 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
 }
 
 type PaidTier = 'pro' | 'max' | 'enterprise';
-type BillingCatalogKind = 'subscription' | 'perpetual';
+type BillingCatalogKind = 'subscription' | 'perpetual' | 'credits';
 
 async function resolveCatalogPriceId(
   tier: PaidTier,
@@ -287,7 +299,7 @@ async function resolveCatalogPriceId(
     });
   }
 
-  if (requestedPriceId && requestedPriceId !== resolvedPriceId) {
+  if (requestedPriceId?.trim() && requestedPriceId.trim() !== resolvedPriceId) {
     throw new HTTPException(400, {
       message: 'Requested price does not match the server billing catalog.',
     });
@@ -741,17 +753,22 @@ app.openapi(upgradeRoute, async (c) => {
     });
   }
 
-  // Swap the price and set tier metadata so the webhook can detect the upgrade
+  // Swap the price and set tier metadata so the webhook can detect the upgrade.
+  // Idempotency key prevents duplicate mutations from concurrent requests (M-13).
   await withStripe((stripe) =>
-    stripe.subscriptions.update(subscription.id, {
-      items: [{ id: item.id, price: resolvedPriceId }],
-      metadata: {
-        tier: targetTier,
-        revealui_user_id: user.id,
-        pending_change: `upgrade:${targetTier}`,
+    stripe.subscriptions.update(
+      subscription.id,
+      {
+        items: [{ id: item.id, price: resolvedPriceId }],
+        metadata: {
+          tier: targetTier,
+          revealui_user_id: user.id,
+          pending_change: `upgrade:${targetTier}`,
+        },
+        proration_behavior: 'create_prorations',
       },
-      proration_behavior: 'create_prorations',
-    }),
+      { idempotencyKey: `upgrade-${subscription.id}-${targetTier}-${user.id}` },
+    ),
   );
 
   // Send upgrade confirmation email (fire-and-forget)
@@ -837,11 +854,16 @@ app.openapi(downgradeRoute, async (c) => {
 
   // Cancel at period end so the customer retains access until their billing cycle ends.
   // Set pending_change to block concurrent modifications (cleared by webhook handler).
+  // Idempotency key prevents duplicate mutations from concurrent requests (M-13).
   const updated = await withStripe((stripe) =>
-    stripe.subscriptions.update(subscription.id, {
-      cancel_at_period_end: true,
-      metadata: { pending_change: 'downgrade:free' },
-    }),
+    stripe.subscriptions.update(
+      subscription.id,
+      {
+        cancel_at_period_end: true,
+        metadata: { pending_change: 'downgrade:free' },
+      },
+      { idempotencyKey: `downgrade-${subscription.id}-free-${user.id}` },
+    ),
   );
 
   // cancel_at is populated by Stripe when cancel_at_period_end is set
@@ -999,6 +1021,173 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   }
 
   return c.json({ url: session.url }, 200);
+});
+
+// POST /api/billing/checkout-credits — One-time credit bundle purchase
+const CreditCheckoutRequestSchema = z.object({
+  priceId: z.string().min(1).optional().openapi({
+    description: 'Stripe price ID for the credit bundle product',
+    example: 'price_credits_standard',
+  }),
+  bundle: z.enum(['starter', 'standard', 'scale']).openapi({
+    description: 'Credit bundle name',
+    example: 'standard',
+  }),
+});
+
+const BUNDLE_TASKS: Record<string, number> = {
+  starter: 10_000,
+  standard: 60_000,
+  scale: 350_000,
+};
+
+const creditCheckoutRoute = createRoute({
+  method: 'post',
+  path: '/checkout-credits',
+  tags: ['billing'],
+  summary: 'Create a credit bundle checkout session',
+  description:
+    'Creates a one-time Stripe payment session for an agent task credit bundle. Credits never expire and stack with the monthly tier allowance. Requires authentication.',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: CreditCheckoutRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: CheckoutResponseSchema } },
+      description: 'Checkout session created',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(creditCheckoutRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  if (!user.email) {
+    throw new HTTPException(400, { message: 'An email address is required for billing' });
+  }
+
+  const { priceId, bundle } = c.req.valid('json');
+  const tasks = BUNDLE_TASKS[bundle];
+  if (!tasks) {
+    throw new HTTPException(400, { message: `Unknown credit bundle: ${bundle}` });
+  }
+
+  // Resolve price from catalog (planId = "credits:starter", etc.)
+  const db = getClient();
+  const planId = `credits:${bundle}`;
+  const [catalogEntry] = await db
+    .select({ stripePriceId: billingCatalog.stripePriceId })
+    .from(billingCatalog)
+    .where(
+      and(
+        eq(billingCatalog.planId, planId),
+        eq(billingCatalog.billingModel, 'credits'),
+        eq(billingCatalog.active, true),
+      ),
+    )
+    .limit(1);
+
+  const resolvedPriceId = catalogEntry?.stripePriceId;
+  if (!resolvedPriceId) {
+    throw new HTTPException(500, {
+      message: `Billing catalog is not configured for credits ${bundle}`,
+    });
+  }
+
+  if (priceId?.trim() && priceId.trim() !== resolvedPriceId) {
+    throw new HTTPException(400, {
+      message: 'Requested price does not match the server billing catalog.',
+    });
+  }
+
+  const customerId = await ensureStripeCustomer(user.id, user.email);
+
+  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
+
+  const session = await withStripe((stripe) =>
+    stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'payment',
+      payment_method_types: ['card'],
+      allow_promotion_codes: true,
+      line_items: [{ price: resolvedPriceId, quantity: 1 }],
+      payment_intent_data: {
+        metadata: {
+          credits_bundle: bundle,
+          credits_tasks: String(tasks),
+          revealui_user_id: user.id,
+        },
+      },
+      metadata: {
+        credits_bundle: bundle,
+        credits_tasks: String(tasks),
+        revealui_user_id: user.id,
+      },
+      success_url: `${cmsUrl}/account/billing?credits=${bundle}`,
+      cancel_url: `${cmsUrl}/account/billing`,
+    }),
+  );
+
+  if (!session.url) {
+    throw new HTTPException(500, { message: 'Failed to create checkout session' });
+  }
+
+  return c.json({ url: session.url }, 200);
+});
+
+// GET /api/billing/credits — Current credit balance
+const CreditBalanceResponseSchema = z.object({
+  balance: z.number().openapi({ description: 'Remaining prepaid credits' }),
+  totalPurchased: z.number().openapi({ description: 'Lifetime credits purchased' }),
+});
+
+const creditBalanceRoute = createRoute({
+  method: 'get',
+  path: '/credits',
+  tags: ['billing'],
+  summary: 'Get current credit balance',
+  description: "Returns the authenticated user's prepaid agent task credit balance.",
+  responses: {
+    200: {
+      content: { 'application/json': { schema: CreditBalanceResponseSchema } },
+      description: 'Credit balance',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(creditBalanceRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const db = getClient();
+  const [row] = await db
+    .select({
+      balance: agentCreditBalance.balance,
+      totalPurchased: agentCreditBalance.totalPurchased,
+    })
+    .from(agentCreditBalance)
+    .where(eq(agentCreditBalance.userId, user.id))
+    .limit(1);
+
+  return c.json({ balance: row?.balance ?? 0, totalPurchased: row?.totalPurchased ?? 0 }, 200);
 });
 
 // GET /api/billing/usage — Agent task usage for the current billing cycle
@@ -1455,126 +1644,27 @@ const rvuiPaymentRoute = createRoute({
 });
 
 app.openapi(rvuiPaymentRoute, async (c) => {
-  const user = c.get('user');
-  if (!user) throw new HTTPException(401, { message: 'Authentication required' });
-
-  const { txSignature, tier, walletAddress } = c.req.valid('json');
-
-  // Dynamic import — @revealui/services is a Pro package
-  let services: Record<string, unknown>;
-  try {
-    services = (await import('@revealui/services/revealcoin')) as Record<string, unknown>;
-  } catch {
-    throw new HTTPException(503, { message: 'RVUI payment service unavailable' });
-  }
-
-  const validatePayment = services.validatePayment as (params: {
-    walletAddress: string;
-    userId: string;
-    txSignature: string;
-    amountUsd: number;
-  }) => Promise<{ allowed: boolean; reason?: string }>;
-
-  const verifyRvuiPayment = services.verifyRvuiPayment as (
-    txSignature: string,
-    expectedAmountRaw: bigint,
-    expectedRecipient: string,
-  ) => Promise<{ valid: true } | { valid: false; error: string }>;
-
-  const recordPayment = services.recordPayment as (params: {
-    txSignature: string;
-    walletAddress: string;
-    userId: string;
-    amountRvui: string;
-    amountUsd: number;
-    discountUsd: number;
-    purpose: string;
-  }) => Promise<void>;
-
-  const rvuiToUsd = services.rvuiToUsd as (rvcAmount: number) => Promise<number | null>;
-
-  // Estimate USD value (used for safeguard checks — actual amount verified on-chain)
-  const estimatedUsd = await rvuiToUsd(1);
-  if (estimatedUsd === null) {
-    throw new HTTPException(503, {
-      message: 'RVUI price oracle unavailable. Try again later or use fiat payment.',
-    });
-  }
-
-  // Run safeguard checks with a conservative USD estimate
-  const safeguardResult = await validatePayment({
-    walletAddress,
-    userId: user.id,
-    txSignature,
-    amountUsd: estimatedUsd * 1000, // Conservative: assume up to 1000 RVUI
-  });
-
-  if (!safeguardResult.allowed) {
-    return c.json(
-      { success: false, tier, message: safeguardResult.reason ?? 'Payment rejected' },
-      403,
-    );
-  }
-
-  // Get receiving wallet from config
-  const getRevealCoinConfig = services.getRevealCoinConfig as () => { receivingWallet: string };
-  const config = getRevealCoinConfig();
-  if (!config.receivingWallet) {
-    throw new HTTPException(503, { message: 'RVUI receiving wallet not configured' });
-  }
-
-  // Verify the on-chain transaction
-  // Note: expectedAmountRaw would be calculated from tier price * (1 - discount) / TWAP price
-  // For now we verify the tx is valid and the recipient is correct with a minimum threshold
-  const verifyResult = await verifyRvuiPayment(txSignature, 1n, config.receivingWallet);
-
-  if (!verifyResult.valid) {
-    return c.json(
-      { success: false, tier, message: (verifyResult as { error: string }).error },
-      400,
-    );
-  }
-
-  // Record the payment
-  const discountPercent = 15;
-  const tierPrices: Record<string, number> = { pro: 29, max: 99 };
-  const basePrice = tierPrices[tier.toLowerCase()] ?? 29;
-  const discountAmount = basePrice * (discountPercent / 100);
-  const finalPrice = basePrice - discountAmount;
-
-  await recordPayment({
-    txSignature,
-    walletAddress,
-    userId: user.id,
-    amountRvui: '0', // On-chain amount parsed from tx
-    amountUsd: finalPrice,
-    discountUsd: discountAmount,
-    purpose: `${tier} subscription`,
-  });
-
-  logger.info('RVUI subscription payment verified', {
-    userId: user.id,
-    tier,
-    walletAddress: `${walletAddress.slice(0, 8)}...`,
-    txSignature: `${txSignature.slice(0, 12)}...`,
-    discountUsd: discountAmount,
-  });
-
-  return c.json({
-    success: true,
-    tier,
-    message: `${tier} subscription activated with ${discountPercent}% RVUI discount`,
-  });
+  // DISABLED (B-01): RVUI/RevealCoin payment is disabled until real pricing is
+  // implemented. The on-chain verification used a hardcoded minimum of 1 token
+  // (1n), which would allow any 1-token payment to activate Pro/Max for free.
+  // Re-enable once TWAP-based pricing and proper amount calculation are in place.
+  // See: GAP-100, git history for the full handler implementation.
+  return c.json(
+    {
+      success: false,
+      tier: 'none',
+      message: 'RVUI payment is not yet available. Please use Stripe for subscription payments.',
+    },
+    501,
+  );
 });
 
 // ─── Admin Revenue Metrics ────────────────────────────────────────────────────
 
 /** Fallback monthly prices (cents) for MRR estimation when catalog has no Stripe price */
-const FALLBACK_TIER_PRICE_CENTS: Record<string, number> = {
-  pro: 49_00,
-  max: 149_00,
-  enterprise: 299_00,
-};
+const FALLBACK_TIER_PRICE_CENTS: Record<string, number> = Object.fromEntries(
+  Object.entries(CANONICAL_TIER_PRICES).map(([tier, usd]) => [tier, usd * 100]),
+);
 
 const MetricsTierBreakdownSchema = z.object({
   pro: z.number().openapi({ description: 'Active pro subscriptions' }),

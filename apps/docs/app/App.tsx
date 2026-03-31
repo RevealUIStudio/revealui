@@ -18,6 +18,9 @@ const ProPage = lazy(async () =>
 const SectionPage = lazy(async () =>
   import('./routes/SectionPage').then((mod) => ({ default: mod.SectionPage })),
 );
+const ShowcasePage = lazy(async () =>
+  import('./routes/ShowcasePage').then((mod) => ({ default: mod.ShowcasePage })),
+);
 
 function RouteFallback() {
   return <LoadingSkeleton />;
@@ -55,6 +58,14 @@ function ProRoute() {
   );
 }
 
+function ShowcaseRoute() {
+  return (
+    <Suspense fallback={<RouteFallback />}>
+      <ShowcasePage />
+    </Suspense>
+  );
+}
+
 export function App() {
   const router = useRouter();
   const registered = useRef(false);
@@ -75,6 +86,8 @@ export function App() {
       { path: '/api/*path', component: ApiRoute },
       { path: '/guides/*path', component: GuidesRoute },
       { path: '/pro/*path', component: ProRoute },
+      { path: '/showcase', component: ShowcaseRoute },
+      { path: '/showcase/*path', component: ShowcaseRoute },
     ]);
     registered.current = true;
   }

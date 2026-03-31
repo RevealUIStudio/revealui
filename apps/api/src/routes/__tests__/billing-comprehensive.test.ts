@@ -158,7 +158,6 @@ const mockDbSelectChain = {
   where: vi.fn(),
   orderBy: vi.fn(),
   limit: vi.fn(),
-  // biome-ignore lint/suspicious/noThenProperty: intentional thenable — mirrors Drizzle's awaitable query builder
   then(
     onFulfilled?: (value: unknown[]) => unknown,
     onRejected?: (reason: unknown) => unknown,
@@ -363,10 +362,14 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       const app = createApp();
       await app.request(post('/downgrade', {}));
 
-      expect(mockSubscriptionsUpdate).toHaveBeenCalledWith('sub_pro', {
-        cancel_at_period_end: true,
-        metadata: { pending_change: 'downgrade:free' },
-      });
+      expect(mockSubscriptionsUpdate).toHaveBeenCalledWith(
+        'sub_pro',
+        {
+          cancel_at_period_end: true,
+          metadata: { pending_change: 'downgrade:free' },
+        },
+        { idempotencyKey: 'downgrade-sub_pro-free-user-123' },
+      );
     });
 
     it('uses current time as effectiveAt when Stripe returns no cancel_at', async () => {

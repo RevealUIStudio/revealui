@@ -108,7 +108,7 @@ All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT_VA
 | `FORGE_LICENSE_KEY`            | Yes      | Your Forge license JWT (`rui_forge_...`)             |
 | `FORGE_LICENSED_DOMAIN`        | Yes      | The domain this instance is locked to                |
 | `POSTGRES_URL`                 | Yes      | PostgreSQL 16 connection URL                         |
-| `REVEALUI_SECRET`              | Yes      | 32+ char secret for JWT and session encryption       |
+| `REVEALUI_SECRET`              | Yes      | 32+ char application secret (session signing, CSRF, HMAC operations) |
 | `CMS_URL`                      | Yes      | Full URL of your CMS (e.g. `https://admin.acme.com`) |
 | `CORS_ORIGIN`                  | Yes      | Comma-separated allowed origins                      |
 | `STRIPE_SECRET_KEY`            | Billing  | Stripe secret key                                    |

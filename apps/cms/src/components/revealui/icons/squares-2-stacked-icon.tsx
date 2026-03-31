@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 export function Squares2StackedIcon({ className, ...props }: ComponentProps<'svg'>) {
   return (
@@ -9,7 +9,7 @@ export function Squares2StackedIcon({ className, ...props }: ComponentProps<'svg
       viewBox="0 0 16 16"
       fill="currentColor"
       aria-hidden="true"
-      className={clsx('inline-block', className)}
+      className={cn('inline-block', className)}
       {...props}
     >
       <path

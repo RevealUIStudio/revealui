@@ -5,23 +5,42 @@ name: CI
 #   Hard fail (main/test): integration tests (requires DB)
 #   Warn-only: audits, structure
 #
-# Pipeline: feature/* → develop → test → main
-#   develop/feature PRs: quality + typecheck + package build + unit tests (~10 min)
+# Pipeline: feature/* → test → main
+#   PRs to test/main trigger CI.
 #   test/main: full build + integration tests + E2E smoke + accessibility (~15 min)
+#
+# Optimizations:
+#   - Turbo remote cache: build artifacts shared across jobs (TURBO_TOKEN + TURBO_TEAM)
+#   - PR jobs use --affected: only build/typecheck changed packages
+#   - Build runs in parallel with typecheck (turbo cache provides build artifacts)
+#   - E2E jobs wait for build (cache hit → near-instant rebuild)
+#
+# Prerequisites (owner action — remote caching is opportunistic, CI works without these):
+#   1. Enable Vercel Remote Caching: https://vercel.com/docs/monorepos/remote-caching
+#   2. Add repository secret  TURBO_TOKEN  — Vercel access token with remote cache scope
+#   3. Add repository variable TURBO_TEAM   — Vercel team slug (e.g. "revealuistudio")
 
 on:
   push:
-    branches: [main, develop, test]
+    branches: [main, test]
   pull_request:
-    branches: [main, develop, test]
+    branches: [main, test]
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  # Lockfile policy: strict on all CI branches (test/main)
+  # --frozen-lockfile: fail if lockfile is out of sync (supply chain protection)
+  PNPM_INSTALL_FLAGS: "--frozen-lockfile"
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -35,19 +54,19 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Biome lint (hard fail)
         run: pnpm lint:biome
@@ -64,6 +83,10 @@ jobs:
         run: pnpm validate:structure || echo "structure warnings — not blocking"
         continue-on-error: true
 
+      - name: Version policy validation (warn-only)
+        run: pnpm validate:versions || echo "version policy warnings — not blocking"
+        continue-on-error: true
+
       - name: Boundary validation (hard fail)
         run: pnpm validate:boundary
 
@@ -77,21 +100,28 @@ jobs:
     needs: quality
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
-      - name: Typecheck all packages (hard fail)
+      - name: Typecheck affected packages (PRs — hard fail)
+        if: github.event_name == 'pull_request'
+        run: pnpm turbo typecheck --affected
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Typecheck all packages (push — hard fail)
+        if: github.event_name == 'push'
         run: pnpm typecheck:all
         env:
           SKIP_ENV_VALIDATION: "true"
@@ -106,19 +136,19 @@ jobs:
     needs: quality
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Run unit tests (hard fail)
         run: pnpm test
@@ -151,19 +181,19 @@ jobs:
           --health-retries=5
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Build packages (required — integration tests import real dist/)
         run: pnpm --filter './packages/*' build
@@ -189,19 +219,19 @@ jobs:
     needs: quality
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Generate coverage reports (warn-only)
         run: pnpm test:coverage || echo "Coverage generation had failures — not blocking"
@@ -213,7 +243,7 @@ jobs:
         run: pnpm coverage:check -- --fail-on-zero
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         if: always()
         with:
           name: coverage-reports
@@ -227,64 +257,64 @@ jobs:
   # Phase 3b: Build
   #   - PRs: packages only (hard fail, ~5 min) — catches import/export breaks
   #   - main: full build including apps (hard fail, ~15 min)
+  # Runs in parallel with typecheck (turbo remote cache shares build artifacts)
   # ---------------------------------------------------------------------------
   build:
     name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [quality, typecheck]
+    needs: quality
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
-      - name: Build packages (hard fail)
+      - name: Build affected packages (PRs — hard fail)
         if: github.event_name == 'pull_request'
-        run: pnpm --filter './packages/*' build
+        run: pnpm turbo build --affected
         env:
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Build all (hard fail)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
+      - name: Build all (push to protected branches — hard fail)
+        if: github.event_name == 'push'
         run: pnpm build
         env:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 4: E2E smoke tests (warn-only — Playwright chromium only)
+  # Phase 4: E2E smoke tests (hard fail — Playwright chromium only)
   # ---------------------------------------------------------------------------
   e2e-smoke:
     name: E2E Smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [quality, typecheck]
-    continue-on-error: true
+    timeout-minutes: 15
+    needs: [quality, build]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
@@ -294,15 +324,43 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Start API server
+        run: pnpm --filter api start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Start CMS server
+        run: pnpm --filter cms start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Start marketing server
+        run: pnpm --filter marketing start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+          PORT: "3002"
+
+      - name: Wait for servers
+        run: |
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:3004/health/live > /dev/null 2>&1 && \
+            curl -sf http://localhost:4000 > /dev/null 2>&1 && \
+            curl -sf http://localhost:3002 > /dev/null 2>&1 && \
+            echo "All three servers ready" && break || \
+            echo "Waiting for servers... ($i/40)" && sleep 3
+          done
+
       - name: Run E2E smoke tests
         run: pnpm test:e2e -- --project=chromium e2e/smoke.e2e.ts
-        continue-on-error: true
         env:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
+          API_BASE_URL: "http://localhost:3004"
+          PLAYWRIGHT_BASE_URL: "http://localhost:4000"
+          MARKETING_BASE_URL: "http://localhost:3002"
 
       - name: Upload test results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         if: always()
         with:
           name: e2e-results
@@ -320,22 +378,22 @@ jobs:
     name: Accessibility (E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, typecheck]
+    needs: [quality, build]
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
@@ -374,7 +432,7 @@ jobs:
           MARKETING_BASE_URL: "http://localhost:3002"
 
       - name: Upload accessibility results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         if: always()
         with:
           name: accessibility-results
@@ -392,23 +450,23 @@ jobs:
     name: Visual Regression (E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [quality, typecheck]
+    needs: [quality, build]
     continue-on-error: true
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Install Playwright (chromium only)
         run: npx playwright install --with-deps chromium
@@ -438,7 +496,7 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
       - name: Upload visual results
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
         if: always()
         with:
           name: visual-results

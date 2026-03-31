@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 export function Text({
   children,
@@ -9,7 +9,7 @@ export function Text({
 }: ComponentProps<'div'> & { size?: 'md' | 'lg' }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         size === 'md' && 'text-base/7',
         size === 'lg' && 'text-lg/8',
         'text-mist-700 dark:text-mist-400',

@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+import { cn } from '../utils/cn.js';
 
 type ProgressColor = 'blue' | 'green' | 'red' | 'amber' | 'violet' | 'zinc';
 
@@ -32,7 +32,7 @@ export function Progress({
   const heightClass = { xs: 'h-1', sm: 'h-1.5', md: 'h-2.5', lg: 'h-4' }[size];
 
   return (
-    <div className={clsx('w-full', className)}>
+    <div className={cn('w-full', className)}>
       {(label || showValue) && (
         <div className="mb-1.5 flex items-center justify-between">
           {label && (
@@ -51,13 +51,13 @@ export function Progress({
         aria-valuemin={0}
         aria-valuemax={max}
         aria-label={label ?? 'Progress'}
-        className={clsx(
+        className={cn(
           'w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700',
           heightClass,
         )}
       >
         <div
-          className={clsx(
+          className={cn(
             'h-full rounded-full transition-all duration-300 ease-in-out',
             trackClasses[color],
           )}

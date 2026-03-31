@@ -11,9 +11,10 @@ import { getClient } from '@revealui/db/client';
 import { aiMemorySessions } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
-import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
+import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { getNodeIdFromSession } from '@/lib/utilities/nodeId';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -42,13 +43,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
+  const aiGate = checkAIMemoryFeatureGate();
   if (aiGate) return aiGate;
 
   let sessionId: string | undefined;
 
   try {
-    const authSession = await getSession(request.headers);
+    const authSession = await getSession(request.headers, extractRequestContext(request));
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -120,13 +121,13 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
+  const aiGate = checkAIMemoryFeatureGate();
   if (aiGate) return aiGate;
 
   let sessionId: string | undefined;
 
   try {
-    const authSession = await getSession(request.headers);
+    const authSession = await getSession(request.headers, extractRequestContext(request));
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

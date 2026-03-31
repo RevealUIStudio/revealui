@@ -40,6 +40,8 @@ vi.mock('@revealui/db/schema', () => ({
   agentMemories: {},
   agentContexts: {},
   conversations: {},
+  sites: { id: 'sites.id', ownerId: 'sites.ownerId' },
+  eq: vi.fn((_col: unknown, _val: unknown) => 'eq'),
 }));
 
 // ---------------------------------------------------------------------------
@@ -84,8 +86,21 @@ function makeRequest(url: string, method: string, body: unknown): NextRequest {
 }
 
 /** Build a flexible Drizzle chain mock */
-function makeDbChain(rows: unknown[] = []) {
+function makeDbChain(rows: unknown[] = [], selectRows?: unknown[]) {
+  // Sub-chain for select queries (e.g. ownership check).
+  // Uses a resolved promise as prototype so `await db.select().from().where().limit()` works.
+  const selectPromise = Promise.resolve(selectRows ?? []);
+  const selectChain = Object.assign(selectPromise, {
+    from: vi.fn(),
+    where: vi.fn(),
+    limit: vi.fn(),
+  });
+  selectChain.from.mockReturnValue(selectChain);
+  selectChain.where.mockReturnValue(selectChain);
+  selectChain.limit.mockReturnValue(selectChain);
+
   const chain: Record<string, ReturnType<typeof vi.fn>> = {
+    select: vi.fn().mockReturnValue(selectChain),
     insert: vi.fn(),
     values: vi.fn(),
     onConflictDoUpdate: vi.fn(),
@@ -95,9 +110,9 @@ function makeDbChain(rows: unknown[] = []) {
     where: vi.fn(),
     returning: vi.fn().mockResolvedValue(rows),
   };
-  // make every method return `chain` for fluent chaining
+  // make every method return `chain` for fluent chaining (except select/returning)
   for (const key of Object.keys(chain)) {
-    if (key !== 'returning') chain[key]!.mockReturnValue(chain);
+    if (key !== 'returning' && key !== 'select') chain[key]!.mockReturnValue(chain);
   }
   return chain;
 }
@@ -172,7 +187,8 @@ describe('POST /api/sync/agent-memories', () => {
     mockCheckAIFeatureGate.mockReturnValue(null);
     mockGetSession.mockResolvedValue(makeSession());
     const created = { id: VALID_UUID, agentId: 'agent-1', content: 'text', type: 'fact' };
-    const chain = makeDbChain([created]);
+    // selectRows: ownership check returns a site owned by user-1
+    const chain = makeDbChain([created], [{ ownerId: 'user-1' }]);
     mockGetClient.mockReturnValue(chain);
     const req = makeRequest('http://localhost/api/sync/agent-memories', 'POST', {
       agent_id: 'agent-1',

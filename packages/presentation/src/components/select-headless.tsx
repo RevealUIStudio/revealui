@@ -1,7 +1,7 @@
-import clsx from 'clsx';
 import type React from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { useFieldControlProps } from '../hooks/use-field-context.js';
+import { cn } from '../utils/cn.js';
 
 type SelectProps = {
   className?: string;
@@ -18,7 +18,7 @@ export function Select({ className, multiple, disabled, invalid, ref, ...props }
   return (
     <span
       data-slot="control"
-      className={clsx([
+      className={cn([
         className,
         // Basic layout
         'group relative block w-full',
@@ -41,7 +41,7 @@ export function Select({ className, multiple, disabled, invalid, ref, ...props }
         {...fieldProps}
         data-invalid={invalid ? '' : undefined}
         data-disabled={disabled ? '' : undefined}
-        className={clsx([
+        className={cn([
           // Basic layout
           'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
           // Horizontal padding

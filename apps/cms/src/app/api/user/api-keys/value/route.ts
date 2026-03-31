@@ -6,6 +6,7 @@ import { decryptApiKey } from '@revealui/db/crypto';
 import { userApiKeys } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,7 +18,7 @@ export const dynamic = 'force-dynamic';
  * Updates lastUsedAt on each fetch.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const session = await getSession(request.headers);
+  const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

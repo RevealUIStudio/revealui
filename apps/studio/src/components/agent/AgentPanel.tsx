@@ -7,7 +7,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import AgentChat from './AgentChat';
+
 const AGENT_POLL_INTERVAL_MS = 30_000;
+
+type RightTab = 'changes' | 'chat';
 
 import { useSettingsContext } from '../../hooks/use-settings';
 import type { AgentCard } from '../../lib/a2a-api';
@@ -256,6 +260,9 @@ export default function AgentPanel() {
   const [stagingAll, setStagingAll] = useState(false);
   const [discardingAll, setDiscardingAll] = useState(false);
 
+  // Tab state for right pane
+  const [rightTab, setRightTab] = useState<RightTab>('changes');
+
   // Remote agents state
   const { settings } = useSettingsContext();
   const [remoteAgents, setRemoteAgents] = useState<AgentCard[]>([]);
@@ -443,147 +450,188 @@ export default function AgentPanel() {
         </div>
       </div>
 
-      {/* ── Right pane: changes ── */}
+      {/* ── Right pane: tabbed (Changes / Chat) ── */}
       <div className="flex min-w-0 flex-1 flex-col bg-neutral-950">
-        {/* Header */}
-        <div className="flex items-center gap-2 border-b border-neutral-800 px-3 py-2.5">
-          <div className="min-w-0 flex-1">
-            {editingRepo ? (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  applyRepoPath();
-                }}
-              >
-                <input
-                  ref={repoInputRef}
-                  value={draftRepo}
-                  onChange={(e) => setDraftRepo(e.target.value)}
-                  onBlur={applyRepoPath}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Escape') setEditingRepo(false);
-                  }}
-                  className="w-full rounded border border-neutral-600 bg-neutral-800 px-2 py-1 text-[11px] text-neutral-200 focus:border-neutral-400 focus:outline-none"
-                />
-              </form>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setDraftRepo(repoPath);
-                  setEditingRepo(true);
-                }}
-                className="max-w-full truncate text-left text-[10px] text-neutral-500 hover:text-neutral-300"
-                title="Change repository path"
-              >
-                {repoPath}
-              </button>
-            )}
-            {gitState ? (
-              <p className="mt-0.5 text-[10px] text-neutral-600">
-                {totalChanges === 0
-                  ? `working tree clean · ${gitState.branch}`
-                  : `${totalChanges} file${totalChanges !== 1 ? 's' : ''} changed · ${gitState.branch}`}
-              </p>
-            ) : null}
-          </div>
-
-          {/* Bulk actions */}
-          {(gitState?.unstaged.length ?? 0) + (gitState?.untracked.length ?? 0) > 0 ? (
-            <button
-              type="button"
-              onClick={() => void stageAll()}
-              disabled={stagingAll}
-              className="rounded bg-neutral-800 px-2.5 py-1 text-[11px] text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-40"
-            >
-              {stagingAll ? 'Staging…' : 'Stage All'}
-            </button>
-          ) : null}
-          {(gitState?.unstaged.length ?? 0) > 0 ? (
-            <button
-              type="button"
-              onClick={() => void discardAll()}
-              disabled={discardingAll}
-              className="rounded px-2.5 py-1 text-[11px] text-neutral-500 transition-colors hover:bg-red-900/30 hover:text-red-400 disabled:opacity-40"
-            >
-              {discardingAll ? 'Discarding…' : 'Discard All'}
-            </button>
-          ) : null}
-
+        {/* Tab bar */}
+        <div className="flex items-center border-b border-neutral-800">
           <button
             type="button"
-            onClick={() => void refresh()}
-            disabled={loading}
-            title="Refresh"
-            className="flex size-6 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300 disabled:opacity-40"
+            onClick={() => setRightTab('changes')}
+            className={`px-4 py-2 text-xs font-medium transition-colors ${
+              rightTab === 'changes'
+                ? 'border-b-2 border-blue-500 text-blue-400'
+                : 'text-neutral-500 hover:text-neutral-300'
+            }`}
           >
-            <RefreshIcon spinning={loading} />
+            Changes
+            {totalChanges > 0 ? (
+              <span className="ml-1.5 rounded-full bg-neutral-800 px-1.5 py-0.5 text-[10px] text-neutral-400">
+                {totalChanges}
+              </span>
+            ) : null}
           </button>
-        </div>
-
-        {/* File list */}
-        <div className="flex-1 overflow-y-auto px-3 py-2">
-          {gitError ? (
-            <div className="rounded border border-red-800/50 bg-red-950/30 px-2.5 py-2 text-[10px] text-red-400">
-              {gitError}
+          <button
+            type="button"
+            onClick={() => setRightTab('chat')}
+            className={`px-4 py-2 text-xs font-medium transition-colors ${
+              rightTab === 'chat'
+                ? 'border-b-2 border-blue-500 text-blue-400'
+                : 'text-neutral-500 hover:text-neutral-300'
+            }`}
+          >
+            Agent Chat
+          </button>
+          {rightTab === 'changes' ? (
+            <div className="ml-auto flex items-center gap-1 pr-2">
+              {(gitState?.unstaged.length ?? 0) + (gitState?.untracked.length ?? 0) > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => void stageAll()}
+                  disabled={stagingAll}
+                  className="rounded bg-neutral-800 px-2 py-1 text-[10px] text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-40"
+                >
+                  {stagingAll ? 'Staging…' : 'Stage All'}
+                </button>
+              ) : null}
+              {(gitState?.unstaged.length ?? 0) > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => void discardAll()}
+                  disabled={discardingAll}
+                  className="rounded px-2 py-1 text-[10px] text-neutral-500 transition-colors hover:bg-red-900/30 hover:text-red-400 disabled:opacity-40"
+                >
+                  {discardingAll ? 'Discarding…' : 'Discard All'}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => void refresh()}
+                disabled={loading}
+                title="Refresh"
+                className="flex size-6 items-center justify-center rounded text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300 disabled:opacity-40"
+              >
+                <RefreshIcon spinning={loading} />
+              </button>
             </div>
           ) : null}
-          {!(gitError || gitState || loading) ? (
-            <p className="py-8 text-center text-xs text-neutral-600">No repository loaded</p>
-          ) : null}
-          {loading && !gitState ? (
-            <p className="py-8 text-center text-xs text-neutral-600">Loading…</p>
-          ) : null}
-          {gitState && totalChanges === 0 ? (
-            <p className="py-8 text-center text-xs text-neutral-600">
-              Nothing to review — working tree clean
-            </p>
-          ) : null}
-
-          {gitState ? (
-            <>
-              <ChangeSection title="Staged" count={gitState.staged.length} accent="text-green-500">
-                {gitState.staged.map((entry) => (
-                  <ChangeRow
-                    key={`staged-${entry.path}`}
-                    entry={entry}
-                    staged
-                    onUnstage={() => void unstageFile(entry.path)}
-                  />
-                ))}
-              </ChangeSection>
-
-              <ChangeSection
-                title="Changes"
-                count={gitState.unstaged.length}
-                accent="text-orange-500"
-              >
-                {gitState.unstaged.map((entry) => (
-                  <ChangeRow
-                    key={`unstaged-${entry.path}`}
-                    entry={entry}
-                    onStage={() => void stageFile(entry.path)}
-                    onDiscard={() => void discardFile(entry.path)}
-                  />
-                ))}
-              </ChangeSection>
-
-              <ChangeSection
-                title="Untracked"
-                count={gitState.untracked.length}
-                accent="text-neutral-500"
-              >
-                {gitState.untracked.map((entry) => (
-                  <ChangeRow
-                    key={`untracked-${entry.path}`}
-                    entry={entry}
-                    onStage={() => void stageFile(entry.path)}
-                  />
-                ))}
-              </ChangeSection>
-            </>
-          ) : null}
         </div>
+
+        {/* Tab content */}
+        {rightTab === 'changes' ? (
+          <div className="flex flex-1 flex-col overflow-hidden">
+            {/* Repo path header */}
+            <div className="border-b border-neutral-800 px-3 py-2">
+              {editingRepo ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    applyRepoPath();
+                  }}
+                >
+                  <input
+                    ref={repoInputRef}
+                    value={draftRepo}
+                    onChange={(e) => setDraftRepo(e.target.value)}
+                    onBlur={applyRepoPath}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') setEditingRepo(false);
+                    }}
+                    className="w-full rounded border border-neutral-600 bg-neutral-800 px-2 py-1 text-[11px] text-neutral-200 focus:border-neutral-400 focus:outline-none"
+                  />
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDraftRepo(repoPath);
+                    setEditingRepo(true);
+                  }}
+                  className="max-w-full truncate text-left text-[10px] text-neutral-500 hover:text-neutral-300"
+                  title="Change repository path"
+                >
+                  {repoPath}
+                </button>
+              )}
+              {gitState ? (
+                <p className="mt-0.5 text-[10px] text-neutral-600">
+                  {totalChanges === 0
+                    ? `working tree clean · ${gitState.branch}`
+                    : `${totalChanges} file${totalChanges !== 1 ? 's' : ''} changed · ${gitState.branch}`}
+                </p>
+              ) : null}
+            </div>
+
+            {/* File list */}
+            <div className="flex-1 overflow-y-auto px-3 py-2">
+              {gitError ? (
+                <div className="rounded border border-red-800/50 bg-red-950/30 px-2.5 py-2 text-[10px] text-red-400">
+                  {gitError}
+                </div>
+              ) : null}
+              {!(gitError || gitState || loading) ? (
+                <p className="py-8 text-center text-xs text-neutral-600">No repository loaded</p>
+              ) : null}
+              {loading && !gitState ? (
+                <p className="py-8 text-center text-xs text-neutral-600">Loading…</p>
+              ) : null}
+              {gitState && totalChanges === 0 ? (
+                <p className="py-8 text-center text-xs text-neutral-600">
+                  Nothing to review — working tree clean
+                </p>
+              ) : null}
+
+              {gitState ? (
+                <>
+                  <ChangeSection
+                    title="Staged"
+                    count={gitState.staged.length}
+                    accent="text-green-500"
+                  >
+                    {gitState.staged.map((entry) => (
+                      <ChangeRow
+                        key={`staged-${entry.path}`}
+                        entry={entry}
+                        staged
+                        onUnstage={() => void unstageFile(entry.path)}
+                      />
+                    ))}
+                  </ChangeSection>
+
+                  <ChangeSection
+                    title="Changes"
+                    count={gitState.unstaged.length}
+                    accent="text-orange-500"
+                  >
+                    {gitState.unstaged.map((entry) => (
+                      <ChangeRow
+                        key={`unstaged-${entry.path}`}
+                        entry={entry}
+                        onStage={() => void stageFile(entry.path)}
+                        onDiscard={() => void discardFile(entry.path)}
+                      />
+                    ))}
+                  </ChangeSection>
+
+                  <ChangeSection
+                    title="Untracked"
+                    count={gitState.untracked.length}
+                    accent="text-neutral-500"
+                  >
+                    {gitState.untracked.map((entry) => (
+                      <ChangeRow
+                        key={`untracked-${entry.path}`}
+                        entry={entry}
+                        onStage={() => void stageFile(entry.path)}
+                      />
+                    ))}
+                  </ChangeSection>
+                </>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <AgentChat />
+        )}
       </div>
     </div>
   );

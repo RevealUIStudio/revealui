@@ -14,7 +14,7 @@ export {
   type ButtonProps,
   buttonVariants,
 } from './components/Button.js';
-
+export { Breadcrumb, type BreadcrumbItem } from './components/breadcrumb.js';
 export {
   Card,
   CardContent,
@@ -23,13 +23,11 @@ export {
   CardHeader,
   CardTitle,
 } from './components/Card.js';
-
+export { EmptyState } from './components/empty-state.js';
 export { FormLabel, type FormLabelProps } from './components/FormLabel.js';
-
+export { FormField, type FormFieldProps } from './components/form-field.js';
 export { Input as InputCVA, type InputProps } from './components/Input.js';
-
 export { Label, type LabelProps } from './components/Label.js';
-
 export {
   Pagination,
   PaginationContent,
@@ -44,17 +42,66 @@ export {
   type PaginationPreviousProps,
   type PaginationProps,
 } from './components/Pagination.js';
-
 export {
   PricingTable,
   type PricingTableProps,
   type PricingTier,
 } from './components/pricing-table.js';
 
+export { Skeleton, SkeletonCard, SkeletonText } from './components/skeleton.js';
 export { Textarea as TextareaCVA, type TextareaProps } from './components/Textarea.js';
 
 // Note: Checkbox and Select CVA versions use state and are in client.ts
 
+// Icons - Server Safe (pure SVG, no hooks)
+export {
+  IconAlertCircle,
+  IconAlertTriangle,
+  IconArrowLeft,
+  IconArrowRight,
+  IconCheck,
+  IconCheckCircle,
+  IconChevronDown,
+  IconChevronLeft,
+  IconChevronRight,
+  IconChevronUp,
+  IconClose,
+  IconCode,
+  IconCopy,
+  IconDownload,
+  IconEdit,
+  IconExternalLink,
+  IconEye,
+  IconEyeOff,
+  IconFilter,
+  IconGlobe,
+  IconHeart,
+  IconInfo,
+  IconLoading,
+  IconLock,
+  IconLogOut,
+  IconMenu,
+  IconMinus,
+  IconMonitor,
+  IconMoon,
+  IconMoreHorizontal,
+  IconMoreVertical,
+  IconPlus,
+  type IconProps,
+  IconRefresh,
+  IconSearch,
+  IconSettings,
+  type IconSize,
+  IconStar,
+  IconSun,
+  IconTerminal,
+  IconTrash,
+  IconUnlock,
+  IconUpload,
+  IconUser,
+  IconUsers,
+  IconXCircle,
+} from './components/icon.js';
 // Primitives - Server Safe
 export { Box, type BoxProps } from './primitives/Box.js';
 export { Flex, type FlexProps } from './primitives/Flex.js';

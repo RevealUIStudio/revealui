@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, cursor, develop]
+    branches: [main, test]
   pull_request:
-    branches: [main, cursor, develop]
+    branches: [main, test]
 
 # Cancel in-progress runs for the same workflow on the same branch
 concurrency:

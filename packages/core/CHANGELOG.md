@@ -1,5 +1,22 @@
 # @revealui/core
 
+## 0.5.0
+
+### Minor Changes
+
+- Add AI sampling for free-tier users (50 tasks/month)
+
+## 0.4.0
+
+### Minor Changes
+
+- f89b9ff: Upgrade production dependencies: lexical 0.40→0.42, @vercel/blob 2.2→2.3, drizzle-orm 0.45.1→0.45.2, ora 8→9, commander 13→14, inquirer 12→13
+
+### Patch Changes
+
+- @revealui/contracts@1.3.1
+- @revealui/security@0.2.1
+
 ## 0.3.0
 
 ### Minor Changes

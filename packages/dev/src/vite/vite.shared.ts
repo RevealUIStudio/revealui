@@ -26,8 +26,9 @@ const __dirname = path.dirname(__filename);
 const packagesRoot = path.resolve(__dirname, '../../..'); // packages/
 const projectRoot = path.resolve(__dirname, '../../../..'); // RevealUI/
 
-const sharedViteConfig: UserConfig = {
-  esbuild: {
+// Vite 7 adds oxc + rolldownOptions properties not yet in @types — cast to UserConfig
+const sharedViteConfig = {
+  oxc: {
     sourcemap: true,
   },
   ssr: {
@@ -39,7 +40,7 @@ const sharedViteConfig: UserConfig = {
     emptyOutDir: true,
     ssrManifest: true,
     outDir: './dist',
-    rollupOptions: {
+    rolldownOptions: {
       external: [
         'fs',
         'node:fs',
@@ -84,4 +85,4 @@ const sharedViteConfig: UserConfig = {
   },
 };
 
-export default sharedViteConfig;
+export default sharedViteConfig as UserConfig;

@@ -532,7 +532,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
     expect(mockCreateSession).toHaveBeenCalledWith('u-1', {
       userAgent: undefined,
-      ipAddress: '203.0.113.50',
+      ipAddress: '10.0.0.1',
       persistent: true,
     });
   });

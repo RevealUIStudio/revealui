@@ -1,9 +1,9 @@
-import clsx from 'clsx';
 import type React from 'react';
 import { createContext, use, useCallback } from 'react';
 import { useControllableState } from '../hooks/use-controllable-state.js';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { FieldProvider } from '../hooks/use-field-context.js';
+import { cn } from '../utils/cn.js';
 
 // --- RadioGroup Context ---
 interface RadioGroupContextValue {
@@ -97,7 +97,7 @@ export function RadioGroup({
         data-slot="control"
         onKeyDown={handleKeyDown}
         {...props}
-        className={clsx(
+        className={cn(
           className,
           // Basic groups
           'space-y-3 **:data-[slot=label]:font-normal',
@@ -126,7 +126,7 @@ export function RadioField({
         data-slot="field"
         data-disabled={disabled ? '' : undefined}
         {...props}
-        className={clsx(
+        className={cn(
           className,
           // Base layout
           'grid grid-cols-[1.125rem_1fr] gap-x-4 gap-y-1 sm:grid-cols-[1rem_1fr]',
@@ -264,12 +264,12 @@ export function Radio({
       onKeyDown={handleKeyDown}
       {...interactiveProps}
       {...props}
-      className={clsx(className, 'group inline-flex focus:outline-hidden')}
+      className={cn(className, 'group inline-flex focus:outline-hidden')}
     >
       {group.name && checked && <input type="hidden" name={group.name} value={value} />}
-      <span className={clsx([base, radioColors[color]])}>
+      <span className={cn([base, radioColors[color]])}>
         <span
-          className={clsx(
+          className={cn(
             'size-full rounded-full border-[4.5px] border-transparent bg-(--radio-indicator) bg-clip-padding',
             // Forced colors mode
             'forced-colors:border-[Canvas] forced-colors:group-data-checked:border-[Highlight]',

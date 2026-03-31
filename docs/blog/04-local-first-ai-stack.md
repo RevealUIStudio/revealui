@@ -131,7 +131,7 @@ But there's a real and growing audience for whom those concerns matter:
 - **Developers in bandwidth-constrained environments** — offline-capable software, edge deployments
 - **Anyone who has been burned by a provider sunset** — your inference doesn't disappear when a company pivots
 
-For these cases, RevealUI with BitNet is the only full-stack BOSS option that doesn't require trusting a cloud provider with your most sensitive business data.
+For these cases, RevealUI with BitNet is the only full-stack agentic runtime option that doesn't require trusting a cloud provider with your most sensitive business data.
 
 ## What you don't give up
 

@@ -1,5 +1,20 @@
 # @revealui/router
 
+## 0.3.2
+
+### Patch Changes
+
+- Extract Link component props to named interface
+- Updated dependencies
+  - @revealui/core@0.5.0
+
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [f89b9ff]
+  - @revealui/core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes

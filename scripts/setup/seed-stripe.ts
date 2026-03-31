@@ -43,7 +43,8 @@ interface ProductDefinition {
   name: string;
   description: string;
   tier: 'pro' | 'max' | 'enterprise';
-  billingModel: 'subscription' | 'perpetual';
+  billingModel: 'subscription' | 'perpetual' | 'credits';
+  creditBundleName?: string;
   priceNote?: string;
   renewal?: string;
   defaultPriceKey: string;
@@ -65,7 +66,7 @@ interface LocalStripeCatalogCache {
   catalogEntries: Array<{
     planId: string;
     tier: 'pro' | 'max' | 'enterprise';
-    billingModel: 'subscription' | 'perpetual';
+    billingModel: 'subscription' | 'perpetual' | 'credits';
     stripeProductId: string;
     stripePriceId: string;
   }>;
@@ -205,6 +206,61 @@ const CATALOG: ProductDefinition[] = [
       },
     ],
   },
+  // ── Credit Bundles (Track B) ──────────────────────────────────────────────
+  {
+    key: 'revealui_credits_starter',
+    name: 'Credits: Starter',
+    description: '10,000 AI agent tasks. Top up any plan. Never expires.',
+    tier: 'pro',
+    billingModel: 'credits',
+    creditBundleName: 'starter',
+    priceNote: 'one-time',
+    defaultPriceKey: 'revealui_credits_starter',
+    prices: [
+      {
+        key: 'revealui_credits_starter',
+        unitAmount: 1000,
+        currency: 'usd',
+        mode: 'payment',
+      },
+    ],
+  },
+  {
+    key: 'revealui_credits_standard',
+    name: 'Credits: Standard',
+    description: '60,000 AI agent tasks. 17% cheaper per task vs Starter.',
+    tier: 'pro',
+    billingModel: 'credits',
+    creditBundleName: 'standard',
+    priceNote: 'one-time',
+    defaultPriceKey: 'revealui_credits_standard',
+    prices: [
+      {
+        key: 'revealui_credits_standard',
+        unitAmount: 5000,
+        currency: 'usd',
+        mode: 'payment',
+      },
+    ],
+  },
+  {
+    key: 'revealui_credits_scale',
+    name: 'Credits: Scale',
+    description: '350,000 AI agent tasks. 29% cheaper per task vs Starter.',
+    tier: 'pro',
+    billingModel: 'credits',
+    creditBundleName: 'scale',
+    priceNote: 'one-time',
+    defaultPriceKey: 'revealui_credits_scale',
+    prices: [
+      {
+        key: 'revealui_credits_scale',
+        unitAmount: 25000,
+        currency: 'usd',
+        mode: 'payment',
+      },
+    ],
+  },
 ];
 
 // Canonical webhook events — must mirror `relevantEvents` in apps/api/src/routes/webhooks.ts
@@ -239,6 +295,9 @@ const PRICE_SERVER_ENV_KEYS: Record<string, string> = {
   revealui_pro_perpetual: 'STRIPE_PERPETUAL_PRO_PRICE_ID',
   revealui_max_perpetual: 'STRIPE_PERPETUAL_MAX_PRICE_ID',
   revealui_enterprise_perpetual: 'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
+  revealui_credits_starter: 'STRIPE_CREDITS_STARTER_PRICE_ID',
+  revealui_credits_standard: 'STRIPE_CREDITS_STANDARD_PRICE_ID',
+  revealui_credits_scale: 'STRIPE_CREDITS_SCALE_PRICE_ID',
 };
 
 // ─── Logger ─────────────────────────────────────────────────────────────────
@@ -454,8 +513,12 @@ async function syncCatalog(
     }
 
     if (defaultPriceId) {
+      const planId =
+        productDef.billingModel === 'credits' && productDef.creditBundleName
+          ? `credits:${productDef.creditBundleName}`
+          : `${productDef.billingModel}:${productDef.tier}`;
       catalogEntries.push({
-        planId: `${productDef.billingModel}:${productDef.tier}`,
+        planId,
         tier: productDef.tier,
         billingModel: productDef.billingModel,
         stripeProductId: product.id,

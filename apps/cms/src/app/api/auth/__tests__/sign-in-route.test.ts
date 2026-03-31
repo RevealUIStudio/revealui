@@ -251,11 +251,11 @@ describe('POST /api/auth/sign-in', () => {
     const POST = await loadRoute();
     await POST(makeRequest({ email: 'test@example.com', password: 'ValidPass1' }));
 
-    // signIn should receive the rightmost IP from XFF
+    // signIn should receive the leftmost (client) IP from XFF
     expect(mockSignIn).toHaveBeenCalledWith(
       'test@example.com',
       'ValidPass1',
-      expect.objectContaining({ ipAddress: '203.0.113.50' }),
+      expect.objectContaining({ ipAddress: '10.0.0.1' }),
     );
   });
 

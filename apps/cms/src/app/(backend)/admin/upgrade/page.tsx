@@ -8,13 +8,16 @@ import {
 } from '@revealui/contracts/pricing';
 import type { FeatureFlags } from '@revealui/core/features';
 import { PricingTable } from '@revealui/presentation/client';
+import { useState } from 'react';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 export default function UpgradePage() {
   const { tier: currentTier } = useLicense();
+  const [error, setError] = useState<string | null>(null);
 
   const handleSelectTier = async (tierId: string) => {
+    setError(null);
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
@@ -25,17 +28,18 @@ export default function UpgradePage() {
         return;
       }
 
+      const priceIdMap: Record<string, string | undefined> = {
+        pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
+        max: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
+        enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
+      };
+      const priceId = priceIdMap[tierId];
       const res = await fetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          priceId:
-            tierId === 'pro'
-              ? process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID
-              : tierId === 'max'
-                ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
-                : process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
+          ...(priceId && { priceId }),
           tier: tierId,
         }),
       });
@@ -45,9 +49,11 @@ export default function UpgradePage() {
         return;
       }
 
-      const data = (await res.json()) as { url?: string };
+      const data = (await res.json()) as { url?: string; error?: string };
       if (data.url) {
         safeStripeRedirect(data.url);
+      } else {
+        setError(data.error || 'Failed to start checkout. Please try again.');
       }
     } catch {
       window.location.href = `/account/billing?upgrade=${tierId}`;
@@ -64,6 +70,12 @@ export default function UpgradePage() {
           Upgrade to unlock more features, higher limits, and priority support.
         </p>
       </div>
+
+      {error && (
+        <div className="mx-auto max-w-2xl mb-8 rounded-md bg-red-50 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+          {error}
+        </div>
+      )}
 
       <PricingTable
         tiers={SUBSCRIPTION_TIERS}
@@ -210,6 +222,7 @@ function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): bool
   const featureMinTier: Record<keyof FeatureFlags, LicenseTierId> = {
     aiLocal: 'free',
     ai: 'pro',
+    aiSampling: 'free',
     mcp: 'pro',
     payments: 'pro',
     advancedSync: 'pro',
@@ -223,6 +236,9 @@ function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): bool
     multiTenant: 'enterprise',
     whiteLabel: 'enterprise',
     sso: 'enterprise',
+    vaultDesktop: 'pro',
+    vaultRotation: 'pro',
+    devkitProfiles: 'max',
   };
   return tierRank[tier] >= tierRank[featureMinTier[feature]];
 }

@@ -71,6 +71,29 @@ const sections: NavSection[] = [
     ],
   },
   {
+    title: 'Showcase',
+    items: [
+      { label: 'Overview', path: '/showcase' },
+      { label: 'Design Tokens', path: '/showcase/tokens' },
+      { label: 'Accordion', path: '/showcase/accordion' },
+      { label: 'Avatar', path: '/showcase/avatar' },
+      { label: 'Badge', path: '/showcase/badge' },
+      { label: 'Button', path: '/showcase/button' },
+      { label: 'Callout', path: '/showcase/callout' },
+      { label: 'Card', path: '/showcase/card' },
+      { label: 'Dialog', path: '/showcase/dialog' },
+      { label: 'Drawer', path: '/showcase/drawer' },
+      { label: 'Input', path: '/showcase/input' },
+      { label: 'Progress', path: '/showcase/progress' },
+      { label: 'Stat', path: '/showcase/stat' },
+      { label: 'Switch', path: '/showcase/switch' },
+      { label: 'Table', path: '/showcase/table' },
+      { label: 'Tabs', path: '/showcase/tabs' },
+      { label: 'Toast', path: '/showcase/toast' },
+      { label: 'Tooltip', path: '/showcase/tooltip' },
+    ],
+  },
+  {
     title: 'Pro & Enterprise',
     items: [
       { label: 'Pro (AI, MCP, BYOK)', path: '/docs/PRO' },
@@ -85,6 +108,10 @@ const sections: NavSection[] = [
       { label: 'HTTP 402 Payments', path: '/docs/blog/02-http-402-payments' },
       { label: 'Multi-Agent Coordination', path: '/docs/blog/03-multi-agent-coordination' },
       { label: 'The Air-Gap Capable Stack', path: '/docs/blog/04-local-first-ai-stack' },
+      { label: 'The Five Primitives', path: '/docs/blog/05-five-primitives' },
+      { label: 'Open Source & Pro', path: '/docs/blog/06-open-source-and-pro' },
+      { label: 'Agent-First Future', path: '/docs/blog/07-agent-first-future' },
+      { label: 'Getting Started in 10 Minutes', path: '/docs/blog/08-getting-started' },
     ],
   },
   {
@@ -257,6 +284,96 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
   );
 }
 
+function Breadcrumbs({ sections: navSections }: { sections: NavSection[] }) {
+  const { pathname } = useLocation();
+  if (pathname === '/') return null;
+
+  const crumbs: { label: string; href?: string }[] = [{ label: 'Home', href: '/' }];
+
+  // Find matching section and item from the nav
+  for (const section of navSections) {
+    for (const item of section.items) {
+      if (pathname === item.path) {
+        crumbs.push({ label: section.title });
+        crumbs.push({ label: item.label });
+        break;
+      }
+    }
+    if (crumbs.length > 1) break;
+  }
+
+  // Fallback for sub-pages not directly in nav
+  if (crumbs.length === 1) {
+    const segments = pathname.split('/').filter(Boolean);
+    const firstSegment = segments[0] ?? '';
+
+    // Match section by first path segment
+    for (const section of navSections) {
+      const sectionMatch = section.items.some((item) => item.path.startsWith(`/${firstSegment}`));
+      if (sectionMatch) {
+        crumbs.push({ label: section.title, href: section.items[0]?.path });
+        break;
+      }
+    }
+
+    // Format last segment as page title
+    const lastSegment = segments[segments.length - 1] ?? '';
+    const pageTitle = lastSegment.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    if (pageTitle) {
+      crumbs.push({ label: pageTitle });
+    }
+  }
+
+  if (crumbs.length <= 1) return null;
+
+  return (
+    <nav aria-label="Breadcrumb" className="border-b border-border px-8 py-2.5 max-md:px-4">
+      <ol className="flex items-center gap-1.5 text-xs">
+        {crumbs.map((crumb, i) => {
+          const isLast = i === crumbs.length - 1;
+          return (
+            // biome-ignore lint/suspicious/noArrayIndexKey: breadcrumb items are positionally ordered
+            <li key={i} className="flex items-center gap-1.5">
+              {isLast ? (
+                <span className="font-medium text-text-secondary" aria-current="page">
+                  {crumb.label}
+                </span>
+              ) : (
+                <>
+                  {crumb.href ? (
+                    <Link
+                      to={crumb.href}
+                      className="text-text-muted no-underline transition-colors hover:text-accent"
+                    >
+                      {crumb.label}
+                    </Link>
+                  ) : (
+                    <span className="text-text-muted">{crumb.label}</span>
+                  )}
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                    className="size-3 text-text-muted"
+                  >
+                    <path
+                      d="M6 4l4 4-4 4"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+}
+
 export function DocLayout({ children }: DocLayoutProps) {
   const { pathname } = useLocation();
   const isHome = pathname === '/';
@@ -361,7 +478,10 @@ export function DocLayout({ children }: DocLayoutProps) {
       </nav>
 
       {/* Main content */}
-      <main className="min-w-0 flex-1 bg-surface pt-14 md:pt-0">{children}</main>
+      <main className="min-w-0 flex-1 bg-surface pt-14 md:pt-0">
+        <Breadcrumbs sections={sections} />
+        {children}
+      </main>
     </div>
   );
 }

@@ -229,7 +229,15 @@ async function gate(): Promise<void> {
           ],
           timeout: 600000,
         }
-      : { name: 'Biome lint', command: 'pnpm', args: ['lint:biome'], timeout: 600000 };
+      : {
+          name: 'Biome lint',
+          command: 'bash',
+          args: [
+            '-c',
+            'git ls-files --cached -- "*.ts" "*.tsx" "*.js" "*.jsx" "*.json" | xargs node_modules/.bin/biome check',
+          ],
+          timeout: 600000,
+        };
 
     const phase1Checks: CheckDef[] = [
       biomeCheck,
@@ -250,6 +258,11 @@ async function gate(): Promise<void> {
         name: 'Version policy',
         command: 'pnpm',
         args: ['validate:versions'],
+      },
+      {
+        name: 'Gitignore Pro entries',
+        command: 'pnpm',
+        args: ['validate:gitignore'],
       },
       {
         name: 'Security audit',
@@ -280,14 +293,17 @@ async function gate(): Promise<void> {
     logger.success('Phase 1 passed\n');
   }
 
+  // Exclude gitignored Pro packages — they exist locally but aren't committed to the public repo
+  const proFilter = ['--filter=!@revealui/ai', '--filter=!@revealui/harnesses'];
+
   // --- Phase 2: Types (serial) ---
   if (phase === null || phase === 2) {
     logger.info('Phase 2 \u2014 Type checking (serial)');
 
     // In changed-only mode: only typecheck packages changed since comparison base (and their dependents)
     const typecheckArgs = changed
-      ? ['turbo', 'run', 'typecheck', `--filter=...[${changeBase}]`]
-      : ['typecheck:all'];
+      ? ['turbo', 'run', 'typecheck', `--filter=...[${changeBase}]`, ...proFilter]
+      : ['turbo', 'run', 'typecheck', ...proFilter];
 
     const phase2Checks: CheckDef[] = [
       { name: 'Type checking', command: 'pnpm', args: typecheckArgs, timeout: 300000 },
@@ -319,8 +335,8 @@ async function gate(): Promise<void> {
     logger.info('Phase 3 \u2014 Test + Build (serial: tests first)');
 
     const testArgs = changed
-      ? ['turbo', 'run', 'test', `--filter=...[${changeBase}]`, '--concurrency=4']
-      : ['turbo', 'run', 'test', '--concurrency=4'];
+      ? ['turbo', 'run', 'test', `--filter=...[${changeBase}]`, ...proFilter, '--concurrency=4']
+      : ['turbo', 'run', 'test', ...proFilter, '--concurrency=4'];
 
     const buildCheck: CheckDef[] = noBuild
       ? []
@@ -329,11 +345,18 @@ async function gate(): Promise<void> {
             {
               name: 'Build (changed)',
               command: 'pnpm',
-              args: ['turbo', 'run', 'build', `--filter=...[${changeBase}]`],
+              args: ['turbo', 'run', 'build', `--filter=...[${changeBase}]`, ...proFilter],
               timeout: 600000,
             },
           ]
-        : [{ name: 'Build', command: 'pnpm', args: ['build'], timeout: 900000 }];
+        : [
+            {
+              name: 'Build',
+              command: 'pnpm',
+              args: ['turbo', 'run', 'build', ...proFilter],
+              timeout: 900000,
+            },
+          ];
 
     const phase3Checks: CheckDef[] = [
       { name: 'Tests', command: 'pnpm', args: testArgs, timeout: 300000 },

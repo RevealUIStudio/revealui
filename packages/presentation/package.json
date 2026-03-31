@@ -1,6 +1,6 @@
 {
   "name": "@revealui/presentation",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "description": "Shared UI components and presentation layer for RevealUI applications",
   "keywords": [
     "components",
@@ -11,10 +11,7 @@
     "ui"
   ],
   "license": "MIT",
-  "dependencies": {
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -22,13 +19,13 @@
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react-swc": "^4.2.2",
+    "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.0",
     "cross-env": "^10.1.0",
     "dev": "workspace:*",
-    "jsdom": "^27.4.0",
+    "jsdom": "^29.0.1",
     "typescript": "^6.0.2",
-    "vite": "^7.3.1",
+    "vite": "^8.0.3",
     "vite-plugin-dts": "^4.5.4",
     "vitest": "^4.1.0"
   },
@@ -59,7 +56,8 @@
     "./hooks": {
       "types": "./dist/hooks/index.d.ts",
       "import": "./dist/hooks/index.js"
-    }
+    },
+    "./tokens.css": "./dist/tokens.css"
   },
   "files": [
     "dist"
@@ -75,7 +73,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production vite build",
+    "build": "cross-env NODE_ENV=production vite build && cp src/tokens.css dist/tokens.css",
     "clean": "rm -rf dist",
     "dev": "vite build --watch --mode development",
     "lint": "biome check .",

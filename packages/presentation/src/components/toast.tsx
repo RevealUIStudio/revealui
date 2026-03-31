@@ -1,9 +1,9 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
-import { createContext, use, useCallback, useReducer } from 'react';
+import { createContext, use, useCallback, useEffect, useReducer, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { cn } from '../utils/cn.js';
 
 type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
 
@@ -39,11 +39,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const addToast = useCallback((toast: Omit<Toast, 'id'>) => {
     const id = crypto.randomUUID();
-    const duration = toast.duration ?? 5000;
     dispatch({ type: 'ADD', toast: { ...toast, id } });
-    if (duration > 0) {
-      setTimeout(() => dispatch({ type: 'REMOVE', id }), duration);
-    }
     return id;
   }, []);
 
@@ -105,18 +101,38 @@ function ToastList({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: strin
   );
 }
 
+const EXIT_DURATION_MS = 150;
+
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) => void }) {
   const variant = toast.variant ?? 'default';
+  const [isExiting, setIsExiting] = useState(false);
+
+  const handleRemove = useCallback(() => {
+    setIsExiting(true);
+    setTimeout(() => onRemove(toast.id), EXIT_DURATION_MS);
+  }, [onRemove, toast.id]);
+
+  // Auto-dismiss triggers exit animation instead of instant removal
+  useEffect(() => {
+    const duration = toast.duration ?? 5000;
+    if (duration <= 0) return;
+    const timer = setTimeout(handleRemove, duration);
+    return () => clearTimeout(timer);
+  }, [toast.duration, handleRemove]);
+
   return (
     <div
       role="alert"
-      className={clsx(
-        'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl p-4 shadow-lg ring-1',
+      className={cn(
+        'pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl p-4 shadow-lg ring-1 transition-all duration-200',
         variantClasses[variant],
+        isExiting
+          ? 'translate-y-2 opacity-0'
+          : 'translate-y-0 opacity-100 animate-[slide-in-from-bottom_200ms_ease-out]',
       )}
     >
       {variant !== 'default' && (
-        <span className={clsx('mt-0.5 text-sm font-bold', variantIconClasses[variant])}>
+        <span className={cn('mt-0.5 text-sm font-bold', variantIconClasses[variant])}>
           {variantIcons[variant]}
         </span>
       )}
@@ -129,7 +145,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: string) =
       <button
         type="button"
         aria-label="Dismiss"
-        onClick={() => onRemove(toast.id)}
+        onClick={handleRemove}
         className="shrink-0 rounded-md text-zinc-400 hover:text-zinc-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-zinc-500 dark:hover:text-zinc-300"
       >
         <span aria-hidden="true">✕</span>

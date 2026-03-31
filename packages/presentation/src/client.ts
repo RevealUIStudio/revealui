@@ -74,7 +74,7 @@ export {
   Label as FieldsetLabel,
   Legend,
 } from './components/fieldset.js';
-export { Heading } from './components/heading.js';
+export { Heading, Subheading } from './components/heading.js';
 export { Input, InputGroup } from './components/input-headless.js';
 export { Kbd, KbdShortcut } from './components/kbd.js';
 export { Link } from './components/link.js';
@@ -165,8 +165,9 @@ export {
   TableRow,
 } from './components/table.js';
 export { Tab, TabList, TabPanel, Tabs } from './components/tabs.js';
-export { Text } from './components/text.js';
+export { Code, Strong, Text, TextLink } from './components/text.js';
 export { Textarea } from './components/textarea-headless.js';
 export { Timeline, TimelineItem } from './components/timeline.js';
 export { ToastProvider, useToast } from './components/toast.js';
 export { Tooltip } from './components/tooltip.js';
+export { type ResolvedTheme, type Theme, useTheme } from './hooks/use-theme.js';

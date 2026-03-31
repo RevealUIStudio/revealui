@@ -18,6 +18,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -26,7 +27,7 @@ const AGENT_ID_RE = /^[a-zA-Z0-9_-]+$/;
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const session = await getSession(request.headers);
+    const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }

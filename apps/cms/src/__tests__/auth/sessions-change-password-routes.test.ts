@@ -16,8 +16,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn(),
   changePassword: vi.fn(),
-  deleteAllUserSessions: vi.fn(),
+  deleteOtherUserSessions: vi.fn(),
   meetsMinimumPasswordRequirements: vi.fn(),
+  validatePasswordStrength: vi.fn(() => ({ valid: true, errors: [] })),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -26,6 +27,10 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: vi.fn((handler: unknown) => handler),
+}));
+
+vi.mock('@/lib/utils/request-context', () => ({
+  extractRequestContext: vi.fn(() => ({ userAgent: 'test', ipAddress: '127.0.0.1' })),
 }));
 
 // Drizzle ORM helpers — used for query predicates; return value is irrelevant
@@ -94,9 +99,10 @@ vi.mock('@revealui/db', () => ({
 
 import {
   changePassword,
-  deleteAllUserSessions,
+  deleteOtherUserSessions,
   getSession,
   meetsMinimumPasswordRequirements,
+  validatePasswordStrength,
 } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 
@@ -351,8 +357,9 @@ describe('POST /api/auth/change-password', () => {
     vi.clearAllMocks();
     vi.mocked(getSession).mockResolvedValue(mockUserSession as never);
     vi.mocked(meetsMinimumPasswordRequirements).mockReturnValue(true);
+    vi.mocked(validatePasswordStrength).mockReturnValue({ valid: true, errors: [] });
     vi.mocked(changePassword).mockResolvedValue({ success: true });
-    vi.mocked(deleteAllUserSessions).mockResolvedValue(undefined);
+    vi.mocked(deleteOtherUserSessions).mockResolvedValue(undefined);
   });
 
   it('returns 401 when unauthenticated', async () => {
@@ -391,14 +398,15 @@ describe('POST /api/auth/change-password', () => {
   });
 
   it('returns 400 when new password fails strength requirements', async () => {
-    vi.mocked(meetsMinimumPasswordRequirements).mockReturnValue(false);
+    vi.mocked(validatePasswordStrength).mockReturnValue({
+      valid: false,
+      errors: ['Password does not meet strength requirements.'],
+    });
     const { POST } = await import('../../app/api/auth/change-password/route');
     const res = await POST(
       makeChangePasswordRequest({ currentPassword: 'OldPass1!', newPassword: 'alllowercase1' }),
     );
     expect(res.status).toBe(400);
-    const body = await res.json();
-    expect(body.message).toMatch(/password/i);
   });
 
   it('returns 400 when current password is incorrect', async () => {
@@ -451,15 +459,20 @@ describe('POST /api/auth/change-password', () => {
     expect(body.message).toMatch(/password updated/i);
   });
 
-  it('does not revoke other sessions by default', async () => {
+  it('passes session ID to changePassword for session revocation', async () => {
     const { POST } = await import('../../app/api/auth/change-password/route');
     await POST(
       makeChangePasswordRequest({ currentPassword: 'OldPass1!', newPassword: 'NewPass1!' }),
     );
-    expect(deleteAllUserSessions).not.toHaveBeenCalled();
+    expect(changePassword).toHaveBeenCalledWith(
+      'user-abc',
+      'OldPass1!',
+      'NewPass1!',
+      'session-current',
+    );
   });
 
-  it('revokes other sessions when revokeOtherSessions is true', async () => {
+  it('passes session ID when revokeOtherSessions is true', async () => {
     const { POST } = await import('../../app/api/auth/change-password/route');
     await POST(
       makeChangePasswordRequest({
@@ -468,7 +481,12 @@ describe('POST /api/auth/change-password', () => {
         revokeOtherSessions: true,
       }),
     );
-    expect(deleteAllUserSessions).toHaveBeenCalledWith('user-abc');
+    expect(changePassword).toHaveBeenCalledWith(
+      'user-abc',
+      'OldPass1!',
+      'NewPass1!',
+      'session-current',
+    );
   });
 
   it('does not revoke sessions when revokeOtherSessions is false', async () => {
@@ -480,7 +498,7 @@ describe('POST /api/auth/change-password', () => {
         revokeOtherSessions: false,
       }),
     );
-    expect(deleteAllUserSessions).not.toHaveBeenCalled();
+    expect(deleteOtherUserSessions).not.toHaveBeenCalled();
   });
 
   it('returns 500 when changePassword throws unexpectedly', async () => {

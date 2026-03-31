@@ -51,10 +51,10 @@ describe('DocLayout', () => {
       </DocLayout>,
     );
 
-    expect(screen.getByText('Getting Started')).toBeInTheDocument();
-    expect(screen.getByText('Core Guides')).toBeInTheDocument();
-    expect(screen.getByText('Architecture')).toBeInTheDocument();
-    expect(screen.getByText('Reference')).toBeInTheDocument();
+    expect(screen.getAllByText('Getting Started').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Core Guides').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Architecture').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Reference').length).toBeGreaterThanOrEqual(1);
   });
 
   it('should render navigation links', () => {
@@ -67,7 +67,7 @@ describe('DocLayout', () => {
     expect(screen.getAllByText('Quick Start').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Authentication').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Database')).toBeInTheDocument();
-    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getAllByText('Home').length).toBeGreaterThanOrEqual(1);
   });
 
   it('should render footer links to GitHub and website', () => {

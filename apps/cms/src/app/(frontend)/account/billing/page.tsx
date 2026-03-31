@@ -15,6 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@revealui/presentation';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
@@ -53,6 +54,7 @@ function BillingContent() {
   const searchParams = useSearchParams();
   const success = searchParams.get('success');
   const perpetual = searchParams.get('perpetual');
+  const credits = searchParams.get('credits');
   const upgrade = searchParams.get('upgrade');
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
@@ -114,7 +116,9 @@ function BillingContent() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID || '',
+          ...(process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID && {
+            priceId: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
+          }),
           tier: 'pro',
         }),
       });
@@ -168,7 +172,9 @@ function BillingContent() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          priceId: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID || '',
+          ...(process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID && {
+            priceId: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
+          }),
           targetTier: 'max',
         }),
       });
@@ -195,7 +201,9 @@ function BillingContent() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID || '',
+          ...(process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID && {
+            priceId: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
+          }),
           targetTier: 'enterprise',
         }),
       });
@@ -348,11 +356,20 @@ function BillingContent() {
       {perpetual && (
         <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
           Perpetual license activated! Your Pro features are permanently unlocked. Your license
-          includes 1 year of support and updates.
+          includes 1 year of support and updates.{' '}
+          <Link href="/account/license" className="font-medium underline hover:no-underline">
+            View your license key &rarr;
+          </Link>
         </div>
       )}
 
-      {success && !perpetual && (
+      {credits && (
+        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+          Credit bundle purchased! Your agent task credits have been added to your balance.
+        </div>
+      )}
+
+      {success && !perpetual && !credits && (
         <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
           Subscription activated! Your Pro features are now available.
         </div>

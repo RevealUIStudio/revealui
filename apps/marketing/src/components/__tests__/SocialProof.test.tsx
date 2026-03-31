@@ -24,14 +24,14 @@ describe('SocialProof', () => {
   it('contains all four stats', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
-    expect(html).toContain('28');
-    expect(html).toContain('workspaces');
-    expect(html).toContain('200K+');
-    expect(html).toContain('lines of TypeScript');
-    expect(html).toContain('10,000+');
-    expect(html).toContain('tests');
-    expect(html).toContain('6');
-    expect(html).toContain('apps');
+    expect(html).toContain('3 min');
+    expect(html).toContain('to first deploy');
+    expect(html).toContain('5');
+    expect(html).toContain('business primitives');
+    expect(html).toContain('56');
+    expect(html).toContain('UI components');
+    expect(html).toContain('MIT');
+    expect(html).toContain('licensed');
   });
 
   it('contains the tech stack badges', () => {
@@ -56,7 +56,7 @@ describe('SocialProof', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
     expect(html).toContain('Content Engine');
-    expect(html).toContain('50+ Native UI Components');
+    expect(html).toContain('56 Native UI Components');
     expect(html).toContain('Real-Time Sync');
     expect(html).toContain('AI Agents (Pro)');
     expect(html).toContain('Stripe Billing Built In');
@@ -68,7 +68,7 @@ describe('SocialProof', () => {
     const html = JSON.stringify(result);
     expect(html).toContain('Schema-first collections');
     expect(html).toContain('Tailwind v4, zero external UI dependencies');
-    expect(html).toContain('ElectricSQL keeps editors');
+    expect(html).toContain('ElectricSQL-powered sync foundation');
     expect(html).toContain('A2A protocol agent system');
     expect(html).toContain('Checkout, subscriptions, webhook handling');
     expect(html).toContain('One deployment, many clients');

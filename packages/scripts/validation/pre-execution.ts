@@ -564,7 +564,7 @@ export class PreExecutionValidator {
         if (result.metadata?.missing) {
           const missing = result.metadata.missing as string[];
           fixes.push(`Set missing environment variables: ${missing.join(', ')}`);
-          fixes.push('Check .env.example for required variables');
+          fixes.push('Check .env.template for required variables');
         }
         break;
 

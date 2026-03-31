@@ -1,11 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** Enable verbose docs-copy plugin logging with DEBUG=docs-copy or DEBUG=* */
 const DEBUG = /\b(docs-copy|\*)\b/.test(process.env.DEBUG ?? '');
@@ -35,8 +32,8 @@ const INTERNAL_DOC_FILES = new Set([
 ]);
 
 function docsCopyPlugin() {
-  const docsSource = path.resolve(__dirname, '../../docs');
-  const docsDest = path.resolve(__dirname, 'public/docs');
+  const docsSource = path.resolve(import.meta.dirname, '../../docs');
+  const docsDest = path.resolve(import.meta.dirname, 'public/docs');
 
   // Debounce queue
   let debounceTimer: NodeJS.Timeout | null = null;
@@ -314,7 +311,7 @@ export default defineConfig({
   plugins: [tailwindcss(), react(), docsCopyPlugin()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './app'),
+      '@': path.resolve(import.meta.dirname, './app'),
     },
   },
   server: {
@@ -326,4 +323,8 @@ export default defineConfig({
     sourcemap: true,
   },
   publicDir: 'public',
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'development'),
+    'process.env.LOG_LEVEL': JSON.stringify(process.env.LOG_LEVEL ?? 'warn'),
+  },
 });

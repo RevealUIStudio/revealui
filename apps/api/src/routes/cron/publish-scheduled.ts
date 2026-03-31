@@ -8,6 +8,7 @@
  */
 
 import { timingSafeEqual } from 'node:crypto';
+import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { pages } from '@revealui/db/schema';
 import { and, eq, isNotNull, lte } from 'drizzle-orm';
@@ -64,7 +65,8 @@ app.post('/publish-scheduled', async (c) => {
     return c.json({ published: publishedIds.length, ids: publishedIds }, 200);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return c.json({ error: message }, 500);
+    logger.error('Scheduled publish failed', undefined, { error: message });
+    return c.json({ error: 'Internal error during scheduled publish' }, 500);
   }
 });
 

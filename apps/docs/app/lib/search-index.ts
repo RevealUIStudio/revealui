@@ -20,6 +20,7 @@ export interface SearchResult {
 }
 
 interface DocEntry {
+  [key: string]: string | number;
   id: number;
   title: string;
   content: string;
@@ -184,7 +185,10 @@ export function searchDocs(query: string): SearchResult[] {
   }
 
   // Use non-enriched search (returns field + id arrays), then look up docs
-  const rawResults = index.search(query, { limit: 10 });
+  const rawResults = index.search(query, { limit: 10 }) as Array<{
+    field: string;
+    result: Array<string | number>;
+  }>;
 
   // Deduplicate across fields (title + content both return results)
   const seen = new Set<number>();

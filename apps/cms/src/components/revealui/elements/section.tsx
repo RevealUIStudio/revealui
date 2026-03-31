@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps, ReactNode } from 'react';
+import { cn } from '@/lib/utils/cn';
 import { Container } from './container';
 import { Eyebrow } from './eyebrow';
 import { Subheading } from './subheading';
@@ -20,7 +20,7 @@ export function Section({
   cta?: ReactNode;
 } & ComponentProps<'section'>) {
   return (
-    <section className={clsx('py-16', className)} {...props}>
+    <section className={cn('py-16', className)} {...props}>
       <Container className="flex flex-col gap-10 sm:gap-16">
         {headline && (
           <div className="flex max-w-2xl flex-col gap-6">

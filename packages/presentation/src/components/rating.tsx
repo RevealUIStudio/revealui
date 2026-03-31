@@ -1,7 +1,7 @@
 'use client';
 
-import clsx from 'clsx';
 import { useCallback, useId, useState } from 'react';
+import { cn } from '../utils/cn.js';
 
 export function Rating({
   value: controlledValue,
@@ -69,7 +69,7 @@ export function Rating({
               onClick={() => handleClick(star)}
               onMouseEnter={() => !readOnly && setHovered(star)}
               onMouseLeave={() => !readOnly && setHovered(0)}
-              className={clsx(
+              className={cn(
                 sizeClass,
                 'transition-colors',
                 readOnly
@@ -80,7 +80,7 @@ export function Rating({
               <svg
                 viewBox="0 0 20 20"
                 aria-hidden="true"
-                className={clsx(
+                className={cn(
                   'size-full',
                   filled
                     ? 'fill-amber-400 text-amber-400'

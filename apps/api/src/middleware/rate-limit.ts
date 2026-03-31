@@ -26,6 +26,8 @@ export interface TieredRateLimitOptions {
   tiers: Record<LicenseTier, { maxRequests: number; windowMs: number }>;
   /** Key prefix for namespacing rate limit counters */
   keyPrefix?: string;
+  /** If true, allow requests through when rate-limit storage is unreachable (default: false) */
+  failOpen?: boolean;
 }
 
 /**
@@ -95,19 +97,28 @@ export const tieredRateLimitMiddleware = (options: TieredRateLimitOptions): Midd
     const ip = extractTrustedIp(c);
     const key = `${options.keyPrefix || 'api'}:${tier}:${ip}`;
 
-    const result = await checkRateLimit(key, {
-      maxAttempts: config.maxRequests,
-      windowMs: config.windowMs,
-    });
+    try {
+      const result = await checkRateLimit(key, {
+        maxAttempts: config.maxRequests,
+        windowMs: config.windowMs,
+      });
 
-    c.header('X-RateLimit-Limit', String(config.maxRequests));
-    c.header('X-RateLimit-Remaining', String(result.remaining));
-    c.header('X-RateLimit-Reset', String(result.resetAt));
+      c.header('X-RateLimit-Limit', String(config.maxRequests));
+      c.header('X-RateLimit-Remaining', String(result.remaining));
+      c.header('X-RateLimit-Reset', String(result.resetAt));
 
-    if (!result.allowed) {
-      const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000);
-      c.header('Retry-After', String(retryAfter));
-      throw new HTTPException(429, { message: 'Too many requests. Please try again later.' });
+      if (!result.allowed) {
+        const retryAfter = Math.ceil((result.resetAt - Date.now()) / 1000);
+        c.header('Retry-After', String(retryAfter));
+        throw new HTTPException(429, { message: 'Too many requests. Please try again later.' });
+      }
+    } catch (error) {
+      if (error instanceof HTTPException) throw error;
+      if (options.failOpen) {
+        await next();
+        return;
+      }
+      throw error;
     }
 
     await next();

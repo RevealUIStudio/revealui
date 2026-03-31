@@ -64,10 +64,9 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
 
     // Create a temporary recovery session (30 minutes)
     const userAgent = request.headers.get('user-agent') ?? undefined;
-    const xff = request.headers.get('x-forwarded-for');
     const ipAddress =
-      (xff ? xff.split(',').pop()?.trim() : undefined) ??
-      request.headers.get('x-real-ip') ??
+      request.headers.get('x-real-ip') ||
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       undefined;
 
     const { token: sessionToken } = await createSession(verified.userId, {

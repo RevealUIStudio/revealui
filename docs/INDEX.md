@@ -1,6 +1,6 @@
 # RevealUI Documentation
 
-Business Operating System Software (B.O.S.S.). Build your business, not your boilerplate.
+The agentic business runtime. Build your business, not your boilerplate.
 
 ## Getting Started
 
@@ -36,11 +36,11 @@ Business Operating System Software (B.O.S.S.). Build your business, not your boi
 
 - [Package Reference](./REFERENCE.md) — Core, contracts, DB, config, presentation, utils, router, CLI
 - [Core Stability](./CORE_STABILITY.md) — API stability tiers, production verification status, version policy
-- [Component Catalog](./COMPONENT_CATALOG.md) — 50+ native UI components
+- [Component Catalog](./COMPONENT_CATALOG.md) — 56 native UI components
 - [AI](./AI.md) — AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md) — MCP servers, BYOK, editor integrations, harnesses, services, x402, marketplace, Forge
 
-## Pro & Enterprise
+## Pro & Forge
 
 - [MCP Marketplace](./MARKETPLACE.md) — Publish MCP servers with agent-commerce pricing and revenue-share options
 - [Forge](./FORGE.md) — Self-hosted enterprise deployment (Docker Compose, domain lock, unlimited users)

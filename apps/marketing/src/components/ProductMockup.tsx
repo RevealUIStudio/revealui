@@ -136,7 +136,7 @@ export function ProductMockup() {
         <div className="relative bg-gray-100" style={{ minHeight: '380px' }}>
           <Image
             src={SCREENSHOTS[activeTab]?.src ?? ''}
-            alt={`RevealUI CMS — ${SCREENSHOTS[activeTab]?.label ?? ''}`}
+            alt={`RevealUI Admin — ${SCREENSHOTS[activeTab]?.label ?? ''}`}
             fill
             className="object-cover object-top"
             sizes="(max-width: 1024px) 100vw, 60vw"
@@ -188,7 +188,7 @@ export function ProductMockup() {
         {/* Status bar */}
         <div className="px-5 py-2 bg-blue-600/20 border-t border-gray-800 flex items-center gap-2">
           <div className="h-1.5 w-1.5 rounded-full bg-green-400" />
-          <span className="text-xs text-gray-400 font-mono">TypeScript · RevealUI v0.2.0</span>
+          <span className="text-xs text-gray-400 font-mono">TypeScript · RevealUI v0.5.0</span>
         </div>
       </div>
     </div>

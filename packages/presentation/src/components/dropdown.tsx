@@ -1,6 +1,5 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import { createContext, use, useCallback, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -11,6 +10,7 @@ import { usePopover } from '../hooks/use-popover.js';
 import { useRovingTabindex } from '../hooks/use-roving-tabindex.js';
 import { useTransition } from '../hooks/use-transition.js';
 import { useTypeAhead } from '../hooks/use-type-ahead.js';
+import { cn } from '../utils/cn.js';
 import { Button } from './button-headless.js';
 import { Link } from './link.js';
 
@@ -239,7 +239,7 @@ export function DropdownMenu({
         aria-orientation="vertical"
         style={popover.popoverProps.style}
         onKeyDown={handleKeyDown}
-        className={clsx(
+        className={cn(
           className,
           // Anchor positioning
           '[--anchor-gap:--spacing(2)] [--anchor-padding:--spacing(1)] data-[anchor~=end]:[--anchor-offset:6px] data-[anchor~=start]:[--anchor-offset:-6px] sm:data-[anchor~=end]:[--anchor-offset:4px] sm:data-[anchor~=start]:[--anchor-offset:-4px]',
@@ -342,7 +342,7 @@ export function DropdownItem({
     [close, propsDisabled, propsOnClick, rovingProps],
   );
 
-  const classes = clsx(
+  const classes = cn(
     className,
     // Base styles
     'group cursor-default rounded-lg px-3.5 py-2.5 focus:outline-hidden sm:px-3 sm:py-1.5',
@@ -422,7 +422,7 @@ export function DropdownItem({
 // ---------------------------------------------------------------------------
 
 export function DropdownHeader({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={clsx(className, 'col-span-5 px-3.5 pt-2.5 pb-1 sm:px-3')} />;
+  return <div {...props} className={cn(className, 'col-span-5 px-3.5 pt-2.5 pb-1 sm:px-3')} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -440,7 +440,7 @@ export function DropdownSection({
     <div
       role="group"
       {...props}
-      className={clsx(
+      className={cn(
         className,
         // Define grid at the section level instead of the item level if subgrid is supported
         'col-span-full supports-[grid-template-columns:subgrid]:grid supports-[grid-template-columns:subgrid]:grid-cols-[auto_1fr_1.5rem_0.5rem_auto]',
@@ -463,7 +463,7 @@ export function DropdownHeading({
     <div
       role="presentation"
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'col-span-full grid grid-cols-[1fr_auto] gap-x-12 px-3.5 pt-2 pb-1 text-sm/5 font-medium text-zinc-500 sm:px-3 sm:text-xs/5 dark:text-zinc-400',
       )}
@@ -484,7 +484,7 @@ export function DropdownDivider({
   return (
     <hr
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'col-span-full mx-3.5 my-1 h-px border-0 bg-zinc-950/5 sm:mx-3 dark:bg-white/10 forced-colors:bg-[CanvasText]',
       )}
@@ -497,9 +497,7 @@ export function DropdownDivider({
 // ---------------------------------------------------------------------------
 
 export function DropdownLabel({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return (
-    <div {...props} data-slot="label" className={clsx(className, 'col-start-2 row-start-1')} />
-  );
+  return <div {...props} data-slot="label" className={cn(className, 'col-start-2 row-start-1')} />;
 }
 
 // ---------------------------------------------------------------------------
@@ -516,7 +514,7 @@ export function DropdownDescription({
     <span
       data-slot="description"
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'col-span-2 col-start-2 row-start-2 text-sm/5 text-zinc-500 group-data-focus:text-white sm:text-xs/5 dark:text-zinc-400 forced-colors:group-data-focus:text-[HighlightText]',
       )}
@@ -537,13 +535,13 @@ export function DropdownShortcut({
   className?: string;
 } & Omit<React.ComponentPropsWithoutRef<'kbd'>, 'className' | 'children'>) {
   return (
-    <kbd {...props} className={clsx(className, 'col-start-5 row-start-1 flex justify-self-end')}>
+    <kbd {...props} className={cn(className, 'col-start-5 row-start-1 flex justify-self-end')}>
       {(Array.isArray(keys) ? keys : keys.split('')).map((char, index) => {
         return (
           <kbd
             // biome-ignore lint/suspicious/noArrayIndexKey: key chars may repeat (e.g. "Ctrl+Ctrl"); index used to disambiguate
             key={`${char}-${index}`}
-            className={clsx([
+            className={cn([
               'min-w-[2ch] text-center font-sans text-zinc-400 capitalize group-data-focus:text-white forced-colors:group-data-focus:text-[HighlightText]',
               // Make sure key names that are longer than one character (like "Tab") have extra space
               index > 0 && char.length > 1 && 'pl-1',

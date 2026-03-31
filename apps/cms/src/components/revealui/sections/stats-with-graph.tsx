@@ -1,6 +1,6 @@
-import { clsx } from 'clsx/lite';
 import { type ComponentProps, type ReactNode, useId } from 'react';
 import { Section } from '@/components/revealui/elements/section';
+import { cn } from '@/lib/utils/cn';
 
 export function Stat({
   stat,
@@ -10,7 +10,7 @@ export function Stat({
 }: { stat: ReactNode; text: ReactNode } & ComponentProps<'div'>) {
   return (
     <div
-      className={clsx('border-l border-mist-950/20 pl-6 dark:border-white/20', className)}
+      className={cn('border-l border-mist-950/20 pl-6 dark:border-white/20', className)}
       {...props}
     >
       <div className="text-2xl/10 tracking-tight text-mist-950 dark:text-white">{stat}</div>

@@ -14,7 +14,6 @@ function createSelectChain(result: unknown[] = []) {
     from: vi.fn(),
     where: vi.fn(),
   };
-  // biome-ignore lint/suspicious/noThenProperty: Drizzle chains are awaitable; mocks must be thenable
   chain.then = (resolve: (v: unknown) => void) => resolve(result);
   for (const key of ['from', 'where']) {
     chain[key]!.mockReturnValue(chain);
@@ -280,7 +279,6 @@ describe('cleanupOrphanedVectorData', () => {
     restDb = createMockDb();
     const failChain = createSelectChain();
     failChain.from.mockReturnValue(failChain);
-    // biome-ignore lint/suspicious/noThenProperty: overriding thenable to reject
     failChain.then = (_resolve: unknown, reject: (e: Error) => void) =>
       reject(new Error('NeonDB connection refused'));
     restDb.select.mockReturnValue(failChain);
@@ -302,7 +300,6 @@ describe('cleanupOrphanedVectorData', () => {
       const chain = createSelectChain();
       chain.from.mockImplementation(() => {
         const errorChain = createSelectChain();
-        // biome-ignore lint/suspicious/noThenProperty: overriding thenable to reject
         errorChain.then = (_resolve: unknown, reject: (e: Error) => void) =>
           reject(new Error('Supabase timeout'));
         return errorChain;

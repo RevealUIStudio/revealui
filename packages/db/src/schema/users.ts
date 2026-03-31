@@ -6,7 +6,16 @@
  */
 
 import { sql } from 'drizzle-orm';
-import { boolean, index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Users Table
@@ -62,6 +71,7 @@ export const users = pgTable(
     mfaSecret: text('mfa_secret'), // Base32-encoded TOTP secret (encrypted at rest via DB-level encryption)
     mfaBackupCodes: jsonb('mfa_backup_codes').$type<string[]>(), // Bcrypt-hashed one-time recovery codes
     mfaVerifiedAt: timestamp('mfa_verified_at', { withTimezone: true }),
+    mfaLastUsedCounter: integer('mfa_last_used_counter'), // TOTP time counter of last used code (replay prevention)
 
     // SSH terminal auth (Phase E — `ssh terminal.revealui.com`)
     sshKeyFingerprint: text('ssh_key_fingerprint'),

@@ -15,6 +15,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
+vi.mock('@/lib/middleware/rate-limit', () => ({
+  withRateLimit: (handler: (...args: unknown[]) => unknown) => handler,
+}));
+
 // ---------------------------------------------------------------------------
 // Route imports (after mocks)
 // ---------------------------------------------------------------------------

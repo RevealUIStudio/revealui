@@ -11,13 +11,14 @@ import { EmbeddingSchema } from '@revealui/contracts/representation';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { type NextRequest, NextResponse } from 'next/server';
-import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
+import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { getNodeIdFromUser } from '@/lib/utilities/nodeId';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 // Infer Database type from getClient return type
 type Database = ReturnType<typeof getClient>;
@@ -53,10 +54,13 @@ export async function PUT(
   let memoryId: string | undefined;
 
   try {
-    const authSession = await getSession(request.headers);
+    const authSession = await getSession(request.headers, extractRequestContext(request));
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const memoryGate = checkAIMemoryFeatureGate();
+    if (memoryGate) return memoryGate;
 
     const paramsResolved = await params;
     userId = paramsResolved.userId;
@@ -198,14 +202,14 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string; memoryId: string }> },
 ): Promise<NextResponse> {
-  const aiGate = checkAIFeatureGate();
+  const aiGate = checkAIMemoryFeatureGate();
   if (aiGate) return aiGate;
 
   let userId: string | undefined;
   let memoryId: string | undefined;
 
   try {
-    const authSession = await getSession(request.headers);
+    const authSession = await getSession(request.headers, extractRequestContext(request));
     if (!authSession) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

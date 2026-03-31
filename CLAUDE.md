@@ -1,6 +1,6 @@
 # RevealUI Monorepo
 
-Business Operating System Software (B.O.S.S.). Build your business, not your boilerplate. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
+The agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
 
 ## Current Phase
 **Phase 3 — Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
@@ -16,22 +16,21 @@ RevealUI Studio <founder@revealui.com>
 
 ## Branch Pipeline
 ```
-feature/* ──PR──▶ develop ──PR──▶ test ──PR (1+ review)──▶ main
-                    │               │                        │
-                development       test                  production
+feature/* ──PR──▶ test ──PR──▶ main
+                    │              │
+                  test        production
 ```
 
-| Branch | Environment | Domain Pattern | Database |
-|--------|------------|----------------|----------|
-| `main` | production | `*.revealui.com` | NeonDB main |
-| `test` | test/QA | `test.*.revealui.com` | NeonDB `test` branch |
-| `develop` | development (default) | `dev.*.revealui.com` | NeonDB `dev` branch |
-| `feature/*` | preview | `*.vercel.app` (auto) | NeonDB `dev` branch |
+| Branch | Environment | Domain Pattern | Database | CI |
+|--------|------------|----------------|----------|----|
+| `main` | production | `*.revealui.com` | NeonDB main | Full gate + integration + E2E |
+| `test` | test/QA | `test.*.revealui.com` | NeonDB `test` branch | Full gate + integration + E2E |
+| `feature/*` | local only | — | NeonDB `dev` branch | Quality-only pre-push gate |
 
-- **Default branch:** `develop` (PRs target it by default)
-- **Deploys:** GitHub Actions only (Vercel auto-deploy disabled)
-- **Pre-push gate:** `main`/`test` = full gate, `develop` = changed-only, `feature/*` = quality-only
-- **CI:** Integration tests + E2E run on `main` and `test` only
+- **Default branch:** `test` (PRs target it by default)
+- **Deploys:** GitHub Actions on `test`/`main` only (Vercel Git Integration disabled)
+- **Pre-push gate:** `main`/`test` = full gate, `feature/*` = quality-only (phase 1)
+- **CI:** Only triggers on push/PR to `test` or `main`
 
 ## Package Map
 
@@ -39,7 +38,7 @@ feature/* ──PR──▶ develop ──PR──▶ test ──PR (1+ review)�
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | api | 3004 | Hono | REST API (OpenAPI + Swagger) |
-| cms | 4000 | Next.js 16 | Headless CMS with admin dashboard + system monitoring |
+| cms | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
 | studio | — | Tauri 2 + React 19 | Desktop companion: DevPod manager, app launcher, first-run wizard, system tray |
@@ -50,9 +49,9 @@ feature/* ──PR──▶ develop ──PR──▶ test ──PR (1+ review)�
 |---------|---------|
 | @revealui/core | CMS engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (68 tables), dual-DB (Neon + Supabase) |
+| @revealui/db | Drizzle ORM schema (76 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
-| @revealui/presentation | 50+ native UI components (Tailwind v4, zero external UI deps — only clsx + CVA) |
+| @revealui/presentation | 56 native UI components (Tailwind v4, zero external UI deps — only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
 | @revealui/config | Type-safe env config (Zod + lazy Proxy) |
 | @revealui/utils | Logger, DB helpers, validation |
@@ -65,14 +64,14 @@ feature/* ──PR──▶ develop ──PR──▶ test ──PR (1+ review)�
 | create-revealui | `npm create revealui` initializer |
 | @revealui/dev | Shared configs (Biome, TS, Tailwind) |
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
+| @revealui/editors | Editor config sync (Zed, VS Code, Cursor) |
+| @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
+| @revealui/services | Stripe + Supabase integrations |
 
 ### Pro Packages (Commercial — source-available, commercially licensed)
 | Package | Purpose |
 |---------|---------|
 | @revealui/ai | AI agents, CRDT memory, LLM providers, orchestration |
-| @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
-| @revealui/editors | Editor config sync (Zed, VS Code, Cursor) |
-| @revealui/services | Stripe + Supabase integrations |
 | @revealui/harnesses | AI harness adapters, workboard coordination, JSON-RPC |
 
 ## Common Commands
@@ -171,7 +170,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 
 ## Build & Security Status
 - 24 workspaces build and typecheck clean
-- 10,784 tests (2,563 core + 1,734 API + 1,256 CMS + 911 DB + 187 security + 4,133 other)
+- 13,700+ tests across 811 test files
 - 36 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)

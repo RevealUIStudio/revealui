@@ -530,4 +530,42 @@ describe('agent-stream — success path (AI modules working)', () => {
     expect(typeof task1.id).toBe('string');
     expect(typeof task2.id).toBe('string');
   });
+
+  // ── Mode parameter ──────────────────────────────────────────────────────
+
+  it('uses CMS agent identity when mode is "cms"', async () => {
+    const app = createApp();
+    await jsonPost(app, '/agent-stream', { instruction: 'List posts', mode: 'cms' });
+
+    const runtime = await getRuntimeMock();
+    // biome-ignore lint/suspicious/noExplicitAny: capturing agent argument from dynamic mock
+    const agentArg = runtime.streamTask.mock.calls[0]?.[0] as any;
+    expect(agentArg.id).toBe('cms-stream-agent');
+    expect(agentArg.name).toBe('CMS Stream Agent');
+    expect(agentArg.instructions).toContain('CMS management');
+    expect(agentArg.instructions).not.toContain('coding tools');
+  });
+
+  it('uses coding agent identity when mode is "coding"', async () => {
+    const app = createApp();
+    await jsonPost(app, '/agent-stream', { instruction: 'Show files', mode: 'coding' });
+
+    const runtime = await getRuntimeMock();
+    // biome-ignore lint/suspicious/noExplicitAny: capturing agent argument from dynamic mock
+    const agentArg = runtime.streamTask.mock.calls[0]?.[0] as any;
+    expect(agentArg.id).toBe('coding-stream-agent');
+    expect(agentArg.name).toBe('Coding Agent');
+    expect(agentArg.instructions).toContain('coding and CMS');
+    expect(agentArg.instructions).toContain('coding tools');
+  });
+
+  it('defaults to CMS agent when mode is omitted', async () => {
+    const app = createApp();
+    await jsonPost(app, '/agent-stream', { instruction: 'Hello' });
+
+    const runtime = await getRuntimeMock();
+    // biome-ignore lint/suspicious/noExplicitAny: capturing agent argument from dynamic mock
+    const agentArg = runtime.streamTask.mock.calls[0]?.[0] as any;
+    expect(agentArg.id).toBe('cms-stream-agent');
+  });
 });

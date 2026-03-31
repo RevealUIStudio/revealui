@@ -1,6 +1,5 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import {
   Children,
@@ -21,6 +20,7 @@ import { useControllableState } from '../hooks/use-controllable-state.js';
 import { useEscapeKey } from '../hooks/use-escape-key.js';
 import { usePopover } from '../hooks/use-popover.js';
 import { useTransition } from '../hooks/use-transition.js';
+import { cn } from '../utils/cn.js';
 
 // ---------------------------------------------------------------------------
 // Context
@@ -291,7 +291,7 @@ export function Listbox<T>({
     [disabled],
   );
 
-  const selectedSharedClasses = clsx(
+  const selectedSharedClasses = cn(
     'flex min-w-0 items-center',
     '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 sm:*:data-[slot=icon]:size-4',
     '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
@@ -326,7 +326,7 @@ export function Listbox<T>({
         disabled={disabled}
         onClick={handleButtonClick}
         onKeyDown={handleButtonKeyDown}
-        className={clsx([
+        className={cn([
           className,
           'group relative block w-full',
           'before:absolute before:inset-px before:rounded-[calc(var(--radius-lg)-1px)] before:bg-white before:shadow-sm',
@@ -337,7 +337,7 @@ export function Listbox<T>({
         ])}
       >
         <span
-          className={clsx([
+          className={cn([
             'relative block w-full appearance-none rounded-lg py-[calc(--spacing(2.5)-1px)] sm:py-[calc(--spacing(1.5)-1px)]',
             'min-h-11 sm:min-h-9',
             'pr-[calc(--spacing(7)-1px)] pl-[calc(--spacing(3.5)-1px)] sm:pl-[calc(--spacing(3)-1px)]',
@@ -387,7 +387,7 @@ export function Listbox<T>({
             aria-labelledby={buttonId}
             tabIndex={-1}
             onKeyDown={handleOptionsKeyDown}
-            className={clsx(
+            className={cn(
               '[--anchor-offset:-1.625rem] [--anchor-padding:--spacing(4)] sm:[--anchor-offset:-1.375rem]',
               'isolate w-max min-w-[calc(var(--button-width)+1.75rem)] scroll-py-1 rounded-xl p-1 select-none',
               'outline outline-transparent focus:outline-hidden',
@@ -437,7 +437,7 @@ export function ListboxOption<T>({
     ctx.registerOption(index, optionValue, optionRef.current);
   }, [index, optionValue, ctx.registerOption, ctx]);
 
-  const sharedClasses = clsx(
+  const sharedClasses = cn(
     'flex min-w-0 items-center',
     '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0 sm:*:data-[slot=icon]:size-4',
     '*:data-[slot=icon]:text-zinc-500 group-data-focus/option:*:data-[slot=icon]:text-white dark:*:data-[slot=icon]:text-zinc-400',
@@ -470,7 +470,7 @@ export function ListboxOption<T>({
       onClick={handleClick}
       onPointerEnter={handlePointerEnter}
       tabIndex={-1}
-      className={clsx(
+      className={cn(
         'group/option grid cursor-default grid-cols-[--spacing(5)_1fr] items-baseline gap-x-2 rounded-lg py-2.5 pr-3.5 pl-2 sm:grid-cols-[--spacing(4)_1fr] sm:py-1.5 sm:pr-3 sm:pl-1.5',
         'text-base/6 text-zinc-950 sm:text-sm/6 dark:text-white forced-colors:text-[CanvasText]',
         'outline-hidden data-focus:bg-blue-500 data-focus:text-white',
@@ -486,7 +486,7 @@ export function ListboxOption<T>({
       >
         <path d="M4 8.5l3 3L12 4" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span className={clsx(className, sharedClasses, 'col-start-2')}>{children}</span>
+      <span className={cn(className, sharedClasses, 'col-start-2')}>{children}</span>
     </div>
   );
 }
@@ -499,7 +499,7 @@ export function ListboxLabel({ className, ...props }: React.ComponentPropsWithou
   return (
     <span
       {...props}
-      className={clsx(className, 'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0')}
+      className={cn(className, 'ml-2.5 truncate first:ml-0 sm:ml-2 sm:first:ml-0')}
     />
   );
 }
@@ -516,7 +516,7 @@ export function ListboxDescription({
   return (
     <span
       {...props}
-      className={clsx(
+      className={cn(
         className,
         'flex flex-1 overflow-hidden text-zinc-500 group-data-focus/option:text-white before:w-2 before:min-w-0 before:shrink dark:text-zinc-400',
       )}

@@ -1,8 +1,8 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import { useCallback, useId, useState } from 'react';
+import { cn } from '../utils/cn.js';
 
 export function Slider({
   value: controlledValue,
@@ -43,7 +43,7 @@ export function Slider({
   const percentage = ((value - min) / (max - min)) * 100;
 
   return (
-    <div className={clsx('w-full', className)}>
+    <div className={cn('w-full', className)}>
       {(label || showValue) && (
         <div className="mb-2 flex items-center justify-between">
           {label && (
@@ -64,7 +64,7 @@ export function Slider({
         disabled={disabled}
         onChange={handleChange}
         style={{ '--slider-pct': `${percentage}%` } as React.CSSProperties}
-        className={clsx(
+        className={cn(
           'h-2 w-full cursor-pointer appearance-none rounded-full outline-none',
           'bg-zinc-200 dark:bg-zinc-700',
           '[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none',

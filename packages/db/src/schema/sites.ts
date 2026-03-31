@@ -6,7 +6,7 @@
  */
 
 import { sql } from 'drizzle-orm';
-import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -72,29 +72,24 @@ export const sites = pgTable(
 // Site Collaborators Table (Many-to-Many: Sites <-> Users)
 // =============================================================================
 
-export const siteCollaborators = pgTable('site_collaborators', {
-  // Composite primary key would be (siteId, userId) but Drizzle prefers explicit id
-  id: text('id').primaryKey(),
-
-  // Relationships
-  siteId: text('site_id')
-    .notNull()
-    .references(() => sites.id, { onDelete: 'cascade' }),
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-
-  // Role on this site: admin, editor, viewer, contributor
-  role: text('role').notNull().default('viewer'),
-
-  // Who added this collaborator
-  addedBy: text('added_by').references(() => users.id, {
-    onDelete: 'set null',
-  }),
-
-  // Timestamps
-  addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
-});
+export const siteCollaborators = pgTable(
+  'site_collaborators',
+  {
+    id: text('id').primaryKey(),
+    siteId: text('site_id')
+      .notNull()
+      .references(() => sites.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: text('role').notNull().default('viewer'),
+    addedBy: text('added_by').references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex('site_collaborators_site_user_unique').on(table.siteId, table.userId)],
+);
 
 // =============================================================================
 // Type exports for Drizzle

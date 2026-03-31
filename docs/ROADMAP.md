@@ -1,10 +1,10 @@
 # RevealUI Roadmap
 
-> Business OS Software (BOSS). Build your business, not your boilerplate.
+> The agentic business runtime. Build your business, not your boilerplate.
 
 This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
 
-**Last updated:** 2026-03-25
+**Last updated:** 2026-03-30
 
 ---
 
@@ -12,12 +12,12 @@ This roadmap reflects our current priorities and planned direction. It is update
 
 ### Core Platform (v0.2 — v0.3)
 
-- **Auth system** — Session-based auth with bcrypt, RBAC/ABAC, rate limiting, brute-force protection, TOTP 2FA, WebAuthn passkeys, magic link recovery, OAuth (GitHub, Google, Vercel)
+- **Auth system** — Session-based auth with bcrypt, RBAC/ABAC, rate limiting, brute-force protection, TOTP 2FA _(infrastructure built, not yet wired into sign-in flow)_, WebAuthn passkeys, magic link recovery, OAuth (GitHub, Google, Vercel) _(note: sessions are not currently bound to IP/UA)_
 - **Content engine** — Schema-first collections, Lexical rich text, media handling, draft/live lifecycle, REST API with OpenAPI spec
 - **Billing stack** — Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/forge)
-- **UI components** — 50+ native React 19 components (Tailwind v4, zero external UI deps)
-- **Real-time sync** — ElectricSQL integration for instant editor/client/agent sync
-- **Database** — 70+ tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
+- **UI components** — 56 native React 19 components (Tailwind v4, zero external UI deps)
+- **Real-time sync** — ElectricSQL integration for editor/client/agent sync _(experimental — basic shape subscriptions, no offline-first)_
+- **Database** — 76+ tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
 - **CLI** — `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents** — A2A protocol, CRDT memory, BYOK LLM providers, streaming, tool execution
 - **MCP servers** — 5 production servers (Stripe, Neon, Supabase, Vercel, Playwright)
@@ -33,6 +33,21 @@ This roadmap reflects our current priorities and planned direction. It is update
 - **4 template repos** (basic-blog, e-commerce, portfolio, starter)
 - **Production deploys** — CMS, API, Marketing, Docs on Vercel
 - **Stripe test mode** verified end-to-end (checkout, webhooks, license generation)
+
+---
+
+## Ecosystem
+
+RevealUI is the runtime at the center of a four-project ecosystem. Each project stands alone. Together, they form a complete stack for building, securing, coordinating, and monetizing agentic software.
+
+| Project | Purpose | License |
+|---------|---------|---------|
+| **RevealUI** | Agentic business runtime (this repo) | MIT (core) + Commercial (Pro) |
+| **[RevVault](https://github.com/RevealUIStudio/revvault)** | Age-encrypted secret vault — Rust CLI, rotation engine, Tauri desktop app | MIT (CLI) + Pro (desktop, rotation) |
+| **[RevKit](https://github.com/RevealUIStudio/revkit)** | Portable dev environment toolkit — WSL provisioning, agent coordination protocol | MIT (agent coordination) + Max (provisioning) |
+| **RevealCoin** | Solana token for x402 agent micropayments — agents pay per task via HTTP 402 | Forge |
+
+**Dependency direction:** RevVault depends on nothing. RevKit integrates RevVault via its secret bridge. RevealUI consumes environment variables however they arrive. RevealCoin powers the agent payment layer.
 
 ---
 
@@ -70,6 +85,12 @@ Give users the ability to interact with an AI agent directly from the CMS dashbo
 - API reference for all packages
 - Collection cookbook with common patterns
 
+#### Ecosystem Integration
+- RevVault desktop app integration in Studio _(already built: `VaultPanel.tsx` connects via Tauri to RevVault)_
+- RevVault rotation engine as a Pro feature — automated credential lifecycle management
+- RevKit agent coordination protocol extraction as `@revealui/workboard` — MIT standalone package
+- Unified ecosystem messaging across marketing, docs, and pricing surfaces
+
 #### Developer Experience
 - `create-revealui` template improvements (more starters, better defaults)
 - Hot module reload improvements for CMS development
@@ -82,9 +103,9 @@ Give users the ability to interact with an AI agent directly from the CMS dashbo
 A registry where developers can publish and discover MCP servers and AI agent capabilities. Revenue share model (80% developer / 20% platform).
 
 #### Multi-User Collaboration
-Real-time multi-user editing powered by ElectricSQL. Conflict resolution, presence indicators, and collaborative workflows.
+Real-time multi-user editing powered by ElectricSQL. Currently basic shape subscriptions and Yjs CRDT foundation exist (experimental). Full conflict resolution, presence indicators, and collaborative workflows are planned.
 
-#### Enterprise Features
+#### Forge Features
 - SSO/SAML authentication
 - Advanced audit logging
 - Custom RBAC policy editor
@@ -92,7 +113,7 @@ Real-time multi-user editing powered by ElectricSQL. Conflict resolution, presen
 - SLA guarantees
 
 #### Self-Hosted (Forge Edition)
-Docker images for fully self-hosted deployment. Domain-locked licensing, no cloud dependency.
+Docker images for fully self-hosted deployment. Domain-locked licensing, no cloud dependency. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
 
 ### Long-Term (Q4 2026+)
 
@@ -100,7 +121,7 @@ Docker images for fully self-hosted deployment. Domain-locked licensing, no clou
 A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.
 
 #### SOC2 Type II Compliance
-Enterprise security certification for teams that require it.
+Forge security certification for teams that require it.
 
 #### RevealCoin + x402 Agent Payments
 Native cryptocurrency micropayments powered by RevealCoin on the Solana blockchain. Agents discover, authenticate, and pay per task via the HTTP 402 payment protocol — no accounts, no subscriptions.
@@ -114,8 +135,10 @@ RevealUI offers three ways to pay:
 | Track | Model | Description |
 |-------|-------|-------------|
 | **A — Subscriptions** | Monthly | Free / Pro $49/mo / Max $149/mo / Forge $299/mo |
-| **B — Agent Credits** | Pay-per-use | $0.001/task, first 1,000/month free |
+| **B — Agent Credits** | Pay-per-use | $0.001/task, first 1,000 total tasks/month free (50 cloud AI tasks via platform key) |
 | **C — Perpetual** | One-time | $299 / $799 / $1,999 (1 year support included) |
+
+Ecosystem features by tier: RevVault desktop app + rotation engine (Pro), RevKit environment provisioning (Max), RevealCoin x402 agent payments (Forge).
 
 See [revealui.com/pricing](https://revealui.com/pricing) for details.
 
@@ -125,7 +148,7 @@ See [revealui.com/pricing](https://revealui.com/pricing) for details.
 
 - **GitHub Issues** — [Request features or report bugs](https://github.com/RevealUIStudio/revealui/issues)
 - **Discussions** — [Join the conversation](https://github.com/RevealUIStudio/revealui/discussions)
-- **Community** — [community.revealui.com](https://community.revealui.com)
+- **Community** — [revnation.discourse.group](https://revnation.discourse.group)
 - **Email** — support@revealui.com
 
 We prioritize based on: customer impact, charge readiness, and community demand.

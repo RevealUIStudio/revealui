@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 export function ArrowNarrowRightIcon({ className, ...props }: ComponentProps<'svg'>) {
   return (
@@ -10,7 +10,7 @@ export function ArrowNarrowRightIcon({ className, ...props }: ComponentProps<'sv
       fill="none"
       strokeWidth={1}
       aria-hidden="true"
-      className={clsx('inline-block', className)}
+      className={cn('inline-block', className)}
       {...props}
     >
       <path

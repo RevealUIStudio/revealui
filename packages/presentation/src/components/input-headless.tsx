@@ -1,13 +1,13 @@
-import clsx from 'clsx';
 import type React from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { useFieldControlProps } from '../hooks/use-field-context.js';
+import { cn } from '../utils/cn.js';
 
 export function InputGroup({ children }: React.ComponentPropsWithoutRef<'span'>) {
   return (
     <span
       data-slot="control"
-      className={clsx(
+      className={cn(
         'relative isolate block',
         'has-[[data-slot=icon]:first-child]:[&_input]:pl-10 has-[[data-slot=icon]:last-child]:[&_input]:pr-10 sm:has-[[data-slot=icon]:first-child]:[&_input]:pl-8 sm:has-[[data-slot=icon]:last-child]:[&_input]:pr-8',
         '*:data-[slot=icon]:pointer-events-none *:data-[slot=icon]:absolute *:data-[slot=icon]:top-3 *:data-[slot=icon]:z-10 *:data-[slot=icon]:size-5 sm:*:data-[slot=icon]:top-2.5 sm:*:data-[slot=icon]:size-4',
@@ -38,7 +38,7 @@ export function Input({ className, disabled, invalid, ref, ...props }: InputProp
   return (
     <span
       data-slot="control"
-      className={clsx([
+      className={cn([
         className,
         // Basic layout
         'relative block w-full',
@@ -60,7 +60,7 @@ export function Input({ className, disabled, invalid, ref, ...props }: InputProp
         {...fieldProps}
         data-invalid={invalid ? '' : undefined}
         data-disabled={disabled ? '' : undefined}
-        className={clsx([
+        className={cn([
           // Date classes
           props.type &&
             dateTypes.includes(props.type as DateType) && [

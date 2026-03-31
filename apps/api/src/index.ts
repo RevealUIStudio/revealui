@@ -5,7 +5,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { audit, SecurityHeaders, SecurityPresets } from '@revealui/core/security';
 import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
-import { sites } from '@revealui/db/schema';
+import { sites, users } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
@@ -23,7 +23,7 @@ import { errorHandler } from './middleware/error.js';
 import { checkLicenseStatus, requireAIAccess, requireFeature } from './middleware/license.js';
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
-import { enforceSiteLimit } from './middleware/resource-limits.js';
+import { enforceSiteLimit, enforceUserLimit } from './middleware/resource-limits.js';
 import { requireTaskQuota } from './middleware/task-quota.js';
 import { tenantMiddleware } from './middleware/tenant.js';
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
@@ -31,6 +31,7 @@ import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
 import agentTasksRoute from './routes/agent-tasks.js';
 import apiKeysRoute from './routes/api-keys.js';
+import authRoute from './routes/auth.js';
 import billingRoute from './routes/billing.js';
 import provenanceRoute from './routes/code-provenance.js';
 import { createCollabRoute } from './routes/collab.js';
@@ -174,6 +175,23 @@ const securityHeaders = new SecurityHeaders(securityPreset);
 // Global middleware
 app.use('*', domainLockMiddleware()); // Forge: reject requests from unlicensed domains
 app.use('*', requestIdMiddleware());
+// Media upload routes need a higher body limit
+app.use(
+  '/api/content/media/*',
+  bodyLimit({
+    maxSize: 100 * 1024 * 1024,
+    onError: (c) =>
+      c.json({ success: false, error: 'File too large. Maximum size is 100MB.' }, 413),
+  }),
+);
+app.use(
+  '/api/v1/content/media/*',
+  bodyLimit({
+    maxSize: 100 * 1024 * 1024,
+    onError: (c) =>
+      c.json({ success: false, error: 'File too large. Maximum size is 100MB.' }, 413),
+  }),
+);
 app.use(
   '*',
   bodyLimit({
@@ -259,7 +277,7 @@ interface RateLimitsConfig {
 
 const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
   tiers: {
-    free: { maxRequests: 60, windowMs: ONE_MINUTE },
+    free: { maxRequests: 200, windowMs: ONE_MINUTE },
     pro: { maxRequests: 300, windowMs: ONE_MINUTE },
     max: { maxRequests: 600, windowMs: ONE_MINUTE },
     enterprise: { maxRequests: 1000, windowMs: ONE_MINUTE },
@@ -273,6 +291,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'error-capture': { maxRequests: 50, windowMs: ONE_MINUTE },
     'log-ingest': { maxRequests: 200, windowMs: ONE_MINUTE },
     'api-keys': { maxRequests: 20, windowMs: ONE_MINUTE },
+    'auth-signup': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'billing-checkout': { maxRequests: 10, windowMs: FIFTEEN_MINUTES },
     'billing-upgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'billing-downgrade': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
@@ -458,6 +477,16 @@ app.use('/api/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/v1/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
 app.use('/api/v1/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
+// Billing mutation endpoints require Pro+ (payments feature)
+// Read-only metrics and webhook routes are excluded — they serve all tiers
+app.post('/api/billing/checkout', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/v1/billing/checkout', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/billing/upgrade', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/v1/billing/upgrade', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/billing/downgrade', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/v1/billing/downgrade', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/billing/portal', requireFeature('payments', { mode: 'entitlements' }));
+app.post('/api/v1/billing/portal', requireFeature('payments', { mode: 'entitlements' }));
 
 // ---------------------------------------------------------------------------
 // Role-based access control (RBAC) — uses core AuthorizationSystem with CommonRoles.
@@ -565,6 +594,13 @@ const siteLimit = enforceSiteLimit(() => sites);
 app.post('/api/content/sites', siteLimit);
 app.post('/api/v1/content/sites', siteLimit);
 
+// Resource limits — enforce tier-based caps on user signup
+app.use('/api/auth/signup', routeLimit('auth-signup'));
+app.use('/api/v1/auth/signup', routeLimit('auth-signup'));
+const userLimit = enforceUserLimit(() => users);
+app.post('/api/auth/signup', userLimit);
+app.post('/api/v1/auth/signup', userLimit);
+
 // Task quota metering (Track B) — runs after auth + feature gate so user context is set.
 // Applied to all AI task endpoints: agent-tasks, agent-stream, and A2A (a2a.ts wires its own).
 app.post('/api/agent-tasks/*', requireTaskQuota);
@@ -599,6 +635,7 @@ app.route('/api/errors', errorsRoute);
 app.route('/api/gdpr', gdprRoute);
 app.route('/api/logs', logsRoute);
 app.route('/api/license', licenseRoute);
+app.route('/api/auth', authRoute);
 app.route('/api/billing', billingRoute);
 // Webhooks are rate-limited to prevent replay abuse and resource exhaustion.
 // Stripe's DB-backed idempotency handles dedup; this limits request volume.
@@ -631,6 +668,7 @@ app.route('/api/v1/errors', errorsRoute);
 app.route('/api/v1/gdpr', gdprRoute);
 app.route('/api/v1/logs', logsRoute);
 app.route('/api/v1/license', licenseRoute);
+app.route('/api/v1/auth', authRoute);
 app.route('/api/v1/billing', billingRoute);
 app.use('/api/v1/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
 app.route('/api/v1/webhooks', webhooksRoute);

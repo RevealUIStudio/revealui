@@ -119,7 +119,6 @@ const mockDbSelectChain = {
   orderBy: vi.fn(),
   limit: vi.fn(),
   // Thenable — direct `await` on chain resolves to _selectResult
-  // biome-ignore lint/suspicious/noThenProperty: intentional thenable — mirrors Drizzle's awaitable query builder
   then(
     onFulfilled?: (value: unknown[]) => unknown,
     onRejected?: (reason: unknown) => unknown,
@@ -780,15 +779,19 @@ describe('POST /upgrade', () => {
       post('/upgrade', { priceId: 'price_enterprise_server', targetTier: 'enterprise' }),
     );
 
-    expect(mockSubscriptionsUpdate).toHaveBeenCalledWith('sub_pro', {
-      items: [{ id: 'si_pro', price: 'price_enterprise_server' }],
-      metadata: {
-        tier: 'enterprise',
-        revealui_user_id: MOCK_USER.id,
-        pending_change: 'upgrade:enterprise',
+    expect(mockSubscriptionsUpdate).toHaveBeenCalledWith(
+      'sub_pro',
+      {
+        items: [{ id: 'si_pro', price: 'price_enterprise_server' }],
+        metadata: {
+          tier: 'enterprise',
+          revealui_user_id: MOCK_USER.id,
+          pending_change: 'upgrade:enterprise',
+        },
+        proration_behavior: 'create_prorations',
       },
-      proration_behavior: 'create_prorations',
-    });
+      { idempotencyKey: `upgrade-sub_pro-enterprise-${MOCK_USER.id}` },
+    );
   });
 
   it('rejects upgrade when client priceId mismatches the server catalog', async () => {

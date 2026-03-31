@@ -21,6 +21,7 @@ export type LicenseTierId = 'free' | 'pro' | 'max' | 'enterprise';
 export type FeatureFlagKey =
   | 'aiLocal'
   | 'ai'
+  | 'aiSampling'
   | 'aiMemory'
   | 'mcp'
   | 'payments'
@@ -33,7 +34,10 @@ export type FeatureFlagKey =
   | 'auditLog'
   | 'multiTenant'
   | 'whiteLabel'
-  | 'sso';
+  | 'sso'
+  | 'vaultDesktop'
+  | 'vaultRotation'
+  | 'devkitProfiles';
 
 // =============================================================================
 // Tier Display Constants
@@ -60,6 +64,7 @@ export const TIER_COLORS: Record<LicenseTierId, string> = {
 export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   aiLocal: 'Local AI (BitNet)',
   ai: 'AI Agents',
+  aiSampling: 'AI Sampling (50 tasks/month)',
   aiMemory: 'AI Memory',
   mcp: 'MCP Framework',
   payments: 'Built-in Payments',
@@ -73,6 +78,9 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   multiTenant: 'Multi-tenant Management',
   whiteLabel: 'White-label Branding (Coming Soon)',
   sso: 'SSO/SAML Authentication (Coming Soon)',
+  vaultDesktop: 'RevVault Desktop App',
+  vaultRotation: 'RevVault Rotation Engine',
+  devkitProfiles: 'RevKit Environment Provisioning',
 };
 
 // =============================================================================
@@ -122,6 +130,8 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Up to 3 users/editors',
       'Session-based auth',
       'Basic real-time sync',
+      '50 cloud AI tasks/month',
+      'Read-only AI coding assistant',
       'Community support',
       'Full source code access',
     ],
@@ -144,6 +154,8 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Monitoring dashboard',
       'Custom domain mapping',
       '10,000 agent tasks/month included',
+      'RevVault desktop app (encrypted secret management)',
+      'RevVault rotation engine (automated credential lifecycle)',
       'Email support (48h response)',
       'Full source code access',
     ],
@@ -165,6 +177,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'BYOK server-side key storage',
       'Audit logging',
       '50,000 agent tasks/month included',
+      'RevKit environment provisioning (tiered dev profiles)',
       'Email support (24h response)',
       'Full source code access',
     ],
@@ -176,13 +189,14 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'enterprise',
     name: 'Forge',
-    description: 'For teams with advanced scale and compliance requirements.',
+    description: 'Full ecosystem access with scale, compliance, and agent payments.',
     features: [
       'Everything in Max',
       'Unlimited sites',
       'Unlimited users/editors',
       'Session-based auth + OAuth (SSO/SAML coming soon)',
       'All AI providers (unlimited)',
+      'RevealCoin x402 agent payments',
       'Multi-tenant architecture',
       'White-label branding (coming soon)',
       'Unlimited agent tasks',

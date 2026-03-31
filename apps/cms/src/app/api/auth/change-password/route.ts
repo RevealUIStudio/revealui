@@ -7,12 +7,7 @@
  * Optionally revokes all other active sessions for security.
  */
 
-import {
-  changePassword,
-  deleteAllUserSessions,
-  getSession,
-  meetsMinimumPasswordRequirements,
-} from '@revealui/auth/server';
+import { changePassword, getSession, validatePasswordStrength } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -22,6 +17,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -32,12 +28,12 @@ const ChangePasswordSchema = z.object({
     .string()
     .min(8, 'Password must be at least 8 characters')
     .max(128, 'Password must be at most 128 characters'),
-  revokeOtherSessions: z.boolean().optional().default(false),
+  revokeOtherSessions: z.boolean().optional().default(true),
 });
 
 async function handler(request: NextRequest): Promise<NextResponse> {
   try {
-    const sessionData = await getSession(request.headers);
+    const sessionData = await getSession(request.headers, extractRequestContext(request));
     if (!sessionData) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
     }
@@ -68,16 +64,23 @@ async function handler(request: NextRequest): Promise<NextResponse> {
     const { currentPassword, newPassword, revokeOtherSessions } = parsed.data;
 
     // Validate new password strength before hitting the DB
-    if (!meetsMinimumPasswordRequirements(newPassword)) {
+    const strength = validatePasswordStrength(newPassword);
+    if (!strength.valid) {
       return createValidationErrorResponse(
-        'Password must be at least 8 characters and include uppercase, lowercase, and a number.',
+        strength.errors[0] ?? 'Password does not meet strength requirements.',
         'newPassword',
         null,
-        {},
+        { issues: strength.errors.map((msg) => ({ path: 'newPassword', message: msg })) },
       );
     }
 
-    const result = await changePassword(sessionData.user.id, currentPassword, newPassword);
+    // Pass current session ID so changePassword can invalidate all other sessions
+    const result = await changePassword(
+      sessionData.user.id,
+      currentPassword,
+      newPassword,
+      sessionData.session.id,
+    );
 
     if (!result.success) {
       const error = result.error ?? 'Failed to change password';
@@ -95,9 +98,9 @@ async function handler(request: NextRequest): Promise<NextResponse> {
       return createApplicationErrorResponse(error, 'INTERNAL_ERROR', 500);
     }
 
-    if (revokeOtherSessions) {
-      await deleteAllUserSessions(sessionData.user.id);
-    }
+    // Session invalidation is now handled inside changePassword itself.
+    // The revokeOtherSessions option is kept for backward compatibility but
+    // is effectively always true — password changes always revoke other sessions.
 
     logger.info('Password changed', {
       userId: sessionData.user.id,

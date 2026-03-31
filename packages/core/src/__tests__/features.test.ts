@@ -38,6 +38,7 @@ import {
 const ALL_FEATURES: (keyof FeatureFlags)[] = [
   'aiLocal',
   'ai',
+  'aiSampling',
   'aiMemory',
   'mcp',
   'payments',
@@ -51,10 +52,13 @@ const ALL_FEATURES: (keyof FeatureFlags)[] = [
   'dashboard',
   'customDomain',
   'analytics',
+  'vaultDesktop',
+  'vaultRotation',
+  'devkitProfiles',
 ];
 
 /** Features available at free tier (no license required) */
-const FREE_FEATURES: (keyof FeatureFlags)[] = ['aiLocal'];
+const FREE_FEATURES: (keyof FeatureFlags)[] = ['aiLocal', 'aiSampling'];
 
 /** Features that require at least Pro tier */
 const PRO_FEATURES: (keyof FeatureFlags)[] = [
@@ -65,6 +69,8 @@ const PRO_FEATURES: (keyof FeatureFlags)[] = [
   'dashboard',
   'customDomain',
   'analytics',
+  'vaultDesktop',
+  'vaultRotation',
 ];
 
 /** Features that require at least Max tier */
@@ -73,10 +79,21 @@ const MAX_FEATURES: (keyof FeatureFlags)[] = [
   'byokServerSide',
   'aiMultiProvider',
   'auditLog',
+  'devkitProfiles',
 ];
 
 /** Features that require Enterprise tier */
 const ENTERPRISE_FEATURES: (keyof FeatureFlags)[] = ['multiTenant', 'whiteLabel', 'sso'];
+
+/**
+ * Features hardcoded to false (B-02: unimplemented, unsafe to expose).
+ * whiteLabel and sso exist in the tier map but getFeatures/isFeatureEnabled/
+ * getFeaturesForTier force them off until the implementations ship.
+ */
+const DISABLED_FEATURES: (keyof FeatureFlags)[] = ['whiteLabel', 'sso'];
+
+/** All features that can actually be enabled (excludes hardcoded-off) */
+const ENABLEABLE_FEATURES = ALL_FEATURES.filter((f) => !DISABLED_FEATURES.includes(f));
 
 /**
  * Configures the mock to simulate a specific license tier.
@@ -168,19 +185,23 @@ describe('getFeatures', () => {
     }
   });
 
-  it('returns all features as true for enterprise tier', () => {
+  it('returns all enableable features as true for enterprise tier', () => {
     simulateTier('enterprise');
     const features = getFeatures();
 
-    for (const feature of ALL_FEATURES) {
+    for (const feature of ENABLEABLE_FEATURES) {
       expect(features[feature]).toBe(true);
+    }
+    // B-02: whiteLabel and sso are hardcoded off (unimplemented)
+    for (const feature of DISABLED_FEATURES) {
+      expect(features[feature]).toBe(false);
     }
   });
 
-  it('returns a FeatureFlags object with exactly 15 keys', () => {
+  it('returns a FeatureFlags object with exactly 19 keys', () => {
     simulateTier('free');
     const features = getFeatures();
-    expect(Object.keys(features)).toHaveLength(15);
+    expect(Object.keys(features)).toHaveLength(19);
   });
 
   it('calls isLicensed for each feature', () => {
@@ -237,11 +258,16 @@ describe('isFeatureEnabled', () => {
     });
   });
 
-  describe('enterprise tier — all features enabled', () => {
+  describe('enterprise tier — all enableable features enabled', () => {
     beforeEach(() => simulateTier('enterprise'));
 
-    it.each(ALL_FEATURES)('returns true for %s', (feature) => {
+    it.each(ENABLEABLE_FEATURES)('returns true for %s', (feature) => {
       expect(isFeatureEnabled(feature)).toBe(true);
+    });
+
+    // B-02: whiteLabel and sso are hardcoded off
+    it.each(DISABLED_FEATURES)('returns false for %s (hardcoded off)', (feature) => {
+      expect(isFeatureEnabled(feature)).toBe(false);
     });
   });
 
@@ -255,8 +281,10 @@ describe('isFeatureEnabled', () => {
     isFeatureEnabled('aiMemory');
     expect(mockIsLicensed).toHaveBeenCalledWith('max');
 
+    // B-02: sso is hardcoded off, so isFeatureEnabled short-circuits before
+    // calling isLicensed. Use multiTenant to verify enterprise tier delegation.
     mockIsLicensed.mockClear();
-    isFeatureEnabled('sso');
+    isFeatureEnabled('multiTenant');
     expect(mockIsLicensed).toHaveBeenCalledWith('enterprise');
   });
 });
@@ -305,11 +333,15 @@ describe('getFeaturesForTier', () => {
     }
   });
 
-  it('returns all features enabled for enterprise tier', () => {
+  it('returns all enableable features for enterprise tier', () => {
     const features = getFeaturesForTier('enterprise');
 
-    for (const feature of ALL_FEATURES) {
+    for (const feature of ENABLEABLE_FEATURES) {
       expect(features[feature]).toBe(true);
+    }
+    // B-02: whiteLabel and sso are hardcoded off
+    for (const feature of DISABLED_FEATURES) {
+      expect(features[feature]).toBe(false);
     }
   });
 
@@ -319,12 +351,16 @@ describe('getFeaturesForTier', () => {
   });
 
   it('returns consistent results regardless of current license state', () => {
-    // Even when license is free, getFeaturesForTier('enterprise') should show all enabled
+    // Even when license is free, getFeaturesForTier('enterprise') shows all enableable
     simulateTier('free');
     const enterpriseFeatures = getFeaturesForTier('enterprise');
 
-    for (const feature of ALL_FEATURES) {
+    for (const feature of ENABLEABLE_FEATURES) {
       expect(enterpriseFeatures[feature]).toBe(true);
+    }
+    // B-02: whiteLabel and sso remain off regardless of tier
+    for (const feature of DISABLED_FEATURES) {
+      expect(enterpriseFeatures[feature]).toBe(false);
     }
   });
 });
@@ -393,6 +429,18 @@ describe('getRequiredTier', () => {
   it('returns enterprise for sso feature', () => {
     expect(getRequiredTier('sso')).toBe('enterprise');
   });
+
+  it('returns pro for vaultDesktop feature', () => {
+    expect(getRequiredTier('vaultDesktop')).toBe('pro');
+  });
+
+  it('returns pro for vaultRotation feature', () => {
+    expect(getRequiredTier('vaultRotation')).toBe('pro');
+  });
+
+  it('returns max for devkitProfiles feature', () => {
+    expect(getRequiredTier('devkitProfiles')).toBe('max');
+  });
 });
 
 // =============================================================================
@@ -402,10 +450,10 @@ describe('getRequiredTier', () => {
 describe('tier progression', () => {
   const tiers: LicenseTier[] = ['free', 'pro', 'max', 'enterprise'];
   const expectedEnabledCounts: Record<LicenseTier, number> = {
-    free: 1, // aiLocal only
-    pro: 8, // 1 free + 7 pro features
-    max: 12, // 1 free + 7 pro + 4 max features
-    enterprise: 15, // all 15 features
+    free: 2, // aiLocal + aiSampling
+    pro: 11, // 2 free + 9 pro features (incl. vaultDesktop, vaultRotation)
+    max: 16, // 2 free + 9 pro + 5 max features (incl. devkitProfiles)
+    enterprise: 17, // 19 total minus 2 hardcoded-off (whiteLabel, sso)
   };
 
   it.each(tiers)('%s tier enables exactly %i features', (tier) => {
@@ -500,6 +548,18 @@ describe('feature blocking — free tier restrictions', () => {
   it('blocks analytics', () => {
     expect(isFeatureEnabled('analytics')).toBe(false);
   });
+
+  it('blocks vault desktop', () => {
+    expect(isFeatureEnabled('vaultDesktop')).toBe(false);
+  });
+
+  it('blocks vault rotation', () => {
+    expect(isFeatureEnabled('vaultRotation')).toBe(false);
+  });
+
+  it('blocks devkit profiles', () => {
+    expect(isFeatureEnabled('devkitProfiles')).toBe(false);
+  });
 });
 
 // =============================================================================
@@ -567,9 +627,10 @@ describe('edge cases', () => {
     }
   });
 
-  it('only aiLocal requires free tier — all others are gated', () => {
+  it('only aiLocal and aiSampling require free tier — all others are gated', () => {
+    const freeTierFeatures: (keyof FeatureFlags)[] = ['aiLocal', 'aiSampling'];
     for (const feature of ALL_FEATURES) {
-      if (feature === 'aiLocal') {
+      if (freeTierFeatures.includes(feature)) {
         expect(getRequiredTier(feature)).toBe('free');
       } else {
         expect(getRequiredTier(feature)).not.toBe('free');

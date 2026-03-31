@@ -7,6 +7,7 @@ import { userApiKeys } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 const ApiKeySchema = z.object({
   provider: z.enum(['openai', 'anthropic', 'groq', 'ollama', 'huggingface', 'vultr']),
@@ -17,7 +18,7 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/user/api-keys — return { provider, keyHint } for current user (no plaintext key) */
 export async function GET(request: NextRequest): Promise<NextResponse> {
-  const session = await getSession(request.headers);
+  const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
 /** POST /api/user/api-keys — encrypt and upsert a BYOK key */
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const session = await getSession(request.headers);
+  const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
 /** DELETE /api/user/api-keys — remove the user's stored key */
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
-  const session = await getSession(request.headers);
+  const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

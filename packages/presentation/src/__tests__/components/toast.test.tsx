@@ -1,5 +1,4 @@
 import { act, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { ToastProvider, useToast } from '../../components/toast.js';
 
@@ -106,15 +105,24 @@ describe('Toast', () => {
   });
 
   it('renders a close button on the toast', async () => {
-    const user = userEvent.setup();
+    vi.useFakeTimers();
     render(
       <ToastProvider>
         <ToastTrigger title="Closeable" duration={0} />
       </ToastProvider>,
     );
-    await user.click(screen.getByText('Show toast'));
+    await act(async () => {
+      screen.getByText('Show toast').click();
+    });
+    expect(screen.getByText('Closeable')).toBeInTheDocument();
     const closeBtn = screen.getByRole('button', { name: /dismiss/i });
-    await user.click(closeBtn);
+    await act(async () => {
+      closeBtn.click();
+    });
+    await act(async () => {
+      vi.advanceTimersByTime(200);
+    });
     expect(screen.queryByText('Closeable')).not.toBeInTheDocument();
+    vi.useRealTimers();
   });
 });

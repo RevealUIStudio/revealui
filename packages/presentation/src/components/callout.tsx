@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import type React from 'react';
+import { cn } from '../utils/cn.js';
 
 type CalloutVariant = 'info' | 'warning' | 'error' | 'success' | 'tip';
 
@@ -47,14 +47,14 @@ export function Callout({
   const styles = variantStyles[variant];
 
   return (
-    <div role="note" className={clsx('rounded-xl p-4 ring-1', styles.wrapper, className)}>
+    <div role="note" className={cn('rounded-xl p-4 ring-1', styles.wrapper, className)}>
       <div className="flex gap-3">
-        <span className={clsx('mt-0.5 shrink-0 text-sm font-bold', styles.icon)} aria-hidden="true">
+        <span className={cn('mt-0.5 shrink-0 text-sm font-bold', styles.icon)} aria-hidden="true">
           {icon ?? styles.iconChar}
         </span>
         <div className="min-w-0 flex-1">
           {title && <p className="text-sm font-semibold text-zinc-950 dark:text-white">{title}</p>}
-          <div className={clsx('text-sm text-zinc-700 dark:text-zinc-300', title && 'mt-1')}>
+          <div className={cn('text-sm text-zinc-700 dark:text-zinc-300', title && 'mt-1')}>
             {children}
           </div>
         </div>

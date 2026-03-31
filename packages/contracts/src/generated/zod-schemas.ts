@@ -2,7 +2,7 @@
  * Auto-generated Zod schemas from Drizzle
  *
  * DO NOT EDIT - Regenerate with: pnpm generate:all
- * Generated: 2026-03-28T02:03:56.183Z
+ * Generated: 2026-03-30T07:01:35.076Z
  *
  * This file provides Zod schemas for all database tables, generated
  * directly from Drizzle table definitions using drizzle-zod.
@@ -169,6 +169,32 @@ export type AgentContextsRow = z.infer<typeof AgentContextsSelectSchema>
  * TypeScript type for agentContexts insert
  */
 export type AgentContextsInsert = z.infer<typeof AgentContextsInsertSchema>
+
+// =============================================================================
+// AgentCreditBalance Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting agentCreditBalance rows from database
+ * Generated from Drizzle table definition: tables.agentCreditBalance
+ */
+export const AgentCreditBalanceSelectSchema = createSelectSchema(tables.agentCreditBalance)
+
+/**
+ * Zod schema for inserting agentCreditBalance rows to database
+ * Generated from Drizzle table definition: tables.agentCreditBalance
+ */
+export const AgentCreditBalanceInsertSchema = createInsertSchema(tables.agentCreditBalance)
+
+/**
+ * TypeScript type for agentCreditBalance row (Select)
+ */
+export type AgentCreditBalanceRow = z.infer<typeof AgentCreditBalanceSelectSchema>
+
+/**
+ * TypeScript type for agentCreditBalance insert
+ */
+export type AgentCreditBalanceInsert = z.infer<typeof AgentCreditBalanceInsertSchema>
 
 // =============================================================================
 // AgentMemories Schemas

@@ -24,7 +24,6 @@ function createSelectChain(result: unknown[] = []) {
     limit: vi.fn().mockResolvedValue(result),
   };
   // Make chain thenable so `await db.select().from().where()` resolves
-  // biome-ignore lint/suspicious/noThenProperty: Drizzle chains are awaitable; mocks must be thenable
   chain.then = (resolve: (v: unknown) => void) => resolve(result);
   chain.from.mockReturnValue(chain);
   chain.where.mockReturnValue(chain);

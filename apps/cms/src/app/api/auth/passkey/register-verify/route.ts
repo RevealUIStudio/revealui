@@ -31,6 +31,7 @@ import {
   createErrorResponse,
   createValidationErrorResponse,
 } from '@/lib/utils/error-response';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -208,10 +209,9 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
 
       // Create session
       const userAgent = request.headers.get('user-agent') ?? undefined;
-      const xff = request.headers.get('x-forwarded-for');
       const ipAddress =
-        (xff ? xff.split(',').pop()?.trim() : undefined) ??
-        request.headers.get('x-real-ip') ??
+        request.headers.get('x-real-ip') ||
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
         undefined;
 
       const { token: sessionToken } = await createSession(newUser.id, {
@@ -262,7 +262,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
     }
 
     // Authenticated flow: check session and store passkey
-    const session = await getSession(request.headers);
+    const session = await getSession(request.headers, extractRequestContext(request));
 
     if (!session) {
       return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);

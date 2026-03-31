@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const isDev = process.env.NODE_ENV === 'development'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -41,6 +42,11 @@ const nextConfig = {
         destination: '/pricing',
         permanent: false,
       },
+      {
+        source: '/community',
+        destination: 'https://revnation.discourse.group',
+        permanent: false,
+      },
     ]
   },
   async headers() {
@@ -72,8 +78,8 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-              "style-src 'self' 'unsafe-inline'",
+              `script-src 'self'${isDev ? " 'unsafe-inline' 'unsafe-eval'" : ''}`,
+              `style-src 'self'${isDev ? " 'unsafe-inline'" : ''}`,
               "img-src 'self' data: https:",
               "font-src 'self' data:",
               "connect-src 'self' https://api.revealui.com https://vitals.vercel-insights.com",

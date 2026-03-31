@@ -1,5 +1,5 @@
-import { clsx } from 'clsx/lite';
 import type { ComponentProps } from 'react';
+import { cn } from '@/lib/utils/cn';
 
 const sizes = {
   md: 'px-3 py-1',
@@ -19,7 +19,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={clsx(
+      className={cn(
         'inline-flex shrink-0 items-center justify-center gap-1 rounded-full text-sm/7 font-medium',
         color === 'dark/light' &&
           'bg-mist-950 text-white hover:bg-mist-800 dark:bg-mist-300 dark:text-mist-950 dark:hover:bg-mist-200',
@@ -49,7 +49,7 @@ export function ButtonLink({
   return (
     <Link
       href={href}
-      className={clsx(
+      className={cn(
         'inline-flex shrink-0 items-center justify-center gap-1 rounded-full text-sm/7 font-medium',
         color === 'dark/light' &&
           'bg-mist-950 text-white hover:bg-mist-800 dark:bg-mist-300 dark:text-mist-950 dark:hover:bg-mist-200',
@@ -74,7 +74,7 @@ export function SoftButton({
   return (
     <button
       type={type}
-      className={clsx(
+      className={cn(
         'inline-flex shrink-0 items-center justify-center gap-1 rounded-full bg-mist-950/10 text-sm/7 font-medium text-mist-950 hover:bg-mist-950/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/20',
         sizes[size],
         className,
@@ -96,7 +96,7 @@ export function SoftButtonLink({
   return (
     <Link
       href={href}
-      className={clsx(
+      className={cn(
         'inline-flex shrink-0 items-center justify-center gap-1 rounded-full bg-mist-950/10 text-sm/7 font-medium text-mist-950 hover:bg-mist-950/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/20',
         sizes[size],
         className,
@@ -119,7 +119,7 @@ export function PlainButton({
   return (
     <button
       type={type}
-      className={clsx(
+      className={cn(
         'inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm/7 font-medium',
         color === 'dark/light' &&
           'text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10',
@@ -146,7 +146,7 @@ export function PlainButtonLink({
   return (
     <Link
       href={href}
-      className={clsx(
+      className={cn(
         'inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm/7 font-medium',
         color === 'dark/light' &&
           'text-mist-950 hover:bg-mist-950/10 dark:text-white dark:hover:bg-white/10',

@@ -4,20 +4,26 @@
 
 ### `ci.yml` — Continuous Integration
 
-**Triggers:** Push to `main`, pull requests targeting `main`
+**Triggers:** Push to `main`/`test`, pull requests targeting those branches. `feature/*` branches are local-only (no CI).
 
 Mirrors the local `pnpm gate` — same hard-fail/warn policy:
 
-| Check                       | When       | Fail policy |
-| --------------------------- | ---------- | ----------- |
-| Biome lint                  | PRs + main | Hard fail   |
-| Boundary validation         | PRs + main | Hard fail   |
-| Typecheck (all 24 packages) | PRs + main | Hard fail   |
-| Build (all packages)        | main only  | Hard fail   |
-| Audits, structure           | PRs + main | Warn-only   |
-| Tests (Vitest)              | PRs + main | Warn-only   |
+| Check                       | When                 | Fail policy |
+| --------------------------- | -------------------- | ----------- |
+| Biome lint                  | all                  | Hard fail   |
+| Boundary validation         | all                  | Hard fail   |
+| Typecheck                   | all (affected on PRs)| Hard fail   |
+| Build                       | all (affected on PRs)| Hard fail   |
+| Unit tests                  | all                  | Hard fail   |
+| Integration tests           | main/test only       | Hard fail   |
+| E2E smoke + accessibility   | after build          | Warn-only   |
+| Audits, structure           | all                  | Warn-only   |
 
-Build runs only on main pushes — at ~15 min it's too slow for PR feedback loops.
+**Optimizations:**
+- **Turbo remote cache**: build artifacts shared across jobs via `TURBO_TOKEN`
+- **PR `--affected` mode**: only build/typecheck packages changed in the PR
+- **Parallel execution**: build runs alongside typecheck (turbo cache deduplicates)
+- **E2E jobs** wait for build completion, then get near-instant cache hits
 
 ### `release.yml` — Release OSS Packages
 
@@ -49,17 +55,26 @@ via `NPM_TOKEN`.
 This file is kept in the public repo for documentation purposes only — running it here
 will fail (Pro package source is not present).
 
+### `deploy.yml` — Unified Deploy
+
+**Triggers:** Push to `main`/`test`, manual `workflow_dispatch`
+
+Deploys all 5 apps in parallel via matrix strategy. Branch→environment mapping:
+- `main` → production (`*.revealui.com`)
+- `test` → test (`test.*.revealui.com`)
+
+Each app: `vercel pull` → `vercel build` → `vercel deploy --prebuilt` → alias to stable domain.
+Smoke tests (health checks) run on production and test deploys.
+
 ## Disabled Workflows
 
-Workflows in `.github/workflows-disabled/` are not active:
+Legacy workflows in `.github/workflows-disabled/` are superseded by `deploy.yml`:
 
-| File                    | Purpose                                           | Why disabled                                           |
-| ----------------------- | ------------------------------------------------- | ------------------------------------------------------ |
-| `deploy-staging.yml`    | Auto-deploy CMS to Vercel staging on push to main | Vercel auto-deploy via GitHub integration is preferred |
-| `deploy-production.yml` | Manual production deploy via `workflow_dispatch`  | Same reason                                            |
-| `preview-pr.yml`        | Preview deploys on PRs                            | Not yet configured                                     |
-
-To re-enable a workflow, move it to `.github/workflows/`.
+| File                    | Purpose                                           | Superseded by   |
+| ----------------------- | ------------------------------------------------- | ---------------- |
+| `deploy-staging.yml`    | Auto-deploy CMS to Vercel staging on push to main | `deploy.yml`     |
+| `deploy-production.yml` | Manual production deploy via `workflow_dispatch`  | `deploy.yml`     |
+| `preview-pr.yml`        | Preview deploys on PRs                            | Vercel auto-preview |
 
 ## Local Release (Primary Flow)
 

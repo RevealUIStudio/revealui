@@ -51,15 +51,15 @@ export function HeroSection() {
             The User Interface for the future has yet to Reveal itself
           </p>
           <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
+            <span className="block">The Agentic</span>
             <span className="block">Business</span>
-            <span className="block">Operating System</span>
-            <span className="block">Software</span>
+            <span className="block">Runtime</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-xl font-semibold leading-8 text-gray-700">
             Build your business, not your boilerplate.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-lg leading-8 text-gray-500">
-            Everything a software company needs &mdash; users, content, products, payments, and AI
+            Five primitives, one ecosystem &mdash; users, content, products, payments, and AI
             &mdash; pre-wired, open source, and ready to deploy.
           </p>
 

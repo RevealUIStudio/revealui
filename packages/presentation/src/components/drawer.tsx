@@ -1,6 +1,5 @@
 'use client';
 
-import clsx from 'clsx';
 import type React from 'react';
 import { createContext, use, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
@@ -8,6 +7,7 @@ import { useEscapeKey } from '../hooks/use-escape-key.js';
 import { useFocusTrap } from '../hooks/use-focus-trap.js';
 import { useScrollLock } from '../hooks/use-scroll-lock.js';
 import { useTransition } from '../hooks/use-transition.js';
+import { cn } from '../utils/cn.js';
 
 const DrawerContext = createContext<string | undefined>(undefined);
 
@@ -69,7 +69,7 @@ export function Drawer({
               (panel.nodeRef as React.MutableRefObject<HTMLElement | null>).current = node;
             }}
             {...panel.transitionProps}
-            className={clsx(
+            className={cn(
               'fixed z-50 overflow-y-auto bg-white shadow-xl ring-1 ring-zinc-950/10 transition duration-300 ease-in-out dark:bg-zinc-900 dark:ring-white/10',
               sideClasses[side],
               className,
@@ -96,7 +96,7 @@ export function DrawerHeader({
   const titleId = use(DrawerContext);
   return (
     <div
-      className={clsx(
+      className={cn(
         'flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-700',
         className,
       )}
@@ -126,14 +126,14 @@ export function DrawerHeader({
 }
 
 export function DrawerBody({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
-  return <div {...props} className={clsx('px-6 py-4', className)} />;
+  return <div {...props} className={cn('px-6 py-4', className)} />;
 }
 
 export function DrawerFooter({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
     <div
       {...props}
-      className={clsx(
+      className={cn(
         'flex items-center justify-end gap-3 border-t border-zinc-200 px-6 py-4 dark:border-zinc-700',
         className,
       )}

@@ -58,7 +58,10 @@ function buildApp(user: UserCtx | null = null) {
   const app = new Hono();
 
   app.use('*', async (c, next) => {
-    c.set('db' as never, {} as never);
+    const mockDb = {
+      transaction: vi.fn(async (cb: (tx: unknown) => Promise<unknown>) => cb(mockDb)),
+    };
+    c.set('db' as never, mockDb as never);
     c.set('user' as never, user as never);
     await next();
   });
@@ -165,7 +168,7 @@ describe('Batch Operations API', () => {
       const body = await res.json();
       expect(body.results[0].status).toBe('created');
       expect(body.results[1].status).toBe('error');
-      expect(body.results[1].error).toContain('duplicate slug');
+      expect(body.results[1].error).toContain('Operation failed');
     });
   });
 
@@ -283,7 +286,7 @@ describe('Batch Operations API', () => {
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.results[0].status).toBe('error');
-      expect(body.results[0].error).toContain('FK constraint');
+      expect(body.results[0].error).toContain('Operation failed');
     });
   });
 });

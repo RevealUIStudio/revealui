@@ -2,9 +2,9 @@ name: Performance Testing
 
 on:
   pull_request:
-    branches: [main, develop]
+    branches: [main, test]
   push:
-    branches: [main, develop]
+    branches: [main, test]
   workflow_dispatch:
     inputs:
       test_type:

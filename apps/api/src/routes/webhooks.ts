@@ -19,12 +19,13 @@ import {
   accountMemberships,
   accountSubscriptions,
   accounts,
+  agentCreditBalance,
   licenses,
   processedWebhookEvents,
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import Stripe from 'stripe';
 import {
   provisionGitHubAccess,
@@ -684,8 +685,66 @@ app.openapi(stripeWebhookRoute, async (c) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        // ── Perpetual (one-time payment) ──────────────────────────────────
+        // ── One-time payments (perpetual licenses + credit bundles) ──────
         if (session.mode === 'payment') {
+          // ── Credit bundle purchase ──────────────────────────────────────
+          if (session.metadata?.credits_bundle) {
+            const bundle = session.metadata.credits_bundle;
+            const tasks = Number.parseInt(session.metadata.credits_tasks ?? '0', 10);
+            const creditUserId = session.metadata.revealui_user_id ?? null;
+            const creditCustomerId =
+              typeof session.customer === 'string' ? session.customer : session.customer?.id;
+
+            let resolvedCreditUserId = creditUserId;
+            if (!resolvedCreditUserId && creditCustomerId) {
+              const [u] = await db
+                .select({ id: users.id })
+                .from(users)
+                .where(eq(users.stripeCustomerId, creditCustomerId))
+                .limit(1);
+              resolvedCreditUserId = u?.id ?? null;
+            }
+
+            if (!resolvedCreditUserId || tasks <= 0) {
+              logger.error('Cannot process credit purchase — missing user or tasks', undefined, {
+                bundle,
+                tasks,
+                sessionId: session.id,
+              });
+              break;
+            }
+
+            await db
+              .insert(agentCreditBalance)
+              .values({
+                userId: resolvedCreditUserId,
+                balance: tasks,
+                totalPurchased: tasks,
+              })
+              .onConflictDoUpdate({
+                target: agentCreditBalance.userId,
+                set: {
+                  balance: sql`${agentCreditBalance.balance} + ${tasks}`,
+                  totalPurchased: sql`${agentCreditBalance.totalPurchased} + ${tasks}`,
+                  updatedAt: new Date(),
+                },
+              });
+
+            logger.info('Credit bundle purchased and credited', {
+              bundle,
+              tasks,
+              userId: resolvedCreditUserId,
+            });
+            auditLicenseEvent(db, 'credits.purchased', 'info', {
+              bundle,
+              tasks,
+              userId: resolvedCreditUserId,
+            });
+
+            break;
+          }
+
+          // ── Perpetual license ───────────────────────────────────────────
           // Only process as perpetual license if RevealUI tier metadata is present.
           // Other payment-mode checkouts (non-RevealUI products) are silently skipped.
           if (!session.metadata?.tier) break;
@@ -808,13 +867,16 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const perpetualEmail =
             session.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
           if (perpetualEmail) {
-            sendPerpetualLicenseActivatedEmail(perpetualEmail, tier, supportExpiresAt).catch(
-              (err) => {
-                logger.error('Failed to send perpetual license activation email', undefined, {
-                  detail: err instanceof Error ? err.message : 'unknown',
-                });
-              },
-            );
+            sendPerpetualLicenseActivatedEmail(
+              perpetualEmail,
+              tier,
+              supportExpiresAt,
+              licenseKey,
+            ).catch((err) => {
+              logger.error('Failed to send perpetual license activation email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
           }
 
           break;
@@ -1695,13 +1757,33 @@ app.openapi(stripeWebhookRoute, async (c) => {
           try {
             const charge = await stripe.charges.retrieve(wonChargeId);
             wonCustomerId = resolveCustomerId(charge.customer);
-          } catch (err) {
-            logger.error('Failed to retrieve charge for won dispute', undefined, {
+          } catch (firstErr) {
+            logger.warn('Charge retrieve failed for won dispute, retrying once', {
               chargeId: wonChargeId,
               disputeId: dispute.id,
-              detail: err instanceof Error ? err.message : 'unknown',
+              detail: firstErr instanceof Error ? firstErr.message : 'unknown',
             });
-            break;
+            // Retry once before giving up — a transient Stripe outage must not
+            // silently drop license restoration for a customer who won their dispute.
+            try {
+              const charge = await stripe.charges.retrieve(wonChargeId);
+              wonCustomerId = resolveCustomerId(charge.customer);
+            } catch (retryErr) {
+              logger.error('Charge retrieve failed after retry for won dispute', undefined, {
+                chargeId: wonChargeId,
+                disputeId: dispute.id,
+                detail: retryErr instanceof Error ? retryErr.message : 'unknown',
+              });
+              // Record an audit trail so the operations team can manually restore this license.
+              // Do NOT break silently — the audit entry ensures the failure is visible.
+              auditLicenseEvent(db, 'license.restoration_failed.dispute_won', 'critical', {
+                disputeId: dispute.id,
+                chargeId: wonChargeId,
+                reason: 'stripe_charge_retrieve_failed_after_retry',
+                detail: retryErr instanceof Error ? retryErr.message : 'unknown',
+              });
+              break;
+            }
           }
 
           if (wonCustomerId) {

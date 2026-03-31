@@ -8,13 +8,8 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-// Mock password validation
-vi.mock('../password-validation.js', () => ({
-  validatePasswordStrength: vi.fn((password: string) => ({
-    valid: password.length >= 8,
-    errors: password.length < 8 ? ['Password must be at least 8 characters'] : [],
-  })),
-}));
+// Use real validatePasswordStrength (not mocked) — ensures test coverage
+// catches regressions in password strength rules
 
 // Mock bcryptjs
 vi.mock('bcryptjs', () => ({
@@ -251,6 +246,29 @@ describe('password-reset', () => {
 
       expect(result.success).toBe(false);
       expect(result.error).toContain('8 characters');
+    });
+
+    it('returns failure for password missing uppercase/numbers', async () => {
+      const token = crypto.randomBytes(32).toString('hex');
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hash = crypto.createHmac('sha256', salt).update(token).digest('hex');
+
+      mockRows[0] = [
+        {
+          id: 'token-id',
+          userId: 'user-1',
+          tokenHash: hash,
+          tokenSalt: salt,
+          expiresAt: new Date(Date.now() + 60000),
+          usedAt: null,
+        },
+      ];
+
+      // Passes length check but fails uppercase + number requirement
+      const result = await resetPasswordWithToken('token-id', token, 'alllowercase');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
     });
 
     it('returns success for valid reset', async () => {

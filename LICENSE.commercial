@@ -9,9 +9,8 @@ TERMS AND CONDITIONS
 
 "Software" means the RevealUI source code, documentation, and associated
 files contained in directories and packages designated as commercial,
-including but not limited to: packages/ai, packages/mcp, packages/editors,
-packages/services, packages/harnesses, and any directory named "ee" within
-the repository.
+including but not limited to: packages/ai, packages/harnesses, and any
+directory named "ee" within the repository.
 
 "License Key" means a valid RevealUI license key obtained through an active
 paid subscription at https://revealui.com.

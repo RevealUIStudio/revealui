@@ -1,8 +1,8 @@
-import { clsx } from 'clsx/lite';
 import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import { Container } from '@/components/revealui/elements/container';
 import { ArrowNarrowRightIcon } from '@/components/revealui/icons/arrow-narrow-right-icon';
+import { cn } from '@/lib/utils/cn';
 
 export function FooterCategory({
   title,
@@ -23,7 +23,7 @@ export function FooterLink({
   ...props
 }: { href: string } & Omit<ComponentProps<typeof Link>, 'href'>) {
   return (
-    <li className={clsx('text-mist-700 dark:text-mist-400', className)}>
+    <li className={cn('text-mist-700 dark:text-mist-400', className)}>
       <Link href={href} {...props} />
     </li>
   );
@@ -45,7 +45,7 @@ export function SocialLink({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={name}
-      className={clsx('text-mist-950 *:size-6 dark:text-white', className)}
+      className={cn('text-mist-950 *:size-6 dark:text-white', className)}
       {...props}
     />
   );
@@ -61,7 +61,7 @@ export function NewsletterForm({
   subheadline: ReactNode;
 } & ComponentProps<'form'>) {
   return (
-    <form className={clsx('flex max-w-sm flex-col gap-2', className)} {...props}>
+    <form className={cn('flex max-w-sm flex-col gap-2', className)} {...props}>
       <p>{headline}</p>
       <div className="flex flex-col gap-4 text-mist-700 dark:text-mist-400">{subheadline}</div>
       <div className="flex items-center border-b border-mist-950/20 py-2 has-[input:focus]:border-mist-950 dark:border-white/20 dark:has-[input:focus]:border-white">
@@ -97,7 +97,7 @@ export function FooterWithNewsletterFormCategoriesAndSocialIcons({
   socialLinks?: ReactNode;
 } & ComponentProps<'footer'>) {
   return (
-    <footer className={clsx('pt-16', className)} {...props}>
+    <footer className={cn('pt-16', className)} {...props}>
       <div className="bg-mist-950/2.5 py-16 text-mist-950 dark:bg-white/5 dark:text-white">
         <Container className="flex flex-col gap-16">
           <div className="grid grid-cols-1 gap-x-6 gap-y-16 text-sm/7 lg:grid-cols-2">

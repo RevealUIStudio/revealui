@@ -1,16 +1,16 @@
-import clsx from 'clsx';
 import type React from 'react';
 import { useCallback } from 'react';
 import { useDataInteractive } from '../hooks/use-data-interactive.js';
 import { FieldProvider } from '../hooks/use-field-context.js';
 import { useToggle } from '../hooks/use-toggle.js';
+import { cn } from '../utils/cn.js';
 
 export function CheckboxGroup({ className, ...props }: React.ComponentPropsWithoutRef<'div'>) {
   return (
     <div
       data-slot="control"
       {...props}
-      className={clsx(
+      className={cn(
         className,
         // Basic groups
         'space-y-3',
@@ -35,7 +35,7 @@ export function CheckboxField({
         data-slot="field"
         data-disabled={disabled ? '' : undefined}
         {...props}
-        className={clsx(
+        className={cn(
           className,
           // Base layout
           'grid grid-cols-[1.125rem_1fr] gap-x-4 gap-y-1 sm:grid-cols-[1rem_1fr]',
@@ -178,10 +178,10 @@ export function Checkbox({
       onKeyDown={disabled ? undefined : handleKeyDown}
       {...interactiveProps}
       {...props}
-      className={clsx(className, 'group inline-flex focus:outline-hidden')}
+      className={cn(className, 'group inline-flex focus:outline-hidden')}
     >
       {name && <input type="hidden" name={name} value={checked ? (value ?? 'on') : ''} />}
-      <span className={clsx([base, colors[color]])}>
+      <span className={cn([base, colors[color]])}>
         <svg
           className="size-4 stroke-(--checkbox-check) opacity-0 group-data-checked:opacity-100 sm:h-3.5 sm:w-3.5"
           viewBox="0 0 14 14"

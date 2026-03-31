@@ -22,9 +22,9 @@ export default function TermsOfServicePage() {
 
         <h2>1. Service Description</h2>
         <p>
-          RevealUI is open-source business infrastructure for software companies. It includes a CMS
-          engine, authentication, billing integration, AI agents, and UI components. The Service is
-          available in four tiers: Free (OSS), Pro, Max, and Forge.
+          RevealUI is an open-source agentic business runtime for software companies. It includes a
+          content engine, authentication, billing integration, AI agents, and UI components. The
+          Service is available in four tiers: Free (OSS), Pro, Max, and Forge.
         </p>
 
         <h2>2. Accounts</h2>
@@ -72,10 +72,9 @@ export default function TermsOfServicePage() {
 
         <h2>5. Commercial License</h2>
         <p>
-          Pro, Max, and Forge packages (@revealui/ai, @revealui/mcp, @revealui/editors,
-          @revealui/services, @revealui/harnesses) are commercially licensed. The license is granted
-          per-subscription and is non-transferable. See LICENSE.commercial in the repository for
-          full terms.
+          Pro packages (@revealui/ai and @revealui/harnesses) are commercially licensed. The license
+          is granted per-subscription and is non-transferable. See LICENSE.commercial in the
+          repository for full terms.
         </p>
 
         <h2>6. Acceptable Use</h2>

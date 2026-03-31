@@ -103,7 +103,7 @@ describe('POST /publish-scheduled — partial failure behavior (no DB transactio
     // Response is 500 because the loop threw
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.error).toContain('Lock timeout on page-2');
+    expect(body.error).toContain('Internal error during scheduled publish');
 
     // db.update was called twice: page-1 succeeded, page-2 threw, page-3 never ran
     expect(db.update).toHaveBeenCalledTimes(2);
@@ -119,8 +119,8 @@ describe('POST /publish-scheduled — partial failure behavior (no DB transactio
 
     expect(res.status).toBe(500);
     const body = await res.json();
-    // Route: String(err) for non-Error values
-    expect(body.error).toBe('ECONNRESET');
+    // Route returns a generic error message regardless of thrown value type
+    expect(body.error).toBe('Internal error during scheduled publish');
   });
 
   it('stops processing further pages after a mid-loop update failure', async () => {

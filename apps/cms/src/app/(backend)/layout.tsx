@@ -6,6 +6,7 @@ import { LicenseProvider } from '@/lib/providers/LicenseProvider';
 import config from '../../../revealui.config';
 
 import { importMap } from './admin/importMap';
+import '@revealui/presentation/tokens.css';
 import './custom.css';
 
 type Args = {

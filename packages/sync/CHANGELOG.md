@@ -1,5 +1,13 @@
 # @revealui/sync
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [f89b9ff]
+  - @revealui/db@0.3.1
+  - @revealui/contracts@1.3.1
+
 ## 0.3.0
 
 ### Minor Changes

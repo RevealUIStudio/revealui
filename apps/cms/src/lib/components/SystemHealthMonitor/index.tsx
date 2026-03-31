@@ -20,6 +20,8 @@ export function SystemHealthMonitor({
   const [error, setError] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
+  const [staleness, setStaleness] = useState(0);
 
   // Fetch health metrics
   useEffect(() => {
@@ -32,6 +34,7 @@ export function SystemHealthMonitor({
         const data = (await response.json()) as HealthMetrics;
         setMetrics(data);
         setError(null);
+        setLastUpdated(Date.now());
       } catch (err) {
         const message = err instanceof Error ? err.message : 'An unexpected error occurred';
         setError(
@@ -84,6 +87,15 @@ export function SystemHealthMonitor({
 
     return () => clearInterval(interval);
   }, [pollInterval, showProcessList, selectedSource, selectedStatus]);
+
+  // Staleness ticker — updates every second
+  useEffect(() => {
+    if (!lastUpdated) return;
+    const tick = setInterval(() => {
+      setStaleness(Math.floor((Date.now() - lastUpdated) / 1000));
+    }, 1000);
+    return () => clearInterval(tick);
+  }, [lastUpdated]);
 
   const formatUptime = (seconds: number): string => {
     const days = Math.floor(seconds / 86400);
@@ -150,6 +162,22 @@ export function SystemHealthMonitor({
 
   return (
     <div className="h-full bg-gray-900 flex flex-col overflow-hidden">
+      {/* Header with staleness */}
+      {lastUpdated && (
+        <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-2">
+          <span className="text-xs text-zinc-500">System Health</span>
+          <span
+            className={`text-xs ${
+              staleness > 30 ? 'text-red-400' : staleness > 10 ? 'text-amber-400' : 'text-zinc-500'
+            }`}
+          >
+            {staleness > 30
+              ? `Connection may be lost (${staleness}s ago)`
+              : `Updated ${staleness}s ago`}
+          </span>
+        </div>
+      )}
+
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-4">

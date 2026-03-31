@@ -36,26 +36,32 @@ export function UpgradeDialog() {
 
   const handleClose = useCallback(() => setOpen(false), []);
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleSelectTier = useCallback(async (tierId: string) => {
+    setError(null);
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+      const priceIdMap: Record<string, string | undefined> = {
+        pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
+        max: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
+        enterprise: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
+      };
+      const priceId = priceIdMap[tierId];
       const res = await fetch(`${apiUrl}/api/billing/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          priceId:
-            tierId === 'pro'
-              ? process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID
-              : tierId === 'max'
-                ? process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID
-                : process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID,
+          ...(priceId && { priceId }),
           tier: tierId,
         }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
       if (data.url) {
         safeStripeRedirect(data.url);
+      } else {
+        setError(data.error || 'Failed to start checkout. Please try again.');
       }
     } catch {
       // Fall back to billing page
@@ -74,6 +80,11 @@ export function UpgradeDialog() {
           : 'Unlock more features by upgrading your plan.'}
       </DialogDescription>
       <DialogBody>
+        {error && (
+          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+            {error}
+          </div>
+        )}
         <PricingTable
           tiers={upgradeTiers}
           currentTier={tier ?? 'free'}

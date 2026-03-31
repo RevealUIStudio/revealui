@@ -1,0 +1,265 @@
+/*
+ * RevealUI Design Tokens
+ * ──────────────────────
+ * Single source of truth for the RevealUI design language.
+ * Import this file in any app to get the full token system:
+ *
+ *   @import "@revealui/presentation/tokens.css";
+ *
+ * Dark-first: dark mode is the :root default.
+ * Light mode activates via:
+ *   1. System preference (prefers-color-scheme: light) — automatic
+ *   2. Explicit attribute [data-theme="light"] — manual toggle
+ *
+ * Color space: OKLCH (perceptually uniform, wide-gamut).
+ * Namespace: --rvui-* (avoids collisions with Tailwind/shadcn).
+ *
+ * Backward compatibility: bridges to shadcn/ui semantic names
+ * (--background, --foreground, --primary, etc.) so existing
+ * components work without modification during migration.
+ */
+
+/* ═══════════════════════════════════════════════════════════════
+ * INVARIANT TOKENS — same in both dark and light mode
+ * ═══════════════════════════════════════════════════════════════ */
+:root {
+  color-scheme: dark light;
+
+  /* ── Shape ── */
+  --rvui-radius-sm: 6px;
+  --rvui-radius-md: 10px;
+  --rvui-radius-lg: 16px;
+  --rvui-radius-xl: 24px;
+  --rvui-radius-full: 9999px;
+
+  /* ── Border ── */
+  --rvui-border-width: 1px;
+
+  /* ── Motion ── */
+  --rvui-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --rvui-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --rvui-ease-out: cubic-bezier(0, 0.55, 0.45, 1);
+  --rvui-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --rvui-duration-fast: 120ms;
+  --rvui-duration-normal: 200ms;
+  --rvui-duration-slow: 350ms;
+
+  /* ── Typography ── */
+  --rvui-font-sans: 'Inter', system-ui, sans-serif;
+  --rvui-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  --rvui-font-display: 'Mona Sans', 'Inter', system-ui, sans-serif;
+
+  --rvui-text-xs: 0.75rem;
+  --rvui-text-sm: 0.875rem;
+  --rvui-text-base: 1rem;
+  --rvui-text-lg: 1.125rem;
+  --rvui-text-xl: 1.25rem;
+  --rvui-text-2xl: 1.5rem;
+  --rvui-text-3xl: 1.875rem;
+  --rvui-text-display: 2.5rem;
+
+  --rvui-leading-tight: 1.25;
+  --rvui-leading-normal: 1.5;
+  --rvui-leading-relaxed: 1.75;
+
+  --rvui-tracking-tight: -0.02em;
+  --rvui-tracking-normal: 0em;
+  --rvui-tracking-wide: 0.04em;
+
+  /* ── Spacing (4px base) ── */
+  --rvui-space-0: 0px;
+  --rvui-space-px: 1px;
+  --rvui-space-0-5: 2px;
+  --rvui-space-1: 4px;
+  --rvui-space-1-5: 6px;
+  --rvui-space-2: 8px;
+  --rvui-space-3: 12px;
+  --rvui-space-4: 16px;
+  --rvui-space-5: 20px;
+  --rvui-space-6: 24px;
+  --rvui-space-8: 32px;
+  --rvui-space-10: 40px;
+  --rvui-space-12: 48px;
+  --rvui-space-16: 64px;
+  --rvui-space-20: 80px;
+  --rvui-space-24: 96px;
+
+  /* ── Z-Index Scale ── */
+  --rvui-z-base: 0;
+  --rvui-z-dropdown: 100;
+  --rvui-z-sticky: 200;
+  --rvui-z-overlay: 300;
+  --rvui-z-modal: 400;
+  --rvui-z-toast: 500;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * DARK MODE — :root default (dark-first design)
+ * ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* ── Brand ── */
+  --rvui-brand: oklch(0.723 0.177 163.22);
+  --rvui-brand-subtle: oklch(0.723 0.177 163.22 / 0.12);
+  --rvui-brand-strong: oklch(0.65 0.2 163.22);
+  --rvui-brand-text: oklch(0.82 0.14 163.22);
+
+  /* ── Surfaces (layered depth) ── */
+  --rvui-surface-0: oklch(0.13 0.004 228);
+  --rvui-surface-1: oklch(0.18 0.006 225);
+  --rvui-surface-2: oklch(0.22 0.008 222);
+  --rvui-surface-3: oklch(0.26 0.01 220);
+
+  /* ── Borders ── */
+  --rvui-border: oklch(0.32 0.008 220 / 0.6);
+  --rvui-border-subtle: oklch(0.28 0.006 222 / 0.4);
+  --rvui-border-strong: oklch(0.45 0.01 218 / 0.7);
+
+  /* ── Text ── */
+  --rvui-text-0: oklch(0.95 0.002 210);
+  --rvui-text-1: oklch(0.75 0.01 215);
+  --rvui-text-2: oklch(0.55 0.012 218);
+
+  /* ── Status ── */
+  --rvui-success: oklch(0.72 0.17 155);
+  --rvui-success-subtle: oklch(0.72 0.17 155 / 0.12);
+  --rvui-warning: oklch(0.8 0.16 75);
+  --rvui-warning-subtle: oklch(0.8 0.16 75 / 0.12);
+  --rvui-error: oklch(0.65 0.2 25);
+  --rvui-error-subtle: oklch(0.65 0.2 25 / 0.12);
+  --rvui-info: oklch(0.7 0.14 240);
+  --rvui-info-subtle: oklch(0.7 0.14 240 / 0.12);
+
+  /* ── Shadows ── */
+  --rvui-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.2), 0 1px 2px oklch(0 0 0 / 0.15);
+  --rvui-shadow-md: 0 4px 12px oklch(0 0 0 / 0.25), 0 2px 4px oklch(0 0 0 / 0.15);
+  --rvui-shadow-lg: 0 12px 40px oklch(0 0 0 / 0.35), 0 4px 12px oklch(0 0 0 / 0.2);
+  --rvui-shadow-glow: 0 0 20px oklch(0.723 0.177 163.22 / 0.25);
+
+  /* ─── shadcn/ui Backward Compatibility Bridge ───
+   * Maps --rvui-* tokens to the semantic names that existing
+   * presentation components reference (bg-primary, text-muted-foreground, etc.).
+   * Bridge aliases update automatically when --rvui-* values change
+   * (light mode overrides propagate through var() references). */
+  --background: var(--rvui-surface-0);
+  --foreground: var(--rvui-text-0);
+  --card: var(--rvui-surface-1);
+  --card-foreground: var(--rvui-text-0);
+  --popover: var(--rvui-surface-1);
+  --popover-foreground: var(--rvui-text-0);
+  --primary: var(--rvui-brand);
+  --primary-foreground: oklch(0.13 0.004 228);
+  --secondary: var(--rvui-surface-2);
+  --secondary-foreground: var(--rvui-text-0);
+  --muted: var(--rvui-surface-2);
+  --muted-foreground: var(--rvui-text-2);
+  --accent: var(--rvui-surface-2);
+  --accent-foreground: var(--rvui-text-0);
+  --destructive: var(--rvui-error);
+  --destructive-foreground: var(--rvui-text-0);
+  --border: var(--rvui-border);
+  --input: var(--rvui-border);
+  --ring: var(--rvui-brand);
+  --success: var(--rvui-success);
+  --warning: var(--rvui-warning);
+  --error: var(--rvui-error);
+  --radius: var(--rvui-radius-md);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════
+ * LIGHT MODE — activates via system preference or explicit attr
+ *
+ * Selector precedence:
+ *   [data-theme="light"]  — explicit toggle (highest priority)
+ *   @media + :not(.dark)  — system preference (auto)
+ *   .dark                 — explicit dark override
+ * ═══════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  /* ── Brand ── */
+  --rvui-brand: oklch(0.55 0.2 163.22);
+  --rvui-brand-subtle: oklch(0.55 0.2 163.22 / 0.08);
+  --rvui-brand-strong: oklch(0.48 0.22 163.22);
+  --rvui-brand-text: oklch(0.4 0.16 163.22);
+
+  /* ── Surfaces ── */
+  --rvui-surface-0: oklch(0.985 0.002 210);
+  --rvui-surface-1: oklch(1 0 0);
+  --rvui-surface-2: oklch(0.97 0.003 215);
+  --rvui-surface-3: oklch(0.94 0.005 218);
+
+  /* ── Borders ── */
+  --rvui-border: oklch(0.88 0.005 220 / 0.7);
+  --rvui-border-subtle: oklch(0.92 0.003 222 / 0.5);
+  --rvui-border-strong: oklch(0.78 0.008 218 / 0.8);
+
+  /* ── Text ── */
+  --rvui-text-0: oklch(0.15 0.01 225);
+  --rvui-text-1: oklch(0.4 0.015 220);
+  --rvui-text-2: oklch(0.55 0.012 218);
+
+  /* ── Status ── */
+  --rvui-success: oklch(0.55 0.2 155);
+  --rvui-success-subtle: oklch(0.55 0.2 155 / 0.08);
+  --rvui-warning: oklch(0.7 0.18 75);
+  --rvui-warning-subtle: oklch(0.7 0.18 75 / 0.08);
+  --rvui-error: oklch(0.55 0.22 25);
+  --rvui-error-subtle: oklch(0.55 0.22 25 / 0.08);
+  --rvui-info: oklch(0.55 0.18 240);
+  --rvui-info-subtle: oklch(0.55 0.18 240 / 0.08);
+
+  /* ── Shadows ── */
+  --rvui-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04);
+  --rvui-shadow-md: 0 4px 12px oklch(0 0 0 / 0.08), 0 2px 4px oklch(0 0 0 / 0.04);
+  --rvui-shadow-lg: 0 12px 40px oklch(0 0 0 / 0.12), 0 4px 12px oklch(0 0 0 / 0.06);
+  --rvui-shadow-glow: 0 0 20px oklch(0.55 0.2 163.22 / 0.15);
+
+  /* ── Bridge override ── */
+  --primary-foreground: oklch(0.985 0.002 210);
+}
+
+/* System-preference auto-detection (no explicit theme attr) */
+@media (prefers-color-scheme: light) {
+  :root:not(.dark):not([data-theme="dark"]):not([data-theme="light"]) {
+    /* ── Brand ── */
+    --rvui-brand: oklch(0.55 0.2 163.22);
+    --rvui-brand-subtle: oklch(0.55 0.2 163.22 / 0.08);
+    --rvui-brand-strong: oklch(0.48 0.22 163.22);
+    --rvui-brand-text: oklch(0.4 0.16 163.22);
+
+    /* ── Surfaces ── */
+    --rvui-surface-0: oklch(0.985 0.002 210);
+    --rvui-surface-1: oklch(1 0 0);
+    --rvui-surface-2: oklch(0.97 0.003 215);
+    --rvui-surface-3: oklch(0.94 0.005 218);
+
+    /* ── Borders ── */
+    --rvui-border: oklch(0.88 0.005 220 / 0.7);
+    --rvui-border-subtle: oklch(0.92 0.003 222 / 0.5);
+    --rvui-border-strong: oklch(0.78 0.008 218 / 0.8);
+
+    /* ── Text ── */
+    --rvui-text-0: oklch(0.15 0.01 225);
+    --rvui-text-1: oklch(0.4 0.015 220);
+    --rvui-text-2: oklch(0.55 0.012 218);
+
+    /* ── Status ── */
+    --rvui-success: oklch(0.55 0.2 155);
+    --rvui-success-subtle: oklch(0.55 0.2 155 / 0.08);
+    --rvui-warning: oklch(0.7 0.18 75);
+    --rvui-warning-subtle: oklch(0.7 0.18 75 / 0.08);
+    --rvui-error: oklch(0.55 0.22 25);
+    --rvui-error-subtle: oklch(0.55 0.22 25 / 0.08);
+    --rvui-info: oklch(0.55 0.18 240);
+    --rvui-info-subtle: oklch(0.55 0.18 240 / 0.08);
+
+    /* ── Shadows ── */
+    --rvui-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04);
+    --rvui-shadow-md: 0 4px 12px oklch(0 0 0 / 0.08), 0 2px 4px oklch(0 0 0 / 0.04);
+    --rvui-shadow-lg: 0 12px 40px oklch(0 0 0 / 0.12), 0 4px 12px oklch(0 0 0 / 0.06);
+    --rvui-shadow-glow: 0 0 20px oklch(0.55 0.2 163.22 / 0.15);
+
+    /* ── Bridge override ── */
+    --primary-foreground: oklch(0.985 0.002 210);
+  }
+}

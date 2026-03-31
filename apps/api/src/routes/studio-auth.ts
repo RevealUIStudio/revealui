@@ -27,6 +27,16 @@ import { Hono } from 'hono';
 import { z } from 'zod/v4';
 import { sendEmail } from '../lib/email.js';
 
+/** Escape HTML special characters to prevent XSS in email templates */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // =============================================================================
 // Configuration
 // =============================================================================
@@ -164,8 +174,8 @@ app.post('/link', zValidator('json', linkSchema), async (c) => {
         <h2>Studio Device Verification</h2>
         <p>A new device is requesting access to your RevealUI account:</p>
         <table style="border-collapse: collapse; margin: 16px 0;">
-          <tr><td style="padding: 4px 12px; color: #666;">Device</td><td style="padding: 4px 12px; font-weight: bold;">${deviceName}</td></tr>
-          <tr><td style="padding: 4px 12px; color: #666;">Type</td><td style="padding: 4px 12px;">${deviceType}</td></tr>
+          <tr><td style="padding: 4px 12px; color: #666;">Device</td><td style="padding: 4px 12px; font-weight: bold;">${escapeHtml(deviceName)}</td></tr>
+          <tr><td style="padding: 4px 12px; color: #666;">Type</td><td style="padding: 4px 12px;">${escapeHtml(deviceType)}</td></tr>
         </table>
         <p>Your verification code:</p>
         <p style="font-size: 32px; font-weight: bold; letter-spacing: 4px; font-family: monospace;">${code}</p>

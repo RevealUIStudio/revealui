@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Guard: Pro packages must remain gitignored — prevents accidental leak to public repo
-for pkg in packages/ai packages/mcp packages/editors packages/services; do
+for pkg in packages/ai packages/harnesses; do
   if ! git check-ignore -q "$pkg" 2>/dev/null; then
     echo ""
     echo "FATAL: $pkg is no longer gitignored! Aborting push."
@@ -21,7 +21,7 @@ while read local_ref local_oid remote_ref remote_oid; do
   fi
 done
 if [ -n "$RANGE" ]; then
-  PRO_FILES=$(git diff --name-only "$RANGE" -- packages/ai/ packages/mcp/ packages/editors/ packages/services/ 2>/dev/null || true)
+  PRO_FILES=$(git diff --name-only "$RANGE" -- packages/ai/ packages/harnesses/ 2>/dev/null || true)
   if [ -n "$PRO_FILES" ]; then
     echo ""
     echo "FATAL: Pro package files detected in commits being pushed!"
@@ -33,25 +33,86 @@ if [ -n "$RANGE" ]; then
   fi
 fi
 
+# ── Save dirty files to /tmp (never use git stash — it loses data on pop) ──
+# Skip if the coordinated push script already handled this
+SAVE_DIR=""
+if [ "${REVEALUI_PUSH_COORDINATED:-0}" != "1" ]; then
+  DIRTY=$(git status --porcelain -u 2>/dev/null || true)
+  if [ -n "$DIRTY" ]; then
+    SAVE_DIR="/tmp/revealui-prepush-save-$$"
+    mkdir -p "$SAVE_DIR/files"
+    : > "$SAVE_DIR/manifest"
+
+    echo ""
+    echo "Saving uncommitted files before gate..."
+
+    # Write status to temp file to avoid subshell
+    STATUS_FILE=$(mktemp)
+    git status --porcelain -u > "$STATUS_FILE" 2>/dev/null || true
+
+    while IFS= read -r line; do
+      status="${line:0:2}"
+      filepath="${line:3}"
+      [[ "$status" == " D" || "$status" == "D " ]] && continue
+      [[ "$filepath" == *" -> "* ]] && filepath="${filepath##* -> }"
+      filepath="${filepath%\"}"
+      filepath="${filepath#\"}"
+      if [ -f "$filepath" ]; then
+        dir=$(dirname "$filepath")
+        mkdir -p "$SAVE_DIR/files/$dir"
+        cp -f "$filepath" "$SAVE_DIR/files/$filepath"
+        echo "$filepath" >> "$SAVE_DIR/manifest"
+      fi
+    done < "$STATUS_FILE"
+    rm -f "$STATUS_FILE"
+
+    FILE_COUNT=$(wc -l < "$SAVE_DIR/manifest")
+    echo "  Saved $FILE_COUNT file(s) to $SAVE_DIR"
+
+    # Clean worktree
+    git checkout -- . 2>/dev/null || true
+    while IFS= read -r relpath; do
+      if ! git ls-files --error-unmatch "$relpath" >/dev/null 2>&1; then
+        rm -f "$relpath" 2>/dev/null || true
+      fi
+    done < "$SAVE_DIR/manifest"
+  fi
+else
+  echo ""
+  echo "(Dirty file handling by coordinated push script)"
+fi
+
 # Branch-aware gate strictness
+#   main/test: full gate (these trigger CI + deploy)
+#   feature/*: quality-only (local dev, no CI)
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
+GATE_EXIT=0
 case "$BRANCH" in
   main|test)
     echo ""
     echo "Running full CI gate for protected branch '$BRANCH'..."
     echo ""
-    pnpm gate
-    ;;
-  develop)
-    echo ""
-    echo "Running pre-push CI gate (changed-only mode)..."
-    echo ""
-    pnpm gate --no-build --changed
+    pnpm gate || GATE_EXIT=$?
     ;;
   *)
     echo ""
-    echo "Running quality checks for feature branch '$BRANCH'..."
+    echo "Running quality checks for '$BRANCH'..."
     echo ""
-    pnpm gate --phase=1 --changed
+    pnpm gate --phase=1 --changed || GATE_EXIT=$?
     ;;
 esac
+
+# Restore saved files (plain copy — never conflicts)
+if [ -n "$SAVE_DIR" ] && [ -f "$SAVE_DIR/manifest" ]; then
+  echo ""
+  echo "Restoring saved files..."
+  while IFS= read -r relpath; do
+    dir=$(dirname "$relpath")
+    mkdir -p "$dir"
+    cp -f "$SAVE_DIR/files/$relpath" "$relpath"
+  done < "$SAVE_DIR/manifest"
+  echo "  Restored $(wc -l < "$SAVE_DIR/manifest") file(s)"
+  rm -rf "$SAVE_DIR"
+fi
+
+exit $GATE_EXIT

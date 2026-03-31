@@ -70,8 +70,8 @@ describe('generateReadme', () => {
     await generateReadme('/tmp/my-app', baseConfig);
     const content = mockWriteFile.mock.calls[0][1] as string;
     expect(content).toContain('my-app/');
-    expect(content).toContain('apps/');
-    expect(content).toContain('packages/');
+    expect(content).toContain('src/');
+    expect(content).toContain('revealui.config.ts');
   });
 
   it('includes available scripts section', async () => {

@@ -2283,7 +2283,7 @@ git clone https://github.com/your-org/revealui.git
 cd revealui
 
 # Copy environment file
-cp .env.example .env
+cp .env.template .env
 
 # Edit .env with your configuration
 nano .env

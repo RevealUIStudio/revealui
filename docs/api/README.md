@@ -177,7 +177,7 @@ Auth endpoints are rate-limited per IP address. Content endpoints are rate-limit
 | Free | 200 |
 | Pro | 300 |
 | Max | 600 |
-| Enterprise | Custom |
+| Forge      | Custom |
 
 When rate-limited, the response includes a `Retry-After` header.
 

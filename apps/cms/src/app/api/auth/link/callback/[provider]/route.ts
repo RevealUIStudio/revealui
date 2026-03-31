@@ -15,6 +15,7 @@ import {
 } from '@revealui/auth/server';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -43,7 +44,7 @@ export async function GET(
   }
 
   // Require active session — linking is only valid for authenticated users
-  const sessionData = await getSession(request.headers);
+  const sessionData = await getSession(request.headers, extractRequestContext(request));
   if (!sessionData) {
     return NextResponse.redirect(new URL('/login?error=session_expired', baseUrl));
   }

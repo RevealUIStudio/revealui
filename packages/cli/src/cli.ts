@@ -4,6 +4,11 @@
 
 import { createLogger } from '@revealui/setup/utils';
 import { Command } from 'commander';
+import {
+  runAgentHeadlessCommand,
+  runAgentReplCommand,
+  runAgentStatusCommand,
+} from './commands/agent.js';
 import { runCreateFlow } from './commands/create-flow.js';
 import {
   runDbCleanupCommand,
@@ -64,6 +69,27 @@ export function createCli(): Command {
     .option('--strict', 'Exit nonzero when checks fail', false)
     .action(async (options: { json?: boolean; fix?: boolean; strict?: boolean }) => {
       await runDoctorCommand(options);
+    });
+
+  const agent = program
+    .command('agent')
+    .description('RevealUI coding agent (powered by local or cloud LLMs)');
+
+  agent
+    .option('-p, --prompt <text>', 'Run a single prompt in headless mode')
+    .action(async (options: { prompt?: string }) => {
+      if (options.prompt) {
+        await runAgentHeadlessCommand(options.prompt);
+      } else {
+        await runAgentReplCommand();
+      }
+    });
+
+  agent
+    .command('status')
+    .description('Show agent status: model, provider, project root')
+    .action(async () => {
+      await runAgentStatusCommand();
     });
 
   const db = program.command('db').description('Manage the local RevealUI database');
