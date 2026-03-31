@@ -1,5 +1,12 @@
 # @revealui/mcp
 
+## 0.1.5
+
+### Patch Changes
+
+- @revealui/contracts@1.3.3
+- @revealui/core@0.5.2
+
 ## 0.1.4
 
 ### Patch Changes

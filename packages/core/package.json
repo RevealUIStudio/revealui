@@ -1,6 +1,6 @@
 {
   "name": "@revealui/core",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "license": "MIT",
   "dependencies": {
     "@electric-sql/pglite": "^0.4.2",

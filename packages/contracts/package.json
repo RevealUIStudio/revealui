@@ -1,6 +1,6 @@
 {
   "name": "@revealui/contracts",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Unified contracts package for RevealUI - schemas, validation, and type safety across the stack",
   "keywords": [
     "contracts",
