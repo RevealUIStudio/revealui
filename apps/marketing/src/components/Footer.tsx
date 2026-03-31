@@ -98,7 +98,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/coming-soon" className="hover:text-white transition-colors">
-                  Coming Soon
+                  Roadmap
                 </Link>
               </li>
               <li>
