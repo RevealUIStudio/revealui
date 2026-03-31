@@ -2,10 +2,10 @@
 import type { DeployApps } from "./DeployApps";
 
 export interface DeployConfig {
-  vercelTeamId: string | null;
-  domain: string | null;
-  apps: DeployApps | null;
-  neonProjectId: string | null;
+  vercelTeamId?: string | null;
+  domain?: string | null;
+  apps?: DeployApps | null;
+  neonProjectId?: string | null;
   supabaseEnabled: boolean;
-  emailProvider: string | null;
+  emailProvider?: string | null;
 }

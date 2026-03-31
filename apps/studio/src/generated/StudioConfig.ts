@@ -3,9 +3,9 @@ import type { DeployConfig } from "./DeployConfig";
 import type { DevelopConfig } from "./DevelopConfig";
 
 export interface StudioConfig {
-  intent: string | null;
+  intent?: string | null;
   setupComplete: boolean;
   completedSteps: Array<string>;
-  deploy: DeployConfig | null;
-  develop: DevelopConfig | null;
+  deploy?: DeployConfig | null;
+  develop?: DevelopConfig | null;
 }

@@ -51,7 +51,7 @@ export default function ConnectForm({ onConnect, connecting }: ConnectFormProps)
     setHost(b.host);
     setPort(b.port);
     setUsername(b.username);
-    setAuthMethod(b.auth_method);
+    setAuthMethod(b.auth_method as AuthMethod);
     if (b.key_path) setKeyPath(b.key_path);
     setShowBookmarks(false);
   };
