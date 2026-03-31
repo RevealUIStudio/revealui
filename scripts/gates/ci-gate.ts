@@ -345,7 +345,14 @@ async function gate(): Promise<void> {
             {
               name: 'Build (changed)',
               command: 'pnpm',
-              args: ['turbo', 'run', 'build', `--filter=...[${changeBase}]`, ...proFilter],
+              args: [
+                'turbo',
+                'run',
+                'build',
+                `--filter=...[${changeBase}]`,
+                ...proFilter,
+                '--concurrency=3',
+              ],
               timeout: 600000,
             },
           ]
@@ -353,7 +360,7 @@ async function gate(): Promise<void> {
             {
               name: 'Build',
               command: 'pnpm',
-              args: ['turbo', 'run', 'build', ...proFilter],
+              args: ['turbo', 'run', 'build', ...proFilter, '--concurrency=3'],
               timeout: 900000,
             },
           ];
