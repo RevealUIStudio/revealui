@@ -3,7 +3,7 @@ import { act } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // Mock the logger
-vi.mock('@revealui/core/observability/logger', () => ({
+vi.mock('@revealui/utils/logger', () => ({
   logger: {
     error: vi.fn(),
     warn: vi.fn(),

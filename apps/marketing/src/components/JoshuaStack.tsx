@@ -11,7 +11,7 @@ const principles = [
     letter: 'O',
     word: 'Orthogonal',
     description:
-      "Clean separation of concerns across 23 packages. Use what you need, replace what you don't. Zero circular dependencies.",
+      "Clean separation of concerns across 26 packages. Use what you need, replace what you don't. Zero circular dependencies.",
     accent: 'text-cyan-600',
     border: 'border-cyan-500/30',
   },

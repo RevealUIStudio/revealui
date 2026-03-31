@@ -1990,7 +1990,7 @@ See `.env.template` in the repo root for the full list with descriptions.
 
 # @revealui/presentation
 
-56 native UI components for building RevealUI apps. Zero external UI dependencies — only `clsx` and `cva`.
+52 native UI components for building RevealUI apps. Zero external UI dependencies — only `clsx` and `cva`.
 
 ```bash
 npm install @revealui/presentation
@@ -2711,7 +2711,7 @@ Behaviour-only versions of form controls — bring your own styles.
 ## Related
 
 - [`@revealui/core`](/reference/core) — Uses `presentation` for admin UI components
-- [Component catalog](/docs/COMPONENT_CATALOG) — Visual index of all 56 components
+- [Component catalog](/docs/COMPONENT_CATALOG) — Visual index of all 52 components
 
 ---
 

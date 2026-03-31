@@ -5,7 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "@hono/node-server": "^1.19.10",
-    "@revealui/core": "workspace:*",
+    "@revealui/utils": "workspace:*",
     "hono": "^4.12.7"
   },
   "devDependencies": {

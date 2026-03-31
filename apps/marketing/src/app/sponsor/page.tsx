@@ -1,4 +1,17 @@
+import type { Metadata } from 'next';
 import { Footer } from '@/components/Footer';
+
+export const metadata: Metadata = {
+  title: 'Sponsor RevealUI — Support Open Source',
+  description:
+    'Help sustain RevealUI development. Sponsor tiers from $5/mo with benefits like priority support, logo placement, and consulting hours.',
+  openGraph: {
+    title: 'Sponsor RevealUI — Support Open Source',
+    description:
+      'Help sustain RevealUI development. Sponsor tiers from $5/mo with benefits like priority support, logo placement, and consulting hours.',
+    type: 'website',
+  },
+};
 
 const tiers = [
   {

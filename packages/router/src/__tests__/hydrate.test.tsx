@@ -6,7 +6,7 @@ const { loggerError, loggerInfo, hydrateRootMock } = vi.hoisted(() => ({
   hydrateRootMock: vi.fn(),
 }));
 
-vi.mock('@revealui/core/observability/logger', () => ({
+vi.mock('@revealui/utils/logger', () => ({
   logger: {
     error: loggerError,
     warn: vi.fn(),

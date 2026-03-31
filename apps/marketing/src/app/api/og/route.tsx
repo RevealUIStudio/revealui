@@ -7,7 +7,8 @@ export async function GET(request: NextRequest): Promise<ImageResponse> {
   const { searchParams } = new URL(request.url);
   const title = searchParams.get('title') ?? 'RevealUI';
   const description =
-    searchParams.get('description') ?? 'Business OS. Build your business, not your boilerplate.';
+    searchParams.get('description') ??
+    'The agentic business runtime. Build your business, not your boilerplate.';
 
   return new ImageResponse(
     <div

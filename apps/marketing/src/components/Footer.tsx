@@ -66,7 +66,7 @@ export function Footer() {
             </h3>
             <ul className="space-y-3 text-sm text-gray-400">
               <li>
-                <Link href="/" className="hover:text-white transition-colors">
+                <Link href="/#value-proposition" className="hover:text-white transition-colors">
                   Features
                 </Link>
               </li>
@@ -98,7 +98,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/coming-soon" className="hover:text-white transition-colors">
-                  Coming Soon
+                  Roadmap
                 </Link>
               </li>
               <li>

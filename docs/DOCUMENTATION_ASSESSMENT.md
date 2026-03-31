@@ -15,7 +15,7 @@ Brutally honest audit of what RevealUI documentation claims versus what the code
 
 ## Executive Summary
 
-RevealUI's core framework is **real and production-grade** — auth, billing, CMS engine, 56 UI components, 76-table database, 13,700+ tests. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
+RevealUI's core framework is **real and production-grade** — auth, billing, CMS engine, 52 UI components, 76-table database, 13,700+ tests. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
 
 ---
 
@@ -49,7 +49,7 @@ RevealUI's core framework is **real and production-grade** — auth, billing, CM
 |---------|----------|
 | React 19 | `react@^19.2.3` in package.json |
 | Next.js 16 | Catalog reference, App Router throughout |
-| 50+ UI components | **56 components** in presentation package |
+| 50+ UI components | **52 components** in presentation package |
 | Session-only auth (no JWT) | bcrypt-12, RBAC/ABAC, 2FA, WebAuthn, OAuth |
 | Stripe checkout/subscriptions/webhooks | 1,100-line webhook handler, 12 event types |
 | Drizzle ORM dual-DB (NeonDB + Supabase) | Schema + queries + boundary enforcement |

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@revealui/core/observability/logger', () => ({
+vi.mock('@revealui/utils/logger', () => ({
   logger: {
     error: vi.fn(),
     warn: vi.fn(),
