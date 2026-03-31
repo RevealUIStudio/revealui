@@ -659,6 +659,7 @@ app.doc('/openapi.json', {
 
 // Swagger UI — interactive API explorer (auto-generated from OpenAPI spec)
 app.get('/', swaggerUI({ url: '/openapi.json' }));
+app.get('/docs', swaggerUI({ url: '/openapi.json' }));
 
 // Routes
 app.route('/.well-known', wellKnownRoutes);
