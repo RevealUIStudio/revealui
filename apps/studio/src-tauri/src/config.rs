@@ -2,9 +2,11 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Mutex;
+use ts_rs::TS;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "bindings/")]
 pub struct StudioConfig {
     pub intent: Option<String>,
     pub setup_complete: bool,
@@ -15,8 +17,9 @@ pub struct StudioConfig {
     pub develop: Option<DevelopConfig>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "bindings/")]
 pub struct DeployConfig {
     pub vercel_team_id: Option<String>,
     pub domain: Option<String>,
@@ -26,16 +29,18 @@ pub struct DeployConfig {
     pub email_provider: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "bindings/")]
 pub struct DeployApps {
     pub api: Option<String>,
     pub cms: Option<String>,
     pub marketing: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "bindings/")]
 pub struct DevelopConfig {
     pub repo_path: Option<String>,
     pub wsl_distro: Option<String>,

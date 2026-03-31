@@ -1,9 +1,11 @@
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
 use super::super::error::StudioError;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct VercelProject {
     pub id: String,
     pub name: String,
@@ -12,7 +14,8 @@ pub struct VercelProject {
     pub account_id: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct VercelDeployment {
     pub uid: String,
     pub url: Option<String>,

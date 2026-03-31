@@ -3,11 +3,13 @@ use revvault_core::{config::Config, store::SecretEntry, PassageStore};
 use secrecy::ExposeSecret;
 use serde::Serialize;
 use std::path::PathBuf;
+use ts_rs::TS;
 
 use super::error::StudioError;
 
 /// Serializable subset of SecretEntry for the frontend.
-#[derive(Serialize)]
+#[derive(Serialize, TS)]
+#[ts(export, export_to = "bindings/")]
 pub struct SecretInfo {
     pub path: String,
     pub namespace: String,
