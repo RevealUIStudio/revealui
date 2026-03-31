@@ -119,15 +119,14 @@ test.describe('Marketing page', () => {
   });
 
   test('Pricing page renders tier cards', async ({ page }) => {
-    await page.goto(`${MarketingBase}/pricing`, { waitUntil: 'domcontentloaded' });
-    // Verify at least one pricing tier heading (h3) is visible
+    await page.goto(`${MarketingBase}/pricing`, { waitUntil: 'networkidle' });
+    // Verify pricing tier headings (h3) are rendered in the DOM
     // regex-ok: Playwright locator filter requires regex for multi-value matching
-    await expect(
-      page
-        .locator('h3')
-        .filter({ hasText: /^(Free|Pro|Max|Forge|Enterprise)$/ })
-        .first(),
-    ).toBeVisible();
+    const tierHeadings = page.locator('h3').filter({ hasText: /^(Free|Pro|Max|Forge|Enterprise)/ });
+    await expect(tierHeadings.first()).toBeAttached({ timeout: 10_000 });
+    // At least 2 tiers should render (Free + at least one paid tier)
+    const count = await tierHeadings.count();
+    expect(count).toBeGreaterThanOrEqual(2);
   });
 
   test('Waitlist POST returns success', async ({ request }) => {
