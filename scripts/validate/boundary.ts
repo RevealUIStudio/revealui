@@ -145,9 +145,13 @@ const PRO_SOURCE_ALIAS_PATTERNS: SourcePattern[] = [
   },
   {
     check: (content) => {
-      // Check for paths like packages/ai/src or ee/packages/ai/src
+      // Check for relative import paths: '../packages/ai/src' or '../../ee/packages/ai/src'
+      // Must have ../ prefix (relative traversal) to distinguish from documentation/config references
       for (const dir of PRO_PACKAGE_DIRS) {
-        if (content.includes(`packages/${dir}/src`) || content.includes(`ee/packages/${dir}/src`)) {
+        if (
+          content.includes(`../packages/${dir}/src`) ||
+          content.includes(`../ee/packages/${dir}/src`)
+        ) {
           return true;
         }
       }
@@ -349,7 +353,8 @@ function checkProSourceAliases(): string[] {
     const content = readFileSync(file, 'utf8');
     const relPath = relative(REPO_ROOT, file);
 
-    if (relPath === 'scripts/validate/structure.ts') {
+    // Skip files that contain pattern definitions (not actual violations)
+    if (relPath === 'scripts/validate/structure.ts' || relPath === 'scripts/validate/boundary.ts') {
       continue;
     }
 
@@ -386,6 +391,12 @@ function checkPublicRepoProDependencies(): string[] {
         const trimmed = line.trimStart();
         // Skip non-import/export lines early
         if (!(trimmed.startsWith('import') || trimmed.startsWith('export'))) continue;
+        // Skip dynamic imports: import('...') — these are intentional for feature gating
+        if (trimmed.startsWith('import(')) continue;
+        // Static imports have a space after 'import': import { ... } from '...'
+        // Static exports: export { ... } from '...'
+        if (trimmed.startsWith('import') && !trimmed.startsWith('import ')) continue;
+        if (trimmed.startsWith('export') && !trimmed.startsWith('export ')) continue;
         // Check if the line references this Pro package
         if (
           trimmed.includes(`'${packageName}'`) ||
