@@ -5,6 +5,7 @@ import Tile from './Tile';
 interface CategorySectionProps {
   data: CategoryWithTiles;
   editing: boolean;
+  runningTileIds: Set<string>;
   onToggleCollapse: () => void;
   onLaunch: (tile: TileDefinition) => void;
   onToggleTile: (tileId: string) => void;
@@ -13,6 +14,7 @@ interface CategorySectionProps {
 export default function CategorySection({
   data,
   editing,
+  runningTileIds,
   onToggleCollapse,
   onLaunch,
   onToggleTile,
@@ -50,6 +52,7 @@ export default function CategorySection({
               key={tile.id}
               tile={tile}
               editing={editing}
+              running={runningTileIds.has(tile.id)}
               onLaunch={onLaunch}
               onToggle={onToggleTile}
             />

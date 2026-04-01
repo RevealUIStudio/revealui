@@ -169,24 +169,124 @@ export const DEFAULT_TILES: TileDefinition[] = [
 export interface TilePreferences {
   hiddenTileIds: string[];
   collapsedCategories: TileCategory[];
+  recentTileIds: string[];
 }
 
 const PREFS_KEY = 'studio-tile-preferences';
+const MAX_RECENTS = 5;
 
 export function loadTilePreferences(): TilePreferences {
   try {
     const stored = localStorage.getItem(PREFS_KEY);
     if (stored) {
-      return JSON.parse(stored) as TilePreferences;
+      const parsed = JSON.parse(stored) as TilePreferences;
+      // Backfill for existing prefs without recentTileIds
+      if (!parsed.recentTileIds) {
+        parsed.recentTileIds = [];
+      }
+      return parsed;
     }
   } catch {
     // Corrupted — reset
   }
-  return { hiddenTileIds: [], collapsedCategories: [] };
+  return { hiddenTileIds: [], collapsedCategories: [], recentTileIds: [] };
 }
 
 export function saveTilePreferences(prefs: TilePreferences): void {
   localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+}
+
+export function recordRecentLaunch(prefs: TilePreferences, tileId: string): TilePreferences {
+  const filtered = prefs.recentTileIds.filter((id) => id !== tileId);
+  return {
+    ...prefs,
+    recentTileIds: [tileId, ...filtered].slice(0, MAX_RECENTS),
+  };
+}
+
+// ── Process detection (for running indicator) ───────────────────────────────
+// Maps tile IDs to process names to check. Checked against `tasklist.exe` on
+// Windows/WSL and `pgrep` on native Linux/macOS.
+
+export const PROCESS_NAMES: Record<string, string[]> = {
+  zed: ['zed', 'Zed.exe'],
+  'revealui-tmux': ['tmux'],
+  wsl: ['wt.exe', 'WindowsTerminal.exe'],
+  powershell: ['powershell.exe', 'pwsh.exe'],
+  'claude-desktop': ['Claude.exe', 'claude-desktop'],
+  'claude-code': ['claude'],
+  'chrome-dev': ['chrome.exe', 'chrome', 'Google Chrome'],
+  'chrome-personal': ['chrome.exe', 'chrome', 'Google Chrome'],
+};
+
+// ── Browser profile detection ────────────────────────────────────────────────
+
+export interface BrowserProfile {
+  directory: string;
+  name: string;
+  browser: 'chrome' | 'edge';
+}
+
+export async function detectBrowserProfiles(): Promise<BrowserProfile[]> {
+  const { Command } = await import('@tauri-apps/plugin-shell');
+  const profiles: BrowserProfile[] = [];
+
+  // Detect Windows username for path construction
+  const whoami = await Command.create('exec-sh', [
+    '-c',
+    'cmd.exe /c "echo %USERPROFILE%" 2>/dev/null',
+  ]).execute();
+
+  if (whoami.code !== 0) return profiles;
+
+  // Convert Windows path to WSL path: C:\Users\foo -> /mnt/c/Users/foo
+  const winProfile = whoami.stdout.trim().replace(/\r/g, '');
+  const wslBase = winProfile
+    .replace(/^([A-Z]):\\/, (_m, drive: string) => `/mnt/${drive.toLowerCase()}/`)
+    .split('\\')
+    .join('/');
+
+  const browsers: { name: 'chrome' | 'edge'; subdir: string; exe: string }[] = [
+    { name: 'chrome', subdir: 'Google/Chrome/User Data', exe: 'chrome.exe' },
+    { name: 'edge', subdir: 'Microsoft/Edge/User Data', exe: 'msedge.exe' },
+  ];
+
+  for (const browser of browsers) {
+    const baseDir = `${wslBase}/AppData/Local/${browser.subdir}`;
+
+    // List profile directories
+    const lsResult = await Command.create('exec-sh', [
+      '-c',
+      `ls -d "${baseDir}"/Default "${baseDir}"/Profile\\ * 2>/dev/null`,
+    ]).execute();
+
+    if (lsResult.code !== 0) continue;
+
+    const dirs = lsResult.stdout.trim().split('\n').filter(Boolean);
+
+    for (const dir of dirs) {
+      const prefPath = `${dir}/Preferences`;
+      const catResult = await Command.create('exec-sh', [
+        '-c',
+        `cat "${prefPath}" 2>/dev/null`,
+      ]).execute();
+
+      if (catResult.code !== 0) continue;
+
+      try {
+        const prefs = JSON.parse(catResult.stdout);
+        const name = prefs?.profile?.name;
+        if (name) {
+          const directory = dir.split('/').pop() ?? 'Default';
+          profiles.push({ directory, name, browser: browser.name });
+        }
+      } catch {
+        // Skip unparseable profiles
+      }
+    }
+  }
+
+  return profiles;
 }
 
 // ── Launch ───────────────────────────────────────────────────────────────────

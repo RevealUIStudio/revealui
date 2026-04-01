@@ -2,10 +2,13 @@ import { useTiles } from '../../hooks/use-tiles';
 import Button from '../ui/Button';
 import PanelHeader from '../ui/PanelHeader';
 import CategorySection from './CategorySection';
+import Tile from './Tile';
 
 export default function TileGallery() {
   const {
     categories,
+    recentTiles,
+    runningTileIds,
     query,
     setQuery,
     editing,
@@ -67,6 +70,25 @@ export default function TileGallery() {
         )}
       </div>
 
+      {/* Recent launches */}
+      {recentTiles.length > 0 && !query && !editing && (
+        <section>
+          <h2 className="py-2 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            Recent
+          </h2>
+          <div className="grid grid-cols-2 gap-2 pb-2 sm:grid-cols-3 lg:grid-cols-4">
+            {recentTiles.map((tile) => (
+              <Tile
+                key={tile.id}
+                tile={tile}
+                running={runningTileIds.has(tile.id)}
+                onLaunch={launch}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Category sections */}
       {categories.length > 0 ? (
         <div className="space-y-1">
@@ -75,6 +97,7 @@ export default function TileGallery() {
               key={cat.category.id}
               data={cat}
               editing={editing}
+              runningTileIds={runningTileIds}
               onToggleCollapse={() => toggleCategory(cat.category.id)}
               onLaunch={launch}
               onToggleTile={toggleTile}

@@ -5,11 +5,12 @@ interface TileProps {
   tile: TileDefinition;
   hidden?: boolean;
   editing?: boolean;
+  running?: boolean;
   onLaunch: (tile: TileDefinition) => void;
   onToggle?: (tileId: string) => void;
 }
 
-export default function Tile({ tile, hidden, editing, onLaunch, onToggle }: TileProps) {
+export default function Tile({ tile, hidden, editing, running, onLaunch, onToggle }: TileProps) {
   const isUrl = tile.action.type === 'url';
 
   return (
@@ -25,7 +26,9 @@ export default function Tile({ tile, hidden, editing, onLaunch, onToggle }: Tile
       className={`group flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-all ${
         hidden
           ? 'border-neutral-800/50 bg-neutral-900/30 text-neutral-600'
-          : 'border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-700 hover:bg-neutral-800 hover:text-neutral-100'
+          : running
+            ? 'border-emerald-800/60 bg-neutral-900 text-neutral-300 hover:border-emerald-700 hover:bg-neutral-800 hover:text-neutral-100'
+            : 'border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-700 hover:bg-neutral-800 hover:text-neutral-100'
       }`}
       title={
         editing
@@ -34,15 +37,22 @@ export default function Tile({ tile, hidden, editing, onLaunch, onToggle }: Tile
             : `Hide ${tile.label}`
           : isUrl
             ? (tile.action as { type: 'url'; url: string }).url
-            : tile.label
+            : running
+              ? `${tile.label} (running)`
+              : tile.label
       }
     >
-      <span
-        className={
-          hidden ? 'opacity-40' : 'text-neutral-400 group-hover:text-orange-400 transition-colors'
-        }
-      >
-        <TileIcon tileId={tile.id} />
+      <span className="relative">
+        <span
+          className={
+            hidden ? 'opacity-40' : 'text-neutral-400 group-hover:text-orange-400 transition-colors'
+          }
+        >
+          <TileIcon tileId={tile.id} />
+        </span>
+        {running && !editing && (
+          <span className="absolute -right-0.5 -top-0.5 size-2 rounded-full bg-emerald-500" />
+        )}
       </span>
       <span className="truncate font-medium">{tile.label}</span>
       {editing && (

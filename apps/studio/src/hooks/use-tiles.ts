@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Command } from '@tauri-apps/plugin-shell';
 import {
+  type BrowserProfile,
   CATEGORIES,
   type CategoryDefinition,
   DEFAULT_TILES,
+  detectBrowserProfiles,
   launchTile,
   loadTilePreferences,
+  PROCESS_NAMES,
+  recordRecentLaunch,
   saveTilePreferences,
   type TileCategory,
   type TileDefinition,
@@ -14,6 +19,10 @@ import {
 interface UseTilesReturn {
   /** All tiles grouped by category (respects hidden/collapsed state) */
   categories: CategoryWithTiles[];
+  /** Recently launched tiles (up to 5) */
+  recentTiles: TileDefinition[];
+  /** Set of tile IDs for currently running processes */
+  runningTileIds: Set<string>;
   /** Current search query */
   query: string;
   /** Set search query — filters tiles by label */
@@ -38,10 +47,107 @@ export interface CategoryWithTiles {
   hiddenTiles: TileDefinition[];
 }
 
+// ── Process detection ──────────────────────────────────────────────────────
+
+async function detectRunningProcesses(): Promise<Set<string>> {
+  const running = new Set<string>();
+
+  try {
+    // On WSL, use tasklist.exe to detect Windows processes + pgrep for Linux
+    const [winResult, linuxResult] = await Promise.allSettled([
+      Command.create('exec-sh', ['-c', 'tasklist.exe /FO CSV /NH 2>/dev/null']).execute(),
+      Command.create('exec-sh', ['-c', 'ps -eo comm 2>/dev/null']).execute(),
+    ]);
+
+    const winProcesses =
+      winResult.status === 'fulfilled' && winResult.value.code === 0
+        ? winResult.value.stdout.toLowerCase()
+        : '';
+    const linuxProcesses =
+      linuxResult.status === 'fulfilled' && linuxResult.value.code === 0
+        ? linuxResult.value.stdout.toLowerCase()
+        : '';
+
+    const combined = winProcesses + '\n' + linuxProcesses;
+
+    for (const [tileId, processNames] of Object.entries(PROCESS_NAMES)) {
+      for (const name of processNames) {
+        if (combined.includes(name.toLowerCase())) {
+          running.add(tileId);
+          break;
+        }
+      }
+    }
+  } catch {
+    // Process detection is best-effort — don't break the UI
+  }
+
+  return running;
+}
+
+// ── Hook ────────────────────────────────────────────────────────────────────
+
+function profileToTile(profile: BrowserProfile): TileDefinition {
+  const exe = profile.browser === 'edge' ? 'msedge.exe' : 'chrome.exe';
+  const browserLabel = profile.browser === 'edge' ? 'Edge' : 'Chrome';
+  return {
+    id: `detected-${profile.browser}-${profile.directory.toLowerCase().split(' ').join('-')}`,
+    label: `${browserLabel} (${profile.name})`,
+    category: 'browser',
+    action: {
+      type: 'shell',
+      program: exe,
+      args: [`--profile-directory=${profile.directory}`],
+    },
+  };
+}
+
 export function useTiles(): UseTilesReturn {
   const [prefs, setPrefs] = useState<TilePreferences>(loadTilePreferences);
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState(false);
+  const [runningTileIds, setRunningTileIds] = useState<Set<string>>(new Set());
+  const [detectedProfiles, setDetectedProfiles] = useState<TileDefinition[]>([]);
+
+  // Detect browser profiles once on mount
+  useEffect(() => {
+    let cancelled = false;
+    detectBrowserProfiles().then((profiles) => {
+      if (cancelled) return;
+      // Convert to tiles, but skip profiles that match existing hardcoded tiles
+      const existingDirs = new Set(
+        DEFAULT_TILES.filter((t) => t.category === 'browser').flatMap((t) => {
+          if (t.action.type !== 'shell') return [];
+          const dirArg = t.action.args?.find((a) => a.startsWith('--profile-directory='));
+          return dirArg ? [dirArg.split('=')[1]] : [];
+        }),
+      );
+      const newProfiles = profiles.filter((p) => !existingDirs.has(p.directory)).map(profileToTile);
+      setDetectedProfiles(newProfiles);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Poll for running processes every 10 seconds
+  useEffect(() => {
+    let cancelled = false;
+
+    const poll = async () => {
+      const running = await detectRunningProcesses();
+      if (!cancelled) {
+        setRunningTileIds(running);
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 10_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   const updatePrefs = (next: TilePreferences) => {
     setPrefs(next);
@@ -64,10 +170,24 @@ export function useTiles(): UseTilesReturn {
 
   const toggleEditing = () => setEditing((e) => !e);
 
+  const launch = (tile: TileDefinition) => {
+    launchTile(tile);
+    const next = recordRecentLaunch(prefs, tile.id);
+    updatePrefs(next);
+  };
+
   const lowerQuery = query.toLowerCase();
 
+  // Resolve recent tile IDs to definitions (skip hidden ones)
+  const recentTiles = prefs.recentTileIds
+    .map((id) => allTiles.find((t) => t.id === id))
+    .filter((t): t is TileDefinition => t != null && !prefs.hiddenTileIds.includes(t.id));
+
+  // Merge default tiles with auto-detected browser profiles
+  const allTiles = [...DEFAULT_TILES, ...detectedProfiles];
+
   const categories: CategoryWithTiles[] = CATEGORIES.map((cat) => {
-    const allInCategory = DEFAULT_TILES.filter((t) => t.category === cat.id);
+    const allInCategory = allTiles.filter((t) => t.category === cat.id);
     const visible = allInCategory.filter((t) => !prefs.hiddenTileIds.includes(t.id));
     const hidden = allInCategory.filter((t) => prefs.hiddenTileIds.includes(t.id));
 
@@ -93,12 +213,14 @@ export function useTiles(): UseTilesReturn {
 
   return {
     categories,
+    recentTiles,
+    runningTileIds,
     query,
     setQuery,
     editing,
     toggleEditing,
     toggleTile,
     toggleCategory,
-    launch: launchTile,
+    launch,
   };
 }
