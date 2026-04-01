@@ -4,7 +4,6 @@
  * Provides server-side and client-side service integrations:
  * - Stripe payment processing
  * - Supabase database and auth
- * - API routes
  *
  * ## Usage
  *
@@ -42,8 +41,6 @@ export function checkServicesLicense(): boolean {
   return true;
 }
 
-// Re-export core (server-side) exports
-export * from './api/index.js';
 // Re-export client (client-side) exports
 export * from './client/index.js';
 export * from './revealcoin/index.js';

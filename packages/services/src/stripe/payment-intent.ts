@@ -4,7 +4,7 @@
 
 import type { RevealRequest, RevealUIInstance } from '@revealui/core';
 import type Stripe from 'stripe';
-import { protectedStripe } from '../../stripe/stripeClient.js';
+import { protectedStripe } from './stripeClient.js';
 
 interface CartItem {
   product: {
