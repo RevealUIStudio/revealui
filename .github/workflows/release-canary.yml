@@ -50,8 +50,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          # NOTE: Do NOT add registry-url here. It exports a placeholder
-          # NODE_AUTH_TOKEN that blocks OIDC trusted publishing.
+          # registry-url is needed here for token auth (canary uses NPM_TOKEN,
+          # not OIDC). This creates .npmrc with _authToken=${NODE_AUTH_TOKEN}.
+          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -83,12 +84,6 @@ jobs:
       - name: Validate build artifacts
         if: steps.changesets.outputs.count != '0'
         run: pnpm validate:artifacts
-
-      - name: Configure npm auth for token publishing
-        if: steps.changesets.outputs.count != '0'
-        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" >> ~/.npmrc
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish canary to npm
         if: steps.changesets.outputs.count != '0'
