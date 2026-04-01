@@ -6,7 +6,6 @@
   "license": "MIT",
   "dependencies": {
     "@electric-sql/client": "^1.0.27",
-    "@electric-sql/react": "^1.0.27",
     "@revealui/auth": "workspace:*",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
@@ -17,8 +16,6 @@
     "@revealui/utils": "workspace:*",
     "@sentry/nextjs": "^10.34.0",
     "@simplewebauthn/browser": "^13.3.0",
-    "@stripe/stripe-js": "^9.0.0",
-    "@supabase/supabase-js": "^2.95.3",
     "@types/nodemailer": "^7.0.5",
     "@vercel/blob": "^2.3.2",
     "@vercel/speed-insights": "^2.0.0",
