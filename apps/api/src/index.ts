@@ -37,10 +37,13 @@ import provenanceRoute from './routes/code-provenance.js';
 import { createCollabRoute } from './routes/collab.js';
 import contentRoute from './routes/content/index.js';
 import cronBillingReadinessRoute from './routes/cron/billing-readiness.js';
+import cronDispatchRoute from './routes/cron/dispatch.js';
+import cronMarketplacePayoutsRoute from './routes/cron/marketplace-payouts.js';
 import cronPublishRoute from './routes/cron/publish-scheduled.js';
 import cronSweepGraceRoute from './routes/cron/sweep-grace-periods.js';
 import errorsRoute from './routes/errors.js';
 import gdprRoute from './routes/gdpr.js';
+import ghcrRoute from './routes/ghcr.js';
 import healthRoute from './routes/health.js';
 import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
@@ -202,6 +205,25 @@ app.use(
   }),
 );
 app.use('*', honoLogger());
+/** Check if origin matches Vercel preview URL pattern: https://revealui*-revealuistudios-projects.vercel.app */
+function isVercelPreviewOrigin(origin: string): boolean {
+  if (!origin.startsWith('https://revealui')) return false;
+  return origin.endsWith('-revealuistudios-projects.vercel.app');
+}
+
+/** Check if origin matches test/dev subdomain: https://(dev|test).(cms.|api.|docs.)?revealui.com */
+function isTestSubdomainOrigin(origin: string): boolean {
+  if (!origin.startsWith('https://')) return false;
+  const host = origin.slice(8); // strip https://
+  const validSuffixes = [
+    'revealui.com',
+    'cms.revealui.com',
+    'api.revealui.com',
+    'docs.revealui.com',
+  ];
+  return validSuffixes.some((suffix) => host === `dev.${suffix}` || host === `test.${suffix}`);
+}
+
 // Manual CORS middleware — Hono's cors() middleware was not reliably setting
 // Access-Control-Allow-Origin headers in the Vercel serverless runtime.
 app.use('*', async (c, next) => {
@@ -211,8 +233,7 @@ app.use('*', async (c, next) => {
   // Pattern: revealui-<app>-<hash>-revealuistudios-projects.vercel.app
   const isPreviewAllowed =
     process.env.VERCEL_ENV === 'preview' &&
-    (/^https:\/\/revealui[\w-]*-revealuistudios-projects\.vercel\.app$/.test(origin) ||
-      /^https:\/\/(dev|test)\.(cms\.|api\.|docs\.)?revealui\.com$/.test(origin));
+    (isVercelPreviewOrigin(origin) || isTestSubdomainOrigin(origin));
 
   const isAllowed = corsOrigins.includes(origin) || isPreviewAllowed;
 
@@ -493,10 +514,10 @@ app.use('/api/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/v1/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
 app.use('/api/v1/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
-// Billing mutation endpoints require Pro+ (payments feature)
-// Read-only metrics and webhook routes are excluded — they serve all tiers
-app.post('/api/billing/checkout', requireFeature('payments', { mode: 'entitlements' }));
-app.post('/api/v1/billing/checkout', requireFeature('payments', { mode: 'entitlements' }));
+// Billing mutation endpoints — checkout is open to all authenticated users (it's the
+// entry point to becoming a subscriber). Upgrade/downgrade/portal require an existing
+// subscription, so they stay gated behind the 'payments' feature (Pro+).
+// Read-only metrics and webhook routes are excluded — they serve all tiers.
 app.post('/api/billing/upgrade', requireFeature('payments', { mode: 'entitlements' }));
 app.post('/api/v1/billing/upgrade', requireFeature('payments', { mode: 'entitlements' }));
 app.post('/api/billing/downgrade', requireFeature('payments', { mode: 'entitlements' }));
@@ -642,6 +663,7 @@ app.doc('/openapi.json', {
 
 // Swagger UI — interactive API explorer (auto-generated from OpenAPI spec)
 app.get('/', swaggerUI({ url: '/openapi.json' }));
+app.get('/docs', swaggerUI({ url: '/openapi.json' }));
 
 // Routes
 app.route('/.well-known', wellKnownRoutes);
@@ -665,8 +687,11 @@ app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
+app.route('/api/cron', cronDispatchRoute);
+app.route('/api/cron', cronMarketplacePayoutsRoute);
 app.route('/api/cron', cronPublishRoute);
 app.route('/api/cron', cronSweepGraceRoute);
+app.route('/api/ghcr', ghcrRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
 app.route('/api/pricing', pricingRoute);
@@ -697,8 +722,11 @@ app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
+app.route('/api/v1/cron', cronDispatchRoute);
+app.route('/api/v1/cron', cronMarketplacePayoutsRoute);
 app.route('/api/v1/cron', cronPublishRoute);
 app.route('/api/v1/cron', cronSweepGraceRoute);
+app.route('/api/v1/ghcr', ghcrRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
 app.route('/api/v1/pricing', pricingRoute);

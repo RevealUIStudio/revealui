@@ -10,15 +10,14 @@
  *   pnpm secrets:rotate STRIPE_SECRET_KEY
  */
 
-import { randomBytes } from 'node:crypto';
+import { randomInt } from 'node:crypto';
 
 const PASSWORD_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
 
 function generatePassword(length: number): string {
-  const buf = randomBytes(length);
   let result = '';
   for (let i = 0; i < length; i++) {
-    result += PASSWORD_CHARS[buf[i] % PASSWORD_CHARS.length];
+    result += PASSWORD_CHARS[randomInt(PASSWORD_CHARS.length)];
   }
   return result;
 }

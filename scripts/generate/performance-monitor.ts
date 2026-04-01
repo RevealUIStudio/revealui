@@ -17,7 +17,7 @@
  */
 
 import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const rootDir = join(import.meta.dirname, '../..');
@@ -73,19 +73,14 @@ function measureTime(fn: () => void): number {
  */
 function getFileMetrics(filePath: string): { path: string; size: number; lines: number } {
   const fullPath = join(rootDir, filePath);
-  if (!existsSync(fullPath)) {
+  try {
+    // Read file content in one operation to avoid TOCTOU race with separate stat
+    const content = readFileSync(fullPath, 'utf-8');
+    const lines = content.split('\n').length;
+    return { path: filePath, size: Buffer.byteLength(content, 'utf-8'), lines };
+  } catch {
     return { path: filePath, size: 0, lines: 0 };
   }
-
-  const stats = statSync(fullPath);
-  const content = readFileSync(fullPath, 'utf-8');
-  const lines = content.split('\n').length;
-
-  return {
-    path: filePath,
-    size: stats.size,
-    lines,
-  };
 }
 
 /**
@@ -93,11 +88,20 @@ function getFileMetrics(filePath: string): { path: string; size: number; lines: 
  */
 function countTables(): number {
   const zodSchemasPath = join(rootDir, 'packages/contracts/src/generated/zod-schemas.ts');
-  if (!existsSync(zodSchemasPath)) return 0;
-
-  const content = readFileSync(zodSchemasPath, 'utf-8');
-  const matches = content.match(/export const \w+SelectSchema/g) || [];
-  return matches.length;
+  try {
+    const content = readFileSync(zodSchemasPath, 'utf-8');
+    // Count lines that contain "SelectSchema" in an export const declaration
+    let count = 0;
+    for (const line of content.split('\n')) {
+      const trimmed = line.trimStart();
+      if (trimmed.startsWith('export const ') && trimmed.includes('SelectSchema')) {
+        count++;
+      }
+    }
+    return count;
+  } catch {
+    return 0;
+  }
 }
 
 /**
@@ -201,7 +205,10 @@ async function measurePerformance(): Promise<GenerationMetrics> {
  * Load metrics history
  */
 function loadHistory(): MetricsHistory {
-  if (!existsSync(metricsFile)) {
+  try {
+    const content = readFileSync(metricsFile, 'utf-8');
+    return JSON.parse(content);
+  } catch {
     return {
       runs: [],
       summary: {
@@ -212,9 +219,6 @@ function loadHistory(): MetricsHistory {
       },
     };
   }
-
-  const content = readFileSync(metricsFile, 'utf-8');
-  return JSON.parse(content);
 }
 
 /**
@@ -345,10 +349,8 @@ if (command === 'run' || command === 'measure') {
   const history = loadHistory();
   console.log(JSON.stringify(history, null, 2));
 } else if (command === 'clear') {
-  if (existsSync(metricsFile)) {
-    writeFileSync(metricsFile, JSON.stringify({ runs: [], summary: {} }, null, 2));
-    console.log('✅ Metrics history cleared');
-  }
+  writeFileSync(metricsFile, JSON.stringify({ runs: [], summary: {} }, null, 2));
+  console.log('✅ Metrics history cleared');
 } else {
   console.log('Type Generation Performance Monitor\n');
   console.log('Usage:');

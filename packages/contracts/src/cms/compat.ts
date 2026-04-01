@@ -186,7 +186,18 @@ export function getRevealUIExtensions(
  * - Contain only lowercase letters, numbers, and hyphens
  */
 export function isValidSlug(slug: string): boolean {
-  return /^[a-z][a-z0-9-]*$/.test(slug);
+  if (slug.length === 0) return false;
+  // Must start with a lowercase letter
+  const first = slug.charCodeAt(0);
+  if (first < 97 || first > 122) return false;
+  for (let i = 1; i < slug.length; i++) {
+    const c = slug.charCodeAt(i);
+    const isLower = c >= 97 && c <= 122;
+    const isDigit = c >= 48 && c <= 57;
+    const isHyphen = c === 45;
+    if (!(isLower || isDigit || isHyphen)) return false;
+  }
+  return true;
 }
 
 /**

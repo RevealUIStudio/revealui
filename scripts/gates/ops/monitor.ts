@@ -25,7 +25,7 @@ import {
 import { getPoolMetrics } from '@revealui/db/client';
 import { createLogger } from '../../utils/base.js';
 
-const logger = createLogger({ prefix: 'Monitor' });
+const logger = createLogger();
 
 interface MonitorOptions {
   watch?: boolean;

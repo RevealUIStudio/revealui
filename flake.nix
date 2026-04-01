@@ -97,6 +97,11 @@
             fd
             tree
 
+            # Charm terminal tools
+            gum           # Shell script TUI toolkit (interactive prompts, spinners, filters)
+            vhs           # Terminal recording as code (.tape → GIF/MP4)
+            charm-freeze  # Terminal screenshots (PNG/SVG)
+
             # Shell utilities
             direnv
             nix-direnv

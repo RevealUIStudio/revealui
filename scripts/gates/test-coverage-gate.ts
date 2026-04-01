@@ -15,7 +15,7 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -90,19 +90,22 @@ function countSourceLines(srcDir: string): number {
   let total = 0;
 
   function walk(dir: string): void {
-    for (const entry of readdirSync(dir)) {
-      const full = join(dir, entry);
-      const stat = statSync(full);
-      if (stat.isDirectory()) {
-        if (IGNORED_DIRECTORIES.has(entry) || entry === '__tests__') continue;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (IGNORED_DIRECTORIES.has(entry.name) || entry.name === '__tests__') continue;
         walk(full);
-      } else if (entry.endsWith('.ts') || entry.endsWith('.tsx')) {
-        const content = readFileSync(full, 'utf-8');
-        for (const line of content.split('\n')) {
-          const trimmed = line.trim();
-          if (trimmed && !trimmed.startsWith('//') && !trimmed.startsWith('*')) {
-            total++;
+      } else if (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) {
+        try {
+          const content = readFileSync(full, 'utf-8');
+          for (const line of content.split('\n')) {
+            const trimmed = line.trim();
+            if (trimmed && !trimmed.startsWith('//') && !trimmed.startsWith('*')) {
+              total++;
+            }
           }
+        } catch {
+          // File removed between readdir and read — skip
         }
       }
     }
@@ -117,19 +120,16 @@ function countTestFiles(pkgPath: string): number {
   let count = 0;
 
   function walk(dir: string): void {
-    for (const entry of readdirSync(dir)) {
-      const full = join(dir, entry);
-      const stat = statSync(full);
-
-      if (stat.isDirectory()) {
-        if (IGNORED_DIRECTORIES.has(entry)) {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (IGNORED_DIRECTORIES.has(entry.name)) {
           continue;
         }
-        walk(full);
+        walk(join(dir, entry.name));
         continue;
       }
 
-      if (isTestFile(entry)) {
+      if (isTestFile(entry.name)) {
         count++;
       }
     }
@@ -146,14 +146,12 @@ function readCoverageSummary(pkgPath: string): CoverageSummary | null {
     join(pkgPath, 'coverage', 'coverage-final.json'), // alternative vitest output
   ];
   for (const p of paths) {
-    if (existsSync(p)) {
-      try {
-        const raw = JSON.parse(readFileSync(p, 'utf-8')) as Record<string, unknown>;
-        // coverage-summary.json has a "total" key
-        if (raw.total) return raw as unknown as CoverageSummary;
-      } catch {
-        // Malformed — skip
-      }
+    try {
+      const raw = JSON.parse(readFileSync(p, 'utf-8')) as Record<string, unknown>;
+      // coverage-summary.json has a "total" key
+      if (raw.total) return raw as unknown as CoverageSummary;
+    } catch {
+      // File missing or malformed — skip
     }
   }
   return null;
@@ -164,14 +162,18 @@ function getPackageCandidates(): PackageCandidate[] {
 
   for (const scanDir of SCAN_DIRS) {
     const dir = join(ROOT, scanDir);
-    if (!existsSync(dir)) continue;
+    let entries: ReturnType<typeof readdirSync<{ withFileTypes: true }>>;
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
 
-    for (const pkgName of readdirSync(dir)) {
-      const pkgPath = join(dir, pkgName);
-      if (!statSync(pkgPath).isDirectory()) continue;
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
       candidates.push({
-        name: `${scanDir}/${pkgName}`,
-        path: pkgPath,
+        name: `${scanDir}/${entry.name}`,
+        path: join(dir, entry.name),
       });
     }
   }

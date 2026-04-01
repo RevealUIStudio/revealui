@@ -20,8 +20,6 @@
  *   pnpm setup:mcp
  */
 
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { createLogger } from '@revealui/scripts/logger.js';
 import { getProjectRoot } from '@revealui/scripts/paths.js';
@@ -30,15 +28,6 @@ import { config } from 'dotenv';
 const logger = createLogger();
 
 config();
-
-// Check for .env file
-const envPath = join(process.cwd(), '.env');
-const envLocalPath = join(process.cwd(), '.env.local');
-
-let _envFile = envPath;
-if (existsSync(envLocalPath)) {
-  _envFile = envLocalPath;
-}
 
 async function setupMCP() {
   try {

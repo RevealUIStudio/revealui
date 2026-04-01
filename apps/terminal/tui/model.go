@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/ssh"
 	gossh "golang.org/x/crypto/ssh"
 
@@ -207,7 +207,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// -- Keyboard input ------------------------------------------------------
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		// Global quit
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
@@ -282,7 +282,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // Text input handlers
 // ---------------------------------------------------------------------------
 
-func (m Model) updateLinkEmail(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) updateLinkEmail(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case "esc":
 		m.view = ViewTiers
@@ -313,7 +313,7 @@ func (m Model) updateLinkEmail(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	}
 }
 
-func (m Model) updateLinkOTP(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m Model) updateLinkOTP(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	switch msg.String() {
 	case "esc":
 		m.view = ViewTiers
@@ -425,21 +425,25 @@ func verifyOTPCmd(c *api.Client, email, code string) tea.Cmd {
 // Views
 // ---------------------------------------------------------------------------
 
-func (m Model) View() string {
+func (m Model) View() tea.View {
+	var content string
 	switch m.view {
 	case ViewLoading:
-		return m.viewLoading()
+		content = m.viewLoading()
 	case ViewCheckout:
-		return m.viewCheckout()
+		content = m.viewCheckout()
 	case ViewLicense:
-		return m.viewLicense()
+		content = m.viewLicense()
 	case ViewLinkEmail:
-		return m.viewLinkEmail()
+		content = m.viewLinkEmail()
 	case ViewLinkOTP:
-		return m.viewLinkOTP()
+		content = m.viewLinkOTP()
 	default:
-		return m.viewTiers()
+		content = m.viewTiers()
 	}
+	v := tea.NewView(content)
+	v.AltScreen = true
+	return v
 }
 
 // -- Styles ------------------------------------------------------------------

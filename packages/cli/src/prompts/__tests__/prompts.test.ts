@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Mock inquirer
-vi.mock('inquirer', () => ({
-  default: {
-    prompt: vi.fn(),
-  },
+// Mock @clack/prompts
+vi.mock('@clack/prompts', () => ({
+  text: vi.fn(),
+  select: vi.fn(),
+  confirm: vi.fn(),
+  isCancel: vi.fn().mockReturnValue(false),
 }));
 
 // Mock validators
@@ -22,14 +23,16 @@ vi.mock('node:fs', () => ({
   },
 }));
 
-import inquirer from 'inquirer';
+import { confirm, select, text } from '@clack/prompts';
 import { promptDatabaseConfig } from '../database.js';
 import { promptDevEnvConfig } from '../devenv.js';
 import { promptPaymentConfig } from '../payments.js';
 import { promptProjectConfig } from '../project.js';
 import { promptStorageConfig } from '../storage.js';
 
-const mockPrompt = vi.mocked(inquirer.prompt);
+const mockText = vi.mocked(text);
+const mockSelect = vi.mocked(select);
+const mockConfirm = vi.mocked(confirm);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -37,10 +40,8 @@ beforeEach(() => {
 
 describe('promptDevEnvConfig', () => {
   it('returns config with both options enabled', async () => {
-    mockPrompt.mockResolvedValueOnce({
-      createDevContainer: true,
-      createDevbox: true,
-    });
+    mockConfirm.mockResolvedValueOnce(true);
+    mockConfirm.mockResolvedValueOnce(true);
     const result = await promptDevEnvConfig();
     expect(result).toEqual({
       createDevContainer: true,
@@ -49,10 +50,8 @@ describe('promptDevEnvConfig', () => {
   });
 
   it('returns config with both options disabled', async () => {
-    mockPrompt.mockResolvedValueOnce({
-      createDevContainer: false,
-      createDevbox: false,
-    });
+    mockConfirm.mockResolvedValueOnce(false);
+    mockConfirm.mockResolvedValueOnce(false);
     const result = await promptDevEnvConfig();
     expect(result).toEqual({
       createDevContainer: false,
@@ -60,28 +59,24 @@ describe('promptDevEnvConfig', () => {
     });
   });
 
-  it('calls inquirer.prompt once', async () => {
-    mockPrompt.mockResolvedValueOnce({
-      createDevContainer: true,
-      createDevbox: false,
-    });
+  it('calls confirm twice', async () => {
+    mockConfirm.mockResolvedValueOnce(true);
+    mockConfirm.mockResolvedValueOnce(false);
     await promptDevEnvConfig();
-    expect(mockPrompt).toHaveBeenCalledOnce();
+    expect(mockConfirm).toHaveBeenCalledTimes(2);
   });
 });
 
 describe('promptDatabaseConfig', () => {
   it('returns skip config when user chooses skip', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'skip' });
+    mockSelect.mockResolvedValueOnce('skip');
     const result = await promptDatabaseConfig();
     expect(result).toEqual({ provider: 'skip' });
   });
 
   it('returns local config with connection string', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'local' });
-    mockPrompt.mockResolvedValueOnce({
-      postgresUrl: 'postgresql://postgres:postgres@localhost:5432/revealui',
-    });
+    mockSelect.mockResolvedValueOnce('local');
+    mockText.mockResolvedValueOnce('postgresql://postgres:postgres@localhost:5432/revealui');
     const result = await promptDatabaseConfig();
     expect(result).toEqual({
       provider: 'local',
@@ -90,10 +85,8 @@ describe('promptDatabaseConfig', () => {
   });
 
   it('returns neon config with connection string', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'neon' });
-    mockPrompt.mockResolvedValueOnce({
-      postgresUrl: 'postgresql://user:pass@neon.tech/mydb',
-    });
+    mockSelect.mockResolvedValueOnce('neon');
+    mockText.mockResolvedValueOnce('postgresql://user:pass@neon.tech/mydb');
     const result = await promptDatabaseConfig();
     expect(result).toEqual({
       provider: 'neon',
@@ -102,10 +95,8 @@ describe('promptDatabaseConfig', () => {
   });
 
   it('returns supabase config with connection string', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'supabase' });
-    mockPrompt.mockResolvedValueOnce({
-      postgresUrl: 'postgresql://user:pass@supabase.co/mydb',
-    });
+    mockSelect.mockResolvedValueOnce('supabase');
+    mockText.mockResolvedValueOnce('postgresql://user:pass@supabase.co/mydb');
     const result = await promptDatabaseConfig();
     expect(result).toEqual({
       provider: 'supabase',
@@ -113,50 +104,53 @@ describe('promptDatabaseConfig', () => {
     });
   });
 
-  it('prompts once for skip (no follow-up)', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'skip' });
+  it('calls select once for skip (no follow-up)', async () => {
+    mockSelect.mockResolvedValueOnce('skip');
     await promptDatabaseConfig();
-    expect(mockPrompt).toHaveBeenCalledOnce();
+    expect(mockSelect).toHaveBeenCalledOnce();
+    expect(mockText).not.toHaveBeenCalled();
   });
 
-  it('prompts twice for non-skip providers', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'neon' });
-    mockPrompt.mockResolvedValueOnce({ postgresUrl: 'postgresql://x@y/z' });
+  it('calls select + text for non-skip providers', async () => {
+    mockSelect.mockResolvedValueOnce('neon');
+    mockText.mockResolvedValueOnce('postgresql://x@y/z');
     await promptDatabaseConfig();
-    expect(mockPrompt).toHaveBeenCalledTimes(2);
+    expect(mockSelect).toHaveBeenCalledOnce();
+    expect(mockText).toHaveBeenCalledOnce();
   });
 });
 
 describe('promptProjectConfig', () => {
   it('uses defaultName when provided (skips name prompt)', async () => {
-    // Only template prompt needed
-    mockPrompt.mockResolvedValueOnce({ template: 'basic-blog' });
+    mockSelect.mockResolvedValueOnce('basic-blog');
     const result = await promptProjectConfig('my-project');
     expect(result.projectName).toBe('my-project');
-    expect(mockPrompt).toHaveBeenCalledOnce();
+    expect(mockText).not.toHaveBeenCalled();
+    expect(mockSelect).toHaveBeenCalledOnce();
   });
 
   it('prompts for name when defaultName not provided', async () => {
-    mockPrompt.mockResolvedValueOnce({ projectName: 'prompted-name' });
-    mockPrompt.mockResolvedValueOnce({ template: 'e-commerce' });
+    mockText.mockResolvedValueOnce('prompted-name');
+    mockSelect.mockResolvedValueOnce('e-commerce');
     const result = await promptProjectConfig();
     expect(result.projectName).toBe('prompted-name');
     expect(result.template).toBe('e-commerce');
-    expect(mockPrompt).toHaveBeenCalledTimes(2);
+    expect(mockText).toHaveBeenCalledOnce();
+    expect(mockSelect).toHaveBeenCalledOnce();
   });
 
   it('uses templateArg when valid (skips template prompt)', async () => {
     const result = await promptProjectConfig('my-project', 'portfolio');
     expect(result.template).toBe('portfolio');
-    // No prompts needed when both args are provided
-    expect(mockPrompt).not.toHaveBeenCalled();
+    expect(mockText).not.toHaveBeenCalled();
+    expect(mockSelect).not.toHaveBeenCalled();
   });
 
   it('prompts for template when templateArg is invalid', async () => {
-    mockPrompt.mockResolvedValueOnce({ template: 'basic-blog' });
+    mockSelect.mockResolvedValueOnce('basic-blog');
     const result = await promptProjectConfig('my-project', 'invalid-template');
     expect(result.template).toBe('basic-blog');
-    expect(mockPrompt).toHaveBeenCalledOnce();
+    expect(mockSelect).toHaveBeenCalledOnce();
   });
 
   it('resolves projectPath from cwd and projectName', async () => {
@@ -174,24 +168,23 @@ describe('promptProjectConfig', () => {
 
 describe('promptPaymentConfig', () => {
   it('returns disabled config when user declines', async () => {
-    mockPrompt.mockResolvedValueOnce({ enabled: false });
+    mockConfirm.mockResolvedValueOnce(false);
     const result = await promptPaymentConfig();
     expect(result).toEqual({ enabled: false });
   });
 
-  it('prompts once when user declines payments', async () => {
-    mockPrompt.mockResolvedValueOnce({ enabled: false });
+  it('calls confirm once when user declines payments', async () => {
+    mockConfirm.mockResolvedValueOnce(false);
     await promptPaymentConfig();
-    expect(mockPrompt).toHaveBeenCalledOnce();
+    expect(mockConfirm).toHaveBeenCalledOnce();
+    expect(mockText).not.toHaveBeenCalled();
   });
 
   it('returns full config when user enables payments', async () => {
-    mockPrompt.mockResolvedValueOnce({ enabled: true });
-    mockPrompt.mockResolvedValueOnce({
-      stripeSecretKey: 'sk_test_abc123',
-      stripePublishableKey: 'pk_test_xyz789',
-      stripeWebhookSecret: 'whsec_secret',
-    });
+    mockConfirm.mockResolvedValueOnce(true);
+    mockText.mockResolvedValueOnce('sk_test_abc123');
+    mockText.mockResolvedValueOnce('pk_test_xyz789');
+    mockText.mockResolvedValueOnce('whsec_secret');
     const result = await promptPaymentConfig();
     expect(result).toEqual({
       enabled: true,
@@ -202,44 +195,42 @@ describe('promptPaymentConfig', () => {
   });
 
   it('sets webhookSecret to undefined when empty', async () => {
-    mockPrompt.mockResolvedValueOnce({ enabled: true });
-    mockPrompt.mockResolvedValueOnce({
-      stripeSecretKey: 'sk_test_abc123',
-      stripePublishableKey: 'pk_test_xyz789',
-      stripeWebhookSecret: '',
-    });
+    mockConfirm.mockResolvedValueOnce(true);
+    mockText.mockResolvedValueOnce('sk_test_abc123');
+    mockText.mockResolvedValueOnce('pk_test_xyz789');
+    mockText.mockResolvedValueOnce('');
     const result = await promptPaymentConfig();
     expect(result.stripeWebhookSecret).toBeUndefined();
   });
 
-  it('prompts twice when user enables payments', async () => {
-    mockPrompt.mockResolvedValueOnce({ enabled: true });
-    mockPrompt.mockResolvedValueOnce({
-      stripeSecretKey: 'sk_test_abc',
-      stripePublishableKey: 'pk_test_abc',
-      stripeWebhookSecret: '',
-    });
+  it('calls confirm once + text thrice when user enables payments', async () => {
+    mockConfirm.mockResolvedValueOnce(true);
+    mockText.mockResolvedValueOnce('sk_test_abc');
+    mockText.mockResolvedValueOnce('pk_test_abc');
+    mockText.mockResolvedValueOnce('');
     await promptPaymentConfig();
-    expect(mockPrompt).toHaveBeenCalledTimes(2);
+    expect(mockConfirm).toHaveBeenCalledOnce();
+    expect(mockText).toHaveBeenCalledTimes(3);
   });
 });
 
 describe('promptStorageConfig', () => {
   it('returns skip config when user chooses skip', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'skip' });
+    mockSelect.mockResolvedValueOnce('skip');
     const result = await promptStorageConfig();
     expect(result).toEqual({ provider: 'skip' });
   });
 
-  it('prompts once for skip', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'skip' });
+  it('calls select once for skip', async () => {
+    mockSelect.mockResolvedValueOnce('skip');
     await promptStorageConfig();
-    expect(mockPrompt).toHaveBeenCalledOnce();
+    expect(mockSelect).toHaveBeenCalledOnce();
+    expect(mockText).not.toHaveBeenCalled();
   });
 
   it('returns vercel-blob config with token', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'vercel-blob' });
-    mockPrompt.mockResolvedValueOnce({ blobToken: 'vercel_blob_rw_abc123' });
+    mockSelect.mockResolvedValueOnce('vercel-blob');
+    mockText.mockResolvedValueOnce('vercel_blob_rw_abc123');
     const result = await promptStorageConfig();
     expect(result).toEqual({
       provider: 'vercel-blob',
@@ -248,11 +239,9 @@ describe('promptStorageConfig', () => {
   });
 
   it('returns supabase config with url and key', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'supabase' });
-    mockPrompt.mockResolvedValueOnce({
-      supabaseUrl: 'https://abc.supabase.co',
-      supabasePublishableKey: 'eyJ...',
-    });
+    mockSelect.mockResolvedValueOnce('supabase');
+    mockText.mockResolvedValueOnce('https://abc.supabase.co');
+    mockText.mockResolvedValueOnce('eyJ...');
     const result = await promptStorageConfig();
     expect(result).toEqual({
       provider: 'supabase',
@@ -261,20 +250,20 @@ describe('promptStorageConfig', () => {
     });
   });
 
-  it('prompts twice for vercel-blob', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'vercel-blob' });
-    mockPrompt.mockResolvedValueOnce({ blobToken: 'token' });
+  it('calls select + text for vercel-blob', async () => {
+    mockSelect.mockResolvedValueOnce('vercel-blob');
+    mockText.mockResolvedValueOnce('token');
     await promptStorageConfig();
-    expect(mockPrompt).toHaveBeenCalledTimes(2);
+    expect(mockSelect).toHaveBeenCalledOnce();
+    expect(mockText).toHaveBeenCalledOnce();
   });
 
-  it('prompts twice for supabase', async () => {
-    mockPrompt.mockResolvedValueOnce({ provider: 'supabase' });
-    mockPrompt.mockResolvedValueOnce({
-      supabaseUrl: 'https://abc.supabase.co',
-      supabasePublishableKey: 'key',
-    });
+  it('calls select + 2 text for supabase', async () => {
+    mockSelect.mockResolvedValueOnce('supabase');
+    mockText.mockResolvedValueOnce('https://abc.supabase.co');
+    mockText.mockResolvedValueOnce('key');
     await promptStorageConfig();
-    expect(mockPrompt).toHaveBeenCalledTimes(2);
+    expect(mockSelect).toHaveBeenCalledOnce();
+    expect(mockText).toHaveBeenCalledTimes(2);
   });
 });

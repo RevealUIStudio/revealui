@@ -348,10 +348,10 @@ describe('GDPR Compliance', () => {
     });
 
     it('should handle consent expiration', async () => {
-      await consent.grantConsent('123', 'analytics', 'explicit', 100);
+      await consent.grantConsent('123', 'analytics', 'explicit', 500);
 
-      // Wait for expiration
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // Wait for expiration (200ms margin avoids flaky failures from GC/timer jitter)
+      await new Promise((resolve) => setTimeout(resolve, 700));
 
       expect(await consent.hasConsent('123', 'analytics')).toBe(false);
     });

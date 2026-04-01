@@ -394,15 +394,15 @@ function SecuritySettingsContent() {
   }
 
   function parseUserAgent(ua: string): string {
-    if (/iPhone|iPad|iPod/.test(ua)) return 'iOS device';
-    if (/Android/.test(ua)) return 'Android device';
-    if (/Windows/.test(ua) && /Chrome/.test(ua)) return 'Chrome on Windows';
-    if (/Macintosh/.test(ua) && /Chrome/.test(ua)) return 'Chrome on Mac';
-    if (/Firefox/.test(ua)) return 'Firefox';
-    if (/Safari/.test(ua) && !/Chrome/.test(ua)) return 'Safari';
-    if (/Windows/.test(ua)) return 'Windows browser';
-    if (/Macintosh/.test(ua)) return 'Mac browser';
-    if (/Linux/.test(ua)) return 'Linux browser';
+    if (ua.includes('iPhone') || ua.includes('iPad') || ua.includes('iPod')) return 'iOS device';
+    if (ua.includes('Android')) return 'Android device';
+    if (ua.includes('Windows') && ua.includes('Chrome')) return 'Chrome on Windows';
+    if (ua.includes('Macintosh') && ua.includes('Chrome')) return 'Chrome on Mac';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+    if (ua.includes('Windows')) return 'Windows browser';
+    if (ua.includes('Macintosh')) return 'Mac browser';
+    if (ua.includes('Linux')) return 'Linux browser';
     return 'Unknown device';
   }
 

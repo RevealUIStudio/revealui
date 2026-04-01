@@ -20,7 +20,7 @@
  * - node:path - Path manipulation utilities (join)
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { createLogger, getProjectRoot } from '@revealui/scripts/index.js';
@@ -43,18 +43,22 @@ interface Violation {
 const errors: Violation[] = [];
 const warnings: Violation[] = [];
 
-// Patterns to detect npx usage
-const NPX_PATTERNS = [
-  // Direct spawn/exec calls
-  /(?:spawn|exec)\(['"`]npx['"`]/,
-  // Template literals
-  /(?:spawn|exec)\(`[^`]*npx[^`]*`/,
-  // Variable assignments that might be used with spawn
-  /const\s+\w+\s*=\s*['"`]npx['"`]/,
-  // Shell command patterns
-  /\bnpx\s+/,
-  // In package.json scripts (already checked separately, but for completeness)
-  /['"`]npx\s/,
+// String-based checks to detect npx usage (replaces regex patterns)
+const NPX_CHECKS: Array<(line: string) => boolean> = [
+  // Direct spawn/exec calls: spawn('npx', spawn("npx", spawn(`npx`
+  (line) =>
+    line.includes("spawn('npx'") ||
+    line.includes('spawn("npx"') ||
+    line.includes('spawn(`npx`') ||
+    line.includes("exec('npx") ||
+    line.includes('exec("npx') ||
+    line.includes('exec(`npx'),
+  // Variable assignments: const cmd = 'npx'
+  (line) => line.includes("= 'npx'") || line.includes('= "npx"') || line.includes('= `npx`'),
+  // Shell command patterns: npx followed by space
+  (line) => line.includes('npx '),
+  // Quoted npx with trailing space: 'npx  or "npx
+  (line) => line.includes("'npx ") || line.includes('"npx ') || line.includes('`npx '),
 ];
 
 // Files/directories to skip
@@ -73,19 +77,17 @@ const SKIP_DIRS = [
 const SKIP_FILES = ['validate-package-scripts.ts'];
 
 function findFiles(dir: string, extensions: string[], fileList: string[] = []): string[] {
-  const files = readdirSync(dir);
+  const entries = readdirSync(dir, { withFileTypes: true });
 
-  for (const file of files) {
-    const filePath = join(dir, file);
-    const stat = statSync(filePath);
+  for (const entry of entries) {
+    const filePath = join(dir, entry.name);
 
-    if (stat.isDirectory()) {
-      const dirName = file;
-      if (!SKIP_DIRS.includes(dirName)) {
+    if (entry.isDirectory()) {
+      if (!SKIP_DIRS.includes(entry.name)) {
         findFiles(filePath, extensions, fileList);
       }
     } else {
-      const ext = file.split('.').pop()?.toLowerCase();
+      const ext = entry.name.split('.').pop()?.toLowerCase();
       if (ext && extensions.includes(ext)) {
         // Skip validation script itself
         if (SKIP_FILES.some((skip) => filePath.includes(skip))) {
@@ -110,12 +112,15 @@ function checkScript(scriptValue: string, file: string, scriptName: string) {
   }
 
   // Check for npx usage in script value
-  if (/\bnpx\s+/.test(scriptValue) && !scriptValue.includes('pnpm dlx')) {
+  if (scriptValue.includes('npx ') && !scriptValue.includes('pnpm dlx')) {
+    let suggestion = scriptValue.replace('npx ', 'pnpm dlx ');
+    // Remove -y flag (not needed with pnpm dlx)
+    suggestion = suggestion.replace(' -y ', ' ');
     errors.push({
       file,
       script: scriptName,
       line: scriptValue,
-      suggestion: scriptValue.replace(/\bnpx\s+/, 'pnpm dlx ').replace(/\s+-y\s+/, ' '),
+      suggestion,
     });
   }
 }
@@ -166,8 +171,8 @@ function checkCodeFile(filePath: string) {
       }
 
       // Check all patterns
-      for (const pattern of NPX_PATTERNS) {
-        if (pattern.test(line) && !line.includes('pnpm dlx')) {
+      for (const check of NPX_CHECKS) {
+        if (check(line) && !line.includes('pnpm dlx')) {
           // Get context (2 lines before and after)
           const context = [];
           for (let j = Math.max(0, i - 2); j <= Math.min(lines.length - 1, i + 2); j++) {
@@ -179,15 +184,14 @@ function checkCodeFile(filePath: string) {
           }
 
           // Generate suggestion
-          let suggestion = line;
+          let suggestion: string;
           // Handle spawn('npx', ['args']) -> spawn('pnpm', ['dlx', ...args])
           if (line.includes("spawn('npx',")) {
-            // Replace 'npx' with 'pnpm' and insert 'dlx' as first array element
             suggestion = line.replace("spawn('npx',", "spawn('pnpm', ['dlx',");
           } else if (line.includes('spawn("npx",')) {
             suggestion = line.replace('spawn("npx",', 'spawn("pnpm", ["dlx",');
-          } else if (line.includes('spawn(`npx`,') || line.includes('spawn(`npx`,')) {
-            suggestion = line.replace(/spawn\(`npx`,?/, 'spawn(`pnpm`, [`dlx`,');
+          } else if (line.includes('spawn(`npx`,')) {
+            suggestion = line.replace('spawn(`npx`,', 'spawn(`pnpm`, [`dlx`,');
           }
           // Handle exec('npx ...') -> exec('pnpm dlx ...')
           else if (line.includes("exec('npx")) {
@@ -197,15 +201,20 @@ function checkCodeFile(filePath: string) {
           } else if (line.includes('exec(`npx')) {
             suggestion = line.replace('exec(`npx', 'exec(`pnpm dlx');
           }
-          // Handle const cmd = 'npx' (variable assignment)
-          else if (/const\s+\w+\s*=\s*['"`]npx['"`]/.test(line)) {
-            suggestion = line.replace(/['"`]npx['"`]/, "'pnpm dlx'");
+          // Handle const cmd = 'npx' or "npx" or `npx` (variable assignment)
+          else if (line.includes("'npx'")) {
+            suggestion = line.replace("'npx'", "'pnpm dlx'");
+          } else if (line.includes('"npx"')) {
+            suggestion = line.replace('"npx"', '"pnpm dlx"');
+          } else if (line.includes('`npx`')) {
+            suggestion = line.replace('`npx`', '`pnpm dlx`');
           }
-          // Handle general npx usage
-          else if (/\bnpx\s+/.test(line)) {
-            suggestion = line.replace(/\bnpx\s+/, 'pnpm dlx ');
+          // Handle general "npx " usage
+          else if (line.includes('npx ')) {
+            suggestion = line.replace('npx ', 'pnpm dlx ');
           } else {
-            suggestion = line.replace(/\bnpx\b/, 'pnpm dlx');
+            // Fallback: replace "npx" with "pnpm dlx"
+            suggestion = line.replace('npx', 'pnpm dlx');
           }
 
           errors.push({
@@ -241,7 +250,7 @@ function checkShellScript(filePath: string) {
       }
 
       // Check for npx usage
-      if (/\bnpx\s+/.test(line) && !line.includes('pnpm dlx')) {
+      if (line.includes('npx ') && !line.includes('pnpm dlx')) {
         // Allow in preinstall checks
         if (line.includes('preinstall') && line.includes('only-allow')) {
           continue;
@@ -261,7 +270,7 @@ function checkShellScript(filePath: string) {
           lineNumber: i + 1,
           line: trimmed,
           context,
-          suggestion: line.replace(/\bnpx\s+/, 'pnpm dlx ').trim(),
+          suggestion: line.replace('npx ', 'pnpm dlx ').trim(),
         });
       }
     }

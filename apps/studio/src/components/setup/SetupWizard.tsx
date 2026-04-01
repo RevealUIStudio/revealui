@@ -8,6 +8,7 @@ import {
   NixRow,
   ProjectSetupRow,
   TailscaleRow,
+  TerminalProfileRow,
   VaultRow,
   WslRow,
 } from './SetupRows';
@@ -62,6 +63,7 @@ export default function SetupWizard({ onClose }: SetupWizardProps) {
         <VaultRow />
         <TailscaleRow />
         <ProjectSetupRow />
+        <TerminalProfileRow />
       </div>
     </Modal>
   );

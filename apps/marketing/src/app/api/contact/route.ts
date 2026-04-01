@@ -1,5 +1,22 @@
 import { NextResponse } from 'next/server';
 
+/** Structural email validation without regex */
+function isValidEmail(email: string): boolean {
+  if (typeof email !== 'string') return false;
+  const trimmed = email.trim().toLowerCase();
+  if (trimmed.length > 254 || trimmed.length < 3) return false;
+  const atIndex = trimmed.indexOf('@');
+  if (atIndex < 1) return false;
+  if (trimmed.indexOf('@', atIndex + 1) !== -1) return false;
+  const local = trimmed.slice(0, atIndex);
+  const domain = trimmed.slice(atIndex + 1);
+  if (!(local && domain)) return false;
+  if (!domain.includes('.')) return false;
+  if (domain.startsWith('.') || domain.endsWith('.')) return false;
+  if (trimmed.includes(' ')) return false;
+  return true;
+}
+
 const RATE_LIMIT_WINDOW_MS = 300_000; // 5 minutes
 const RATE_LIMIT_MAX = 3;
 const recentRequests = new Map<string, number[]>();
@@ -46,7 +63,7 @@ export async function POST(request: Request) {
   if (!name || typeof name !== 'string' || name.length < 1) {
     return NextResponse.json({ message: 'Name is required.' }, { status: 400 });
   }
-  if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!(email && isValidEmail(email))) {
     return NextResponse.json({ message: 'Valid email is required.' }, { status: 400 });
   }
   if (!message || typeof message !== 'string' || message.length < 10) {

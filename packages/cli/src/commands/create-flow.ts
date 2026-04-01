@@ -82,6 +82,11 @@ function printPostCreateSummary(projectName: string): void {
   logger.info(`    ./${projectName}/.env.local — environment variables (edit before pnpm dev)`);
   logger.info(`    ./${projectName}/README.md  — getting started guide`);
   logger.info('');
+  logger.info('  RevealUI ecosystem:');
+  logger.info('    Studio:   Desktop companion for managing your dev environment');
+  logger.info('    Terminal: TUI client — run `revealui terminal install`');
+  logger.info('    CMS:      Admin dashboard at your-domain.com/admin');
+  logger.info('');
   logger.info('  Helpful links:');
   logger.info('    Docs:    https://docs.revealui.com');
   logger.info('    GitHub:  https://github.com/RevealUIStudio/revealui');

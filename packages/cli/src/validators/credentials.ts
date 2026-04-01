@@ -11,7 +11,7 @@ export interface CredentialValidation {
   message?: string;
 }
 
-export async function validateStripeKey(key: string): Promise<CredentialValidation> {
+export function validateStripeKey(key: string): CredentialValidation {
   if (!(key.startsWith('sk_test_') || key.startsWith('sk_live_'))) {
     return {
       valid: false,
@@ -22,7 +22,7 @@ export async function validateStripeKey(key: string): Promise<CredentialValidati
   return { valid: true };
 }
 
-export async function validateNeonUrl(url: string): Promise<CredentialValidation> {
+export function validateNeonUrl(url: string): CredentialValidation {
   try {
     const parsed = new URL(url);
     if (!parsed.protocol.startsWith('postgres')) {
@@ -40,7 +40,7 @@ export async function validateNeonUrl(url: string): Promise<CredentialValidation
   }
 }
 
-export async function validateVercelToken(token: string): Promise<CredentialValidation> {
+export function validateVercelToken(token: string): CredentialValidation {
   if (!token || token.length < 20) {
     return {
       valid: false,
@@ -50,7 +50,7 @@ export async function validateVercelToken(token: string): Promise<CredentialVali
   return { valid: true };
 }
 
-export async function validateSupabaseUrl(url: string): Promise<CredentialValidation> {
+export function validateSupabaseUrl(url: string): CredentialValidation {
   try {
     const parsed = new URL(url);
     if (!parsed.hostname.includes('supabase')) {
@@ -65,7 +65,7 @@ export async function validateSupabaseUrl(url: string): Promise<CredentialValida
   }
 }
 
-export async function validateNpmToken(token: string): Promise<CredentialValidation> {
+export function validateNpmToken(token: string): CredentialValidation {
   if (!token.startsWith('npm_')) {
     return {
       valid: false,
@@ -81,7 +81,7 @@ export async function validateNpmToken(token: string): Promise<CredentialValidat
   return { valid: true };
 }
 
-export async function validateOpenAIKey(key: string): Promise<CredentialValidation> {
+export function validateOpenAIKey(key: string): CredentialValidation {
   if (!key.startsWith('sk-')) {
     return {
       valid: false,

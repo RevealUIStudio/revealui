@@ -41,6 +41,7 @@ export type SyncStatus = 'ok' | 'dirty' | 'diverged' | 'skip' | 'reset_failed' |
 
 export type Page =
   | 'dashboard'
+  | 'gallery'
   | 'vault'
   | 'infrastructure'
   | 'sync'

@@ -22,7 +22,7 @@
  *   pnpm setup:env --generate  # Non-interactive: only generate secrets + apply defaults
  */
 
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomInt } from 'node:crypto';
 import { copyFile, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ErrorCode } from '@revealui/scripts/errors.js';
@@ -115,8 +115,26 @@ function isPlaceholder(value: string): boolean {
     value.includes('user:password') ||
     value === '' ||
     value.startsWith('your-') ||
-    /^[A-Za-z0-9_-]+-placeholder$/.test(value)
+    (value.endsWith('-placeholder') &&
+      isAlphanumericDashUnderscore(value.slice(0, -'-placeholder'.length)))
   );
+}
+
+/**
+ * Check if a string contains only alphanumeric, dash, or underscore characters.
+ */
+function isAlphanumericDashUnderscore(s: string): boolean {
+  if (s.length === 0) return false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    const isAlphaNum =
+      (c >= 48 && c <= 57) || // 0-9
+      (c >= 65 && c <= 90) || // A-Z
+      (c >= 97 && c <= 122); // a-z
+    const isDashOrUnderscore = c === 45 || c === 95; // - or _
+    if (!(isAlphaNum || isDashOrUnderscore)) return false;
+  }
+  return true;
 }
 
 /**
@@ -132,9 +150,8 @@ function generateSecret(length = 32): string {
 function generatePassword(length = 16): string {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
   let password = '';
-  const randomValues = randomBytes(length);
   for (let i = 0; i < length; i++) {
-    password += chars[randomValues[i] % chars.length];
+    password += chars[randomInt(chars.length)];
   }
   return password;
 }
@@ -143,11 +160,15 @@ function generatePassword(length = 16): string {
  * Updates a value in the env file content string.
  */
 function updateEnvValue(content: string, key: string, value: string): string {
-  const regex = new RegExp(`^${key}=.*$`, 'm');
-  if (regex.test(content)) {
-    return content.replace(regex, `${key}=${value}`);
+  const newLine = `${key}=${value}`;
+  const lines = content.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].startsWith(`${key}=`)) {
+      lines[i] = newLine;
+      return lines.join('\n');
+    }
   }
-  return `${content.trimEnd()}\n${key}=${value}\n`;
+  return `${content.trimEnd()}\n${newLine}\n`;
 }
 
 /**

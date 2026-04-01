@@ -152,24 +152,22 @@ async function organizeDocs(): Promise<void> {
     'docs/.drafts': 'Draft documentation (work in progress)',
   };
 
-  // Create folders if they don't exist
+  // Ensure folders exist (recursive mkdirSync is a no-op if directory exists)
   for (const [folder, description] of Object.entries(folders)) {
-    if (!existsSync(folder)) {
-      logger.info(`Creating: ${folder} - ${description}`);
-      mkdirSync(folder, { recursive: true });
-    } else {
-      logger.info(`✅ ${folder} exists`);
-    }
+    mkdirSync(folder, { recursive: true });
+    logger.info(`✅ ${folder} - ${description}`);
   }
 
   // Create .gitkeep files in empty directories
   for (const folder of Object.keys(folders)) {
     const gitkeep = join(folder, '.gitkeep');
-    if (!existsSync(gitkeep)) {
-      const files = readdirSync(folder);
-      if (files.length === 0) {
-        writeFileSync(gitkeep, '# This file keeps the directory in git\n');
+    const files = readdirSync(folder);
+    if (files.length === 0) {
+      try {
+        writeFileSync(gitkeep, '# This file keeps the directory in git\n', { flag: 'wx' });
         logger.info(`Created .gitkeep in ${folder}`);
+      } catch {
+        // Already exists — ignore
       }
     }
   }
@@ -217,10 +215,8 @@ async function archiveDocs(daysOld = 90): Promise<void> {
       const archivePath = join(archiveDir, relativePath);
       const archiveParent = join(archivePath, '..');
 
-      // Create parent directory if needed
-      if (!existsSync(archiveParent)) {
-        mkdirSync(archiveParent, { recursive: true });
-      }
+      // Create parent directory if needed (recursive: true is a no-op if it exists)
+      mkdirSync(archiveParent, { recursive: true });
 
       logger.info(`Archiving: ${relativePath}`);
       renameSync(fullPath, archivePath);
@@ -242,11 +238,9 @@ async function planDocs(topic: string): Promise<void> {
   logger.header('Documentation Planning Phase');
   logger.info(`Topic: ${topic}`);
 
-  // Create drafts directory if it doesn't exist
+  // Ensure drafts directory exists (recursive is a no-op if it exists)
   const draftsDir = 'docs/.drafts';
-  if (!existsSync(draftsDir)) {
-    mkdirSync(draftsDir, { recursive: true });
-  }
+  mkdirSync(draftsDir, { recursive: true });
 
   // Create planning document
   const planFile = join(draftsDir, `${sanitizeFilename(topic)}-plan.md`);
@@ -395,10 +389,10 @@ External references if any.
 **Next Step**: Fill out this document, then proceed to Implementation phase
 `;
 
-  if (!existsSync(draftFile)) {
-    writeFileSync(draftFile, docTemplate);
+  try {
+    writeFileSync(draftFile, docTemplate, { flag: 'wx' });
     logger.success(`Draft created: ${draftFile}`);
-  } else {
+  } catch {
     logger.info(`Draft already exists: ${draftFile}`);
   }
 
@@ -432,21 +426,21 @@ async function implementDocs(topic: string): Promise<void> {
   const targetDir = await determineTargetDirectory(draftFile);
   const targetFile = join(targetDir, `${sanitizeFilename(topic)}.md`);
 
-  // Create target directory if needed
-  if (!existsSync(targetDir)) {
-    mkdirSync(targetDir, { recursive: true });
-  }
+  // Create target directory if needed (recursive is a no-op if it exists)
+  mkdirSync(targetDir, { recursive: true });
 
   // Move draft to final location
   logger.info(`Moving draft to: ${targetFile}`);
   renameSync(draftFile, targetFile);
 
-  // Clean up plan file
+  // Clean up plan file (archive it if it exists)
   const planFile = join(draftsDir, `${sanitizeFilename(topic)}-plan.md`);
-  if (existsSync(planFile)) {
+  try {
     const archivePlan = join('docs/archive', `${sanitizeFilename(topic)}-plan.md`);
     logger.info(`Archiving plan: ${archivePlan}`);
     renameSync(planFile, archivePlan);
+  } catch {
+    // Plan file doesn't exist — nothing to archive
   }
 
   logger.success(`Documentation implemented: ${targetFile}`);
@@ -518,13 +512,35 @@ async function resetDocs(): Promise<void> {
 }
 
 /**
- * Sanitize filename by removing special characters
+ * Sanitize filename by removing special characters.
+ * Replaces runs of non-alphanumeric characters with a single dash,
+ * then trims leading/trailing dashes.
  */
 function sanitizeFilename(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+  const lower = name.toLowerCase();
+  let result = '';
+  let lastWasDash = false;
+
+  for (let i = 0; i < lower.length; i++) {
+    const c = lower.charCodeAt(i);
+    const isAlphaNum =
+      (c >= 48 && c <= 57) || // 0-9
+      (c >= 97 && c <= 122); // a-z
+    if (isAlphaNum) {
+      result += lower[i];
+      lastWasDash = false;
+    } else if (!lastWasDash) {
+      result += '-';
+      lastWasDash = true;
+    }
+  }
+
+  // Trim leading/trailing dashes
+  let start = 0;
+  let end = result.length;
+  while (start < end && result[start] === '-') start++;
+  while (end > start && result[end - 1] === '-') end--;
+  return result.slice(start, end);
 }
 
 /**

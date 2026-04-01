@@ -14,13 +14,28 @@ use config::ConfigState;
 use local_shell::LocalShellState;
 use ssh::SshState;
 use state::AppState;
+use tauri::{Emitter, Manager};
 
 pub fn run() {
     let platform = platform::create_platform();
 
+    // Global hotkey: Ctrl+Shift+L opens the tile gallery from anywhere.
+    let shortcut_plugin = tauri_plugin_global_shortcut::Builder::new()
+        .with_shortcut("CmdOrCtrl+Shift+L")
+        .expect("failed to parse global shortcut")
+        .with_handler(|app, _shortcut, _event| {
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.show();
+                let _ = win.set_focus();
+                let _ = win.emit("navigate", "gallery");
+            }
+        })
+        .build();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(shortcut_plugin)
         .manage(AppState::new(platform))
         .manage(SshState::default())
         .manage(LocalShellState::default())

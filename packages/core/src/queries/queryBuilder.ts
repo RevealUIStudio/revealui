@@ -9,6 +9,19 @@ import type { RevealFindOptions, RevealWhere } from '../types/index.js';
 
 export type ParameterStyle = 'postgres' | 'positional';
 
+/** Escape SQL LIKE wildcards (%, _, \) in user input */
+function escapeLikeWildcards(value: string): string {
+  let result = '';
+  for (const ch of value) {
+    if (ch === '%' || ch === '_' || ch === '\\') {
+      result += `\\${ch}`;
+    } else {
+      result += ch;
+    }
+  }
+  return result;
+}
+
 /**
  * Options for building WHERE clauses
  */
@@ -65,7 +78,7 @@ export function buildWhereClause(
   const quoteField = (field: string): string => {
     if (!quoteFields) return field;
     // Escape embedded double quotes to prevent SQL injection via identifier breakout
-    const escaped = field.replace(/"/g, '""');
+    const escaped = field.split('"').join('""');
     return `"${escaped}"`;
   };
 
@@ -212,7 +225,7 @@ export function buildWhereClause(
       if ('contains' in condition && typeof condition.contains === 'string') {
         const placeholder = getPlaceholder();
         // Escape LIKE wildcards (% and _) in user input to prevent wildcard injection
-        const escaped = condition.contains.replace(/[%_\\]/g, '\\$&');
+        const escaped = escapeLikeWildcards(condition.contains);
         params.push(`%${escaped}%`);
         conditions.push(`${quotedField} LIKE ${placeholder} ESCAPE '\\'`);
       }
@@ -234,7 +247,7 @@ export function buildWhereClause(
       // like (escape wildcards to prevent blind LIKE probing)
       if ('like' in condition && typeof condition.like === 'string') {
         const placeholder = getPlaceholder();
-        const escaped = condition.like.replace(/[%_\\]/g, '\\$&');
+        const escaped = escapeLikeWildcards(condition.like);
         params.push(escaped);
         conditions.push(`${quotedField} LIKE ${placeholder} ESCAPE '\\'`);
       }
@@ -294,7 +307,7 @@ export function extractWhereValues(where?: RevealWhere): unknown[] {
             break;
           case 'contains':
             if (typeof value === 'string') {
-              const escaped = value.replace(/[%_\\]/g, '\\$&');
+              const escaped = escapeLikeWildcards(value);
               values.push(`%${escaped}%`);
             }
             break;

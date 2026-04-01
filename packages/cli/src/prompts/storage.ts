@@ -2,7 +2,7 @@
  * Storage configuration prompts
  */
 
-import inquirer from 'inquirer';
+import { isCancel, select, text } from '@clack/prompts';
 import { validateSupabaseUrl, validateVercelToken } from '../validators/credentials.js';
 
 export interface StorageConfig {
@@ -13,81 +13,76 @@ export interface StorageConfig {
 }
 
 export async function promptStorageConfig(): Promise<StorageConfig> {
-  const { provider } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'provider',
-      message: 'Which storage provider would you like to use?',
-      choices: [
-        {
-          name: 'Vercel Blob - Simple object storage (recommended)',
-          value: 'vercel-blob',
-        },
-        {
-          name: 'Supabase Storage - Integrated with Supabase',
-          value: 'supabase',
-        },
-        {
-          name: 'Skip - Configure later',
-          value: 'skip',
-        },
-      ],
-      default: 'vercel-blob',
-    },
-  ]);
+  const provider = await select({
+    message: 'Which storage provider would you like to use?',
+    options: [
+      { value: 'vercel-blob' as const, label: 'Vercel Blob - Simple object storage (recommended)' },
+      { value: 'supabase' as const, label: 'Supabase Storage - Integrated with Supabase' },
+      { value: 'skip' as const, label: 'Skip - Configure later' },
+    ],
+    initialValue: 'vercel-blob' as const,
+  });
+
+  if (isCancel(provider)) {
+    process.exit(0);
+  }
 
   if (provider === 'skip') {
     return { provider: 'skip' };
   }
 
   if (provider === 'vercel-blob') {
-    const { blobToken } = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'blobToken',
-        message: 'Enter your Vercel Blob read/write token:',
-        validate: async (input: string) => {
-          if (!input || input.trim() === '') {
-            return 'Blob token is required';
-          }
-          const result = await validateVercelToken(input);
-          return result.valid ? true : result.message || 'Invalid token';
-        },
+    const blobToken = await text({
+      message: 'Enter your Vercel Blob read/write token:',
+      validate: (input) => {
+        if (!input || input.trim() === '') {
+          return 'Blob token is required';
+        }
+        const result = validateVercelToken(input);
+        return result.valid ? undefined : result.message || 'Invalid token';
       },
-    ]);
+    });
+
+    if (isCancel(blobToken)) {
+      process.exit(0);
+    }
+
     return { provider: 'vercel-blob', blobToken };
   }
 
   // Supabase storage
-  const answers = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'supabaseUrl',
-      message: 'Enter your Supabase project URL:',
-      validate: async (input: string) => {
-        if (!input || input.trim() === '') {
-          return 'Supabase URL is required';
-        }
-        const result = await validateSupabaseUrl(input);
-        return result.valid ? true : result.message || 'Invalid URL';
-      },
+  const supabaseUrl = await text({
+    message: 'Enter your Supabase project URL:',
+    validate: (input) => {
+      if (!input || input.trim() === '') {
+        return 'Supabase URL is required';
+      }
+      const result = validateSupabaseUrl(input);
+      return result.valid ? undefined : result.message || 'Invalid URL';
     },
-    {
-      type: 'input',
-      name: 'supabasePublishableKey',
-      message: 'Enter your Supabase publishable key (sb_publishable_...):',
-      validate: (input: string) => {
-        if (!input || input.trim() === '') {
-          return 'Supabase publishable key is required';
-        }
-        return true;
-      },
+  });
+
+  if (isCancel(supabaseUrl)) {
+    process.exit(0);
+  }
+
+  const supabasePublishableKey = await text({
+    message: 'Enter your Supabase publishable key (sb_publishable_...):',
+    validate: (input) => {
+      if (!input || input.trim() === '') {
+        return 'Supabase publishable key is required';
+      }
+      return undefined;
     },
-  ]);
+  });
+
+  if (isCancel(supabasePublishableKey)) {
+    process.exit(0);
+  }
 
   return {
     provider: 'supabase',
-    supabaseUrl: answers.supabaseUrl,
-    supabasePublishableKey: answers.supabasePublishableKey,
+    supabaseUrl,
+    supabasePublishableKey,
   };
 }

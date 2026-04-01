@@ -109,14 +109,15 @@ async function runAssessment(): Promise<void> {
 /**
  * Run automated fixes (dry-run by default)
  */
-async function runFixes(dryRun = true): Promise<{ fixesApplied: number }> {
+async function runFixes(dryRun: boolean): Promise<{ fixesApplied: number }> {
   const { exec } = await import('node:child_process');
   const { promisify } = await import('node:util');
   const execAsync = promisify(exec);
 
   const command = dryRun ? 'pnpm cohesion:fix --dry-run' : 'pnpm cohesion:fix';
+  const label = dryRun ? ' (DRY RUN)' : '';
 
-  logger.info(`Running fixes${dryRun ? ' (DRY RUN)' : ''}...`);
+  logger.info(`Running fixes${label}...`);
   const { stdout, stderr } = await execAsync(command, {
     cwd: process.cwd(),
   });
@@ -130,10 +131,26 @@ async function runFixes(dryRun = true): Promise<{ fixesApplied: number }> {
 
   // Parse output to count fixes
   const output = stdout || '';
-  const match = output.match(/Fixed:\s+(\d+)/);
-  const fixesApplied = match ? Number.parseInt(match[1], 10) : 0;
+  let fixesApplied = 0;
+  const fixedPrefix = 'Fixed:';
+  const fixedIdx = output.indexOf(fixedPrefix);
+  if (fixedIdx !== -1) {
+    const afterFixed = output.substring(fixedIdx + fixedPrefix.length).trimStart();
+    // Extract leading digits
+    let numStr = '';
+    for (const ch of afterFixed) {
+      if (ch >= '0' && ch <= '9') {
+        numStr += ch;
+      } else {
+        break;
+      }
+    }
+    if (numStr.length > 0) {
+      fixesApplied = Number.parseInt(numStr, 10);
+    }
+  }
 
-  logger.success(`Fixes${dryRun ? ' would be' : ''} applied: ${fixesApplied}`);
+  logger.success(`Fixes${label} applied: ${fixesApplied}`);
 
   return { fixesApplied };
 }

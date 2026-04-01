@@ -37,7 +37,8 @@ test.describe('API health', () => {
     expect(response.status()).toBe(200);
     const body = (await response.json()) as Record<string, unknown>;
     expect(body).toHaveProperty('status');
-    expect(body.status).toMatch(/ok|live|healthy/i);
+    const status = String(body.status).toLowerCase();
+    expect(status === 'ok' || status === 'live' || status === 'healthy').toBe(true);
   });
 
   test('GET /health/ready returns 200 or 503', async ({ request }) => {
@@ -99,6 +100,8 @@ test.describe('CMS basic render', () => {
 
   test('CMS root has no critical accessibility violations', async ({ page }) => {
     await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+    // CMS root may redirect to /admin or /login — wait for navigation to settle
+    await page.waitForLoadState('networkidle');
     await checkAccessibilityCritical(page);
   });
 });
@@ -116,9 +119,14 @@ test.describe('Marketing page', () => {
   });
 
   test('Pricing page renders tier cards', async ({ page }) => {
-    await page.goto(`${MarketingBase}/pricing`, { waitUntil: 'domcontentloaded' });
-    // Verify at least one pricing tier heading is visible
-    await expect(page.getByText(/free|pro|max|enterprise/i).first()).toBeVisible();
+    await page.goto(`${MarketingBase}/pricing`, { waitUntil: 'networkidle' });
+    // Verify pricing tier headings (h3) are rendered in the DOM
+    // regex-ok: Playwright locator filter requires regex for multi-value matching
+    const tierHeadings = page.locator('h3').filter({ hasText: /^(Free|Pro|Max|Forge|Enterprise)/ });
+    await expect(tierHeadings.first()).toBeAttached({ timeout: 10_000 });
+    // At least 2 tiers should render (Free + at least one paid tier)
+    const count = await tierHeadings.count();
+    expect(count).toBeGreaterThanOrEqual(2);
   });
 
   test('Waitlist POST returns success', async ({ request }) => {

@@ -56,14 +56,77 @@ export function sanitizeString(input: string, maxLength: number = 255): string {
 export function sanitizeName(name: string, maxLength: number = 100): string {
   let sanitized = sanitizeString(name, maxLength);
 
-  // Remove HTML tags
-  sanitized = sanitized.replace(/<[^>]*>/g, '');
+  // Remove HTML tags without regex — walk the string and strip < ... > sequences
+  sanitized = stripHtmlTags(sanitized);
 
-  // Remove script tags and event handlers
-  sanitized = sanitized.replace(/javascript:/gi, '');
-  sanitized = sanitized.replace(/on\w+\s*=/gi, '');
+  // Remove dangerous URI schemes and event handler patterns
+  // Case-insensitive removal of javascript: scheme
+  let idx = sanitized.toLowerCase().indexOf('javascript:');
+  while (idx !== -1) {
+    sanitized = sanitized.slice(0, idx) + sanitized.slice(idx + 11);
+    idx = sanitized.toLowerCase().indexOf('javascript:');
+  }
+
+  // Strip inline event handlers (onclick=, onerror=, onload=, etc.)
+  sanitized = stripEventHandlers(sanitized);
 
   return sanitized;
+}
+
+/** Check if a character code is a lowercase ASCII letter (a-z) */
+function isLowerAlpha(code: number): boolean {
+  return code >= 97 && code <= 122;
+}
+
+/**
+ * Strip inline event handler attributes (onclick=, onerror=, onload=, etc.)
+ * Matches "on" followed by one or more letters followed by "=" (case-insensitive)
+ */
+function stripEventHandlers(input: string): string {
+  let result = '';
+  let i = 0;
+  while (i < input.length) {
+    // Check for "on" prefix (case-insensitive)
+    if (
+      i + 2 < input.length &&
+      (input[i] === 'o' || input[i] === 'O') &&
+      (input[i + 1] === 'n' || input[i + 1] === 'N')
+    ) {
+      // Check if followed by letters then '='
+      let j = i + 2;
+      while (j < input.length && isLowerAlpha(input.charCodeAt(j) | 0x20)) {
+        j++;
+      }
+      if (j > i + 2 && j < input.length && input[j] === '=') {
+        // Skip "onclick=" (from i to j inclusive)
+        i = j + 1;
+        continue;
+      }
+    }
+    result += input[i];
+    i++;
+  }
+  return result;
+}
+
+/** Strip HTML tags by walking the string character by character */
+function stripHtmlTags(input: string): string {
+  let result = '';
+  let inTag = false;
+  for (const ch of input) {
+    if (ch === '<') {
+      inTag = true;
+      continue;
+    }
+    if (ch === '>') {
+      inTag = false;
+      continue;
+    }
+    if (!inTag) {
+      result += ch;
+    }
+  }
+  return result;
 }
 
 /**
@@ -79,16 +142,21 @@ export function sanitizeEmail(email: string): string | null {
 
   const sanitized = email.trim().toLowerCase();
 
-  // Basic email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(sanitized)) {
+  // Length check
+  if (sanitized.length > 254 || sanitized.length < 3) {
     return null;
   }
 
-  // Limit length
-  if (sanitized.length > 254) {
-    return null;
-  }
+  // Structural email validation without regex
+  const atIndex = sanitized.indexOf('@');
+  if (atIndex < 1) return null;
+  if (sanitized.indexOf('@', atIndex + 1) !== -1) return null;
+  const local = sanitized.slice(0, atIndex);
+  const domain = sanitized.slice(atIndex + 1);
+  if (!(local && domain)) return null;
+  if (!domain.includes('.')) return null;
+  if (domain.startsWith('.') || domain.endsWith('.')) return null;
+  if (sanitized.includes(' ')) return null;
 
   return sanitized;
 }

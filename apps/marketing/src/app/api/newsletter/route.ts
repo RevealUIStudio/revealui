@@ -1,5 +1,22 @@
 import { NextResponse } from 'next/server';
 
+/** Structural email validation without regex */
+function isValidEmail(email: string): boolean {
+  if (typeof email !== 'string') return false;
+  const trimmed = email.trim().toLowerCase();
+  if (trimmed.length > 254 || trimmed.length < 3) return false;
+  const atIndex = trimmed.indexOf('@');
+  if (atIndex < 1) return false;
+  if (trimmed.indexOf('@', atIndex + 1) !== -1) return false;
+  const local = trimmed.slice(0, atIndex);
+  const domain = trimmed.slice(atIndex + 1);
+  if (!(local && domain)) return false;
+  if (!domain.includes('.')) return false;
+  if (domain.startsWith('.') || domain.endsWith('.')) return false;
+  if (trimmed.includes(' ')) return false;
+  return true;
+}
+
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 5;
 const recentRequests = new Map<string, number[]>();
@@ -39,8 +56,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Email is required.' }, { status: 400 });
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!isValidEmail(email)) {
     return NextResponse.json({ message: 'Please enter a valid email address.' }, { status: 400 });
   }
 

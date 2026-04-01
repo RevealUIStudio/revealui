@@ -12,7 +12,9 @@ import Input from '../ui/Input';
 import StatusDot from '../ui/StatusDot';
 
 const SETUP_DONE_KEY = 'revealui_project_setup_done';
+const TERMINAL_DONE_KEY = 'revealui_terminal_profiles_done';
 const SETUP_CMD = 'pnpm setup:env';
+const TERMINAL_CMD = 'npx revealui terminal install';
 
 // ── Shared primitives ────────────────────────────────────────────────────────
 
@@ -247,6 +249,95 @@ export function ProjectSetupRow() {
             {SETUP_CMD}
           </code>
           <Button variant="ghost" size="sm" onClick={copy}>
+            {copied ? 'Copied!' : 'Copy'}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Terminal profile helpers ─────────────────────────────────────────────────
+
+interface TerminalInfo {
+  name: string;
+  platform: 'macOS' | 'Linux' | 'Windows';
+}
+
+function detectPlatformTerminals(): { platform: string; terminals: TerminalInfo[] } {
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes('mac')) {
+    return {
+      platform: 'macOS',
+      terminals: [
+        { name: 'iTerm2', platform: 'macOS' },
+        { name: 'Terminal.app', platform: 'macOS' },
+        { name: 'Alacritty', platform: 'macOS' },
+        { name: 'Kitty', platform: 'macOS' },
+      ],
+    };
+  }
+  if (ua.includes('linux')) {
+    return {
+      platform: 'Linux',
+      terminals: [
+        { name: 'Alacritty', platform: 'Linux' },
+        { name: 'Kitty', platform: 'Linux' },
+        { name: 'GNOME Terminal', platform: 'Linux' },
+      ],
+    };
+  }
+  return {
+    platform: 'Windows',
+    terminals: [{ name: 'Windows Terminal', platform: 'Windows' }],
+  };
+}
+
+export function TerminalProfileRow() {
+  const [done, setDone] = useState(() => localStorage.getItem(TERMINAL_DONE_KEY) === 'true');
+  const [copied, setCopied] = useState(false);
+  const { platform, terminals } = detectPlatformTerminals();
+
+  const copyCmd = async () => {
+    await navigator.clipboard.writeText(TERMINAL_CMD);
+    setCopied(true);
+    setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
+  };
+
+  const markDone = () => {
+    localStorage.setItem(TERMINAL_DONE_KEY, 'true');
+    setDone(true);
+  };
+
+  return (
+    <div className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <StatusDot status={done ? 'ok' : 'off'} size="md" />
+          <span className="text-sm font-medium">Terminal Profiles</span>
+        </div>
+        {!done && (
+          <Button variant="ghost" size="sm" onClick={markDone}>
+            Mark done
+          </Button>
+        )}
+      </div>
+      <p className="mt-1 text-xs text-neutral-500">
+        {done ? (
+          'RevealUI color scheme installed for your terminal.'
+        ) : (
+          <>
+            Install the RevealUI dark theme for your terminal ({platform}:{' '}
+            {terminals.map((t) => t.name).join(', ')}).
+          </>
+        )}
+      </p>
+      {!done && (
+        <div className="mt-2 flex items-center gap-2">
+          <code className="rounded bg-neutral-800 px-2 py-1 font-mono text-xs text-neutral-300">
+            {TERMINAL_CMD}
+          </code>
+          <Button variant="ghost" size="sm" onClick={copyCmd}>
             {copied ? 'Copied!' : 'Copy'}
           </Button>
         </div>

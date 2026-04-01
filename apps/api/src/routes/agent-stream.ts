@@ -227,8 +227,14 @@ app.openapi(agentStreamRoute, async (c) => {
 
       // Extract session cookie for auth passthrough
       const cookieHeader = c.req.header('Cookie') ?? '';
-      const sessionMatch = cookieHeader.match(/revealui-session=([^;]+)/);
-      const sessionToken = sessionMatch?.[1] ?? '';
+      let sessionToken = '';
+      for (const pair of cookieHeader.split(';')) {
+        const trimmed = pair.trim();
+        if (trimmed.startsWith('revealui-session=')) {
+          sessionToken = trimmed.slice('revealui-session='.length);
+          break;
+        }
+      }
 
       const { createInternalCMSClient } = await import('../lib/internal-cms-client.js');
       const apiClient = createInternalCMSClient(apiBase, sessionToken);

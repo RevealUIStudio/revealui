@@ -349,11 +349,9 @@ test.describe('Authentication E2E Tests', () => {
         }
       }
 
-      // Rate limiting may be implemented, so we check if it happened
-      // This test documents expected behavior
-      if (rateLimited) {
-        expect(rateLimited).toBe(true);
-      }
+      // Rate limiting must trigger within the allowed attempt window.
+      // If it never triggered after all attempts, the feature is broken.
+      expect(rateLimited).toBe(true);
     });
   });
 });

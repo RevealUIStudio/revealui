@@ -64,15 +64,15 @@ test.describe('OV-2.1: Free Onboarding', () => {
     });
 
     // Check billing subscription status via API
+    const cookie = await getSessionCookie(request, CMS_URL, email, password);
     const response = await request.get(`${API_URL}/api/billing/subscription`, {
-      headers: {
-        cookie: await getSessionCookie(request, CMS_URL, email, password),
-      },
+      headers: { cookie },
     });
 
-    // Free users may get 200 with free tier or 401 if cross-origin cookie doesn't pass
-    // Either is acceptable — the key test is that the endpoint doesn't 500
-    expect(response.status()).toBeLessThan(500);
+    // Free users get 200 with free tier data; 401 if cross-origin session cookie
+    // doesn't carry across origins in test. Both are structurally valid — the
+    // endpoint must not return anything outside these two codes.
+    expect([200, 401]).toContain(response.status());
   });
 
   test('pricing endpoint returns all tiers with prices', async ({ request }) => {
@@ -144,15 +144,15 @@ test.describe('OV-2.2: Pro Upgrade Flow', () => {
       data: { tier: 'pro' },
     });
 
-    // Should succeed with Stripe checkout URL or fail with auth (cross-origin cookie)
+    // Should succeed with Stripe checkout URL or 401 if cross-origin session
+    // cookie doesn't carry across origins in test. No other codes are acceptable.
     if (response.status() === 200) {
       const data = await response.json();
       expect(data.url).toBeDefined();
       expect(data.url).toContain('checkout.stripe.com');
     } else {
-      // Cross-origin cookie may not pass — 401 is acceptable in test
-      // The endpoint itself is verified working (not 500)
-      expect(response.status()).toBeLessThan(500);
+      // Cross-origin cookie may not pass in E2E — only 401 is acceptable
+      expect(response.status()).toBe(401);
     }
   });
 
@@ -172,8 +172,9 @@ test.describe('OV-2.2: Pro Upgrade Flow', () => {
       data: { tier: 'nonexistent-tier' },
     });
 
-    // Should be 400 (validation) or 401 (cross-origin), not 500
-    expect(response.status()).toBeLessThan(500);
+    // 400 when authenticated (invalid tier rejected by validation),
+    // 401 when cross-origin session cookie doesn't carry across in test.
+    expect([400, 401]).toContain(response.status());
   });
 
   test('billing portal endpoint requires authentication', async ({ request }) => {
@@ -206,8 +207,10 @@ test.describe('OV-2.2: Pro Upgrade Flow', () => {
 
     // Navigate to billing page
     const response = await page.goto(`${CMS_URL}/account/billing`);
-    // Should load (200) or redirect to login (307) — not 500
-    expect(response?.status() ?? 200).toBeLessThan(500);
+    expect(response).toBeTruthy();
+    // Authenticated users get 200; unauthenticated redirects to login (307/302).
+    // Both are valid — what matters is the page renders without a server error.
+    expect([200, 302, 307]).toContain(response!.status());
   });
 });
 
@@ -232,9 +235,9 @@ test.describe('OV-2.3: Subscription Management', () => {
       data: JSON.stringify({ type: 'test.event', data: {} }),
     });
 
-    // Should reject (signature verification failure) — not crash
-    // Stripe SDK throws on invalid signature, which maps to 400 or 500
-    // Key assertion: response is structured, not a blank error
+    // Stripe SDK rejects unsigned/invalid-signature requests with 400.
+    // A 500 here means the handler crashed instead of validating cleanly.
+    expect(response.status()).toBe(400);
     const data = await response.json();
     expect(data).toBeDefined();
   });

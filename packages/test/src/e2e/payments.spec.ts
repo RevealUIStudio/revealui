@@ -62,8 +62,10 @@ test.describe('Payment Checkout Flow', () => {
   test('payment success redirects to success page', async ({ page }) => {
     const response = await page.goto(`${BASE_URL}/checkout/success`);
 
-    // Page should load without server error
-    expect(response?.status() || 200).toBeLessThan(500);
+    // Page must be reachable — a null response means navigation failed entirely
+    expect(response).toBeTruthy();
+    // Success page always renders as 200 regardless of payment state
+    expect(response!.status()).toBe(200);
 
     // Should show success message
     const successMessage = page.locator('text=/success|thank you|payment received/i');

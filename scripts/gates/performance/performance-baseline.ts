@@ -18,8 +18,8 @@
 
 console.log('🚀 Performance baseline script starting...');
 
-import { execSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ErrorCode } from '@revealui/scripts/errors.js';
@@ -98,42 +98,52 @@ async function runAutocannonTest(
     const baseUrl = process.env.BASE_URL || 'http://localhost:4000';
     const url = endpointConfig.url.replace('http://localhost:4000', baseUrl);
 
-    let cmd = `pnpm dlx autocannon --json`;
+    // Validate the URL to prevent command injection via endpoint config
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        logger.error(`Invalid URL protocol for ${endpointName}: ${parsed.protocol}`);
+        return null;
+      }
+    } catch {
+      logger.error(`Invalid URL for ${endpointName}: ${url}`);
+      return null;
+    }
+
+    const args = ['dlx', 'autocannon', '--json'];
 
     // Add method if not GET
     if (endpointConfig.method && endpointConfig.method !== 'GET') {
-      cmd += ` --method ${endpointConfig.method}`;
+      args.push('--method', String(endpointConfig.method));
     }
 
     // Add headers
     if (endpointConfig.headers) {
       Object.entries(endpointConfig.headers).forEach(([key, value]) => {
-        // Replace placeholders
         const processedValue = value.replace(
           '{TEST_TOKEN}',
           process.env.TEST_TOKEN || 'test-token',
         );
-        cmd += ` --header "${key}: ${processedValue}"`;
+        args.push('--header', `${key}: ${processedValue}`);
       });
     }
 
     // Add body for POST requests
     if (endpointConfig.body) {
-      const bodyStr = JSON.stringify(endpointConfig.body);
-      cmd += ` --body '${bodyStr}'`;
+      args.push('--body', JSON.stringify(endpointConfig.body));
     }
 
     // Add test parameters
-    cmd += ` --duration ${endpointConfig.duration || 30}`;
-    cmd += ` --connections ${endpointConfig.connections || 10}`;
-    cmd += ` --pipelining ${endpointConfig.pipelining || 1}`;
-    cmd += ` --bailout ${endpointConfig.bailout || 5}`;
+    args.push('--duration', String(endpointConfig.duration || 30));
+    args.push('--connections', String(endpointConfig.connections || 10));
+    args.push('--pipelining', String(endpointConfig.pipelining || 1));
+    args.push('--bailout', String(endpointConfig.bailout || 5));
 
     // Add URL
-    cmd += ` ${url}`;
+    args.push(url);
 
     // Run autocannon
-    const output = execSync(cmd, {
+    const output = execFileSync('pnpm', args, {
       encoding: 'utf-8',
       stdio: 'pipe',
     });
@@ -186,15 +196,14 @@ async function main() {
   const endpointsFile = resolve(testsDir, 'endpoints.json');
 
   // Load endpoints configuration
-  if (!existsSync(endpointsFile)) {
+  let endpointsConfig: Record<string, EndpointConfig>;
+  try {
+    endpointsConfig = JSON.parse(readFileSync(endpointsFile, 'utf-8'));
+  } catch {
     logger.error(`Endpoints configuration not found: ${endpointsFile}`);
     logger.info('Please ensure endpoints.json exists in packages/test/load-tests/');
     process.exit(ErrorCode.EXECUTION_ERROR);
   }
-
-  const endpointsConfig: Record<string, EndpointConfig> = JSON.parse(
-    readFileSync(endpointsFile, 'utf-8'),
-  );
   logger.info(`Loaded ${Object.keys(endpointsConfig).length} endpoint configurations`);
 
   const results: PerformanceMetrics[] = [];

@@ -8,6 +8,7 @@ import {
   NixRow,
   ProjectSetupRow,
   TailscaleRow,
+  TerminalProfileRow,
   VaultRow,
   WslRow,
 } from './SetupRows';
@@ -37,6 +38,7 @@ export default function SetupPage() {
         <VaultRow />
         <TailscaleRow />
         <ProjectSetupRow />
+        <TerminalProfileRow />
       </div>
     </div>
   );

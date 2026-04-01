@@ -36,8 +36,8 @@ concurrency:
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
   # Lockfile policy: strict on all CI branches (test/main)
   # --frozen-lockfile: fail if lockfile is out of sync (supply chain protection)
   PNPM_INSTALL_FLAGS: "--frozen-lockfile"
@@ -302,16 +302,30 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
-  # Phase 4: E2E smoke tests (warn-only — Playwright chromium only)
-  # Server startup in CI is unreliable (port binding timeouts). Keeping as
-  # warn-only so flaky infrastructure doesn't block production deploys.
+  # Phase 4: E2E smoke tests (hard fail — Playwright chromium only)
+  # Requires PostgreSQL for the API server (root cause of prior failures was
+  # a missing database service — the API hung trying to connect to nothing).
   # ---------------------------------------------------------------------------
   e2e-smoke:
     name: E2E Smoke
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [quality, build]
-    continue-on-error: true
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -340,8 +354,8 @@ jobs:
         run: pnpm --filter api start &
         env:
           SKIP_ENV_VALIDATION: "true"
-          NODE_ENV: "test"
-          POSTGRES_URL: "postgresql://localhost:5432/smoke"
+          NODE_ENV: "development"
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
 
       - name: Start CMS server
         run: pnpm --filter cms start &
@@ -353,6 +367,7 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
           PORT: "3002"
+          NEXT_PUBLIC_API_URL: "http://localhost:3004"
 
       - name: Wait for servers
         run: |
@@ -432,6 +447,7 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
           PORT: "3002"
+          NEXT_PUBLIC_API_URL: "http://localhost:3004"
 
       - name: Wait for servers
         run: |

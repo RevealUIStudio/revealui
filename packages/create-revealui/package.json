@@ -1,6 +1,6 @@
 {
   "name": "create-revealui",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "description": "Create a new RevealUI project",
   "keywords": [
     "cli",
@@ -31,6 +31,7 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
+    "build": "echo 'No compilation needed — bin wrapper only'",
     "lint": "biome check .",
     "test": "echo 'No tests — thin wrapper for @revealui/cli'",
     "typecheck": "echo 'No source — bin wrapper only'"
