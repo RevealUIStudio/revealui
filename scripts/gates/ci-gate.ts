@@ -11,6 +11,7 @@
  *   pnpm gate --phase=1        — quick quality checks only
  *   pnpm gate --skip=security  — skip security audit
  *   pnpm gate --no-build       — skip build in phase 3
+ *   pnpm gate --no-test        — skip tests in phase 3 (pre-push: CI runs tests)
  *   pnpm gate --changed        — scope to packages changed vs origin/<branch> (pre-push fast path)
  *   pnpm gate --types          — include full type-system validation (gate:types) in phase 2
  *
@@ -79,6 +80,7 @@ function parseArgs(): {
   phase: number | null;
   skip: Set<string>;
   noBuild: boolean;
+  noTest: boolean;
   changed: boolean;
   types: boolean;
 } {
@@ -86,6 +88,7 @@ function parseArgs(): {
   let phase: number | null = null;
   const skip = new Set<string>();
   let noBuild = false;
+  let noTest = false;
   let changed = false;
   let types = false;
 
@@ -96,6 +99,8 @@ function parseArgs(): {
       skip.add(arg.split('=')[1]);
     } else if (arg === '--no-build') {
       noBuild = true;
+    } else if (arg === '--no-test') {
+      noTest = true;
     } else if (arg === '--changed') {
       changed = true;
     } else if (arg === '--types') {
@@ -103,7 +108,7 @@ function parseArgs(): {
     }
   }
 
-  return { phase, skip, noBuild, changed, types };
+  return { phase, skip, noBuild, noTest, changed, types };
 }
 
 // =============================================================================
@@ -188,7 +193,7 @@ function printSummary(results: CheckResult[], totalMs: number): void {
 async function gate(): Promise<void> {
   await getProjectRoot(import.meta.url);
 
-  const { phase, skip, noBuild, changed, types } = parseArgs();
+  const { phase, skip, noBuild, noTest, changed, types } = parseArgs();
 
   logger.header('RevealUI CI Gate');
 
@@ -200,6 +205,9 @@ async function gate(): Promise<void> {
   }
   if (noBuild) {
     logger.info('Build step disabled');
+  }
+  if (noTest) {
+    logger.info('Test step disabled (CI will run tests)');
   }
   // Resolve the comparison base once for all phases
   const changeBase = changed ? await resolveChangeBase() : 'HEAD~1';
@@ -382,10 +390,11 @@ async function gate(): Promise<void> {
             },
           ];
 
-    const phase3Checks: CheckDef[] = [
-      { name: 'Tests', command: 'pnpm', args: testArgs, timeout: 300000 },
-      ...buildCheck,
-    ];
+    const testCheck: CheckDef[] = noTest
+      ? []
+      : [{ name: 'Tests', command: 'pnpm', args: testArgs, timeout: 300000 }];
+
+    const phase3Checks: CheckDef[] = [...testCheck, ...buildCheck];
 
     const results = await runPhaseSerial(phase3Checks);
     allResults.push(...results);
