@@ -154,13 +154,13 @@ jobs:
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Pull Vercel environment
-        run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }}
+        run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }} --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
       - name: Build
-        run: vercel build ${{ needs.resolve.outputs.prod-flag }}
+        run: vercel build ${{ needs.resolve.outputs.prod-flag }} --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
@@ -169,7 +169,7 @@ jobs:
       - name: Deploy
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt ${{ needs.resolve.outputs.prod-flag }})
+          URL=$(vercel deploy --prebuilt ${{ needs.resolve.outputs.prod-flag }} --token="$VERCEL_TOKEN")
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "::notice::${{ matrix.app }} deployed to $URL"
         env:
@@ -178,7 +178,7 @@ jobs:
 
       - name: Alias to stable domain (test)
         if: needs.resolve.outputs.environment == 'test'
-        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.test-domain }} --scope=${{ env.VERCEL_ORG_ID }}
+        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.test-domain }} --scope=${{ env.VERCEL_ORG_ID }} --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
