@@ -122,7 +122,7 @@
     "changeset": "changeset",
     "changeset:publish": "changeset publish",
     "changeset:status": "changeset status",
-    "changeset:version": "changeset version",
+    "changeset:version": "changeset version && pnpm install --no-frozen-lockfile",
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist packages/*/.next apps/*/.next packages/*/.turbo apps/*/.turbo .next .turbo",
     "clean:install": "pnpm clean && pnpm install:clean",
     "coverage:check": "tsx scripts/gates/test-coverage-gate.ts",
