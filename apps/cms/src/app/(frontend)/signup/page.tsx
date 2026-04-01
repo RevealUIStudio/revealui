@@ -76,6 +76,19 @@ function SignupContent() {
 
     const result = await signUp({ email, password, name, tosAccepted: true });
     if (result.success) {
+      // Record GDPR consent for necessary + functional (fire-and-forget)
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
+      for (const type of ['necessary', 'functional'] as const) {
+        fetch(`${apiUrl}/api/gdpr/consent/grant`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ type }),
+        }).catch(() => {
+          // Best-effort — consent tracking should not block signup
+        });
+      }
+
       if (plan === 'pro') {
         router.push('/account/billing?upgrade=pro');
       } else if (result.user?.role === 'admin') {

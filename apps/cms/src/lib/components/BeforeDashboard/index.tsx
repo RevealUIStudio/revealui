@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import PoweredByRevealUI from '../PoweredByRevealUI/index';
+import OnboardingChecklist from './OnboardingChecklist';
 
 const adminLinks = [
   {
@@ -28,6 +29,16 @@ const adminLinks = [
     description: 'Error tracking and diagnostics',
   },
   {
+    href: '/admin/audit',
+    label: 'Audit Trail',
+    description: 'Security and compliance audit log',
+  },
+  {
+    href: '/admin/webhooks',
+    label: 'Webhooks',
+    description: 'Webhook deliveries and event status',
+  },
+  {
     href: '/admin/settings',
     label: 'Settings',
     description: 'Account, security, and preferences',
@@ -38,6 +49,8 @@ const BeforeDashboard = () => {
   return (
     <div className="relative mx-auto w-full rounded-lg bg-zinc-900 p-8 shadow-md">
       <h1 className="mb-6 text-3xl font-bold text-white">RevealUI CMS</h1>
+
+      <OnboardingChecklist />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {adminLinks.map(({ href, label, description }) => (
