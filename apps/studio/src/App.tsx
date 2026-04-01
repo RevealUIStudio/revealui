@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { listen } from '@tauri-apps/api/event';
+import { useEffect, useState } from 'react';
 import AgentPanel from './components/agent/AgentPanel';
 import LoginScreen from './components/auth/LoginScreen';
 import Dashboard from './components/dashboard/Dashboard';
 import DeployDashboard from './components/dashboard/DeployDashboard';
 import DeployWizard from './components/deploy/DeployWizard';
 import CodeEditor from './components/editor/CodeEditor';
+import TileGallery from './components/gallery/TileGallery';
 import GitPanel from './components/git/GitPanel';
 import InfrastructurePanel from './components/infrastructure/InfrastructurePanel';
 import IntentScreen from './components/intent/IntentScreen';
@@ -60,6 +62,17 @@ function MainApp() {
   const [editorTarget, setEditorTarget] = useState<EditorTarget | null>(null);
   const { config, loading, setIntent, updateConfig } = useConfig();
 
+  // Listen for tray-click navigation events from Rust
+  useEffect(() => {
+    const unlisten = listen<string>('navigate', (event) => {
+      const target = event.payload as Page;
+      setPage(target);
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
+
   function openInEditor(repoPath: string, filePath: string) {
     setEditorTarget({ repoPath, filePath });
     setPage('editor');
@@ -102,6 +115,7 @@ function MainApp() {
           padless={page === 'git' || page === 'editor'}
         >
           {page === 'dashboard' ? <Dashboard /> : null}
+          {page === 'gallery' ? <TileGallery /> : null}
           {page === 'vault' ? <VaultPanel /> : null}
           {page === 'infrastructure' ? <InfrastructurePanel /> : null}
           {page === 'sync' ? <SyncPanel /> : null}
@@ -148,6 +162,7 @@ function MainApp() {
   return (
     <AppShell currentPage={page} onNavigate={setPage} padless={page === 'git' || page === 'editor'}>
       {page === 'dashboard' ? <Dashboard /> : null}
+      {page === 'gallery' ? <TileGallery /> : null}
       {page === 'vault' ? <VaultPanel /> : null}
       {page === 'infrastructure' ? <InfrastructurePanel /> : null}
       {page === 'sync' ? <SyncPanel /> : null}

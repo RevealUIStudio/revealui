@@ -27,6 +27,8 @@ pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
                 if let Some(win) = app.get_webview_window("main") {
                     let _ = win.show();
                     let _ = win.set_focus();
+                    // Tell the frontend to navigate to the tile gallery
+                    let _ = win.emit("navigate", "gallery");
                 }
             }
         })
