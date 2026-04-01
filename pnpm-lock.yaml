@@ -879,6 +879,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@clack/prompts':
+        specifier: ^0.10.0
+        version: 0.10.1
       '@revealui/ai':
         specifier: ^0.2.0
         version: 0.2.0(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1898,6 +1901,12 @@ packages:
 
   '@clack/core@0.3.5':
     resolution: {integrity: sha512-5cfhQNH+1VQ2xLQlmzXMqUoiaH0lRBq9/CLW9lTyMbuKLC3+xEK01tHVvyut++mLOn5urSHmkm6I0Lg9MaJSTQ==}
+
+  '@clack/core@0.4.2':
+    resolution: {integrity: sha512-NYQfcEy8MWIxrT5Fj8nIVchfRFA26yYKJcvBS7WlUIlw2OmQOY9DhGGXMovyI5J5PpxrCPGkgUi207EBrjpBvg==}
+
+  '@clack/prompts@0.10.1':
+    resolution: {integrity: sha512-Q0T02vx8ZM9XSv9/Yde0jTmmBQufZhPJfYAg2XrrrxWWaZgq1rr8nU8Hv710BQ1dhoP8rtY7YUdpGej2Qza/cw==}
 
   '@clack/prompts@0.8.2':
     resolution: {integrity: sha512-6b9Ab2UiZwJYA9iMyboYyW9yJvAO9V753ZhS+DHKEjZRKAxPPOb7MXXu84lsPFG+vZt6FRFniZ8rXi+zCIw4yQ==}
@@ -10072,6 +10081,17 @@ snapshots:
 
   '@clack/core@0.3.5':
     dependencies:
+      picocolors: 1.1.1
+      sisteransi: 1.0.5
+
+  '@clack/core@0.4.2':
+    dependencies:
+      picocolors: 1.1.1
+      sisteransi: 1.0.5
+
+  '@clack/prompts@0.10.1':
+    dependencies:
+      '@clack/core': 0.4.2
       picocolors: 1.1.1
       sisteransi: 1.0.5
 
