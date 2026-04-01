@@ -61,7 +61,7 @@
   },
   "peerDependencies": {
     "@revealui/ai": "^0.2.4",
-    "@revealui/services": "^0.2.6"
+    "@revealui/services": "^0.3.0"
   },
   "peerDependenciesMeta": {
     "@revealui/ai": {
