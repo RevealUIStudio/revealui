@@ -33,6 +33,7 @@ import {
   runDevUpCommand,
 } from './commands/dev.js';
 import { runDoctorCommand } from './commands/doctor.js';
+import { runTerminalInstallCommand, runTerminalListCommand } from './commands/terminal.js';
 
 const logger = createLogger({ prefix: 'CLI' });
 
@@ -298,6 +299,28 @@ export function createCli(): Command {
     .option('--json', 'Output machine-readable JSON', false)
     .action(async (options: { json?: boolean }) => {
       await runAuthVerifyCommand(options);
+    });
+
+  const terminal = program
+    .command('terminal')
+    .description('Install RevealUI terminal profiles for your terminal emulator');
+
+  terminal
+    .command('install')
+    .description('Detect and install terminal profiles for supported emulators')
+    .option('--terminal <name>', 'Install for a specific terminal (e.g. iTerm2, Alacritty, Kitty)')
+    .option('--force', 'Overwrite existing profile files', false)
+    .option('--json', 'Output machine-readable JSON', false)
+    .action(async (options: { terminal?: string; force?: boolean; json?: boolean }) => {
+      await runTerminalInstallCommand(options);
+    });
+
+  terminal
+    .command('list')
+    .description('List available terminal profiles and detected emulators')
+    .option('--json', 'Output machine-readable JSON', false)
+    .action(async (options: { json?: boolean }) => {
+      await runTerminalListCommand(options);
     });
 
   program

@@ -145,13 +145,10 @@ const PRO_SOURCE_ALIAS_PATTERNS: SourcePattern[] = [
   },
   {
     check: (content) => {
-      // Check for relative import paths: '../packages/ai/src' or '../../ee/packages/ai/src'
+      // Check for relative import paths: '../packages/ai/src'
       // Must have ../ prefix (relative traversal) to distinguish from documentation/config references
       for (const dir of PRO_PACKAGE_DIRS) {
-        if (
-          content.includes(`../packages/${dir}/src`) ||
-          content.includes(`../ee/packages/${dir}/src`)
-        ) {
+        if (content.includes(`../packages/${dir}/src`)) {
           return true;
         }
       }

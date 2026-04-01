@@ -1,0 +1,185 @@
+# AI Stack Architecture
+
+RevealUI's AI subsystem lives in `@revealui/ai` (Pro, commercially licensed). It provides multi-provider LLM access, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime — all gated by tier.
+
+## Provider Abstraction
+
+All LLM access flows through `LLMClient`, a factory that wraps provider-specific SDKs behind a uniform interface (`chat()`, `stream()`, `embed()`).
+
+### Supported Providers
+
+| Provider | Chat | Embeddings | Key Env Var | Notes |
+|----------|------|-----------|-------------|-------|
+| **Groq** | yes | no | `GROQ_API_KEY` | Free tier default (platform key). Model: `llama-3.3-70b-versatile` |
+| **Ollama** | yes | yes | `OLLAMA_BASE_URL` | Local. Chat: `llama3.2:3b`, Embed: `nomic-embed-text` |
+| **BitNet** | yes | no | `BITNET_BASE_URL` | Local CPU-only. Model: `bitnet-b1.58-2B-4T`, ~700 MB RAM |
+| **Anthropic** | yes | yes | `ANTHROPIC_API_KEY` | Prompt caching support (90% cost reduction) |
+| **OpenAI** | yes | yes | `OPENAI_API_KEY` | Excluded from auto-detection (explicit only) |
+| **Vultr** | yes | no | `VULTR_API_KEY` | OpenAI-compatible endpoint |
+| **HuggingFace** | yes | no | `HF_API_KEY` | Inference API |
+| **Inference Snaps** | yes | no | `INFERENCE_SNAPS_BASE_URL` | Local snap-based models |
+
+### Auto-Detection Priority
+
+`createLLMClientFromEnv()` selects the provider by checking env vars in order:
+
+1. `LLM_PROVIDER` (explicit override)
+2. `INFERENCE_SNAPS_BASE_URL`
+3. `BITNET_BASE_URL`
+4. `GROQ_API_KEY`
+5. `OLLAMA_BASE_URL`
+6. `ANTHROPIC_API_KEY`
+
+### BitNet + Ollama Auto-Wiring
+
+When both `BITNET_BASE_URL` and `OLLAMA_BASE_URL` are set, the factory automatically routes chat to BitNet and embeddings to Ollama (`nomic-embed-text`). No additional config needed.
+
+## Freemium Model
+
+Revenue tiers control AI access via runtime feature gating:
+
+| Tier | AI Access | Task Quota | Coding Tools | Provider |
+|------|-----------|-----------|--------------|----------|
+| **Free (local)** | BitNet only | 1,000/mo | Full (offline) | `BITNET_BASE_URL` |
+| **Free (sampling)** | Platform Groq | 50/mo | Read-only | Platform `GROQ_API_KEY` |
+| **Pro** ($49/mo) | BYOK + platform | 10,000/mo | Full | User's choice |
+| **Max** ($149/mo) | BYOK + platform | 50,000/mo | Full + memory | User's choice |
+| **Enterprise** ($299/mo) | Unlimited | Metered | Full + memory + multi-tenant | All providers |
+
+### Access Modes
+
+The `aiAccessMode` field on entitlements controls enforcement:
+
+- **`local`**: Free tier forced to BitNet. No API key needed. Full coding tools (offline).
+- **`sampling`**: Free tier uses platform Groq key. 50 tasks/month. Read-only coding tools (`file_read`, `file_glob`, `file_grep`, `project_context`).
+
+### Quota Enforcement
+
+Task quota middleware (`apps/api/src/middleware/task-quota.ts`) runs on every agent request:
+
+1. Read current month's usage from `agent_task_usage` table
+2. If under quota, allow and increment atomically
+3. If over quota, check `agent_credit_balance` for prepaid credits
+4. If no credits and `X402_ENABLED=true`, return HTTP 402 for USDC payment
+5. Otherwise return 429 with upgrade prompt
+
+## Agent Orchestration
+
+### Runtime
+
+`AgentRuntime` (`packages/ai/src/orchestration/runtime.ts`) executes a tool-calling loop:
+
+1. Format system prompt + user task into messages
+2. Call LLM with tool definitions
+3. Parse and execute tool calls (with deduplication)
+4. Append tool results to message history
+5. Iterate until `done` or max iterations (default: 10, timeout: 60s)
+
+Supports: MCP tool discovery, skill injection, extended thinking (Anthropic), prompt caching, tool result compression per model tier.
+
+### Streaming
+
+`StreamingAgentRuntime` extends the runtime with async generator output:
+
+```
+AgentStreamChunk types: text | tool_call_start | tool_call_result | error | done
+```
+
+The `/api/agent-stream` POST route serves SSE responses. The React hook `useAgentStream` consumes them client-side.
+
+### Tool Categories
+
+- **CMS tools**: Content CRUD, media management, user/globals operations
+- **Coding tools** (Pro+): `file_read`, `file_write`, `file_edit`, `file_glob`, `file_grep`, `shell_exec`, `git_ops`, `project_context`
+- **Coding tools** (sampling/free): Read-only subset only
+- **Memory tools**: Episodic recall, working memory access
+- **Web tools**: DuckDuckGo search (default)
+- **MCP adapter**: External tool discovery via MCP protocol
+
+## Memory System
+
+CRDT-based distributed memory with four stores:
+
+| Store | Scope | Persistence | Use Case |
+|-------|-------|-------------|----------|
+| **Working** | Session | Volatile | Current conversation context |
+| **Episodic** | Long-term | PostgreSQL + pgvector | Task history, vector-searchable |
+| **Semantic** | Long-term | PostgreSQL + pgvector | Knowledge base (BM25 + vector hybrid) |
+| **Procedural** | Long-term | PostgreSQL | Agent skills and techniques |
+
+### CRDT Primitives
+
+- **LWWRegister**: Last-Writer-Wins for single values (preferences, configs)
+- **ORSet**: Observed-Remove Set for collections
+- **PNCounter**: Distributed increment/decrement counter
+- **VectorClock**: Causal ordering across nodes
+
+Memory integration is optional — agents degrade gracefully without it. Requires Max tier (`aiMemory` feature flag).
+
+## RAG Pipeline
+
+`packages/ai/src/ingestion/` provides document indexing and retrieval:
+
+- **Text splitter**: Chunk documents for embedding
+- **File parsers**: Extract text from various formats
+- **Hybrid search**: BM25 (keyword) + vector (semantic) with reranking
+- **CMS indexer**: Auto-indexes CMS content for agent context
+
+Embeddings stored in Supabase (pgvector). Search queries use the dual-database pattern: NeonDB for metadata, Supabase for vectors.
+
+## Caching Layers
+
+Two caching strategies reduce LLM costs:
+
+- **Response cache**: Exact-match deduplication (100% savings on duplicate prompts)
+- **Semantic cache**: Embedding similarity matching (73% cost reduction on near-duplicate prompts)
+
+Both are opt-in via `LLMClientConfig.enableResponseCache` and `enableSemanticCache`.
+
+## Package Structure
+
+`@revealui/ai` exports 18 subpaths for granular imports:
+
+```
+@revealui/ai                    Main entry + licensing
+@revealui/ai/memory             Memory system
+@revealui/ai/memory/stores      Working, Episodic, Semantic, Procedural
+@revealui/ai/memory/vector      Vector search
+@revealui/ai/memory/persistence CRDT persistence
+@revealui/ai/memory/agent       Agent context manager
+@revealui/ai/embeddings         Embedding generation
+@revealui/ai/client             React hooks (useAgentStream, etc.)
+@revealui/ai/skills             Agent skill definitions
+@revealui/ai/llm/client         LLMClient factory
+@revealui/ai/llm/providers/base Provider interface
+@revealui/ai/tools/cms          CMS tool integration
+@revealui/ai/tools/registry     Tool registry
+@revealui/ai/ingestion          RAG pipeline
+@revealui/ai/orchestration/*    Agent runtime, streaming, memory integration
+@revealui/ai/inference           Context assembly, budget, compression
+```
+
+## Feature Flag Reference
+
+```
+aiLocal:         free     Local BitNet inference
+aiSampling:      free     Platform Groq (50 tasks/month)
+ai:              pro      Cloud AI agents (BYOK)
+mcp:             pro      MCP framework integration
+aiMemory:        max      Working + episodic memory
+aiMultiProvider:  max      2+ concurrent providers
+byokServerSide:  max      Server-side key storage
+```
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|---------|-------------|
+| `BITNET_BASE_URL` | No | BitNet llama-server URL (default: `http://localhost:8080/v1`) |
+| `OLLAMA_BASE_URL` | No | Ollama server URL (default: `http://localhost:11434/v1`) |
+| `GROQ_API_KEY` | No | Groq API key (platform key used for free sampling) |
+| `ANTHROPIC_API_KEY` | No | Anthropic API key |
+| `OPENAI_API_KEY` | No | OpenAI API key (explicit only, not auto-detected) |
+| `LLM_PROVIDER` | No | Force specific provider (overrides auto-detection) |
+| `LLM_MODEL` | No | Override default model for the selected provider |
+| `X402_ENABLED` | No | Enable USDC payment fallback when quota exceeded |
