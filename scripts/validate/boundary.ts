@@ -91,12 +91,17 @@ const INTERNAL_SOURCE_PATTERNS: SourcePattern[] = [
   },
   {
     check: (content) => {
-      // Check for RevealUIStudio/ not preceded by github.com/ or githubusercontent.com/
+      // Check for RevealUIStudio/ not preceded by a valid GitHub URL
       const needle = 'RevealUIStudio/';
       let idx = content.indexOf(needle);
       while (idx !== -1) {
-        const prefix = content.substring(Math.max(0, idx - 30), idx);
-        if (!(prefix.includes('github.com/') || prefix.includes('githubusercontent.com/'))) {
+        const prefix = content.substring(Math.max(0, idx - 50), idx);
+        // Use endsWith to anchor at the domain boundary, preventing spoofing
+        // (e.g. evil-github.com/ would not match)
+        const isGitHub = prefix.endsWith('//github.com/') || prefix.endsWith('.github.com/');
+        const isGHContent =
+          prefix.endsWith('//githubusercontent.com/') || prefix.endsWith('.githubusercontent.com/');
+        if (!(isGitHub || isGHContent)) {
           return true;
         }
         idx = content.indexOf(needle, idx + 1);
