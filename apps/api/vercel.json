@@ -8,9 +8,7 @@
       "maxDuration": 30
     }
   },
-  "crons": [
-    { "path": "/api/cron/billing-readiness", "schedule": "0 6 * * *" }
-  ],
+  "crons": [{ "path": "/api/cron/billing-readiness", "schedule": "0 6 * * *" }],
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
   "headers": [
     {

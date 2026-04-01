@@ -133,8 +133,7 @@ test.describe('Production Smoke Tests', () => {
     // X-Frame-Options or CSP frame-ancestors must be present
     const hasFrameProtection =
       headers['x-frame-options'] !== undefined ||
-      (headers['content-security-policy'] !== undefined &&
-        headers['content-security-policy'].includes('frame-ancestors'));
+      headers['content-security-policy']?.includes('frame-ancestors');
     expect(hasFrameProtection).toBe(true);
 
     // Strict-Transport-Security (HSTS)
