@@ -78,29 +78,7 @@ jobs:
           retention-days: 90
 
       - name: Validate release artifacts
-        run: |
-          echo "Checking dist/ output for OSS packages..."
-          FAILED=0
-          for pkg in auth cli config contracts core create-revealui db presentation router setup sync utils; do
-            DIR="packages/$pkg/dist"
-            if [ ! -d "$DIR" ] || [ -z "$(ls -A "$DIR" 2>/dev/null)" ]; then
-              echo "❌ $pkg: dist/ is empty or missing"
-              FAILED=1
-            elif [ "$pkg" != "create-revealui" ] && ! ls "$DIR"/*.d.ts >/dev/null 2>&1; then
-              echo "❌ $pkg: no .d.ts files in dist/"
-              FAILED=1
-            else
-              COUNT=$(ls "$DIR"/*.js 2>/dev/null | wc -l)
-              echo "✅ $pkg: $COUNT .js files"
-            fi
-          done
-          if [ "$FAILED" -eq 1 ]; then
-            echo ""
-            echo "❌ Release artifact validation failed"
-            exit 1
-          fi
-          echo ""
-          echo "✅ All release artifacts validated"
+        run: pnpm validate:artifacts
 
       - name: Publish to npm (dry run)
         if: ${{ inputs.dry-run }}
@@ -113,10 +91,6 @@ jobs:
         run: pnpm changeset publish --provenance
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # NODE_AUTH_TOKEN not needed — OIDC trusted publishing handles auth.
-          # If trusted publishing is not yet configured, set NPM_TOKEN secret
-          # and uncomment the line below:
-          # NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Push tags
         if: ${{ !inputs.dry-run }}

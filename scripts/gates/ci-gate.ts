@@ -362,6 +362,11 @@ async function gate(): Promise<void> {
               ],
               timeout: 600000,
             },
+            {
+              name: 'Build artifacts',
+              command: 'pnpm',
+              args: ['validate:artifacts'],
+            },
           ]
         : [
             {
@@ -369,6 +374,11 @@ async function gate(): Promise<void> {
               command: 'pnpm',
               args: ['turbo', 'run', 'build', ...proFilter, '--concurrency=3'],
               timeout: 900000,
+            },
+            {
+              name: 'Build artifacts',
+              command: 'pnpm',
+              args: ['validate:artifacts'],
             },
           ];
 
