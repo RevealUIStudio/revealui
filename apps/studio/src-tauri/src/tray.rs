@@ -1,7 +1,7 @@
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, Runtime,
+    AppHandle, Emitter, Manager, Runtime,
 };
 
 use crate::state::AppState;
@@ -51,6 +51,13 @@ pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
 
 fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     let show = MenuItem::with_id(app, "show", "Show RevealUI Studio", true, None::<&str>)?;
+    let launcher = MenuItem::with_id(
+        app,
+        "launcher",
+        "Open Launcher",
+        true,
+        Some("CmdOrCtrl+Shift+L"),
+    )?;
     let sep1 = PredefinedMenuItem::separator(app)?;
     let mount = MenuItem::with_id(app, "mount", "Mount Studio Drive", true, None::<&str>)?;
     let unmount =
@@ -58,7 +65,10 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
     let sep2 = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, "quit", "Quit RevealUI Studio", true, None::<&str>)?;
 
-    Menu::with_items(app, &[&show, &sep1, &mount, &unmount, &sep2, &quit])
+    Menu::with_items(
+        app,
+        &[&show, &launcher, &sep1, &mount, &unmount, &sep2, &quit],
+    )
 }
 
 fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, event: tauri::menu::MenuEvent) {
@@ -98,6 +108,13 @@ fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, event: tauri::menu::MenuEve
                     Err(e) => eprintln!("[studio] unmount error: {e}"),
                 }
             });
+        }
+        "launcher" => {
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.show();
+                let _ = win.set_focus();
+                let _ = win.emit("navigate", "gallery");
+            }
         }
         "quit" => {
             app.exit(0);
