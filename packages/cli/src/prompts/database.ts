@@ -2,7 +2,7 @@
  * Database configuration prompts
  */
 
-import inquirer from 'inquirer';
+import { isCancel, select, text } from '@clack/prompts';
 import { validateNeonUrl } from '../validators/credentials.js';
 
 export interface DatabaseConfig {
@@ -11,68 +11,59 @@ export interface DatabaseConfig {
 }
 
 export async function promptDatabaseConfig(): Promise<DatabaseConfig> {
-  const { provider } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'provider',
-      message: 'Which database provider would you like to use?',
-      choices: [
-        {
-          name: 'NeonDB - Serverless PostgreSQL (recommended)',
-          value: 'neon',
-        },
-        {
-          name: 'Supabase - PostgreSQL with built-in features',
-          value: 'supabase',
-        },
-        {
-          name: 'Local PostgreSQL - Use existing local database',
-          value: 'local',
-        },
-        {
-          name: 'Skip - Configure later',
-          value: 'skip',
-        },
-      ],
-      default: 'neon',
-    },
-  ]);
+  const provider = await select({
+    message: 'Which database provider would you like to use?',
+    options: [
+      { value: 'neon' as const, label: 'NeonDB - Serverless PostgreSQL (recommended)' },
+      { value: 'supabase' as const, label: 'Supabase - PostgreSQL with built-in features' },
+      { value: 'local' as const, label: 'Local PostgreSQL - Use existing local database' },
+      { value: 'skip' as const, label: 'Skip - Configure later' },
+    ],
+    initialValue: 'neon' as const,
+  });
+
+  if (isCancel(provider)) {
+    process.exit(0);
+  }
 
   if (provider === 'skip') {
     return { provider: 'skip' };
   }
 
   if (provider === 'local') {
-    const { postgresUrl } = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'postgresUrl',
-        message: 'Enter your PostgreSQL connection string:',
-        default: 'postgresql://postgres:postgres@localhost:5432/revealui',
-        validate: async (input: string) => {
-          const result = await validateNeonUrl(input);
-          return result.valid ? true : result.message || 'Invalid database URL';
-        },
+    const postgresUrl = await text({
+      message: 'Enter your PostgreSQL connection string:',
+      defaultValue: 'postgresql://postgres:postgres@localhost:5432/revealui',
+      validate: async (input) => {
+        if (!input) return undefined;
+        const result = await validateNeonUrl(input);
+        return result.valid ? undefined : result.message || 'Invalid database URL';
       },
-    ]);
+    });
+
+    if (isCancel(postgresUrl)) {
+      process.exit(0);
+    }
+
     return { provider: 'local', postgresUrl };
   }
 
   // For Neon or Supabase, get the connection string
-  const { postgresUrl } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'postgresUrl',
-      message: `Enter your ${provider === 'neon' ? 'Neon' : 'Supabase'} database connection string:`,
-      validate: async (input: string) => {
-        if (!input || input.trim() === '') {
-          return 'Database URL is required';
-        }
-        const result = await validateNeonUrl(input);
-        return result.valid ? true : result.message || 'Invalid database URL';
-      },
+  const label = provider === 'neon' ? 'Neon' : 'Supabase';
+  const postgresUrl = await text({
+    message: `Enter your ${label} database connection string:`,
+    validate: async (input) => {
+      if (!input || input.trim() === '') {
+        return 'Database URL is required';
+      }
+      const result = await validateNeonUrl(input);
+      return result.valid ? undefined : result.message || 'Invalid database URL';
     },
-  ]);
+  });
+
+  if (isCancel(postgresUrl)) {
+    process.exit(0);
+  }
 
   return { provider, postgresUrl };
 }

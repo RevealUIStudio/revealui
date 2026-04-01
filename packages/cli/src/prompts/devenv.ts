@@ -2,7 +2,7 @@
  * Development environment configuration prompts
  */
 
-import inquirer from 'inquirer';
+import { confirm, isCancel } from '@clack/prompts';
 
 export interface DevEnvConfig {
   createDevContainer: boolean;
@@ -10,20 +10,23 @@ export interface DevEnvConfig {
 }
 
 export async function promptDevEnvConfig(): Promise<DevEnvConfig> {
-  const answers = await inquirer.prompt([
-    {
-      type: 'confirm',
-      name: 'createDevContainer',
-      message: 'Create Dev Container configuration for VS Code / GitHub Codespaces?',
-      default: true,
-    },
-    {
-      type: 'confirm',
-      name: 'createDevbox',
-      message: 'Create Devbox configuration for Nix-powered development?',
-      default: true,
-    },
-  ]);
+  const createDevContainer = await confirm({
+    message: 'Create Dev Container configuration for VS Code / GitHub Codespaces?',
+    initialValue: true,
+  });
 
-  return answers;
+  if (isCancel(createDevContainer)) {
+    process.exit(0);
+  }
+
+  const createDevbox = await confirm({
+    message: 'Create Devbox configuration for Nix-powered development?',
+    initialValue: true,
+  });
+
+  if (isCancel(createDevbox)) {
+    process.exit(0);
+  }
+
+  return { createDevContainer, createDevbox };
 }
