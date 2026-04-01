@@ -157,10 +157,10 @@ apps/docs/dist/docs/
 .cursor/audit-log.jsonl
 .cursor/audit-summary.json
 
-# Claude Code — generated content + session files
-# Canonical definitions live in @revealui/harnesses content layer.
-# Regenerate after cloning: npx revealui-harnesses content pull
+# AI tool configs — distributed via editor-configs repo
+# Setup: editor-configs/link.sh --target . --profile revealui
 .claude/
+.agents/
 
 # RevealUI cache files (PGlite database)
 .revealui/cache/
