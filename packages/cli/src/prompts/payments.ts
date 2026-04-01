@@ -28,11 +28,11 @@ export async function promptPaymentConfig(): Promise<PaymentConfig> {
 
   const stripeSecretKey = await text({
     message: 'Enter your Stripe secret key (sk_test_... or sk_live_...):',
-    validate: async (input) => {
+    validate: (input) => {
       if (!input || input.trim() === '') {
         return 'Stripe secret key is required';
       }
-      const result = await validateStripeKey(input);
+      const result = validateStripeKey(input);
       return result.valid ? undefined : result.message || 'Invalid Stripe key';
     },
   });

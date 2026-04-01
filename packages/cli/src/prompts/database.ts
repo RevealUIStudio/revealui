@@ -34,9 +34,9 @@ export async function promptDatabaseConfig(): Promise<DatabaseConfig> {
     const postgresUrl = await text({
       message: 'Enter your PostgreSQL connection string:',
       defaultValue: 'postgresql://postgres:postgres@localhost:5432/revealui',
-      validate: async (input) => {
+      validate: (input) => {
         if (!input) return undefined;
-        const result = await validateNeonUrl(input);
+        const result = validateNeonUrl(input);
         return result.valid ? undefined : result.message || 'Invalid database URL';
       },
     });
@@ -52,11 +52,11 @@ export async function promptDatabaseConfig(): Promise<DatabaseConfig> {
   const label = provider === 'neon' ? 'Neon' : 'Supabase';
   const postgresUrl = await text({
     message: `Enter your ${label} database connection string:`,
-    validate: async (input) => {
+    validate: (input) => {
       if (!input || input.trim() === '') {
         return 'Database URL is required';
       }
-      const result = await validateNeonUrl(input);
+      const result = validateNeonUrl(input);
       return result.valid ? undefined : result.message || 'Invalid database URL';
     },
   });

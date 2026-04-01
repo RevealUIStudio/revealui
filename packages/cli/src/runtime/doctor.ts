@@ -50,7 +50,7 @@ interface EnvVarSpec {
   key: string;
   label: string;
   required: boolean;
-  validate?: (value: string) => Promise<{ valid: boolean; message?: string }>;
+  validate?: (value: string) => { valid: boolean; message?: string };
 }
 
 const ENV_VAR_SPECS: EnvVarSpec[] = [
@@ -83,7 +83,7 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
     key: 'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
     label: 'Stripe publishable key',
     required: false,
-    validate: async (v) => ({
+    validate: (v) => ({
       valid: v.startsWith('pk_test_') || v.startsWith('pk_live_'),
       message: 'Must start with pk_test_ or pk_live_',
     }),
@@ -92,7 +92,7 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
     key: 'STRIPE_WEBHOOK_SECRET',
     label: 'Stripe webhook secret',
     required: false,
-    validate: async (v) => ({
+    validate: (v) => ({
       valid: v.startsWith('whsec_'),
       message: 'Must start with whsec_',
     }),
@@ -108,7 +108,7 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
     key: 'SUPABASE_SERVICE_ROLE_KEY',
     label: 'Supabase service role key',
     required: false,
-    validate: async (v) => ({
+    validate: (v) => ({
       valid: v.startsWith('eyJ'),
       message: 'Must be a JWT (starts with eyJ)',
     }),
@@ -118,7 +118,7 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
     key: 'RESEND_API_KEY',
     label: 'Resend API key',
     required: false,
-    validate: async (v) => ({
+    validate: (v) => ({
       valid: v.startsWith('re_'),
       message: 'Must start with re_',
     }),
@@ -147,7 +147,7 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
     key: 'GROQ_API_KEY',
     label: 'Groq API key',
     required: false,
-    validate: async (v) => ({
+    validate: (v) => ({
       valid: v.startsWith('gsk_'),
       message: 'Must start with gsk_',
     }),
@@ -159,7 +159,7 @@ function maskValue(value: string): string {
   return `${value.slice(0, 4)}...${value.slice(-4)}`;
 }
 
-async function gatherCredentialChecks(env: NodeJS.ProcessEnv): Promise<DoctorCheck[]> {
+function gatherCredentialChecks(env: NodeJS.ProcessEnv): DoctorCheck[] {
   const checks: DoctorCheck[] = [];
 
   for (const spec of ENV_VAR_SPECS) {
@@ -175,7 +175,7 @@ async function gatherCredentialChecks(env: NodeJS.ProcessEnv): Promise<DoctorChe
     }
 
     if (spec.validate) {
-      const result = await spec.validate(value);
+      const result = spec.validate(value);
       checks.push({
         id: `env:${spec.key}`,
         ok: result.valid,
@@ -213,7 +213,7 @@ export async function gatherDoctorReport(
   const postgresReachable =
     dbTarget === 'local' ? await isTcpReachable('127.0.0.1', 5432, 1000) : false;
   const mcp = getMcpDetail(env);
-  const credentials = await gatherCredentialChecks(env);
+  const credentials = gatherCredentialChecks(env);
 
   return {
     workspaceRoot,

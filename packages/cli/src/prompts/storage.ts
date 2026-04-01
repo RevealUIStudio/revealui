@@ -34,11 +34,11 @@ export async function promptStorageConfig(): Promise<StorageConfig> {
   if (provider === 'vercel-blob') {
     const blobToken = await text({
       message: 'Enter your Vercel Blob read/write token:',
-      validate: async (input) => {
+      validate: (input) => {
         if (!input || input.trim() === '') {
           return 'Blob token is required';
         }
-        const result = await validateVercelToken(input);
+        const result = validateVercelToken(input);
         return result.valid ? undefined : result.message || 'Invalid token';
       },
     });
@@ -53,11 +53,11 @@ export async function promptStorageConfig(): Promise<StorageConfig> {
   // Supabase storage
   const supabaseUrl = await text({
     message: 'Enter your Supabase project URL:',
-    validate: async (input) => {
+    validate: (input) => {
       if (!input || input.trim() === '') {
         return 'Supabase URL is required';
       }
-      const result = await validateSupabaseUrl(input);
+      const result = validateSupabaseUrl(input);
       return result.valid ? undefined : result.message || 'Invalid URL';
     },
   });
