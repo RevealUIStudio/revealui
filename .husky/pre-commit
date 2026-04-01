@@ -1,8 +1,9 @@
 #!/bin/bash
+set -e
 
 # Guard: Pro packages must remain gitignored — prevents accidental leak to public repo
 LEAKED=""
-for pkg in ee/packages/ai ee/packages/mcp ee/packages/editors ee/packages/services; do
+for pkg in packages/ai packages/harnesses; do
   if ! git check-ignore -q "$pkg/" 2>/dev/null; then
     LEAKED="$LEAKED $pkg"
   fi
@@ -12,10 +13,8 @@ if [ -n "$LEAKED" ]; then
   echo "FATAL: Pro packages are no longer gitignored!"
   echo "   Leaked:$LEAKED"
   echo "   Restore these entries in .gitignore before committing:"
-  echo "   ee/packages/ai/"
-  echo "   ee/packages/mcp/"
-  echo "   ee/packages/editors/"
-  echo "   ee/packages/services/"
+  echo "   packages/ai/"
+  echo "   packages/harnesses/"
   echo ""
   exit 1
 fi
@@ -63,26 +62,6 @@ else
   echo "  ℹ️  No TypeScript/JavaScript files to validate"
 fi
 echo ""
-
-# Check if script files changed
-SCRIPT_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "^scripts/.*\.ts$" || true)
-
-if [ -n "$SCRIPT_FILES" ]; then
-  echo "📝 Script files changed, validating dependencies..."
-  echo "Changed files:"
-  echo "$SCRIPT_FILES" | sed 's/^/  - /'
-
-  # Validate dependencies for changed files
-  for file in $SCRIPT_FILES; do
-    echo "  Validating $file..."
-    # Removed: pnpm check validate:dependencies — script does not exist in package.json
-    true
-  done
-
-  # Removed: pnpm ops audit:exit-codes — script does not exist in package.json
-
-  echo "✅ Script validation complete"
-fi
 
 # Check if schema files changed
 SCHEMA_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "packages/db/src/schema/.*\.ts$" || true)

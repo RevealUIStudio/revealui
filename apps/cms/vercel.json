@@ -3,11 +3,5 @@
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "framework": "nextjs",
   "github": { "silent": true },
-  "relatedProjects": ["prj_zk6EQijYXwd9L7BccuBssi436ktM"],
-  "crons": [
-    {
-      "path": "/api/cron/cleanup-all",
-      "schedule": "0 3 * * *"
-    }
-  ]
+  "relatedProjects": ["prj_zk6EQijYXwd9L7BccuBssi436ktM"]
 }
