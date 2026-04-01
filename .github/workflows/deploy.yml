@@ -148,35 +148,39 @@ jobs:
           cache: pnpm
 
       - name: Install Vercel CLI
-        run: pnpm add -g vercel@latest
+        run: pnpm add -g vercel@50.37.3
 
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Pull Vercel environment
-        run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }} --token="${{ secrets.VERCEL_TOKEN }}"
+        run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }}
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
       - name: Build
-        run: vercel build ${{ needs.resolve.outputs.prod-flag }} --token="${{ secrets.VERCEL_TOKEN }}"
+        run: vercel build ${{ needs.resolve.outputs.prod-flag }}
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
           SKIP_ENV_VALIDATION: "true"
 
       - name: Deploy
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt ${{ needs.resolve.outputs.prod-flag }} --token="${{ secrets.VERCEL_TOKEN }}")
+          URL=$(vercel deploy --prebuilt ${{ needs.resolve.outputs.prod-flag }})
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "::notice::${{ matrix.app }} deployed to $URL"
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
       - name: Alias to stable domain (test)
         if: needs.resolve.outputs.environment == 'test'
-        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.test-domain }} --token="${{ secrets.VERCEL_TOKEN }}" --scope=${{ env.VERCEL_ORG_ID }}
+        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.test-domain }} --scope=${{ env.VERCEL_ORG_ID }}
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
   # ---------------------------------------------------------------------------

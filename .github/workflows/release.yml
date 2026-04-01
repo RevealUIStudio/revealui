@@ -67,7 +67,7 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
       - name: Generate SBOM (CycloneDX)
-        run: npx @cyclonedx/cyclonedx-npm --output-file sbom.json --output-format json
+        run: npx @cyclonedx/cyclonedx-npm@4.2.1 --output-file sbom.json --output-format json
         continue-on-error: true
 
       - name: Upload SBOM artifact
