@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
 import { Command } from '@tauri-apps/plugin-shell';
+import { useEffect, useState } from 'react';
 import {
   type BrowserProfile,
   CATEGORIES,
@@ -68,7 +68,7 @@ async function detectRunningProcesses(): Promise<Set<string>> {
         ? linuxResult.value.stdout.toLowerCase()
         : '';
 
-    const combined = winProcesses + '\n' + linuxProcesses;
+    const combined = `${winProcesses}\n${linuxProcesses}`;
 
     for (const [tileId, processNames] of Object.entries(PROCESS_NAMES)) {
       for (const name of processNames) {
