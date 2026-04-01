@@ -302,8 +302,15 @@ async function gate(): Promise<void> {
 
     // In changed-only mode: only typecheck packages changed since comparison base (and their dependents)
     const typecheckArgs = changed
-      ? ['turbo', 'run', 'typecheck', `--filter=...[${changeBase}]`, ...proFilter]
-      : ['turbo', 'run', 'typecheck', ...proFilter];
+      ? [
+          'turbo',
+          'run',
+          'typecheck',
+          `--filter=...[${changeBase}]`,
+          ...proFilter,
+          '--concurrency=2',
+        ]
+      : ['turbo', 'run', 'typecheck', ...proFilter, '--concurrency=2'];
 
     const phase2Checks: CheckDef[] = [
       { name: 'Type checking', command: 'pnpm', args: typecheckArgs, timeout: 300000 },
