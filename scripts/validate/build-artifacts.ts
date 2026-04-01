@@ -22,14 +22,22 @@ const ROOT = join(import.meta.dirname, '..', '..');
 
 /** Packages that compile to dist/ and must have .js output */
 const DIST_PACKAGES = [
+  'animations',
   'auth',
+  'cache',
   'cli',
   'config',
   'contracts',
   'core',
   'db',
+  'editors',
+  'mcp',
+  'openapi',
   'presentation',
+  'resilience',
   'router',
+  'security',
+  'services',
   'setup',
   'sync',
   'utils',

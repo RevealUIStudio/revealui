@@ -86,9 +86,10 @@ jobs:
 
       - name: Publish canary to npm
         if: steps.changesets.outputs.count != '0'
-        run: pnpm changeset publish --tag canary --no-git-checks --provenance
+        run: pnpm changeset publish --tag canary --no-git-checks
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
 
       - name: Summary
         if: steps.changesets.outputs.count != '0'

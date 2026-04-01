@@ -67,10 +67,11 @@ Prerequisites (one-time setup per package on npmjs.org):
    - Environment: `npm-publish`
 
 Packages that need this configured:
-`@revealui/auth`, `@revealui/cache`, `@revealui/cli`, `@revealui/config`,
-`@revealui/contracts`, `@revealui/core`, `@revealui/db`, `@revealui/presentation`,
-`@revealui/resilience`, `@revealui/router`, `@revealui/security`, `@revealui/setup`,
-`@revealui/sync`, `@revealui/utils`, `create-revealui`
+`@revealui/animations`, `@revealui/auth`, `@revealui/cache`, `@revealui/cli`,
+`@revealui/config`, `@revealui/contracts`, `@revealui/core`, `@revealui/db`,
+`@revealui/editors`, `@revealui/mcp`, `@revealui/openapi`, `@revealui/presentation`,
+`@revealui/resilience`, `@revealui/router`, `@revealui/security`, `@revealui/services`,
+`@revealui/setup`, `@revealui/sync`, `@revealui/utils`, `create-revealui`
 
 ### Local
 
@@ -109,7 +110,7 @@ This is run automatically by:
 - `pnpm gate` phase 3 (after build step)
 
 The validation script (`scripts/validate/build-artifacts.ts`) checks:
-- **Dist packages** (11): Must have `dist/` directory with `.js` files
+- **Dist packages** (19): Must have `dist/` directory with `.js` files
 - **Bin-only packages** (`create-revealui`): Must have `bin/` entry point
 
 ---
