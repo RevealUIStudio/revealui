@@ -185,6 +185,7 @@
     "test:e2e:visual:update": "playwright test --update-snapshots e2e/visual-snapshots.e2e.ts",
     "test:integration": "tsx scripts/dev-tools/run-integration-tests.ts",
     "typecheck:all": "turbo run typecheck",
+    "validate:artifacts": "tsx scripts/validate/build-artifacts.ts",
     "validate:boundary": "tsx scripts/validate/boundary.ts",
     "validate:gitignore": "tsx scripts/validate/gitignore-pro.ts",
     "validate:structure": "tsx scripts/validate/structure.ts",

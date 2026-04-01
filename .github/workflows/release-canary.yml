@@ -81,26 +81,7 @@ jobs:
 
       - name: Validate build artifacts
         if: steps.changesets.outputs.count != '0'
-        run: |
-          echo "Checking dist/ output for OSS packages..."
-          FAILED=0
-          for pkg in auth cli config contracts core create-revealui db presentation router setup sync utils; do
-            DIR="packages/$pkg/dist"
-            if [ ! -d "$DIR" ] || [ -z "$(ls -A "$DIR" 2>/dev/null)" ]; then
-              echo "FAIL $pkg: dist/ is empty or missing"
-              FAILED=1
-            else
-              COUNT=$(ls "$DIR"/*.js 2>/dev/null | wc -l)
-              echo "OK $pkg: $COUNT .js files"
-            fi
-          done
-          if [ "$FAILED" -eq 1 ]; then
-            echo ""
-            echo "Build artifact validation failed"
-            exit 1
-          fi
-          echo ""
-          echo "All build artifacts validated"
+        run: pnpm validate:artifacts
 
       - name: Publish canary to npm
         if: steps.changesets.outputs.count != '0'
