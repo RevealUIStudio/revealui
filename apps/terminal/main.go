@@ -21,10 +21,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/wish/v2"
+	bm "charm.land/wish/v2/bubbletea"
 	"github.com/charmbracelet/ssh"
-	"github.com/charmbracelet/wish"
-	bm "github.com/charmbracelet/wish/bubbletea"
 
 	"github.com/revealuistudio/revealui/apps/terminal/api"
 	"github.com/revealuistudio/revealui/apps/terminal/tui"
@@ -47,7 +47,7 @@ func main() {
 		}),
 		wish.WithMiddleware(
 			bm.Middleware(func(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-				return tui.NewModel(s, client), []tea.ProgramOption{tea.WithAltScreen()}
+				return tui.NewModel(s, client), nil
 			}),
 		),
 	)
