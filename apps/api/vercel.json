@@ -8,6 +8,11 @@
       "maxDuration": 30
     }
   },
+  "crons": [
+    { "path": "/api/cron/sweep-grace-periods", "schedule": "*/15 * * * *" },
+    { "path": "/api/cron/billing-readiness", "schedule": "0 6 * * *" },
+    { "path": "/api/cron/marketplace-payouts", "schedule": "0 4 * * *" }
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
   "headers": [
     {
