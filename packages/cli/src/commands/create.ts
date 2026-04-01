@@ -206,21 +206,40 @@ async function pullContentRules(projectPath: string): Promise<void> {
     const ossDefs = manifest.definitions.filter((d) => d.tier === 'oss');
     let written = 0;
 
+    // Allowed file extensions for downloaded rule files
+    const allowedExtensions = new Set(['.md', '.json', '.txt', '.yaml', '.yml', '.ts', '.js']);
+    // Maximum file size (1 MB) to prevent abuse
+    const maxFileSize = 1_048_576;
+
     for (const def of ossDefs) {
       const paths = def.generatorPaths[generatorId] ?? [];
       for (const relPath of paths) {
         try {
+          // Reject paths containing traversal sequences before fetching
+          if (relPath.includes('..') || relPath.startsWith('/')) continue;
+          // Only allow known text file extensions
+          const ext = path.extname(relPath).toLowerCase();
+          if (!allowedExtensions.has(ext)) continue;
+
+          const absolutePath = path.resolve(projectPath, relPath);
+          // Verify resolved path stays within project (prevent path traversal)
+          if (!absolutePath.startsWith(path.resolve(projectPath))) continue;
+
           const fileRes = await fetch(`${baseUrl}/generators/${generatorId}/${relPath}`, {
             signal: AbortSignal.timeout(5_000),
           });
           if (!fileRes.ok) continue;
+
+          // Enforce size limit before reading body
+          const contentLength = fileRes.headers.get('content-length');
+          if (contentLength && Number.parseInt(contentLength, 10) > maxFileSize) continue;
+
           const content = await fileRes.text();
-          // Reject paths containing traversal sequences before resolving
-          if (relPath.includes('..') || relPath.startsWith('/')) continue;
-          const absolutePath = path.resolve(projectPath, relPath);
-          // Verify resolved path stays within project (prevent path traversal)
-          if (!absolutePath.startsWith(path.resolve(projectPath))) continue;
+          if (content.length > maxFileSize) continue;
+
           await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+          // lgtm[js/http-to-file-access] — intentional: CLI scaffolding downloads text rule files
+          // from a trusted HTTPS source with path traversal, extension, and size guards
           await fs.writeFile(absolutePath, content, 'utf-8');
           written++;
         } catch {

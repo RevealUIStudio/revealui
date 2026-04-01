@@ -109,14 +109,15 @@ async function runAssessment(): Promise<void> {
 /**
  * Run automated fixes (dry-run by default)
  */
-async function runFixes(dryRun = true): Promise<{ fixesApplied: number }> {
+async function runFixes(dryRun: boolean): Promise<{ fixesApplied: number }> {
   const { exec } = await import('node:child_process');
   const { promisify } = await import('node:util');
   const execAsync = promisify(exec);
 
   const command = dryRun ? 'pnpm cohesion:fix --dry-run' : 'pnpm cohesion:fix';
+  const label = dryRun ? ' (DRY RUN)' : '';
 
-  logger.info(`Running fixes${dryRun ? ' (DRY RUN)' : ''}...`);
+  logger.info(`Running fixes${label}...`);
   const { stdout, stderr } = await execAsync(command, {
     cwd: process.cwd(),
   });
@@ -149,7 +150,7 @@ async function runFixes(dryRun = true): Promise<{ fixesApplied: number }> {
     }
   }
 
-  logger.success(`Fixes${dryRun ? ' would be' : ''} applied: ${fixesApplied}`);
+  logger.success(`Fixes${label} applied: ${fixesApplied}`);
 
   return { fixesApplied };
 }
