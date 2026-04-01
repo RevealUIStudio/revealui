@@ -52,7 +52,8 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          registry-url: "https://registry.npmjs.org"
+          # NOTE: Do NOT add registry-url here. It exports a placeholder
+          # NODE_AUTH_TOKEN that blocks OIDC trusted publishing.
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
