@@ -68,7 +68,7 @@ RevealUI is the runtime at the center of a four-project ecosystem. Each project 
 | Accessibility audit | Done | WCAG 2.1 AA color contrast fixes across marketing site |
 | E2E test stability | Done | Playwright CI browser config, navigation race fixes |
 | Stripe live mode | Pending | Switch from test to live keys after full UX verification |
-| Skipped test audit | In progress | Review and fix 130+ skipped tests across packages |
+| Skipped test audit | Done | 4 fixable skips unskipped (performance tests), 35 conditional infra skips verified correct |
 | Claim verification | Done | Audit all marketing and docs text against codebase reality |
 | Public roadmap | Done | This document |
 
