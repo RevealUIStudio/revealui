@@ -1,6 +1,6 @@
 {
   "name": "revealui",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "description": "The agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.",
   "devDependencies": {
