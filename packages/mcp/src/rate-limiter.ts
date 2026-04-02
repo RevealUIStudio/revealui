@@ -2,7 +2,7 @@
  * MCP Rate Limiter
  *
  * In-memory fixed-window rate limiter scoped by tenant + tier.
- * For distributed deployments, replace with a Redis-backed implementation.
+ * For distributed deployments, share state via PGlite or ElectricSQL.
  *
  * @example
  * ```typescript
@@ -61,7 +61,7 @@ interface WindowEntry {
 
 /**
  * In-memory fixed-window rate limiter scoped by tenant + tier.
- * For distributed deployments, replace with a Redis-backed implementation.
+ * For distributed deployments, share state via PGlite or ElectricSQL.
  */
 export class McpRateLimiter {
   private windows = new Map<string, WindowEntry>();

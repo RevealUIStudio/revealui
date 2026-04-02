@@ -1,6 +1,6 @@
 {
   "name": "@revealui/security",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Security infrastructure for RevealUI - headers, CORS, RBAC/ABAC, encryption, audit, GDPR",
   "license": "MIT",
   "dependencies": {

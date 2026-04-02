@@ -7,8 +7,9 @@ name: Release Canary
 # Install canary versions with:
 #   pnpm add @revealui/core@canary
 #
-# Prerequisites: same OIDC trusted publishing setup as release.yml,
-# but the workflow name must also be registered: release-canary.yml
+# Authentication: uses NPM_TOKEN (from npm-publish environment) because npm
+# only allows one OIDC trusted publisher per package, and release.yml holds
+# that slot. Canary releases do not generate provenance attestations.
 
 on:
   push:
@@ -17,7 +18,6 @@ on:
 
 permissions:
   contents: read # no tags or releases needed
-  id-token: write # OIDC token for npm provenance
 
 concurrency:
   group: release-canary
@@ -50,8 +50,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          # NOTE: Do NOT add registry-url here. It exports a placeholder
-          # NODE_AUTH_TOKEN that blocks OIDC trusted publishing.
+          # registry-url is needed here for token auth (canary uses NPM_TOKEN,
+          # not OIDC). This creates .npmrc with _authToken=${NODE_AUTH_TOKEN}.
+          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -89,7 +90,7 @@ jobs:
         run: pnpm changeset publish --tag canary --no-git-checks
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true"
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Summary
         if: steps.changesets.outputs.count != '0'

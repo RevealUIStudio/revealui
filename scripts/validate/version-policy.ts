@@ -23,14 +23,8 @@ import { join, relative } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
-// Pro packages are published externally — not in the workspace
-const PRO_PACKAGES = new Set([
-  '@revealui/ai',
-  '@revealui/mcp',
-  '@revealui/editors',
-  '@revealui/services',
-  '@revealui/harnesses',
-]);
+// Pro packages are gitignored in the public repo — use ^x.y.z, not workspace:*
+const PRO_PACKAGES = new Set(['@revealui/ai', '@revealui/harnesses']);
 
 interface Violation {
   file: string;

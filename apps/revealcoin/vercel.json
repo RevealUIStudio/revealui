@@ -1,5 +1,5 @@
 {
   "buildCommand": "cd ../.. && pnpm --filter revealcoin run vercel-build",
-  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "framework": "nextjs"
 }

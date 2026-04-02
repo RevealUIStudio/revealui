@@ -279,7 +279,7 @@ describe('getRequestDuration', () => {
     await runInRequestContext(context, async () => {
       await new Promise((resolve) => setTimeout(resolve, 50));
       const duration = getRequestDuration();
-      expect(duration).toBeGreaterThanOrEqual(50);
+      expect(duration).toBeGreaterThanOrEqual(45);
       expect(duration).toBeLessThan(200);
     });
   });

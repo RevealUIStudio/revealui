@@ -15,6 +15,7 @@
     "@revealui/studio",
     "test",
     "revealcoin",
-    "@revealui/scripts"
+    "@revealui/scripts",
+    "dev"
   ]
 }

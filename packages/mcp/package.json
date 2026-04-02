@@ -1,6 +1,6 @@
 {
   "name": "@revealui/mcp",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "Model Context Protocol integrations for RevealUI — adapter framework, hypervisor, and MCP contracts",
   "repository": {
     "type": "git",
@@ -20,6 +20,9 @@
     "pg": "^8.18.0",
     "typescript": "^6.0.2",
     "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=24.13.0"
   },
   "exports": {
     ".": {

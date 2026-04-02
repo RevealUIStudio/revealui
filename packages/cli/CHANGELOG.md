@@ -1,5 +1,32 @@
 # @revealui/cli
 
+## 0.6.1
+
+### Patch Changes
+
+- f6a81c7: Fix @revealui/ai peer dependency version range
+
+## 0.6.0
+
+### Minor Changes
+
+- 9361f3c: feat(cli): add terminal profile installer subcommand
+
+  New `revealui terminal install` and `revealui terminal list` commands that auto-detect
+  the platform and installed terminal emulators, then install RevealUI terminal profiles.
+
+  Supported terminals:
+
+  - macOS: iTerm2, Terminal.app, Alacritty, Kitty
+  - Linux: Alacritty, Kitty, GNOME Terminal
+
+### Patch Changes
+
+- Updated dependencies
+  - @revealui/config@0.3.1
+  - @revealui/setup@0.3.2
+  - @revealui/ai@0.2.6
+
 ## 0.5.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@revealui/editors",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Editor integration for RevealUI — config sync and extension recommendations for VS Code, Zed, Cursor, and Antigravity",
   "keywords": [
     "antigravity",

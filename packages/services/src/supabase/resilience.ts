@@ -5,7 +5,7 @@
  * matching the resilience pattern used in packages/services/src/stripe/stripeClient.ts.
  *
  * NOTE: Circuit breaker state is in-memory (per-instance).
- * TODO: For multi-instance deployments, replace with Redis-backed state.
+ * For multi-instance deployments, state can be shared via PGlite or ElectricSQL.
  * Uses createLogger from @revealui/core. Wire up to alerting when circuit opens.
  */
 
