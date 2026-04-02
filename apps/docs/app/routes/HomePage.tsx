@@ -3,7 +3,7 @@ import { renderMarkdown } from '../utils/markdown';
 export function HomePage() {
   const content = `# RevealUI Documentation
 
-The agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
+Agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
 
 ## Quick Start
 

@@ -2,7 +2,7 @@
 
 Every software company ships the same five things: a way to manage users, a way to manage content, a way to sell products, a way to collect payments, and increasingly, a way to run AI. These are not features. They are primitives. And yet every engineering team builds them from scratch, bolting together auth libraries, CMS frameworks, payment wrappers, and AI SDKs, spending months on plumbing before writing a single line of differentiated code.
 
-RevealUI is the agentic business runtime. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.
+RevealUI is an agentic business runtime. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.
 
 This post is a deep technical walkthrough of all five. Not marketing copy. Real code, real architecture decisions, real trade-offs.
 
@@ -506,4 +506,4 @@ Build your business, not your boilerplate.
 
 ---
 
-*RevealUI is the agentic business runtime. The core framework -- Users, Content, Products, and Payments -- is MIT licensed and free forever. Intelligence (AI agents, memory, MCP servers) is available with a Pro license. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is an agentic business runtime. The core framework -- Users, Content, Products, and Payments -- is MIT licensed and free forever. Intelligence (AI agents, memory, MCP servers) is available with a Pro license. Learn more at [revealui.com](https://revealui.com).*

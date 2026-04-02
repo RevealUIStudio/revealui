@@ -45,7 +45,7 @@ const story: ShowcaseStory = {
         <Accordion>
           <AccordionItem title="What is RevealUI?">
             <p>
-              RevealUI is the agentic business runtime that provides users, content, products,
+              RevealUI is an agentic business runtime that provides users, content, products,
               payments, and AI out of the box.
             </p>
           </AccordionItem>

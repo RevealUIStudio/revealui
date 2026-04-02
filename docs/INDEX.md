@@ -7,7 +7,7 @@ audience: developer
 
 # RevealUI Documentation
 
-The agentic business runtime. Build your business, not your boilerplate.
+Agentic business runtime. Build your business, not your boilerplate.
 
 Built on the **[JOSHUA Stack](./JOSHUA.md)** — Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive. Six engineering principles that govern every architectural decision.
 

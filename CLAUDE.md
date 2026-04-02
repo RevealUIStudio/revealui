@@ -1,6 +1,6 @@
 # RevealUI Monorepo
 
-The agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
+Agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
 
 ## Current Phase
 **Phase 3 — Launch Preparation** (docs, OSS prep, marketing, Pro distribution).

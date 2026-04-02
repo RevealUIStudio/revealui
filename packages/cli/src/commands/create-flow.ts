@@ -62,7 +62,7 @@ async function checkProLicense(): Promise<boolean> {
 
 function printBanner(): void {
   logger.divider();
-  logger.info('  RevealUI — The Agentic Business Runtime');
+  logger.info('  RevealUI — Agentic Business Runtime');
   logger.info('  Build your business, not your boilerplate.');
   logger.divider();
   logger.info('');

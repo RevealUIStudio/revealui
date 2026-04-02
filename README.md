@@ -2,7 +2,7 @@
 
 # RevealUI
 
-**The agentic business runtime.**
+**Agentic business runtime.**
 
 Users. Content. Products. Payments. Intelligence. Five primitives, one deployment — build your business, not your boilerplate.
 

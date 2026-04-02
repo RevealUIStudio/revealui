@@ -8,7 +8,7 @@ I've started three software companies. Each time, I spent the first three to six
 
 That's not a skills problem. That's an infrastructure problem. And after the third time, I decided to solve it.
 
-RevealUI is the agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
+RevealUI is an agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
 
 ## The problem nobody talks about
 

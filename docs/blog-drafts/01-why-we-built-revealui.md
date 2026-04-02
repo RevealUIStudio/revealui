@@ -104,4 +104,4 @@ Build your business, not your boilerplate.
 
 ---
 
-*RevealUI is the agentic business runtime. The core framework is MIT licensed and free forever. Pro features (AI agents, memory, MCP orchestration) are available with a Pro license. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is an agentic business runtime. The core framework is MIT licensed and free forever. Pro features (AI agents, memory, MCP orchestration) are available with a Pro license. Learn more at [revealui.com](https://revealui.com).*

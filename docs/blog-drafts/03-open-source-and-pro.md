@@ -174,4 +174,4 @@ Build something.
 
 ---
 
-*RevealUI is the agentic business runtime. Learn more at [revealui.com](https://revealui.com) or read the [docs](https://docs.revealui.com).*
+*RevealUI is an agentic business runtime. Learn more at [revealui.com](https://revealui.com) or read the [docs](https://docs.revealui.com).*

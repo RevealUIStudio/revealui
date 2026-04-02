@@ -7,7 +7,7 @@ audience: developer
 
 # RevealUI Roadmap
 
-> The agentic business runtime. Build your business, not your boilerplate.
+> Agentic business runtime. Build your business, not your boilerplate.
 
 This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
 
