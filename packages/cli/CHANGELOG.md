@@ -1,5 +1,11 @@
 # @revealui/cli
 
+## 0.6.1
+
+### Patch Changes
+
+- f6a81c7: Fix @revealui/ai peer dependency version range
+
 ## 0.6.0
 
 ### Minor Changes

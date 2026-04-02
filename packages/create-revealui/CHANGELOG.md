@@ -1,5 +1,12 @@
 # create-revealui
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [f6a81c7]
+  - @revealui/cli@0.6.1
+
 ## 0.5.0
 
 ### Minor Changes

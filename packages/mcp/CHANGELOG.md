@@ -1,5 +1,11 @@
 # @revealui/mcp
 
+## 0.1.7
+
+### Patch Changes
+
+- f6a81c7: Add engines field and update doc comments to reference PGlite/ElectricSQL instead of Redis
+
 ## 0.1.6
 
 ### Patch Changes

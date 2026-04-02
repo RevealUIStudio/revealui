@@ -1,5 +1,11 @@
 # @revealui/services
 
+## 0.3.2
+
+### Patch Changes
+
+- f6a81c7: Add engines field and update doc comments to reference PGlite/ElectricSQL instead of Redis
+
 ## 0.3.1
 
 ### Patch Changes
