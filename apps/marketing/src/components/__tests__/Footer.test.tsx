@@ -83,7 +83,7 @@ describe('Footer', () => {
   it('contains the brand description', () => {
     const result = Footer();
     const html = JSON.stringify(result);
-    expect(html).toContain('agentic business runtime');
+    expect(html).toContain('Agentic business runtime');
     expect(html).toContain('pre-wired');
   });
 });
