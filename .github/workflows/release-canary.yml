@@ -85,16 +85,6 @@ jobs:
         if: steps.changesets.outputs.count != '0'
         run: pnpm validate:artifacts
 
-      - name: Verify npm auth
-        if: steps.changesets.outputs.count != '0'
-        run: |
-          echo "npm whoami:"
-          npm whoami
-          echo "registry:"
-          npm config get registry
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish canary to npm
         if: steps.changesets.outputs.count != '0'
         run: pnpm changeset publish --tag canary --no-git-checks
