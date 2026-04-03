@@ -347,7 +347,23 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
   },
 };
 
-let rateLimitsConfig: RateLimitsConfig = { ...DEFAULT_RATE_LIMITS };
+// Apply env-var overrides for tier-level rate limits.
+// Format: RATE_LIMIT_<TIER>=<requests-per-minute> (e.g. RATE_LIMIT_PRO=500)
+function applyEnvRateLimits(defaults: RateLimitsConfig): RateLimitsConfig {
+  const tiers = { ...defaults.tiers };
+  for (const tier of ['free', 'pro', 'max', 'enterprise'] as const) {
+    const envVal = process.env[`RATE_LIMIT_${tier.toUpperCase()}`];
+    if (envVal) {
+      const parsed = Number.parseInt(envVal, 10);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        tiers[tier] = { maxRequests: parsed, windowMs: ONE_MINUTE };
+      }
+    }
+  }
+  return { tiers, routes: { ...defaults.routes } };
+}
+
+let rateLimitsConfig: RateLimitsConfig = applyEnvRateLimits(DEFAULT_RATE_LIMITS);
 
 /** Override rate limit defaults (useful for tests or per-environment tuning) */
 export function configureRateLimits(overrides: Partial<RateLimitsConfig>): void {

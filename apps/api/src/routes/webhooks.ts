@@ -175,6 +175,7 @@ function resolveTier(
 
 function resolveOptionalTier(
   metadata: Record<string, string> | null | undefined,
+  context?: string,
 ): 'pro' | 'max' | 'enterprise' | undefined {
   const tier = metadata?.tier;
   if (tier === 'pro') return 'pro';
@@ -186,8 +187,15 @@ function resolveOptionalTier(
       {
         tier,
         metadata,
+        context,
       },
     );
+  } else if (metadata) {
+    // Metadata exists but tier key is absent — Stripe product misconfiguration
+    logger.warn('Stripe metadata missing tier key — callers will default to pro', {
+      metadataKeys: Object.keys(metadata),
+      context,
+    });
   }
   return undefined;
 }
@@ -1230,7 +1238,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   ? getSubscriptionPeriodDate(subscription, 'current_period_end')
                   : null;
                 const updatedTier =
-                  resolveOptionalTier(subscription.metadata as Record<string, string>) ?? 'pro';
+                  resolveOptionalTier(
+                    subscription.metadata as Record<string, string>,
+                    'subscription.updated:email',
+                  ) ?? 'pro';
                 const emailPromise = graceEnd
                   ? sendGracePeriodStartedEmail(email, graceEnd)
                   : sendPaymentFailedEmail(email, updatedTier);
@@ -1578,7 +1589,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // Use resolveOptionalTier with fallback — resolveTier would create an infinite retry loop
         // if the recovered subscription lacks tier metadata (e.g., pre-metadata subscription)
         const recoveredTier =
-          resolveOptionalTier(recoveredSubscription.metadata as Record<string, string>) ?? 'pro';
+          resolveOptionalTier(
+            recoveredSubscription.metadata as Record<string, string>,
+            'payment_succeeded:recovery',
+          ) ?? 'pro';
         const shouldReactivateLegacyLicense =
           existingLicense?.status === 'expired' || existingLicense?.status === 'revoked';
         const shouldReactivateHosted = hostedStatus === 'expired' || hostedStatus === 'revoked';
@@ -1768,7 +1782,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const email = await findUserEmailByCustomerId(db, customerId);
         if (email) {
           const trialTier =
-            resolveOptionalTier(subscription.metadata as Record<string, string>) ?? 'pro';
+            resolveOptionalTier(
+              subscription.metadata as Record<string, string>,
+              'trial_will_end:email',
+            ) ?? 'pro';
           sendTrialEndingEmail(email, subscription.trial_end, trialTier).catch((err) => {
             logger.error('Failed to send trial ending email', undefined, {
               detail: err instanceof Error ? err.message : 'unknown',
