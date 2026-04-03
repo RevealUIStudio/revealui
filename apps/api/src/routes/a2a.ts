@@ -19,7 +19,6 @@
 
 import type { A2AJsonRpcRequest } from '@revealui/contracts';
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema, LLM_PROVIDERS } from '@revealui/contracts';
-import { isFeatureEnabled } from '@revealui/core/features';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
@@ -800,7 +799,10 @@ a2a.openapi(
         },
       },
     },
-    middleware: [authMiddleware({ required: true })] as const,
+    middleware: [
+      authMiddleware({ required: true }),
+      requireFeature('ai', { mode: 'entitlements' }),
+    ] as const,
     responses: {
       201: {
         content: { 'application/json': { schema: z.object({ card: z.unknown() }) } },
@@ -821,10 +823,6 @@ a2a.openapi(
     },
   }),
   async (c) => {
-    if (!isFeatureEnabled('ai')) {
-      return c.json({ error: "Feature 'ai' requires a Pro or Enterprise license." }, 403);
-    }
-
     const body = c.req.valid('json');
 
     const parsed = AgentDefinitionSchema.safeParse(body);
@@ -1034,10 +1032,14 @@ a2a.openapi(
 
     const req: A2AJsonRpcRequest = parsed.data;
 
-    // Gate task execution behind feature flag; read-only methods always allowed
+    // Gate task execution behind entitlements; read-only methods always allowed
     const executionMethods = new Set(['tasks/send', 'tasks/sendSubscribe']);
     if (executionMethods.has(req.method)) {
-      if (!isFeatureEnabled('ai')) {
+      const entitlements = c.get('entitlements') as
+        | { features?: Record<string, boolean> }
+        | undefined;
+      const aiEnabled = entitlements?.features?.ai ?? false;
+      if (!aiEnabled) {
         return c.json(
           {
             jsonrpc: '2.0',
