@@ -1,39 +1,25 @@
 name: Deploy
 
-# Unified deployment workflow for production and test environments.
-# Vercel Git Integration is DISABLED — all deploys go through this workflow.
+# Production-only deployment. Vercel Git Integration is DISABLED.
 #
-# Branch → Environment mapping:
-#   main → production  (*.revealui.com)
-#   test → test        (test.*.revealui.com)
+# Trigger: merge to main (after CI passes) or manual dispatch.
+# Only affected apps are deployed — if a shared package changes, all apps deploy.
 #
-# feature/* branches are local-only — no CI, no deploy.
-#
-# All 5 apps deploy in parallel via matrix strategy.
-# Test deploys are aliased to stable custom domains.
-#
-# Turbo remote caching (opportunistic — deploys work without these):
-#   1. Enable Vercel Remote Caching: https://vercel.com/docs/monorepos/remote-caching
-#   2. Add repository secret  TURBO_TOKEN  — Vercel access token with remote cache scope
-#   3. Add repository variable TURBO_TEAM   — Vercel team slug (e.g. "revealuistudio")
+# Branch pipeline:
+#   feature/* → PR → test (CI only, no deploy)
+#   test → PR → main (CI + deploy on merge)
 
 on:
-  # H-06: Deploy only after CI succeeds on main (production).
-  # Test deploys are manual-only (workflow_dispatch) to stay within Hobby plan limits.
   workflow_run:
     workflows: ["CI"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
     inputs:
-      environment:
-        description: "Target environment (auto-detected from branch if omitted)"
+      apps:
+        description: "Apps to deploy (comma-separated, or 'all' to force all)"
         required: false
-        type: choice
-        options:
-          - auto
-          - production
-          - test
+        type: string
         default: auto
 
 permissions:
@@ -41,8 +27,8 @@ permissions:
   deployments: write
 
 concurrency:
-  group: deploy-${{ github.event.workflow_run.head_branch || github.ref }}
-  cancel-in-progress: false # Don't cancel in-progress deploys
+  group: deploy-production
+  cancel-in-progress: false
 
 env:
   NODE_VERSION: "24"
@@ -50,97 +36,145 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
-  PNPM_INSTALL_FLAGS: "--frozen-lockfile"
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Resolve environment from branch name
+  # Detect which apps were affected by the merge
   # ---------------------------------------------------------------------------
-  resolve:
-    name: Resolve Environment
+  detect:
+    name: Detect Affected Apps
     runs-on: ubuntu-latest
-    # Skip deploy if CI failed (workflow_run fires on both success and failure)
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
     outputs:
-      environment: ${{ steps.env.outputs.environment }}
-      is-production: ${{ steps.env.outputs.is-production }}
-      prod-flag: ${{ steps.env.outputs.prod-flag }}
-      sha: ${{ steps.env.outputs.sha }}
+      matrix: ${{ steps.detect.outputs.matrix }}
+      has-apps: ${{ steps.detect.outputs.has-apps }}
+      sha: ${{ steps.detect.outputs.sha }}
+      app-list: ${{ steps.detect.outputs.app-list }}
 
     steps:
-      - name: Determine environment
-        id: env
+      - name: Resolve commit SHA
+        id: sha
         env:
           EVENT_NAME: ${{ github.event_name }}
-          WR_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           WR_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-          INPUT_ENV: ${{ inputs.environment }}
         run: |
-          # workflow_run uses head_branch; workflow_dispatch uses GITHUB_REF
           if [ "$EVENT_NAME" = "workflow_run" ]; then
-            BRANCH="$WR_HEAD_BRANCH"
+            echo "sha=$WR_HEAD_SHA" >> "$GITHUB_OUTPUT"
           else
-            BRANCH="${GITHUB_REF#refs/heads/}"
+            echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
           fi
 
-          if [ "$INPUT_ENV" != "" ] && [ "$INPUT_ENV" != "auto" ]; then
-            ENV="$INPUT_ENV"
-          elif [ "$BRANCH" = "main" ]; then
-            ENV="production"
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ steps.sha.outputs.sha }}
+          fetch-depth: 2
+
+      - name: Detect affected apps
+        id: detect
+        env:
+          INPUT_APPS: ${{ inputs.apps }}
+        run: |
+          echo "sha=${{ steps.sha.outputs.sha }}" >> "$GITHUB_OUTPUT"
+
+          ALL_APPS="api cms marketing docs revealcoin"
+
+          # Manual override: deploy specific apps or all
+          if [ -n "$INPUT_APPS" ] && [ "$INPUT_APPS" != "auto" ]; then
+            if [ "$INPUT_APPS" = "all" ]; then
+              AFFECTED="$ALL_APPS"
+            else
+              AFFECTED=$(echo "$INPUT_APPS" | tr ',' ' ')
+            fi
+            echo "::notice::Manual deploy: $AFFECTED"
           else
-            ENV="test"
+            # Auto-detect from git diff
+            CHANGED=$(git diff --name-only HEAD~1..HEAD 2>/dev/null || echo "")
+
+            if [ -z "$CHANGED" ]; then
+              echo "::notice::No changes detected — deploying all apps"
+              AFFECTED="$ALL_APPS"
+            else
+              AFFECTED=""
+
+              # Check each app directory for direct changes
+              for app in $ALL_APPS; do
+                if echo "$CHANGED" | grep -q "^apps/$app/"; then
+                  AFFECTED="$AFFECTED $app"
+                fi
+              done
+
+              # Shared packages changed → deploy all apps
+              if echo "$CHANGED" | grep -q "^packages/"; then
+                echo "::notice::Shared package changed — deploying all apps"
+                AFFECTED="$ALL_APPS"
+              fi
+
+              # Root config changed → deploy all apps
+              if echo "$CHANGED" | grep -qE "^(package\.json|pnpm-lock\.yaml|turbo\.json|\.env)"; then
+                echo "::notice::Root config changed — deploying all apps"
+                AFFECTED="$ALL_APPS"
+              fi
+
+              # Deduplicate
+              AFFECTED=$(echo "$AFFECTED" | tr ' ' '\n' | sort -u | tr '\n' ' ' | xargs)
+            fi
           fi
 
-          echo "environment=$ENV" >> "$GITHUB_OUTPUT"
-          echo "is-production=$( [ "$ENV" = "production" ] && echo true || echo false )" >> "$GITHUB_OUTPUT"
-          echo "prod-flag=$( [ "$ENV" = "production" ] && echo '--prod' || echo '' )" >> "$GITHUB_OUTPUT"
-          # Resolve the correct commit SHA for checkout
-          if [ "$EVENT_NAME" = "workflow_run" ]; then
-            SHA="$WR_HEAD_SHA"
-          else
-            SHA="${GITHUB_SHA}"
+          if [ -z "$AFFECTED" ]; then
+            echo "::notice::No apps affected — skipping deploy"
+            echo "has-apps=false" >> "$GITHUB_OUTPUT"
+            echo "matrix=[]" >> "$GITHUB_OUTPUT"
+            echo "app-list=none" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
-          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-          echo "::notice::Deploying to $ENV environment (branch: $BRANCH, sha: ${SHA:0:8})"
+
+          echo "has-apps=true" >> "$GITHUB_OUTPUT"
+          echo "app-list=$AFFECTED" >> "$GITHUB_OUTPUT"
+
+          # Build matrix JSON with project IDs
+          MATRIX="["
+          FIRST=true
+          for app in $AFFECTED; do
+            case "$app" in
+              api)        PID="prj_zk6EQijYXwd9L7BccuBssi436ktM" ;;
+              cms)        PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
+              marketing)  PID="prj_frTIYlnONVPLNIjKnQpINiGb5lm0" ;;
+              docs)       PID="prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1" ;;
+              revealcoin) PID="prj_XDiPXngciRytGA8j0vNIDz7hENRM" ;;
+              *) echo "::warning::Unknown app: $app"; continue ;;
+            esac
+            if [ "$FIRST" = true ]; then FIRST=false; else MATRIX="$MATRIX,"; fi
+            MATRIX="$MATRIX{\"app\":\"$app\",\"project-id\":\"$PID\"}"
+          done
+          MATRIX="$MATRIX]"
+
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploying: $AFFECTED"
 
   # ---------------------------------------------------------------------------
-  # Deploy all apps in parallel
+  # Deploy affected apps in parallel
   # ---------------------------------------------------------------------------
   deploy:
     name: Deploy ${{ matrix.app }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: resolve
+    needs: detect
+    if: needs.detect.outputs.has-apps == 'true'
     environment:
-      name: ${{ needs.resolve.outputs.environment }}
+      name: production
       url: ${{ steps.deploy.outputs.url }}
 
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - app: api
-            project-id: prj_zk6EQijYXwd9L7BccuBssi436ktM
-            test-domain: test.api.revealui.com
-          - app: cms
-            project-id: prj_7sEFDg4MH6C26nJPjrukK86QdwfG
-            test-domain: test.cms.revealui.com
-          - app: marketing
-            project-id: prj_frTIYlnONVPLNIjKnQpINiGb5lm0
-            test-domain: test.revealui.com
-          - app: docs
-            project-id: prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1
-            test-domain: test.docs.revealui.com
-          - app: revealcoin
-            project-id: prj_XDiPXngciRytGA8j0vNIDz7hENRM
-            test-domain: test.revealcoin.revealui.com
+        include: ${{ fromJson(needs.detect.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          ref: ${{ needs.resolve.outputs.sha }}
+          ref: ${{ needs.detect.outputs.sha }}
 
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
@@ -152,19 +186,19 @@ jobs:
           cache: pnpm
 
       - name: Install Vercel CLI
-        run: pnpm add -g vercel@50.37.3
+        run: pnpm add -g vercel@latest
 
       - name: Install dependencies
-        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
+        run: pnpm install --frozen-lockfile
 
       - name: Pull Vercel environment
-        run: vercel pull --yes --environment=${{ needs.resolve.outputs.is-production == 'true' && 'production' || 'preview' }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
       - name: Build
-        run: vercel build ${{ needs.resolve.outputs.prod-flag }}
+        run: vercel build --prod --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
@@ -173,43 +207,28 @@ jobs:
       - name: Deploy
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt ${{ needs.resolve.outputs.prod-flag }})
+          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
           echo "url=$URL" >> "$GITHUB_OUTPUT"
           echo "::notice::${{ matrix.app }} deployed to $URL"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
-      - name: Alias to stable domain (test)
-        if: needs.resolve.outputs.environment == 'test'
-        run: vercel alias ${{ steps.deploy.outputs.url }} ${{ matrix.test-domain }} --scope=${{ env.VERCEL_ORG_ID }}
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
-
   # ---------------------------------------------------------------------------
-  # Post-deploy smoke test (production and test only)
+  # Post-deploy smoke test
   # ---------------------------------------------------------------------------
   smoke-test:
     name: Smoke Test
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [resolve, deploy]
-    if: needs.resolve.outputs.environment == 'production' || needs.resolve.outputs.environment == 'test'
+    needs: [detect, deploy]
 
     steps:
       - name: Health check — API
-        env:
-          DEPLOY_ENV: ${{ needs.resolve.outputs.environment }}
         run: |
-          if [ "$DEPLOY_ENV" = "production" ]; then
-            URL="https://api.revealui.com"
-          else
-            URL="https://test.api.revealui.com"
-          fi
-          echo "Checking $URL/health..."
+          echo "Checking https://api.revealui.com/health..."
           for i in $(seq 1 12); do
-            if curl -sf "$URL/health" > /dev/null 2>&1; then
+            if curl -sf "https://api.revealui.com/health" > /dev/null 2>&1; then
               echo "API healthy"
               exit 0
             fi
@@ -220,17 +239,10 @@ jobs:
           exit 1
 
       - name: Health check — CMS
-        env:
-          DEPLOY_ENV: ${{ needs.resolve.outputs.environment }}
         run: |
-          if [ "$DEPLOY_ENV" = "production" ]; then
-            URL="https://cms.revealui.com"
-          else
-            URL="https://test.cms.revealui.com"
-          fi
-          echo "Checking $URL..."
+          echo "Checking https://cms.revealui.com..."
           for i in $(seq 1 12); do
-            if curl -sf "$URL" -o /dev/null 2>&1; then
+            if curl -sf "https://cms.revealui.com" -o /dev/null 2>&1; then
               echo "CMS healthy"
               exit 0
             fi
@@ -241,27 +253,27 @@ jobs:
           exit 1
 
   # ---------------------------------------------------------------------------
-  # Summary — structured output for agent consumption
+  # Summary
   # ---------------------------------------------------------------------------
   summary:
     name: Deploy Summary
     runs-on: ubuntu-latest
-    needs: [resolve, deploy]
+    needs: [detect, deploy]
     if: always()
 
     steps:
       - name: Output deployment summary
         env:
-          DEPLOY_ENV: ${{ needs.resolve.outputs.environment }}
-          DEPLOY_SHA: ${{ needs.resolve.outputs.sha }}
+          DEPLOY_SHA: ${{ needs.detect.outputs.sha }}
           DEPLOY_STATUS: ${{ needs.deploy.result }}
+          DEPLOY_APPS: ${{ needs.detect.outputs.app-list }}
         run: |
           cat <<EOF
           {
-            "environment": "$DEPLOY_ENV",
-            "branch": "${GITHUB_REF#refs/heads/}",
+            "environment": "production",
             "sha": "$DEPLOY_SHA",
             "status": "$DEPLOY_STATUS",
+            "apps": "$DEPLOY_APPS",
             "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           }
           EOF
