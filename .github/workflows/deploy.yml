@@ -2,17 +2,16 @@ name: Deploy
 
 # Production-only deployment. Vercel Git Integration is DISABLED.
 #
-# Trigger: merge to main (after CI passes) or manual dispatch.
+# Trigger: push to main (merge from test) or manual dispatch.
 # Only affected apps are deployed — if a shared package changes, all apps deploy.
+# CI already passed on the PR before merge, so deploy starts immediately.
 #
 # Branch pipeline:
 #   feature/* → PR → test (CI only, no deploy)
-#   test → PR → main (CI + deploy on merge)
+#   test → PR → main (full CI required, deploy on merge)
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
+  push:
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -44,9 +43,7 @@ jobs:
   detect:
     name: Detect Affected Apps
     runs-on: ubuntu-latest
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     outputs:
       matrix: ${{ steps.detect.outputs.matrix }}
       has-apps: ${{ steps.detect.outputs.has-apps }}
@@ -54,21 +51,8 @@ jobs:
       app-list: ${{ steps.detect.outputs.app-list }}
 
     steps:
-      - name: Resolve commit SHA
-        id: sha
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          WR_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-        run: |
-          if [ "$EVENT_NAME" = "workflow_run" ]; then
-            echo "sha=$WR_HEAD_SHA" >> "$GITHUB_OUTPUT"
-          else
-            echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          ref: ${{ steps.sha.outputs.sha }}
           fetch-depth: 2
 
       - name: Detect affected apps
@@ -76,7 +60,7 @@ jobs:
         env:
           INPUT_APPS: ${{ inputs.apps }}
         run: |
-          echo "sha=${{ steps.sha.outputs.sha }}" >> "$GITHUB_OUTPUT"
+          echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
           ALL_APPS="api cms marketing docs revealcoin"
 
