@@ -25,11 +25,14 @@ const LicenseVerifyRequestSchema = z.object({
 
 const LicenseVerifyResponseSchema = z.object({
   valid: z.boolean().openapi({ description: 'Whether the license is valid' }),
-  reason: z.enum(['valid', 'expired', 'revoked', 'invalid', 'misconfigured']).optional().openapi({
-    description:
-      'Why the license is invalid. Present when valid=false. "expired": JWT past expiry or DB status expired. "revoked": explicitly revoked in the DB (chargeback, refund, cancellation). "invalid": bad signature or malformed JWT. "misconfigured": server public key not configured.',
-    example: 'revoked',
-  }),
+  reason: z
+    .enum(['valid', 'expired', 'revoked', 'support_expired', 'invalid', 'misconfigured'])
+    .optional()
+    .openapi({
+      description:
+        'Why the license is invalid or degraded. "expired": JWT past expiry or DB status expired. "revoked": explicitly revoked in the DB (chargeback, refund, cancellation). "support_expired": perpetual license with expired support contract (basic CMS still valid, premium features downgraded). "invalid": bad signature or malformed JWT. "misconfigured": server public key not configured.',
+      example: 'revoked',
+    }),
   tier: z.enum(['free', 'pro', 'max', 'enterprise']).openapi({
     description: 'License tier',
     example: 'pro',
@@ -52,6 +55,14 @@ const LicenseVerifyResponseSchema = z.object({
   expiresAt: z.string().nullable().openapi({
     description: 'License expiration (ISO 8601)',
     example: '2027-02-16T00:00:00.000Z',
+  }),
+  supportExpiresAt: z.string().nullable().optional().openapi({
+    description: 'Support contract expiration for perpetual licenses (ISO 8601)',
+    example: '2027-04-03T00:00:00.000Z',
+  }),
+  supportExpired: z.boolean().optional().openapi({
+    description: 'Whether the support contract has expired (perpetual licenses only)',
+    example: false,
   }),
 });
 
@@ -200,16 +211,22 @@ app.openapi(verifyRoute, async (c) => {
   // JWT is structurally valid — also check DB status to catch explicit revocations
   // (e.g., chargeback, refund, manual revoke) that may have occurred after the JWT
   // was issued but before its exp timestamp.
-  let dbRevoked = false;
+  let dbStatus: string | null = null;
+  let supportExpiresAt: Date | null = null;
   try {
     const db = getClient();
     const [row] = await db
-      .select({ status: licenses.status })
+      .select({
+        status: licenses.status,
+        supportExpiresAt: licenses.supportExpiresAt,
+        perpetual: licenses.perpetual,
+      })
       .from(licenses)
       .where(eq(licenses.licenseKey, licenseKey))
       .limit(1);
-    if (row?.status === 'revoked' || row?.status === 'expired') {
-      dbRevoked = true;
+    dbStatus = row?.status ?? null;
+    if (row?.perpetual) {
+      supportExpiresAt = row.supportExpiresAt;
     }
   } catch (err) {
     logger.warn('Failed to check DB revocation status during verify — trusting JWT', {
@@ -217,7 +234,7 @@ app.openapi(verifyRoute, async (c) => {
     });
   }
 
-  if (dbRevoked) {
+  if (dbStatus === 'revoked' || dbStatus === 'expired') {
     return c.json(
       {
         valid: false,
@@ -228,6 +245,30 @@ app.openapi(verifyRoute, async (c) => {
         maxSites: 1,
         maxUsers: 3,
         expiresAt: null,
+      },
+      200,
+    );
+  }
+
+  const now = new Date();
+  const isSupportExpired =
+    payload.perpetual === true && supportExpiresAt !== null && supportExpiresAt < now;
+
+  // Perpetual license with expired support: license is still valid but premium
+  // features are downgraded to free tier. Basic CMS access remains perpetual.
+  if (dbStatus === 'support_expired' || isSupportExpired) {
+    return c.json(
+      {
+        valid: true,
+        reason: 'support_expired' as const,
+        tier: payload.tier,
+        customerId: payload.customerId,
+        features: getFeaturesForTier('free'),
+        maxSites: 1,
+        maxUsers: 3,
+        expiresAt: null,
+        supportExpiresAt: supportExpiresAt?.toISOString() ?? null,
+        supportExpired: true,
       },
       200,
     );
@@ -247,6 +288,8 @@ app.openapi(verifyRoute, async (c) => {
       maxSites: defaultMaxSites,
       maxUsers: defaultMaxUsers,
       expiresAt: payload.exp ? new Date(payload.exp * 1000).toISOString() : null,
+      supportExpiresAt: supportExpiresAt?.toISOString() ?? null,
+      supportExpired: false,
     },
     200,
   );

@@ -1035,7 +1035,7 @@ a2a.openapi(
     // Gate task execution behind entitlements; read-only methods always allowed
     const executionMethods = new Set(['tasks/send', 'tasks/sendSubscribe']);
     if (executionMethods.has(req.method)) {
-      const entitlements = c.get('entitlements') as
+      const entitlements = (c as unknown as { get(k: string): unknown }).get('entitlements') as
         | { features?: Record<string, boolean> }
         | undefined;
       const aiEnabled = entitlements?.features?.ai ?? false;
