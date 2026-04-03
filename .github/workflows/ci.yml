@@ -1,24 +1,15 @@
 name: CI
 
-# Mirrors local `pnpm gate` — same hard-fail policy:
-#   Hard fail: Biome lint, boundary, typecheck, unit tests, build
-#   Hard fail (main/test): integration tests (requires DB)
-#   Warn-only: audits, structure
+# Two-tier CI gate:
+#   test branch: quality + typecheck + unit tests + build (~10 min)
+#   main branch: full gate + integration + E2E + coverage (~20 min)
 #
-# Pipeline: feature/* → test → main
-#   PRs to test/main trigger CI.
-#   test/main: full build + integration tests + E2E smoke + accessibility (~15 min)
+# Pipeline: feature/* → PR → test → PR → main → deploy
 #
 # Optimizations:
-#   - Turbo remote cache: build artifacts shared across jobs (TURBO_TOKEN + TURBO_TEAM)
+#   - Turbo remote cache: build artifacts shared across jobs
 #   - PR jobs use --affected: only build/typecheck changed packages
-#   - Build runs in parallel with typecheck (turbo cache provides build artifacts)
-#   - E2E jobs wait for build (cache hit → near-instant rebuild)
-#
-# Prerequisites (owner action — remote caching is opportunistic, CI works without these):
-#   1. Enable Vercel Remote Caching: https://vercel.com/docs/monorepos/remote-caching
-#   2. Add repository secret  TURBO_TOKEN  — Vercel access token with remote cache scope
-#   3. Add repository variable TURBO_TEAM   — Vercel team slug (e.g. "revealuistudio")
+#   - Heavy jobs (integration, E2E, coverage) only run for main
 
 on:
   push:
@@ -38,15 +29,11 @@ env:
   PNPM_VERSION: "10.28.2"
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
-  # Lockfile policy: strict on all CI branches (test/main)
-  # --frozen-lockfile: fail if lockfile is out of sync (supply chain protection)
   PNPM_INSTALL_FLAGS: "--frozen-lockfile"
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Phase 1: Quality checks (parallel, fast)
-  # Hard fail: Biome lint, boundary
-  # Warn-only: audits, structure
+  # Phase 1: Quality checks (all branches)
   # ---------------------------------------------------------------------------
   quality:
     name: Quality
@@ -91,7 +78,7 @@ jobs:
         run: pnpm validate:boundary
 
   # ---------------------------------------------------------------------------
-  # Phase 2: Typecheck (serial, hard fail)
+  # Phase 2: Typecheck (all branches)
   # ---------------------------------------------------------------------------
   typecheck:
     name: Typecheck
@@ -127,7 +114,7 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a: Unit tests (hard fail)
+  # Phase 3a: Unit tests (all branches)
   # ---------------------------------------------------------------------------
   test-unit:
     name: Unit Tests
@@ -156,14 +143,14 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a.1: Integration tests (hard fail, requires DB — main/test only)
+  # Phase 3a.1: Integration tests (main only — requires DB)
   # ---------------------------------------------------------------------------
   test-integration:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: quality
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test'
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
 
     services:
       postgres:
@@ -208,15 +195,14 @@ jobs:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a.5: Coverage gate
-  # Generates coverage reports and fails if any package has 0% line coverage.
-  # Report generation is warn-only (continue-on-error); zero-coverage check is hard fail.
+  # Phase 3a.5: Coverage gate (main only)
   # ---------------------------------------------------------------------------
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: quality
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -254,10 +240,7 @@ jobs:
           retention-days: 7
 
   # ---------------------------------------------------------------------------
-  # Phase 3b: Build
-  #   - PRs: packages only (hard fail, ~5 min) — catches import/export breaks
-  #   - main: full build including apps (hard fail, ~15 min)
-  # Runs in parallel with typecheck (turbo remote cache shares build artifacts)
+  # Phase 3b: Build (all branches)
   # ---------------------------------------------------------------------------
   build:
     name: Build
@@ -302,15 +285,14 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
-  # Phase 4: E2E smoke tests (hard fail — Playwright chromium only)
-  # Requires PostgreSQL for the API server (root cause of prior failures was
-  # a missing database service — the API hung trying to connect to nothing).
+  # Phase 4: E2E smoke tests (main only)
   # ---------------------------------------------------------------------------
   e2e-smoke:
     name: E2E Smoke
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [quality, build]
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
 
     services:
       postgres:
@@ -378,7 +360,6 @@ jobs:
             echo "All three servers ready" && break || \
             echo "Waiting for servers... ($i/40)" && sleep 3
           done
-          # Fail if any server didn't start
           curl -sf http://localhost:3004/health/live > /dev/null 2>&1 && \
           curl -sf http://localhost:4000 > /dev/null 2>&1 && \
           curl -sf http://localhost:3002 > /dev/null 2>&1 || \
@@ -404,15 +385,14 @@ jobs:
           retention-days: 7
 
   # ---------------------------------------------------------------------------
-  # Phase 5: Accessibility E2E (hard fail on critical violations — R5-L7)
-  # Runs @axe-core/playwright checks on login, dashboard, settings, pricing.
-  # Fails CI if any critical or serious WCAG 2.1 AA violations are found.
+  # Phase 5: Accessibility E2E (main only)
   # ---------------------------------------------------------------------------
   e2e-accessibility:
     name: Accessibility (E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [quality, build]
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -477,15 +457,14 @@ jobs:
           retention-days: 7
 
   # ---------------------------------------------------------------------------
-  # Phase 6: Visual regression (warn-only — R5-L8)
-  # Playwright native screenshot comparison. Warn-only until baselines are
-  # committed. To capture baselines: pnpm test:e2e:visual:update
+  # Phase 6: Visual regression (main only, warn-only)
   # ---------------------------------------------------------------------------
   e2e-visual:
     name: Visual Regression (E2E)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [quality, build]
+    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
     continue-on-error: true
 
     steps:
