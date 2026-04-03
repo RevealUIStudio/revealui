@@ -3,6 +3,7 @@ import { swaggerUI } from '@hono/swagger-ui';
 import { initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { audit, SecurityHeaders, SecurityPresets } from '@revealui/core/security';
+import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
 import { sites, users } from '@revealui/db/schema';
@@ -791,6 +792,8 @@ function initPriceOracle(): void {
 
 // For local development (but not in test environment)
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+  // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
+  audit.setStorage(new PostgresAuditStorage());
   validateStartup();
   initializeLicense()
     .then((tier) => {
@@ -812,6 +815,8 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
 
 // Also validate in production before accepting traffic
 if (process.env.NODE_ENV === 'production') {
+  // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
+  audit.setStorage(new PostgresAuditStorage());
   validateStartup();
   initializeLicense()
     .then((tier) => {

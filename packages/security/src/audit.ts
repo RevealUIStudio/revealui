@@ -95,6 +95,14 @@ export class AuditSystem {
   }
 
   /**
+   * Replace the backing storage (e.g. swap InMemory for Postgres at startup).
+   * Events already written to the old storage are NOT migrated.
+   */
+  setStorage(storage: AuditStorage): void {
+    this.storage = storage;
+  }
+
+  /**
    * Log audit event
    */
   async log(event: Omit<AuditEvent, 'id' | 'timestamp'>): Promise<void> {

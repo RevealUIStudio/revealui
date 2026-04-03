@@ -30,19 +30,36 @@
  */
 
 /**
+ * Require an env var in production. Falls back to a dev default otherwise.
+ * Respects SKIP_ENV_VALIDATION for build-time imports.
+ */
+function requireInProduction(name: string, devFallback: string): string {
+  const value = process.env[name];
+  if (value) return value;
+  if (process.env.NODE_ENV === 'production' && process.env.SKIP_ENV_VALIDATION !== 'true') {
+    throw new Error(
+      `${name} is required in production. Set it in your environment or Vercel project settings.`,
+    );
+  }
+  return devFallback;
+}
+
+/**
  * Shared configuration values used across both apps
  */
 export const sharedConfig = {
   /**
    * Server URL - used by both CMS and web apps
    */
-  serverURL: process.env.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000',
+  serverURL: requireInProduction('REVEALUI_PUBLIC_SERVER_URL', 'http://localhost:4000'),
 
   /**
    * Secret key - used by CMS for encryption
    */
-  secret:
-    process.env.REVEALUI_SECRET || 'INSECURE-DEV-ONLY-CHANGE-ME-SET-REVEALUI_SECRET-IN-PRODUCTION',
+  secret: requireInProduction(
+    'REVEALUI_SECRET',
+    'INSECURE-DEV-ONLY-CHANGE-ME-SET-REVEALUI_SECRET-IN-PRODUCTION',
+  ),
 
   /**
    * Base Reveal configuration
