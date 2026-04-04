@@ -193,6 +193,10 @@ function printSummary(results: CheckResult[], totalMs: number): void {
 async function gate(): Promise<void> {
   await getProjectRoot(import.meta.url);
 
+  // Skip env validation during gate builds — same as CI.
+  // Build sets NODE_ENV=production but real env vars aren't available locally.
+  process.env.SKIP_ENV_VALIDATION = 'true';
+
   const { phase, skip, noBuild, noTest, changed, types } = parseArgs();
 
   logger.header('RevealUI CI Gate');
