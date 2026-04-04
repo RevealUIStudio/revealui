@@ -3,16 +3,15 @@ import { swaggerUI } from '@hono/swagger-ui';
 import { initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { audit, SecurityHeaders, SecurityPresets } from '@revealui/core/security';
-import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
 import { sites, users } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
-
 import { logger as honoLogger } from 'hono/logger';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
+import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
