@@ -381,9 +381,100 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
   };
 };
 
+/** Cache for perpetual support expiry checks, keyed by customer ID */
+const supportExpiryCache = new Map<
+  string,
+  { supportExpiresAt: Date | null; perpetual: boolean; checkedAt: number }
+>();
+
+/**
+ * Enforce support contract expiry on perpetual licenses.
+ *
+ * Perpetual licenses never expire — the holder keeps basic CMS access forever.
+ * However, the annual support contract (supportExpiresAt) gates premium features:
+ * AI, dashboard, advanced sync, analytics, etc.
+ *
+ * When support is expired, this middleware:
+ * 1. Downgrades the request entitlements to free tier (keeps basic CMS)
+ * 2. Sets an `X-Support-Expires` response header so clients can prompt for renewal
+ *
+ * When support is active, this middleware:
+ * 1. Sets the `X-Support-Expires` header for proactive client-side renewal prompts
+ *
+ * @param querySupportExpiry - Function that queries the DB for perpetual support info.
+ *   Injected to avoid coupling middleware to DB schema imports.
+ */
+export const checkSupportExpiry = (
+  querySupportExpiry: (
+    customerId: string,
+  ) => Promise<{ supportExpiresAt: Date | null; perpetual: boolean }>,
+): MiddlewareHandler => {
+  return async (c, next) => {
+    const payload = getLicensePayload();
+
+    // Only applies to perpetual licenses identified by the JWT
+    if (!payload?.perpetual) {
+      await next();
+      return;
+    }
+
+    const now = Date.now();
+    const cached = supportExpiryCache.get(payload.customerId);
+
+    if (!cached || now - cached.checkedAt > DB_STATUS_CHECK_INTERVAL) {
+      const info = await querySupportExpiry(payload.customerId);
+      supportExpiryCache.set(payload.customerId, {
+        supportExpiresAt: info.supportExpiresAt,
+        perpetual: info.perpetual,
+        checkedAt: now,
+      });
+    }
+
+    const effective = supportExpiryCache.get(payload.customerId);
+
+    // Not a perpetual license in the DB (should not happen if JWT has perpetual=true, but be safe)
+    if (!effective?.perpetual) {
+      await next();
+      return;
+    }
+
+    // Set the support expiry header so clients can show renewal prompts
+    if (effective.supportExpiresAt) {
+      c.header('X-Support-Expires', effective.supportExpiresAt.toISOString());
+    }
+
+    // Check if support has expired
+    if (effective.supportExpiresAt && effective.supportExpiresAt.getTime() < now) {
+      // Support expired — downgrade entitlements to free tier.
+      // The perpetual license itself remains valid (basic CMS access),
+      // but premium features (AI, dashboard, sync, analytics) require active support.
+      const requestEntitlements = getRequestEntitlements(c);
+      if (requestEntitlements) {
+        c.set('entitlements', {
+          ...requestEntitlements,
+          tier: 'free' as const,
+          features: {},
+          subscriptionStatus: 'support_expired',
+        });
+      }
+
+      c.header('X-Support-Status', 'expired');
+    }
+
+    await next();
+  };
+};
+
 /**
  * Reset the DB status cache. Primarily for testing.
  */
 export function resetDbStatusCache(): void {
   dbStatusCache.clear();
+}
+
+/**
+ * Reset the support expiry cache. Primarily for testing.
+ */
+export function resetSupportExpiryCache(): void {
+  supportExpiryCache.clear();
 }

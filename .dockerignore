@@ -36,6 +36,9 @@ out
 *.cert
 *.crt
 
+# Fetched package source (opensrc tool)
+opensrc
+
 # Development
 .vscode
 .idea

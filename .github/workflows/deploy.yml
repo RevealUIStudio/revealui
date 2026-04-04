@@ -38,6 +38,34 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
+  # Typecheck gate — safety net if branch protection is bypassed
+  # ---------------------------------------------------------------------------
+  typecheck:
+    name: Typecheck Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck all packages
+        run: pnpm typecheck:all
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+  # ---------------------------------------------------------------------------
   # Detect which apps were affected by the merge
   # ---------------------------------------------------------------------------
   detect:
@@ -144,7 +172,7 @@ jobs:
     name: Deploy ${{ matrix.app }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: detect
+    needs: [typecheck, detect]
     if: needs.detect.outputs.has-apps == 'true'
     environment:
       name: production
@@ -177,6 +205,25 @@ jobs:
 
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+
+      - name: Validate critical environment variables
+        run: |
+          echo "Checking critical env vars for ${{ matrix.app }}..."
+          MISSING=0
+          for VAR in POSTGRES_URL REVEALUI_SECRET REVEALUI_PUBLIC_SERVER_URL; do
+            if ! vercel env ls --environment=production --token="$VERCEL_TOKEN" 2>/dev/null | grep -q "^$VAR"; then
+              echo "::error::Missing required env var: $VAR"
+              MISSING=1
+            fi
+          done
+          if [ "$MISSING" = "1" ]; then
+            echo "::error::Deploy blocked — set missing env vars in Vercel project settings"
+            exit 1
+          fi
+          echo "All critical env vars present."
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}

@@ -9,9 +9,9 @@ import { sites, users } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
-
 import { logger as honoLogger } from 'hono/logger';
-import { queryBillingStatusByCustomerId } from './lib/billing-status.js';
+import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
+import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
@@ -20,7 +20,12 @@ import { dbMiddleware } from './middleware/db.js';
 import { domainLockMiddleware, validateForgeConfig } from './middleware/domain-lock.js';
 import { entitlementMiddleware } from './middleware/entitlements.js';
 import { errorHandler } from './middleware/error.js';
-import { checkLicenseStatus, requireAIAccess, requireFeature } from './middleware/license.js';
+import {
+  checkLicenseStatus,
+  checkSupportExpiry,
+  requireAIAccess,
+  requireFeature,
+} from './middleware/license.js';
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js';
 import { requestIdMiddleware } from './middleware/request-id.js';
 import { enforceSiteLimit, enforceUserLimit } from './middleware/resource-limits.js';
@@ -341,7 +346,23 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
   },
 };
 
-let rateLimitsConfig: RateLimitsConfig = { ...DEFAULT_RATE_LIMITS };
+// Apply env-var overrides for tier-level rate limits.
+// Format: RATE_LIMIT_<TIER>=<requests-per-minute> (e.g. RATE_LIMIT_PRO=500)
+function applyEnvRateLimits(defaults: RateLimitsConfig): RateLimitsConfig {
+  const tiers = { ...defaults.tiers };
+  for (const tier of ['free', 'pro', 'max', 'enterprise'] as const) {
+    const envVal = process.env[`RATE_LIMIT_${tier.toUpperCase()}`];
+    if (envVal) {
+      const parsed = Number.parseInt(envVal, 10);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        tiers[tier] = { maxRequests: parsed, windowMs: ONE_MINUTE };
+      }
+    }
+  }
+  return { tiers, routes: { ...defaults.routes } };
+}
+
+let rateLimitsConfig: RateLimitsConfig = applyEnvRateLimits(DEFAULT_RATE_LIMITS);
 
 /** Override rate limit defaults (useful for tests or per-environment tuning) */
 export function configureRateLimits(overrides: Partial<RateLimitsConfig>): void {
@@ -495,11 +516,22 @@ const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
 });
 app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
+
+// Perpetual license support expiry enforcement — downgrades premium features to free
+// when the annual support contract has expired. Basic CMS access remains perpetual.
+// Sets X-Support-Expires header so clients can show renewal prompts.
+const supportExpiryCheck = checkSupportExpiry(async (customerId) => {
+  return querySupportExpiry(getClient(), customerId);
+});
+app.use('/api/*', supportExpiryCheck);
+app.use('/api/v1/*', supportExpiryCheck);
+
 // A2A routes live outside /api/* so they need their own entitlement + license status check.
 // Without this, a revoked license retains A2A task execution access until the
 // 5-minute in-memory feature-flag cache expires.
 app.use('/a2a/*', entitlementMiddleware());
 app.use('/a2a/*', licenseStatusCheck);
+app.use('/a2a/*', supportExpiryCheck);
 
 // License enforcement — gate premium routes by feature
 // Agent stream + tasks: free tier allowed with local BitNet, Pro+ for cloud providers
@@ -791,6 +823,8 @@ function initPriceOracle(): void {
 
 // For local development (but not in test environment)
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+  // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
+  audit.setStorage(new PostgresAuditStorage());
   validateStartup();
   initializeLicense()
     .then((tier) => {
@@ -812,6 +846,8 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
 
 // Also validate in production before accepting traffic
 if (process.env.NODE_ENV === 'production') {
+  // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
+  audit.setStorage(new PostgresAuditStorage());
   validateStartup();
   initializeLicense()
     .then((tier) => {

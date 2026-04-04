@@ -28,7 +28,7 @@ import {
   sendDowngradeConfirmationEmail,
   sendUpgradeConfirmationEmail,
 } from '../lib/webhook-emails.js';
-import { resetDbStatusCache } from '../middleware/license.js';
+import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
 
 /** Default trial period for new subscriptions (overridable via env) */
 const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7', 10);
@@ -1455,10 +1455,15 @@ app.openapi(reportOverageRoute, async (c) => {
 
 // POST /api/billing/sweep-expired-licenses — Internal cron: mark expired licenses as 'expired'
 // Finds non-perpetual licenses where expiresAt < now() and status = 'active', updates them to
-// status = 'expired', and clears the DB status cache so revocation takes effect immediately.
+// status = 'expired'. Also finds perpetual licenses where supportExpiresAt < now() and marks
+// them as 'support_expired' (license remains valid, premium features downgrade to free).
+// Clears the DB status cache so changes take effect immediately.
 // Protected by X-Cron-Secret. Run daily (or hourly for tighter enforcement).
 const SweepExpiredLicensesResponseSchema = z.object({
   expired: z.number().openapi({ description: 'Number of licenses transitioned to expired' }),
+  supportExpired: z
+    .number()
+    .openapi({ description: 'Number of perpetual licenses with newly expired support' }),
 });
 
 const sweepExpiredLicensesRoute = createRoute({
@@ -1467,7 +1472,7 @@ const sweepExpiredLicensesRoute = createRoute({
   tags: ['billing'],
   summary: 'Sweep expired licenses (internal cron)',
   description:
-    'Marks non-perpetual licenses whose expiresAt is in the past as expired, then clears the DB status cache. Protected by X-Cron-Secret.',
+    'Marks non-perpetual licenses whose expiresAt is in the past as expired, and perpetual licenses whose supportExpiresAt is in the past as support_expired. Clears caches so changes take effect immediately. Protected by X-Cron-Secret.',
   responses: {
     200: {
       content: { 'application/json': { schema: SweepExpiredLicensesResponseSchema } },
@@ -1497,6 +1502,7 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
   const db = getClient();
   const now = new Date();
 
+  // ── Phase 1: Expire non-perpetual licenses with past expiresAt ──────────
   // Fetch matching IDs before updating — Neon HTTP driver does not support
   // columnar .returning() on UPDATE, so we count from a SELECT instead.
   const expiring = await db
@@ -1524,14 +1530,49 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
         ),
       );
 
-    // Invalidate the per-customer DB status cache so revocation takes effect on the
-    // next request rather than waiting for the 5-minute cache window to expire.
     resetDbStatusCache();
   }
 
-  logger.info('License expiry sweep complete', { expired: expiredCount });
+  // ── Phase 2: Mark perpetual licenses with expired support ───────────────
+  // Perpetual licenses never expire, but their support contract does.
+  // status = 'support_expired' signals that premium features are downgraded
+  // to free tier while basic CMS access remains perpetual.
+  const supportExpiring = await db
+    .select({ id: licenses.id })
+    .from(licenses)
+    .where(
+      and(
+        eq(licenses.status, 'active'),
+        eq(licenses.perpetual, true),
+        lt(licenses.supportExpiresAt, now),
+      ),
+    );
 
-  return c.json({ expired: expiredCount }, 200);
+  const supportExpiredCount = supportExpiring.length;
+
+  if (supportExpiredCount > 0) {
+    await db
+      .update(licenses)
+      .set({ status: 'support_expired', updatedAt: now })
+      .where(
+        and(
+          eq(licenses.status, 'active'),
+          eq(licenses.perpetual, true),
+          lt(licenses.supportExpiresAt, now),
+        ),
+      );
+
+    // Invalidate both caches so the middleware picks up the new status
+    resetDbStatusCache();
+    resetSupportExpiryCache();
+  }
+
+  logger.info('License expiry sweep complete', {
+    expired: expiredCount,
+    supportExpired: supportExpiredCount,
+  });
+
+  return c.json({ expired: expiredCount, supportExpired: supportExpiredCount }, 200);
 });
 
 // POST /api/billing/refund — Issue a refund (admin-only)

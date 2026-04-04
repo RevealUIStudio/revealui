@@ -166,12 +166,15 @@ function makeWellKnownApp() {
   return app;
 }
 
-function makeA2AApp(user?: { id: string }) {
+function makeA2AApp(user?: { id: string }, entitlements?: { features?: Record<string, boolean> }) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
-  const app = new Hono<{ Variables: { user?: any } }>();
+  const app = new Hono<{ Variables: { user?: any; entitlements?: any } }>();
   if (user) {
     app.use('*', async (c, next) => {
       c.set('user', user);
+      if (entitlements) {
+        c.set('entitlements', entitlements);
+      }
       await next();
     });
   }
@@ -457,7 +460,7 @@ describe('POST /a2a — quota and BYOK', () => {
     );
     mockRequireTaskQuota.mockResolvedValue(quotaExceeded);
 
-    const app = makeA2AApp({ id: 'user-1' });
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
     const res = await app.request(
       post('/', {
         jsonrpc: '2.0',

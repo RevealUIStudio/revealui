@@ -1,6 +1,6 @@
 import type { Database } from '@revealui/db/client';
 import { accountEntitlements, accountSubscriptions, licenses } from '@revealui/db/schema';
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 
 /**
  * Query billing status with grace period enforcement.
@@ -16,10 +16,10 @@ export async function queryBillingStatusByCustomerId(
     .select({ status: licenses.status, expiresAt: licenses.expiresAt })
     .from(licenses)
     .where(eq(licenses.customerId, customerId))
-    // Prefer active licenses over expired/revoked — a customer may have both a
-    // perpetual (active) and a subscription (revoked) license concurrently.
+    // Prefer active/support_expired licenses over expired/revoked — a customer may have
+    // both a perpetual (active or support_expired) and a subscription (revoked) license.
     .orderBy(
-      sql`CASE WHEN ${licenses.status} = 'active' THEN 0 ELSE 1 END`,
+      sql`CASE WHEN ${licenses.status} = 'active' THEN 0 WHEN ${licenses.status} = 'support_expired' THEN 0 ELSE 1 END`,
       desc(licenses.createdAt),
     )
     .limit(1);
@@ -71,4 +71,49 @@ export async function queryBillingStatusByCustomerId(
   }
 
   return entitlement.status;
+}
+
+/** Result of a support expiry query for perpetual licenses */
+export interface SupportExpiryInfo {
+  /** When the support contract expires (null if not a perpetual license) */
+  supportExpiresAt: Date | null;
+  /** Whether this is a perpetual license */
+  perpetual: boolean;
+}
+
+/**
+ * Query the support expiry date for a perpetual license by customer ID.
+ *
+ * Returns the supportExpiresAt from the most recent perpetual license for
+ * the given customer. Matches both 'active' and 'support_expired' statuses
+ * (the sweep cron may have already marked it). Non-perpetual licenses or
+ * revoked/expired licenses return { perpetual: false }.
+ */
+export async function querySupportExpiry(
+  db: Database,
+  customerId: string,
+): Promise<SupportExpiryInfo> {
+  const [license] = await db
+    .select({
+      perpetual: licenses.perpetual,
+      supportExpiresAt: licenses.supportExpiresAt,
+      status: licenses.status,
+    })
+    .from(licenses)
+    .where(and(eq(licenses.customerId, customerId), eq(licenses.perpetual, true)))
+    // Prefer active over support_expired; skip revoked/expired entirely
+    .orderBy(
+      sql`CASE WHEN ${licenses.status} = 'active' THEN 0 WHEN ${licenses.status} = 'support_expired' THEN 1 ELSE 2 END`,
+      desc(licenses.createdAt),
+    )
+    .limit(1);
+
+  if (!license || (license.status !== 'active' && license.status !== 'support_expired')) {
+    return { supportExpiresAt: null, perpetual: false };
+  }
+
+  return {
+    supportExpiresAt: license.supportExpiresAt,
+    perpetual: true,
+  };
 }
