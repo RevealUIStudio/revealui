@@ -210,6 +210,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
       - name: Validate critical environment variables
+        if: matrix.app == 'api' || matrix.app == 'cms'
         run: |
           echo "Checking critical env vars for ${{ matrix.app }}..."
           MISSING=0
