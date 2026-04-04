@@ -91,10 +91,22 @@ vi.mock('../../middleware/auth.js', () => ({
   ),
 }));
 
-// Mock license middleware — requireFeature passes through by default
+// Mock license middleware — requireFeature delegates to mockIsFeatureEnabled at request time
 vi.mock('../../middleware/license.js', () => ({
   requireFeature: vi.fn(
-    (_feature: string) => async (_c: unknown, next: () => Promise<void>) => next(),
+    (feature: string) =>
+      async (
+        c: { json: (data: unknown, status: number) => unknown },
+        next: () => Promise<void>,
+      ) => {
+        if (!mockIsFeatureEnabled(feature)) {
+          return c.json(
+            { error: `Feature '${feature}' requires a Pro or Enterprise license.` },
+            403,
+          );
+        }
+        return next();
+      },
   ),
   checkLicenseStatus: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
 }));

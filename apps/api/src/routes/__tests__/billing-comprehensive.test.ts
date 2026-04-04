@@ -26,6 +26,7 @@ const mockSubscriptionsUpdate = vi.fn();
 const mockMeterEventsCreate = vi.fn();
 const mockRefundsCreate = vi.fn();
 const mockResetDbStatusCache = vi.fn();
+const mockResetSupportExpiryCache = vi.fn();
 const mockLogger = vi.hoisted(() => ({
   info: vi.fn(),
   error: vi.fn(),
@@ -119,6 +120,7 @@ vi.mock('@revealui/core/license', () => ({
 
 vi.mock('../../middleware/license.js', () => ({
   resetDbStatusCache: (...args: unknown[]) => mockResetDbStatusCache(...args),
+  resetSupportExpiryCache: (...args: unknown[]) => mockResetSupportExpiryCache(...args),
   requireLicense: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
   requireFeature: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
   checkLicenseStatus: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
@@ -1116,6 +1118,7 @@ describe('POST /sweep-expired-licenses', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     mockResetDbStatusCache.mockReset();
+    mockResetSupportExpiryCache.mockReset();
   });
 
   it('returns 403 when X-Cron-Secret header is missing', async () => {
@@ -1161,17 +1164,17 @@ describe('POST /sweep-expired-licenses', () => {
   });
 
   it('marks expired licenses and calls resetDbStatusCache when licenses found', async () => {
-    // select returns two expiring license IDs
-    _selectResult = [{ id: 'lic-1' }, { id: 'lic-2' }];
-    mockDb.select.mockReturnValue(mockDbSelectChain);
+    // Phase 1 select returns two expiring license IDs; Phase 2 select returns none
+    queueSelectResults([{ id: 'lic-1' }, { id: 'lic-2' }], []);
     mockDb.update.mockReturnValue(mockDbUpdateChain);
 
     const app = createApp();
     const res = await app.request(cronPost('/sweep-expired-licenses'));
 
     expect(res.status).toBe(200);
-    const body = (await res.json()) as { expired: number };
+    const body = (await res.json()) as { expired: number; supportExpired: number };
     expect(body.expired).toBe(2);
+    expect(body.supportExpired).toBe(0);
     expect(mockDb.update).toHaveBeenCalledOnce();
     expect(mockResetDbStatusCache).toHaveBeenCalledOnce();
   });
