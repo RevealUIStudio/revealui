@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server';
 
 const COMMUNITY_REDIRECT = 'https://revnation.discourse.group';
 
-export function middleware(request: NextRequest): NextResponse | undefined {
+// Next.js 16 proxy convention (src/proxy.ts)
+export default function proxy(request: NextRequest): NextResponse | undefined {
   const host = request.headers.get('host') ?? '';
 
   // Redirect community.revealui.com → Discourse forum
