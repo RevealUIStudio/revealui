@@ -5,7 +5,7 @@
  * and PGliteRateLimitStore. PGlite tests use in-memory mode.
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { RateLimitStore } from '../rate-limit-store.js';
 import { InMemoryRateLimitStore } from '../rate-limit-store.js';
 
@@ -114,15 +114,23 @@ if (pgliteAvailable) {
   const { PGlite } = await import('@electric-sql/pglite');
   const { PGliteRateLimitStore } = await import('../rate-limit-store.js');
 
+  // Share a single PGlite instance across all PGlite tests to avoid
+  // repeated ~3-5s init overhead that causes CI timeouts.
+  const sharedDb = new PGlite();
+
+  afterAll(async () => {
+    await sharedDb.close();
+  });
+
   rateLimitStoreSuite('PGliteRateLimitStore', async () => {
-    const db = new PGlite();
-    return new PGliteRateLimitStore({ db, closeOnDestroy: true });
+    const store = new PGliteRateLimitStore({ db: sharedDb, closeOnDestroy: false });
+    await store.clear();
+    return store;
   });
 
   describe('PGliteRateLimitStore — SQL-specific', () => {
     it('handles special characters in keys', async () => {
-      const db = new PGlite();
-      const store = new PGliteRateLimitStore({ db, closeOnDestroy: true });
+      const store = new PGliteRateLimitStore({ db: sharedDb, closeOnDestroy: false });
       await store.set('key\'with"quotes', { count: 1, windowStart: 1000 });
       const entry = await store.get('key\'with"quotes');
       expect(entry).toEqual({ count: 1, windowStart: 1000 });
@@ -130,8 +138,7 @@ if (pgliteAvailable) {
     });
 
     it('persists across operations without losing data', async () => {
-      const db = new PGlite();
-      const store = new PGliteRateLimitStore({ db, closeOnDestroy: true });
+      const store = new PGliteRateLimitStore({ db: sharedDb, closeOnDestroy: false });
 
       await store.set('t1:free', { count: 10, windowStart: 1000 });
       await store.set('t2:pro', { count: 50, windowStart: 2000 });

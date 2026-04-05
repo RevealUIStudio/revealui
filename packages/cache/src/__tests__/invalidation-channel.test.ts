@@ -5,7 +5,7 @@
  * in-memory mode to simulate two instances sharing events via a database table.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { InMemoryCacheStore } from '../adapters/memory.js';
 import { CacheInvalidationChannel } from '../invalidation-channel.js';
 
@@ -21,28 +21,37 @@ try {
 if (pgliteAvailable) {
   const { PGlite } = await import('@electric-sql/pglite');
 
+  // Share a single PGlite instance across all tests to avoid
+  // repeated ~3-5s init overhead that causes CI timeouts.
+  const sharedDb = new PGlite();
+
+  afterAll(async () => {
+    await sharedDb.close();
+  });
+
   describe('CacheInvalidationChannel', () => {
-    let db: InstanceType<typeof PGlite>;
     let storeA: InMemoryCacheStore;
     let storeB: InMemoryCacheStore;
     let channelA: CacheInvalidationChannel;
     let channelB: CacheInvalidationChannel;
 
     beforeEach(async () => {
-      // Shared database (simulates NeonDB)
-      db = new PGlite();
+      // Clear events table from previous tests
+      await sharedDb.exec('DELETE FROM _cache_invalidation_events').catch(() => {
+        // Table may not exist yet on first run — init will create it
+      });
 
       // Two cache stores (simulating two server instances)
       storeA = new InMemoryCacheStore();
       storeB = new InMemoryCacheStore();
 
       // Two channels on the same DB, different instance IDs
-      channelA = new CacheInvalidationChannel(db, storeA, {
+      channelA = new CacheInvalidationChannel(sharedDb, storeA, {
         instanceId: 'instance-a',
         pollIntervalMs: 100,
         eventTtlSeconds: 30,
       });
-      channelB = new CacheInvalidationChannel(db, storeB, {
+      channelB = new CacheInvalidationChannel(sharedDb, storeB, {
         instanceId: 'instance-b',
         pollIntervalMs: 100,
         eventTtlSeconds: 30,
@@ -54,7 +63,6 @@ if (pgliteAvailable) {
       await channelB.close();
       await storeA.close();
       await storeB.close();
-      await db.close();
     });
 
     // ─── Key deletion ───────────────────────────────────────────────────
@@ -192,7 +200,7 @@ if (pgliteAvailable) {
 
         // Verify table is empty by checking a fresh channel
         const freshStore = new InMemoryCacheStore();
-        const freshChannel = new CacheInvalidationChannel(db, freshStore, {
+        const freshChannel = new CacheInvalidationChannel(sharedDb, freshStore, {
           instanceId: 'instance-c',
           pollIntervalMs: 1000,
           eventTtlSeconds: 30,

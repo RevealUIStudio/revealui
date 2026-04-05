@@ -5,7 +5,7 @@
  * and PGliteCircuitBreakerStore. PGlite tests use in-memory mode.
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { CircuitBreakerSnapshot, CircuitBreakerStore } from '../circuit-breaker-store.js';
 import { InMemoryCircuitBreakerStore } from '../circuit-breaker-store.js';
 
@@ -134,15 +134,23 @@ if (pgliteAvailable) {
   const { PGlite } = await import('@electric-sql/pglite');
   const { PGliteCircuitBreakerStore } = await import('../circuit-breaker-store.js');
 
+  // Share a single PGlite instance across all PGlite tests to avoid
+  // repeated ~3-5s init overhead that causes CI timeouts.
+  const sharedDb = new PGlite();
+
+  afterAll(async () => {
+    await sharedDb.close();
+  });
+
   circuitBreakerStoreSuite('PGliteCircuitBreakerStore', async () => {
-    const db = new PGlite();
-    return new PGliteCircuitBreakerStore({ db, closeOnDestroy: true });
+    const store = new PGliteCircuitBreakerStore({ db: sharedDb, closeOnDestroy: false });
+    await store.clear();
+    return store;
   });
 
   describe('PGliteCircuitBreakerStore — SQL-specific', () => {
     it('handles special characters in service names', async () => {
-      const db = new PGlite();
-      const store = new PGliteCircuitBreakerStore({ db, closeOnDestroy: true });
+      const store = new PGliteCircuitBreakerStore({ db: sharedDb, closeOnDestroy: false });
       await store.save('svc\'with"quotes', SAMPLE_SNAPSHOT);
       const loaded = await store.load('svc\'with"quotes');
       expect(loaded).toEqual(SAMPLE_SNAPSHOT);
@@ -150,8 +158,7 @@ if (pgliteAvailable) {
     });
 
     it('handles large counter values', async () => {
-      const db = new PGlite();
-      const store = new PGliteCircuitBreakerStore({ db, closeOnDestroy: true });
+      const store = new PGliteCircuitBreakerStore({ db: sharedDb, closeOnDestroy: false });
       const bigSnapshot: CircuitBreakerSnapshot = {
         state: 'closed',
         failureCount: 1_000_000,
