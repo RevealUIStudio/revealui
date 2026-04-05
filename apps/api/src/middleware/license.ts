@@ -293,10 +293,10 @@ export const checkLicenseStatus = (
 };
 
 /**
- * Require AI access — local inference (BitNet) on free tier, cloud providers on Pro+.
+ * Require AI access — local inference (BitNet/Ollama) on free tier, full harness on Pro+.
  *
- * When BITNET_BASE_URL is set, free-tier users can use local inference.
- * Cloud/advanced inference paths still require a Pro+ license.
+ * When BITNET_BASE_URL or OLLAMA_BASE_URL is set, free-tier users can use local inference.
+ * Cloud-hosted open models via the RevealUI harness require a Pro+ license.
  * The route handler is responsible for enforcing BitNet-only when the caller
  * is on the free tier (see agent-stream.ts).
  */

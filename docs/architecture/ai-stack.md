@@ -27,24 +27,22 @@ All LLM access flows through `LLMClient`, a factory that wraps inference backend
 
 When both `BITNET_BASE_URL` and `OLLAMA_BASE_URL` are set, the factory automatically routes chat to BitNet and embeddings to Ollama (`nomic-embed-text`). No additional config needed.
 
-## Freemium Model
+## Tier Model
 
 Revenue tiers control AI access via runtime feature gating:
 
 | Tier | AI Access | Task Quota | Coding Tools | Inference |
 |------|-----------|-----------|--------------|-----------|
-| **Free (local)** | BitNet only | 1,000/mo | Full (offline) | `BITNET_BASE_URL` |
-| **Free (sampling)** | Platform key | 50/mo | Read-only | Platform-managed open model |
-| **Pro** ($49/mo) | Open models | 10,000/mo | Full | Snaps, BitNet, Ollama |
-| **Max** ($149/mo) | Open models + advanced config | 50,000/mo | Full + memory | Snaps, BitNet, Ollama |
+| **Free** | Local only (BitNet / Ollama) | 1,000/mo | Read-only | `BITNET_BASE_URL` or `OLLAMA_BASE_URL` |
+| **Pro** ($49/mo) | Local + cloud harness | 10,000/mo | Full | Snaps, BitNet, Ollama, RevealUI cloud |
+| **Max** ($149/mo) | Local + cloud + advanced config | 50,000/mo | Full + memory | Snaps, BitNet, Ollama, RevealUI cloud |
 | **Enterprise** ($299/mo) | Unlimited | Metered | Full + memory + multi-tenant | All open models |
 
 ### Access Modes
 
 The `aiAccessMode` field on entitlements controls enforcement:
 
-- **`local`**: Free tier forced to BitNet. No API key needed. Full coding tools (offline).
-- **`sampling`**: Free tier uses platform Groq key. 50 tasks/month. Read-only coding tools (`file_read`, `file_glob`, `file_grep`, `project_context`).
+- **`local`**: Free tier uses BitNet or Ollama. No API key needed. Read-only coding tools (`file_read`, `file_glob`, `file_grep`, `project_context`).
 
 ### Quota Enforcement
 
@@ -84,7 +82,7 @@ The `/api/agent-stream` POST route serves SSE responses. The React hook `useAgen
 
 - **CMS tools**: Content CRUD, media management, user/globals operations
 - **Coding tools** (Pro+): `file_read`, `file_write`, `file_edit`, `file_glob`, `file_grep`, `shell_exec`, `git_ops`, `project_context`
-- **Coding tools** (sampling/free): Read-only subset only
+- **Coding tools** (free tier): Read-only subset only (`file_read`, `file_glob`, `file_grep`, `project_context`)
 - **Memory tools**: Episodic recall, working memory access
 - **Web tools**: DuckDuckGo search (default)
 - **MCP adapter**: External tool discovery via MCP protocol
@@ -155,9 +153,8 @@ Both are opt-in via `LLMClientConfig.enableResponseCache` and `enableSemanticCac
 ## Feature Flag Reference
 
 ```
-aiLocal:         free     Local BitNet inference
-aiSampling:      free     Platform Groq (50 tasks/month)
-ai:              pro      Cloud AI agents (open-model inference)
+aiLocal:         free     Local inference (BitNet / Ollama)
+ai:              pro      AI agents (local + cloud via RevealUI harness)
 mcp:             pro      MCP framework integration
 aiMemory:        max      Working + episodic memory
 aiInference:     max      Open-model inference configuration (snaps, BitNet, harness)

@@ -166,8 +166,8 @@ app.openapi(agentStreamRoute, async (c) => {
     // CMS tools unavailable — agent will work without them
   }
 
-  // Read-only coding tools allowed for sampling mode
-  const SamplingCodingTools = ['file_read', 'file_glob', 'file_grep', 'project_context'];
+  // Read-only coding tools allowed for free tier (local inference)
+  const readOnlyCodingTools = ['file_read', 'file_glob', 'file_grep', 'project_context'];
 
   // Load coding tools when mode is 'coding'
   let codingTools: unknown[] = [];
@@ -190,7 +190,7 @@ app.openapi(agentStreamRoute, async (c) => {
           projectRoot,
           allowedPaths: process.env.CODING_ALLOWED_PATHS?.split(','),
           // Local (free tier): only read-only tools (no file_write, file_edit, shell_exec, git_ops)
-          ...(isLocalOnly && { include: SamplingCodingTools }),
+          ...(isLocalOnly && { include: readOnlyCodingTools }),
         });
       }
     } catch {

@@ -21,7 +21,6 @@ export type LicenseTierId = 'free' | 'pro' | 'max' | 'enterprise';
 export type FeatureFlagKey =
   | 'aiLocal'
   | 'ai'
-  | 'aiSampling'
   | 'aiMemory'
   | 'mcp'
   | 'payments'
@@ -63,7 +62,6 @@ export const TIER_COLORS: Record<LicenseTierId, string> = {
 export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   aiLocal: 'Local AI (BitNet)',
   ai: 'AI Agents',
-  aiSampling: 'AI Sampling (50 tasks/month)',
   aiMemory: 'AI Memory',
   mcp: 'MCP Framework',
   payments: 'Built-in Payments',
@@ -128,8 +126,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Up to 3 users/editors',
       'Session-based auth',
       'Basic real-time sync',
-      '50 cloud AI tasks/month',
-      'Read-only AI coding assistant',
+      'Local AI inference (BitNet / Ollama)',
       'Community support',
       'Full source code access',
     ],
@@ -146,7 +143,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Up to 5 sites',
       'Up to 25 users/editors',
       'Session-based auth',
-      'AI agents (open-model inference)',
+      'AI agents (local + cloud via RevealUI harness)',
       'Built-in Stripe payments',
       'Full real-time sync',
       'Monitoring dashboard',

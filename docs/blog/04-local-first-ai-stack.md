@@ -17,7 +17,7 @@ RevealUI's local-first story comes from four independent pieces that happen to c
 | Layer | Technology | What it does |
 |-------|-----------|-------------|
 | **Secrets** | RevVault (age encryption) | Credentials stay on your machine, encrypted at rest |
-| **AI inference** | BitNet (1-bit models, CPU-only) | LLM inference with no cloud API, ~700 MB RAM |
+| **AI inference** | BitNet / Ollama (open models) | LLM inference with no proprietary APIs — local or self-hosted cloud via harness |
 | **Dev environment** | Nix flakes + direnv | Reproducible environment, zero manual tool installs |
 | **Business logic** | RevealUI Pro | Auth, content, payments, AI agents — all wired |
 

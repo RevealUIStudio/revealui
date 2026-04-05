@@ -120,7 +120,7 @@ Real-time multi-user editing powered by ElectricSQL. Currently basic shape subsc
 - SLA guarantees
 
 #### Self-Hosted (Forge Edition)
-Docker images for fully self-hosted deployment. Domain-locked licensing, no cloud dependency. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
+Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap capable. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
 
 ### Long-Term (Q4 2026+)
 
@@ -142,7 +142,7 @@ RevealUI offers three ways to pay:
 | Track | Model | Description |
 |-------|-------|-------------|
 | **A — Subscriptions** | Monthly | Free / Pro $49/mo / Max $149/mo / Forge $299/mo |
-| **B — Agent Credits** | Pay-per-use | $0.001/task, first 1,000 total tasks/month free (50 cloud AI tasks via platform key) |
+| **B — Agent Credits** | Pay-per-use | $0.001/task, first 1,000 tasks/month free (local inference) |
 | **C — Perpetual** | One-time | $299 / $799 / $1,999 (1 year support included) |
 
 Ecosystem features by tier: RevVault desktop app + rotation engine (Pro), RevKit environment provisioning (Max), RevealCoin x402 agent payments (Forge).

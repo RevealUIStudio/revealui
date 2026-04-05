@@ -7,7 +7,7 @@ audience: developer
 
 # Local-First Setup
 
-Run RevealUI entirely on your own hardware — no cloud AI API, no remote secret storage, fully reproducible dev environment.
+Run RevealUI entirely on your own hardware with local AI inference — no proprietary APIs, no remote secret storage, fully reproducible dev environment. Pro tier also supports cloud-hosted open models via the RevealUI harness.
 
 ## Overview
 
