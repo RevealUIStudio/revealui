@@ -8,7 +8,9 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 |------|---------|------|----------|
 | **Ubuntu Inference Snaps** | Canonical snap runtime | Free (your hardware) | Production — Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
 | **BitNet** | Microsoft llama-server | Free (CPU-only, ~700 MB RAM) | Air-gapped / low-resource — 1-bit quantized models |
-| **Open Source via Harness** | RevealUI harness + Ollama | Free (your hardware) | Flexible — any GGUF or HuggingFace model |
+| **Ollama** | Local GGUF models | Free (your hardware) | Flexible — any open source GGUF model |
+| **HuggingFace** | HuggingFace Inference API | API usage costs | Open models hosted on HuggingFace infrastructure |
+| **Vultr** | Vultr GPU Cloud | API usage costs | Open models on Vultr serverless inference |
 
 ## Ubuntu Inference Snaps
 
@@ -56,6 +58,27 @@ Configure:
 OLLAMA_BASE_URL=http://localhost:11434/v1
 ```
 
+## HuggingFace
+
+Open models via the HuggingFace Inference API.
+
+Configure:
+
+```bash
+HUGGINGFACE_API_KEY=hf_xxxxx
+```
+
+## Vultr GPU Cloud
+
+Open models on Vultr serverless GPU inference.
+
+Configure:
+
+```bash
+VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
+VULTR_BASE_URL=https://api.vultrinference.com/v1
+```
+
 ## Auto-Detection
 
 The LLM client factory auto-detects your inference path in this order:
@@ -64,6 +87,8 @@ The LLM client factory auto-detects your inference path in this order:
 2. `INFERENCE_SNAPS_BASE_URL`
 3. `BITNET_BASE_URL`
 4. `OLLAMA_BASE_URL`
+5. `HUGGINGFACE_API_KEY`
+6. `VULTR_API_KEY`
 
 When both BitNet and Ollama are configured, chat routes to BitNet and embeddings route to Ollama automatically.
 
@@ -82,7 +107,7 @@ const response = await llm.chat([
 
 ## Security
 
-- No API keys leave your infrastructure
-- Models run on your hardware — data never reaches external servers
+- Local providers (snaps, BitNet, Ollama): no API keys leave your infrastructure
+- Cloud providers (HuggingFace, Vultr): data is sent to your chosen cloud endpoint, but only open models are used — no proprietary APIs
 - Full air-gap capability with BitNet (zero network required)
 - Inference snaps are signed and verified by Canonical

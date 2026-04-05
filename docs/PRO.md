@@ -907,7 +907,9 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 |------|---------|-------|
 | **Ubuntu Inference Snaps** | Canonical snap runtime | Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
 | **BitNet** | Microsoft llama-server | 1-bit quantized, CPU-only, ~700 MB RAM |
-| **Open Source via Harness** | RevealUI harness + Ollama | Any GGUF or HuggingFace model |
+| **Ollama** | Local GGUF models | Any open source GGUF model via the RevealUI harness |
+| **HuggingFace** | HuggingFace Inference API | Open models hosted on HuggingFace infrastructure |
+| **Vultr** | Vultr GPU Cloud | Open models on Vultr serverless inference |
 
 ## Server-side usage
 
@@ -932,7 +934,15 @@ BITNET_BASE_URL=http://localhost:8080/v1
 # Ollama (any open source model)
 OLLAMA_BASE_URL=http://localhost:11434/v1
 
+# HuggingFace Inference API (open models)
+HUGGINGFACE_API_KEY=hf_xxxxx
+
+# Vultr GPU Cloud (open models, serverless inference)
+VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
+VULTR_BASE_URL=https://api.vultrinference.com/v1
+
 # Force specific inference path (overrides auto-detection)
+# Valid values: ollama, bitnet, huggingface, vultr, inference-snaps
 LLM_PROVIDER=bitnet
 ```
 
@@ -1399,7 +1409,24 @@ The SDK handles the full 402 → payment → retry cycle automatically.
 
 ---
 
+# Professional Services (Track D)
+
+RevealUI offers four professional service engagements for teams that need hands-on help:
+
+| Service | Description | Deliverable |
+|---------|-------------|-------------|
+| **Architecture Review** | Codebase, schema, deployment, and security review (up to 50K LOC) | Written report within 5 business days |
+| **Migration Assist** | Migrate existing CMS, database, or billing to RevealUI | Working migration with verified data integrity |
+| **Launch Package** | Zero to production in one week (setup, billing, deploy, onboarding) | Production-ready deployment within 5 business days |
+| **Consulting Hour** | One-on-one video call — pair programming, architecture, debugging | Session recording and written follow-up notes |
+
+Contact: [services@revealui.com](mailto:services@revealui.com)
+
+---
+
 # Perpetual Licenses
+
+All perpetual tiers are available for purchase. The full checkout flow is wired — webhook handler extends `supportExpiresAt` by one year on renewal.
 
 RevealUI Pro is available as a **perpetual license** in addition to monthly/annual subscriptions. Buy once, use forever on a single production domain.
 

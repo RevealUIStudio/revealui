@@ -1246,12 +1246,14 @@ Optional per-user licenses can still exist for personal or perpetual products, b
 - **Meters**: business-readable usage records such as workflow runs or tool calls
 - **Optional user licenses**: secondary model for named-user or perpetual products
 
-### Pricing Layers
+### Pricing Tracks
 
-- **Platform subscription**: predictable recurring software fee
-- **Metered agent execution**: usage billing for digital labor and automation
-- **Commerce fees**: optional value-linked pricing when RevealUI powers transactions
-- **Trust and governance**: premium controls for approval policies, audit, and compliance
+Four revenue tracks, all implemented:
+
+- **Track A — Subscriptions**: predictable recurring software fee (Free / Pro / Max / Forge)
+- **Track B — Agent credits**: usage billing for digital labor and automation (prepaid task bundles)
+- **Track C — Perpetual licenses**: one-time purchase with annual support renewals (checkout + webhook handler wired)
+- **Track D — Professional services**: per-engagement consulting, migration, architecture review, launch packages
 
 ### Preferred Metering Units
 

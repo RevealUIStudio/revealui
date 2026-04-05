@@ -67,6 +67,8 @@ const memory = {
 | Ubuntu Inference Snaps | Yes | Depends on model | Canonical snap runtime — Gemma3, DeepSeek-R1, etc. |
 | BitNet | Yes | No | 1-bit quantized, CPU-only, ~700 MB RAM |
 | Ollama | Yes | Yes | Any open source GGUF model, local inference |
+| HuggingFace | Yes | Yes | Open models via HuggingFace Inference API |
+| Vultr | Yes | Depends on model | Open models on Vultr serverless GPU inference |
 
 ## A2A protocol
 

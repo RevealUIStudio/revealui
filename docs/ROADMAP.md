@@ -11,7 +11,7 @@ audience: developer
 
 This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
 
-**Last updated:** 2026-03-30
+**Last updated:** 2026-04-05
 
 ---
 
@@ -137,13 +137,14 @@ Native cryptocurrency micropayments powered by RevealCoin on the Solana blockcha
 
 ## Pricing Tracks
 
-RevealUI offers three ways to pay:
+RevealUI offers four ways to pay:
 
 | Track | Model | Description |
 |-------|-------|-------------|
 | **A — Subscriptions** | Monthly | Free / Pro $49/mo / Max $149/mo / Forge $299/mo |
 | **B — Agent Credits** | Pay-per-use | $0.001/task, first 1,000 tasks/month free (local inference) |
-| **C — Perpetual** | One-time | $299 / $799 / $1,999 (1 year support included) |
+| **C — Perpetual** | One-time | $299 / $799 / $1,999 (1 year support included, renewable) |
+| **D — Professional Services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
 
 Ecosystem features by tier: RevVault desktop app + rotation engine (Pro), RevKit environment provisioning (Max), RevealCoin x402 agent payments (Forge).
 

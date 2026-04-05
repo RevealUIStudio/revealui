@@ -2,7 +2,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { getClient } from '@revealui/db';
+import { createClient } from '@revealui/db';
 import { billingCatalog } from '@revealui/db/schema';
 import { config } from 'dotenv';
 
@@ -185,8 +185,63 @@ function resolveCatalogSeeds(localCache: {
   ];
 }
 
+/**
+ * Resolve the database connection string for this script.
+ *
+ * Priority:
+ *   1. CLI argument: --database-url <url>
+ *   2. NEON_DATABASE_URL env var (explicit NeonDB override for scripts)
+ *   3. POSTGRES_URL / DATABASE_URL env vars
+ *
+ * Rejects localhost URLs since this script syncs to the remote NeonDB instance
+ * and the dev environment (direnv/Nix) typically sets POSTGRES_URL to localhost.
+ */
+function resolveConnectionString(): string {
+  // Check CLI argument
+  const dbUrlFlagIndex = process.argv.indexOf('--database-url');
+  if (dbUrlFlagIndex !== -1 && process.argv[dbUrlFlagIndex + 1]) {
+    return process.argv[dbUrlFlagIndex + 1];
+  }
+
+  const url = process.env.NEON_DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
+  if (!url) {
+    console.error(
+      JSON.stringify(
+        {
+          error: 'No database connection string found',
+          hint: 'Provide a NeonDB URL via one of: --database-url <url>, NEON_DATABASE_URL, POSTGRES_URL, or DATABASE_URL',
+        },
+        null,
+        2,
+      ),
+    );
+    process.exit(1);
+  }
+
+  if (url.includes('localhost') || url.includes('127.0.0.1')) {
+    console.error(
+      JSON.stringify(
+        {
+          error: 'Connection string points to localhost — no local PostgreSQL available',
+          resolved: `${url.split('@')[0].split('://')[0]}://****@localhost/...`,
+          hint: 'Set NEON_DATABASE_URL to your NeonDB connection string, or pass --database-url <url>',
+          example:
+            'NEON_DATABASE_URL="postgresql://...@....neon.tech/neondb?sslmode=require" pnpm billing:catalog:sync',
+        },
+        null,
+        2,
+      ),
+    );
+    process.exit(1);
+  }
+
+  return url;
+}
+
 async function main() {
-  const db = getClient();
+  const connectionString = resolveConnectionString();
+  const db = createClient({ connectionString });
   const now = new Date();
   const localCache = await loadLocalStripeEnvCache();
   const catalogSeeds = resolveCatalogSeeds(localCache);
