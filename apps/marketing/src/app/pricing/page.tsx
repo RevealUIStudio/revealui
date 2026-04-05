@@ -539,6 +539,8 @@ export default async function PricingPage() {
                         className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500"
                         fill="currentColor"
                         viewBox="0 0 20 20"
+                        role="img"
+                        aria-label="Included"
                       >
                         <path
                           fillRule="evenodd"

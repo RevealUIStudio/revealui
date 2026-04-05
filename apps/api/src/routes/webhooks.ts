@@ -758,7 +758,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             const licenseId = session.metadata.license_id;
             const renewalUserId = session.metadata.revealui_user_id;
 
-            if (!licenseId || !renewalUserId) {
+            if (!(licenseId && renewalUserId)) {
               logger.error('Support renewal checkout missing license_id or user_id', undefined, {
                 sessionId: session.id,
               });

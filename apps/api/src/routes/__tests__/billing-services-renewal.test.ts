@@ -15,7 +15,6 @@ import {
   PERPETUAL_TIERS,
   type PricingResponse,
   SERVICE_OFFERINGS,
-  type ServiceOffering,
   SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 import { describe, expect, it } from 'vitest';
