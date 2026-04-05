@@ -220,6 +220,34 @@ ${supportFooter('Questions? Reply to this email or contact')}`,
   });
 }
 
+export async function sendSupportRenewalConfirmationEmail(
+  to: string,
+  tier: string,
+  newSupportExpiresAt: Date,
+): Promise<void> {
+  const label = tierLabel(tier);
+  const newExpiry = newSupportExpiresAt.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const licenseUrl = `${cmsUrl()}/account/license`;
+  await sendEmail({
+    to,
+    subject: `Your RevealUI ${label} support contract has been renewed`,
+    html: emailShell(
+      'Support Renewed',
+      `<h1 style="color: #2563eb;">Support Contract Renewed</h1>
+<p>Thank you for renewing your RevealUI <strong>${escapeHtml(label)}</strong> support contract.</p>
+<p>Your new support period runs until <strong>${newExpiry}</strong>. You'll continue to receive priority support, updates, and private GitHub repo access.</p>
+<p>Your perpetual license itself never expires — only the support contract requires annual renewal.</p>
+${ctaButton(licenseUrl, 'View Your License')}
+${supportFooter('Questions? Reply to this email or contact')}`,
+    ),
+    text: `Your RevealUI ${label} support contract has been renewed. New support expiry: ${newExpiry}. Your perpetual license never expires. View your license at ${licenseUrl}.`,
+  });
+}
+
 export async function sendPaymentReceiptEmail(
   to: string,
   params: {
