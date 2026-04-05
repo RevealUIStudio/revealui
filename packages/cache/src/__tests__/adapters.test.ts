@@ -237,6 +237,18 @@ if (pgliteAvailable) {
       expect(await store.get('100_other')).toBe('b');
       await store.close();
     });
+
+    it('handles backslashes in deleteByPrefix safely', async () => {
+      const db = new PGlite();
+      const store = new PGliteCacheStore({ db, closeOnDestroy: true });
+      await store.set('path\\to\\file:1', 'a', 60);
+      await store.set('path\\to\\file:2', 'b', 60);
+      await store.set('path\\other', 'c', 60);
+      const count = await store.deleteByPrefix('path\\to\\file:');
+      expect(count).toBe(2);
+      expect(await store.get('path\\other')).toBe('c');
+      await store.close();
+    });
   });
 } else {
   describe.skip('PGliteCacheStore (skipped — @electric-sql/pglite not available)', () => {

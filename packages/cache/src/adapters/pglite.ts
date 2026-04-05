@@ -104,8 +104,8 @@ export class PGliteCacheStore implements CacheStore {
 
   async deleteByPrefix(prefix: string): Promise<number> {
     await this.ready;
-    // Use LIKE with escaped prefix (no regex)
-    const escaped = prefix.replace(/%/g, '\\%').replace(/_/g, '\\_');
+    // Escape LIKE metacharacters — backslash first, then % and _
+    const escaped = prefix.replaceAll('\\', '\\\\').replaceAll('%', '\\%').replaceAll('_', '\\_');
 
     const result = await this.db.query<{ count: string }>(
       `WITH deleted AS (DELETE FROM _cache_entries WHERE key LIKE $1 ESCAPE '\\' RETURNING 1)
