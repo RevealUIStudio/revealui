@@ -47,5 +47,12 @@ export {
   setEdgeCacheHeaders,
   warmISRCache,
 } from './edge-cache.js';
+// Invalidation channel (distributed cache busting)
+export type {
+  InvalidationChannelOptions,
+  InvalidationEvent,
+  InvalidationEventType,
+} from './invalidation-channel.js';
+export { CacheInvalidationChannel } from './invalidation-channel.js';
 export type { CacheLogger } from './logger.js';
 export { configureCacheLogger, getCacheLogger } from './logger.js';

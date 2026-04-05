@@ -100,9 +100,17 @@ export {
 export {
   DEFAULT_TIER_LIMITS,
   McpRateLimiter,
+  type McpRateLimiterOptions,
   type RateLimitConfig,
   type RateLimitResult,
 } from './rate-limiter.js';
+// Rate limit stores (pluggable backends)
+export {
+  InMemoryRateLimitStore,
+  PGliteRateLimitStore,
+  type RateLimitStore,
+  type WindowEntry,
+} from './rate-limit-store.js';
 // Adapter framework
 export {
   createMCPAdapter,

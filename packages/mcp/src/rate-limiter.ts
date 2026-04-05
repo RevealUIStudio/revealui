@@ -1,20 +1,32 @@
 /**
  * MCP Rate Limiter
  *
- * In-memory fixed-window rate limiter scoped by tenant + tier.
- * For distributed deployments, share state via PGlite or ElectricSQL.
+ * Fixed-window rate limiter scoped by tenant + tier.
+ * Supports pluggable storage backends via RateLimitStore:
+ * - InMemoryRateLimitStore (default, Map-backed)
+ * - PGliteRateLimitStore (SQL-backed, persistent)
  *
  * @example
  * ```typescript
+ * // In-memory (default)
  * const limiter = new McpRateLimiter();
  *
- * const result = limiter.check('tenant-123', 'pro');
+ * // PGlite-backed
+ * import { PGlite } from '@electric-sql/pglite';
+ * import { PGliteRateLimitStore } from './rate-limit-store.js';
+ * const db = new PGlite();
+ * const limiter = new McpRateLimiter({
+ *   store: new PGliteRateLimitStore({ db }),
+ * });
+ *
+ * const result = await limiter.check('tenant-123', 'pro');
  * if (!result.allowed) {
  *   throw new Error(`Rate limited. Retry after ${result.resetMs}ms`);
  * }
- * // result.remaining === requests left in window
  * ```
  */
+
+import { InMemoryRateLimitStore, type RateLimitStore } from './rate-limit-store.js';
 
 // =============================================================================
 // Types
@@ -34,6 +46,13 @@ export interface RateLimitResult {
   resetMs: number;
 }
 
+export interface McpRateLimiterOptions {
+  /** Tier-based rate limit configuration. */
+  limits?: Record<string, RateLimitConfig>;
+  /** Storage backend (default: InMemoryRateLimitStore). */
+  store?: RateLimitStore;
+}
+
 // =============================================================================
 // Default tier limits
 // =============================================================================
@@ -47,31 +66,25 @@ export const DEFAULT_TIER_LIMITS: Record<string, RateLimitConfig> = {
 };
 
 // =============================================================================
-// Internal types
-// =============================================================================
-
-interface WindowEntry {
-  count: number;
-  windowStart: number;
-}
-
-// =============================================================================
 // Rate limiter
 // =============================================================================
 
 /**
- * In-memory fixed-window rate limiter scoped by tenant + tier.
- * For distributed deployments, share state via PGlite or ElectricSQL.
+ * Fixed-window rate limiter scoped by tenant + tier.
+ * Accepts a pluggable RateLimitStore for different storage backends.
  */
 export class McpRateLimiter {
-  private windows = new Map<string, WindowEntry>();
+  private store: RateLimitStore;
   private limits: Record<string, RateLimitConfig>;
   private cleanupInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(limits: Record<string, RateLimitConfig> = DEFAULT_TIER_LIMITS) {
-    this.limits = limits;
+  constructor(options: McpRateLimiterOptions = {}) {
+    this.limits = options.limits ?? DEFAULT_TIER_LIMITS;
+    this.store = options.store ?? new InMemoryRateLimitStore();
     // Clean up expired windows every 60s
-    this.cleanupInterval = setInterval(() => this.cleanup(), 60_000);
+    this.cleanupInterval = setInterval(() => {
+      void this.cleanup();
+    }, 60_000);
     if (this.cleanupInterval.unref) this.cleanupInterval.unref();
   }
 
@@ -79,17 +92,17 @@ export class McpRateLimiter {
    * Check if a request is allowed and consume one token if so.
    * Returns quota information including remaining requests and reset time.
    */
-  check(tenantId: string, tier: string): RateLimitResult {
+  async check(tenantId: string, tier: string): Promise<RateLimitResult> {
     const config = this.limits[tier] ?? this.limits.free ?? { maxRequests: 60, windowMs: 60_000 };
     const key = `${tenantId}:${tier}`;
     const now = Date.now();
 
-    let entry = this.windows.get(key);
+    let entry = await this.store.get(key);
 
     // New window or expired window
     if (!entry || now - entry.windowStart >= config.windowMs) {
       entry = { count: 0, windowStart: now };
-      this.windows.set(key, entry);
+      await this.store.set(key, entry);
     }
 
     const resetMs = config.windowMs - (now - entry.windowStart);
@@ -98,10 +111,10 @@ export class McpRateLimiter {
       return { allowed: false, remaining: 0, limit: config.maxRequests, resetMs };
     }
 
-    entry.count++;
+    const newCount = await this.store.increment(key);
     return {
       allowed: true,
-      remaining: Math.max(0, config.maxRequests - entry.count),
+      remaining: Math.max(0, config.maxRequests - newCount),
       limit: config.maxRequests,
       resetMs,
     };
@@ -113,23 +126,19 @@ export class McpRateLimiter {
   }
 
   /** Clean up expired window entries. */
-  private cleanup(): void {
+  private async cleanup(): Promise<void> {
     const now = Date.now();
-    for (const [key, entry] of this.windows) {
-      const tier = key.split(':')[1] ?? 'free';
-      const config = this.limits[tier] ?? { windowMs: 60_000 };
-      if (now - entry.windowStart >= config.windowMs * 2) {
-        this.windows.delete(key);
-      }
-    }
+    // Use the longest window duration × 2 as the expiry cutoff
+    const maxWindowMs = Math.max(...Object.values(this.limits).map((c) => c.windowMs));
+    await this.store.cleanup(now - maxWindowMs * 2);
   }
 
   /** Dispose the rate limiter, clearing the cleanup timer and all windows. */
-  dispose(): void {
+  async dispose(): Promise<void> {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
       this.cleanupInterval = null;
     }
-    this.windows.clear();
+    await this.store.close();
   }
 }
