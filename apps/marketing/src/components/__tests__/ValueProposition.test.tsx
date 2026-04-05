@@ -32,7 +32,7 @@ describe('ValueProposition', () => {
     const result = ValueProposition();
     const html = JSON.stringify(result);
     expect(html).toContain('Sovereign by Default');
-    expect(html).toContain('Adaptive Intelligence');
+    expect(html).toContain('Sovereign Intelligence');
     expect(html).toContain('Unified Truth');
   });
 

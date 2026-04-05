@@ -149,14 +149,14 @@ describe('GET /api/user/api-keys', () => {
 
   it('returns the stored key hint when a key exists', async () => {
     vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
-    setupSelectChain([{ provider: 'anthropic', keyHint: 'sk-a...xyz9' }]);
+    setupSelectChain([{ provider: 'ollama', keyHint: 'sk-a...xyz9' }]);
 
     const req = makeGetRequest('/api/user/api-keys');
     const res = await GET(req);
     expect(res.status).toBe(200);
 
     const body = await res.json();
-    expect(body.provider).toBe('anthropic');
+    expect(body.provider).toBe('ollama');
     expect(body.keyHint).toBe('sk-a...xyz9');
   });
 
@@ -174,7 +174,7 @@ describe('GET /api/user/api-keys', () => {
 
   it('does not return the encrypted key in the response', async () => {
     vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
-    setupSelectChain([{ provider: 'openai', keyHint: 'sk-o...4321' }]);
+    setupSelectChain([{ provider: 'huggingface', keyHint: 'sk-o...4321' }]);
 
     const req = makeGetRequest('/api/user/api-keys');
     const res = await GET(req);
@@ -205,7 +205,7 @@ describe('POST /api/user/api-keys', () => {
     vi.mocked(getSession).mockResolvedValue(null);
 
     const req = makePostRequest('/api/user/api-keys', {
-      provider: 'anthropic',
+      provider: 'ollama',
       key: 'sk-ant-api03-abc123xyz',
     });
     const res = await POST(req);
@@ -216,14 +216,14 @@ describe('POST /api/user/api-keys', () => {
     vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
 
     const req = makePostRequest('/api/user/api-keys', {
-      provider: 'anthropic',
+      provider: 'ollama',
       key: 'sk-ant-api03-abc123xyz',
     });
     const res = await POST(req);
     expect(res.status).toBe(200);
 
     const body = await res.json();
-    expect(body.provider).toBe('anthropic');
+    expect(body.provider).toBe('ollama');
     expect(body.keyHint).toBeDefined();
   });
 
@@ -231,7 +231,7 @@ describe('POST /api/user/api-keys', () => {
     vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
 
     const req = makePostRequest('/api/user/api-keys', {
-      provider: 'groq',
+      provider: 'vultr',
       key: 'gsk_abc123',
     });
     await POST(req);
@@ -258,7 +258,7 @@ describe('POST /api/user/api-keys', () => {
     vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
 
     const req = makePostRequest('/api/user/api-keys', {
-      provider: 'anthropic',
+      provider: 'ollama',
       key: '',
     });
     const res = await POST(req);
@@ -290,7 +290,7 @@ describe('POST /api/user/api-keys', () => {
   it('accepts all valid provider values', async () => {
     vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
 
-    const providers = ['openai', 'anthropic', 'groq', 'ollama', 'huggingface', 'vultr'];
+    const providers = ['ollama', 'bitnet', 'huggingface', 'vultr', 'inference-snaps'];
     for (const provider of providers) {
       vi.clearAllMocks();
       vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
@@ -396,7 +396,7 @@ describe('GET /api/user/api-keys/value', () => {
     setupSelectChain([
       {
         id: 'key-1',
-        provider: 'anthropic',
+        provider: 'ollama',
         encryptedKey: 'encrypted:sk-real-key',
       },
     ]);
@@ -406,7 +406,7 @@ describe('GET /api/user/api-keys/value', () => {
     expect(res.status).toBe(200);
 
     const body = await res.json();
-    expect(body.provider).toBe('anthropic');
+    expect(body.provider).toBe('ollama');
     expect(body.key).toBe('sk-real-key');
   });
 
@@ -415,7 +415,7 @@ describe('GET /api/user/api-keys/value', () => {
     setupSelectChain([
       {
         id: 'key-1',
-        provider: 'groq',
+        provider: 'vultr',
         encryptedKey: 'encrypted:gsk-abc',
       },
     ]);
@@ -432,7 +432,7 @@ describe('GET /api/user/api-keys/value', () => {
     setupSelectChain([
       {
         id: 'key-1',
-        provider: 'openai',
+        provider: 'huggingface',
         encryptedKey: 'encrypted:sk-sensitive',
       },
     ]);
@@ -443,6 +443,6 @@ describe('GET /api/user/api-keys/value', () => {
 
     expect(body.encryptedKey).toBeUndefined();
     expect(body.key).toBe('sk-sensitive');
-    expect(body.provider).toBe('openai');
+    expect(body.provider).toBe('huggingface');
   });
 });

@@ -12,11 +12,11 @@ import { NewsletterSignup } from '@/components/NewsletterSignup';
 export const metadata: Metadata = {
   title: 'Pricing — RevealUI',
   description:
-    'Start free. Subscribe, pay per agent task, or buy a one-time license. Three ways to use RevealUI — pick what fits your business.',
+    'Start free. Subscribe, pay per agent task, buy a one-time license, or book expert services. Four ways to use RevealUI — pick what fits your business.',
   openGraph: {
     title: 'Pricing — RevealUI',
     description:
-      'Start free. Subscribe, pay per agent task, or buy a one-time license. Three ways to use RevealUI.',
+      'Start free. Subscribe, pay per agent task, buy a one-time license, or book expert services. Four ways to use RevealUI.',
     type: 'website',
   },
 };
@@ -112,14 +112,14 @@ export default async function PricingPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Three ways to use
+            Four ways to use
             <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               RevealUI
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Subscribe monthly, pay per agent task, or buy a perpetual license. Start free — upgrade
-            when you need to.
+            Subscribe monthly, pay per agent task, buy a perpetual license, or book expert services.
+            Start free — upgrade when you need to.
           </p>
           {/* Three-track badge row */}
           <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-medium">

@@ -192,7 +192,7 @@ In the CMS admin dashboard, navigate to **Admin → AI → Agent Tasks** and run
 ## Troubleshooting
 
 **`avx2` not found in /proc/cpuinfo**
-Your CPU does not support AVX2. BitNet will not work. Use GROQ or another cloud provider instead.
+Your CPU does not support AVX2. BitNet will not work. Use Ollama or another local inference runtime instead.
 
 **`setup_env.py` fails with clang not found**
 Make sure you entered the Nix devshell (`direnv allow` or `nix develop`). Run `which clang` — it should point to a path in `/nix/store`.
