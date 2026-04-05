@@ -14,31 +14,11 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { streamSSE } from 'hono/streaming';
 
-/** Detect LLM provider from API key prefix or explicit parameter */
-export function detectProvider(apiKey: string, explicitProvider?: string): string | null {
-  if (explicitProvider) return explicitProvider;
-  if (apiKey.startsWith('sk-ant-')) return 'anthropic';
-  if (apiKey.startsWith('sk-')) return 'openai';
-  if (apiKey.startsWith('gsk_')) return 'groq';
-  if (apiKey.startsWith('hf_')) return 'huggingface';
-  // Ollama and Vultr don't have standard key prefixes — require explicit provider
-  return null;
-}
-
-const DEFAULT_MODELS: Record<string, string> = {
-  anthropic: 'claude-sonnet-4-5-20250514',
-  openai: 'gpt-4o',
-  groq: 'llama-3.3-70b-versatile',
-  ollama: 'llama3.2',
-  vultr: 'llama-3.3-70b-versatile',
-  huggingface: 'meta-llama/Llama-3.3-70B-Instruct',
-};
-
 type Variables = {
   tenant?: { id: string };
   user?: { id: string; role: string };
-  /** Set by requireAIAccess middleware — 'local' = BitNet, 'sampling' = free Groq */
-  aiAccessMode?: 'local' | 'sampling';
+  /** Set by requireAIAccess middleware — local = BitNet (free tier) */
+  aiAccessMode?: 'local';
 };
 
 const app = new OpenAPIHono<{ Variables: Variables }>();
@@ -124,72 +104,13 @@ app.openapi(agentStreamRoute, async (c) => {
     );
   }
 
-  // Free tier access modes: reject BYOK for both local and sampling
+  // Free tier: BitNet local inference only
   const aiAccessMode = c.get('aiAccessMode');
   const isLocalOnly = aiAccessMode === 'local';
-  const isSampling = aiAccessMode === 'sampling';
-
-  // BYOK: accept API key via Authorization header (never in request body)
-  const authHeader = c.req.header('Authorization');
-  const byokKey = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
-
-  if ((isLocalOnly || isSampling) && byokKey) {
-    return c.json(
-      {
-        success: false,
-        error:
-          'BYOK (Bring Your Own Key) requires a Pro or Enterprise license. ' +
-          (isSampling
-            ? 'Free tier uses platform-provided Groq inference.'
-            : 'Free tier uses local BitNet inference.') +
-          ' Upgrade at https://revealui.com/pricing',
-        code: 'HTTP_403',
-      },
-      403,
-    );
-  }
 
   let llmClient: unknown;
   try {
-    if (byokKey) {
-      const provider = detectProvider(byokKey, body.provider);
-      if (!provider) {
-        return c.json(
-          {
-            success: false,
-            error: 'Cannot detect LLM provider from key format. Pass "provider" in request body.',
-          },
-          400,
-        );
-      }
-      const model = body.model || DEFAULT_MODELS[provider] || 'llama-3.3-70b-versatile';
-      // Provider string is validated by detectProvider; type assertion needed because
-      // LLMProviderType is a string literal union from the Pro package.
-      type LLMConfig = ConstructorParameters<typeof llmClientMod.LLMClient>[0];
-      llmClient = new llmClientMod.LLMClient({
-        provider: provider as LLMConfig['provider'],
-        apiKey: byokKey,
-        model,
-      });
-    } else if (isSampling) {
-      // Free tier sampling: force Groq with platform API key (not user's key)
-      const groqApiKey = process.env.GROQ_API_KEY;
-      if (!groqApiKey) {
-        return c.json(
-          {
-            success: false,
-            error: 'AI sampling is temporarily unavailable. Please try again later.',
-          },
-          503,
-        );
-      }
-      type LLMConfig = ConstructorParameters<typeof llmClientMod.LLMClient>[0];
-      llmClient = new llmClientMod.LLMClient({
-        provider: 'groq' as LLMConfig['provider'],
-        apiKey: groqApiKey,
-        model: 'llama-3.3-70b-versatile',
-      });
-    } else if (isLocalOnly) {
+    if (isLocalOnly) {
       // Free tier: force BitNet provider regardless of other env vars
       type LLMConfig = ConstructorParameters<typeof llmClientMod.LLMClient>[0];
       llmClient = new llmClientMod.LLMClient({
@@ -268,8 +189,8 @@ app.openapi(agentStreamRoute, async (c) => {
         codingTools = createCodingTools({
           projectRoot,
           allowedPaths: process.env.CODING_ALLOWED_PATHS?.split(','),
-          // Sampling mode: only read-only tools (no file_write, file_edit, shell_exec, git_ops)
-          ...(isSampling && { include: SamplingCodingTools }),
+          // Local (free tier): only read-only tools (no file_write, file_edit, shell_exec, git_ops)
+          ...(isLocalOnly && { include: SamplingCodingTools }),
         });
       }
     } catch {
@@ -279,17 +200,17 @@ app.openapi(agentStreamRoute, async (c) => {
 
   const allTools = [...cmsTools, ...codingTools];
 
-  const samplingDisclaimer = isSampling
-    ? '\n\nYou are in free sampling mode. You can read and search code but cannot make edits, run commands, or perform git operations. Upgrade to Pro for full coding capabilities.'
+  const localDisclaimer = isLocalOnly
+    ? '\n\nYou are in free tier mode. You can read and search code but cannot make edits, run commands, or perform git operations. Upgrade to Pro for full coding capabilities.'
     : '';
 
   const codingInstructions =
     mode === 'coding'
-      ? isSampling
+      ? isLocalOnly
         ? `\n\nYou have access to read-only coding tools for understanding the project:
 - Reading files (file_read)
 - Searching the codebase (file_grep for content, file_glob for files)
-- Querying project context (project_context for rules and conventions)${samplingDisclaimer}`
+- Querying project context (project_context for rules and conventions)${localDisclaimer}`
         : `\n\nYou also have access to coding tools for reading, writing, editing, and searching files in the project. You can run shell commands and git operations. Use these to help with development tasks like:
 - Reading and understanding code
 - Making code changes (file_edit for targeted edits, file_write for new files)

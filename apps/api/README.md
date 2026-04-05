@@ -10,7 +10,7 @@ Centralized backend API server for RevealUI — built with Hono.
 - **OpenAPI + Swagger** — Auto-generated API docs via `@hono/zod-openapi` + `@hono/swagger-ui`
 - **Type-Safe Validation** — Zod schemas for all request/response payloads
 - **A2A Protocol** — Google Agent-to-Agent protocol with JSON-RPC 2.0 dispatcher
-- **BYOK API Keys** — User-managed LLM provider keys with AES-256-GCM encryption
+- **API Key Storage** — Encrypted credential storage (AES-256-GCM) for model endpoints
 - **Billing** — Stripe checkout, account billing, subscription management, metered commercial flows, webhooks
 - **Entitlements** — Subscription-backed access control, optional license validation for perpetual products
 - **Real-Time Collab** — Yjs CRDT sync over WebSocket
@@ -80,7 +80,7 @@ pnpm test:coverage
 | POST   | `/billing/portal`       | Create billing portal session     |
 | POST   | `/billing/upgrade`      | Upgrade account subscription tier |
 
-### API Keys (BYOK)
+### API Keys
 
 | Method | Path                   | Purpose                     |
 | ------ | ---------------------- | --------------------------- |

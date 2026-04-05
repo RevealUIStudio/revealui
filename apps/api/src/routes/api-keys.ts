@@ -1,5 +1,5 @@
 /**
- * BYOK API Key Routes — Encrypted credential storage for Bring Your Own Key
+ * API Key Routes — Encrypted credential storage for inference endpoints
  *
  * POST   /api/api-keys          — Store a new API key (encrypted at rest)
  * GET    /api/api-keys          — List the authenticated user's keys (hints only)
@@ -7,7 +7,6 @@
  * POST   /api/api-keys/:id/rotate — Replace the plaintext for an existing key slot
  *
  * Requires: authenticated user session (authMiddleware)
- * Feature gate: available at all tiers (BYOK is a free feature per MASTER_PLAN)
  */
 
 import crypto from 'node:crypto';
@@ -48,15 +47,15 @@ function generateId(): string {
 const CreateKeySchema = z.object({
   provider: z.enum(ALLOWED_PROVIDERS).openapi({
     description: 'LLM provider for this key',
-    example: 'anthropic',
+    example: 'ollama',
   }),
   apiKey: z.string().min(8).openapi({
     description: 'The plaintext API key (never stored; encrypted before persisting)',
-    example: 'sk-ant-api03-...',
+    example: 'tok-...',
   }),
   label: z.string().max(80).optional().openapi({
     description: 'Optional user-visible label for this key',
-    example: 'My Anthropic key',
+    example: 'My inference endpoint key',
   }),
   setAsDefault: z.boolean().optional().openapi({
     description: "Set this provider as the default for the user's agents",
@@ -88,7 +87,7 @@ const RotateKeySchema = z.object({
 const postRoute = createRoute({
   method: 'post',
   path: '/',
-  tags: ['BYOK'],
+  tags: ['API Keys'],
   summary: 'Store an encrypted API key',
   request: { body: { content: { 'application/json': { schema: CreateKeySchema } } } },
   responses: {
@@ -187,7 +186,7 @@ app.openapi(postRoute, async (c) => {
 const listRoute = createRoute({
   method: 'get',
   path: '/',
-  tags: ['BYOK'],
+  tags: ['API Keys'],
   summary: 'List stored API keys (hints only, never plaintext)',
   responses: {
     200: {
@@ -230,7 +229,7 @@ app.openapi(listRoute, async (c) => {
 const deleteRoute = createRoute({
   method: 'delete',
   path: '/:id',
-  tags: ['BYOK'],
+  tags: ['API Keys'],
   summary: 'Delete a stored API key',
   request: { params: z.object({ id: z.string() }) },
   responses: {
@@ -264,7 +263,7 @@ app.openapi(deleteRoute, async (c) => {
 const rotateRoute = createRoute({
   method: 'post',
   path: '/:id/rotate',
-  tags: ['BYOK'],
+  tags: ['API Keys'],
   summary: 'Replace the plaintext for an existing API key slot',
   request: {
     params: z.object({ id: z.string() }),

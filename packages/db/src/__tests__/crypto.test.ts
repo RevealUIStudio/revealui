@@ -7,7 +7,7 @@ import { decryptApiKey, encryptApiKey, redactApiKey } from '../crypto.js';
 // ---------------------------------------------------------------------------
 const TEST_KEK = randomBytes(32).toString('hex');
 
-describe('crypto — BYOK API key encryption', () => {
+describe('crypto — API key encryption', () => {
   const originalEnv = process.env.REVEALUI_KEK;
 
   beforeEach(() => {

@@ -155,7 +155,7 @@ export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
   }),
 }));
 
-// BYOK API key relations
+// API key relations
 export const userApiKeysRelations = relations(userApiKeys, ({ one }) => ({
   user: one(users, {
     fields: [userApiKeys.userId],

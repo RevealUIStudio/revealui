@@ -508,7 +508,7 @@ export class MCPHypervisor {
   /**
    * Start an MCP server with tenant-specific credentials.
    * Each tenant gets its own isolated server process with credentials
-   * resolved from the database (BYOK keys or platform defaults).
+   * resolved from the database (stored keys or platform defaults).
    *
    * Server instances are keyed by `${tenantId}:${serverName}`.
    */

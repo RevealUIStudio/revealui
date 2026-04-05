@@ -2,7 +2,6 @@ import { getSession } from '@revealui/auth/server';
 import { ChatRequestContract } from '@revealui/contracts';
 import { apiClient } from '@revealui/core/admin/utils/apiClient';
 import { logger } from '@revealui/core/utils/logger/server';
-import { getClient } from '@revealui/db';
 import type { NextRequest } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { rateLimit } from '@/lib/middleware/rate-limit';
@@ -64,7 +63,6 @@ async function loadChatAIDeps() {
   return {
     generateEmbedding: embeddingsMod.generateEmbedding,
     createLLMClientFromEnv: llmServerMod.createLLMClientFromEnv,
-    createLLMClientForUser: llmServerMod.createLLMClientForUser,
     VectorMemoryService: vectorMod.VectorMemoryService,
     createCMSTools: cmsMod.createCMSTools,
     ToolRegistry: registryMod.ToolRegistry,
@@ -242,37 +240,16 @@ export async function POST(request: NextRequest) {
       name?: string;
     }
 
-    // Create LLM client — try user's BYOK key first, fall back to env config
+    // Create LLM client from environment-configured open models
     // biome-ignore lint/suspicious/noExplicitAny: LLMClient type from @revealui/ai (optional Pro dep) — typed chat() signature requires ToolCall[] but our generic messages use unknown[]
     let llmClient: any;
-    let llmSource: 'byok' | 'env' = 'env';
     try {
-      // Try BYOK: use user's stored API key if available
-      if (aiDeps.createLLMClientForUser && authSession.user.id) {
-        try {
-          const db = getClient();
-          const byokClient = await aiDeps.createLLMClientForUser(authSession.user.id, db);
-          if (byokClient) {
-            llmClient = byokClient;
-            llmSource = 'byok';
-          }
-        } catch (byokErr) {
-          logger.warn('BYOK client creation failed, falling back to env', {
-            userId: authSession.user.id,
-            error: byokErr instanceof Error ? byokErr.message : String(byokErr),
-          });
-        }
-      }
-
-      // Fall back to environment-configured LLM provider
-      if (!llmClient) {
-        logger.info('Creating LLM client from env', {
-          provider: process.env.LLM_PROVIDER,
-          hasApiKey: !!process.env.VULTR_API_KEY,
-          model: process.env.LLM_MODEL,
-        });
-        llmClient = aiDeps.createLLMClientFromEnv();
-      }
+      logger.info('Creating LLM client from env', {
+        provider: process.env.LLM_PROVIDER,
+        hasApiKey: !!process.env.VULTR_API_KEY,
+        model: process.env.LLM_MODEL,
+      });
+      llmClient = aiDeps.createLLMClientFromEnv();
     } catch (_err) {
       return createApplicationErrorResponse(
         'LLM provider not configured',
@@ -281,7 +258,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    logger.info('LLM client ready', { source: llmSource, userId: authSession.user.id });
+    logger.info('LLM client ready', { userId: authSession.user.id });
 
     // 1. Generate embedding for the user's message and search for context
     let memoryContext = '';

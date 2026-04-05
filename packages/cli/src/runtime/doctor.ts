@@ -142,15 +142,16 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
     label: 'Cron secret',
     required: false,
   },
-  // AI
+  // AI (open-model inference)
   {
-    key: 'GROQ_API_KEY',
-    label: 'Groq API key',
+    key: 'BITNET_BASE_URL',
+    label: 'BitNet base URL',
     required: false,
-    validate: (v) => ({
-      valid: v.startsWith('gsk_'),
-      message: 'Must start with gsk_',
-    }),
+  },
+  {
+    key: 'OLLAMA_BASE_URL',
+    label: 'Ollama base URL',
+    required: false,
   },
 ];
 

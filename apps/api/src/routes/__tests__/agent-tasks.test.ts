@@ -428,21 +428,6 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
     // 'done' comes from the final ticket fetch, not from a fallback
     expect(body.status).toBe('done');
   });
-
-  it('returns 200 when GROQ_API_KEY is present and no Anthropic key is set', async () => {
-    vi.stubEnv('ANTHROPIC_API_KEY', '');
-    vi.stubEnv('GROQ_API_KEY', 'gsk_test_groq_key');
-    // createLLMClientFromEnv is mocked to return {} by default, simulating GROQ key accepted
-    mt.getTicketById
-      .mockResolvedValueOnce(makeTicket() as never)
-      .mockResolvedValueOnce(makeTicket({ status: 'done' }) as never);
-    mt.updateTicket.mockResolvedValue(makeTicket({ status: 'in_progress' }) as never);
-    const app = createApp();
-    const res = await app.fetch(dispatchRequest('ticket-1'));
-    expect(res.status).toBe(200);
-    const body = await parseBody(res);
-    expect(body.success).toBe(true);
-  });
 });
 
 // ---------------------------------------------------------------------------

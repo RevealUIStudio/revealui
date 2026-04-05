@@ -104,7 +104,7 @@ const CATALOG: ProductDefinition[] = [
     key: 'revealui_max',
     name: 'RevealUI Max',
     description:
-      'AI memory, BYOK server-side, multi-provider AI, audit log, and higher limits (15 projects, 100 users).',
+      'AI memory, advanced inference configuration, audit log, and higher limits (15 projects, 100 users).',
     tier: 'max',
     billingModel: 'subscription',
     defaultPriceKey: 'revealui_max_monthly',

@@ -448,8 +448,8 @@ function BillingContent() {
             {tier === 'pro' && (
               <div className="space-y-3">
                 <p className="text-sm text-zinc-500">
-                  Upgrade to Max for AI memory, BYOK server-side, multi-provider AI, and higher
-                  limits (15 projects, 100 users).
+                  Upgrade to Max for AI memory, advanced inference, audit logging, and higher limits
+                  (15 projects, 100 users).
                 </p>
                 <Button
                   onClick={handleUpgradeToMax}
@@ -592,7 +592,7 @@ function BillingContent() {
           <CardContent>
             <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
               <li>Up to 5 projects and 25 users</li>
-              <li>AI agent system (1 provider, BYOK client-side)</li>
+              <li>AI agent system (open-model inference)</li>
               <li>MCP server integration</li>
               <li>Built-in Stripe payment processing</li>
               <li>Full real-time sync with conflict resolution</li>
@@ -615,7 +615,7 @@ function BillingContent() {
           <CardContent>
             <ul className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
               <li>Up to 15 projects and 100 users</li>
-              <li>AI with 2 providers, BYOK server-side</li>
+              <li>Advanced inference configuration</li>
               <li>AI memory (working + episodic + vector)</li>
               <li>Audit log for all license + tier events</li>
               <li>50,000 agent tasks/month</li>

@@ -1,8 +1,7 @@
 'use client';
 
 import type { A2ATask } from '@revealui/contracts';
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface TaskTesterProps {
   agentId: string;
@@ -15,28 +14,14 @@ type TesterState = 'idle' | 'submitting' | 'polling' | 'done' | 'error';
 /**
  * Interactive task tester for an A2A agent.
  * Sends a tasks/send JSON-RPC call and streams/polls the result.
- * Fetches the BYOK key from the server at call time — key is never stored in client state.
  */
 export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) {
   const [instruction, setInstruction] = useState('');
   const [state, setState] = useState<TesterState>('idle');
   const [task, setTask] = useState<A2ATask | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [byokProvider, setByokProvider] = useState<string | null>(null);
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
-
-  // Check if BYOK is configured by fetching metadata (no plaintext key)
-  useEffect(() => {
-    fetch('/api/user/api-keys')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: { provider: string } | null) => {
-        setByokProvider(data?.provider ?? null);
-      })
-      .catch(() => {
-        // BYOK key check is optional — missing key handled downstream
-      });
-  }, []);
 
   async function submit() {
     if (!instruction.trim()) return;
@@ -44,21 +29,10 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
     setTask(null);
     setErrorMsg(null);
 
-    // Fetch the decrypted key from the server at call time only — never stored in state
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'X-Agent-ID': agentId,
     };
-    try {
-      const keyRes = await fetch('/api/user/api-keys/value');
-      if (keyRes.ok) {
-        const keyData = (await keyRes.json()) as { provider: string; key: string };
-        headers['X-AI-Provider'] = keyData.provider;
-        headers['X-AI-Api-Key'] = keyData.key;
-      }
-    } catch {
-      // No key configured — proceed without BYOK headers
-    }
 
     try {
       const res = await fetch(`${apiUrl}/a2a`, {
@@ -116,31 +90,6 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
 
   return (
     <div className="flex flex-col gap-4">
-      {/* BYOK status */}
-      {byokProvider ? (
-        <div className="flex items-center justify-between rounded-lg border border-emerald-800/40 bg-emerald-900/10 px-3 py-2 text-xs">
-          <span className="text-emerald-400">
-            Using your {byokProvider.charAt(0).toUpperCase() + byokProvider.slice(1)} key
-          </span>
-          <Link
-            href="/admin/settings/api-keys"
-            className="text-zinc-500 hover:text-zinc-300 transition-colors"
-          >
-            change
-          </Link>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-800/50 px-3 py-2 text-xs">
-          <span className="text-zinc-500">No AI key configured — responses will be stub only</span>
-          <Link
-            href="/admin/settings/api-keys"
-            className="text-zinc-400 hover:text-zinc-200 transition-colors"
-          >
-            Add key ↗
-          </Link>
-        </div>
-      )}
-
       <div>
         <label htmlFor="instruction" className="block text-sm font-medium text-zinc-300 mb-1.5">
           Send a task to <span className="text-white">{agentName}</span>
