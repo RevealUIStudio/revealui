@@ -9,6 +9,7 @@ import {
   CREDIT_BUNDLES,
   PERPETUAL_TIERS,
   type PricingResponse,
+  SERVICE_OFFERINGS,
   SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling';
@@ -138,6 +139,7 @@ interface StripeProductMap {
   subscriptions: Map<string, { price: string; period?: string }>;
   credits: Map<string, { price: string; priceNote: string; costPer: string }>;
   perpetual: Map<string, { price: string; priceNote: string; renewal: string }>;
+  services: Map<string, { price: string; priceNote?: string }>;
 }
 
 async function fetchStripePrices(): Promise<StripeProductMap | null> {
@@ -158,6 +160,7 @@ async function fetchStripePrices(): Promise<StripeProductMap | null> {
       subscriptions: new Map(),
       credits: new Map(),
       perpetual: new Map(),
+      services: new Map(),
     };
 
     for (const product of result.data) {
@@ -186,6 +189,12 @@ async function fetchStripePrices(): Promise<StripeProductMap | null> {
           price: priceStr,
           priceNote: product.metadata?.revealui_price_note ?? 'one-time',
           renewal: product.metadata?.revealui_renewal ?? '',
+        });
+      } else if (track === 'service') {
+        const serviceId = product.metadata?.revealui_service_id ?? tier;
+        map.services.set(serviceId, {
+          price: priceStr,
+          priceNote: product.metadata?.revealui_price_note,
         });
       }
     }
@@ -223,7 +232,12 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
     return { ...tier, ...(stripePrice ?? fallback) };
   });
 
-  return { subscriptions, credits, perpetual };
+  const services = SERVICE_OFFERINGS.map((service) => {
+    const stripePrice = stripePrices?.services.get(service.id);
+    return { ...service, ...(stripePrice ?? {}) };
+  });
+
+  return { subscriptions, credits, perpetual, services };
 }
 
 // ---------------------------------------------------------------------------
@@ -266,6 +280,19 @@ const PricingResponseSchema = z.object({
       cta: z.string(),
       ctaHref: z.string(),
       comingSoon: z.boolean(),
+    }),
+  ),
+  services: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      price: z.string().optional(),
+      priceNote: z.string().optional(),
+      description: z.string(),
+      includes: z.array(z.string()),
+      deliverable: z.string(),
+      cta: z.string(),
+      ctaHref: z.string(),
     }),
   ),
 });

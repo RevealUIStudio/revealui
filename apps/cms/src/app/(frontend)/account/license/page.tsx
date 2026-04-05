@@ -27,6 +27,8 @@ interface SubscriptionData {
   status: string;
   expiresAt: string | null;
   licenseKey: string | null;
+  perpetual: boolean;
+  supportExpiresAt: string | null;
 }
 
 const PERPETUAL_PLANS = [
@@ -52,6 +54,7 @@ export default function LicensePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [perpetualLoading, setPerpetualLoading] = useState<string | null>(null);
+  const [renewalLoading, setRenewalLoading] = useState(false);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
   const [githubUsername, setGithubUsername] = useState('');
   const [copied, setCopied] = useState(false);
@@ -131,6 +134,29 @@ export default function LicensePage() {
     }
   };
 
+  const handleSupportRenewal = async () => {
+    setRenewalLoading(true);
+    setError(null);
+    try {
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+      const res = await fetch(`${apiUrl}/api/billing/checkout-support-renewal`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (data.url) {
+        safeStripeRedirect(data.url);
+      } else {
+        setError(data.error || 'Failed to start renewal checkout. Please try again.');
+      }
+    } catch {
+      setError('Failed to start renewal checkout. Please try again.');
+    } finally {
+      setRenewalLoading(false);
+    }
+  };
+
   const tier = subscription?.tier ?? 'free';
   const limits = TIER_LIMITS[tier];
   const tierFeatures = features?.[tier];
@@ -170,6 +196,29 @@ export default function LicensePage() {
               <span className="text-sm text-zinc-500">Expires</span>
               <span className="text-sm">
                 {new Date(subscription.expiresAt).toLocaleDateString()}
+              </span>
+            </div>
+          )}
+          {subscription?.perpetual && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-zinc-500">License Type</span>
+              <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                Perpetual
+              </span>
+            </div>
+          )}
+          {subscription?.perpetual && subscription.supportExpiresAt && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-zinc-500">Support Expires</span>
+              <span
+                className={`text-sm font-medium ${
+                  new Date(subscription.supportExpiresAt) < new Date()
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-zinc-700 dark:text-zinc-300'
+                }`}
+              >
+                {new Date(subscription.supportExpiresAt).toLocaleDateString()}
+                {new Date(subscription.supportExpiresAt) < new Date() ? ' (expired)' : ''}
               </span>
             </div>
           )}
@@ -314,6 +363,43 @@ export default function LicensePage() {
                 </button>
               </div>
             ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Support renewal for perpetual license holders */}
+      {subscription?.perpetual && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Support Renewal</CardTitle>
+            <CardDescription>
+              Your perpetual license never expires. Renew annual support for continued updates,
+              priority assistance, and access to new features.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {subscription.supportExpiresAt && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-zinc-500">Support status</span>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    new Date(subscription.supportExpiresAt) < new Date()
+                      ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400'
+                      : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400'
+                  }`}
+                >
+                  {new Date(subscription.supportExpiresAt) < new Date() ? 'Expired' : 'Active'}
+                </span>
+              </div>
+            )}
+            <button
+              type="button"
+              disabled={renewalLoading}
+              onClick={() => void handleSupportRenewal()}
+              className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            >
+              {renewalLoading ? 'Redirecting…' : 'Renew Support — 1 Year'}
+            </button>
           </CardContent>
         </Card>
       )}

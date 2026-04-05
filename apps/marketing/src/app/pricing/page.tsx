@@ -2,6 +2,7 @@ import {
   CREDIT_BUNDLES,
   PERPETUAL_TIERS,
   type PricingResponse,
+  SERVICE_OFFERINGS,
   SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 import type { Metadata } from 'next';
@@ -103,6 +104,7 @@ export default async function PricingPage() {
   }));
   const creditBundles = pricing?.credits ?? CREDIT_BUNDLES;
   const perpetualTiers = pricing?.perpetual ?? PERPETUAL_TIERS;
+  const services = pricing?.services ?? SERVICE_OFFERINGS;
 
   return (
     <div className="min-h-screen bg-white">
@@ -138,6 +140,12 @@ export default async function PricingPage() {
               className="rounded-full bg-emerald-100 px-4 py-1.5 text-emerald-700 hover:bg-emerald-200 transition-colors"
             >
               Track C — Perpetual Licenses
+            </a>
+            <a
+              href="#track-d"
+              className="rounded-full bg-amber-100 px-4 py-1.5 text-amber-700 hover:bg-amber-200 transition-colors"
+            >
+              Track D — Services
             </a>
           </div>
         </div>
@@ -489,6 +497,68 @@ export default async function PricingPage() {
                 API docs
               </a>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Track D — Professional Services */}
+      <section id="track-d" className="bg-amber-50/50 py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <span className="text-sm font-semibold tracking-wide text-amber-600 uppercase">
+              Track D
+            </span>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              Professional Services
+            </h2>
+            <p className="mt-4 text-lg text-gray-600">
+              Expert help when you need it. Architecture reviews, migrations, launch support, and
+              one-on-one consulting.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {services.map((service) => (
+              <div
+                key={service.id}
+                className="relative rounded-2xl bg-white p-8 shadow-lg ring-1 ring-gray-200"
+              >
+                <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
+                {service.price && (
+                  <p className="mt-2">
+                    <span className="text-3xl font-bold text-gray-900">{service.price}</span>
+                    {service.priceNote && (
+                      <span className="ml-1 text-sm text-gray-500">{service.priceNote}</span>
+                    )}
+                  </p>
+                )}
+                <p className="mt-4 text-sm text-gray-600">{service.description}</p>
+                <ul className="mt-6 space-y-2">
+                  {service.includes.map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
+                      <svg
+                        className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-xs text-gray-500 italic">{service.deliverable}</p>
+                <a
+                  href={service.ctaHref}
+                  className="mt-6 block w-full rounded-md bg-amber-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-amber-500 transition-colors"
+                >
+                  {service.cta}
+                </a>
+              </div>
+            ))}
           </div>
         </div>
       </section>

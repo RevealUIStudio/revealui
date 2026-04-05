@@ -256,6 +256,88 @@ export interface PerpetualTier {
 }
 
 // =============================================================================
+// Professional Services (Track D)
+// =============================================================================
+
+export interface ServiceOffering {
+  id: string;
+  name: string;
+  price?: string;
+  priceNote?: string;
+  description: string;
+  includes: string[];
+  deliverable: string;
+  cta: string;
+  ctaHref: string;
+}
+
+export const SERVICE_OFFERINGS: ServiceOffering[] = [
+  {
+    id: 'architecture-review',
+    name: 'Architecture Review',
+    description:
+      'A senior engineer reviews your project structure, database schema, deployment pipeline, and AI integration. You receive a written report with actionable recommendations.',
+    includes: [
+      'Full codebase review (up to 50K LOC)',
+      'Database schema and query analysis',
+      'Deployment and CI/CD assessment',
+      'Security posture review',
+      'Written report with prioritized recommendations',
+    ],
+    deliverable: 'Written report delivered within 5 business days',
+    cta: 'Book Review',
+    ctaHref: 'mailto:services@revealui.com?subject=Architecture%20Review',
+  },
+  {
+    id: 'migration-assist',
+    name: 'Migration Assist',
+    description:
+      'We migrate your existing CMS, database, or billing system to RevealUI. Includes data mapping, schema translation, and validation testing.',
+    includes: [
+      'Data audit and mapping plan',
+      'Schema translation and migration scripts',
+      'Content and user migration',
+      'Validation testing and rollback plan',
+      'Post-migration support (2 weeks)',
+    ],
+    deliverable: 'Working migration with verified data integrity',
+    cta: 'Get a Quote',
+    ctaHref: 'mailto:services@revealui.com?subject=Migration%20Assist',
+  },
+  {
+    id: 'launch-package',
+    name: 'Launch Package',
+    description:
+      'Go from zero to production in one week. We set up your RevealUI instance, configure billing, deploy to Vercel, and hand you the keys.',
+    includes: [
+      'RevealUI project setup and configuration',
+      'Stripe billing integration (products, webhooks, portal)',
+      'Vercel deployment with custom domain',
+      'AI agent configuration (model selection, tool setup)',
+      'Content schema design for your use case',
+      '1 hour onboarding call',
+    ],
+    deliverable: 'Production-ready deployment within 5 business days',
+    cta: 'Book Launch',
+    ctaHref: 'mailto:services@revealui.com?subject=Launch%20Package',
+  },
+  {
+    id: 'consulting-hour',
+    name: 'Consulting Hour',
+    description:
+      'One-on-one time with a RevealUI engineer. Pair programming, architecture advice, debugging, or anything else you need help with.',
+    includes: [
+      '1 hour video call with screen sharing',
+      'Follow-up notes and action items',
+      'Priority scheduling (within 48 hours)',
+    ],
+    deliverable: 'Session recording and written follow-up notes',
+    cta: 'Book a Session',
+    ctaHref: 'mailto:services@revealui.com?subject=Consulting%20Hour',
+  },
+];
+
+// =============================================================================
 // Pricing API Response
 // =============================================================================
 
@@ -263,6 +345,7 @@ export interface PricingResponse {
   subscriptions: SubscriptionTier[];
   credits: CreditBundle[];
   perpetual: PerpetualTier[];
+  services: ServiceOffering[];
 }
 
 export const PERPETUAL_TIERS: PerpetualTier[] = [
@@ -278,7 +361,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     cta: 'Buy License',
     ctaHref: 'mailto:support@revealui.com?subject=Pro%20Perpetual%20License',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     name: 'Agency Perpetual',
@@ -293,7 +376,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     cta: 'Buy License',
     ctaHref: 'mailto:support@revealui.com?subject=Agency%20Perpetual%20License',
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     name: 'Forge Perpetual',
@@ -308,7 +391,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     ],
     cta: 'Contact Sales',
     ctaHref: 'mailto:support@revealui.com?subject=Forge%20Perpetual%20License%20Inquiry',
-    comingSoon: true,
+    comingSoon: false,
   },
 ];
 

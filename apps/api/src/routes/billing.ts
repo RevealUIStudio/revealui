@@ -634,6 +634,8 @@ app.openapi(subscriptionRoute, async (c) => {
       status: licenses.status,
       expiresAt: licenses.expiresAt,
       licenseKey: licenses.licenseKey,
+      perpetual: licenses.perpetual,
+      supportExpiresAt: licenses.supportExpiresAt,
     })
     .from(licenses)
     .where(eq(licenses.userId, user.id))
@@ -658,6 +660,8 @@ app.openapi(subscriptionRoute, async (c) => {
       status: license.status,
       expiresAt: license.expiresAt?.toISOString() ?? null,
       licenseKey: license.licenseKey,
+      perpetual: license.perpetual ?? false,
+      supportExpiresAt: license.supportExpiresAt?.toISOString() ?? null,
     },
     200,
   );

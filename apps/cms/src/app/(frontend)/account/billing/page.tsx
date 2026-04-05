@@ -55,6 +55,7 @@ function BillingContent() {
   const success = searchParams.get('success');
   const perpetual = searchParams.get('perpetual');
   const credits = searchParams.get('credits');
+  const renewal = searchParams.get('renewal');
   const upgrade = searchParams.get('upgrade');
   const { data: session, isLoading: sessionLoading } = useSession();
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
@@ -359,6 +360,15 @@ function BillingContent() {
           includes 1 year of support and updates.{' '}
           <Link href="/account/license" className="font-medium underline hover:no-underline">
             View your license key &rarr;
+          </Link>
+        </div>
+      )}
+
+      {renewal && (
+        <div className="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/20 dark:text-green-400">
+          Support contract renewed! Your perpetual license support has been extended by 1 year.{' '}
+          <Link href="/account/license" className="font-medium underline hover:no-underline">
+            View your license &rarr;
           </Link>
         </div>
       )}
