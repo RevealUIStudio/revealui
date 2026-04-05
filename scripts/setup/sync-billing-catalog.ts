@@ -6,7 +6,7 @@ import { getClient } from '@revealui/db';
 import { billingCatalog } from '@revealui/db/schema';
 import { config } from 'dotenv';
 
-type CatalogKind = 'subscription' | 'perpetual' | 'credits';
+type CatalogKind = 'subscription' | 'perpetual' | 'credits' | 'renewal';
 type PaidTier = 'pro' | 'max' | 'enterprise';
 
 interface CatalogSeed {
@@ -136,6 +136,29 @@ function resolveCatalogSeeds(localCache: {
         'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
         'NEXT_PUBLIC_STRIPE_ENTERPRISE_PERPETUAL_PRICE_ID',
       ),
+    },
+    // Credit bundles (Track B)
+    // Support renewal (Track C — annual renewal for perpetual licenses)
+    {
+      planId: 'renewal:pro',
+      tier: 'pro',
+      billingModel: 'renewal',
+      stripeProductId: resolveProductId('renewal:pro'),
+      ...resolvePriceId('STRIPE_RENEWAL_PRO_PRICE_ID'),
+    },
+    {
+      planId: 'renewal:max',
+      tier: 'max',
+      billingModel: 'renewal',
+      stripeProductId: resolveProductId('renewal:max'),
+      ...resolvePriceId('STRIPE_RENEWAL_MAX_PRICE_ID'),
+    },
+    {
+      planId: 'renewal:enterprise',
+      tier: 'enterprise',
+      billingModel: 'renewal',
+      stripeProductId: resolveProductId('renewal:enterprise'),
+      ...resolvePriceId('STRIPE_RENEWAL_ENTERPRISE_PRICE_ID'),
     },
     // Credit bundles (Track B)
     {
