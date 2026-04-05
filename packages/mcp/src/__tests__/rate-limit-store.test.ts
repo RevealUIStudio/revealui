@@ -5,9 +5,9 @@
  * and PGliteRateLimitStore. PGlite tests use in-memory mode.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { InMemoryRateLimitStore } from '../rate-limit-store.js';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { RateLimitStore } from '../rate-limit-store.js';
+import { InMemoryRateLimitStore } from '../rate-limit-store.js';
 
 // =============================================================================
 // Shared test suite — runs against any RateLimitStore implementation

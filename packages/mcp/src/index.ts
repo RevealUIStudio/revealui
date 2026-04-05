@@ -96,6 +96,13 @@ export {
   type PipelineStep,
   type PipelineStepResult,
 } from './pipeline.js';
+// Rate limit stores (pluggable backends)
+export {
+  InMemoryRateLimitStore,
+  PGliteRateLimitStore,
+  type RateLimitStore,
+  type WindowEntry,
+} from './rate-limit-store.js';
 // Rate limiting (per-tier)
 export {
   DEFAULT_TIER_LIMITS,
@@ -104,13 +111,6 @@ export {
   type RateLimitConfig,
   type RateLimitResult,
 } from './rate-limiter.js';
-// Rate limit stores (pluggable backends)
-export {
-  InMemoryRateLimitStore,
-  PGliteRateLimitStore,
-  type RateLimitStore,
-  type WindowEntry,
-} from './rate-limit-store.js';
 // Adapter framework
 export {
   createMCPAdapter,

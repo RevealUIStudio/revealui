@@ -15,6 +15,7 @@ import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
+import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { dbMiddleware } from './middleware/db.js';
 import { domainLockMiddleware, validateForgeConfig } from './middleware/domain-lock.js';
@@ -60,7 +61,6 @@ import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
 import ticketsRoute from './routes/tickets/index.js';
 import webhooksRoute from './routes/webhooks.js';
-import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
 
 // Ship warn+ logs to NeonDB in production
 if (process.env.NODE_ENV === 'production') {
