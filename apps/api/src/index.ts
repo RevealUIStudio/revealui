@@ -60,6 +60,7 @@ import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
 import ticketsRoute from './routes/tickets/index.js';
 import webhooksRoute from './routes/webhooks.js';
+import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
 
 // Ship warn+ logs to NeonDB in production
 if (process.env.NODE_ENV === 'production') {
@@ -699,6 +700,46 @@ app.doc('/openapi.json', {
 // Swagger UI — interactive API explorer (auto-generated from OpenAPI spec)
 app.get('/', swaggerUI({ url: '/openapi.json' }));
 app.get('/docs', swaggerUI({ url: '/openapi.json' }));
+
+// ---------------------------------------------------------------------------
+// Cache-Control headers — ensure all routes have appropriate caching directives
+// ---------------------------------------------------------------------------
+
+// Health/monitoring: no-cache (always fresh, but not sensitive)
+const noCache = noCacheCacheMiddleware();
+app.use('/health/*', noCache);
+app.use('/health', noCache);
+
+// Sensitive endpoints: no-store (never cache auth, billing, GDPR, webhooks)
+const noStore = noStoreCacheMiddleware();
+app.use('/api/auth/*', noStore);
+app.use('/api/v1/auth/*', noStore);
+app.use('/api/billing/*', noStore);
+app.use('/api/v1/billing/*', noStore);
+app.use('/api/webhooks/*', noStore);
+app.use('/api/v1/webhooks/*', noStore);
+app.use('/api/gdpr/*', noStore);
+app.use('/api/v1/gdpr/*', noStore);
+app.use('/api/license/*', noStore);
+app.use('/api/v1/license/*', noStore);
+app.use('/api/ghcr/*', noStore);
+app.use('/api/v1/ghcr/*', noStore);
+app.use('/api/studio-auth/*', noStore);
+app.use('/api/v1/studio-auth/*', noStore);
+app.use('/api/terminal-auth/*', noStore);
+app.use('/api/v1/terminal-auth/*', noStore);
+app.use('/api/api-keys/*', noStore);
+app.use('/api/v1/api-keys/*', noStore);
+app.use('/api/agent-tasks/*', noStore);
+app.use('/api/v1/agent-tasks/*', noStore);
+app.use('/api/agent-stream', noStore);
+app.use('/api/v1/agent-stream', noStore);
+
+// Cron/maintenance: no-cache (not sensitive, but always fresh)
+app.use('/api/cron/*', noCache);
+app.use('/api/v1/cron/*', noCache);
+app.use('/api/maintenance/*', noCache);
+app.use('/api/v1/maintenance/*', noCache);
 
 // Routes
 app.route('/.well-known', wellKnownRoutes);
