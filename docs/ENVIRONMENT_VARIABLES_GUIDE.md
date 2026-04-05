@@ -395,19 +395,25 @@ SKIP_ONINIT=false
 
 ---
 
-### OpenAI / ChatGPT (if using)
+### Open-Model Inference
 
-**Purpose**: AI features in your app
-**When to use**: If implementing AI integration
+**Purpose**: AI agent inference configuration
+**When to use**: If using AI features (Pro tier and above)
 
 **Variables**:
 
 ```env
-OPENAI_API_KEY=sk-xxxxx
-OPENAI_ORG_ID=org-xxxxx
+# Ubuntu Inference Snaps (Canonical)
+INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
+
+# BitNet (1-bit quantized, CPU-only)
+BITNET_BASE_URL=http://localhost:8080/v1
+
+# Ollama (any open source GGUF model)
+OLLAMA_BASE_URL=http://localhost:11434/v1
 ```
 
-**Get From**: [OpenAI Platform](https://platform.openai.com/api-keys)
+**Setup**: See [AI Stack Architecture](./architecture/ai-stack.md) for inference path details
 
 ---
 

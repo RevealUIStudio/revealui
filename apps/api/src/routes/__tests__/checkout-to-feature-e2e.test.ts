@@ -30,8 +30,7 @@ vi.mock('@revealui/core/features', () => ({
       customDomain: 'pro',
       analytics: 'pro',
       aiMemory: 'max',
-      byokServerSide: 'max',
-      aiMultiProvider: 'max',
+      aiInference: 'max',
       auditLog: 'max',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
@@ -52,8 +51,7 @@ vi.mock('@revealui/core/features', () => ({
       customDomain: 'pro',
       analytics: 'pro',
       aiMemory: 'max',
-      byokServerSide: 'max',
-      aiMultiProvider: 'max',
+      aiInference: 'max',
       auditLog: 'max',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
@@ -103,7 +101,7 @@ const PRO_FEATURES = [
   'customDomain',
   'analytics',
 ] as const;
-const MAX_FEATURES = ['aiMemory', 'byokServerSide', 'aiMultiProvider', 'auditLog'] as const;
+const MAX_FEATURES = ['aiMemory', 'aiInference', 'auditLog'] as const;
 const ENTERPRISE_FEATURES = ['multiTenant', 'whiteLabel', 'sso'] as const;
 
 /** Hosted tier limits (must match getHostedLimitsForTier in webhooks.ts) */

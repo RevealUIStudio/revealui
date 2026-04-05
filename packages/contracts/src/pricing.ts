@@ -29,8 +29,7 @@ export type FeatureFlagKey =
   | 'dashboard'
   | 'customDomain'
   | 'analytics'
-  | 'byokServerSide'
-  | 'aiMultiProvider'
+  | 'aiInference'
   | 'auditLog'
   | 'multiTenant'
   | 'whiteLabel'
@@ -72,8 +71,7 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   dashboard: 'Monitoring Dashboard',
   customDomain: 'Custom Domain Mapping',
   analytics: 'Analytics & Tracking',
-  byokServerSide: 'BYOK Server-side Key Storage',
-  aiMultiProvider: 'Multi-provider AI',
+  aiInference: 'Open-Model Inference (Snaps, BitNet, Harness)',
   auditLog: 'Audit Logging',
   multiTenant: 'Multi-tenant Management',
   whiteLabel: 'White-label Branding (Coming Soon)',
@@ -148,7 +146,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Up to 5 sites',
       'Up to 25 users/editors',
       'Session-based auth',
-      'AI agents (BYOK — bring your own LLM key)',
+      'AI agents (open-model inference)',
       'Built-in Stripe payments',
       'Full real-time sync',
       'Monitoring dashboard',
@@ -167,14 +165,13 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: 'max',
     name: 'Max',
-    description: 'For teams that need AI memory, multi-provider, and compliance tooling.',
+    description: 'For teams that need AI memory, advanced inference, and compliance tooling.',
     features: [
       'Everything in Pro',
       'Up to 15 sites',
       'Up to 100 users/editors',
       'Full AI memory (working + episodic + vector)',
-      'Multi-provider AI (up to 2 providers)',
-      'BYOK server-side key storage',
+      'Advanced inference configuration',
       'Audit logging',
       '50,000 agent tasks/month included',
       'RevKit environment provisioning (tiered dev profiles)',
@@ -195,7 +192,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Unlimited sites',
       'Unlimited users/editors',
       'Session-based auth + OAuth (SSO/SAML coming soon)',
-      'All AI providers (unlimited)',
+      'Full inference suite (all open models)',
       'RevealCoin x402 agent payments',
       'Multi-tenant architecture',
       'White-label branding (coming soon)',

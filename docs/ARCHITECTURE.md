@@ -874,7 +874,7 @@ Frontend → Generated Types → API Route → Contract Validation → Type Adap
 - ✅ **React Hooks:** `useChat`, `useCompletion`, `useAssistant`
 - ✅ **Type Safety:** Full TypeScript support
 - ✅ **Error Handling:** Built-in error boundaries
-- ✅ **Multi-Provider:** OpenAI, Anthropic, custom providers
+- ✅ **Open-Model Inference:** Ubuntu Inference Snaps, BitNet, Ollama
 
 **Integration with Vector Database:**
 
@@ -1180,7 +1180,7 @@ AI Agent Request
     ▼
 Vector Memory Service (packages/ai/src/memory/...)
     │
-    ├─→ Generate Embedding (OpenAI/Cohere)
+    ├─→ Generate Embedding (Ollama nomic-embed-text)
     │
     ▼
 Supabase (DATABASE_URL)
@@ -1588,8 +1588,8 @@ NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 # Vercel Blob Storage
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
-# AI Providers — BYOK (user provides their own keys via CMS settings)
-# See docs/PRO.md for provider configuration
+# AI Inference — open-model only (Ubuntu Inference Snaps, BitNet, Ollama)
+# See docs/PRO.md for inference configuration
 ```
 
 ### Database Connections

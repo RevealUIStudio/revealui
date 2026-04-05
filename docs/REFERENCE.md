@@ -720,8 +720,7 @@ interface FeatureFlags {
   analytics: boolean;
   // Max features
   aiMemory: boolean;
-  byokServerSide: boolean;
-  aiMultiProvider: boolean;
+  aiInference: boolean;
   auditLog: boolean;
   // Forge (enterprise) features
   multiTenant: boolean;
@@ -1434,7 +1433,7 @@ npm install @revealui/db
 | `@revealui/db/schema/cms`      | Posts and media                         |
 | `@revealui/db/schema/agents`   | Agent memories, contexts, conversations |
 | `@revealui/db/schema/licenses` | License records                         |
-| `@revealui/db/schema/api-keys` | BYOK user API keys                      |
+| `@revealui/db/schema/api-keys` | User inference API keys                 |
 | `@revealui/db/crypto`          | AES-256-GCM encryption                  |
 | `@revealui/db/types`           | TypeScript types                        |
 

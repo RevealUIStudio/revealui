@@ -37,8 +37,7 @@ const EXPECTED_FEATURE_TIER_MAP: Record<FeatureFlagKey, LicenseTierId> = {
   customDomain: 'pro',
   analytics: 'pro',
   aiMemory: 'max',
-  byokServerSide: 'max',
-  aiMultiProvider: 'max',
+  aiInference: 'max',
   auditLog: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
@@ -144,9 +143,9 @@ describe('Pricing Accuracy — Contracts vs Code Enforcement', () => {
   });
 
   describe('Feature flag consistency', () => {
-    it('all 15 feature flags have tier assignments', () => {
+    it('all 14 feature flags have tier assignments', () => {
       const featureKeys = Object.keys(EXPECTED_FEATURE_TIER_MAP);
-      expect(featureKeys).toHaveLength(15);
+      expect(featureKeys).toHaveLength(14);
     });
 
     it('aiLocal is the only free-tier feature', () => {
@@ -168,12 +167,12 @@ describe('Pricing Accuracy — Contracts vs Code Enforcement', () => {
       expect(proFeatures).toContain('payments');
     });
 
-    it('max-tier has 4 features', () => {
+    it('max-tier has 3 features', () => {
       const maxFeatures = Object.entries(EXPECTED_FEATURE_TIER_MAP)
         .filter(([, tier]) => tier === 'max')
         .map(([feature]) => feature);
 
-      expect(maxFeatures).toHaveLength(4);
+      expect(maxFeatures).toHaveLength(3);
       expect(maxFeatures).toContain('aiMemory');
       expect(maxFeatures).toContain('auditLog');
     });

@@ -1,6 +1,6 @@
 # @revealui/ai
 
-AI agents, LLM providers, CRDT memory, and the A2A protocol for RevealUI Pro.
+AI agents, open-model inference, CRDT memory, and the A2A protocol for RevealUI Pro.
 
 ## Overview
 
@@ -8,7 +8,7 @@ AI agents, LLM providers, CRDT memory, and the A2A protocol for RevealUI Pro.
 
 - **Agents** — long-running task agents with persistent state
 - **Memory** — four-store cognitive memory (episodic, working, semantic, procedural)
-- **LLM providers** — GROQ, Ollama, and BYOK support
+- **Open-model inference** — Ubuntu snaps, BitNet, and open source models via the harness
 - **Orchestration** — multi-agent coordination with the A2A protocol
 - **MCP integration** — tool use via Model Context Protocol
 
@@ -27,9 +27,8 @@ import { createAgent } from '@revealui/ai'
 import { createLLMClient } from '@revealui/ai/llm'
 
 const llm = createLLMClient({
-  provider: 'groq',
-  apiKey: process.env.GROQ_API_KEY,
-  model: 'llama-3.3-70b-versatile',
+  provider: 'ollama',
+  model: 'llama3.2:3b',
 })
 
 const agent = createAgent({
@@ -61,13 +60,13 @@ const memory = {
 }
 ```
 
-## LLM providers
+## Inference Paths
 
-| Provider | Chat | Embeddings | Notes |
-|----------|------|-----------|-------|
-| GROQ | Yes | No | Fast inference |
-| Ollama | Yes | Yes | Local, no API key needed |
-| BYOK | Yes | Depends | User-supplied key via `@revealui/ai/byok` |
+| Path | Chat | Embeddings | Notes |
+|------|------|-----------|-------|
+| Ubuntu Inference Snaps | Yes | Depends on model | Canonical snap runtime — Gemma3, DeepSeek-R1, etc. |
+| BitNet | Yes | No | 1-bit quantized, CPU-only, ~700 MB RAM |
+| Ollama | Yes | Yes | Any open source GGUF model, local inference |
 
 ## A2A protocol
 
@@ -84,15 +83,13 @@ const client = new A2AClient({ endpoint: 'http://localhost:3010' })
 const task = await client.sendTask({ message: 'Process this document.' })
 ```
 
-## BYOK (Bring Your Own Key)
+## Open-Model Inference
 
-Users can supply their own LLM API keys, stored encrypted in the database.
+All inference runs on open source models — no proprietary cloud APIs. See the [inference guide](/pro/inference) for setup details.
 
 ```typescript
-import { createLLMClientForUser } from '@revealui/ai/byok'
+import { createLLMClient } from '@revealui/ai/llm'
 
-const llm = await createLLMClientForUser(userId, db)
-// Uses the user's stored key; falls back to server key if none configured
+// Auto-detects from environment (snaps > BitNet > Ollama)
+const llm = createLLMClient()
 ```
-
-See the [BYOK guide](/pro/byok) for full configuration details.

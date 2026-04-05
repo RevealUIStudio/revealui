@@ -30,7 +30,7 @@ Five primitives:
 
 4. **Payments** -- Stripe end-to-end: checkout, portal, subscriptions, usage metering, webhook idempotency, circuit breaker protection. Chargebacks auto-revoke licenses. Failed payments trigger grace periods. Every webhook is deduplicated at the database level.
 
-5. **Intelligence** -- AI agent orchestration with streaming, CRDT-based memory, BYOK (bring your own key) for LLM providers, MCP servers for tool access, and A2A protocol for inter-agent communication. Pro tier only, because running AI costs real money.
+5. **Intelligence** -- AI agent orchestration with streaming, CRDT-based memory, open-model inference (Ubuntu Snaps, BitNet, Ollama), MCP servers for tool access, and A2A protocol for inter-agent communication. Pro tier only, because running AI costs real money.
 
 These five are not independent features bolted together. They form a directed graph of dependencies: Users author Content. Users purchase Products. Products gate Content and Intelligence. Payments generate Products. Intelligence creates Content and bills through Payments. Every edge in that graph is integration code you do not have to write.
 

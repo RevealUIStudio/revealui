@@ -39,7 +39,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 - [agent](#agent)
 - [content](#content)
 - [rag](#rag)
-- [BYOK](#byok)
+- [Inference Keys](#inference-keys)
 - [maintenance](#maintenance)
 - [marketplace](#marketplace)
 - [pricing](#pricing)
@@ -4666,7 +4666,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 ---
 
-## BYOK
+## Inference Keys
 
 ### `GET` `/api/api-keys`
 

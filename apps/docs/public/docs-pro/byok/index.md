@@ -1,108 +1,88 @@
-# BYOK — Bring Your Own Key
+# Open-Model Inference
 
-Use your own LLM API keys with RevealUI Pro. Keys are stored encrypted per-user and swapped in automatically at inference time.
+RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, no vendor lock-in, no API bills.
 
-## Overview
+## Supported Inference Paths
 
-BYOK lets each user (or tenant) supply their own API keys for LLM providers. RevealUI stores them encrypted with AES-256-GCM envelope encryption.
+| Path | Runtime | Cost | Use Case |
+|------|---------|------|----------|
+| **Ubuntu Inference Snaps** | Canonical snap runtime | Free (your hardware) | Production — Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
+| **BitNet** | Microsoft llama-server | Free (CPU-only, ~700 MB RAM) | Air-gapped / low-resource — 1-bit quantized models |
+| **Open Source via Harness** | RevealUI harness + Ollama | Free (your hardware) | Flexible — any GGUF or HuggingFace model |
 
-**Supported providers:**
-- GROQ
-- OpenAI (via user-supplied key only — not used for RevealUI-side inference)
-- Anthropic (via user-supplied key only)
-- Any OpenAI-compatible endpoint
+## Ubuntu Inference Snaps
 
-## How it works
+Canonical's snap-based model serving. Install a model, get an OpenAI-compatible endpoint.
 
-1. User provides their API key via the API or CMS settings UI
-2. RevealUI encrypts the key with a per-user data key (AES-256-GCM)
-3. The data key is wrapped with a master key stored in `BYOK_MASTER_KEY`
-4. At inference time, `createLLMClientForUser()` decrypts and uses the key
-
-## API endpoints
-
-### Store a key
-
-```http
-POST /api/user/api-keys
-Authorization: Bearer <session-token>
-Content-Type: application/json
-
-{
-  "provider": "groq",
-  "apiKey": "gsk_...",
-  "label": "My GROQ key"
-}
+```bash
+sudo snap install gemma3
 ```
 
-### List keys (masked)
+Configure in your environment:
 
-```http
-GET /api/user/api-keys
-Authorization: Bearer <session-token>
+```bash
+INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
 ```
 
-Returns keys with the value masked: `gsk_****...****`.
+Available models: Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano.
 
-### Delete a key
+## BitNet
 
-```http
-DELETE /api/user/api-keys/:id
-Authorization: Bearer <session-token>
+1-bit quantized models that run on CPU with minimal RAM. Ideal for air-gapped deployments.
+
+```bash
+pnpm bitnet:install   # Clone + compile + download model
+pnpm bitnet:serve     # Start inference server on :8080
 ```
 
-### Rotate a key
+Configure:
 
-```http
-PUT /api/user/api-keys/:id/rotate
-Authorization: Bearer <session-token>
-Content-Type: application/json
-
-{ "apiKey": "gsk_new_key_here" }
+```bash
+BITNET_BASE_URL=http://localhost:8080/v1
 ```
 
-## Server-side usage
+## Ollama (Open Source Models)
+
+Run any open source model locally via the RevealUI harness.
+
+```bash
+ollama pull llama3.2:3b           # Chat model
+ollama pull nomic-embed-text      # Embedding model
+```
+
+Configure:
+
+```bash
+OLLAMA_BASE_URL=http://localhost:11434/v1
+```
+
+## Auto-Detection
+
+The LLM client factory auto-detects your inference path in this order:
+
+1. `LLM_PROVIDER` (explicit override)
+2. `INFERENCE_SNAPS_BASE_URL`
+3. `BITNET_BASE_URL`
+4. `OLLAMA_BASE_URL`
+
+When both BitNet and Ollama are configured, chat routes to BitNet and embeddings route to Ollama automatically.
+
+## Server-side Usage
 
 ```typescript
-import { createLLMClientForUser } from '@revealui/ai/byok'
-import { db } from '@revealui/db'
+import { createLLMClient } from '@revealui/ai/llm'
 
-// Automatically uses the user's stored key for their preferred provider.
-// Falls back to the server's default provider if no user key is configured.
-const llm = await createLLMClientForUser(userId, db)
+// Auto-detects from environment
+const llm = createLLMClient()
 
 const response = await llm.chat([
   { role: 'user', content: 'Hello!' },
 ])
 ```
 
-## Environment configuration
+## Security
 
-```bash
-# Required for BYOK to work
-BYOK_MASTER_KEY=<32-byte hex key>   # openssl rand -hex 32
-
-# Optional: default provider when no user key exists
-DEFAULT_LLM_PROVIDER=groq
-GROQ_API_KEY=gsk_...
-```
-
-## Security notes
-
-- Keys are never stored in plaintext
-- Master key rotation re-encrypts all user data keys
-- Keys are never returned in full via the API
-- Rate limiting applies to key verification endpoints
-- Admin-level access cannot read user keys — only re-wrap them during rotation
-
-## Tenant-level keys
-
-For multi-tenant deployments, you can also configure provider keys at the tenant level:
-
-```typescript
-import { createLLMClientForTenant } from '@revealui/ai/byok'
-
-const llm = await createLLMClientForTenant(tenantId, db)
-```
-
-User keys take precedence over tenant keys; tenant keys take precedence over server defaults.
+- No API keys leave your infrastructure
+- Models run on your hardware — data never reaches external servers
+- Full air-gap capability with BitNet (zero network required)
+- Inference snaps are signed and verified by Canonical

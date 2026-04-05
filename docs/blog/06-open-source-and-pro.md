@@ -34,7 +34,7 @@ RevealUI Pro includes:
 
 - **AI agents** -- task execution, multi-step workflows, autonomous operations
 - **CRDT memory** -- working memory, episodic memory, and vector storage that persists across agent sessions
-- **LLM orchestration** -- multi-provider support across Anthropic, GROQ, Ollama, and HuggingFace
+- **LLM orchestration** -- open-model inference via Ubuntu Inference Snaps, BitNet, and Ollama
 - **Editor integrations** -- daemon adapters for Zed, VS Code, and Neovim
 - **Harness coordination** -- workboard-based agent orchestration, JSON-RPC communication, daemon management
 
@@ -44,7 +44,7 @@ Why AI specifically? Three reasons.
 
 **It's the highest-value part of the stack.** AI agents that can manage your content, process payments, handle support tickets, and coordinate across services are genuinely transformative. This is where RevealUI stops being "another framework" and starts being an agentic business runtime.
 
-**It's the most expensive to maintain.** LLM providers ship breaking changes constantly. Prompt formats evolve. Token pricing shifts. Context windows expand. Maintaining reliable integrations across multiple providers -- with memory systems, CRDT synchronization, and multi-agent coordination -- is a full-time job. Pro revenue funds this work directly.
+**It's the most expensive to maintain.** Open-model inference evolves rapidly. Model formats change, quantization techniques improve, context windows expand, and new inference backends emerge. Maintaining reliable integrations across inference paths -- with memory systems, CRDT synchronization, and multi-agent coordination -- is a full-time job. Pro revenue funds this work directly.
 
 **It's the clearest value boundary.** The line between "business primitives everyone needs" and "AI capabilities power users want" is clean. There's no ambiguity about what you're paying for.
 
@@ -64,9 +64,9 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Auth** | Session-based | Session-based | Session-based | Session + OAuth + SSO/SAML (planned) |
 | **CMS collections** | Unlimited | Unlimited | Unlimited | Unlimited |
 | **Real-time sync** | Basic | Full | Full | Full |
-| **AI agents (BYOK)** | -- | Yes | Yes | Yes |
+| **AI agents (open-model)** | -- | Yes | Yes | Yes |
 | **AI memory** | -- | -- | Full (working + episodic + vector) | Full |
-| **Multi-provider AI** | -- | -- | Up to 2 providers | Unlimited |
+| **Advanced inference config** | -- | -- | Yes | Yes |
 | **Stripe payments** | -- | Built-in | Built-in | Built-in |
 | **Monitoring dashboard** | -- | Yes | Yes | Yes |
 | **Custom domains** | -- | Yes | Yes | Yes |

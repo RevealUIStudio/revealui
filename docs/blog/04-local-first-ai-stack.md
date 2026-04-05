@@ -58,7 +58,7 @@ pnpm bitnet:serve
 BITNET_BASE_URL=http://localhost:8080
 ```
 
-The `@revealui/ai` package auto-detects `BITNET_BASE_URL` and routes agent calls to it. The same agent orchestration, memory system, and MCP integrations that work against Claude or GROQ work against BitNet — because BitNet exposes an OpenAI-compatible `/v1/chat/completions` endpoint.
+The `@revealui/ai` package auto-detects `BITNET_BASE_URL` and routes agent calls to it. The same agent orchestration, memory system, and MCP integrations that work with Ubuntu Inference Snaps or Ollama work with BitNet — because all three expose OpenAI-compatible `/v1/chat/completions` endpoints.
 
 No API key. No usage bill. No data leaving your machine.
 
@@ -121,7 +121,7 @@ The entire AI-powered business stack — auth, content, products, payments, agen
 
 ## Who this is for
 
-The "local-first" configuration isn't the default. RevealUI works just as well with GROQ, Anthropic, or OpenAI as the inference backend. Cloud APIs are faster, require no local setup, and are the right choice when data residency and API costs aren't concerns.
+The "local-first" configuration is one of three inference paths. RevealUI also supports Ubuntu Inference Snaps (Canonical's managed runtime) and Ollama (any open source GGUF model). All paths run open models — no proprietary cloud APIs, no vendor lock-in.
 
 But there's a real and growing audience for whom those concerns matter:
 

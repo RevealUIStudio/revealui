@@ -135,8 +135,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   customDomain: 'pro',
   analytics: 'pro',
   aiMemory: 'max',
-  byokServerSide: 'max',
-  aiMultiProvider: 'max',
+  aiInference: 'max',
   auditLog: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
@@ -144,7 +143,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
 };
 ```
 
-Free tier gets the full CMS framework, auth, and REST API. Pro unlocks payments, AI, sync, and monitoring. Max adds AI memory, multi-provider support, and compliance tooling. Forge adds multi-tenant architecture, white-labeling (planned), and SSO (planned).
+Free tier gets the full CMS framework, auth, and REST API. Pro unlocks payments, AI, sync, and monitoring. Max adds AI memory, advanced inference configuration, and compliance tooling. Forge adds multi-tenant architecture, white-labeling (planned), and SSO (planned).
 
 ### Pricing served from Stripe, not hardcoded
 
@@ -181,7 +180,7 @@ GET /api/pricing
       "features": [
         "Up to 5 sites",
         "Up to 25 users/editors",
-        "AI agents (BYOK)",
+        "AI agents (open-model inference)",
         "Built-in Stripe payments",
         "Monitoring dashboard",
         "10,000 agent tasks/month"
@@ -211,7 +210,7 @@ I've been on the other side of this equation. I've built production systems on c
 
 RevealUI's business primitives — auth, content, collections, the REST API, the admin dashboard, the CLI, the component library — are MIT licensed. You can inspect every line. You can fork it. You can self-host it on your own infrastructure. You can rip out the parts you don't need and keep the parts you do.
 
-The business model is straightforward: the Pro tier (AI agents, memory system, BYOK provider management) funds ongoing development. The things that make RevealUI useful for 90% of use cases are free forever. The things that make it powerful for teams that need AI capabilities are commercially licensed but source-available — you can read every line of the Pro code too.
+The business model is straightforward: the Pro tier (AI agents, memory system, open-model inference) funds ongoing development. The things that make RevealUI useful for 90% of use cases are free forever. The things that make it powerful for teams that need AI capabilities are commercially licensed but source-available — you can read every line of the Pro code too.
 
 I also open-sourced the MCP framework (hypervisor, adapter base classes, and database adapter). It was originally Pro-only, but the ecosystem benefits more from it being open. AI tooling should be open infrastructure, not a profit center.
 

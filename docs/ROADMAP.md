@@ -26,7 +26,7 @@ This roadmap reflects our current priorities and planned direction. It is update
 - **Real-time sync** — ElectricSQL integration for editor/client/agent sync _(experimental — basic shape subscriptions, no offline-first)_
 - **Database** — 76+ tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
 - **CLI** — `npx create-revealui my-app` scaffolds a full project from npm
-- **AI agents** — A2A protocol, CRDT memory, BYOK LLM providers, streaming, tool execution
+- **AI agents** — A2A protocol, CRDT memory, open-model inference, streaming, tool execution
 - **MCP servers** — 5 production servers (Stripe, Neon, Supabase, Vercel, Playwright)
 - **Desktop app** — Tauri 2 + React 19 companion (vault, tunnel, infrastructure, sync)
 - **Security** — CSP, CORS, HSTS, AES-256-GCM encryption, timing-safe TOTP, GDPR framework, 187 security tests

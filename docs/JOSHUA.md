@@ -55,7 +55,7 @@ Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No v
 - MIT license on all 18 OSS packages
 - No vendor-specific APIs in core (Vercel adapters are optional, in `@revealui/cache`)
 - Dual-database architecture: NeonDB (primary) + Supabase (vectors) — both replaceable
-- BYOK for AI: bring your own API keys, choose your LLM provider
+- Open-model AI: Ubuntu snaps, BitNet, and open source models — no proprietary cloud APIs
 - Self-hostable: Docker Compose, Railway, bare metal — documented in CI/CD guide
 - Stripe is the only commercial dependency in the billing path, and it's behind an interface
 
@@ -97,12 +97,12 @@ One schema defines the truth. Types, validation, and API surface flow from a sin
 
 ## Adaptive
 
-AI agents, MCP servers, and workflows are built into the foundation. The system evolves with your business — swap providers, add capabilities, extend without rebuilding.
+AI agents, MCP servers, and workflows are built into the foundation. The system evolves with your business — open-model inference, sovereign by design, extend without rebuilding.
 
 **Evidence:**
-- `@revealui/ai` — agent system with CRDT memory, multi-provider LLM support, task history
+- `@revealui/ai` — agent system with CRDT memory, open-model inference, task history
 - `@revealui/mcp` — hypervisor, adapter framework, and tool discovery for external services
-- BYOK: API keys per provider, per user — no platform lock-in on AI capabilities
+- Open-model inference: Ubuntu snaps, BitNet, Ollama — your models, your hardware, zero API bills
 - A2A protocol routes: agent discovery, registry, RPC, streaming — built into the API
 - Plugin system in `@revealui/core` — extend collections, hooks, and admin UI without forking
 - Feature gating: `isLicensed('pro')` and `isFeatureEnabled('ai')` — capabilities unlock progressively

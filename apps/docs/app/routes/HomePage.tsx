@@ -49,7 +49,7 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 - [Marketplace](/docs/MARKETPLACE) — Extensibility and integrations
 
 ### Pro & Enterprise
-- [Pro documentation](/docs/PRO) — MCP servers, BYOK, editor integrations
+- [Pro documentation](/docs/PRO) — MCP servers, open-model inference, editor integrations
 - [Forge (Enterprise)](/docs/FORGE) — Unlimited sites, users, and AI tasks
 - [Local-First Setup](/docs/LOCAL_FIRST) — BitNet + RevVault + Nix: run the full stack on your own hardware
 

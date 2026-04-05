@@ -69,9 +69,9 @@ const faqs = [
       "Yes, you can upgrade your plan at any time — you'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact support@revealui.com.",
   },
   {
-    question: 'What AI providers are supported?',
+    question: 'How does AI inference work?',
     answer:
-      'RevealUI uses BYOK (bring your own key) — you connect your own API key from any supported provider: Anthropic, Groq, Ollama (local), or Vultr. You pay the provider directly; RevealUI adds no markup. Max allows 2 providers simultaneously; Forge allows all.',
+      'RevealUI runs AI on open models only — no proprietary cloud APIs, no vendor lock-in, no API bills. Supported inference paths: Ubuntu inference snaps (Canonical), BitNet (1-bit quantized, CPU-only), and any open source model via the RevealUI harness. Your models run on your hardware, fully sovereign.',
   },
   {
     question: 'What does "full source code access" mean?',

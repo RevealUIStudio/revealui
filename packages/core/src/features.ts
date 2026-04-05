@@ -29,10 +29,8 @@ export interface FeatureFlags {
   whiteLabel: boolean;
   /** SSO/SAML authentication (planned — not yet implemented) */
   sso: boolean;
-  /** BYOK server-side key storage (Max+) */
-  byokServerSide: boolean;
-  /** Multi-provider AI (Max+: 2 providers, Enterprise: all providers) */
-  aiMultiProvider: boolean;
+  /** Open-model inference configuration — snaps, BitNet, harness (Max+) */
+  aiInference: boolean;
   /** Audit logging and compliance trail */
   auditLog: boolean;
   /** AI sampling for free users — limited cloud tasks via platform key */
@@ -65,8 +63,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   customDomain: 'pro',
   analytics: 'pro',
   aiMemory: 'max',
-  byokServerSide: 'max',
-  aiMultiProvider: 'max',
+  aiInference: 'max',
   auditLog: 'max',
   multiTenant: 'enterprise',
   // NOTE: whiteLabel and sso are planned but not yet implemented.

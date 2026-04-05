@@ -2565,7 +2565,7 @@ console.log(sessionData._computed.timeRemaining)
 - **Lines:** 513 lines, 35+ helper functions
 - **Purpose:** Agent working memory with vector embeddings
 - **Features:**
-  - 1536-dimensional OpenAI ada-002 embeddings
+  - 768-dimensional nomic-embed-text embeddings (via Ollama)
   - Priority system (0-1 range with categorical levels)
   - Context data validation (size limits, circular references)
   - Cosine similarity for semantic search
