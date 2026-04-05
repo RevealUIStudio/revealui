@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 const ApiKeySchema = z.object({
-  provider: z.enum(['openai', 'anthropic', 'groq', 'ollama', 'huggingface', 'vultr']),
+  provider: z.enum(['ollama', 'bitnet', 'huggingface', 'vultr', 'inference-snaps']),
   key: z.string().min(1).max(4096),
 });
 
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   return NextResponse.json(rows[0] ?? null);
 }
 
-/** POST /api/user/api-keys — encrypt and upsert a BYOK key */
+/** POST /api/user/api-keys — encrypt and upsert an API key */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {

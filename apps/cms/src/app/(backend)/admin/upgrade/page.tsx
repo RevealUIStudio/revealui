@@ -222,7 +222,6 @@ function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): bool
   const featureMinTier: Record<keyof FeatureFlags, LicenseTierId> = {
     aiLocal: 'free',
     ai: 'pro',
-    aiSampling: 'free',
     mcp: 'pro',
     payments: 'pro',
     advancedSync: 'pro',
@@ -230,8 +229,7 @@ function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): bool
     customDomain: 'pro',
     analytics: 'pro',
     aiMemory: 'max',
-    byokServerSide: 'max',
-    aiMultiProvider: 'max',
+    aiInference: 'max',
     auditLog: 'max',
     multiTenant: 'enterprise',
     whiteLabel: 'enterprise',

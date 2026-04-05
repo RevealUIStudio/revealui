@@ -512,7 +512,7 @@ describe('User API Keys — constraints', () => {
   it('requires user_id FK', async () => {
     await expect(
       db.query(
-        "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'nonexistent', 'anthropic', 'enc-data')",
+        "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'nonexistent', 'ollama', 'enc-data')",
       ),
     ).rejects.toThrow(/foreign key|violates/);
   });
@@ -520,7 +520,7 @@ describe('User API Keys — constraints', () => {
   it('cascades delete when user is deleted', async () => {
     await insertUser();
     await db.query(
-      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'u1', 'anthropic', 'iv.tag.cipher')",
+      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'u1', 'ollama', 'iv.tag.cipher')",
     );
     await db.query("DELETE FROM users WHERE id = 'u1'");
     const r = await db.query('SELECT COUNT(*) as c FROM user_api_keys');
@@ -530,22 +530,20 @@ describe('User API Keys — constraints', () => {
   it('requires encrypted_key (NOT NULL)', async () => {
     await insertUser();
     await expect(
-      db.query(
-        "INSERT INTO user_api_keys (id, user_id, provider) VALUES ('k1', 'u1', 'anthropic')",
-      ),
+      db.query("INSERT INTO user_api_keys (id, user_id, provider) VALUES ('k1', 'u1', 'ollama')"),
     ).rejects.toThrow(/null/);
   });
 
   it('allows multiple keys per user per provider', async () => {
     await insertUser();
     await db.query(
-      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key, label) VALUES ('k1', 'u1', 'anthropic', 'enc1', 'Work key')",
+      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key, label) VALUES ('k1', 'u1', 'ollama', 'enc1', 'Work key')",
     );
     await db.query(
-      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key, label) VALUES ('k2', 'u1', 'anthropic', 'enc2', 'Personal key')",
+      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key, label) VALUES ('k2', 'u1', 'ollama', 'enc2', 'Personal key')",
     );
     const r = await db.query(
-      "SELECT COUNT(*) as c FROM user_api_keys WHERE user_id = 'u1' AND provider = 'anthropic'",
+      "SELECT COUNT(*) as c FROM user_api_keys WHERE user_id = 'u1' AND provider = 'ollama'",
     );
     expect(Number(r.rows[0]?.c)).toBe(2);
   });
@@ -553,7 +551,7 @@ describe('User API Keys — constraints', () => {
   it('allows nullable last_used_at', async () => {
     await insertUser();
     await db.query(
-      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'u1', 'groq', 'enc')",
+      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'u1', 'vultr', 'enc')",
     );
     const r = await db.query<{ last_used_at: Date | null }>(
       "SELECT last_used_at FROM user_api_keys WHERE id = 'k1'",
@@ -570,7 +568,7 @@ describe('Tenant Provider Configs — constraints', () => {
   it('cascades delete when user is deleted', async () => {
     await insertUser();
     await db.query(
-      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'anthropic')",
+      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'ollama')",
     );
     await db.query("DELETE FROM users WHERE id = 'u1'");
     const r = await db.query('SELECT COUNT(*) as c FROM tenant_provider_configs');
@@ -580,7 +578,7 @@ describe('Tenant Provider Configs — constraints', () => {
   it('defaults is_default to false', async () => {
     await insertUser();
     await db.query(
-      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'groq')",
+      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'vultr')",
     );
     const r = await db.query<{ is_default: boolean }>(
       "SELECT is_default FROM tenant_provider_configs WHERE id = 'tc1'",
@@ -817,10 +815,10 @@ describe('Cross-table cascade deletes', () => {
       "INSERT INTO oauth_accounts (id, user_id, provider, provider_user_id) VALUES ('oa1', 'u1', 'github', 'gh-1')",
     );
     await db.query(
-      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'u1', 'anthropic', 'enc')",
+      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'u1', 'ollama', 'enc')",
     );
     await db.query(
-      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'groq')",
+      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'vultr')",
     );
     await db.query(
       "INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at) VALUES ('t1', 'u1', 'hash1', NOW() + INTERVAL '1 hour')",

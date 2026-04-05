@@ -38,15 +38,13 @@ import {
 const ALL_FEATURES: (keyof FeatureFlags)[] = [
   'aiLocal',
   'ai',
-  'aiSampling',
   'aiMemory',
   'mcp',
   'payments',
   'multiTenant',
   'whiteLabel',
   'sso',
-  'byokServerSide',
-  'aiMultiProvider',
+  'aiInference',
   'auditLog',
   'advancedSync',
   'dashboard',
@@ -58,7 +56,7 @@ const ALL_FEATURES: (keyof FeatureFlags)[] = [
 ];
 
 /** Features available at free tier (no license required) */
-const FREE_FEATURES: (keyof FeatureFlags)[] = ['aiLocal', 'aiSampling'];
+const FREE_FEATURES: (keyof FeatureFlags)[] = ['aiLocal'];
 
 /** Features that require at least Pro tier */
 const PRO_FEATURES: (keyof FeatureFlags)[] = [
@@ -76,8 +74,7 @@ const PRO_FEATURES: (keyof FeatureFlags)[] = [
 /** Features that require at least Max tier */
 const MAX_FEATURES: (keyof FeatureFlags)[] = [
   'aiMemory',
-  'byokServerSide',
-  'aiMultiProvider',
+  'aiInference',
   'auditLog',
   'devkitProfiles',
 ];
@@ -198,10 +195,10 @@ describe('getFeatures', () => {
     }
   });
 
-  it('returns a FeatureFlags object with exactly 19 keys', () => {
+  it('returns a FeatureFlags object with exactly 17 keys', () => {
     simulateTier('free');
     const features = getFeatures();
-    expect(Object.keys(features)).toHaveLength(19);
+    expect(Object.keys(features)).toHaveLength(17);
   });
 
   it('calls isLicensed for each feature', () => {
@@ -406,12 +403,8 @@ describe('getRequiredTier', () => {
     expect(getRequiredTier('aiMemory')).toBe('max');
   });
 
-  it('returns max for byokServerSide feature', () => {
-    expect(getRequiredTier('byokServerSide')).toBe('max');
-  });
-
-  it('returns max for aiMultiProvider feature', () => {
-    expect(getRequiredTier('aiMultiProvider')).toBe('max');
+  it('returns max for aiInference feature', () => {
+    expect(getRequiredTier('aiInference')).toBe('max');
   });
 
   it('returns max for auditLog feature', () => {
@@ -450,10 +443,10 @@ describe('getRequiredTier', () => {
 describe('tier progression', () => {
   const tiers: LicenseTier[] = ['free', 'pro', 'max', 'enterprise'];
   const expectedEnabledCounts: Record<LicenseTier, number> = {
-    free: 2, // aiLocal + aiSampling
-    pro: 11, // 2 free + 9 pro features (incl. vaultDesktop, vaultRotation)
-    max: 16, // 2 free + 9 pro + 5 max features (incl. devkitProfiles)
-    enterprise: 17, // 19 total minus 2 hardcoded-off (whiteLabel, sso)
+    free: 1, // aiLocal
+    pro: 10, // 1 free + 9 pro features (incl. vaultDesktop, vaultRotation)
+    max: 14, // 1 free + 9 pro + 4 max features (incl. devkitProfiles)
+    enterprise: 15, // 17 total minus 2 hardcoded-off (whiteLabel, sso)
   };
 
   it.each(tiers)('%s tier enables exactly %i features', (tier) => {
@@ -513,8 +506,8 @@ describe('feature blocking — free tier restrictions', () => {
     expect(isFeatureEnabled('whiteLabel')).toBe(false);
   });
 
-  it('blocks BYOK server-side key storage', () => {
-    expect(isFeatureEnabled('byokServerSide')).toBe(false);
+  it('blocks advanced inference configuration', () => {
+    expect(isFeatureEnabled('aiInference')).toBe(false);
   });
 
   it('blocks audit logging', () => {
@@ -527,10 +520,6 @@ describe('feature blocking — free tier restrictions', () => {
 
   it('blocks AI memory system', () => {
     expect(isFeatureEnabled('aiMemory')).toBe(false);
-  });
-
-  it('blocks multi-provider AI', () => {
-    expect(isFeatureEnabled('aiMultiProvider')).toBe(false);
   });
 
   it('blocks advanced sync', () => {
@@ -627,8 +616,8 @@ describe('edge cases', () => {
     }
   });
 
-  it('only aiLocal and aiSampling require free tier — all others are gated', () => {
-    const freeTierFeatures: (keyof FeatureFlags)[] = ['aiLocal', 'aiSampling'];
+  it('only aiLocal requires free tier — all others are gated', () => {
+    const freeTierFeatures: (keyof FeatureFlags)[] = ['aiLocal'];
     for (const feature of ALL_FEATURES) {
       if (freeTierFeatures.includes(feature)) {
         expect(getRequiredTier(feature)).toBe('free');

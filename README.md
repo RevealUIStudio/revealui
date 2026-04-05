@@ -48,7 +48,7 @@ No assembly required. No consulting 12 different documentation sites. No decisio
 | **Content**      | Collections, rich text (Lexical), relationships, media, draft/live, REST + OpenAPI |
 | **Products**     | Product catalog, pricing tiers, metered services, usage tracking                   |
 | **Payments**     | Stripe checkout, subscriptions, trials, webhooks, grace periods, usage meters      |
-| **Intelligence** | AI agents, MCP servers, BYOK multi-provider, task history _(Pro)_                  |
+| **Intelligence** | AI agents, MCP servers, open-model inference, task history _(Pro)_                  |
 
 ## The JOSHUA Stack
 
@@ -61,7 +61,7 @@ Six principles that give you a tested starting point for every architectural dec
 | **Sovereign** | Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No vendor holds your business hostage. |
 | **Hermetic** | Auth doesn't leak into billing. Content doesn't tangle with payments. Sealed boundaries, clean contracts between every layer. |
 | **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |
-| **Adaptive** | AI agents, MCP servers, and workflows are built into the foundation. Swap providers, add capabilities, evolve with your business. |
+| **Adaptive** | AI agents, MCP servers, and workflows are built into the foundation. Open-model inference, sovereign by design, evolving with your business. |
 
 ## Ecosystem
 
@@ -111,7 +111,7 @@ The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work
 
 - **AI agent system** — build and deploy purpose-built agents for your workflows
 - **MCP framework** — hypervisor, adapter framework, and tool discovery for connecting agents to external services
-- **BYOK** — bring your own API keys (Anthropic, Groq, Gemini) — your keys, your costs
+- **Open-model inference** — Ubuntu inference snaps, BitNet, and open source models via the RevealUI harness. No proprietary APIs, no vendor lock-in, zero API bills
 - **Task history** — every agent action logged, auditable, and visible in the dashboard
 - **Editor config sync** — generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 
@@ -122,8 +122,8 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | Tier           | Price     | What you get                                                       |
 | -------------- | --------- | ------------------------------------------------------------------ |
 | **Free**       | $0        | Full OSS core — users, content, products, payments, admin          |
-| **Pro**        | $49/mo    | AI agents, MCP framework, BYOK, advanced sync, RevVault desktop + rotation engine |
-| **Max**        | $149/mo   | Multi-provider AI, audit log, higher limits, RevKit environment provisioning      |
+| **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
+| **Max**        | $149/mo   | Full AI memory, audit log, higher limits, RevKit environment provisioning         |
 | **Forge**      | $299/mo   | Multi-tenant, SSO (planned), domain-locked, RevealCoin x402 agent payments       |
 
 ## Apps

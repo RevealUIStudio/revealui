@@ -269,7 +269,7 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
 }
 
 type PaidTier = 'pro' | 'max' | 'enterprise';
-type BillingCatalogKind = 'subscription' | 'perpetual' | 'credits';
+type BillingCatalogKind = 'subscription' | 'perpetual' | 'credits' | 'renewal';
 
 async function resolveCatalogPriceId(
   tier: PaidTier,
@@ -634,6 +634,8 @@ app.openapi(subscriptionRoute, async (c) => {
       status: licenses.status,
       expiresAt: licenses.expiresAt,
       licenseKey: licenses.licenseKey,
+      perpetual: licenses.perpetual,
+      supportExpiresAt: licenses.supportExpiresAt,
     })
     .from(licenses)
     .where(eq(licenses.userId, user.id))
@@ -658,6 +660,8 @@ app.openapi(subscriptionRoute, async (c) => {
       status: license.status,
       expiresAt: license.expiresAt?.toISOString() ?? null,
       licenseKey: license.licenseKey,
+      perpetual: license.perpetual ?? false,
+      supportExpiresAt: license.supportExpiresAt?.toISOString() ?? null,
     },
     200,
   );
@@ -1044,6 +1048,124 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   return c.json({ url: session.url }, 200);
 });
 
+// POST /api/billing/checkout-support-renewal — Renew expired/expiring support on a perpetual license
+const SupportRenewalCheckoutRequestSchema = z.object({
+  priceId: z.string().min(1).optional().openapi({
+    description: 'Stripe price ID for the support renewal product',
+    example: 'price_renewal_pro',
+  }),
+  tier: z.enum(['pro', 'max', 'enterprise']).openapi({
+    description: 'Perpetual license tier whose support to renew',
+    example: 'pro',
+  }),
+});
+
+const supportRenewalCheckoutRoute = createRoute({
+  method: 'post',
+  path: '/checkout-support-renewal',
+  tags: ['billing'],
+  summary: 'Create a support renewal checkout session',
+  description:
+    'Creates a one-time Stripe payment session to renew the annual support contract on a perpetual license. Requires authentication and an existing perpetual license.',
+  request: {
+    body: {
+      content: {
+        'application/json': { schema: SupportRenewalCheckoutRequestSchema },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: CheckoutResponseSchema } },
+      description: 'Checkout session created',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+    404: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'No perpetual license found for this tier',
+    },
+  },
+});
+
+app.openapi(supportRenewalCheckoutRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  if (!user.email) {
+    throw new HTTPException(400, { message: 'An email address is required for billing' });
+  }
+
+  const { priceId, tier } = c.req.valid('json');
+
+  const db = getClient();
+
+  // Verify the user has an active or support_expired perpetual license for this tier
+  const [license] = await db
+    .select({ id: licenses.id, supportExpiresAt: licenses.supportExpiresAt })
+    .from(licenses)
+    .where(
+      and(
+        eq(licenses.userId, user.id),
+        eq(licenses.perpetual, true),
+        eq(licenses.tier, tier),
+        sql`${licenses.status} IN ('active', 'support_expired')`,
+      ),
+    )
+    .limit(1);
+
+  if (!license) {
+    throw new HTTPException(404, {
+      message: `No perpetual ${tier} license found. Purchase a perpetual license first.`,
+    });
+  }
+
+  const resolvedPriceId = await resolveCatalogPriceId(tier, 'renewal', priceId);
+  const customerId = await ensureStripeCustomer(user.id, user.email);
+
+  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
+
+  const session = await withStripe((stripe) =>
+    stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'payment',
+      payment_method_types: ['card'],
+      billing_address_collection: 'required',
+      tax_id_collection: { enabled: true },
+      automatic_tax: { enabled: true },
+      allow_promotion_codes: true,
+      line_items: [{ price: resolvedPriceId, quantity: 1 }],
+      payment_intent_data: {
+        metadata: {
+          tier,
+          support_renewal: 'true',
+          license_id: license.id,
+          revealui_user_id: user.id,
+        },
+      },
+      metadata: {
+        tier,
+        support_renewal: 'true',
+        license_id: license.id,
+        revealui_user_id: user.id,
+      },
+      success_url: `${cmsUrl}/account/billing?renewal=true`,
+      cancel_url: `${cmsUrl}/account/billing`,
+    }),
+  );
+
+  if (!session.url) {
+    throw new HTTPException(500, { message: 'Failed to create checkout session' });
+  }
+
+  return c.json({ url: session.url }, 200);
+});
+
 // POST /api/billing/checkout-credits — One-time credit bundle purchase
 const CreditCheckoutRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({
@@ -1336,6 +1458,9 @@ app.openapi(supportRenewalRoute, async (c) => {
     );
 
   const { sendEmail } = await import('../lib/email.js');
+  const cmsUrl =
+    process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com';
+  const billingUrl = `${cmsUrl}/account/billing`;
   let reminded = 0;
 
   for (const row of expiringLicenses) {
@@ -1351,8 +1476,8 @@ app.openapi(supportRenewalRoute, async (c) => {
     await sendEmail({
       to: row.email,
       subject: 'Your RevealUI support contract expires soon',
-      text: `Your RevealUI annual support contract expires on ${expiryDate}. Renew at https://revealui.com/pricing. Your perpetual license itself never expires.`,
-      html: `<p>Your RevealUI support contract expires on <strong>${expiryDate}</strong>. <a href="https://revealui.com/pricing">Renew here</a>. Your perpetual license never expires.</p>`,
+      text: `Your RevealUI annual support contract expires on ${expiryDate}. Renew at ${billingUrl}. Your perpetual license itself never expires.`,
+      html: `<p>Your RevealUI support contract expires on <strong>${expiryDate}</strong>. <a href="${billingUrl}">Renew here</a>. Your perpetual license never expires.</p>`,
     }).catch((err: unknown) => {
       logger.error('Failed to send support renewal email', err instanceof Error ? err : undefined, {
         email: row.email,

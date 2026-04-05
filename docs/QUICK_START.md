@@ -173,7 +173,7 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 - [Component catalog](./COMPONENT_CATALOG.md) — 52 native UI components
 - [Example projects](./EXAMPLES.md) — blog, SaaS starter, storefront
 - [Deployment guide](./CI_CD_GUIDE.md) — Vercel, environment variables, production checklist
-- [AI agents](./AI.md) — agent orchestration, BYOK, MCP framework (Pro)
+- [AI agents](./AI.md) — agent orchestration, open-model inference, MCP framework (Pro)
 
 ---
 

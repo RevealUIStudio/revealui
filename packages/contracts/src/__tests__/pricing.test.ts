@@ -7,6 +7,9 @@ import {
   getTiersFromCurrent,
   type LicenseTierId,
   PERPETUAL_TIERS,
+  type PricingResponse,
+  SERVICE_OFFERINGS,
+  type ServiceOffering,
   SUBSCRIPTION_TIERS,
   TIER_COLORS,
   TIER_LABELS,
@@ -219,5 +222,134 @@ describe('getTierColor', () => {
     expect(getTierColor('free')).toContain('bg-zinc');
     expect(getTierColor('pro')).toContain('bg-blue');
     expect(getTierColor('enterprise')).toContain('bg-purple');
+  });
+});
+
+// =============================================================================
+// SERVICE_OFFERINGS (Track D)
+// =============================================================================
+
+describe('SERVICE_OFFERINGS', () => {
+  it('has exactly 4 service offerings', () => {
+    expect(SERVICE_OFFERINGS).toHaveLength(4);
+  });
+
+  it('has the correct IDs in order', () => {
+    const ids = SERVICE_OFFERINGS.map((s) => s.id);
+    expect(ids).toEqual([
+      'architecture-review',
+      'migration-assist',
+      'launch-package',
+      'consulting-hour',
+    ]);
+  });
+
+  it('service IDs are unique', () => {
+    const ids = SERVICE_OFFERINGS.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('every offering has required structural fields', () => {
+    for (const service of SERVICE_OFFERINGS) {
+      expect(service.id).toBeTruthy();
+      expect(service.name).toBeTruthy();
+      expect(service.description).toBeTruthy();
+      expect(service.includes.length).toBeGreaterThan(0);
+      expect(service.deliverable).toBeTruthy();
+      expect(service.cta).toBeTruthy();
+      expect(service.ctaHref).toBeTruthy();
+    }
+  });
+
+  it('every offering has at least 3 includes', () => {
+    for (const service of SERVICE_OFFERINGS) {
+      expect(service.includes.length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('price fields are undefined in static arrays (populated at runtime)', () => {
+    for (const service of SERVICE_OFFERINGS) {
+      expect(service.price).toBeUndefined();
+    }
+  });
+
+  it('all CTAs point to services@ email', () => {
+    for (const service of SERVICE_OFFERINGS) {
+      expect(service.ctaHref).toContain('services@revealui.com');
+    }
+  });
+
+  it('ServiceOffering interface is properly typed', () => {
+    const sample: ServiceOffering = SERVICE_OFFERINGS[0];
+    expect(typeof sample.id).toBe('string');
+    expect(typeof sample.name).toBe('string');
+    expect(typeof sample.description).toBe('string');
+    expect(Array.isArray(sample.includes)).toBe(true);
+    expect(typeof sample.deliverable).toBe('string');
+    expect(typeof sample.cta).toBe('string');
+    expect(typeof sample.ctaHref).toBe('string');
+  });
+});
+
+// =============================================================================
+// PricingResponse includes services
+// =============================================================================
+
+describe('PricingResponse', () => {
+  it('interface includes services field', () => {
+    // Construct a valid PricingResponse to verify the type includes services
+    const response: PricingResponse = {
+      subscriptions: SUBSCRIPTION_TIERS,
+      credits: CREDIT_BUNDLES,
+      perpetual: PERPETUAL_TIERS,
+      services: SERVICE_OFFERINGS,
+    };
+
+    expect(response.services).toBeDefined();
+    expect(response.services).toHaveLength(4);
+  });
+
+  it('all four tracks are present in a complete PricingResponse', () => {
+    const response: PricingResponse = {
+      subscriptions: SUBSCRIPTION_TIERS,
+      credits: CREDIT_BUNDLES,
+      perpetual: PERPETUAL_TIERS,
+      services: SERVICE_OFFERINGS,
+    };
+
+    expect(response.subscriptions.length).toBeGreaterThan(0);
+    expect(response.credits.length).toBeGreaterThan(0);
+    expect(response.perpetual.length).toBeGreaterThan(0);
+    expect(response.services.length).toBeGreaterThan(0);
+  });
+});
+
+// =============================================================================
+// Perpetual tiers — comingSoon status
+// =============================================================================
+
+describe('PERPETUAL_TIERS — comingSoon status', () => {
+  it('all 3 perpetual tiers have comingSoon set to false', () => {
+    for (const tier of PERPETUAL_TIERS) {
+      expect(tier.comingSoon).toBe(false);
+    }
+  });
+
+  it('Pro Perpetual is not coming soon', () => {
+    const pro = PERPETUAL_TIERS.find((t) => t.name === 'Pro Perpetual');
+    expect(pro).toBeDefined();
+    expect(pro?.comingSoon).toBe(false);
+  });
+
+  it('Agency Perpetual is not coming soon', () => {
+    const agency = PERPETUAL_TIERS.find((t) => t.name === 'Agency Perpetual');
+    expect(agency).toBeDefined();
+    expect(agency?.comingSoon).toBe(false);
+  });
+
+  it('Forge Perpetual is not coming soon', () => {
+    const forge = PERPETUAL_TIERS.find((t) => t.name === 'Forge Perpetual');
+    expect(forge).toBeDefined();
+    expect(forge?.comingSoon).toBe(false);
   });
 });

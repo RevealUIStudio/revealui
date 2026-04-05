@@ -147,11 +147,11 @@ curl -X POST https://api.example.com/a2a \
   }'
 ```
 
-Agents bring their own keys (BYOK). The `X-AI-Provider` and `X-AI-Api-Key` headers let an external agent specify which LLM to use -- the keys are never stored, existing only for the duration of the request.
+Agents use the host's configured inference path. The `createLLMClientFromEnv()` factory auto-detects the available backend (Ubuntu Inference Snaps, BitNet, or Ollama) — no API keys required, no vendor lock-in.
 
 ### MCP: How agents use tools
 
-Anthropic's Model Context Protocol defines how agents invoke tools. Where A2A is about agent-to-agent communication, MCP is about agent-to-tool communication. An MCP server exposes a set of tools -- functions that an agent can call with structured inputs and get structured outputs.
+The Model Context Protocol (MCP) defines how agents invoke tools. Where A2A is about agent-to-agent communication, MCP is about agent-to-tool communication. An MCP server exposes a set of tools -- functions that an agent can call with structured inputs and get structured outputs.
 
 RevealUI ships with seven MCP servers that cover the full infrastructure stack:
 

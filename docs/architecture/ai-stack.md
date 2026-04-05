@@ -1,57 +1,48 @@
 # AI Stack Architecture
 
-RevealUI's AI subsystem lives in `@revealui/ai` (Pro, commercially licensed). It provides multi-provider LLM access, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime — all gated by tier.
+RevealUI's AI subsystem lives in `@revealui/ai` (Pro, commercially licensed). It provides open-model inference, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime — all gated by tier. No proprietary cloud APIs are supported.
 
-## Provider Abstraction
+## Inference Abstraction
 
-All LLM access flows through `LLMClient`, a factory that wraps provider-specific SDKs behind a uniform interface (`chat()`, `stream()`, `embed()`).
+All LLM access flows through `LLMClient`, a factory that wraps inference backends behind a uniform interface (`chat()`, `stream()`, `embed()`).
 
-### Supported Providers
+### Supported Inference Paths
 
-| Provider | Chat | Embeddings | Key Env Var | Notes |
-|----------|------|-----------|-------------|-------|
-| **Groq** | yes | no | `GROQ_API_KEY` | Free tier default (platform key). Model: `llama-3.3-70b-versatile` |
-| **Ollama** | yes | yes | `OLLAMA_BASE_URL` | Local. Chat: `llama3.2:3b`, Embed: `nomic-embed-text` |
+| Path | Chat | Embeddings | Key Env Var | Notes |
+|------|------|-----------|-------------|-------|
+| **Ubuntu Inference Snaps** | yes | depends on model | `INFERENCE_SNAPS_BASE_URL` | Canonical snap runtime — Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
 | **BitNet** | yes | no | `BITNET_BASE_URL` | Local CPU-only. Model: `bitnet-b1.58-2B-4T`, ~700 MB RAM |
-| **Anthropic** | yes | yes | `ANTHROPIC_API_KEY` | Prompt caching support (90% cost reduction) |
-| **OpenAI** | yes | yes | `OPENAI_API_KEY` | Excluded from auto-detection (explicit only) |
-| **Vultr** | yes | no | `VULTR_API_KEY` | OpenAI-compatible endpoint |
-| **HuggingFace** | yes | no | `HF_API_KEY` | Inference API |
-| **Inference Snaps** | yes | no | `INFERENCE_SNAPS_BASE_URL` | Local snap-based models |
+| **Ollama** | yes | yes | `OLLAMA_BASE_URL` | Any open source GGUF model. Chat: `llama3.2:3b`, Embed: `nomic-embed-text` |
 
 ### Auto-Detection Priority
 
-`createLLMClientFromEnv()` selects the provider by checking env vars in order:
+`createLLMClientFromEnv()` selects the inference path by checking env vars in order:
 
 1. `LLM_PROVIDER` (explicit override)
 2. `INFERENCE_SNAPS_BASE_URL`
 3. `BITNET_BASE_URL`
-4. `GROQ_API_KEY`
-5. `OLLAMA_BASE_URL`
-6. `ANTHROPIC_API_KEY`
+4. `OLLAMA_BASE_URL`
 
 ### BitNet + Ollama Auto-Wiring
 
 When both `BITNET_BASE_URL` and `OLLAMA_BASE_URL` are set, the factory automatically routes chat to BitNet and embeddings to Ollama (`nomic-embed-text`). No additional config needed.
 
-## Freemium Model
+## Tier Model
 
 Revenue tiers control AI access via runtime feature gating:
 
-| Tier | AI Access | Task Quota | Coding Tools | Provider |
-|------|-----------|-----------|--------------|----------|
-| **Free (local)** | BitNet only | 1,000/mo | Full (offline) | `BITNET_BASE_URL` |
-| **Free (sampling)** | Platform Groq | 50/mo | Read-only | Platform `GROQ_API_KEY` |
-| **Pro** ($49/mo) | BYOK + platform | 10,000/mo | Full | User's choice |
-| **Max** ($149/mo) | BYOK + platform | 50,000/mo | Full + memory | User's choice |
-| **Enterprise** ($299/mo) | Unlimited | Metered | Full + memory + multi-tenant | All providers |
+| Tier | AI Access | Task Quota | Coding Tools | Inference |
+|------|-----------|-----------|--------------|-----------|
+| **Free** | Local only (BitNet / Ollama) | 1,000/mo | Read-only | `BITNET_BASE_URL` or `OLLAMA_BASE_URL` |
+| **Pro** ($49/mo) | Local + cloud harness | 10,000/mo | Full | Snaps, BitNet, Ollama, RevealUI cloud |
+| **Max** ($149/mo) | Local + cloud + advanced config | 50,000/mo | Full + memory | Snaps, BitNet, Ollama, RevealUI cloud |
+| **Enterprise** ($299/mo) | Unlimited | Metered | Full + memory + multi-tenant | All open models |
 
 ### Access Modes
 
 The `aiAccessMode` field on entitlements controls enforcement:
 
-- **`local`**: Free tier forced to BitNet. No API key needed. Full coding tools (offline).
-- **`sampling`**: Free tier uses platform Groq key. 50 tasks/month. Read-only coding tools (`file_read`, `file_glob`, `file_grep`, `project_context`).
+- **`local`**: Free tier uses BitNet or Ollama. No API key needed. Read-only coding tools (`file_read`, `file_glob`, `file_grep`, `project_context`).
 
 ### Quota Enforcement
 
@@ -75,7 +66,7 @@ Task quota middleware (`apps/api/src/middleware/task-quota.ts`) runs on every ag
 4. Append tool results to message history
 5. Iterate until `done` or max iterations (default: 10, timeout: 60s)
 
-Supports: MCP tool discovery, skill injection, extended thinking (Anthropic), prompt caching, tool result compression per model tier.
+Supports: MCP tool discovery, skill injection, extended thinking, prompt caching, tool result compression per model tier.
 
 ### Streaming
 
@@ -91,7 +82,7 @@ The `/api/agent-stream` POST route serves SSE responses. The React hook `useAgen
 
 - **CMS tools**: Content CRUD, media management, user/globals operations
 - **Coding tools** (Pro+): `file_read`, `file_write`, `file_edit`, `file_glob`, `file_grep`, `shell_exec`, `git_ops`, `project_context`
-- **Coding tools** (sampling/free): Read-only subset only
+- **Coding tools** (free tier): Read-only subset only (`file_read`, `file_glob`, `file_grep`, `project_context`)
 - **Memory tools**: Episodic recall, working memory access
 - **Web tools**: DuckDuckGo search (default)
 - **MCP adapter**: External tool discovery via MCP protocol
@@ -162,24 +153,20 @@ Both are opt-in via `LLMClientConfig.enableResponseCache` and `enableSemanticCac
 ## Feature Flag Reference
 
 ```
-aiLocal:         free     Local BitNet inference
-aiSampling:      free     Platform Groq (50 tasks/month)
-ai:              pro      Cloud AI agents (BYOK)
+aiLocal:         free     Local inference (BitNet / Ollama)
+ai:              pro      AI agents (local + cloud via RevealUI harness)
 mcp:             pro      MCP framework integration
 aiMemory:        max      Working + episodic memory
-aiMultiProvider:  max      2+ concurrent providers
-byokServerSide:  max      Server-side key storage
+aiInference:     max      Open-model inference configuration (snaps, BitNet, harness)
 ```
 
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|---------|-------------|
+| `INFERENCE_SNAPS_BASE_URL` | No | Ubuntu inference snap URL |
 | `BITNET_BASE_URL` | No | BitNet llama-server URL (default: `http://localhost:8080/v1`) |
 | `OLLAMA_BASE_URL` | No | Ollama server URL (default: `http://localhost:11434/v1`) |
-| `GROQ_API_KEY` | No | Groq API key (platform key used for free sampling) |
-| `ANTHROPIC_API_KEY` | No | Anthropic API key |
-| `OPENAI_API_KEY` | No | OpenAI API key (explicit only, not auto-detected) |
-| `LLM_PROVIDER` | No | Force specific provider (overrides auto-detection) |
-| `LLM_MODEL` | No | Override default model for the selected provider |
+| `LLM_PROVIDER` | No | Force specific inference path (overrides auto-detection) |
+| `LLM_MODEL` | No | Override default model for the selected inference path |
 | `X402_ENABLED` | No | Enable USDC payment fallback when quota exceeded |

@@ -27,7 +27,9 @@ export async function runAgentStatusCommand(): Promise<void> {
   logger.info(`Available:    ${available ? 'yes' : 'no'}`);
 
   if (!available) {
-    logger.warn('No LLM provider detected. Start BitNet, Ollama, or set GROQ_API_KEY.');
+    logger.warn(
+      'No LLM provider detected. Start BitNet, Ollama, or install an Ubuntu inference snap.',
+    );
   }
 }
 
@@ -271,10 +273,6 @@ async function detectProvider(): Promise<{
     }
   } catch {
     // not running
-  }
-
-  if (process.env.GROQ_API_KEY) {
-    return { available: true, provider: 'groq', model: 'llama-3.3-70b-versatile', projectRoot };
   }
 
   return { available: false, provider: 'none', model: 'none', projectRoot };

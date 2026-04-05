@@ -5,7 +5,7 @@ const SAVED_FEEDBACK_MS = 2_000;
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
-type Provider = 'anthropic' | 'groq';
+type Provider = 'ollama' | 'huggingface' | 'vultr' | 'inference-snaps';
 
 interface ProviderInfo {
   id: Provider;
@@ -16,21 +16,33 @@ interface ProviderInfo {
 
 const PROVIDERS: ProviderInfo[] = [
   {
-    id: 'anthropic',
-    label: 'Anthropic',
-    placeholder: 'sk-ant-...',
-    docsUrl: 'https://console.anthropic.com/settings/keys',
+    id: 'ollama',
+    label: 'Ollama',
+    placeholder: 'http://localhost:11434',
+    docsUrl: 'https://ollama.com/docs',
   },
   {
-    id: 'groq',
-    label: 'GROQ',
-    placeholder: 'gsk_...',
-    docsUrl: 'https://console.groq.com/keys',
+    id: 'huggingface',
+    label: 'Hugging Face',
+    placeholder: 'hf_...',
+    docsUrl: 'https://huggingface.co/settings/tokens',
+  },
+  {
+    id: 'vultr',
+    label: 'Vultr Inference',
+    placeholder: 'your-vultr-api-key',
+    docsUrl: 'https://www.vultr.com/docs/vultr-inference/',
+  },
+  {
+    id: 'inference-snaps',
+    label: 'Inference Snaps',
+    placeholder: 'your-inference-snaps-key',
+    docsUrl: 'https://inferencesnaps.com/docs',
   },
 ];
 
 export default function ApiKeysPage() {
-  const [provider, setProvider] = useState<Provider>('anthropic');
+  const [provider, setProvider] = useState<Provider>('ollama');
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -119,10 +131,10 @@ export default function ApiKeysPage() {
           )}
 
           <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-            <h1 className="text-base font-semibold text-white">AI Provider Key</h1>
+            <h1 className="text-base font-semibold text-white">Inference Endpoint</h1>
             <p className="mt-1 text-sm text-zinc-400">
-              Your key is stored encrypted on RevealUI servers and never sent to the client except
-              at the moment of an AI request.
+              Configure your open-model inference endpoint. Keys are stored encrypted on RevealUI
+              servers and only used server-side for agent tasks.
             </p>
 
             <div className="mt-5 flex flex-col gap-4">

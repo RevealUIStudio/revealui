@@ -874,7 +874,7 @@ Frontend → Generated Types → API Route → Contract Validation → Type Adap
 - ✅ **React Hooks:** `useChat`, `useCompletion`, `useAssistant`
 - ✅ **Type Safety:** Full TypeScript support
 - ✅ **Error Handling:** Built-in error boundaries
-- ✅ **Multi-Provider:** OpenAI, Anthropic, custom providers
+- ✅ **Open-Model Inference:** Ubuntu Inference Snaps, BitNet, Ollama
 
 **Integration with Vector Database:**
 
@@ -1180,7 +1180,7 @@ AI Agent Request
     ▼
 Vector Memory Service (packages/ai/src/memory/...)
     │
-    ├─→ Generate Embedding (OpenAI/Cohere)
+    ├─→ Generate Embedding (Ollama nomic-embed-text)
     │
     ▼
 Supabase (DATABASE_URL)
@@ -1246,12 +1246,14 @@ Optional per-user licenses can still exist for personal or perpetual products, b
 - **Meters**: business-readable usage records such as workflow runs or tool calls
 - **Optional user licenses**: secondary model for named-user or perpetual products
 
-### Pricing Layers
+### Pricing Tracks
 
-- **Platform subscription**: predictable recurring software fee
-- **Metered agent execution**: usage billing for digital labor and automation
-- **Commerce fees**: optional value-linked pricing when RevealUI powers transactions
-- **Trust and governance**: premium controls for approval policies, audit, and compliance
+Four revenue tracks, all implemented:
+
+- **Track A — Subscriptions**: predictable recurring software fee (Free / Pro / Max / Forge)
+- **Track B — Agent credits**: usage billing for digital labor and automation (prepaid task bundles)
+- **Track C — Perpetual licenses**: one-time purchase with annual support renewals (checkout + webhook handler wired)
+- **Track D — Professional services**: per-engagement consulting, migration, architecture review, launch packages
 
 ### Preferred Metering Units
 
@@ -1588,8 +1590,8 @@ NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 # Vercel Blob Storage
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
-# AI Providers — BYOK (user provides their own keys via CMS settings)
-# See docs/PRO.md for provider configuration
+# AI Inference — open-model only (Ubuntu Inference Snaps, BitNet, Ollama)
+# See docs/PRO.md for inference configuration
 ```
 
 ### Database Connections

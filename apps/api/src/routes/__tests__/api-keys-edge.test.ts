@@ -144,7 +144,7 @@ describe('api-keys edge cases', () => {
 
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'sk-test-12345678',
       });
 
@@ -159,26 +159,26 @@ describe('api-keys edge cases', () => {
       // mockSelectFrom returns empty → INSERT path (no existing config)
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'sk-test-12345678',
         setAsDefault: true,
-        model: 'claude-sonnet-4-6',
+        model: 'llama-3.3-70b',
       });
 
       expect(res.status).toBe(201);
       // Second insert is for tenantProviderConfigs
       expect(mockInsertValues).toHaveBeenCalledTimes(2);
       expect(mockInsertValues.mock.calls[1]![0]).toMatchObject({
-        model: 'claude-sonnet-4-6',
+        model: 'llama-3.3-70b',
         isDefault: true,
-        provider: 'anthropic',
+        provider: 'ollama',
       });
     });
 
     it('sets model to null in new provider config when model is omitted', async () => {
       const app = createApp(testUser);
       await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'sk-test-12345678',
         setAsDefault: true,
       });
@@ -202,10 +202,10 @@ describe('api-keys edge cases', () => {
 
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'openai',
+        provider: 'huggingface',
         apiKey: 'sk-test-12345678',
         setAsDefault: true,
-        model: 'gpt-4o',
+        model: 'meta-llama/Llama-3.3-70B-Instruct',
       });
 
       expect(res.status).toBe(201);
@@ -214,7 +214,10 @@ describe('api-keys edge cases', () => {
       // First: clear the current default
       expect(mockUpdateSet.mock.calls[0]![0]).toMatchObject({ isDefault: false });
       // Second: mark the new config as default
-      expect(mockUpdateSet.mock.calls[1]![0]).toMatchObject({ isDefault: true, model: 'gpt-4o' });
+      expect(mockUpdateSet.mock.calls[1]![0]).toMatchObject({
+        isDefault: true,
+        model: 'meta-llama/Llama-3.3-70B-Instruct',
+      });
     });
   });
 
@@ -226,7 +229,7 @@ describe('api-keys edge cases', () => {
 
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'sk-test-12345678',
       });
 
@@ -238,7 +241,7 @@ describe('api-keys edge cases', () => {
     it('accepts label of exactly 80 characters', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'sk-test-12345678',
         label: 'a'.repeat(80),
       });
@@ -248,7 +251,7 @@ describe('api-keys edge cases', () => {
     it('rejects label exceeding 80 characters', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'sk-test-12345678',
         label: 'a'.repeat(81),
       });
@@ -268,7 +271,7 @@ describe('api-keys edge cases', () => {
     it('returns 400 when apiKey is missing', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
       });
       expect(res.status).toBe(400);
     });
@@ -300,7 +303,7 @@ describe('api-keys edge cases', () => {
     it('accepts apiKey of exactly 8 characters', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: '12345678',
       });
       expect(res.status).toBe(201);
@@ -311,7 +314,7 @@ describe('api-keys edge cases', () => {
     it('accepts empty string label (optional field)', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'sk-test-12345678',
         label: '',
       });

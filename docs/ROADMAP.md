@@ -11,7 +11,7 @@ audience: developer
 
 This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
 
-**Last updated:** 2026-03-30
+**Last updated:** 2026-04-05
 
 ---
 
@@ -26,7 +26,7 @@ This roadmap reflects our current priorities and planned direction. It is update
 - **Real-time sync** — ElectricSQL integration for editor/client/agent sync _(experimental — basic shape subscriptions, no offline-first)_
 - **Database** — 76+ tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
 - **CLI** — `npx create-revealui my-app` scaffolds a full project from npm
-- **AI agents** — A2A protocol, CRDT memory, BYOK LLM providers, streaming, tool execution
+- **AI agents** — A2A protocol, CRDT memory, open-model inference, streaming, tool execution
 - **MCP servers** — 5 production servers (Stripe, Neon, Supabase, Vercel, Playwright)
 - **Desktop app** — Tauri 2 + React 19 companion (vault, tunnel, infrastructure, sync)
 - **Security** — CSP, CORS, HSTS, AES-256-GCM encryption, timing-safe TOTP, GDPR framework, 187 security tests
@@ -120,7 +120,7 @@ Real-time multi-user editing powered by ElectricSQL. Currently basic shape subsc
 - SLA guarantees
 
 #### Self-Hosted (Forge Edition)
-Docker images for fully self-hosted deployment. Domain-locked licensing, no cloud dependency. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
+Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap capable. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
 
 ### Long-Term (Q4 2026+)
 
@@ -137,13 +137,14 @@ Native cryptocurrency micropayments powered by RevealCoin on the Solana blockcha
 
 ## Pricing Tracks
 
-RevealUI offers three ways to pay:
+RevealUI offers four ways to pay:
 
 | Track | Model | Description |
 |-------|-------|-------------|
 | **A — Subscriptions** | Monthly | Free / Pro $49/mo / Max $149/mo / Forge $299/mo |
-| **B — Agent Credits** | Pay-per-use | $0.001/task, first 1,000 total tasks/month free (50 cloud AI tasks via platform key) |
-| **C — Perpetual** | One-time | $299 / $799 / $1,999 (1 year support included) |
+| **B — Agent Credits** | Pay-per-use | $0.001/task, first 1,000 tasks/month free (local inference) |
+| **C — Perpetual** | One-time | $299 / $799 / $1,999 (1 year support included, renewable) |
+| **D — Professional Services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
 
 Ecosystem features by tier: RevVault desktop app + rotation engine (Pro), RevKit environment provisioning (Max), RevealCoin x402 agent payments (Forge).
 

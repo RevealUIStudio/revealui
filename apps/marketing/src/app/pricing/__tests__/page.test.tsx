@@ -140,6 +140,44 @@ vi.mock('@revealui/contracts/pricing', () => ({
       comingSoon: true,
     },
   ],
+  SERVICE_OFFERINGS: [
+    {
+      id: 'architecture-review',
+      name: 'Architecture Review',
+      description: 'A senior engineer reviews your project structure.',
+      includes: ['Full codebase review', 'Written report'],
+      deliverable: 'Written report delivered within 5 business days',
+      cta: 'Book Review',
+      ctaHref: 'mailto:services@revealui.com',
+    },
+    {
+      id: 'migration-assist',
+      name: 'Migration Assist',
+      description: 'Hands-on help migrating to RevealUI.',
+      includes: ['Migration planning', 'Pair programming'],
+      deliverable: '2-week engagement',
+      cta: 'Start Migration',
+      ctaHref: 'mailto:services@revealui.com',
+    },
+    {
+      id: 'launch-package',
+      name: 'Launch Package',
+      description: 'Go from prototype to production.',
+      includes: ['Production hardening', 'Deploy pipeline'],
+      deliverable: '3-week engagement',
+      cta: 'Book Launch',
+      ctaHref: 'mailto:services@revealui.com',
+    },
+    {
+      id: 'consulting-hour',
+      name: 'Consulting Hour',
+      description: 'One-on-one with a senior engineer.',
+      includes: ['Screen share session', 'Follow-up notes'],
+      deliverable: '1 hour session + follow-up email',
+      cta: 'Book Session',
+      ctaHref: 'mailto:services@revealui.com',
+    },
+  ],
 }));
 
 // Import after mocks
@@ -168,11 +206,11 @@ describe('PricingPage', () => {
     const result = await PricingPage();
     const html = JSON.stringify(result);
 
-    expect(html).toContain('Three ways to use');
+    expect(html).toContain('Four ways to use');
     expect(html).toContain('RevealUI');
   });
 
-  it('renders all three track navigation badges', async () => {
+  it('renders all four track navigation badges', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
     const result = await PricingPage();
@@ -184,6 +222,8 @@ describe('PricingPage', () => {
     expect(html).toContain('Agent Credits');
     expect(html).toContain('Track C');
     expect(html).toContain('Perpetual Licenses');
+    expect(html).toContain('Track D');
+    expect(html).toContain('Services');
   });
 
   it('renders subscription tier names', async () => {
@@ -298,6 +338,17 @@ describe('PricingPage', () => {
             comingSoon: false,
           },
         ],
+        services: [
+          {
+            id: 'test-service',
+            name: 'Test Service',
+            description: 'Test',
+            includes: ['Test item'],
+            deliverable: 'Test deliverable',
+            cta: 'Book',
+            ctaHref: 'mailto:services@revealui.com',
+          },
+        ],
       }),
     });
 
@@ -315,6 +366,18 @@ describe('PricingPage', () => {
     const html = JSON.stringify(result);
 
     expect(html).toContain('Most Popular');
+  });
+
+  it('renders service offering names', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
+
+    const result = await PricingPage();
+    const html = JSON.stringify(result);
+
+    expect(html).toContain('Architecture Review');
+    expect(html).toContain('Migration Assist');
+    expect(html).toContain('Launch Package');
+    expect(html).toContain('Consulting Hour');
   });
 
   it('renders the "Best value" badge on highlighted credit bundle', async () => {

@@ -70,7 +70,7 @@ const DEV_DEFAULTS: Record<string, string> = {
   API_URL: 'http://localhost:3004',
   REVEALUI_ADMIN_EMAIL: 'admin@localhost.dev',
   LOG_LEVEL: 'debug',
-  LLM_PROVIDER: 'openai',
+  LLM_PROVIDER: 'ollama',
   LLM_ENABLE_CACHE: 'true',
   LLM_ENABLE_RESPONSE_CACHE: 'true',
   LLM_ENABLE_SEMANTIC_CACHE: 'true',

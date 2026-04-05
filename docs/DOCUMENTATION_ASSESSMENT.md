@@ -147,8 +147,8 @@ Overall Pro tier: **~80% complete** (not 50% as a surface scan might suggest).
 | Tier | Price | Documented features | Implementation |
 |------|-------|-------------------|----------------|
 | Free (MIT) | $0 | Full core, 1 site, 3 users | Complete |
-| Pro | $49/mo | AI agents, BYOK, MCP, 5 sites | ~80% |
-| Max | $149/mo | Multi-provider AI, audit, 15 sites | ~70% |
+| Pro | $49/mo | AI agents, open-model inference, MCP, 5 sites | ~80% |
+| Max | $149/mo | Advanced inference config, AI memory, audit, 15 sites | ~70% |
 | Enterprise/Forge | $299/mo | White-label (planned), SSO (planned), self-hosted | ~30% |
 
 ---

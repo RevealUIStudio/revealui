@@ -18,7 +18,7 @@
  */
 
 import type { A2AJsonRpcRequest } from '@revealui/contracts';
-import { A2AJsonRpcRequestSchema, AgentDefinitionSchema, LLM_PROVIDERS } from '@revealui/contracts';
+import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
@@ -40,15 +40,6 @@ function getAiModule(): Promise<typeof import('@revealui/ai') | null> {
     aiModulePromise = import('@revealui/ai').catch(() => null);
   }
   return aiModulePromise;
-}
-
-let aiLlmServerPromise: Promise<typeof import('@revealui/ai/llm/server') | null> | null = null;
-
-function getAiLlmServerModule(): Promise<typeof import('@revealui/ai/llm/server') | null> {
-  if (!aiLlmServerPromise) {
-    aiLlmServerPromise = import('@revealui/ai/llm/server').catch(() => null);
-  }
-  return aiLlmServerPromise;
 }
 
 interface UserContext {
@@ -80,20 +71,8 @@ function isValidAgentId(id: string): boolean {
   return true;
 }
 
-// Build an LLMClient from BYOK headers (X-AI-Provider + X-AI-Api-Key).
-// Keys are never stored — they exist only for the duration of this request.
-const VALID_PROVIDERS = new Set<string>(LLM_PROVIDERS);
-async function llmClientFromRequest(req: Request): Promise<unknown | undefined> {
-  const provider = req.headers.get('X-AI-Provider');
-  const apiKey = req.headers.get('X-AI-Api-Key');
-  if (!(provider && apiKey && VALID_PROVIDERS.has(provider))) return undefined;
-  const llmMod = await getAiLlmServerModule();
-  if (!llmMod) return undefined;
-  // Provider string is validated against VALID_PROVIDERS Set above; type assertion
-  // needed because LLMProviderType is a string literal union from the Pro package.
-  type LLMConfig = ConstructorParameters<typeof llmMod.LLMClient>[0];
-  return new llmMod.LLMClient({ provider: provider as LLMConfig['provider'], apiKey });
-}
+// LLM client is resolved from environment configuration (open models only).
+// No per-request API key injection — all inference uses server-configured providers.
 
 // =============================================================================
 // Well-known discovery endpoints (public, no auth)
@@ -1065,25 +1044,15 @@ a2a.openapi(
     // Extract optional agent ID from X-Agent-ID header
     const agentId = c.req.header('X-Agent-ID');
 
-    // Resolve LLM client — priority order:
-    //   1. Request-header BYOK (X-AI-Provider + X-AI-Api-Key) — client-side key, highest priority
-    //   2. Server-stored key (user_api_keys) — Pro BYOK, resolved from session
-    //   3. Stub — no key configured; handler returns a canned response
-    let llmClient = await llmClientFromRequest(c.req.raw);
-    if (!llmClient) {
-      const userId = c.get('user')?.id;
-      if (userId) {
-        const llmServerMod = await getAiLlmServerModule();
-        if (llmServerMod) {
-          const db = getClient();
-          // Type assertion needed: workspace @revealui/db and npm @revealui/db resolve
-          // to structurally identical but nominally different Database types.
-          type ProDatabase = Parameters<typeof llmServerMod.createLLMClientForUser>[1];
-          llmClient =
-            (await llmServerMod.createLLMClientForUser(userId, db as unknown as ProDatabase)) ??
-            undefined;
-        }
+    // Resolve LLM client from environment-configured open models
+    let llmClient: unknown;
+    try {
+      const aiMod2 = await import('@revealui/ai').catch(() => null);
+      if (aiMod2) {
+        llmClient = aiMod2.createLLMClientFromEnv();
       }
+    } catch {
+      // No AI module available — llmClient stays undefined, handler returns stub
     }
 
     const startedAt = Date.now();

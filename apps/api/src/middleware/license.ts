@@ -9,7 +9,6 @@ import { type FeatureFlags, getRequiredTier, isFeatureEnabled } from '@revealui/
 import {
   getCurrentTier,
   getLicensePayload,
-  getMaxFreemiumTasks,
   isLicensed,
   type LicenseTier,
 } from '@revealui/core/license';
@@ -294,10 +293,10 @@ export const checkLicenseStatus = (
 };
 
 /**
- * Require AI access — local inference (BitNet) on free tier, cloud providers on Pro+.
+ * Require AI access — local inference (BitNet/Ollama) on free tier, full harness on Pro+.
  *
- * When BITNET_BASE_URL is set, free-tier users can use local inference.
- * Cloud providers (GROQ, Anthropic, OpenAI, BYOK) still require a Pro+ license.
+ * When BITNET_BASE_URL or OLLAMA_BASE_URL is set, free-tier users can use local inference.
+ * Cloud-hosted open models via the RevealUI harness require a Pro+ license.
  * The route handler is responsible for enforcing BitNet-only when the caller
  * is on the free tier (see agent-stream.ts).
  */
@@ -319,17 +318,8 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
       return;
     }
 
-    // Free tier: allow AI sampling (50 cloud tasks/month via platform Groq key)
-    const samplingEnabled = isFeatureEnabled('aiSampling');
-    const freemiumQuota = getMaxFreemiumTasks();
-    if (samplingEnabled && freemiumQuota > 0) {
-      c.set('aiAccessMode', 'sampling');
-      await next();
-      return;
-    }
-
-    // Free tier: allow if local inference is configured (BITNET_BASE_URL)
-    const hasLocalInference = !!process.env.BITNET_BASE_URL;
+    // Free tier: allow if local inference is configured (BitNet or Ollama)
+    const hasLocalInference = !!process.env.BITNET_BASE_URL || !!process.env.OLLAMA_BASE_URL;
     if (hasLocalInference) {
       // Tag the request so downstream handlers know this is local-only access
       c.set('aiAccessMode', 'local');

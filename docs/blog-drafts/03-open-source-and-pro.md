@@ -34,7 +34,7 @@ RevealUI Pro includes:
 
 - **AI agents** -- task execution, multi-step workflows, autonomous operations
 - **CRDT memory** -- working memory, episodic memory, and vector storage that persists across agent sessions
-- **LLM orchestration** -- multi-provider support across Anthropic, GROQ, Ollama, and HuggingFace
+- **LLM orchestration** -- open-model inference via Ubuntu Inference Snaps, BitNet, and Ollama
 - **Editor integrations** -- daemon adapters for Zed, VS Code, and Neovim
 - **Harness coordination** -- workboard-based agent orchestration, JSON-RPC communication, daemon management
 
@@ -64,9 +64,9 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Auth** | Session-based | Session-based | Session-based | Session + OAuth + SSO/SAML (planned) |
 | **CMS collections** | Unlimited | Unlimited | Unlimited | Unlimited |
 | **Real-time sync** | Basic | Full | Full | Full |
-| **AI agents (BYOK)** | -- | Yes | Yes | Yes |
+| **AI agents (open-model)** | -- | Yes | Yes | Yes |
 | **AI memory** | -- | -- | Full (working + episodic + vector) | Full |
-| **Multi-provider AI** | -- | -- | Up to 2 providers | Unlimited |
+| **Advanced inference config** | -- | -- | Yes | Yes |
 | **Stripe payments** | -- | Built-in | Built-in | Built-in |
 | **Monitoring dashboard** | -- | Yes | Yes | Yes |
 | **Custom domains** | -- | Yes | Yes | Yes |

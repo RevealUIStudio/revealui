@@ -7,7 +7,7 @@ audience: developer
 
 # Local-First Setup
 
-Run RevealUI entirely on your own hardware — no cloud AI API, no remote secret storage, fully reproducible dev environment.
+Run RevealUI entirely on your own hardware with local AI inference — no proprietary APIs, no remote secret storage, fully reproducible dev environment. Pro tier also supports cloud-hosted open models via the RevealUI harness.
 
 ## Overview
 
@@ -192,7 +192,7 @@ In the CMS admin dashboard, navigate to **Admin → AI → Agent Tasks** and run
 ## Troubleshooting
 
 **`avx2` not found in /proc/cpuinfo**
-Your CPU does not support AVX2. BitNet will not work. Use GROQ or another cloud provider instead.
+Your CPU does not support AVX2. BitNet will not work. Use Ollama or another local inference runtime instead.
 
 **`setup_env.py` fails with clang not found**
 Make sure you entered the Nix devshell (`direnv allow` or `nix develop`). Run `which clang` — it should point to a path in `/nix/store`.

@@ -7,7 +7,7 @@ audience: developer
 
 # RevealUI Pro Guide
 
-Commercial guide to RevealUI Pro: packaging, MCP integrations, BYOK, editors, harnesses, services, x402 payments, marketplace flows, and licensing.
+Commercial guide to RevealUI Pro: packaging, MCP integrations, open-model inference, editors, harnesses, services, x402 payments, marketplace flows, and licensing.
 
 Commercially, RevealUI Pro should not be treated as a simple seat upgrade layered on top of the OSS stack. The intended model is account-level platform access, metered agent execution, explicit commerce fees where RevealUI is in the transaction path, and premium trust or governance controls for approval, audit, and compliance needs.
 
@@ -28,7 +28,7 @@ Per-user or perpetual licenses can still exist for narrowly scoped products, but
 - [Usage Examples](#usage-examples)
 - [Troubleshooting](#troubleshooting)
 - [Testing](#testing)
-- [BYOK](#byok--bring-your-own-key)
+- [Open-Model Inference](#open-model-inference)
 - [Editors](#revealuieditors)
 - [Harnesses](#revealuiharnesses)
 - [Services](#revealuiservices)
@@ -48,7 +48,7 @@ This guide covers the full Pro surface area, not just MCP setup:
 
 - account-level commercial packaging
 - MCP servers and developer tooling
-- BYOK and provider integrations
+- Open-model inference (Ubuntu snaps, BitNet, Ollama)
 - editor and harness workflows
 - Stripe, Supabase, and x402 payment features
 - marketplace monetization
@@ -70,7 +70,7 @@ This is the model the product and billing architecture should converge on from 2
 RevealUI Pro currently groups commercial capabilities such as:
 
 - MCP servers and developer tooling
-- BYOK for user- or tenant-scoped model credentials
+- Open-model inference configuration per deployment
 - editor integrations and harness coordination
 - Stripe and Supabase service integrations
 - x402 micropayments and paid API support
@@ -897,79 +897,27 @@ All MCP servers are **completely free**:
 
 ---
 
-# BYOK — Bring Your Own Key
+# Open-Model Inference
 
-Use your own LLM API keys with RevealUI Pro. Keys are stored encrypted per-user and swapped in automatically at inference time.
+RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, no vendor lock-in, no API bills.
 
-## Overview
+## Supported Inference Paths
 
-BYOK lets each user (or tenant) supply their own API keys for LLM providers. RevealUI stores them encrypted with AES-256-GCM envelope encryption.
-
-**Supported providers:**
-
-- GROQ
-- OpenAI (via user-supplied key only — not used for RevealUI-side inference)
-- Anthropic (via user-supplied key only)
-- Any OpenAI-compatible endpoint
-
-## How it works
-
-1. User provides their API key via the API or CMS settings UI
-2. RevealUI encrypts the key with a per-user data key (AES-256-GCM)
-3. The data key is wrapped with a master key stored in `BYOK_MASTER_KEY`
-4. At inference time, `createLLMClientForUser()` decrypts and uses the key
-
-## API endpoints
-
-### Store a key
-
-```http
-POST /api/user/api-keys
-Authorization: Bearer <session-token>
-Content-Type: application/json
-
-{
-  "provider": "groq",
-  "apiKey": "gsk_...",
-  "label": "My GROQ key"
-}
-```
-
-### List keys (masked)
-
-```http
-GET /api/user/api-keys
-Authorization: Bearer <session-token>
-```
-
-Returns keys with the value masked: `gsk_****...****`.
-
-### Delete a key
-
-```http
-DELETE /api/user/api-keys/:id
-Authorization: Bearer <session-token>
-```
-
-### Rotate a key
-
-```http
-PUT /api/user/api-keys/:id/rotate
-Authorization: Bearer <session-token>
-Content-Type: application/json
-
-{ "apiKey": "gsk_new_key_here" }
-```
+| Path | Runtime | Notes |
+|------|---------|-------|
+| **Ubuntu Inference Snaps** | Canonical snap runtime | Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
+| **BitNet** | Microsoft llama-server | 1-bit quantized, CPU-only, ~700 MB RAM |
+| **Ollama** | Local GGUF models | Any open source GGUF model via the RevealUI harness |
+| **HuggingFace** | HuggingFace Inference API | Open models hosted on HuggingFace infrastructure |
+| **Vultr** | Vultr GPU Cloud | Open models on Vultr serverless inference |
 
 ## Server-side usage
 
 ```typescript
-import { createLLMClientForUser } from "@revealui/ai/byok";
-import { db } from "@revealui/db";
+import { createLLMClient } from "@revealui/ai/llm";
 
-// Automatically uses the user's stored key for their preferred provider.
-// Falls back to the server's default provider if no user key is configured.
-const llm = await createLLMClientForUser(userId, db);
+// Auto-detects from environment (snaps > BitNet > Ollama)
+const llm = createLLMClient();
 
 const response = await llm.chat([{ role: "user", content: "Hello!" }]);
 ```
@@ -977,12 +925,25 @@ const response = await llm.chat([{ role: "user", content: "Hello!" }]);
 ## Environment configuration
 
 ```bash
-# Required for BYOK to work
-BYOK_MASTER_KEY=<32-byte hex key>   # openssl rand -hex 32
+# Ubuntu inference snap
+INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
 
-# Optional: default provider when no user key exists
-DEFAULT_LLM_PROVIDER=groq
-GROQ_API_KEY=gsk_...
+# BitNet (CPU-only, air-gap capable)
+BITNET_BASE_URL=http://localhost:8080/v1
+
+# Ollama (any open source model)
+OLLAMA_BASE_URL=http://localhost:11434/v1
+
+# HuggingFace Inference API (open models)
+HUGGINGFACE_API_KEY=hf_xxxxx
+
+# Vultr GPU Cloud (open models, serverless inference)
+VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
+VULTR_BASE_URL=https://api.vultrinference.com/v1
+
+# Force specific inference path (overrides auto-detection)
+# Valid values: ollama, bitnet, huggingface, vultr, inference-snaps
+LLM_PROVIDER=bitnet
 ```
 
 ## Security notes
@@ -998,12 +959,12 @@ GROQ_API_KEY=gsk_...
 For multi-tenant deployments, you can also configure provider keys at the tenant level:
 
 ```typescript
-import { createLLMClientForTenant } from "@revealui/ai/byok";
+import { createLLMClientForTenant } from "@revealui/ai/llm/client";
 
 const llm = await createLLMClientForTenant(tenantId, db);
 ```
 
-User keys take precedence over tenant keys; tenant keys take precedence over server defaults.
+Tenant-level inference configuration takes precedence over server defaults.
 
 ---
 
@@ -1448,7 +1409,24 @@ The SDK handles the full 402 → payment → retry cycle automatically.
 
 ---
 
+# Professional Services (Track D)
+
+RevealUI offers four professional service engagements for teams that need hands-on help:
+
+| Service | Description | Deliverable |
+|---------|-------------|-------------|
+| **Architecture Review** | Codebase, schema, deployment, and security review (up to 50K LOC) | Written report within 5 business days |
+| **Migration Assist** | Migrate existing CMS, database, or billing to RevealUI | Working migration with verified data integrity |
+| **Launch Package** | Zero to production in one week (setup, billing, deploy, onboarding) | Production-ready deployment within 5 business days |
+| **Consulting Hour** | One-on-one video call — pair programming, architecture, debugging | Session recording and written follow-up notes |
+
+Contact: [services@revealui.com](mailto:services@revealui.com)
+
+---
+
 # Perpetual Licenses
+
+All perpetual tiers are available for purchase. The full checkout flow is wired — webhook handler extends `supportExpiresAt` by one year on renewal.
 
 RevealUI Pro is available as a **perpetual license** in addition to monthly/annual subscriptions. Buy once, use forever on a single production domain.
 

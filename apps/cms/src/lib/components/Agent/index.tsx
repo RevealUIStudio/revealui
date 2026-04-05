@@ -56,18 +56,11 @@ const MODEL_OPTIONS: ModelOption[] = [
     model: 'bitnet-b1.58-2B-4T',
   },
   { id: 'local', label: 'Ollama (Local)', provider: 'ollama', model: '' },
-  { id: 'llama-70b', label: 'Llama 3.3 70B', provider: 'groq', model: 'llama-3.3-70b-versatile' },
   {
-    id: 'claude-sonnet',
-    label: 'Claude Sonnet',
-    provider: 'anthropic',
-    model: 'claude-sonnet-4-20250514',
-  },
-  {
-    id: 'claude-opus',
-    label: 'Claude Opus',
-    provider: 'anthropic',
-    model: 'claude-opus-4-20250514',
+    id: 'llama-70b',
+    label: 'Llama 3.3 70B (Cloud)',
+    provider: 'huggingface',
+    model: 'meta-llama/Llama-3.3-70B-Instruct',
   },
 ];
 

@@ -67,7 +67,7 @@ const upcoming: Feature[] = [
   {
     name: 'Self-Hosted Docker Images (Forge)',
     description:
-      'Official Docker images published to GitHub Container Registry for fully self-hosted deployment. Domain-locked licensing, no cloud dependency.',
+      'Official Docker images published to GitHub Container Registry for fully self-hosted deployment. Domain-locked licensing, air-gap capable.',
     status: 'Planned — Q3 2026',
     category: 'Infrastructure',
   },

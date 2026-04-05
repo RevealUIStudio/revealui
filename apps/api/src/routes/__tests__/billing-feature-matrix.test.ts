@@ -28,8 +28,7 @@ vi.mock('@revealui/core/features', () => ({
       customDomain: 'pro',
       analytics: 'pro',
       aiMemory: 'max',
-      byokServerSide: 'max',
-      aiMultiProvider: 'max',
+      aiInference: 'max',
       auditLog: 'max',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
@@ -50,8 +49,7 @@ vi.mock('@revealui/core/features', () => ({
       customDomain: 'pro',
       analytics: 'pro',
       aiMemory: 'max',
-      byokServerSide: 'max',
-      aiMultiProvider: 'max',
+      aiInference: 'max',
       auditLog: 'max',
       multiTenant: 'enterprise',
       whiteLabel: 'enterprise',
@@ -102,8 +100,7 @@ const ALL_FEATURES = [
   'customDomain',
   'analytics',
   'aiMemory',
-  'byokServerSide',
-  'aiMultiProvider',
+  'aiInference',
   'auditLog',
   'multiTenant',
   'whiteLabel',
@@ -122,8 +119,7 @@ const FEATURE_TIER_MAP: Record<Feature, Tier> = {
   customDomain: 'pro',
   analytics: 'pro',
   aiMemory: 'max',
-  byokServerSide: 'max',
-  aiMultiProvider: 'max',
+  aiInference: 'max',
   auditLog: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
@@ -358,26 +354,25 @@ describe('Resource Limits Match Tier Definitions', () => {
     expect(enabledFeatures).toContain('analytics');
   });
 
-  it('max tier gets all pro + max features (12 total)', () => {
+  it('max tier gets all pro + max features (11 total)', () => {
     const features = getFeaturesForTier('max') as Record<string, boolean>;
     const enabledFeatures = Object.entries(features)
       .filter(([, v]) => v)
       .map(([k]) => k);
 
-    expect(enabledFeatures).toHaveLength(12);
+    expect(enabledFeatures).toHaveLength(11);
     expect(enabledFeatures).toContain('aiMemory');
-    expect(enabledFeatures).toContain('byokServerSide');
-    expect(enabledFeatures).toContain('aiMultiProvider');
+    expect(enabledFeatures).toContain('aiInference');
     expect(enabledFeatures).toContain('auditLog');
   });
 
-  it('enterprise tier gets all 15 features', () => {
+  it('enterprise tier gets all 14 features', () => {
     const features = getFeaturesForTier('enterprise') as Record<string, boolean>;
     const enabledFeatures = Object.entries(features)
       .filter(([, v]) => v)
       .map(([k]) => k);
 
-    expect(enabledFeatures).toHaveLength(15);
+    expect(enabledFeatures).toHaveLength(14);
     expect(enabledFeatures).toContain('multiTenant');
     expect(enabledFeatures).toContain('whiteLabel');
     expect(enabledFeatures).toContain('sso');
@@ -424,7 +419,7 @@ describe('Feature Tier Boundary Precision', () => {
   });
 
   it('max features are blocked on pro but allowed on max', async () => {
-    const maxFeatures: Feature[] = ['aiMemory', 'byokServerSide', 'aiMultiProvider', 'auditLog'];
+    const maxFeatures: Feature[] = ['aiMemory', 'aiInference', 'auditLog'];
 
     for (const feature of maxFeatures) {
       const blocked = await makeFeatureRequest(createFeatureGatedApp(feature).app, feature, 'pro');

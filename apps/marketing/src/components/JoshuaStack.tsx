@@ -43,7 +43,7 @@ const principles = [
     letter: 'A',
     word: 'Adaptive',
     description:
-      'AI agents, MCP servers, and workflows are built into the foundation. Swap providers, add capabilities, evolve with your business.',
+      'AI agents, MCP servers, and workflows are built into the foundation. Open-model inference, sovereign by design, evolving with your business.',
     accent: 'text-blue-600',
     border: 'border-blue-500/30',
   },

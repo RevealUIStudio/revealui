@@ -15,7 +15,7 @@ import { isLicensed, type LicenseTier } from './license.js';
 export interface FeatureFlags {
   /** Local AI inference via BitNet — available at all tiers (no API key needed) */
   aiLocal: boolean;
-  /** Cloud AI agent system (Pro: 1 provider, Enterprise: all providers) */
+  /** AI agent system — local + cloud via RevealUI harness (Pro+) */
   ai: boolean;
   /** AI memory system — working + episodic + vector (Max: basic, Enterprise: full) */
   aiMemory: boolean;
@@ -29,14 +29,10 @@ export interface FeatureFlags {
   whiteLabel: boolean;
   /** SSO/SAML authentication (planned — not yet implemented) */
   sso: boolean;
-  /** BYOK server-side key storage (Max+) */
-  byokServerSide: boolean;
-  /** Multi-provider AI (Max+: 2 providers, Enterprise: all providers) */
-  aiMultiProvider: boolean;
+  /** Open-model inference configuration — snaps, BitNet, harness (Max+) */
+  aiInference: boolean;
   /** Audit logging and compliance trail */
   auditLog: boolean;
-  /** AI sampling for free users — limited cloud tasks via platform key */
-  aiSampling: boolean;
   /** Full real-time sync with conflict resolution */
   advancedSync: boolean;
   /** Monitoring dashboard */
@@ -57,7 +53,6 @@ export interface FeatureFlags {
 const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   aiLocal: 'free',
   ai: 'pro',
-  aiSampling: 'free',
   mcp: 'pro',
   payments: 'pro',
   advancedSync: 'pro',
@@ -65,8 +60,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   customDomain: 'pro',
   analytics: 'pro',
   aiMemory: 'max',
-  byokServerSide: 'max',
-  aiMultiProvider: 'max',
+  aiInference: 'max',
   auditLog: 'max',
   multiTenant: 'enterprise',
   // NOTE: whiteLabel and sso are planned but not yet implemented.

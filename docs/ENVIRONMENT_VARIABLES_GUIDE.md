@@ -395,19 +395,38 @@ SKIP_ONINIT=false
 
 ---
 
-### OpenAI / ChatGPT (if using)
+### Open-Model Inference
 
-**Purpose**: AI features in your app
-**When to use**: If implementing AI integration
+**Purpose**: AI agent inference configuration
+**When to use**: If using AI features (Pro tier and above)
+
+All inference runs on open models only. No proprietary providers (OpenAI, Anthropic, Groq).
 
 **Variables**:
 
 ```env
-OPENAI_API_KEY=sk-xxxxx
-OPENAI_ORG_ID=org-xxxxx
+# Ubuntu Inference Snaps (Canonical)
+INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
+
+# BitNet (1-bit quantized, CPU-only)
+BITNET_BASE_URL=http://localhost:8080/v1
+
+# Ollama (any open source GGUF model)
+OLLAMA_BASE_URL=http://localhost:11434/v1
+
+# HuggingFace Inference API (open models)
+HUGGINGFACE_API_KEY=hf_xxxxx
+
+# Vultr GPU Cloud (open models, serverless inference)
+VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
+VULTR_BASE_URL=https://api.vultrinference.com/v1
+
+# Force a specific inference provider (overrides auto-detection)
+# Valid values: ollama, bitnet, huggingface, vultr, inference-snaps
+LLM_PROVIDER=ollama
 ```
 
-**Get From**: [OpenAI Platform](https://platform.openai.com/api-keys)
+**Setup**: See [AI Stack Architecture](./architecture/ai-stack.md) for inference path details
 
 ---
 

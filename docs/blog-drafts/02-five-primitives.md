@@ -230,7 +230,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
   payments: 'pro',
   advancedSync: 'pro',
   aiMemory: 'max',
-  byokServerSide: 'max',
+  aiInference: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
   sso: 'enterprise',
@@ -391,12 +391,8 @@ app.openapi(agentStreamRoute, async (c) => {
     return c.json({ error: "Feature 'ai' requires a Pro or Enterprise license." }, 403);
   }
 
-  // BYOK: accept API key via Authorization header
-  const byokKey = c.req.header('Authorization')?.slice(7);
-  const provider = detectProvider(byokKey, body.provider);
-  const llmClient = new llmClientMod.LLMClient({
-    provider, apiKey: byokKey, model: body.model,
-  });
+  // Create inference client from environment (snaps > BitNet > Ollama)
+  const llmClient = llmClientMod.createLLMClientFromEnv();
 
   const runtime = new streamingRuntimeMod.StreamingAgentRuntime({
     maxIterations: 10,
@@ -414,17 +410,15 @@ app.openapi(agentStreamRoute, async (c) => {
 
 The `@revealui/ai` package is loaded dynamically. If the license is free, the import returns null and the route returns 403. No AI code is ever loaded into memory for free-tier deployments.
 
-### BYOK: Bring Your Own Key
+### Open-Model Inference
 
-RevealUI does not lock you into a single LLM provider. The BYOK system detects the provider from the API key prefix:
+RevealUI runs AI on open models only — no proprietary cloud APIs, no vendor lock-in, no API bills. The inference path is auto-detected from environment variables:
 
-- `sk-ant-` -> Anthropic
-- `sk-` -> OpenAI
-- `gsk_` -> GROQ
-- `hf_` -> HuggingFace
-- Explicit `provider` parameter for Ollama and Vultr
+1. **Ubuntu Inference Snaps** — Canonical snap runtime (Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano)
+2. **BitNet** — 1-bit quantized models, CPU-only, ~700 MB RAM
+3. **Ollama** — Any open source GGUF model (chat: `llama3.2:3b`, embeddings: `nomic-embed-text`)
 
-Keys are passed via the `Authorization` header and never stored unless the user explicitly enables server-side key storage (Max tier and above). The default model per provider is sensible: Claude Sonnet for Anthropic, GPT-4o for OpenAI, Llama 3.3 70B for GROQ and Ollama.
+When both BitNet and Ollama are available, chat routes to BitNet and embeddings route to Ollama automatically. No additional configuration needed.
 
 ### CRDT-based memory system
 

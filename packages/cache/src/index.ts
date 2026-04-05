@@ -6,6 +6,8 @@
  * - logger: Configurable internal logger (defaults to console)
  */
 
+// Adapter types (full implementations available via '@revealui/cache/adapters')
+export type { CacheEntry, CacheStore } from './adapters/types.js';
 export type { CDNCacheConfig, CDNPurgeConfig } from './cdn-config.js';
 export {
   CDN_CACHE_PRESETS,

@@ -6,8 +6,7 @@
  *   GET  /.well-known/payment-methods.json — enabled (200) and disabled (404)
  *   GET  /a2a/agents/:id/tasks           — 401, 400, rows from DB, empty on DB error
  *   GET  /a2a/stream/:taskId             — task not found (SSE error), terminal task (SSE close)
- *   POST /a2a (JSON-RPC)                 — quota exceeded returns quota Response,
- *                                          BYOK headers inject LLMClient as 3rd dispatcher arg
+ *   POST /a2a (JSON-RPC)                 — quota exceeded returns quota Response
  */
 
 import { Hono } from 'hono';
@@ -47,18 +46,6 @@ const {
   mockGetClient: vi.fn(),
   mockBuildPaymentMethods: vi.fn(),
   mockRequireTaskQuota: vi.fn(),
-}));
-
-vi.mock('@revealui/ai/llm/server', () => ({
-  createLLMClientForUser: vi.fn(),
-  LLMClient: class MockLLMClient {
-    provider: string;
-    apiKey: string;
-    constructor(opts: { provider: string; apiKey: string }) {
-      this.provider = opts.provider;
-      this.apiKey = opts.apiKey;
-    }
-  },
 }));
 
 vi.mock('@revealui/ai', () => ({
@@ -449,7 +436,7 @@ describe('GET /a2a/stream/:taskId — SSE stream', () => {
   });
 });
 
-describe('POST /a2a — quota and BYOK', () => {
+describe('POST /a2a — quota enforcement', () => {
   beforeEach(resetMocks);
 
   it('returns quota Response directly when task quota is exceeded', async () => {
@@ -473,24 +460,6 @@ describe('POST /a2a — quota and BYOK', () => {
     expect(res.status).toBe(429);
     // Dispatcher must NOT have been called — quota response short-circuits execution
     expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
-  });
-
-  it('injects LLMClient into dispatcher when BYOK headers are provided', async () => {
-    const app = makeA2AApp({ id: 'user-1' });
-    const res = await app.request(
-      post(
-        '/',
-        { jsonrpc: '2.0', id: 1, method: 'tasks/get', params: { id: 'task-1' } },
-        { 'X-AI-Provider': 'anthropic', 'X-AI-Api-Key': 'sk-test-key-1234' },
-      ),
-    );
-
-    expect(res.status).toBe(200);
-    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
-    // Third argument must be a constructed LLMClient, not undefined
-    const thirdArg = mockHandleA2AJsonRpc.mock.calls[0]?.[2];
-    expect(thirdArg).toBeDefined();
-    expect(thirdArg).toMatchObject({ provider: 'anthropic', apiKey: 'sk-test-key-1234' });
   });
 });
 
@@ -598,40 +567,6 @@ describe('POST /a2a — JSON-RPC validation edge cases', () => {
     expect(res.status).toBe(200);
     // Dispatcher should be called for read-only methods even when ai is disabled
     expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
-  });
-
-  it('passes undefined as LLMClient when no BYOK headers are present', async () => {
-    const app = makeA2AApp({ id: 'user-1' });
-    const res = await app.request(
-      post('/', {
-        jsonrpc: '2.0',
-        id: 4,
-        method: 'tasks/get',
-        params: { id: 'task-1' },
-      }),
-    );
-
-    expect(res.status).toBe(200);
-    expect(mockHandleA2AJsonRpc).toHaveBeenCalledTimes(1);
-    // Without BYOK headers or stored keys, third arg should be undefined
-    const thirdArg = mockHandleA2AJsonRpc.mock.calls[0]?.[2];
-    expect(thirdArg).toBeUndefined();
-  });
-
-  it('ignores BYOK headers with invalid provider name', async () => {
-    const app = makeA2AApp({ id: 'user-1' });
-    const res = await app.request(
-      post(
-        '/',
-        { jsonrpc: '2.0', id: 5, method: 'tasks/get', params: { id: 'task-1' } },
-        { 'X-AI-Provider': 'invalid-provider-xyz', 'X-AI-Api-Key': 'sk-key-123' },
-      ),
-    );
-
-    expect(res.status).toBe(200);
-    // Invalid provider is not in VALID_PROVIDERS Set, so LLMClient should be undefined
-    const thirdArg = mockHandleA2AJsonRpc.mock.calls[0]?.[2];
-    expect(thirdArg).toBeUndefined();
   });
 
   it('forwards X-Agent-ID header as agentId to dispatcher', async () => {

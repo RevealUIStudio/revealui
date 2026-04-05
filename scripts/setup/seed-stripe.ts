@@ -43,7 +43,7 @@ interface ProductDefinition {
   name: string;
   description: string;
   tier: 'pro' | 'max' | 'enterprise';
-  billingModel: 'subscription' | 'perpetual' | 'credits';
+  billingModel: 'subscription' | 'perpetual' | 'credits' | 'renewal';
   creditBundleName?: string;
   priceNote?: string;
   renewal?: string;
@@ -66,7 +66,7 @@ interface LocalStripeCatalogCache {
   catalogEntries: Array<{
     planId: string;
     tier: 'pro' | 'max' | 'enterprise';
-    billingModel: 'subscription' | 'perpetual' | 'credits';
+    billingModel: 'subscription' | 'perpetual' | 'credits' | 'renewal';
     stripeProductId: string;
     stripePriceId: string;
   }>;
@@ -104,7 +104,7 @@ const CATALOG: ProductDefinition[] = [
     key: 'revealui_max',
     name: 'RevealUI Max',
     description:
-      'AI memory, BYOK server-side, multi-provider AI, audit log, and higher limits (15 projects, 100 users).',
+      'AI memory, advanced inference configuration, audit log, and higher limits (15 projects, 100 users).',
     tier: 'max',
     billingModel: 'subscription',
     defaultPriceKey: 'revealui_max_monthly',
@@ -206,6 +206,58 @@ const CATALOG: ProductDefinition[] = [
       },
     ],
   },
+  // ── Support Renewal (Track C — annual renewal for perpetual licenses) ─────
+  {
+    key: 'revealui_renewal_pro',
+    name: 'Pro Support Renewal',
+    description: 'Renew your Pro perpetual license support contract for 1 year.',
+    tier: 'pro',
+    billingModel: 'renewal',
+    priceNote: 'annual',
+    defaultPriceKey: 'revealui_renewal_pro',
+    prices: [
+      {
+        key: 'revealui_renewal_pro',
+        unitAmount: 9900,
+        currency: 'usd',
+        mode: 'payment',
+      },
+    ],
+  },
+  {
+    key: 'revealui_renewal_max',
+    name: 'Max Support Renewal',
+    description: 'Renew your Max/Agency perpetual license support contract for 1 year.',
+    tier: 'max',
+    billingModel: 'renewal',
+    priceNote: 'annual',
+    defaultPriceKey: 'revealui_renewal_max',
+    prices: [
+      {
+        key: 'revealui_renewal_max',
+        unitAmount: 19900,
+        currency: 'usd',
+        mode: 'payment',
+      },
+    ],
+  },
+  {
+    key: 'revealui_renewal_enterprise',
+    name: 'Forge Support Renewal',
+    description: 'Renew your Forge perpetual license support contract for 1 year.',
+    tier: 'enterprise',
+    billingModel: 'renewal',
+    priceNote: 'annual',
+    defaultPriceKey: 'revealui_renewal_enterprise',
+    prices: [
+      {
+        key: 'revealui_renewal_enterprise',
+        unitAmount: 49900,
+        currency: 'usd',
+        mode: 'payment',
+      },
+    ],
+  },
   // ── Credit Bundles (Track B) ──────────────────────────────────────────────
   {
     key: 'revealui_credits_starter',
@@ -295,6 +347,9 @@ const PRICE_SERVER_ENV_KEYS: Record<string, string> = {
   revealui_pro_perpetual: 'STRIPE_PERPETUAL_PRO_PRICE_ID',
   revealui_max_perpetual: 'STRIPE_PERPETUAL_MAX_PRICE_ID',
   revealui_enterprise_perpetual: 'STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID',
+  revealui_renewal_pro: 'STRIPE_RENEWAL_PRO_PRICE_ID',
+  revealui_renewal_max: 'STRIPE_RENEWAL_MAX_PRICE_ID',
+  revealui_renewal_enterprise: 'STRIPE_RENEWAL_ENTERPRISE_PRICE_ID',
   revealui_credits_starter: 'STRIPE_CREDITS_STARTER_PRICE_ID',
   revealui_credits_standard: 'STRIPE_CREDITS_STANDARD_PRICE_ID',
   revealui_credits_scale: 'STRIPE_CREDITS_SCALE_PRICE_ID',

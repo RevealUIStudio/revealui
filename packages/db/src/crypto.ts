@@ -1,5 +1,5 @@
 /**
- * @revealui/db/crypto — AES-256-GCM envelope encryption for BYOK API keys
+ * @revealui/db/crypto — AES-256-GCM envelope encryption for stored API keys
  *
  * Uses a Key Encryption Key (KEK) sourced from the REVEALUI_KEK environment
  * variable (64 hex chars = 32 bytes). Each key is encrypted with a random

@@ -15,6 +15,8 @@ import {
   getTiersFromCurrent,
   type LicenseTierId,
   PERPETUAL_TIERS,
+  type PricingResponse,
+  SERVICE_OFFERINGS,
   SUBSCRIPTION_TIERS,
   TIER_LABELS,
   TIER_LIMITS,
@@ -37,8 +39,7 @@ const EXPECTED_FEATURE_TIER_MAP: Record<FeatureFlagKey, LicenseTierId> = {
   customDomain: 'pro',
   analytics: 'pro',
   aiMemory: 'max',
-  byokServerSide: 'max',
-  aiMultiProvider: 'max',
+  aiInference: 'max',
   auditLog: 'max',
   multiTenant: 'enterprise',
   whiteLabel: 'enterprise',
@@ -144,9 +145,9 @@ describe('Pricing Accuracy — Contracts vs Code Enforcement', () => {
   });
 
   describe('Feature flag consistency', () => {
-    it('all 15 feature flags have tier assignments', () => {
+    it('all 14 feature flags have tier assignments', () => {
       const featureKeys = Object.keys(EXPECTED_FEATURE_TIER_MAP);
-      expect(featureKeys).toHaveLength(15);
+      expect(featureKeys).toHaveLength(14);
     });
 
     it('aiLocal is the only free-tier feature', () => {
@@ -168,12 +169,12 @@ describe('Pricing Accuracy — Contracts vs Code Enforcement', () => {
       expect(proFeatures).toContain('payments');
     });
 
-    it('max-tier has 4 features', () => {
+    it('max-tier has 3 features', () => {
       const maxFeatures = Object.entries(EXPECTED_FEATURE_TIER_MAP)
         .filter(([, tier]) => tier === 'max')
         .map(([feature]) => feature);
 
-      expect(maxFeatures).toHaveLength(4);
+      expect(maxFeatures).toHaveLength(3);
       expect(maxFeatures).toContain('aiMemory');
       expect(maxFeatures).toContain('auditLog');
     });
@@ -366,6 +367,68 @@ describe('Pricing Accuracy — Contracts vs Code Enforcement', () => {
 
     it('enterprise tier has 1000 req/min', () => {
       expect(TIER_LIMITS.enterprise.apiRequestsPerMinute).toBe(1_000);
+    });
+  });
+
+  describe('Professional services (Track D)', () => {
+    it('has exactly 4 service offerings', () => {
+      expect(SERVICE_OFFERINGS).toHaveLength(4);
+    });
+
+    it('service IDs are architecture-review, migration-assist, launch-package, consulting-hour', () => {
+      const ids = SERVICE_OFFERINGS.map((s) => s.id);
+      expect(ids).toEqual([
+        'architecture-review',
+        'migration-assist',
+        'launch-package',
+        'consulting-hour',
+      ]);
+    });
+
+    it('every service has a non-empty includes list', () => {
+      for (const service of SERVICE_OFFERINGS) {
+        expect(service.includes.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('every service has a deliverable description', () => {
+      for (const service of SERVICE_OFFERINGS) {
+        expect(service.deliverable.length).toBeGreaterThan(10);
+      }
+    });
+
+    it('service names are unique', () => {
+      const names = SERVICE_OFFERINGS.map((s) => s.name);
+      expect(new Set(names).size).toBe(names.length);
+    });
+  });
+
+  describe('Perpetual tiers — launch readiness', () => {
+    it('all 3 perpetual tiers are enabled (comingSoon: false)', () => {
+      for (const tier of PERPETUAL_TIERS) {
+        expect(tier.comingSoon).toBe(false);
+      }
+    });
+
+    it('no perpetual tier is marked as coming soon', () => {
+      const comingSoon = PERPETUAL_TIERS.filter((t) => t.comingSoon);
+      expect(comingSoon).toHaveLength(0);
+    });
+  });
+
+  describe('PricingResponse includes all 4 tracks', () => {
+    it('PricingResponse type requires services field', () => {
+      const response: PricingResponse = {
+        subscriptions: SUBSCRIPTION_TIERS,
+        credits: CREDIT_BUNDLES,
+        perpetual: PERPETUAL_TIERS,
+        services: SERVICE_OFFERINGS,
+      };
+
+      expect(response.subscriptions).toHaveLength(4);
+      expect(response.credits).toHaveLength(3);
+      expect(response.perpetual).toHaveLength(3);
+      expect(response.services).toHaveLength(4);
     });
   });
 });

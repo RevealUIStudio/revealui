@@ -65,7 +65,7 @@ vi.mock('@revealui/ai/llm/client', () => ({
   // biome-ignore lint/complexity/useArrowFunction: LLMClient is called with `new` — arrow functions cannot be constructors (Vitest 4)
   // biome-ignore lint/suspicious/noExplicitAny: mock constructor argument
   LLMClient: vi.fn().mockImplementation(function (cfg: any) {
-    return { type: 'byok-client', ...cfg };
+    return { type: 'mock-client', ...cfg };
   }),
 }));
 
@@ -166,7 +166,7 @@ beforeEach(async () => {
   // biome-ignore lint/complexity/useArrowFunction: LLMClient is called with `new` — arrow functions cannot be constructors (Vitest 4)
   // biome-ignore lint/suspicious/noExplicitAny: mock constructor argument
   vi.mocked(LLMClient).mockImplementation(function (cfg: any) {
-    return { type: 'byok-client', ...cfg };
+    return { type: 'mock-client', ...cfg };
   });
 
   const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
@@ -359,114 +359,6 @@ describe('agent-stream — success path (AI modules working)', () => {
     await jsonPost(app, '/agent-stream', { instruction: 'env path' });
 
     expect(vi.mocked(createLLMClientFromEnv)).toHaveBeenCalledOnce();
-  });
-
-  it('constructs BYOK LLMClient with correct provider and apiKey for sk-ant- prefix', async () => {
-    const { LLMClient } = await import('@revealui/ai/llm/client');
-    const app = createApp();
-    await jsonPost(
-      app,
-      '/agent-stream',
-      { instruction: 'byok anthropic' },
-      { Authorization: 'Bearer sk-ant-api03-realkey' },
-    );
-
-    expect(vi.mocked(LLMClient)).toHaveBeenCalledOnce();
-    const args = vi.mocked(LLMClient).mock.calls[0]![0] as {
-      provider: string;
-      apiKey: string;
-      model: string;
-    };
-    expect(args.provider).toBe('anthropic');
-    expect(args.apiKey).toBe('sk-ant-api03-realkey');
-  });
-
-  it('constructs BYOK LLMClient with correct provider for sk- (openai) prefix', async () => {
-    const { LLMClient } = await import('@revealui/ai/llm/client');
-    const app = createApp();
-    await jsonPost(
-      app,
-      '/agent-stream',
-      { instruction: 'byok openai' },
-      { Authorization: 'Bearer sk-proj-openaiapikey' },
-    );
-
-    const args = vi.mocked(LLMClient).mock.calls[0]![0] as { provider: string };
-    expect(args.provider).toBe('openai');
-  });
-
-  it('constructs BYOK LLMClient with correct provider for gsk_ (groq) prefix', async () => {
-    const { LLMClient } = await import('@revealui/ai/llm/client');
-    const app = createApp();
-    await jsonPost(
-      app,
-      '/agent-stream',
-      { instruction: 'byok groq' },
-      { Authorization: 'Bearer gsk_mygroqkey' },
-    );
-
-    const args = vi.mocked(LLMClient).mock.calls[0]![0] as { provider: string };
-    expect(args.provider).toBe('groq');
-  });
-
-  // ── Model selection ───────────────────────────────────────────────────────
-
-  it('uses the default model for openai (gpt-4o) when model is not specified', async () => {
-    const { LLMClient } = await import('@revealui/ai/llm/client');
-    const app = createApp();
-    await jsonPost(
-      app,
-      '/agent-stream',
-      { instruction: 'default model' },
-      { Authorization: 'Bearer sk-proj-testkey' },
-    );
-
-    const args = vi.mocked(LLMClient).mock.calls[0]![0] as { model: string };
-    expect(args.model).toBe('gpt-4o');
-  });
-
-  it('uses the default model for groq (llama-3.3-70b-versatile) when model is not specified', async () => {
-    const { LLMClient } = await import('@revealui/ai/llm/client');
-    const app = createApp();
-    await jsonPost(
-      app,
-      '/agent-stream',
-      { instruction: 'groq default' },
-      { Authorization: 'Bearer gsk_groqkey' },
-    );
-
-    const args = vi.mocked(LLMClient).mock.calls[0]![0] as { model: string };
-    expect(args.model).toBe('llama-3.3-70b-versatile');
-  });
-
-  it('uses body.model when provided, overriding the default', async () => {
-    const { LLMClient } = await import('@revealui/ai/llm/client');
-    const app = createApp();
-    await jsonPost(
-      app,
-      '/agent-stream',
-      { instruction: 'custom model', model: 'gpt-4o-mini' },
-      { Authorization: 'Bearer sk-proj-testkey' },
-    );
-
-    const args = vi.mocked(LLMClient).mock.calls[0]![0] as { model: string };
-    expect(args.model).toBe('gpt-4o-mini');
-  });
-
-  it('uses explicit provider from body, overriding key-prefix detection', async () => {
-    const { LLMClient } = await import('@revealui/ai/llm/client');
-    const app = createApp();
-
-    // sk-ant- would normally resolve to 'anthropic', but explicit 'groq' wins
-    await jsonPost(
-      app,
-      '/agent-stream',
-      { instruction: 'override provider', provider: 'groq' },
-      { Authorization: 'Bearer sk-ant-api03-key' },
-    );
-
-    const args = vi.mocked(LLMClient).mock.calls[0]![0] as { provider: string };
-    expect(args.provider).toBe('groq');
   });
 
   // ── workspaceId resolution ────────────────────────────────────────────────

@@ -39,12 +39,13 @@ import {
   sendPaymentRecoveredEmail,
   sendPerpetualLicenseActivatedEmail,
   sendRefundProcessedEmail,
+  sendSupportRenewalConfirmationEmail,
   sendTierFallbackAlert,
   sendTrialEndingEmail,
   sendTrialExpiredEmail,
   sendWebhookFailureAlert,
 } from '../lib/webhook-emails.js';
-import { resetDbStatusCache } from '../middleware/license.js';
+import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
 
 const app = new OpenAPIHono();
 
@@ -217,8 +218,7 @@ const KNOWN_FEATURE_KEYS = new Set<string>([
   'multiTenant',
   'whiteLabel',
   'sso',
-  'byokServerSide',
-  'aiMultiProvider',
+  'aiInference',
   'auditLog',
   'advancedSync',
   'dashboard',
@@ -749,6 +749,68 @@ app.openapi(stripeWebhookRoute, async (c) => {
               tasks,
               userId: resolvedCreditUserId,
             });
+
+            break;
+          }
+
+          // ── Support renewal for perpetual license ────────────────────────
+          if (session.metadata?.support_renewal === 'true') {
+            const licenseId = session.metadata.license_id;
+            const renewalUserId = session.metadata.revealui_user_id;
+
+            if (!(licenseId && renewalUserId)) {
+              logger.error('Support renewal checkout missing license_id or user_id', undefined, {
+                sessionId: session.id,
+              });
+              break;
+            }
+
+            // Extend support by 1 year from now (not from previous expiry)
+            const newSupportExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+
+            await db
+              .update(licenses)
+              .set({
+                supportExpiresAt: newSupportExpiresAt,
+                status: 'active',
+                updatedAt: new Date(),
+              })
+              .where(
+                and(
+                  eq(licenses.id, licenseId),
+                  eq(licenses.userId, renewalUserId),
+                  eq(licenses.perpetual, true),
+                ),
+              );
+
+            resetLicenseState();
+            resetDbStatusCache();
+            resetSupportExpiryCache();
+
+            const renewalTier = session.metadata.tier ?? 'pro';
+            logger.info('Support contract renewed', { licenseId, tier: renewalTier });
+            auditLicenseEvent(db, 'license.support.renewed', 'info', {
+              licenseId,
+              tier: renewalTier,
+              userId: renewalUserId,
+              newSupportExpiresAt: newSupportExpiresAt.toISOString(),
+            });
+
+            // Send renewal confirmation email
+            const renewalEmail =
+              session.customer_email ??
+              (await findUserEmailByCustomerId(db, resolveCustomerId(session.customer) ?? ''));
+            if (renewalEmail) {
+              sendSupportRenewalConfirmationEmail(
+                renewalEmail,
+                renewalTier,
+                newSupportExpiresAt,
+              ).catch((err) => {
+                logger.error('Failed to send support renewal confirmation email', undefined, {
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
+              });
+            }
 
             break;
           }

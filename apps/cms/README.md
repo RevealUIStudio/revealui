@@ -8,7 +8,7 @@ Admin dashboard with content management, account billing, and system monitoring 
 - **Admin Dashboard** — System monitoring, error tracking, structured logging
 - **Authentication** — Session-based auth with password reset, rate limiting, brute force protection
 - **Billing** — Stripe checkout, account subscription management, optional license flows, and tier-gated features
-- **AI Agents** — A2A agent cards, MCP server registry, BYOK API key management
+- **AI Agents** — A2A agent cards, MCP server registry, open-model inference configuration
 - **Real-Time Sync** — ElectricSQL shape-based sync for conversations, agent contexts, and memories
 - **GDPR Compliance** — Data export and deletion endpoints
 
@@ -50,7 +50,7 @@ pnpm test
 | `/admin/logs`              | Structured log viewer (Pro)                 |
 | `/admin/agents`            | AI agent cards + MCP tools (Pro)            |
 | `/admin/agents/new`        | Agent scaffolding wizard (Pro)              |
-| `/admin/settings/api-keys` | BYOK API key management (Pro)               |
+| `/admin/settings/api-keys` | Inference key management (Pro)              |
 | `/account/billing`         | Account subscription and billing management |
 | `/account/license`         | Perpetual or deployment license details     |
 

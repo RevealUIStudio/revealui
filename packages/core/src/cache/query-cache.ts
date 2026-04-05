@@ -73,8 +73,16 @@ class QueryCache {
   }
 
   keys(pattern: string): string[] {
-    const regex = new RegExp(pattern.replace('*', '.*'));
-    return Array.from(this.cache.keys()).filter((key) => regex.test(key));
+    const startsWild = pattern.startsWith('*');
+    const endsWild = pattern.endsWith('*');
+    const core = pattern.slice(startsWild ? 1 : 0, endsWild ? -1 : undefined);
+
+    return Array.from(this.cache.keys()).filter((key) => {
+      if (startsWild && endsWild) return key.includes(core);
+      if (startsWild) return key.endsWith(core);
+      if (endsWild) return key.startsWith(core);
+      return key === core;
+    });
   }
 
   clear(): void {

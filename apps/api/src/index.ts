@@ -330,6 +330,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-refund': { maxRequests: 3, windowMs: ONE_MINUTE },
     'billing-rvui-payment': { maxRequests: 5, windowMs: ONE_MINUTE },
     'billing-checkout-credits': { maxRequests: 5, windowMs: ONE_MINUTE },
+    'billing-checkout-support-renewal': { maxRequests: 5, windowMs: ONE_MINUTE },
     'billing-subscription': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-usage': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-credits': { maxRequests: 30, windowMs: ONE_MINUTE },
@@ -431,6 +432,8 @@ app.use('/api/billing/rvui-payment', routeLimit('billing-rvui-payment'));
 app.use('/api/v1/billing/rvui-payment', routeLimit('billing-rvui-payment'));
 app.use('/api/billing/checkout-credits', routeLimit('billing-checkout-credits'));
 app.use('/api/v1/billing/checkout-credits', routeLimit('billing-checkout-credits'));
+app.use('/api/billing/checkout-support-renewal', routeLimit('billing-checkout-support-renewal'));
+app.use('/api/v1/billing/checkout-support-renewal', routeLimit('billing-checkout-support-renewal'));
 app.use('/api/billing/subscription', routeLimit('billing-subscription'));
 app.use('/api/v1/billing/subscription', routeLimit('billing-subscription'));
 app.use('/api/billing/usage', routeLimit('billing-usage'));

@@ -148,7 +148,7 @@ describe('api-keys routes', () => {
       const app = createApp();
 
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'test-dummy-key-12345678',
       });
 
@@ -159,7 +159,7 @@ describe('api-keys routes', () => {
       const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'test-dummy-key-12345678',
       });
 
@@ -184,7 +184,7 @@ describe('api-keys routes', () => {
       const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'short',
       });
 
@@ -192,7 +192,7 @@ describe('api-keys routes', () => {
     });
 
     it('accepts all valid providers', async () => {
-      const providers = ['openai', 'anthropic', 'groq', 'ollama', 'huggingface', 'vultr'];
+      const providers = ['ollama', 'bitnet', 'huggingface', 'vultr', 'inference-snaps'];
 
       for (const provider of providers) {
         vi.clearAllMocks();
@@ -261,7 +261,7 @@ describe('api-keys routes', () => {
             where: vi.fn().mockResolvedValue([
               {
                 id: 'key_abc',
-                provider: 'anthropic',
+                provider: 'ollama',
                 keyHint: 'sk-a...5678',
                 label: 'My key',
                 createdAt: now,
@@ -281,7 +281,7 @@ describe('api-keys routes', () => {
       const body = await parseBody(res);
       expect(body.keys).toHaveLength(1);
       expect(body.keys[0].id).toBe('key_abc');
-      expect(body.keys[0].provider).toBe('anthropic');
+      expect(body.keys[0].provider).toBe('ollama');
       expect(body.keys[0].keyHint).toBe('sk-a...5678');
       // Ensure no plaintext key is returned
       expect(body.keys[0].encryptedKey).toBeUndefined();
@@ -409,7 +409,7 @@ describe('api-keys routes', () => {
       const app = createApp(testUser);
 
       await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'test-dummy-key-12345678',
       });
 
@@ -421,7 +421,7 @@ describe('api-keys routes', () => {
       const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'test-dummy-key-12345678',
       });
 
@@ -434,7 +434,7 @@ describe('api-keys routes', () => {
       const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'test-dummy-key-12345678',
         label: 'My production key',
       });
@@ -451,7 +451,7 @@ describe('api-keys routes', () => {
       const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'test-dummy-key-12345678',
         setAsDefault: true,
         model: 'claude-sonnet-4-6',
@@ -474,7 +474,7 @@ describe('api-keys routes', () => {
       const app = createApp(testUser);
 
       const res = await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'test-dummy-key-12345678',
         setAsDefault: true,
       });
@@ -489,7 +489,7 @@ describe('api-keys routes', () => {
       const app = createApp(testUser);
 
       await jsonPost(app, '/api-keys', {
-        provider: 'anthropic',
+        provider: 'ollama',
         apiKey: 'test-dummy-key-12345678',
       });
 

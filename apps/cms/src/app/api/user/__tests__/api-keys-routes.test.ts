@@ -91,7 +91,7 @@ describe('GET /api/user/api-keys', () => {
     const mockSelect = vi.fn().mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([{ provider: 'openai', keyHint: 'sk-...abc' }]),
+          limit: vi.fn().mockResolvedValue([{ provider: 'huggingface', keyHint: 'sk-...abc' }]),
         }),
       }),
     });
@@ -102,7 +102,7 @@ describe('GET /api/user/api-keys', () => {
 
     expect((res as { status: number }).status).toBe(200);
     expect((res as unknown as { body: { provider: string; keyHint: string } }).body).toEqual({
-      provider: 'openai',
+      provider: 'huggingface',
       keyHint: 'sk-...abc',
     });
   });
@@ -141,7 +141,7 @@ describe('POST /api/user/api-keys', () => {
   it('returns 401 when not authenticated', async () => {
     mockGetSession.mockResolvedValue(null);
     const POST = await loadRoute();
-    const res = await POST(makeRequest({ provider: 'openai', key: 'sk-test' }));
+    const res = await POST(makeRequest({ provider: 'huggingface', key: 'sk-test' }));
     expect((res as { status: number }).status).toBe(401);
   });
 
@@ -172,11 +172,11 @@ describe('POST /api/user/api-keys', () => {
     mockGetClient.mockReturnValue({ delete: mockDelete, insert: mockInsert });
 
     const POST = await loadRoute();
-    const res = await POST(makeRequest({ provider: 'anthropic', key: 'sk-ant-test-key' }));
+    const res = await POST(makeRequest({ provider: 'ollama', key: 'sk-ant-test-key' }));
 
     expect((res as { status: number }).status).toBe(200);
     expect((res as unknown as { body: { provider: string; keyHint: string } }).body).toEqual({
-      provider: 'anthropic',
+      provider: 'ollama',
       keyHint: 'sk-...xyz',
     });
     expect(mockEncryptApiKey).toHaveBeenCalledWith('sk-ant-test-key');
@@ -258,7 +258,9 @@ describe('GET /api/user/api-keys/value', () => {
         where: vi.fn().mockReturnValue({
           limit: vi
             .fn()
-            .mockResolvedValue([{ id: 'key-1', provider: 'openai', encryptedKey: 'enc-data' }]),
+            .mockResolvedValue([
+              { id: 'key-1', provider: 'huggingface', encryptedKey: 'enc-data' },
+            ]),
         }),
       }),
     });
@@ -276,7 +278,7 @@ describe('GET /api/user/api-keys/value', () => {
 
     expect((res as { status: number }).status).toBe(200);
     expect((res as unknown as { body: { provider: string; key: string } }).body).toEqual({
-      provider: 'openai',
+      provider: 'huggingface',
       key: 'sk-real-key-decrypted',
     });
     expect(mockDecryptApiKey).toHaveBeenCalledWith('enc-data');
