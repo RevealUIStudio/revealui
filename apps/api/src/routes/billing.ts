@@ -1454,6 +1454,9 @@ app.openapi(supportRenewalRoute, async (c) => {
     );
 
   const { sendEmail } = await import('../lib/email.js');
+  const cmsUrl =
+    process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com';
+  const billingUrl = `${cmsUrl}/account/billing`;
   let reminded = 0;
 
   for (const row of expiringLicenses) {
@@ -1469,8 +1472,8 @@ app.openapi(supportRenewalRoute, async (c) => {
     await sendEmail({
       to: row.email,
       subject: 'Your RevealUI support contract expires soon',
-      text: `Your RevealUI annual support contract expires on ${expiryDate}. Renew at https://revealui.com/pricing. Your perpetual license itself never expires.`,
-      html: `<p>Your RevealUI support contract expires on <strong>${expiryDate}</strong>. <a href="https://revealui.com/pricing">Renew here</a>. Your perpetual license never expires.</p>`,
+      text: `Your RevealUI annual support contract expires on ${expiryDate}. Renew at ${billingUrl}. Your perpetual license itself never expires.`,
+      html: `<p>Your RevealUI support contract expires on <strong>${expiryDate}</strong>. <a href="${billingUrl}">Renew here</a>. Your perpetual license never expires.</p>`,
     }).catch((err: unknown) => {
       logger.error('Failed to send support renewal email', err instanceof Error ? err : undefined, {
         email: row.email,
