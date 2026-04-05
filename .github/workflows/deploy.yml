@@ -213,9 +213,11 @@ jobs:
         if: matrix.app == 'api' || matrix.app == 'cms'
         run: |
           echo "Checking critical env vars for ${{ matrix.app }}..."
+          ENV_LIST=$(vercel env ls --environment=production --token="$VERCEL_TOKEN" 2>/dev/null || echo "")
+          echo "::debug::vercel env ls output: $ENV_LIST"
           MISSING=0
           for VAR in POSTGRES_URL REVEALUI_SECRET REVEALUI_PUBLIC_SERVER_URL; do
-            if ! vercel env ls --environment=production --token="$VERCEL_TOKEN" 2>/dev/null | grep -q "^$VAR"; then
+            if ! echo "$ENV_LIST" | grep -q "$VAR"; then
               echo "::error::Missing required env var: $VAR"
               MISSING=1
             fi
