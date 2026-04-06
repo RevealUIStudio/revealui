@@ -8,7 +8,7 @@
     "@revealui/utils": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "dev": "workspace:*",
     "tsup": "^8.5.1",
     "typescript": "^6.0.2",

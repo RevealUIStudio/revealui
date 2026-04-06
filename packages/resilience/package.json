@@ -6,7 +6,7 @@
   "dependencies": {},
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.2",
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "dev": "workspace:*",
     "tsup": "^8.5.1",
     "typescript": "^6.0.2",
