@@ -1,17 +1,21 @@
 mod commands;
 mod config;
+mod inference;
 mod local_shell;
 mod platform;
+mod spawner;
 mod ssh;
 mod state;
 mod tray;
 
 use commands::{
     agent as agent_cmds, apps, config as config_cmds, deploy, git as git_cmds,
-    local_shell as shell_cmds, mount, setup, ssh as ssh_cmds, status, sync, tunnel, vault,
+    inference as inference_cmds, local_shell as shell_cmds, mount, setup,
+    spawner as spawner_cmds, ssh as ssh_cmds, status, sync, tunnel, vault,
 };
 use config::ConfigState;
 use local_shell::LocalShellState;
+use spawner::SpawnerState;
 use ssh::SshState;
 use state::AppState;
 use tauri::{Emitter, Manager};
@@ -39,6 +43,7 @@ pub fn run() {
         .manage(AppState::new(platform))
         .manage(SshState::default())
         .manage(LocalShellState::default())
+        .manage(SpawnerState::default())
         .manage(ConfigState::new())
         .setup(|app| {
             tray::setup_tray(&app.handle())?;
@@ -118,6 +123,21 @@ pub fn run() {
             git_cmds::git_write_file,
             git_cmds::git_diff_content,
             agent_cmds::agent_read_workboard,
+            spawner_cmds::agent_spawn,
+            spawner_cmds::agent_stop,
+            spawner_cmds::agent_list,
+            spawner_cmds::agent_remove,
+            inference_cmds::inference_ollama_status,
+            inference_cmds::inference_ollama_models,
+            inference_cmds::inference_ollama_pull,
+            inference_cmds::inference_ollama_delete,
+            inference_cmds::inference_ollama_start,
+            inference_cmds::inference_ollama_stop,
+            inference_cmds::inference_bitnet_status,
+            inference_cmds::inference_snap_status,
+            inference_cmds::inference_snap_list,
+            inference_cmds::inference_snap_install,
+            inference_cmds::inference_snap_remove,
         ])
         .run(tauri::generate_context!())
         .expect("error while running RevealUI Studio");

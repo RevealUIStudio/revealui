@@ -50,6 +50,7 @@ export type Page =
   | 'git'
   | 'editor'
   | 'agent'
+  | 'inference'
   | 'setup'
   | 'settings'
   | 'deploy';
@@ -81,6 +82,79 @@ export interface AgentSession {
   task: string;
   files: string;
   updated: string;
+}
+
+// ── Agent Spawner ──────────────────────────────────────────────────────────
+
+/** Inference backend for spawned agents */
+export type AgentBackend = 'Snap' | 'BitNet' | 'Ollama';
+
+/** Snapshot of a spawned agent session */
+export interface AgentSessionInfo {
+  id: string;
+  name: string;
+  model: string;
+  backend: AgentBackend;
+  prompt: string;
+  status: 'running' | 'stopped' | 'errored';
+  pid: number | null;
+}
+
+/** Streamed output from an agent process */
+export interface AgentOutputEvent {
+  session_id: string;
+  stream: 'stdout' | 'stderr';
+  line: string;
+}
+
+/** Emitted when an agent process exits */
+export interface AgentExitEvent {
+  session_id: string;
+  code: number | null;
+}
+
+// ── Local Inference ────────────────────────────────────────────────────────
+
+/** Ollama server status */
+export interface OllamaStatus {
+  installed: boolean;
+  running: boolean;
+  version: string | null;
+}
+
+/** An Ollama model available locally */
+export interface OllamaModel {
+  name: string;
+  size: string;
+  modified: string;
+}
+
+/** Result of pulling an Ollama model */
+export interface ModelPullResult {
+  success: boolean;
+  message: string;
+}
+
+/** BitNet inference engine status */
+export interface BitNetStatus {
+  installed: boolean;
+  model_path: string | null;
+}
+
+/** Canonical inference snap status */
+export interface SnapStatus {
+  installed: boolean;
+  running: boolean;
+  snap_name: string;
+  endpoint: string | null;
+  version: string | null;
+}
+
+/** An available inference snap model */
+export interface SnapModel {
+  name: string;
+  description: string;
+  installed: boolean;
 }
 
 /** Deploy wizard step IDs */
