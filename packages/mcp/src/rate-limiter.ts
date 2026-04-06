@@ -107,14 +107,16 @@ export class McpRateLimiter {
 
     const resetMs = config.windowMs - (now - entry.windowStart);
 
-    if (entry.count >= config.maxRequests) {
+    // Atomic check-and-increment: prevents concurrent requests from
+    // all passing a stale count check before any increment lands.
+    const result = await this.store.incrementIfBelow(key, config.maxRequests);
+    if (!result.incremented) {
       return { allowed: false, remaining: 0, limit: config.maxRequests, resetMs };
     }
 
-    const newCount = await this.store.increment(key);
     return {
       allowed: true,
-      remaining: Math.max(0, config.maxRequests - newCount),
+      remaining: Math.max(0, config.maxRequests - result.count),
       limit: config.maxRequests,
       resetMs,
     };

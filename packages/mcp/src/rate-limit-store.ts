@@ -29,6 +29,14 @@ export interface RateLimitStore {
   /** Increment the count for a key. Returns the new count. */
   increment(key: string): Promise<number>;
 
+  /**
+   * Atomically increment count only if below limit.
+   * Returns the new count and whether the increment happened.
+   * This prevents race conditions where concurrent requests all pass
+   * a non-atomic read-check-increment sequence.
+   */
+  incrementIfBelow(key: string, limit: number): Promise<{ count: number; incremented: boolean }>;
+
   /** Remove expired entries older than the given cutoff timestamp. */
   cleanup(cutoffMs: number): Promise<number>;
 
@@ -59,6 +67,17 @@ export class InMemoryRateLimitStore implements RateLimitStore {
     if (!entry) return 0;
     entry.count++;
     return entry.count;
+  }
+
+  async incrementIfBelow(
+    key: string,
+    limit: number,
+  ): Promise<{ count: number; incremented: boolean }> {
+    const entry = this.windows.get(key);
+    if (!entry) return { count: 0, incremented: false };
+    if (entry.count >= limit) return { count: entry.count, incremented: false };
+    entry.count++;
+    return { count: entry.count, incremented: true };
   }
 
   async cleanup(cutoffMs: number): Promise<number> {
@@ -152,6 +171,24 @@ export class PGliteRateLimitStore implements RateLimitStore {
     );
     const row = result.rows[0];
     return row?.count ?? 0;
+  }
+
+  async incrementIfBelow(
+    key: string,
+    limit: number,
+  ): Promise<{ count: number; incremented: boolean }> {
+    await this.ready;
+    const result = await this.db.query<{ count: number }>(
+      `UPDATE _rate_limit_windows SET count = count + 1
+       WHERE key = $1 AND count < $2
+       RETURNING count`,
+      [key, limit],
+    );
+    const row = result.rows[0];
+    if (row) return { count: row.count, incremented: true };
+    // No rows updated — either key missing or limit reached
+    const current = await this.get(key);
+    return { count: current?.count ?? 0, incremented: false };
   }
 
   async cleanup(cutoffMs: number): Promise<number> {

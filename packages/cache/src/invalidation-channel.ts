@@ -80,6 +80,8 @@ export class CacheInvalidationChannel {
   private pollIntervalMs: number;
   private eventTtlSeconds: number;
   private lastSeenTimestamp: number;
+  /** IDs processed at exactly lastSeenTimestamp (prevents re-processing on >= query). */
+  private processedAtBoundary: Set<string> = new Set();
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private ready: Promise<void>;
 
@@ -167,6 +169,8 @@ export class CacheInvalidationChannel {
     await this.ready;
     const logger = getCacheLogger();
 
+    // Use >= to avoid missing events with the same millisecond timestamp.
+    // Deduplication via processedAtBoundary prevents re-processing.
     const result = await this.db.query<{
       id: string;
       type: string;
@@ -178,7 +182,7 @@ export class CacheInvalidationChannel {
     }>(
       `SELECT id, type, keys, prefix, tags, source_instance, created_at
        FROM _cache_invalidation_events
-       WHERE created_at > $1 AND source_instance != $2
+       WHERE created_at >= $1 AND source_instance != $2
        ORDER BY created_at ASC`,
       [this.lastSeenTimestamp, this.instanceId],
     );
@@ -186,10 +190,16 @@ export class CacheInvalidationChannel {
     let applied = 0;
 
     for (const row of result.rows) {
+      // Skip events we already processed at the boundary timestamp
+      if (this.processedAtBoundary.has(row.id)) continue;
+
       const createdAt = Number(row.created_at);
       if (createdAt > this.lastSeenTimestamp) {
+        // Timestamp advanced — clear the old boundary set
         this.lastSeenTimestamp = createdAt;
+        this.processedAtBoundary.clear();
       }
+      this.processedAtBoundary.add(row.id);
 
       try {
         await this.applyEvent(row.type as InvalidationEventType, row);

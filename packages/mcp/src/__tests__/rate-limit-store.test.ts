@@ -60,6 +60,31 @@ function rateLimitStoreSuite(name: string, createStore: () => Promise<RateLimitS
       expect(result).toBe(0);
     });
 
+    // ─── incrementIfBelow ───────────────────────────────────────────
+
+    it('increments when count is below limit', async () => {
+      await store.set('below', { count: 3, windowStart: 1000 });
+      const result = await store.incrementIfBelow('below', 5);
+      expect(result).toEqual({ count: 4, incremented: true });
+    });
+
+    it('refuses to increment when count equals limit', async () => {
+      await store.set('at-limit', { count: 5, windowStart: 1000 });
+      const result = await store.incrementIfBelow('at-limit', 5);
+      expect(result).toEqual({ count: 5, incremented: false });
+    });
+
+    it('refuses to increment when count exceeds limit', async () => {
+      await store.set('over', { count: 10, windowStart: 1000 });
+      const result = await store.incrementIfBelow('over', 5);
+      expect(result).toEqual({ count: 10, incremented: false });
+    });
+
+    it('returns count 0 and incremented false for non-existent key', async () => {
+      const result = await store.incrementIfBelow('missing', 5);
+      expect(result).toEqual({ count: 0, incremented: false });
+    });
+
     // ─── cleanup ──────────────────────────────────────────────────────
 
     it('removes entries older than cutoff', async () => {
