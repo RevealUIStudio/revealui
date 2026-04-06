@@ -1,14 +1,17 @@
 /**
- * Cron: Stale Token Cleanup
+ * Cron: Stale Data Cleanup
  *
  * Deletes expired sessions, rate limits, password reset tokens, magic links,
- * and publishes overdue scheduled pages. Piggybacks on the daily cron dispatcher.
+ * publishes overdue scheduled pages, recovers stuck sagas, and cleans up
+ * expired idempotency keys. Piggybacks on the daily cron dispatcher.
  *
  * Protected by X-Cron-Secret (validated in dispatch.ts).
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { getClient } from '@revealui/db';
 import { cleanupStaleTokens } from '@revealui/db/cleanup';
+import { cleanupExpiredIdempotencyKeys, recoverStaleSagas } from '@revealui/db/saga';
 import { Hono } from 'hono';
 
 const app = new Hono();
@@ -33,7 +36,44 @@ app.post('/cleanup', async (c) => {
       total,
     });
 
-    return c.json({ success: true, ...result, total });
+    // Saga recovery: find stuck sagas and mark them as failed
+    let recoveredSagas = 0;
+    let expiredKeys = 0;
+    try {
+      const db = getClient();
+      const recovered = await recoverStaleSagas(db);
+      recoveredSagas = recovered.length;
+      if (recoveredSagas > 0) {
+        logger.warn('[cron-cleanup] Recovered stuck sagas', {
+          count: recoveredSagas,
+          sagas: recovered.map((s) => ({
+            sagaId: s.sagaId,
+            sagaName: s.sagaName,
+            completedSteps: s.completedSteps,
+          })),
+        });
+      }
+
+      // Clean up expired idempotency keys to prevent table growth
+      expiredKeys = await cleanupExpiredIdempotencyKeys(db);
+      if (expiredKeys > 0) {
+        logger.info('[cron-cleanup] Cleaned up expired idempotency keys', {
+          count: expiredKeys,
+        });
+      }
+    } catch (sagaErr) {
+      // Non-fatal — token cleanup already succeeded
+      const message = sagaErr instanceof Error ? sagaErr.message : String(sagaErr);
+      logger.error(`[cron-cleanup] Saga recovery/cleanup failed: ${message}`);
+    }
+
+    return c.json({
+      success: true,
+      ...result,
+      total,
+      recoveredSagas,
+      expiredIdempotencyKeys: expiredKeys,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     logger.error(`[cron-cleanup] Failed: ${message}`);
