@@ -21,9 +21,14 @@
  * ```
  */
 
-import type { SQL } from 'drizzle-orm';
+import { sql, type SQL } from 'drizzle-orm';
 import type { PgTable, TableConfig } from 'drizzle-orm/pg-core';
 import type { Database } from '../client/index.js';
+
+/** Database client that supports real pg transactions */
+type TransactionalDatabase = Database & {
+  transaction: <T>(fn: (tx: Database) => Promise<T>) => Promise<T>;
+};
 
 // =============================================================================
 // Types
@@ -97,18 +102,32 @@ export async function crdtIncrement(
 // =============================================================================
 
 /**
+ * Detect whether a Database instance supports real transactions (pg Pool).
+ * NeonDB HTTP clients are stateless and cannot hold transaction state.
+ */
+function supportsTransactions(db: Database): db is TransactionalDatabase {
+  return (
+    'transaction' in db &&
+    typeof (db as unknown as Record<string, unknown>).transaction === 'function'
+  );
+}
+
+/**
  * Set a value using last-writer-wins semantics with optimistic concurrency.
  *
- * Reads the current row, checks the `updatedAt` timestamp, and writes the
- * new value only if the timestamp hasn't changed. If another writer updated
- * the row between read and write, retries with the latest state.
+ * When the database client supports transactions (Supabase pg Pool), uses
+ * SELECT FOR UPDATE inside a real transaction for true atomic check-and-set.
  *
- * @param db - Database client
+ * When running on NeonDB HTTP (no transaction support), falls back to a
+ * best-effort single-statement UPDATE — still safe for single-row writes
+ * but without the isolation guarantee of FOR UPDATE.
+ *
+ * @param db - Database client (pg Pool for true locking, NeonDB HTTP for best-effort)
  * @param table - Drizzle table reference
  * @param whereClause - WHERE clause to identify the row
  * @param updates - Object of column→value updates to apply
  * @param timestampColumn - Column name used for optimistic concurrency (default: 'updatedAt')
- * @returns The previous and new values with retry count
+ * @returns Retry count and success status
  */
 export async function crdtSetWithOptimisticLock(
   db: Database,
@@ -117,37 +136,101 @@ export async function crdtSetWithOptimisticLock(
   updates: Record<string, unknown>,
   timestampColumn: string = 'updatedAt',
 ): Promise<{ retries: number; success: boolean }> {
+  // pg Pool path — true transactional SELECT FOR UPDATE
+  if (supportsTransactions(db)) {
+    return crdtSetTransactional(db, table, whereClause, updates, timestampColumn);
+  }
+
+  // NeonDB HTTP fallback — best-effort single-statement update
+  return crdtSetBestEffort(db, table, whereClause, updates, timestampColumn);
+}
+
+/**
+ * True atomic check-and-set via SELECT FOR UPDATE + conditional UPDATE
+ * inside a pg transaction. Retries on serialization failures.
+ */
+async function crdtSetTransactional(
+  db: TransactionalDatabase,
+  table: PgTable<TableConfig>,
+  whereClause: SQL,
+  updates: Record<string, unknown>,
+  timestampColumn: string,
+): Promise<{ retries: number; success: boolean }> {
   let retries = 0;
 
   while (retries < MAX_RETRIES) {
-    // Read current state
-    const rows = await db.select().from(table).where(whereClause).limit(1);
+    try {
+      const success = await db.transaction(async (tx) => {
+        // Lock the row — blocks concurrent writers until this tx commits
+        const rows = await tx.select().from(table).where(whereClause).for('update').limit(1);
 
-    if (rows.length === 0) {
-      throw new Error('CRDT set: row not found');
+        if (rows.length === 0) {
+          throw new Error('CRDT set: row not found');
+        }
+
+        const row = rows[0] as Record<string, unknown>;
+        const currentTimestamp = row[timestampColumn];
+
+        // Write with new timestamp
+        const newTimestamp = new Date();
+        const result = await tx
+          .update(table)
+          .set({
+            ...updates,
+            [timestampColumn]: newTimestamp,
+          } as Record<string, unknown>)
+          .where(sql`${whereClause} AND ${sql.identifier(timestampColumn)} = ${currentTimestamp}`)
+          .returning();
+
+        return result.length > 0;
+      });
+
+      if (success) {
+        return { retries, success: true };
+      }
+
+      retries++;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      // Row not found is a hard error, not a retry scenario
+      if (message === 'CRDT set: row not found') throw error;
+      // Serialization/deadlock failures are retryable
+      retries++;
+      if (retries >= MAX_RETRIES) {
+        return { retries, success: false };
+      }
     }
-
-    // Attempt update with new timestamp
-    const newTimestamp = new Date();
-    const result = await db
-      .update(table)
-      .set({
-        ...updates,
-        [timestampColumn]: newTimestamp,
-      } as Record<string, unknown>)
-      .where(whereClause)
-      .returning();
-
-    // If rows were updated, we succeeded
-    // (NeonDB HTTP doesn't support conditional WHERE on timestamp in a single
-    //  atomic check-and-set, so we rely on the fact that the write is a single
-    //  statement. For true OCC, use Supabase pg Pool with SELECT FOR UPDATE.)
-    if (result.length > 0) {
-      return { retries, success: true };
-    }
-
-    retries++;
   }
 
   return { retries, success: false };
+}
+
+/**
+ * Best-effort single-statement UPDATE for NeonDB HTTP.
+ * No true isolation — relies on the write being a single atomic statement.
+ */
+async function crdtSetBestEffort(
+  db: Database,
+  table: PgTable<TableConfig>,
+  whereClause: SQL,
+  updates: Record<string, unknown>,
+  timestampColumn: string,
+): Promise<{ retries: number; success: boolean }> {
+  const rows = await db.select().from(table).where(whereClause).limit(1);
+
+  if (rows.length === 0) {
+    throw new Error('CRDT set: row not found');
+  }
+
+  const newTimestamp = new Date();
+  const result = await db
+    .update(table)
+    .set({
+      ...updates,
+      [timestampColumn]: newTimestamp,
+    } as Record<string, unknown>)
+    .where(whereClause)
+    .returning();
+
+  return { retries: 0, success: result.length > 0 };
 }

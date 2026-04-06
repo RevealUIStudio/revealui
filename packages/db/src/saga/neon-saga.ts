@@ -232,22 +232,14 @@ async function checkIdempotency(
 ): Promise<boolean> {
   try {
     const rows = await db
-      .select({ key: idempotencyKeys.key })
+      .select({ key: idempotencyKeys.key, expiresAt: idempotencyKeys.expiresAt })
       .from(idempotencyKeys)
       .where(eq(idempotencyKeys.key, key))
       .limit(1);
 
     if (rows.length === 0) return false;
 
-    // Check expiry — if expiresAt is set and in the past, treat as not processed
-    // (We only selected key, so do a full read if needed)
-    const fullRows = await db
-      .select({ expiresAt: idempotencyKeys.expiresAt })
-      .from(idempotencyKeys)
-      .where(eq(idempotencyKeys.key, key))
-      .limit(1);
-
-    const expiresAt = fullRows[0]?.expiresAt;
+    const expiresAt = rows[0]?.expiresAt;
     if (expiresAt && expiresAt < new Date()) {
       // Expired — delete and treat as not processed
       await db.delete(idempotencyKeys).where(eq(idempotencyKeys.key, key));
