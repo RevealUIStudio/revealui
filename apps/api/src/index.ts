@@ -1,15 +1,9 @@
 import { serve } from '@hono/node-server';
 import { swaggerUI } from '@hono/swagger-ui';
 import { initializeLicense } from '@revealui/core/license';
-import {
-  alerting,
-  consoleChannel,
-  createDatabaseAlert,
-  createMemoryUsageAlert,
-} from '@revealui/core/observability/alerts';
 import { logger } from '@revealui/core/observability/logger';
 import { audit, SecurityHeaders, SecurityPresets } from '@revealui/core/security';
-import { checkDatabaseHealth, closeAllPools, getClient } from '@revealui/db';
+import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
 import { sites, users } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
@@ -49,7 +43,6 @@ import provenanceRoute from './routes/code-provenance.js';
 import { createCollabRoute } from './routes/collab.js';
 import contentRoute from './routes/content/index.js';
 import cronBillingReadinessRoute from './routes/cron/billing-readiness.js';
-import cronCleanupRoute from './routes/cron/cleanup.js';
 import cronDispatchRoute from './routes/cron/dispatch.js';
 import cronMarketplacePayoutsRoute from './routes/cron/marketplace-payouts.js';
 import cronPublishRoute from './routes/cron/publish-scheduled.js';
@@ -774,7 +767,6 @@ app.route('/api/cron', cronDispatchRoute);
 app.route('/api/cron', cronMarketplacePayoutsRoute);
 app.route('/api/cron', cronPublishRoute);
 app.route('/api/cron', cronSweepGraceRoute);
-app.route('/api/cron', cronCleanupRoute);
 app.route('/api/ghcr', ghcrRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
@@ -810,7 +802,6 @@ app.route('/api/v1/cron', cronDispatchRoute);
 app.route('/api/v1/cron', cronMarketplacePayoutsRoute);
 app.route('/api/v1/cron', cronPublishRoute);
 app.route('/api/v1/cron', cronSweepGraceRoute);
-app.route('/api/v1/cron', cronCleanupRoute);
 app.route('/api/v1/ghcr', ghcrRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
@@ -857,29 +848,6 @@ function validateStartup(): void {
   }
 }
 
-// Alerting — register channels and rules, start periodic evaluation.
-// Runs in both dev and prod. Console channel always active.
-function initAlerting(): void {
-  alerting.addChannel(consoleChannel);
-
-  alerting.registerRule(
-    createMemoryUsageAlert(() => {
-      const mem = process.memoryUsage();
-      return Math.round((mem.heapUsed / mem.heapTotal) * 100);
-    }, 85),
-  );
-
-  alerting.registerRule(
-    createDatabaseAlert(async () => {
-      const result = await checkDatabaseHealth();
-      return result.healthy;
-    }),
-  );
-
-  alerting.startMonitoring(60_000);
-  logger.info('Alerting system started (60s interval)');
-}
-
 // RVUI price oracle — start polling when Jupiter API key is configured.
 // Runs in both dev and prod. Safe no-op if JUPITER_API_KEY is unset.
 // Uses dynamic import to avoid hard dependency on @revealui/services build.
@@ -913,7 +881,6 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
       );
     });
   initPriceOracle();
-  initAlerting();
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
   serve({ fetch: app.fetch, port });
   logger.info(`🚀 API server running on http://localhost:${port}`);
@@ -937,5 +904,4 @@ if (process.env.NODE_ENV === 'production') {
       );
     });
   initPriceOracle();
-  initAlerting();
 }

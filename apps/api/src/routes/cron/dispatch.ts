@@ -17,7 +17,6 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { Hono } from 'hono';
 import billingReadinessApp from './billing-readiness.js';
-import cleanupApp from './cleanup.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
@@ -36,7 +35,6 @@ const JOBS = [
   { name: 'publish-scheduled', app: publishScheduledApp, path: '/publish-scheduled' },
   { name: 'sweep-grace-periods', app: sweepGracePeriodsApp, path: '/sweep-grace-periods' },
   { name: 'marketplace-payouts', app: marketplacePayoutsApp, path: '/marketplace-payouts' },
-  { name: 'cleanup', app: cleanupApp, path: '/cleanup' },
 ] as const;
 
 app.post('/dispatch', async (c) => {
