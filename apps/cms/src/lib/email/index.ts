@@ -342,9 +342,15 @@ function getEmailProvider(): EmailProvider {
     return new SMTPProvider();
   }
 
-  // 4. No provider — use mock (logs instead of sending)
-  logger.warn('No email provider configured — emails will be logged, not sent.');
-  return new MockEmailProvider();
+  // 4. No provider — warn and return a provider that reports failure
+  //    so auth flows surface delivery errors instead of silently succeeding.
+  logger.warn('No email provider configured — emails will not be sent.');
+  if (process.env.NODE_ENV === 'development') {
+    return new MockEmailProvider();
+  }
+  return {
+    send: async () => ({ success: false, error: 'No email provider configured' }),
+  };
 }
 
 // ---------------------------------------------------------------------------
