@@ -21,8 +21,9 @@ Complete guide for setting up and using Model Context Protocol (MCP) servers in 
 
 ## Overview
 
-RevealUI includes 6 MCP servers for enhanced AI capabilities:
+RevealUI includes 7 MCP servers for enhanced AI capabilities:
 
+- **Code Validator MCP** - Static analysis and code quality checks
 - **Vercel MCP** - Deploy and manage Vercel projects
 - **Stripe MCP** - Payment processing and billing operations
 - **NeonDB MCP** - Database operations and SQL queries

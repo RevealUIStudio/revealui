@@ -489,13 +489,17 @@ app.openapi(checkoutRoute, async (c) => {
   }
   const customerId = await ensureStripeCustomer(user.id, user.email);
 
-  // Prevent duplicate subscriptions — a user with an active subscription must use upgrade instead
+  // Prevent duplicate subscriptions — a user with an active, trialing, or incomplete subscription
+  // must use upgrade instead. Checking only 'active' previously allowed duplicates when the first
+  // subscription was still trialing or had an incomplete initial payment.
   const existingSubs = await withStripe((stripe) =>
-    stripe.subscriptions.list({ customer: customerId, status: 'active', limit: 1 }),
+    stripe.subscriptions.list({ customer: customerId, limit: 5 }),
   );
-  if (existingSubs.data.length > 0) {
+  const blockingStatuses = new Set(['active', 'trialing', 'incomplete', 'past_due']);
+  const blockingSub = existingSubs.data.find((s) => blockingStatuses.has(s.status));
+  if (blockingSub) {
     throw new HTTPException(409, {
-      message: 'You already have an active subscription. Use the upgrade route to change tiers.',
+      message: `You already have a subscription (status: ${blockingSub.status}). Use the upgrade route to change tiers.`,
     });
   }
 
@@ -1492,7 +1496,7 @@ app.openapi(supportRenewalRoute, async (c) => {
 
 // POST /api/billing/report-agent-overage — Internal cron: report agent task overage to Stripe Billing Meters.
 // Reads the previous billing cycle's overage from agent_task_usage and emits Stripe meter events.
-// Protected by X-Cron-Secret header. Skips silently if STRIPE_AGENT_METER_EVENT_NAME is not set.
+// Protected by X-Cron-Secret header. Defaults to "agent_task_overage" if STRIPE_AGENT_METER_EVENT_NAME is not set.
 const reportOverageRoute = createRoute({
   method: 'post',
   path: '/report-agent-overage',
@@ -1527,10 +1531,9 @@ app.openapi(reportOverageRoute, async (c) => {
     throw new HTTPException(401, { message: 'Unauthorized' });
   }
 
-  const meterEventName = process.env.STRIPE_AGENT_METER_EVENT_NAME;
-  if (!meterEventName) {
-    // Not configured yet — skip silently (owner action required to create Stripe Billing Meter)
-    return c.json({ reported: 0, skipped: 0 }, 200);
+  const meterEventName = process.env.STRIPE_AGENT_METER_EVENT_NAME ?? 'agent_task_overage';
+  if (!process.env.STRIPE_AGENT_METER_EVENT_NAME) {
+    logger.warn('STRIPE_AGENT_METER_EVENT_NAME not set — using default "agent_task_overage"');
   }
 
   const db = getClient();
@@ -1570,7 +1573,13 @@ app.openapi(reportOverageRoute, async (c) => {
         timestamp: getMeterEventTimestamp(prevCycle),
       });
       reported++;
-    } catch {
+    } catch (err) {
+      logger.error('Stripe meter event creation failed', err instanceof Error ? err : undefined, {
+        userId: row.userId,
+        stripeCustomerId: row.stripeCustomerId,
+        overage: row.overage,
+        meterEventName,
+      });
       skipped++;
     }
   }

@@ -243,12 +243,24 @@ jobs:
           # API-specific: billing, email, webhooks, cron
           API_VARS="STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET REVEALUI_CRON_SECRET REVEALUI_LICENSE_PRIVATE_KEY REVEALUI_KEK"
 
-          # Email provider (at least one required for transactional emails)
-          EMAIL_VARS="RESEND_API_KEY"
+          # Email: Gmail service account (primary) or Resend (fallback)
+          EMAIL_VARS="GOOGLE_SERVICE_ACCOUNT_EMAIL GOOGLE_PRIVATE_KEY"
 
           REQUIRED="$CORE_VARS"
           if [ "${{ matrix.app }}" = "api" ]; then
-            REQUIRED="$CORE_VARS $API_VARS $EMAIL_VARS"
+            REQUIRED="$CORE_VARS $API_VARS"
+            # Check for at least one email provider
+            HAS_GMAIL=false
+            HAS_RESEND=false
+            if echo "$ENV_OUTPUT" | grep -q "GOOGLE_SERVICE_ACCOUNT_EMAIL" && echo "$ENV_OUTPUT" | grep -q "GOOGLE_PRIVATE_KEY"; then
+              HAS_GMAIL=true
+            fi
+            if echo "$ENV_OUTPUT" | grep -q "RESEND_API_KEY"; then
+              HAS_RESEND=true
+            fi
+            if [ "$HAS_GMAIL" = "false" ] && [ "$HAS_RESEND" = "false" ]; then
+              echo "::warning::No email provider configured — emails will be logged, not sent. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY when ready."
+            fi
           fi
 
           for VAR in $REQUIRED; do

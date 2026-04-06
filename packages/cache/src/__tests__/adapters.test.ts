@@ -5,7 +5,7 @@
  * PGlite tests use in-memory mode — no external database required.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { InMemoryCacheStore } from '../adapters/memory.js';
 import type { CacheStore } from '../adapters/types.js';
 
@@ -212,23 +212,31 @@ if (pgliteAvailable) {
   const { PGlite } = await import('@electric-sql/pglite');
   const { PGliteCacheStore } = await import('../adapters/pglite.js');
 
+  // Share a single PGlite instance across all PGlite tests to avoid
+  // repeated ~3-5s init overhead that causes CI timeouts.
+  const sharedDb = new PGlite();
+
+  afterAll(async () => {
+    await sharedDb.close();
+  });
+
   cacheStoreSuite('PGliteCacheStore', async () => {
-    const db = new PGlite();
-    return new PGliteCacheStore({ db, closeOnDestroy: true });
+    const store = new PGliteCacheStore({ db: sharedDb, closeOnDestroy: false });
+    await store.clear();
+    return store;
   });
 
   describe('PGliteCacheStore — SQL-specific', () => {
     it('handles special characters in keys', async () => {
-      const db = new PGlite();
-      const store = new PGliteCacheStore({ db, closeOnDestroy: true });
+      const store = new PGliteCacheStore({ db: sharedDb, closeOnDestroy: false });
       await store.set('key\'with"quotes', 'val', 60);
       expect(await store.get('key\'with"quotes')).toBe('val');
       await store.close();
     });
 
     it('handles LIKE wildcards in deleteByPrefix safely', async () => {
-      const db = new PGlite();
-      const store = new PGliteCacheStore({ db, closeOnDestroy: true });
+      const store = new PGliteCacheStore({ db: sharedDb, closeOnDestroy: false });
+      await store.clear();
       await store.set('100%_done', 'a', 60);
       await store.set('100_other', 'b', 60);
       // Should only delete the key starting with '100%_'
@@ -239,8 +247,8 @@ if (pgliteAvailable) {
     });
 
     it('handles backslashes in deleteByPrefix safely', async () => {
-      const db = new PGlite();
-      const store = new PGliteCacheStore({ db, closeOnDestroy: true });
+      const store = new PGliteCacheStore({ db: sharedDb, closeOnDestroy: false });
+      await store.clear();
       await store.set('path\\to\\file:1', 'a', 60);
       await store.set('path\\to\\file:2', 'b', 60);
       await store.set('path\\other', 'c', 60);

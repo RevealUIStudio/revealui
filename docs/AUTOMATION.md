@@ -539,34 +539,39 @@ The agent has access to extensive automation scripts in `/scripts`:
 
 ### Configured MCP Servers
 
-The agent has access to **6 MCP servers** configured specifically for RevealUI:
+The agent has access to **7 MCP servers** configured specifically for RevealUI:
 
-1. **Vercel MCP** (`mcp-vercel`)
+1. **Code Validator MCP** (`mcp-code-validator`)
+   - Static analysis and code quality checks
+   - Lint rule validation
+   - Type checking
+
+2. **Vercel MCP** (`mcp-vercel`)
    - Deployment management
    - Project configuration
    - Environment variable access
 
-2. **Stripe MCP** (`mcp-stripe`)
+3. **Stripe MCP** (`mcp-stripe`)
    - Payment processing
    - Customer management
    - Webhook handling
 
-3. **Neon MCP** (`mcp-neon`)
+4. **Neon MCP** (`mcp-neon`)
    - Database management
    - Connection testing
    - Migration tools
 
-4. **Supabase MCP** (`mcp-supabase`)
+5. **Supabase MCP** (`mcp-supabase`)
    - Supabase project management
    - Auth configuration
    - Database operations
 
-5. **Playwright MCP** (`mcp-playwright`)
+6. **Playwright MCP** (`mcp-playwright`)
    - E2E testing automation
    - Browser automation
    - Test execution
 
-6. **Next.js DevTools MCP** (`mcp-next-devtools`)
+7. **Next.js DevTools MCP** (`mcp-next-devtools`)
    - Next.js debugging
    - Development tooling
    - Performance analysis

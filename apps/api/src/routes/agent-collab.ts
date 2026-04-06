@@ -215,9 +215,9 @@ export function createAgentCollabRoute(): OpenAPIHono<{ Variables: Variables }> 
         documentId,
         textLength,
       });
-    } catch (err) {
+    } catch {
       throw new HTTPException(500, {
-        message: err instanceof Error ? err.message : 'Unknown error',
+        message: 'Collaboration edit failed',
       });
     }
   });

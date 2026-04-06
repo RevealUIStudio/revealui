@@ -159,7 +159,7 @@ describe('rag-index routes', () => {
       expect(res.status).toBe(502);
       const body = await parseBody(res);
       expect(body.success).toBe(false);
-      expect(body.error).toContain('CMS fetch error: ECONNREFUSED');
+      expect(body.error).toBe('CMS fetch error: upstream service unavailable');
     });
 
     it('returns 502 when CMS fetch throws a non-Error object', async () => {
@@ -173,7 +173,7 @@ describe('rag-index routes', () => {
 
       expect(res.status).toBe(502);
       const body = await parseBody(res);
-      expect(body.error).toContain('CMS fetch error: timeout');
+      expect(body.error).toBe('CMS fetch error: upstream service unavailable');
     });
 
     it('returns 403 when AI packages are unavailable (CMS returns empty docs)', async () => {

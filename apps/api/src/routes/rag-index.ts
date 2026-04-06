@@ -127,11 +127,11 @@ app.openapi(
 
       const data = (await res.json()) as { docs?: typeof documents };
       documents = data.docs ?? [];
-    } catch (error) {
+    } catch {
       return c.json(
         {
           success: false,
-          error: `CMS fetch error: ${error instanceof Error ? error.message : String(error)}`,
+          error: 'CMS fetch error: upstream service unavailable',
         },
         502,
       );
