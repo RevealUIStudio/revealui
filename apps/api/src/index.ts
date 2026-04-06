@@ -1,11 +1,18 @@
 import { serve } from '@hono/node-server';
 import { swaggerUI } from '@hono/swagger-ui';
 import { initializeLicense } from '@revealui/core/license';
+import {
+  alerting,
+  consoleChannel,
+  createDatabaseAlert,
+  createMemoryUsageAlert,
+} from '@revealui/core/observability/alerts';
 import { logger } from '@revealui/core/observability/logger';
 import { audit, SecurityHeaders, SecurityPresets } from '@revealui/core/security';
 import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
 import { sites, users } from '@revealui/db/schema';
+import { sql } from 'drizzle-orm';
 import { OpenAPIHono } from '@revealui/openapi';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
@@ -848,6 +855,36 @@ function validateStartup(): void {
   }
 }
 
+// Alerting — register channels and rules, start periodic evaluation.
+// Runs in both dev and prod. Console channel always active.
+let monitoringInterval: NodeJS.Timeout | undefined;
+
+function initAlerting(): void {
+  alerting.addChannel(consoleChannel);
+
+  alerting.registerRule(
+    createMemoryUsageAlert(() => {
+      const mem = process.memoryUsage();
+      return Math.round((mem.heapUsed / mem.heapTotal) * 100);
+    }, 85),
+  );
+
+  alerting.registerRule(
+    createDatabaseAlert(async () => {
+      try {
+        const db = getClient();
+        await db.execute(sql`SELECT 1`);
+        return true;
+      } catch {
+        return false;
+      }
+    }),
+  );
+
+  monitoringInterval = alerting.startMonitoring(60_000);
+  logger.info('Alerting system started (60s interval)');
+}
+
 // RVUI price oracle — start polling when Jupiter API key is configured.
 // Runs in both dev and prod. Safe no-op if JUPITER_API_KEY is unset.
 // Uses dynamic import to avoid hard dependency on @revealui/services build.
@@ -881,6 +918,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
       );
     });
   initPriceOracle();
+  initAlerting();
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
   serve({ fetch: app.fetch, port });
   logger.info(`🚀 API server running on http://localhost:${port}`);
@@ -904,4 +942,5 @@ if (process.env.NODE_ENV === 'production') {
       );
     });
   initPriceOracle();
+  initAlerting();
 }
