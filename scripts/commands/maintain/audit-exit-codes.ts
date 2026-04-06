@@ -301,7 +301,7 @@ export function auditExitCodes(
   const files = glob.sync('scripts/**/*.ts', {
     cwd: rootDir,
     absolute: true,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.ts', '**/*.spec.ts'],
+    ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.ts', '**/*.spec.ts', '**/opensrc/**'],
   });
 
   if (verbose) {
