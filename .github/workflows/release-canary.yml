@@ -75,6 +75,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Regenerate lockfile after version bump
+        if: steps.changesets.outputs.count != '0'
+        run: pnpm install --no-frozen-lockfile
+
       - name: Build all packages
         if: steps.changesets.outputs.count != '0'
         run: pnpm build --concurrency=4
