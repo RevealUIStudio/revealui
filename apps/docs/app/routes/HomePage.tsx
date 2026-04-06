@@ -51,7 +51,7 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 ### Pro & Enterprise
 - [Pro documentation](/docs/PRO) — MCP servers, open-model inference, editor integrations
 - [Forge (Enterprise)](/docs/FORGE) — Unlimited sites, users, and AI tasks
-- [Local-First Setup](/docs/LOCAL_FIRST) — BitNet + RevVault + Nix: run the full stack on your own hardware
+- [Local-First Setup](/docs/LOCAL_FIRST) — Inference Snaps + RevVault + Nix: run the full stack on your own hardware
 
 ### Blog
 - [Why We Built RevealUI](/docs/blog/01-why-we-built-revealui) — The problem we're solving

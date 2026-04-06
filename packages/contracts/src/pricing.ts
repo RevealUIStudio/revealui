@@ -60,7 +60,7 @@ export const TIER_COLORS: Record<LicenseTierId, string> = {
 // =============================================================================
 
 export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
-  aiLocal: 'Local AI (BitNet)',
+  aiLocal: 'Local AI (Inference Snaps, BitNet)',
   ai: 'AI Agents',
   aiMemory: 'AI Memory',
   mcp: 'MCP Framework',

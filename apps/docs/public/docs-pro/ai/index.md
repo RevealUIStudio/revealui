@@ -22,14 +22,19 @@ pnpm add @revealui/ai
 
 ## Quick start
 
+Install a model via Ubuntu Inference Snaps (recommended):
+
+```bash
+sudo snap install nemotron-3-nano   # general-purpose, low resource
+# or: sudo snap install gemma3      # general + vision
+```
+
 ```typescript
 import { createAgent } from '@revealui/ai'
 import { createLLMClient } from '@revealui/ai/llm'
 
-const llm = createLLMClient({
-  provider: 'ollama',
-  model: 'llama3.2:3b',
-})
+// Auto-detects inference-snaps when running locally
+const llm = createLLMClient()
 
 const agent = createAgent({
   name: 'my-agent',
@@ -64,7 +69,7 @@ const memory = {
 
 | Path | Chat | Embeddings | Notes |
 |------|------|-----------|-------|
-| Ubuntu Inference Snaps | Yes | Depends on model | Canonical snap runtime — Gemma3, DeepSeek-R1, etc. |
+| **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime — hardware-aware, single command install |
 | BitNet | Yes | No | 1-bit quantized, CPU-only, ~700 MB RAM |
 | Ollama | Yes | Yes | Any open source GGUF model, local inference |
 | HuggingFace | Yes | Yes | Open models via HuggingFace Inference API |
@@ -87,7 +92,11 @@ const task = await client.sendTask({ message: 'Process this document.' })
 
 ## Open-Model Inference
 
-All inference runs on open source models — no proprietary cloud APIs. See the [inference guide](/pro/inference) for setup details.
+All inference runs on open source models — no proprietary cloud APIs. The recommended backend is **Ubuntu Inference Snaps** from Canonical — one command install, hardware-optimized, OpenAI-compatible.
+
+```bash
+sudo snap install nemotron-3-nano   # free tier default
+```
 
 ```typescript
 import { createLLMClient } from '@revealui/ai/llm'
@@ -95,3 +104,5 @@ import { createLLMClient } from '@revealui/ai/llm'
 // Auto-detects from environment (snaps > BitNet > Ollama)
 const llm = createLLMClient()
 ```
+
+See the [inference guide](/pro/byok) for full setup and all providers.

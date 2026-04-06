@@ -5,6 +5,7 @@ import Modal from '../ui/Modal';
 import {
   DevPodRow,
   GitIdentityRow,
+  InferenceSnapsRow,
   NixRow,
   ProjectSetupRow,
   TailscaleRow,
@@ -62,6 +63,7 @@ export default function SetupWizard({ onClose }: SetupWizardProps) {
         <GitIdentityRow setup={setup} />
         <VaultRow />
         <TailscaleRow />
+        <InferenceSnapsRow />
         <ProjectSetupRow />
         <TerminalProfileRow />
       </div>

@@ -5,7 +5,13 @@ const COPY_FEEDBACK_MS = 2_000;
 
 import type { useSetup } from '../../hooks/use-setup';
 import { useTunnel } from '../../hooks/use-tunnel';
-import { vaultInit, vaultIsInitialized } from '../../lib/invoke';
+import type { SnapModel } from '../../types';
+import {
+  inferenceSnapInstall,
+  inferenceSnapList,
+  vaultInit,
+  vaultIsInitialized,
+} from '../../lib/invoke';
 import Button from '../ui/Button';
 import ErrorAlert from '../ui/ErrorAlert';
 import Input from '../ui/Input';
@@ -342,6 +348,122 @@ export function TerminalProfileRow() {
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Inference Snaps ─────────────────────────────────────────────────────────
+
+function useInferenceSnaps() {
+  const [models, setModels] = useState<SnapModel[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [installing, setInstalling] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const list = await inferenceSnapList();
+      setModels(list);
+    } catch {
+      setModels([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const install = async (snapName: string) => {
+    setInstalling(snapName);
+    setError(null);
+    try {
+      const result = await inferenceSnapInstall(snapName);
+      if (!result.success) {
+        setError(result.message);
+      }
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setInstalling(null);
+    }
+  };
+
+  const hasAnyInstalled = models.some((m) => m.installed);
+
+  return { models, loading, installing, error, install, hasAnyInstalled };
+}
+
+export function InferenceSnapsRow() {
+  const { models, loading, installing, error, install, hasAnyInstalled } = useInferenceSnaps();
+  const [copied, setCopied] = useState(false);
+  const installCmd = 'sudo snap install nemotron-3-nano';
+
+  const copyCmd = async () => {
+    await navigator.clipboard.writeText(installCmd);
+    setCopied(true);
+    setTimeout(() => setCopied(false), COPY_FEEDBACK_MS);
+  };
+
+  return (
+    <div className="rounded-lg border border-neutral-800 bg-neutral-900 px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <StatusDot status={hasAnyInstalled ? 'ok' : 'off'} size="md" />
+          <span className="text-sm font-medium">AI Inference</span>
+        </div>
+      </div>
+      <p className="mt-1 text-xs text-neutral-500">
+        {loading
+          ? 'Detecting inference snaps...'
+          : hasAnyInstalled
+            ? `${models.filter((m) => m.installed).length} model${models.filter((m) => m.installed).length === 1 ? '' : 's'} installed via Ubuntu Inference Snaps`
+            : 'No inference snaps detected. Install one for local AI inference (recommended: nemotron-3-nano).'}
+      </p>
+
+      {!loading && (
+        <div className="mt-3 space-y-2">
+          {models.map((model) => (
+            <div
+              key={model.name}
+              className="flex items-center justify-between rounded border border-neutral-700 bg-neutral-800/50 px-3 py-2"
+            >
+              <div>
+                <span className="text-sm font-medium text-neutral-200">{model.name}</span>
+                <p className="text-xs text-neutral-500">{model.description}</p>
+              </div>
+              {model.installed ? (
+                <span className="text-xs font-medium text-green-400">Installed</span>
+              ) : (
+                <Button
+                  size="sm"
+                  onClick={() => install(model.name)}
+                  loading={installing === model.name}
+                  disabled={installing !== null}
+                >
+                  Install
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!hasAnyInstalled && !loading && (
+        <div className="mt-2 flex items-center gap-2">
+          <code className="rounded bg-neutral-800 px-2 py-1 font-mono text-xs text-neutral-300">
+            {installCmd}
+          </code>
+          <Button variant="ghost" size="sm" onClick={copyCmd}>
+            {copied ? 'Copied!' : 'Copy'}
+          </Button>
+        </div>
+      )}
+
+      <ErrorAlert message={error} />
     </div>
   );
 }

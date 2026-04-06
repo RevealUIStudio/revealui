@@ -118,7 +118,7 @@ export function HeroSection() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500">
             {[
               'MIT Licensed (OSS)',
-              'Local AI (BitNet + Ollama)',
+              'Local AI (Inference Snaps)',
               'No Vendor Lock-in',
               'Studio Desktop App',
             ].map((item) => (
