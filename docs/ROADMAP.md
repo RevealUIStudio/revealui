@@ -28,7 +28,7 @@ This roadmap reflects our current priorities and planned direction. It is update
 - **CLI** — `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents** — A2A protocol, CRDT memory, open-model inference, streaming, tool execution
 - **MCP servers** — 5 production servers (Stripe, Neon, Supabase, Vercel, Playwright)
-- **Desktop app** — Tauri 2 + React 19 companion (vault, tunnel, infrastructure, sync)
+- **Desktop app** — Tauri 2 + React 19 native AI experience (agent hub, local inference, vault, tunnel)
 - **Security** — CSP, CORS, HSTS, AES-256-GCM encryption, timing-safe TOTP, GDPR framework, 187 security tests
 - **CI/CD** — 3-phase gate (lint + typecheck + test + build), CodeQL, Gitleaks, OIDC npm publishing
 - **Accessibility** — WCAG 2.1 AA compliance on marketing site and CMS login/admin pages

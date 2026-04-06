@@ -110,7 +110,7 @@ revealui/
 │   ├── docs/           # Documentation site (Vite + React)
 │   ├── mainframe/      # Hono SSR + React demo/showcase app
 │   ├── marketing/      # Marketing + waitlist (Next.js)
-│   └── studio/         # Desktop companion app (Tauri 2 + React 19)
+│   └── studio/         # Native AI experience (Tauri 2 + React 19)
 ├── packages/
 │   ├── auth/           # Session auth, rate limiting
 │   ├── cli/            # create-revealui scaffolding

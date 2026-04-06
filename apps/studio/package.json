@@ -1,7 +1,7 @@
 {
   "name": "@revealui/studio",
   "version": "0.1.0",
-  "description": "Desktop companion app for RevealUI (Tauri 2 + React 19)",
+  "description": "Native AI experience — agent coordination hub, local inference management, visual agent dashboard (Tauri 2 + React 19)",
   "private": true,
   "dependencies": {
     "@codemirror/lang-css": "^6.0.0",

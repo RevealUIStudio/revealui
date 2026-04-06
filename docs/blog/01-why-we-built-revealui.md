@@ -247,7 +247,7 @@ I want to be honest about where RevealUI is and isn't the right choice.
 
 The repository is public on GitHub. The docs site is live at [docs.revealui.com](https://docs.revealui.com). The `create-revealui` CLI is on npm. You can stand up a full RevealUI instance today.
 
-The Studio desktop companion (Tauri + React) and a terminal client (Go + Bubble Tea) are already in the monorepo — giving you both a visual DevPod manager and a TUI for API access, QR checkout, and SSH fingerprint lookup.
+Studio (Tauri + React) is the native AI experience — agent coordination hub, local inference management, and visual dashboard. The terminal client (Go + Bubble Tea) gives you a TUI for API access, QR checkout, and SSH fingerprint lookup.
 
 The near-term roadmap includes MCP server registry listings, A2A agent discovery for RevealUI-to-RevealUI communication, a broader template library, and the template marketplace where developers can publish and sell project starters. The community forum is at [revnation.discourse.group](https://revnation.discourse.group) — join early and help shape what gets built next.
 

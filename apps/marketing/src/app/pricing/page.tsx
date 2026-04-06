@@ -72,7 +72,12 @@ const faqs = [
   {
     question: 'How does AI inference work?',
     answer:
-      'RevealUI runs AI on open models only — no proprietary cloud APIs, no vendor lock-in, no API bills. Supported inference paths: Ubuntu inference snaps (Canonical), BitNet (1-bit quantized, CPU-only), and any open source model via the RevealUI harness. Your models run on your hardware, fully sovereign.',
+      'RevealUI runs AI on open models only — no proprietary cloud APIs, no vendor lock-in, no API bills. Supported inference paths: BitNet (1-bit quantized, CPU-only), Ollama (local), and cloud-hosted open models via the RevealUI harness (Pro). Studio provides the visual dashboard for managing inference, agent lifecycle, and coordination.',
+  },
+  {
+    question: 'What is Studio?',
+    answer:
+      'Studio is the native AI experience — a Tauri desktop app that orchestrates agents, manages local BitNet and Ollama inference, and provides a visual dashboard for multi-agent coordination. Available on Pro tier and above.',
   },
   {
     question: 'What does "full source code access" mean?',

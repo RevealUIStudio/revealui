@@ -183,7 +183,7 @@ pnpm bitnet:serve
 pnpm dev:app
 ```
 
-Or use the Studio desktop companion to manage services from a system tray interface.
+Or use Studio to manage services, agents, and local inference from a native desktop interface.
 
 ## Verifying local inference
 

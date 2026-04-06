@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 license = "LicenseRef-RevealUI-Commercial"
 authors = ["RevealUI Studio <noreply@revealui.com>"]
-description = "RevealUI Studio — Tauri desktop companion for the portable dev environment"
+description = "RevealUI Studio — native AI experience: agent coordination hub, local inference management"
 
 [lib]
 name = "studio_lib"

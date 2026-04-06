@@ -96,7 +96,7 @@ Near-term priorities:
 - **Deployment guides** for Vercel, Railway, Fly.io, and self-hosted Docker
 - **Plugin system** for extending collections and routes without forking
 - **Dashboard analytics** for content, users, and revenue
-- **Mobile-first admin** via the Studio companion app
+- **Mobile-first admin** via the Studio native AI experience
 
 The codebase is on GitHub. The documentation is at docs.revealui.com. If you have questions, the fastest path is a GitHub Discussion or the community forum.
 

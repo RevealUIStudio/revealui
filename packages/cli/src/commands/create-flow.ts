@@ -83,7 +83,7 @@ function printPostCreateSummary(projectName: string): void {
   logger.info(`    ./${projectName}/README.md  — getting started guide`);
   logger.info('');
   logger.info('  RevealUI ecosystem:');
-  logger.info('    Studio:   Desktop companion for managing your dev environment');
+  logger.info('    Studio:   Native AI experience — agent hub, local inference, dev environment');
   logger.info('    Terminal: TUI client — run `revealui terminal install`');
   logger.info('    CMS:      Admin dashboard at your-domain.com/admin');
   logger.info('');

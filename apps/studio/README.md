@@ -1,6 +1,6 @@
 # RevealUI Studio
 
-Desktop companion app — DevPod manager, app launcher, secret vault, tunnel manager, and first-run wizard.
+Native AI experience — agent coordination hub, local inference management, visual agent dashboard, DevPod manager, and secret vault.
 
 Built with Tauri 2 + React 19 + Tailwind CSS v4.
 

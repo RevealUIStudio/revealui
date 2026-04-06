@@ -158,7 +158,7 @@ function MainApp() {
     );
   }
 
-  // Setup complete — develop intent shows full companion
+  // Setup complete — develop intent shows full experience
   return (
     <AppShell currentPage={page} onNavigate={setPage} padless={page === 'git' || page === 'editor'}>
       {page === 'dashboard' ? <Dashboard /> : null}

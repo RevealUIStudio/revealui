@@ -1,9 +1,9 @@
 const projects = [
   {
     name: 'RevealUI',
-    tagline: 'The runtime your business runs on',
+    tagline: 'The native AI experience is Studio',
     description:
-      'Users, content, products, payments, and AI agents — pre-wired, open source, and production-tested. Five primitives, one deployment.',
+      'Desktop app (Tauri) for agent coordination, local BitNet and Ollama inference, and multi-agent orchestration. Backend: users, content, products, payments, AI agents — all pre-wired.',
     license: 'MIT + Pro',
     icon: 'M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z',
     iconColor: 'text-emerald-400',
@@ -23,7 +23,7 @@ const projects = [
     name: 'RevKit',
     tagline: 'One command, full environment',
     description:
-      'Portable dev environment toolkit. Tiered WSL profiles, Docker orchestration, and the agent coordination protocol — workboard, identity cascade, advisory file locks.',
+      'Portable dev environment toolkit. Tiered WSL profiles, Docker orchestration, and the agent coordination protocol that Studio orchestrates.',
     license: 'MIT coordination + Max provisioning',
     icon: 'M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z',
     iconColor: 'text-cyan-400',
