@@ -259,8 +259,7 @@ jobs:
               HAS_RESEND=true
             fi
             if [ "$HAS_GMAIL" = "false" ] && [ "$HAS_RESEND" = "false" ]; then
-              echo "::error::No email provider configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY (preferred) or RESEND_API_KEY"
-              MISSING=1
+              echo "::warning::No email provider configured — emails will be logged, not sent. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY when ready."
             fi
           fi
 

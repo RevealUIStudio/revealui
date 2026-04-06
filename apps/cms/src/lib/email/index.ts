@@ -342,17 +342,9 @@ function getEmailProvider(): EmailProvider {
     return new SMTPProvider();
   }
 
-  // 4. Mock in development, throw in production
-  if (process.env.NODE_ENV === 'development') {
-    import('@revealui/core/utils/logger').then(({ logger }) => {
-      logger.warn('No email provider configured. Using mock provider.');
-    });
-    return new MockEmailProvider();
-  }
-
-  throw new Error(
-    'Email provider not configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY, RESEND_API_KEY, or SMTP_* environment variables.',
-  );
+  // 4. No provider — use mock (logs instead of sending)
+  logger.warn('No email provider configured — emails will be logged, not sent.');
+  return new MockEmailProvider();
 }
 
 // ---------------------------------------------------------------------------

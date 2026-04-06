@@ -191,16 +191,9 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
     return;
   }
 
-  // 3. Mock in development, throw in production
-  if (process.env.NODE_ENV === 'development') {
-    logger.debug('Mock email sent (no email provider configured)', {
-      to: options.to,
-      subject: options.subject,
-    });
-    return;
-  }
-
-  throw new Error(
-    'No email provider configured. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY, or RESEND_API_KEY.',
-  );
+  // 3. No provider — log and continue (don't crash deploys pre-Workspace)
+  logger.warn('Email not sent — no provider configured', {
+    to: options.to,
+    subject: options.subject,
+  });
 }
