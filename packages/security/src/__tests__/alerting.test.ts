@@ -1,5 +1,4 @@
-import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { AuditEvent } from '../audit.js';
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 import {
   type AlertHandler,
   AuditAlertHandler,
@@ -9,6 +8,7 @@ import {
   SecurityAlertService,
   WebhookAlertHandler,
 } from '../alerting.js';
+import type { AuditEvent } from '../audit.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -86,7 +86,7 @@ describe('SecurityAlertService', () => {
       await service.evaluateEvent(makeEvent({ actor: { id: 'b@test.com', type: 'user' } }));
     }
     expect(spy.alerts).toHaveLength(1);
-    expect(spy.alerts[0]?.context['actorId']).toBe('a@test.com');
+    expect(spy.alerts[0]?.context.actorId).toBe('a@test.com');
   });
 
   it('alerts on privilege escalation (role change to admin)', async () => {
@@ -374,28 +374,28 @@ describe('DEFAULT_THRESHOLDS', () => {
   });
 
   it('failedLogins: 10 attempts in 15 min window', () => {
-    const rule = DEFAULT_THRESHOLDS['failedLogins'];
+    const rule = DEFAULT_THRESHOLDS.failedLogins;
     expect(rule?.maxCount).toBe(10);
     expect(rule?.windowMs).toBe(15 * 60 * 1000);
     expect(rule?.severity).toBe('high');
   });
 
   it('privilegeEscalation: threshold of 1 (immediate alert)', () => {
-    expect(DEFAULT_THRESHOLDS['privilegeEscalation']?.maxCount).toBe(1);
-    expect(DEFAULT_THRESHOLDS['privilegeEscalation']?.severity).toBe('critical');
+    expect(DEFAULT_THRESHOLDS.privilegeEscalation?.maxCount).toBe(1);
+    expect(DEFAULT_THRESHOLDS.privilegeEscalation?.severity).toBe('critical');
   });
 
   it('massDataExport: 100 exports in 1 hour', () => {
-    expect(DEFAULT_THRESHOLDS['massDataExport']?.maxCount).toBe(100);
-    expect(DEFAULT_THRESHOLDS['massDataExport']?.windowMs).toBe(60 * 60 * 1000);
+    expect(DEFAULT_THRESHOLDS.massDataExport?.maxCount).toBe(100);
+    expect(DEFAULT_THRESHOLDS.massDataExport?.windowMs).toBe(60 * 60 * 1000);
   });
 
   it('accountLockout: immediate alert', () => {
-    expect(DEFAULT_THRESHOLDS['accountLockout']?.maxCount).toBe(1);
+    expect(DEFAULT_THRESHOLDS.accountLockout?.maxCount).toBe(1);
   });
 
   it('mfaDisabled: immediate critical alert', () => {
-    expect(DEFAULT_THRESHOLDS['mfaDisabled']?.maxCount).toBe(1);
-    expect(DEFAULT_THRESHOLDS['mfaDisabled']?.severity).toBe('critical');
+    expect(DEFAULT_THRESHOLDS.mfaDisabled?.maxCount).toBe(1);
+    expect(DEFAULT_THRESHOLDS.mfaDisabled?.severity).toBe('critical');
   });
 });

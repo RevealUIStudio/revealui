@@ -11,8 +11,8 @@ vi.mock('../useOnlineStatus.js', () => ({
 }));
 
 import { useShape } from '@electric-sql/react';
-import { useOnlineStatus } from '../useOnlineStatus.js';
 import { useOfflineCache } from '../useOfflineCache.js';
+import { useOnlineStatus } from '../useOnlineStatus.js';
 
 const mockUseShape = useShape as ReturnType<typeof vi.fn>;
 const mockUseOnlineStatus = useOnlineStatus as ReturnType<typeof vi.fn>;
@@ -78,7 +78,7 @@ describe('useOfflineCache', () => {
 
       renderHook(() => useOfflineCache<TestRow>(defaultOptions()));
 
-      const raw = window.localStorage.getItem(CACHE_PREFIX + 'test-cache');
+      const raw = window.localStorage.getItem(`${CACHE_PREFIX}test-cache`);
       expect(raw).not.toBeNull();
       const parsed = JSON.parse(raw!) as { data: TestRow[] };
       expect(parsed.data).toEqual(rows);
@@ -126,7 +126,7 @@ describe('useOfflineCache', () => {
         data: [{ id: '1', title: 'Offline row' }],
         cachedAt: new Date().toISOString(),
       };
-      window.localStorage.setItem(CACHE_PREFIX + 'test-cache', JSON.stringify(cached));
+      window.localStorage.setItem(`${CACHE_PREFIX}test-cache`, JSON.stringify(cached));
 
       const { result } = renderHook(() => useOfflineCache<TestRow>(defaultOptions()));
 
@@ -146,7 +146,7 @@ describe('useOfflineCache', () => {
         data: [{ id: '1', title: 'Old' }],
         cachedAt: new Date(Date.now() - 7200 * 1_000).toISOString(), // 2 hours ago
       };
-      window.localStorage.setItem(CACHE_PREFIX + 'test-cache', JSON.stringify(expired));
+      window.localStorage.setItem(`${CACHE_PREFIX}test-cache`, JSON.stringify(expired));
 
       const { result } = renderHook(() =>
         useOfflineCache<TestRow>({ ...defaultOptions(), ttlSeconds: 3600 }),
@@ -167,7 +167,7 @@ describe('useOfflineCache', () => {
         data: [{ id: '1', title: 'Cached' }],
         cachedAt,
       };
-      window.localStorage.setItem(CACHE_PREFIX + 'test-cache', JSON.stringify(cached));
+      window.localStorage.setItem(`${CACHE_PREFIX}test-cache`, JSON.stringify(cached));
 
       const { result } = renderHook(() => useOfflineCache<TestRow>(defaultOptions()));
 
@@ -179,7 +179,7 @@ describe('useOfflineCache', () => {
 
   describe('edge cases', () => {
     it('should handle corrupt cache data gracefully', () => {
-      window.localStorage.setItem(CACHE_PREFIX + 'test-cache', 'not-json{{{');
+      window.localStorage.setItem(`${CACHE_PREFIX}test-cache`, 'not-json{{{');
       mockUseOnlineStatus.mockReturnValue({
         isOnline: false,
         wasOffline: false,
@@ -197,7 +197,7 @@ describe('useOfflineCache', () => {
         data: [{ id: '1', title: 'Recent' }],
         cachedAt: new Date(Date.now() - 1800 * 1_000).toISOString(),
       };
-      window.localStorage.setItem(CACHE_PREFIX + 'my-key', JSON.stringify(cached));
+      window.localStorage.setItem(`${CACHE_PREFIX}my-key`, JSON.stringify(cached));
       mockUseOnlineStatus.mockReturnValue({
         isOnline: false,
         wasOffline: false,

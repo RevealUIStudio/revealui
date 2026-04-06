@@ -151,35 +151,33 @@ export default function InferencePanel() {
           </p>
           <div className="mt-3 flex items-center gap-2">
             {ollama?.installed ? (
-              <>
-                {ollama.running ? (
-                  <>
-                    <span className="inline-block rounded bg-green-900/30 px-2 py-0.5 text-[10px] font-medium text-green-400">
-                      Running
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => void stopOllama()}
-                      className="rounded bg-red-900/30 px-2 py-0.5 text-[10px] text-red-400 transition-colors hover:bg-red-900/50"
-                    >
-                      Stop
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <span className="inline-block rounded bg-orange-900/30 px-2 py-0.5 text-[10px] font-medium text-orange-400">
-                      Stopped
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => void startOllama()}
-                      className="rounded bg-green-900/30 px-2 py-0.5 text-[10px] text-green-400 transition-colors hover:bg-green-900/50"
-                    >
-                      Start
-                    </button>
-                  </>
-                )}
-              </>
+              ollama.running ? (
+                <>
+                  <span className="inline-block rounded bg-green-900/30 px-2 py-0.5 text-[10px] font-medium text-green-400">
+                    Running
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void stopOllama()}
+                    className="rounded bg-red-900/30 px-2 py-0.5 text-[10px] text-red-400 transition-colors hover:bg-red-900/50"
+                  >
+                    Stop
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="inline-block rounded bg-orange-900/30 px-2 py-0.5 text-[10px] font-medium text-orange-400">
+                    Stopped
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void startOllama()}
+                    className="rounded bg-green-900/30 px-2 py-0.5 text-[10px] text-green-400 transition-colors hover:bg-green-900/50"
+                  >
+                    Start
+                  </button>
+                </>
+              )
             ) : (
               <span className="inline-block rounded bg-neutral-800 px-2 py-0.5 text-[10px] text-neutral-500">
                 Not installed

@@ -75,7 +75,7 @@ export function SyncStatusIndicator(props: SyncStatusIndicatorProps): React.Reac
   };
 
   return (
-    <span className={className} style={containerStyle} aria-label={label ?? 'Online'}>
+    <span className={className} style={containerStyle} role="status" aria-label={label ?? 'Online'}>
       <span style={dotStyle} />
       {label !== null ? <span>{label}</span> : null}
       {pulse ? (

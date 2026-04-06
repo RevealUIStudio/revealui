@@ -123,7 +123,7 @@ export class AuditAlertHandler implements AlertHandler {
       await audit.logSecurityEvent(
         'alert',
         'critical',
-        (alert.context['actorId'] as string) ?? 'system',
+        (alert.context.actorId as string) ?? 'system',
         alert.message,
         { alertType: alert.type, ...alert.context },
       );
@@ -183,7 +183,7 @@ function mapEventToRule(event: AuditEvent): string | null {
   }
 
   if (event.type === 'role.assign') {
-    const newRole = event.changes?.after?.['role'] ?? event.metadata?.['role'];
+    const newRole = event.changes?.after?.role ?? event.metadata?.role;
     if (newRole === 'admin') {
       return 'privilegeEscalation';
     }
