@@ -505,7 +505,7 @@ export default async function PricingPage() {
       <section id="track-d" className="bg-amber-50/50 py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="text-sm font-semibold tracking-wide text-amber-600 uppercase">
+            <span className="text-sm font-semibold tracking-wide text-amber-700 uppercase">
               Track D
             </span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -555,7 +555,7 @@ export default async function PricingPage() {
                 <p className="mt-4 text-xs text-gray-500 italic">{service.deliverable}</p>
                 <a
                   href={service.ctaHref}
-                  className="mt-6 block w-full rounded-md bg-amber-600 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-amber-500 transition-colors"
+                  className="mt-6 block w-full rounded-md bg-amber-700 px-4 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-amber-600 transition-colors"
                 >
                   {service.cta}
                 </a>
