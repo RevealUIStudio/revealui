@@ -190,6 +190,7 @@
     "validate:boundary": "tsx scripts/validate/boundary.ts",
     "validate:gitignore": "tsx scripts/validate/gitignore-pro.ts",
     "validate:structure": "tsx scripts/validate/structure.ts",
+    "validate:catalog": "tsx scripts/validate/catalog-changeset.ts --warn",
     "validate:versions": "tsx scripts/validate/version-policy.ts"
   },
   "type": "module"

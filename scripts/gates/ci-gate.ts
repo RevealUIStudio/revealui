@@ -272,6 +272,12 @@ async function gate(): Promise<void> {
         args: ['validate:versions'],
       },
       {
+        name: 'Catalog changeset check',
+        command: 'pnpm',
+        args: ['validate:catalog'],
+        warnOnly: true,
+      },
+      {
         name: 'Gitignore Pro entries',
         command: 'pnpm',
         args: ['validate:gitignore'],
