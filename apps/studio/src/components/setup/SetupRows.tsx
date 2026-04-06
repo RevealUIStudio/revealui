@@ -291,8 +291,8 @@ function useTerminalProfiles() {
   const install = async (terminalId: string) => {
     setInstalling(terminalId);
     try {
-      // In dev, the repo root is the CWD; in production, configs are bundled
-      const repoConfigDir = '/home/joshua-v-dev/projects/RevealUI/config/terminal';
+      // In dev, configs are relative to CWD; in production, bundled with the app
+      const repoConfigDir = 'config/terminal';
       const updated = await terminalInstall(terminalId, repoConfigDir);
       setProfiles((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
     } catch (e) {
