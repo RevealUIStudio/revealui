@@ -21,7 +21,7 @@
  * ```
  */
 
-import { sql, type SQL } from 'drizzle-orm';
+import { type SQL, sql } from 'drizzle-orm';
 import type { PgTable, TableConfig } from 'drizzle-orm/pg-core';
 import type { Database } from '../client/index.js';
 
