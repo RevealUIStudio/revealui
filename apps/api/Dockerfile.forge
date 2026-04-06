@@ -42,14 +42,20 @@ ENV PORT=3004
 
 WORKDIR /app
 
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 hono
+
 # Copy only the built output and production node_modules
-COPY --from=build /app/apps/api/dist        ./dist
-COPY --from=build /app/apps/api/node_modules ./node_modules
-COPY --from=build /app/node_modules          ./node_modules_root
+COPY --from=build --chown=hono:nodejs /app/apps/api/dist        ./dist
+COPY --from=build --chown=hono:nodejs /app/apps/api/node_modules ./node_modules
+COPY --from=build --chown=hono:nodejs /app/node_modules          ./node_modules_root
 
 # Health check (no curl in hardened image — use node)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3004/health',(r)=>{process.exit(r.statusCode===200?0:1)})"
+
+USER hono
 
 EXPOSE 3004
 

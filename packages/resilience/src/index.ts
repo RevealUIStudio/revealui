@@ -25,6 +25,15 @@ export {
   ResilientOperation,
   withCircuitBreaker,
 } from './circuit-breaker.js';
+// Circuit breaker state stores (pluggable backends)
+export type {
+  CircuitBreakerSnapshot,
+  CircuitBreakerStore,
+} from './circuit-breaker-store.js';
+export {
+  InMemoryCircuitBreakerStore,
+  PGliteCircuitBreakerStore,
+} from './circuit-breaker-store.js';
 export type { ResilienceLogger } from './logger.js';
 export { configureResilienceLogger, getResilienceLogger } from './logger.js';
 export type { HttpError, RetryConfig, RetryOptions } from './retry.js';

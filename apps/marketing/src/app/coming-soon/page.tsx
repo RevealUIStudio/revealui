@@ -20,9 +20,9 @@ interface Feature {
 
 const shipped: Feature[] = [
   {
-    name: 'CMS Dashboard Agent Chat',
+    name: 'Dashboard Agent Chat',
     description:
-      'Interact with an AI agent directly from the CMS dashboard. Create content, query data, manage collections, and automate workflows through natural language — with streaming responses, tool visibility, and conversation history.',
+      'Interact with an AI agent directly from the admin dashboard. Create content, query data, manage collections, and automate workflows through natural language — with streaming responses, tool visibility, and conversation history.',
     status: 'Shipped',
     category: 'AI',
   },

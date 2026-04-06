@@ -9,8 +9,8 @@ describe('McpRateLimiter', () => {
     limiter = new McpRateLimiter();
   });
 
-  afterEach(() => {
-    limiter.dispose();
+  afterEach(async () => {
+    await limiter.dispose();
     vi.useRealTimers();
   });
 
@@ -44,46 +44,46 @@ describe('McpRateLimiter', () => {
   // -------------------------------------------------------------------------
 
   describe('check()', () => {
-    it('allows first request', () => {
-      const result = limiter.check('tenant-1', 'free');
+    it('allows first request', async () => {
+      const result = await limiter.check('tenant-1', 'free');
       expect(result.allowed).toBe(true);
       expect(result.remaining).toBe(DEFAULT_TIER_LIMITS.free!.maxRequests - 1);
       expect(result.limit).toBe(DEFAULT_TIER_LIMITS.free!.maxRequests);
     });
 
-    it('decrements remaining on each call', () => {
-      const r1 = limiter.check('tenant-1', 'free');
-      const r2 = limiter.check('tenant-1', 'free');
+    it('decrements remaining on each call', async () => {
+      const r1 = await limiter.check('tenant-1', 'free');
+      const r2 = await limiter.check('tenant-1', 'free');
       expect(r2.remaining).toBe(r1.remaining - 1);
     });
 
-    it('blocks when limit is exhausted', () => {
+    it('blocks when limit is exhausted', async () => {
       const max = DEFAULT_TIER_LIMITS.free!.maxRequests;
       for (let i = 0; i < max; i++) {
-        expect(limiter.check('tenant-1', 'free').allowed).toBe(true);
+        expect((await limiter.check('tenant-1', 'free')).allowed).toBe(true);
       }
-      const blocked = limiter.check('tenant-1', 'free');
+      const blocked = await limiter.check('tenant-1', 'free');
       expect(blocked.allowed).toBe(false);
       expect(blocked.remaining).toBe(0);
     });
 
-    it('resets after window expires', () => {
+    it('resets after window expires', async () => {
       const max = DEFAULT_TIER_LIMITS.free!.maxRequests;
       for (let i = 0; i < max; i++) {
-        limiter.check('tenant-1', 'free');
+        await limiter.check('tenant-1', 'free');
       }
-      expect(limiter.check('tenant-1', 'free').allowed).toBe(false);
+      expect((await limiter.check('tenant-1', 'free')).allowed).toBe(false);
 
       // Advance past window
       vi.advanceTimersByTime(DEFAULT_TIER_LIMITS.free!.windowMs);
 
-      const result = limiter.check('tenant-1', 'free');
+      const result = await limiter.check('tenant-1', 'free');
       expect(result.allowed).toBe(true);
       expect(result.remaining).toBe(max - 1);
     });
 
-    it('returns positive resetMs within window', () => {
-      const result = limiter.check('tenant-1', 'free');
+    it('returns positive resetMs within window', async () => {
+      const result = await limiter.check('tenant-1', 'free');
       expect(result.resetMs).toBeGreaterThan(0);
       expect(result.resetMs).toBeLessThanOrEqual(DEFAULT_TIER_LIMITS.free!.windowMs);
     });
@@ -94,23 +94,23 @@ describe('McpRateLimiter', () => {
   // -------------------------------------------------------------------------
 
   describe('tenant isolation', () => {
-    it('tracks tenants independently', () => {
+    it('tracks tenants independently', async () => {
       const max = DEFAULT_TIER_LIMITS.free!.maxRequests;
       for (let i = 0; i < max; i++) {
-        limiter.check('tenant-1', 'free');
+        await limiter.check('tenant-1', 'free');
       }
-      expect(limiter.check('tenant-1', 'free').allowed).toBe(false);
-      expect(limiter.check('tenant-2', 'free').allowed).toBe(true);
+      expect((await limiter.check('tenant-1', 'free')).allowed).toBe(false);
+      expect((await limiter.check('tenant-2', 'free')).allowed).toBe(true);
     });
 
-    it('tracks same tenant with different tiers independently', () => {
+    it('tracks same tenant with different tiers independently', async () => {
       const freeMax = DEFAULT_TIER_LIMITS.free!.maxRequests;
       for (let i = 0; i < freeMax; i++) {
-        limiter.check('tenant-1', 'free');
+        await limiter.check('tenant-1', 'free');
       }
-      expect(limiter.check('tenant-1', 'free').allowed).toBe(false);
+      expect((await limiter.check('tenant-1', 'free')).allowed).toBe(false);
       // Same tenant, different tier — separate window
-      expect(limiter.check('tenant-1', 'pro').allowed).toBe(true);
+      expect((await limiter.check('tenant-1', 'pro')).allowed).toBe(true);
     });
   });
 
@@ -119,13 +119,13 @@ describe('McpRateLimiter', () => {
   // -------------------------------------------------------------------------
 
   describe('tier-specific limits', () => {
-    it('applies pro limits for pro tier', () => {
-      const result = limiter.check('tenant-1', 'pro');
+    it('applies pro limits for pro tier', async () => {
+      const result = await limiter.check('tenant-1', 'pro');
       expect(result.limit).toBe(DEFAULT_TIER_LIMITS.pro!.maxRequests);
     });
 
-    it('falls back to free limits for unknown tier', () => {
-      const result = limiter.check('tenant-1', 'unknown-tier');
+    it('falls back to free limits for unknown tier', async () => {
+      const result = await limiter.check('tenant-1', 'unknown-tier');
       expect(result.limit).toBe(DEFAULT_TIER_LIMITS.free!.maxRequests);
     });
   });
@@ -135,15 +135,15 @@ describe('McpRateLimiter', () => {
   // -------------------------------------------------------------------------
 
   describe('setTierLimit()', () => {
-    it('overrides limits for a tier', () => {
+    it('overrides limits for a tier', async () => {
       limiter.setTierLimit('free', { maxRequests: 5, windowMs: 10_000 });
-      const result = limiter.check('tenant-1', 'free');
+      const result = await limiter.check('tenant-1', 'free');
       expect(result.limit).toBe(5);
     });
 
-    it('allows adding custom tiers', () => {
+    it('allows adding custom tiers', async () => {
       limiter.setTierLimit('custom', { maxRequests: 10, windowMs: 5_000 });
-      const result = limiter.check('tenant-1', 'custom');
+      const result = await limiter.check('tenant-1', 'custom');
       expect(result.limit).toBe(10);
     });
   });
@@ -153,13 +153,13 @@ describe('McpRateLimiter', () => {
   // -------------------------------------------------------------------------
 
   describe('custom constructor limits', () => {
-    it('accepts custom limits', () => {
+    it('accepts custom limits', async () => {
       const custom = new McpRateLimiter({
-        test: { maxRequests: 3, windowMs: 1_000 },
+        limits: { test: { maxRequests: 3, windowMs: 1_000 } },
       });
-      const result = custom.check('t', 'test');
+      const result = await custom.check('t', 'test');
       expect(result.limit).toBe(3);
-      custom.dispose();
+      await custom.dispose();
     });
   });
 
@@ -168,14 +168,14 @@ describe('McpRateLimiter', () => {
   // -------------------------------------------------------------------------
 
   describe('cleanup', () => {
-    it('removes expired entries after cleanup interval', () => {
-      limiter.check('tenant-1', 'free');
+    it('removes expired entries after cleanup interval', async () => {
+      await limiter.check('tenant-1', 'free');
 
       // Advance past 2x window (cleanup threshold) + cleanup interval (60s)
       vi.advanceTimersByTime(DEFAULT_TIER_LIMITS.free!.windowMs * 2 + 60_001);
 
       // Next check creates a fresh window (the old one was cleaned up)
-      const result = limiter.check('tenant-1', 'free');
+      const result = await limiter.check('tenant-1', 'free');
       expect(result.remaining).toBe(DEFAULT_TIER_LIMITS.free!.maxRequests - 1);
     });
   });
@@ -185,12 +185,13 @@ describe('McpRateLimiter', () => {
   // -------------------------------------------------------------------------
 
   describe('dispose()', () => {
-    it('clears all state', () => {
-      limiter.check('tenant-1', 'free');
-      limiter.dispose();
+    it('clears all state', async () => {
+      await limiter.check('tenant-1', 'free');
+      await limiter.dispose();
 
-      // After dispose, a new check starts fresh
-      const result = limiter.check('tenant-1', 'free');
+      // After dispose, a new limiter starts fresh
+      limiter = new McpRateLimiter();
+      const result = await limiter.check('tenant-1', 'free');
       expect(result.remaining).toBe(DEFAULT_TIER_LIMITS.free!.maxRequests - 1);
     });
   });

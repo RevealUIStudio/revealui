@@ -1325,6 +1325,9 @@ importers:
 
   packages/resilience:
     devDependencies:
+      '@electric-sql/pglite':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0
