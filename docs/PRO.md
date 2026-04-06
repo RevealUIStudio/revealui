@@ -95,8 +95,9 @@ The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free f
 
 ## MCP Setup
 
-RevealUI includes 6 MCP servers for enhanced AI capabilities:
+RevealUI includes 7 MCP servers for enhanced AI capabilities:
 
+- **Code Validator MCP** - Static analysis and code quality checks
 - **Vercel MCP** - Deploy and manage Vercel projects
 - **Stripe MCP** - Payment processing and billing operations
 - **NeonDB MCP** - Database operations and SQL queries

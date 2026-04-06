@@ -160,6 +160,9 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | [`@revealui/resilience`](packages/resilience)           | Circuit breaker, retry, bulkhead patterns         |
 | [`@revealui/security`](packages/security)               | Headers, CORS, RBAC/ABAC, encryption, audit       |
 | [`@revealui/dev`](packages/dev)                         | Shared configs (Biome, TypeScript, Tailwind)      |
+| [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery |
+| [`@revealui/editors`](packages/editors)                 | Editor config sync (Zed, VS Code, Cursor)         |
+| [`@revealui/services`](packages/services)               | Stripe + Supabase integrations                    |
 | [`@revealui/test`](packages/test)                       | E2E specs, integration tests, fixtures, mocks     |
 | [`create-revealui`](packages/create-revealui)           | `npm create revealui` initializer                 |
 
@@ -168,9 +171,6 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/ai`](packages/ai)                           | AI agents, CRDT memory, LLM providers             |
-| [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery  |
-| [`@revealui/editors`](packages/editors)                 | Editor config sync (Zed, VS Code, Cursor)          |
-| [`@revealui/services`](packages/services)               | Stripe + Supabase integrations                    |
 | [`@revealui/harnesses`](packages/harnesses)             | AI harness adapters and workboard coordination    |
 
 ## Tech stack
