@@ -159,6 +159,7 @@ apps/docs/dist/docs/
 
 # AI tool configs — distributed via editor-configs repo
 # Setup: editor-configs/link.sh --target . --profile revealui
+CLAUDE.md
 .claude/
 .agents/
 
