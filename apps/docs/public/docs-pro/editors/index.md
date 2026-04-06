@@ -1,6 +1,6 @@
 # @revealui/editors
 
-Editor configuration generators for VS Code, Zed, Cursor, and Antigravity. Keeps your editor setup consistent across the team and aligned with RevealUI project conventions.
+Editor configuration generators for VS Code, Zed, and Antigravity. Keeps your editor setup consistent across the team and aligned with RevealUI project conventions.
 
 ## Overview
 
@@ -8,7 +8,6 @@ Editor configuration generators for VS Code, Zed, Cursor, and Antigravity. Keeps
 
 - **VS Code** — `.vscode/settings.json` + `.vscode/extensions.json` (recommended extensions)
 - **Zed** — `.zed/settings.json` (theme, keybindings, extensions)
-- **Cursor** — `.cursorrules` (project-specific AI rules)
 - **Antigravity** — `.agents/rules/revealui.md` (agent rules)
 
 ## Installation
@@ -29,7 +28,7 @@ import { syncEditorConfigs } from '@revealui/editors'
 const result = await syncEditorConfigs({
   rootDir: process.cwd(),
   // Optional: only sync specific editors (default: all)
-  editors: ['vscode', 'zed', 'cursor', 'antigravity'],
+  editors: ['vscode', 'zed', 'antigravity'],
 })
 
 console.log('Written:', result.written)
@@ -44,7 +43,6 @@ import {
   generateVSCodeSettings,
   generateVSCodeExtensions,
   generateZedSettings,
-  generateCursorRules,
   generateAntigravityRules,
 } from '@revealui/editors'
 
@@ -52,7 +50,6 @@ import {
 const vscodeSettings = generateVSCodeSettings()
 const vscodeExtensions = generateVSCodeExtensions()
 const zedSettings = generateZedSettings()
-const cursorRules = generateCursorRules()
 const antigravityRules = generateAntigravityRules()
 ```
 

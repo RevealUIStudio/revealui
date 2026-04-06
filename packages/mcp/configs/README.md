@@ -18,14 +18,6 @@ Template for Claude Code / Claude Desktop
 
 3. Enable desired servers by setting `"enabled": true`
 
-### `cursor-template.json`
-Template for Cursor IDE
-
-**Installation:**
-1. Copy to `.cursor/mcp-config.json` in repo root
-2. Replace `<REPO_PATH>` with absolute path
-3. Enable desired servers
-
 ### `vscode-template.json`
 Template for VS Code
 

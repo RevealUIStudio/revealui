@@ -1,4 +1,4 @@
-export type EditorName = 'vscode' | 'zed' | 'cursor' | 'antigravity';
+export type EditorName = 'vscode' | 'zed' | 'antigravity';
 
 export interface EditorConfig {
   /** Absolute path to the project root */

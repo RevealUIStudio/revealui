@@ -152,20 +152,10 @@ apps/docs/dist/docs/
 # ElectricSQL generated files
 .electric/
 
-# Ralph iterative workflow files
-.cursor/ralph-loop.local.md
-.cursor/ralph-prompt.md
-.cursor/ralph-complete.marker
-
 # Editor configs (tracked externally: github.com/RevealUIStudio/editor-configs)
 .zed
 .zedignore
-
-# Cursor IDE temporary files
-.cursor/backups/
-.cursor/debug.log
-.cursor/audit-log.jsonl
-.cursor/audit-summary.json
+.cursorrules
 
 # AI tool configs — distributed via editor-configs repo
 # Setup: editor-configs/link.sh --target . --profile revealui

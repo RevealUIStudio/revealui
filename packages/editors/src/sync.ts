@@ -1,12 +1,11 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { generateAntigravityRules } from './antigravity/index.js';
-import { generateCursorRules } from './cursor/index.js';
 import type { EditorConfig, EditorName, SyncResult } from './types.js';
 import { generateVSCodeExtensions, generateVSCodeSettings } from './vscode/index.js';
 import { generateZedSettings } from './zed/index.js';
 
-const ALL_EDITORS: EditorName[] = ['vscode', 'zed', 'cursor', 'antigravity'];
+const ALL_EDITORS: EditorName[] = ['vscode', 'zed', 'antigravity'];
 
 async function writeIfChanged(
   filePath: string,
@@ -46,9 +45,9 @@ export async function syncEditorConfigs(config: EditorConfig): Promise<SyncResul
   const editors = config.editors ?? ALL_EDITORS;
   const result: SyncResult = { written: [], skipped: [], errors: [] };
 
-  // Deduplicate: VS Code configs are shared by vscode, cursor, and antigravity.
-  // Write them once if any of those editors are requested.
-  const needsVSCode = editors.some((e) => e === 'vscode' || e === 'cursor' || e === 'antigravity');
+  // Deduplicate: VS Code configs are shared by vscode and antigravity.
+  // Write them once if either editor is requested.
+  const needsVSCode = editors.some((e) => e === 'vscode' || e === 'antigravity');
   if (needsVSCode) {
     await writeVSCodeConfigs(rootDir, result);
   }
@@ -57,10 +56,6 @@ export async function syncEditorConfigs(config: EditorConfig): Promise<SyncResul
     switch (editor) {
       case 'vscode':
         // Already written above
-        break;
-
-      case 'cursor':
-        await writeIfChanged(join(rootDir, '.cursorrules'), `${generateCursorRules()}\n`, result);
         break;
 
       case 'antigravity':
