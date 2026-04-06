@@ -24,6 +24,7 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     pool: 'forks',
+    maxWorkers: 2,
     testTimeout: 15000,
     env: {
       NODE_ENV: 'test',

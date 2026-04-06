@@ -353,9 +353,11 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 3) {
     logger.info('Phase 3 \u2014 Test + Build (serial: tests first)');
 
+    // Turbo concurrency=2 + per-package maxWorkers=2 prevents fork explosion.
+    // Worst case: 2 packages × 2 forks = 4 processes × 150 MB = 600 MB total.
     const testArgs = changed
-      ? ['turbo', 'run', 'test', `--filter=...[${changeBase}]`, ...proFilter, '--concurrency=4']
-      : ['turbo', 'run', 'test', ...proFilter, '--concurrency=4'];
+      ? ['turbo', 'run', 'test', `--filter=...[${changeBase}]`, ...proFilter, '--concurrency=2']
+      : ['turbo', 'run', 'test', ...proFilter, '--concurrency=2'];
 
     const buildCheck: CheckDef[] = noBuild
       ? []

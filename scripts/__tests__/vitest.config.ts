@@ -4,6 +4,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    pool: 'forks',
+    maxWorkers: 2,
     env: {
       // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
       POSTGRES_URL: '',

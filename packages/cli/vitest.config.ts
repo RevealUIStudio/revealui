@@ -4,6 +4,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    pool: 'forks',
+    maxWorkers: 2,
     testTimeout: 15_000,
     include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/templates/**'],

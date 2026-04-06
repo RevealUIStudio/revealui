@@ -1,25 +1,26 @@
+import { freemem } from 'node:os';
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig({
-  projects: [
-    // Apps
-    'apps/api/vitest.config.ts',
-    'apps/cms/vitest.config.ts',
-    'apps/docs/vitest.config.ts',
-    // OSS Packages
-    'packages/auth/vitest.config.ts',
-    'packages/contracts/vitest.config.ts',
-    'packages/core/vitest.config.ts',
-    'packages/db/vitest.config.ts',
-    'packages/dev/vitest.config.ts',
-    'packages/presentation/vitest.config.ts',
-    'packages/setup/vitest.config.ts',
-    'packages/sync/vitest.config.ts',
-    'packages/test/vitest.config.ts',
+// ---------------------------------------------------------------------------
+// Resource-aware test configuration
+//
+// Root cause of "turbo test flakes": `turbo run test --concurrency=4` spawns
+// 4 independent Vitest processes, each creating a fork pool (default workers
+// = CPU count). On 3.8 GB WSL2: 4 × 8 forks × ~150 MB = ~4.8 GB → OOM.
+//
+// Fix: turbo concurrency=2 (package.json) + maxWorkers=2 per package.
+// Worst case: 2 packages × 2 forks = 4 processes × 150 MB = 600 MB total.
+//
+// Turbo test caching is disabled (turbo.json cache:false) — tests always
+// run fresh when explicitly invoked, eliminating stale cache hits.
+// ---------------------------------------------------------------------------
 
-    // Scripts tests
-    'scripts/__tests__/vitest.config.ts',
-  ],
+// Per-package worker limit. Exported so individual configs can import it.
+// CI runners (~7 GB) get more; local dev (~3.8 GB) stays tight.
+const availableMb = Math.floor(freemem() / 1024 / 1024);
+export const resourceAwareMaxWorkers = availableMb > 4096 ? 4 : 2;
+
+export default defineConfig({
   test: {
     hookTimeout: 30000,
     exclude: ['**/.direnv/**', '**/.claude/**', '**/node_modules/**', '**/dist/**'],

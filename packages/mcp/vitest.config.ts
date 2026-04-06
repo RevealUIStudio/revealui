@@ -7,6 +7,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    pool: 'forks',
+    maxWorkers: 2,
     include: ['__tests__/**/*.test.ts', 'src/**/*.test.ts'],
     env: {
       // Set NODE_ENV to 'test' to skip integration tests that require database setup
