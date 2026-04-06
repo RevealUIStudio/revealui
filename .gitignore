@@ -150,6 +150,7 @@ apps/docs/dist/docs/
 
 # Editor configs (tracked externally: github.com/RevealUIStudio/editor-configs)
 .zed
+.zedignore
 
 # Cursor IDE temporary files
 .cursor/backups/
