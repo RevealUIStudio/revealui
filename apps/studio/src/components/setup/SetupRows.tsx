@@ -468,7 +468,7 @@ export function InferenceSnapsRow() {
         </div>
       )}
 
-      {!hasAnyInstalled && !loading && (
+      {!(hasAnyInstalled || loading) && (
         <div className="mt-2 flex items-center gap-2">
           <code className="rounded bg-neutral-800 px-2 py-1 font-mono text-xs text-neutral-300">
             {installCmd}

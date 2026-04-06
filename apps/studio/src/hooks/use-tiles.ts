@@ -1,5 +1,5 @@
 import { Command } from '@tauri-apps/plugin-shell';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { focusWindow } from '../lib/invoke';
 import {
   type BrowserProfile,
@@ -171,30 +171,27 @@ export function useTiles(): UseTilesReturn {
 
   const toggleEditing = () => setEditing((e) => !e);
 
-  const launch = useCallback(
-    async (tile: TileDefinition) => {
-      // Quick-switch: if the app is already running, try to focus it instead
-      if (runningTileIds.has(tile.id)) {
-        const processNames = PROCESS_NAMES[tile.id];
-        if (processNames) {
-          for (const name of processNames) {
-            const focused = await focusWindow(name);
-            if (focused) {
-              const next = recordRecentLaunch(prefs, tile.id);
-              updatePrefs(next);
-              return;
-            }
+  const launch = async (tile: TileDefinition) => {
+    // Quick-switch: if the app is already running, try to focus it instead
+    if (runningTileIds.has(tile.id)) {
+      const processNames = PROCESS_NAMES[tile.id];
+      if (processNames) {
+        for (const name of processNames) {
+          const focused = await focusWindow(name);
+          if (focused) {
+            const next = recordRecentLaunch(prefs, tile.id);
+            updatePrefs(next);
+            return;
           }
         }
       }
+    }
 
-      // Not running or focus failed — launch normally
-      launchTile(tile);
-      const next = recordRecentLaunch(prefs, tile.id);
-      updatePrefs(next);
-    },
-    [prefs, runningTileIds, updatePrefs],
-  );
+    // Not running or focus failed — launch normally
+    launchTile(tile);
+    const next = recordRecentLaunch(prefs, tile.id);
+    updatePrefs(next);
+  };
 
   const lowerQuery = query.toLowerCase();
 

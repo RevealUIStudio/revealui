@@ -46,7 +46,9 @@ export function useSpawner() {
         // Refresh sessions to get updated status
         agentList()
           .then(setSessions)
-          .catch(() => {});
+          .catch(() => {
+            /* refresh failure is non-critical */
+          });
         // Append exit message to output
         setOutput((prev) => ({
           ...prev,

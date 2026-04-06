@@ -109,7 +109,7 @@ export function requireMfa(
     const operationRequiresMfa =
       request.operation !== undefined && requiredOperations.includes(request.operation);
 
-    if (!roleRequiresMfa && !operationRequiresMfa) {
+    if (!(roleRequiresMfa || operationRequiresMfa)) {
       return { allowed: true };
     }
 

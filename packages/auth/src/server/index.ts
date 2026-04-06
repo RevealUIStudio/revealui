@@ -5,6 +5,7 @@
  * Inspired by Better Auth and Neon Auth patterns.
  */
 
+export type { SignInResult, SignUpResult } from '../types.js';
 // Audit bridge
 export {
   auditAccountLocked,
@@ -16,7 +17,6 @@ export {
   auditPasswordReset,
   auditSessionRevoked,
 } from './audit-bridge.js';
-export type { SignInResult, SignUpResult } from '../types.js';
 export { isSignupAllowed, signIn, signUp } from './auth.js';
 export {
   clearFailedAttempts,
@@ -42,16 +42,6 @@ export {
   resetMagicLinkConfig,
   verifyMagicLink,
 } from './magic-link.js';
-// MFA Enforcement
-export type {
-  MfaCheckResult,
-  MfaEnforcementOptions,
-  MfaErrorResponse,
-  MfaRequest,
-  MfaSession,
-  MfaSessionUser,
-} from './mfa-enforcement.js';
-export { requireMfa } from './mfa-enforcement.js';
 export type { MFAConfig, MFADisableProof, MFASetupResult } from './mfa.js';
 export {
   configureMFA,
@@ -64,6 +54,16 @@ export {
   verifyMFACode,
   verifyMFASetup,
 } from './mfa.js';
+// MFA Enforcement
+export type {
+  MfaCheckResult,
+  MfaEnforcementOptions,
+  MfaErrorResponse,
+  MfaRequest,
+  MfaSession,
+  MfaSessionUser,
+} from './mfa-enforcement.js';
+export { requireMfa } from './mfa-enforcement.js';
 export {
   buildAuthUrl,
   exchangeCode,
