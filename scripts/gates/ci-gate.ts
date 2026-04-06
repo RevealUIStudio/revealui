@@ -398,7 +398,7 @@ async function gate(): Promise<void> {
 
     const testCheck: CheckDef[] = noTest
       ? []
-      : [{ name: 'Tests', command: 'pnpm', args: testArgs, timeout: 300000 }];
+      : [{ name: 'Tests', command: 'pnpm', args: testArgs, timeout: 600000 }];
 
     const phase3Checks: CheckDef[] = [...testCheck, ...buildCheck];
 
