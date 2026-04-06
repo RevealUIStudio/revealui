@@ -8,6 +8,20 @@
  */
 
 export type {
+  AlertHandler,
+  AlertingConfig,
+  SecurityAlert,
+  ThresholdRule,
+} from './alerting.js';
+// Security alerting
+export {
+  AuditAlertHandler,
+  DEFAULT_THRESHOLDS,
+  LogAlertHandler,
+  SecurityAlertService,
+  WebhookAlertHandler,
+} from './alerting.js';
+export type {
   AuditEvent,
   AuditEventType,
   AuditQuery,
@@ -22,6 +36,8 @@ export {
   audit,
   createAuditMiddleware,
   InMemoryAuditStorage,
+  signAuditEntry,
+  verifyAuditEntry,
 } from './audit.js';
 export type {
   OAuthConfig,
