@@ -65,6 +65,22 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
+      - name: Check for uncommitted migrations
+        run: |
+          echo "Building DB package for drizzle-kit schema check..."
+          pnpm --filter @revealui/db build
+          DRIZZLE_REQUIRE_URL=false npx drizzle-kit generate --config=packages/db/drizzle.config.ts 2>&1 || true
+          DRIFT=$(git diff --name-only -- packages/db/migrations/)
+          NEW=$(git ls-files --others --exclude-standard -- packages/db/migrations/)
+          if [ -n "$DRIFT" ] || [ -n "$NEW" ]; then
+            echo "::error::Schema drift detected — migrations need to be generated and committed"
+            echo "Changed: $DRIFT"
+            echo "New: $NEW"
+            git checkout -- packages/db/migrations/ 2>/dev/null || true
+            exit 1
+          fi
+          echo "No migration drift detected."
+
   # ---------------------------------------------------------------------------
   # Detect which apps were affected by the merge
   # ---------------------------------------------------------------------------
@@ -213,11 +229,30 @@ jobs:
         if: matrix.app == 'api' || matrix.app == 'cms'
         run: |
           echo "Checking critical env vars for ${{ matrix.app }}..."
-          ENV_LIST=$(vercel env ls --environment=production --token="$VERCEL_TOKEN" 2>/dev/null || echo "")
-          echo "::debug::vercel env ls output: $ENV_LIST"
+          ENV_OUTPUT=$(vercel env ls --environment=production --token="$VERCEL_TOKEN" 2>&1) || {
+            echo "::warning::vercel env ls failed — skipping validation"
+            echo "$ENV_OUTPUT"
+            exit 0
+          }
+          echo "::debug::vercel env ls output: $ENV_OUTPUT"
           MISSING=0
-          for VAR in POSTGRES_URL REVEALUI_SECRET REVEALUI_PUBLIC_SERVER_URL; do
-            if ! echo "$ENV_LIST" | grep -q "$VAR"; then
+
+          # Core vars required by all server apps
+          CORE_VARS="POSTGRES_URL REVEALUI_SECRET REVEALUI_PUBLIC_SERVER_URL"
+
+          # API-specific: billing, email, webhooks, cron
+          API_VARS="STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET REVEALUI_CRON_SECRET REVEALUI_LICENSE_PRIVATE_KEY REVEALUI_KEK"
+
+          # Email provider (at least one required for transactional emails)
+          EMAIL_VARS="RESEND_API_KEY"
+
+          REQUIRED="$CORE_VARS"
+          if [ "${{ matrix.app }}" = "api" ]; then
+            REQUIRED="$CORE_VARS $API_VARS $EMAIL_VARS"
+          fi
+
+          for VAR in $REQUIRED; do
+            if ! echo "$ENV_OUTPUT" | grep -q "$VAR"; then
               echo "::error::Missing required env var: $VAR"
               MISSING=1
             fi
@@ -258,32 +293,35 @@ jobs:
     needs: [detect, deploy]
 
     steps:
-      - name: Health check — API
+      - name: Health check — API (readiness probe)
         run: |
-          echo "Checking https://api.revealui.com/health..."
+          API_URL="${REVEALUI_API_URL:-https://api.revealui.com}"
+          echo "Checking $API_URL/health/ready (DB + memory + config)..."
           for i in $(seq 1 12); do
-            if curl -sf "https://api.revealui.com/health" > /dev/null 2>&1; then
-              echo "API healthy"
+            RESP=$(curl -sf "$API_URL/health/ready" 2>/dev/null || echo "")
+            if [ -n "$RESP" ]; then
+              echo "API ready: $RESP"
               exit 0
             fi
             echo "Attempt $i/12 — waiting 10s..."
             sleep 10
           done
-          echo "API health check failed"
+          echo "::error::API readiness check failed after 2 minutes"
           exit 1
 
       - name: Health check — CMS
         run: |
-          echo "Checking https://cms.revealui.com..."
+          CMS_URL="${REVEALUI_CMS_URL:-https://cms.revealui.com}"
+          echo "Checking $CMS_URL..."
           for i in $(seq 1 12); do
-            if curl -sf "https://cms.revealui.com" -o /dev/null 2>&1; then
+            if curl -sf "$CMS_URL" -o /dev/null 2>&1; then
               echo "CMS healthy"
               exit 0
             fi
             echo "Attempt $i/12 — waiting 10s..."
             sleep 10
           done
-          echo "CMS health check failed"
+          echo "::error::CMS health check failed after 2 minutes"
           exit 1
 
   # ---------------------------------------------------------------------------
