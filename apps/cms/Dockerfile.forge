@@ -68,9 +68,9 @@ COPY --from=builder /app/apps/cms/.next/standalone ./
 COPY --from=builder /app/apps/cms/.next/static      ./apps/cms/.next/static
 COPY --from=builder /app/apps/cms/public            ./apps/cms/public
 
-# Health check (no curl — use node)
+# Health check — reads PORT env var (default 3000)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:3000/api/health',(r)=>{process.exit(r.statusCode===200?0:1)})"
+    CMD node -e "require('http').get('http://localhost:'+(process.env.PORT||3000)+'/api/health',(r)=>{process.exit(r.statusCode===200?0:1)})"
 
 EXPOSE 3000
 

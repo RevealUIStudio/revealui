@@ -217,18 +217,18 @@ class ReleaseCLI extends ExecutingCLI {
       );
     }
 
-    // Step 2: Apply version bumps
-    console.log('\nStep 2: Applying version bumps (pnpm changeset version)...');
-    const versionResult = await execCommand('pnpm', ['changeset', 'version'], {
+    // Step 2: Apply version bumps + regenerate lockfile
+    console.log('\nStep 2: Applying version bumps (pnpm changeset:version)...');
+    const versionResult = await execCommand('pnpm', ['changeset:version'], {
       cwd: this.projectRoot,
     });
     if (!versionResult.success) {
       return fail('changeset version failed', ErrorCode.EXECUTION_ERROR);
     }
 
-    // Step 3: Build all packages
+    // Step 3: Build all packages (concurrency capped to prevent OOM)
     console.log('\nStep 3: Building all packages...');
-    const buildResult = await execCommand('pnpm', ['build'], {
+    const buildResult = await execCommand('pnpm', ['build', '--concurrency=4'], {
       cwd: this.projectRoot,
       env: { SKIP_ENV_VALIDATION: 'true' },
       timeout: 900000,
@@ -306,7 +306,7 @@ class ReleaseCLI extends ExecutingCLI {
    */
   private async releasePro(args: ParsedArgs) {
     const isDryRun = Boolean(args['dry-run']);
-    const ProPackages = ['ai', 'mcp', 'editors', 'services', 'harnesses'];
+    const ProPackages = ['ai', 'harnesses'];
     const { readFile } = await import('node:fs/promises');
     const { join } = await import('node:path');
 
@@ -383,15 +383,10 @@ class ReleaseCLI extends ExecutingCLI {
   /**
    * Bump version using changesets
    */
-  private async bumpVersion(args: ParsedArgs) {
-    const versionType = args.type as string;
-
-    if (!['major', 'minor', 'patch'].includes(versionType)) {
-      return fail('Version type must be major, minor, or patch', ErrorCode.VALIDATION_ERROR);
-    }
-
-    // Use changesets for version bumping
-    const result = await execCommand('pnpm', ['changeset', 'version'], {
+  private async bumpVersion(_args: ParsedArgs) {
+    // Changesets determine bump types from changeset files, not CLI args.
+    // Use `pnpm changeset:version` which also regenerates lockfile + stages it.
+    const result = await execCommand('pnpm', ['changeset:version'], {
       cwd: this.projectRoot,
     });
 
@@ -399,10 +394,7 @@ class ReleaseCLI extends ExecutingCLI {
       return fail('Version bump failed', ErrorCode.EXECUTION_ERROR);
     }
 
-    return ok({
-      message: `Version bumped to ${versionType}`,
-      type: versionType,
-    });
+    return ok({ message: 'Versions bumped from changesets' });
   }
 
   /**
