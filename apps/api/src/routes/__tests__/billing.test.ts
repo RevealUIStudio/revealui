@@ -841,12 +841,13 @@ describe('POST /report-agent-overage', () => {
     expect(res.status).toBe(401);
   });
 
-  it('skips silently when STRIPE_AGENT_METER_EVENT_NAME is not set', async () => {
+  it('uses default meter event name when STRIPE_AGENT_METER_EVENT_NAME is not set', async () => {
     delete process.env.STRIPE_AGENT_METER_EVENT_NAME;
 
     const res = await billingApp.request(cronPost('/report-agent-overage'));
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
+    // No overage rows in mock — reported/skipped both 0, but endpoint no longer skips entirely
     expect(body.reported).toBe(0);
     expect(body.skipped).toBe(0);
     expect(mockMeterEventsCreate).not.toHaveBeenCalled();
