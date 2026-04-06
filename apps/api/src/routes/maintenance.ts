@@ -96,7 +96,7 @@ app.openapi(cleanupOrphansRoute, async (c) => {
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
     logger.error('Cross-DB orphan cleanup failed', error);
-    return c.json({ error: error.message }, 500);
+    return c.json({ error: 'Cross-DB orphan cleanup failed' }, 500);
   }
 });
 

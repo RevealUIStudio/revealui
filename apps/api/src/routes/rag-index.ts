@@ -131,7 +131,7 @@ app.openapi(
       return c.json(
         {
           success: false,
-          error: `CMS fetch error: ${error instanceof Error ? error.message : String(error)}`,
+          error: 'CMS fetch error: upstream service unavailable',
         },
         502,
       );
