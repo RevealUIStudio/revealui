@@ -77,10 +77,10 @@ describe('HeroSection', () => {
   it('contains trust badges', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    expect(html).toContain('MIT Licensed');
-    expect(html).toContain('Full Source Code');
+    expect(html).toContain('MIT Licensed (OSS)');
+    expect(html).toContain('Local AI (Inference Snaps)');
     expect(html).toContain('No Vendor Lock-in');
-    expect(html).toContain('TypeScript End-to-End');
+    expect(html).toContain('Studio Desktop App');
   });
 
   it('renders the Open Source badge', () => {

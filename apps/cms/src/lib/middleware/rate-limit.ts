@@ -65,7 +65,7 @@ function extractTrustedIp(request: NextRequest): string {
   return request.headers.get('x-real-ip') || (request as NextRequestWithIP).ip || 'unknown';
 }
 
-export function rateLimit(config: RateLimitConfig) {
+export function rateLimit(config: RateLimitConfig, options?: { failClosed?: boolean }) {
   return async (request: NextRequest): Promise<NextResponse | null> => {
     const ipAddress = extractTrustedIp(request);
 
@@ -95,6 +95,17 @@ export function rateLimit(config: RateLimitConfig) {
         );
       }
     } catch (error) {
+      if (options?.failClosed) {
+        logger.error(
+          'Rate limit check failed, rejecting request (fail-closed)',
+          error instanceof Error ? error : undefined,
+          { error: error instanceof Error ? error.message : String(error) },
+        );
+        return NextResponse.json(
+          { error: 'Service temporarily unavailable. Please try again later.' },
+          { status: 503 },
+        );
+      }
       logger.warn('Rate limit check failed, allowing request', {
         error: error instanceof Error ? error.message : String(error),
       });
@@ -178,7 +189,7 @@ export function withRateLimit(
       return NextResponse.json(
         {
           error: 'INTERNAL_ERROR',
-          message: handlerError instanceof Error ? handlerError.message : 'Internal server error',
+          message: 'Internal server error',
         },
         { status: 500 },
       );
