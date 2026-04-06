@@ -127,7 +127,7 @@ app.openapi(
 
       const data = (await res.json()) as { docs?: typeof documents };
       documents = data.docs ?? [];
-    } catch (error) {
+    } catch {
       return c.json(
         {
           success: false,

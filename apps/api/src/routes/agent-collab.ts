@@ -215,7 +215,7 @@ export function createAgentCollabRoute(): OpenAPIHono<{ Variables: Variables }> 
         documentId,
         textLength,
       });
-    } catch (err) {
+    } catch {
       throw new HTTPException(500, {
         message: 'Collaboration edit failed',
       });
