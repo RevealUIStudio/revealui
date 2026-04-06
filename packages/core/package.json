@@ -4,7 +4,7 @@
   "description": "CMS engine, REST API, auth, rich text, admin UI, and plugins for RevealUI",
   "license": "MIT",
   "dependencies": {
-    "@electric-sql/pglite": "^0.4.2",
+    "@electric-sql/pglite": "^0.4.3",
     "@lexical/clipboard": "^0.42.0",
     "@lexical/code": "^0.42.0",
     "@lexical/html": "^0.42.0",
@@ -21,7 +21,7 @@
     "@revealui/resilience": "workspace:*",
     "@revealui/security": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@vercel/blob": "^2.3.2",
+    "@vercel/blob": "^2.3.3",
     "bcryptjs": "^3.0.3",
     "dataloader": "^2.2.3",
     "jose": "^6.1.3",
