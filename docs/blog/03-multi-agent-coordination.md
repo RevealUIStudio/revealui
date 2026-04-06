@@ -30,12 +30,12 @@ _Last updated: 2026-03-07_
 
 | id | env | started | task | files | updated |
 |----|-----|---------|------|-------|---------|
-| wsl-root | terminal | 2026-03-07T02:24Z | run pnpm gate | .gitignore, README.md, packages/test/ | 2026-03-07T02:43Z |
+| conductor | terminal | 2026-03-07T02:24Z | run pnpm gate | .gitignore, README.md, packages/test/ | 2026-03-07T02:43Z |
 | zed-revealui | zed-acp | 2026-03-07T02:24Z | implement Phase 5.5 MCP marketplace | apps/api/src/routes/marketplace.ts, packages/db/src/schema/marketplace.ts | 2026-03-07T02:43Z |
 
 ## Recent
 - [2026-03-07 02:38] zed-revealui: Phase 5.5 marketplace routes complete
-- [2026-03-06 23:00] wsl-root: Phase 5.4 Forge Docker committed
+- [2026-03-06 23:00] conductor: Phase 5.4 Forge Docker committed
 ```
 
 Each agent registers itself when it starts. Each agent claims the files it's working on. Before opening a file to edit, an agent checks whether another session has claimed it.
@@ -78,7 +78,7 @@ export CLAUDE_AGENT_ROLE=zed-revealui
 In the terminal launch script:
 
 ```bash
-export CLAUDE_AGENT_ROLE=wsl-root
+export CLAUDE_AGENT_ROLE=conductor
 ```
 
 Every agent gets a stable identity across restarts.

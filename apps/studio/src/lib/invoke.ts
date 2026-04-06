@@ -234,12 +234,12 @@ const MOCK_DATA: Record<string, unknown> = {
     '',
     '| id | env | started | task | files | updated |',
     '|----|-----|---------|------|-------|---------|',
-    '| wsl-root | wsl | 2026-03-18T16:31Z | Building agent session panel | apps/studio/src/components/agent/AgentPanel.tsx | 2026-03-18T20:25Z |',
+    '| conductor | wsl | 2026-03-18T16:31Z | Building agent session panel | apps/studio/src/components/agent/AgentPanel.tsx | 2026-03-18T20:25Z |',
     '| zed-extension | zed | 2026-03-18T15:00Z | idle | — | 2026-03-18T18:00Z |',
     '',
     '## Recent',
     '',
-    '- [2026-03-18 18:00] wsl-root: Fixed settings-layout test failures',
+    '- [2026-03-18 18:00] conductor: Fixed settings-layout test failures',
     '- [2026-03-18 14:00] zed-extension: Biome lint cleanup',
   ].join('\n'),
 
@@ -261,7 +261,7 @@ const MOCK_DATA: Record<string, unknown> = {
   harness_inbox: [
     {
       id: 1,
-      from_agent: 'wsl-root',
+      from_agent: 'conductor',
       to_agent: 'agent-ext-1',
       subject: 'Schema migration ready',
       body: 'The new idempotency_keys table is migrated. You can start using it.',
@@ -272,7 +272,7 @@ const MOCK_DATA: Record<string, unknown> = {
   harness_send_message: {
     id: 2,
     from_agent: 'agent-ext-1',
-    to_agent: 'wsl-root',
+    to_agent: 'conductor',
     subject: 'Acknowledged',
     body: 'Will integrate shortly.',
     read: false,
