@@ -108,7 +108,7 @@ describe('sendEmail', () => {
     return import('../email.js');
   }
 
-  it('logs warning and resolves when no email provider is configured', async () => {
+  it('throws in production when no email provider is configured', async () => {
     process.env.NODE_ENV = 'production';
     delete process.env.RESEND_API_KEY;
     delete process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -117,7 +117,7 @@ describe('sendEmail', () => {
     const { sendEmail } = await importFresh();
     await expect(
       sendEmail({ to: 'test@example.com', subject: 'Test', html: '<p>Hi</p>' }),
-    ).resolves.toBeUndefined();
+    ).rejects.toThrow('No email provider configured');
   });
 
   it('logs and returns silently in development when no email provider is configured', async () => {

@@ -284,7 +284,7 @@ describe('agent-collab route', () => {
 
       expect(res.status).toBe(500);
       const text = await res.text();
-      expect(text).toContain('Document locked');
+      expect(text).toContain('Collaboration edit failed');
     });
 
     it('should return 400 for invalid edit type', async () => {
@@ -492,7 +492,7 @@ describe('agent-collab route', () => {
 
       expect(res.status).toBe(500);
       const text = await res.text();
-      expect(text).toContain('Unknown error');
+      expect(text).toContain('Collaboration edit failed');
 
       mockDoc.destroy();
     });

@@ -181,12 +181,12 @@ describe('POST /cleanup-orphans — error handling', () => {
     expect(res.status).toBe(500);
   });
 
-  it('includes the error message in the 500 body', async () => {
+  it('includes sanitized error message in the 500 body', async () => {
     mockedCleanup.mockRejectedValue(new Error('Supabase connection refused'));
     const app = createApp();
     const res = await app.request(makeRequest(VALID_SECRET));
     const body = await res.json();
-    expect(body.error).toContain('Supabase connection refused');
+    expect(body.error).toBe('Cross-DB orphan cleanup failed');
   });
 
   it('handles non-Error thrown values gracefully', async () => {
@@ -222,7 +222,7 @@ describe('POST /cleanup-orphans — logging', () => {
     const res = await app.request(makeRequest(VALID_SECRET));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.error).toContain('REST client unavailable');
+    expect(body.error).toBe('Cross-DB orphan cleanup failed');
   });
 
   it('handles large deletedSiteIds array correctly', async () => {
@@ -263,7 +263,7 @@ describe('POST /cleanup-orphans — vector client failure', () => {
     const res = await app.request(makeRequest(VALID_SECRET));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.error).toContain('Vector client unavailable');
+    expect(body.error).toBe('Cross-DB orphan cleanup failed');
   });
 
   it('returns 500 when both DB clients throw', async () => {
@@ -279,7 +279,7 @@ describe('POST /cleanup-orphans — vector client failure', () => {
     expect(res.status).toBe(500);
     // First error thrown (REST) is the one caught
     const body = await res.json();
-    expect(body.error).toContain('REST unavailable');
+    expect(body.error).toBe('Cross-DB orphan cleanup failed');
   });
 });
 

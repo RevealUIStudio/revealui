@@ -191,7 +191,13 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
     return;
   }
 
-  // 3. No provider — log and continue (don't crash deploys pre-Workspace)
+  // 3. No provider — in production, throw so callers (e.g. OTP flows) can
+  //    surface the delivery failure instead of silently succeeding.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('No email provider configured');
+  }
+
+  // Development: log and continue
   logger.warn('Email not sent — no provider configured', {
     to: options.to,
     subject: options.subject,

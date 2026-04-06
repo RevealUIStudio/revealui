@@ -160,7 +160,7 @@ describe('POST /api/collab/agent/edit — post-edit handler failure', () => {
 
     expect(res.status).toBe(500);
     const text = await res.text();
-    expect(text).toContain('Cache eviction: doc not found');
+    expect(text).toContain('Collaboration edit failed');
   });
 });
 
