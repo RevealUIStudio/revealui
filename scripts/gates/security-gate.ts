@@ -406,6 +406,55 @@ async function checkApiSecurity(projectRoot: string): Promise<CheckResult> {
   return { name: 'API security', status: 'pass', durationMs };
 }
 
+async function checkLocalPathLeaks(projectRoot: string): Promise<CheckResult> {
+  const start = performance.now();
+  const violations: string[] = [];
+
+  // Detect hardcoded home directory paths in tracked source files
+  // Searches for /home/<user>/ patterns that shouldn't be committed
+  const result = await execCommand(
+    'git',
+    [
+      'grep',
+      '-rn',
+      '/home/[a-z]',
+      '--',
+      'apps/',
+      'packages/',
+      'scripts/',
+      ':!scripts/agent/',
+      ':!**/node_modules/**',
+      ':!**/*.test.*',
+      ':!**/*.spec.*',
+    ],
+    { capture: true, cwd: projectRoot },
+  );
+
+  const output = (result.stdout ?? '').trim();
+  if (output) {
+    for (const line of output.split('\n')) {
+      // Skip comments that are generic examples (e.g. "# /home/user/...")
+      if (line.includes('/home/user/')) continue;
+      // Skip lines that are just using $HOME
+      if (line.includes('$HOME')) continue;
+      violations.push(line);
+    }
+  }
+
+  const durationMs = performance.now() - start;
+
+  if (violations.length > 0) {
+    return {
+      name: 'Local path leaks',
+      status: 'fail',
+      durationMs,
+      detail: `${violations.length} file(s) contain hardcoded local paths:\n${violations.slice(0, 5).join('\n')}`,
+    };
+  }
+
+  return { name: 'Local path leaks', status: 'pass', durationMs };
+}
+
 // =============================================================================
 // Summary
 // =============================================================================
@@ -467,6 +516,7 @@ async function gate(): Promise<void> {
     checkDependencyAudit(projectRoot),
     checkSecretscan(projectRoot),
     checkEnvFiles(projectRoot),
+    checkLocalPathLeaks(projectRoot),
     checkAuthPatterns(projectRoot),
     checkApiSecurity(projectRoot),
   ]);
@@ -489,7 +539,9 @@ async function gate(): Promise<void> {
 
   // Critical checks: dependency audit, secrets scan, env file check
   const criticalFailed = results
-    .filter((r) => ['Dependency audit', 'Secrets scan', 'Env file check'].includes(r.name))
+    .filter((r) =>
+      ['Dependency audit', 'Secrets scan', 'Env file check', 'Local path leaks'].includes(r.name),
+    )
     .some((r) => r.status === 'fail');
 
   if (criticalFailed) {
