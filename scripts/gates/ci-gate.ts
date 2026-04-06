@@ -372,7 +372,7 @@ async function gate(): Promise<void> {
                 'build',
                 `--filter=...[${changeBase}]`,
                 ...proFilter,
-                '--concurrency=3',
+                '--concurrency=2',
               ],
               timeout: 600000,
             },
@@ -386,7 +386,7 @@ async function gate(): Promise<void> {
             {
               name: 'Build',
               command: 'pnpm',
-              args: ['turbo', 'run', 'build', ...proFilter, '--concurrency=3'],
+              args: ['turbo', 'run', 'build', ...proFilter, '--concurrency=2'],
               timeout: 900000,
             },
             {
