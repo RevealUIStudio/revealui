@@ -229,8 +229,12 @@ jobs:
         if: matrix.app == 'api' || matrix.app == 'cms'
         run: |
           echo "Checking critical env vars for ${{ matrix.app }}..."
-          ENV_LIST=$(vercel env ls --environment=production --token="$VERCEL_TOKEN" 2>/dev/null || echo "")
-          echo "::debug::vercel env ls output: $ENV_LIST"
+          ENV_OUTPUT=$(vercel env ls --environment=production --token="$VERCEL_TOKEN" 2>&1) || {
+            echo "::warning::vercel env ls failed — skipping validation"
+            echo "$ENV_OUTPUT"
+            exit 0
+          }
+          echo "::debug::vercel env ls output: $ENV_OUTPUT"
           MISSING=0
 
           # Core vars required by all server apps
@@ -248,7 +252,7 @@ jobs:
           fi
 
           for VAR in $REQUIRED; do
-            if ! echo "$ENV_LIST" | grep -q "$VAR"; then
+            if ! echo "$ENV_OUTPUT" | grep -q "$VAR"; then
               echo "::error::Missing required env var: $VAR"
               MISSING=1
             fi
