@@ -45,6 +45,7 @@ import type {
   globalFooter,
   globalHeader,
   globalSettings,
+  idempotencyKeys,
   jobs,
   licenses,
   magicLinks,
@@ -270,6 +271,11 @@ export type GlobalHeaderUpdate = Partial<GlobalHeaderInsert>
 export type GlobalSettingsRow = typeof globalSettings.$inferSelect
 export type GlobalSettingsInsert = typeof globalSettings.$inferInsert
 export type GlobalSettingsUpdate = Partial<GlobalSettingsInsert>
+
+// Idempotency Keys
+export type IdempotencyKeysRow = typeof idempotencyKeys.$inferSelect
+export type IdempotencyKeysInsert = typeof idempotencyKeys.$inferInsert
+export type IdempotencyKeysUpdate = Partial<IdempotencyKeysInsert>
 
 // Jobs
 export type JobsRow = typeof jobs.$inferSelect
@@ -531,6 +537,7 @@ export type DatabaseRelationships = {
   globalFooter: Relationship[]
   globalHeader: Relationship[]
   globalSettings: Relationship[]
+  idempotencyKeys: Relationship[]
   jobs: Relationship[]
   licenses: Relationship[]
   magicLinks: Relationship[]
@@ -705,6 +712,9 @@ export const globalHeaderRelationships: readonly Relationship[] = []
 
 // GlobalSettings relationships
 export const globalSettingsRelationships: readonly Relationship[] = []
+
+// IdempotencyKeys relationships
+export const idempotencyKeysRelationships: readonly Relationship[] = []
 
 // Jobs relationships
 export const jobsRelationships: readonly Relationship[] = []
@@ -1133,6 +1143,12 @@ export type Database = {
         Insert: GlobalSettingsInsert
         Update: GlobalSettingsUpdate
         Relationships: typeof globalSettingsRelationships
+      }
+      idempotency_keys: {
+        Row: IdempotencyKeysRow
+        Insert: IdempotencyKeysInsert
+        Update: IdempotencyKeysUpdate
+        Relationships: typeof idempotencyKeysRelationships
       }
       jobs: {
         Row: JobsRow

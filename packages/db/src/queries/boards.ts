@@ -40,6 +40,10 @@ export async function getBoardBySlug(db: DatabaseClient, slug: string, tenantId?
 
 /**
  * Create a board with default kanban columns.
+ *
+ * NOTE: NeonDB HTTP driver does not support transactions. The board insert and
+ * column insert below are not atomic — a failure after the board is created but
+ * before columns are inserted will leave a board without its default columns.
  */
 export async function createBoard(
   db: DatabaseClient,

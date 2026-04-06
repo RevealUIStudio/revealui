@@ -40,6 +40,7 @@ import { enforceSiteLimit, enforceUserLimit } from './middleware/resource-limits
 import { requireTaskQuota } from './middleware/task-quota.js';
 import { tenantMiddleware } from './middleware/tenant.js';
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
+import adminObservabilityRoute from './routes/admin/observability.js';
 import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
 import agentTasksRoute from './routes/agent-tasks.js';
@@ -349,6 +350,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-usage': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-credits': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-metrics': { maxRequests: 10, windowMs: ONE_MINUTE },
+    'admin-observability': { maxRequests: 30, windowMs: ONE_MINUTE },
     'content-batch': { maxRequests: 10, windowMs: ONE_MINUTE },
     'content-export': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'marketplace-publish': { maxRequests: 10, windowMs: ONE_HOUR },
@@ -483,6 +485,10 @@ app.use('/api/v1/maintenance/*', routeLimit('maintenance'));
 // Content scheduling cron — same limits as maintenance
 app.use('/api/cron/*', routeLimit('maintenance'));
 app.use('/api/v1/cron/*', routeLimit('maintenance'));
+
+// Admin observability — read-only dashboards, moderate limit
+app.use('/api/admin/*', routeLimit('admin-observability'));
+app.use('/api/v1/admin/*', routeLimit('admin-observability'));
 
 // GDPR consent endpoints — moderate limits, deletion requests tighter
 const gdprConsentLimit = rateLimitMiddleware({
@@ -650,6 +656,8 @@ app.patch('/api/provenance/*', writeProtected);
 app.patch('/api/v1/provenance/*', writeProtected);
 app.delete('/api/provenance/*', writeProtected);
 app.delete('/api/v1/provenance/*', writeProtected);
+app.get('/api/admin/*', writeProtected);
+app.get('/api/v1/admin/*', writeProtected);
 app.get('/api/billing/metrics', writeProtected);
 app.get('/api/v1/billing/metrics', writeProtected);
 // Billing POST auth — skip cron routes (they use X-Cron-Secret, not session auth)
@@ -743,6 +751,8 @@ app.use('/api/terminal-auth/*', noStore);
 app.use('/api/v1/terminal-auth/*', noStore);
 app.use('/api/api-keys/*', noStore);
 app.use('/api/v1/api-keys/*', noStore);
+app.use('/api/admin/*', noStore);
+app.use('/api/v1/admin/*', noStore);
 app.use('/api/agent-tasks/*', noStore);
 app.use('/api/v1/agent-tasks/*', noStore);
 app.use('/api/agent-stream', noStore);
@@ -774,6 +784,7 @@ app.route('/api/agent-tasks', agentTasksRoute);
 app.route('/api/agent-stream', agentStreamRoute);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
+app.route('/api/admin', adminObservabilityRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
 app.route('/api/cron', cronDispatchRoute);
@@ -810,6 +821,7 @@ app.route('/api/v1/agent-tasks', agentTasksRoute);
 app.route('/api/v1/agent-stream', agentStreamRoute);
 app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
+app.route('/api/v1/admin', adminObservabilityRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
 app.route('/api/v1/cron', cronDispatchRoute);

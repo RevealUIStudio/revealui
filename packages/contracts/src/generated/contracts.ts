@@ -951,6 +951,32 @@ export const GlobalSettingsInsertContract = createContract({
 })
 
 // =============================================================================
+// IdempotencyKeys Contracts
+// =============================================================================
+
+/**
+ * Contract for idempotencyKeys row (Select)
+ * Database table: idempotency_keys
+ */
+export const IdempotencyKeysRowContract = createContract({
+  name: 'IdempotencyKeysRow',
+  version: '1',
+  description: 'Database row contract for idempotency_keys table',
+  schema: Schemas.IdempotencyKeysSelectSchema,
+})
+
+/**
+ * Contract for idempotencyKeys insert
+ * Database table: idempotency_keys
+ */
+export const IdempotencyKeysInsertContract = createContract({
+  name: 'IdempotencyKeysInsert',
+  version: '1',
+  description: 'Database insert contract for idempotency_keys table',
+  schema: Schemas.IdempotencyKeysInsertSchema,
+})
+
+// =============================================================================
 // Jobs Contracts
 // =============================================================================
 

@@ -88,6 +88,9 @@ export async function getMessages(
     .offset(offset);
 }
 
+// NOTE: NeonDB HTTP driver does not support transactions. The message insert
+// and conversation timestamp update below are not atomic — a failure between
+// them can leave the conversation's updatedAt stale.
 export async function addMessage(
   db: AnyDB,
   data: { id: string; conversationId: string; role: string; content: string },

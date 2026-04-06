@@ -47,7 +47,7 @@ export const coordinationSessions = pgTable(
     id: text('id').primaryKey(),
     agentId: text('agent_id')
       .notNull()
-      .references(() => coordinationAgents.id),
+      .references(() => coordinationAgents.id, { onDelete: 'cascade' }),
     startedAt: timestamp('started_at', { withTimezone: true }).defaultNow().notNull(),
     endedAt: timestamp('ended_at', { withTimezone: true }),
     task: text('task').default('(starting)').notNull(),
@@ -75,7 +75,10 @@ export const coordinationFileClaims = pgTable(
       .references(() => coordinationSessions.id, { onDelete: 'cascade' }),
     claimedAt: timestamp('claimed_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [primaryKey({ columns: [table.filePath, table.sessionId] })],
+  (table) => [
+    primaryKey({ columns: [table.filePath, table.sessionId] }),
+    index('coordination_file_claims_session_id_idx').on(table.sessionId),
+  ],
 );
 
 // =============================================================================

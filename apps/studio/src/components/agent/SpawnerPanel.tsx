@@ -246,6 +246,7 @@ function OutputViewer({ lines }: { lines: string[] }) {
         <span className="italic text-neutral-600">Waiting for output…</span>
       ) : (
         lines.map((line, i) => (
+          /* biome-ignore lint/suspicious/noArrayIndexKey: append-only log output, lines never reorder and can duplicate */
           <div key={i} className="whitespace-pre-wrap break-all">
             {line}
           </div>
