@@ -105,7 +105,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "peerDependencies": {
-    "@revealui/db": "workspace:*",
+    "@revealui/db": "workspace:^",
     "drizzle-zod": "^0.8.3",
     "typescript": ">=6.0.0"
   },

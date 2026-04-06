@@ -16,6 +16,8 @@
     "test",
     "revealcoin",
     "@revealui/scripts",
-    "dev"
+    "dev",
+    "@revealui/ai",
+    "@revealui/harnesses"
   ]
 }

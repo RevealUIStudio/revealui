@@ -97,22 +97,17 @@ function checkPackage(pkgPath: string): void {
         });
       }
 
-      // Rule 2a: Pro peer deps must not use workspace:*
-      if (PRO_PACKAGES.has(dep) && range === 'workspace:*') {
-        violations.push({
-          file: rel,
-          rule: 'pro-peer-no-workspace',
-          detail: `${dep} is a Pro package (not in workspace) — use ^x.y.z, not workspace:*`,
-        });
-      }
-
-      // Rule 2b: Pro package deps must use caret ranges (^x.y.z), not exact pins or tildes
-      if (PRO_PACKAGES.has(dep) && range !== 'workspace:*' && !range.startsWith('^')) {
-        violations.push({
-          file: rel,
-          rule: 'pro-peer-use-range',
-          detail: `${dep} = "${range}" — Pro packages must use caret ranges (^x.y.z) to allow compatible updates`,
-        });
+      // Rule 2: Pro package deps must use caret ranges.
+      // Accepted forms: "^x.y.z" (explicit) or "workspace:^" (pnpm resolves locally, publishes as ^version)
+      if (PRO_PACKAGES.has(dep)) {
+        const isValidProRange = range.startsWith('^') || range === 'workspace:^';
+        if (!isValidProRange) {
+          violations.push({
+            file: rel,
+            rule: 'pro-peer-use-range',
+            detail: `${dep} = "${range}" — Pro packages must use ^x.y.z or workspace:^ (not workspace:*)`,
+          });
+        }
       }
 
       // Rule 1 (informational): internal OSS deps should use workspace:*

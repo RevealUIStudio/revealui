@@ -30,7 +30,7 @@
     "ora": "^9.3.0"
   },
   "peerDependencies": {
-    "@revealui/ai": "^0.2.7"
+    "@revealui/ai": "workspace:^"
   },
   "peerDependenciesMeta": {
     "@revealui/ai": {

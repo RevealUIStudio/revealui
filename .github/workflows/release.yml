@@ -62,7 +62,7 @@ jobs:
         run: pnpm changeset status --verbose
 
       - name: Build all packages
-        run: pnpm build
+        run: pnpm build --concurrency=4
         env:
           SKIP_ENV_VALIDATION: "true"
 
