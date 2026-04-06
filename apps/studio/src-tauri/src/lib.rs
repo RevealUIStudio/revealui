@@ -10,8 +10,8 @@ mod tray;
 
 use commands::{
     agent as agent_cmds, apps, config as config_cmds, deploy, git as git_cmds,
-    inference as inference_cmds, local_shell as shell_cmds, mount, setup,
-    spawner as spawner_cmds, ssh as ssh_cmds, status, sync, tunnel, vault,
+    inference as inference_cmds, launcher, local_shell as shell_cmds, mount, setup,
+    spawner as spawner_cmds, ssh as ssh_cmds, status, sync, terminal, tunnel, vault,
 };
 use config::ConfigState;
 use local_shell::LocalShellState;
@@ -138,6 +138,9 @@ pub fn run() {
             inference_cmds::inference_snap_list,
             inference_cmds::inference_snap_install,
             inference_cmds::inference_snap_remove,
+            terminal::terminal_detect,
+            terminal::terminal_install,
+            launcher::focus_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running RevealUI Studio");

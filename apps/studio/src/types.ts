@@ -157,6 +157,16 @@ export interface SnapModel {
   installed: boolean;
 }
 
+/** A detected terminal emulator and its profile install status */
+export interface TerminalProfile {
+  id: string;
+  name: string;
+  platform: string;
+  installed: boolean;
+  config_file: string;
+  dest_path: string;
+}
+
 /** Deploy wizard step IDs */
 export type DeployStep =
   | 'vercel'

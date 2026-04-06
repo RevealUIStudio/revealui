@@ -29,6 +29,7 @@ import type {
   SyncResult,
   SystemStatus,
   TailscaleStatus,
+  TerminalProfile,
 } from '../types';
 
 /** True when running inside the Tauri webview (IPC bridge available) */
@@ -541,6 +542,45 @@ export function inferenceSnapInstall(snapName: string): Promise<ModelPullResult>
 
 export function inferenceSnapRemove(snapName: string): Promise<void> {
   return invoke<void>('inference_snap_remove', { snapName });
+}
+
+// ── Terminal profiles ────────────────────────────────────────────────────────
+
+export function terminalDetect(): Promise<TerminalProfile[]> {
+  if (!isTauri()) {
+    return Promise.resolve([
+      {
+        id: 'alacritty',
+        name: 'Alacritty',
+        platform: 'Linux',
+        installed: false,
+        config_file: 'alacritty-revealui.toml',
+        dest_path: '',
+      },
+      {
+        id: 'kitty',
+        name: 'Kitty',
+        platform: 'Linux',
+        installed: true,
+        config_file: 'kitty-revealui.conf',
+        dest_path: '',
+      },
+    ]);
+  }
+  return invoke<TerminalProfile[]>('terminal_detect');
+}
+
+export function terminalInstall(terminalId: string, configDir: string): Promise<TerminalProfile> {
+  return invoke<TerminalProfile>('terminal_install', { terminalId, configDir });
+}
+
+// ── Launcher (quick-switch) ──────────────────────────────────────────────────
+
+export function focusWindow(processName: string): Promise<boolean> {
+  if (!isTauri()) {
+    return Promise.resolve(false);
+  }
+  return invoke<boolean>('focus_window', { processName });
 }
 
 // Re-export AgentSession so consumers don't need to reach into types directly
