@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
+import { useEffect, useRef, useState } from 'react';
 import { agentList, agentRemove, agentSpawn, agentStop } from '../lib/invoke';
 import type { AgentBackend, AgentExitEvent, AgentOutputEvent, AgentSessionInfo } from '../types';
 

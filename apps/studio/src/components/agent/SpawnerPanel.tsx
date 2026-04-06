@@ -155,8 +155,8 @@ function SpawnForm({ onSpawn, onCancel }: SpawnFormProps) {
       onSubmit={(e) => void handleSubmit(e)}
       className="mb-3 rounded-lg border border-orange-800/40 bg-orange-950/20 p-3"
     >
-      <div className="mb-2">
-        <label className="mb-0.5 block text-[10px] font-medium text-neutral-400">Name</label>
+      <label className="mb-2 block">
+        <span className="mb-0.5 block text-[10px] font-medium text-neutral-400">Name</span>
         <input
           ref={nameRef}
           value={name}
@@ -164,10 +164,10 @@ function SpawnForm({ onSpawn, onCancel }: SpawnFormProps) {
           placeholder="my-agent"
           className="w-full rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-neutral-200 focus:border-orange-600 focus:outline-none"
         />
-      </div>
+      </label>
 
       <div className="mb-2">
-        <label className="mb-0.5 block text-[10px] font-medium text-neutral-400">Backend</label>
+        <span className="mb-0.5 block text-[10px] font-medium text-neutral-400">Backend</span>
         <div className="flex gap-1.5">
           {(['Snap', 'BitNet', 'Ollama'] as const).map((b) => (
             <button
@@ -186,8 +186,8 @@ function SpawnForm({ onSpawn, onCancel }: SpawnFormProps) {
         </div>
       </div>
 
-      <div className="mb-2">
-        <label className="mb-0.5 block text-[10px] font-medium text-neutral-400">Model</label>
+      <label className="mb-2 block">
+        <span className="mb-0.5 block text-[10px] font-medium text-neutral-400">Model</span>
         <input
           value={model}
           onChange={(e) => setModel(e.target.value)}
@@ -200,10 +200,10 @@ function SpawnForm({ onSpawn, onCancel }: SpawnFormProps) {
           }
           className="w-full rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-neutral-200 focus:border-orange-600 focus:outline-none"
         />
-      </div>
+      </label>
 
-      <div className="mb-3">
-        <label className="mb-0.5 block text-[10px] font-medium text-neutral-400">Prompt</label>
+      <label className="mb-3 block">
+        <span className="mb-0.5 block text-[10px] font-medium text-neutral-400">Prompt</span>
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
@@ -211,7 +211,7 @@ function SpawnForm({ onSpawn, onCancel }: SpawnFormProps) {
           rows={3}
           className="w-full resize-none rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-neutral-200 focus:border-orange-600 focus:outline-none"
         />
-      </div>
+      </label>
 
       <div className="flex justify-end gap-2">
         <button

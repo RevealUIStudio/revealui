@@ -5,7 +5,6 @@ const COPY_FEEDBACK_MS = 2_000;
 
 import type { useSetup } from '../../hooks/use-setup';
 import { useTunnel } from '../../hooks/use-tunnel';
-import type { SnapModel, TerminalProfile } from '../../types';
 import {
   inferenceSnapInstall,
   inferenceSnapList,
@@ -14,6 +13,7 @@ import {
   vaultInit,
   vaultIsInitialized,
 } from '../../lib/invoke';
+import type { SnapModel, TerminalProfile } from '../../types';
 import Button from '../ui/Button';
 import ErrorAlert from '../ui/ErrorAlert';
 import Input from '../ui/Input';

@@ -48,6 +48,7 @@ export function useInference() {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refresh is stable, run on mount only
   useEffect(() => {
     refresh();
     const id = setInterval(() => {
