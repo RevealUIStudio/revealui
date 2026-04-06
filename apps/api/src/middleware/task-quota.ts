@@ -129,10 +129,11 @@ export async function requireTaskQuota(
             .where(eq(agentCreditBalance.userId, user.id));
         } catch (err) {
           // Credit deduction failed — block the request to prevent free usage
-          logger.error('Credit deduction failed — blocking task', {
-            userId: user.id,
-            error: err instanceof Error ? err.message : String(err),
-          });
+          logger.error(
+            'Credit deduction failed — blocking task',
+            err instanceof Error ? err : undefined,
+            { userId: user.id },
+          );
           return c.json({ error: 'Billing error — please retry.' }, 503);
         }
 
