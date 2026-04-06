@@ -6,31 +6,21 @@ var PRE_CACHE_URLS = ['/', '/admin', '/login'];
 
 // ---------- Install ----------
 
-self.addEventListener('install', function (event) {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(function (cache) {
-      return cache.addAll(PRE_CACHE_URLS);
-    }),
-  );
+self.addEventListener('install', (event) => {
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRE_CACHE_URLS)));
   // Activate immediately without waiting for existing clients to close.
   self.skipWaiting();
 });
 
 // ---------- Activate ----------
 
-self.addEventListener('activate', function (event) {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(function (names) {
-      return Promise.all(
-        names
-          .filter(function (name) {
-            return name !== CACHE_NAME;
-          })
-          .map(function (name) {
-            return caches.delete(name);
-          }),
-      );
-    }),
+    caches
+      .keys()
+      .then((names) =>
+        Promise.all(names.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))),
+      ),
   );
   // Claim all open clients so the new SW takes effect immediately.
   self.clients.claim();
@@ -73,7 +63,7 @@ function isNavigationRequest(request) {
   return request.mode === 'navigate';
 }
 
-self.addEventListener('fetch', function (event) {
+self.addEventListener('fetch', (event) => {
   var request = event.request;
 
   // Only handle GET requests — mutations go straight to the network.
@@ -85,17 +75,15 @@ self.addEventListener('fetch', function (event) {
   if (isApiRequest(request.url)) {
     event.respondWith(
       fetch(request)
-        .then(function (response) {
+        .then((response) => {
           // Cache a clone for offline fallback.
           var clone = response.clone();
-          caches.open(CACHE_NAME).then(function (cache) {
+          caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, clone);
           });
           return response;
         })
-        .catch(function () {
-          return caches.match(request);
-        }),
+        .catch(() => caches.match(request)),
     );
     return;
   }
@@ -103,13 +91,13 @@ self.addEventListener('fetch', function (event) {
   // --- Static assets: cache-first, fall back to network ---
   if (isStaticAsset(request.url)) {
     event.respondWith(
-      caches.match(request).then(function (cached) {
+      caches.match(request).then((cached) => {
         if (cached) {
           return cached;
         }
-        return fetch(request).then(function (response) {
+        return fetch(request).then((response) => {
           var clone = response.clone();
-          caches.open(CACHE_NAME).then(function (cache) {
+          caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, clone);
           });
           return response;
@@ -123,16 +111,14 @@ self.addEventListener('fetch', function (event) {
   if (isNavigationRequest(request)) {
     event.respondWith(
       fetch(request)
-        .then(function (response) {
+        .then((response) => {
           var clone = response.clone();
-          caches.open(CACHE_NAME).then(function (cache) {
+          caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, clone);
           });
           return response;
         })
-        .catch(function () {
-          return caches.match('/');
-        }),
+        .catch(() => caches.match('/')),
     );
     return;
   }
