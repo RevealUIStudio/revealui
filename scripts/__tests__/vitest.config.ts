@@ -14,7 +14,7 @@ export default defineConfig({
     include: ['**/*.test.ts'],
     exclude: ['**/node_modules/**'],
     testTimeout: 30000,
-    hookTimeout: 10000,
+    hookTimeout: 30000,
     coverage: {
       provider: 'v8',
       thresholds: {

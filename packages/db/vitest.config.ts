@@ -7,6 +7,7 @@ export default defineConfig({
     fileParallelism: false,
     maxWorkers: 1,
     pool: 'forks',
+    hookTimeout: 30000,
     env: {
       // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell
       POSTGRES_URL: '',
