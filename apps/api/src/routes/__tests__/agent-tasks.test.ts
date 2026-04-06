@@ -26,15 +26,18 @@ vi.mock('@revealui/db/validation/cross-db', () => ({
 
 // Mock the AI dispatcher so tests don't need a real LLM key.
 // TicketAgentDispatcher is used with `new` in the route, so use a class mock.
-const mockDispatch = vi
-  .fn()
-  .mockResolvedValue({ success: true, output: 'Agent completed the task.' });
+// vi.hoisted lets mock fns be referenced inside vi.mock factories AND test bodies
+// without a static import of @revealui/ai (which is a Pro package absent on CI).
+const { mockDispatch, mockCreateLLMClient } = vi.hoisted(() => ({
+  mockDispatch: vi.fn().mockResolvedValue({ success: true, output: 'Agent completed the task.' }),
+  mockCreateLLMClient: vi.fn().mockReturnValue({}),
+}));
 
 vi.mock('@revealui/ai', () => ({
   LLMClient: vi.fn(),
   // createLLMClientFromEnv must be mocked — without it buildDispatcher() catches
   // the "not a function" TypeError and returns null, causing 503 on all success paths.
-  createLLMClientFromEnv: vi.fn().mockReturnValue({}),
+  createLLMClientFromEnv: mockCreateLLMClient,
   TicketAgentDispatcher: vi.fn().mockImplementation(
     class {
       dispatch = mockDispatch;
@@ -42,7 +45,6 @@ vi.mock('@revealui/ai', () => ({
   ),
 }));
 
-import * as aiModule from '@revealui/ai';
 import type { DatabaseClient } from '@revealui/db/client';
 import * as boardQueries from '@revealui/db/queries/boards';
 import * as ticketQueries from '@revealui/db/queries/tickets';
@@ -50,7 +52,6 @@ import agentTasksApp from '../agent-tasks.js';
 
 const mb = vi.mocked(boardQueries);
 const mt = vi.mocked(ticketQueries);
-const mockCreateLLMClient = vi.mocked(aiModule.createLLMClientFromEnv);
 
 // ---------------------------------------------------------------------------
 // Env setup — provide a fake API key so buildDispatcher returns a dispatcher

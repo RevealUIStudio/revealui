@@ -184,16 +184,20 @@ const PRO_SOURCE_ALIAS_PATTERNS: SourcePattern[] = [
 // File Utilities
 // =============================================================================
 
-function collectSourceFiles(dir: string, files: string[] = []): string[] {
+function collectSourceFiles(
+  dir: string,
+  files: string[] = [],
+  options: { includeTests?: boolean } = {},
+): string[] {
   if (!existsSync(dir)) return files;
+  const skipDirs = options.includeTests
+    ? ['dist', 'node_modules', '.turbo']
+    : ['dist', 'node_modules', '__tests__', '__mocks__', '.turbo'];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const fullPath = join(dir, entry.name);
     if (entry.isDirectory()) {
-      // Skip dist/, node_modules/, __tests__/, __mocks__/
-      if (['dist', 'node_modules', '__tests__', '__mocks__', '.turbo'].includes(entry.name)) {
-        continue;
-      }
-      collectSourceFiles(fullPath, files);
+      if (skipDirs.includes(entry.name)) continue;
+      collectSourceFiles(fullPath, files, options);
     } else if (SOURCE_EXTENSIONS.has(extname(entry.name))) {
       files.push(fullPath);
     }
@@ -376,8 +380,10 @@ function checkProSourceAliases(): string[] {
 
 function checkPublicRepoProDependencies(): string[] {
   const violations: string[] = [];
+  // Include test files in apps/ — static Pro imports in tests break CI typecheck
+  // just as much as in production code (Pro packages are gitignored on CI).
   const files = [
-    ...collectSourceFiles(APPS_DIR),
+    ...collectSourceFiles(APPS_DIR, [], { includeTests: true }),
     ...collectSourceFiles(SCRIPTS_DIR),
     ...collectSourceFiles(join(PACKAGES_DIR, 'dev')),
   ];
