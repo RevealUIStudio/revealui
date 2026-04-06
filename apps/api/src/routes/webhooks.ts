@@ -1816,11 +1816,22 @@ app.openapi(stripeWebhookRoute, async (c) => {
           },
         );
 
-        // Send payment failed email — tier not directly available on invoice,
-        // so use the default (the template will show the correct tier label)
+        // Resolve tier from the customer's license in DB so the email
+        // references the correct plan (Pro, Max, Enterprise — not hardcoded 'pro').
+        let failedTier = 'pro';
+        const [failedLicenseRow] = await db
+          .select({ tier: licenses.tier })
+          .from(licenses)
+          .where(eq(licenses.customerId, customerId))
+          .orderBy(desc(licenses.updatedAt))
+          .limit(1);
+        if (failedLicenseRow?.tier) {
+          failedTier = failedLicenseRow.tier;
+        }
+
         const email = invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
         if (email) {
-          sendPaymentFailedEmail(email).catch((err: unknown) => {
+          sendPaymentFailedEmail(email, failedTier).catch((err: unknown) => {
             logger.error('Failed to send payment failed email', undefined, {
               detail: err instanceof Error ? err.message : 'unknown',
             });
@@ -2033,9 +2044,20 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // Stripe retries automatically per the retry schedule.
         // Notify the customer so they can update their payment method proactively.
         if (failedCustomerId) {
+          let intentFailedTier = 'pro';
+          const [intentLicenseRow] = await db
+            .select({ tier: licenses.tier })
+            .from(licenses)
+            .where(eq(licenses.customerId, failedCustomerId))
+            .orderBy(desc(licenses.updatedAt))
+            .limit(1);
+          if (intentLicenseRow?.tier) {
+            intentFailedTier = intentLicenseRow.tier;
+          }
+
           const failedEmail = await findUserEmailByCustomerId(db, failedCustomerId);
           if (failedEmail) {
-            sendPaymentFailedEmail(failedEmail).catch((err) => {
+            sendPaymentFailedEmail(failedEmail, intentFailedTier).catch((err) => {
               logger.error('Failed to send payment failed email', undefined, {
                 detail: err instanceof Error ? err.message : 'unknown',
               });
