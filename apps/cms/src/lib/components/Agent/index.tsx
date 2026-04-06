@@ -175,9 +175,19 @@ function useAgentStream() {
         });
 
         if (!response.ok) {
-          const errText = await response.text();
           setIsStreaming(false);
-          setError(`HTTP ${response.status}: ${errText}`);
+          const status = response.status;
+          if (status === 401) {
+            setError('Session expired — please sign in again');
+          } else if (status === 403) {
+            setError('AI features require a Pro subscription');
+          } else if (status === 429) {
+            setError('Rate limit exceeded — please wait a moment');
+          } else if (status === 503) {
+            setError('AI service unavailable — check your inference configuration');
+          } else {
+            setError(`Request failed (${status})`);
+          }
           return;
         }
 

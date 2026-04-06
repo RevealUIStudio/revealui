@@ -1,3 +1,4 @@
+import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const API_URL =
@@ -5,12 +6,19 @@ const API_URL =
   process.env.REVEALUI_PUBLIC_SERVER_URL ||
   'http://localhost:3004';
 
-const API_UNAVAILABLE = NextResponse.json({ error: 'Content API unavailable' }, { status: 503 });
+function apiUnavailable(collection: string, error: unknown): NextResponse {
+  const err = error instanceof Error ? error : new Error(String(error));
+  logger.error('Content API unavailable', err, { collection });
+  return NextResponse.json({ error: 'Content API unavailable' }, { status: 503 });
+}
 
 async function proxyResponse(response: Response): Promise<NextResponse> {
   if (!response.ok) {
     const text = await response.text();
-    return NextResponse.json({ error: text || 'API request failed' }, { status: response.status });
+    logger.error('Content API request failed', new Error(text || 'Unknown error'), {
+      status: response.status,
+    });
+    return NextResponse.json({ error: 'API request failed' }, { status: response.status });
   }
   const data = await response.json();
 
@@ -44,8 +52,8 @@ export async function GET(
       },
     );
     return proxyResponse(apiResponse);
-  } catch {
-    return API_UNAVAILABLE;
+  } catch (err) {
+    return apiUnavailable(collection, err);
   }
 }
 
@@ -66,7 +74,7 @@ export async function POST(
       body: JSON.stringify(body),
     });
     return proxyResponse(apiResponse);
-  } catch {
-    return API_UNAVAILABLE;
+  } catch (err) {
+    return apiUnavailable(collection, err);
   }
 }

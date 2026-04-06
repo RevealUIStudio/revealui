@@ -222,7 +222,7 @@ describe('GET /api/collections/[collection]/[id]', () => {
     expect(body.id).toBe('post-1');
   });
 
-  it('passes through 404 with error text', async () => {
+  it('returns sanitized error on 404', async () => {
     mockFetch.mockResolvedValueOnce(makeUpstreamError(404, 'Post not found'));
     const req = new NextRequest('http://localhost/api/collections/posts/no-such');
     const res = await collectionItemGet(req, {
@@ -230,7 +230,7 @@ describe('GET /api/collections/[collection]/[id]', () => {
     });
     expect(res.status).toBe(404);
     const body = await res.json();
-    expect(body.error).toBe('Post not found');
+    expect(body.error).toBe('API request failed');
   });
 });
 

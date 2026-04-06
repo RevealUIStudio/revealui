@@ -11,6 +11,7 @@
  * - limit: Maximum number of results (default: 100)
  */
 
+import crypto from 'node:crypto';
 import {
   getAllProcesses,
   type ProcessSource,
@@ -41,7 +42,11 @@ export async function GET(
 ): Promise<NextResponse<ProcessListResponse | { error: string }>> {
   const token = request.headers.get('x-internal-token');
   const secret = process.env.REVEALUI_SECRET;
-  if (!(secret && token) || token !== secret) {
+  if (
+    !(secret && token) ||
+    token.length !== secret.length ||
+    !crypto.timingSafeEqual(Buffer.from(token), Buffer.from(secret))
+  ) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

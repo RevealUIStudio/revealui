@@ -11,7 +11,7 @@ import type { AgentBackend } from '../../types';
 import { useSpawner } from '../../hooks/use-spawner';
 
 export default function SpawnerPanel() {
-  const { sessions, output, error, spawn, stop, remove, refresh } = useSpawner();
+  const { sessions, output, error, spawn, stop, remove } = useSpawner();
   const [showSpawn, setShowSpawn] = useState(false);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
 

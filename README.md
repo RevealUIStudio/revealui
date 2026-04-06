@@ -111,7 +111,7 @@ The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work
 
 - **AI agent system** — build and deploy purpose-built agents for your workflows
 - **MCP framework** — hypervisor, adapter framework, and tool discovery for connecting agents to external services
-- **Open-model inference** — Ubuntu inference snaps, BitNet, and open source models via the RevealUI harness. No proprietary APIs, no vendor lock-in, zero API bills
+- **Open-model inference** — Ubuntu Inference Snaps (recommended), BitNet, Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for instant local AI. No proprietary APIs, no vendor lock-in, zero API bills
 - **Task history** — every agent action logged, auditable, and visible in the dashboard
 - **Editor config sync** — generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 
