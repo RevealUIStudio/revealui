@@ -118,17 +118,25 @@ export async function requireTaskQuota(
         .limit(1);
 
       if (creditRow && creditRow.balance > 0) {
-        // Decrement one credit and allow through
-        void db
-          .update(agentCreditBalance)
-          .set({
-            balance: sql`${agentCreditBalance.balance} - 1`,
-            updatedAt: new Date(),
-          })
-          .where(eq(agentCreditBalance.userId, user.id))
-          .catch(onQuotaWriteError);
+        // Decrement one credit — awaited because a silent failure means free tasks
+        try {
+          await db
+            .update(agentCreditBalance)
+            .set({
+              balance: sql`${agentCreditBalance.balance} - 1`,
+              updatedAt: new Date(),
+            })
+            .where(eq(agentCreditBalance.userId, user.id));
+        } catch (err) {
+          // Credit deduction failed — block the request to prevent free usage
+          logger.error('Credit deduction failed — blocking task', {
+            userId: user.id,
+            error: err instanceof Error ? err.message : String(err),
+          });
+          return c.json({ error: 'Billing error — please retry.' }, 503);
+        }
 
-        // Still increment usage count for metering
+        // Increment usage count for metering (fire-and-forget — credit already deducted)
         void db
           .insert(agentTaskUsage)
           .values({ userId: user.id, cycleStart: cycle, count: current + 1, overage: 1 })
@@ -223,15 +231,22 @@ export async function requireTaskQuota(
     );
   }
 
-  // Increment atomically (fire-and-forget — task proceeds regardless of DB write result)
-  void db
-    .insert(agentTaskUsage)
-    .values({ userId: user.id, cycleStart: cycle, count: 1, overage: 0 })
-    .onConflictDoUpdate({
-      target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
-      set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
-    })
-    .catch(onQuotaWriteError);
+  // Increment usage count — awaited to ensure metering accuracy.
+  // On failure, allow the request but log for reconciliation.
+  try {
+    await db
+      .insert(agentTaskUsage)
+      .values({ userId: user.id, cycleStart: cycle, count: 1, overage: 0 })
+      .onConflictDoUpdate({
+        target: [agentTaskUsage.userId, agentTaskUsage.cycleStart],
+        set: { count: sql`${agentTaskUsage.count} + 1`, updatedAt: new Date() },
+      });
+    quotaWriteFailures = 0; // Reset on success
+  } catch (err) {
+    onQuotaWriteError(err);
+    // Allow the request — one lost increment is better than blocking paid users.
+    // The failure counter + logs enable reconciliation.
+  }
 
   return next();
 }
