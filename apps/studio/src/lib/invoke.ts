@@ -15,6 +15,12 @@ import type {
   GitPullResult,
   GitPushResult,
   GitStatusResult,
+  HarnessClaimResult,
+  HarnessMessage,
+  HarnessReservation,
+  HarnessReserveResult,
+  HarnessSession,
+  HarnessTask,
   ModelPullResult,
   MountStatus,
   OllamaModel,
@@ -236,6 +242,87 @@ const MOCK_DATA: Record<string, unknown> = {
     '- [2026-03-18 18:00] wsl-root: Fixed settings-layout test failures',
     '- [2026-03-18 14:00] zed-extension: Biome lint cleanup',
   ].join('\n'),
+
+  // ── Harness Daemon ──────────────────────────────────────────────────────
+  harness_ping: true,
+  harness_sessions: [
+    {
+      id: 'agent-ext-1',
+      env: 'zed',
+      task: 'Implementing harness UI',
+      files: 'apps/studio/src/components/agent/*',
+      pid: 12345,
+      started_at: new Date(Date.now() - 3600_000).toISOString(),
+      updated_at: new Date().toISOString(),
+      ended_at: null,
+      exit_summary: null,
+    },
+  ] satisfies HarnessSession[],
+  harness_inbox: [
+    {
+      id: 1,
+      from_agent: 'wsl-root',
+      to_agent: 'agent-ext-1',
+      subject: 'Schema migration ready',
+      body: 'The new idempotency_keys table is migrated. You can start using it.',
+      read: false,
+      created_at: new Date(Date.now() - 1800_000).toISOString(),
+    },
+  ] satisfies HarnessMessage[],
+  harness_send_message: {
+    id: 2,
+    from_agent: 'agent-ext-1',
+    to_agent: 'wsl-root',
+    subject: 'Acknowledged',
+    body: 'Will integrate shortly.',
+    read: false,
+    created_at: new Date().toISOString(),
+  } satisfies HarnessMessage,
+  harness_broadcast: 1,
+  harness_mark_read: undefined,
+  harness_tasks: [
+    {
+      id: 'task-001',
+      description: 'Add WebSocket live status to agent panel',
+      status: 'open',
+      owner: null,
+      claimed_at: null,
+      completed_at: null,
+      created_at: new Date(Date.now() - 7200_000).toISOString(),
+    },
+    {
+      id: 'task-002',
+      description: 'Build message compose UI',
+      status: 'claimed',
+      owner: 'agent-ext-1',
+      claimed_at: new Date(Date.now() - 1800_000).toISOString(),
+      completed_at: null,
+      created_at: new Date(Date.now() - 7200_000).toISOString(),
+    },
+  ] satisfies HarnessTask[],
+  harness_create_task: {
+    id: 'task-003',
+    description: 'New task (mock)',
+    status: 'open',
+    owner: null,
+    claimed_at: null,
+    completed_at: null,
+    created_at: new Date().toISOString(),
+  } satisfies HarnessTask,
+  harness_claim_task: { success: true, owner: 'agent-ext-1' } satisfies HarnessClaimResult,
+  harness_complete_task: true,
+  harness_release_task: true,
+  harness_reservations: [
+    {
+      file_path: 'apps/studio/src/components/agent/AgentPanel.tsx',
+      agent_id: 'agent-ext-1',
+      reserved_at: new Date(Date.now() - 900_000).toISOString(),
+      expires_at: new Date(Date.now() + 2700_000).toISOString(),
+      reason: 'Active editing — harness UI',
+    },
+  ] satisfies HarnessReservation[],
+  harness_reserve_file: { success: true } satisfies HarnessReserveResult,
+  harness_check_file: null,
 };
 
 /** Guarded invoke — returns mock data in browser, real IPC in Tauri */
@@ -581,6 +668,86 @@ export function focusWindow(processName: string): Promise<boolean> {
     return Promise.resolve(false);
   }
   return invoke<boolean>('focus_window', { processName });
+}
+
+// ── Harness Daemon ─────────────────────────────────────────────────────────
+
+export function harnessPing(): Promise<boolean> {
+  return invoke<boolean>('harness_ping');
+}
+
+export function harnessSessions(): Promise<HarnessSession[]> {
+  return invoke<HarnessSession[]>('harness_sessions');
+}
+
+export function harnessInbox(agentId: string, unreadOnly: boolean): Promise<HarnessMessage[]> {
+  return invoke<HarnessMessage[]>('harness_inbox', { agentId, unreadOnly });
+}
+
+export function harnessSendMessage(
+  fromAgent: string,
+  toAgent: string,
+  subject: string,
+  body: string,
+): Promise<HarnessMessage> {
+  return invoke<HarnessMessage>('harness_send_message', { fromAgent, toAgent, subject, body });
+}
+
+export function harnessBroadcast(
+  fromAgent: string,
+  subject: string,
+  body: string,
+): Promise<number> {
+  return invoke<number>('harness_broadcast', { fromAgent, subject, body });
+}
+
+export function harnessMarkRead(messageIds: number[]): Promise<void> {
+  return invoke<void>('harness_mark_read', { messageIds });
+}
+
+export function harnessTasks(status?: string, owner?: string): Promise<HarnessTask[]> {
+  return invoke<HarnessTask[]>('harness_tasks', {
+    status: status ?? null,
+    owner: owner ?? null,
+  });
+}
+
+export function harnessCreateTask(taskId: string, description: string): Promise<HarnessTask> {
+  return invoke<HarnessTask>('harness_create_task', { taskId, description });
+}
+
+export function harnessClaimTask(taskId: string, agentId: string): Promise<HarnessClaimResult> {
+  return invoke<HarnessClaimResult>('harness_claim_task', { taskId, agentId });
+}
+
+export function harnessCompleteTask(taskId: string, agentId: string): Promise<boolean> {
+  return invoke<boolean>('harness_complete_task', { taskId, agentId });
+}
+
+export function harnessReleaseTask(taskId: string, agentId: string): Promise<boolean> {
+  return invoke<boolean>('harness_release_task', { taskId, agentId });
+}
+
+export function harnessReservations(agentId?: string): Promise<HarnessReservation[]> {
+  return invoke<HarnessReservation[]>('harness_reservations', { agentId: agentId ?? null });
+}
+
+export function harnessReserveFile(
+  filePath: string,
+  agentId: string,
+  ttlSeconds: number,
+  reason: string,
+): Promise<HarnessReserveResult> {
+  return invoke<HarnessReserveResult>('harness_reserve_file', {
+    filePath,
+    agentId,
+    ttlSeconds,
+    reason,
+  });
+}
+
+export function harnessCheckFile(filePath: string): Promise<HarnessReservation | null> {
+  return invoke<HarnessReservation | null>('harness_check_file', { filePath });
 }
 
 // Re-export AgentSession so consumers don't need to reach into types directly

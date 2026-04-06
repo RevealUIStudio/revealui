@@ -1,5 +1,6 @@
 mod commands;
 mod config;
+mod harness;
 mod inference;
 mod local_shell;
 mod platform;
@@ -10,8 +11,8 @@ mod tray;
 
 use commands::{
     agent as agent_cmds, apps, config as config_cmds, deploy, git as git_cmds,
-    inference as inference_cmds, launcher, local_shell as shell_cmds, mount, setup,
-    spawner as spawner_cmds, ssh as ssh_cmds, status, sync, terminal, tunnel, vault,
+    harness as harness_cmds, inference as inference_cmds, launcher, local_shell as shell_cmds,
+    mount, setup, spawner as spawner_cmds, ssh as ssh_cmds, status, sync, terminal, tunnel, vault,
 };
 use config::ConfigState;
 use local_shell::LocalShellState;
@@ -123,6 +124,20 @@ pub fn run() {
             git_cmds::git_write_file,
             git_cmds::git_diff_content,
             agent_cmds::agent_read_workboard,
+            harness_cmds::harness_ping,
+            harness_cmds::harness_sessions,
+            harness_cmds::harness_inbox,
+            harness_cmds::harness_send_message,
+            harness_cmds::harness_broadcast,
+            harness_cmds::harness_mark_read,
+            harness_cmds::harness_tasks,
+            harness_cmds::harness_create_task,
+            harness_cmds::harness_claim_task,
+            harness_cmds::harness_complete_task,
+            harness_cmds::harness_release_task,
+            harness_cmds::harness_reservations,
+            harness_cmds::harness_reserve_file,
+            harness_cmds::harness_check_file,
             spawner_cmds::agent_spawn,
             spawner_cmds::agent_stop,
             spawner_cmds::agent_list,

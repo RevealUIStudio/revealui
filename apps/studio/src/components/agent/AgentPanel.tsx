@@ -8,12 +8,16 @@
 import { useEffect, useRef, useState } from 'react';
 
 import AgentChat from './AgentChat';
+import FileReservations from './FileReservations';
+import MessageInbox from './MessageInbox';
 import SpawnerPanel from './SpawnerPanel';
+import TaskBoard from './TaskBoard';
 
 const AGENT_POLL_INTERVAL_MS = 30_000;
 
-type RightTab = 'changes' | 'chat';
+type RightTab = 'changes' | 'chat' | 'messages' | 'tasks' | 'reservations';
 
+import { useHarness } from '../../hooks/use-harness';
 import { useSettingsContext } from '../../hooks/use-settings';
 import type { AgentCard } from '../../lib/a2a-api';
 import { fetchAgentCards } from '../../lib/a2a-api';
@@ -204,6 +208,48 @@ function SessionCard({ session }: { session: AgentSession }) {
   );
 }
 
+// ── Harness session card ─────────────────────────────────────────────────────
+
+function HarnessSessionCard({ session }: { session: import('../../types').HarnessSession }) {
+  const isEnded = session.ended_at !== null;
+  const hasFiles = session.files !== null && session.files.trim() !== '';
+
+  return (
+    <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-2.5">
+      <div className="flex items-center gap-2">
+        <span
+          className={`size-2 shrink-0 rounded-full ${
+            isEnded ? 'bg-neutral-600' : 'animate-pulse bg-cyan-500'
+          }`}
+        />
+        <span className="min-w-0 flex-1 truncate text-xs font-semibold text-neutral-200">
+          {session.id}
+        </span>
+        <span className="shrink-0 rounded bg-neutral-800 px-1.5 py-0.5 text-[10px] text-neutral-500">
+          {session.env}
+        </span>
+        {session.pid ? (
+          <span className="shrink-0 rounded bg-neutral-800 px-1.5 py-0.5 text-[10px] text-neutral-600">
+            pid:{session.pid}
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-1.5 text-[11px] leading-snug text-neutral-400">{session.task}</p>
+      {hasFiles ? (
+        <p className="mt-1 truncate text-[10px] text-neutral-600" title={session.files ?? ''}>
+          {session.files}
+        </p>
+      ) : null}
+      <p className="mt-1 text-[10px] text-neutral-600">
+        updated {relativeTime(session.updated_at)}
+      </p>
+      {session.exit_summary ? (
+        <p className="mt-1 text-[10px] text-green-600">{session.exit_summary}</p>
+      ) : null}
+    </div>
+  );
+}
+
 // ── Change section ────────────────────────────────────────────────────────────
 
 function ChangeSection({
@@ -267,6 +313,9 @@ export default function AgentPanel() {
   // Remote agents state
   const { settings } = useSettingsContext();
   const [remoteAgents, setRemoteAgents] = useState<AgentCard[]>([]);
+
+  // Harness daemon state
+  const harness = useHarness('studio');
 
   async function loadWorkboard() {
     try {
@@ -432,6 +481,28 @@ export default function AgentPanel() {
             ))}
           </div>
 
+          {/* Harness daemon sessions */}
+          {harness.connected ? (
+            <div className="mt-4">
+              <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-green-400">
+                <span className="size-1.5 rounded-full bg-green-500" />
+                <span>Harness Daemon</span>
+                <span className="rounded bg-neutral-800 px-1.5 py-0.5 text-neutral-400">
+                  {harness.sessions.length}
+                </span>
+              </div>
+              <div className="flex flex-col gap-2">
+                {harness.sessions.map((hs) => (
+                  <HarnessSessionCard key={hs.id} session={hs} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 rounded border border-neutral-800 bg-neutral-900/40 px-2.5 py-2 text-[10px] text-neutral-600">
+              Harness daemon offline
+            </div>
+          )}
+
           {/* Local agents (spawner) */}
           <SpawnerPanel />
 
@@ -484,6 +555,49 @@ export default function AgentPanel() {
             }`}
           >
             Agent Chat
+          </button>
+          <button
+            type="button"
+            onClick={() => setRightTab('messages')}
+            className={`px-4 py-2 text-xs font-medium transition-colors ${
+              rightTab === 'messages'
+                ? 'border-b-2 border-blue-500 text-blue-400'
+                : 'text-neutral-500 hover:text-neutral-300'
+            }`}
+          >
+            Messages
+            {harness.messages.filter((m) => !m.read).length > 0 ? (
+              <span className="ml-1.5 rounded-full bg-blue-600/20 px-1.5 py-0.5 text-[10px] text-blue-400">
+                {harness.messages.filter((m) => !m.read).length}
+              </span>
+            ) : null}
+          </button>
+          <button
+            type="button"
+            onClick={() => setRightTab('tasks')}
+            className={`px-4 py-2 text-xs font-medium transition-colors ${
+              rightTab === 'tasks'
+                ? 'border-b-2 border-blue-500 text-blue-400'
+                : 'text-neutral-500 hover:text-neutral-300'
+            }`}
+          >
+            Tasks
+          </button>
+          <button
+            type="button"
+            onClick={() => setRightTab('reservations')}
+            className={`px-4 py-2 text-xs font-medium transition-colors ${
+              rightTab === 'reservations'
+                ? 'border-b-2 border-blue-500 text-blue-400'
+                : 'text-neutral-500 hover:text-neutral-300'
+            }`}
+          >
+            Files
+            {harness.reservations.length > 0 ? (
+              <span className="ml-1.5 rounded-full bg-neutral-800 px-1.5 py-0.5 text-[10px] text-neutral-400">
+                {harness.reservations.length}
+              </span>
+            ) : null}
           </button>
           {rightTab === 'changes' ? (
             <div className="ml-auto flex items-center gap-1 pr-2">
@@ -633,9 +747,40 @@ export default function AgentPanel() {
               ) : null}
             </div>
           </div>
-        ) : (
-          <AgentChat />
-        )}
+        ) : null}
+        {rightTab === 'chat' ? <AgentChat /> : null}
+        {rightTab === 'messages' ? (
+          <MessageInbox
+            messages={harness.messages}
+            sessions={harness.sessions}
+            agentId="studio"
+            onSend={async (to, subj, body) => {
+              await harness.sendMessage('studio', to, subj, body);
+            }}
+            onMarkRead={harness.markRead}
+          />
+        ) : null}
+        {rightTab === 'tasks' ? (
+          <TaskBoard
+            tasks={harness.tasks}
+            agentId="studio"
+            onCreate={async (id, desc) => {
+              await harness.createTask(id, desc);
+            }}
+            onClaim={async (id) => {
+              await harness.claimTask(id, 'studio');
+            }}
+            onComplete={async (id) => {
+              await harness.completeTask(id, 'studio');
+            }}
+            onRelease={async (id) => {
+              await harness.releaseTask(id, 'studio');
+            }}
+          />
+        ) : null}
+        {rightTab === 'reservations' ? (
+          <FileReservations reservations={harness.reservations} agentId="studio" />
+        ) : null}
       </div>
     </div>
   );
