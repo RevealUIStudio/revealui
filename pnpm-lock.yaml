@@ -220,8 +220,8 @@ importers:
         specifier: ^0.6.1
         version: 0.6.1(hono@4.12.9)
       '@revealui/ai':
-        specifier: ^0.2.5
-        version: 0.2.5(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(react@19.2.4)
+        specifier: ^0.2.7
+        version: 0.2.7(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@revealui/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -296,8 +296,8 @@ importers:
         specifier: ^1.0.27
         version: 1.5.13
       '@revealui/ai':
-        specifier: ^0.2.5
-        version: 0.2.5(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(react@19.2.4)
+        specifier: ^0.2.7
+        version: 0.2.7(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@revealui/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -890,8 +890,8 @@ importers:
         specifier: ^0.10.0
         version: 0.10.1
       '@revealui/ai':
-        specifier: ^0.2.5
-        version: 0.2.5(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(react@19.2.4)
+        specifier: ^0.2.7
+        version: 0.2.7(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@revealui/config':
         specifier: workspace:*
         version: link:../config
@@ -3287,11 +3287,41 @@ packages:
     resolution: {integrity: sha512-2FK1hF93Fuf1laSdfiEmJvSJPVIDHEUTz68D3Fi9s0IZrrpaEcj6pTFBTbYvsgC5du4ogrtf5re7yMMvrKNgkw==}
     engines: {node: ^20.9.0 || ^22.11.0 || ^24, pnpm: ^10.0.0}
 
-  '@revealui/ai@0.2.5':
-    resolution: {integrity: sha512-Sq9R4v09DpPI3lX7lHf+SgubTzE5iXBTYDhxX17LLZ+cPc5Id96Yt6bAKilOT4UI1IJNo05JnxaGnPdTy+bhXw==}
+  '@revealui/ai@0.2.7':
+    resolution: {integrity: sha512-aDHxiqxdQ1Bp0pNY7ZIglHr4NkhTSbhLOAdMmxuUZ94z0jAI19paEuD/0bNoe0xlCQjEmXr1b5l7vD5fWJK0Vw==}
+    engines: {node: '>=24.13.0'}
     peerDependencies:
       drizzle-orm: ^0.45.2
       react: '>=19.2.4'
+
+  '@revealui/cache@0.1.2':
+    resolution: {integrity: sha512-feo0dZF90ryUp7gPHtxaUwt9mj18nXluqsDwsDp3TGikrNk8/UoCXazFRIo0IKbEWoA+qW2oU6+tAa6x111Oag==}
+    engines: {node: '>=24.13.0'}
+    peerDependencies:
+      next: '>=15.5.10'
+    peerDependenciesMeta:
+      next:
+        optional: true
+
+  '@revealui/core@0.5.4':
+    resolution: {integrity: sha512-L77Ob2qj9VcWC3T5UMrVClnVv5S2T+PFYNu3gxyREfkDx/oFwMuZ5gr79OxYYfEHYlfZd9fG54G1ddWo4M93Hg==}
+    engines: {node: '>=24.13.0'}
+    peerDependencies:
+      next: '>=15.5.10'
+      react: '>=19.2.4'
+      react-dom: '>=19.2.4'
+
+  '@revealui/resilience@0.2.2':
+    resolution: {integrity: sha512-rrVt+TgGdCKIm0yL/p70H9x/HajCG4MiQtboneUakPQkt+S/bh5S9wALa8ycV/ZsuIqTGpowMXlEWeuwFfprDw==}
+    engines: {node: '>=24.13.0'}
+
+  '@revealui/security@0.2.5':
+    resolution: {integrity: sha512-hG+cE04B4H/ztjUPeoR7S1pEyi0IcFevmXB/oMwWCe+t+Vd5GPHYW/uyuqjmofdjjzFaH5Uqvcl1DAaJ7qoCug==}
+    engines: {node: '>=24.13.0'}
+
+  '@revealui/utils@0.3.2':
+    resolution: {integrity: sha512-Ob9C0Wep3BaOreBQkuwsjn44bfj1FN90iIFCBDSnS3BSV+2Ez2rJf7IGMtR7OttXG/OVfFBS/3+zrLk/x2JxIQ==}
+    engines: {node: '>=24.13.0'}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.1':
     resolution: {integrity: sha512-He6ZoCfv5D7dlRbrhNBkuMVIHd0GDnjJwbICE1OWpG7G3S2gmJ+eXkcNLJjzjNDpeI2aRy56ou39AJM9AD8YFA==}
@@ -11531,14 +11561,66 @@ snapshots:
 
   '@renovatebot/pep440@4.2.1': {}
 
-  '@revealui/ai@0.2.5(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(react@19.2.4)':
+  '@revealui/ai@0.2.7(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0))(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@revealui/contracts': link:packages/contracts
-      '@revealui/core': link:packages/core
+      '@revealui/core': 0.5.4(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@revealui/db': link:packages/db
       drizzle-orm: 0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
       lru-cache: 11.2.7
       react: 19.2.4
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - next
+      - pg-native
+      - react-dom
+
+  '@revealui/cache@0.1.2(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))':
+    optionalDependencies:
+      next: 16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+
+  '@revealui/core@0.5.4(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@electric-sql/pglite': 0.4.2
+      '@lexical/clipboard': 0.42.0
+      '@lexical/code': 0.42.0
+      '@lexical/html': 0.42.0
+      '@lexical/link': 0.42.0
+      '@lexical/list': 0.42.0
+      '@lexical/react': 0.42.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(yjs@13.6.30)
+      '@lexical/rich-text': 0.42.0
+      '@lexical/selection': 0.42.0
+      '@lexical/table': 0.42.0
+      '@lexical/utils': 0.42.0
+      '@lexical/yjs': 0.42.0(yjs@13.6.30)
+      '@revealui/cache': 0.1.2(next@16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))
+      '@revealui/contracts': link:packages/contracts
+      '@revealui/resilience': 0.2.2
+      '@revealui/security': 0.2.5
+      '@revealui/utils': 0.3.2
+      '@vercel/blob': 2.3.2
+      bcryptjs: 3.0.3
+      dataloader: 2.2.3
+      jose: 6.2.2
+      lexical: 0.42.0
+      next: 16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      pg: 8.20.0
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      yjs: 13.6.30
+      zod: 4.3.6
+    transitivePeerDependencies:
+      - pg-native
+
+  '@revealui/resilience@0.2.2': {}
+
+  '@revealui/security@0.2.5':
+    dependencies:
+      '@revealui/contracts': link:packages/contracts
+      '@revealui/utils': 0.3.2
+
+  '@revealui/utils@0.3.2':
+    dependencies:
       zod: 4.3.6
 
   '@rolldown/binding-android-arm64@1.0.0-rc.1':

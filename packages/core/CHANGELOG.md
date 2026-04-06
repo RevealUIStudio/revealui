@@ -1,5 +1,20 @@
 # @revealui/core
 
+## 0.5.4
+
+### Patch Changes
+
+- add NeonSaga transaction-safe operations layer, idempotency keys migration, CRDT optimistic locking fix, observability routes, and database health check error surfacing
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies
+  - @revealui/utils@0.3.2
+  - @revealui/contracts@1.3.5
+  - @revealui/cache@0.1.2
+  - @revealui/resilience@0.2.2
+  - @revealui/security@0.2.5
+
 ## 0.5.3
 
 ### Patch Changes

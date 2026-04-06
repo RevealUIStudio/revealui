@@ -1,5 +1,11 @@
 # @revealui/cache
 
+## 0.1.2
+
+### Patch Changes
+
+- add PGlite adapters for rate limiter, circuit breaker, and cache invalidation channel with atomic rate limit checks and backslash escaping fix
+
 ## 0.1.1
 
 ### Patch Changes

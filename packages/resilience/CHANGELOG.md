@@ -1,5 +1,11 @@
 # @revealui/resilience
 
+## 0.2.2
+
+### Patch Changes
+
+- add PGlite adapters for rate limiter, circuit breaker, and cache invalidation channel with atomic rate limit checks and backslash escaping fix
+
 ## 0.2.1
 
 ### Patch Changes

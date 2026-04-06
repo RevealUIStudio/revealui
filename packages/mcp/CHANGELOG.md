@@ -1,5 +1,16 @@
 # @revealui/mcp
 
+## 0.1.8
+
+### Patch Changes
+
+- add PGlite adapters for rate limiter, circuit breaker, and cache invalidation channel with atomic rate limit checks and backslash escaping fix
+- Updated dependencies
+- Updated dependencies
+  - @revealui/core@0.5.4
+  - @revealui/contracts@1.3.5
+  - @revealui/config@0.3.2
+
 ## 0.1.7
 
 ### Patch Changes
