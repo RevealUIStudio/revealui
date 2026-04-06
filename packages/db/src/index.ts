@@ -51,5 +51,18 @@ export type {
   TableRow,
   TableUpdate,
 } from './types/index.js';
+// Re-export saga module
+export {
+  executeSaga,
+  idempotentWrite,
+  recoverStaleSagas,
+  resilientStep,
+} from './saga/index.js';
+export type {
+  SagaContext,
+  SagaOptions,
+  SagaResult,
+  SagaStep,
+} from './saga/index.js';
 // Re-export soft-delete helpers
 export { whereActive, withActiveFilter } from './utils/soft-delete.js';

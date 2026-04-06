@@ -181,6 +181,10 @@
     "./validation/cross-db": {
       "types": "./dist/validation/cross-db.d.ts",
       "import": "./dist/validation/cross-db.js"
+    },
+    "./saga": {
+      "types": "./dist/saga/index.d.ts",
+      "import": "./dist/saga/index.js"
     }
   },
   "files": [

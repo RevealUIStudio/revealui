@@ -12,8 +12,9 @@
 import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import { generateLicenseKey, type LicenseTier, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
-import { DrizzleAuditStore, getClient } from '@revealui/db';
+import { DrizzleAuditStore, executeSaga, getClient } from '@revealui/db';
 import type { Database } from '@revealui/db/client';
+import type { SagaStep } from '@revealui/db/saga';
 import {
   accountEntitlements,
   accountMemberships,
@@ -405,6 +406,16 @@ async function resolveHostedAccountId(
   return ensureHostedAccount(db, user.id, customerId);
 }
 
+/**
+ * Sync hosted subscription and entitlement state in the database.
+ *
+ * This function performs multiple DB writes (account resolution/creation,
+ * subscription upsert, entitlement upsert). When called inside a
+ * db.transaction() callback, all writes are atomic. When called with a
+ * bare db client (NeonDB HTTP), the writes are NOT atomic — callers in
+ * that scenario rely on Stripe's idempotent webhook retries to converge
+ * state after partial failures.
+ */
 async function syncHostedSubscriptionState(
   db: DbExecutor,
   params: {
@@ -1174,27 +1185,69 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         // Revoke license tied to this specific subscription — not all licenses for the customer.
         // Perpetual licenses (subscriptionId=null) and other subscriptions are left intact.
-        await db.transaction(async (tx) => {
-          await tx
-            .update(licenses)
-            .set({ status: 'revoked', updatedAt: new Date() })
-            .where(
-              and(
-                eq(licenses.customerId, customerId),
-                eq(licenses.subscriptionId, subscription.id),
-              ),
-            );
+        // Uses saga pattern for NeonDB-safe multi-step atomicity with compensating actions.
+        const revokeSteps: SagaStep[] = [
+          {
+            name: 'revoke-license',
+            execute: async (ctx) => {
+              // Capture previous status for compensation
+              const [prev] = await ctx.db
+                .select({ status: licenses.status })
+                .from(licenses)
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.subscriptionId, subscription.id),
+                  ),
+                )
+                .limit(1);
 
-          await syncHostedSubscriptionState(tx, {
-            customerId,
-            subscriptionId: subscription.id,
-            tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
-            status: 'revoked',
-            currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
-            currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
-            cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
-          });
-        });
+              await ctx.db
+                .update(licenses)
+                .set({ status: 'revoked', updatedAt: new Date() })
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.subscriptionId, subscription.id),
+                  ),
+                );
+
+              return { previousStatus: prev?.status ?? 'active' };
+            },
+            compensate: async (ctx, output) => {
+              const { previousStatus } = output as { previousStatus: string };
+              await ctx.db
+                .update(licenses)
+                .set({ status: previousStatus, updatedAt: new Date() })
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.subscriptionId, subscription.id),
+                  ),
+                );
+            },
+          },
+          {
+            name: 'sync-subscription-state',
+            execute: async (ctx) => {
+              await syncHostedSubscriptionState(ctx.db, {
+                customerId,
+                subscriptionId: subscription.id,
+                tier: resolveOptionalTier(subscription.metadata as Record<string, string>),
+                status: 'revoked',
+                currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
+                currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
+                cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+              });
+              return {};
+            },
+            compensate: async () => {
+              // syncHostedSubscriptionState is convergent — Stripe retries will re-sync
+            },
+          },
+        ];
+
+        await executeSaga(db, 'subscription-deleted', event.id, revokeSteps);
 
         resetLicenseState();
         resetDbStatusCache();
@@ -1227,18 +1280,38 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const customer = event.data.object as Stripe.Customer;
         const customerId = customer.id;
 
-        await db.transaction(async (tx) => {
-          await tx
-            .update(licenses)
-            .set({ status: 'revoked', updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId));
+        // Uses saga pattern for NeonDB-safe multi-step atomicity with compensating actions.
+        const customerDeleteSteps: SagaStep[] = [
+          {
+            name: 'revoke-all-licenses',
+            execute: async (ctx) => {
+              await ctx.db
+                .update(licenses)
+                .set({ status: 'revoked', updatedAt: new Date() })
+                .where(eq(licenses.customerId, customerId));
+              return {};
+            },
+            compensate: async () => {
+              // Customer is deleted in Stripe — no meaningful rollback
+            },
+          },
+          {
+            name: 'sync-subscription-state',
+            execute: async (ctx) => {
+              await syncHostedSubscriptionState(ctx.db, {
+                customerId,
+                subscriptionId: null,
+                status: 'revoked',
+              });
+              return {};
+            },
+            compensate: async () => {
+              // Convergent — Stripe retries will re-sync
+            },
+          },
+        ];
 
-          await syncHostedSubscriptionState(tx, {
-            customerId,
-            subscriptionId: null,
-            status: 'revoked',
-          });
-        });
+        await executeSaga(db, 'customer-deleted', event.id, customerDeleteSteps);
 
         resetLicenseState();
         resetDbStatusCache();
@@ -1563,6 +1636,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
       case 'customer.subscription.created': {
         // Logged for observability; license generation happens on checkout.session.completed.
         // Use resolveOptionalTier — metadata may not be populated yet at creation time.
+        //
+        // NOTE: NeonDB HTTP driver does not support transactions.
+        // syncHostedSubscriptionState performs multiple DB writes (account
+        // creation, subscription upsert, entitlement upsert) that are not
+        // atomic. Stripe's idempotent retry mechanism mitigates partial
+        // failures. The checkout.session.completed handler (which creates the
+        // license) uses db.transaction() for its critical path.
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = resolveCustomerId(subscription.customer);
         if (customerId) {
@@ -1718,6 +1798,11 @@ app.openapi(stripeWebhookRoute, async (c) => {
           break;
         }
 
+        // NOTE: NeonDB HTTP driver does not support transactions. The license
+        // reactivation above and the hosted state sync below are not atomic.
+        // Stripe's idempotent retry mechanism mitigates partial failures — if
+        // only one of the two writes succeeds, the next webhook delivery will
+        // re-run this handler and converge both to the correct state.
         await syncHostedSubscriptionState(db, {
           customerId,
           subscriptionId: recoveredSubscription.id,
@@ -1806,6 +1891,11 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const graceUntil =
           !isSuspended && invoice.period_end ? new Date(invoice.period_end * 1000) : null;
 
+        // NOTE: NeonDB HTTP driver does not support transactions. The license
+        // expiry above (when isSuspended) and the hosted state sync below are
+        // not atomic. Stripe's idempotent retry mechanism mitigates partial
+        // failures — if only one write succeeds, the next webhook delivery
+        // will re-run this handler and converge both to the correct state.
         await syncHostedSubscriptionState(db, {
           customerId,
           subscriptionId,
