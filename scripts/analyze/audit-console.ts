@@ -27,6 +27,7 @@ const DEFAULT_EXCLUDE_DIRS = [
   'test-results',
   'public',
   'static',
+  'opensrc',
 ];
 
 // Console methods to detect
