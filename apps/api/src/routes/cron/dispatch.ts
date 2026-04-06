@@ -17,10 +17,10 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { Hono } from 'hono';
 import billingReadinessApp from './billing-readiness.js';
+import cleanupApp from './cleanup.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
-import cleanupApp from './cleanup.js';
 
 const app = new Hono();
 

@@ -6,9 +6,8 @@
  */
 
 import { useRef, useState } from 'react';
-
-import type { AgentBackend } from '../../types';
 import { useSpawner } from '../../hooks/use-spawner';
+import type { AgentBackend } from '../../types';
 
 export default function SpawnerPanel() {
   const { sessions, output, error, spawn, stop, remove } = useSpawner();
@@ -141,7 +140,7 @@ function SpawnForm({ onSpawn, onCancel }: SpawnFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !model.trim() || !prompt.trim()) return;
+    if (!(name.trim() && model.trim() && prompt.trim())) return;
     setSubmitting(true);
     try {
       await onSpawn(name.trim(), backend, model.trim(), prompt.trim());
