@@ -41,6 +41,7 @@ export default defineConfig({
       NODE_ENV: 'test',
     },
     pool: 'forks',
+    maxWorkers: 2,
     coverage: {
       provider: 'v8',
       // Standardized reporters: text (CI logs), json (programmatic), html (local dev), lcov (Codecov)

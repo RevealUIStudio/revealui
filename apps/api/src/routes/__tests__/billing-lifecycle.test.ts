@@ -97,6 +97,37 @@ vi.mock('@revealui/db', () => ({
       append = mockAuditAppend;
     } as unknown as (...args: unknown[]) => unknown,
   ),
+  executeSaga: vi.fn(
+    async (
+      db: unknown,
+      _sagaName: string,
+      _sagaKey: string,
+      steps: Array<{
+        name: string;
+        execute: (ctx: {
+          db: unknown;
+          sagaId: string;
+          checkpoint: (n: string, o: unknown) => Promise<void>;
+        }) => Promise<unknown>;
+      }>,
+    ) => {
+      const sagaId = `mock-saga-${Date.now()}`;
+      const ctx = { db, sagaId, checkpoint: async () => {} };
+      const completedSteps: string[] = [];
+      let lastOutput: unknown;
+      for (const step of steps) {
+        lastOutput = await step.execute(ctx);
+        completedSteps.push(step.name);
+      }
+      return {
+        sagaId,
+        status: 'completed',
+        result: lastOutput,
+        completedSteps,
+        alreadyProcessed: false,
+      };
+    },
+  ),
 }));
 
 vi.mock('@revealui/db/schema', () => ({
@@ -320,8 +351,9 @@ describe('Billing lifecycle integration', () => {
       expect(res.status).toBe(200);
       // syncHostedSubscriptionState issues additional select+insert/update calls
       // for accountMemberships, accountSubscriptions, accountEntitlements.
-      // Verify the transaction was used (license creation + sync all go through transaction).
-      expect(mockDb.transaction).toHaveBeenCalledOnce();
+      // Verify the saga executor was used (license creation + sync all go through executeSaga).
+      const { executeSaga } = await import('@revealui/db');
+      expect(executeSaga).toHaveBeenCalled();
     });
 
     it('syncs entitlements on customer.subscription.created', async () => {
@@ -571,10 +603,12 @@ describe('Billing lifecycle integration', () => {
 
     it('sends cancellation email on subscription deletion', async () => {
       // The handler sequence for subscription.deleted:
+      // 0. Saga step: capture previous license status for compensation (SELECT 0)
       // 1. syncHostedSubscriptionState -> resolveHostedAccountId -> accountSubscriptions (SELECT 1)
       // 2. resolveHostedAccountId -> users lookup by stripeCustomerId (SELECT 2)
       // 3. findUserEmailByCustomerId -> users lookup by stripeCustomerId (SELECT 3)
       mockDbSelectChain.limit
+        .mockResolvedValueOnce([{ status: 'active' }]) // 0. saga captures previous license status
         .mockResolvedValueOnce([]) // 1. accountSubscriptions - no existing subscription
         .mockResolvedValueOnce([]) // 2. users by stripeCustomerId - not found (no account)
         .mockResolvedValueOnce([{ email: 'cancel@test.com' }]); // 3. findUserEmailByCustomerId

@@ -1,21 +1,20 @@
 name: Release Pro Packages
 
-# Pro package source (packages/ai, mcp, editors, services, harnesses) lives in
-# a private upstream repo as part of the OSS/Pro separation.
+# Pro package source (packages/ai, packages/harnesses) lives in a private
+# upstream repo as part of the OSS/Pro separation.
 #
-# To publish Pro packages, trigger the release-pro.yml workflow from private upstream.
-# This file is intentionally a no-op stub kept for reference.
+# To publish Pro packages locally: pnpm release:pro
+# This workflow is intentionally a no-op stub kept for documentation.
 
 on:
   workflow_dispatch:
 
 jobs:
-  noop:
-    name: Pro packages are published from revealui-jv
+  info:
+    name: Pro packages are published locally or from revealui-jv
     runs-on: ubuntu-latest
     steps:
       - name: Info
         run: |
-          echo "Pro package source lives in RevealUIStudio/revealui-jv (private)."
-          echo "Trigger release-pro.yml from that repo to publish @revealui/ai, mcp, editors, services, harnesses."
-          exit 1
+          echo "::notice::Pro packages (ai, harnesses) are published via 'pnpm release:pro' locally or from RevealUIStudio/revealui-jv."
+          echo "mcp, editors, and services are OSS — they publish via the normal changeset flow."

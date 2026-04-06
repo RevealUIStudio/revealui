@@ -950,6 +950,32 @@ export type GlobalSettingsRow = z.infer<typeof GlobalSettingsSelectSchema>
 export type GlobalSettingsInsert = z.infer<typeof GlobalSettingsInsertSchema>
 
 // =============================================================================
+// IdempotencyKeys Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting idempotencyKeys rows from database
+ * Generated from Drizzle table definition: tables.idempotencyKeys
+ */
+export const IdempotencyKeysSelectSchema = createSelectSchema(tables.idempotencyKeys)
+
+/**
+ * Zod schema for inserting idempotencyKeys rows to database
+ * Generated from Drizzle table definition: tables.idempotencyKeys
+ */
+export const IdempotencyKeysInsertSchema = createInsertSchema(tables.idempotencyKeys)
+
+/**
+ * TypeScript type for idempotencyKeys row (Select)
+ */
+export type IdempotencyKeysRow = z.infer<typeof IdempotencyKeysSelectSchema>
+
+/**
+ * TypeScript type for idempotencyKeys insert
+ */
+export type IdempotencyKeysInsert = z.infer<typeof IdempotencyKeysInsertSchema>
+
+// =============================================================================
 // Jobs Schemas
 // =============================================================================
 

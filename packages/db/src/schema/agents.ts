@@ -45,30 +45,41 @@ const vector = customType<{ data: number[]; driverData: string }>({
 // Agent Contexts Table
 // =============================================================================
 
-export const agentContexts = pgTable('agent_contexts', {
-  // Primary identifier (format: sessionId:agentId)
-  id: text('id').primaryKey(),
+export const agentContexts = pgTable(
+  'agent_contexts',
+  {
+    // Primary identifier (format: sessionId:agentId)
+    id: text('id').primaryKey(),
 
-  // Schema versioning
-  version: integer('version').notNull().default(1),
+    // Schema versioning
+    version: integer('version').notNull().default(1),
 
-  // Relationships
-  sessionId: text('session_id').notNull(),
-  agentId: text('agent_id').notNull(),
+    // Relationships
+    sessionId: text('session_id')
+      .notNull()
+      .references(() => aiMemorySessions.id, { onDelete: 'cascade' }),
+    agentId: text('agent_id')
+      .notNull()
+      .references(() => registeredAgents.id, { onDelete: 'cascade' }),
 
-  // Context data (JSON blob for working memory, focus, etc.)
-  context: jsonb('context').default({}),
+    // Context data (JSON blob for working memory, focus, etc.)
+    context: jsonb('context').default({}),
 
-  // Priority for context retrieval (0-1)
-  priority: real('priority').default(0.5),
+    // Priority for context retrieval (0-1)
+    priority: real('priority').default(0.5),
 
-  // Optional embedding for semantic retrieval
-  embedding: vector('embedding', { dimensions: 768 }),
+    // Optional embedding for semantic retrieval
+    embedding: vector('embedding', { dimensions: 768 }),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index('agent_contexts_session_id_idx').on(table.sessionId),
+    index('agent_contexts_agent_id_idx').on(table.agentId),
+  ],
+);
 
 // =============================================================================
 // Agent Memories Table (Long-term memory)
@@ -190,7 +201,10 @@ export const messages = pgTable(
     // Timing
     timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index('messages_conversation_id_idx').on(table.conversationId)],
+  (table) => [
+    index('messages_conversation_id_idx').on(table.conversationId),
+    index('messages_role_idx').on(table.role),
+  ],
 );
 
 // =============================================================================
@@ -230,30 +244,34 @@ export const userDevices = pgTable('user_devices', {
 // Sync Metadata Table (for tracking sync state)
 // =============================================================================
 
-export const syncMetadata = pgTable('sync_metadata', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const syncMetadata = pgTable(
+  'sync_metadata',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Relationships
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
+    // Relationships
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
 
-  // Sync state
-  lastSyncTimestamp: timestamp('last_sync_timestamp', {
-    withTimezone: true,
-  }).defaultNow(),
-  syncVersion: integer('sync_version').default(1),
-  deviceCount: integer('device_count').default(1),
+    // Sync state
+    lastSyncTimestamp: timestamp('last_sync_timestamp', {
+      withTimezone: true,
+    }).defaultNow(),
+    syncVersion: integer('sync_version').default(1),
+    deviceCount: integer('device_count').default(1),
 
-  // Conflict tracking
-  conflictsResolved: integer('conflicts_resolved').default(0),
-  lastConflictAt: timestamp('last_conflict_at', { withTimezone: true }),
+    // Conflict tracking
+    conflictsResolved: integer('conflicts_resolved').default(0),
+    lastConflictAt: timestamp('last_conflict_at', { withTimezone: true }),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index('sync_metadata_user_id_idx').on(table.userId)],
+);
 
 // =============================================================================
 // Agent Actions Table (Audit log of agent actions)
@@ -327,12 +345,16 @@ export type NewAiMemorySession = typeof aiMemorySessions.$inferInsert;
 // Registered Agents Table (Persisted A2A agent definitions)
 // =============================================================================
 
-export const registeredAgents = pgTable('registered_agents', {
-  id: text('id').primaryKey(),
-  definition: jsonb('definition').$type<unknown>().notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
+export const registeredAgents = pgTable(
+  'registered_agents',
+  {
+    id: text('id').primaryKey(),
+    definition: jsonb('definition').$type<unknown>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index('registered_agents_updated_at_idx').on(table.updatedAt)],
+);
 
 // =============================================================================
 // Type exports for Drizzle

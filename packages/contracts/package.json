@@ -1,6 +1,6 @@
 {
   "name": "@revealui/contracts",
-  "version": "1.3.4",
+  "version": "1.3.5",
   "description": "Unified contracts package for RevealUI - schemas, validation, and type safety across the stack",
   "keywords": [
     "contracts",
@@ -105,7 +105,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "peerDependencies": {
-    "@revealui/db": "workspace:*",
+    "@revealui/db": "workspace:^",
     "drizzle-zod": "^0.8.3",
     "typescript": ">=6.0.0"
   },

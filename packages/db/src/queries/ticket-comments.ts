@@ -47,6 +47,10 @@ export async function getCommentsByTicketIds(db: DatabaseClient, ticketIds: stri
     .orderBy(ticketComments.createdAt);
 }
 
+// NOTE: NeonDB HTTP driver does not support transactions. The insert and count
+// update below are not atomic — a failure between them can leave the comment
+// count out of sync. A periodic reconciliation job or manual correction may be
+// needed if this becomes a problem in practice.
 export async function createComment(
   db: DatabaseClient,
   data: { id: string; ticketId: string; authorId?: string; body: unknown },
@@ -75,6 +79,9 @@ export async function updateComment(db: DatabaseClient, id: string, data: { body
   return result[0] ?? null;
 }
 
+// NOTE: NeonDB HTTP driver does not support transactions. The select, delete,
+// and count update below are not atomic — a failure between them can leave the
+// comment count out of sync or orphan a decrement without a deletion.
 export async function deleteComment(db: DatabaseClient, id: string) {
   // Get the ticket ID before deleting
   const comment = await db

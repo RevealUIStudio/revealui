@@ -80,6 +80,37 @@ vi.mock('@revealui/db', () => ({
       append = mockAuditAppend;
     } as unknown as (...args: unknown[]) => unknown,
   ),
+  executeSaga: vi.fn(
+    async (
+      db: unknown,
+      _sagaName: string,
+      _sagaKey: string,
+      steps: Array<{
+        name: string;
+        execute: (ctx: {
+          db: unknown;
+          sagaId: string;
+          checkpoint: (n: string, o: unknown) => Promise<void>;
+        }) => Promise<unknown>;
+      }>,
+    ) => {
+      const sagaId = `mock-saga-${Date.now()}`;
+      const ctx = { db, sagaId, checkpoint: async () => {} };
+      const completedSteps: string[] = [];
+      let lastOutput: unknown;
+      for (const step of steps) {
+        lastOutput = await step.execute(ctx);
+        completedSteps.push(step.name);
+      }
+      return {
+        sagaId,
+        status: 'completed',
+        result: lastOutput,
+        completedSteps,
+        alreadyProcessed: false,
+      };
+    },
+  ),
 }));
 
 vi.mock('@revealui/db/schema', () => ({
@@ -956,10 +987,12 @@ describe('Webhook Safety — money-critical paths', () => {
     describe('sendPaymentFailedEmail (subscription.updated past_due)', () => {
       it('sends payment failed email when subscription goes past_due', async () => {
         // Queue mock values for each sequential select().limit() call:
+        // #0: saga expire-license step: previous license status
         // #1: resolveHostedAccountId → accountSubscriptions (no subscription)
         // #2: resolveHostedAccountId → users by stripeCustomerId (no user → returns null, sync skipped)
         // #3: findUserEmailByCustomerId → users (returns email)
         mockDbSelectChain.limit
+          .mockResolvedValueOnce([{ status: 'active' }]) // saga expire-license: previous status
           .mockResolvedValueOnce([])
           .mockResolvedValueOnce([])
           .mockResolvedValueOnce([{ email: 'pastdue@test.com' }]);

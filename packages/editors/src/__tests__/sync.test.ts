@@ -69,17 +69,6 @@ describe('syncEditorConfigs', () => {
     });
   });
 
-  describe('cursor', () => {
-    it('writes .vscode/ configs and .cursorrules', async () => {
-      const result = await syncEditorConfigs({ rootDir: ROOT, editors: ['cursor'] });
-
-      expect(result.written).toContain(`${ROOT}/.vscode/settings.json`);
-      expect(result.written).toContain(`${ROOT}/.vscode/extensions.json`);
-      expect(result.written).toContain(`${ROOT}/.cursorrules`);
-      expect(result.errors).toHaveLength(0);
-    });
-  });
-
   describe('antigravity', () => {
     it('writes .vscode/ configs and .agents/rules/revealui.md', async () => {
       const result = await syncEditorConfigs({ rootDir: ROOT, editors: ['antigravity'] });
@@ -95,7 +84,7 @@ describe('syncEditorConfigs', () => {
     it('deduplicates .vscode/ writes when multiple editors share them', async () => {
       const result = await syncEditorConfigs({
         rootDir: ROOT,
-        editors: ['vscode', 'cursor', 'antigravity', 'zed'],
+        editors: ['vscode', 'antigravity', 'zed'],
       });
 
       const allPaths = [...result.written, ...result.skipped];
@@ -113,7 +102,6 @@ describe('syncEditorConfigs', () => {
       expect(allPaths).toContain(`${ROOT}/.vscode/settings.json`);
       expect(allPaths).toContain(`${ROOT}/.vscode/extensions.json`);
       expect(allPaths).toContain(`${ROOT}/.zed/settings.json`);
-      expect(allPaths).toContain(`${ROOT}/.cursorrules`);
       expect(allPaths).toContain(`${ROOT}/.agents/rules/revealui.md`);
     });
   });

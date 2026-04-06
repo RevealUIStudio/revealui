@@ -1,6 +1,6 @@
 {
   "name": "@revealui/services",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "External service integrations for RevealUI — Stripe, Supabase, and Vercel",
   "repository": {
     "type": "git",

@@ -94,16 +94,16 @@ else
 fi
 
 # Branch-aware gate strictness
-#   main/test: full gate (these trigger CI + deploy)
+#   main/test: quality + typecheck (build + tests deferred to CI)
 #   feature/*: quality-only (local dev, no CI)
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GATE_EXIT=0
 case "$BRANCH" in
   main|test)
     echo ""
-    echo "Running CI gate for protected branch '$BRANCH' (tests deferred to CI)..."
+    echo "Running CI gate for protected branch '$BRANCH' (build + tests deferred to CI)..."
     echo ""
-    pnpm gate --no-test || GATE_EXIT=$?
+    pnpm gate --no-test --no-build || GATE_EXIT=$?
     ;;
   *)
     echo ""

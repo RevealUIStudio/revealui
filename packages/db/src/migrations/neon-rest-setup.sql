@@ -462,3 +462,20 @@ CREATE INDEX IF NOT EXISTS "circuit_breaker_state_at_idx"
   ON "circuit_breaker_state"("state_changed_at");
 
 COMMENT ON TABLE "circuit_breaker_state" IS 'Shared circuit breaker state across API instances — prevents cascading failures to external services like Stripe';
+
+-- Idempotency keys for saga deduplication and operation dedup
+CREATE TABLE IF NOT EXISTS "idempotency_keys" (
+	"key" text PRIMARY KEY NOT NULL,
+	"operation_type" text NOT NULL,
+	"result" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"expires_at" timestamp with time zone
+);
+
+CREATE INDEX IF NOT EXISTS "idempotency_keys_operation_type_idx"
+	ON "idempotency_keys" USING btree ("operation_type");
+
+CREATE INDEX IF NOT EXISTS "idempotency_keys_expires_at_idx"
+	ON "idempotency_keys" USING btree ("expires_at");
+
+COMMENT ON TABLE "idempotency_keys" IS 'Deduplication keys for saga executions and idempotent operations — TTL-based with periodic cleanup';

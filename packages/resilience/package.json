@@ -1,6 +1,6 @@
 {
   "name": "@revealui/resilience",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Resilience infrastructure for RevealUI - circuit breaker, retry, bulkhead patterns",
   "license": "MIT",
   "dependencies": {},

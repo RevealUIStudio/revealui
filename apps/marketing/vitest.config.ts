@@ -11,6 +11,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     pool: 'forks',
+    maxWorkers: 2,
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     coverage: {
       provider: 'v8',

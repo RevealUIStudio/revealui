@@ -86,7 +86,7 @@
       "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"]
     },
     "test": {
-      "cache": true,
+      "cache": false,
       "dependsOn": ["^build"],
       "inputs": [
         "src/**/*.ts",

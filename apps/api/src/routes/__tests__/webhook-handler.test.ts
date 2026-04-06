@@ -95,6 +95,37 @@ vi.mock('@revealui/db', () => ({
       append = mockAuditAppend;
     } as unknown as (...args: unknown[]) => unknown,
   ),
+  executeSaga: vi.fn(
+    async (
+      db: unknown,
+      _sagaName: string,
+      _sagaKey: string,
+      steps: Array<{
+        name: string;
+        execute: (ctx: {
+          db: unknown;
+          sagaId: string;
+          checkpoint: (n: string, o: unknown) => Promise<void>;
+        }) => Promise<unknown>;
+      }>,
+    ) => {
+      const sagaId = `mock-saga-${Date.now()}`;
+      const ctx = { db, sagaId, checkpoint: async () => {} };
+      const completedSteps: string[] = [];
+      let lastOutput: unknown;
+      for (const step of steps) {
+        lastOutput = await step.execute(ctx);
+        completedSteps.push(step.name);
+      }
+      return {
+        sagaId,
+        status: 'completed',
+        result: lastOutput,
+        completedSteps,
+        alreadyProcessed: false,
+      };
+    },
+  ),
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
@@ -688,6 +719,8 @@ describe('POST /stripe webhook — handler tests', () => {
 
     it('preserves the existing hosted tier when subscription deletion metadata is missing', async () => {
       mockDbSelectChain.limit
+        // Saga step: capture previous license status for compensation
+        .mockResolvedValueOnce([{ status: 'active' }])
         .mockResolvedValueOnce([{ accountId: 'acct_enterprise' }])
         .mockResolvedValueOnce([{ id: 'acct_sub_1', planId: 'enterprise' }])
         .mockResolvedValueOnce([{ accountId: 'acct_enterprise', tier: 'enterprise' }]);
@@ -722,6 +755,8 @@ describe('POST /stripe webhook — handler tests', () => {
 
     it('preserves the existing hosted tier when past_due metadata is missing', async () => {
       mockDbSelectChain.limit
+        // Saga step: capture previous license status for compensation
+        .mockResolvedValueOnce([{ status: 'active' }])
         .mockResolvedValueOnce([{ accountId: 'acct_enterprise' }])
         .mockResolvedValueOnce([{ id: 'acct_sub_1', planId: 'enterprise' }])
         .mockResolvedValueOnce([{ accountId: 'acct_enterprise', tier: 'enterprise' }]);

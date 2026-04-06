@@ -1,5 +1,18 @@
 # @revealui/auth
 
+## 0.3.6
+
+### Patch Changes
+
+- add SOC2 6.2 technical controls, local path leak detection, charge-readiness blocker fixes, and Gmail env vars to config schema
+- Updated dependencies
+- Updated dependencies
+  - @revealui/db@0.3.5
+  - @revealui/core@0.5.4
+  - @revealui/contracts@1.3.5
+  - @revealui/security@0.2.5
+  - @revealui/config@0.3.2
+
 ## 0.3.5
 
 ### Patch Changes

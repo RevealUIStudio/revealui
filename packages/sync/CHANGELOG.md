@@ -1,5 +1,14 @@
 # @revealui/sync
 
+## 0.3.5
+
+### Patch Changes
+
+- add offline-first cache layer and sync status indicator, fix infinite type instantiation in cn utility, replace core dep with utils in router, remove Cursor IDE support from editors
+- Updated dependencies
+  - @revealui/db@0.3.5
+  - @revealui/contracts@1.3.5
+
 ## 0.3.4
 
 ### Patch Changes

@@ -35,8 +35,8 @@
     "node": ">=24.13.0"
   },
   "peerDependencies": {
-    "@revealui/ai": "^0.2.5",
-    "@revealui/services": "workspace:*"
+    "@revealui/ai": "workspace:^",
+    "@revealui/services": "workspace:^"
   },
   "peerDependenciesMeta": {
     "@revealui/ai": {

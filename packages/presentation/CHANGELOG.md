@@ -1,5 +1,11 @@
 # @revealui/presentation
 
+## 0.3.4
+
+### Patch Changes
+
+- add offline-first cache layer and sync status indicator, fix infinite type instantiation in cn utility, replace core dep with utils in router, remove Cursor IDE support from editors
+
 ## 0.3.3
 
 ### Patch Changes

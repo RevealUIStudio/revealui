@@ -90,6 +90,37 @@ vi.mock('@revealui/db', () => ({
       append = mockAuditAppend;
     } as unknown as (...args: unknown[]) => unknown,
   ),
+  executeSaga: vi.fn(
+    async (
+      db: unknown,
+      _sagaName: string,
+      _sagaKey: string,
+      steps: Array<{
+        name: string;
+        execute: (ctx: {
+          db: unknown;
+          sagaId: string;
+          checkpoint: (n: string, o: unknown) => Promise<void>;
+        }) => Promise<unknown>;
+      }>,
+    ) => {
+      const sagaId = `mock-saga-${Date.now()}`;
+      const ctx = { db, sagaId, checkpoint: async () => {} };
+      const completedSteps: string[] = [];
+      let lastOutput: unknown;
+      for (const step of steps) {
+        lastOutput = await step.execute(ctx);
+        completedSteps.push(step.name);
+      }
+      return {
+        sagaId,
+        status: 'completed',
+        result: lastOutput,
+        completedSteps,
+        alreadyProcessed: false,
+      };
+    },
+  ),
 }));
 
 vi.mock('@revealui/db/schema', () => ({

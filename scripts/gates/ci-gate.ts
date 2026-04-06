@@ -272,6 +272,12 @@ async function gate(): Promise<void> {
         args: ['validate:versions'],
       },
       {
+        name: 'Catalog changeset check',
+        command: 'pnpm',
+        args: ['validate:catalog'],
+        warnOnly: true,
+      },
+      {
         name: 'Gitignore Pro entries',
         command: 'pnpm',
         args: ['validate:gitignore'],
@@ -353,9 +359,11 @@ async function gate(): Promise<void> {
   if (phase === null || phase === 3) {
     logger.info('Phase 3 \u2014 Test + Build (serial: tests first)');
 
+    // Turbo concurrency=2 + per-package maxWorkers=2 prevents fork explosion.
+    // Worst case: 2 packages × 2 forks = 4 processes × 150 MB = 600 MB total.
     const testArgs = changed
-      ? ['turbo', 'run', 'test', `--filter=...[${changeBase}]`, ...proFilter, '--concurrency=4']
-      : ['turbo', 'run', 'test', ...proFilter, '--concurrency=4'];
+      ? ['turbo', 'run', 'test', `--filter=...[${changeBase}]`, ...proFilter, '--concurrency=2']
+      : ['turbo', 'run', 'test', ...proFilter, '--concurrency=2'];
 
     const buildCheck: CheckDef[] = noBuild
       ? []
@@ -370,7 +378,7 @@ async function gate(): Promise<void> {
                 'build',
                 `--filter=...[${changeBase}]`,
                 ...proFilter,
-                '--concurrency=3',
+                '--concurrency=2',
               ],
               timeout: 600000,
             },
@@ -384,7 +392,7 @@ async function gate(): Promise<void> {
             {
               name: 'Build',
               command: 'pnpm',
-              args: ['turbo', 'run', 'build', ...proFilter, '--concurrency=3'],
+              args: ['turbo', 'run', 'build', ...proFilter, '--concurrency=2'],
               timeout: 900000,
             },
             {
@@ -396,7 +404,7 @@ async function gate(): Promise<void> {
 
     const testCheck: CheckDef[] = noTest
       ? []
-      : [{ name: 'Tests', command: 'pnpm', args: testArgs, timeout: 300000 }];
+      : [{ name: 'Tests', command: 'pnpm', args: testArgs, timeout: 600000 }];
 
     const phase3Checks: CheckDef[] = [...testCheck, ...buildCheck];
 

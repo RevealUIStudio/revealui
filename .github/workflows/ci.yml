@@ -137,9 +137,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
+      - name: Build packages (workspace tests resolve some deps from dist/)
+        run: pnpm turbo build --filter='./packages/*'
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
       - name: Run unit tests (hard fail)
         run: pnpm test
         env:
+          CI: "true"
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------

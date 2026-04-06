@@ -32,6 +32,7 @@ export default defineConfig({
       DATABASE_URL: '',
     },
     pool: 'forks',
+    hookTimeout: 30000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],

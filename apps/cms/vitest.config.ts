@@ -6,6 +6,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     pool: 'forks',
+    maxWorkers: 2,
+    hookTimeout: 30000,
     exclude: [
       'node_modules/**',
       '.direnv/**',

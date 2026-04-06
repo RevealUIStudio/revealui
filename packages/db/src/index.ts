@@ -41,6 +41,21 @@ export {
   schema,
   withTransaction,
 } from './client/index.js';
+// Re-export saga module
+export type {
+  SagaContext,
+  SagaOptions,
+  SagaResult,
+  SagaStep,
+} from './saga/index.js';
+// Re-export saga module
+export {
+  executeSaga,
+  executeSaga as withSaga,
+  idempotentWrite,
+  recoverStaleSagas,
+  resilientStep,
+} from './saga/index.js';
 // Re-export everything from core (schema)
 export * from './schema/index.js';
 // Re-export Database types (centralized type matching Supabase structure)

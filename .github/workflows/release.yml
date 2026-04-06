@@ -24,6 +24,10 @@ permissions:
   contents: write # push tags, create GitHub releases
   id-token: write # OIDC token for npm provenance (SLSA B2)
 
+concurrency:
+  group: release-oss
+  cancel-in-progress: false
+
 env:
   NODE_VERSION: "24"
   PNPM_VERSION: "10.28.2"
@@ -62,7 +66,7 @@ jobs:
         run: pnpm changeset status --verbose
 
       - name: Build all packages
-        run: pnpm build
+        run: pnpm build --concurrency=4
         env:
           SKIP_ENV_VALIDATION: "true"
 

@@ -4,6 +4,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    pool: 'forks',
+    maxWorkers: 2,
     passWithNoTests: true,
     coverage: {
       provider: 'v8',

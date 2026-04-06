@@ -5,6 +5,7 @@
  * 1. All expected Stripe price env vars are set
  * 2. REVEALUI_LICENSE_PRIVATE_KEY is present (for license JWT generation)
  * 3. Billing catalog DB rows exist for all tiers
+ * 4. Email provider configured (warning only — Gmail or Resend)
  *
  * Sends an alert email to REVEALUI_ALERT_EMAIL on any failure.
  * Runs daily at 06:00 UTC (configured in vercel.json).
@@ -51,6 +52,11 @@ interface CheckResult {
   detail: string;
 }
 
+interface WarningResult {
+  check: string;
+  detail: string;
+}
+
 app.post('/billing-readiness', async (c) => {
   const cronSecret = process.env.REVEALUI_CRON_SECRET;
   const provided = c.req.header('X-Cron-Secret') || c.req.header('x-cron-secret');
@@ -70,6 +76,7 @@ app.post('/billing-readiness', async (c) => {
   }
 
   const results: CheckResult[] = [];
+  const warnings: WarningResult[] = [];
 
   // 1. Check required env vars
   for (const varName of REQUIRED_ENV_VARS) {
@@ -116,8 +123,28 @@ app.post('/billing-readiness', async (c) => {
     });
   }
 
+  // 4. Check email provider configuration (warning only — billing works without
+  //    email, but transactional emails will silently fail)
+  const hasGmail =
+    Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) && Boolean(process.env.GOOGLE_PRIVATE_KEY);
+  const hasResend = Boolean(process.env.RESEND_API_KEY);
+  if (!(hasGmail || hasResend)) {
+    warnings.push({
+      check: 'email:provider',
+      detail:
+        'No email provider configured — transactional emails (license activation, payment receipts, failure notices) will silently fail',
+    });
+  }
+
   const failures = results.filter((r) => !r.ok);
   const allOk = failures.length === 0;
+
+  if (warnings.length > 0) {
+    logger.warn('Billing readiness warnings', {
+      warningCount: warnings.length,
+      warnings: warnings.map((w) => `${w.check}: ${w.detail}`),
+    });
+  }
 
   if (!allOk) {
     logger.error('Billing readiness check failed', undefined, {
@@ -129,15 +156,20 @@ app.post('/billing-readiness', async (c) => {
     try {
       const { sendEmail } = await import('../../lib/email.js');
       const failureList = failures.map((f) => `• ${f.check}: ${f.detail}`).join('\n');
+      const warningList =
+        warnings.length > 0
+          ? `\n\nWarnings:\n${warnings.map((w) => `• ${w.check}: ${w.detail}`).join('\n')}`
+          : '';
       await sendEmail({
         to: ALERT_EMAIL,
         subject: `[RevealUI] Billing readiness check FAILED (${failures.length} issues)`,
         html: `<h2>Billing Readiness Check Failed</h2>
 <p>${failures.length} issue(s) detected that may prevent customers from completing checkout:</p>
 <pre>${failureList}</pre>
+${warnings.length > 0 ? `<h3>Warnings</h3><pre>${warnings.map((w) => `• ${w.check}: ${w.detail}`).join('\n')}</pre>` : ''}
 <p>Run <code>pnpm stripe:sync-env</code> and <code>pnpm billing:catalog:sync</code> to resolve.</p>
 <p style="color:#666;font-size:12px;">Automated check from api.revealui.com — ${new Date().toISOString()}</p>`,
-        text: `Billing Readiness Check Failed\n\n${failures.length} issue(s):\n${failureList}\n\nRun: pnpm stripe:sync-env && pnpm billing:catalog:sync`,
+        text: `Billing Readiness Check Failed\n\n${failures.length} issue(s):\n${failureList}${warningList}\n\nRun: pnpm stripe:sync-env && pnpm billing:catalog:sync`,
       });
     } catch (emailErr) {
       logger.error('Failed to send billing readiness alert email', undefined, {
@@ -145,7 +177,10 @@ app.post('/billing-readiness', async (c) => {
       });
     }
   } else {
-    logger.info('Billing readiness check passed', { checkCount: results.length });
+    logger.info('Billing readiness check passed', {
+      checkCount: results.length,
+      warningCount: warnings.length,
+    });
   }
 
   return c.json(
@@ -154,6 +189,8 @@ app.post('/billing-readiness', async (c) => {
       checkCount: results.length,
       failureCount: failures.length,
       failures: failures.map((f) => ({ check: f.check, detail: f.detail })),
+      warningCount: warnings.length,
+      warnings: warnings.map((w) => ({ check: w.check, detail: w.detail })),
       checkedAt: new Date().toISOString(),
     },
     allOk ? 200 : 503,
