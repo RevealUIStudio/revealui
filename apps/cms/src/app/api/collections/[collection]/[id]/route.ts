@@ -1,3 +1,4 @@
+import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const API_URL =
@@ -31,10 +32,13 @@ async function proxyRequest(
 
   if (!apiResponse.ok) {
     const text = await apiResponse.text();
-    return NextResponse.json(
-      { error: text || 'API request failed' },
-      { status: apiResponse.status },
-    );
+    logger.error('Content API request failed', new Error(text || 'Unknown error'), {
+      collection,
+      id,
+      method,
+      status: apiResponse.status,
+    });
+    return NextResponse.json({ error: 'API request failed' }, { status: apiResponse.status });
   }
 
   const data = await apiResponse.json();

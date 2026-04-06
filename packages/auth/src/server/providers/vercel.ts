@@ -40,7 +40,13 @@ export async function exchangeCode(code: string, redirectUri: string): Promise<s
     );
   }
 
-  const data = (await response.json()) as { access_token: string };
+  const data = (await response.json()) as { access_token?: string; error?: string };
+  if (data.error) {
+    throw new Error(`Vercel token exchange error: ${data.error}`);
+  }
+  if (!data.access_token || typeof data.access_token !== 'string') {
+    throw new Error('Vercel token exchange returned no access_token');
+  }
   return data.access_token;
 }
 

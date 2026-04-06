@@ -8,6 +8,7 @@ import DeployWizard from './components/deploy/DeployWizard';
 import CodeEditor from './components/editor/CodeEditor';
 import TileGallery from './components/gallery/TileGallery';
 import GitPanel from './components/git/GitPanel';
+import InferencePanel from './components/inference/InferencePanel';
 import InfrastructurePanel from './components/infrastructure/InfrastructurePanel';
 import IntentScreen from './components/intent/IntentScreen';
 import AppShell from './components/layout/AppShell';
@@ -158,7 +159,7 @@ function MainApp() {
     );
   }
 
-  // Setup complete — develop intent shows full companion
+  // Setup complete — develop intent shows full experience
   return (
     <AppShell currentPage={page} onNavigate={setPage} padless={page === 'git' || page === 'editor'}>
       {page === 'dashboard' ? <Dashboard /> : null}
@@ -182,6 +183,7 @@ function MainApp() {
         </div>
       ) : null}
       {page === 'agent' ? <AgentPanel /> : null}
+      {page === 'inference' ? <InferencePanel /> : null}
       {page === 'setup' ? <SetupPage /> : null}
       {page === 'settings' ? <SettingsPanel /> : null}
     </AppShell>

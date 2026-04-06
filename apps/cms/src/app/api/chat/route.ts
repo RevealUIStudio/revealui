@@ -235,14 +235,67 @@ export async function POST(request: NextRequest) {
       role: ConversationRole;
       content: string;
       cacheControl?: { type: 'ephemeral' };
-      toolCalls?: unknown[];
+      toolCalls?: ChatToolCall[];
       toolCallId?: string;
       name?: string;
     }
 
+    /** Matches @revealui/ai ToolCall without importing the Pro dep */
+    interface ChatToolCall {
+      id: string;
+      type: 'function';
+      function: { name: string; arguments: string };
+    }
+
+    /** Minimal LLM client shape — matches @revealui/ai LLMProvider without importing the Pro dep */
+    interface ChatLLMClient {
+      chat(
+        messages: Array<{
+          role: 'user' | 'assistant' | 'system' | 'tool';
+          content: string | Array<{ type: string; text?: string; image_url?: unknown }>;
+          cacheControl?: { type: 'ephemeral' };
+          toolCalls?: ChatToolCall[];
+          toolCallId?: string;
+          name?: string;
+        }>,
+        options?: {
+          maxTokens?: number;
+          temperature?: number;
+          tools?: unknown[];
+          enableCache?: boolean;
+        },
+      ): Promise<{
+        content: string;
+        toolCalls?: ChatToolCall[];
+        usage?: {
+          promptTokens: number;
+          completionTokens?: number;
+          cacheReadTokens?: number;
+          cacheCreationTokens?: number;
+        };
+      }>;
+      getResponseCacheStats():
+        | {
+            hits: number;
+            misses: number;
+            hitRate: number;
+            size: number;
+            evictions: number;
+          }
+        | undefined;
+      getSemanticCacheStats():
+        | {
+            hits: number;
+            misses: number;
+            hitRate: number;
+            avgSimilarity: number;
+            totalQueries: number;
+          }
+        | undefined;
+    }
+
     // Create LLM client from environment-configured open models
-    // biome-ignore lint/suspicious/noExplicitAny: LLMClient type from @revealui/ai (optional Pro dep) — typed chat() signature requires ToolCall[] but our generic messages use unknown[]
-    let llmClient: any;
+    let llmClient: ChatLLMClient;
     try {
       logger.info('Creating LLM client from env', {
         provider: process.env.LLM_PROVIDER,

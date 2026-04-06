@@ -41,6 +41,9 @@ export const auditLog = pgTable(
 
     /** Policy violation IDs triggered by this event */
     policyViolations: jsonb('policy_violations').$type<string[]>().default([]).notNull(),
+
+    /** HMAC-SHA256 signature for tamper detection (nullable for backwards compat) */
+    signature: text('signature'),
   },
   (table) => [
     index('audit_log_event_type_idx').on(table.eventType),

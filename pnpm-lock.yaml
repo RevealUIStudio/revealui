@@ -812,6 +812,9 @@ importers:
       '@revealui/db':
         specifier: workspace:*
         version: link:../db
+      '@revealui/security':
+        specifier: workspace:*
+        version: link:../security
       '@simplewebauthn/server':
         specifier: ^13.3.0
         version: 13.3.0

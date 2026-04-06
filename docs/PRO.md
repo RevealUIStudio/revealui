@@ -69,6 +69,7 @@ This is the model the product and billing architecture should converge on from 2
 
 RevealUI Pro currently groups commercial capabilities such as:
 
+- Studio desktop app (Tauri) — agent coordination hub, local inference management, visual agent dashboard
 - MCP servers and developer tooling
 - Open-model inference configuration per deployment
 - editor integrations and harness coordination
@@ -84,6 +85,8 @@ RevealUI is part of a four-project ecosystem. Each project has features distribu
 
 | Feature | Free | Pro | Max | Forge |
 |---------|------|-----|-----|-------|
+| Studio desktop app | | Yes | Yes | Yes |
+| Studio agent dashboard | | Yes | Yes | Yes |
 | RevVault CLI + core crate | Yes | Yes | Yes | Yes |
 | RevVault desktop app | | Yes | Yes | Yes |
 | RevVault rotation engine | | Yes | Yes | Yes |

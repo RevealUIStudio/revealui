@@ -67,6 +67,7 @@ const IGNORED_DIRECTORIES = new Set([
   'coverage',
   '.git',
   'results',
+  'opensrc',
 ]);
 
 function isTestFile(entry: string): boolean {

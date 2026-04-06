@@ -33,6 +33,7 @@ const DEFAULT_EXCLUDE_DIRS = [
   '.output',
   '.vercel',
   '.cache',
+  'opensrc',
 ];
 
 function scanDirectorySync(dir: string, extensions: string[] = ['.ts', '.tsx']): string[] {

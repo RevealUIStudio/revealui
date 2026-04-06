@@ -213,6 +213,10 @@
       "types": "./dist/observability/logger.d.ts",
       "import": "./dist/observability/logger.js"
     },
+    "./observability/alerts": {
+      "types": "./dist/observability/alerts.d.ts",
+      "import": "./dist/observability/alerts.js"
+    },
     "./utils/cache": {
       "types": "./dist/utils/cache.d.ts",
       "import": "./dist/utils/cache.js"

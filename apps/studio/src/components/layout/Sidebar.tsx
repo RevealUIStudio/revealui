@@ -16,6 +16,7 @@ const NAV_ITEMS: { page: Page; label: string; icon: string }[] = [
   { page: 'git', label: 'Git', icon: 'git' },
   { page: 'editor', label: 'Editor', icon: 'editor' },
   { page: 'agent', label: 'Agent', icon: 'agent' },
+  { page: 'inference', label: 'Inference', icon: 'inference' },
   { page: 'setup', label: 'Setup', icon: 'settings' },
   { page: 'settings', label: 'Settings', icon: 'wrench' },
 ];
@@ -195,6 +196,21 @@ function NavIcon({ name }: { name: string }) {
         >
           <rect x="7" y="7" width="10" height="10" rx="1" />
           <path d="M9 7V5m3 2V5m3 2V5M9 17v2m3-2v2m3-2v2M7 9H5m2 3H5m2 3H5M17 9h2m-2 3h2m-2 3h2" />
+        </svg>
+      );
+    case 'inference':
+      return (
+        <svg
+          className="size-4"
+          aria-hidden="true"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4Z" />
+          <circle cx="12" cy="15" r="2" />
+          <path d="M12 13v-2" />
         </svg>
       );
     case 'rocket':

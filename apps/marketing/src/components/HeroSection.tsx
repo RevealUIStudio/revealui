@@ -59,8 +59,8 @@ export function HeroSection() {
             Build your business, not your boilerplate.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-lg leading-8 text-gray-500">
-            Five primitives, one ecosystem &mdash; users, content, products, payments, and AI
-            &mdash; pre-wired, open source, and ready to deploy.
+            Five primitives, one runtime &mdash; users, content, products, payments, and AI agents
+            &mdash; orchestrated natively in Studio, open source, and ready to deploy.
           </p>
 
           {/* Five primitives */}
@@ -118,9 +118,9 @@ export function HeroSection() {
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500">
             {[
               'MIT Licensed (OSS)',
-              'Full Source Code',
+              'Local AI (Inference Snaps)',
               'No Vendor Lock-in',
-              'TypeScript End-to-End',
+              'Studio Desktop App',
             ].map((item) => (
               <div key={item} className="flex items-center gap-2">
                 <svg className="h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">

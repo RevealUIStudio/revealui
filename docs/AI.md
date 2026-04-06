@@ -30,14 +30,19 @@ pnpm add @revealui/ai
 
 ## Quick start
 
+Install a model via Ubuntu Inference Snaps (recommended):
+
+```bash
+sudo snap install nemotron-3-nano   # general-purpose, low resource
+# or: sudo snap install gemma3      # general + vision
+```
+
 ```typescript
 import { createAgent } from "@revealui/ai";
 import { createLLMClient } from "@revealui/ai/llm";
 
-const llm = createLLMClient({
-  provider: "ollama",
-  model: "llama3.2:3b",
-});
+// Auto-detects inference-snaps when running locally
+const llm = createLLMClient();
 
 const agent = createAgent({
   name: "my-agent",
@@ -85,9 +90,20 @@ const memory = {
 
 | Path | Chat | Embeddings | Notes |
 | ---- | ---- | ---------- | ----- |
-| Ubuntu Inference Snaps | Yes | Depends on model | Canonical snap runtime — Gemma3, DeepSeek-R1, etc. |
+| **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime — hardware-aware, single command install, OpenAI-compatible API |
 | BitNet | Yes | No | 1-bit quantized, CPU-only, ~700 MB RAM |
 | Ollama | Yes | Yes | Any open source GGUF model, local inference |
+
+### Inference Snaps Models
+
+| Snap | Type | Use Case |
+| ---- | ---- | -------- |
+| `nemotron-3-nano` | General (reasoning + non-reasoning) | **Free tier default** — lightweight, fast |
+| `gemma3` | General + vision | Image understanding, multimodal tasks |
+| `deepseek-r1` | Reasoning | Complex analysis, chain-of-thought |
+| `qwen-vl` | Vision-language | Document parsing, visual Q&A |
+
+Install: `sudo snap install <name>`. Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.
 
 ## A2A protocol
 
@@ -108,6 +124,16 @@ const task = await client.sendTask({ message: "Process this document." });
 
 All inference runs on open source models — no proprietary cloud APIs, no vendor lock-in.
 
+The recommended setup is **Ubuntu Inference Snaps** — Canonical's snap-packaged model serving with hardware-aware engine selection, signed packages, and zero configuration:
+
+```bash
+# Install your first model (free tier default)
+sudo snap install nemotron-3-nano
+
+# Check status
+nemotron-3-nano status
+```
+
 ```typescript
 import { createLLMClient } from "@revealui/ai/llm";
 
@@ -115,7 +141,7 @@ import { createLLMClient } from "@revealui/ai/llm";
 const llm = createLLMClient();
 ```
 
-See the [inference guide](/pro/inference) for full configuration details.
+Auto-detection priority: `INFERENCE_SNAPS_BASE_URL` > `BITNET_BASE_URL` > `OLLAMA_BASE_URL`. See the [inference guide](/pro/inference) for full configuration details.
 
 ## Streaming
 

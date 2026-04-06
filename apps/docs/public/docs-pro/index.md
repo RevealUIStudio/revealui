@@ -10,7 +10,7 @@ RevealUI Pro adds AI agents, MCP servers, and editor integrations on top of the 
 | [`@revealui/mcp`](/pro/mcp) | MCP hypervisor, adapter framework, tool discovery |
 | [`@revealui/editors`](/pro/editors) | Editor config sync (Zed, VS Code, Cursor) |
 | `@revealui/services` | Stripe + Supabase service integrations |
-| [Open-Model Inference](/pro/inference) | 5 providers: Ollama, BitNet, HuggingFace, Vultr, Ubuntu Inference Snaps |
+| [Open-Model Inference](/pro/inference) | 5 providers: Ubuntu Inference Snaps (recommended), BitNet, Ollama, HuggingFace, Vultr |
 
 ## License
 

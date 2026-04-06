@@ -102,7 +102,7 @@ export async function analyzeDependencies(options: {
   // Find all package.json files
   const packageFiles = await fg('**/package.json', {
     cwd: root,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**'],
+    ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**', '**/opensrc/**'],
   });
 
   if (!json) {
@@ -292,7 +292,7 @@ async function findCircularDependencies(root: string): Promise<DependencyIssue[]
   // Get all TypeScript/JavaScript files
   const files = await fg(['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'], {
     cwd: root,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**', '**/coverage/**'],
+    ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**', '**/coverage/**', '**/opensrc/**'],
   });
 
   // Build import graph

@@ -4,23 +4,32 @@ const MOCK_COMMIT_RECENT_S = 300; // 5 minutes ago
 const MOCK_COMMIT_OLDER_S = 3600; // 1 hour ago
 
 import type {
+  AgentBackend,
   AgentSession,
+  AgentSessionInfo,
   AppStatus,
+  BitNetStatus,
   GitBranch,
   GitCommitInfo,
   GitDiffContent,
   GitPullResult,
   GitPushResult,
   GitStatusResult,
+  ModelPullResult,
   MountStatus,
+  OllamaModel,
+  OllamaStatus,
   SecretInfo,
   SetupStatus,
+  SnapModel,
+  SnapStatus,
   SshBookmark,
   SshConnectParams,
   StudioConfig,
   SyncResult,
   SystemStatus,
   TailscaleStatus,
+  TerminalProfile,
 } from '../types';
 
 /** True when running inside the Tauri webview (IPC bridge available) */
@@ -162,6 +171,55 @@ const MOCK_DATA: Record<string, unknown> = {
   ] satisfies GitCommitInfo[],
   git_read_file: '// Mock file content\nexport default function example() {}\n',
   git_write_file: undefined,
+  agent_spawn: 'mock-agent-session-id',
+  agent_stop: undefined,
+  agent_list: [] satisfies AgentSessionInfo[],
+  agent_remove: undefined,
+  inference_ollama_status: {
+    installed: false,
+    running: false,
+    version: null,
+  } satisfies OllamaStatus,
+  inference_ollama_models: [] satisfies OllamaModel[],
+  inference_ollama_pull: { success: true, message: 'Pulled (mock)' } satisfies ModelPullResult,
+  inference_ollama_delete: undefined,
+  inference_ollama_start: undefined,
+  inference_ollama_stop: undefined,
+  inference_bitnet_status: {
+    installed: false,
+    model_path: null,
+  } satisfies BitNetStatus,
+  inference_snap_status: {
+    installed: false,
+    running: false,
+    snap_name: 'nemotron-3-nano',
+    endpoint: null,
+    version: null,
+  } satisfies SnapStatus,
+  inference_snap_list: [
+    {
+      name: 'nemotron-3-nano',
+      description: 'General (reasoning + non-reasoning) — free tier default',
+      installed: false,
+    },
+    {
+      name: 'gemma3',
+      description: 'General + vision — image understanding, multimodal',
+      installed: false,
+    },
+    {
+      name: 'deepseek-r1',
+      description: 'Reasoning — complex analysis, chain-of-thought',
+      installed: false,
+    },
+    {
+      name: 'qwen-vl',
+      description: 'Vision-language — document parsing, visual Q&A',
+      installed: false,
+    },
+  ] satisfies SnapModel[],
+  inference_snap_install: { success: true, message: 'Installed (mock)' } satisfies ModelPullResult,
+  inference_snap_remove: undefined,
   agent_read_workboard: [
     '# RevealUI Workboard',
     '_Last updated: 2026-03-18T20:00Z_',
@@ -413,6 +471,116 @@ export function gitWriteFile(repoPath: string, filePath: string, content: string
 
 export function agentReadWorkboard(path: string): Promise<string> {
   return invoke<string>('agent_read_workboard', { path });
+}
+
+// ── Agent Spawner ───────────────────────────────────────────────────────────
+
+export function agentSpawn(
+  name: string,
+  backend: AgentBackend,
+  model: string,
+  prompt: string,
+): Promise<string> {
+  return invoke<string>('agent_spawn', { name, backend, model, prompt });
+}
+
+export function agentStop(sessionId: string): Promise<void> {
+  return invoke<void>('agent_stop', { sessionId });
+}
+
+export function agentList(): Promise<AgentSessionInfo[]> {
+  return invoke<AgentSessionInfo[]>('agent_list');
+}
+
+export function agentRemove(sessionId: string): Promise<void> {
+  return invoke<void>('agent_remove', { sessionId });
+}
+
+// ── Local Inference ─────────────────────────────────────────────────────────
+
+export function inferenceOllamaStatus(): Promise<OllamaStatus> {
+  return invoke<OllamaStatus>('inference_ollama_status');
+}
+
+export function inferenceOllamaModels(): Promise<OllamaModel[]> {
+  return invoke<OllamaModel[]>('inference_ollama_models');
+}
+
+export function inferenceOllamaPull(modelName: string): Promise<ModelPullResult> {
+  return invoke<ModelPullResult>('inference_ollama_pull', { modelName });
+}
+
+export function inferenceOllamaDelete(modelName: string): Promise<void> {
+  return invoke<void>('inference_ollama_delete', { modelName });
+}
+
+export function inferenceOllamaStart(): Promise<void> {
+  return invoke<void>('inference_ollama_start');
+}
+
+export function inferenceOllamaStop(): Promise<void> {
+  return invoke<void>('inference_ollama_stop');
+}
+
+export function inferenceBitnetStatus(): Promise<BitNetStatus> {
+  return invoke<BitNetStatus>('inference_bitnet_status');
+}
+
+// ── Inference Snaps ─────────────────────────────────────────────────────────
+
+export function inferenceSnapStatus(snapName: string): Promise<SnapStatus> {
+  return invoke<SnapStatus>('inference_snap_status', { snapName });
+}
+
+export function inferenceSnapList(): Promise<SnapModel[]> {
+  return invoke<SnapModel[]>('inference_snap_list');
+}
+
+export function inferenceSnapInstall(snapName: string): Promise<ModelPullResult> {
+  return invoke<ModelPullResult>('inference_snap_install', { snapName });
+}
+
+export function inferenceSnapRemove(snapName: string): Promise<void> {
+  return invoke<void>('inference_snap_remove', { snapName });
+}
+
+// ── Terminal profiles ────────────────────────────────────────────────────────
+
+export function terminalDetect(): Promise<TerminalProfile[]> {
+  if (!isTauri()) {
+    return Promise.resolve([
+      {
+        id: 'alacritty',
+        name: 'Alacritty',
+        platform: 'Linux',
+        installed: false,
+        config_file: 'alacritty-revealui.toml',
+        dest_path: '',
+      },
+      {
+        id: 'kitty',
+        name: 'Kitty',
+        platform: 'Linux',
+        installed: true,
+        config_file: 'kitty-revealui.conf',
+        dest_path: '',
+      },
+    ]);
+  }
+  return invoke<TerminalProfile[]>('terminal_detect');
+}
+
+export function terminalInstall(terminalId: string, configDir: string): Promise<TerminalProfile> {
+  return invoke<TerminalProfile>('terminal_install', { terminalId, configDir });
+}
+
+// ── Launcher (quick-switch) ──────────────────────────────────────────────────
+
+export function focusWindow(processName: string): Promise<boolean> {
+  if (!isTauri()) {
+    return Promise.resolve(false);
+  }
+  return invoke<boolean>('focus_window', { processName });
 }
 
 // Re-export AgentSession so consumers don't need to reach into types directly

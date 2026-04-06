@@ -6,6 +6,17 @@
  */
 
 export type { SignInResult, SignUpResult } from '../types.js';
+// Audit bridge
+export {
+  auditAccountLocked,
+  auditLoginFailure,
+  auditLoginSuccess,
+  auditMfaDisabled,
+  auditMfaEnabled,
+  auditPasswordChange,
+  auditPasswordReset,
+  auditSessionRevoked,
+} from './audit-bridge.js';
 export { isSignupAllowed, signIn, signUp } from './auth.js';
 export {
   clearFailedAttempts,
@@ -43,6 +54,16 @@ export {
   verifyMFACode,
   verifyMFASetup,
 } from './mfa.js';
+// MFA Enforcement
+export type {
+  MfaCheckResult,
+  MfaEnforcementOptions,
+  MfaErrorResponse,
+  MfaRequest,
+  MfaSession,
+  MfaSessionUser,
+} from './mfa-enforcement.js';
+export { requireMfa } from './mfa-enforcement.js';
 export {
   buildAuthUrl,
   exchangeCode,

@@ -13,7 +13,7 @@ import { isLicensed, type LicenseTier } from './license.js';
 
 /** All gated features in RevealUI */
 export interface FeatureFlags {
-  /** Local AI inference via BitNet — available at all tiers (no API key needed) */
+  /** Local AI inference via Inference Snaps or BitNet — available at all tiers (no API key needed) */
   aiLocal: boolean;
   /** AI agent system — local + cloud via RevealUI harness (Pro+) */
   ai: boolean;
@@ -41,7 +41,7 @@ export interface FeatureFlags {
   customDomain: boolean;
   /** Analytics and conversion tracking */
   analytics: boolean;
-  /** RevVault desktop app — Tauri companion for encrypted secret management (Pro+) */
+  /** RevVault desktop app — Tauri native AI experience for encrypted secret management (Pro+) */
   vaultDesktop: boolean;
   /** RevVault rotation engine — automated credential lifecycle (Pro+) */
   vaultRotation: boolean;

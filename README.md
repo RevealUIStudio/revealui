@@ -111,7 +111,7 @@ The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work
 
 - **AI agent system** — build and deploy purpose-built agents for your workflows
 - **MCP framework** — hypervisor, adapter framework, and tool discovery for connecting agents to external services
-- **Open-model inference** — Ubuntu inference snaps, BitNet, and open source models via the RevealUI harness. No proprietary APIs, no vendor lock-in, zero API bills
+- **Open-model inference** — Ubuntu Inference Snaps (recommended), BitNet, Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for instant local AI. No proprietary APIs, no vendor lock-in, zero API bills
 - **Task history** — every agent action logged, auditable, and visible in the dashboard
 - **Editor config sync** — generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 
@@ -122,7 +122,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | Tier           | Price     | What you get                                                       |
 | -------------- | --------- | ------------------------------------------------------------------ |
 | **Free**       | $0        | Full OSS core — users, content, products, payments, admin          |
-| **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
+| **Pro**        | $49/mo    | Studio desktop app, AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
 | **Max**        | $149/mo   | Full AI memory, audit log, higher limits, RevKit environment provisioning         |
 | **Forge**      | $299/mo   | Multi-tenant, SSO (planned), domain-locked, RevealCoin x402 agent payments       |
 
@@ -134,7 +134,7 @@ Pro packages are source-available on npm under a [commercial license](LICENSE.co
 | `cms`        | Next.js 16       | Admin dashboard + content management         |
 | `docs`       | Vite + React     | Documentation site                           |
 | `marketing`  | Next.js          | Marketing site + waitlist                    |
-| `studio`     | Tauri 2 + React  | Desktop companion (vault, agent coordination, system tray) |
+| `studio`     | Tauri 2 + React  | Native AI experience: agent coordination hub, local inference management, visual agent dashboard |
 | `terminal`   | Go (Bubble Tea)  | TUI client (API integration, QR checkout)    |
 | `revealcoin` | Next.js          | RevealCoin token explorer (experimental)     |
 
@@ -224,7 +224,7 @@ revealui/
 │   ├── docs/       # Documentation site (port 3002)
 │   ├── marketing/  # Marketing site (port 3000)
 │   ├── revealcoin/ # RevealCoin token explorer (experimental)
-│   ├── studio/     # Desktop companion app (Tauri 2)
+│   ├── studio/     # Native AI experience (Tauri 2)
 │   └── terminal/   # TUI client (Go)
 ├── packages/       # 18 OSS + 5 Pro packages
 ├── docs/           # 25 guides

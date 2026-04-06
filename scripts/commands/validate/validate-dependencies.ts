@@ -314,7 +314,7 @@ function buildDependencyGraph(rootDir: string, filePattern?: string): Dependency
   const files = glob.sync(pattern, {
     cwd: rootDir,
     absolute: true,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.ts', '**/*.spec.ts'],
+    ignore: ['**/node_modules/**', '**/dist/**', '**/*.test.ts', '**/*.spec.ts', '**/opensrc/**'],
   });
 
   logger.info(`Found ${files.length} script files`);

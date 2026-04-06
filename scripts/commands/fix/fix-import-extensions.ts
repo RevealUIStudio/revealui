@@ -219,7 +219,7 @@ async function main() {
   const files = await fg(patterns, {
     cwd: process.cwd(),
     absolute: true,
-    ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**', '**/coverage/**'],
+    ignore: ['**/node_modules/**', '**/dist/**', '**/.next/**', '**/coverage/**', '**/opensrc/**'],
   });
 
   console.log(`   Found ${files.length} files to process\n`);

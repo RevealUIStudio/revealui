@@ -55,7 +55,11 @@ export function validateRequiredEnvVars(
 
   // Validate formats
   if (process.env.REVEALUI_SECRET && process.env.REVEALUI_SECRET.length < 32) {
-    warnings.push('REVEALUI_SECRET should be at least 32 characters');
+    if (environment === 'production') {
+      missing.push('REVEALUI_SECRET (must be at least 32 characters in production)');
+    } else {
+      warnings.push('REVEALUI_SECRET should be at least 32 characters');
+    }
   }
 
   // Check URLs have protocol and no trailing whitespace
@@ -84,6 +88,12 @@ export function validateRequiredEnvVars(
         throw new Error(error);
       }
       warnings.push(error);
+    }
+
+    // SESSION_COOKIE_DOMAIN is required in production for cross-subdomain auth.
+    // Without it, sign-in throws at request time instead of at startup.
+    if (!process.env.SESSION_COOKIE_DOMAIN) {
+      missing.push('SESSION_COOKIE_DOMAIN');
     }
 
     // Stripe price IDs are required in production — without them, billing buttons

@@ -663,6 +663,68 @@ export class AuditReportGenerator {
   }
 }
 
+// =============================================================================
+// Audit Log Integrity — HMAC-SHA256 Signing
+// =============================================================================
+
+/** Fields included in the HMAC signature for tamper detection. */
+interface SignableFields {
+  timestamp: string;
+  eventType: string;
+  severity: string;
+  agentId: string;
+  payload: unknown;
+}
+
+/**
+ * Compute an HMAC-SHA256 signature over the canonical fields of an audit entry.
+ *
+ * The signature covers `timestamp`, `eventType`, `severity`, `agentId`, and
+ * `payload` — the immutable core of every audit record. Changing any of
+ * these fields after signing will cause verification to fail.
+ *
+ * @param entry - The audit entry fields to sign
+ * @param secret - The HMAC secret key
+ * @returns Hex-encoded HMAC-SHA256 signature
+ */
+export async function signAuditEntry(entry: SignableFields, secret: string): Promise<string> {
+  const { createHmac } = await import('node:crypto');
+  const canonical = JSON.stringify({
+    timestamp: entry.timestamp,
+    eventType: entry.eventType,
+    severity: entry.severity,
+    agentId: entry.agentId,
+    payload: entry.payload,
+  });
+  return createHmac('sha256', secret).update(canonical).digest('hex');
+}
+
+/**
+ * Verify an HMAC-SHA256 signature against the canonical fields of an audit entry.
+ *
+ * Uses timing-safe comparison to prevent timing attacks.
+ *
+ * @param entry - The audit entry fields to verify
+ * @param signature - The hex-encoded HMAC-SHA256 signature to verify
+ * @param secret - The HMAC secret key
+ * @returns True if the signature is valid
+ */
+export async function verifyAuditEntry(
+  entry: SignableFields,
+  signature: string,
+  secret: string,
+): Promise<boolean> {
+  const { timingSafeEqual } = await import('node:crypto');
+  const expected = await signAuditEntry(entry, secret);
+
+  // Lengths must match for timingSafeEqual
+  if (expected.length !== signature.length) {
+    return false;
+  }
+
+  return timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}
+
 /**
  * Global audit system
  */

@@ -8,6 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import AgentChat from './AgentChat';
+import SpawnerPanel from './SpawnerPanel';
 
 const AGENT_POLL_INTERVAL_MS = 30_000;
 
@@ -430,6 +431,9 @@ export default function AgentPanel() {
               <SessionCard key={s.id} session={s} />
             ))}
           </div>
+
+          {/* Local agents (spawner) */}
+          <SpawnerPanel />
 
           {/* Remote agents */}
           {remoteAgents.length > 0 ? (

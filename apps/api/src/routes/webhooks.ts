@@ -304,10 +304,25 @@ function getHostedLimitsForTier(tier: 'free' | 'pro' | 'max' | 'enterprise'): {
 }
 
 function buildAccountSlug(userId: string): string {
-  return `acct-${userId
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .slice(0, 32)}`;
+  const lower = userId.toLowerCase();
+  const chars: string[] = [];
+  let lastWasDash = false;
+  for (let i = 0; i < lower.length; i++) {
+    const code = lower.charCodeAt(i);
+    const isAlphaNum =
+      (code >= 97 && code <= 122) || // a-z
+      (code >= 48 && code <= 57); // 0-9
+    if (isAlphaNum) {
+      chars.push(lower[i]);
+      lastWasDash = false;
+    } else if (!lastWasDash && chars.length > 0) {
+      chars.push('-');
+      lastWasDash = true;
+    }
+  }
+  // Trim trailing dash
+  const slug = lastWasDash ? chars.slice(0, -1).join('') : chars.join('');
+  return `acct-${slug.slice(0, 32)}`;
 }
 
 async function ensureHostedAccount(
@@ -864,7 +879,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
           }
 
-          const normalizedKey = privateKey.replace(/\\n/g, '\n');
+          const normalizedKey = privateKey.replaceAll('\\n', '\n');
           // null expiresInSeconds = no exp claim — perpetual license never expires
           const licenseKey = await generateLicenseKey(
             { tier, customerId, perpetual: true },
@@ -1013,7 +1028,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // Unescape literal \n sequences — Vercel stores multi-line PEM keys
         // with \n escaped in the .env format; the runtime preserves the literal
         // \n chars, so we must convert them to real newlines for jose/importPKCS8.
-        const normalizedKey = privateKey.replace(/\\n/g, '\n');
+        const normalizedKey = privateKey.replaceAll('\\n', '\n');
         const licenseKey = await generateLicenseKey({ tier, customerId }, normalizedKey);
 
         // Retrieve subscription to detect trialing state and trial_end date.
@@ -1375,7 +1390,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
             }
 
-            const normalizedKey = privateKey.replace(/\\n/g, '\n');
+            const normalizedKey = privateKey.replaceAll('\\n', '\n');
             const licenseKey = await generateLicenseKey(
               { tier: newTier, customerId },
               normalizedKey,
@@ -1672,7 +1687,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
           }
 
-          const normalizedKey = privateKey.replace(/\\n/g, '\n');
+          const normalizedKey = privateKey.replaceAll('\\n', '\n');
           const licenseKey = await generateLicenseKey(
             { tier: recoveredTier, customerId },
             normalizedKey,

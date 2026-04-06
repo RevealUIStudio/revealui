@@ -33,8 +33,8 @@ export default function WelcomeBanner() {
       </button>
       <h2 className="text-sm font-semibold text-orange-200">Welcome to RevealUI Studio</h2>
       <p className="mt-1 text-xs leading-relaxed text-neutral-400">
-        Your desktop companion for managing RevealUI infrastructure. Use the sidebar to navigate
-        between services — check system status on the{' '}
+        Your native AI experience for managing agents and infrastructure. Use the sidebar to
+        navigate between services — check system status on the{' '}
         <strong className="text-neutral-300">Dashboard</strong>, manage secrets in the{' '}
         <strong className="text-neutral-300">Vault</strong>, and configure your environment in{' '}
         <strong className="text-neutral-300">Setup</strong>.
