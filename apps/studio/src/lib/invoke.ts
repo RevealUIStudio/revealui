@@ -325,15 +325,145 @@ const MOCK_DATA: Record<string, unknown> = {
   harness_check_file: null,
 };
 
+// ── Remote daemon HTTP transport (browser mode) ─────────────────────────────
+
+const DAEMON_URL_KEY = 'revdev-daemon-url';
+const DAEMON_TOKEN_KEY = 'revdev-daemon-token';
+
+/** Command-to-RPC method mapping for harness commands */
+const HARNESS_RPC_MAP: Record<string, string> = {
+  harness_ping: 'ping',
+  harness_sessions: 'session.list',
+  harness_inbox: 'mail.inbox',
+  harness_send_message: 'mail.send',
+  harness_broadcast: 'mail.broadcast',
+  harness_mark_read: 'mail.markRead',
+  harness_tasks: 'tasks.list',
+  harness_create_task: 'tasks.create',
+  harness_claim_task: 'tasks.claim',
+  harness_complete_task: 'tasks.complete',
+  harness_release_task: 'tasks.release',
+  harness_reservations: 'files.list',
+  harness_reserve_file: 'files.reserve',
+  harness_check_file: 'files.check',
+};
+
+/** Map Tauri command args (snake_case) to RPC params (camelCase) */
+function toRpcParams(cmd: string, args?: Record<string, unknown>): Record<string, unknown> {
+  if (!args) return {};
+  const params: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(args)) {
+    // Convert snake_case to camelCase
+    const camel = key.replace(/_([a-z])/g, (_m, c: string) => c.toUpperCase());
+    params[camel] = value;
+  }
+  // Special cases for harness_ping which returns boolean
+  if (cmd === 'harness_ping') return {};
+  return params;
+}
+
+/** Get the configured daemon URL from localStorage */
+export function getDaemonUrl(): string | null {
+  if (typeof localStorage === 'undefined') return null;
+  return localStorage.getItem(DAEMON_URL_KEY);
+}
+
+/** Set the daemon URL for remote access */
+export function setDaemonUrl(url: string | null): void {
+  if (typeof localStorage === 'undefined') return;
+  if (url) {
+    localStorage.setItem(DAEMON_URL_KEY, url);
+  } else {
+    localStorage.removeItem(DAEMON_URL_KEY);
+  }
+}
+
+/** Get the stored session token */
+export function getDaemonToken(): string | null {
+  if (typeof localStorage === 'undefined') return null;
+  return localStorage.getItem(DAEMON_TOKEN_KEY);
+}
+
+/** Store a session token (obtained from pairing) */
+export function setDaemonToken(token: string | null): void {
+  if (typeof localStorage === 'undefined') return;
+  if (token) {
+    localStorage.setItem(DAEMON_TOKEN_KEY, token);
+  } else {
+    localStorage.removeItem(DAEMON_TOKEN_KEY);
+  }
+}
+
+/** Pair with a remote daemon using a 6-digit code */
+export async function pairWithDaemon(daemonUrl: string, code: string): Promise<string> {
+  const res = await fetch(`${daemonUrl}/api/pair`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  if (!res.ok) {
+    const err = (await res.json()) as { error: string };
+    throw new Error(err.error ?? `Pairing failed: ${res.status}`);
+  }
+  const { token } = (await res.json()) as { token: string };
+  setDaemonUrl(daemonUrl);
+  setDaemonToken(token);
+  return token;
+}
+
+let rpcId = 1;
+
+/** Make a JSON-RPC call to the daemon's HTTP gateway */
+async function httpRpc<T>(method: string, params: Record<string, unknown>): Promise<T> {
+  const url = getDaemonUrl();
+  if (!url) throw new Error('No daemon URL configured');
+
+  const token = getDaemonToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${url}/rpc`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ jsonrpc: '2.0', id: rpcId++, method, params }),
+  });
+
+  if (res.status === 401 || res.status === 403) {
+    throw new Error('Authentication required — pair with daemon first');
+  }
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  const body = (await res.json()) as { result?: T; error?: { message: string } };
+  if (body.error) throw new Error(body.error.message);
+  return body.result as T;
+}
+
 /** Guarded invoke — returns mock data in browser, real IPC in Tauri */
 function invoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
-  if (!isTauri()) {
-    if (cmd in MOCK_DATA) {
-      return Promise.resolve(MOCK_DATA[cmd] as T);
-    }
-    return Promise.reject(new Error(`No mock data for command: ${cmd}`));
+  // Tauri native mode — use IPC
+  if (isTauri()) {
+    return tauriInvoke<T>(cmd, args);
   }
-  return tauriInvoke<T>(cmd, args);
+
+  // Browser mode with remote daemon — route harness commands over HTTP
+  const rpcMethod = HARNESS_RPC_MAP[cmd];
+  if (rpcMethod && getDaemonUrl()) {
+    const params = toRpcParams(cmd, args);
+    if (cmd === 'harness_ping') {
+      return httpRpc<unknown>(rpcMethod, params)
+        .then(() => true as T)
+        .catch(() => false as T);
+    }
+    return httpRpc<T>(rpcMethod, params);
+  }
+
+  // Fallback: mock data for non-harness commands
+  if (cmd in MOCK_DATA) {
+    return Promise.resolve(MOCK_DATA[cmd] as T);
+  }
+  return Promise.reject(new Error(`No mock data for command: ${cmd}`));
 }
 
 /** Typed wrappers around Tauri invoke calls */

@@ -425,9 +425,9 @@ export default function AgentPanel() {
     (gitState?.untracked.length ?? 0);
 
   return (
-    <div className="flex h-full overflow-hidden">
+    <div className="flex h-full flex-col overflow-hidden md:flex-row">
       {/* ── Left pane: sessions ── */}
-      <div className="flex w-64 shrink-0 flex-col border-r border-neutral-800 bg-neutral-900">
+      <div className="flex w-full shrink-0 flex-col border-b border-neutral-800 bg-neutral-900 md:w-64 md:border-b-0 md:border-r">
         <div className="border-b border-neutral-800 px-3 py-2.5">
           <div className="mb-1.5 flex items-center gap-2">
             <AgentIcon />
@@ -466,7 +466,7 @@ export default function AgentPanel() {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-2 py-2">
+        <div className="max-h-48 flex-1 overflow-y-auto px-2 py-2 md:max-h-none">
           {workboardError ? (
             <div className="rounded border border-red-800/50 bg-red-950/30 px-2.5 py-2 text-[10px] text-red-400">
               {workboardError}
@@ -527,8 +527,8 @@ export default function AgentPanel() {
 
       {/* ── Right pane: tabbed (Changes / Chat) ── */}
       <div className="flex min-w-0 flex-1 flex-col bg-neutral-950">
-        {/* Tab bar */}
-        <div className="flex items-center border-b border-neutral-800">
+        {/* Tab bar — horizontally scrollable on mobile */}
+        <div className="flex items-center overflow-x-auto border-b border-neutral-800">
           <button
             type="button"
             onClick={() => setRightTab('changes')}

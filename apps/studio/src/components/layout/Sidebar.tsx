@@ -23,7 +23,7 @@ const NAV_ITEMS: { page: Page; label: string; icon: string }[] = [
 
 export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   return (
-    <aside className="flex w-56 flex-col border-r border-neutral-800 bg-neutral-900">
+    <aside className="flex h-full w-56 flex-col border-r border-neutral-800 bg-neutral-900">
       <div className="flex items-center gap-2 border-b border-neutral-800 px-4 py-4">
         <div className="size-8 rounded-lg bg-orange-600 flex items-center justify-center text-sm font-bold">
           R
