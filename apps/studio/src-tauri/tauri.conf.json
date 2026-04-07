@@ -32,6 +32,13 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "resources": {
+      "../../../config/terminal/alacritty-revealui.toml": "terminal/alacritty-revealui.toml",
+      "../../../config/terminal/gnome-terminal-revealui.dconf": "terminal/gnome-terminal-revealui.dconf",
+      "../../../config/terminal/iterm2-revealui.json": "terminal/iterm2-revealui.json",
+      "../../../config/terminal/kitty-revealui.conf": "terminal/kitty-revealui.conf",
+      "../../../config/terminal/Terminal.app-RevealUI.terminal": "terminal/Terminal.app-RevealUI.terminal"
+    }
   }
 }

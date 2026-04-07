@@ -222,6 +222,58 @@ export type AgentMemoriesRow = z.infer<typeof AgentMemoriesSelectSchema>
 export type AgentMemoriesInsert = z.infer<typeof AgentMemoriesInsertSchema>
 
 // =============================================================================
+// AgentReviews Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting agentReviews rows from database
+ * Generated from Drizzle table definition: tables.agentReviews
+ */
+export const AgentReviewsSelectSchema = createSelectSchema(tables.agentReviews)
+
+/**
+ * Zod schema for inserting agentReviews rows to database
+ * Generated from Drizzle table definition: tables.agentReviews
+ */
+export const AgentReviewsInsertSchema = createInsertSchema(tables.agentReviews)
+
+/**
+ * TypeScript type for agentReviews row (Select)
+ */
+export type AgentReviewsRow = z.infer<typeof AgentReviewsSelectSchema>
+
+/**
+ * TypeScript type for agentReviews insert
+ */
+export type AgentReviewsInsert = z.infer<typeof AgentReviewsInsertSchema>
+
+// =============================================================================
+// AgentSkills Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting agentSkills rows from database
+ * Generated from Drizzle table definition: tables.agentSkills
+ */
+export const AgentSkillsSelectSchema = createSelectSchema(tables.agentSkills)
+
+/**
+ * Zod schema for inserting agentSkills rows to database
+ * Generated from Drizzle table definition: tables.agentSkills
+ */
+export const AgentSkillsInsertSchema = createInsertSchema(tables.agentSkills)
+
+/**
+ * TypeScript type for agentSkills row (Select)
+ */
+export type AgentSkillsRow = z.infer<typeof AgentSkillsSelectSchema>
+
+/**
+ * TypeScript type for agentSkills insert
+ */
+export type AgentSkillsInsert = z.infer<typeof AgentSkillsInsertSchema>
+
+// =============================================================================
 // AgentTaskUsage Schemas
 // =============================================================================
 
@@ -1054,6 +1106,32 @@ export type MagicLinksRow = z.infer<typeof MagicLinksSelectSchema>
 export type MagicLinksInsert = z.infer<typeof MagicLinksInsertSchema>
 
 // =============================================================================
+// MarketplaceAgents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting marketplaceAgents rows from database
+ * Generated from Drizzle table definition: tables.marketplaceAgents
+ */
+export const MarketplaceAgentsSelectSchema = createSelectSchema(tables.marketplaceAgents)
+
+/**
+ * Zod schema for inserting marketplaceAgents rows to database
+ * Generated from Drizzle table definition: tables.marketplaceAgents
+ */
+export const MarketplaceAgentsInsertSchema = createInsertSchema(tables.marketplaceAgents)
+
+/**
+ * TypeScript type for marketplaceAgents row (Select)
+ */
+export type MarketplaceAgentsRow = z.infer<typeof MarketplaceAgentsSelectSchema>
+
+/**
+ * TypeScript type for marketplaceAgents insert
+ */
+export type MarketplaceAgentsInsert = z.infer<typeof MarketplaceAgentsInsertSchema>
+
+// =============================================================================
 // MarketplaceServers Schemas
 // =============================================================================
 
@@ -1702,6 +1780,32 @@ export type SyncMetadataRow = z.infer<typeof SyncMetadataSelectSchema>
  * TypeScript type for syncMetadata insert
  */
 export type SyncMetadataInsert = z.infer<typeof SyncMetadataInsertSchema>
+
+// =============================================================================
+// TaskSubmissions Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting taskSubmissions rows from database
+ * Generated from Drizzle table definition: tables.taskSubmissions
+ */
+export const TaskSubmissionsSelectSchema = createSelectSchema(tables.taskSubmissions)
+
+/**
+ * Zod schema for inserting taskSubmissions rows to database
+ * Generated from Drizzle table definition: tables.taskSubmissions
+ */
+export const TaskSubmissionsInsertSchema = createInsertSchema(tables.taskSubmissions)
+
+/**
+ * TypeScript type for taskSubmissions row (Select)
+ */
+export type TaskSubmissionsRow = z.infer<typeof TaskSubmissionsSelectSchema>
+
+/**
+ * TypeScript type for taskSubmissions insert
+ */
+export type TaskSubmissionsInsert = z.infer<typeof TaskSubmissionsInsertSchema>
 
 // =============================================================================
 // TenantProviderConfigs Schemas

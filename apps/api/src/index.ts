@@ -64,6 +64,7 @@ import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
 import maintenanceRoute from './routes/maintenance.js';
 import marketplaceRoute from './routes/marketplace.js';
+import revmarketRoute from './routes/revmarket.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import studioAuthRoute from './routes/studio-auth.js';
@@ -355,6 +356,9 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'content-export': { maxRequests: 5, windowMs: FIFTEEN_MINUTES },
     'marketplace-publish': { maxRequests: 10, windowMs: ONE_HOUR },
     'marketplace-invoke': { maxRequests: 30, windowMs: ONE_MINUTE },
+    'revmarket-agents': { maxRequests: 30, windowMs: ONE_MINUTE },
+    'revmarket-tasks': { maxRequests: 20, windowMs: ONE_MINUTE },
+    'revmarket-reviews': { maxRequests: 10, windowMs: ONE_MINUTE },
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
     'studio-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
     'terminal-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
@@ -472,6 +476,14 @@ app.use('/api/v1/marketplace/servers', routeLimit('marketplace-publish'));
 // Marketplace invoke — payment is the primary gate; still rate-limit to prevent probe abuse
 app.use('/api/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'));
 app.use('/api/v1/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'));
+
+// RevMarket — agent marketplace rate limits
+app.use('/api/revmarket/agents', routeLimit('revmarket-agents'));
+app.use('/api/v1/revmarket/agents', routeLimit('revmarket-agents'));
+app.use('/api/revmarket/tasks', routeLimit('revmarket-tasks'));
+app.use('/api/v1/revmarket/tasks', routeLimit('revmarket-tasks'));
+app.use('/api/revmarket/agents/*/reviews', routeLimit('revmarket-reviews'));
+app.use('/api/v1/revmarket/agents/*/reviews', routeLimit('revmarket-reviews'));
 
 // Pricing endpoint — public, heavily cached (ISR clients need at most 1 req/hour).
 // Fail-open: pricing fetches from Stripe with server-side fallback, no DB needed.
@@ -796,6 +808,7 @@ app.route('/api/ghcr', ghcrRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
 app.route('/api/pricing', pricingRoute);
+app.route('/api/revmarket', revmarketRoute);
 app.use('/api/studio-auth/*', routeLimit('studio-auth'));
 app.use('/api/v1/studio-auth/*', routeLimit('studio-auth'));
 app.route('/api/studio-auth', studioAuthRoute);
@@ -833,6 +846,7 @@ app.route('/api/v1/ghcr', ghcrRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
 app.route('/api/v1/pricing', pricingRoute);
+app.route('/api/v1/revmarket', revmarketRoute);
 app.route('/api/v1/studio-auth', studioAuthRoute);
 
 // Error handling
