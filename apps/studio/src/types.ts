@@ -113,6 +113,64 @@ export interface AgentExitEvent {
   code: number | null;
 }
 
+// ── Harness Daemon (PGlite-backed coordination) ───────────────────────────
+
+/** Active agent session from the harness daemon */
+export interface HarnessSession {
+  id: string;
+  env: string;
+  task: string;
+  files: string | null;
+  pid: number | null;
+  started_at: string;
+  updated_at: string;
+  ended_at: string | null;
+  exit_summary: string | null;
+}
+
+/** Inter-agent message */
+export interface HarnessMessage {
+  id: number;
+  from_agent: string;
+  to_agent: string;
+  subject: string;
+  body: string;
+  read: boolean;
+  created_at: string;
+}
+
+/** A task with CAS-based claiming */
+export interface HarnessTask {
+  id: string;
+  description: string;
+  status: 'open' | 'claimed' | 'completed';
+  owner: string | null;
+  claimed_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
+
+/** File reservation (advisory lock) */
+export interface HarnessReservation {
+  file_path: string;
+  agent_id: string;
+  reserved_at: string;
+  expires_at: string;
+  reason: string;
+}
+
+/** Result of claiming a task */
+export interface HarnessClaimResult {
+  success: boolean;
+  owner?: string;
+}
+
+/** Result of reserving a file */
+export interface HarnessReserveResult {
+  success: boolean;
+  holder?: string;
+}
+
 // ── Local Inference ────────────────────────────────────────────────────────
 
 /** Ollama server status */

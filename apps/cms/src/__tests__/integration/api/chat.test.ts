@@ -78,6 +78,35 @@ vi.mock('@revealui/ai/memory/vector', () => ({
   })),
 }));
 
+vi.mock('@revealui/ai/tools/cms', () => ({
+  createCMSTools: vi.fn().mockReturnValue([
+    { name: 'list_collections', description: 'List collections', execute: vi.fn() },
+    { name: 'find_documents', description: 'Find documents', execute: vi.fn() },
+  ]),
+}));
+
+vi.mock('@revealui/ai/tools/registry', () => {
+  class ToolRegistry {
+    private tools: Array<{
+      name: string;
+      description?: string;
+      execute?: (...args: unknown[]) => Promise<unknown>;
+    }> = [];
+    register = vi.fn((tool: { name: string }) => {
+      this.tools.push(tool);
+    });
+    getAll = vi.fn(() => this.tools);
+    getToolDefinitions = vi.fn(() =>
+      this.tools.map((t) => ({ name: t.name, description: t.description ?? '' })),
+    );
+    get = vi.fn((name: string) => this.tools.find((t) => t.name === name));
+    execute = vi.fn(async (_name: string, _args: unknown) => {
+      return { success: true, data: {} };
+    });
+  }
+  return { ToolRegistry };
+});
+
 vi.mock('@revealui/core/admin/utils/apiClient', () => ({
   apiClient: {
     find: vi.fn().mockResolvedValue({
