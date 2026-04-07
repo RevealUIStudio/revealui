@@ -7,7 +7,7 @@
  * The session has a 30-minute expiry and metadata marking it as a recovery session.
  */
 
-import { createSession, verifyMagicLink } from '@revealui/auth/server';
+import { deleteAllUserSessions, createSession, verifyMagicLink } from '@revealui/auth/server';
 import { RecoveryVerifyRequestSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -61,6 +61,10 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
         401,
       );
     }
+
+    // Invalidate ALL existing sessions for this user — if the account is
+    // compromised, the attacker's active session must not survive recovery.
+    await deleteAllUserSessions(verified.userId);
 
     // Create a temporary recovery session (30 minutes)
     const userAgent = request.headers.get('user-agent') ?? undefined;

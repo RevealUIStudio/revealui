@@ -152,10 +152,13 @@ export function validateEnvironment(
     if (env.NEXT_PUBLIC_SERVER_URL && !env.NEXT_PUBLIC_SERVER_URL.startsWith('https://')) {
       errors.push('NEXT_PUBLIC_SERVER_URL must use HTTPS in production');
     }
-    if (env.STRIPE_SECRET_KEY?.includes('test')) {
+    if (env.STRIPE_SECRET_KEY && !env.STRIPE_SECRET_KEY.startsWith('sk_live_')) {
       errors.push('STRIPE_SECRET_KEY must be a live key (sk_live_...) in production');
     }
-    if (env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.includes('test')) {
+    if (
+      env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
+      !env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.startsWith('pk_live_')
+    ) {
       errors.push(
         'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY must be a live key (pk_live_...) in production',
       );
@@ -164,12 +167,12 @@ export function validateEnvironment(
 
   // Development-specific validations
   if (nodeEnv === 'development' || !nodeEnv) {
-    if (env.STRIPE_SECRET_KEY && !env.STRIPE_SECRET_KEY.includes('test')) {
+    if (env.STRIPE_SECRET_KEY && !env.STRIPE_SECRET_KEY.startsWith('sk_test_')) {
       errors.push('STRIPE_SECRET_KEY should use test key (sk_test_...) in development');
     }
     if (
       env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
-      !env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.includes('test')
+      !env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.startsWith('pk_test_')
     ) {
       errors.push(
         'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY should use test key (pk_test_...) in development',

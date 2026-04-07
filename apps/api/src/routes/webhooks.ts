@@ -26,7 +26,7 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import Stripe from 'stripe';
 import {
   provisionGitHubAccess,
@@ -806,6 +806,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   eq(licenses.id, licenseId),
                   eq(licenses.userId, renewalUserId),
                   eq(licenses.perpetual, true),
+                  isNull(licenses.deletedAt),
                 ),
               );
 
@@ -1275,6 +1276,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   and(
                     eq(licenses.customerId, customerId),
                     eq(licenses.subscriptionId, subscription.id),
+                    isNull(licenses.deletedAt),
                   ),
                 )
                 .limit(1);
@@ -1286,6 +1288,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   and(
                     eq(licenses.customerId, customerId),
                     eq(licenses.subscriptionId, subscription.id),
+                    isNull(licenses.deletedAt),
                   ),
                 );
 
@@ -1300,6 +1303,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   and(
                     eq(licenses.customerId, customerId),
                     eq(licenses.subscriptionId, subscription.id),
+                    isNull(licenses.deletedAt),
                   ),
                 );
             },
@@ -1365,7 +1369,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               await ctx.db
                 .update(licenses)
                 .set({ status: 'revoked', updatedAt: new Date() })
-                .where(eq(licenses.customerId, customerId));
+                .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)));
               return {};
             },
             compensate: async () => {
@@ -1433,6 +1437,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   )
                   .limit(1);
@@ -1444,6 +1449,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
@@ -1457,6 +1463,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
               },
@@ -1534,6 +1541,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   )
                   .limit(1);
@@ -1545,6 +1553,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
                 return { previousExpiresAt: prev?.expiresAt ?? null };
@@ -1558,6 +1567,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
               },
@@ -1620,6 +1630,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   )
                   .limit(1);
@@ -1636,6 +1647,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
                 return {
@@ -1659,6 +1671,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
               },
@@ -1736,6 +1749,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   )
                   .limit(1);
@@ -1747,6 +1761,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
@@ -1760,6 +1775,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
               },
@@ -1847,6 +1863,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   )
                   .limit(1);
@@ -1858,6 +1875,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
                 return { previousStatus: prev?.status ?? 'active' };
@@ -1871,6 +1889,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     and(
                       eq(licenses.customerId, customerId),
                       eq(licenses.subscriptionId, subscription.id),
+                      isNull(licenses.deletedAt),
                     ),
                   );
               },
@@ -1997,7 +2016,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             const [licenseRow] = await db
               .select({ tier: licenses.tier })
               .from(licenses)
-              .where(eq(licenses.customerId, customerId))
+              .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)))
               .orderBy(desc(licenses.updatedAt))
               .limit(1);
             if (licenseRow?.tier) {
@@ -2047,7 +2066,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const [existingLicense] = await db
           .select({ id: licenses.id, status: licenses.status })
           .from(licenses)
-          .where(eq(licenses.customerId, customerId))
+          .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)))
           .orderBy(desc(licenses.updatedAt))
           .limit(1);
         const hostedStatus = await findHostedStatusByCustomerId(db, customerId);
@@ -2086,8 +2105,9 @@ app.openapi(stripeWebhookRoute, async (c) => {
             ? and(
                 eq(licenses.customerId, customerId),
                 eq(licenses.subscriptionId, recoveredSubscription.id),
+                isNull(licenses.deletedAt),
               )
-            : eq(licenses.customerId, customerId);
+            : and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt));
           await db
             .update(licenses)
             .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
@@ -2187,8 +2207,12 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
           // Scope to this subscription if known — don't expire perpetual licenses
           const licenseFilter = subscriptionId
-            ? and(eq(licenses.customerId, customerId), eq(licenses.subscriptionId, subscriptionId))
-            : eq(licenses.customerId, customerId);
+            ? and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.subscriptionId, subscriptionId),
+                isNull(licenses.deletedAt),
+              )
+            : and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt));
           await db
             .update(licenses)
             .set({ status: 'expired', updatedAt: new Date() })
@@ -2236,7 +2260,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const [failedLicenseRow] = await db
           .select({ tier: licenses.tier })
           .from(licenses)
-          .where(eq(licenses.customerId, customerId))
+          .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)))
           .orderBy(desc(licenses.updatedAt))
           .limit(1);
         if (failedLicenseRow?.tier) {
@@ -2335,7 +2359,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 tier: licenses.tier,
               })
               .from(licenses)
-              .where(and(eq(licenses.customerId, wonCustomerId), eq(licenses.status, 'revoked')))
+              .where(
+                and(
+                  eq(licenses.customerId, wonCustomerId),
+                  eq(licenses.status, 'revoked'),
+                  isNull(licenses.deletedAt),
+                ),
+              )
               .limit(1);
 
             const restoredSub = revokedLicenses[0];
@@ -2343,7 +2373,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
             await db
               .update(licenses)
               .set({ status: 'active', updatedAt: new Date() })
-              .where(and(eq(licenses.customerId, wonCustomerId), eq(licenses.status, 'revoked')));
+              .where(
+                and(
+                  eq(licenses.customerId, wonCustomerId),
+                  eq(licenses.status, 'revoked'),
+                  isNull(licenses.deletedAt),
+                ),
+              );
 
             await syncHostedSubscriptionState(db, {
               customerId: wonCustomerId,
@@ -2406,7 +2442,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         await db
           .update(licenses)
           .set({ status: 'revoked', updatedAt: new Date() })
-          .where(eq(licenses.customerId, disputeCustomerId));
+          .where(and(eq(licenses.customerId, disputeCustomerId), isNull(licenses.deletedAt)));
 
         await syncHostedSubscriptionState(db, {
           customerId: disputeCustomerId,
@@ -2462,7 +2498,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const [intentLicenseRow] = await db
             .select({ tier: licenses.tier })
             .from(licenses)
-            .where(eq(licenses.customerId, failedCustomerId))
+            .where(and(eq(licenses.customerId, failedCustomerId), isNull(licenses.deletedAt)))
             .orderBy(desc(licenses.updatedAt))
             .limit(1);
           if (intentLicenseRow?.tier) {
@@ -2537,7 +2573,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           await db
             .update(licenses)
             .set({ status: 'revoked', updatedAt: new Date() })
-            .where(eq(licenses.customerId, customerId));
+            .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)));
 
           await syncHostedSubscriptionState(db, {
             customerId,

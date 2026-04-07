@@ -14,7 +14,7 @@ import type { SignInResult, SignUpResult, User } from '../types.js';
 import { clearFailedAttempts, isAccountLocked, recordFailedAttempt } from './brute-force.js';
 import { validatePasswordStrength } from './password-validation.js';
 import { checkRateLimit } from './rate-limit.js';
-import { createSession } from './session.js';
+import { createSession, rotateSession } from './session.js';
 
 /** Grace period after signup during which unverified users can still sign in (24 hours) */
 const EMAIL_VERIFICATION_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
@@ -169,10 +169,12 @@ export async function signIn(
       };
     }
 
-    // Create session
+    // Rotate session: delete all existing sessions for this user, then create
+    // a fresh one. This prevents session fixation attacks where an attacker
+    // plants a session token that the victim later authenticates.
     let token: string;
     try {
-      const sessionResult = await createSession(user.id, {
+      const sessionResult = await rotateSession(user.id, {
         userAgent: options?.userAgent || 'Unknown',
         ipAddress: options?.ipAddress || 'Unknown',
       });

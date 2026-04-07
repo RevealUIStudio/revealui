@@ -71,6 +71,11 @@ vi.mock('@revealui/db/schema', () => ({
     licenseKey: 'licenses.licenseKey',
     userId: 'licenses.userId',
     createdAt: 'licenses.createdAt',
+    deletedAt: 'licenses.deletedAt',
+    perpetual: 'licenses.perpetual',
+    subscriptionId: 'licenses.subscriptionId',
+    supportExpiresAt: 'licenses.supportExpiresAt',
+    id: 'licenses.id',
   },
   agentTaskUsage: {
     userId: 'agentTaskUsage.userId',
@@ -305,6 +310,12 @@ describe('POST /checkout', () => {
     const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(sessionArgs.customer).toBe('cus_new');
     expect(sessionArgs.mode).toBe('subscription');
+
+    // Must include an idempotency key to prevent double-charge on retries
+    const sessionOpts = mockCheckoutSessionsCreate.mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(sessionOpts).toBeDefined();
+    expect(sessionOpts.idempotencyKey).toEqual(expect.any(String));
+    expect((sessionOpts.idempotencyKey as string).startsWith('checkout-sub-')).toBe(true);
   });
 
   it('reuses existing Stripe customer when one already exists', async () => {
@@ -599,6 +610,17 @@ describe('GET /subscription', () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.expiresAt).toBe('2027-01-01T00:00:00.000Z');
+  });
+
+  it('passes soft-delete filter (isNull deletedAt) to license query', async () => {
+    const { isNull } = await import('drizzle-orm');
+    _selectResult = [{ tier: 'pro', status: 'active', expiresAt: null, licenseKey: 'rv-key' }];
+
+    const app = createApp();
+    await app.request(get('/subscription'));
+
+    // The WHERE clause must include isNull(licenses.deletedAt)
+    expect(isNull).toHaveBeenCalledWith('licenses.deletedAt');
   });
 });
 

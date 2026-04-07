@@ -24,6 +24,8 @@ vi.mock('@revealui/auth/server', () => ({
   signIn: vi.fn(),
   getSession: vi.fn(),
   createSession: vi.fn(),
+  rotateSession: vi.fn(),
+  deleteAllUserSessions: vi.fn(),
   verifyCookiePayload: vi.fn(),
   signCookiePayload: vi.fn(),
   verifyMFACode: vi.fn(),
@@ -134,6 +136,8 @@ vi.mock('@revealui/db/schema', () => ({
 const mockSignIn = vi.mocked(authServer.signIn);
 const mockGetSession = vi.mocked(authServer.getSession);
 const mockCreateSession = vi.mocked(authServer.createSession);
+const mockRotateSession = vi.mocked(authServer.rotateSession);
+const mockDeleteAllUserSessions = vi.mocked(authServer.deleteAllUserSessions);
 const mockVerifyCookiePayload = authServer.verifyCookiePayload as unknown as ReturnType<
   typeof vi.fn
 >;
@@ -285,7 +289,7 @@ describe('Flow 1: Password + TOTP', () => {
       expiresAt: Date.now() + 300000,
     });
     mockVerifyMFACode.mockResolvedValue({ success: true });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'full-session-token',
       session: { id: 'full-session-id' } as never,
     });
@@ -319,7 +323,7 @@ describe('Flow 1: Password + TOTP', () => {
       expect.any(Object),
     );
     expect(mockVerifyMFACode).toHaveBeenCalledWith('user-mfa-123', '123456');
-    expect(mockCreateSession).toHaveBeenCalledWith('user-mfa-123', expect.any(Object));
+    expect(mockRotateSession).toHaveBeenCalledWith('user-mfa-123', expect.any(Object));
   });
 });
 
@@ -362,7 +366,7 @@ describe('Flow 2: Password + backup code', () => {
       success: true,
       remainingCodes: 7,
     });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'backup-session-token',
       session: { id: 'backup-session-id' } as never,
     });
@@ -392,7 +396,7 @@ describe('Flow 2: Password + backup code', () => {
 
     // Verify the chain: backup code was consumed for the correct user
     expect(mockVerifyBackupCode).toHaveBeenCalledWith('user-mfa-456', 'abcdef1234');
-    expect(mockCreateSession).toHaveBeenCalledWith('user-mfa-456', expect.any(Object));
+    expect(mockRotateSession).toHaveBeenCalledWith('user-mfa-456', expect.any(Object));
   });
 });
 
@@ -575,7 +579,7 @@ describe('Flow 4: Passkey sign-in', () => {
       verified: true,
       newCounter: 6,
     });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'passkey-signin-token',
       session: { id: 'passkey-session-id' } as never,
     });
@@ -614,7 +618,7 @@ describe('Flow 4: Passkey sign-in', () => {
 
     // Verify the chain: session created directly without MFA
     expect(mockVerifyAuthentication).toHaveBeenCalled();
-    expect(mockCreateSession).toHaveBeenCalledWith('user-pk-123', expect.any(Object));
+    expect(mockRotateSession).toHaveBeenCalledWith('user-pk-123', expect.any(Object));
     // verifyMFACode should NOT have been called
     expect(mockVerifyMFACode).not.toHaveBeenCalled();
   });

@@ -15,6 +15,7 @@ vi.mock('@revealui/auth/server', () => ({
   createMagicLink: vi.fn(),
   verifyMagicLink: vi.fn(),
   createSession: vi.fn(),
+  deleteAllUserSessions: vi.fn(),
   checkRateLimit: vi.fn(),
 }));
 
@@ -64,6 +65,7 @@ vi.mock('drizzle-orm', () => ({
 const mockCreateMagicLink = vi.mocked(authServer.createMagicLink);
 const mockVerifyMagicLink = vi.mocked(authServer.verifyMagicLink);
 const mockCreateSession = vi.mocked(authServer.createSession);
+const mockDeleteAllUserSessions = vi.mocked(authServer.deleteAllUserSessions);
 
 function createJsonRequest(url: string, body: unknown): NextRequest {
   return new NextRequest(url, {
@@ -174,6 +176,7 @@ describe('POST /api/auth/recovery/verify', () => {
 
   it('should create session on valid token', async () => {
     mockVerifyMagicLink.mockResolvedValue({ userId: 'user-456' });
+    mockDeleteAllUserSessions.mockResolvedValue(undefined);
     mockCreateSession.mockResolvedValue({
       token: 'recovery-session-token',
       session: { id: 'recovery-session-id' } as never,
@@ -188,6 +191,10 @@ describe('POST /api/auth/recovery/verify', () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(mockVerifyMagicLink).toHaveBeenCalledWith('valid-magic-link-token');
+
+    // Recovery must invalidate ALL existing sessions before creating a new one —
+    // if the account is compromised, the attacker's active session must not survive.
+    expect(mockDeleteAllUserSessions).toHaveBeenCalledWith('user-456');
     expect(mockCreateSession).toHaveBeenCalledWith(
       'user-456',
       expect.objectContaining({

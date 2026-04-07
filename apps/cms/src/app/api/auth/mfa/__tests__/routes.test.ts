@@ -26,6 +26,7 @@ vi.mock('@revealui/auth/server', () => ({
   regenerateBackupCodes: vi.fn(),
   isMFAEnabled: vi.fn(),
   createSession: vi.fn(),
+  rotateSession: vi.fn(),
   verifyCookiePayload: vi.fn(),
   verifyAuthentication: vi.fn(),
   checkRateLimit: vi.fn(),
@@ -131,6 +132,7 @@ const mockDisableMFA = vi.mocked(authServer.disableMFA);
 const mockRegenerateBackupCodes = vi.mocked(authServer.regenerateBackupCodes);
 const mockIsMFAEnabled = vi.mocked(authServer.isMFAEnabled);
 const mockCreateSession = vi.mocked(authServer.createSession);
+const mockRotateSession = vi.mocked(authServer.rotateSession);
 const mockVerifyAuthentication = vi.mocked(authServer.verifyAuthentication);
 // verifyCookiePayload is generic — use vi.fn() cast to avoid excess property errors
 const mockVerifyCookiePayload = authServer.verifyCookiePayload as unknown as ReturnType<
@@ -371,7 +373,7 @@ describe('POST /api/auth/mfa/verify', () => {
       expiresAt: Date.now() + 300000,
     });
     mockVerifyMFACode.mockResolvedValue({ success: true });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'new-session-token',
       session: { id: 'new-session-id' } as never,
     });
@@ -385,7 +387,7 @@ describe('POST /api/auth/mfa/verify', () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(mockVerifyMFACode).toHaveBeenCalledWith('user-123', '123456');
-    expect(mockCreateSession).toHaveBeenCalledWith('user-123', expect.any(Object));
+    expect(mockRotateSession).toHaveBeenCalledWith('user-123', expect.any(Object));
 
     // Check session cookie was set
     const sessionCookie = response.cookies.get('revealui-session');
@@ -481,7 +483,7 @@ describe('POST /api/auth/mfa/backup', () => {
       success: true,
       remainingCodes: 7,
     });
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'new-session-token',
       session: { id: 'new-session-id' } as never,
     });
@@ -496,7 +498,7 @@ describe('POST /api/auth/mfa/backup', () => {
     expect(data.success).toBe(true);
     expect(data.remainingCodes).toBe(7);
     expect(mockVerifyBackupCode).toHaveBeenCalledWith('user-123', 'abcdef1234');
-    expect(mockCreateSession).toHaveBeenCalledWith('user-123', expect.any(Object));
+    expect(mockRotateSession).toHaveBeenCalledWith('user-123', expect.any(Object));
 
     // Check session cookie was set
     const sessionCookie = response.cookies.get('revealui-session');

@@ -6,7 +6,8 @@
  * retrieval, auditing, and revocation.
  */
 
-import { boolean, index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { boolean, check, index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -70,6 +71,24 @@ export const licenses = pgTable(
     index('licenses_subscription_id_idx').on(table.subscriptionId),
     index('licenses_deleted_at_idx').on(table.deletedAt),
     uniqueIndex('licenses_customer_subscription_unique').on(table.customerId, table.subscriptionId),
+    // Prevent duplicate active perpetual licenses for the same user+tier.
+    // Subscriptions use subscriptionId (covered above); perpetual licenses have
+    // subscriptionId=NULL so the above index doesn't prevent duplicates.
+    uniqueIndex('licenses_perpetual_user_tier_unique')
+      .on(table.userId, table.tier)
+      .where(sql`perpetual = true AND deleted_at IS NULL`),
+    // Composite indexes for common billing query patterns
+    index('licenses_user_tier_status_idx').on(table.userId, table.tier, table.status),
+    index('licenses_perpetual_status_support_idx').on(
+      table.perpetual,
+      table.status,
+      table.supportExpiresAt,
+    ),
+    check('licenses_tier_check', sql`tier IN ('pro', 'max', 'enterprise')`),
+    check(
+      'licenses_status_check',
+      sql`status IN ('active', 'expired', 'revoked', 'support_expired')`,
+    ),
   ],
 );
 
