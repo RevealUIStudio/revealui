@@ -138,6 +138,7 @@ vi.mock('@revealui/db/schema', () => ({
     customerId: 'licenses.customerId',
     status: 'licenses.status',
     updatedAt: 'licenses.updatedAt',
+    deletedAt: 'licenses.deletedAt',
   },
   processedWebhookEvents: {
     id: 'processedWebhookEvents.id',
@@ -155,6 +156,7 @@ vi.mock('drizzle-orm', () => ({
   eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   desc: vi.fn((_col) => `desc(${String(_col)})`),
+  isNull: vi.fn((_col) => `isNull(${String(_col)})`),
 }));
 
 const mockSendEmail = vi.fn().mockResolvedValue(undefined);

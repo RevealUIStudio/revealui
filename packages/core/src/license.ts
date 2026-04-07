@@ -48,7 +48,7 @@ export interface LicenseCacheConfig {
 }
 
 const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
-  ttlMs: 5 * 60 * 1000, // 5 minutes — revoked licenses lose access within 5 min
+  ttlMs: 60 * 1000, // 60 seconds — revoked licenses lose access within 1 min
 };
 
 let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG };

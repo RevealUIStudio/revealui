@@ -7,7 +7,7 @@
  * Passkeys are inherently MFA — no TOTP check required.
  */
 
-import { createSession, verifyAuthentication, verifyCookiePayload } from '@revealui/auth/server';
+import { rotateSession, verifyAuthentication, verifyCookiePayload } from '@revealui/auth/server';
 import { PasskeyAuthenticateVerifyRequestSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
@@ -130,7 +130,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       undefined;
 
-    const { token: sessionToken } = await createSession(storedPasskey.userId, {
+    const { token: sessionToken } = await rotateSession(storedPasskey.userId, {
       userAgent,
       ipAddress,
     });
@@ -172,7 +172,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       userRole,
     );
     response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',

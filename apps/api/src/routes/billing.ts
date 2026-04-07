@@ -508,23 +508,29 @@ app.openapi(checkoutRoute, async (c) => {
 
   const discountConfig = getEarlyAdopterDiscount(resolvedTier);
 
+  // 10-minute idempotency window: prevents duplicate checkout sessions from
+  // double-clicks or network retries while allowing a fresh attempt after 10 min.
+  const idempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
   const session = await withStripe((stripe) =>
-    stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: 'subscription',
-      payment_method_types: ['card'],
-      billing_address_collection: 'required',
-      tax_id_collection: { enabled: true },
-      automatic_tax: { enabled: true },
-      ...discountConfig,
-      line_items: [{ price: resolvedPriceId, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: TRIAL_PERIOD_DAYS,
-        metadata: { tier: resolvedTier, revealui_user_id: user.id },
+    stripe.checkout.sessions.create(
+      {
+        customer: customerId,
+        mode: 'subscription',
+        payment_method_types: ['card'],
+        billing_address_collection: 'required',
+        tax_id_collection: { enabled: true },
+        automatic_tax: { enabled: true },
+        ...discountConfig,
+        line_items: [{ price: resolvedPriceId, quantity: 1 }],
+        subscription_data: {
+          trial_period_days: TRIAL_PERIOD_DAYS,
+          metadata: { tier: resolvedTier, revealui_user_id: user.id },
+        },
+        success_url: `${cmsUrl}/account/billing?success=true`,
+        cancel_url: `${cmsUrl}/account/billing`,
       },
-      success_url: `${cmsUrl}/account/billing?success=true`,
-      cancel_url: `${cmsUrl}/account/billing`,
-    }),
+      { idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${idempotencyWindow}` },
+    ),
   );
 
   if (!session.url) {
@@ -642,7 +648,7 @@ app.openapi(subscriptionRoute, async (c) => {
       supportExpiresAt: licenses.supportExpiresAt,
     })
     .from(licenses)
-    .where(eq(licenses.userId, user.id))
+    .where(and(eq(licenses.userId, user.id), isNull(licenses.deletedAt)))
     .orderBy(desc(licenses.createdAt))
     .limit(1);
 
@@ -908,7 +914,13 @@ app.openapi(downgradeRoute, async (c) => {
     await db
       .update(licenses)
       .set({ expiresAt: new Date(cancelAt * 1000), updatedAt: new Date() })
-      .where(and(eq(licenses.subscriptionId, subscription.id), eq(licenses.status, 'active')));
+      .where(
+        and(
+          eq(licenses.subscriptionId, subscription.id),
+          eq(licenses.status, 'active'),
+          isNull(licenses.deletedAt),
+        ),
+      );
   }
 
   // Send downgrade confirmation email (fire-and-forget)
@@ -1001,6 +1013,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
         eq(licenses.perpetual, true),
         eq(licenses.tier, tier),
         eq(licenses.status, 'active'),
+        isNull(licenses.deletedAt),
       ),
     )
     .limit(1);
@@ -1016,33 +1029,37 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
 
+  const perpetualIdempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
   const session = await withStripe((stripe) =>
-    stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: 'payment',
-      payment_method_types: ['card'],
-      billing_address_collection: 'required',
-      tax_id_collection: { enabled: true },
-      automatic_tax: { enabled: true },
-      allow_promotion_codes: true,
-      line_items: [{ price: resolvedPriceId, quantity: 1 }],
-      payment_intent_data: {
+    stripe.checkout.sessions.create(
+      {
+        customer: customerId,
+        mode: 'payment',
+        payment_method_types: ['card'],
+        billing_address_collection: 'required',
+        tax_id_collection: { enabled: true },
+        automatic_tax: { enabled: true },
+        allow_promotion_codes: true,
+        line_items: [{ price: resolvedPriceId, quantity: 1 }],
+        payment_intent_data: {
+          metadata: {
+            tier,
+            perpetual: 'true',
+            revealui_user_id: user.id,
+            ...(githubUsername && { github_username: githubUsername }),
+          },
+        },
         metadata: {
           tier,
           perpetual: 'true',
           revealui_user_id: user.id,
           ...(githubUsername && { github_username: githubUsername }),
         },
+        success_url: `${cmsUrl}/account/billing?perpetual=true`,
+        cancel_url: `${cmsUrl}/account/billing`,
       },
-      metadata: {
-        tier,
-        perpetual: 'true',
-        revealui_user_id: user.id,
-        ...(githubUsername && { github_username: githubUsername }),
-      },
-      success_url: `${cmsUrl}/account/billing?perpetual=true`,
-      cancel_url: `${cmsUrl}/account/billing`,
-    }),
+      { idempotencyKey: `checkout-perpetual-${user.id}-${tier}-${perpetualIdempotencyWindow}` },
+    ),
   );
 
   if (!session.url) {
@@ -1118,6 +1135,7 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
         eq(licenses.perpetual, true),
         eq(licenses.tier, tier),
         sql`${licenses.status} IN ('active', 'support_expired')`,
+        isNull(licenses.deletedAt),
       ),
     )
     .limit(1);
@@ -1134,33 +1152,37 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
 
+  const renewalIdempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
   const session = await withStripe((stripe) =>
-    stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: 'payment',
-      payment_method_types: ['card'],
-      billing_address_collection: 'required',
-      tax_id_collection: { enabled: true },
-      automatic_tax: { enabled: true },
-      allow_promotion_codes: true,
-      line_items: [{ price: resolvedPriceId, quantity: 1 }],
-      payment_intent_data: {
+    stripe.checkout.sessions.create(
+      {
+        customer: customerId,
+        mode: 'payment',
+        payment_method_types: ['card'],
+        billing_address_collection: 'required',
+        tax_id_collection: { enabled: true },
+        automatic_tax: { enabled: true },
+        allow_promotion_codes: true,
+        line_items: [{ price: resolvedPriceId, quantity: 1 }],
+        payment_intent_data: {
+          metadata: {
+            tier,
+            support_renewal: 'true',
+            license_id: license.id,
+            revealui_user_id: user.id,
+          },
+        },
         metadata: {
           tier,
           support_renewal: 'true',
           license_id: license.id,
           revealui_user_id: user.id,
         },
+        success_url: `${cmsUrl}/account/billing?renewal=true`,
+        cancel_url: `${cmsUrl}/account/billing`,
       },
-      metadata: {
-        tier,
-        support_renewal: 'true',
-        license_id: license.id,
-        revealui_user_id: user.id,
-      },
-      success_url: `${cmsUrl}/account/billing?renewal=true`,
-      cancel_url: `${cmsUrl}/account/billing`,
-    }),
+      { idempotencyKey: `checkout-renewal-${user.id}-${license.id}-${renewalIdempotencyWindow}` },
+    ),
   );
 
   if (!session.url) {
@@ -1263,29 +1285,33 @@ app.openapi(creditCheckoutRoute, async (c) => {
   const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
   if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
 
+  const creditIdempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
   const session = await withStripe((stripe) =>
-    stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: 'payment',
-      payment_method_types: ['card'],
-      automatic_tax: { enabled: true },
-      allow_promotion_codes: true,
-      line_items: [{ price: resolvedPriceId, quantity: 1 }],
-      payment_intent_data: {
+    stripe.checkout.sessions.create(
+      {
+        customer: customerId,
+        mode: 'payment',
+        payment_method_types: ['card'],
+        automatic_tax: { enabled: true },
+        allow_promotion_codes: true,
+        line_items: [{ price: resolvedPriceId, quantity: 1 }],
+        payment_intent_data: {
+          metadata: {
+            credits_bundle: bundle,
+            credits_tasks: String(tasks),
+            revealui_user_id: user.id,
+          },
+        },
         metadata: {
           credits_bundle: bundle,
           credits_tasks: String(tasks),
           revealui_user_id: user.id,
         },
+        success_url: `${cmsUrl}/account/billing?credits=${bundle}`,
+        cancel_url: `${cmsUrl}/account/billing`,
       },
-      metadata: {
-        credits_bundle: bundle,
-        credits_tasks: String(tasks),
-        revealui_user_id: user.id,
-      },
-      success_url: `${cmsUrl}/account/billing?credits=${bundle}`,
-      cancel_url: `${cmsUrl}/account/billing`,
-    }),
+      { idempotencyKey: `checkout-credits-${user.id}-${bundle}-${creditIdempotencyWindow}` },
+    ),
   );
 
   if (!session.url) {
@@ -1458,6 +1484,7 @@ app.openapi(supportRenewalRoute, async (c) => {
         eq(licenses.status, 'active'),
         gte(licenses.supportExpiresAt, now),
         lte(licenses.supportExpiresAt, in30Days),
+        isNull(licenses.deletedAt),
       ),
     );
 
@@ -1647,6 +1674,7 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
         eq(licenses.status, 'active'),
         eq(licenses.perpetual, false),
         lt(licenses.expiresAt, now),
+        isNull(licenses.deletedAt),
       ),
     );
 
@@ -1661,6 +1689,7 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
           eq(licenses.status, 'active'),
           eq(licenses.perpetual, false),
           lt(licenses.expiresAt, now),
+          isNull(licenses.deletedAt),
         ),
       );
 
@@ -1679,6 +1708,7 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
         eq(licenses.status, 'active'),
         eq(licenses.perpetual, true),
         lt(licenses.supportExpiresAt, now),
+        isNull(licenses.deletedAt),
       ),
     );
 
@@ -1693,6 +1723,7 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
           eq(licenses.status, 'active'),
           eq(licenses.perpetual, true),
           lt(licenses.supportExpiresAt, now),
+          isNull(licenses.deletedAt),
         ),
       );
 

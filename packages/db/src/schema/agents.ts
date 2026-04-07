@@ -7,8 +7,10 @@
  * Note: Vector columns require pgvector extension to be enabled in PostgreSQL.
  */
 
+import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   customType,
   index,
   integer,
@@ -402,19 +404,26 @@ export type NewAgentTaskUsage = typeof agentTaskUsage.$inferInsert;
  * Credits never expire and stack with the monthly tier allowance.
  * One row per user — balance is decremented after tier quota is exhausted.
  */
-export const agentCreditBalance = pgTable('agent_credit_balance', {
-  userId: text('user_id')
-    .primaryKey()
-    .references(() => users.id, { onDelete: 'cascade' }),
+export const agentCreditBalance = pgTable(
+  'agent_credit_balance',
+  {
+    userId: text('user_id')
+      .primaryKey()
+      .references(() => users.id, { onDelete: 'cascade' }),
 
-  /** Total credits remaining (decremented on use after tier quota exhausted). */
-  balance: integer('balance').notNull().default(0),
+    /** Total credits remaining (decremented on use after tier quota exhausted). */
+    balance: integer('balance').notNull().default(0),
 
-  /** Lifetime total credits ever purchased (for analytics). */
-  totalPurchased: integer('total_purchased').notNull().default(0),
+    /** Lifetime total credits ever purchased (for analytics). */
+    totalPurchased: integer('total_purchased').notNull().default(0),
 
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-});
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  () => [
+    check('agent_credit_balance_non_negative', sql`balance >= 0`),
+    check('agent_credit_total_non_negative', sql`total_purchased >= 0`),
+  ],
+);
 
 export type AgentCreditBalance = typeof agentCreditBalance.$inferSelect;
 export type NewAgentCreditBalance = typeof agentCreditBalance.$inferInsert;

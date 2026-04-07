@@ -112,7 +112,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       userRole,
     );
     response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
-      httpOnly: false, // Must be readable by Edge Runtime proxy
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',

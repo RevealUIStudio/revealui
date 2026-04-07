@@ -127,7 +127,12 @@ export const createPaymentIntent = async (
       payment_method_types: ['card'],
     };
 
-    const paymentIntent = await protectedStripe.paymentIntents.create(paymentIntentParams);
+    // 10-minute idempotency window prevents duplicate charges from double-clicks
+    // or network retries. Key includes amount so a changed cart creates a new intent.
+    const idempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
+    const paymentIntent = await protectedStripe.paymentIntents.create(paymentIntentParams, {
+      idempotencyKey: `pi-${user.id}-${total}-${idempotencyWindow}`,
+    });
 
     return {
       status: 200,

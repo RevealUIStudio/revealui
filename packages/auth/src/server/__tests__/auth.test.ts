@@ -41,8 +41,10 @@ vi.mock('../rate-limit.js', () => ({
 
 // Mock session
 const mockCreateSession = vi.fn();
+const mockRotateSession = vi.fn();
 vi.mock('../session.js', () => ({
   createSession: (...args: unknown[]) => mockCreateSession(...args),
+  rotateSession: (...args: unknown[]) => mockRotateSession(...args),
 }));
 
 // Chain mocks for drizzle-orm query builder
@@ -122,6 +124,7 @@ describe('auth', () => {
     mockRecordFailedAttempt.mockResolvedValue(undefined);
     mockClearFailedAttempts.mockResolvedValue(undefined);
     mockCreateSession.mockResolvedValue({ token: 'session-token-abc', session: {} });
+    mockRotateSession.mockResolvedValue({ token: 'session-token-abc', session: {} });
     mockBcryptCompare.mockResolvedValue(true);
     mockBcryptHash.mockResolvedValue('$2a$12$newhashedpassword');
     mockValidatePasswordStrength.mockReturnValue({ valid: true, errors: [] });
@@ -234,7 +237,7 @@ describe('auth', () => {
     it('returns error when session creation fails', async () => {
       mockLimit.mockResolvedValueOnce([makeUser()]);
       mockBcryptCompare.mockResolvedValueOnce(true);
-      mockCreateSession.mockRejectedValueOnce(new Error('DB down'));
+      mockRotateSession.mockRejectedValueOnce(new Error('DB down'));
 
       const result = await signIn('test@example.com', 'Password123');
       expect(result.success).toBe(false);

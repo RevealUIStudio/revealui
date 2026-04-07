@@ -10,10 +10,10 @@
  */
 
 import {
-  createSession,
   exchangeCode,
   fetchProviderUser,
   OAuthAccountConflictError,
+  rotateSession,
   upsertOAuthUser,
   verifyOAuthState,
 } from '@revealui/auth/server';
@@ -122,7 +122,7 @@ export async function GET(
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       undefined;
 
-    const { token } = await createSession(user.id, { userAgent, ipAddress, persistent: true });
+    const { token } = await rotateSession(user.id, { userAgent, ipAddress, persistent: true });
 
     // Resolve redirectTo: reject cross-origin URLs to prevent open redirect.
     // startsWith('/') is insufficient — paths like /..//..//attacker.com pass.
@@ -145,7 +145,7 @@ export async function GET(
       userRole,
     );
     response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',

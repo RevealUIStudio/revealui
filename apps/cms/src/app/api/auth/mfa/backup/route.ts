@@ -9,7 +9,7 @@
  * On success, creates a full session and sets the `revealui-session` cookie.
  */
 
-import { createSession, verifyBackupCode, verifyCookiePayload } from '@revealui/auth/server';
+import { rotateSession, verifyBackupCode, verifyCookiePayload } from '@revealui/auth/server';
 import { MFABackupCodeRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -93,7 +93,7 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       undefined;
 
-    const { token: sessionToken } = await createSession(payload.userId, {
+    const { token: sessionToken } = await rotateSession(payload.userId, {
       userAgent,
       ipAddress,
     });
