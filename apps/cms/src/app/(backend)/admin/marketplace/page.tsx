@@ -94,10 +94,16 @@ export default function MarketplacePage() {
                 My Tasks
               </Link>
               <Link
-                href="/admin/marketplace/earnings"
+                href="/admin/marketplace/analytics"
                 className="rounded-lg border border-zinc-700 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors"
               >
-                Earnings
+                Analytics
+              </Link>
+              <Link
+                href="/admin/marketplace/publish"
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 transition-colors"
+              >
+                Publish Agent
               </Link>
             </div>
           </div>
