@@ -346,6 +346,23 @@ const HARNESS_RPC_MAP: Record<string, string> = {
   harness_reservations: 'files.list',
   harness_reserve_file: 'files.reserve',
   harness_check_file: 'files.check',
+  // Agent spawner
+  agent_spawn: 'agent.spawn',
+  agent_stop: 'agent.stop',
+  agent_list: 'agent.list',
+  agent_remove: 'agent.remove',
+  // Inference engine management
+  inference_ollama_status: 'inference.ollama.status',
+  inference_ollama_models: 'inference.ollama.models',
+  inference_ollama_pull: 'inference.ollama.pull',
+  inference_ollama_delete: 'inference.ollama.delete',
+  inference_ollama_start: 'inference.ollama.start',
+  inference_ollama_stop: 'inference.ollama.stop',
+  inference_bitnet_status: 'inference.bitnet.status',
+  inference_snap_list: 'inference.snap.list',
+  inference_snap_status: 'inference.snap.status',
+  inference_snap_install: 'inference.snap.install',
+  inference_snap_remove: 'inference.snap.remove',
 };
 
 /** Map Tauri command args (snake_case) to RPC params (camelCase) */
