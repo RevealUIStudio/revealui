@@ -38,11 +38,16 @@ vi.mock('@revealui/db/schema', () => ({
   },
 }));
 
-vi.mock('@revealui/ai/llm/key-validator', () => ({
-  validateProviderKey: vi.fn().mockResolvedValue({ valid: true }),
+// vi.hoisted lets the mock fn be referenced inside vi.mock AND test bodies
+// without a static import of @revealui/ai (Pro package absent on CI).
+const { mockValidateProviderKey } = vi.hoisted(() => ({
+  mockValidateProviderKey: vi.fn().mockResolvedValue({ valid: true }),
 }));
 
-import { validateProviderKey } from '@revealui/ai/llm/key-validator';
+vi.mock('@revealui/ai/llm/key-validator', () => ({
+  validateProviderKey: mockValidateProviderKey,
+}));
+
 import { getClient } from '@revealui/db';
 import type { HTTPException } from 'hono/http-exception';
 import { errorHandler } from '../../middleware/error.js';
@@ -137,7 +142,7 @@ describe('api-keys edge cases', () => {
 
   describe('POST /api-keys — key validation', () => {
     it('returns 400 with validation error when provider rejects the key', async () => {
-      vi.mocked(validateProviderKey).mockResolvedValueOnce({
+      mockValidateProviderKey.mockResolvedValueOnce({
         valid: false,
         error: 'Invalid key format',
       });
@@ -225,7 +230,7 @@ describe('api-keys edge cases', () => {
     it('returns 500 when validateProviderKey throws (best-effort validation gap)', async () => {
       // Current behavior: the catch in the dynamic import only handles module-not-found,
       // not runtime throws from validateProviderKey itself. A network error bubbles as 500.
-      vi.mocked(validateProviderKey).mockRejectedValueOnce(new Error('Network timeout'));
+      mockValidateProviderKey.mockRejectedValueOnce(new Error('Network timeout'));
 
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {

@@ -5,3 +5,6 @@
 src/**/*.js
 src/**/*.d.ts
 src/**/*.d.ts.map
+
+# Allow hand-authored ambient declarations for Pro package stubs
+!src/types/revealui-ai.d.ts

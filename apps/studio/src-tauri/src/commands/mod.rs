@@ -4,6 +4,7 @@ pub mod config;
 pub mod deploy;
 pub mod error;
 pub mod git;
+pub mod harness;
 pub mod inference;
 pub mod launcher;
 pub mod local_shell;
