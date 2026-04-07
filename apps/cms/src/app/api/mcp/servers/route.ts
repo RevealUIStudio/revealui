@@ -85,16 +85,11 @@ const MCP_SERVERS: McpServerInfo[] = [
   {
     id: 'neon',
     name: 'NeonDB',
-    description: 'Query NeonDB PostgreSQL databases, manage branches, and run migrations.',
+    description: 'Manage NeonDB projects, branches, databases, and roles via neonctl CLI.',
     status: 'configured',
-    remoteUrl: 'https://mcp.neon.tech',
+    packageName: 'neonctl',
     envRequired: ['NEON_API_KEY'],
     tools: [
-      {
-        name: 'query',
-        description: 'Run a SQL query against a NeonDB database',
-        parameterCount: 3,
-      },
       { name: 'list_projects', description: 'List NeonDB projects', parameterCount: 0 },
       {
         name: 'get_project',
@@ -102,8 +97,15 @@ const MCP_SERVERS: McpServerInfo[] = [
         parameterCount: 1,
       },
       { name: 'list_branches', description: 'List branches for a project', parameterCount: 1 },
-      { name: 'create_branch', description: 'Create a new database branch', parameterCount: 2 },
+      { name: 'create_branch', description: 'Create a new database branch', parameterCount: 3 },
       { name: 'delete_branch', description: 'Delete a branch', parameterCount: 2 },
+      {
+        name: 'connection_string',
+        description: 'Get the connection string for a branch',
+        parameterCount: 4,
+      },
+      { name: 'list_databases', description: 'List databases in a branch', parameterCount: 2 },
+      { name: 'list_roles', description: 'List roles in a branch', parameterCount: 2 },
     ],
   },
   {
