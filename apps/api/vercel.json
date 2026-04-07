@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "installCommand": "echo 'Dependencies pre-installed by CI'",
   "buildCommand": "cd ../.. && pnpm --filter api run vercel-build",
   "functions": {
     "api/**": {

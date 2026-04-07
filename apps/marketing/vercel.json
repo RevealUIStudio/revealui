@@ -1,6 +1,6 @@
 {
   "buildCommand": "cd ../.. && pnpm --filter marketing run vercel-build",
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "installCommand": "echo 'Dependencies pre-installed by CI'",
   "framework": "nextjs",
   "relatedProjects": ["prj_zk6EQijYXwd9L7BccuBssi436ktM"]
 }
