@@ -65,8 +65,8 @@ jobs:
 
       - name: Check for uncommitted migrations
         run: |
-          echo "Building DB package for drizzle-kit schema check..."
-          pnpm --filter @revealui/db build
+          echo "Building DB package (with dependencies) for drizzle-kit schema check..."
+          pnpm turbo build --filter=@revealui/db
           DRIZZLE_REQUIRE_URL=false npx drizzle-kit generate --config=packages/db/drizzle.config.ts 2>&1 || true
           DRIFT=$(git diff --name-only -- packages/db/migrations/)
           NEW=$(git ls-files --others --exclude-standard -- packages/db/migrations/)
