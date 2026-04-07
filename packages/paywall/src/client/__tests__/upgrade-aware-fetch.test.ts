@@ -4,10 +4,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  UPGRADE_EVENT_NAME,
   dispatchUpgradeEvent,
-  upgradeAwareFetch,
+  UPGRADE_EVENT_NAME,
   type UpgradeEventDetail,
+  upgradeAwareFetch,
 } from '../upgrade-aware-fetch.js';
 
 describe('UPGRADE_EVENT_NAME', () => {

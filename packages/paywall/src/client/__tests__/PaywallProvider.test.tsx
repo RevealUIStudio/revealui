@@ -3,7 +3,7 @@
  */
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import { createPaywall } from '../../core/paywall.js';
 import { PaywallGate } from '../PaywallGate.js';
@@ -16,7 +16,7 @@ describe('PaywallProvider', () => {
     const html = renderToString(
       createElement(
         PaywallProvider,
-        { paywall, resolveTier: async () => 'free', children: null },
+        { paywall, resolveTier: async () => 'free' },
         createElement('div', null, 'hello'),
       ),
     );

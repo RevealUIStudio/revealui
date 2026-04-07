@@ -44,16 +44,16 @@
  * @packageDocumentation
  */
 
-export {
-  PaywallProvider,
-  usePaywall,
-  type PaywallContextValue,
-  type PaywallProviderProps,
-} from './PaywallProvider.js';
 export { PaywallGate, type PaywallGateProps } from './PaywallGate.js';
 export {
-  upgradeAwareFetch,
+  type PaywallContextValue,
+  PaywallProvider,
+  type PaywallProviderProps,
+  usePaywall,
+} from './PaywallProvider.js';
+export {
   dispatchUpgradeEvent,
   UPGRADE_EVENT_NAME,
   type UpgradeEventDetail,
+  upgradeAwareFetch,
 } from './upgrade-aware-fetch.js';

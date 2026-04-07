@@ -1,8 +1,8 @@
 'use client';
 
 import { createContext, use, useEffect, useState } from 'react';
-import type { FeatureFlags } from '../core/types.js';
 import type { Paywall } from '../core/paywall.js';
+import type { FeatureFlags } from '../core/types.js';
 
 /** The value exposed by the paywall context. */
 export interface PaywallContextValue {
@@ -69,9 +69,9 @@ export function PaywallProvider({ paywall, resolveTier, children }: PaywallProvi
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch once on mount
   useEffect(() => {
     void fetchTier();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: fetch once on mount
   }, []);
 
   return (
