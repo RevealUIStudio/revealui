@@ -35,6 +35,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, ilike, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { authMiddleware } from '../middleware/auth.js';
+import { getExecutorStatus, getTaskProgress } from '../services/revmarket-executor.js';
 
 // =============================================================================
 // Helpers
@@ -1006,6 +1007,113 @@ app.openapi(
       .offset(offset);
 
     return c.json({ reviews, limit, offset });
+  },
+);
+
+// =============================================================================
+// Task Progress (polling endpoint)
+// =============================================================================
+
+/** GET /tasks/:id/progress — poll task execution progress */
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/tasks/{id}/progress',
+    tags: ['revmarket'],
+    summary: 'Get task execution progress',
+    request: {
+      params: z.object({ id: z.string() }),
+    },
+    middleware: [authMiddleware({ required: true })] as const,
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              taskId: z.string(),
+              status: z.string(),
+              progress: z.number(),
+              message: z.string(),
+              updatedAt: z.string(),
+            }),
+          },
+        },
+        description: 'Task progress',
+      },
+      401: {
+        content: {
+          'application/json': { schema: z.object({ error: z.string() }) },
+        },
+        description: 'Unauthorized',
+      },
+      404: {
+        content: {
+          'application/json': { schema: z.object({ error: z.string() }) },
+        },
+        description: 'Task not found',
+      },
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
+
+    const { id } = c.req.valid('param');
+    const progress = await getTaskProgress(id);
+
+    if (!progress) throw new HTTPException(404, { message: 'Task not found' });
+
+    return c.json(progress);
+  },
+);
+
+// =============================================================================
+// Executor Health
+// =============================================================================
+
+/** GET /executor/status — executor health check (admin only) */
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/executor/status',
+    tags: ['revmarket'],
+    summary: 'Get executor status (admin)',
+    middleware: [authMiddleware({ required: true })] as const,
+    responses: {
+      200: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              running: z.boolean(),
+              activeTasks: z.number(),
+              maxConcurrent: z.number(),
+            }),
+          },
+        },
+        description: 'Executor status',
+      },
+      401: {
+        content: {
+          'application/json': { schema: z.object({ error: z.string() }) },
+        },
+        description: 'Unauthorized',
+      },
+      403: {
+        content: {
+          'application/json': { schema: z.object({ error: z.string() }) },
+        },
+        description: 'Forbidden',
+      },
+    },
+  }),
+  // @ts-expect-error -- OpenAPI response union narrowing
+  async (c) => {
+    const user = c.get('user');
+    if (!user) throw new HTTPException(401, { message: 'Unauthorized' });
+    if (user.role !== 'admin') throw new HTTPException(403, { message: 'Admin only' });
+
+    return c.json(getExecutorStatus());
   },
 );
 
