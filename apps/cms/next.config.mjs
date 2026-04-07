@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
@@ -8,6 +9,37 @@ import { withRevealUI } from '@revealui/core/nextjs'
 import ContentSecurityPolicy from './csp.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Pro package (@revealui/ai) is gitignored from the public repo.
+// On CI/OSS builds, alias all subpaths to a stub so Turbopack can resolve them.
+const hasProAI = existsSync(path.join(__dirname, '../../packages/ai/package.json'))
+const proAIStub = './src/lib/ai/pro-stub.ts'
+const proAIAliases = hasProAI ? {} : {
+  '@revealui/ai': proAIStub,
+  '@revealui/ai/embeddings': proAIStub,
+  '@revealui/ai/llm/server': proAIStub,
+  '@revealui/ai/llm/client': proAIStub,
+  '@revealui/ai/llm/key-validator': proAIStub,
+  '@revealui/ai/llm/providers/base': proAIStub,
+  '@revealui/ai/memory': proAIStub,
+  '@revealui/ai/memory/vector': proAIStub,
+  '@revealui/ai/memory/persistence': proAIStub,
+  '@revealui/ai/memory/stores': proAIStub,
+  '@revealui/ai/memory/agent': proAIStub,
+  '@revealui/ai/memory/services': proAIStub,
+  '@revealui/ai/tools/cms': proAIStub,
+  '@revealui/ai/tools/registry': proAIStub,
+  '@revealui/ai/tools/coding': proAIStub,
+  '@revealui/ai/ingestion': proAIStub,
+  '@revealui/ai/client': proAIStub,
+  '@revealui/ai/skills': proAIStub,
+  '@revealui/ai/orchestration/streaming-runtime': proAIStub,
+  '@revealui/ai/orchestration/agent': proAIStub,
+  '@revealui/ai/inference': proAIStub,
+  '@revealui/ai/inference/context-budget': proAIStub,
+  '@revealui/ai/inference/tool-result-compressor': proAIStub,
+  '@revealui/ai/inference/task-decomposer': proAIStub,
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -23,6 +55,7 @@ const nextConfig = {
     resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.json'],
     resolveAlias: {
       '@reveal-config': './revealui.config.ts',
+      ...proAIAliases,
     },
   },
   // Webpack configuration for non-Turbopack builds
@@ -30,6 +63,13 @@ const nextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@reveal-config': path.resolve(__dirname, 'revealui.config.ts'),
+    }
+    // Alias Pro AI subpaths to stub when package is absent (CI/OSS builds)
+    if (!hasProAI) {
+      const stubPath = path.resolve(__dirname, proAIStub)
+      for (const key of Object.keys(proAIAliases)) {
+        config.resolve.alias[key] = stubPath
+      }
     }
     return config
   },
