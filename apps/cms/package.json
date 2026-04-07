@@ -34,11 +34,11 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "sharp": "^0.34.5",
-    "stripe": "^21.0.1",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.0",
+    "stripe": "^21.0.1",
     "@simplewebauthn/server": "^13.3.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",

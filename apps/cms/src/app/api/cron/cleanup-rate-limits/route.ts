@@ -4,11 +4,10 @@
  * GET /api/cron/cleanup-rate-limits
  * Schedule: hourly
  *
- * Deletes rate_limits rows whose reset window has passed.
+ * Delegates to @revealui/db cleanupStaleTokens() for the rateLimits table.
+ * Prefer /api/cron/cleanup-all for consolidated cleanup.
  */
-import { getClient } from '@revealui/db';
-import { rateLimits } from '@revealui/db/schema';
-import { lt } from 'drizzle-orm';
+import { cleanupStaleTokens } from '@revealui/db/cleanup';
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyCronAuth } from '@/lib/utils/cron-auth';
 
@@ -21,12 +20,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const db = getClient();
-    const now = new Date();
-
-    const deleted = await db.delete(rateLimits).where(lt(rateLimits.resetAt, now)).returning();
-
-    return NextResponse.json({ deleted: deleted.length });
+    const result = await cleanupStaleTokens({ tables: ['rateLimits'] });
+    return NextResponse.json({ deleted: result.rateLimits });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });

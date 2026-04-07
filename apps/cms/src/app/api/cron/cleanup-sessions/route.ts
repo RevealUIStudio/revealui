@@ -4,13 +4,10 @@
  * GET /api/cron/cleanup-sessions
  * Schedule: hourly
  *
- * Deletes:
- * - Sessions past their expiresAt timestamp
- * - Sessions that have been soft-deleted (deletedAt IS NOT NULL)
+ * Delegates to @revealui/db cleanupStaleTokens() for the sessions table.
+ * Prefer /api/cron/cleanup-all for consolidated cleanup.
  */
-import { getClient } from '@revealui/db';
-import { sessions } from '@revealui/db/schema';
-import { isNotNull, lt, or } from 'drizzle-orm';
+import { cleanupStaleTokens } from '@revealui/db/cleanup';
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyCronAuth } from '@/lib/utils/cron-auth';
 
@@ -23,15 +20,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const db = getClient();
-    const now = new Date();
-
-    const deleted = await db
-      .delete(sessions)
-      .where(or(lt(sessions.expiresAt, now), isNotNull(sessions.deletedAt)))
-      .returning();
-
-    return NextResponse.json({ deleted: deleted.length });
+    const result = await cleanupStaleTokens({ tables: ['sessions'] });
+    return NextResponse.json({ deleted: result.sessions });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
