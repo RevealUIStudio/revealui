@@ -1,5 +1,5 @@
 {
   "buildCommand": "cd ../.. && pnpm --filter revealcoin run vercel-build",
-  "installCommand": "echo 'Dependencies pre-installed by CI'",
+  "installCommand": "",
   "framework": "nextjs"
 }

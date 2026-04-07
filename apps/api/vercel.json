@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "installCommand": "echo 'Dependencies pre-installed by CI'",
+  "installCommand": "",
   "buildCommand": "cd ../.. && pnpm --filter api run vercel-build",
   "functions": {
     "api/**": {
