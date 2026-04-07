@@ -418,6 +418,7 @@ app.openapi(featuresRoute, async (c) => {
     {
       free: getFeaturesForTier('free'),
       pro: getFeaturesForTier('pro'),
+      max: getFeaturesForTier('max'),
       enterprise: getFeaturesForTier('enterprise'),
     },
     200,

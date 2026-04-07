@@ -1,0 +1,84 @@
+{
+  "name": "@revealui/paywall",
+  "version": "0.1.0",
+  "description": "Runtime license enforcement, feature gating, and upgrade UI for SaaS applications",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/paywall"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "hono": ">=4.0.0",
+    "react": ">=19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "hono": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.1.8",
+    "dev": "workspace:*",
+    "hono": "^4.8.3",
+    "react": "^19.2.4",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./server/hono": {
+      "types": "./dist/server/hono.d.ts",
+      "import": "./dist/server/hono.js"
+    },
+    "./server/next": {
+      "types": "./dist/server/next.d.ts",
+      "import": "./dist/server/next.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
+    },
+    "./stripe": {
+      "types": "./dist/stripe/index.d.ts",
+      "import": "./dist/stripe/index.js"
+    },
+    "./x402": {
+      "types": "./dist/x402/index.d.ts",
+      "import": "./dist/x402/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "scripts": {
+    "build": "tsup",
+    "clean": "rm -rf dist",
+    "dev": "tsup --watch",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text --passWithNoTests",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}
