@@ -146,6 +146,18 @@
       "types": "./dist/queries/users.d.ts",
       "import": "./dist/queries/users.js"
     },
+    "./queries/sessions": {
+      "types": "./dist/queries/sessions.d.ts",
+      "import": "./dist/queries/sessions.js"
+    },
+    "./queries/passkeys": {
+      "types": "./dist/queries/passkeys.d.ts",
+      "import": "./dist/queries/passkeys.js"
+    },
+    "./queries/user-api-keys": {
+      "types": "./dist/queries/user-api-keys.d.ts",
+      "import": "./dist/queries/user-api-keys.js"
+    },
     "./queries/conversations": {
       "types": "./dist/queries/conversations.d.ts",
       "import": "./dist/queries/conversations.js"

@@ -3,8 +3,7 @@ export const runtime = 'nodejs';
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { decryptApiKey } from '@revealui/db/crypto';
-import { userApiKeys } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { getEncryptedApiKey, touchApiKeyUsage } from '@revealui/db/queries/user-api-keys';
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
@@ -24,17 +23,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const db = getClient();
-  const rows = await db
-    .select({
-      id: userApiKeys.id,
-      provider: userApiKeys.provider,
-      encryptedKey: userApiKeys.encryptedKey,
-    })
-    .from(userApiKeys)
-    .where(eq(userApiKeys.userId, session.user.id))
-    .limit(1);
+  const row = await getEncryptedApiKey(db, session.user.id);
 
-  const row = rows[0];
   if (!row) {
     return NextResponse.json({ error: 'No API key configured' }, { status: 404 });
   }
@@ -42,12 +32,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const key = decryptApiKey(row.encryptedKey);
 
   // Update lastUsedAt (fire-and-forget — don't block the response)
-  db.update(userApiKeys)
-    .set({ lastUsedAt: new Date() })
-    .where(eq(userApiKeys.id, row.id))
-    .catch(() => {
-      // Fire-and-forget — lastUsedAt update failure is non-critical
-    });
+  touchApiKeyUsage(db, row.id).catch(() => {
+    // Fire-and-forget — lastUsedAt update failure is non-critical
+  });
 
   return NextResponse.json({ provider: row.provider, key });
 }

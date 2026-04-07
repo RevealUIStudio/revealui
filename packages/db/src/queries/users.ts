@@ -110,6 +110,12 @@ export async function restoreUser(db: Database, id: string) {
   return result[0] ?? null;
 }
 
+/** Create a new user and return the inserted row */
+export async function createUser(db: Database, data: typeof users.$inferInsert) {
+  const result = await db.insert(users).values(data).returning();
+  return result[0] ?? null;
+}
+
 /** Permanently remove a soft-deleted user (GDPR compliance / admin cleanup) */
 export async function purgeUser(db: Database, id: string) {
   await db.delete(users).where(eq(users.id, id));

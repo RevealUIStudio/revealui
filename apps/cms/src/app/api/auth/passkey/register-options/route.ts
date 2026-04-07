@@ -18,9 +18,8 @@ import {
 import config from '@revealui/config';
 import { PasskeyRegisterOptionsRequestSchema } from '@revealui/contracts';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
+import { getUserByEmail } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
-import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
@@ -96,11 +95,7 @@ async function registerOptionsHandler(request: NextRequest): Promise<NextRespons
 
       // Check if email is already taken
       const db = getClient();
-      const [existing] = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.email, result.data.email.toLowerCase()))
-        .limit(1);
+      const existing = await getUserByEmail(db, result.data.email.toLowerCase());
 
       if (existing) {
         return createApplicationErrorResponse('Unable to create account', 'SIGNUP_FAILED', 400);
