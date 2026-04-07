@@ -218,7 +218,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         userRole,
       );
       response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
-        httpOnly: false,
+        httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',

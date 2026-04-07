@@ -39,6 +39,7 @@ vi.mock('@revealui/auth/server', () => ({
   fetchProviderUser: (...args: unknown[]) => mockFetchProviderUser(...args),
   upsertOAuthUser: (...args: unknown[]) => mockUpsertOAuthUser(...args),
   createSession: (...args: unknown[]) => mockCreateSession(...args),
+  rotateSession: (...args: unknown[]) => mockCreateSession(...args),
   OAuthAccountConflictError: MockOAuthAccountConflictError,
 }));
 

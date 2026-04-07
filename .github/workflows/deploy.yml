@@ -4,11 +4,14 @@ name: Deploy
 #
 # Trigger: push to main (merge from test) or manual dispatch.
 # Only affected apps are deployed — if a shared package changes, all apps deploy.
-# CI already passed on the PR before merge, so deploy starts immediately.
+#
+# Pre-deploy validation: migration drift check only (no full typecheck —
+# CI already validated before merge via branch protection).
 #
 # Branch pipeline:
 #   feature/* → PR → test (CI only, no deploy)
 #   test → PR → main (full CI required, deploy on merge)
+#   Manual test preview: deploy-test.yml (workflow_dispatch)
 
 on:
   push:
@@ -38,12 +41,12 @@ env:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Typecheck gate — safety net if branch protection is bypassed
+  # Pre-deploy validation — migration drift only (typecheck runs in CI)
   # ---------------------------------------------------------------------------
-  typecheck:
-    name: Typecheck Gate
+  validate:
+    name: Validate Migrations
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -59,11 +62,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Typecheck all packages
-        run: pnpm typecheck:all
-        env:
-          SKIP_ENV_VALIDATION: "true"
 
       - name: Check for uncommitted migrations
         run: |
@@ -188,7 +186,7 @@ jobs:
     name: Deploy ${{ matrix.app }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: [typecheck, detect]
+    needs: [validate, detect]
     if: needs.detect.outputs.has-apps == 'true'
     environment:
       name: production

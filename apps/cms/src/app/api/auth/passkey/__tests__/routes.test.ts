@@ -30,6 +30,7 @@ vi.mock('@revealui/auth/server', () => ({
   signCookiePayload: vi.fn(),
   verifyCookiePayload: vi.fn(),
   createSession: vi.fn(),
+  rotateSession: vi.fn(),
   initiateMFASetup: vi.fn(),
   verifyMFASetup: vi.fn(),
   checkRateLimit: vi.fn(),
@@ -168,6 +169,7 @@ const mockVerifyCookiePayload = authServer.verifyCookiePayload as unknown as Ret
   typeof vi.fn
 >;
 const mockCreateSession = vi.mocked(authServer.createSession);
+const mockRotateSession = vi.mocked(authServer.rotateSession);
 const mockInitiateMFASetup = vi.mocked(authServer.initiateMFASetup);
 
 function createJsonRequest(url: string, body: unknown, method = 'POST'): NextRequest {
@@ -642,7 +644,7 @@ describe('POST /api/auth/passkey/authenticate-verify', () => {
       newCounter: 6,
     });
 
-    mockCreateSession.mockResolvedValue({
+    mockRotateSession.mockResolvedValue({
       token: 'passkey-session-token',
       session: { id: 'passkey-session-id' } as never,
     });
@@ -665,7 +667,7 @@ describe('POST /api/auth/passkey/authenticate-verify', () => {
     expect(data.success).toBe(true);
     expect(data.user.email).toBe('user@example.com');
     expect(mockVerifyAuthentication).toHaveBeenCalled();
-    expect(mockCreateSession).toHaveBeenCalledWith('user-123', expect.any(Object));
+    expect(mockRotateSession).toHaveBeenCalledWith('user-123', expect.any(Object));
 
     // Session cookie should be set
     const sessionCookie = response.cookies.get('revealui-session');

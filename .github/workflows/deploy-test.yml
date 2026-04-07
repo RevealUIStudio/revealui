@@ -1,0 +1,183 @@
+name: Deploy Test (Preview)
+
+# Manual deployment to Vercel preview environment for QA spot-checks.
+# Does NOT auto-trigger on push to test — only used when a human wants
+# to visually verify changes before promoting to main.
+#
+# Each deploy consumes 1 Vercel deployment per app (counts against Hobby tier).
+# Use sparingly: prefer `pnpm dev` locally for routine checks.
+
+on:
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: "Apps to deploy (comma-separated, or 'all')"
+        required: false
+        type: string
+        default: all
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: deploy-test
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN || secrets.VERCEL_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Detect which apps to deploy
+  # ---------------------------------------------------------------------------
+  detect:
+    name: Detect Apps
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.detect.outputs.matrix }}
+      has-apps: ${{ steps.detect.outputs.has-apps }}
+      app-list: ${{ steps.detect.outputs.app-list }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 2
+
+      - name: Detect apps
+        id: detect
+        env:
+          INPUT_APPS: ${{ inputs.apps }}
+        run: |
+          ALL_APPS="api cms marketing docs revealcoin"
+
+          if [ "$INPUT_APPS" = "all" ] || [ -z "$INPUT_APPS" ]; then
+            AFFECTED="$ALL_APPS"
+          else
+            AFFECTED=$(echo "$INPUT_APPS" | tr ',' ' ')
+          fi
+
+          if [ -z "$AFFECTED" ]; then
+            echo "has-apps=false" >> "$GITHUB_OUTPUT"
+            echo "matrix=[]" >> "$GITHUB_OUTPUT"
+            echo "app-list=none" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "has-apps=true" >> "$GITHUB_OUTPUT"
+          echo "app-list=$AFFECTED" >> "$GITHUB_OUTPUT"
+
+          MATRIX="["
+          FIRST=true
+          for app in $AFFECTED; do
+            case "$app" in
+              api)        PID="prj_zk6EQijYXwd9L7BccuBssi436ktM" ;;
+              cms)        PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
+              marketing)  PID="prj_frTIYlnONVPLNIjKnQpINiGb5lm0" ;;
+              docs)       PID="prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1" ;;
+              revealcoin) PID="prj_XDiPXngciRytGA8j0vNIDz7hENRM" ;;
+              *) echo "::warning::Unknown app: $app"; continue ;;
+            esac
+            if [ "$FIRST" = true ]; then FIRST=false; else MATRIX="$MATRIX,"; fi
+            MATRIX="$MATRIX{\"app\":\"$app\",\"project-id\":\"$PID\"}"
+          done
+          MATRIX="$MATRIX]"
+
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "::notice::Preview deploy: $AFFECTED"
+
+  # ---------------------------------------------------------------------------
+  # Deploy as Vercel preview (not production)
+  # ---------------------------------------------------------------------------
+  deploy:
+    name: Preview ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: detect
+    if: needs.detect.outputs.has-apps == 'true'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.detect.outputs.matrix) }}
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Stub gitignored Pro packages
+        run: |
+          for pkg in ai harnesses; do
+            [ ! -d "packages/$pkg" ] && mkdir -p "packages/$pkg"
+          done
+
+      - name: Pull Vercel environment (preview)
+        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+
+      - name: Skip Vercel internal install
+        run: |
+          if [ -f .vercel/project.json ]; then
+            jq '.settings.installCommand = ""' .vercel/project.json > .vercel/project.json.tmp
+            mv .vercel/project.json.tmp .vercel/project.json
+          fi
+
+      - name: Build (preview)
+        run: vercel build --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Deploy (preview — not production)
+        id: deploy
+        run: |
+          URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "::notice::${{ matrix.app }} preview: $URL"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+
+  # ---------------------------------------------------------------------------
+  # Summary with preview URLs
+  # ---------------------------------------------------------------------------
+  summary:
+    name: Preview URLs
+    runs-on: ubuntu-latest
+    needs: [detect, deploy]
+    if: always()
+
+    steps:
+      - name: Output preview summary
+        env:
+          DEPLOY_STATUS: ${{ needs.deploy.result }}
+          DEPLOY_APPS: ${{ needs.detect.outputs.app-list }}
+        run: |
+          echo "## Test Preview Summary"
+          echo "Status: $DEPLOY_STATUS"
+          echo "Apps: $DEPLOY_APPS"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo ""
+          echo "Preview URLs are in each deploy job's output."

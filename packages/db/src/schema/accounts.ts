@@ -8,9 +8,11 @@
  * - usage meters record billable business activity
  */
 
+import { sql } from 'drizzle-orm';
 import {
   bigint,
   boolean,
+  check,
   index,
   jsonb,
   pgTable,
@@ -82,6 +84,11 @@ export const accountSubscriptions = pgTable(
     index('account_subscriptions_account_id_idx').on(table.accountId),
     index('account_subscriptions_stripe_customer_idx').on(table.stripeCustomerId),
     index('account_subscriptions_status_idx').on(table.status),
+    index('account_subscriptions_account_status_idx').on(table.accountId, table.status),
+    check(
+      'account_subscriptions_status_check',
+      sql`status IN ('active', 'past_due', 'canceled', 'trialing', 'unpaid', 'expired', 'revoked', 'paused')`,
+    ),
   ],
 );
 
@@ -110,6 +117,12 @@ export const accountEntitlements = pgTable(
   (table) => [
     index('account_entitlements_tier_idx').on(table.tier),
     index('account_entitlements_status_idx').on(table.status),
+    index('account_entitlements_account_status_idx').on(table.accountId, table.status),
+    check('account_entitlements_tier_check', sql`tier IN ('free', 'pro', 'max', 'enterprise')`),
+    check(
+      'account_entitlements_status_check',
+      sql`status IN ('active', 'past_due', 'canceled', 'expired', 'revoked')`,
+    ),
   ],
 );
 
@@ -132,6 +145,11 @@ export const billingCatalog = pgTable(
     index('billing_catalog_tier_idx').on(table.tier),
     index('billing_catalog_billing_model_idx').on(table.billingModel),
     index('billing_catalog_active_idx').on(table.active),
+    check('billing_catalog_tier_check', sql`tier IN ('free', 'pro', 'max', 'enterprise')`),
+    check(
+      'billing_catalog_billing_model_check',
+      sql`billing_model IN ('subscription', 'perpetual', 'renewal', 'credits')`,
+    ),
   ],
 );
 
