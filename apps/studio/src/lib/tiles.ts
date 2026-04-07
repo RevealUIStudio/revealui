@@ -20,6 +20,17 @@ export interface CategoryDefinition {
   label: string;
 }
 
+// ── Platform detection ──────────────────────────────────────────────────────
+
+export type Platform = 'windows' | 'macos' | 'linux';
+
+export function detectPlatform(): Platform {
+  const p = navigator.platform.toLowerCase();
+  if (p.startsWith('win')) return 'windows';
+  if (p.startsWith('mac')) return 'macos';
+  return 'linux';
+}
+
 // ── Categories ───────────────────────────────────────────────────────────────
 
 export const CATEGORIES: CategoryDefinition[] = [
@@ -31,74 +42,9 @@ export const CATEGORIES: CategoryDefinition[] = [
   { id: 'dashboards', label: 'Dashboards' },
 ];
 
-// ── Default tiles ────────────────────────────────────────────────────────────
-// Matches the tile table in MASTER_PLAN.md Phase 5.6.2
+// ── URL tiles (platform-independent) ────────────────────────────────────────
 
-export const DEFAULT_TILES: TileDefinition[] = [
-  // Editor
-  {
-    id: 'zed',
-    label: 'Zed',
-    category: 'editor',
-    action: { type: 'shell', program: 'zed', args: ['.'] },
-  },
-
-  // Terminal
-  {
-    id: 'revealui-tmux',
-    label: 'RevealUI tmux',
-    category: 'terminal',
-    action: { type: 'shell', program: 'wt.exe', args: ['-p', 'RevealUI'] },
-  },
-  {
-    id: 'wsl',
-    label: 'WSL',
-    category: 'terminal',
-    action: { type: 'shell', program: 'wt.exe', args: ['-p', 'Ubuntu-24.04'] },
-  },
-  {
-    id: 'powershell',
-    label: 'PowerShell',
-    category: 'terminal',
-    action: { type: 'shell', program: 'wt.exe', args: ['-p', 'PowerShell'] },
-  },
-
-  // AI
-  {
-    id: 'claude-desktop',
-    label: 'Claude Desktop',
-    category: 'ai',
-    action: { type: 'shell', program: 'claude-desktop' },
-  },
-  {
-    id: 'claude-code',
-    label: 'Claude Code',
-    category: 'ai',
-    action: { type: 'shell', program: 'claude' },
-  },
-
-  // Browser
-  {
-    id: 'chrome-dev',
-    label: 'Chrome (Dev)',
-    category: 'browser',
-    action: {
-      type: 'shell',
-      program: 'chrome.exe',
-      args: ['--profile-directory=Profile 1'],
-    },
-  },
-  {
-    id: 'chrome-personal',
-    label: 'Chrome (Personal)',
-    category: 'browser',
-    action: {
-      type: 'shell',
-      program: 'chrome.exe',
-      args: ['--profile-directory=Default'],
-    },
-  },
-
+const URL_TILES: TileDefinition[] = [
   // Accounts
   {
     id: 'github',
@@ -136,7 +82,6 @@ export const DEFAULT_TILES: TileDefinition[] = [
     category: 'accounts',
     action: { type: 'url', url: 'https://supabase.com/dashboard' },
   },
-
   // Dashboards
   {
     id: 'vercel-dashboard',
@@ -163,6 +108,150 @@ export const DEFAULT_TILES: TileDefinition[] = [
     action: { type: 'url', url: 'https://supabase.com/dashboard' },
   },
 ];
+
+// ── Cross-platform tiles (same command everywhere) ──────────────────────────
+
+const CROSS_PLATFORM_TILES: TileDefinition[] = [
+  {
+    id: 'zed',
+    label: 'Zed',
+    category: 'editor',
+    action: { type: 'shell', program: 'zed', args: ['.'] },
+  },
+  {
+    id: 'claude-code',
+    label: 'Claude Code',
+    category: 'ai',
+    action: { type: 'shell', program: 'claude' },
+  },
+];
+
+// ── Platform-specific shell tiles ───────────────────────────────────────────
+
+const WINDOWS_TILES: TileDefinition[] = [
+  {
+    id: 'revealui-tmux',
+    label: 'RevealUI tmux',
+    category: 'terminal',
+    action: { type: 'shell', program: 'wt.exe', args: ['-p', 'RevealUI'] },
+  },
+  {
+    id: 'wsl',
+    label: 'WSL',
+    category: 'terminal',
+    action: { type: 'shell', program: 'wt.exe', args: ['-p', 'Ubuntu-24.04'] },
+  },
+  {
+    id: 'powershell',
+    label: 'PowerShell',
+    category: 'terminal',
+    action: { type: 'shell', program: 'wt.exe', args: ['-p', 'PowerShell'] },
+  },
+  {
+    id: 'claude-desktop',
+    label: 'Claude Desktop',
+    category: 'ai',
+    action: { type: 'shell', program: 'claude-desktop' },
+  },
+  {
+    id: 'chrome-dev',
+    label: 'Chrome (Dev)',
+    category: 'browser',
+    action: { type: 'shell', program: 'chrome.exe', args: ['--profile-directory=Profile 1'] },
+  },
+  {
+    id: 'chrome-personal',
+    label: 'Chrome (Personal)',
+    category: 'browser',
+    action: { type: 'shell', program: 'chrome.exe', args: ['--profile-directory=Default'] },
+  },
+];
+
+const MACOS_TILES: TileDefinition[] = [
+  {
+    id: 'revealui-tmux',
+    label: 'RevealUI tmux',
+    category: 'terminal',
+    action: { type: 'shell', program: 'tmux', args: ['new-session', '-A', '-s', 'revealui'] },
+  },
+  {
+    id: 'terminal-app',
+    label: 'Terminal',
+    category: 'terminal',
+    action: { type: 'shell', program: 'open', args: ['-a', 'Terminal'] },
+  },
+  {
+    id: 'claude-desktop',
+    label: 'Claude Desktop',
+    category: 'ai',
+    action: { type: 'shell', program: 'open', args: ['-a', 'Claude'] },
+  },
+  {
+    id: 'chrome-dev',
+    label: 'Chrome (Dev)',
+    category: 'browser',
+    action: {
+      type: 'shell',
+      program: 'open',
+      args: ['-na', 'Google Chrome', '--args', '--profile-directory=Profile 1'],
+    },
+  },
+  {
+    id: 'chrome-personal',
+    label: 'Chrome (Personal)',
+    category: 'browser',
+    action: {
+      type: 'shell',
+      program: 'open',
+      args: ['-na', 'Google Chrome', '--args', '--profile-directory=Default'],
+    },
+  },
+];
+
+const LINUX_TILES: TileDefinition[] = [
+  {
+    id: 'revealui-tmux',
+    label: 'RevealUI tmux',
+    category: 'terminal',
+    action: { type: 'shell', program: 'tmux', args: ['new-session', '-A', '-s', 'revealui'] },
+  },
+  {
+    id: 'gnome-terminal',
+    label: 'GNOME Terminal',
+    category: 'terminal',
+    action: { type: 'shell', program: 'gnome-terminal' },
+  },
+  {
+    id: 'claude-desktop',
+    label: 'Claude Desktop',
+    category: 'ai',
+    action: { type: 'shell', program: 'claude-desktop' },
+  },
+  {
+    id: 'chrome-dev',
+    label: 'Chrome (Dev)',
+    category: 'browser',
+    action: { type: 'shell', program: 'google-chrome', args: ['--profile-directory=Profile 1'] },
+  },
+  {
+    id: 'chrome-personal',
+    label: 'Chrome (Personal)',
+    category: 'browser',
+    action: { type: 'shell', program: 'google-chrome', args: ['--profile-directory=Default'] },
+  },
+];
+
+// ── Default tiles (assembled per platform) ──────────────────────────────────
+// Matches the tile table in MASTER_PLAN.md Phase 5.6.2
+
+function buildDefaultTiles(platform: Platform): TileDefinition[] {
+  const platformTiles =
+    platform === 'windows' ? WINDOWS_TILES : platform === 'macos' ? MACOS_TILES : LINUX_TILES;
+
+  return [...CROSS_PLATFORM_TILES, ...platformTiles, ...URL_TILES];
+}
+
+export const DEFAULT_TILES: TileDefinition[] = buildDefaultTiles(detectPlatform());
 
 // ── Tile preferences (persisted in localStorage) ─────────────────────────────
 
@@ -206,18 +295,46 @@ export function recordRecentLaunch(prefs: TilePreferences, tileId: string): Tile
 
 // ── Process detection (for running indicator) ───────────────────────────────
 // Maps tile IDs to process names to check. Checked against `tasklist.exe` on
-// Windows/WSL and `pgrep` on native Linux/macOS.
+// Windows/WSL and `ps` on native Linux/macOS.
 
-export const PROCESS_NAMES: Record<string, string[]> = {
+const PROCESS_NAMES_WINDOWS: Record<string, string[]> = {
   zed: ['zed', 'Zed.exe'],
   'revealui-tmux': ['tmux'],
   wsl: ['wt.exe', 'WindowsTerminal.exe'],
   powershell: ['powershell.exe', 'pwsh.exe'],
-  'claude-desktop': ['Claude.exe', 'claude-desktop'],
+  'claude-desktop': ['Claude.exe'],
   'claude-code': ['claude'],
-  'chrome-dev': ['chrome.exe', 'chrome', 'Google Chrome'],
-  'chrome-personal': ['chrome.exe', 'chrome', 'Google Chrome'],
+  'chrome-dev': ['chrome.exe'],
+  'chrome-personal': ['chrome.exe'],
 };
+
+const PROCESS_NAMES_MACOS: Record<string, string[]> = {
+  zed: ['zed', 'Zed'],
+  'revealui-tmux': ['tmux'],
+  'terminal-app': ['Terminal'],
+  'claude-desktop': ['Claude'],
+  'claude-code': ['claude'],
+  'chrome-dev': ['Google Chrome'],
+  'chrome-personal': ['Google Chrome'],
+};
+
+const PROCESS_NAMES_LINUX: Record<string, string[]> = {
+  zed: ['zed'],
+  'revealui-tmux': ['tmux'],
+  'gnome-terminal': ['gnome-terminal'],
+  'claude-desktop': ['claude-desktop'],
+  'claude-code': ['claude'],
+  'chrome-dev': ['chrome', 'google-chrome'],
+  'chrome-personal': ['chrome', 'google-chrome'],
+};
+
+function buildProcessNames(platform: Platform): Record<string, string[]> {
+  if (platform === 'windows') return PROCESS_NAMES_WINDOWS;
+  if (platform === 'macos') return PROCESS_NAMES_MACOS;
+  return PROCESS_NAMES_LINUX;
+}
+
+export const PROCESS_NAMES: Record<string, string[]> = buildProcessNames(detectPlatform());
 
 // ── Browser profile detection ────────────────────────────────────────────────
 
@@ -229,50 +346,56 @@ export interface BrowserProfile {
 
 export async function detectBrowserProfiles(): Promise<BrowserProfile[]> {
   const { Command } = await import('@tauri-apps/plugin-shell');
+  const platform = detectPlatform();
   const profiles: BrowserProfile[] = [];
 
-  // Detect Windows username for path construction
-  const whoami = await Command.create('exec-sh', [
-    '-c',
-    'cmd.exe /c "echo %USERPROFILE%" 2>/dev/null',
-  ]).execute();
+  // Resolve the browser data directory per platform
+  let baseDirs: { name: 'chrome' | 'edge'; path: string }[] = [];
 
-  if (whoami.code !== 0) return profiles;
+  if (platform === 'windows') {
+    // WSL: convert Windows path to WSL mount
+    const whoami = await Command.create('exec-sh', [
+      '-c',
+      'cmd.exe /c "echo %USERPROFILE%" 2>/dev/null',
+    ]).execute();
+    if (whoami.code !== 0) return profiles;
+    const winProfile = whoami.stdout.trim().replace(/\r/g, '');
+    const wslBase = winProfile
+      .replace(/^([A-Z]):\\/, (_m, drive: string) => `/mnt/${drive.toLowerCase()}/`)
+      .split('\\')
+      .join('/');
+    baseDirs = [
+      { name: 'chrome', path: `${wslBase}/AppData/Local/Google/Chrome/User Data` },
+      { name: 'edge', path: `${wslBase}/AppData/Local/Microsoft/Edge/User Data` },
+    ];
+  } else if (platform === 'macos') {
+    const home = (await Command.create('exec-sh', ['-c', 'echo $HOME']).execute()).stdout.trim();
+    baseDirs = [
+      { name: 'chrome', path: `${home}/Library/Application Support/Google/Chrome` },
+      { name: 'edge', path: `${home}/Library/Application Support/Microsoft Edge` },
+    ];
+  } else {
+    const home = (await Command.create('exec-sh', ['-c', 'echo $HOME']).execute()).stdout.trim();
+    baseDirs = [
+      { name: 'chrome', path: `${home}/.config/google-chrome` },
+      { name: 'edge', path: `${home}/.config/microsoft-edge` },
+    ];
+  }
 
-  // Convert Windows path to WSL path: C:\Users\foo -> /mnt/c/Users/foo
-  const winProfile = whoami.stdout.trim().replace(/\r/g, '');
-  const wslBase = winProfile
-    .replace(/^([A-Z]):\\/, (_m, drive: string) => `/mnt/${drive.toLowerCase()}/`)
-    .split('\\')
-    .join('/');
-
-  const browsers: { name: 'chrome' | 'edge'; subdir: string; exe: string }[] = [
-    { name: 'chrome', subdir: 'Google/Chrome/User Data', exe: 'chrome.exe' },
-    { name: 'edge', subdir: 'Microsoft/Edge/User Data', exe: 'msedge.exe' },
-  ];
-
-  for (const browser of browsers) {
-    const baseDir = `${wslBase}/AppData/Local/${browser.subdir}`;
-
-    // List profile directories
+  for (const browser of baseDirs) {
     const lsResult = await Command.create('exec-sh', [
       '-c',
-      `ls -d "${baseDir}"/Default "${baseDir}"/Profile\\ * 2>/dev/null`,
+      `ls -d "${browser.path}"/Default "${browser.path}"/Profile\\ * 2>/dev/null`,
     ]).execute();
-
     if (lsResult.code !== 0) continue;
 
     const dirs = lsResult.stdout.trim().split('\n').filter(Boolean);
-
     for (const dir of dirs) {
-      const prefPath = `${dir}/Preferences`;
       const catResult = await Command.create('exec-sh', [
         '-c',
-        `cat "${prefPath}" 2>/dev/null`,
+        `cat "${dir}/Preferences" 2>/dev/null`,
       ]).execute();
-
       if (catResult.code !== 0) continue;
-
       try {
         const prefs = JSON.parse(catResult.stdout);
         const name = prefs?.profile?.name;

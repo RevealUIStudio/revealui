@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
+use tauri::Manager;
 
 use super::error::StudioError;
 
@@ -145,10 +146,35 @@ pub fn terminal_detect() -> Result<Vec<TerminalProfile>, StudioError> {
     Ok(profiles)
 }
 
+/// Resolve the terminal config directory: bundled resource path in production,
+/// repo-relative fallback for development.
+fn resolve_config_dir(app: &tauri::AppHandle, config_dir: &str) -> Result<PathBuf, StudioError> {
+    // Try bundled resource path first (production builds)
+    if let Ok(resource_dir) = app.path().resource_dir() {
+        let bundled = resource_dir.join("terminal");
+        if bundled.exists() {
+            return Ok(bundled);
+        }
+    }
+
+    // Fall back to repo-relative path (development)
+    let relative = PathBuf::from(config_dir);
+    if relative.exists() {
+        return Ok(relative);
+    }
+
+    Err(StudioError::Other(format!(
+        "Terminal config directory not found: {}",
+        config_dir
+    )))
+}
+
 /// Install a terminal profile by copying the config file to the correct location.
-/// `config_dir` is the path to the `config/terminal/` directory in the repo.
+/// In production, config files are resolved from bundled resources.
+/// In development, falls back to `config_dir` relative path.
 #[tauri::command]
 pub fn terminal_install(
+    app: tauri::AppHandle,
     terminal_id: String,
     config_dir: String,
 ) -> Result<TerminalProfile, StudioError> {
@@ -164,7 +190,8 @@ pub fn terminal_install(
         ));
     }
 
-    let src = PathBuf::from(&config_dir).join(&profile.config_file);
+    let resolved_dir = resolve_config_dir(&app, &config_dir)?;
+    let src = resolved_dir.join(&profile.config_file);
     if !src.exists() {
         return Err(StudioError::Other(format!(
             "Config file not found: {}",
