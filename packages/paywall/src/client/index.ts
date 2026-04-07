@@ -7,14 +7,53 @@
  * is the authoritative enforcement layer. Client-side gates improve the user
  * experience by preventing clicks on locked features before the server denies them.
  *
- * Components (Phase 2):
- * - LicenseProvider — React context that fetches tier/features from your API
- * - LicenseGate — Declarative feature gate (inline or dialog mode)
- * - UpgradePrompt — Upgrade CTA with pricing
- * - UpgradeDialog — Global upgrade modal (DOM event driven)
- * - useLicense — Hook: { tier, features, isLoading, refetch }
+ * @example
+ * ```tsx
+ * import { createPaywall } from '@revealui/paywall';
+ * import { PaywallProvider, usePaywall, PaywallGate } from '@revealui/paywall/client';
+ *
+ * const paywall = createPaywall();
+ *
+ * function App() {
+ *   return (
+ *     <PaywallProvider
+ *       paywall={paywall}
+ *       resolveTier={async () => {
+ *         const res = await fetch('/api/billing/subscription');
+ *         const data = await res.json();
+ *         return data.tier;
+ *       }}
+ *     >
+ *       <Dashboard />
+ *     </PaywallProvider>
+ *   );
+ * }
+ *
+ * function Dashboard() {
+ *   return (
+ *     <PaywallGate
+ *       feature="ai"
+ *       fallback={<UpgradeCard feature="ai" />}
+ *     >
+ *       <AIPanel />
+ *     </PaywallGate>
+ *   );
+ * }
+ * ```
  *
  * @packageDocumentation
  */
 
-export {};
+export {
+  PaywallProvider,
+  usePaywall,
+  type PaywallContextValue,
+  type PaywallProviderProps,
+} from './PaywallProvider.js';
+export { PaywallGate, type PaywallGateProps } from './PaywallGate.js';
+export {
+  upgradeAwareFetch,
+  dispatchUpgradeEvent,
+  UPGRADE_EVENT_NAME,
+  type UpgradeEventDetail,
+} from './upgrade-aware-fetch.js';

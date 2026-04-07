@@ -1,21 +1,7 @@
 /**
- * Upgrade-aware fetch wrapper.
+ * Re-export from @revealui/paywall/client.
  *
- * Intercepts 503 (Pro packages not installed) and 402 (license required)
- * responses and emits a `revealui:upgrade-required` custom event so the
- * global UpgradeDialog can prompt the user.
+ * The paywall package provides the canonical upgrade-aware fetch with
+ * DOM event dispatching for the global UpgradeDialog.
  */
-
-export function upgradeAwareFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  return fetch(input, init).then((response) => {
-    if (response.status === 503 || response.status === 402) {
-      const feature = response.headers.get('x-revealui-feature') ?? undefined;
-      window.dispatchEvent(
-        new CustomEvent('revealui:upgrade-required', {
-          detail: { feature, status: response.status },
-        }),
-      );
-    }
-    return response;
-  });
-}
+export { upgradeAwareFetch } from '@revealui/paywall/client';
