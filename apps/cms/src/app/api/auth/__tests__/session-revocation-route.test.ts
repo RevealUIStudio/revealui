@@ -12,6 +12,7 @@ const mockGetClient = vi.fn();
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
+  auditSessionRevoked: vi.fn(),
 }));
 
 vi.mock('@revealui/db', () => ({
@@ -20,6 +21,9 @@ vi.mock('@revealui/db', () => ({
 
 vi.mock('@revealui/db/schema', () => ({
   sessions: { id: 'id', userId: 'userId', deletedAt: 'deletedAt' },
+  and: vi.fn(),
+  eq: vi.fn(),
+  isNull: vi.fn(),
 }));
 
 vi.mock('drizzle-orm', () => ({

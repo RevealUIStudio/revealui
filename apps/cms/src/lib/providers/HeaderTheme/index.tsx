@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { createContext, use, useCallback, useState } from 'react';
+import { createContext, use, useState } from 'react';
 import type { Theme } from '@/lib/providers/Theme/types';
 
 import { canUseDOM } from '@/lib/utilities/canUseDOM';
@@ -27,9 +27,9 @@ export function HeaderThemeProvider({
     canUseDOM ? (document.documentElement.getAttribute('data-theme') as Theme) : undefined,
   );
 
-  const setHeaderTheme = useCallback((themeToSet: Theme | null) => {
+  const setHeaderTheme = (themeToSet: Theme | null) => {
     setThemeState(themeToSet);
-  }, []);
+  };
 
   return (
     <HeaderThemeContext.Provider value={{ headerTheme, setHeaderTheme }}>

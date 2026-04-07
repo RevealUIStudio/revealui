@@ -19,7 +19,8 @@ import {
 } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getApiUrl } from '@/lib/config/api';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
@@ -59,9 +60,9 @@ export default function LicensePage() {
   const [githubUsername, setGithubUsername] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = async () => {
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+      const apiUrl = getApiUrl();
 
       const [subRes, featRes, pricingRes] = await Promise.all([
         fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
@@ -88,15 +89,16 @@ export default function LicensePage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler memoizes fetchData
   useEffect(() => {
     if (!sessionLoading && session) {
       void fetchData();
     } else if (!(sessionLoading || session)) {
       router.push('/login');
     }
-  }, [session, sessionLoading, fetchData, router]);
+  }, [session, sessionLoading, router]);
 
   if (sessionLoading || isLoading) {
     return (
@@ -110,7 +112,7 @@ export default function LicensePage() {
     setPerpetualLoading(plan.tier);
     setError(null);
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/billing/checkout-perpetual`, {
         method: 'POST',
         credentials: 'include',
@@ -138,7 +140,7 @@ export default function LicensePage() {
     setRenewalLoading(true);
     setError(null);
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/billing/checkout-support-renewal`, {
         method: 'POST',
         credentials: 'include',

@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
+import { type ComponentProps, type ReactNode, useRef, useState } from 'react';
 import { CheckmarkIcon } from '@/components/revealui/icons/checkmark-icon';
 import { Squares2StackedIcon } from '@/components/revealui/icons/squares-2-stacked-icon';
 import { cn } from '@/lib/utils/cn';
@@ -17,14 +17,14 @@ export function InstallCommand({
   const [copied, setCopied] = useState(false);
   const contentRef = useRef<HTMLSpanElement>(null);
 
-  const handleCopy = useCallback(() => {
+  const handleCopy = () => {
     const text = contentRef.current?.textContent;
     if (!text) return;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });
-  }, []);
+  };
 
   return (
     <div

@@ -8,6 +8,7 @@ import { AgentMemory } from '@/lib/components/agents/agent-memory';
 import { TaskHistory } from '@/lib/components/agents/task-history';
 import { TaskTester } from '@/lib/components/agents/task-tester';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { getApiUrl } from '@/lib/config/api';
 
 interface PageProps {
   params: Promise<{ agentId: string }>;
@@ -45,7 +46,7 @@ export default function AgentDetailPage({ params }: PageProps) {
   const [retiring, setRetiring] = useState(false);
   const [retireError, setRetireError] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   useEffect(() => {
     fetch(`${apiUrl}/a2a/agents/${encodeURIComponent(agentId)}`, { credentials: 'include' })

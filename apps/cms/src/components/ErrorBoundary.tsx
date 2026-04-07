@@ -4,15 +4,17 @@
  * React Error Boundary for CMS App
  *
  * Catches React errors and displays a fallback UI instead of crashing the app.
- * Integrates with Sentry for error reporting in production.
+ * Integrates with both Sentry (error reporting) and structured logging.
  */
 
+import { logger } from '@revealui/core/observability/logger';
 import * as Sentry from '@sentry/nextjs';
 import React, { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
-  fallback?: (error: Error, errorInfo: ErrorInfo, reset: () => void) => ReactNode;
+  fallback?: ReactNode | ((error: Error, errorInfo: ErrorInfo, reset: () => void) => ReactNode);
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface ErrorBoundaryState {
@@ -32,7 +34,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
-    // Update state so the next render will show the fallback UI
     return {
       hasError: true,
       error,
@@ -40,7 +41,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    // Send to Sentry (React surfaces errors in dev automatically)
+    // Structured logging
+    logger.error('ErrorBoundary caught an error', error, {
+      componentStack: errorInfo.componentStack,
+    });
+
+    // Sentry error reporting
     Sentry.captureException(error, {
       contexts: {
         react: {
@@ -49,11 +55,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       },
     });
 
-    // Update state with error info
-    this.setState({
-      error,
-      errorInfo,
-    });
+    this.setState({ error, errorInfo });
+
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
   }
 
   reset = (): void => {
@@ -69,12 +75,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     const { children, fallback } = this.props;
 
     if (hasError && error && errorInfo) {
-      // Use custom fallback if provided
-      if (fallback) {
+      if (typeof fallback === 'function') {
         return fallback(error, errorInfo, this.reset);
       }
-
-      // Default fallback UI
+      if (fallback) {
+        return fallback;
+      }
       return <DefaultErrorFallback error={error} errorInfo={errorInfo} reset={this.reset} />;
     }
 
@@ -83,8 +89,21 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 }
 
 /**
- * Default Error Fallback Component
+ * HOC wrapper for functional components.
  */
+export function withErrorBoundary<P extends object>(
+  WrappedComponent: React.ComponentType<P>,
+  fallback?: ReactNode,
+): React.ComponentType<P> {
+  return function ErrorBoundaryWrapper(props: P) {
+    return (
+      <ErrorBoundary fallback={fallback}>
+        <WrappedComponent {...props} />
+      </ErrorBoundary>
+    );
+  };
+}
+
 interface DefaultErrorFallbackProps {
   error: Error;
   errorInfo: ErrorInfo;
@@ -95,56 +114,30 @@ function DefaultErrorFallback({ error, errorInfo, reset }: DefaultErrorFallbackP
   const [showDetails, setShowDetails] = React.useState(false);
 
   return (
-    <div
-      style={{
-        padding: '2rem',
-        maxWidth: '800px',
-        margin: '2rem auto',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: '#fee',
-          border: '2px solid #c33',
-          borderRadius: '8px',
-          padding: '1.5rem',
-        }}
-      >
-        <h1 style={{ margin: '0 0 1rem 0', color: '#c33' }}>⚠️ Something went wrong</h1>
+    <div className="my-16 p-6 border border-red-500 rounded-lg bg-red-50 dark:bg-red-950/20 dark:border-red-800">
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+            Something went wrong
+          </h2>
+          <p className="text-red-700 dark:text-red-300">
+            An unexpected error occurred. This has been reported to our team. Please try refreshing
+            the page or contact support@revealui.com if this persists.
+          </p>
+        </div>
 
-        <p style={{ margin: '0 0 1rem 0', color: '#333' }}>
-          The application encountered an unexpected error. This has been reported to our team.
-        </p>
-
-        <div style={{ marginBottom: '1rem' }}>
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={reset}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#0070f3',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              marginRight: '0.5rem',
-            }}
+            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
           >
             Try Again
           </button>
-
           <button
             type="button"
             onClick={() => window.location.reload()}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#666',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="px-4 py-2 bg-zinc-600 text-white rounded hover:bg-zinc-700 transition-colors"
           >
             Reload Page
           </button>
@@ -155,42 +148,21 @@ function DefaultErrorFallback({ error, errorInfo, reset }: DefaultErrorFallbackP
             <button
               type="button"
               onClick={() => setShowDetails(!showDetails)}
-              style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: 'transparent',
-                color: '#666',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-              }}
+              className="self-start px-4 py-2 text-sm text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700 rounded"
             >
               {showDetails ? 'Hide' : 'Show'} Technical Details
             </button>
 
             {showDetails && (
-              <div
-                style={{
-                  marginTop: '1rem',
-                  padding: '1rem',
-                  backgroundColor: '#f5f5f5',
-                  borderRadius: '4px',
-                  fontSize: '0.875rem',
-                  overflow: 'auto',
-                }}
-              >
+              <div className="mt-2 p-4 bg-zinc-100 dark:bg-zinc-900 rounded text-sm overflow-auto">
                 <strong>Error:</strong>
-                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                  {error.toString()}
-                </pre>
+                <pre className="whitespace-pre-wrap break-words">{error.toString()}</pre>
 
-                <strong style={{ display: 'block', marginTop: '1rem' }}>Stack Trace:</strong>
-                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{error.stack}</pre>
+                <strong className="block mt-4">Stack Trace:</strong>
+                <pre className="whitespace-pre-wrap break-words">{error.stack}</pre>
 
-                <strong style={{ display: 'block', marginTop: '1rem' }}>Component Stack:</strong>
-                <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                  {errorInfo.componentStack}
-                </pre>
+                <strong className="block mt-4">Component Stack:</strong>
+                <pre className="whitespace-pre-wrap break-words">{errorInfo.componentStack}</pre>
               </div>
             )}
           </>

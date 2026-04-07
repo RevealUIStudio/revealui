@@ -23,6 +23,9 @@ vi.mock('@revealui/db/schema', () => ({
     expiresAt: 'expiresAt',
     deletedAt: 'deletedAt',
   },
+  lt: vi.fn(),
+  or: vi.fn(),
+  isNotNull: vi.fn(),
 }));
 
 vi.mock('drizzle-orm', () => ({

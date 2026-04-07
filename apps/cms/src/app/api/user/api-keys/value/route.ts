@@ -3,8 +3,7 @@ export const runtime = 'nodejs';
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { decryptApiKey } from '@revealui/db/crypto';
-import { userApiKeys } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, userApiKeys } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 

@@ -2,7 +2,7 @@
 
 import { useEscapeKey, useFocusTrap, useScrollLock } from '@revealui/presentation';
 import Link from 'next/link';
-import { type ComponentProps, type ReactNode, useCallback, useRef, useState } from 'react';
+import { type ComponentProps, type ReactNode, useRef, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
 
 export function NavbarLink({
@@ -62,7 +62,7 @@ export function NavbarWithLinksActionsAndCenteredLogo({
   const [menuOpen, setMenuOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const closeMenu = () => setMenuOpen(false);
 
   useEscapeKey(closeMenu, menuOpen);
   useScrollLock(menuOpen);

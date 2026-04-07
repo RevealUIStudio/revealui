@@ -8,10 +8,7 @@ function createContext<ContextValueType extends object | null>(
 
   const Provider = (props: ContextValueType & { children: React.ReactNode }) => {
     const { children, ...context } = props;
-    // Only re-memoize when prop values change
-    // biome-ignore lint/correctness/useExhaustiveDependencies: context is intentionally used as dependency for memoization
-    const value = React.useMemo(() => context, [context]) as ContextValueType;
-    return <Context.Provider value={value}>{children}</Context.Provider>;
+    return <Context.Provider value={context as ContextValueType}>{children}</Context.Provider>;
   };
 
   Provider.displayName = `${rootComponentName}Provider`;
@@ -61,10 +58,7 @@ function createContextScope(scopeName: string, createContextScopeDeps: CreateSco
     ) => {
       const { scope, children, ...context } = props;
       const Context = scope?.[scopeName]?.[index] || BaseContext;
-      // Only re-memoize when prop values change
-      // biome-ignore lint/correctness/useExhaustiveDependencies: context is intentionally used as dependency for memoization
-      const value = React.useMemo(() => context, [context]) as ContextValueType;
-      return <Context.Provider value={value}>{children}</Context.Provider>;
+      return <Context.Provider value={context as ContextValueType}>{children}</Context.Provider>;
     };
 
     Provider.displayName = `${rootComponentName}Provider`;
@@ -91,12 +85,9 @@ function createContextScope(scopeName: string, createContextScopeDeps: CreateSco
     });
     return function useScope(scope: Scope) {
       const contexts = scope?.[scopeName] || scopeContexts;
-      return React.useMemo(
-        () => ({
-          [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } as Scope,
-        }),
-        [scope, contexts],
-      ) as { [__scopeProp: string]: Scope };
+      return {
+        [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } as Scope,
+      } as { [__scopeProp: string]: Scope };
     };
   };
 
@@ -136,10 +127,7 @@ function composeContextScopes(...scopes: CreateScope[]) {
         return { ...nextScopes, ...currentScope };
       }, {});
 
-      return React.useMemo(
-        () => ({ [`__scope${baseScope?.scopeName}`]: nextScopes }),
-        [nextScopes],
-      );
+      return { [`__scope${baseScope?.scopeName}`]: nextScopes };
     };
   };
 

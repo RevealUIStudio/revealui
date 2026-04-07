@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@revealui/presentation/client';
 import { QRCodeSVG } from 'qrcode.react';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 // =============================================================================
 // Types
@@ -114,7 +114,7 @@ function SecuritySettingsContent() {
   // ---------------------------------------------------------------------------
   // Data fetching
   // ---------------------------------------------------------------------------
-  const fetchMFAStatus = useCallback(async () => {
+  const fetchMFAStatus = async () => {
     try {
       const res = await fetch('/api/auth/mfa/status', { credentials: 'include' });
       if (res.ok) {
@@ -124,9 +124,9 @@ function SecuritySettingsContent() {
     } catch {
       // Silently fail — status will show as loading
     }
-  }, []);
+  };
 
-  const fetchPasskeys = useCallback(async () => {
+  const fetchPasskeys = async () => {
     try {
       const res = await fetch('/api/auth/passkey/list', { credentials: 'include' });
       if (res.ok) {
@@ -136,9 +136,9 @@ function SecuritySettingsContent() {
     } catch {
       // Silently fail
     }
-  }, []);
+  };
 
-  const fetchSessions = useCallback(async () => {
+  const fetchSessions = async () => {
     try {
       const res = await fetch('/api/auth/sessions', { credentials: 'include' });
       if (res.ok) {
@@ -151,13 +151,14 @@ function SecuritySettingsContent() {
     } catch {
       // Silently fail — non-critical
     }
-  }, []);
+  };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler memoizes fetch functions
   useEffect(() => {
     void Promise.all([fetchMFAStatus(), fetchPasskeys(), fetchSessions()]).finally(() =>
       setLoading(false),
     );
-  }, [fetchMFAStatus, fetchPasskeys, fetchSessions]);
+  }, []);
 
   async function revokeSession(sessionId: string) {
     setRevokingId(sessionId);

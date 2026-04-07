@@ -42,6 +42,10 @@ vi.mock('@revealui/db/schema', () => ({
     emailVerificationToken: 'emailVerificationToken',
     updatedAt: 'updatedAt',
   },
+  and: vi.fn(),
+  eq: vi.fn(),
+  gt: vi.fn(),
+  isNull: vi.fn(),
 }));
 
 vi.mock('drizzle-orm', () => ({

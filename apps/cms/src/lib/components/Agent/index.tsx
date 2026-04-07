@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -132,109 +132,106 @@ function useAgentStream() {
   const [error, setError] = useState<string | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
 
-  const abort = useCallback(() => {
+  const abort = () => {
     controllerRef.current?.abort();
     setIsStreaming(false);
-  }, []);
+  };
 
-  const reset = useCallback(() => {
+  const reset = () => {
     controllerRef.current?.abort();
     setText('');
     setChunks([]);
     setIsStreaming(false);
     setError(null);
-  }, []);
+  };
 
-  const start = useCallback(
-    async (
-      instruction: string,
-      apiBase: string,
-      options?: { provider?: string; model?: string; mode?: AgentMode },
-    ) => {
-      controllerRef.current?.abort();
-      const controller = new AbortController();
-      controllerRef.current = controller;
+  const start = async (
+    instruction: string,
+    apiBase: string,
+    options?: { provider?: string; model?: string; mode?: AgentMode },
+  ) => {
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
 
-      setText('');
-      setChunks([]);
-      setIsStreaming(true);
-      setError(null);
+    setText('');
+    setChunks([]);
+    setIsStreaming(true);
+    setError(null);
 
-      try {
-        const response = await fetch(`${apiBase}/api/agent-stream`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            instruction,
-            ...(options?.provider ? { provider: options.provider } : {}),
-            ...(options?.model ? { model: options.model } : {}),
-            ...(options?.mode ? { mode: options.mode } : {}),
-          }),
-          signal: controller.signal,
-          credentials: 'include',
-        });
+    try {
+      const response = await fetch(`${apiBase}/api/agent-stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instruction,
+          ...(options?.provider ? { provider: options.provider } : {}),
+          ...(options?.model ? { model: options.model } : {}),
+          ...(options?.mode ? { mode: options.mode } : {}),
+        }),
+        signal: controller.signal,
+        credentials: 'include',
+      });
 
-        if (!response.ok) {
-          setIsStreaming(false);
-          const status = response.status;
-          if (status === 401) {
-            setError('Session expired — please sign in again');
-          } else if (status === 403) {
-            setError('AI features require a Pro subscription');
-          } else if (status === 429) {
-            setError('Rate limit exceeded — please wait a moment');
-          } else if (status === 503) {
-            setError('AI service unavailable — check your inference configuration');
-          } else {
-            setError(`Request failed (${status})`);
-          }
-          return;
-        }
-
-        if (!response.body) {
-          setIsStreaming(false);
-          setError('No response body');
-          return;
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
-
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const events = buffer.split('\n\n');
-          buffer = events.pop() ?? '';
-
-          for (const event of events) {
-            const dataLine = event.split('\n').find((l) => l.startsWith('data: '));
-            if (!dataLine) continue;
-
-            try {
-              const chunk = JSON.parse(dataLine.slice(6)) as AgentStreamChunk;
-              setChunks((prev) => [...prev, chunk]);
-              if (chunk.type === 'text') setText((prev) => prev + (chunk.content ?? ''));
-              if (chunk.type === 'error') setError(chunk.error ?? 'Unknown error');
-              if (chunk.type === 'done' || chunk.type === 'error') setIsStreaming(false);
-            } catch {
-              // Malformed SSE data — skip
-            }
-          }
-        }
-      } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          setIsStreaming(false);
-          return;
-        }
+      if (!response.ok) {
         setIsStreaming(false);
-        setError(err instanceof Error ? err.message : String(err));
+        const status = response.status;
+        if (status === 401) {
+          setError('Session expired — please sign in again');
+        } else if (status === 403) {
+          setError('AI features require a Pro subscription');
+        } else if (status === 429) {
+          setError('Rate limit exceeded — please wait a moment');
+        } else if (status === 503) {
+          setError('AI service unavailable — check your inference configuration');
+        } else {
+          setError(`Request failed (${status})`);
+        }
+        return;
       }
-    },
-    [],
-  );
+
+      if (!response.body) {
+        setIsStreaming(false);
+        setError('No response body');
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split('\n\n');
+        buffer = events.pop() ?? '';
+
+        for (const event of events) {
+          const dataLine = event.split('\n').find((l) => l.startsWith('data: '));
+          if (!dataLine) continue;
+
+          try {
+            const chunk = JSON.parse(dataLine.slice(6)) as AgentStreamChunk;
+            setChunks((prev) => [...prev, chunk]);
+            if (chunk.type === 'text') setText((prev) => prev + (chunk.content ?? ''));
+            if (chunk.type === 'error') setError(chunk.error ?? 'Unknown error');
+            if (chunk.type === 'done' || chunk.type === 'error') setIsStreaming(false);
+          } catch {
+            // Malformed SSE data — skip
+          }
+        }
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        setIsStreaming(false);
+        return;
+      }
+      setIsStreaming(false);
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
 
   return { text, chunks, isStreaming, error, start, abort, reset };
 }
@@ -341,11 +338,11 @@ function ChatMarkdown({ content }: { content: string }) {
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = useCallback(async () => {
+  const handleCopy = async () => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [text]);
+  };
 
   return (
     <button
@@ -535,45 +532,39 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
   }, [conversationId]);
 
   /** Persist a message to the active conversation */
-  const persistMessage = useCallback(
-    async (role: string, content: string) => {
-      if (!activeConversationId) return;
-      try {
-        await fetch(`/api/conversations/${activeConversationId}/messages`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role, content }),
-        });
-      } catch {
-        // Fire-and-forget — don't block the UI
-      }
-    },
-    [activeConversationId],
-  );
+  const persistMessage = async (role: string, content: string) => {
+    if (!activeConversationId) return;
+    try {
+      await fetch(`/api/conversations/${activeConversationId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role, content }),
+      });
+    } catch {
+      // Fire-and-forget — don't block the UI
+    }
+  };
 
   /** Create a new conversation on first message */
-  const ensureConversation = useCallback(
-    async (firstMessage: string): Promise<string | null> => {
-      if (activeConversationId) return activeConversationId;
-      try {
-        const title = firstMessage.slice(0, 60) + (firstMessage.length > 60 ? '...' : '');
-        const res = await fetch('/api/conversations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title }),
-        });
-        if (!res.ok) return null;
-        const data = (await res.json()) as { conversation: { id: string } };
-        const newId = data.conversation.id;
-        setActiveConversationId(newId);
-        onConversationCreated?.(newId, title);
-        return newId;
-      } catch {
-        return null;
-      }
-    },
-    [activeConversationId, onConversationCreated],
-  );
+  const ensureConversation = async (firstMessage: string): Promise<string | null> => {
+    if (activeConversationId) return activeConversationId;
+    try {
+      const title = firstMessage.slice(0, 60) + (firstMessage.length > 60 ? '...' : '');
+      const res = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title }),
+      });
+      if (!res.ok) return null;
+      const data = (await res.json()) as { conversation: { id: string } };
+      const newId = data.conversation.id;
+      setActiveConversationId(newId);
+      onConversationCreated?.(newId, title);
+      return newId;
+    } catch {
+      return null;
+    }
+  };
 
   // Auto-scroll on new content — deps are intentionally broad to trigger on any update
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll must fire on every message/chunk change
@@ -620,6 +611,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
   }, [stream.chunks]);
 
   // When stream finishes, commit the assistant message + persist
+  // biome-ignore lint/correctness/useExhaustiveDependencies: persistMessage is stable via React Compiler
   useEffect(() => {
     if (!stream.isStreaming && stream.text) {
       setMessages((prev) => [
@@ -635,92 +627,86 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       activeToolCalls.current = [];
       stream.reset();
     }
-  }, [stream.isStreaming, stream.text, stream.reset, persistMessage]);
+  }, [stream.isStreaming, stream.text, stream.reset]); // persistMessage stable via React Compiler
 
   /** Send message via /api/chat (CMS tools, confirmation support) */
-  const sendChatMessage = useCallback(
-    async (allMessages: ChatMessage[], confirmedToolCalls?: string[]) => {
-      stream.reset();
-      const chatMessages = allMessages.map(({ role, content }) => ({ role, content }));
+  const sendChatMessage = async (allMessages: ChatMessage[], confirmedToolCalls?: string[]) => {
+    stream.reset();
+    const chatMessages = allMessages.map(({ role, content }) => ({ role, content }));
 
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: chatMessages,
-            ...(confirmedToolCalls ? { confirmedToolCalls } : {}),
-          }),
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`Chat failed: ${res.status} ${text}`);
-        }
-
-        const data = await res.json();
-
-        // Handle confirmation_required response
-        if (data.type === 'confirmation_required') {
-          setPendingConfirmation({
-            toolCallId: data.toolCallId,
-            toolName: data.toolName,
-            arguments: data.arguments,
-            description: data.description,
-            pendingMessages: data.pendingMessages ?? [],
-          });
-          return;
-        }
-
-        // Normal response
-        setMessages((prev) => [
-          ...prev,
-          { id: nextId(), role: 'assistant', content: data.content ?? '' },
-        ]);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: nextId(),
-            role: 'assistant',
-            content: `Error: ${msg}. Contact support@revealui.com if this persists.`,
-          },
-        ]);
-      }
-    },
-    [stream],
-  );
-
-  const handleSubmit = useCallback(
-    async (e?: React.FormEvent) => {
-      e?.preventDefault();
-      const content = input.trim();
-      if (!content || stream.isStreaming || isConfirming) return;
-
-      setMessages((prev) => [...prev, { id: nextId(), role: 'user', content }]);
-      lastFailedInput.current = content;
-      setInput('');
-      // Reset textarea height
-      if (textareaRef.current) textareaRef.current.style.height = 'auto';
-      setPendingConfirmation(null);
-      activeToolCalls.current = [];
-
-      // Ensure conversation exists (creates on first message)
-      await ensureConversation(content);
-      persistMessage('user', content);
-
-      // Use streaming endpoint with selected model and mode
-      const opt = MODEL_OPTIONS.find((m) => m.id === selectedModel);
-      stream.start(content, API_URL, {
-        ...(opt?.provider ? { provider: opt.provider, model: opt.model } : {}),
-        mode: agentMode,
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: chatMessages,
+          ...(confirmedToolCalls ? { confirmedToolCalls } : {}),
+        }),
       });
-    },
-    [input, stream, isConfirming, ensureConversation, persistMessage, selectedModel, agentMode],
-  );
 
-  const handleConfirmApprove = useCallback(async () => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Chat failed: ${res.status} ${text}`);
+      }
+
+      const data = await res.json();
+
+      // Handle confirmation_required response
+      if (data.type === 'confirmation_required') {
+        setPendingConfirmation({
+          toolCallId: data.toolCallId,
+          toolName: data.toolName,
+          arguments: data.arguments,
+          description: data.description,
+          pendingMessages: data.pendingMessages ?? [],
+        });
+        return;
+      }
+
+      // Normal response
+      setMessages((prev) => [
+        ...prev,
+        { id: nextId(), role: 'assistant', content: data.content ?? '' },
+      ]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: nextId(),
+          role: 'assistant',
+          content: `Error: ${msg}. Contact support@revealui.com if this persists.`,
+        },
+      ]);
+    }
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const content = input.trim();
+    if (!content || stream.isStreaming || isConfirming) return;
+
+    setMessages((prev) => [...prev, { id: nextId(), role: 'user', content }]);
+    lastFailedInput.current = content;
+    setInput('');
+    // Reset textarea height
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
+    setPendingConfirmation(null);
+    activeToolCalls.current = [];
+
+    // Ensure conversation exists (creates on first message)
+    await ensureConversation(content);
+    persistMessage('user', content);
+
+    // Use streaming endpoint with selected model and mode
+    const opt = MODEL_OPTIONS.find((m) => m.id === selectedModel);
+    stream.start(content, API_URL, {
+      ...(opt?.provider ? { provider: opt.provider, model: opt.model } : {}),
+      mode: agentMode,
+    });
+  };
+
+  const handleConfirmApprove = async () => {
     if (!pendingConfirmation) return;
     setIsConfirming(true);
 
@@ -729,9 +715,9 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
 
     setPendingConfirmation(null);
     setIsConfirming(false);
-  }, [pendingConfirmation, messages, sendChatMessage]);
+  };
 
-  const handleConfirmReject = useCallback(() => {
+  const handleConfirmReject = () => {
     if (!pendingConfirmation) return;
 
     setMessages((prev) => [
@@ -743,42 +729,39 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       },
     ]);
     setPendingConfirmation(null);
-  }, [pendingConfirmation]);
+  };
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSubmit();
-      }
-      if (e.key === 'Escape' && stream.isStreaming) {
-        e.preventDefault();
-        stream.abort();
-      }
-    },
-    [handleSubmit, stream],
-  );
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+    if (e.key === 'Escape' && stream.isStreaming) {
+      e.preventDefault();
+      stream.abort();
+    }
+  };
 
   // Auto-resize textarea
-  const handleTextareaChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value);
     const el = e.target;
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-  }, []);
+  };
 
-  const handleRetry = useCallback(() => {
+  const handleRetry = () => {
     if (!lastFailedInput.current) return;
     setInput(lastFailedInput.current);
     lastFailedInput.current = null;
     textareaRef.current?.focus();
-  }, []);
+  };
 
-  const handleSuggestedPrompt = useCallback((prompt: string) => {
+  const handleSuggestedPrompt = (prompt: string) => {
     setInput(prompt);
     // Focus the textarea so user can edit or just hit enter
     textareaRef.current?.focus();
-  }, []);
+  };
 
   return (
     <div className="flex h-full flex-col">

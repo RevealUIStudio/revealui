@@ -1,10 +1,8 @@
 import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { getContentApiUrl } from '@/lib/config/api';
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.REVEALUI_PUBLIC_SERVER_URL ||
-  'http://localhost:3004';
+const API_URL = getContentApiUrl();
 
 interface RouteParams {
   params: Promise<{ collection: string; id: string }>;

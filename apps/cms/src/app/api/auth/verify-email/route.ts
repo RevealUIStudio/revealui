@@ -13,8 +13,7 @@ import { createHash } from 'node:crypto';
 import { checkRateLimit } from '@revealui/auth/server';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
-import { and, eq, gt, isNull, or } from 'drizzle-orm';
+import { and, eq, gt, isNull, or, users } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';

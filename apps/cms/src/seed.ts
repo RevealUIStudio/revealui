@@ -18,8 +18,7 @@
 import config from '@reveal-config';
 import { getRevealUI } from '@revealui/core';
 import { getClient } from '@revealui/db';
-import { sites, users } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sites, users } from '@revealui/db/schema';
 
 const logger = {
   header: (msg: string) =>

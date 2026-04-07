@@ -7,7 +7,7 @@
  * Activates MFA on the account upon success.
  */
 
-import { getSession, verifyMFASetup } from '@revealui/auth/server';
+import { auditMfaEnabled, getSession, verifyMFASetup } from '@revealui/auth/server';
 import { MFAVerifyRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -70,6 +70,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    void auditMfaEnabled(
+      session.user.id,
+      request.headers.get('x-real-ip') ??
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        '',
+    );
     return NextResponse.json({ success: true });
   } catch (error) {
     logger.error('Error verifying MFA setup', { error });

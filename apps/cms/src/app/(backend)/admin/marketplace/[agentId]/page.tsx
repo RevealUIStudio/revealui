@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { getApiUrl } from '@/lib/config/api';
 
 // =============================================================================
 // Types
@@ -58,7 +59,7 @@ export default function MarketplaceAgentDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<ActiveTab>('skills');
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   useEffect(() => {
     if (!params.agentId) return;

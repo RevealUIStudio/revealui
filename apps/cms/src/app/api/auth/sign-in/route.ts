@@ -6,7 +6,12 @@
  * Authenticates a user with email and password.
  */
 
-import { signCookiePayload, signIn } from '@revealui/auth/server';
+import {
+  auditLoginFailure,
+  auditLoginSuccess,
+  signCookiePayload,
+  signIn,
+} from '@revealui/auth/server';
 import { SignInRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -75,6 +80,12 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
         unexpected_error: 500,
       };
       const status = statusMap[result.reason] ?? 401;
+      void auditLoginFailure(
+        sanitizedEmail,
+        ipAddress ?? '',
+        userAgent ?? '',
+        result.reason ?? 'unknown',
+      );
       return createApplicationErrorResponse(result.error, result.reason.toUpperCase(), status);
     }
 
@@ -143,6 +154,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
           : undefined,
     });
 
+    void auditLoginSuccess(result.user.id, ipAddress ?? '', userAgent ?? '');
     return response;
   } catch (error) {
     logger.error('Error signing in', { error });

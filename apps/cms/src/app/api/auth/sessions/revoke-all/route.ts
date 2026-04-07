@@ -7,7 +7,7 @@
  * Returns the count of revoked sessions.
  */
 
-import { deleteOtherUserSessions, getSession } from '@revealui/auth/server';
+import { auditSessionRevoked, deleteOtherUserSessions, getSession } from '@revealui/auth/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
@@ -25,6 +25,13 @@ async function revokeAllHandler(request: NextRequest): Promise<NextResponse> {
 
     const revoked = await deleteOtherUserSessions(sessionData.user.id, sessionData.session.id);
 
+    void auditSessionRevoked(
+      sessionData.user.id,
+      'bulk-revoke',
+      request.headers.get('x-real-ip') ??
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        '',
+    );
     return NextResponse.json({ success: true, revoked });
   } catch (error) {
     return createErrorResponse(error, {

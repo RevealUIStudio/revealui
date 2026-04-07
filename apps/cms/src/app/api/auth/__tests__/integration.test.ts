@@ -48,6 +48,13 @@ vi.mock('@revealui/auth/server', () => ({
   verifyMagicLink: vi.fn(),
   checkRateLimit: vi.fn(),
   isRecoverySession: vi.fn().mockReturnValue(false),
+  auditLoginSuccess: vi.fn(),
+  auditLoginFailure: vi.fn(),
+  auditMfaEnabled: vi.fn(),
+  auditMfaDisabled: vi.fn(),
+  auditPasswordChange: vi.fn(),
+  auditPasswordReset: vi.fn(),
+  auditSessionRevoked: vi.fn(),
 }));
 
 vi.mock('@revealui/core/utils/logger', () => ({
@@ -127,6 +134,15 @@ vi.mock('@revealui/db/schema', () => ({
     counter: 'counter',
     transports: 'transports',
   },
+  eq: vi.fn((_col: unknown, _val: unknown) => ({ type: 'eq' })),
+  and: vi.fn((..._args: unknown[]) => ({ type: 'and' })),
+  isNull: vi.fn((_col: unknown) => ({ type: 'isNull' })),
+  count: vi.fn(() => ({ type: 'count' })),
+  sql: (() => {
+    const sqlFn = () => ({ sql: 'mock' });
+    sqlFn.raw = vi.fn();
+    return sqlFn;
+  })(),
 }));
 
 // ---------------------------------------------------------------------------

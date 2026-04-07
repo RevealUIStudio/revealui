@@ -7,8 +7,7 @@
  * Deletes rate_limits rows whose reset window has passed.
  */
 import { getClient } from '@revealui/db';
-import { rateLimits } from '@revealui/db/schema';
-import { lt } from 'drizzle-orm';
+import { lt, rateLimits } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyCronAuth } from '@/lib/utils/cron-auth';
 

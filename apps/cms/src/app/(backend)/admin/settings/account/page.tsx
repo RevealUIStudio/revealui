@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@revealui/presentation/client';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { PasswordChangeForm } from './PasswordChangeForm';
 
 // =============================================================================
@@ -128,7 +128,7 @@ function AccountSettingsContent() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const fetchUser = useCallback(async () => {
+  const fetchUser = async () => {
     try {
       const res = await fetch('/api/auth/me');
       if (!res.ok) return;
@@ -137,13 +137,15 @@ function AccountSettingsContent() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler memoizes fetchUser
   useEffect(() => {
     void fetchUser();
-  }, [fetchUser]);
+  }, []);
 
   // Handle redirect params from OAuth linking callback
+  // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler memoizes fetchUser
   useEffect(() => {
     const linked = searchParams.get('linked');
     const errorParam = searchParams.get('error');
@@ -160,7 +162,7 @@ function AccountSettingsContent() {
       setError(decodeURIComponent(errorParam));
       window.history.replaceState(null, '', '/admin/settings/account');
     }
-  }, [searchParams, fetchUser]);
+  }, [searchParams]);
 
   // Auto-dismiss messages
   useEffect(() => {
@@ -226,11 +228,11 @@ function AccountSettingsContent() {
   // Password change state
   const [showPasswordForm, setShowPasswordForm] = useState(false);
 
-  const handlePasswordSuccess = useCallback(() => {
+  const handlePasswordSuccess = () => {
     setShowPasswordForm(false);
     setSuccess('Password updated successfully.');
     void fetchUser();
-  }, [fetchUser]);
+  };
 
   const linkedSet = new Set(user?.linkedProviders.map((lp) => lp.provider) ?? []);
   const pendingLabel =

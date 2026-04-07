@@ -15,6 +15,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@revealui/auth/server', () => ({
   generatePasswordResetToken: vi.fn(),
   resetPasswordWithToken: vi.fn(),
+  auditPasswordReset: vi.fn(),
 }));
 
 vi.mock('@revealui/contracts', () => ({

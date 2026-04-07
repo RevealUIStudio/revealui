@@ -31,12 +31,9 @@ vi.mock('@revealui/auth/server', () => ({
   verifyAuthentication: vi.fn(),
   checkRateLimit: vi.fn(),
   isRecoverySession: vi.fn().mockReturnValue(false),
-}));
-
-// Mock drizzle-orm operators (needed for passkey DB lookup in mfa/disable)
-vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col: unknown, _val: unknown) => ({ type: 'eq' })),
-  and: vi.fn((..._args: unknown[]) => ({ type: 'and' })),
+  auditMfaEnabled: vi.fn(),
+  auditMfaDisabled: vi.fn(),
+  auditLoginSuccess: vi.fn(),
 }));
 
 // biome-ignore lint/suspicious/noExplicitAny: test mock needs flexible return types
@@ -67,6 +64,8 @@ vi.mock('@revealui/db/schema', () => ({
     counter: 'counter',
     transports: 'transports',
   },
+  eq: vi.fn((_col: unknown, _val: unknown) => ({ type: 'eq' })),
+  and: vi.fn((..._args: unknown[]) => ({ type: 'and' })),
 }));
 
 // Mock the logger

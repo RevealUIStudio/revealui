@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { getApiUrl } from '@/lib/config/api';
 
 // =============================================================================
 // Types
@@ -53,7 +54,7 @@ export default function TaskDashboardPage() {
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   useEffect(() => {
     // Fetch all tasks for the current user

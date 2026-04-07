@@ -9,7 +9,7 @@
  */
 
 import { getClient } from '@revealui/db/client';
-import { sql } from 'drizzle-orm';
+import { sql } from '@revealui/db/schema';
 
 /**
  * Generates a PostgreSQL transaction ID for the current transaction.

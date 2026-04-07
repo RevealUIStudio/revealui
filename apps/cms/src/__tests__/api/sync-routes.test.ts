@@ -42,6 +42,7 @@ vi.mock('@revealui/db/schema', () => ({
   conversations: {},
   sites: { id: 'sites.id', ownerId: 'sites.ownerId' },
   eq: vi.fn((_col: unknown, _val: unknown) => 'eq'),
+  and: vi.fn((..._args: unknown[]) => 'and'),
 }));
 
 // ---------------------------------------------------------------------------

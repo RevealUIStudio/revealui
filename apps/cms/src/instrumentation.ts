@@ -7,6 +7,8 @@
  * may load it in different runtime contexts during build.
  */
 
+import { getApiUrl } from '@/lib/config/api';
+
 export async function register() {
   // Only run in the Node.js runtime — Edge loads this file during build analysis.
   if ('EdgeRuntime' in globalThis) {
@@ -62,7 +64,7 @@ export async function register() {
       // Wire log transport — POST warn+ entries to API (avoids Edge bundling issues).
       // Next.js statically traces ALL imports in instrumentation.ts (even dynamic ones),
       // so we use fetch() instead of importing @revealui/db directly.
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
+      const apiUrl = getApiUrl();
 
       // Circuit breaker: back off on consecutive failures
       let telemetryFailures = 0;

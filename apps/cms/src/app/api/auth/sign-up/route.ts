@@ -6,13 +6,12 @@
  * Creates a new user account.
  */
 
-import { isSignupAllowed, signUp } from '@revealui/auth/server';
+import { auditLoginSuccess, isSignupAllowed, signUp } from '@revealui/auth/server';
 import { SignUpRequestContract } from '@revealui/contracts';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
-import { count, eq, sql } from 'drizzle-orm';
+import { count, eq, sql, users } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import { sendVerificationEmail } from '@/lib/email/verification';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
@@ -247,6 +246,8 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
               })()
             : undefined,
       });
+
+      void auditLoginSuccess(resolvedUser?.id ?? '', ipAddress ?? '', userAgent ?? '');
     }
 
     return response;

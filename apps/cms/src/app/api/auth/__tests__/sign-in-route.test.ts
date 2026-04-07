@@ -14,6 +14,8 @@ const mockValidate = vi.fn();
 vi.mock('@revealui/auth/server', () => ({
   signIn: (...args: unknown[]) => mockSignIn(...args),
   signCookiePayload: (...args: unknown[]) => mockSignCookiePayload(...args),
+  auditLoginSuccess: vi.fn(),
+  auditLoginFailure: vi.fn(),
 }));
 
 vi.mock('@revealui/contracts', () => ({

@@ -38,6 +38,9 @@ vi.mock('@revealui/db/schema', () => ({
   rateLimits: {},
   magicLinks: {},
   passwordResetTokens: {},
+  lt: vi.fn((_col: unknown, _val: unknown) => 'lt-condition'),
+  isNotNull: vi.fn((_col: unknown) => 'is-not-null-condition'),
+  or: vi.fn((..._args: unknown[]) => 'or-condition'),
 }));
 
 // ---------------------------------------------------------------------------

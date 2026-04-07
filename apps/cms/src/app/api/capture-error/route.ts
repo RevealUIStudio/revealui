@@ -7,13 +7,14 @@
  */
 
 import { NextResponse } from 'next/server';
+import { getApiUrl } from '@/lib/config/api';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 async function captureErrorHandler(request: Request): Promise<NextResponse> {
   const secret = process.env.REVEALUI_SECRET;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
+  const apiUrl = getApiUrl();
 
   if (!secret) {
     // No secret configured — silently accept to avoid breaking the error UI

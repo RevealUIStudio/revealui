@@ -9,6 +9,7 @@ import {
 import type { FeatureFlags } from '@revealui/core/features';
 import { PricingTable } from '@revealui/presentation/client';
 import { useState } from 'react';
+import { getApiUrl } from '@/lib/config/api';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
@@ -19,7 +20,7 @@ export default function UpgradePage() {
   const handleSelectTier = async (tierId: string) => {
     setError(null);
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+      const apiUrl = getApiUrl();
 
       // Verify session before initiating checkout — redirect to login if expired
       const meRes = await fetch('/api/auth/me', { credentials: 'include' });

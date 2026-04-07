@@ -2,6 +2,7 @@
 
 import type { A2ATask } from '@revealui/contracts';
 import { useState } from 'react';
+import { getApiUrl } from '@/lib/config/api';
 
 interface TaskTesterProps {
   agentId: string;
@@ -21,7 +22,7 @@ export function TaskTester({ agentId, agentName, onComplete }: TaskTesterProps) 
   const [task, setTask] = useState<A2ATask | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   async function submit() {
     if (!instruction.trim()) return;

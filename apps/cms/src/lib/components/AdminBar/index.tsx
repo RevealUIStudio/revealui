@@ -92,9 +92,9 @@ export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
 
   const router = useRouter();
 
-  const onAuthChange = React.useCallback((user: RevealUIMeUser) => {
+  const onAuthChange = (user: RevealUIMeUser) => {
     setShow(Boolean(user?.id));
-  }, []);
+  };
 
   function cn(
     baseClasses: string,

@@ -7,7 +7,12 @@
  * Optionally revokes all other active sessions for security.
  */
 
-import { changePassword, getSession, validatePasswordStrength } from '@revealui/auth/server';
+import {
+  auditPasswordChange,
+  changePassword,
+  getSession,
+  validatePasswordStrength,
+} from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -107,6 +112,12 @@ async function handler(request: NextRequest): Promise<NextResponse> {
       revokedOtherSessions: revokeOtherSessions,
     });
 
+    void auditPasswordChange(
+      sessionData.user.id,
+      request.headers.get('x-real-ip') ??
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        '',
+    );
     return NextResponse.json({ message: 'Password updated successfully.' });
   } catch (error) {
     logger.error(

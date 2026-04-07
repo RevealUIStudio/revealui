@@ -7,8 +7,7 @@
  * Deletes password_reset_tokens rows past their expiresAt timestamp.
  */
 import { getClient } from '@revealui/db';
-import { passwordResetTokens } from '@revealui/db/schema';
-import { lt } from 'drizzle-orm';
+import { lt, passwordResetTokens } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyCronAuth } from '@/lib/utils/cron-auth';
 

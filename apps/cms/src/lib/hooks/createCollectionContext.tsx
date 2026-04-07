@@ -128,7 +128,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
       scope as Scope<ContextValue | undefined>,
     );
 
-    const getItems = React.useCallback(() => {
+    const getItems = () => {
       const collectionNode = context.collectionRef.current;
       if (!collectionNode) return [];
       const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ItemDataAttr}]`));
@@ -142,7 +142,7 @@ function createCollection<ItemElement extends HTMLElement, ItemData = Record<str
         return orderedNodes.indexOf(aRef) - orderedNodes.indexOf(bRef);
       });
       return orderedItems;
-    }, [context.collectionRef, context.itemMap]);
+    };
 
     return getItems;
   }

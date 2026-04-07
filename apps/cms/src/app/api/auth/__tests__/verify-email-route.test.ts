@@ -32,6 +32,11 @@ vi.mock('@revealui/db/schema', () => ({
     updatedAt: 'updatedAt',
     status: 'status',
   },
+  eq: vi.fn(),
+  and: vi.fn(),
+  or: vi.fn(),
+  gt: vi.fn(),
+  isNull: vi.fn(),
 }));
 
 vi.mock('drizzle-orm', () => ({

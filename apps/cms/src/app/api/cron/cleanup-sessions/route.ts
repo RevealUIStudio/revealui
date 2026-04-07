@@ -9,8 +9,7 @@
  * - Sessions that have been soft-deleted (deletedAt IS NOT NULL)
  */
 import { getClient } from '@revealui/db';
-import { sessions } from '@revealui/db/schema';
-import { isNotNull, lt, or } from 'drizzle-orm';
+import { isNotNull, lt, or, sessions } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyCronAuth } from '@/lib/utils/cron-auth';
 

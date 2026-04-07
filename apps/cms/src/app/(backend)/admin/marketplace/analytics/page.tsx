@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { getApiUrl } from '@/lib/config/api';
 
 // =============================================================================
 // Types
@@ -30,7 +31,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   useEffect(() => {
     fetch(`${apiUrl}/api/revmarket/agents?mine=true`, { credentials: 'include' })

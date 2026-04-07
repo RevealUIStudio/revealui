@@ -9,7 +9,11 @@
  * Resets password using a reset token.
  */
 
-import { generatePasswordResetToken, resetPasswordWithToken } from '@revealui/auth/server';
+import {
+  auditPasswordReset,
+  generatePasswordResetToken,
+  resetPasswordWithToken,
+} from '@revealui/auth/server';
 import { PasswordResetRequestContract, PasswordResetTokenContract } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -87,6 +91,12 @@ async function passwordResetRequestHandler(request: NextRequest): Promise<NextRe
     }
 
     // Always return success message (don't reveal if user exists)
+    void auditPasswordReset(
+      sanitizedEmail,
+      request.headers.get('x-real-ip') ??
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        '',
+    );
     return NextResponse.json({
       message: 'If an account exists with this email, a password reset link has been sent.',
     });

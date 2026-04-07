@@ -44,6 +44,8 @@ vi.mock('@revealui/auth/server', () => ({
   signIn: vi.fn(),
   signUp: vi.fn(),
   isSignupAllowed: vi.fn().mockReturnValue(true),
+  auditLoginSuccess: vi.fn(),
+  auditLoginFailure: vi.fn(),
 }));
 
 vi.mock('@revealui/core/utils/logger', () => ({
@@ -87,6 +89,13 @@ vi.mock('@revealui/db', () => ({
 
 vi.mock('@revealui/db/schema', () => ({
   users: { id: 'id', email: 'email', status: 'status' },
+  eq: vi.fn(),
+  count: vi.fn(),
+  sql: (() => {
+    const sqlFn = () => ({ sql: 'mock' });
+    sqlFn.raw = vi.fn();
+    return sqlFn;
+  })(),
 }));
 
 vi.mock('drizzle-orm', () => {

@@ -56,6 +56,7 @@ vi.mock('@revealui/db/schema', () => ({
     id: 'id',
     email: 'email',
   },
+  eq: vi.fn((_col: unknown, val: unknown) => ({ eq: val })),
 }));
 
 vi.mock('drizzle-orm', () => ({

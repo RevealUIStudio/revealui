@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { AgentCard } from '@/lib/components/agents/agent-card';
 import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { getApiUrl } from '@/lib/config/api';
 
 type Tab = 'agents' | 'mcp';
 
@@ -64,7 +65,7 @@ function AgentCardsPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   useEffect(() => {
     fetch(`${apiUrl}/a2a/agents`, { credentials: 'include' })

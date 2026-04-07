@@ -53,6 +53,8 @@ vi.mock('@revealui/db/schema', () => ({
     updatedAt: 'updatedAt',
     lastUsedAt: 'lastUsedAt',
   },
+  eq: vi.fn(),
+  and: vi.fn(),
 }));
 
 vi.mock('@revealui/db/crypto', () => ({

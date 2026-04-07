@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getApiUrl } from '@/lib/config/api';
 
 interface AgentActionRow {
   id: string;
@@ -28,7 +29,7 @@ export function TaskHistory({ agentId, refreshKey }: TaskHistoryProps) {
   const [rows, setRows] = useState<AgentActionRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is an intentional re-fetch trigger passed from parent
   useEffect(() => {

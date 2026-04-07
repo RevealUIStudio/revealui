@@ -10,8 +10,7 @@
 import { getSession } from '@revealui/auth/server';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { conversations } from '@revealui/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, conversations, eq } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import {
   createApplicationErrorResponse,

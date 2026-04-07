@@ -8,7 +8,12 @@
  * On success, creates a full session and sets the `revealui-session` cookie.
  */
 
-import { rotateSession, verifyCookiePayload, verifyMFACode } from '@revealui/auth/server';
+import {
+  auditLoginSuccess,
+  rotateSession,
+  verifyCookiePayload,
+  verifyMFACode,
+} from '@revealui/auth/server';
 import { MFAVerifyRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -128,6 +133,7 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
       maxAge: 0,
     });
 
+    void auditLoginSuccess(payload.userId, ipAddress ?? '', userAgent ?? '');
     return response;
   } catch (error) {
     logger.error('Error verifying MFA code', { error });

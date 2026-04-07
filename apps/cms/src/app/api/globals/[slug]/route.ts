@@ -1,9 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { getContentApiUrl } from '@/lib/config/api';
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.REVEALUI_PUBLIC_SERVER_URL ||
-  'http://localhost:3004';
+const API_URL = getContentApiUrl();
 
 /** Map status codes to safe client-facing messages (never leak internal errors). */
 function sanitizeErrorResponse(status: number): string {

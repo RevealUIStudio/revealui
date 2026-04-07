@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import type { RefObject } from 'react';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 type UseClickableCardType<T extends HTMLElement> = {
   card: {
@@ -31,7 +31,7 @@ function useClickableCard<T extends HTMLElement>({
   const hasActiveParent = useRef<boolean>(false);
   const pressedButton = useRef<number>(0);
 
-  const handleMouseDown = useCallback((e: MouseEvent) => {
+  const handleMouseDown = (e: MouseEvent) => {
     if (e.target) {
       const target = e.target as Element;
 
@@ -47,29 +47,27 @@ function useClickableCard<T extends HTMLElement>({
         hasActiveParent.current = true;
       }
     }
-  }, []);
+  };
 
-  const handleMouseUp = useCallback(
-    (e: MouseEvent) => {
-      if (link.current?.href) {
-        const timeNow = Date.now();
-        const difference = timeNow - timeDown.current;
+  const handleMouseUp = (e: MouseEvent) => {
+    if (link.current?.href) {
+      const timeNow = Date.now();
+      const difference = timeNow - timeDown.current;
 
-        if (link.current?.href && difference <= 250) {
-          if (!hasActiveParent.current && pressedButton.current === 0 && !e.ctrlKey) {
-            if (external) {
-              const target = newTab ? '_blank' : '_self';
-              window.open(link.current.href, target);
-            } else {
-              router.push(link.current.href, { scroll });
-            }
+      if (link.current?.href && difference <= 250) {
+        if (!hasActiveParent.current && pressedButton.current === 0 && !e.ctrlKey) {
+          if (external) {
+            const target = newTab ? '_blank' : '_self';
+            window.open(link.current.href, target);
+          } else {
+            router.push(link.current.href, { scroll });
           }
         }
       }
-    },
-    [router, external, newTab, scroll],
-  );
+    }
+  };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler memoizes handlers
   useEffect(() => {
     const cardNode = card.current;
 
@@ -86,7 +84,7 @@ function useClickableCard<T extends HTMLElement>({
         }
       }
     };
-  }, [handleMouseDown, handleMouseUp]);
+  }, []);
 
   return {
     card: {

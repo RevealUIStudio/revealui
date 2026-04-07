@@ -5,7 +5,7 @@ import { logger } from '@revealui/core/utils/logger';
 import { ButtonCVA as Button } from '@revealui/presentation/server';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
-import { memo, useCallback, useState } from 'react';
+import { memo, useState } from 'react';
 import type { FieldErrors, FieldValues, UseFormRegister } from 'react-hook-form';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
@@ -105,104 +105,101 @@ export const FormBlock = memo(({ enableIntro, form, introContent }: Props) => {
   const [error, setError] = useState<{ message: string; status?: string } | undefined>();
   const router = useRouter();
 
-  const onSubmit = useCallback(
-    async (data: FormData) => {
-      let loadingTimerID: ReturnType<typeof setTimeout>;
+  const onSubmit = async (data: FormData) => {
+    let loadingTimerID: ReturnType<typeof setTimeout>;
 
-      const submitForm = async () => {
-        setError(undefined);
+    const submitForm = async () => {
+      setError(undefined);
 
-        // Validate form data structure using FormBlockSchema before submission
-        try {
-          const formBlockData = {
-            type: 'form' as const,
-            data: {
-              fields: form.fields || [],
-            },
-          };
-          FormBlockSchema.parse(formBlockData);
-        } catch (validationError) {
-          setError({
-            message: 'Form validation failed. Please check your form configuration.',
-            status: '400',
-          });
-          if (process.env.NODE_ENV === 'development') {
-            logger.error('Form validation error', { validationError });
-          }
-          return;
+      // Validate form data structure using FormBlockSchema before submission
+      try {
+        const formBlockData = {
+          type: 'form' as const,
+          data: {
+            fields: form.fields || [],
+          },
+        };
+        FormBlockSchema.parse(formBlockData);
+      } catch (validationError) {
+        setError({
+          message: 'Form validation failed. Please check your form configuration.',
+          status: '400',
+        });
+        if (process.env.NODE_ENV === 'development') {
+          logger.error('Form validation error', { validationError });
         }
+        return;
+      }
 
-        const dataToSend = Object.entries(data).map(([name, value]) => ({
-          field: name,
-          value,
-        }));
+      const dataToSend = Object.entries(data).map(([name, value]) => ({
+        field: name,
+        value,
+      }));
 
-        // Validate submission data structure
-        if (!(formID && dataToSend.length)) {
-          setError({ message: 'Invalid form data' });
-          return;
-        }
+      // Validate submission data structure
+      if (!(formID && dataToSend.length)) {
+        setError({ message: 'Invalid form data' });
+        return;
+      }
 
-        // Delay loading indicator by 1 second
-        loadingTimerID = setTimeout(() => {
-          setIsLoading(true);
-        }, 1000);
+      // Delay loading indicator by 1 second
+      loadingTimerID = setTimeout(() => {
+        setIsLoading(true);
+      }, 1000);
 
-        try {
-          const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/form-submissions`, {
-            body: JSON.stringify({
-              form: formID,
-              submissionData: dataToSend,
-            }),
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            method: 'POST',
-          });
+      try {
+        const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/form-submissions`, {
+          body: JSON.stringify({
+            form: formID,
+            submissionData: dataToSend,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          method: 'POST',
+        });
 
-          const res = await req.json();
-          clearTimeout(loadingTimerID);
+        const res = await req.json();
+        clearTimeout(loadingTimerID);
 
-          if (req.status >= 400) {
-            setIsLoading(false);
-            setError({
-              message: res.errors?.[0]?.message || 'Internal Server Error',
-              status: res.status,
-            });
-            return;
-          }
-
+        if (req.status >= 400) {
           setIsLoading(false);
-          setHasSubmitted(true);
+          setError({
+            message: res.errors?.[0]?.message || 'Internal Server Error',
+            status: res.status,
+          });
+          return;
+        }
 
-          if (confirmationType === 'redirect' && redirect) {
-            const { url } = redirect;
-            if (url) {
-              try {
-                const parsed = new URL(url, window.location.origin);
-                if (parsed.origin !== window.location.origin) {
-                  return;
-                }
-                router.push(parsed.pathname + parsed.search);
-              } catch {
-                // Relative path — safe to push directly
-                router.push(url);
+        setIsLoading(false);
+        setHasSubmitted(true);
+
+        if (confirmationType === 'redirect' && redirect) {
+          const { url } = redirect;
+          if (url) {
+            try {
+              const parsed = new URL(url, window.location.origin);
+              if (parsed.origin !== window.location.origin) {
+                return;
               }
+              router.push(parsed.pathname + parsed.search);
+            } catch {
+              // Relative path — safe to push directly
+              router.push(url);
             }
           }
-        } catch (_err) {
-          setIsLoading(false);
-          setError({
-            message:
-              'Unable to submit form. Please try again or contact support if the problem persists.',
-          });
         }
-      };
+      } catch (_err) {
+        setIsLoading(false);
+        setError({
+          message:
+            'Unable to submit form. Please try again or contact support if the problem persists.',
+        });
+      }
+    };
 
-      await submitForm();
-    },
-    [router, formID, redirect, confirmationType, form.fields],
-  );
+    await submitForm();
+  };
 
   return (
     <ErrorBoundary

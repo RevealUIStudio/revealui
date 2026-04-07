@@ -19,6 +19,8 @@ vi.mock('@revealui/auth/server', () => ({
   deleteOtherUserSessions: vi.fn(),
   meetsMinimumPasswordRequirements: vi.fn(),
   validatePasswordStrength: vi.fn(() => ({ valid: true, errors: [] })),
+  auditPasswordChange: vi.fn(),
+  auditSessionRevoked: vi.fn(),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -53,6 +55,10 @@ vi.mock('@revealui/db/schema', () => ({
     expiresAt: 'expiresAt',
     deletedAt: 'deletedAt',
   },
+  and: vi.fn((...args: unknown[]) => ({ _op: 'and', args })),
+  eq: vi.fn((col: unknown, val: unknown) => ({ _op: 'eq', col, val })),
+  gt: vi.fn((col: unknown, val: unknown) => ({ _op: 'gt', col, val })),
+  isNull: vi.fn((col: unknown) => ({ _op: 'isNull', col })),
 }));
 
 // ── Drizzle client mock ───────────────────────────────────────────────────────

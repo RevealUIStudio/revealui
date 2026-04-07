@@ -2,6 +2,7 @@
 
 import { useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { getApiUrl } from '@/lib/config/api';
 
 const MS_PER_HOUR = 60 * 60 * 1000;
 const FILTER_24H_MS = 24 * MS_PER_HOUR;
@@ -89,7 +90,7 @@ function AgentTasksDashboard() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { tasks, loading, error, statusFilter, dateFilter, expandedId } = state;
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   useEffect(() => {
     let cancelled = false;

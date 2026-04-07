@@ -2,7 +2,7 @@
 import type { TextField } from '@revealui/core';
 import { Button, FieldLabel, TextInput, useField, useFormFields } from '@revealui/core/ui';
 import type React from 'react';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { formatSlug } from './formatSlugHook';
 
 // Type for text field client props
@@ -52,14 +52,11 @@ export const SlugComponent = ({
     }
   }, [fieldToUseValue, checkboxValue, setValue, value]);
 
-  const handleLock = useCallback(
-    (e?: React.MouseEvent<HTMLButtonElement>) => {
-      e?.preventDefault();
+  const handleLock = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
 
-      setCheckboxValue(!checkboxValue);
-    },
-    [checkboxValue, setCheckboxValue],
-  );
+    setCheckboxValue(!checkboxValue);
+  };
 
   const readOnly = readOnlyFromProps || checkboxValue;
 

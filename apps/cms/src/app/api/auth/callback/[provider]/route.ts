@@ -20,8 +20,7 @@ import {
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { oauthAccounts, users } from '@revealui/db/schema';
-import { and, count, eq, isNull } from 'drizzle-orm';
+import { and, count, eq, isNull, oauthAccounts, users } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';

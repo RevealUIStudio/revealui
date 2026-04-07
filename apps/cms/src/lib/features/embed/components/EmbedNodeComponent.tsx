@@ -1,7 +1,6 @@
 import { useLexicalComposerContext } from '@revealui/core/richtext/client';
 import { $getNodeByKey } from 'lexical';
 import type React from 'react';
-import { useCallback, useMemo } from 'react';
 import { type EmbedNodeData, OPEN_EMBED_DRAWER_COMMAND } from '../nodes/EmbedNode';
 
 type EmbedSource = { type: 'youtube'; embedUrl: string } | { type: 'generic'; url: string };
@@ -38,16 +37,16 @@ type Props = {
 export const EmbedNodeComponent = (props: Props) => {
   const { data, nodeKey } = props;
   const [editor] = useLexicalComposerContext();
-  const source = useMemo(() => parseEmbedSource(data.url), [data.url]);
+  const source = parseEmbedSource(data.url);
 
-  const removeEmbed = useCallback(() => {
+  const removeEmbed = () => {
     editor.update(() => {
       const foundNode = $getNodeByKey(nodeKey);
       if (foundNode) {
         foundNode.remove();
       }
     });
-  }, [editor, nodeKey]);
+  };
 
   return (
     <div className="embed-node shadow-sm p-3 pt-2 bg-gray-100 border border-gray-200 font-body mb-6 w-[560px]">

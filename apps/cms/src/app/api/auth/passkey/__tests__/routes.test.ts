@@ -35,6 +35,8 @@ vi.mock('@revealui/auth/server', () => ({
   verifyMFASetup: vi.fn(),
   checkRateLimit: vi.fn(),
   isRecoverySession: vi.fn().mockReturnValue(false),
+  auditLoginSuccess: vi.fn(),
+  auditLoginFailure: vi.fn(),
 }));
 
 // Mock the logger
@@ -58,14 +60,6 @@ vi.mock('@revealui/core/license', () => ({
   getMaxUsers: vi.fn(() => Infinity),
 }));
 
-// Mock drizzle-orm operators
-vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col: unknown, _val: unknown) => ({ type: 'eq' })),
-  and: vi.fn((..._args: unknown[]) => ({ type: 'and' })),
-  isNull: vi.fn((_col: unknown) => ({ type: 'isNull' })),
-  count: vi.fn(() => ({ type: 'count' })),
-}));
-
 // Mock the database client (both barrel and internal path for inlined resolution)
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
@@ -85,6 +79,15 @@ vi.mock('@revealui/db/schema', () => ({
     counter: 'counter',
     transports: 'transports',
   },
+  eq: vi.fn((_col: unknown, _val: unknown) => ({ type: 'eq' })),
+  and: vi.fn((..._args: unknown[]) => ({ type: 'and' })),
+  isNull: vi.fn((_col: unknown) => ({ type: 'isNull' })),
+  count: vi.fn(() => ({ type: 'count' })),
+  sql: (() => {
+    const sqlFn = () => ({ sql: 'mock' });
+    sqlFn.raw = vi.fn();
+    return sqlFn;
+  })(),
 }));
 
 // Mock database query builder

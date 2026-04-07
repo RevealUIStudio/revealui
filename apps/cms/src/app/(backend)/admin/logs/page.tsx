@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { getApiUrl } from '@/lib/config/api';
 
 // =============================================================================
 // Types
@@ -99,7 +100,7 @@ function LogsDashboard() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { rows, total, loading, error } = state;
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   // Read filter state from the URL search params
   const searchParams =

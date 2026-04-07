@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { getApiUrl } from '@/lib/config/api';
 
 // =============================================================================
 // Template definitions
@@ -129,7 +130,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
 
 export default function NewAgentPage() {
   const router = useRouter();
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   const [state, dispatch] = useReducer(formReducer, initialState);
   const { selectedTemplate, name, description, systemPrompt, submitting, error } = state;

@@ -16,6 +16,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { type FormEvent, Suspense, useState } from 'react';
 import { BrandedAuthLayout } from '@/lib/components/BrandedAuthLayout';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { getApiUrl } from '@/lib/config/api';
 
 export default function SignupPage() {
   return (
@@ -77,7 +78,7 @@ function SignupContent() {
     const result = await signUp({ email, password, name, tosAccepted: true });
     if (result.success) {
       // Record GDPR consent for necessary + functional (fire-and-forget)
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
+      const apiUrl = getApiUrl();
       for (const type of ['necessary', 'functional'] as const) {
         fetch(`${apiUrl}/api/gdpr/consent/grant`, {
           method: 'POST',

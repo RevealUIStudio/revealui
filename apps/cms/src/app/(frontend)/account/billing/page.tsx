@@ -17,7 +17,8 @@ import {
 } from '@revealui/presentation';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { getApiUrl } from '@/lib/config/api';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
@@ -66,7 +67,7 @@ function BillingContent() {
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+  const apiUrl = getApiUrl();
 
   const getPrice = (tierId: string): string => {
     const t = pricing?.subscriptions.find((s) => s.id === tierId);
@@ -74,7 +75,7 @@ function BillingContent() {
     return `${t.price}${t.period ?? ''}`;
   };
 
-  const fetchSubscription = useCallback(async () => {
+  const fetchSubscription = async () => {
     try {
       const [subRes, usageRes, pricingRes] = await Promise.all([
         fetch(`${apiUrl}/api/billing/subscription`, { credentials: 'include' }),
@@ -98,17 +99,18 @@ function BillingContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [apiUrl]);
+  };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler memoizes fetchSubscription
   useEffect(() => {
     if (!sessionLoading && session) {
       void fetchSubscription();
     } else if (!(sessionLoading || session)) {
       router.push('/login');
     }
-  }, [session, sessionLoading, fetchSubscription, router]);
+  }, [session, sessionLoading, router]);
 
-  const handleCheckout = useCallback(async () => {
+  const handleCheckout = async () => {
     setActionLoading(true);
     setError(null);
     try {
@@ -134,22 +136,19 @@ function BillingContent() {
     } finally {
       setActionLoading(false);
     }
-  }, [apiUrl]);
+  };
 
   // Poll subscription status with exponential backoff after upgrades.
   // Retries up to 3 times (1s → 2s → 4s) to allow webhook processing.
   const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pollSubscription = useCallback(
-    (attempt = 0) => {
-      const maxAttempts = 3;
-      if (attempt >= maxAttempts) return;
-      const delay = 1000 * 2 ** attempt; // 1s, 2s, 4s
-      pollTimerRef.current = setTimeout(() => {
-        void fetchSubscription().then(() => pollSubscription(attempt + 1));
-      }, delay);
-    },
-    [fetchSubscription],
-  );
+  const pollSubscription = (attempt = 0) => {
+    const maxAttempts = 3;
+    if (attempt >= maxAttempts) return;
+    const delay = 1000 * 2 ** attempt; // 1s, 2s, 4s
+    pollTimerRef.current = setTimeout(() => {
+      void fetchSubscription().then(() => pollSubscription(attempt + 1));
+    }, delay);
+  };
 
   useEffect(() => {
     return () => {
@@ -158,11 +157,12 @@ function BillingContent() {
   }, []);
 
   // Auto-redirect to checkout on signup with ?upgrade=pro
+  // biome-ignore lint/correctness/useExhaustiveDependencies: React Compiler memoizes handleCheckout
   useEffect(() => {
     if (upgrade === 'pro' && subscription?.tier === 'free' && !actionLoading) {
       void handleCheckout();
     }
-  }, [upgrade, subscription, actionLoading, handleCheckout]);
+  }, [upgrade, subscription, actionLoading]);
 
   const handleUpgradeToMax = async () => {
     setActionLoading(true);

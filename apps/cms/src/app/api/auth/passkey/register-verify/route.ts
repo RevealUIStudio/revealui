@@ -21,9 +21,8 @@ import { PasskeyRegisterVerifyRequestSchema } from '@revealui/contracts';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
+import { count, eq, sql, users } from '@revealui/db/schema';
 import type { RegistrationResponseJSON } from '@simplewebauthn/server';
-import { count, eq, sql } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {

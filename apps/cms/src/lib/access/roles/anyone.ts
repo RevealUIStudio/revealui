@@ -1,3 +1,1 @@
-import type { AccessFunction } from '@revealui/core';
-
-export const anyone: AccessFunction = () => true;
+export { anyone } from '@revealui/core';

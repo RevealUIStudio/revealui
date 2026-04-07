@@ -1,6 +1,7 @@
 'use client';
 
 import { getTiersFromCurrent } from '@revealui/contracts/pricing';
+import { UPGRADE_EVENT_NAME } from '@revealui/paywall/client';
 import {
   Dialog,
   DialogActions,
@@ -10,7 +11,8 @@ import {
 } from '@revealui/presentation/client';
 import { PricingTable } from '@revealui/presentation/server';
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getApiUrl } from '@/lib/config/api';
 import { useLicense } from '@/lib/providers/LicenseProvider';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
@@ -30,18 +32,18 @@ export function UpgradeDialog() {
       setOpen(true);
     }
 
-    window.addEventListener('revealui:upgrade-required', handleUpgradeRequired);
-    return () => window.removeEventListener('revealui:upgrade-required', handleUpgradeRequired);
+    window.addEventListener(UPGRADE_EVENT_NAME, handleUpgradeRequired);
+    return () => window.removeEventListener(UPGRADE_EVENT_NAME, handleUpgradeRequired);
   }, []);
 
-  const handleClose = useCallback(() => setOpen(false), []);
+  const handleClose = () => setOpen(false);
 
   const [error, setError] = useState<string | null>(null);
 
-  const handleSelectTier = useCallback(async (tierId: string) => {
+  const handleSelectTier = async (tierId: string) => {
     setError(null);
     try {
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
+      const apiUrl = getApiUrl();
       const priceIdMap: Record<string, string | undefined> = {
         pro: process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID,
         max: process.env.NEXT_PUBLIC_STRIPE_MAX_PRICE_ID,
@@ -67,7 +69,7 @@ export function UpgradeDialog() {
       // Fall back to billing page
       window.location.href = `/account/billing?upgrade=${tierId}`;
     }
-  }, []);
+  };
 
   const upgradeTiers = getTiersFromCurrent(tier);
 

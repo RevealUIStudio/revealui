@@ -11,9 +11,8 @@ import { rotateSession, verifyAuthentication, verifyCookiePayload } from '@revea
 import { PasskeyAuthenticateVerifyRequestSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { passkeys, users } from '@revealui/db/schema';
+import { eq, passkeys, users } from '@revealui/db/schema';
 import type { AuthenticationResponseJSON, WebAuthnCredential } from '@simplewebauthn/server';
-import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {

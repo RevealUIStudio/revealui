@@ -5,9 +5,10 @@ import type {
   RevealPaginatedResult,
 } from '@revealui/core/types';
 import { getRestClient } from '@revealui/db/client';
+import { and, asc, count, desc, eq, or, sql } from '@revealui/db/schema';
 import { type Tenant as DbTenant, tenants } from '@revealui/db/schema/tenants';
 import { type User as DbUser, users } from '@revealui/db/schema/users';
-import { and, asc, count, desc, eq, or, type SQL, sql } from 'drizzle-orm';
+import type { SQL } from 'drizzle-orm';
 
 type UserWhereCondition = NonNullable<RevealFindOptions['where']>;
 type UserSort = NonNullable<RevealFindOptions['sort']>;

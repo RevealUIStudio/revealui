@@ -13,6 +13,7 @@
  */
 
 import {
+  auditMfaDisabled,
   disableMFA,
   getSession,
   verifyAuthentication,
@@ -21,9 +22,8 @@ import {
 import { MFADisableRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { passkeys } from '@revealui/db/schema';
+import { eq, passkeys } from '@revealui/db/schema';
 import type { AuthenticationResponseJSON, WebAuthnCredential } from '@simplewebauthn/server';
-import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import {
   createApplicationErrorResponse,
@@ -162,6 +162,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    void auditMfaDisabled(
+      session.user.id,
+      request.headers.get('x-real-ip') ??
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        '',
+    );
     const response = NextResponse.json({ success: true });
 
     // Clear the challenge cookie if it was used

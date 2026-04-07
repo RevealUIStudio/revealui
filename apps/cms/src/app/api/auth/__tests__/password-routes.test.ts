@@ -30,6 +30,8 @@ vi.mock('@revealui/auth/server', () => ({
   validatePasswordStrength: (...args: unknown[]) => mockValidatePasswordStrength(...args),
   generatePasswordResetToken: (...args: unknown[]) => mockGeneratePasswordResetToken(...args),
   resetPasswordWithToken: (...args: unknown[]) => mockResetPasswordWithToken(...args),
+  auditPasswordChange: vi.fn(),
+  auditPasswordReset: vi.fn(),
 }));
 
 vi.mock('@revealui/contracts', () => ({

@@ -7,8 +7,7 @@
  * Deletes magic_links rows past their expiresAt timestamp.
  */
 import { getClient } from '@revealui/db';
-import { magicLinks } from '@revealui/db/schema';
-import { lt } from 'drizzle-orm';
+import { lt, magicLinks } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyCronAuth } from '@/lib/utils/cron-auth';
 

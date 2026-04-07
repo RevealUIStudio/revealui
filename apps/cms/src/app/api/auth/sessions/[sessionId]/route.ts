@@ -7,10 +7,9 @@
  * The current session cannot be revoked via this endpoint (use sign-out instead).
  */
 
-import { getSession } from '@revealui/auth/server';
+import { auditSessionRevoked, getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
-import { sessions } from '@revealui/db/schema';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, isNull, sessions } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -62,6 +61,13 @@ export async function DELETE(
       return createApplicationErrorResponse('Session not found', 'NOT_FOUND', 404);
     }
 
+    void auditSessionRevoked(
+      sessionData.user.id,
+      sessionId,
+      request.headers.get('x-real-ip') ??
+        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        '',
+    );
     return NextResponse.json({ message: 'Session revoked.' });
   } catch (error) {
     return createErrorResponse(error, {

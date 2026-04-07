@@ -18,8 +18,7 @@ import {
 import { PasskeyRegisterOptionsRequestSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, users } from '@revealui/db/schema';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
