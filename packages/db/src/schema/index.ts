@@ -78,6 +78,7 @@ import { pageRevisions, pages } from './pages.js';
 import { passkeys } from './passkeys.js';
 import { passwordResetTokens } from './password-reset-tokens.js';
 import { orders, products } from './products.js';
+import { agentReviews, agentSkills, marketplaceAgents, taskSubmissions } from './revmarket.js';
 import { siteCollaborators, sites } from './sites.js';
 import { tenants } from './tenants.js';
 import {
@@ -495,5 +496,48 @@ export const codeReviewsRelations = relations(codeReviews, ({ one }) => ({
   reviewer: one(users, {
     fields: [codeReviews.reviewerId],
     references: [users.id],
+  }),
+}));
+
+// =============================================================================
+// RevMarket — Autonomous Agent Marketplace Relations
+// =============================================================================
+
+export const marketplaceAgentsRelations = relations(marketplaceAgents, ({ one, many }) => ({
+  publisher: one(users, {
+    fields: [marketplaceAgents.publisherId],
+    references: [users.id],
+  }),
+  skills: many(agentSkills),
+  reviews: many(agentReviews),
+  tasks: many(taskSubmissions),
+}));
+
+export const agentSkillsRelations = relations(agentSkills, ({ one }) => ({
+  agent: one(marketplaceAgents, {
+    fields: [agentSkills.agentId],
+    references: [marketplaceAgents.id],
+  }),
+}));
+
+export const agentReviewsRelations = relations(agentReviews, ({ one }) => ({
+  agent: one(marketplaceAgents, {
+    fields: [agentReviews.agentId],
+    references: [marketplaceAgents.id],
+  }),
+  reviewer: one(users, {
+    fields: [agentReviews.reviewerId],
+    references: [users.id],
+  }),
+}));
+
+export const taskSubmissionsRelations = relations(taskSubmissions, ({ one }) => ({
+  submitter: one(users, {
+    fields: [taskSubmissions.submitterId],
+    references: [users.id],
+  }),
+  agent: one(marketplaceAgents, {
+    fields: [taskSubmissions.agentId],
+    references: [marketplaceAgents.id],
   }),
 }));

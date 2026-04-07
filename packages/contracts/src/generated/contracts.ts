@@ -223,6 +223,58 @@ export const AgentMemoriesInsertContract = createContract({
 })
 
 // =============================================================================
+// AgentReviews Contracts
+// =============================================================================
+
+/**
+ * Contract for agentReviews row (Select)
+ * Database table: agent_reviews
+ */
+export const AgentReviewsRowContract = createContract({
+  name: 'AgentReviewsRow',
+  version: '1',
+  description: 'Database row contract for agent_reviews table',
+  schema: Schemas.AgentReviewsSelectSchema,
+})
+
+/**
+ * Contract for agentReviews insert
+ * Database table: agent_reviews
+ */
+export const AgentReviewsInsertContract = createContract({
+  name: 'AgentReviewsInsert',
+  version: '1',
+  description: 'Database insert contract for agent_reviews table',
+  schema: Schemas.AgentReviewsInsertSchema,
+})
+
+// =============================================================================
+// AgentSkills Contracts
+// =============================================================================
+
+/**
+ * Contract for agentSkills row (Select)
+ * Database table: agent_skills
+ */
+export const AgentSkillsRowContract = createContract({
+  name: 'AgentSkillsRow',
+  version: '1',
+  description: 'Database row contract for agent_skills table',
+  schema: Schemas.AgentSkillsSelectSchema,
+})
+
+/**
+ * Contract for agentSkills insert
+ * Database table: agent_skills
+ */
+export const AgentSkillsInsertContract = createContract({
+  name: 'AgentSkillsInsert',
+  version: '1',
+  description: 'Database insert contract for agent_skills table',
+  schema: Schemas.AgentSkillsInsertSchema,
+})
+
+// =============================================================================
 // AgentTaskUsage Contracts
 // =============================================================================
 
@@ -1055,6 +1107,32 @@ export const MagicLinksInsertContract = createContract({
 })
 
 // =============================================================================
+// MarketplaceAgents Contracts
+// =============================================================================
+
+/**
+ * Contract for marketplaceAgents row (Select)
+ * Database table: marketplace_agents
+ */
+export const MarketplaceAgentsRowContract = createContract({
+  name: 'MarketplaceAgentsRow',
+  version: '1',
+  description: 'Database row contract for marketplace_agents table',
+  schema: Schemas.MarketplaceAgentsSelectSchema,
+})
+
+/**
+ * Contract for marketplaceAgents insert
+ * Database table: marketplace_agents
+ */
+export const MarketplaceAgentsInsertContract = createContract({
+  name: 'MarketplaceAgentsInsert',
+  version: '1',
+  description: 'Database insert contract for marketplace_agents table',
+  schema: Schemas.MarketplaceAgentsInsertSchema,
+})
+
+// =============================================================================
 // MarketplaceServers Contracts
 // =============================================================================
 
@@ -1702,6 +1780,32 @@ export const SyncMetadataInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for sync_metadata table',
   schema: Schemas.SyncMetadataInsertSchema,
+})
+
+// =============================================================================
+// TaskSubmissions Contracts
+// =============================================================================
+
+/**
+ * Contract for taskSubmissions row (Select)
+ * Database table: task_submissions
+ */
+export const TaskSubmissionsRowContract = createContract({
+  name: 'TaskSubmissionsRow',
+  version: '1',
+  description: 'Database row contract for task_submissions table',
+  schema: Schemas.TaskSubmissionsSelectSchema,
+})
+
+/**
+ * Contract for taskSubmissions insert
+ * Database table: task_submissions
+ */
+export const TaskSubmissionsInsertContract = createContract({
+  name: 'TaskSubmissionsInsert',
+  version: '1',
+  description: 'Database insert contract for task_submissions table',
+  schema: Schemas.TaskSubmissionsInsertSchema,
 })
 
 // =============================================================================

@@ -17,6 +17,8 @@ import type {
   agentContexts,
   agentCreditBalance,
   agentMemories,
+  agentReviews,
+  agentSkills,
   agentTaskUsage,
   aiMemorySessions,
   appLogs,
@@ -49,6 +51,7 @@ import type {
   jobs,
   licenses,
   magicLinks,
+  marketplaceAgents,
   marketplaceServers,
   marketplaceTransactions,
   media,
@@ -74,6 +77,7 @@ import type {
   siteCollaborators,
   sites,
   syncMetadata,
+  taskSubmissions,
   tenantProviderConfigs,
   tenants,
   ticketComments,
@@ -131,6 +135,16 @@ export type AgentCreditBalanceUpdate = Partial<AgentCreditBalanceInsert>
 export type AgentMemoriesRow = typeof agentMemories.$inferSelect
 export type AgentMemoriesInsert = typeof agentMemories.$inferInsert
 export type AgentMemoriesUpdate = Partial<AgentMemoriesInsert>
+
+// Agent Reviews
+export type AgentReviewsRow = typeof agentReviews.$inferSelect
+export type AgentReviewsInsert = typeof agentReviews.$inferInsert
+export type AgentReviewsUpdate = Partial<AgentReviewsInsert>
+
+// Agent Skills
+export type AgentSkillsRow = typeof agentSkills.$inferSelect
+export type AgentSkillsInsert = typeof agentSkills.$inferInsert
+export type AgentSkillsUpdate = Partial<AgentSkillsInsert>
 
 // Agent Task Usage
 export type AgentTaskUsageRow = typeof agentTaskUsage.$inferSelect
@@ -292,6 +306,11 @@ export type MagicLinksRow = typeof magicLinks.$inferSelect
 export type MagicLinksInsert = typeof magicLinks.$inferInsert
 export type MagicLinksUpdate = Partial<MagicLinksInsert>
 
+// Marketplace Agents
+export type MarketplaceAgentsRow = typeof marketplaceAgents.$inferSelect
+export type MarketplaceAgentsInsert = typeof marketplaceAgents.$inferInsert
+export type MarketplaceAgentsUpdate = Partial<MarketplaceAgentsInsert>
+
 // Marketplace Servers
 export type MarketplaceServersRow = typeof marketplaceServers.$inferSelect
 export type MarketplaceServersInsert = typeof marketplaceServers.$inferInsert
@@ -417,6 +436,11 @@ export type SyncMetadataRow = typeof syncMetadata.$inferSelect
 export type SyncMetadataInsert = typeof syncMetadata.$inferInsert
 export type SyncMetadataUpdate = Partial<SyncMetadataInsert>
 
+// Task Submissions
+export type TaskSubmissionsRow = typeof taskSubmissions.$inferSelect
+export type TaskSubmissionsInsert = typeof taskSubmissions.$inferInsert
+export type TaskSubmissionsUpdate = Partial<TaskSubmissionsInsert>
+
 // Tenant Provider Configs
 export type TenantProviderConfigsRow = typeof tenantProviderConfigs.$inferSelect
 export type TenantProviderConfigsInsert = typeof tenantProviderConfigs.$inferInsert
@@ -509,6 +533,8 @@ export type DatabaseRelationships = {
   agentContexts: Relationship[]
   agentCreditBalance: Relationship[]
   agentMemories: Relationship[]
+  agentReviews: Relationship[]
+  agentSkills: Relationship[]
   agentTaskUsage: Relationship[]
   aiMemorySessions: Relationship[]
   appLogs: Relationship[]
@@ -541,6 +567,7 @@ export type DatabaseRelationships = {
   jobs: Relationship[]
   licenses: Relationship[]
   magicLinks: Relationship[]
+  marketplaceAgents: Relationship[]
   marketplaceServers: Relationship[]
   marketplaceTransactions: Relationship[]
   media: Relationship[]
@@ -566,6 +593,7 @@ export type DatabaseRelationships = {
   siteCollaborators: Relationship[]
   sites: Relationship[]
   syncMetadata: Relationship[]
+  taskSubmissions: Relationship[]
   tenantProviderConfigs: Relationship[]
   tenants: Relationship[]
   ticketComments: Relationship[]
@@ -614,6 +642,17 @@ export const agentCreditBalanceRelationships: readonly Relationship[] = []
 export const agentMemoriesRelationships = [
   { foreignKeyName: 'agent_memories_site_id_sites_id_fk', columns: ['site_id'], isOneToOne: true, referencedRelation: 'sites', referencedColumns: ['id'] },
   { foreignKeyName: 'agent_memories_verified_by_users_id_fk', columns: ['verified_by'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// AgentReviews relationships
+export const agentReviewsRelationships = [
+  { foreignKeyName: 'agent_reviews_agent_id_marketplace_agents_id_fk', columns: ['agent_id'], isOneToOne: true, referencedRelation: 'marketplace_agents', referencedColumns: ['id'] },
+  { foreignKeyName: 'agent_reviews_reviewer_id_users_id_fk', columns: ['reviewer_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
+// AgentSkills relationships
+export const agentSkillsRelationships = [
+  { foreignKeyName: 'agent_skills_agent_id_marketplace_agents_id_fk', columns: ['agent_id'], isOneToOne: true, referencedRelation: 'marketplace_agents', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
 // AgentTaskUsage relationships
@@ -729,6 +768,11 @@ export const magicLinksRelationships = [
   { foreignKeyName: 'magic_links_user_id_users_id_fk', columns: ['user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// MarketplaceAgents relationships
+export const marketplaceAgentsRelationships = [
+  { foreignKeyName: 'marketplace_agents_publisher_id_users_id_fk', columns: ['publisher_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
+
 // MarketplaceServers relationships
 export const marketplaceServersRelationships = [
   { foreignKeyName: 'marketplace_servers_developer_id_users_id_fk', columns: ['developer_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
@@ -836,6 +880,12 @@ export const sitesRelationships = [
 
 // SyncMetadata relationships
 export const syncMetadataRelationships: readonly Relationship[] = []
+
+// TaskSubmissions relationships
+export const taskSubmissionsRelationships = [
+  { foreignKeyName: 'task_submissions_submitter_id_users_id_fk', columns: ['submitter_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
+  { foreignKeyName: 'task_submissions_agent_id_marketplace_agents_id_fk', columns: ['agent_id'], isOneToOne: true, referencedRelation: 'marketplace_agents', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
 
 // TenantProviderConfigs relationships
 export const tenantProviderConfigsRelationships = [
@@ -975,6 +1025,18 @@ export type Database = {
         Insert: AgentMemoriesInsert
         Update: AgentMemoriesUpdate
         Relationships: typeof agentMemoriesRelationships
+      }
+      agent_reviews: {
+        Row: AgentReviewsRow
+        Insert: AgentReviewsInsert
+        Update: AgentReviewsUpdate
+        Relationships: typeof agentReviewsRelationships
+      }
+      agent_skills: {
+        Row: AgentSkillsRow
+        Insert: AgentSkillsInsert
+        Update: AgentSkillsUpdate
+        Relationships: typeof agentSkillsRelationships
       }
       agent_task_usage: {
         Row: AgentTaskUsageRow
@@ -1168,6 +1230,12 @@ export type Database = {
         Update: MagicLinksUpdate
         Relationships: typeof magicLinksRelationships
       }
+      marketplace_agents: {
+        Row: MarketplaceAgentsRow
+        Insert: MarketplaceAgentsInsert
+        Update: MarketplaceAgentsUpdate
+        Relationships: typeof marketplaceAgentsRelationships
+      }
       marketplace_servers: {
         Row: MarketplaceServersRow
         Insert: MarketplaceServersInsert
@@ -1317,6 +1385,12 @@ export type Database = {
         Insert: SyncMetadataInsert
         Update: SyncMetadataUpdate
         Relationships: typeof syncMetadataRelationships
+      }
+      task_submissions: {
+        Row: TaskSubmissionsRow
+        Insert: TaskSubmissionsInsert
+        Update: TaskSubmissionsUpdate
+        Relationships: typeof taskSubmissionsRelationships
       }
       tenant_provider_configs: {
         Row: TenantProviderConfigsRow
