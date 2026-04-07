@@ -11,6 +11,16 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: (handler: (...args: unknown[]) => unknown) => handler,
 }));
 
+vi.mock('@revealui/config', () => ({
+  default: {
+    reveal: {
+      get secret() {
+        return process.env.REVEALUI_SECRET ?? '';
+      },
+    },
+  },
+}));
+
 vi.mock('next/server', () => {
   class MockNextResponse {
     body: unknown;

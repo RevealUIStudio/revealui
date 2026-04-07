@@ -15,6 +15,7 @@ import {
   listPasskeys,
   signCookiePayload,
 } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { PasskeyRegisterOptionsRequestSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
@@ -135,7 +136,7 @@ async function registerOptionsHandler(request: NextRequest): Promise<NextRespons
           expiresAt: Date.now() + 5 * 60 * 1000,
         };
 
-    const signed = signCookiePayload(challengePayload, process.env.REVEALUI_SECRET ?? '');
+    const signed = signCookiePayload(challengePayload, config.reveal.secret);
 
     const response = NextResponse.json({ options });
 
