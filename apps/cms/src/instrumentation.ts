@@ -21,6 +21,17 @@ export async function register() {
 
     const environment = process.env.NODE_ENV || 'development';
 
+    // Initialize license cache so feature gates work immediately on cold start.
+    // Without this, isFeatureEnabled() defaults to 'free' until a sign-in route
+    // triggers initializeLicense() lazily — causing Pro users to be denied on
+    // the first request to AI routes after a cold deploy.
+    try {
+      const { initializeLicense } = await import('@revealui/core/license');
+      await initializeLicense();
+    } catch {
+      // Non-fatal — license defaults to free tier if initialization fails
+    }
+
     // Never throw from instrumentation — it kills the entire runtime
     // Log errors but allow the app to start regardless
     try {
