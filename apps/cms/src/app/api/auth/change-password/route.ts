@@ -8,7 +8,7 @@
  */
 
 import { changePassword, getSession, validatePasswordStrength } from '@revealui/auth/server';
-import { logger } from '@revealui/core/observability/logger';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { withRateLimit } from '@/lib/middleware/rate-limit';

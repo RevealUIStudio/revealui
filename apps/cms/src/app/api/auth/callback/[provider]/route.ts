@@ -18,9 +18,9 @@ import {
   verifyOAuthState,
 } from '@revealui/auth/server';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
 import { oauthAccounts, users } from '@revealui/db/schema';
+import { logger } from '@revealui/utils/logger';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 

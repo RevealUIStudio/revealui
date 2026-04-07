@@ -1,5 +1,5 @@
 import type { TextField } from '@revealui/core';
-import { logger } from '@revealui/core/utils/logger';
+import { logger } from '@revealui/utils/logger';
 import React from 'react';
 
 const fetchStripeCustomers = async () => {
