@@ -137,7 +137,6 @@ const mockSignIn = vi.mocked(authServer.signIn);
 const mockGetSession = vi.mocked(authServer.getSession);
 const mockCreateSession = vi.mocked(authServer.createSession);
 const mockRotateSession = vi.mocked(authServer.rotateSession);
-const mockDeleteAllUserSessions = vi.mocked(authServer.deleteAllUserSessions);
 const mockVerifyCookiePayload = authServer.verifyCookiePayload as unknown as ReturnType<
   typeof vi.fn
 >;

@@ -131,7 +131,6 @@ const mockVerifyBackupCode = vi.mocked(authServer.verifyBackupCode);
 const mockDisableMFA = vi.mocked(authServer.disableMFA);
 const mockRegenerateBackupCodes = vi.mocked(authServer.regenerateBackupCodes);
 const mockIsMFAEnabled = vi.mocked(authServer.isMFAEnabled);
-const mockCreateSession = vi.mocked(authServer.createSession);
 const mockRotateSession = vi.mocked(authServer.rotateSession);
 const mockVerifyAuthentication = vi.mocked(authServer.verifyAuthentication);
 // verifyCookiePayload is generic — use vi.fn() cast to avoid excess property errors

@@ -7,7 +7,7 @@
  * The session has a 30-minute expiry and metadata marking it as a recovery session.
  */
 
-import { deleteAllUserSessions, createSession, verifyMagicLink } from '@revealui/auth/server';
+import { createSession, deleteAllUserSessions, verifyMagicLink } from '@revealui/auth/server';
 import { RecoveryVerifyRequestSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
