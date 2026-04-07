@@ -238,7 +238,7 @@ jobs:
         if: matrix.app == 'api' || matrix.app == 'cms'
         run: |
           echo "Checking critical env vars for ${{ matrix.app }}..."
-          ENV_OUTPUT=$(vercel env ls --environment=production --token="$VERCEL_TOKEN" 2>&1) || {
+          ENV_OUTPUT=$(vercel env ls production --token="$VERCEL_TOKEN" 2>&1) || {
             echo "::warning::vercel env ls failed — skipping validation"
             echo "$ENV_OUTPUT"
             exit 0
