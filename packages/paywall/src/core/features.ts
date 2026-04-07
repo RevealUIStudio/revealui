@@ -2,8 +2,8 @@
  * Feature registry — resolves feature flags based on tier.
  */
 
-import type { FeatureDefinition, FeatureFlags } from './types.js';
 import { tierMeetsRequirement } from './tiers.js';
+import type { FeatureDefinition, FeatureFlags } from './types.js';
 
 /**
  * Check if a single feature is enabled at the given tier.

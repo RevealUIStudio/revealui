@@ -45,30 +45,27 @@
  * @packageDocumentation
  */
 
-// Core factory
-export { createPaywall, type Paywall } from './core/paywall.js';
-
-// Types
-export type {
-  PaywallConfig,
-  FeatureDefinition,
-  FeatureFlags,
-  LimitDefinition,
-  LicensePayload,
-  LicenseCacheConfig,
-  LicenseState,
-  GateDenial,
-} from './core/types.js';
-
 // Defaults (for extending or inspecting)
 export {
+  DEFAULT_CACHE_TTL_MS,
   DEFAULT_CONFIG,
-  DEFAULT_TIERS,
   DEFAULT_FEATURES,
   DEFAULT_LIMITS,
-  DEFAULT_CACHE_TTL_MS,
+  DEFAULT_TIERS,
   type DefaultTier,
 } from './core/defaults.js';
-
+// Core factory
+export { createPaywall, type Paywall } from './core/paywall.js';
 // Tier utilities
-export { buildTierRanks, tierMeetsRequirement, getTierRank } from './core/tiers.js';
+export { buildTierRanks, getTierRank, tierMeetsRequirement } from './core/tiers.js';
+// Types
+export type {
+  FeatureDefinition,
+  FeatureFlags,
+  GateDenial,
+  LicenseCacheConfig,
+  LicensePayload,
+  LicenseState,
+  LimitDefinition,
+  PaywallConfig,
+} from './core/types.js';
