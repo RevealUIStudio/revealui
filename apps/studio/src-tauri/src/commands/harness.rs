@@ -10,7 +10,7 @@ use ts_rs::TS;
 
 // ── Types mirroring the daemon's PGlite schema ─────────────────────────────
 
-#[derive(Serialize, Deserialize, TS)]
+#[derive(Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct HarnessSession {
     pub id: String,
@@ -24,7 +24,7 @@ pub struct HarnessSession {
     pub exit_summary: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, TS)]
+#[derive(Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct HarnessMessage {
     pub id: i64,
@@ -36,7 +36,7 @@ pub struct HarnessMessage {
     pub created_at: String,
 }
 
-#[derive(Serialize, Deserialize, TS)]
+#[derive(Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct HarnessTask {
     pub id: String,
@@ -48,7 +48,7 @@ pub struct HarnessTask {
     pub created_at: String,
 }
 
-#[derive(Serialize, Deserialize, TS)]
+#[derive(Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct HarnessReservation {
     pub file_path: String,

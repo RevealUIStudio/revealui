@@ -1,6 +1,7 @@
 mod commands;
 mod config;
 mod harness;
+mod harness_watcher;
 mod inference;
 mod local_shell;
 mod platform;
@@ -48,6 +49,7 @@ pub fn run() {
         .manage(ConfigState::new())
         .setup(|app| {
             tray::setup_tray(&app.handle())?;
+            harness_watcher::start(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
