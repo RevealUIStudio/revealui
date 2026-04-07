@@ -18,15 +18,20 @@ export const DEFAULT_FEATURES: Record<string, FeatureDefinition<DefaultTier>> = 
 
   // --- Pro tier ---
   ai: { tier: 'pro', label: 'AI Agents' },
+  mcp: { tier: 'pro', label: 'MCP Server Integration' },
   payments: { tier: 'pro', label: 'Payment Processing' },
   analytics: { tier: 'pro', label: 'Analytics' },
   customDomain: { tier: 'pro', label: 'Custom Domain' },
   dashboard: { tier: 'pro', label: 'Monitoring Dashboard' },
   advancedSync: { tier: 'pro', label: 'Real-Time Sync' },
+  vaultDesktop: { tier: 'pro', label: 'RevVault Desktop' },
+  vaultRotation: { tier: 'pro', label: 'Credential Rotation' },
 
   // --- Max tier ---
   aiMemory: { tier: 'max', label: 'AI Memory System' },
+  aiInference: { tier: 'max', label: 'Inference Configuration' },
   auditLog: { tier: 'max', label: 'Audit Logging' },
+  devkitProfiles: { tier: 'max', label: 'DevKit Profiles' },
 
   // --- Enterprise tier ---
   multiTenant: { tier: 'enterprise', label: 'Multi-Tenant' },

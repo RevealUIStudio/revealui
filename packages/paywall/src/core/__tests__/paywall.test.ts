@@ -76,12 +76,16 @@ describe('createPaywall — zero-config (defaults)', () => {
       const flags = paywall.getFeaturesForTier('pro');
       expect(flags.aiLocal).toBe(true);
       expect(flags.ai).toBe(true);
+      expect(flags.mcp).toBe(true);
       expect(flags.payments).toBe(true);
       expect(flags.analytics).toBe(true);
       expect(flags.customDomain).toBe(true);
       expect(flags.dashboard).toBe(true);
       expect(flags.advancedSync).toBe(true);
+      expect(flags.vaultDesktop).toBe(true);
+      expect(flags.vaultRotation).toBe(true);
       expect(flags.aiMemory).toBe(false);
+      expect(flags.devkitProfiles).toBe(false);
     });
   });
 
