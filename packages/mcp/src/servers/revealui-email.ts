@@ -3,17 +3,24 @@
 /**
  * RevealUI Email MCP Server
  *
- * Model Context Protocol server that exposes email sending tools via Resend,
- * RevealUI's transactional email provider. Lets AI agents send notification
- * emails, digests, alerts, and templated messages on behalf of a RevealUI site.
+ * Model Context Protocol server that exposes email sending tools.
+ * Lets AI agents send notification emails, digests, alerts, and
+ * templated messages on behalf of a RevealUI site.
+ *
+ * Provider priority (auto-detected):
+ *   1. Gmail REST API  (GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY)
+ *   2. Resend API      (RESEND_API_KEY) — deprecated fallback
  *
  * Environment:
- *   RESEND_API_KEY       — Resend API key (re_...)
- *   REVEALUI_FROM_EMAIL  — Default sender address (default: notifications@revealui.com)
+ *   GOOGLE_SERVICE_ACCOUNT_EMAIL — Google Workspace service account
+ *   GOOGLE_PRIVATE_KEY           — RSA private key (PKCS8, \n-escaped)
+ *   EMAIL_FROM                   — Sender address (default: noreply@revealui.com)
+ *   RESEND_API_KEY               — Resend API key (deprecated fallback)
+ *   REVEALUI_FROM_EMAIL          — Legacy from address (fallback for EMAIL_FROM)
  *
  * Tools:
  *   email_send          — Send a single email (HTML or plain text)
- *   email_send_batch    — Send up to 100 emails in one API call
+ *   email_send_batch    — Send up to 100 emails in one request
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -26,6 +33,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '@revealui/core/observability/logger';
 import { checkMcpLicense } from '../index.js';
+import { type EmailPayload, sendEmail, sendEmailBatch } from './_email-provider.js';
 
 // ---------------------------------------------------------------------------
 // Credential overrides (set by Hypervisor before tool invocations)
@@ -42,49 +50,13 @@ export function setCredentials(creds: Record<string, string>): void {
 }
 
 // ---------------------------------------------------------------------------
-// Resend REST helpers
-// ---------------------------------------------------------------------------
-
-const RESEND_BASE = 'https://api.resend.com';
-const DEFAULT_FROM = 'RevealUI <notifications@revealui.com>';
-
-interface ResendPayload {
-  from: string;
-  to: string | string[];
-  subject: string;
-  html?: string;
-  text?: string;
-  reply_to?: string;
-  tags?: Array<{ name: string; value: string }>;
-}
-
-async function resendPost(apiKey: string, path: string, body: unknown) {
-  const res = await fetch(`${RESEND_BASE}${path}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-      'User-Agent': 'RevealUI-MCP/1.0',
-    },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(
-      (data as { message?: string; name?: string }).message ??
-        (data as { name?: string }).name ??
-        `Resend ${res.status}`,
-    );
-  }
-  return data;
-}
-
-// ---------------------------------------------------------------------------
 // Server
 // ---------------------------------------------------------------------------
 
+const DEFAULT_FROM = 'RevealUI <notifications@revealui.com>';
+
 const server = new Server(
-  { name: 'revealui-email', version: '1.0.0' },
+  { name: 'revealui-email', version: '2.0.0' },
   { capabilities: { tools: {} } },
 );
 
@@ -92,8 +64,8 @@ const TOOLS: Tool[] = [
   {
     name: 'email_send',
     description:
-      "Send a single transactional email via RevealUI's Resend account. " +
-      'Provide either html or text (or both). Returns the Resend message ID.',
+      'Send a single transactional email via the configured email provider ' +
+      '(Gmail REST API or Resend). Provide either html or text (or both). Returns the message ID.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -119,7 +91,7 @@ const TOOLS: Tool[] = [
   {
     name: 'email_send_batch',
     description:
-      'Send up to 100 emails in a single Resend batch request. ' +
+      'Send up to 100 emails in a single request. ' +
       'Each email in the batch can have its own to/subject/html/text.',
     inputSchema: {
       type: 'object',
@@ -136,7 +108,7 @@ const TOOLS: Tool[] = [
               text: { type: 'string', description: 'Plain text body' },
               from: {
                 type: 'string',
-                description: 'Sender address (defaults to REVEALUI_FROM_EMAIL)',
+                description: 'Sender address (defaults to EMAIL_FROM)',
               },
             },
             required: ['to', 'subject'],
@@ -155,19 +127,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
   const startTime = Date.now();
   const toolName = request.params.name;
 
-  const apiKey = _credentialOverrides.RESEND_API_KEY ?? process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    return {
-      content: [{ type: 'text', text: 'Error: RESEND_API_KEY is not set' }],
-      isError: true,
-    };
-  }
-
   const fromAddress =
-    _credentialOverrides.REVEALUI_FROM_EMAIL ?? process.env.REVEALUI_FROM_EMAIL ?? DEFAULT_FROM;
+    _credentialOverrides.EMAIL_FROM ??
+    _credentialOverrides.REVEALUI_FROM_EMAIL ??
+    process.env.EMAIL_FROM ??
+    process.env.REVEALUI_FROM_EMAIL ??
+    DEFAULT_FROM;
 
   try {
-    let data: unknown;
+    let result: unknown;
 
     switch (toolName) {
       case 'email_send': {
@@ -194,14 +162,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
           };
         }
 
-        const payload: ResendPayload = { from, to, subject };
+        const payload: EmailPayload = { from, to, subject };
         if (html) payload.html = html;
         if (text) payload.text = text;
         if (reply_to) payload.reply_to = reply_to;
-        // Tag all RevealUI MCP emails for filtering in Resend dashboard
         payload.tags = [{ name: 'source', value: 'revealui-mcp' }];
 
-        data = await resendPost(apiKey, '/emails', payload);
+        result = await sendEmail(payload, _credentialOverrides);
         break;
       }
 
@@ -223,8 +190,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
           };
         }
 
-        const batch = emails.map((e) => {
-          const payload: ResendPayload = {
+        const payloads: EmailPayload[] = emails.map((e) => {
+          const payload: EmailPayload = {
             from: e.from ?? fromAddress,
             to: e.to,
             subject: e.subject,
@@ -235,7 +202,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
           return payload;
         });
 
-        data = await resendPost(apiKey, '/emails/batch', batch);
+        result = await sendEmailBatch(payloads, _credentialOverrides);
         break;
       }
 
@@ -252,7 +219,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
           type: 'text',
           text: JSON.stringify(
             {
-              data,
+              data: result,
               _meta: {
                 durationMs: Date.now() - startTime,
                 server: 'revealui-email',
@@ -277,14 +244,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
 });
 
 async function main() {
-  if (!(await checkMcpLicense())) {
-    process.exit(1);
+  const allowed = await checkMcpLicense();
+  if (!allowed) {
+    logger.warn('revealui-email MCP server requires a Pro license');
+    process.exit(0);
   }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
+  logger.info('revealui-email MCP server running (Gmail → Resend fallback)');
 }
 
-main().catch((err) => {
-  logger.error('RevealUI Email MCP error', err instanceof Error ? err : new Error(String(err)));
+main().catch((err: unknown) => {
+  logger.error('revealui-email server failed to start', {
+    error: err instanceof Error ? err.message : String(err),
+  });
   process.exit(1);
 });
