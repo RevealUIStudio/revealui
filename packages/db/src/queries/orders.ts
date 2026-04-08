@@ -3,11 +3,11 @@
  */
 
 import { and, desc, eq } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { orders } from '../schema/products.js';
 
 export async function getAllOrders(
-  db: DatabaseClient,
+  db: Database,
   options: { customerId?: string; status?: string; limit?: number; offset?: number } = {},
 ) {
   const { customerId, status, limit = 20, offset = 0 } = options;
@@ -24,18 +24,18 @@ export async function getAllOrders(
     .offset(offset);
 }
 
-export async function getOrderById(db: DatabaseClient, id: string) {
+export async function getOrderById(db: Database, id: string) {
   const result = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
   return result[0] ?? null;
 }
 
-export async function createOrder(db: DatabaseClient, data: typeof orders.$inferInsert) {
+export async function createOrder(db: Database, data: typeof orders.$inferInsert) {
   const result = await db.insert(orders).values(data).returning();
   return result[0] ?? null;
 }
 
 export async function updateOrder(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<typeof orders.$inferInsert>,
 ) {

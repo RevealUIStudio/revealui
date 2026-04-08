@@ -3,12 +3,12 @@
  */
 
 import { and, desc, eq, isNull } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { posts } from '../schema/cms.js';
 import { users } from '../schema/users.js';
 
 export async function getAllPosts(
-  db: DatabaseClient,
+  db: Database,
   options: { status?: string; authorId?: string; limit?: number; offset?: number } = {},
 ) {
   const { status, authorId, limit = 20, offset = 0 } = options;
@@ -28,7 +28,7 @@ export async function getAllPosts(
 
 /** List posts with author data joined (prevents N+1 when listing posts) */
 export async function getPostsWithAuthor(
-  db: DatabaseClient,
+  db: Database,
   options: { status?: string; limit?: number; offset?: number } = {},
 ) {
   const { status, limit = 20, offset = 0 } = options;
@@ -50,7 +50,7 @@ export async function getPostsWithAuthor(
     .offset(offset);
 }
 
-export async function getPostById(db: DatabaseClient, id: string) {
+export async function getPostById(db: Database, id: string) {
   const result = await db
     .select()
     .from(posts)
@@ -59,7 +59,7 @@ export async function getPostById(db: DatabaseClient, id: string) {
   return result[0] ?? null;
 }
 
-export async function getPostBySlug(db: DatabaseClient, slug: string) {
+export async function getPostBySlug(db: Database, slug: string) {
   const result = await db
     .select()
     .from(posts)
@@ -68,13 +68,13 @@ export async function getPostBySlug(db: DatabaseClient, slug: string) {
   return result[0] ?? null;
 }
 
-export async function createPost(db: DatabaseClient, data: typeof posts.$inferInsert) {
+export async function createPost(db: Database, data: typeof posts.$inferInsert) {
   const result = await db.insert(posts).values(data).returning();
   return result[0] ?? null;
 }
 
 export async function updatePost(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<typeof posts.$inferInsert>,
 ) {
@@ -86,7 +86,7 @@ export async function updatePost(
   return result[0] ?? null;
 }
 
-export async function deletePost(db: DatabaseClient, id: string) {
+export async function deletePost(db: Database, id: string) {
   await db
     .update(posts)
     .set({ deletedAt: new Date(), updatedAt: new Date() })

@@ -3,12 +3,12 @@
  */
 
 import { and, desc, eq, sql } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { tickets } from '../schema/tickets.js';
 import { users } from '../schema/users.js';
 
 export async function getTicketsByBoard(
-  db: DatabaseClient,
+  db: Database,
   boardId: string,
   filters?: {
     status?: string;
@@ -35,7 +35,7 @@ export async function getTicketsByBoard(
 
 /** List tickets with assignee data joined (prevents N+1 on board views) */
 export async function getTicketsWithAssignees(
-  db: DatabaseClient,
+  db: Database,
   boardId: string,
   filters?: {
     status?: string;
@@ -63,12 +63,12 @@ export async function getTicketsWithAssignees(
     .orderBy(tickets.sortOrder);
 }
 
-export async function getTicketById(db: DatabaseClient, id: string) {
+export async function getTicketById(db: Database, id: string) {
   const result = await db.select().from(tickets).where(eq(tickets.id, id)).limit(1);
   return result[0] ?? null;
 }
 
-export async function getTicketByNumber(db: DatabaseClient, boardId: string, ticketNumber: number) {
+export async function getTicketByNumber(db: Database, boardId: string, ticketNumber: number) {
   const result = await db
     .select()
     .from(tickets)
@@ -78,7 +78,7 @@ export async function getTicketByNumber(db: DatabaseClient, boardId: string, tic
 }
 
 export async function createTicket(
-  db: DatabaseClient,
+  db: Database,
   data: {
     id: string;
     boardId: string;
@@ -111,7 +111,7 @@ export async function createTicket(
 }
 
 export async function updateTicket(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<{
     title: string;
@@ -138,16 +138,11 @@ export async function updateTicket(
   return result[0] ?? null;
 }
 
-export async function deleteTicket(db: DatabaseClient, id: string) {
+export async function deleteTicket(db: Database, id: string) {
   await db.delete(tickets).where(eq(tickets.id, id));
 }
 
-export async function moveTicket(
-  db: DatabaseClient,
-  id: string,
-  columnId: string,
-  sortOrder: number,
-) {
+export async function moveTicket(db: Database, id: string, columnId: string, sortOrder: number) {
   const result = await db
     .update(tickets)
     .set({ columnId, sortOrder, updatedAt: new Date() })
@@ -157,7 +152,7 @@ export async function moveTicket(
   return result[0] ?? null;
 }
 
-export async function getSubtickets(db: DatabaseClient, parentTicketId: string) {
+export async function getSubtickets(db: Database, parentTicketId: string) {
   return db
     .select()
     .from(tickets)
@@ -165,11 +160,11 @@ export async function getSubtickets(db: DatabaseClient, parentTicketId: string) 
     .orderBy(tickets.sortOrder);
 }
 
-export async function getTicketsByColumn(db: DatabaseClient, columnId: string) {
+export async function getTicketsByColumn(db: Database, columnId: string) {
   return db.select().from(tickets).where(eq(tickets.columnId, columnId)).orderBy(tickets.sortOrder);
 }
 
-export async function getOverdueTickets(db: DatabaseClient, boardId: string) {
+export async function getOverdueTickets(db: Database, boardId: string) {
   return db
     .select()
     .from(tickets)
