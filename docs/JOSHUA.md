@@ -73,7 +73,7 @@ Auth doesn't leak into billing. Content doesn't tangle with payments. Sealed bou
 - Supabase imports restricted to permitted paths (enforced by `supabase-boundary.js` hook)
 - CSP, CORS, HSTS headers defined in `@revealui/security`, not scattered across route files
 - Collection access control is declarative (`access: { read, create, update, delete }`) not imperative middleware chains
-- Pro packages are gitignored in the public repo — commercial code physically separated from OSS
+- Pro packages are Fair Source (FSL-1.1-MIT) — source-visible with runtime license enforcement
 
 **Anti-patterns:** A billing webhook handler that directly manipulates user sessions. A UI component that makes database queries. An auth middleware that knows about product tiers.
 

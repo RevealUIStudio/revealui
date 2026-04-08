@@ -1,0 +1,21 @@
+Third-Party Licenses for @revealui/harnesses
+
+This file lists the licenses of the production dependencies used by this
+package. These dependencies are installed via npm and are not bundled into
+the distributed package.
+
+---
+
+@electric-sql/pglite (Apache-2.0)
+  Copyright ElectricSQL
+  https://github.com/electric-sql/pglite
+  License: https://www.apache.org/licenses/LICENSE-2.0
+
+zod (MIT)
+  Copyright Colin McDonnell
+  https://github.com/colinhacks/zod
+
+---
+
+Workspace dependency (@revealui/core) is licensed under MIT.
+See its LICENSE file.

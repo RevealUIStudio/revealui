@@ -1,0 +1,30 @@
+Third-Party Licenses for @revealui/ai
+
+This file lists the licenses of the production dependencies used by this
+package. These dependencies are installed via npm and are not bundled into
+the distributed package.
+
+---
+
+lru-cache (BlueOak-1.0.0)
+  Copyright Isaac Z. Schlueter and Contributors
+  https://github.com/isaacs/node-lru-cache
+  License: https://blueoakcouncil.org/license/1.0.0
+
+zod (MIT)
+  Copyright Colin McDonnell
+  https://github.com/colinhacks/zod
+
+drizzle-orm (Apache-2.0)
+  Copyright Drizzle Team
+  https://github.com/drizzle-team/drizzle-orm
+  License: https://www.apache.org/licenses/LICENSE-2.0
+
+react (MIT)
+  Copyright Meta Platforms, Inc. and affiliates
+  https://github.com/facebook/react
+
+---
+
+Workspace dependencies (@revealui/contracts, @revealui/core, @revealui/db)
+are all licensed under MIT. See their respective LICENSE files.

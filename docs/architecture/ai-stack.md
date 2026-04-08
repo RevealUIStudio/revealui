@@ -1,6 +1,6 @@
 # AI Stack Architecture
 
-RevealUI's AI subsystem lives in `@revealui/ai` (Pro, commercially licensed). It provides open-model inference, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime — all gated by tier. No proprietary cloud APIs are supported.
+RevealUI's AI subsystem lives in `@revealui/ai` (Pro, Fair Source FSL-1.1-MIT). It provides open-model inference, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime — all gated by tier. No proprietary cloud APIs are supported.
 
 ## Inference Abstraction
 

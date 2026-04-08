@@ -1,0 +1,174 @@
+{
+  "name": "@revealui/ai",
+  "version": "0.2.7",
+  "description": "[Pro] AI system for RevealUI - memory, LLM, orchestration, and tools",
+  "keywords": [
+    "agent",
+    "ai",
+    "crdt",
+    "llm",
+    "memory",
+    "offline-first",
+    "orchestration",
+    "real-time",
+    "revealui",
+    "skills",
+    "tools",
+    "vector-search"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/ai"
+  },
+  "license": "FSL-1.1-MIT",
+  "dependencies": {
+    "@revealui/contracts": "workspace:*",
+    "@revealui/core": "workspace:*",
+    "@revealui/db": "workspace:*",
+    "lru-cache": "^11.2.5",
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@vitest/coverage-v8": "^4.0.18",
+    "dev": "workspace:*",
+    "jsdom": "catalog:",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "typescript": "^6.0.2",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./memory": {
+      "types": "./dist/memory/index.d.ts",
+      "import": "./dist/memory/index.js"
+    },
+    "./memory/stores": {
+      "types": "./dist/memory/stores/index.d.ts",
+      "import": "./dist/memory/stores/index.js"
+    },
+    "./memory/vector": {
+      "types": "./dist/memory/vector/index.d.ts",
+      "import": "./dist/memory/vector/index.js"
+    },
+    "./memory/persistence": {
+      "types": "./dist/memory/persistence/index.d.ts",
+      "import": "./dist/memory/persistence/index.js"
+    },
+    "./memory/agent": {
+      "types": "./dist/memory/agent/index.d.ts",
+      "import": "./dist/memory/agent/index.js"
+    },
+    "./memory/services": {
+      "types": "./dist/memory/services/index.d.ts",
+      "import": "./dist/memory/services/index.js"
+    },
+    "./embeddings": {
+      "types": "./dist/embeddings/index.d.ts",
+      "import": "./dist/embeddings/index.js"
+    },
+    "./client": {
+      "types": "./dist/client/index.d.ts",
+      "import": "./dist/client/index.js"
+    },
+    "./skills": {
+      "types": "./dist/skills/index.d.ts",
+      "import": "./dist/skills/index.js"
+    },
+    "./llm/client": {
+      "types": "./dist/llm/client.d.ts",
+      "import": "./dist/llm/client.js"
+    },
+    "./llm/key-validator": {
+      "types": "./dist/llm/key-validator.d.ts",
+      "import": "./dist/llm/key-validator.js"
+    },
+    "./llm/server": {
+      "types": "./dist/llm/server.d.ts",
+      "import": "./dist/llm/server.js"
+    },
+    "./llm/providers/base": {
+      "types": "./dist/llm/providers/base.d.ts",
+      "import": "./dist/llm/providers/base.js"
+    },
+    "./tools/cms": {
+      "types": "./dist/tools/cms/index.d.ts",
+      "import": "./dist/tools/cms/index.js"
+    },
+    "./tools/registry": {
+      "types": "./dist/tools/registry.d.ts",
+      "import": "./dist/tools/registry.js"
+    },
+    "./ingestion": {
+      "types": "./dist/ingestion/index.d.ts",
+      "import": "./dist/ingestion/index.js"
+    },
+    "./orchestration/streaming-runtime": {
+      "types": "./dist/orchestration/streaming-runtime.d.ts",
+      "import": "./dist/orchestration/streaming-runtime.js"
+    },
+    "./orchestration/agent": {
+      "types": "./dist/orchestration/agent.d.ts",
+      "import": "./dist/orchestration/agent.js"
+    },
+    "./tools/coding": {
+      "types": "./dist/tools/coding/index.d.ts",
+      "import": "./dist/tools/coding/index.js"
+    },
+    "./inference": {
+      "types": "./dist/inference/index.d.ts",
+      "import": "./dist/inference/index.js"
+    },
+    "./inference/context-budget": {
+      "types": "./dist/inference/context-budget.d.ts",
+      "import": "./dist/inference/context-budget.js"
+    },
+    "./inference/tool-result-compressor": {
+      "types": "./dist/inference/tool-result-compressor.d.ts",
+      "import": "./dist/inference/tool-result-compressor.js"
+    },
+    "./inference/task-decomposer": {
+      "types": "./dist/inference/task-decomposer.d.ts",
+      "import": "./dist/inference/task-decomposer.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "funding": {
+    "type": "commercial",
+    "url": "https://revealui.com/pro"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "peerDependencies": {
+    "drizzle-orm": "^0.45.1",
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "dev": "tsc --watch",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run --root . --config vitest.integration.config.ts",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts"
+}

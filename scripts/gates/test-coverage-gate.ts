@@ -53,10 +53,7 @@ interface PackageCandidate {
 }
 
 const COVERAGE_EXCLUSIONS = new Map<string, string>([
-  [
-    'packages/harnesses',
-    'commercial package source is gitignored in this repo; excluded from public workspace coverage',
-  ],
+  ['packages/harnesses', 'Fair Source package (FSL-1.1-MIT); coverage tracked separately'],
 ]);
 
 const IGNORED_DIRECTORIES = new Set([

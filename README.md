@@ -115,7 +115,7 @@ The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work
 - **Task history** — every agent action logged, auditable, and visible in the dashboard
 - **Editor config sync** — generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 
-Pro packages are source-available on npm under a [commercial license](LICENSE.commercial). Install with `pnpm add @revealui/ai` — no special registry needed.
+Pro packages are source-available under the [Functional Source License (FSL-1.1-MIT)](packages/ai/LICENSE) — you can read, modify, and self-host. The license converts to MIT after 2 years. Install with `pnpm add @revealui/ai`.
 
 ## Tiers
 
