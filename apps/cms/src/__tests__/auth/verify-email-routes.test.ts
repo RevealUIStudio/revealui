@@ -16,7 +16,7 @@ vi.mock('@revealui/auth/server', () => ({
   checkRateLimit: vi.fn(),
 }));
 
-vi.mock('@revealui/core/utils/logger', () => ({
+vi.mock('@revealui/utils/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
@@ -24,40 +24,16 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-const mockSelect = vi.fn();
-const mockUpdate = vi.fn();
-const mockFrom = vi.fn();
-const mockWhere = vi.fn();
-const mockLimit = vi.fn();
-const mockSet = vi.fn();
-const mockUpdateWhere = vi.fn();
+const mockGetUserByVerificationToken = vi.fn();
+const mockUpdateUser = vi.fn();
 
 vi.mock('@revealui/db', () => ({
-  getClient: vi.fn(() => ({
-    select: mockSelect,
-    update: mockUpdate,
-  })),
+  getClient: vi.fn(() => ({})),
 }));
 
-vi.mock('@revealui/db/schema', () => ({
-  users: {
-    id: 'id',
-    email: 'email',
-    emailVerified: 'emailVerified',
-    emailVerifiedAt: 'emailVerifiedAt',
-    emailVerificationToken: 'emailVerificationToken',
-    emailVerificationTokenExpiresAt: 'emailVerificationTokenExpiresAt',
-    status: 'status',
-    updatedAt: 'updatedAt',
-  },
-}));
-
-vi.mock('drizzle-orm', () => ({
-  eq: vi.fn(),
-  and: vi.fn(),
-  or: vi.fn(),
-  gt: vi.fn(),
-  isNull: vi.fn(),
+vi.mock('@revealui/db/queries/users', () => ({
+  getUserByVerificationToken: (...args: unknown[]) => mockGetUserByVerificationToken(...args),
+  updateUser: (...args: unknown[]) => mockUpdateUser(...args),
 }));
 
 import { checkRateLimit } from '@revealui/auth/server';
@@ -84,17 +60,8 @@ function makeVerifyRequest(token?: string, ip?: string): NextRequest {
   });
 }
 
-function setupSelectChain(result: unknown[]): void {
-  mockLimit.mockResolvedValue(result);
-  mockWhere.mockReturnValue({ limit: mockLimit });
-  mockFrom.mockReturnValue({ where: mockWhere });
-  mockSelect.mockReturnValue({ from: mockFrom });
-}
-
-function setupUpdateChain(): void {
-  mockUpdateWhere.mockResolvedValue(undefined);
-  mockSet.mockReturnValue({ where: mockUpdateWhere });
-  mockUpdate.mockReturnValue({ set: mockSet });
+function setupTokenLookup(result: unknown): void {
+  mockGetUserByVerificationToken.mockResolvedValue(result);
 }
 
 // ---------------------------------------------------------------------------
@@ -107,7 +74,7 @@ describe('GET /api/auth/verify-email', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     vi.mocked(checkRateLimit).mockResolvedValue({ allowed: true, remaining: 9 } as never);
-    setupUpdateChain();
+    mockUpdateUser.mockResolvedValue(null);
 
     const mod = await import('../../app/api/auth/verify-email/route');
     GET = mod.GET as (req: NextRequest) => Promise<Response>;
@@ -123,7 +90,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('redirects to login with invalid_token when no user matches', async () => {
-    setupSelectChain([]); // no matching user
+    setupTokenLookup(null); // no matching user
 
     const req = makeVerifyRequest('some-token');
     const res = await GET(req);
@@ -134,7 +101,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('redirects with already_verified when email is already verified', async () => {
-    setupSelectChain([{ id: 'u1', emailVerified: true }]);
+    setupTokenLookup({ id: 'u1', emailVerified: true });
 
     const req = makeVerifyRequest('valid-token');
     const res = await GET(req);
@@ -145,7 +112,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('verifies email and redirects with email_verified on success', async () => {
-    setupSelectChain([{ id: 'u1', emailVerified: false }]);
+    setupTokenLookup({ id: 'u1', emailVerified: false });
 
     const req = makeVerifyRequest('valid-token');
     const res = await GET(req);
@@ -154,9 +121,10 @@ describe('GET /api/auth/verify-email', () => {
     const location = res.headers.get('location');
     expect(location).toContain('/login?message=email_verified');
 
-    // Verify update was called to mark email as verified
-    expect(mockUpdate).toHaveBeenCalled();
-    expect(mockSet).toHaveBeenCalledWith(
+    // Verify updateUser was called to mark email as verified
+    expect(mockUpdateUser).toHaveBeenCalledWith(
+      expect.anything(), // db client
+      'u1',
       expect.objectContaining({
         emailVerified: true,
         emailVerificationToken: null,
@@ -168,19 +136,16 @@ describe('GET /api/auth/verify-email', () => {
     const rawToken = 'my-secret-token';
     const expectedHash = createHash('sha256').update(rawToken).digest('hex');
 
-    setupSelectChain([{ id: 'u1', emailVerified: false }]);
+    setupTokenLookup({ id: 'u1', emailVerified: false });
 
     const req = makeVerifyRequest(rawToken);
     await GET(req);
 
-    // The select call chain was invoked with the hashed token
-    // We verify the select was called (the actual hash comparison
-    // happens in the drizzle eq() which is mocked)
-    expect(mockSelect).toHaveBeenCalled();
-    // Since eq is mocked we cannot inspect the hash directly,
-    // but we can verify the route ran to completion (redirected to email_verified)
-    // which confirms the hash path was executed correctly.
-    expect(expectedHash).toBeTruthy(); // sanity: hash is non-empty
+    // Verify getUserByVerificationToken was called with the hashed token
+    expect(mockGetUserByVerificationToken).toHaveBeenCalledWith(
+      expect.anything(), // db client
+      expectedHash,
+    );
   });
 
   it('redirects with too_many_attempts when rate limited', async () => {
@@ -206,9 +171,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('redirects with verification_failed when DB query throws', async () => {
-    mockSelect.mockImplementation(() => {
-      throw new Error('DB connection failed');
-    });
+    mockGetUserByVerificationToken.mockRejectedValue(new Error('DB connection failed'));
 
     const req = makeVerifyRequest('some-token');
     const res = await GET(req);
@@ -219,7 +182,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('extracts IP from x-forwarded-for for rate limiting', async () => {
-    setupSelectChain([{ id: 'u1', emailVerified: false }]);
+    setupTokenLookup({ id: 'u1', emailVerified: false });
 
     const req = makeVerifyRequest('token', '1.2.3.4, 5.6.7.8');
     await GET(req);
@@ -234,7 +197,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('uses x-real-ip as fallback when x-forwarded-for is absent', async () => {
-    setupSelectChain([{ id: 'u1', emailVerified: false }]);
+    setupTokenLookup({ id: 'u1', emailVerified: false });
 
     const url = new URL('/api/auth/verify-email', 'http://localhost:4000');
     url.searchParams.set('token', 'some-token');
@@ -248,7 +211,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('uses "unknown" as IP fallback when no IP headers present', async () => {
-    setupSelectChain([{ id: 'u1', emailVerified: false }]);
+    setupTokenLookup({ id: 'u1', emailVerified: false });
 
     const req = makeVerifyRequest('some-token');
     await GET(req);

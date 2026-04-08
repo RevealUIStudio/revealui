@@ -158,6 +158,10 @@
       "types": "./dist/queries/user-api-keys.d.ts",
       "import": "./dist/queries/user-api-keys.js"
     },
+    "./queries/oauth-accounts": {
+      "types": "./dist/queries/oauth-accounts.d.ts",
+      "import": "./dist/queries/oauth-accounts.js"
+    },
     "./queries/conversations": {
       "types": "./dist/queries/conversations.d.ts",
       "import": "./dist/queries/conversations.js"
