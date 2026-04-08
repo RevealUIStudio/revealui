@@ -3,15 +3,15 @@
  */
 
 import { and, eq } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { ticketLabelAssignments, ticketLabels } from '../schema/tickets.js';
 
-export async function getLabelById(db: DatabaseClient, id: string) {
+export async function getLabelById(db: Database, id: string) {
   const result = await db.select().from(ticketLabels).where(eq(ticketLabels.id, id)).limit(1);
   return result[0] ?? null;
 }
 
-export async function getAllLabels(db: DatabaseClient, tenantId?: string) {
+export async function getAllLabels(db: Database, tenantId?: string) {
   if (tenantId) {
     return db
       .select()
@@ -23,7 +23,7 @@ export async function getAllLabels(db: DatabaseClient, tenantId?: string) {
 }
 
 export async function createLabel(
-  db: DatabaseClient,
+  db: Database,
   data: {
     id: string;
     name: string;
@@ -38,7 +38,7 @@ export async function createLabel(
 }
 
 export async function updateLabel(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<{ name: string; slug: string; color: string; description: string }>,
 ) {
@@ -51,19 +51,19 @@ export async function updateLabel(
   return result[0] ?? null;
 }
 
-export async function deleteLabel(db: DatabaseClient, id: string) {
+export async function deleteLabel(db: Database, id: string) {
   await db.delete(ticketLabels).where(eq(ticketLabels.id, id));
 }
 
 export async function assignLabel(
-  db: DatabaseClient,
+  db: Database,
   data: { id: string; ticketId: string; labelId: string },
 ) {
   const result = await db.insert(ticketLabelAssignments).values(data).returning();
   return result[0];
 }
 
-export async function removeLabel(db: DatabaseClient, ticketId: string, labelId: string) {
+export async function removeLabel(db: Database, ticketId: string, labelId: string) {
   await db
     .delete(ticketLabelAssignments)
     .where(
@@ -74,7 +74,7 @@ export async function removeLabel(db: DatabaseClient, ticketId: string, labelId:
     );
 }
 
-export async function getLabelsForTicket(db: DatabaseClient, ticketId: string) {
+export async function getLabelsForTicket(db: Database, ticketId: string) {
   const assignments = await db
     .select({
       label: ticketLabels,

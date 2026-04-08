@@ -3,11 +3,11 @@
  */
 
 import { and, asc, eq, isNull } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { pages } from '../schema/pages.js';
 
 export async function getPagesBySite(
-  db: DatabaseClient,
+  db: Database,
   siteId: string,
   options: { status?: string } = {},
 ) {
@@ -24,7 +24,7 @@ export async function getPagesBySite(
     .orderBy(asc(pages.path));
 }
 
-export async function getPageById(db: DatabaseClient, id: string) {
+export async function getPageById(db: Database, id: string) {
   const result = await db
     .select()
     .from(pages)
@@ -33,7 +33,7 @@ export async function getPageById(db: DatabaseClient, id: string) {
   return result[0] ?? null;
 }
 
-export async function getPageByPath(db: DatabaseClient, siteId: string, path: string) {
+export async function getPageByPath(db: Database, siteId: string, path: string) {
   const result = await db
     .select()
     .from(pages)
@@ -42,13 +42,13 @@ export async function getPageByPath(db: DatabaseClient, siteId: string, path: st
   return result[0] ?? null;
 }
 
-export async function createPage(db: DatabaseClient, data: typeof pages.$inferInsert) {
+export async function createPage(db: Database, data: typeof pages.$inferInsert) {
   const result = await db.insert(pages).values(data).returning();
   return result[0] ?? null;
 }
 
 export async function updatePage(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<typeof pages.$inferInsert>,
 ) {
@@ -60,7 +60,7 @@ export async function updatePage(
   return result[0] ?? null;
 }
 
-export async function deletePage(db: DatabaseClient, id: string) {
+export async function deletePage(db: Database, id: string) {
   const page = await getPageById(db, id);
   if (!page) return;
   await db

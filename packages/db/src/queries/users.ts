@@ -3,7 +3,7 @@
  */
 
 import { and, count, desc, eq, ilike, inArray, isNull } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { users } from '../schema/users.js';
 
 /** Condition that excludes soft-deleted users */
@@ -18,7 +18,7 @@ export interface ListUsersOptions {
 }
 
 /** List users with optional filters and pagination */
-export async function getAllUsers(db: DatabaseClient, options: ListUsersOptions = {}) {
+export async function getAllUsers(db: Database, options: ListUsersOptions = {}) {
   const { status, role, search, limit = 20, offset = 0 } = options;
   const conditions = [
     notDeleted,
@@ -36,7 +36,7 @@ export async function getAllUsers(db: DatabaseClient, options: ListUsersOptions 
 }
 
 /** Count users matching filters (for pagination) */
-export async function countUsers(db: DatabaseClient, options: ListUsersOptions = {}) {
+export async function countUsers(db: Database, options: ListUsersOptions = {}) {
   const { status, role, search } = options;
   const conditions = [
     notDeleted,
@@ -53,7 +53,7 @@ export async function countUsers(db: DatabaseClient, options: ListUsersOptions =
 
 /** Update a user's fields */
 export async function updateUser(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<typeof users.$inferInsert>,
 ) {
@@ -66,7 +66,7 @@ export async function updateUser(
 }
 
 /** Batch-load multiple users by ID in a single query (prevents N+1) */
-export async function getUsersByIds(db: DatabaseClient, ids: string[]) {
+export async function getUsersByIds(db: Database, ids: string[]) {
   if (ids.length === 0) return [];
   return db
     .select()
@@ -74,7 +74,7 @@ export async function getUsersByIds(db: DatabaseClient, ids: string[]) {
     .where(and(inArray(users.id, ids), notDeleted));
 }
 
-export async function getUserById(db: DatabaseClient, id: string) {
+export async function getUserById(db: Database, id: string) {
   const result = await db
     .select()
     .from(users)
@@ -83,7 +83,7 @@ export async function getUserById(db: DatabaseClient, id: string) {
   return result[0] ?? null;
 }
 
-export async function getUserByEmail(db: DatabaseClient, email: string) {
+export async function getUserByEmail(db: Database, email: string) {
   const result = await db
     .select()
     .from(users)
@@ -93,7 +93,7 @@ export async function getUserByEmail(db: DatabaseClient, email: string) {
 }
 
 /** Soft-delete: sets deletedAt timestamp instead of removing the row */
-export async function deleteUser(db: DatabaseClient, id: string) {
+export async function deleteUser(db: Database, id: string) {
   await db
     .update(users)
     .set({ deletedAt: new Date(), updatedAt: new Date(), status: 'deleted' })
@@ -101,7 +101,7 @@ export async function deleteUser(db: DatabaseClient, id: string) {
 }
 
 /** Restore a soft-deleted user */
-export async function restoreUser(db: DatabaseClient, id: string) {
+export async function restoreUser(db: Database, id: string) {
   const result = await db
     .update(users)
     .set({ deletedAt: null, updatedAt: new Date(), status: 'active' })
@@ -111,6 +111,6 @@ export async function restoreUser(db: DatabaseClient, id: string) {
 }
 
 /** Permanently remove a soft-deleted user (GDPR compliance / admin cleanup) */
-export async function purgeUser(db: DatabaseClient, id: string) {
+export async function purgeUser(db: Database, id: string) {
   await db.delete(users).where(eq(users.id, id));
 }
