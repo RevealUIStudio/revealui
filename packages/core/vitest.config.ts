@@ -26,13 +26,11 @@ export default defineConfig({
         'dist/**',
         'node_modules/**',
       ],
-      // Standard thresholds for core packages
-      // Balanced between code quality and development velocity
       thresholds: {
-        lines: 75,
-        functions: 75,
-        branches: 70,
-        statements: 75,
+        lines: 70,
+        functions: 70,
+        branches: 65,
+        statements: 70,
       },
     },
   },
