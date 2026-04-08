@@ -13,7 +13,8 @@
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
-    "dotenv": "^17.2.4"
+    "dotenv": "^17.2.4",
+    "jose": "^6.2.2"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.2",

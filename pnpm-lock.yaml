@@ -1232,6 +1232,9 @@ importers:
       dotenv:
         specifier: ^17.2.4
         version: 17.3.1
+      jose:
+        specifier: ^6.2.2
+        version: 6.2.2
     devDependencies:
       '@electric-sql/pglite':
         specifier: ^0.4.2
