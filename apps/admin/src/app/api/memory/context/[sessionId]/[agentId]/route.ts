@@ -183,7 +183,7 @@ export async function POST(
     // Support both single key-value and partial updates
     // If body has exactly one key and it's not 'context', treat as single key-value update
     // Otherwise, treat as partial context update
-    const updates: Partial<Record<string, unknown>> = {};
+    const updates: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
     const keys = Object.keys(body);
 
     // Deny prototype-poisoning keys before assigning any values

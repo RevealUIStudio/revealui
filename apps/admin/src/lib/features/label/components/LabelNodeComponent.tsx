@@ -8,10 +8,21 @@ interface LabelNodeComponentProps {
   data: LabelNodeData;
 }
 
+function isValidUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url, 'https://placeholder.test');
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 const LabelNodeComponent = ({ nodeKey, data }: LabelNodeComponentProps) => {
+  const safeUrl = isValidUrl(data.url) ? data.url : undefined;
   return (
     <div key={nodeKey}>
-      <a href={data.url}>Label</a>
+      {safeUrl ? <a href={safeUrl}>Label</a> : <span>Label</span>}
       <LabelIcon />
     </div>
   );
