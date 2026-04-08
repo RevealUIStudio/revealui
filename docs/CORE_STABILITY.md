@@ -15,7 +15,7 @@ audience: developer
 
 ## Overview
 
-`@revealui/core` is the CMS engine at the centre of RevealUI. It is MIT-licensed and published to npm. This document classifies every public subpath export by stability tier, documents what has been verified in production, and explains what to expect from breaking changes before the 1.0 release.
+`@revealui/core` is the runtime engine at the centre of RevealUI. It is MIT-licensed and published to npm. This document classifies every public subpath export by stability tier, documents what has been verified in production, and explains what to expect from breaking changes before the 1.0 release.
 
 ---
 
@@ -330,4 +330,4 @@ Peer dependencies: React 18/19 and Next.js 14/15/16 are both supported.
 - [Package Reference](./REFERENCE.md) — full API documentation for all @revealui/* packages
 - [Auth & Security](./AUTH.md) — authentication system, RBAC, security policy
 - [Architecture](./ARCHITECTURE.md) — system design, dual-database, multi-tenant patterns
-- [CMS Guide](./CMS_GUIDE.md) — collections, content management, admin dashboard
+- [Admin Guide](./ADMIN_GUIDE.md) — collections, content management, admin dashboard

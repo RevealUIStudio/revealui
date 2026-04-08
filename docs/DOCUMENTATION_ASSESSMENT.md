@@ -15,7 +15,7 @@ Brutally honest audit of what RevealUI documentation claims versus what the code
 
 ## Executive Summary
 
-RevealUI's core framework is **real and production-grade** — auth, billing, CMS engine, 52 UI components, 76-table database, 13,700+ tests. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
+RevealUI's core framework is **real and production-grade** — auth, billing, runtime engine, 58 UI components, 80+ table database, 13,700+ tests. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
 
 ---
 
@@ -49,7 +49,7 @@ RevealUI's core framework is **real and production-grade** — auth, billing, CM
 |---------|----------|
 | React 19 | `react@^19.2.3` in package.json |
 | Next.js 16 | Catalog reference, App Router throughout |
-| 50+ UI components | **52 components** in presentation package |
+| 50+ UI components | **58 components** in presentation package |
 | Session-only auth (no JWT) | bcrypt-12, RBAC/ABAC, 2FA, WebAuthn, OAuth |
 | Stripe checkout/subscriptions/webhooks | 1,100-line webhook handler, 12 event types |
 | Drizzle ORM dual-DB (NeonDB + Supabase) | Schema + queries + boundary enforcement |
@@ -73,7 +73,7 @@ RevealUI's core framework is **real and production-grade** — auth, billing, CM
 | Feature | Docs say | Reality | Gap |
 |---------|----------|---------|-----|
 | Stripe billing | "Pre-wired payments" | Code complete but **TEST MODE only** | Live mode pending manual UX verification |
-| ElectricSQL sync | "Real-time collaborative editing" | Package exists, marked "basic" in CHANGELOG | Not production-ready |
+| ElectricSQL sync | "Real-time collaborative editing" | Package exists, marked "basic" in CHANGELOG | Not ready to deploy |
 | Forge self-hosting | "Docker + K8s + Terraform" | Infrastructure skeletons exist | No SSO, no white-label, no deployment guide |
 | Agent Marketplace | Schema + routes documented | DB tables + API routes exist | Not functional end-to-end |
 | Example projects | 6 examples listed | **3 of 6 are README-only** (basic-blog, e-commerce, portfolio) | Missing working code |
@@ -230,7 +230,7 @@ _Updated: 2026-03-28 | Commit: e1858051_
 
 ### Verdict
 
-**Phase 3 technical criteria: ALL MET.** The codebase, CI, npm packages, and deployments are production-ready.
+**Phase 3 technical criteria: ALL MET.** The codebase, CI, npm packages, and deployments are ready to deploy.
 
 **Phase 3 customer criteria: NOT MET.** Two owner-action items block the exit:
 1. Stripe test key rotation (#87) — unblocks billing verification

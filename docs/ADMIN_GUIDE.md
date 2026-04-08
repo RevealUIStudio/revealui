@@ -1,23 +1,23 @@
 ---
-title: "CMS Guide"
+title: "Admin Guide"
 description: "Collections, access control, hooks, rich text, media, and admin dashboard"
 category: guide
 audience: developer
 ---
 
-# RevealUI CMS Guide
+# RevealUI Admin Guide
 
-**Purpose**: Complete guide to using the RevealUI CMS
+**Purpose**: Complete guide to using the RevealUI admin dashboard and content engine
 **Last Updated**: 2026-02-01
 **Extracted From**: OVERVIEW.md (consolidated 2026-02-01)
 
 ---
 
-## CMS Guide
+## Admin Guide
 
-This comprehensive guide covers everything you need to know about using the RevealUI CMS, from frontend connection to content management and blog creation.
+This comprehensive guide covers everything you need to know about using the RevealUI admin dashboard, from frontend connection to content management and blog creation.
 
-### CMS Guide Table of Contents
+### Admin Guide Table of Contents
 
 1. [CMS Overview](#cms-overview)
 2. [Frontend Connection](#frontend-connection)
@@ -865,7 +865,7 @@ About Us
 **Description**:
 
 ```
-[Your Site Name] is built on RevealUI — open-source business infrastructure for software companies. Users, content, products, payments, and AI, pre-wired and ready to deploy.
+[Your Site Name] is built on RevealUI — an open-source business runtime for software companies. Users, content, products, payments, and AI, pre-wired and ready to deploy.
 ```
 
 **Image**:

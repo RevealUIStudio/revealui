@@ -84,7 +84,7 @@ const userRow: UserDbRow = {
 const postRow: PostDbRow = {
   id: 42,
   title: 'Getting Started with RevealUI',
-  body: 'RevealUI is open-source business infrastructure.',
+  body: 'RevealUI is an open-source business runtime.',
   published: true,
   author_id: 'usr_abc123',
   tags: ['tutorial', 'revealui'],

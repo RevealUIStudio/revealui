@@ -78,6 +78,6 @@ describe('SocialProof', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
     expect(html).toContain("What's Included");
-    expect(html).toContain('Every layer of the stack, production-ready');
+    expect(html).toContain('Every layer of the stack, already built');
   });
 });

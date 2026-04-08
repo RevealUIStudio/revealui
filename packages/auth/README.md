@@ -106,7 +106,7 @@ pnpm test
 
 ## Related
 
-- [Core Package](../core/README.md) — CMS engine (uses auth for access control)
+- [Core Package](../core/README.md) — Runtime engine (uses auth for access control)
 - [DB Package](../db/README.md) — Database schema (sessions, users, rate_limits tables)
 - [Auth Guide](../../docs/AUTH.md) — Architecture, usage patterns, and security design
 

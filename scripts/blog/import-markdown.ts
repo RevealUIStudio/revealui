@@ -559,7 +559,7 @@ async function main() {
   }
 
   // Create post via RevealUI engine
-  log.info('\nInitializing CMS engine...');
+  log.info('\nInitializing runtime engine...');
 
   const [{ default: config }, { getRevealUI }] = await Promise.all([
     import('@reveal-config'),

@@ -1,6 +1,6 @@
 # RevealUI Marketing Site
 
-Marketing and waitlist site for RevealUI — open-source business infrastructure for software companies with account-level subscriptions, metered agent execution, and commerce-ready premium features.
+Marketing site for RevealUI — the agentic business runtime. Users, content, products, payments, and AI, pre-wired and open source.
 
 **Tagline:** "Build your business, not your boilerplate."
 
