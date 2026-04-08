@@ -9,8 +9,7 @@
 
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
-import { sessions } from '@revealui/db/schema';
-import { and, eq, gt, isNull } from 'drizzle-orm';
+import { getActiveSessions } from '@revealui/db/queries/sessions';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -26,25 +25,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const db = getClient();
-    const rows = await db
-      .select({
-        id: sessions.id,
-        userAgent: sessions.userAgent,
-        ipAddress: sessions.ipAddress,
-        persistent: sessions.persistent,
-        lastActivityAt: sessions.lastActivityAt,
-        createdAt: sessions.createdAt,
-        expiresAt: sessions.expiresAt,
-      })
-      .from(sessions)
-      .where(
-        and(
-          eq(sessions.userId, sessionData.user.id),
-          gt(sessions.expiresAt, new Date()),
-          isNull(sessions.deletedAt),
-        ),
-      )
-      .orderBy(sessions.lastActivityAt);
+    const rows = await getActiveSessions(db, sessionData.user.id);
 
     return NextResponse.json({
       currentSessionId: sessionData.session.id,

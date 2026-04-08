@@ -40,26 +40,14 @@ vi.mock('@/lib/email', () => ({
 }));
 
 // Mock the database
-const mockLimit = vi.fn().mockResolvedValue([]);
-const mockWhere = vi.fn().mockReturnValue({ limit: mockLimit });
-const mockFrom = vi.fn().mockReturnValue({ where: mockWhere });
-const mockSelect = vi.fn().mockReturnValue({ from: mockFrom });
+const mockGetUserByEmail = vi.fn();
 
 vi.mock('@revealui/db', () => ({
-  getClient: vi.fn(() => ({
-    select: mockSelect,
-  })),
+  getClient: vi.fn(() => ({})),
 }));
 
-vi.mock('@revealui/db/schema', () => ({
-  users: {
-    id: 'id',
-    email: 'email',
-  },
-}));
-
-vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, val) => ({ eq: val })),
+vi.mock('@revealui/db/queries/users', () => ({
+  getUserByEmail: (...args: unknown[]) => mockGetUserByEmail(...args),
 }));
 
 const mockCreateMagicLink = vi.mocked(authServer.createMagicLink);
@@ -79,7 +67,7 @@ function createJsonRequest(url: string, body: unknown): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockLimit.mockResolvedValue([]);
+  mockGetUserByEmail.mockResolvedValue(null);
 });
 
 // ============================================================================
@@ -95,7 +83,7 @@ describe('POST /api/auth/recovery/request', () => {
   });
 
   it('should return 200 success for valid email with existing user', async () => {
-    mockLimit.mockResolvedValue([{ id: 'user-123' }]);
+    mockGetUserByEmail.mockResolvedValue({ id: 'user-123', email: 'test@example.com' });
     mockCreateMagicLink.mockResolvedValue({
       token: 'magic-token-abc',
       expiresAt: new Date(Date.now() + 900_000),
@@ -113,8 +101,7 @@ describe('POST /api/auth/recovery/request', () => {
   });
 
   it('should return 200 success for unknown email (anti-enumeration)', async () => {
-    // No user found — mockLimit returns empty array (default)
-    mockLimit.mockResolvedValue([]);
+    // No user found — getUserByEmail returns null (default)
 
     const request = createJsonRequest('http://localhost:4000/api/auth/recovery/request', {
       email: 'nobody@example.com',
@@ -285,7 +272,7 @@ describe('POST /api/auth/recovery/verify', () => {
 
 describe('Error handling', () => {
   it('should return 500 on unexpected error in request route', async () => {
-    mockLimit.mockRejectedValue(new Error('Database connection failed'));
+    mockGetUserByEmail.mockRejectedValue(new Error('Database connection failed'));
 
     const { POST: requestHandler } = await import('../request/route');
     const request = createJsonRequest('http://localhost:4000/api/auth/recovery/request', {

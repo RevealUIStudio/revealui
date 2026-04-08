@@ -96,6 +96,10 @@ vi.mock('drizzle-orm', () => {
   return { eq: vi.fn(), count: vi.fn(), sql: sqlFn };
 });
 
+vi.mock('@revealui/db/queries/users', () => ({
+  updateUser: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock('@/lib/email/verification', () => ({
   sendVerificationEmail: vi.fn().mockResolvedValue({ success: true }),
 }));

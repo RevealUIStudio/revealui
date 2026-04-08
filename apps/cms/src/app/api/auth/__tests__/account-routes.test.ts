@@ -11,6 +11,8 @@ const mockGetSession = vi.fn();
 const mockUnlinkOAuthAccount = vi.fn();
 const mockGetClient = vi.fn();
 const mockSendVerificationEmail = vi.fn();
+const mockGetActiveSessions = vi.fn();
+const mockUpdateUser = vi.fn();
 
 vi.mock('@revealui/auth/server', () => ({
   getSession: (...args: unknown[]) => mockGetSession(...args),
@@ -25,30 +27,12 @@ vi.mock('@revealui/db', () => ({
   getClient: (...args: unknown[]) => mockGetClient(...args),
 }));
 
-vi.mock('@revealui/db/schema', () => ({
-  sessions: {
-    id: 'id',
-    userId: 'userId',
-    userAgent: 'userAgent',
-    ipAddress: 'ipAddress',
-    persistent: 'persistent',
-    lastActivityAt: 'lastActivityAt',
-    createdAt: 'createdAt',
-    expiresAt: 'expiresAt',
-    deletedAt: 'deletedAt',
-  },
-  users: {
-    id: 'id',
-    emailVerificationToken: 'emailVerificationToken',
-    updatedAt: 'updatedAt',
-  },
+vi.mock('@revealui/db/queries/sessions', () => ({
+  getActiveSessions: (...args: unknown[]) => mockGetActiveSessions(...args),
 }));
 
-vi.mock('drizzle-orm', () => ({
-  and: vi.fn(),
-  eq: vi.fn(),
-  gt: vi.fn(),
-  isNull: vi.fn(),
+vi.mock('@revealui/db/queries/users', () => ({
+  updateUser: (...args: unknown[]) => mockUpdateUser(...args),
 }));
 
 vi.mock('@/lib/email/verification', () => ({
@@ -188,33 +172,26 @@ describe('GET /api/auth/sessions', () => {
     });
 
     const now = new Date();
-    const mockSelect = vi.fn().mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          orderBy: vi.fn().mockResolvedValue([
-            {
-              id: 'sess-1',
-              userAgent: 'Chrome',
-              ipAddress: '1.2.3.4',
-              persistent: false,
-              lastActivityAt: now,
-              createdAt: now,
-              expiresAt: new Date(now.getTime() + 86400000),
-            },
-            {
-              id: 'sess-2',
-              userAgent: 'Firefox',
-              ipAddress: '5.6.7.8',
-              persistent: true,
-              lastActivityAt: now,
-              createdAt: now,
-              expiresAt: new Date(now.getTime() + 86400000),
-            },
-          ]),
-        }),
-      }),
-    });
-    mockGetClient.mockReturnValue({ select: mockSelect });
+    mockGetActiveSessions.mockResolvedValue([
+      {
+        id: 'sess-1',
+        userAgent: 'Chrome',
+        ipAddress: '1.2.3.4',
+        persistent: false,
+        lastActivityAt: now,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + 86400000),
+      },
+      {
+        id: 'sess-2',
+        userAgent: 'Firefox',
+        ipAddress: '5.6.7.8',
+        persistent: true,
+        lastActivityAt: now,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + 86400000),
+      },
+    ]);
 
     const GET = await loadRoute();
     const res = await GET(makeRequest());
@@ -277,12 +254,7 @@ describe('POST /api/auth/resend-verification', () => {
     mockGetSession.mockResolvedValue({
       user: { id: 'u1', email: 'test@example.com', emailVerified: false },
     });
-    const mockUpdate = vi.fn().mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockResolvedValue(undefined),
-      }),
-    });
-    mockGetClient.mockReturnValue({ update: mockUpdate });
+    mockUpdateUser.mockResolvedValue(null);
     mockSendVerificationEmail.mockResolvedValue({ success: true });
 
     const POST = await loadRoute();
@@ -300,12 +272,7 @@ describe('POST /api/auth/resend-verification', () => {
     mockGetSession.mockResolvedValue({
       user: { id: 'u1', email: 'test@example.com', emailVerified: false },
     });
-    const mockUpdate = vi.fn().mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockResolvedValue(undefined),
-      }),
-    });
-    mockGetClient.mockReturnValue({ update: mockUpdate });
+    mockUpdateUser.mockResolvedValue(null);
     mockSendVerificationEmail.mockResolvedValue({ success: false, error: 'SMTP error' });
 
     const POST = await loadRoute();
