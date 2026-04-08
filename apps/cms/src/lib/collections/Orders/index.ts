@@ -1,3 +1,4 @@
+import config from '@revealui/config';
 import type { RevealCollectionConfig } from '@revealui/core';
 import type { Order } from '@revealui/core/types/cms';
 import { isAdmin, isAdminOrLoggedIn } from '@/lib/access';
@@ -11,8 +12,7 @@ export const Orders: RevealCollectionConfig<Order> = {
   admin: {
     useAsTitle: 'createdAt',
     defaultColumns: ['createdAt', 'orderedBy'],
-    preview: (doc: Record<string, unknown>) =>
-      `${process.env.REVEALUI_PUBLIC_SERVER_URL}/orders/${doc.id}`,
+    preview: (doc: Record<string, unknown>) => `${config.reveal.publicServerURL}/orders/${doc.id}`,
   },
   hooks: {
     afterChange: [updateUserPurchases, clearUserCart],

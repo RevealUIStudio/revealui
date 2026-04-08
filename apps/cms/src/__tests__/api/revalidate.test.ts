@@ -20,6 +20,16 @@ vi.mock('next/cache', () => ({
   revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }));
 
+vi.mock('@revealui/config', () => ({
+  default: {
+    reveal: {
+      get secret() {
+        return process.env.REVEALUI_SECRET ?? '';
+      },
+    },
+  },
+}));
+
 // We need to import NextRequest/NextResponse from next/server after mocks
 import { NextRequest } from 'next/server';
 import { POST } from '../../app/api/revalidate/route';

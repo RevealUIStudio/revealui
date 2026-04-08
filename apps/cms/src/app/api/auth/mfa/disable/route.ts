@@ -18,6 +18,7 @@ import {
   verifyAuthentication,
   verifyCookiePayload,
 } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { MFADisableRequestContract } from '@revealui/contracts';
 import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       const challengePayload = verifyCookiePayload<{ challenge: string; expiresAt: number }>(
         challengeCookie,
-        process.env.REVEALUI_SECRET ?? '',
+        config.reveal.secret,
       );
 
       if (!challengePayload) {
