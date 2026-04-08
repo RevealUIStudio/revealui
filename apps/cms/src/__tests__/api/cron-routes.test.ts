@@ -6,6 +6,9 @@
  * GET /api/cron/cleanup-rate-limits      — expired rate limit records
  * GET /api/cron/cleanup-magic-links      — expired magic links
  * GET /api/cron/cleanup-password-reset-tokens — expired password reset tokens
+ *
+ * All routes delegate to @revealui/db cleanupStaleTokens() — only cleanup-all
+ * runs all tables; the individual routes scope via the `tables` option.
  */
 
 import { NextRequest } from 'next/server';
@@ -15,30 +18,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks — must be defined before route imports
 // ---------------------------------------------------------------------------
 
-const { mockVerifyCronAuth, mockCleanupStaleTokens, mockGetClient } = vi.hoisted(() => ({
+const { mockVerifyCronAuth, mockCleanupStaleTokens } = vi.hoisted(() => ({
   mockVerifyCronAuth: vi.fn(),
   mockCleanupStaleTokens: vi.fn(),
-  mockGetClient: vi.fn(),
 }));
 
 vi.mock('@/lib/utils/cron-auth', () => ({ verifyCronAuth: mockVerifyCronAuth }));
 vi.mock('@revealui/db/cleanup', () => ({ cleanupStaleTokens: mockCleanupStaleTokens }));
-vi.mock('@revealui/db', () => ({ getClient: mockGetClient }));
-
-// drizzle-orm operators — just pass-through identity so where() args don't error
-vi.mock('drizzle-orm', () => ({
-  lt: vi.fn((_col: unknown, _val: unknown) => 'lt-condition'),
-  isNotNull: vi.fn((_col: unknown) => 'is-not-null-condition'),
-  or: vi.fn((..._args: unknown[]) => 'or-condition'),
-}));
-
-// schema tables — plain objects (only used as .delete() arguments)
-vi.mock('@revealui/db/schema', () => ({
-  sessions: {},
-  rateLimits: {},
-  magicLinks: {},
-  passwordResetTokens: {},
-}));
 
 // ---------------------------------------------------------------------------
 // Route imports (after mocks)
@@ -62,16 +48,16 @@ function makeRequest(path: string): NextRequest {
   });
 }
 
-/** Build a chainable Drizzle mock where .returning() resolves to `rows` */
-function makeDbChain(rows: unknown[] = []) {
-  const chain = {
-    delete: vi.fn(),
-    where: vi.fn(),
-    returning: vi.fn().mockResolvedValue(rows),
+/** Default cleanup result (all zeros) */
+function makeResult(overrides: Partial<Record<string, number>> = {}) {
+  return {
+    sessions: 0,
+    rateLimits: 0,
+    passwordResetTokens: 0,
+    magicLinks: 0,
+    scheduledPages: 0,
+    ...overrides,
   };
-  chain.delete.mockReturnValue(chain);
-  chain.where.mockReturnValue(chain);
-  return chain;
 }
 
 // ---------------------------------------------------------------------------
@@ -94,13 +80,9 @@ describe('GET /api/cron/cleanup-all', () => {
 
   it('returns 200 with cleaned counts on success', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    mockCleanupStaleTokens.mockResolvedValue({
-      sessions: 3,
-      rateLimits: 10,
-      passwordResetTokens: 2,
-      magicLinks: 1,
-      scheduledPages: 0,
-    });
+    mockCleanupStaleTokens.mockResolvedValue(
+      makeResult({ sessions: 3, rateLimits: 10, passwordResetTokens: 2, magicLinks: 1 }),
+    );
     const res = await cleanupAll(makeRequest('cleanup-all'));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -137,19 +119,17 @@ describe('GET /api/cron/cleanup-sessions', () => {
 
   it('returns 200 with deleted count on success', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const chain = makeDbChain([{}, {}, {}]); // 3 deleted rows
-    mockGetClient.mockReturnValue(chain);
+    mockCleanupStaleTokens.mockResolvedValue(makeResult({ sessions: 3 }));
     const res = await cleanupSessions(makeRequest('cleanup-sessions'));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.deleted).toBe(3);
+    expect(mockCleanupStaleTokens).toHaveBeenCalledWith({ tables: ['sessions'] });
   });
 
   it('returns 500 when DB throws', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const chain = makeDbChain();
-    chain.returning.mockRejectedValue(new Error('timeout'));
-    mockGetClient.mockReturnValue(chain);
+    mockCleanupStaleTokens.mockRejectedValue(new Error('timeout'));
     const res = await cleanupSessions(makeRequest('cleanup-sessions'));
     expect(res.status).toBe(500);
     const body = await res.json();
@@ -172,19 +152,17 @@ describe('GET /api/cron/cleanup-rate-limits', () => {
 
   it('returns 200 with deleted count on success', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const chain = makeDbChain([{}]); // 1 deleted
-    mockGetClient.mockReturnValue(chain);
+    mockCleanupStaleTokens.mockResolvedValue(makeResult({ rateLimits: 1 }));
     const res = await cleanupRateLimits(makeRequest('cleanup-rate-limits'));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.deleted).toBe(1);
+    expect(mockCleanupStaleTokens).toHaveBeenCalledWith({ tables: ['rateLimits'] });
   });
 
   it('returns 500 when DB throws', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const chain = makeDbChain();
-    chain.returning.mockRejectedValue(new Error('DB error'));
-    mockGetClient.mockReturnValue(chain);
+    mockCleanupStaleTokens.mockRejectedValue(new Error('DB error'));
     const res = await cleanupRateLimits(makeRequest('cleanup-rate-limits'));
     expect(res.status).toBe(500);
   });
@@ -205,19 +183,17 @@ describe('GET /api/cron/cleanup-magic-links', () => {
 
   it('returns 200 with deleted count on success', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const chain = makeDbChain([{}, {}]); // 2 deleted
-    mockGetClient.mockReturnValue(chain);
+    mockCleanupStaleTokens.mockResolvedValue(makeResult({ magicLinks: 2 }));
     const res = await cleanupMagicLinks(makeRequest('cleanup-magic-links'));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.deleted).toBe(2);
+    expect(mockCleanupStaleTokens).toHaveBeenCalledWith({ tables: ['magicLinks'] });
   });
 
   it('returns 500 when DB throws', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const chain = makeDbChain();
-    chain.returning.mockRejectedValue(new Error('DB error'));
-    mockGetClient.mockReturnValue(chain);
+    mockCleanupStaleTokens.mockRejectedValue(new Error('DB error'));
     const res = await cleanupMagicLinks(makeRequest('cleanup-magic-links'));
     expect(res.status).toBe(500);
   });
@@ -238,19 +214,17 @@ describe('GET /api/cron/cleanup-password-reset-tokens', () => {
 
   it('returns 200 with deleted count on success', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const chain = makeDbChain([{}]); // 1 deleted
-    mockGetClient.mockReturnValue(chain);
+    mockCleanupStaleTokens.mockResolvedValue(makeResult({ passwordResetTokens: 1 }));
     const res = await cleanupPasswordResetTokens(makeRequest('cleanup-password-reset-tokens'));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.deleted).toBe(1);
+    expect(mockCleanupStaleTokens).toHaveBeenCalledWith({ tables: ['passwordResetTokens'] });
   });
 
   it('returns 500 when DB throws', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const chain = makeDbChain();
-    chain.returning.mockRejectedValue(new Error('DB error'));
-    mockGetClient.mockReturnValue(chain);
+    mockCleanupStaleTokens.mockRejectedValue(new Error('DB error'));
     const res = await cleanupPasswordResetTokens(makeRequest('cleanup-password-reset-tokens'));
     expect(res.status).toBe(500);
   });

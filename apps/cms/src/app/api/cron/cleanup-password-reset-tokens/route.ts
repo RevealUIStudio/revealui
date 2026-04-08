@@ -4,11 +4,10 @@
  * GET /api/cron/cleanup-password-reset-tokens
  * Schedule: daily
  *
- * Deletes password_reset_tokens rows past their expiresAt timestamp.
+ * Delegates to @revealui/db cleanupStaleTokens() for the passwordResetTokens table.
+ * Prefer /api/cron/cleanup-all for consolidated cleanup.
  */
-import { getClient } from '@revealui/db';
-import { passwordResetTokens } from '@revealui/db/schema';
-import { lt } from 'drizzle-orm';
+import { cleanupStaleTokens } from '@revealui/db/cleanup';
 import { type NextRequest, NextResponse } from 'next/server';
 import { verifyCronAuth } from '@/lib/utils/cron-auth';
 
@@ -21,15 +20,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const db = getClient();
-    const now = new Date();
-
-    const deleted = await db
-      .delete(passwordResetTokens)
-      .where(lt(passwordResetTokens.expiresAt, now))
-      .returning();
-
-    return NextResponse.json({ deleted: deleted.length });
+    const result = await cleanupStaleTokens({ tables: ['passwordResetTokens'] });
+    return NextResponse.json({ deleted: result.passwordResetTokens });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
