@@ -141,7 +141,6 @@ export default function CodeEditor({ repoPath, filePath, onClose }: Props) {
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-    // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omit `save` — re-mounting would reset undo history
   }, [repoPath, filePath]);
 
   const fileName = filePath.split('/').pop() ?? filePath;
