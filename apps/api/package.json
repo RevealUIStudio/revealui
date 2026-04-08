@@ -5,7 +5,7 @@
   "private": true,
   "dependencies": {
     "@coinbase/x402": "^2.1.0",
-    "@hono/node-server": "^1.19.10",
+    "@hono/node-server": "^1.19.13",
     "@hono/swagger-ui": "^0.6.1",
     "@revealui/auth": "workspace:*",
     "@revealui/config": "workspace:*",
