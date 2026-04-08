@@ -48,7 +48,7 @@ ENV SKIP_ENV_VALIDATION=true
 RUN pnpm --filter docs run build
 
 # Runner stage with nginx
-FROM nginx:1.27-alpine AS runner
+FROM nginx:1.29.8-alpine AS runner
 
 # Copy nginx configuration
 COPY apps/docs/nginx.conf /etc/nginx/conf.d/default.conf
