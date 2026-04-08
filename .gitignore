@@ -198,7 +198,6 @@ result-*
 
 # Internal business documents (not published)
 business/
-docs/MASTER_PLAN.md
 docs/PRICE_COLLECTION.md
 docs/PRODUCT_COLLECTION.md
 docs/launch-announcement.md

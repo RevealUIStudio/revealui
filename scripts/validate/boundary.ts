@@ -72,7 +72,7 @@ const INTERNAL_SOURCE_PATTERNS: SourcePattern[] = [
   },
   {
     check: (content) => content.includes('MASTER_PLAN.md'),
-    reason: 'MASTER_PLAN.md reference (internal planning doc)',
+    reason: 'MASTER_PLAN.md reference (planning doc should not appear in package source)',
   },
   {
     check: (content) => content.includes('business/'),
