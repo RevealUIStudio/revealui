@@ -213,6 +213,9 @@ function scanFile(filePath: string): ConsoleUsage[] {
       // Skip comments
       if (isComment(line)) continue;
 
+      // Skip lines with explicit console-allowed exemption
+      if (line.includes('// console-allowed')) continue;
+
       // Check for each console method
       for (const method of CONSOLE_METHODS) {
         let searchFrom = 0;

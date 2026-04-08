@@ -141,8 +141,8 @@ export default function CodeEditor({ repoPath, filePath, onClose }: Props) {
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repoPath, filePath]); // intentionally omit `save` — re-mounting would reset undo history
+    // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omit `save` — re-mounting would reset undo history
+  }, [repoPath, filePath]);
 
   const fileName = filePath.split('/').pop() ?? filePath;
   const dirPath = filePath.includes('/') ? filePath.slice(0, filePath.lastIndexOf('/')) : '';

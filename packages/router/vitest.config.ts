@@ -6,7 +6,6 @@ export default defineConfig({
     environment: 'jsdom',
     pool: 'forks',
     maxWorkers: 2,
-    passWithNoTests: true,
     coverage: {
       provider: 'v8',
       thresholds: {
