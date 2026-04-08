@@ -17,7 +17,7 @@ Users. Content. Products. Payments. Intelligence. Five primitives, one deploymen
 
 ---
 
-RevealUI is an open-source runtime that ships the business logic layer every software product needs — auth, content, products, billing, and AI agents — pre-wired and production-tested. Instead of assembling a dozen services, you start on day one with a running business and agents that natively operate on your data.
+RevealUI is an open-source runtime that ships the business logic layer every software product needs — auth, content, products, billing, and AI agents — pre-wired and development-hardened. Instead of assembling a dozen services, you start on day one with a running business and agents that natively operate on your data.
 
 ## What you get on day one
 
@@ -35,7 +35,7 @@ You have:
 - **Content management** — define collections in TypeScript, get a full REST API and admin UI instantly
 - **Billing** — Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard** — manage users, content, billing, and settings out of the box
-- **52 UI components** — built with Tailwind CSS v4, zero external UI dependencies
+- **58 UI components** — built with Tailwind CSS v4, zero external UI dependencies
 - **Type-safe throughout** — Zod schemas shared between client, server, and database
 
 No assembly required. No consulting 12 different documentation sites. No decisions about which auth library to use.
@@ -146,9 +146,9 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/core`](packages/core)                       | Runtime engine, REST API, auth, rich text, plugins |
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
-| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (76 tables), dual-DB client    |
+| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (80+ tables), dual-DB client   |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
-| [`@revealui/presentation`](packages/presentation)       | 52 UI components (Tailwind v4, zero ext deps)     |
+| [`@revealui/presentation`](packages/presentation)       | 58 UI components (Tailwind v4, zero ext deps)     |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |
 | [`@revealui/router`](packages/router)                   | Lightweight file-based router with SSR            |
 | [`@revealui/config`](packages/config)                   | Type-safe environment configuration               |
@@ -220,7 +220,7 @@ pnpm dev
 revealui/
 ├── apps/
 │   ├── api/        # Hono REST API (port 3004)
-│   ├── cms/        # Admin dashboard + headless CMS (port 4000)
+│   ├── cms/        # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
 │   ├── marketing/  # Marketing site (port 3000)
 │   ├── revealcoin/ # RevealCoin token explorer (experimental)
@@ -241,7 +241,7 @@ revealui/
 - **[Pro](docs/PRO.md)** — AI features, MCP, marketplace, and trust controls
 - **[Database Guide](docs/DATABASE.md)** — Schema, migrations, queries
 - **[Auth Guide](docs/AUTH.md)** — Authentication, sessions, RBAC
-- **[CMS Guide](docs/CMS_GUIDE.md)** — Collections, fields, access control
+- **[Admin Guide](docs/ADMIN_GUIDE.md)** — Collections, fields, access control
 - **[Testing](docs/TESTING.md)** — Vitest, Playwright, coverage
 - **[Deployment](docs/CI_CD_GUIDE.md)** — Vercel, Railway, or self-host
 - **[All docs](docs/INDEX.md)** — Full index (25 guides)

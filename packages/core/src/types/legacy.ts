@@ -1,7 +1,7 @@
 /**
  * Internal Types
  *
- * Internal types used by the RevealUI CMS framework.
+ * Internal types used by the RevealUI runtime engine.
  *
  * @module @revealui/core/types/internal
  */

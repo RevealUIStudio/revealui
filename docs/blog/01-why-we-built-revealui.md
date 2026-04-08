@@ -143,7 +143,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
 };
 ```
 
-Free tier gets the full CMS framework, auth, and REST API. Pro unlocks payments, AI, sync, and monitoring. Max adds AI memory, advanced inference configuration, and compliance tooling. Forge adds multi-tenant architecture, white-labeling (planned), and SSO (planned).
+Free tier gets the full runtime engine, auth, and REST API. Pro unlocks payments, AI, sync, and monitoring. Max adds AI memory, advanced inference configuration, and compliance tooling. Forge adds multi-tenant architecture, white-labeling (planned), and SSO (planned).
 
 ### Pricing served from Stripe, not hardcoded
 
@@ -226,7 +226,7 @@ Some numbers on what's actually shipped:
 
 - **28 packages** across the monorepo (7 apps, 16 OSS libraries, and 5 Pro packages)
 - **71 database tables** via Drizzle ORM
-- **52 UI components** in the presentation layer (zero external UI dependencies — just Tailwind v4, clsx, and CVA)
+- **58 UI components** in the presentation layer (zero external UI dependencies — just Tailwind v4, clsx, and CVA)
 - **13,700+ tests** across all packages
 - **Full OpenAPI spec** with Swagger UI at `/docs`
 - **Session auth** with bcrypt, rate limiting, brute force protection, and OAuth

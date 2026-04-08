@@ -6,8 +6,6 @@ export default defineConfig({
     environment: 'node',
     pool: 'forks',
     maxWorkers: 2,
-    // Allow empty test suite until tests are added
-    passWithNoTests: true,
     coverage: {
       provider: 'v8',
       thresholds: {

@@ -2180,7 +2180,7 @@ docker compose -f infrastructure/docker-compose/services/electric.yml ps
 
 ### Docker Security Best Practices Summary
 
-1. ✅ **Use Docker Hardened Images (DHI)** where available - secure by default, free, and production-ready
+1. ✅ **Use Docker Hardened Images (DHI)** where available - secure by default, free, and ready to deploy
 2. ✅ **Always disable `ELECTRIC_INSECURE` in production**
 3. ✅ **Use strong, randomly generated secrets** (32+ characters)
 4. ✅ **Store secrets in secure secrets manager**, never in files

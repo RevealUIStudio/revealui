@@ -2,9 +2,9 @@ import { Badge } from '@revealui/presentation';
 
 export function SocialProof() {
   const stats = [
-    { value: '3 min', label: 'to first deploy' },
-    { value: '5', label: 'business primitives' },
-    { value: '52', label: 'UI components' },
+    { value: '5', label: 'problems solved' },
+    { value: '21', label: 'npm packages' },
+    { value: '12', label: 'MCP servers' },
     { value: 'MIT', label: 'licensed' },
   ];
 
@@ -28,7 +28,7 @@ export function SocialProof() {
       iconColor: 'text-blue-400',
     },
     {
-      title: '52 Native UI Components',
+      title: 'Native UI Components',
       description:
         'Tailwind v4, zero external UI dependencies. Buttons, forms, tables, modals, sidebars — all styled to your brand with CVA variants.',
       icon: 'M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3',
@@ -51,14 +51,14 @@ export function SocialProof() {
     {
       title: 'Stripe Billing Built In',
       description:
-        'Checkout, subscriptions, webhook handling, license keys, and billing portal — pre-wired end-to-end and production-ready.',
+        'Checkout, subscriptions, webhook handling, license keys, and billing portal — pre-wired end-to-end.',
       icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z',
       iconColor: 'text-amber-400',
     },
     {
       title: 'Multi-Tenant by Design',
       description:
-        'One deployment, many clients. Full data isolation, per-tenant branding, and RBAC access control from day one.',
+        'One deployment, many clients. Data isolation and RBAC access control from day one.',
       icon: 'M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21',
       iconColor: 'text-orange-400',
     },
@@ -105,7 +105,7 @@ export function SocialProof() {
             What&apos;s Included
           </p>
           <p className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Every layer of the stack, production-ready
+            Every layer of the stack, already built
           </p>
         </div>
         <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-4 lg:mx-0 lg:max-w-none lg:grid-cols-3">

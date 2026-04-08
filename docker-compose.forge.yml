@@ -109,7 +109,7 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
-  # CMS — Next.js standalone admin dashboard + headless CMS API
+  # CMS — Next.js standalone admin dashboard + content engine API
   # ---------------------------------------------------------------------------
   cms:
     build:

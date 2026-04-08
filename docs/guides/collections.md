@@ -414,6 +414,6 @@ export default buildConfig({
 
 ## Related Documentation
 
-- [CMS Guide](../CMS_GUIDE.md) -- Full CMS usage reference
+- [Admin Guide](../ADMIN_GUIDE.md) -- Full admin and content usage reference
 - [Package Reference](../REFERENCE.md) -- Core package API
 - [Database Guide](../DATABASE.md) -- Schema and Drizzle ORM patterns

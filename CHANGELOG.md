@@ -34,10 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial release of RevealUI Framework
 - React 19 support with Server Components
 - Next.js 16 integration
-- Native headless CMS with collections, fields, access control, and rich text (Lexical)
+- Native content engine with collections, fields, access control, and rich text (Lexical)
 - Drizzle ORM with NeonDB (PostgreSQL) database adapter
 - Session-based authentication with sign in/up, password reset, and rate limiting
-- 50+ production-ready UI components with Tailwind CSS v4
+- 50+ pre-wired UI components with Tailwind CSS v4
 - ElectricSQL real-time sync (basic)
 - REST API with automatic CRUD for all collections
 - Zod schemas and TypeScript contracts across the entire stack
