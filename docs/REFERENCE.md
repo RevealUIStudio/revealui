@@ -7,7 +7,7 @@ audience: developer
 
 # @revealui/core
 
-The CMS engine. Provides config building, collections, access control, REST API handlers, entitlement and feature gating primitives, rich text, admin UI components, logging, and plugins.
+The runtime engine. Provides config building, collections, access control, REST API handlers, entitlement and feature gating primitives, rich text, admin UI components, logging, and plugins.
 
 Commercial note: for hosted RevealUI deployments, premium access should resolve from account or workspace entitlements first. Per-user or perpetual licenses should remain explicit secondary models for the products that actually need them.
 
@@ -2634,7 +2634,7 @@ import { Accordion, AccordionItem } from "@revealui/presentation";
 
 <Accordion>
   <AccordionItem title="What is RevealUI?">
-    RevealUI is open-source business infrastructure for software companies.
+    RevealUI is an open-source business runtime for software companies.
   </AccordionItem>
   <AccordionItem title="Is it free?">
     The core framework is MIT licensed and free to use.
@@ -2710,7 +2710,7 @@ Behaviour-only versions of form controls — bring your own styles.
 ## Related
 
 - [`@revealui/core`](/reference/core) — Uses `presentation` for admin UI components
-- [Component catalog](/docs/COMPONENT_CATALOG) — Visual index of all 52 components
+- [Component catalog](/docs/COMPONENT_CATALOG) — Visual index of all 58 components
 
 ---
 
@@ -3591,7 +3591,7 @@ interface AuthSession {
 
 ## Related
 
-- [`@revealui/core`](/reference/core) — CMS engine, uses auth for admin access control
+- [`@revealui/core`](/reference/core) — Runtime engine, uses auth for admin access control
 - [`@revealui/contracts`](/reference/contracts) — `passwordSchema` Zod schema for validation
 - [`@revealui/db`](/reference/db) — `users`, `sessions`, `passwordResetTokens`, `oauthAccounts` tables
 
@@ -4916,6 +4916,6 @@ interface UseAgentContextsResult {
 
 ## Related
 
-- [`@revealui/core`](/reference/core) — CMS engine that hosts the sync proxy routes
+- [`@revealui/core`](/reference/core) — Runtime engine that hosts the sync proxy routes
 - [`@revealui/db`](/reference/db) — Database schema for conversations, agent memory, and contexts
 - [`@revealui/ai`](/reference/ai) — AI agents that use `AgentCollabClient` for collaborative editing

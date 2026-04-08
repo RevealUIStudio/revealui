@@ -2,7 +2,7 @@
  * Feature flag system for RevealUI Pro/Enterprise tiers.
  *
  * Gates premium features based on the current license tier.
- * Free (OSS) users get the core CMS framework.
+ * Free (OSS) users get the core runtime engine.
  * Pro/Enterprise users unlock AI, advanced sync, dashboard, etc.
  *
  * @dependencies

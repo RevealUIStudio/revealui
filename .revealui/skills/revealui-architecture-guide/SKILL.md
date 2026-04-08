@@ -137,7 +137,7 @@ apps/cms
 - **TypeScript 6** - Type safety
 
 ### Backend
-- **RevealUI CMS** - Native headless CMS
+- **RevealUI Core** - Admin dashboard + content engine
 - **Drizzle ORM** - Type-safe database queries
 - **PostgreSQL** (NeonDB) - Production database
 - **PGlite** - Test database

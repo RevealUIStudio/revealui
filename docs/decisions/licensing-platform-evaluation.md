@@ -62,7 +62,7 @@ RevealUI's licensing is a dual-model system:
 
 ## Rationale
 
-1. **The system works.** JWT signing, Stripe webhook license generation, DB-backed revocation, 5-minute cache — all production-ready and tested.
+1. **The system works.** JWT signing, Stripe webhook license generation, DB-backed revocation, 5-minute cache — all pre-wired and tested.
 
 2. **No revenue yet.** Adding $299/mo (Keygen) or $19-99/mo (Anystack) before the first paying customer is wrong. The current system has zero marginal cost.
 

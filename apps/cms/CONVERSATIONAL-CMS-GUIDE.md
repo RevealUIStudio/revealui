@@ -239,7 +239,7 @@ The chat API is configured in `/apps/cms/src/app/api/chat/route.ts`:
 
 ## What's Next?
 
-The conversational CMS is production-ready! Future enhancements:
+The conversational CMS is ready to deploy! Future enhancements:
 
 - [ ] Image input for visual design instructions
 - [ ] Batch operations UI with progress tracking

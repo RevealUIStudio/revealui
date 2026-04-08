@@ -9,7 +9,7 @@ Package manager: pnpm 10 (\`workspace:*\` for internal deps).
 
 ## Key Packages
 
-- \`@revealui/core\` — CMS engine, collections, access control, hooks
+- \`@revealui/core\` — Runtime engine, collections, access control, hooks
 - \`@revealui/db\` — Drizzle schema (NeonDB) + vector schema (Supabase)
 - \`@revealui/auth\` — session auth, bcrypt, rate limiting
 - \`@revealui/contracts\` — Zod schemas (canonical source of truth)
