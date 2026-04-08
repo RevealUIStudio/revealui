@@ -8,7 +8,7 @@ RevealUI exists because that cycle is broken.
 
 ## The Problem
 
-Start a new SaaS project today and you will immediately reach for a dozen libraries: an auth provider, a headless CMS, a payment wrapper, a database ORM, a UI component library, an API framework. Each has its own conventions, its own configuration format, its own upgrade cadence, and its own breaking changes. You spend the first quarter of your project stitching these together into something that works. You spend the next quarter fixing the seams.
+Start a new SaaS project today and you will immediately reach for a dozen libraries: an auth provider, a content engine, a payment wrapper, a database ORM, a UI component library, an API framework. Each has its own conventions, its own configuration format, its own upgrade cadence, and its own breaking changes. You spend the first quarter of your project stitching these together into something that works. You spend the next quarter fixing the seams.
 
 This is not a tooling problem. The individual tools are excellent. Next.js, Stripe, Drizzle, Tailwind -- each is best-in-class. The problem is integration. Nobody ships a library for "make all these things work together." That integration layer is what every team rebuilds from scratch, and it is where most of the bugs live.
 
@@ -60,7 +60,7 @@ Every framework is a set of opinions. Here are ours:
 
 **Lexical over ProseMirror.** Lexical's data model is JSON, not a custom AST. Server-side rendering works without a browser. XSS prevention is structural: every URL is validated before rendering.
 
-**Tailwind over CSS-in-JS.** No runtime cost. No hydration mismatch. The entire component library (52 components) uses only Tailwind utilities, clsx, and CVA. Zero external UI dependencies.
+**Tailwind over CSS-in-JS.** No runtime cost. No hydration mismatch. The entire component library (58 components) uses only Tailwind utilities, clsx, and CVA. Zero external UI dependencies.
 
 **Biome over ESLint + Prettier.** One tool instead of two. Faster. No plugin ecosystem to manage. The formatter and linter share a single AST parse.
 
@@ -71,8 +71,8 @@ Every framework is a set of opinions. Here are ours:
 RevealUI launched with:
 
 - **18 npm packages** published to the public registry
-- **76 database tables** via Drizzle ORM (NeonDB + Supabase)
-- **52 UI components** with zero external dependencies
+- **80+ database tables** via Drizzle ORM (NeonDB + Supabase)
+- **58 UI components** with zero external dependencies
 - **7 MCP servers** for AI tool access (all MIT)
 - **13,700+ tests** across all packages
 - **4 GitHub template repos** for different starting points

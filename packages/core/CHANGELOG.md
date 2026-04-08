@@ -98,7 +98,7 @@
 
 - 4d76d68: Initial stable release of the RevealUI core framework.
 
-  - CMS engine with collection CRUD, field traversal, and hook system (afterChange, afterRead, beforeChange, beforeValidate)
+  - Runtime engine with collection CRUD, field traversal, and hook system (afterChange, afterRead, beforeChange, beforeValidate)
   - REST API layer with framework-agnostic handlers
   - Auth utilities (access control helpers)
   - Config system with `buildConfig` and deep merge

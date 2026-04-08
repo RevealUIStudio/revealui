@@ -193,7 +193,7 @@ The API allows cross-origin requests from configured domains. In production, COR
 
 For detailed package-level API documentation:
 
-- [@revealui/core](../REFERENCE.md) -- CMS engine, collections, access control, plugins
+- [@revealui/core](../REFERENCE.md) -- Runtime engine, collections, access control, plugins
 - [@revealui/contracts](../REFERENCE.md) -- Zod schemas and TypeScript types
 - [@revealui/db](../DATABASE.md) -- Drizzle ORM schema and query patterns
 - [@revealui/auth](../AUTH.md) -- Authentication, sessions, OAuth

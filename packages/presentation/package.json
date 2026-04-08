@@ -77,7 +77,7 @@
     "clean": "rm -rf dist",
     "dev": "vite build --watch --mode development",
     "lint": "biome check .",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"

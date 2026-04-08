@@ -5,7 +5,7 @@ tier: free
 last-verified: 2026-03-11
 
 description: >
-  Custom CMS engine with 20 collections, per-collection RBAC, lifecycle hooks,
+  Custom runtime engine with 20 collections, per-collection RBAC, lifecycle hooks,
   Lexical rich text, and auto-generated REST API. Built on @revealui/core
   (not a Payload fork, though some patterns are inspired by it).
 
@@ -63,7 +63,7 @@ api-surface:
       - "FixedToolbarFeature, InlineToolbarFeature"
       - "HorizontalRuleFeature"
   core-engine:
-    endpoint: "@revealui/core — CMS engine exports"
+    endpoint: "@revealui/core — runtime engine exports"
     openapi: false
     tested: true
     exports:
@@ -129,4 +129,4 @@ limitations:
     summary: "No collection list views with pagination in admin dashboard"
   - id: commercial-model-mix
     surface: api
-    summary: "Commerce and paywall concepts exist in the CMS engine, but hosted entitlement resolution still needs to fully align around account-level billing"
+    summary: "Commerce and paywall concepts exist in the runtime engine, but hosted entitlement resolution still needs to fully align around account-level billing"

@@ -42,7 +42,7 @@ const sections: NavSection[] = [
   {
     title: 'Core Guides',
     items: [
-      { label: 'CMS Guide', path: '/docs/CMS_GUIDE' },
+      { label: 'Admin Guide', path: '/docs/ADMIN_GUIDE' },
       { label: 'Authentication', path: '/docs/AUTH' },
       { label: 'Database', path: '/docs/DATABASE' },
       { label: 'CI/CD & Deployment', path: '/docs/CI_CD_GUIDE' },

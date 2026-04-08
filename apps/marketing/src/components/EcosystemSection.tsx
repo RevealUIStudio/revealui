@@ -1,10 +1,10 @@
 const projects = [
   {
     name: 'RevealUI',
-    tagline: 'The native AI experience is Studio',
+    tagline: 'The agentic business runtime',
     description:
-      'Desktop app (Tauri) for agent coordination, local inference via Ubuntu Inference Snaps, and multi-agent orchestration. Backend: users, content, products, payments, AI agents — all pre-wired.',
-    license: 'MIT + Pro',
+      'Users, content, products, payments, and AI agents — five business primitives, pre-wired into one deployable stack. 21 packages on npm, MIT licensed.',
+    license: 'MIT + Fair Source (Pro)',
     icon: 'M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z',
     iconColor: 'text-emerald-400',
     href: 'https://github.com/RevealUIStudio/revealui',
@@ -31,10 +31,10 @@ const projects = [
   },
   {
     name: 'RevealCoin',
-    tagline: 'Agents pay per task via HTTP 402',
+    tagline: 'Agent-native micropayments (coming soon)',
     description:
       'Solana token for agent-native micropayments. Agents discover capabilities, authenticate, and pay per task — no accounts, no subscriptions. Powered by the x402 payment protocol.',
-    license: 'Forge',
+    license: 'Coming Soon',
     icon: 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
     iconColor: 'text-violet-400',
     href: undefined,
@@ -50,11 +50,11 @@ export function EcosystemSection() {
             The Ecosystem
           </p>
           <p className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Four projects, one mission
+            One runtime, growing ecosystem
           </p>
           <p className="mt-4 text-base leading-7 text-gray-400">
-            Each project stands alone. Together, they form a complete stack for building, securing,
-            coordinating, and monetizing agentic software.
+            RevealUI is the foundation. Each companion project extends the stack for security,
+            development, and monetization.
           </p>
         </div>
 
