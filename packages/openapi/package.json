@@ -10,7 +10,7 @@
   "devDependencies": {
     "@types/node": "^25.5.0",
     "dev": "workspace:*",
-    "hono": "^4.12.7",
+    "hono": "^4.12.12",
     "tsup": "^8.5.1",
     "typescript": "^6.0.2",
     "vitest": "^4.1.0",
