@@ -1,7 +1,7 @@
 import { getSession } from '@revealui/auth/server';
 import { ChatRequestContract } from '@revealui/contracts';
 import { apiClient } from '@revealui/core/admin/utils/apiClient';
-import { logger } from '@revealui/core/utils/logger/server';
+import { logger } from '@revealui/utils/logger';
 import type { NextRequest } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { rateLimit } from '@/lib/middleware/rate-limit';

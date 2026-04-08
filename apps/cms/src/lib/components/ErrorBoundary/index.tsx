@@ -7,7 +7,7 @@
 
 'use client';
 
-import { logger } from '@revealui/core/utils/logger';
+import { logger } from '@revealui/utils/logger';
 import React, { Component, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {

@@ -1,6 +1,6 @@
 import { TextBlockSchema } from '@revealui/contracts/content';
 import type { Page } from '@revealui/core/types/cms';
-import { logger } from '@revealui/core/utils/logger';
+import { logger } from '@revealui/utils/logger';
 import { memo } from 'react';
 import { CMSLink } from '@/lib/components/Link/index';
 import RichText from '@/lib/components/RichText/index';

@@ -7,7 +7,7 @@
  */
 
 import { checkRateLimit, getSession } from '@revealui/auth/server';
-import { logger } from '@revealui/core/observability/logger';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import { createErrorResponse, createValidationErrorResponse } from '@/lib/utils/error-response';

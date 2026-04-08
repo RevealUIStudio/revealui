@@ -1,5 +1,5 @@
-import { logger } from '@revealui/core/observability/logger';
 import type { Page as PageType } from '@revealui/core/types/cms';
+import { logger } from '@revealui/utils/logger';
 import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
 import { cache } from 'react';

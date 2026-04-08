@@ -6,7 +6,7 @@
  */
 
 import { ELECTRIC_PROTOCOL_QUERY_PARAMS } from '@electric-sql/client';
-import { logger } from '@revealui/core/utils/logger';
+import { logger } from '@revealui/utils/logger';
 import { NextResponse } from 'next/server';
 
 /**
