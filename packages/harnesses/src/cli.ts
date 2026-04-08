@@ -348,6 +348,12 @@ async function handleContentCommand(subcommand: string | undefined, args: string
             }
             const content = await fileRes.text();
             const absolutePath = join(projectRoot, relPath);
+            // Guard against path traversal — ensure output stays within project root
+            if (!absolutePath.startsWith(projectRoot)) {
+              process.stderr.write(`  ✗ ${relPath} (path traversal blocked)\n`);
+              errors++;
+              continue;
+            }
             mkdirSync(dirname(absolutePath), { recursive: true });
             writeFileSync(absolutePath, content, 'utf-8');
             written++;

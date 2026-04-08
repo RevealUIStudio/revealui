@@ -22,7 +22,7 @@ import type {
   LLMStreamOptions,
   Message,
 } from './base.js';
-import { OpenAIProvider } from './openai.js';
+import { OpenAICompatProvider } from './openai-compat.js';
 
 export interface BitnetProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> {
   apiKey?: string;
@@ -33,10 +33,10 @@ export interface BitnetProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> 
 }
 
 export class BitnetProvider implements LLMProvider {
-  private inner: OpenAIProvider;
+  private inner: OpenAICompatProvider;
 
   constructor(config: BitnetProviderConfig) {
-    this.inner = new OpenAIProvider({
+    this.inner = new OpenAICompatProvider({
       ...config,
       // llama-server ignores the API key but the OpenAI client requires a non-empty value
       apiKey: config.apiKey ?? 'bitnet',

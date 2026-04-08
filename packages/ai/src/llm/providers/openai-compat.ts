@@ -1,7 +1,9 @@
 /**
- * OpenAI Provider
+ * OpenAI-Compatible Provider
  *
- * Implementation of LLMProvider for OpenAI API
+ * Base implementation for any LLM API that follows the OpenAI chat/completions
+ * format. Used by: Ollama, Groq, Inference Snaps, BitNet, Vultr.
+ * NOT for direct OpenAI usage — RevealUI uses open-source models only.
  */
 
 import type {
@@ -18,9 +20,7 @@ import type {
   ToolCall,
 } from './base.js';
 
-export interface OpenAIProviderConfig extends LLMProviderConfig {
-  organization?: string;
-}
+export interface OpenAICompatConfig extends LLMProviderConfig {}
 
 type OpenAIChatToolCall = {
   id: string;
@@ -48,7 +48,6 @@ type OpenAIStreamChunk = {
 };
 
 const authorizationHeader = 'Authorization' as const;
-const openAiOrganizationHeader = 'OpenAI-Organization' as const;
 const maxTokensKey = 'max_tokens' as const;
 const toolChoiceKey = 'tool_choice' as const;
 const toolCallsKey = 'tool_calls' as const;
@@ -74,13 +73,18 @@ const isFunctionToolCall = (call: unknown): call is OpenAIChatToolCall => {
   return !!fn && typeof fn.name === 'string' && typeof fn.arguments === 'string';
 };
 
-export class OpenAIProvider implements LLMProvider {
-  private config: OpenAIProviderConfig;
+export class OpenAICompatProvider implements LLMProvider {
+  private config: OpenAICompatConfig;
   private baseURL: string;
 
-  constructor(config: OpenAIProviderConfig) {
+  constructor(config: OpenAICompatConfig) {
     this.config = config;
-    this.baseURL = config.baseURL || 'https://api.openai.com/v1';
+    if (!config.baseURL) {
+      throw new Error(
+        'OpenAICompatProvider requires a baseURL — use a specific provider (InferenceSnapsProvider, BitNetProvider, OllamaProvider, etc.)',
+      );
+    }
+    this.baseURL = config.baseURL;
   }
 
   async chat(messages: Message[], options?: LLMChatOptions): Promise<LLMResponse> {
@@ -89,12 +93,9 @@ export class OpenAIProvider implements LLMProvider {
       headers: {
         'Content-Type': 'application/json',
         [authorizationHeader]: `Bearer ${this.config.apiKey}`,
-        ...(this.config.organization && {
-          [openAiOrganizationHeader]: this.config.organization,
-        }),
       },
       body: JSON.stringify({
-        model: this.config.model || 'gpt-4o-mini',
+        model: this.config.model || 'default',
         messages: this.formatMessages(messages),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
         [maxTokensKey]: options?.maxTokens ?? this.config.maxTokens,
@@ -175,10 +176,8 @@ export class OpenAIProvider implements LLMProvider {
       headers: {
         'Content-Type': 'application/json',
         [authorizationHeader]: `Bearer ${this.config.apiKey}`,
-        ...(this.config.organization && {
-          [openAiOrganizationHeader]: this.config.organization,
-        }),
       },
+      // lgtm[js/file-access-to-http] — embedding providers must send text to their API by design
       body: JSON.stringify({
         model,
         input: texts,
@@ -215,12 +214,9 @@ export class OpenAIProvider implements LLMProvider {
       headers: {
         'Content-Type': 'application/json',
         [authorizationHeader]: `Bearer ${this.config.apiKey}`,
-        ...(this.config.organization && {
-          [openAiOrganizationHeader]: this.config.organization,
-        }),
       },
       body: JSON.stringify({
-        model: this.config.model || 'gpt-4o-mini',
+        model: this.config.model || 'default',
         messages: this.formatMessages(messages),
         temperature: options?.temperature ?? this.config.temperature ?? 0.7,
         [maxTokensKey]: options?.maxTokens ?? this.config.maxTokens,

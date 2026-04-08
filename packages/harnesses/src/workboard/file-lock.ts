@@ -121,7 +121,8 @@ export async function withLockAsync<T>(
  * rename() on the same filesystem is atomic at the kernel level.
  */
 export function atomicWriteSync(filePath: string, content: string): void {
-  const tmpPath = `${filePath}.tmp.${process.pid}`;
+  const suffix = `${process.pid}.${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  const tmpPath = `${filePath}.tmp.${suffix}`;
   writeFileSync(tmpPath, content, 'utf8');
   renameSync(tmpPath, filePath);
 }

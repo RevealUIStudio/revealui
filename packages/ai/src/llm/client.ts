@@ -49,7 +49,6 @@ import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
 import type { AuditStore } from '../audit/store.js';
 import type { ProviderHealthMonitor } from './provider-health.js';
-import { AnthropicProvider, type AnthropicProviderConfig } from './providers/anthropic.js';
 import type {
   Embedding,
   LLMChatOptions,
@@ -67,7 +66,7 @@ import {
   type InferenceSnapsProviderConfig,
 } from './providers/inference-snaps.js';
 import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js';
-import { OpenAIProvider, type OpenAIProviderConfig } from './providers/openai.js';
+import type { OpenAICompatConfig } from './providers/openai-compat.js';
 import { VultrProvider, type VultrProviderConfig } from './providers/vultr.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';
 import {
@@ -78,8 +77,6 @@ import {
 import { estimateRequest as _estimateRequestTokens } from './token-counter.js';
 
 export type LLMProviderType =
-  | 'openai'
-  | 'anthropic'
   | 'vultr'
   | 'groq'
   | 'ollama'
@@ -195,8 +192,7 @@ export class LLMClient {
   private createProvider(
     type: LLMProviderType,
     config:
-      | OpenAIProviderConfig
-      | AnthropicProviderConfig
+      | OpenAICompatConfig
       | VultrProviderConfig
       | GroqProviderConfig
       | OllamaProviderConfig
@@ -204,13 +200,6 @@ export class LLMClient {
       | InferenceSnapsProviderConfig,
   ): LLMProvider {
     switch (type) {
-      case 'openai':
-        return new OpenAIProvider(config as OpenAIProviderConfig);
-      case 'anthropic':
-        return new AnthropicProvider({
-          ...(config as AnthropicProviderConfig),
-          enableCacheByDefault: this.config.enableCacheByDefault,
-        });
       case 'vultr':
         return new VultrProvider(config as VultrProviderConfig);
       case 'groq':
@@ -514,11 +503,9 @@ export class LLMClient {
  * Create an LLM client from environment variables.
  *
  * When LLM_PROVIDER is not set, auto-detects the provider by checking env vars
- * in priority order: GROQ_API_KEY → OLLAMA_BASE_URL → ANTHROPIC_API_KEY.
+ * in priority order: INFERENCE_SNAPS → BITNET → GROQ → OLLAMA.
  *
- * GROQ and Ollama are preferred — they are free-tier and BYOK-friendly.
- * OpenAI is not in the auto-detection chain (no revenue yet — see LLM provider policy).
- * To use OpenAI, set LLM_PROVIDER=openai explicitly.
+ * All providers use OpenAI-compatible APIs. No proprietary provider SDKs.
  *
  * Provider defaults:
  *   groq   → llama-3.3-70b-versatile
@@ -537,15 +524,11 @@ export function createLLMClientFromEnv(): LLMClient {
     provider = 'groq';
   } else if (process.env.OLLAMA_BASE_URL) {
     provider = 'ollama';
-  } else if (process.env.ANTHROPIC_API_KEY) {
-    provider = 'anthropic';
   } else {
-    // No provider configured — throw a clear error. OpenAI is intentionally excluded from
-    // auto-detection (no revenue yet). Set LLM_PROVIDER=openai explicitly if needed.
     throw new Error(
       'No LLM provider configured. Set one of: BITNET_BASE_URL (local BitNet), ' +
         'INFERENCE_SNAPS_BASE_URL (local snap), GROQ_API_KEY (recommended cloud), ' +
-        'OLLAMA_BASE_URL (local Ollama), or ANTHROPIC_API_KEY. ' +
+        'OLLAMA_BASE_URL (local Ollama). ' +
         'Alternatively, set LLM_PROVIDER explicitly.',
     );
   }
@@ -554,13 +537,7 @@ export function createLLMClientFromEnv(): LLMClient {
   let baseURL: string | undefined;
   let defaultModel: string | undefined;
 
-  if (provider === 'openai') {
-    apiKey = process.env.OPENAI_API_KEY;
-    baseURL = process.env.OPENAI_BASE_URL;
-  } else if (provider === 'anthropic') {
-    apiKey = process.env.ANTHROPIC_API_KEY;
-    baseURL = process.env.ANTHROPIC_BASE_URL;
-  } else if (provider === 'vultr') {
+  if (provider === 'vultr') {
     apiKey = process.env.VULTR_API_KEY;
     baseURL = process.env.VULTR_BASE_URL;
   } else if (provider === 'huggingface') {

@@ -34,7 +34,7 @@ import type {
   LLMStreamOptions,
   Message,
 } from './base.js';
-import { OpenAIProvider } from './openai.js';
+import { OpenAICompatProvider } from './openai-compat.js';
 
 export interface InferenceSnapsProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> {
   apiKey?: string;
@@ -47,7 +47,7 @@ export interface InferenceSnapsProviderConfig extends Omit<LLMProviderConfig, 'a
 }
 
 export class InferenceSnapsProvider implements LLMProvider {
-  private inner: OpenAIProvider;
+  private inner: OpenAICompatProvider;
   private embedModel: string;
   private baseURL: string;
 
@@ -55,7 +55,7 @@ export class InferenceSnapsProvider implements LLMProvider {
     this.baseURL = config.baseURL;
     // Use the same model for embeddings unless explicitly overridden
     this.embedModel = config.embedModel ?? config.model ?? 'gemma3';
-    this.inner = new OpenAIProvider({
+    this.inner = new OpenAICompatProvider({
       ...config,
       // inference-snaps ignores the API key; OpenAI client requires a non-empty value
       apiKey: config.apiKey ?? 'inference-snaps',
