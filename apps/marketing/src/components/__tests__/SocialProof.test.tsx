@@ -24,12 +24,12 @@ describe('SocialProof', () => {
   it('contains all four stats', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
-    expect(html).toContain('3 min');
-    expect(html).toContain('to first deploy');
     expect(html).toContain('5');
-    expect(html).toContain('business primitives');
-    expect(html).toContain('52');
-    expect(html).toContain('UI components');
+    expect(html).toContain('problems solved');
+    expect(html).toContain('21');
+    expect(html).toContain('npm packages');
+    expect(html).toContain('12');
+    expect(html).toContain('MCP servers');
     expect(html).toContain('MIT');
     expect(html).toContain('licensed');
   });
@@ -56,7 +56,7 @@ describe('SocialProof', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
     expect(html).toContain('Content Engine');
-    expect(html).toContain('52 Native UI Components');
+    expect(html).toContain('Native UI Components');
     expect(html).toContain('Real-Time Sync');
     expect(html).toContain('AI Agents (Pro)');
     expect(html).toContain('Stripe Billing Built In');
