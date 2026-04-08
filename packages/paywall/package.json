@@ -8,7 +8,6 @@
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/paywall"
   },
-  "dependencies": {},
   "peerDependencies": {
     "hono": ">=4.0.0",
     "react": ">=19.0.0"
@@ -24,9 +23,11 @@
   "devDependencies": {
     "@types/node": "^25.5.0",
     "@types/react": "^19.1.8",
+    "@types/react-dom": "catalog:",
     "dev": "workspace:*",
     "hono": "^4.8.3",
     "react": "^19.2.4",
+    "react-dom": "catalog:",
     "tsup": "^8.5.1",
     "typescript": "^6.0.2",
     "vitest": "^4.1.0"

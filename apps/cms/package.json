@@ -10,6 +10,7 @@
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
+    "@revealui/paywall": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/presentation": "workspace:*",
     "@revealui/sync": "workspace:*",
