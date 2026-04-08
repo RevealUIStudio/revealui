@@ -19,9 +19,9 @@ import {
 } from '@revealui/auth/server';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
 import { getClient } from '@revealui/db';
-import { oauthAccounts, users } from '@revealui/db/schema';
+import { getOAuthAccountByProviderUser } from '@revealui/db/queries/oauth-accounts';
+import { countActiveUsers } from '@revealui/db/queries/users';
 import { logger } from '@revealui/utils/logger';
-import { and, count, eq, isNull } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -78,25 +78,12 @@ export async function GET(
       const maxUsers = getMaxUsers();
       if (maxUsers !== Infinity) {
         const db = getClient();
-        const [existingOAuth] = await db
-          .select({ userId: oauthAccounts.userId })
-          .from(oauthAccounts)
-          .where(
-            and(
-              eq(oauthAccounts.provider, provider),
-              eq(oauthAccounts.providerUserId, providerUser.id),
-              isNull(oauthAccounts.deletedAt),
-            ),
-          )
-          .limit(1);
+        const existingOAuth = await getOAuthAccountByProviderUser(db, provider, providerUser.id);
 
         if (!existingOAuth) {
           // New user via OAuth — check limit
-          const [row] = await db
-            .select({ total: count() })
-            .from(users)
-            .where(eq(users.status, 'active'));
-          if ((row?.total ?? 0) >= maxUsers) {
+          const activeCount = await countActiveUsers(db);
+          if (activeCount >= maxUsers) {
             return loginUrl('user_limit_reached');
           }
         }

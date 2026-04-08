@@ -2,7 +2,7 @@
  * User database queries with soft-delete support
  */
 
-import { and, count, desc, eq, ilike, inArray, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, gt, ilike, inArray, isNull, or } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { users } from '../schema/users.js';
 
@@ -119,4 +119,28 @@ export async function createUser(db: Database, data: typeof users.$inferInsert) 
 /** Permanently remove a soft-deleted user (GDPR compliance / admin cleanup) */
 export async function purgeUser(db: Database, id: string) {
   await db.delete(users).where(eq(users.id, id));
+}
+
+/** Count active (non-deleted, status='active') users */
+export async function countActiveUsers(db: Database): Promise<number> {
+  const result = await db.select({ total: count() }).from(users).where(eq(users.status, 'active'));
+  return result[0]?.total ?? 0;
+}
+
+/** Look up a user by their email verification token hash (non-expired only) */
+export async function getUserByVerificationToken(db: Database, tokenHash: string) {
+  const result = await db
+    .select({ id: users.id, emailVerified: users.emailVerified })
+    .from(users)
+    .where(
+      and(
+        eq(users.emailVerificationToken, tokenHash),
+        or(
+          isNull(users.emailVerificationTokenExpiresAt),
+          gt(users.emailVerificationTokenExpiresAt, new Date()),
+        ),
+      ),
+    )
+    .limit(1);
+  return result[0] ?? null;
 }
