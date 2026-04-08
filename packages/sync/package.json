@@ -4,7 +4,7 @@
   "description": "ElectricSQL sync utilities for RevealUI",
   "license": "MIT",
   "dependencies": {
-    "@electric-sql/react": "^1.0.27",
+    "@electric-sql/react": "^1.0.43",
     "@revealui/contracts": "workspace:*",
     "@revealui/db": "workspace:*",
     "lib0": "^0.2.117",
@@ -18,9 +18,9 @@
     "@types/ws": "^8.5.14",
     "@vitest/coverage-v8": "^4.1.0",
     "dev": "workspace:*",
-    "jsdom": "^29.0.1",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
+    "jsdom": "^29.0.2",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "typescript": "^6.0.2",
     "vitest": "^4.1.0"
   },

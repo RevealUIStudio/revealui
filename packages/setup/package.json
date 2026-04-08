@@ -20,7 +20,7 @@
   "dependencies": {
     "@revealui/config": "workspace:*",
     "execa": "^9.0.0",
-    "inquirer": "^13.3.2",
+    "inquirer": "^13.4.1",
     "ora": "^9.3.0",
     "zod": "catalog:"
   },
