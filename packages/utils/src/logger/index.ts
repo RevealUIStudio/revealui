@@ -118,20 +118,24 @@ export class Logger {
 
   /**
    * Error log
+   *
+   * Accepts either an Error object or a LogContext as the second parameter
+   * for backward compatibility with callers that pass structured context.
    */
-  error(message: string, error?: Error, context?: LogContext): void {
-    const errorContext = error
-      ? {
-          error: {
-            name: error.name,
-            message: error.message,
-            stack: this.config.includeStack ? error.stack : undefined,
-            cause: error.cause,
-          },
-        }
-      : {};
-
-    this.log('error', message, { ...context, ...errorContext });
+  error(message: string, errorOrContext?: Error | LogContext, context?: LogContext): void {
+    if (errorOrContext instanceof Error) {
+      const errorContext = {
+        error: {
+          name: errorOrContext.name,
+          message: errorOrContext.message,
+          stack: this.config.includeStack ? errorOrContext.stack : undefined,
+          cause: errorOrContext.cause,
+        },
+      };
+      this.log('error', message, { ...context, ...errorContext });
+    } else {
+      this.log('error', message, { ...errorOrContext, ...context });
+    }
   }
 
   /**
