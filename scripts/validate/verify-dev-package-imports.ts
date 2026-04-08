@@ -209,7 +209,7 @@ function checkFile(filePath: string): void {
     !relativePath.includes('.temp.') &&
     // Only check specific app/package configs that should use dev imports
     (relativePath.startsWith('apps/mainframe/') ||
-      relativePath.startsWith('apps/cms/') ||
+      relativePath.startsWith('apps/admin/') ||
       relativePath.startsWith('packages/services/'))
   ) {
     issues.push({

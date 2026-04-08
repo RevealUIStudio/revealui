@@ -7,7 +7,7 @@
  * - GET /usage
  * - POST /support-renewal-check
  * - Circuit breaker behavior
- * - CMS_URL fallback logic
+ * - ADMIN_URL fallback logic
  * - Stripe error propagation
  * - Concurrent customer creation
  */
@@ -464,7 +464,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       vi.clearAllMocks();
       resetChains();
       process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
-      process.env.CMS_URL = 'https://app.example.com';
+      process.env.ADMIN_URL = 'https://app.example.com';
       process.env.STRIPE_PERPETUAL_PRO_PRICE_ID = 'price_pro_perpetual_server';
       process.env.STRIPE_PERPETUAL_MAX_PRICE_ID = 'price_max_perpetual_server';
       process.env.STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID = 'price_enterprise_perpetual_server';
@@ -641,8 +641,8 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       expect(res.status).toBe(500);
     });
 
-    it('returns 500 when CMS_URL is not configured', async () => {
-      delete process.env.CMS_URL;
+    it('returns 500 when ADMIN_URL is not configured', async () => {
+      delete process.env.ADMIN_URL;
       delete process.env.NEXT_PUBLIC_SERVER_URL;
       queueSelectResults(
         [], // duplicate perpetual license check
@@ -845,7 +845,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
   });
 
-  describe('CMS_URL fallback', () => {
+  describe('ADMIN_URL fallback', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       resetChains();
@@ -854,12 +854,12 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     afterEach(() => {
-      delete process.env.CMS_URL;
+      delete process.env.ADMIN_URL;
       delete process.env.NEXT_PUBLIC_SERVER_URL;
     });
 
-    it('uses CMS_URL when both CMS_URL and NEXT_PUBLIC_SERVER_URL are set', async () => {
-      process.env.CMS_URL = 'https://cms.example.com';
+    it('uses ADMIN_URL when both ADMIN_URL and NEXT_PUBLIC_SERVER_URL are set', async () => {
+      process.env.ADMIN_URL = 'https://cms.example.com';
       process.env.NEXT_PUBLIC_SERVER_URL = 'https://fallback.example.com';
       queueSelectResults(
         [{ stripePriceId: 'price_pro_server' }],
@@ -876,8 +876,8 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       expect(sessionArgs.success_url).toContain('https://cms.example.com');
     });
 
-    it('falls back to NEXT_PUBLIC_SERVER_URL when CMS_URL is not set', async () => {
-      delete process.env.CMS_URL;
+    it('falls back to NEXT_PUBLIC_SERVER_URL when ADMIN_URL is not set', async () => {
+      delete process.env.ADMIN_URL;
       process.env.NEXT_PUBLIC_SERVER_URL = 'https://fallback.example.com';
       queueSelectResults(
         [{ stripePriceId: 'price_pro_server' }],
@@ -894,8 +894,8 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       expect(sessionArgs.success_url).toContain('https://fallback.example.com');
     });
 
-    it('returns 500 when neither CMS_URL nor NEXT_PUBLIC_SERVER_URL is set', async () => {
-      delete process.env.CMS_URL;
+    it('returns 500 when neither ADMIN_URL nor NEXT_PUBLIC_SERVER_URL is set', async () => {
+      delete process.env.ADMIN_URL;
       delete process.env.NEXT_PUBLIC_SERVER_URL;
       queueSelectResults(
         [{ stripePriceId: 'price_pro_server' }],
@@ -914,7 +914,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       vi.clearAllMocks();
       resetChains();
       process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
-      process.env.CMS_URL = 'https://app.example.com';
+      process.env.ADMIN_URL = 'https://app.example.com';
       process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
       process.env.STRIPE_ENTERPRISE_PRICE_ID = 'price_enterprise_server';
     });
@@ -967,7 +967,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       vi.clearAllMocks();
       resetChains();
       process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
-      process.env.CMS_URL = 'https://app.example.com';
+      process.env.ADMIN_URL = 'https://app.example.com';
       process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
     });
 
@@ -1010,7 +1010,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       vi.clearAllMocks();
       resetChains();
       process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
-      process.env.CMS_URL = 'https://app.example.com';
+      process.env.ADMIN_URL = 'https://app.example.com';
       process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
     });
 

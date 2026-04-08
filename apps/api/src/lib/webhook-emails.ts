@@ -57,12 +57,14 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function cmsUrl(): string {
-  return process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com';
+function adminUrl(): string {
+  return (
+    process.env.ADMIN_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://admin.revealui.com'
+  );
 }
 
 function billingUrl(): string {
-  return `${cmsUrl()}/account/billing`;
+  return `${adminUrl()}/account/billing`;
 }
 
 function supportEmail(): string {
@@ -112,7 +114,7 @@ export async function sendLicenseActivatedEmail(to: string, tier: string): Promi
       `<h1 style="color: #2563eb;">Your License is Active</h1>
 <p>Your RevealUI <strong>${label}</strong> license has been activated.</p>
 <p>You now have access to all ${label} features including${featureList} AI agents, advanced sync, and built-in payments.</p>
-${ctaButton(`${cmsUrl()}/admin`, 'Go to Dashboard')}
+${ctaButton(`${adminUrl()}/admin`, 'Go to Dashboard')}
 ${supportFooter('If you have questions, reply to this email or contact')}`,
     ),
     text: `Your RevealUI ${label} license is now active. Go to your dashboard to explore your new features.`,
@@ -196,7 +198,7 @@ export async function sendPerpetualLicenseActivatedEmail(
     day: 'numeric',
     year: 'numeric',
   });
-  const licenseUrl = `${cmsUrl()}/account/license`;
+  const licenseUrl = `${adminUrl()}/account/license`;
   const keyBlock = licenseKey
     ? `<div style="margin: 20px 0; padding: 16px; background: #f4f4f5; border-radius: 8px;">
   <p style="margin: 0 0 8px 0; font-size: 12px; color: #71717a; text-transform: uppercase; letter-spacing: 0.05em;">Your License Key</p>
@@ -231,7 +233,7 @@ export async function sendSupportRenewalConfirmationEmail(
     day: 'numeric',
     year: 'numeric',
   });
-  const licenseUrl = `${cmsUrl()}/account/license`;
+  const licenseUrl = `${adminUrl()}/account/license`;
   await sendEmail({
     to,
     subject: `Your RevealUI ${label} support contract has been renewed`,
@@ -445,7 +447,7 @@ export async function sendUpgradeConfirmationEmail(
       `<h1 style="color: #16a34a;">Plan Upgraded</h1>
 <p>Your RevealUI plan has been upgraded from <strong>${escapeHtml(fromLabel)}</strong> to <strong>${escapeHtml(toLabel)}</strong>.</p>
 <p>Your new features are available immediately. The prorated charge will appear on your next invoice.</p>
-${ctaButton(`${cmsUrl()}/admin`, 'Explore New Features')}
+${ctaButton(`${adminUrl()}/admin`, 'Explore New Features')}
 ${supportFooter('If you have questions about your upgrade, contact')}`,
     ),
     text: `Your RevealUI plan has been upgraded from ${fromLabel} to ${toLabel}. Your new features are available immediately. Manage your subscription at ${portal}.`,

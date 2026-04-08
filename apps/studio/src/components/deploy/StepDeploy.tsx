@@ -36,7 +36,7 @@ function buildApiEnvVars(data: WizardData): Record<string, string> {
     REVEALUI_LICENSE_PUBLIC_KEY: data.licensePublicKey,
     NEXT_PUBLIC_SERVER_URL: `https://api.${domain}`,
     REVEALUI_PUBLIC_SERVER_URL: `https://api.${domain}`,
-    CORS_ORIGIN: `https://cms.${domain},https://${domain}`,
+    CORS_ORIGIN: `https://admin.${domain},https://${domain}`,
     REVEALUI_SIGNUP_OPEN: String(data.signupOpen),
   };
 
@@ -76,7 +76,7 @@ function buildApiEnvVars(data: WizardData): Record<string, string> {
   return vars;
 }
 
-function buildCmsEnvVars(data: WizardData): Record<string, string> {
+function buildAdminEnvVars(data: WizardData): Record<string, string> {
   const vars: Record<string, string> = {
     POSTGRES_URL: data.postgresUrl,
     REVEALUI_SECRET: data.revealuiSecret,
@@ -165,7 +165,7 @@ async function deployApp(
   throw new Error('Deployment timed out');
 }
 
-const APP_LABELS = { api: 'API', cms: 'CMS', marketing: 'Marketing' } as const;
+const APP_LABELS = { api: 'API', admin: 'Admin', marketing: 'Marketing' } as const;
 type AppName = keyof typeof APP_LABELS;
 
 const STATUS_LABELS: Record<AppStatus, string> = {
@@ -180,16 +180,20 @@ const STATUS_LABELS: Record<AppStatus, string> = {
 export default function StepDeploy({ config, data, onNext }: StepDeployProps) {
   const [apps, setApps] = useState<Record<AppName, AppState>>({
     api: { status: 'idle' },
-    cms: { status: 'idle' },
+    admin: { status: 'idle' },
     marketing: { status: 'idle' },
   });
   const [deploying, setDeploying] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const allReady =
-    apps.api.status === 'ready' && apps.cms.status === 'ready' && apps.marketing.status === 'ready';
+    apps.api.status === 'ready' &&
+    apps.admin.status === 'ready' &&
+    apps.marketing.status === 'ready';
   const hasErrors =
-    apps.api.status === 'error' || apps.cms.status === 'error' || apps.marketing.status === 'error';
+    apps.api.status === 'error' ||
+    apps.admin.status === 'error' ||
+    apps.marketing.status === 'error';
 
   function updateApp(name: AppName, update: Partial<AppState>) {
     setApps((prev) => ({ ...prev, [name]: { ...prev[name], ...update } }));
@@ -201,10 +205,10 @@ export default function StepDeploy({ config, data, onNext }: StepDeployProps) {
 
     const token = data.vercelToken;
     const apiProjectId = config.deploy?.apps?.api;
-    const cmsProjectId = config.deploy?.apps?.cms;
+    const adminProjectId = config.deploy?.apps?.admin;
     const marketingProjectId = config.deploy?.apps?.marketing;
 
-    if (!(apiProjectId && cmsProjectId && marketingProjectId)) {
+    if (!(apiProjectId && adminProjectId && marketingProjectId)) {
       setError('Missing project IDs. Go back to Vercel step.');
       setDeploying(false);
       return;
@@ -216,7 +220,7 @@ export default function StepDeploy({ config, data, onNext }: StepDeployProps) {
       envVars: Record<string, string>;
     }> = [
       { name: 'api', projectId: apiProjectId, envVars: buildApiEnvVars(data) },
-      { name: 'cms', projectId: cmsProjectId, envVars: buildCmsEnvVars(data) },
+      { name: 'admin', projectId: adminProjectId, envVars: buildAdminEnvVars(data) },
       { name: 'marketing', projectId: marketingProjectId, envVars: buildMarketingEnvVars(data) },
     ];
 
@@ -247,7 +251,7 @@ export default function StepDeploy({ config, data, onNext }: StepDeployProps) {
     <WizardStep title="Deploy" description="Deploy your RevealUI apps to Vercel." error={error}>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
-          {(['api', 'cms', 'marketing'] as const).map((name) => (
+          {(['api', 'admin', 'marketing'] as const).map((name) => (
             <AppCard key={name} name={name} state={apps[name]} />
           ))}
         </div>

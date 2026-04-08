@@ -67,9 +67,9 @@ describe('NavBar', () => {
     const result = NavBar();
     const html = JSON.stringify(result);
     expect(html).toContain('Get Started');
-    expect(html).toContain('https://cms.revealui.com/signup');
+    expect(html).toContain('https://admin.revealui.com/signup');
     expect(html).toContain('Log in');
-    expect(html).toContain('https://cms.revealui.com/login');
+    expect(html).toContain('https://admin.revealui.com/login');
   });
 
   it('contains the Blog nav link', () => {

@@ -278,8 +278,8 @@ describe('PricingPage', () => {
     const result = await PricingPage();
     const html = JSON.stringify(result);
 
-    // Pro tier ctaHref starts with / so gets resolved to CMS URL
-    // The cmsUrl defaults to https://cms.revealui.com unless NEXT_PUBLIC_CMS_URL is set
+    // Pro tier ctaHref starts with / so gets resolved to Admin URL
+    // The adminUrl defaults to https://admin.revealui.com unless NEXT_PUBLIC_ADMIN_URL is set
     expect(html).toContain('/signup?plan=pro');
     // Absolute URLs (docs, mailto) are kept as-is
     expect(html).toContain('https://docs.revealui.com');

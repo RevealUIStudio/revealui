@@ -19,7 +19,7 @@ interface DeployWizardProps {
 
 const EMPTY_WIZARD_DATA: WizardData = {
   vercelToken: '',
-  vercelProjects: { api: '', cms: '', marketing: '' },
+  vercelProjects: { api: '', admin: '', marketing: '' },
   postgresUrl: '',
   stripeSecretKey: '',
   stripePublishableKey: '',

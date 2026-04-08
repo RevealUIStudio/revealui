@@ -33,8 +33,8 @@ const logger = createLogger();
 // Load environment variables
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-config({ path: path.resolve(__dirname, '../apps/cms/.env.local') });
-config({ path: path.resolve(__dirname, '../apps/cms/.env.development.local') });
+config({ path: path.resolve(__dirname, '../apps/admin/.env.local') });
+config({ path: path.resolve(__dirname, '../apps/admin/.env.development.local') });
 config({ path: path.resolve(__dirname, '../.env.local') });
 
 async function initDatabase() {

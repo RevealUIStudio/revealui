@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: revealui-cms
+  name: revealui-admin
   namespace: revealui
   labels:
-    app: revealui-cms
+    app: revealui-admin
     component: backend
 spec:
   replicas: 3
@@ -15,18 +15,18 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: revealui-cms
+      app: revealui-admin
   template:
     metadata:
       labels:
-        app: revealui-cms
+        app: revealui-admin
         component: backend
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
         prometheus.io/path: "/api/metrics"
     spec:
-      serviceAccountName: revealui-cms
+      serviceAccountName: revealui-admin
       securityContext:
         runAsNonRoot: true
         runAsUser: 1001
@@ -35,7 +35,7 @@ spec:
       initContainers:
         # Database migrations
         - name: migrations
-          image: revealui/cms:latest
+          image: revealui/admin:latest
           command: ["pnpm", "db:migrate"]
           envFrom:
             - configMapRef:
@@ -51,8 +51,8 @@ spec:
               cpu: "500m"
 
       containers:
-        - name: cms
-          image: revealui/cms:latest
+        - name: admin
+          image: revealui/admin:latest
           imagePullPolicy: Always
           ports:
             - name: http
@@ -126,7 +126,7 @@ spec:
                     - key: app
                       operator: In
                       values:
-                        - revealui-cms
+                        - revealui-admin
                 topologyKey: kubernetes.io/hostname
 
       topologySpreadConstraints:
@@ -135,19 +135,19 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              app: revealui-cms
+              app: revealui-admin
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: revealui-cms
+  name: revealui-admin
   namespace: revealui
   labels:
-    app: revealui-cms
+    app: revealui-admin
 spec:
   type: ClusterIP
   selector:
-    app: revealui-cms
+    app: revealui-admin
   ports:
     - name: http
       port: 3000
@@ -161,19 +161,19 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: revealui-cms
+  name: revealui-admin
   namespace: revealui
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: revealui-cms
+  name: revealui-admin
   namespace: revealui
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: revealui-cms
+    name: revealui-admin
   minReplicas: 3
   maxReplicas: 10
   metrics:

@@ -35,8 +35,8 @@ RevealUI uses **two databases with strictly separated responsibilities**:
 - \`packages/core/\` — CMS engine must be DB-agnostic
 - \`packages/contracts/\` — contracts are schema-only
 - \`packages/config/\` — config must not hardcode DB client
-- \`apps/cms/src/collections/\` — collection hooks use Drizzle/Neon only
-- \`apps/cms/src/routes/\` — REST routes use Neon only
+- \`apps/admin/src/collections/\` — collection hooks use Drizzle/Neon only
+- \`apps/admin/src/routes/\` — REST routes use Neon only
 
 ## Schema Organization
 

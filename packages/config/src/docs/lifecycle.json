@@ -20,7 +20,7 @@
     "checkTodos": true,
     "maxAgeDays": null,
     "statusThresholdDays": 90,
-    "outdatedPackageNames": ["@revealui/cms"],
+    "outdatedPackageNames": ["@revealui/admin"],
     "replacementPackageName": "@revealui/core",
     "outdatedPaths": ["packages/revealui/src/cms/"]
   },

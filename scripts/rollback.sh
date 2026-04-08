@@ -35,8 +35,8 @@ show_deployment_history() {
     echo -e "\n${YELLOW}Deployment History:${NC}"
     echo "========================================="
 
-    echo -e "\n${YELLOW}CMS Deployment History:${NC}"
-    kubectl rollout history deployment/revealui-cms -n ${NAMESPACE}
+    echo -e "\n${YELLOW}Admin Deployment History:${NC}"
+    kubectl rollout history deployment/revealui-admin -n ${NAMESPACE}
 
     echo -e "\n${YELLOW}Dashboard Deployment History:${NC}"
     kubectl rollout history deployment/revealui-dashboard -n ${NAMESPACE}
@@ -44,23 +44,23 @@ show_deployment_history() {
     echo "========================================="
 }
 
-# Rollback CMS deployment
-rollback_cms() {
+# Rollback Admin deployment
+rollback_admin() {
     local REVISION=$1
-    echo -e "\n${YELLOW}Rolling back CMS deployment...${NC}"
+    echo -e "\n${YELLOW}Rolling back Admin deployment...${NC}"
 
     if [ -z "$REVISION" ]; then
         # Rollback to previous revision
-        kubectl rollout undo deployment/revealui-cms -n ${NAMESPACE}
+        kubectl rollout undo deployment/revealui-admin -n ${NAMESPACE}
     else
         # Rollback to specific revision
-        kubectl rollout undo deployment/revealui-cms --to-revision=${REVISION} -n ${NAMESPACE}
+        kubectl rollout undo deployment/revealui-admin --to-revision=${REVISION} -n ${NAMESPACE}
     fi
 
-    echo "Waiting for CMS rollback to complete..."
-    kubectl rollout status deployment/revealui-cms -n ${NAMESPACE} --timeout=300s
+    echo "Waiting for Admin rollback to complete..."
+    kubectl rollout status deployment/revealui-admin -n ${NAMESPACE} --timeout=300s
 
-    echo -e "${GREEN}✓ CMS rolled back successfully${NC}"
+    echo -e "${GREEN}✓ Admin rolled back successfully${NC}"
 }
 
 # Rollback Dashboard deployment
@@ -93,16 +93,16 @@ rollback_migration() {
         return
     fi
 
-    # Get current CMS pod
-    CMS_POD=$(kubectl get pods -n ${NAMESPACE} -l app=revealui-cms -o jsonpath='{.items[0].metadata.name}')
+    # Get current Admin pod
+    ADMIN_POD=$(kubectl get pods -n ${NAMESPACE} -l app=revealui-admin -o jsonpath='{.items[0].metadata.name}')
 
-    if [ -z "$CMS_POD" ]; then
-        echo -e "${RED}Error: No CMS pod found${NC}"
+    if [ -z "$ADMIN_POD" ]; then
+        echo -e "${RED}Error: No Admin pod found${NC}"
         exit 1
     fi
 
-    echo "Rolling back migration in pod: $CMS_POD"
-    kubectl exec -n ${NAMESPACE} $CMS_POD -- pnpm db:migrate:down
+    echo "Rolling back migration in pod: $ADMIN_POD"
+    kubectl exec -n ${NAMESPACE} $ADMIN_POD -- pnpm db:migrate:down
 
     echo -e "${GREEN}✓ Database migration rolled back${NC}"
 }
@@ -112,19 +112,19 @@ run_health_checks() {
     echo -e "\n${YELLOW}Running health checks...${NC}"
 
     # Wait for pods to be ready
-    kubectl wait --for=condition=ready pod -l app=revealui-cms -n ${NAMESPACE} --timeout=60s || true
+    kubectl wait --for=condition=ready pod -l app=revealui-admin -n ${NAMESPACE} --timeout=60s || true
     kubectl wait --for=condition=ready pod -l app=revealui-dashboard -n ${NAMESPACE} --timeout=60s || true
 
     # Get service URLs
-    CMS_URL=$(kubectl get ingress revealui-ingress -n ${NAMESPACE} -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || echo "")
+    ADMIN_URL=$(kubectl get ingress revealui-ingress -n ${NAMESPACE} -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || echo "")
     DASHBOARD_URL=$(kubectl get ingress revealui-ingress -n ${NAMESPACE} -o jsonpath='{.spec.rules[2].host}' 2>/dev/null || echo "")
 
-    if [ ! -z "$CMS_URL" ]; then
-        echo "Testing CMS: https://${CMS_URL}/api/health"
-        if curl -f -s "https://${CMS_URL}/api/health" > /dev/null 2>&1; then
-            echo -e "${GREEN}✓ CMS health check passed${NC}"
+    if [ ! -z "$ADMIN_URL" ]; then
+        echo "Testing Admin: https://${ADMIN_URL}/api/health"
+        if curl -f -s "https://${ADMIN_URL}/api/health" > /dev/null 2>&1; then
+            echo -e "${GREEN}✓ Admin health check passed${NC}"
         else
-            echo -e "${RED}✗ CMS health check failed${NC}"
+            echo -e "${RED}✗ Admin health check failed${NC}"
         fi
     fi
 
@@ -154,7 +154,7 @@ show_status() {
 pause_deployment() {
     echo -e "\n${YELLOW}Pausing deployments...${NC}"
 
-    kubectl scale deployment/revealui-cms --replicas=0 -n ${NAMESPACE}
+    kubectl scale deployment/revealui-admin --replicas=0 -n ${NAMESPACE}
     kubectl scale deployment/revealui-dashboard --replicas=0 -n ${NAMESPACE}
 
     echo -e "${GREEN}✓ Deployments paused (scaled to 0)${NC}"
@@ -164,11 +164,11 @@ pause_deployment() {
 resume_deployment() {
     echo -e "\n${YELLOW}Resuming deployments...${NC}"
 
-    kubectl scale deployment/revealui-cms --replicas=3 -n ${NAMESPACE}
+    kubectl scale deployment/revealui-admin --replicas=3 -n ${NAMESPACE}
     kubectl scale deployment/revealui-dashboard --replicas=2 -n ${NAMESPACE}
 
     echo "Waiting for pods to be ready..."
-    kubectl wait --for=condition=ready pod -l app=revealui-cms -n ${NAMESPACE} --timeout=300s
+    kubectl wait --for=condition=ready pod -l app=revealui-admin -n ${NAMESPACE} --timeout=300s
     kubectl wait --for=condition=ready pod -l app=revealui-dashboard -n ${NAMESPACE} --timeout=300s
 
     echo -e "${GREEN}✓ Deployments resumed${NC}"
@@ -183,9 +183,9 @@ Usage: ./rollback.sh [COMMAND] [OPTIONS]
 
 Commands:
     history                    Show deployment history
-    rollback-cms [REVISION]    Rollback CMS to previous or specific revision
+    rollback-admin [REVISION]  Rollback Admin to previous or specific revision
     rollback-dashboard [REV]   Rollback Dashboard to previous or specific revision
-    rollback-all [REVISION]    Rollback both CMS and Dashboard
+    rollback-all [REVISION]    Rollback both Admin and Dashboard
     rollback-db                Rollback last database migration
     pause                      Pause deployments (scale to 0)
     resume                     Resume deployments (scale to default)
@@ -201,11 +201,11 @@ Examples:
     # Show deployment history
     ./rollback.sh history
 
-    # Rollback CMS to previous revision
-    ./rollback.sh rollback-cms
+    # Rollback Admin to previous revision
+    ./rollback.sh rollback-admin
 
-    # Rollback CMS to specific revision
-    ./rollback.sh rollback-cms 5
+    # Rollback Admin to specific revision
+    ./rollback.sh rollback-admin 5
 
     # Rollback both services
     ./rollback.sh rollback-all
@@ -232,8 +232,8 @@ main() {
         history)
             show_deployment_history
             ;;
-        rollback-cms)
-            rollback_cms "$REVISION"
+        rollback-admin)
+            rollback_admin "$REVISION"
             run_health_checks
             show_status
             ;;
@@ -243,7 +243,7 @@ main() {
             show_status
             ;;
         rollback-all)
-            rollback_cms "$REVISION"
+            rollback_admin "$REVISION"
             rollback_dashboard "$REVISION"
             run_health_checks
             show_status

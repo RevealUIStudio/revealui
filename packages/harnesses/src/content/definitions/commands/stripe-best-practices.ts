@@ -38,7 +38,7 @@ export const stripeBestPracticesCommand: Command = {
 - Log \`stripe_error\` codes for debugging; never expose raw error objects to clients
 
 ## RevealUI-Specific
-- Webhook endpoint: \`apps/cms\` at \`/api/webhooks/stripe\` (NOT the API endpoint)
+- Webhook endpoint: \`apps/admin\` at \`/api/webhooks/stripe\` (NOT the API endpoint)
 - Stripe service: \`packages/services/src/stripe/\`
 - Billing routes: \`apps/api/src/routes/billing.ts\`
 - Price IDs are managed via \`pnpm stripe:seed\` — see \`scripts/setup/seed-stripe.ts\``,

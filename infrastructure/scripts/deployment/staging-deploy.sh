@@ -97,7 +97,7 @@ Environment Variables:
   VERCEL_TOKEN      - Vercel authentication token
   RAILWAY_TOKEN     - Railway authentication token
   DOCKER_REGISTRY   - Docker registry URL
-  DOCKER_IMAGE_NAME - Docker image name (default: revealui-cms)
+  DOCKER_IMAGE_NAME - Docker image name (default: revealui-admin)
   RENDER_API_KEY    - Render API key
   RENDER_SERVICE_ID - Render service ID
 
@@ -195,7 +195,7 @@ deploy_docker() {
   log_info "Building and pushing Docker image..."
 
   local registry="${DOCKER_REGISTRY:-}"
-  local image_name="${DOCKER_IMAGE_NAME:-revealui-cms}"
+  local image_name="${DOCKER_IMAGE_NAME:-revealui-admin}"
   local image_tag="staging-$(date +%Y%m%d-%H%M%S)"
 
   if [ -z "$registry" ]; then

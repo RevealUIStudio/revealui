@@ -503,8 +503,8 @@ app.openapi(checkoutRoute, async (c) => {
     });
   }
 
-  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
-  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
+  const adminUrl = process.env.ADMIN_URL || process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!adminUrl) throw new HTTPException(500, { message: 'ADMIN_URL is not configured' });
 
   const discountConfig = getEarlyAdopterDiscount(resolvedTier);
 
@@ -526,8 +526,8 @@ app.openapi(checkoutRoute, async (c) => {
           trial_period_days: TRIAL_PERIOD_DAYS,
           metadata: { tier: resolvedTier, revealui_user_id: user.id },
         },
-        success_url: `${cmsUrl}/account/billing?success=true`,
-        cancel_url: `${cmsUrl}/account/billing`,
+        success_url: `${adminUrl}/account/billing?success=true`,
+        cancel_url: `${adminUrl}/account/billing`,
       },
       { idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${idempotencyWindow}` },
     ),
@@ -572,13 +572,13 @@ app.openapi(portalRoute, async (c) => {
       message: 'No billing account found. Purchase a subscription first.',
     });
   }
-  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
-  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
+  const adminUrl = process.env.ADMIN_URL || process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!adminUrl) throw new HTTPException(500, { message: 'ADMIN_URL is not configured' });
 
   const session = await withStripe((stripe) =>
     stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${cmsUrl}/account/billing`,
+      return_url: `${adminUrl}/account/billing`,
     }),
   );
 
@@ -1026,8 +1026,8 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   const resolvedPriceId = await resolveCatalogPriceId(tier, 'perpetual', priceId);
   const customerId = await ensureStripeCustomer(user.id, user.email);
 
-  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
-  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
+  const adminUrl = process.env.ADMIN_URL || process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!adminUrl) throw new HTTPException(500, { message: 'ADMIN_URL is not configured' });
 
   const perpetualIdempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
   const session = await withStripe((stripe) =>
@@ -1055,8 +1055,8 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
           revealui_user_id: user.id,
           ...(githubUsername && { github_username: githubUsername }),
         },
-        success_url: `${cmsUrl}/account/billing?perpetual=true`,
-        cancel_url: `${cmsUrl}/account/billing`,
+        success_url: `${adminUrl}/account/billing?perpetual=true`,
+        cancel_url: `${adminUrl}/account/billing`,
       },
       { idempotencyKey: `checkout-perpetual-${user.id}-${tier}-${perpetualIdempotencyWindow}` },
     ),
@@ -1149,8 +1149,8 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
   const resolvedPriceId = await resolveCatalogPriceId(tier, 'renewal', priceId);
   const customerId = await ensureStripeCustomer(user.id, user.email);
 
-  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
-  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
+  const adminUrl = process.env.ADMIN_URL || process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!adminUrl) throw new HTTPException(500, { message: 'ADMIN_URL is not configured' });
 
   const renewalIdempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
   const session = await withStripe((stripe) =>
@@ -1178,8 +1178,8 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
           license_id: license.id,
           revealui_user_id: user.id,
         },
-        success_url: `${cmsUrl}/account/billing?renewal=true`,
-        cancel_url: `${cmsUrl}/account/billing`,
+        success_url: `${adminUrl}/account/billing?renewal=true`,
+        cancel_url: `${adminUrl}/account/billing`,
       },
       { idempotencyKey: `checkout-renewal-${user.id}-${license.id}-${renewalIdempotencyWindow}` },
     ),
@@ -1282,8 +1282,8 @@ app.openapi(creditCheckoutRoute, async (c) => {
 
   const customerId = await ensureStripeCustomer(user.id, user.email);
 
-  const cmsUrl = process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL;
-  if (!cmsUrl) throw new HTTPException(500, { message: 'CMS_URL is not configured' });
+  const adminUrl = process.env.ADMIN_URL || process.env.NEXT_PUBLIC_SERVER_URL;
+  if (!adminUrl) throw new HTTPException(500, { message: 'ADMIN_URL is not configured' });
 
   const creditIdempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
   const session = await withStripe((stripe) =>
@@ -1307,8 +1307,8 @@ app.openapi(creditCheckoutRoute, async (c) => {
           credits_tasks: String(tasks),
           revealui_user_id: user.id,
         },
-        success_url: `${cmsUrl}/account/billing?credits=${bundle}`,
-        cancel_url: `${cmsUrl}/account/billing`,
+        success_url: `${adminUrl}/account/billing?credits=${bundle}`,
+        cancel_url: `${adminUrl}/account/billing`,
       },
       { idempotencyKey: `checkout-credits-${user.id}-${bundle}-${creditIdempotencyWindow}` },
     ),
@@ -1489,9 +1489,9 @@ app.openapi(supportRenewalRoute, async (c) => {
     );
 
   const { sendEmail } = await import('../lib/email.js');
-  const cmsUrl =
-    process.env.CMS_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://cms.revealui.com';
-  const billingUrl = `${cmsUrl}/account/billing`;
+  const adminBaseUrl =
+    process.env.ADMIN_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'https://admin.revealui.com';
+  const billingUrl = `${adminBaseUrl}/account/billing`;
   let reminded = 0;
 
   for (const row of expiringLicenses) {

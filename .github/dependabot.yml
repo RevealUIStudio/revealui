@@ -68,7 +68,7 @@ updates:
 
   # Monitor Docker base images (ignore non-LTS Node major bumps)
   - package-ecosystem: "docker"
-    directory: "/apps/cms"
+    directory: "/apps/admin"
     schedule:
       interval: "monthly"
       timezone: "UTC"

@@ -10,13 +10,13 @@
  * Run against production (CI=true skips local dev server startup):
  *   CI=true \
  *     API_BASE_URL=https://api.revealui.com \
- *     PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
+ *     PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *     MARKETING_BASE_URL=https://revealui.com \
  *     playwright test e2e/smoke.e2e.ts --project=chromium
  *
  * Production URLs (as of 2026-02-28):
  *   API:       https://api.revealui.com       (revealui-api Vercel project)
- *   CMS:       https://cms.revealui.com       (revealui-cms Vercel project)
+ *   Admin:     https://admin.revealui.com       (revealui-admin Vercel project)
  *   Marketing: https://revealui.com           (revealui-marketing Vercel project)
  *
  * No database, Stripe, or Supabase credentials required.
@@ -66,7 +66,7 @@ test.describe('API health', () => {
 });
 
 // ---------------------------------------------------------------------------
-// CMS Basic Render (apps/cms — port 4000)
+// Admin Basic Render (apps/admin — port 4000)
 // ---------------------------------------------------------------------------
 
 test.describe('CMS basic render', () => {

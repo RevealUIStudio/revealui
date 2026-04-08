@@ -28,7 +28,7 @@
         "VITE_*",
         "REVEALUI_*",
         "API_URL",
-        "CMS_URL",
+        "ADMIN_URL",
         "X402_*",
         "LOGGER_PORT",
         "DOCS_PORT",

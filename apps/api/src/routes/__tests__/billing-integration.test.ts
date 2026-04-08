@@ -66,8 +66,8 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
             quantity: 1,
           },
         ],
-        success_url: 'https://cms.revealui.com/account/billing?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url: 'https://cms.revealui.com/account/billing?canceled=true',
+        success_url: 'https://admin.revealui.com/account/billing?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url: 'https://admin.revealui.com/account/billing?canceled=true',
         metadata: {
           revealui_user_id: 'test-user-ov3',
           tier: 'pro',

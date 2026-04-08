@@ -16,7 +16,7 @@ export default function PrivacyPolicyPage() {
 
         <p>
           RevealUI Studio (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) operates the RevealUI
-          platform, including revealui.com, cms.revealui.com, api.revealui.com, and
+          platform, including revealui.com, admin.revealui.com, api.revealui.com, and
           docs.revealui.com (the &quot;Service&quot;). This Privacy Policy describes how we collect,
           use, and protect your personal information.
         </p>

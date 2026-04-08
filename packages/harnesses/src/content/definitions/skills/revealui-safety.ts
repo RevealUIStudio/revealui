@@ -35,7 +35,7 @@ Follow these rules for ALL code changes in the RevealUI monorepo.
 - \`packages/services/src/supabase/\`
 - \`apps/*/src/lib/supabase/\`
 
-FORBIDDEN in: \`packages/core/\`, \`packages/contracts/\`, \`packages/config/\`, \`apps/cms/src/collections/\`, \`apps/cms/src/routes/\`
+FORBIDDEN in: \`packages/core/\`, \`packages/contracts/\`, \`packages/config/\`, \`apps/admin/src/collections/\`, \`apps/admin/src/routes/\`
 
 ## Code Quality
 

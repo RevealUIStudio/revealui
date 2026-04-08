@@ -75,7 +75,7 @@ fi
 
 # ── Next.js caches ───────────────────────────────────────────
 echo "[4/5] Clearing Next.js build caches..."
-for app in apps/cms apps/marketing; do
+for app in apps/admin apps/marketing; do
   for cache in "$app/.next/cache" "$app/.next/trace"; do
     if [ -d "$cache" ]; then
       count_size "$cache"

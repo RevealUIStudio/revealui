@@ -110,7 +110,7 @@ RevealUI/
 ## Dependency Flow
 
 ```
-apps/cms
+apps/admin
   ├─→ @revealui/core
   │    ├─→ @revealui/db
   │    ├─→ @revealui/auth
@@ -311,7 +311,7 @@ packages/my-package/
 ### App Structure
 
 ```
-apps/cms/
+apps/admin/
 ├── src/
 │   ├── app/               # Next.js App Router
 │   │   ├── (frontend)/    # Public pages

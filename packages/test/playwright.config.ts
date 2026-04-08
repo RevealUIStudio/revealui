@@ -62,7 +62,7 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: process.env.CI
     ? {
-        command: 'cd ../../apps/cms && pnpm start',
+        command: 'cd ../../apps/admin && pnpm start',
         url: 'http://localhost:4000',
         reuseExistingServer: false,
         timeout: 120000,

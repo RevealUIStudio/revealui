@@ -7,7 +7,7 @@ export default defineConfig({
       // Point to actual revealui package
       '@revealui/core': path.resolve(__dirname, '../core/src'),
       // Allow importing from apps
-      '@cms': path.resolve(__dirname, '../../apps/cms/src'),
+      '@admin': path.resolve(__dirname, '../../apps/admin/src'),
       '@api': path.resolve(__dirname, '../../apps/api/src'),
     },
   },
