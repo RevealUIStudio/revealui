@@ -44,16 +44,10 @@ Steps:
 
 **Changesets must be applied before running** — run `pnpm changeset version` locally and commit first.
 
-### `release-pro.yml` — Release Pro Packages
+### `release-pro.yml` — Release Pro Packages (Legacy)
 
-**Trigger:** Manual (`workflow_dispatch`) — **runs from private upstream, not here**
-
-Pro package source (`@revealui/ai`, `mcp`, `editors`, `services`, `harnesses`) lives in
-a private upstream repo. The `release-pro.yml` workflow there publishes to **npm.org**
-via `NPM_TOKEN`.
-
-This file is kept in the public repo for documentation purposes only — running it here
-will fail (Pro package source is not present).
+**Status:** No longer needed. Pro packages are now Fair Source (FSL-1.1-MIT) in the
+public repo and publish through the normal changeset flow via `release.yml`.
 
 ### `deploy.yml` — Unified Deploy
 
@@ -87,11 +81,7 @@ pnpm release:oss
 # OSS dry run
 pnpm release:oss:dry
 
-# Pro release (requires NODE_AUTH_TOKEN + non-private packages)
-pnpm release:pro
-
-# Pro dry run
-pnpm release:pro:dry
+# Pro packages now publish via normal changeset flow (Fair Source, FSL-1.1-MIT)
 
 # Check pending changesets
 pnpm release status

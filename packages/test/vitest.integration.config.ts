@@ -13,7 +13,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@revealui/core': path.resolve(__dirname, '../core/src'),
-      '@cms': path.resolve(__dirname, '../../apps/cms/src'),
+      '@admin': path.resolve(__dirname, '../../apps/admin/src'),
       '@api': path.resolve(__dirname, '../../apps/api/src'),
     },
   },

@@ -21,7 +21,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)** — Justifiable, Orthogonal, Sovere
 
 - [The JOSHUA Stack](./JOSHUA.md) — Six engineering principles: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive
 - [Architecture](./ARCHITECTURE.md) — System design, dual database, multi-tenant patterns
-- [CMS Guide](./CMS_GUIDE.md) — Collections, content management, admin dashboard
+- [Admin Guide](./ADMIN_GUIDE.md) — Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md) — Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md) — Management scripts, optimization, Drizzle ORM
 - [CI/CD & Deployment](./CI_CD_GUIDE.md) — Pipelines, Vercel deployment, staging

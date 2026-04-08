@@ -42,10 +42,9 @@ describe('HeroSection', () => {
   it('contains the brand tagline', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    // Hero H1 splits "The Agentic / Business / Runtime" across span blocks
-    expect(html).toContain('The Agentic');
-    expect(html).toContain('Business');
-    expect(html).toContain('Runtime');
+    // Hero H1 splits "Ship Your SaaS, / Not Your / Infrastructure" across span blocks
+    expect(html).toContain('Ship Your SaaS,');
+    expect(html).toContain('Infrastructure');
     expect(html).toContain('Build your business, not your boilerplate.');
   });
 
@@ -61,7 +60,7 @@ describe('HeroSection', () => {
   it('contains CTA buttons with correct targets', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    expect(html).toContain('https://cms.revealui.com/signup');
+    expect(html).toContain('https://admin.revealui.com/signup');
     expect(html).toContain('Get Started Free');
     expect(html).toContain('https://docs.revealui.com');
     expect(html).toContain('View docs');
@@ -77,10 +76,10 @@ describe('HeroSection', () => {
   it('contains trust badges', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    expect(html).toContain('MIT Licensed (OSS)');
-    expect(html).toContain('Local AI (Inference Snaps)');
+    expect(html).toContain('MIT Licensed');
+    expect(html).toContain('Self-Hostable');
     expect(html).toContain('No Vendor Lock-in');
-    expect(html).toContain('Studio Desktop App');
+    expect(html).toContain('AI Built In');
   });
 
   it('renders the Open Source badge', () => {

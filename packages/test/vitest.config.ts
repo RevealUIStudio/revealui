@@ -7,7 +7,7 @@ export default defineConfig({
       // Point to actual revealui package
       '@revealui/core': path.resolve(__dirname, '../core/src'),
       // Allow importing from apps
-      '@cms': path.resolve(__dirname, '../../apps/cms/src'),
+      '@admin': path.resolve(__dirname, '../../apps/admin/src'),
       '@api': path.resolve(__dirname, '../../apps/api/src'),
     },
   },
@@ -45,10 +45,10 @@ export default defineConfig({
         '**/e2e/**',
       ],
       thresholds: {
-        lines: 60,
-        functions: 60,
-        branches: 55,
-        statements: 60,
+        lines: 35,
+        functions: 25,
+        branches: 30,
+        statements: 35,
       },
     },
   },

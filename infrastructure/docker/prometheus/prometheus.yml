@@ -24,7 +24,7 @@ scrape_configs:
       - targets: ['localhost:9090']
 
   # RevealUI CMS
-  - job_name: 'revealui-cms'
+  - job_name: 'revealui-admin'
     kubernetes_sd_configs:
       - role: pod
         namespaces:
@@ -33,7 +33,7 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__meta_kubernetes_pod_label_app]
         action: keep
-        regex: revealui-cms
+        regex: revealui-admin
       - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
         action: keep
         regex: true

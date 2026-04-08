@@ -58,21 +58,17 @@ jobs:
       - name: Biome lint (hard fail)
         run: pnpm lint:biome
 
-      - name: Any-type audit (warn-only)
-        run: pnpm audit:any || echo "any-type warnings — not blocking"
-        continue-on-error: true
+      - name: Any-type audit
+        run: pnpm audit:any
 
-      - name: Console audit (warn-only)
-        run: pnpm audit:console || echo "console warnings — not blocking"
-        continue-on-error: true
+      - name: Console audit
+        run: pnpm audit:console
 
-      - name: Structure validation (warn-only)
-        run: pnpm validate:structure || echo "structure warnings — not blocking"
-        continue-on-error: true
+      - name: Structure validation
+        run: pnpm validate:structure
 
-      - name: Version policy validation (warn-only)
-        run: pnpm validate:versions || echo "version policy warnings — not blocking"
-        continue-on-error: true
+      - name: Version policy validation
+        run: pnpm validate:versions
 
       - name: Boundary validation (hard fail)
         run: pnpm validate:boundary
@@ -225,9 +221,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
-      - name: Generate coverage reports (warn-only)
-        run: pnpm test:coverage || echo "Coverage generation had failures — not blocking"
-        continue-on-error: true
+      - name: Generate coverage reports
+        run: pnpm test:coverage
         env:
           SKIP_ENV_VALIDATION: "true"
 
@@ -345,8 +340,8 @@ jobs:
           NODE_ENV: "development"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
 
-      - name: Start CMS server
-        run: pnpm --filter cms start &
+      - name: Start Admin server
+        run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
 
@@ -423,8 +418,8 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Start CMS server
-        run: pnpm --filter cms start &
+      - name: Start Admin server
+        run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
 
@@ -463,7 +458,7 @@ jobs:
           retention-days: 7
 
   # ---------------------------------------------------------------------------
-  # Phase 6: Visual regression (main only, warn-only)
+  # Phase 6: Visual regression (main only)
   # ---------------------------------------------------------------------------
   e2e-visual:
     name: Visual Regression (E2E)
@@ -471,7 +466,6 @@ jobs:
     timeout-minutes: 20
     needs: [quality, build]
     if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -496,21 +490,20 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Start CMS server
-        run: pnpm --filter cms start &
+      - name: Start Admin server
+        run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Wait for CMS
+      - name: Wait for Admin
         run: |
           for i in $(seq 1 40); do
-            curl -sf http://localhost:4000 > /dev/null 2>&1 && echo "CMS ready" && break || \
-            echo "Waiting for CMS... ($i/40)" && sleep 3
+            curl -sf http://localhost:4000 > /dev/null 2>&1 && echo "Admin ready" && break || \
+            echo "Waiting for Admin... ($i/40)" && sleep 3
           done
 
-      - name: Run visual regression tests (warn-only until baselines committed)
+      - name: Run visual regression tests
         run: pnpm test:e2e -- --project=chromium e2e/visual-snapshots.e2e.ts
-        continue-on-error: true
         env:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"

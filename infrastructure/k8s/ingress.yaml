@@ -67,7 +67,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: revealui-cms
+                name: revealui-admin
                 port:
                   number: 3000
 
@@ -79,7 +79,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: revealui-cms
+                name: revealui-admin
                 port:
                   number: 3000
 

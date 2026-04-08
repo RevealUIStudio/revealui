@@ -110,7 +110,7 @@ RevealUI/
 ## Dependency Flow
 
 ```
-apps/cms
+apps/admin
   ├─→ @revealui/core
   │    ├─→ @revealui/db
   │    ├─→ @revealui/auth
@@ -137,7 +137,7 @@ apps/cms
 - **TypeScript 6** - Type safety
 
 ### Backend
-- **RevealUI CMS** - Native headless CMS
+- **RevealUI Core** - Admin dashboard + content engine
 - **Drizzle ORM** - Type-safe database queries
 - **PostgreSQL** (NeonDB) - Production database
 - **PGlite** - Test database
@@ -311,7 +311,7 @@ packages/my-package/
 ### App Structure
 
 ```
-apps/cms/
+apps/admin/
 ├── src/
 │   ├── app/               # Next.js App Router
 │   │   ├── (frontend)/    # Public pages

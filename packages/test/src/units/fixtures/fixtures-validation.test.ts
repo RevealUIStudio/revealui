@@ -4,7 +4,7 @@
  * Tests that fixtures create valid data structures and work with validation schemas
  */
 
-import { emailSchema, passwordSchema } from '@cms/lib/validation/schemas';
+import { emailSchema, passwordSchema } from '@admin/lib/validation/schemas';
 import { describe, expect, it } from 'vitest';
 import {
   createSuccessfulPayment,

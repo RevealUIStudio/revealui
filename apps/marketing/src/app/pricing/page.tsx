@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 // Resolve CTA hrefs for marketing context (absolute URLs for signup)
-const cmsUrl = process.env.NEXT_PUBLIC_CMS_URL || 'https://cms.revealui.com';
+const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://admin.revealui.com';
 
 const PRICING_CACHE_REVALIDATE_S = 3600; // 1 hour
 
@@ -105,7 +105,7 @@ export default async function PricingPage() {
 
   const tiers = (pricing?.subscriptions ?? SUBSCRIPTION_TIERS).map((tier) => ({
     ...tier,
-    ctaHref: tier.ctaHref.startsWith('/') ? `${cmsUrl}${tier.ctaHref}` : tier.ctaHref,
+    ctaHref: tier.ctaHref.startsWith('/') ? `${adminUrl}${tier.ctaHref}` : tier.ctaHref,
   }));
   const creditBundles = pricing?.credits ?? CREDIT_BUNDLES;
   const perpetualTiers = pricing?.perpetual ?? PERPETUAL_TIERS;
@@ -271,7 +271,7 @@ export default async function PricingPage() {
                 <p className="mt-1 text-xl font-semibold text-purple-600">{bundle.tasks} tasks</p>
                 <p className="mt-1 text-xs text-gray-500">{bundle.costPer ?? ''}</p>
                 <a
-                  href="https://cms.revealui.com/account/billing"
+                  href="https://admin.revealui.com/account/billing"
                   className={`mt-8 block w-full rounded-md px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
                     bundle.highlighted
                       ? 'bg-purple-600 text-white hover:bg-purple-500'
@@ -600,7 +600,7 @@ export default async function PricingPage() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href={`${cmsUrl}/signup`}
+              href={`${adminUrl}/signup`}
               className="rounded-md bg-white px-8 py-4 text-base font-semibold text-gray-950 shadow-sm hover:bg-gray-100 transition-colors"
             >
               Get Started Free

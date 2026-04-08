@@ -74,8 +74,8 @@ services:
       REVEALUI_PRIVATE_KEY: ${REVEALUI_PRIVATE_KEY:?REVEALUI_PRIVATE_KEY is required}
 
       # CMS origin for CORS
-      CMS_URL: ${CMS_URL:-http://cms:4000}
-      REVEALUI_PUBLIC_SERVER_URL: ${REVEALUI_PUBLIC_SERVER_URL:-http://cms:4000}
+      ADMIN_URL: ${ADMIN_URL:-http://admin:4000}
+      REVEALUI_PUBLIC_SERVER_URL: ${REVEALUI_PUBLIC_SERVER_URL:-http://admin:4000}
 
       # Optional: Stripe (billing features)
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
@@ -109,14 +109,14 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
-  # CMS — Next.js standalone admin dashboard + headless CMS API
+  # Admin — Next.js standalone admin dashboard + content engine API
   # ---------------------------------------------------------------------------
-  cms:
+  admin:
     build:
       context: .
-      dockerfile: apps/cms/Dockerfile.forge
+      dockerfile: apps/admin/Dockerfile.forge
       target: runner
-    container_name: revealui-forge-cms
+    container_name: revealui-forge-admin
     environment:
       NODE_ENV: production
       PORT: "4000"

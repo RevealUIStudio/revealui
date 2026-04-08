@@ -25,9 +25,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables
-config({ path: resolve(__dirname, '../../apps/cms/.env.local') });
-config({ path: resolve(__dirname, '../../apps/cms/.env.development.local') });
-config({ path: resolve(__dirname, '../../apps/cms/.env') });
+config({ path: resolve(__dirname, '../../apps/admin/.env.local') });
+config({ path: resolve(__dirname, '../../apps/admin/.env.development.local') });
+config({ path: resolve(__dirname, '../../apps/admin/.env') });
 config({ path: resolve(__dirname, '../../.env.local') });
 config({ path: resolve(__dirname, '../../.env') });
 

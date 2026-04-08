@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
  * Production Smoke Tests
  *
  * These tests run against LIVE production URLs (revealui.com, api.revealui.com,
- * cms.revealui.com) and verify critical user-facing functionality is working.
+ * admin.revealui.com) and verify critical user-facing functionality is working.
  *
  * Run with: pnpm exec playwright test --grep @smoke
  */
@@ -69,7 +69,7 @@ test.describe('Production Smoke Tests', () => {
 
   test('signup redirect flow and login page @smoke', async ({ page }) => {
     // CMS root without session should redirect to login
-    await page.goto('https://cms.revealui.com');
+    await page.goto('https://admin.revealui.com');
     await page.waitForURL(/\/(login|signin|admin)/);
 
     const currentUrl = page.url();
@@ -91,7 +91,7 @@ test.describe('Production Smoke Tests', () => {
     await expect(signupLink.first()).toBeVisible();
 
     // Also verify the signup page is accessible
-    await page.goto('https://cms.revealui.com/signup');
+    await page.goto('https://admin.revealui.com/signup');
 
     // Should either show a signup form or redirect to login
     const signupUrl = page.url();
@@ -144,7 +144,7 @@ test.describe('Production Smoke Tests', () => {
   });
 
   test('OAuth buttons have valid hrefs on login page @smoke', async ({ page }) => {
-    await page.goto('https://cms.revealui.com/login');
+    await page.goto('https://admin.revealui.com/login');
 
     // Wait for the login form to be visible
     await expect(page.locator('input[type="email"], input[name="email"]')).toBeVisible();

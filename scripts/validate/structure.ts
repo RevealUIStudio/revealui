@@ -362,7 +362,6 @@ class StructureValidator {
       'AGENTS.md',
       'README.md',
       'LICENSE',
-      'LICENSE.commercial',
       'CHANGELOG.md',
       'CONTRIBUTING.md',
       'CLAUDE.md',
@@ -515,11 +514,15 @@ class StructureValidator {
 
       for (const pkg of packages) {
         const pkgPath = join(packagesDir, pkg);
-        const hasSrc = existsSync(join(pkgPath, 'src'));
-        const hasTests = this.packageHasTests(pkgPath);
         const hasPackageJson = existsSync(join(pkgPath, 'package.json'));
 
+        // Skip directories without package.json — these are not packages
+        // (e.g. build artifacts from gitignored Pro packages before Fair Source migration)
+        if (!hasPackageJson) continue;
+
         if (!srcExempt.has(pkg)) {
+          const hasSrc = existsSync(join(pkgPath, 'src'));
+          const hasTests = this.packageHasTests(pkgPath);
           if (!hasSrc) {
             console.log(`⚠️  Package ${pkg} missing src/ directory`);
             allValid = false;
@@ -527,10 +530,6 @@ class StructureValidator {
           if (!hasTests) {
             console.log(`⚠️  Package ${pkg} missing test files`);
           }
-        }
-        if (!hasPackageJson) {
-          console.log(`❌ Package ${pkg} missing package.json`);
-          allValid = false;
         }
       }
     }

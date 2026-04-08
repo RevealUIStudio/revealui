@@ -256,4 +256,4 @@ The important constraint is ethical billing: failed or replayed calls should not
 
 ---
 
-_RevealUI is open-source business infrastructure for software companies. [revealui.com](https://revealui.com)_
+_RevealUI is an open-source business runtime for software companies. [revealui.com](https://revealui.com)_

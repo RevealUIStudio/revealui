@@ -68,7 +68,7 @@ async function startNextDevToolsMCP() {
       stdout?.pipe(process.stdout);
       stderr?.pipe(process.stderr);
     } else {
-      // Check CMS dev server
+      // Check Admin dev server
       const cmsPort = 4000;
       const cmsRunning = await checkPort(cmsPort);
       // In interactive mode, provide feedback that the server is running
@@ -76,8 +76,8 @@ async function startNextDevToolsMCP() {
       logger.info('\n📊 Server Discovery');
       logger.info('📝 Next Steps');
       if (!cmsRunning) {
-        logger.info('1. Start your CMS dev server:');
-        logger.info('   cd apps/cms && pnpm dev');
+        logger.info('1. Start your Admin dev server:');
+        logger.info('   cd apps/admin && pnpm dev');
         logger.info('');
       }
       logger.info('2. Ensure Next.js DevTools MCP is running:');
@@ -92,7 +92,7 @@ async function startNextDevToolsMCP() {
       logger.info('');
 
       if (cmsRunning) {
-        logger.success(`Next.js CMS app detected on port ${cmsPort}`);
+        logger.success(`Next.js Admin app detected on port ${cmsPort}`);
         logger.info(`   URL: http://localhost:${cmsPort}`);
         logger.info(`   MCP Endpoint: http://localhost:${cmsPort}/_next/mcp`);
         logger.info('   Server started successfully ✓');
@@ -133,11 +133,11 @@ async function startNextDevToolsMCP() {
         logger.info('   - Intelligent boundary setup');
         logger.info('');
 
-        logger.info('💡 How to Use with Your CMS App');
-        logger.info('Once your CMS dev server is running (pnpm dev in apps/cms):');
+        logger.info('💡 How to Use with Your Admin App');
+        logger.info('Once your Admin dev server is running (pnpm dev in apps/admin):');
         logger.info('');
         logger.info('1. Auto-discovery:');
-        logger.info('   The MCP server will automatically detect your CMS app');
+        logger.info('   The MCP server will automatically detect your Admin app');
         logger.info("   when it's running on http://localhost:4000");
         logger.info('');
         logger.info('2. Query runtime errors:');
@@ -167,14 +167,14 @@ async function startNextDevToolsMCP() {
         logger.info('   - package.json scripts (mcp:next-devtools)');
         logger.info('   - Included in mcp:all command');
         logger.info('');
-        logger.success('Your CMS app is Next.js 16.1.1 - fully compatible!');
+        logger.success('Your Admin app is Next.js 16.1.1 - fully compatible!');
         logger.success('Dev server runs on port 4000 with Turbopack');
         logger.success('MCP endpoint available at: /_next/mcp');
         logger.info('');
         logger.info('   Press Ctrl+C to stop the server');
       } else {
-        logger.warning(`Next.js CMS app not running on port ${cmsPort}`);
-        logger.info(`   Start it with: cd apps/cms && pnpm dev`);
+        logger.warning(`Next.js Admin app not running on port ${cmsPort}`);
+        logger.info(`   Start it with: cd apps/admin && pnpm dev`);
       }
     }
 

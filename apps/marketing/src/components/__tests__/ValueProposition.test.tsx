@@ -31,25 +31,25 @@ describe('ValueProposition', () => {
   it('contains all three value proposition cards', () => {
     const result = ValueProposition();
     const html = JSON.stringify(result);
-    expect(html).toContain('Sovereign by Default');
-    expect(html).toContain('Sovereign Intelligence');
-    expect(html).toContain('Unified Truth');
+    expect(html).toContain('Auth + Billing, Done');
+    expect(html).toContain('Content + Admin, Done');
+    expect(html).toContain('AI + Agents, Done');
   });
 
   it('contains feature descriptions', () => {
     const result = ValueProposition();
     const html = JSON.stringify(result);
-    expect(html).toContain('MIT-licensed core');
-    expect(html).toContain('AI agents, MCP servers');
-    expect(html).toContain('One Zod schema defines the contract');
+    expect(html).toContain('Session auth, Stripe subscriptions');
+    expect(html).toContain('Schema-first collections');
+    expect(html).toContain('MCP servers, agent coordination');
   });
 
   it('contains links to documentation', () => {
     const result = ValueProposition();
     const html = JSON.stringify(result);
     expect(html).toContain('https://docs.revealui.com/docs/QUICK_START');
-    expect(html).toContain('https://docs.revealui.com/docs/AI_AGENTS');
     expect(html).toContain('https://docs.revealui.com/docs/REFERENCE');
+    expect(html).toContain('https://docs.revealui.com/docs/AI');
   });
 
   it('contains Learn more CTAs', () => {

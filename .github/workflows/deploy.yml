@@ -104,7 +104,7 @@ jobs:
         run: |
           echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
-          ALL_APPS="api cms marketing docs revealcoin"
+          ALL_APPS="api admin marketing docs revealcoin"
 
           # Manual override: deploy specific apps or all
           if [ -n "$INPUT_APPS" ] && [ "$INPUT_APPS" != "auto" ]; then
@@ -165,7 +165,7 @@ jobs:
           for app in $AFFECTED; do
             case "$app" in
               api)        PID="prj_zk6EQijYXwd9L7BccuBssi436ktM" ;;
-              cms)        PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
+              admin)      PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
               marketing)  PID="prj_frTIYlnONVPLNIjKnQpINiGb5lm0" ;;
               docs)       PID="prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1" ;;
               revealcoin) PID="prj_XDiPXngciRytGA8j0vNIDz7hENRM" ;;
@@ -232,7 +232,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
       - name: Validate critical environment variables
-        if: matrix.app == 'api' || matrix.app == 'cms'
+        if: matrix.app == 'api' || matrix.app == 'admin'
         run: |
           echo "Checking critical env vars for ${{ matrix.app }}..."
           ENV_OUTPUT=$(vercel env ls production --token="$VERCEL_TOKEN" 2>&1) || {
@@ -334,19 +334,19 @@ jobs:
           echo "::error::API readiness check failed after 2 minutes"
           exit 1
 
-      - name: Health check — CMS
+      - name: Health check — Admin
         run: |
-          CMS_URL="${REVEALUI_CMS_URL:-https://cms.revealui.com}"
-          echo "Checking $CMS_URL..."
+          ADMIN_URL="${REVEALUI_ADMIN_URL:-https://admin.revealui.com}"
+          echo "Checking $ADMIN_URL..."
           for i in $(seq 1 12); do
-            if curl -sf "$CMS_URL" -o /dev/null 2>&1; then
-              echo "CMS healthy"
+            if curl -sf "$ADMIN_URL" -o /dev/null 2>&1; then
+              echo "Admin healthy"
               exit 0
             fi
             echo "Attempt $i/12 — waiting 10s..."
             sleep 10
           done
-          echo "::error::CMS health check failed after 2 minutes"
+          echo "::error::Admin health check failed after 2 minutes"
           exit 1
 
   # ---------------------------------------------------------------------------

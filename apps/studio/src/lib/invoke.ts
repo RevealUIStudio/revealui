@@ -74,7 +74,7 @@ const MOCK_DATA: Record<string, unknown> = {
       running: false,
     },
     {
-      app: { name: 'cms', display_name: 'CMS', port: 4000, url: 'http://localhost:4000' },
+      app: { name: 'admin', display_name: 'Admin', port: 4000, url: 'http://localhost:4000' },
       running: false,
     },
     {

@@ -1,6 +1,6 @@
 # Database Error Handling
 
-Comprehensive Postgres error code parsing and handling for production-ready database operations.
+Comprehensive Postgres error code parsing and handling for robust database operations.
 
 ## Overview
 

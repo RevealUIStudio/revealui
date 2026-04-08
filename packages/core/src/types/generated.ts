@@ -5,7 +5,7 @@
  * This file re-exports types from @revealui/core/generated.
  *
  * Types are generated from:
- * - CMS config: apps/cms/revealui.config.ts
+ * - CMS config: apps/admin/revealui.config.ts
  */
 
 // Re-export generated CMS types

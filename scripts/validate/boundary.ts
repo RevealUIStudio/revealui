@@ -5,16 +5,14 @@
  *
  * Phase 2.11 enforcement — run as part of pnpm gate phase 1 (hard fail).
  *
- * Five checks:
- *   1. OSS packages do not import commercial Pro packages
+ * Four checks:
+ *   1. OSS packages do not statically import Fair Source Pro packages
  *   2. Published package source files contain no internal dev references
  *   3. Published package `files` fields do not include internal-only directories
- *   4. Public repo source/config files contain no direct Pro source-tree aliases
- *   5. Public repo source/manifests do not hard-require optional Pro packages
+ *   4. Apps/scripts do not hard-require optional Pro packages (use dynamic imports)
  *
- * Commercial packages (LICENSE.commercial): ai, mcp, editors, services, harnesses
- * OSS packages (MIT): core, cli, presentation, contracts, db, auth, config,
- *                     router, setup, sync, dev, test, utils
+ * Fair Source packages (FSL-1.1-MIT): ai, harnesses
+ * OSS packages (MIT): everything else
  */
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -31,14 +29,9 @@ const PACKAGES_DIR = join(REPO_ROOT, 'packages');
 const APPS_DIR = join(REPO_ROOT, 'apps');
 const SCRIPTS_DIR = join(REPO_ROOT, 'scripts');
 
-// Packages distributed under LICENSE.commercial (must not leak into OSS source)
-const COMMERCIAL_PACKAGES = [
-  '@revealui/ai',
-  '@revealui/mcp',
-  '@revealui/editors',
-  '@revealui/services',
-  '@revealui/harnesses',
-];
+// Fair Source Pro packages (FSL-1.1-MIT) — OSS packages should not statically
+// import these; apps should use dynamic imports for graceful degradation.
+const FAIR_SOURCE_PACKAGES = ['@revealui/ai', '@revealui/harnesses'];
 
 // OSS package directory names (packages that must not import commercial ones)
 const OSS_PACKAGE_NAMES = [
@@ -79,7 +72,7 @@ const INTERNAL_SOURCE_PATTERNS: SourcePattern[] = [
   },
   {
     check: (content) => content.includes('MASTER_PLAN.md'),
-    reason: 'MASTER_PLAN.md reference (internal planning doc)',
+    reason: 'MASTER_PLAN.md reference (planning doc should not appear in package source)',
   },
   {
     check: (content) => content.includes('business/'),
@@ -117,68 +110,7 @@ const INTERNAL_FILE_DIRS = ['.claude', 'business', 'docs', 'scripts', 'MASTER_PL
 
 // Source file extensions to scan
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs']);
-const TEXT_SCAN_EXTENSIONS = new Set([
-  '.ts',
-  '.tsx',
-  '.js',
-  '.jsx',
-  '.mts',
-  '.mjs',
-  '.json',
-  '.cjs',
-  '.cts',
-]);
-
-const PRO_PACKAGE_DIRS = ['ai', 'mcp', 'editors', 'services', 'harnesses'];
-
-const PRO_SOURCE_ALIAS_PATTERNS: SourcePattern[] = [
-  {
-    check: (content) => {
-      // Check for relative paths into Pro source trees: ../ai/src, ../mcp/src, etc.
-      for (const dir of PRO_PACKAGE_DIRS) {
-        if (
-          content.includes(`../${dir}/src/`) ||
-          content.includes(`../${dir}/src'`) ||
-          content.includes(`../${dir}/src"`)
-        ) {
-          return true;
-        }
-      }
-      return false;
-    },
-    reason: 'relative alias into a Pro source tree',
-  },
-  {
-    check: (content) => {
-      // Check for relative import paths: '../packages/ai/src'
-      // Must have ../ prefix (relative traversal) to distinguish from documentation/config references
-      for (const dir of PRO_PACKAGE_DIRS) {
-        if (content.includes(`../packages/${dir}/src`)) {
-          return true;
-        }
-      }
-      return false;
-    },
-    reason: 'relative path into packages/<pro>/src',
-  },
-  {
-    check: (content) => {
-      // Check for quoted direct source alias: '../ai/src' or "packages/ai/src"
-      for (const dir of PRO_PACKAGE_DIRS) {
-        if (
-          content.includes(`'${dir}/src'`) ||
-          content.includes(`"${dir}/src"`) ||
-          content.includes(`'packages/${dir}/src'`) ||
-          content.includes(`"packages/${dir}/src"`)
-        ) {
-          return true;
-        }
-      }
-      return false;
-    },
-    reason: 'direct source alias to a Pro package',
-  },
-];
+// PRO_SOURCE_ALIAS_PATTERNS removed — Pro source is now in the public repo under FSL-1.1-MIT
 
 // =============================================================================
 // File Utilities
@@ -205,34 +137,14 @@ function collectSourceFiles(
   return files;
 }
 
-function collectTextFiles(dir: string, files: string[] = []): string[] {
-  if (!existsSync(dir)) return files;
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      if (
-        ['dist', 'node_modules', '.next', '.turbo', 'coverage', '.git', '.pnpm-store'].includes(
-          entry.name,
-        )
-      ) {
-        continue;
-      }
-      collectTextFiles(fullPath, files);
-    } else if (TEXT_SCAN_EXTENSIONS.has(extname(entry.name))) {
-      files.push(fullPath);
-    }
-  }
-  return files;
-}
-
 // =============================================================================
 // Helpers
 // =============================================================================
 
-const COMMERCIAL_PACKAGE_DIRS = COMMERCIAL_PACKAGES.map((p) => p.replace('@revealui/', ''));
+const FAIR_SOURCE_PACKAGE_DIRS = FAIR_SOURCE_PACKAGES.map((p) => p.replace('@revealui/', ''));
 
-function isPrivateOrCommercialPackage(pkgName: string): boolean {
-  if (COMMERCIAL_PACKAGE_DIRS.includes(pkgName)) return true;
+function isPrivateOrFairSourcePackage(pkgName: string): boolean {
+  if (FAIR_SOURCE_PACKAGE_DIRS.includes(pkgName)) return true;
   const pkgJsonPath = join(PACKAGES_DIR, pkgName, 'package.json');
   if (!existsSync(pkgJsonPath)) return false;
   const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8')) as { private?: boolean };
@@ -240,7 +152,7 @@ function isPrivateOrCommercialPackage(pkgName: string): boolean {
 }
 
 // =============================================================================
-// Check 1: OSS packages do not import commercial packages
+// Check 1: OSS packages do not statically import Fair Source packages
 // =============================================================================
 
 function checkOssImportBoundary(): string[] {
@@ -248,7 +160,7 @@ function checkOssImportBoundary(): string[] {
 
   for (const pkgName of OSS_PACKAGE_NAMES) {
     // Private packages are dev-only and not published — skip them
-    if (isPrivateOrCommercialPackage(pkgName)) continue;
+    if (isPrivateOrFairSourcePackage(pkgName)) continue;
 
     const srcDir = join(PACKAGES_DIR, pkgName, 'src');
     const files = collectSourceFiles(srcDir);
@@ -257,15 +169,15 @@ function checkOssImportBoundary(): string[] {
       const content = readFileSync(file, 'utf8');
       const relPath = relative(REPO_ROOT, file);
 
-      for (const commercial of COMMERCIAL_PACKAGES) {
+      for (const fsPkg of FAIR_SOURCE_PACKAGES) {
         // Check for: from '@revealui/ai' or from "@revealui/ai" or from '@revealui/ai/...'
         if (
-          content.includes(`from '${commercial}'`) ||
-          content.includes(`from "${commercial}"`) ||
-          content.includes(`from '${commercial}/`) ||
-          content.includes(`from "${commercial}/`)
+          content.includes(`from '${fsPkg}'`) ||
+          content.includes(`from "${fsPkg}"`) ||
+          content.includes(`from '${fsPkg}/`) ||
+          content.includes(`from "${fsPkg}/`)
         ) {
-          violations.push(`  ${relPath}: OSS package imports commercial package ${commercial}`);
+          violations.push(`  ${relPath}: OSS package imports Fair Source package ${fsPkg}`);
         }
       }
     }
@@ -286,7 +198,7 @@ function checkInternalReferences(): string[] {
 
   for (const pkgName of allPackageNames) {
     // Private packages are dev-only and not published — skip them
-    if (isPrivateOrCommercialPackage(pkgName)) continue;
+    if (isPrivateOrFairSourcePackage(pkgName)) continue;
 
     const srcDir = join(PACKAGES_DIR, pkgName, 'src');
     const files = collectSourceFiles(srcDir);
@@ -343,45 +255,16 @@ function checkFilesFields(): string[] {
   return violations;
 }
 
-// =============================================================================
-// Check 4: Public repo files do not alias directly into Pro source trees
-// =============================================================================
-
-function checkProSourceAliases(): string[] {
-  const violations: string[] = [];
-  const files = [
-    ...collectTextFiles(APPS_DIR),
-    ...collectTextFiles(SCRIPTS_DIR),
-    ...collectTextFiles(join(PACKAGES_DIR, 'dev')),
-  ];
-
-  for (const file of files) {
-    const content = readFileSync(file, 'utf8');
-    const relPath = relative(REPO_ROOT, file);
-
-    // Skip files that contain pattern definitions (not actual violations)
-    if (relPath === 'scripts/validate/structure.ts' || relPath === 'scripts/validate/boundary.ts') {
-      continue;
-    }
-
-    for (const { check, reason } of PRO_SOURCE_ALIAS_PATTERNS) {
-      if (check(content)) {
-        violations.push(`  ${relPath}: contains ${reason}`);
-      }
-    }
-  }
-
-  return violations;
-}
+// Check 4 removed — Pro source is now in the public repo under FSL-1.1-MIT
 
 // =============================================================================
-// Check 5: Public repo files do not hard-require optional Pro packages
+// Check 4: Apps/scripts do not hard-require optional Fair Source packages
 // =============================================================================
 
 function checkPublicRepoProDependencies(): string[] {
   const violations: string[] = [];
-  // Include test files in apps/ — static Pro imports in tests break CI typecheck
-  // just as much as in production code (Pro packages are gitignored on CI).
+  // Include test files in apps/ — static Pro imports should use dynamic imports
+  // for graceful degradation when Pro packages are not installed.
   const files = [
     ...collectSourceFiles(APPS_DIR, [], { includeTests: true }),
     ...collectSourceFiles(SCRIPTS_DIR),
@@ -393,7 +276,7 @@ function checkPublicRepoProDependencies(): string[] {
     const relPath = relative(REPO_ROOT, file);
     const lines = content.split('\n');
 
-    for (const packageName of COMMERCIAL_PACKAGES) {
+    for (const packageName of FAIR_SOURCE_PACKAGES) {
       // Check each line for static import/export of a Pro package
       for (const line of lines) {
         const trimmed = line.trimStart();
@@ -440,10 +323,10 @@ function checkPublicRepoProDependencies(): string[] {
 
     for (const depType of ['dependencies', 'devDependencies'] as const) {
       const deps = pkg[depType] ?? {};
-      for (const commercial of COMMERCIAL_PACKAGES) {
-        if (commercial in deps) {
+      for (const fsPkg of FAIR_SOURCE_PACKAGES) {
+        if (fsPkg in deps) {
           violations.push(
-            `  ${relPath}: ${depType}.${commercial} hard-requires an optional Pro package`,
+            `  ${relPath}: ${depType}.${fsPkg} hard-requires an optional Fair Source package`,
           );
         }
       }
@@ -465,7 +348,7 @@ function main(): void {
 
   const allViolations: string[] = [];
 
-  console.log('\n→ Check 1: OSS packages do not import commercial packages');
+  console.log('\n→ Check 1: OSS packages do not statically import Fair Source packages');
   const importViolations = checkOssImportBoundary();
   if (importViolations.length === 0) {
     console.log('  ✓ No cross-license import violations');
@@ -492,19 +375,10 @@ function main(): void {
     allViolations.push(...filesViolations);
   }
 
-  console.log('\n→ Check 4: Public repo files do not alias into Pro source trees');
-  const aliasViolations = checkProSourceAliases();
-  if (aliasViolations.length === 0) {
-    console.log('  ✓ No Pro source-tree aliases found in apps/scripts/shared config');
-  } else {
-    for (const v of aliasViolations) console.log(v);
-    allViolations.push(...aliasViolations);
-  }
-
-  console.log('\n→ Check 5: Public repo does not hard-require optional Pro packages');
+  console.log('\n→ Check 4: Apps/scripts do not hard-require optional Fair Source packages');
   const publicRepoViolations = checkPublicRepoProDependencies();
   if (publicRepoViolations.length === 0) {
-    console.log('  ✓ No static Pro imports or hard Pro manifest dependencies found');
+    console.log('  ✓ No static Fair Source imports or hard manifest dependencies found');
   } else {
     for (const v of publicRepoViolations) console.log(v);
     allViolations.push(...publicRepoViolations);

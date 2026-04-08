@@ -5,7 +5,7 @@
  * sign-in, password reset, rate limiting, and session persistence.
  *
  * REQUIRES live services:
- *   - apps/cms (port 4000) with a running database
+ *   - apps/admin (port 4000) with a running database
  *
  * Run with:
  *   pnpm dev  (start services first)
@@ -13,7 +13,7 @@
  *
  * Run against production (CI=true skips local dev server startup):
  *   CI=true \
- *     PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
+ *     PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *     playwright test e2e/auth.e2e.ts --project=chromium
  *
  * CMS auth routes:

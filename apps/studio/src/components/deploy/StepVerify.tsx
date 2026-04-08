@@ -74,7 +74,7 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
       // Health checks
       const endpoints = [
         `https://api.${domain}/health/ready`,
-        `https://cms.${domain}`,
+        `https://admin.${domain}`,
         `https://${domain}`,
         `https://api.${domain}/health/live`,
       ];
@@ -191,7 +191,7 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
                 API: <span className="text-neutral-200">https://api.{domain}</span>
               </p>
               <p>
-                CMS: <span className="text-neutral-200">https://cms.{domain}</span>
+                Admin: <span className="text-neutral-200">https://admin.{domain}</span>
               </p>
               <p>
                 Site: <span className="text-neutral-200">https://{domain}</span>

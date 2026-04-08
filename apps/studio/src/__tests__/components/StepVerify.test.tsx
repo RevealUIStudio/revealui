@@ -27,13 +27,13 @@ const BASE_CONFIG: StudioConfig = {
   completedSteps: [],
   deploy: {
     supabaseEnabled: false,
-    apps: { api: 'prj-api-123', cms: 'prj-cms', marketing: 'prj-mkt' },
+    apps: { api: 'prj-api-123', admin: 'prj-admin', marketing: 'prj-mkt' },
   },
 };
 
 const BASE_DATA: WizardData = {
   vercelToken: 'tok_test',
-  vercelProjects: { api: 'prj-api', cms: 'prj-cms', marketing: 'prj-mkt' },
+  vercelProjects: { api: 'prj-api', admin: 'prj-admin', marketing: 'prj-mkt' },
   postgresUrl: 'postgres://localhost/test',
   stripeSecretKey: 'sk_test_123',
   stripePublishableKey: 'pk_test_123',
@@ -241,7 +241,7 @@ describe('StepVerify', () => {
     });
 
     expect(mockHealthCheck).toHaveBeenCalledWith('https://api.myapp.dev/health/ready');
-    expect(mockHealthCheck).toHaveBeenCalledWith('https://cms.myapp.dev');
+    expect(mockHealthCheck).toHaveBeenCalledWith('https://admin.myapp.dev');
     expect(mockHealthCheck).toHaveBeenCalledWith('https://myapp.dev');
     expect(mockHealthCheck).toHaveBeenCalledWith('https://api.myapp.dev/health/live');
   });

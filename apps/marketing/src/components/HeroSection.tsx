@@ -48,19 +48,19 @@ export function HeroSection() {
             Open Source &middot; MIT Licensed
           </Badge>
           <p className="text-sm font-medium uppercase tracking-widest text-gray-500 mb-4 hero-stagger">
-            The User Interface for the future has yet to Reveal itself
+            Auth. Billing. Content. AI. Already wired together.
           </p>
           <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
-            <span className="block">The Agentic</span>
-            <span className="block">Business</span>
-            <span className="block">Runtime</span>
+            <span className="block">Ship Your SaaS,</span>
+            <span className="block">Not Your</span>
+            <span className="block">Infrastructure</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-xl font-semibold leading-8 text-gray-700">
             Build your business, not your boilerplate.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-lg leading-8 text-gray-500">
-            Five primitives, one runtime &mdash; users, content, products, payments, and AI agents
-            &mdash; orchestrated natively in Studio, open source, and ready to deploy.
+            RevealUI is an open-source business runtime. Users, content, products, payments, and AI
+            &mdash; five primitives, pre-wired into one deployable stack.
           </p>
 
           {/* Five primitives */}
@@ -84,7 +84,7 @@ export function HeroSection() {
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <ButtonCVA asChild size="lg" className="w-full sm:w-auto">
-              <a href="https://cms.revealui.com/signup">Get Started Free</a>
+              <a href="https://admin.revealui.com/signup">Get Started Free</a>
             </ButtonCVA>
             <ButtonCVA asChild variant="outline" size="lg" className="w-full sm:w-auto">
               <a href="https://docs.revealui.com" className="gap-1.5">
@@ -116,12 +116,7 @@ export function HeroSection() {
           </div>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500">
-            {[
-              'MIT Licensed (OSS)',
-              'Local AI (Inference Snaps)',
-              'No Vendor Lock-in',
-              'Studio Desktop App',
-            ].map((item) => (
+            {['MIT Licensed', 'Self-Hostable', 'No Vendor Lock-in', 'AI Built In'].map((item) => (
               <div key={item} className="flex items-center gap-2">
                 <svg className="h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                   <title>Check</title>

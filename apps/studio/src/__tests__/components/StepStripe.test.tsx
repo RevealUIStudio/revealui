@@ -21,7 +21,7 @@ const MOCK_CONFIG: StudioConfig = {
 
 const MOCK_DATA: WizardData = {
   vercelToken: '',
-  vercelProjects: { api: '', cms: '', marketing: '' },
+  vercelProjects: { api: '', admin: '', marketing: '' },
   postgresUrl: '',
   stripeSecretKey: '',
   stripePublishableKey: '',

@@ -3,7 +3,7 @@
 /**
  * RevealUI Rich Text Editor
  *
- * A production-ready Lexical-based rich text editor component.
+ * A Lexical-based rich text editor component.
  * Supports configurable features, onChange callbacks, and initial state.
  */
 

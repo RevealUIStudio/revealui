@@ -75,12 +75,12 @@ async function checkLinting() {
 
 async function checkTests() {
   logger.info('4. Running tests...');
-  const result = await execCommand('pnpm', ['--filter', 'cms', 'test'], {
+  const result = await execCommand('pnpm', ['--filter', 'admin', 'test'], {
     silent: true,
   });
   recordResult('Tests', result.success);
   if (!result.success) {
-    logger.info('   Run: pnpm --filter cms test');
+    logger.info('   Run: pnpm --filter admin test');
   }
 }
 
@@ -148,7 +148,7 @@ async function checkDocumentation() {
 async function checkHealthEndpoint() {
   logger.info('9. Verifying health check endpoint...');
   const projectRoot = await getProjectRoot(import.meta.url);
-  const healthPath = join(projectRoot, 'apps/cms/src/app/api/health/route.ts');
+  const healthPath = join(projectRoot, 'apps/admin/src/app/api/health/route.ts');
   const exists = await fileExists(healthPath);
   recordResult('Health check endpoint', exists);
   if (!exists) {
@@ -295,7 +295,7 @@ async function checkVercelDeployments() {
 
   // Check for vercel.json or deployment config
   const projectRoot = await getProjectRoot(import.meta.url);
-  const apps = ['api', 'cms', 'marketing'];
+  const apps = ['api', 'admin', 'marketing'];
   for (const app of apps) {
     const vercelJson = join(projectRoot, 'apps', app, 'vercel.json');
     if (await fileExists(vercelJson)) {
@@ -309,7 +309,7 @@ async function checkVercelDeployments() {
 async function checkTestCoverage() {
   logger.info('15. Checking test coverage...');
   const projectRoot = await getProjectRoot(import.meta.url);
-  const coveragePath = join(projectRoot, 'apps/cms/coverage');
+  const coveragePath = join(projectRoot, 'apps/admin/coverage');
 
   if (await fileExists(coveragePath)) {
     // Try to find coverage-summary.json
@@ -338,13 +338,13 @@ async function checkTestCoverage() {
     } else {
       recordWarning(
         'Test coverage',
-        'Coverage report not found. Run: pnpm --filter cms test:coverage',
+        'Coverage report not found. Run: pnpm --filter admin test:coverage',
       );
     }
   } else {
     recordWarning(
       'Test coverage',
-      'Coverage directory not found. Run: pnpm --filter cms test:coverage',
+      'Coverage directory not found. Run: pnpm --filter admin test:coverage',
     );
   }
 }

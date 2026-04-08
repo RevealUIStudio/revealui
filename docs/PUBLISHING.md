@@ -87,13 +87,13 @@ npm login    # Interactive, writes to ~/.npmrc
 
 ## Pro Packages
 
-`@revealui/ai` and `@revealui/harnesses` are **not** published through these workflows. They:
+`@revealui/ai` and `@revealui/harnesses` are **Fair Source** (FSL-1.1-MIT). They:
 
-- Live in the private repo (`revealui-jv`) only
-- Are gitignored from the public repo
-- Are excluded from CI builds (`--filter=!@revealui/ai --filter=!@revealui/harnesses`)
-- Are published separately through their own process
+- Live in the public repo under `packages/ai/` and `packages/harnesses/`
+- Are published through the standard changeset release workflow
+- Are included in CI builds alongside OSS packages
 - Use runtime license enforcement (`initializeLicense()`, `isLicensed()`)
+- Convert to MIT after 2 years from each release
 
 ---
 

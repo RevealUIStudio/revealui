@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "numberOfRuns": 3,
-      "startServerCommand": "pnpm --filter cms start",
+      "startServerCommand": "pnpm --filter admin start",
       "startServerReadyPattern": "ready",
       "url": ["http://localhost:4000", "http://localhost:4000/admin"],
       "settings": {

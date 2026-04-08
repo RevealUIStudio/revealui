@@ -2,7 +2,7 @@
 
 Purpose: give an AI coding agent concise, actionable context to be productive in this monorepo.
 
-- Big picture: Next.js 16 + React 19 monorepo. Apps live in `apps/` (notably `apps/cms`, `apps/api`, `apps/marketing`) and shared code lives in `packages/` (core, `auth`, `services`, `mcp`).
+- Big picture: Next.js 16 + React 19 monorepo. Apps live in `apps/` (notably `apps/admin`, `apps/api`, `apps/marketing`) and shared code lives in `packages/` (core, `auth`, `services`, `mcp`).
 
 - Key integrations: NeonDB + Drizzle ORM (`docs/DATABASE.md`), Vercel (edge-ready), MCP adapters in `packages/mcp/src/servers/` (e.g. `neon.ts`). Third-party: Stripe, Supabase (`packages/services`).
 
@@ -26,7 +26,7 @@ Purpose: give an AI coding agent concise, actionable context to be productive in
   - Run `pnpm format` and `pnpm lint` before committing.
 
 - Where to run/verify changes:
-  - Auth or integration changes: `packages/auth`, `packages/services/*`, `apps/cms` (preview flows).
+  - Auth or integration changes: `packages/auth`, `packages/services/*`, `apps/admin` (preview flows).
   - MCP servers: `packages/mcp/src/servers/*` — run with `pnpm run mcp:neon|vercel|stripe|supabase`.
   - Visual/e2e: Playwright (`pnpm test:e2e` / `pnpm test:e2e:visual:update`).
 
@@ -34,7 +34,7 @@ Purpose: give an AI coding agent concise, actionable context to be productive in
   - `package.json` (root scripts)
   - `scripts/cli/*` (CLIs)
   - `packages/mcp/src/servers/neon.ts`
-  - `apps/cms`, `apps/api`
+  - `apps/admin`, `apps/api`
 
 Ask for human review when a change requires secrets/env values or DB snapshots (see `docs/ENVIRONMENT_VARIABLES_GUIDE.md`).
 
@@ -55,8 +55,8 @@ Concrete examples (MCP & quick commands):
 
   - Command: `pnpm test:e2e:visual:update`
 
-- Start a single package dev server (example: CMS):
+- Start a single package dev server (example: Admin):
 
-  - Command: `pnpm --filter cms dev`
+  - Command: `pnpm --filter admin dev`
 
 These concrete examples are safe to run locally after `pnpm install`. If an example requires secrets or a DB snapshot, request access before running.

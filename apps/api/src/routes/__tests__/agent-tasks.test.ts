@@ -59,7 +59,7 @@ const mt = vi.mocked(ticketQueries);
 
 beforeEach(() => {
   vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test');
-  vi.stubEnv('CMS_URL', 'http://localhost:4000');
+  vi.stubEnv('ADMIN_URL', 'http://localhost:4000');
   mockDbInsert.mockClear();
   mockDbInsert.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) });
 });

@@ -208,89 +208,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
 
-  apps/api:
-    dependencies:
-      '@coinbase/x402':
-        specifier: ^2.1.0
-        version: 2.1.0(bufferutil@4.1.0)(typescript@6.0.2)(utf-8-validate@6.0.6)
-      '@hono/node-server':
-        specifier: ^1.19.10
-        version: 1.19.11(hono@4.12.9)
-      '@hono/swagger-ui':
-        specifier: ^0.6.1
-        version: 0.6.1(hono@4.12.9)
-      '@revealui/ai':
-        specifier: workspace:^
-        version: link:../../packages/ai
-      '@revealui/auth':
-        specifier: workspace:*
-        version: link:../../packages/auth
-      '@revealui/config':
-        specifier: workspace:*
-        version: link:../../packages/config
-      '@revealui/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
-      '@revealui/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@revealui/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@revealui/openapi':
-        specifier: workspace:*
-        version: link:../../packages/openapi
-      '@revealui/services':
-        specifier: workspace:^
-        version: link:../../packages/services
-      '@vercel/blob':
-        specifier: ^2.3.2
-        version: 2.3.2
-      drizzle-orm:
-        specifier: ^0.45.2
-        version: 0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
-      hono:
-        specifier: ^4.12.7
-        version: 4.12.9
-      jose:
-        specifier: ^6.1.3
-        version: 6.2.2
-      lib0:
-        specifier: ^0.2.117
-        version: 0.2.117
-      stripe:
-        specifier: ^21.0.1
-        version: 21.0.1(@types/node@25.5.0)
-      y-protocols:
-        specifier: ^1.0.7
-        version: 1.0.7(yjs@13.6.30)
-      yjs:
-        specifier: ^13.6.29
-        version: 13.6.30
-      zod:
-        specifier: 'catalog:'
-        version: 4.3.6
-    devDependencies:
-      '@types/node':
-        specifier: ^25.5.0
-        version: 25.5.0
-      '@vitest/coverage-v8':
-        specifier: ^4.1.0
-        version: 4.1.2(vitest@4.1.2)
-      tsup:
-        specifier: 'catalog:'
-        version: 8.5.1(@microsoft/api-extractor@7.57.7(@types/node@25.5.0))(@swc/core@1.15.21(@swc/helpers@0.5.20))(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@6.0.2)(yaml@2.8.3)
-      tsx:
-        specifier: ^4.21.0
-        version: 4.21.0
-      typescript:
-        specifier: ^6.0.2
-        version: 6.0.2
-      vitest:
-        specifier: ^4.1.0
-        version: 4.1.2(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.1)(@types/node@25.5.0)(@vitest/ui@4.1.2)(happy-dom@20.8.9(bufferutil@4.1.0)(utf-8-validate@6.0.6))(jsdom@29.0.1(@noble/hashes@1.8.0))(vite@8.0.5(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
-
-  apps/cms:
+  apps/admin:
     dependencies:
       '@electric-sql/client':
         specifier: ^1.0.27
@@ -362,8 +280,8 @@ importers:
         specifier: '>=15.5.10'
         version: 16.2.1(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       nodemailer:
-        specifier: ^8.0.4
-        version: 8.0.4
+        specifier: ^8.0.5
+        version: 8.0.5
       prism-react-renderer:
         specifier: ^2.4.1
         version: 2.4.1(react@19.2.4)
@@ -431,6 +349,88 @@ importers:
       tailwindcss:
         specifier: ^4.1.18
         version: 4.2.2
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^4.1.0
+        version: 4.1.2(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.1)(@types/node@25.5.0)(@vitest/ui@4.1.2)(happy-dom@20.8.9(bufferutil@4.1.0)(utf-8-validate@6.0.6))(jsdom@29.0.1(@noble/hashes@1.8.0))(vite@8.0.5(@types/node@25.5.0)(esbuild@0.27.4)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
+
+  apps/api:
+    dependencies:
+      '@coinbase/x402':
+        specifier: ^2.1.0
+        version: 2.1.0(bufferutil@4.1.0)(typescript@6.0.2)(utf-8-validate@6.0.6)
+      '@hono/node-server':
+        specifier: ^1.19.13
+        version: 1.19.13(hono@4.12.12)
+      '@hono/swagger-ui':
+        specifier: ^0.6.1
+        version: 0.6.1(hono@4.12.12)
+      '@revealui/ai':
+        specifier: workspace:^
+        version: link:../../packages/ai
+      '@revealui/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@revealui/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@revealui/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@revealui/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@revealui/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@revealui/openapi':
+        specifier: workspace:*
+        version: link:../../packages/openapi
+      '@revealui/services':
+        specifier: workspace:^
+        version: link:../../packages/services
+      '@vercel/blob':
+        specifier: ^2.3.2
+        version: 2.3.2
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
+      hono:
+        specifier: 4.12.12
+        version: 4.12.12
+      jose:
+        specifier: ^6.1.3
+        version: 6.2.2
+      lib0:
+        specifier: ^0.2.117
+        version: 0.2.117
+      stripe:
+        specifier: ^21.0.1
+        version: 21.0.1(@types/node@25.5.0)
+      y-protocols:
+        specifier: ^1.0.7
+        version: 1.0.7(yjs@13.6.30)
+      yjs:
+        specifier: ^13.6.29
+        version: 13.6.30
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      '@vitest/coverage-v8':
+        specifier: ^4.1.0
+        version: 4.1.2(vitest@4.1.2)
+      tsup:
+        specifier: 'catalog:'
+        version: 8.5.1(@microsoft/api-extractor@7.57.7(@types/node@25.5.0))(@swc/core@1.15.21(@swc/helpers@0.5.20))(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@6.0.2)(yaml@2.8.3)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
       typescript:
         specifier: ^6.0.2
         version: 6.0.2
@@ -1232,6 +1232,9 @@ importers:
       dotenv:
         specifier: ^17.2.4
         version: 17.3.1
+      jose:
+        specifier: ^6.2.2
+        version: 6.2.2
     devDependencies:
       '@electric-sql/pglite':
         specifier: ^0.4.2
@@ -1262,8 +1265,8 @@ importers:
         specifier: workspace:*
         version: link:../dev
       hono:
-        specifier: ^4.12.7
-        version: 4.12.9
+        specifier: 4.12.12
+        version: 4.12.12
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(@microsoft/api-extractor@7.57.7(@types/node@25.5.0))(@swc/core@1.15.21(@swc/helpers@0.5.20))(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@6.0.2)(yaml@2.8.3)
@@ -1292,8 +1295,8 @@ importers:
         specifier: workspace:*
         version: link:../dev
       hono:
-        specifier: ^4.8.3
-        version: 4.12.9
+        specifier: ^4.12.12
+        version: 4.12.12
       react:
         specifier: '>=19.2.4'
         version: 19.2.4
@@ -1389,14 +1392,14 @@ importers:
   packages/router:
     dependencies:
       '@hono/node-server':
-        specifier: ^1.19.10
-        version: 1.19.11(hono@4.12.9)
+        specifier: ^1.19.13
+        version: 1.19.13(hono@4.12.12)
       '@revealui/utils':
         specifier: workspace:*
         version: link:../utils
       hono:
-        specifier: ^4.12.7
-        version: 4.12.9
+        specifier: 4.12.12
+        version: 4.12.12
     devDependencies:
       '@testing-library/jest-dom':
         specifier: ^6.9.1
@@ -1647,8 +1650,8 @@ importers:
         specifier: ^0.45.2
         version: 0.45.2(@electric-sql/pglite@0.4.2)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)
       hono:
-        specifier: ^4.12.7
-        version: 4.12.9
+        specifier: 4.12.12
+        version: 4.12.12
       stripe:
         specifier: ^21.0.1
         version: 21.0.1(@types/node@25.5.0)
@@ -2328,8 +2331,8 @@ packages:
   '@hexagon/base64@1.1.28':
     resolution: {integrity: sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw==}
 
-  '@hono/node-server@1.19.11':
-    resolution: {integrity: sha512-dr8/3zEaB+p0D2n/IUrlPF1HZm586qgJNXK1a9fhg/PzdtkK7Ksd5l312tJX2yBuALqDYBlG20QEbayqPyxn+g==}
+  '@hono/node-server@1.19.13':
+    resolution: {integrity: sha512-TsQLe4i2gvoTtrHje625ngThGBySOgSK3Xo2XRYOdqGN1teR8+I7vchQC46uLJi8OF62YTYA3AhSpumtkhsaKQ==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
@@ -6874,8 +6877,8 @@ packages:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
     hasBin: true
 
-  hono@4.12.9:
-    resolution: {integrity: sha512-wy3T8Zm2bsEvxKZM5w21VdHDDcwVS1yUFFY6i8UobSsKfFceT7TOwhbhfKsDyx7tYQlmRM5FLpIuYvNFyjctiA==}
+  hono@4.12.12:
+    resolution: {integrity: sha512-p1JfQMKaceuCbpJKAPKVqyqviZdS0eUxH9v82oWo1kb9xjQ5wA6iP3FNVAPDFlz5/p7d45lO+BpSk1tuSZMF4Q==}
     engines: {node: '>=16.9.0'}
 
   html-encoding-sniffer@6.0.0:
@@ -7897,8 +7900,8 @@ packages:
   node-releases@2.0.36:
     resolution: {integrity: sha512-TdC8FSgHz8Mwtw9g5L4gR/Sh9XhSP/0DEkQxfEFXOpiul5IiHgHan2VhYYb6agDSfp4KuvltmGApc8HMgUrIkA==}
 
-  nodemailer@8.0.4:
-    resolution: {integrity: sha512-k+jf6N8PfQJ0Fe8ZhJlgqU5qJU44Lpvp2yvidH3vp1lPnVQMgi4yEEMPXg5eJS1gFIJTVq1NHBk7Ia9ARdSBdQ==}
+  nodemailer@8.0.5:
+    resolution: {integrity: sha512-0PF8Yb1yZuQfQbq+5/pZJrtF6WQcjTd5/S4JOHs9PGFxuTqoB/icwuB44pOdURHJbRKX1PPoJZtY7R4VUoCC8w==}
     engines: {node: '>=6.0.0'}
 
   nopt@8.1.0:
@@ -10388,13 +10391,13 @@ snapshots:
 
   '@hexagon/base64@1.1.28': {}
 
-  '@hono/node-server@1.19.11(hono@4.12.9)':
+  '@hono/node-server@1.19.13(hono@4.12.12)':
     dependencies:
-      hono: 4.12.9
+      hono: 4.12.12
 
-  '@hono/swagger-ui@0.6.1(hono@4.12.9)':
+  '@hono/swagger-ui@0.6.1(hono@4.12.12)':
     dependencies:
-      hono: 4.12.9
+      hono: 4.12.12
 
   '@iarna/toml@2.2.5': {}
 
@@ -10991,7 +10994,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.28.0(zod@3.25.76)':
     dependencies:
-      '@hono/node-server': 1.19.11(hono@4.12.9)
+      '@hono/node-server': 1.19.13(hono@4.12.12)
       ajv: 8.18.0
       ajv-formats: 3.0.1(ajv@8.18.0)
       content-type: 1.0.5
@@ -11001,7 +11004,7 @@ snapshots:
       eventsource-parser: 3.0.6
       express: 5.2.1
       express-rate-limit: 8.3.1(express@5.2.1)
-      hono: 4.12.9
+      hono: 4.12.12
       jose: 6.2.2
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -11013,7 +11016,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.28.0(zod@4.3.6)':
     dependencies:
-      '@hono/node-server': 1.19.11(hono@4.12.9)
+      '@hono/node-server': 1.19.13(hono@4.12.12)
       ajv: 8.18.0
       ajv-formats: 3.0.1(ajv@8.18.0)
       content-type: 1.0.5
@@ -11023,7 +11026,7 @@ snapshots:
       eventsource-parser: 3.0.6
       express: 5.2.1
       express-rate-limit: 8.3.1(express@5.2.1)
-      hono: 4.12.9
+      hono: 4.12.12
       jose: 6.2.2
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -15331,7 +15334,7 @@ snapshots:
 
   he@1.2.0: {}
 
-  hono@4.12.9: {}
+  hono@4.12.12: {}
 
   html-encoding-sniffer@6.0.0(@noble/hashes@1.8.0):
     dependencies:
@@ -16524,7 +16527,7 @@ snapshots:
 
   node-releases@2.0.36: {}
 
-  nodemailer@8.0.4: {}
+  nodemailer@8.0.5: {}
 
   nopt@8.1.0:
     dependencies:

@@ -417,8 +417,8 @@ async function runAnalysis() {
         'packages/core/src/**/*.ts',
         'packages/core/src/**/*.tsx',
         'packages/contracts/src/**/*.ts',
-        'apps/cms/src/**/*.ts',
-        'apps/cms/src/**/*.tsx',
+        'apps/admin/src/**/*.ts',
+        'apps/admin/src/**/*.tsx',
       ],
       {
         ignore: ['**/*.test.ts', '**/*.spec.ts', '**/node_modules/**', '**/dist/**', '**/.next/**'],

@@ -20,7 +20,7 @@ const MOCK_CONFIG: StudioConfig = {
 
 const MOCK_DATA: WizardData = {
   vercelToken: '',
-  vercelProjects: { api: '', cms: '', marketing: '' },
+  vercelProjects: { api: '', admin: '', marketing: '' },
   postgresUrl: '',
   stripeSecretKey: '',
   stripePublishableKey: '',
@@ -83,7 +83,7 @@ describe('StepVercel', () => {
 
   it('creates missing projects after validation', async () => {
     mockVercelValidateToken.mockResolvedValue([
-      { id: 'existing-cms', name: 'revealui-cms', framework: 'nextjs', accountId: 'team-abc' },
+      { id: 'existing-admin', name: 'revealui-admin', framework: 'nextjs', accountId: 'team-abc' },
     ]);
     mockVercelCreateProject
       .mockResolvedValueOnce({
@@ -121,7 +121,7 @@ describe('StepVercel', () => {
       expect(screen.getByText('Next')).not.toBeDisabled();
     });
 
-    // Should have created api and marketing (cms already existed)
+    // Should have created api and marketing (admin already existed)
     expect(mockVercelCreateProject).toHaveBeenCalledTimes(2);
     expect(mockVercelCreateProject).toHaveBeenCalledWith(
       'test-token',
@@ -139,14 +139,14 @@ describe('StepVercel', () => {
     // Should update data with project IDs
     expect(onUpdateData).toHaveBeenCalledWith({
       vercelToken: 'test-token',
-      vercelProjects: { api: 'new-api', cms: 'existing-cms', marketing: 'new-marketing' },
+      vercelProjects: { api: 'new-api', admin: 'existing-admin', marketing: 'new-marketing' },
     });
 
     // Should update config with teamId
     expect(onUpdateConfig).toHaveBeenCalledWith({
       deploy: expect.objectContaining({
         vercelTeamId: 'team-abc',
-        apps: { api: 'new-api', cms: 'existing-cms', marketing: 'new-marketing' },
+        apps: { api: 'new-api', admin: 'existing-admin', marketing: 'new-marketing' },
       }),
     });
   });
@@ -154,7 +154,7 @@ describe('StepVercel', () => {
   it('reuses existing projects when names match', async () => {
     mockVercelValidateToken.mockResolvedValue([
       { id: 'id-api', name: 'revealui-api', framework: 'other', accountId: 'team-xyz' },
-      { id: 'id-cms', name: 'revealui-cms', framework: 'nextjs', accountId: 'team-xyz' },
+      { id: 'id-admin', name: 'revealui-admin', framework: 'nextjs', accountId: 'team-xyz' },
       { id: 'id-mkt', name: 'revealui-marketing', framework: 'nextjs', accountId: 'team-xyz' },
     ]);
     mockVercelCreateProject.mockClear();
@@ -187,7 +187,7 @@ describe('StepVercel', () => {
     // Should update data with existing project IDs
     expect(onUpdateData).toHaveBeenCalledWith({
       vercelToken: 'test-token',
-      vercelProjects: { api: 'id-api', cms: 'id-cms', marketing: 'id-mkt' },
+      vercelProjects: { api: 'id-api', admin: 'id-admin', marketing: 'id-mkt' },
     });
   });
 });

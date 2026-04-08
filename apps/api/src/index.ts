@@ -137,7 +137,7 @@ import { setCorsConfigMissing } from './lib/startup-state.js';
 
 /** Known production origins — hardcoded fallback if CORS_ORIGIN env var is missing or unreadable */
 const PRODUCTION_ORIGINS = [
-  'https://cms.revealui.com',
+  'https://admin.revealui.com',
   'https://revealui.com',
   'https://www.revealui.com',
   'https://marketing.revealui.com',
@@ -238,7 +238,7 @@ function isTestSubdomainOrigin(origin: string): boolean {
   const host = origin.slice(8); // strip https://
   const validSuffixes = [
     'revealui.com',
-    'cms.revealui.com',
+    'admin.revealui.com',
     'api.revealui.com',
     'docs.revealui.com',
   ];

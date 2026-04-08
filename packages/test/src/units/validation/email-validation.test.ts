@@ -1,10 +1,10 @@
 /**
  * Unit tests for email validation utilities
  *
- * Tests REAL email validation from apps/cms/src/lib/validation/schemas.ts
+ * Tests REAL email validation from apps/admin/src/lib/validation/schemas.ts
  */
 
-import { emailSchema } from '@cms/lib/validation/schemas';
+import { emailSchema } from '@admin/lib/validation/schemas';
 import { describe, expect, it } from 'vitest';
 
 describe('Email Validation (Real Framework Code)', () => {

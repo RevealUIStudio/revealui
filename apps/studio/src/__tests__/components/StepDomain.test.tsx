@@ -12,7 +12,7 @@ const MOCK_CONFIG: StudioConfig = {
 
 const MOCK_DATA: WizardData = {
   vercelToken: '',
-  vercelProjects: { api: '', cms: '', marketing: '' },
+  vercelProjects: { api: '', admin: '', marketing: '' },
   postgresUrl: '',
   stripeSecretKey: '',
   stripePublishableKey: '',
@@ -76,7 +76,7 @@ describe('StepDomain', () => {
     });
 
     expect(screen.getByText('https://api.mysite.com')).toBeInTheDocument();
-    expect(screen.getByText('https://cms.mysite.com')).toBeInTheDocument();
+    expect(screen.getByText('https://admin.mysite.com')).toBeInTheDocument();
     expect(screen.getByText('https://mysite.com')).toBeInTheDocument();
   });
 
@@ -124,7 +124,7 @@ describe('StepDomain', () => {
     });
 
     expect(screen.getByText('DNS Records')).toBeInTheDocument();
-    // Three CNAME records (api, cms, marketing) all point to vercel
+    // Three CNAME records (api, admin, marketing) all point to vercel
     const cnameValues = screen.getAllByText('cname.vercel-dns.com');
     expect(cnameValues).toHaveLength(3);
   });

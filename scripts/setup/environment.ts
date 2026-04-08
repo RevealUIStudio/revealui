@@ -65,7 +65,7 @@ const DEV_DEFAULTS: Record<string, string> = {
   NEXT_PUBLIC_SERVER_URL: 'http://localhost:4000',
   REVEALUI_API_URL: 'http://localhost:3004',
   NEXT_PUBLIC_API_URL: 'http://localhost:3004',
-  NEXT_PUBLIC_CMS_URL: 'http://localhost:4000',
+  NEXT_PUBLIC_ADMIN_URL: 'http://localhost:4000',
   VITE_API_URL: 'http://localhost:3004',
   API_URL: 'http://localhost:3004',
   REVEALUI_ADMIN_EMAIL: 'admin@localhost.dev',

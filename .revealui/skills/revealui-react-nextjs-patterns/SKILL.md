@@ -353,9 +353,9 @@ export function PostForm() {
 ## Examples in RevealUI Codebase
 
 Look at these files for good examples:
-- `apps/cms/src/app/(frontend)/posts/[slug]/page.tsx` - Async Server Component
-- `apps/cms/src/lib/components/RichText/serialize.tsx` - Server-side rendering
-- `apps/cms/src/lib/blocks/Form/Component.tsx` - Client Component with hooks
-- `apps/cms/src/lib/globals/Header/Component.client.tsx` - Interactive header
+- `apps/admin/src/app/(frontend)/posts/[slug]/page.tsx` - Async Server Component
+- `apps/admin/src/lib/components/RichText/serialize.tsx` - Server-side rendering
+- `apps/admin/src/lib/blocks/Form/Component.tsx` - Client Component with hooks
+- `apps/admin/src/lib/globals/Header/Component.client.tsx` - Interactive header
 
 Always follow these patterns to maintain consistency and performance in RevealUI!

@@ -8,7 +8,7 @@
  * Tests must navigate via button clicks, not direct URL jumps.
  *
  * REQUIRES live services:
- *   - apps/cms deployed and accessible via PLAYWRIGHT_BASE_URL
+ *   - apps/admin deployed and accessible via PLAYWRIGHT_BASE_URL
  *   - CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD so global-setup can create auth state
  *
  * Auth strategy:
@@ -24,7 +24,7 @@
  *   verifying the full admin CRUD flow.
  *
  * Run with:
- *   CI=1 PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
+ *   CI=1 PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *     CMS_ADMIN_EMAIL=admin@example.com CMS_ADMIN_PASSWORD=<pass> \
  *     node_modules/.bin/playwright test e2e/content.e2e.ts \
  *     --project=chromium --retries=0 --reporter=line
