@@ -50,7 +50,7 @@ const viteConfig = defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'src'),
-      '@reveal-config': path.resolve(import.meta.dirname, '../../apps/cms/revealui.config.ts'),
+      '@reveal-config': path.resolve(import.meta.dirname, '../../apps/admin/revealui.config.ts'),
     },
   },
   define: {

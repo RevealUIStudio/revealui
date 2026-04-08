@@ -50,7 +50,7 @@ async function globalSetup(config: FullConfig) {
     const errorMessage = lastError?.message || 'Unknown error';
     throw new Error(
       `E2E test setup failed - server not ready at ${baseURL}: ${errorMessage}. ` +
-        'Start the server with `pnpm dev` in apps/cms or apps/mainframe. ' +
+        'Start the server with `pnpm dev` in apps/admin or apps/mainframe. ' +
         'E2E tests require a running server instance.',
     );
   } finally {

@@ -395,8 +395,8 @@ async function buildDispatcher(
   };
 
   // CMSAPIClient — routes through the CMS REST API if configured, otherwise no-ops
-  const cmsBaseUrl = process.env.CMS_URL ?? process.env.NEXT_PUBLIC_CMS_URL;
-  const apiClient = buildCMSClient(cmsBaseUrl);
+  const adminBaseUrl = process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL;
+  const apiClient = buildCMSClient(adminBaseUrl);
 
   // Type assertions needed: TicketAgentDispatcher comes from Pro package with its own
   // type resolution path. llmClient is unknown from dynamic import; the dispatcher's
@@ -416,7 +416,9 @@ async function buildDispatcher(
 function buildCMSClient(baseUrl: string | undefined) {
   if (!baseUrl) {
     const stub = async () => {
-      throw new Error('CMS_URL not configured. Set CMS_URL to connect the agent to the CMS.');
+      throw new Error(
+        'ADMIN_URL not configured. Set ADMIN_URL to connect the agent to the admin app.',
+      );
     };
     return {
       find: stub,

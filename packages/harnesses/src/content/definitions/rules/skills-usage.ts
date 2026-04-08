@@ -16,7 +16,7 @@ When the Skill tool is available, proactively invoke the following skills in the
 
 - \`/vercel-react-best-practices\` — before completing any PR that touches React components or hooks
 - \`/stripe-best-practices\` — any time you write or modify billing, payment, webhook, or Stripe code
-- \`/next-best-practices\` — when implementing features in apps/cms or apps/marketing
+- \`/next-best-practices\` — when implementing features in apps/admin or apps/marketing
 - \`/next-cache-components\` — when adding 'use cache', cache profiles, or PPR to a Next.js route
 - \`/vercel-composition-patterns\` — when adding new components to @revealui/presentation
 - \`/web-design-guidelines\` — when asked to review a UI, page, or component for quality

@@ -2,7 +2,7 @@
  * Integration Tests with Real Config Patterns
  *
  * These tests validate that our type system correctly handles
- * real-world configuration patterns from apps/cms.
+ * real-world configuration patterns from apps/admin.
  *
  * Instead of importing directly (which would create a dependency cycle),
  * we recreate representative configs based on the actual codebase.
@@ -23,8 +23,8 @@ import {
   safeValidate,
 } from '../cms/index.js';
 
-describe('Real Config Patterns from apps/cms', () => {
-  describe('Posts Collection (apps/cms/src/lib/collections/Posts)', () => {
+describe('Real Config Patterns from apps/admin', () => {
+  describe('Posts Collection (apps/admin/src/lib/collections/Posts)', () => {
     // Mirror of actual Posts collection structure
     const PostsConfig: CollectionConfig = {
       slug: 'posts',
@@ -161,7 +161,7 @@ describe('Real Config Patterns from apps/cms', () => {
     });
   });
 
-  describe('Users Collection (apps/cms/src/lib/collections/Users)', () => {
+  describe('Users Collection (apps/admin/src/lib/collections/Users)', () => {
     // Mirror of actual Users collection structure
     const UsersConfig: CollectionConfig = {
       slug: 'users',
@@ -253,7 +253,7 @@ describe('Real Config Patterns from apps/cms', () => {
     });
   });
 
-  describe('Settings Global (apps/cms/src/lib/globals/Settings)', () => {
+  describe('Settings Global (apps/admin/src/lib/globals/Settings)', () => {
     // Mirror of actual Settings global structure
     const SettingsConfig: GlobalConfig = {
       slug: 'settings',
@@ -286,7 +286,7 @@ describe('Real Config Patterns from apps/cms', () => {
     });
   });
 
-  describe('Access Functions (apps/cms/src/lib/access)', () => {
+  describe('Access Functions (apps/admin/src/lib/access)', () => {
     it('authenticated access pattern', () => {
       const authenticated: AccessFunction = ({ req }) => {
         return Boolean(req?.user);
@@ -330,7 +330,7 @@ describe('Real Config Patterns from apps/cms', () => {
     });
   });
 
-  describe('Hook Functions (apps/cms/src/lib/hooks)', () => {
+  describe('Hook Functions (apps/admin/src/lib/hooks)', () => {
     interface Post {
       id: string;
       title: string;

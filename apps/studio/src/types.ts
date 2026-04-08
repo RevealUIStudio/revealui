@@ -248,7 +248,7 @@ export interface HealthCheckResult {
 /** Accumulated wizard data — survives across steps via parent state. */
 export interface WizardData {
   vercelToken: string;
-  vercelProjects: { api: string; cms: string; marketing: string };
+  vercelProjects: { api: string; admin: string; marketing: string };
   postgresUrl: string;
   supabaseUrl?: string;
   supabasePublishableKey?: string;

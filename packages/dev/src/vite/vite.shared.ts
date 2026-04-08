@@ -68,7 +68,7 @@ const sharedViteConfig = {
     alias: {
       'node:fs': 'fs',
       // CMS config alias
-      '@reveal-config': path.resolve(projectRoot, 'apps/cms/revealui.config.ts'),
+      '@reveal-config': path.resolve(projectRoot, 'apps/admin/revealui.config.ts'),
       // Package aliases
       '@revealui/core': path.resolve(packagesRoot, 'core/src'),
       '@revealui/contracts': path.resolve(packagesRoot, 'contracts/src'),

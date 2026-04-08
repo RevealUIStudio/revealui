@@ -107,16 +107,16 @@ app.openapi(
       return c.json({ success: false, error: 'Invalid collection name' }, 400);
     }
 
-    // CMS API client — requires NEXT_PUBLIC_CMS_URL or CMS_URL
-    const cmsBaseUrl =
-      process.env.CMS_URL ?? process.env.NEXT_PUBLIC_CMS_URL ?? 'http://localhost:4000';
+    // Admin API client — requires NEXT_PUBLIC_ADMIN_URL or ADMIN_URL
+    const adminBaseUrl =
+      process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL ?? 'http://localhost:4000';
 
     let documents: Array<{ id: string; title?: string; content?: string; rawContent?: string }> =
       [];
 
     try {
       // Paginated fetch from CMS collection REST API
-      const res = await fetch(`${cmsBaseUrl}/api/${collection}?limit=100&depth=0`, {
+      const res = await fetch(`${adminBaseUrl}/api/${collection}?limit=100&depth=0`, {
         headers: { 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(300_000), // 5 minute timeout
       });

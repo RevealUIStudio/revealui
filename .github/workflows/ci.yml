@@ -340,8 +340,8 @@ jobs:
           NODE_ENV: "development"
           POSTGRES_URL: "postgresql://test:test@localhost:5432/smoke"
 
-      - name: Start CMS server
-        run: pnpm --filter cms start &
+      - name: Start Admin server
+        run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
 
@@ -418,8 +418,8 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Start CMS server
-        run: pnpm --filter cms start &
+      - name: Start Admin server
+        run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
 
@@ -490,16 +490,16 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Start CMS server
-        run: pnpm --filter cms start &
+      - name: Start Admin server
+        run: pnpm --filter admin start &
         env:
           SKIP_ENV_VALIDATION: "true"
 
-      - name: Wait for CMS
+      - name: Wait for Admin
         run: |
           for i in $(seq 1 40); do
-            curl -sf http://localhost:4000 > /dev/null 2>&1 && echo "CMS ready" && break || \
-            echo "Waiting for CMS... ($i/40)" && sleep 3
+            curl -sf http://localhost:4000 > /dev/null 2>&1 && echo "Admin ready" && break || \
+            echo "Waiting for Admin... ($i/40)" && sleep 3
           done
 
       - name: Run visual regression tests

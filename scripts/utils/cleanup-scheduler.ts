@@ -223,7 +223,7 @@ async function executeOrphanedImportsCleanup(
 
   // Find source files
   const targetDirs = [
-    join(projectRoot, 'apps/cms/src'),
+    join(projectRoot, 'apps/admin/src'),
     join(projectRoot, 'apps/mainframe/src'),
     join(projectRoot, 'packages/core/src'),
   ];
@@ -270,7 +270,7 @@ async function executeArchiveTodosCleanup(
 
   const { findSourceFiles } = await import('./patterns.ts');
 
-  const targetDirs = [join(projectRoot, 'apps/cms/src'), join(projectRoot, 'packages/core/src')];
+  const targetDirs = [join(projectRoot, 'apps/admin/src'), join(projectRoot, 'packages/core/src')];
 
   const allFiles: string[] = [];
   for (const dir of targetDirs) {

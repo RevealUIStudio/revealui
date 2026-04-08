@@ -17,7 +17,7 @@ const MOCK_APPS: AppStatus[] = [
     running: false,
   },
   {
-    app: { name: 'cms', display_name: 'CMS', port: 4000, url: 'http://localhost:4000' },
+    app: { name: 'admin', display_name: 'Admin', port: 4000, url: 'http://localhost:4000' },
     running: true,
   },
 ];
@@ -121,13 +121,13 @@ describe('useApps', () => {
     });
 
     await act(async () => {
-      const stopPromise = result.current.stop('cms');
+      const stopPromise = result.current.stop('admin');
       await vi.advanceTimersByTimeAsync(1000);
       await stopPromise;
     });
 
-    expect(stopApp).toHaveBeenCalledWith('cms');
-    expect(result.current.operating.cms).toBeFalsy();
+    expect(stopApp).toHaveBeenCalledWith('admin');
+    expect(result.current.operating.admin).toBeFalsy();
   });
 
   it('handles stop error', async () => {
@@ -140,7 +140,7 @@ describe('useApps', () => {
     });
 
     await act(async () => {
-      await result.current.stop('cms');
+      await result.current.stop('admin');
     });
 
     expect(result.current.error).toBe('Cannot stop');

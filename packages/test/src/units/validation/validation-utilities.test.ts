@@ -1,7 +1,7 @@
 /**
  * Unit tests for validation utility functions
  *
- * Tests REAL validation utilities from apps/cms/src/lib/validation/schemas.ts
+ * Tests REAL validation utilities from apps/admin/src/lib/validation/schemas.ts
  */
 
 import {
@@ -9,7 +9,7 @@ import {
   slugSchema,
   urlSchema,
   validateFormData,
-} from '@cms/lib/validation/schemas';
+} from '@admin/lib/validation/schemas';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod/v4';
 

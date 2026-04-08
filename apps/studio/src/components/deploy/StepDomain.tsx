@@ -34,7 +34,7 @@ export default function StepDomain({
     .replace(/^https?:\/\//, '')
     .replace(/\/+$/, '');
   const apiUrl = cleanDomain ? `api.${cleanDomain}` : '';
-  const cmsUrl = cleanDomain ? `cms.${cleanDomain}` : '';
+  const adminUrl = cleanDomain ? `admin.${cleanDomain}` : '';
   const marketingUrl = cleanDomain || '';
 
   async function handleSave() {
@@ -92,7 +92,7 @@ export default function StepDomain({
             <p className="mb-2 text-xs font-medium text-neutral-400">Derived URLs</p>
             <div className="flex flex-col gap-1 text-sm font-mono">
               <DerivedUrl label="API" url={`https://${apiUrl}`} />
-              <DerivedUrl label="CMS" url={`https://${cmsUrl}`} />
+              <DerivedUrl label="Admin" url={`https://${adminUrl}`} />
               <DerivedUrl label="Marketing" url={`https://${marketingUrl}`} />
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function StepDomain({
                 </tr>
                 <tr>
                   <td className="pr-4 py-0.5">CNAME</td>
-                  <td className="pr-4 py-0.5">{cmsUrl}</td>
+                  <td className="pr-4 py-0.5">{adminUrl}</td>
                   <td className="py-0.5">cname.vercel-dns.com</td>
                 </tr>
                 <tr>

@@ -33,7 +33,7 @@ for (const envFile of [
   '.env',
   '.env.development.local',
   '.env.local',
-  'apps/cms/.env.local',
+  'apps/admin/.env.local',
   'apps/marketing/.env.local',
   'apps/api/.env.vercel',
 ]) {

@@ -7,7 +7,7 @@ import WizardStep from './WizardStep';
 
 const REQUIRED_PROJECTS = [
   { key: 'api' as const, name: 'revealui-api', framework: 'other', rootDir: 'apps/api' },
-  { key: 'cms' as const, name: 'revealui-cms', framework: 'nextjs', rootDir: 'apps/cms' },
+  { key: 'admin' as const, name: 'revealui-admin', framework: 'nextjs', rootDir: 'apps/admin' },
   {
     key: 'marketing' as const,
     name: 'revealui-marketing',
@@ -78,7 +78,7 @@ export default function StepVercel({
         vercelToken: trimmed,
         vercelProjects: {
           api: projectMap.api ?? '',
-          cms: projectMap.cms ?? '',
+          admin: projectMap.admin ?? '',
           marketing: projectMap.marketing ?? '',
         },
       });
@@ -89,7 +89,7 @@ export default function StepVercel({
           vercelTeamId: teamId,
           apps: {
             api: projectMap.api ?? '',
-            cms: projectMap.cms ?? '',
+            admin: projectMap.admin ?? '',
             marketing: projectMap.marketing ?? '',
           },
           supabaseEnabled: config.deploy?.supabaseEnabled ?? false,

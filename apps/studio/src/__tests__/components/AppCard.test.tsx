@@ -24,8 +24,8 @@ const RUNNING_APP: AppStatus = {
 
 const STOPPED_APP: AppStatus = {
   app: {
-    name: 'cms',
-    display_name: 'CMS',
+    name: 'admin',
+    display_name: 'Admin',
     port: 4000,
     url: 'http://localhost:4000',
   },

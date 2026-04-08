@@ -68,12 +68,12 @@ services:
       - "com.revealui.service=electric"
       - "com.revealui.environment=production"
 
-  # CMS application
-  cms:
+  # Admin application
+  admin:
     build:
       context: .
-      dockerfile: apps/cms/Dockerfile
-    container_name: revealui-cms
+      dockerfile: apps/admin/Dockerfile
+    container_name: revealui-admin
     environment:
       NODE_ENV: production
       PORT: 4000
@@ -104,7 +104,7 @@ services:
           memory: 512M
     restart: unless-stopped
     labels:
-      - "com.revealui.service=cms"
+      - "com.revealui.service=admin"
       - "com.revealui.environment=production"
 
   # Mainframe application

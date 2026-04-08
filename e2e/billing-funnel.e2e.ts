@@ -7,7 +7,7 @@
  *   Pro → Enterprise in-place upgrade
  *
  * ─── REQUIRED ENV VARS ────────────────────────────────────────────────────────
- *   PLAYWRIGHT_BASE_URL   https://cms.revealui.com
+ *   PLAYWRIGHT_BASE_URL   https://admin.revealui.com
  *   API_BASE_URL          https://api.revealui.com
  *   CMS_ADMIN_EMAIL       admin@example.com
  *   CMS_ADMIN_PASSWORD    <your-cms-admin-password>
@@ -23,7 +23,7 @@
  *
  * Run (full suite):
  *   CI=1 \
- *   PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
+ *   PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *   API_BASE_URL=https://api.revealui.com \
  *   CMS_ADMIN_EMAIL=admin@example.com \
  *   CMS_ADMIN_PASSWORD='<your-cms-admin-password>' \
@@ -32,7 +32,7 @@
  *     --project=chromium --retries=0 --reporter=line
  *
  * Run (auth + UI only — no Stripe key required):
- *   PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
+ *   PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *   CMS_ADMIN_EMAIL=admin@example.com \
  *   CMS_ADMIN_PASSWORD='<your-cms-admin-password>' \
  *   node_modules/.bin/playwright test e2e/billing-funnel.e2e.ts \
@@ -102,7 +102,7 @@ let _session: SessionCache | null | undefined; // undefined = not yet resolved
  *  2. Saved auth state from global-setup (e2e/.auth/user.json)
  *  3. Fresh API sign-in — last resort (rate-limited in production)
  *
- * Cookie domain is forced to cms.revealui.com regardless of what the saved
+ * Cookie domain is forced to admin.revealui.com regardless of what the saved
  * state says. This prevents Playwright from automatically sending the cookie
  * to api.revealui.com requests, which would conflict with the manual cookie
  * headers used in API test assertions.
@@ -128,7 +128,7 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
 
       if (checkRes.ok()) {
         // Use the wildcard parent domain (.revealui.com) so the browser sends the
-        // cookie to both cms.revealui.com and api.revealui.com. This allows the
+        // cookie to both admin.revealui.com and api.revealui.com. This allows the
         // billing page's in-page fetch(api.revealui.com, { credentials: 'include' })
         // to authenticate correctly. page.request.* calls use a separate APIRequestContext
         // that ignores browser cookies, so there is no conflict with manual headers.

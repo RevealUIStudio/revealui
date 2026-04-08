@@ -1,6 +1,6 @@
 name: Build & Push Forge Docker Images
 
-# Builds Forge Docker images (API + CMS) and pushes to GHCR.
+# Builds Forge Docker images (API + Admin) and pushes to GHCR.
 # Triggered manually from GitHub Actions UI.
 #
 # Images are tagged with:
@@ -39,9 +39,9 @@ jobs:
           - app: api
             dockerfile: apps/api/Dockerfile.forge
             image: revealui-api
-          - app: cms
-            dockerfile: apps/cms/Dockerfile.forge
-            image: revealui-cms
+          - app: admin
+            dockerfile: apps/admin/Dockerfile.forge
+            image: revealui-admin
 
     steps:
       - name: Checkout

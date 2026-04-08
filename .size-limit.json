@@ -1,7 +1,7 @@
 [
   {
-    "name": "CMS - Total Bundle",
-    "path": "apps/cms/.next/static/**/*.js",
+    "name": "Admin - Total Bundle",
+    "path": "apps/admin/.next/static/**/*.js",
     "limit": "850 KB",
     "webpack": false,
     "gzip": true

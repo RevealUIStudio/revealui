@@ -258,7 +258,7 @@ describe('POST /checkout', () => {
     vi.clearAllMocks();
     resetChains();
     process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
-    process.env.CMS_URL = 'https://app.example.com';
+    process.env.ADMIN_URL = 'https://app.example.com';
     process.env.STRIPE_PRO_PRICE_ID = 'price_pro_server';
     process.env.STRIPE_MAX_PRICE_ID = 'price_max_server';
     process.env.STRIPE_ENTERPRISE_PRICE_ID = 'price_enterprise_server';
@@ -438,7 +438,7 @@ describe('POST /portal', () => {
     vi.clearAllMocks();
     resetChains();
     process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
-    process.env.CMS_URL = 'https://app.example.com';
+    process.env.ADMIN_URL = 'https://app.example.com';
   });
 
   it('returns 401 when not authenticated', async () => {
@@ -993,7 +993,7 @@ describe('POST /checkout — early adopter integration', () => {
     vi.clearAllMocks();
     resetChains();
     process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
-    process.env.CMS_URL = 'https://app.example.com';
+    process.env.ADMIN_URL = 'https://app.example.com';
   });
 
   afterEach(() => {

@@ -57,7 +57,7 @@ async function analyze(): Promise<CohesionAnalysis> {
   // Find source files
   logger.info('Scanning for source files...');
   const targetDirectories = [
-    `${projectRoot}/apps/cms/src`,
+    `${projectRoot}/apps/admin/src`,
     `${projectRoot}/apps/mainframe/src`,
     `${projectRoot}/packages/core/src`,
   ];

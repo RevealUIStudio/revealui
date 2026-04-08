@@ -2,6 +2,6 @@
 
 export interface DeployApps {
   api?: string | null;
-  cms?: string | null;
+  admin?: string | null;
   marketing?: string | null;
 }

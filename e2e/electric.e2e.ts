@@ -15,12 +15,12 @@
  *     Gracefully skip if rate-limited (5 sign-up/sign-in attempts per 15 minutes).
  *
  * REQUIRES live services:
- *   - apps/cms with ELECTRIC_SERVICE_URL pointing to Railway Electric instance
+ *   - apps/admin with ELECTRIC_SERVICE_URL pointing to Railway Electric instance
  *   - Electric running on Railway connected to NeonDB (logical replication enabled)
  *
  * Run against production (CI=true skips local dev server startup):
  *   CI=true \
- *     PLAYWRIGHT_BASE_URL=https://cms.revealui.com \
+ *     PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *     playwright test e2e/electric.e2e.ts --project=chromium
  *
  * NOTE: Authenticated tests create a new test user on each run. These accumulate

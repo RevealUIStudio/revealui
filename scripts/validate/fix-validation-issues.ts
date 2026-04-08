@@ -63,7 +63,7 @@ function fixTsconfigIssues(): void {
 
 function fixLintingIssues(): void {
   // Remove incorrect biome suppressions
-  const revealuiConfig = 'apps/cms/revealui.config.ts';
+  const revealuiConfig = 'apps/admin/revealui.config.ts';
   try {
     let content = readFileSync(revealuiConfig, 'utf8');
     // Remove incorrect suppressions

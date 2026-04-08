@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { getCorsOrigins } from '../index.js';
 
 const HARDCODED_PRODUCTION_ORIGINS = [
-  'https://cms.revealui.com',
+  'https://admin.revealui.com',
   'https://revealui.com',
   'https://www.revealui.com',
   'https://marketing.revealui.com',
@@ -151,13 +151,13 @@ describe('Critical Fix #2: CORS Validation', () => {
 
     it('does not allow Vercel preview origins in production environment', () => {
       process.env.NODE_ENV = 'production';
-      process.env.CORS_ORIGIN = 'https://cms.revealui.com';
+      process.env.CORS_ORIGIN = 'https://admin.revealui.com';
       process.env.VERCEL_ENV = 'production';
 
       // getCorsOrigins only returns the static list — preview matching
       // happens in the CORS middleware origin callback, not here
       const origins = getCorsOrigins();
-      expect(origins).toEqual(['https://cms.revealui.com']);
+      expect(origins).toEqual(['https://admin.revealui.com']);
       expect(origins).not.toContain('https://my-app-abc123.vercel.app');
     });
   });

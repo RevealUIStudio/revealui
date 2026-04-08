@@ -110,7 +110,7 @@ jobs:
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_test123456789
         run: |
           # Type check that config is accessible in CMS app
-          cd apps/cms && pnpm typecheck
+          cd apps/admin && pnpm typecheck
 
   lint:
     name: Lint
@@ -195,7 +195,7 @@ jobs:
         uses: codecov/codecov-action@v4
         if: always()
         with:
-          files: ./apps/cms/coverage/lcov.info,./packages/test/coverage/lcov.info
+          files: ./apps/admin/coverage/lcov.info,./packages/test/coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
@@ -206,7 +206,7 @@ jobs:
         with:
           name: coverage-reports
           path: |
-            apps/cms/coverage
+            apps/admin/coverage
             packages/test/coverage
           retention-days: 7
 
@@ -364,13 +364,13 @@ jobs:
         id: nextjs-cache
         with:
           path: |
-            apps/cms/.next/cache
+            apps/admin/.next/cache
           key: ${{ runner.os }}-nextjs-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-nextjs-
 
       - name: Build CMS
-        run: pnpm --filter cms build
+        run: pnpm --filter admin build
         env:
           NODE_ENV: production
           SKIP_ENV_VALIDATION: true
@@ -396,7 +396,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            apps/cms/.next/cache
+            apps/admin/.next/cache
           key: ${{ runner.os }}-nextjs-${{ github.sha }}
 
   build-web:

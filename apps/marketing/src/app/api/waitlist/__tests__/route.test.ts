@@ -15,7 +15,7 @@ describe('Waitlist endpoint (closed)', () => {
       const response = GET();
 
       expect(response.status).toBe(301);
-      expect(response.headers.get('location')).toBe('https://cms.revealui.com/signup');
+      expect(response.headers.get('location')).toBe('https://admin.revealui.com/signup');
     });
   });
 
@@ -26,7 +26,7 @@ describe('Waitlist endpoint (closed)', () => {
 
       expect(response.status).toBe(410);
       expect(data.message).toContain('Waitlist closed');
-      expect(data.message).toContain('https://cms.revealui.com/signup');
+      expect(data.message).toContain('https://admin.revealui.com/signup');
     });
   });
 });

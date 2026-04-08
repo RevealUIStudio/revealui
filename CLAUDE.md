@@ -40,7 +40,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | api | 3004 | Hono | REST API (OpenAPI + Swagger) |
-| cms | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
+| admin | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
 | studio | — | Tauri 2 + React 19 | Native AI experience: agent coordination hub, local inference management, visual agent dashboard |
@@ -152,11 +152,11 @@ Always use `workspace:*` for internal package dependencies:
 ```bash
 pnpm --filter @revealui/core test    # Run tests for one package
 pnpm --filter ./packages/* build     # Build all packages
-pnpm --filter cms dev                # Dev one app
+pnpm --filter admin dev                # Dev one app
 ```
 
 ### CMS Collections
-Collections are defined in `apps/cms/src/collections/` with access control, hooks, and field definitions. Use `@revealui/contracts` for type schemas.
+Collections are defined in `apps/admin/src/collections/` with access control, hooks, and field definitions. Use `@revealui/contracts` for type schemas.
 
 ### Feature Gating
 Pro features use `isLicensed('pro')` and `isFeatureEnabled('ai')` from `@revealui/core`. Tiers: free, pro, max, enterprise (code string for Forge).

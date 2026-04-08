@@ -19,7 +19,7 @@ const MOCK_CONFIG: StudioConfig = {
   completedSteps: [],
   deploy: {
     supabaseEnabled: false,
-    apps: { api: 'prj-api', cms: 'prj-cms', marketing: 'prj-mkt' },
+    apps: { api: 'prj-api', admin: 'prj-admin', marketing: 'prj-mkt' },
   },
 };
 
@@ -32,7 +32,7 @@ const MOCK_CONFIG_NO_IDS: StudioConfig = {
 
 const MOCK_DATA: WizardData = {
   vercelToken: 'tok_test',
-  vercelProjects: { api: 'prj-api', cms: 'prj-cms', marketing: 'prj-mkt' },
+  vercelProjects: { api: 'prj-api', admin: 'prj-admin', marketing: 'prj-mkt' },
   postgresUrl: 'postgres://localhost/test',
   stripeSecretKey: 'sk_test_123',
   stripePublishableKey: 'pk_test_123',
@@ -55,11 +55,11 @@ describe('StepDeploy', () => {
     vi.clearAllMocks();
   });
 
-  it('renders 3 app cards (API, CMS, Marketing)', () => {
+  it('renders 3 app cards (API, Admin, Marketing)', () => {
     render(<StepDeploy config={MOCK_CONFIG} data={MOCK_DATA} onNext={vi.fn()} />);
 
     expect(screen.getByText('API')).toBeInTheDocument();
-    expect(screen.getByText('CMS')).toBeInTheDocument();
+    expect(screen.getByText('Admin')).toBeInTheDocument();
     expect(screen.getByText('Marketing')).toBeInTheDocument();
   });
 
@@ -157,14 +157,14 @@ describe('StepDeploy', () => {
     );
     expect(apiSupabaseCalls).toHaveLength(3); // URL, ANON_KEY, SERVICE_ROLE_KEY
 
-    // Check CMS also gets Supabase URL + anon key
-    const cmsSupabaseCalls = setEnvCalls.filter(
-      (c: unknown[]) => c[1] === 'prj-cms' && (c[2] as string).includes('SUPABASE'),
+    // Check Admin also gets Supabase URL + anon key
+    const adminSupabaseCalls = setEnvCalls.filter(
+      (c: unknown[]) => c[1] === 'prj-admin' && (c[2] as string).includes('SUPABASE'),
     );
-    expect(cmsSupabaseCalls).toHaveLength(2); // URL, ANON_KEY
+    expect(adminSupabaseCalls).toHaveLength(2); // URL, ANON_KEY
   });
 
-  it('builds CMS env vars with email (resend) and signup control', async () => {
+  it('builds Admin env vars with email (resend) and signup control', async () => {
     mockVercelSetEnv.mockResolvedValue(undefined);
     mockVercelDeploy.mockResolvedValue('mock-deploy-id');
     mockVercelGetDeployment.mockResolvedValue({
@@ -184,22 +184,22 @@ describe('StepDeploy', () => {
 
     const setEnvCalls = mockVercelSetEnv.mock.calls;
 
-    // CMS should have RESEND_API_KEY
-    const cmsResend = setEnvCalls.find(
-      (c: unknown[]) => c[1] === 'prj-cms' && c[2] === 'RESEND_API_KEY',
+    // Admin should have RESEND_API_KEY
+    const adminResend = setEnvCalls.find(
+      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'RESEND_API_KEY',
     );
-    expect(cmsResend).toBeDefined();
-    expect(cmsResend?.[3]).toBe('rk_test_123');
+    expect(adminResend).toBeDefined();
+    expect(adminResend?.[3]).toBe('rk_test_123');
 
-    // CMS should have REVEALUI_SIGNUP_OPEN
-    const cmsSignup = setEnvCalls.find(
-      (c: unknown[]) => c[1] === 'prj-cms' && c[2] === 'REVEALUI_SIGNUP_OPEN',
+    // Admin should have REVEALUI_SIGNUP_OPEN
+    const adminSignup = setEnvCalls.find(
+      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'REVEALUI_SIGNUP_OPEN',
     );
-    expect(cmsSignup).toBeDefined();
-    expect(cmsSignup?.[3]).toBe('true');
+    expect(adminSignup).toBeDefined();
+    expect(adminSignup?.[3]).toBe('true');
   });
 
-  it('builds CMS env vars with SMTP email provider', async () => {
+  it('builds Admin env vars with SMTP email provider', async () => {
     mockVercelSetEnv.mockResolvedValue(undefined);
     mockVercelDeploy.mockResolvedValue('mock-deploy-id');
     mockVercelGetDeployment.mockResolvedValue({
@@ -229,23 +229,23 @@ describe('StepDeploy', () => {
 
     const setEnvCalls = mockVercelSetEnv.mock.calls;
 
-    // CMS should have SMTP vars
-    const cmsSmtpHost = setEnvCalls.find(
-      (c: unknown[]) => c[1] === 'prj-cms' && c[2] === 'SMTP_HOST',
+    // Admin should have SMTP vars
+    const adminSmtpHost = setEnvCalls.find(
+      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'SMTP_HOST',
     );
-    expect(cmsSmtpHost).toBeDefined();
-    expect(cmsSmtpHost?.[3]).toBe('smtp.example.com');
+    expect(adminSmtpHost).toBeDefined();
+    expect(adminSmtpHost?.[3]).toBe('smtp.example.com');
 
-    const cmsSmtpPort = setEnvCalls.find(
-      (c: unknown[]) => c[1] === 'prj-cms' && c[2] === 'SMTP_PORT',
+    const adminSmtpPort = setEnvCalls.find(
+      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'SMTP_PORT',
     );
-    expect(cmsSmtpPort).toBeDefined();
-    expect(cmsSmtpPort?.[3]).toBe('587');
+    expect(adminSmtpPort).toBeDefined();
+    expect(adminSmtpPort?.[3]).toBe('587');
 
-    // CMS should NOT have RESEND_API_KEY with smtp provider
-    const cmsResend = setEnvCalls.find(
-      (c: unknown[]) => c[1] === 'prj-cms' && c[2] === 'RESEND_API_KEY',
+    // Admin should NOT have RESEND_API_KEY with smtp provider
+    const adminResend = setEnvCalls.find(
+      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'RESEND_API_KEY',
     );
-    expect(cmsResend).toBeUndefined();
+    expect(adminResend).toBeUndefined();
   });
 });

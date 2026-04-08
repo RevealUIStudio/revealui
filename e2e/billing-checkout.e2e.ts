@@ -5,7 +5,7 @@
  *   API checkout session creation → Stripe hosted checkout → redirect verification
  *
  * ─── PREREQUISITES ──────────────────────────────────────────────────────────────
- *   1. API (apps/api) and CMS (apps/cms) must be running
+ *   1. API (apps/api) and CMS (apps/admin) must be running
  *   2. Stripe test mode keys configured (sk_test_...)
  *   3. Authenticated user session (CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD)
  *

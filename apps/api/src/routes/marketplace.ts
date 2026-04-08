@@ -816,8 +816,8 @@ app.openapi(
 
     const returnBase =
       process.env.MARKETPLACE_CONNECT_RETURN_URL ??
-      process.env.CMS_URL ??
-      'https://cms.revealui.com';
+      process.env.ADMIN_URL ??
+      'https://admin.revealui.com';
 
     const stripe = getStripeClient();
     const db = getClient();

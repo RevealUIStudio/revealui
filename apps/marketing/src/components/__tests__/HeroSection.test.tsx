@@ -60,7 +60,7 @@ describe('HeroSection', () => {
   it('contains CTA buttons with correct targets', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    expect(html).toContain('https://cms.revealui.com/signup');
+    expect(html).toContain('https://admin.revealui.com/signup');
     expect(html).toContain('Get Started Free');
     expect(html).toContain('https://docs.revealui.com');
     expect(html).toContain('View docs');

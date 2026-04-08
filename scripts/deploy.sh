@@ -42,7 +42,7 @@ check_prerequisites() {
 build_images() {
     echo -e "\n${YELLOW}Building Docker images...${NC}"
 
-    docker build -t revealui/cms:${VERSION} -f docker/Dockerfile.cms .
+    docker build -t revealui/admin:${VERSION} -f docker/Dockerfile.admin .
     docker build -t revealui/dashboard:${VERSION} -f docker/Dockerfile.dashboard .
 
     echo -e "${GREEN}✓ Docker images built successfully${NC}"
@@ -52,7 +52,7 @@ build_images() {
 push_images() {
     echo -e "\n${YELLOW}Pushing Docker images...${NC}"
 
-    docker push revealui/cms:${VERSION}
+    docker push revealui/admin:${VERSION}
     docker push revealui/dashboard:${VERSION}
 
     echo -e "${GREEN}✓ Docker images pushed successfully${NC}"
@@ -83,15 +83,15 @@ deploy_apps() {
     echo -e "\n${YELLOW}Deploying applications...${NC}"
 
     # Update image tags
-    kubectl set image deployment/revealui-cms cms=revealui/cms:${VERSION} -n ${NAMESPACE}
+    kubectl set image deployment/revealui-admin admin=revealui/admin:${VERSION} -n ${NAMESPACE}
     kubectl set image deployment/revealui-dashboard dashboard=revealui/dashboard:${VERSION} -n ${NAMESPACE}
 
     # Apply deployments
     kubectl apply -f k8s/deployments/ -n ${NAMESPACE}
 
     # Wait for rollout to complete
-    echo "Waiting for CMS rollout..."
-    kubectl rollout status deployment/revealui-cms -n ${NAMESPACE} --timeout=${TIMEOUT}s
+    echo "Waiting for Admin rollout..."
+    kubectl rollout status deployment/revealui-admin -n ${NAMESPACE} --timeout=${TIMEOUT}s
 
     echo "Waiting for Dashboard rollout..."
     kubectl rollout status deployment/revealui-dashboard -n ${NAMESPACE} --timeout=${TIMEOUT}s
@@ -105,7 +105,7 @@ run_migrations() {
 
     # Create migration job
     kubectl run revealui-migrate-${VERSION} \
-        --image=revealui/cms:${VERSION} \
+        --image=revealui/admin:${VERSION} \
         --restart=Never \
         --env="DATABASE_URL=$(kubectl get secret revealui-secrets -n ${NAMESPACE} -o jsonpath='{.data.DATABASE_URL}' | base64 -d)" \
         -n ${NAMESPACE} \
@@ -135,15 +135,15 @@ run_smoke_tests() {
     echo -e "\n${YELLOW}Running smoke tests...${NC}"
 
     # Get service URLs
-    CMS_URL=$(kubectl get ingress revealui-ingress -n ${NAMESPACE} -o jsonpath='{.spec.rules[0].host}')
+    ADMIN_URL=$(kubectl get ingress revealui-ingress -n ${NAMESPACE} -o jsonpath='{.spec.rules[0].host}')
     DASHBOARD_URL=$(kubectl get ingress revealui-ingress -n ${NAMESPACE} -o jsonpath='{.spec.rules[2].host}')
 
-    # Test CMS health endpoint
-    echo "Testing CMS: https://${CMS_URL}/api/health"
-    if curl -f -s "https://${CMS_URL}/api/health" > /dev/null; then
-        echo -e "${GREEN}✓ CMS health check passed${NC}"
+    # Test Admin health endpoint
+    echo "Testing Admin: https://${ADMIN_URL}/api/health"
+    if curl -f -s "https://${ADMIN_URL}/api/health" > /dev/null; then
+        echo -e "${GREEN}✓ Admin health check passed${NC}"
     else
-        echo -e "${RED}✗ CMS health check failed${NC}"
+        echo -e "${RED}✗ Admin health check failed${NC}"
         exit 1
     fi
 

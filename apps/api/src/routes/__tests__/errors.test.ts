@@ -90,7 +90,7 @@ describe('POST / — payload validation', () => {
         app: 'cms',
         context: 'AdminDashboard',
         environment: 'production',
-        url: 'https://cms.revealui.com/admin',
+        url: 'https://admin.revealui.com/admin',
         userId: 'user-abc',
         requestId: 'req-xyz',
         metadata: { extra: true },

@@ -9,7 +9,7 @@
 #
 # Apps:
 #   - api:       Hono REST API (port 3004)
-#   - cms:       Next.js CMS + Admin Dashboard (port 4000)
+#   - admin:     Next.js Admin Dashboard (port 4000)
 #   - marketing: Next.js Marketing Site (port 3000)
 #
 # Infrastructure:
@@ -75,13 +75,13 @@ services:
     restart: unless-stopped
 
   # ---------------------------------------------------------------------------
-  # CMS — Next.js Admin Dashboard (standalone output)
+  # Admin — Next.js Admin Dashboard (standalone output)
   # ---------------------------------------------------------------------------
-  cms:
+  admin:
     build:
       context: .
-      dockerfile: apps/cms/Dockerfile
-    container_name: revealui-cms
+      dockerfile: apps/admin/Dockerfile
+    container_name: revealui-admin
     env_file: .env
     environment:
       NODE_ENV: production

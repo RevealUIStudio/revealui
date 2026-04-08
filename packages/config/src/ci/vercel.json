@@ -9,7 +9,7 @@
       }
     },
     {
-      "src": "apps/cms/package.json",
+      "src": "apps/admin/package.json",
       "use": "@vercel/next",
       "config": {
         "distDir": ".next"
@@ -19,11 +19,11 @@
   "rewrites": [
     {
       "source": "/admin/:path*",
-      "destination": "/apps/cms/admin/:path*"
+      "destination": "/apps/admin/admin/:path*"
     },
     {
       "source": "/api/:path*",
-      "destination": "/apps/cms/api/:path*"
+      "destination": "/apps/admin/api/:path*"
     },
     {
       "source": "/assets/:path*",

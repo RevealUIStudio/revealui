@@ -5,7 +5,7 @@
  * Uses Stripe test mode — no real charges are made.
  *
  * REQUIRES live services:
- *   - apps/cms (port 4000) with running database
+ *   - apps/admin (port 4000) with running database
  *   - Stripe test keys in environment (STRIPE_SECRET_KEY=sk_test_...)
  *   - An authenticated admin session (CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD)
  *

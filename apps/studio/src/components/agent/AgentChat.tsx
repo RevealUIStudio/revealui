@@ -29,7 +29,7 @@ interface ChatMessage {
   }>;
 }
 
-type AgentMode = 'cms' | 'coding';
+type AgentMode = 'content' | 'coding';
 
 // ── Tool labels ──────────────────────────────────────────────────────────────
 
@@ -373,10 +373,10 @@ export default function AgentChat() {
             </button>
             <button
               type="button"
-              onClick={() => setMode('cms')}
+              onClick={() => setMode('content')}
               disabled={stream.isStreaming}
               className={`rounded-r px-2 py-0.5 text-[10px] font-medium transition-colors ${
-                mode === 'cms'
+                mode === 'content'
                   ? 'bg-blue-600 text-white'
                   : 'bg-neutral-800 text-neutral-500 hover:text-neutral-300'
               }`}

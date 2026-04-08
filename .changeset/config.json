@@ -9,7 +9,7 @@
   "updateInternalDependencies": "patch",
   "ignore": [
     "api",
-    "cms",
+    "admin",
     "docs",
     "marketing",
     "@revealui/studio",

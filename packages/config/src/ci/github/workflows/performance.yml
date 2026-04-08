@@ -50,7 +50,7 @@ jobs:
         run: pnpm build:packages
 
       - name: Build CMS
-        run: pnpm --filter cms build
+        run: pnpm --filter admin build
         env:
           NODE_ENV: production
           SKIP_ENV_VALIDATION: true
@@ -67,13 +67,13 @@ jobs:
       - name: Analyze bundle size
         run: |
           echo "Bundle size analysis:"
-          du -sh apps/cms/.next/static/chunks/* | sort -h | tail -10
+          du -sh apps/admin/.next/static/chunks/* | sort -h | tail -10
 
       - name: Check bundle size budget
         run: |
           # Check if bundle size exceeds budget
           MAX_BUNDLE_SIZE_MB=5
-          BUNDLE_SIZE=$(du -sm apps/cms/.next | cut -f1)
+          BUNDLE_SIZE=$(du -sm apps/admin/.next | cut -f1)
           if [ "$BUNDLE_SIZE" -gt "$MAX_BUNDLE_SIZE_MB" ]; then
             echo "❌ Bundle size ($BUNDLE_SIZE MB) exceeds budget ($MAX_BUNDLE_SIZE_MB MB)"
             exit 1
@@ -171,7 +171,7 @@ jobs:
 
       - name: Build applications
         run: |
-          pnpm --filter cms build
+          pnpm --filter admin build
           pnpm --filter web build
         env:
           NODE_ENV: production

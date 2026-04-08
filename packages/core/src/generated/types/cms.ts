@@ -1,6 +1,6 @@
 /* tslint:disable */
 /**
- * This file was automatically generated and copied from ./apps/cms/src/types/revealui.ts
+ * This file was automatically generated and copied from ./apps/admin/src/types/revealui.ts
  * DO NOT MODIFY IT BY HAND. Instead, regenerate the source file and re-run this script.
  *
  * Last updated: 2026-01-16T04:18:38.750Z

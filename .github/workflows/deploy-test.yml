@@ -53,7 +53,7 @@ jobs:
         env:
           INPUT_APPS: ${{ inputs.apps }}
         run: |
-          ALL_APPS="api cms marketing docs revealcoin"
+          ALL_APPS="api admin marketing docs revealcoin"
 
           if [ "$INPUT_APPS" = "all" ] || [ -z "$INPUT_APPS" ]; then
             AFFECTED="$ALL_APPS"
@@ -76,7 +76,7 @@ jobs:
           for app in $AFFECTED; do
             case "$app" in
               api)        PID="prj_zk6EQijYXwd9L7BccuBssi436ktM" ;;
-              cms)        PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
+              admin)      PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
               marketing)  PID="prj_frTIYlnONVPLNIjKnQpINiGb5lm0" ;;
               docs)       PID="prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1" ;;
               revealcoin) PID="prj_XDiPXngciRytGA8j0vNIDz7hENRM" ;;
