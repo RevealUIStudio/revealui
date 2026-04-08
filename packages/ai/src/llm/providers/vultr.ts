@@ -117,6 +117,7 @@ export class VultrProvider implements LLMProvider {
         [contentTypeHeader]: 'application/json',
         [authorizationHeader]: `Bearer ${this.config.apiKey}`,
       },
+      // lgtm[js/file-access-to-http] — embedding providers must send text to their API by design
       body: JSON.stringify({ model, input: inputs }),
     });
 

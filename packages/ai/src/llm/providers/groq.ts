@@ -17,7 +17,7 @@ import type {
   LLMStreamOptions,
   Message,
 } from './base.js';
-import { OpenAIProvider } from './openai.js';
+import { OpenAICompatProvider } from './openai-compat.js';
 
 export interface GroqProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> {
   apiKey: string;
@@ -28,10 +28,10 @@ export interface GroqProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> {
 }
 
 export class GroqProvider implements LLMProvider {
-  private inner: OpenAIProvider;
+  private inner: OpenAICompatProvider;
 
   constructor(config: GroqProviderConfig) {
-    this.inner = new OpenAIProvider({
+    this.inner = new OpenAICompatProvider({
       ...config,
       baseURL: config.baseURL ?? 'https://api.groq.com/openai/v1',
       model: config.model ?? 'llama-3.3-70b-versatile',

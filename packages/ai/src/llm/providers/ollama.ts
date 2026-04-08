@@ -17,7 +17,7 @@ import type {
   LLMStreamOptions,
   Message,
 } from './base.js';
-import { OpenAIProvider } from './openai.js';
+import { OpenAICompatProvider } from './openai-compat.js';
 
 export interface OllamaProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> {
   apiKey?: string;
@@ -30,7 +30,7 @@ export interface OllamaProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> 
 }
 
 export class OllamaProvider implements LLMProvider {
-  private inner: OpenAIProvider;
+  private inner: OpenAICompatProvider;
   private embedModel: string;
   private baseURL: string;
 
@@ -38,7 +38,7 @@ export class OllamaProvider implements LLMProvider {
     const baseURL = config.baseURL ?? 'http://localhost:11434/v1';
     this.baseURL = baseURL;
     this.embedModel = config.embedModel ?? 'nomic-embed-text';
-    this.inner = new OpenAIProvider({
+    this.inner = new OpenAICompatProvider({
       ...config,
       // Ollama ignores the API key but the OpenAI client requires a non-empty value
       apiKey: config.apiKey ?? 'ollama',
