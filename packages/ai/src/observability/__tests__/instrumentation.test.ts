@@ -85,7 +85,7 @@ describe('Instrumentation', () => {
       await instrumentedTool.execute({});
 
       const toolCalls = logger.getToolCalls();
-      expect(toolCalls[0].durationMs).toBeGreaterThanOrEqual(100);
+      expect(toolCalls[0].durationMs).toBeGreaterThanOrEqual(90); // Account for timer precision (~10ms tolerance)
     });
   });
 
