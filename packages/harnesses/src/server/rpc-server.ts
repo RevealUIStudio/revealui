@@ -3,10 +3,10 @@ import { createServer } from 'node:net';
 import { diffConfig, syncConfig } from '../config/config-sync.js';
 import { findHarnessProcesses } from '../detection/process-detector.js';
 import type { HarnessRegistry } from '../registry/harness-registry.js';
-import type { InferenceService } from './inference-service.js';
-import type { SpawnerService } from './spawner-service.js';
 import type { DaemonStore } from '../storage/daemon-store.js';
 import type { ConfigSyncDirection } from '../types/core.js';
+import type { InferenceService } from './inference-service.js';
+import type { SpawnerService } from './spawner-service.js';
 
 interface JsonRpcRequest {
   jsonrpc: '2.0';

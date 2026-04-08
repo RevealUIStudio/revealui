@@ -82,9 +82,9 @@ export {
 export { HarnessRegistry } from './registry/harness-registry.js';
 // Server
 export { RpcServer } from './server/rpc-server.js';
+export type { DaemonStoreConfig } from './storage/daemon-store.js';
 // Storage (PGlite-backed daemon state)
 export { DaemonStore } from './storage/daemon-store.js';
-export { SCHEMA_SQL } from './storage/schema.js';
 export type {
   AgentMessage,
   AgentSession,
@@ -92,7 +92,7 @@ export type {
   DaemonEvent,
   FileReservation,
 } from './storage/schema.js';
-export type { DaemonStoreConfig } from './storage/daemon-store.js';
+export { SCHEMA_SQL } from './storage/schema.js';
 export type { HarnessAdapter } from './types/adapter.js';
 // Types — harness core
 export type {

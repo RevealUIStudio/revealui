@@ -386,7 +386,7 @@ async function main() {
     return;
   }
 
-  if (!unlicensedCommands.has(command ?? '') && !(await checkHarnessesLicense())) {
+  if (!(unlicensedCommands.has(command ?? '') || (await checkHarnessesLicense()))) {
     process.stderr.write(
       '⚠  @revealui/harnesses requires a Pro license. Visit https://revealui.com/pricing\n',
     );

@@ -12,7 +12,7 @@
  * - createLLMClientFromEnv() auto-detection and Ollama embed wiring
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { BitnetProvider } from '../llm/providers/bitnet.js';
 
 // ---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
+import { randomBytes } from 'node:crypto';
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { extname, join, normalize } from 'node:path';
-import { randomBytes } from 'node:crypto';
 import type { RpcServer } from './rpc-server.js';
 import type { AgentExitEvent, AgentOutputEvent, SpawnerService } from './spawner-service.js';
 
@@ -299,7 +299,7 @@ export class HttpGateway {
     }
 
     // Default to index.html for SPA routing
-    let filePath = urlPath === '/' ? '/index.html' : urlPath;
+    const filePath = urlPath === '/' ? '/index.html' : urlPath;
 
     // Security: prevent directory traversal
     const normalized = normalize(filePath);

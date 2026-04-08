@@ -1,6 +1,5 @@
-export { DaemonStore } from './daemon-store.js';
 export type { DaemonStoreConfig } from './daemon-store.js';
-export { SCHEMA_SQL } from './schema.js';
+export { DaemonStore } from './daemon-store.js';
 export type {
   AgentMessage,
   AgentSession,
@@ -8,3 +7,4 @@ export type {
   DaemonEvent,
   FileReservation,
 } from './schema.js';
+export { SCHEMA_SQL } from './schema.js';
