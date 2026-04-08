@@ -313,6 +313,9 @@ importers:
       '@revealui/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@revealui/paywall':
+        specifier: workspace:*
+        version: link:../../packages/paywall
       '@revealui/presentation':
         specifier: workspace:*
         version: link:../../packages/presentation
@@ -1282,6 +1285,9 @@ importers:
       '@types/react':
         specifier: ^19.1.8
         version: 19.2.14
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.14)
       dev:
         specifier: workspace:*
         version: link:../dev
@@ -1291,6 +1297,9 @@ importers:
       react:
         specifier: '>=19.2.4'
         version: 19.2.4
+      react-dom:
+        specifier: '>=19.2.4'
+        version: 19.2.4(react@19.2.4)
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(@microsoft/api-extractor@7.57.7(@types/node@25.5.0))(@swc/core@1.15.21(@swc/helpers@0.5.20))(jiti@2.6.1)(postcss@8.5.8)(tsx@4.21.0)(typescript@6.0.2)(yaml@2.8.3)
