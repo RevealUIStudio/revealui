@@ -204,22 +204,8 @@ docs/PRODUCT_COLLECTION.md
 docs/launch-announcement.md
 docs/SECRETS-MANAGEMENT.md
 
-# Pro packages — source in private upstream, distributed as npm packages
-# Both with and without trailing slash so `git check-ignore` matches either form
-packages/ai
-packages/ai/
-packages/harnesses
-packages/harnesses/
-ee/packages/ai
-ee/packages/ai/
-ee/packages/mcp
-ee/packages/mcp/
-ee/packages/services
-ee/packages/services/
-ee/packages/editors
-ee/packages/editors/
-ee/packages/harnesses
-ee/packages/harnesses/
+# Pro packages — Fair Source (FSL-1.1-MIT), source visible in public repo
+# Runtime license enforcement via JWT; converts to MIT after 2 years
 
 # opensrc — fetched package source code
 opensrc/

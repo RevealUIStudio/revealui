@@ -278,7 +278,7 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
-        name: 'Gitignore Pro entries',
+        name: 'Pro license validation',
         command: 'pnpm',
         args: ['validate:gitignore'],
       },
@@ -311,8 +311,8 @@ async function gate(): Promise<void> {
     logger.success('Phase 1 passed\n');
   }
 
-  // Exclude gitignored Pro packages — they exist locally but aren't committed to the public repo
-  const proFilter = ['--filter=!@revealui/ai', '--filter=!@revealui/harnesses'];
+  // Pro packages (Fair Source) are now in the public repo — no exclusion needed
+  const proFilter: string[] = [];
 
   // --- Phase 2: Types (serial) ---
   if (phase === null || phase === 2) {

@@ -362,7 +362,6 @@ class StructureValidator {
       'AGENTS.md',
       'README.md',
       'LICENSE',
-      'LICENSE.commercial',
       'CHANGELOG.md',
       'CONTRIBUTING.md',
       'CLAUDE.md',

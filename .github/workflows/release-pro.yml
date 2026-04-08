@@ -1,20 +1,21 @@
 name: Release Pro Packages
 
-# Pro package source (packages/ai, packages/harnesses) lives in a private
-# upstream repo as part of the OSS/Pro separation.
+# As of April 2026, Pro packages (ai, harnesses) are Fair Source (FSL-1.1-MIT)
+# and live in the public repo. They are published through the normal changeset
+# flow via release.yml — this workflow is no longer needed.
 #
-# To publish Pro packages locally: pnpm release:pro
-# This workflow is intentionally a no-op stub kept for documentation.
+# Kept for backwards compatibility with any external references.
 
 on:
   workflow_dispatch:
 
 jobs:
   info:
-    name: Pro packages are published locally or from revealui-jv
+    name: Pro packages publish via normal changeset flow
     runs-on: ubuntu-latest
     steps:
       - name: Info
         run: |
-          echo "::notice::Pro packages (ai, harnesses) are published via 'pnpm release:pro' locally or from RevealUIStudio/revealui-jv."
-          echo "mcp, editors, and services are OSS — they publish via the normal changeset flow."
+          echo "::notice::Pro packages (ai, harnesses) are now Fair Source (FSL-1.1-MIT) in the public repo."
+          echo "::notice::They publish through the normal changeset flow via release.yml."
+          echo "::notice::Run 'pnpm changeset' to create a changeset, then merge to main for release."

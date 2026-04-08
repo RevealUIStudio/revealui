@@ -31,6 +31,12 @@ export class CodeValidator {
         continue;
       }
 
+      // Check if file has a file-level exemption comment in the first 3 lines
+      if (this.hasFileLevelExemption(lines, rule, options.exemptionComments)) {
+        exemptionsApplied++;
+        continue;
+      }
+
       const regex = new RegExp(rule.pattern, 'g');
 
       for (let i = 0; i < lines.length; i++) {
@@ -112,6 +118,21 @@ export class CodeValidator {
     if (!rule.exemptions?.paths) return false;
 
     return rule.exemptions.paths.some((pattern) => minimatch(filePath, pattern));
+  }
+
+  /**
+   * Check if file has a file-level exemption comment in the first few lines.
+   * An exemption directive (e.g. console-allowed) at the top exempts the entire file.
+   */
+  private hasFileLevelExemption(
+    lines: string[],
+    rule: ValidationRule,
+    additionalComments?: string[],
+  ): boolean {
+    const headerLines = lines.slice(0, 3);
+    return headerLines.some(
+      (line) => line !== undefined && this.hasExemptionComment(line, rule, additionalComments),
+    );
   }
 
   /**
