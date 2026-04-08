@@ -110,18 +110,6 @@ const INTERNAL_FILE_DIRS = ['.claude', 'business', 'docs', 'scripts', 'MASTER_PL
 
 // Source file extensions to scan
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs']);
-const TEXT_SCAN_EXTENSIONS = new Set([
-  '.ts',
-  '.tsx',
-  '.js',
-  '.jsx',
-  '.mts',
-  '.mjs',
-  '.json',
-  '.cjs',
-  '.cts',
-]);
-
 // PRO_SOURCE_ALIAS_PATTERNS removed — Pro source is now in the public repo under FSL-1.1-MIT
 
 // =============================================================================
@@ -143,26 +131,6 @@ function collectSourceFiles(
       if (skipDirs.includes(entry.name)) continue;
       collectSourceFiles(fullPath, files, options);
     } else if (SOURCE_EXTENSIONS.has(extname(entry.name))) {
-      files.push(fullPath);
-    }
-  }
-  return files;
-}
-
-function collectTextFiles(dir: string, files: string[] = []): string[] {
-  if (!existsSync(dir)) return files;
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      if (
-        ['dist', 'node_modules', '.next', '.turbo', 'coverage', '.git', '.pnpm-store'].includes(
-          entry.name,
-        )
-      ) {
-        continue;
-      }
-      collectTextFiles(fullPath, files);
-    } else if (TEXT_SCAN_EXTENSIONS.has(extname(entry.name))) {
       files.push(fullPath);
     }
   }
