@@ -20,9 +20,9 @@ import {
 } from '@revealui/auth/server';
 import config from '@revealui/config';
 import { MFADisableRequestContract } from '@revealui/contracts';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
 import { passkeys } from '@revealui/db/schema';
+import { logger } from '@revealui/utils/logger';
 import type { AuthenticationResponseJSON, WebAuthnCredential } from '@simplewebauthn/server';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';

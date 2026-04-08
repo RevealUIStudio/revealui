@@ -9,9 +9,9 @@
 
 import { createMagicLink } from '@revealui/auth/server';
 import { RecoveryRequestSchema } from '@revealui/contracts';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
 import { users } from '@revealui/db/schema';
+import { logger } from '@revealui/utils/logger';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { sendRecoveryEmail } from '@/lib/email';

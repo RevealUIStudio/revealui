@@ -1,4 +1,4 @@
-import { logger } from '@revealui/core/observability/logger';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 
 const API_URL =

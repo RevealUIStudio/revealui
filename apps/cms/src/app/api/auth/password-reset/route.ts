@@ -11,7 +11,7 @@
 
 import { generatePasswordResetToken, resetPasswordWithToken } from '@revealui/auth/server';
 import { PasswordResetRequestContract, PasswordResetTokenContract } from '@revealui/contracts';
-import { logger } from '@revealui/core/observability/logger';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { withRateLimit } from '@/lib/middleware/rate-limit';

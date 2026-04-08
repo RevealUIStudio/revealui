@@ -15,7 +15,7 @@
  */
 
 import config from '@revealui/config';
-import { logger } from '@revealui/core/observability/logger';
+import { logger } from '@revealui/utils/logger';
 import { importPKCS8, SignJWT } from 'jose';
 
 interface EmailOptions {

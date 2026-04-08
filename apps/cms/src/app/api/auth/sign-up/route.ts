@@ -9,9 +9,9 @@
 import { isSignupAllowed, signUp } from '@revealui/auth/server';
 import { SignUpRequestContract } from '@revealui/contracts';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
 import { users } from '@revealui/db/schema';
+import { logger } from '@revealui/utils/logger';
 import { count, eq, sql } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { sendVerificationEmail } from '@/lib/email/verification';

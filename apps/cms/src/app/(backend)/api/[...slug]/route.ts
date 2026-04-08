@@ -1,7 +1,7 @@
 /* RevealUI REST API Routes - Local implementation */
 
 import { createRESTHandlers } from '@revealui/core/api/rest';
-import { logger } from '@revealui/core/observability/logger';
+import { logger } from '@revealui/utils/logger';
 import type { NextRequest } from 'next/server';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 import config from '../../../../../revealui.config';
