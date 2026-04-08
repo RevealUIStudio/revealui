@@ -1,6 +1,7 @@
 export const runtime = 'nodejs';
 
 import crypto from 'node:crypto';
+import config from '@revealui/config';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -15,7 +16,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const secret = request.headers.get('x-revalidate-secret');
-  const expected = process.env.REVEALUI_SECRET;
+  const expected = config.reveal.secret;
   if (
     !(
       secret &&

@@ -24,6 +24,21 @@ vi.mock('@vercel/blob', () => ({
   list: vi.fn(),
 }));
 
+vi.mock('@revealui/config', () => ({
+  default: {
+    stripe: {
+      get secretKey() {
+        return process.env.STRIPE_SECRET_KEY;
+      },
+    },
+    storage: {
+      get blobToken() {
+        return process.env.BLOB_READ_WRITE_TOKEN;
+      },
+    },
+  },
+}));
+
 vi.mock('next/server', () => {
   class MockNextResponse {
     body: unknown;

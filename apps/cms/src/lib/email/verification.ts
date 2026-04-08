@@ -5,6 +5,7 @@
  * Users can log in without verifying, but the CMS shows a reminder banner.
  */
 
+import config from '@revealui/config';
 import { sendEmail } from './index';
 
 /**
@@ -14,8 +15,7 @@ export async function sendVerificationEmail(
   email: string,
   token: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_SERVER_URL || process.env.REVEALUI_PUBLIC_SERVER_URL || '';
+  const baseUrl = config.reveal.serverURL;
 
   const verifyUrl = `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
 

@@ -8,6 +8,7 @@
  */
 
 import { generateAuthenticationChallenge, signCookiePayload } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { logger } from '@revealui/core/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
@@ -27,7 +28,7 @@ async function authenticateOptionsHandler(_request: NextRequest): Promise<NextRe
         challenge: options.challenge,
         expiresAt: Date.now() + 5 * 60 * 1000,
       },
-      process.env.REVEALUI_SECRET ?? '',
+      config.reveal.secret,
     );
 
     const response = NextResponse.json({ options });

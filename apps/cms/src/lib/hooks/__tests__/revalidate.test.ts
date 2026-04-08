@@ -6,6 +6,19 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+vi.mock('@revealui/config', () => ({
+  default: {
+    reveal: {
+      get secret() {
+        return process.env.REVEALUI_SECRET ?? '';
+      },
+      get publicServerURL() {
+        return process.env.REVEALUI_PUBLIC_SERVER_URL ?? '';
+      },
+    },
+  },
+}));
+
 const originalEnv = { ...process.env };
 
 describe('revalidate', () => {

@@ -1,4 +1,5 @@
 import { getSession } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { list } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
   }
 
   // Check Stripe API (if configured)
-  if (process.env.STRIPE_SECRET_KEY) {
+  if (config.stripe.secretKey) {
     const services = await import('@revealui/services').catch(() => null);
     if (services) {
       try {
@@ -93,7 +94,7 @@ export async function GET(request: Request) {
   }
 
   // Check Vercel Blob Storage (if configured) — make a real API call with a 2s timeout
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  if (config.storage.blobToken) {
     try {
       const blobStartTime = Date.now();
       await Promise.race([

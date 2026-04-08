@@ -1,3 +1,4 @@
+import config from '@revealui/config';
 import type { RevealUIInstance } from '@revealui/core';
 
 export const revalidate = async (args: {
@@ -8,13 +9,13 @@ export const revalidate = async (args: {
   const { collection, slug, revealui } = args;
 
   try {
-    const url = `${process.env.REVEALUI_PUBLIC_SERVER_URL}/api/revalidate`;
+    const url = `${config.reveal.publicServerURL}/api/revalidate`;
 
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-revalidate-secret': process.env.REVEALUI_SECRET ?? '',
+        'x-revalidate-secret': config.reveal.secret,
       },
       body: JSON.stringify({ collection, slug }),
     });
