@@ -4,10 +4,10 @@
  * Model Context Protocol integrations for RevealUI.
  *
  * Provides:
- * - MCP hypervisor: process management, tool discovery, health checks (production-ready)
- * - MCP adapter framework: base class with retry, idempotency, error handling (production-ready)
- * - Database adapter: PGlite / PostgreSQL with CRDT support (production-ready)
- * - MCP contracts: Zod schemas for request/response/tool bridging (production-ready)
+ * - MCP hypervisor: process management, tool discovery, health checks (pre-wired)
+ * - MCP adapter framework: base class with retry, idempotency, error handling (pre-wired)
+ * - Database adapter: PGlite / PostgreSQL with CRDT support (pre-wired)
+ * - MCP contracts: Zod schemas for request/response/tool bridging (pre-wired)
  *
  * Server adapter status:
  * - NeonAdapter, StripeAdapter, VercelAdapter: scaffolded (adapter config + error mapping only,

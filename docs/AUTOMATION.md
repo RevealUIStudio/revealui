@@ -69,11 +69,11 @@ From 2026 onward, automation features should align with:
 
 ```
 packages/
-├── core/           # CMS framework (includes types/ and generated/)
+├── core/           # Runtime engine (includes types/ and generated/)
 ├── contracts/      # Zod schemas & TypeScript types
-├── db/             # Database (Drizzle ORM, 76 tables)
+├── db/             # Database (Drizzle ORM, 80+ tables)
 ├── auth/           # Authentication system
-├── presentation/   # 52 UI components (Tailwind v4)
+├── presentation/   # 58 UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
 ├── config/         # Type-safe env config (Zod)
 ├── utils/          # Logger, DB helpers, validation
@@ -303,7 +303,7 @@ apps/
   └── web/        # RevealUI + React application
 
 packages/
-  ├── core/       # Core CMS framework (@revealui/core)
+  ├── core/       # Core runtime engine (@revealui/core)
   ├── db/         # Drizzle ORM schemas (@revealui/db)
   ├── config/     # Configuration management (@revealui/config)
   ├── services/   # Shared services (Stripe, Supabase)
@@ -317,7 +317,7 @@ packages/
 The agent enforces correct import paths:
 
 - `@/lib/*` - CMS app imports
-- `@revealui/core` - CMS framework imports
+- `@revealui/core` - Runtime engine imports
 - `@revealui/db` - Database imports
 - `@revealui/config` - Configuration imports
 - `revealui/*` vs `@revealui/*` - Scoped vs unscoped (agent knows both exist)

@@ -572,7 +572,7 @@ Your application is live. Visit `https://my-business.vercel.app/admin` to access
 
 ## What you have built
 
-Stop the clock. In roughly 10 minutes, you have a production-ready business application with:
+Stop the clock. In roughly 10 minutes, you have a ready-to-deploy business application with:
 
 - **A CMS with typed collections and access control** — define your data model in TypeScript, get a full admin UI and REST API automatically
 - **User authentication with session-based auth** — secure by default with httpOnly cookies, brute force protection, and rate limiting

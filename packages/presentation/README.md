@@ -175,7 +175,7 @@ pnpm dev
 
 ## Related
 
-- [Core Package](../core/README.md) — CMS engine (uses presentation components)
+- [Core Package](../core/README.md) — Runtime engine (uses presentation components)
 - [Architecture Guide](../../docs/ARCHITECTURE.md)
 
 ## License

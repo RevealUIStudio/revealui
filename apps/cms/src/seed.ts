@@ -85,7 +85,7 @@ const pages = [
             richText: richTextDoc(
               heading('Welcome to RevealUI'),
               paragraph(
-                'RevealUI is a modern, full-stack React framework with a built-in headless CMS. Build production-ready applications with React 19, Next.js 16, and TypeScript.',
+                'RevealUI is an open-source business runtime. Users, content, products, payments, and AI — five primitives, pre-wired into one deployable stack built on React 19, Next.js 16, and TypeScript.',
               ),
               heading('Get Started', 'h3'),
               paragraph(
@@ -93,7 +93,7 @@ const pages = [
               ),
               heading('Features', 'h3'),
               paragraph(
-                'Authentication, real-time collaboration, AI agents, rich text editing, media management, and enterprise-grade features — all in one framework.',
+                'Authentication, real-time collaboration, AI agents, rich text editing, media management, payments, and more — build your business, not your boilerplate.',
               ),
             ),
           },
@@ -114,7 +114,7 @@ const pages = [
             richText: richTextDoc(
               heading('About RevealUI'),
               paragraph(
-                'RevealUI is a production-ready framework that combines React 19, Next.js 16, and a powerful headless CMS. Built with TypeScript, Tailwind CSS v4, and enterprise-grade features.',
+                'RevealUI is an agentic business runtime that ships with users, content, products, payments, and AI out of the box. Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4.',
               ),
               paragraph(
                 'Designed for TypeScript-first agencies, SaaS builders, and enterprise teams who want to ship faster without sacrificing quality.',
@@ -159,12 +159,12 @@ const sampleContent = {
     {
       name: 'Getting Started',
       description:
-        'Welcome to RevealUI Framework. RevealUI is a modern, full-stack React framework with a built-in headless CMS. Get started by exploring the admin panel, creating content, and building your application with React 19 and Next.js 16.',
+        'Welcome to RevealUI — an open-source business runtime. Users, content, products, payments, and AI are pre-wired so you can focus on building your business. Explore the admin panel to manage content and configure your application.',
     },
     {
       name: 'About RevealUI',
       description:
-        'RevealUI is a production-ready framework that combines React 19, Next.js 16, and a powerful headless CMS. Built with TypeScript, Tailwind CSS v4, and enterprise-grade features like authentication, media management, and real-time collaboration.',
+        'RevealUI is an agentic business runtime — users, content, products, payments, and AI in one deployable stack. Built with React 19, Next.js 16, TypeScript, and Tailwind CSS v4, featuring authentication, media management, and real-time collaboration.',
     },
   ],
   cards: [
@@ -193,7 +193,7 @@ const sampleContent = {
   heros: [
     {
       href: 'https://revealui.com',
-      altText: 'RevealUI Framework hero image',
+      altText: 'RevealUI hero image',
       video: 'https://revealui.com',
     },
   ],
@@ -207,22 +207,22 @@ const sampleContent = {
     },
     {
       title: 'FEATURES',
-      name: 'Framework Features',
+      name: 'Runtime Features',
       description:
-        'Discover all the powerful features RevealUI has to offer: headless CMS, React 19 Server Components, TypeScript support, authentication, media management, and more.',
-      alt: 'RevealUI framework features',
+        'Discover all the powerful features RevealUI has to offer: five built-in primitives (users, content, products, payments, AI), React 19 Server Components, TypeScript support, authentication, media management, and more.',
+      alt: 'RevealUI runtime features',
     },
   ],
   banners: [
     {
       heading: 'Welcome to RevealUI!',
-      subheading: 'Build Faster',
+      subheading: 'Build Your Business',
       description:
-        'Start building your next application with RevealUI Framework. Experience the power of React 19, Next.js 16, and a modern headless CMS all in one.',
+        'Build your business, not your boilerplate. RevealUI gives you users, content, products, payments, and AI — five primitives, one runtime.',
       cta: 'Get Started',
-      highlight: 'Modern React Framework',
+      highlight: 'Agentic Business Runtime',
       punctuation: '.',
-      alt: 'RevealUI Framework banner image',
+      alt: 'RevealUI banner image',
       link: { href: '/docs', text: 'Read Documentation' },
       stats: [
         { label: 'React 19', value: 'Latest' },

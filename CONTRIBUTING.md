@@ -106,7 +106,7 @@ pnpm dev
 revealui/
 ├── apps/
 │   ├── api/            # Hono REST API (OpenAPI + Swagger)
-│   ├── cms/            # Next.js 16 headless CMS with admin dashboard
+│   ├── cms/            # Next.js 16 admin dashboard + content management
 │   ├── docs/           # Documentation site (Vite + React)
 │   ├── mainframe/      # Hono SSR + React demo/showcase app
 │   ├── marketing/      # Marketing + waitlist (Next.js)
@@ -116,16 +116,16 @@ revealui/
 │   ├── cli/            # create-revealui scaffolding
 │   ├── config/         # Type-safe env config (Zod)
 │   ├── contracts/      # Zod schemas + TypeScript types
-│   ├── core/           # CMS engine, REST API, plugins
-│   ├── db/             # Drizzle ORM schema (76 tables, dual-DB)
+│   ├── core/           # Runtime engine, REST API, plugins
+│   ├── db/             # Drizzle ORM schema (80+ tables, dual-DB)
 │   ├── dev/            # Shared configs (Biome, TS, Tailwind)
-│   ├── presentation/   # 52 UI components (Tailwind v4)
+│   ├── presentation/   # 58 UI components (Tailwind v4)
 │   ├── router/         # File-based router with SSR
 │   ├── setup/          # Environment setup utilities
 │   ├── sync/           # ElectricSQL real-time sync
 │   ├── test/           # Testing infra (fixtures, mocks)
 │   └── utils/          # Logger, DB helpers, validation
-└── docs/               # Documentation (60+ guides)
+└── docs/               # Documentation (25+ guides)
 ```
 
 ## Coding Guidelines

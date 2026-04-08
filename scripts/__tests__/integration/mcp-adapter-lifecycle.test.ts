@@ -229,7 +229,7 @@ describe('MCP Adapter Lifecycle', () => {
     it('should handle thrown non-Error objects', async () => {
       const throwAdapter = new (class extends BasicAdapter {
         protected async executeRequest(): Promise<unknown> {
-          throw 'string error'; // eslint-disable-line no-throw-literal
+          throw 'string error';
         }
       })({ retryDelayMs: 1 });
 

@@ -1,7 +1,7 @@
 {
   "name": "@revealui/core",
   "version": "0.5.4",
-  "description": "CMS engine, REST API, auth, rich text, admin UI, and plugins for RevealUI",
+  "description": "Runtime engine, REST API, auth, rich text, admin UI, and plugins for RevealUI",
   "license": "MIT",
   "dependencies": {
     "@electric-sql/pglite": "^0.4.2",

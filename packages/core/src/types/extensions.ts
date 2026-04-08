@@ -1,7 +1,7 @@
 /**
  * RevealUI Framework Extension Types
  *
- * Defines RevealUI-specific extensions for the CMS framework.
+ * Defines RevealUI-specific extensions for the runtime engine.
  *
  * @module @revealui/core/types/extensions
  */
