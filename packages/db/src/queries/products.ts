@@ -3,11 +3,11 @@
  */
 
 import { and, desc, eq, isNull } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { products } from '../schema/products.js';
 
 export async function getAllProducts(
-  db: DatabaseClient,
+  db: Database,
   options: { status?: string; ownerId?: string; limit?: number; offset?: number } = {},
 ) {
   const { status, ownerId, limit = 20, offset = 0 } = options;
@@ -25,7 +25,7 @@ export async function getAllProducts(
     .offset(offset);
 }
 
-export async function getProductById(db: DatabaseClient, id: string) {
+export async function getProductById(db: Database, id: string) {
   const result = await db
     .select()
     .from(products)
@@ -34,7 +34,7 @@ export async function getProductById(db: DatabaseClient, id: string) {
   return result[0] ?? null;
 }
 
-export async function getProductBySlug(db: DatabaseClient, slug: string) {
+export async function getProductBySlug(db: Database, slug: string) {
   const result = await db
     .select()
     .from(products)
@@ -43,13 +43,13 @@ export async function getProductBySlug(db: DatabaseClient, slug: string) {
   return result[0] ?? null;
 }
 
-export async function createProduct(db: DatabaseClient, data: typeof products.$inferInsert) {
+export async function createProduct(db: Database, data: typeof products.$inferInsert) {
   const result = await db.insert(products).values(data).returning();
   return result[0] ?? null;
 }
 
 export async function updateProduct(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<typeof products.$inferInsert>,
 ) {
@@ -61,7 +61,7 @@ export async function updateProduct(
   return result[0] ?? null;
 }
 
-export async function deleteProduct(db: DatabaseClient, id: string) {
+export async function deleteProduct(db: Database, id: string) {
   await db
     .update(products)
     .set({ deletedAt: new Date(), updatedAt: new Date() })

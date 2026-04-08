@@ -18,12 +18,12 @@ import {
   verifyAuthentication,
   verifyCookiePayload,
 } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { MFADisableRequestContract } from '@revealui/contracts';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { passkeys } from '@revealui/db/schema';
+import { getPasskeyByCredentialId } from '@revealui/db/queries/passkeys';
+import { logger } from '@revealui/utils/logger';
 import type { AuthenticationResponseJSON, WebAuthnCredential } from '@simplewebauthn/server';
-import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import {
   createApplicationErrorResponse,
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       const challengePayload = verifyCookiePayload<{ challenge: string; expiresAt: number }>(
         challengeCookie,
-        process.env.REVEALUI_SECRET ?? '',
+        config.reveal.secret,
       );
 
       if (!challengePayload) {
@@ -109,11 +109,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       // Look up the passkey credential
       const db = getClient();
-      const [storedPasskey] = await db
-        .select()
-        .from(passkeys)
-        .where(eq(passkeys.credentialId, authResponse.id))
-        .limit(1);
+      const storedPasskey = await getPasskeyByCredentialId(db, authResponse.id);
 
       if (!storedPasskey) {
         return createApplicationErrorResponse('Passkey not recognized', 'PASSKEY_NOT_FOUND', 401);

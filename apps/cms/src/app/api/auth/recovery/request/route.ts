@@ -9,10 +9,9 @@
 
 import { createMagicLink } from '@revealui/auth/server';
 import { RecoveryRequestSchema } from '@revealui/contracts';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { getUserByEmail } from '@revealui/db/queries/users';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { sendRecoveryEmail } from '@/lib/email';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
@@ -53,11 +52,7 @@ async function requestHandler(request: NextRequest): Promise<NextResponse> {
 
     // Look up user by email
     const db = getClient();
-    const [user] = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
+    const user = await getUserByEmail(db, email);
 
     if (user) {
       const { token } = await createMagicLink(user.id);

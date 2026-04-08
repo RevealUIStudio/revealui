@@ -3,7 +3,7 @@
  */
 
 import { and, eq } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { boardColumns, boards } from '../schema/tickets.js';
 
 const DEFAULT_COLUMNS = [
@@ -14,19 +14,19 @@ const DEFAULT_COLUMNS = [
   { name: 'Done', slug: 'done', position: 4 },
 ] as const;
 
-export async function getAllBoards(db: DatabaseClient, tenantId?: string) {
+export async function getAllBoards(db: Database, tenantId?: string) {
   if (tenantId) {
     return db.select().from(boards).where(eq(boards.tenantId, tenantId)).orderBy(boards.createdAt);
   }
   return db.select().from(boards).orderBy(boards.createdAt);
 }
 
-export async function getBoardById(db: DatabaseClient, id: string) {
+export async function getBoardById(db: Database, id: string) {
   const result = await db.select().from(boards).where(eq(boards.id, id)).limit(1);
   return result[0] ?? null;
 }
 
-export async function getBoardBySlug(db: DatabaseClient, slug: string, tenantId?: string) {
+export async function getBoardBySlug(db: Database, slug: string, tenantId?: string) {
   const conditions = [eq(boards.slug, slug)];
   if (tenantId) conditions.push(eq(boards.tenantId, tenantId));
 
@@ -46,7 +46,7 @@ export async function getBoardBySlug(db: DatabaseClient, slug: string, tenantId?
  * before columns are inserted will leave a board without its default columns.
  */
 export async function createBoard(
-  db: DatabaseClient,
+  db: Database,
   data: {
     id: string;
     name: string;
@@ -78,7 +78,7 @@ export async function createBoard(
 }
 
 export async function updateBoard(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<{ name: string; slug: string; description: string; ownerId: string | null }>,
 ) {
@@ -91,16 +91,16 @@ export async function updateBoard(
   return result[0] ?? null;
 }
 
-export async function deleteBoard(db: DatabaseClient, id: string) {
+export async function deleteBoard(db: Database, id: string) {
   await db.delete(boards).where(eq(boards.id, id));
 }
 
-export async function getColumnById(db: DatabaseClient, id: string) {
+export async function getColumnById(db: Database, id: string) {
   const result = await db.select().from(boardColumns).where(eq(boardColumns.id, id)).limit(1);
   return result[0] ?? null;
 }
 
-export async function getColumnsByBoard(db: DatabaseClient, boardId: string) {
+export async function getColumnsByBoard(db: Database, boardId: string) {
   return db
     .select()
     .from(boardColumns)
@@ -109,7 +109,7 @@ export async function getColumnsByBoard(db: DatabaseClient, boardId: string) {
 }
 
 export async function createColumn(
-  db: DatabaseClient,
+  db: Database,
   data: {
     id: string;
     boardId: string;
@@ -125,7 +125,7 @@ export async function createColumn(
 }
 
 export async function updateColumn(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<{
     name: string;
@@ -144,6 +144,6 @@ export async function updateColumn(
   return result[0] ?? null;
 }
 
-export async function deleteColumn(db: DatabaseClient, id: string) {
+export async function deleteColumn(db: Database, id: string) {
   await db.delete(boardColumns).where(eq(boardColumns.id, id));
 }

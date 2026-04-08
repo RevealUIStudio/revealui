@@ -5,7 +5,7 @@
  */
 
 import { checkRateLimit } from '@revealui/auth/server';
-import { logger } from '@revealui/core/observability/logger';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 
 /**

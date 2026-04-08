@@ -1,34 +1,18 @@
 /**
- * Tests for cron cleanup routes:
+ * Tests for cron cleanup routes (co-located):
  * - GET /api/cron/cleanup-all (consolidated daily cleanup)
  * - GET /api/cron/cleanup-sessions (hourly session cleanup)
+ *
+ * All routes delegate to @revealui/db cleanupStaleTokens().
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockCleanupStaleTokens = vi.fn();
-const mockGetClient = vi.fn();
 const mockVerifyCronAuth = vi.fn();
 
 vi.mock('@revealui/db/cleanup', () => ({
   cleanupStaleTokens: (...args: unknown[]) => mockCleanupStaleTokens(...args),
-}));
-
-vi.mock('@revealui/db', () => ({
-  getClient: (...args: unknown[]) => mockGetClient(...args),
-}));
-
-vi.mock('@revealui/db/schema', () => ({
-  sessions: {
-    expiresAt: 'expiresAt',
-    deletedAt: 'deletedAt',
-  },
-}));
-
-vi.mock('drizzle-orm', () => ({
-  lt: vi.fn(),
-  or: vi.fn(),
-  isNotNull: vi.fn(),
 }));
 
 vi.mock('@/lib/utils/cron-auth', () => ({
@@ -54,6 +38,18 @@ function makeRequest() {
   return {} as never;
 }
 
+/** Default cleanup result (all zeros) */
+function makeResult(overrides: Partial<Record<string, number>> = {}) {
+  return {
+    sessions: 0,
+    rateLimits: 0,
+    passwordResetTokens: 0,
+    magicLinks: 0,
+    scheduledPages: 0,
+    ...overrides,
+  };
+}
+
 // ─── GET /api/cron/cleanup-all ──────────────────────────────────────────────
 
 describe('GET /api/cron/cleanup-all', () => {
@@ -75,13 +71,9 @@ describe('GET /api/cron/cleanup-all', () => {
 
   it('returns cleanup results on success', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    mockCleanupStaleTokens.mockResolvedValue({
-      sessions: 5,
-      rateLimits: 12,
-      passwordResetTokens: 2,
-      magicLinks: 0,
-      scheduledPages: 1,
-    });
+    mockCleanupStaleTokens.mockResolvedValue(
+      makeResult({ sessions: 5, rateLimits: 12, passwordResetTokens: 2, scheduledPages: 1 }),
+    );
 
     const GET = await loadRoute();
     const res = await GET(makeRequest());
@@ -132,24 +124,19 @@ describe('GET /api/cron/cleanup-sessions', () => {
 
   it('returns deleted session count on success', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const mockReturning = vi.fn().mockResolvedValue([{ id: '1' }, { id: '2' }, { id: '3' }]);
-    const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-    const mockDeleteFn = vi.fn().mockReturnValue({ where: mockWhere });
-    mockGetClient.mockReturnValue({ delete: mockDeleteFn });
+    mockCleanupStaleTokens.mockResolvedValue(makeResult({ sessions: 3 }));
 
     const GET = await loadRoute();
     const res = await GET(makeRequest());
 
     expect((res as { status: number }).status).toBe(200);
     expect((res as unknown as { body: { deleted: number } }).body.deleted).toBe(3);
+    expect(mockCleanupStaleTokens).toHaveBeenCalledWith({ tables: ['sessions'] });
   });
 
-  it('returns 500 when DB query throws', async () => {
+  it('returns 500 when cleanup throws', async () => {
     mockVerifyCronAuth.mockReturnValue(true);
-    const mockReturning = vi.fn().mockRejectedValue(new Error('Query failed'));
-    const mockWhere = vi.fn().mockReturnValue({ returning: mockReturning });
-    const mockDeleteFn = vi.fn().mockReturnValue({ where: mockWhere });
-    mockGetClient.mockReturnValue({ delete: mockDeleteFn });
+    mockCleanupStaleTokens.mockRejectedValue(new Error('Query failed'));
 
     const GET = await loadRoute();
     const res = await GET(makeRequest());

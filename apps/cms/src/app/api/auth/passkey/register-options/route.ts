@@ -15,11 +15,11 @@ import {
   listPasskeys,
   signCookiePayload,
 } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { PasskeyRegisterOptionsRequestSchema } from '@revealui/contracts';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { getUserByEmail } from '@revealui/db/queries/users';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
@@ -95,11 +95,7 @@ async function registerOptionsHandler(request: NextRequest): Promise<NextRespons
 
       // Check if email is already taken
       const db = getClient();
-      const [existing] = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.email, result.data.email.toLowerCase()))
-        .limit(1);
+      const existing = await getUserByEmail(db, result.data.email.toLowerCase());
 
       if (existing) {
         return createApplicationErrorResponse('Unable to create account', 'SIGNUP_FAILED', 400);
@@ -135,7 +131,7 @@ async function registerOptionsHandler(request: NextRequest): Promise<NextRespons
           expiresAt: Date.now() + 5 * 60 * 1000,
         };
 
-    const signed = signCookiePayload(challengePayload, process.env.REVEALUI_SECRET ?? '');
+    const signed = signCookiePayload(challengePayload, config.reveal.secret);
 
     const response = NextResponse.json({ options });
 

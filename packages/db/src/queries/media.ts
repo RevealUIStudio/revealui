@@ -3,11 +3,11 @@
  */
 
 import { and, desc, eq, isNull, like } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { media } from '../schema/cms.js';
 
 export async function getAllMedia(
-  db: DatabaseClient,
+  db: Database,
   options: { mimeType?: string; uploadedBy?: string; limit?: number; offset?: number } = {},
 ) {
   const { mimeType, uploadedBy, limit = 20, offset = 0 } = options;
@@ -25,7 +25,7 @@ export async function getAllMedia(
     .offset(offset);
 }
 
-export async function getMediaById(db: DatabaseClient, id: string) {
+export async function getMediaById(db: Database, id: string) {
   const result = await db
     .select()
     .from(media)
@@ -34,13 +34,13 @@ export async function getMediaById(db: DatabaseClient, id: string) {
   return result[0] ?? null;
 }
 
-export async function createMedia(db: DatabaseClient, data: typeof media.$inferInsert) {
+export async function createMedia(db: Database, data: typeof media.$inferInsert) {
   const result = await db.insert(media).values(data).returning();
   return result[0] ?? null;
 }
 
 export async function updateMedia(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<typeof media.$inferInsert>,
 ) {
@@ -52,7 +52,7 @@ export async function updateMedia(
   return result[0] ?? null;
 }
 
-export async function deleteMedia(db: DatabaseClient, id: string) {
+export async function deleteMedia(db: Database, id: string) {
   await db
     .update(media)
     .set({ deletedAt: new Date(), updatedAt: new Date() })

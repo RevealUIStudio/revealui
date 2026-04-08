@@ -3,14 +3,14 @@
  */
 
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { sites } from '../schema/sites.js';
 
 /** Condition that excludes soft-deleted sites */
 const notDeleted = isNull(sites.deletedAt);
 
 export async function getAllSites(
-  db: DatabaseClient,
+  db: Database,
   options: {
     ownerId?: string;
     status?: string;
@@ -34,7 +34,7 @@ export async function getAllSites(
     .offset(offset);
 }
 
-export async function getSiteById(db: DatabaseClient, id: string) {
+export async function getSiteById(db: Database, id: string) {
   const result = await db
     .select()
     .from(sites)
@@ -43,7 +43,7 @@ export async function getSiteById(db: DatabaseClient, id: string) {
   return result[0] ?? null;
 }
 
-export async function getSiteBySlug(db: DatabaseClient, slug: string) {
+export async function getSiteBySlug(db: Database, slug: string) {
   const result = await db
     .select()
     .from(sites)
@@ -52,13 +52,13 @@ export async function getSiteBySlug(db: DatabaseClient, slug: string) {
   return result[0] ?? null;
 }
 
-export async function createSite(db: DatabaseClient, data: typeof sites.$inferInsert) {
+export async function createSite(db: Database, data: typeof sites.$inferInsert) {
   const result = await db.insert(sites).values(data).returning();
   return result[0] ?? null;
 }
 
 export async function updateSite(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<typeof sites.$inferInsert>,
 ) {
@@ -71,7 +71,7 @@ export async function updateSite(
 }
 
 /** Soft-delete: sets deletedAt timestamp instead of removing the row */
-export async function deleteSite(db: DatabaseClient, id: string) {
+export async function deleteSite(db: Database, id: string) {
   await db
     .update(sites)
     .set({ deletedAt: new Date(), updatedAt: new Date() })
@@ -79,7 +79,7 @@ export async function deleteSite(db: DatabaseClient, id: string) {
 }
 
 /** Restore a soft-deleted site */
-export async function restoreSite(db: DatabaseClient, id: string) {
+export async function restoreSite(db: Database, id: string) {
   const result = await db
     .update(sites)
     .set({ deletedAt: null, updatedAt: new Date() })
@@ -89,18 +89,18 @@ export async function restoreSite(db: DatabaseClient, id: string) {
 }
 
 /** Permanently remove a soft-deleted site (admin cleanup) */
-export async function purgeSite(db: DatabaseClient, id: string) {
+export async function purgeSite(db: Database, id: string) {
   await db.delete(sites).where(eq(sites.id, id));
 }
 
-export async function incrementPageCount(db: DatabaseClient, siteId: string): Promise<void> {
+export async function incrementPageCount(db: Database, siteId: string): Promise<void> {
   await db
     .update(sites)
     .set({ pageCount: sql`COALESCE(${sites.pageCount}, 0) + 1` })
     .where(eq(sites.id, siteId));
 }
 
-export async function decrementPageCount(db: DatabaseClient, siteId: string): Promise<void> {
+export async function decrementPageCount(db: Database, siteId: string): Promise<void> {
   await db
     .update(sites)
     .set({ pageCount: sql`GREATEST(COALESCE(${sites.pageCount}, 0) - 1, 0)` })

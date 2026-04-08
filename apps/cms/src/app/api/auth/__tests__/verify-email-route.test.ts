@@ -8,38 +8,24 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockCheckRateLimit = vi.fn();
-const mockGetClient = vi.fn();
+const mockGetUserByVerificationToken = vi.fn();
+const mockUpdateUser = vi.fn();
 
 vi.mock('@revealui/auth/server', () => ({
   checkRateLimit: (...args: unknown[]) => mockCheckRateLimit(...args),
 }));
 
-vi.mock('@revealui/core/utils/logger', () => ({
+vi.mock('@revealui/utils/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
 }));
 
 vi.mock('@revealui/db', () => ({
-  getClient: () => mockGetClient(),
+  getClient: vi.fn(() => ({})),
 }));
 
-vi.mock('@revealui/db/schema', () => ({
-  users: {
-    id: 'id',
-    emailVerified: 'emailVerified',
-    emailVerifiedAt: 'emailVerifiedAt',
-    emailVerificationToken: 'emailVerificationToken',
-    emailVerificationTokenExpiresAt: 'emailVerificationTokenExpiresAt',
-    updatedAt: 'updatedAt',
-    status: 'status',
-  },
-}));
-
-vi.mock('drizzle-orm', () => ({
-  and: vi.fn(),
-  eq: vi.fn(),
-  gt: vi.fn(),
-  isNull: vi.fn(),
-  or: vi.fn(),
+vi.mock('@revealui/db/queries/users', () => ({
+  getUserByVerificationToken: (...args: unknown[]) => mockGetUserByVerificationToken(...args),
+  updateUser: (...args: unknown[]) => mockUpdateUser(...args),
 }));
 
 vi.mock('next/server', () => {
@@ -119,14 +105,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('redirects with invalid_token when no matching user found', async () => {
-    const mockSelect = vi.fn().mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([]),
-        }),
-      }),
-    });
-    mockGetClient.mockReturnValue({ select: mockSelect });
+    mockGetUserByVerificationToken.mockResolvedValue(null);
 
     const GET = await loadRoute();
     const res = await GET(makeRequest('bad-token'));
@@ -134,14 +113,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('redirects with already_verified when email already verified', async () => {
-    const mockSelect = vi.fn().mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([{ id: 'u1', emailVerified: true }]),
-        }),
-      }),
-    });
-    mockGetClient.mockReturnValue({ select: mockSelect });
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: true });
 
     const GET = await loadRoute();
     const res = await GET(makeRequest('valid-token'));
@@ -149,19 +121,8 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('verifies email and redirects with success message', async () => {
-    const mockSelect = vi.fn().mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([{ id: 'u1', emailVerified: false }]),
-        }),
-      }),
-    });
-    const mockUpdate = vi.fn().mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockResolvedValue(undefined),
-      }),
-    });
-    mockGetClient.mockReturnValue({ select: mockSelect, update: mockUpdate });
+    mockGetUserByVerificationToken.mockResolvedValue({ id: 'u1', emailVerified: false });
+    mockUpdateUser.mockResolvedValue(null);
 
     const GET = await loadRoute();
     const res = await GET(makeRequest('valid-token'));
@@ -169,9 +130,7 @@ describe('GET /api/auth/verify-email', () => {
   });
 
   it('redirects with error on unexpected DB failure', async () => {
-    mockGetClient.mockImplementation(() => {
-      throw new Error('DB connection lost');
-    });
+    mockGetUserByVerificationToken.mockRejectedValue(new Error('DB connection lost'));
 
     const GET = await loadRoute();
     const res = await GET(makeRequest('some-token'));

@@ -7,8 +7,9 @@
  */
 
 import { signCookiePayload, signIn } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { SignInRequestContract } from '@revealui/contracts';
-import { logger } from '@revealui/core/utils/logger';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
@@ -81,7 +82,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     if (result.requiresMfa) {
       const signed = signCookiePayload(
         { userId: result.mfaUserId, expiresAt: Date.now() + 5 * 60 * 1000 },
-        process.env.REVEALUI_SECRET ?? '',
+        config.reveal.secret,
       );
       const response = NextResponse.json({ requiresMfa: true }, { status: 200 });
       response.cookies.set('mfa-pending', signed, {

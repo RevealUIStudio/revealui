@@ -9,8 +9,7 @@
 
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
-import { sessions } from '@revealui/db/schema';
-import { and, eq, isNull } from 'drizzle-orm';
+import { revokeSession } from '@revealui/db/queries/sessions';
 import { type NextRequest, NextResponse } from 'next/server';
 import { createApplicationErrorResponse, createErrorResponse } from '@/lib/utils/error-response';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -44,21 +43,9 @@ export async function DELETE(
     }
 
     const db = getClient();
+    const revoked = await revokeSession(db, sessionId, sessionData.user.id);
 
-    // Soft-delete session — userId check ensures ownership without a separate fetch
-    const result = await db
-      .update(sessions)
-      .set({ deletedAt: new Date() })
-      .where(
-        and(
-          eq(sessions.id, sessionId),
-          eq(sessions.userId, sessionData.user.id),
-          isNull(sessions.deletedAt),
-        ),
-      )
-      .returning();
-
-    if (result.length === 0) {
+    if (!revoked) {
       return createApplicationErrorResponse('Session not found', 'NOT_FOUND', 404);
     }
 

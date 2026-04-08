@@ -9,10 +9,9 @@
 
 import { createHash } from 'node:crypto';
 import { getSession } from '@revealui/auth/server';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
-import { eq } from 'drizzle-orm';
+import { updateUser } from '@revealui/db/queries/users';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { sendVerificationEmail } from '@/lib/email/verification';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
@@ -42,13 +41,9 @@ async function resendHandler(request: NextRequest): Promise<NextResponse> {
     const tokenHash = createHash('sha256').update(newToken).digest('hex');
     const db = getClient();
 
-    await db
-      .update(users)
-      .set({
-        emailVerificationToken: tokenHash,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, session.user.id));
+    await updateUser(db, session.user.id, {
+      emailVerificationToken: tokenHash,
+    });
 
     const result = await sendVerificationEmail(session.user.email, newToken);
 

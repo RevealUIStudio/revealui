@@ -15,6 +15,7 @@
  */
 
 import crypto from 'node:crypto';
+import config from '@revealui/config';
 import {
   getHealthMetrics,
   getHealthStatus,
@@ -36,7 +37,7 @@ export async function GET(
   request: Request,
 ): Promise<NextResponse<HealthMetrics | { error: string }>> {
   const token = request.headers.get('x-internal-token');
-  const secret = process.env.REVEALUI_SECRET;
+  const secret = config.reveal.secret;
   if (
     !(secret && token) ||
     token.length !== secret.length ||

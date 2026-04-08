@@ -3,14 +3,14 @@
  */
 
 import { and, desc, eq, like, sql } from 'drizzle-orm';
-import type { DatabaseClient } from '../client/types.js';
+import type { Database } from '../client/index.js';
 import { codeProvenance, codeReviews } from '../schema/code-provenance.js';
 
 // =============================================================================
 // Provenance Queries
 // =============================================================================
 
-export async function getProvenanceByFile(db: DatabaseClient, filePath: string) {
+export async function getProvenanceByFile(db: Database, filePath: string) {
   return db
     .select()
     .from(codeProvenance)
@@ -18,12 +18,12 @@ export async function getProvenanceByFile(db: DatabaseClient, filePath: string) 
     .orderBy(codeProvenance.lineStart);
 }
 
-export async function getProvenanceById(db: DatabaseClient, id: string) {
+export async function getProvenanceById(db: Database, id: string) {
   const result = await db.select().from(codeProvenance).where(eq(codeProvenance.id, id)).limit(1);
   return result[0] ?? null;
 }
 
-export async function getProvenanceByCommit(db: DatabaseClient, gitCommitHash: string) {
+export async function getProvenanceByCommit(db: Database, gitCommitHash: string) {
   return db
     .select()
     .from(codeProvenance)
@@ -32,7 +32,7 @@ export async function getProvenanceByCommit(db: DatabaseClient, gitCommitHash: s
 }
 
 export async function getUnreviewedProvenance(
-  db: DatabaseClient,
+  db: Database,
   filters?: {
     authorType?: string;
     filePathPrefix?: string;
@@ -55,7 +55,7 @@ export async function getUnreviewedProvenance(
 }
 
 export async function getAllProvenance(
-  db: DatabaseClient,
+  db: Database,
   filters?: {
     authorType?: string;
     reviewStatus?: string;
@@ -93,7 +93,7 @@ export async function getAllProvenance(
 }
 
 export async function createProvenance(
-  db: DatabaseClient,
+  db: Database,
   data: {
     id: string;
     filePath: string;
@@ -122,7 +122,7 @@ export async function createProvenance(
 }
 
 export async function updateProvenance(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   data: Partial<{
     filePath: string;
@@ -152,7 +152,7 @@ export async function updateProvenance(
 }
 
 export async function updateReviewStatus(
-  db: DatabaseClient,
+  db: Database,
   id: string,
   reviewStatus: string,
   reviewedBy?: string,
@@ -171,11 +171,11 @@ export async function updateReviewStatus(
   return result[0] ?? null;
 }
 
-export async function deleteProvenance(db: DatabaseClient, id: string) {
+export async function deleteProvenance(db: Database, id: string) {
   await db.delete(codeProvenance).where(eq(codeProvenance.id, id));
 }
 
-export async function getProvenanceStats(db: DatabaseClient) {
+export async function getProvenanceStats(db: Database) {
   const byAuthorType = await db
     .select({
       authorType: codeProvenance.authorType,
@@ -200,7 +200,7 @@ export async function getProvenanceStats(db: DatabaseClient) {
 // Code Review Queries
 // =============================================================================
 
-export async function getReviewsForProvenance(db: DatabaseClient, provenanceId: string) {
+export async function getReviewsForProvenance(db: Database, provenanceId: string) {
   return db
     .select()
     .from(codeReviews)
@@ -209,7 +209,7 @@ export async function getReviewsForProvenance(db: DatabaseClient, provenanceId: 
 }
 
 export async function createReview(
-  db: DatabaseClient,
+  db: Database,
   data: {
     id: string;
     provenanceId: string;

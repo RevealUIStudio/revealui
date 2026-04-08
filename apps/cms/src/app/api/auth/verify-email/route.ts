@@ -11,10 +11,9 @@
 
 import { createHash } from 'node:crypto';
 import { checkRateLimit } from '@revealui/auth/server';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
-import { and, eq, gt, isNull, or } from 'drizzle-orm';
+import { getUserByVerificationToken, updateUser } from '@revealui/db/queries/users';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
@@ -56,19 +55,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Hash the incoming raw token to compare against the stored hash.
     const tokenHash = createHash('sha256').update(token).digest('hex');
 
-    const [user] = await db
-      .select({ id: users.id, emailVerified: users.emailVerified })
-      .from(users)
-      .where(
-        and(
-          eq(users.emailVerificationToken, tokenHash),
-          or(
-            isNull(users.emailVerificationTokenExpiresAt),
-            gt(users.emailVerificationTokenExpiresAt, new Date()),
-          ),
-        ),
-      )
-      .limit(1);
+    const user = await getUserByVerificationToken(db, tokenHash);
 
     if (!user) {
       return NextResponse.redirect(`${baseUrl}/login?error=invalid_token`);
@@ -79,15 +66,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Mark email as verified
-    await db
-      .update(users)
-      .set({
-        emailVerified: true,
-        emailVerifiedAt: new Date(),
-        emailVerificationToken: null,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, user.id));
+    await updateUser(db, user.id, {
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+      emailVerificationToken: null,
+    });
 
     return NextResponse.redirect(`${baseUrl}/login?message=email_verified`);
   } catch (error) {

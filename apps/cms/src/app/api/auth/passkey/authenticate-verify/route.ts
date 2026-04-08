@@ -8,12 +8,13 @@
  */
 
 import { rotateSession, verifyAuthentication, verifyCookiePayload } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { PasskeyAuthenticateVerifyRequestSchema } from '@revealui/contracts';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
-import { passkeys, users } from '@revealui/db/schema';
+import { getPasskeyByCredentialId } from '@revealui/db/queries/passkeys';
+import { getUserById } from '@revealui/db/queries/users';
+import { logger } from '@revealui/utils/logger';
 import type { AuthenticationResponseJSON, WebAuthnCredential } from '@simplewebauthn/server';
-import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
@@ -40,7 +41,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
 
     const challengePayload = verifyCookiePayload<{ challenge: string; expiresAt: number }>(
       challengeCookie,
-      process.env.REVEALUI_SECRET ?? '',
+      config.reveal.secret,
     );
 
     if (!challengePayload) {
@@ -83,18 +84,14 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
 
     // Look up passkey by credential ID
     const db = getClient();
-    const [storedPasskey] = await db
-      .select()
-      .from(passkeys)
-      .where(eq(passkeys.credentialId, authResponse.id))
-      .limit(1);
+    const storedPasskey = await getPasskeyByCredentialId(db, authResponse.id);
 
     if (!storedPasskey) {
       return createApplicationErrorResponse('Passkey not recognized', 'PASSKEY_NOT_FOUND', 401);
     }
 
     // Verify the user account exists and is not deleted
-    const [user] = await db.select().from(users).where(eq(users.id, storedPasskey.userId)).limit(1);
+    const user = await getUserById(db, storedPasskey.userId);
 
     if (!user) {
       return createApplicationErrorResponse('User account not found', 'USER_NOT_FOUND', 401);

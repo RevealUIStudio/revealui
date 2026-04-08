@@ -7,9 +7,9 @@
  */
 
 import { getSession } from '@revealui/auth/server';
-import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { aiMemorySessions } from '@revealui/db/schema';
+import { logger } from '@revealui/utils/logger';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIMemoryFeatureGate } from '@/lib/middleware/ai-feature-gate';

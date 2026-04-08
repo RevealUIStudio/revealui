@@ -9,9 +9,10 @@
 import { isSignupAllowed, signUp } from '@revealui/auth/server';
 import { SignUpRequestContract } from '@revealui/contracts';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
+import { countActiveUsers, updateUser } from '@revealui/db/queries/users';
 import { users } from '@revealui/db/schema';
+import { logger } from '@revealui/utils/logger';
 import { count, eq, sql } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { sendVerificationEmail } from '@/lib/email/verification';
@@ -102,11 +103,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
           logger.warn('Transaction not supported, falling back to non-atomic user count', {
             error: txError instanceof Error ? txError.message : String(txError),
           });
-          const [row] = await db
-            .select({ total: count() })
-            .from(users)
-            .where(eq(users.status, 'active'));
-          const activeCount = row?.total ?? 0;
+          const activeCount = await countActiveUsers(db);
           isFirstUser = activeCount === 0;
           if (activeCount >= maxUsers) {
             limitExceeded = true;
@@ -118,11 +115,8 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
         }
       } else {
         // No per-tier limit — still need to know if this is the first user
-        const [row] = await db
-          .select({ total: count() })
-          .from(users)
-          .where(eq(users.status, 'active'));
-        isFirstUser = (row?.total ?? 0) === 0;
+        const activeCount = await countActiveUsers(db);
+        isFirstUser = activeCount === 0;
       }
     } catch (limitError) {
       logger.error('User limit check failed during sign-up', {
@@ -163,11 +157,11 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     if (isFirstUser && result.user?.id) {
       try {
         const db = getClient();
-        const [updatedUser] = await db
-          .update(users)
-          .set({ role: 'admin', emailVerified: true, emailVerifiedAt: new Date() })
-          .where(eq(users.id, result.user.id))
-          .returning();
+        const updatedUser = await updateUser(db, result.user.id, {
+          role: 'admin',
+          emailVerified: true,
+          emailVerifiedAt: new Date(),
+        });
         if (updatedUser) {
           resolvedUser = {
             ...updatedUser,

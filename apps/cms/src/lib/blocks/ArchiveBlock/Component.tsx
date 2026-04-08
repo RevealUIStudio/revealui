@@ -1,5 +1,5 @@
 import type { Category, Post } from '@revealui/core/types/cms';
-import { logger } from '@revealui/core/utils/logger';
+import { logger } from '@revealui/utils/logger';
 import { CollectionArchive } from '@/lib/components/CollectionArchive/index';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';
 import RichText from '@/lib/components/RichText/index';

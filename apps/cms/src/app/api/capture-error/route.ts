@@ -6,13 +6,14 @@
  * exposed in the browser bundle.
  */
 
+import config from '@revealui/config';
 import { NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 async function captureErrorHandler(request: Request): Promise<NextResponse> {
-  const secret = process.env.REVEALUI_SECRET;
+  const secret = config.reveal.secret;
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
 
   if (!secret) {

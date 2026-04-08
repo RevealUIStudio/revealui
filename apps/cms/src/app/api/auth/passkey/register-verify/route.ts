@@ -17,11 +17,13 @@ import {
   verifyCookiePayload,
   verifyRegistration,
 } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { PasskeyRegisterVerifyRequestSchema } from '@revealui/contracts';
 import { getMaxUsers, initializeLicense } from '@revealui/core/license';
-import { logger } from '@revealui/core/utils/logger';
 import { getClient } from '@revealui/db';
+import { createUser, getUserByEmail } from '@revealui/db/queries/users';
 import { users } from '@revealui/db/schema';
+import { logger } from '@revealui/utils/logger';
 import type { RegistrationResponseJSON } from '@simplewebauthn/server';
 import { count, eq, sql } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -59,7 +61,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
 
     const challengePayload = verifyCookiePayload<ChallengePayload>(
       challengeCookie,
-      process.env.REVEALUI_SECRET ?? '',
+      config.reveal.secret,
     );
 
     if (!challengePayload) {
@@ -146,11 +148,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
       }
 
       // Double-check email isn't taken (race condition protection)
-      const [existing] = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.email, (challengePayload.email ?? '').toLowerCase()))
-        .limit(1);
+      const existing = await getUserByEmail(db, (challengePayload.email ?? '').toLowerCase());
 
       if (existing) {
         return createApplicationErrorResponse('Unable to create account', 'SIGNUP_FAILED', 400);
@@ -158,16 +156,13 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
 
       // Create user (no password — passkey-only account)
       const newUserId = crypto.randomUUID();
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          id: newUserId,
-          email: (challengePayload.email ?? '').toLowerCase(),
-          name: challengePayload.name ?? '',
-          password: null,
-          emailVerified: false,
-        })
-        .returning();
+      const newUser = await createUser(db, {
+        id: newUserId,
+        email: (challengePayload.email ?? '').toLowerCase(),
+        name: challengePayload.name ?? '',
+        password: null,
+        emailVerified: false,
+      });
 
       if (!newUser) {
         return createApplicationErrorResponse('Failed to create user', 'SIGNUP_FAILED', 500);

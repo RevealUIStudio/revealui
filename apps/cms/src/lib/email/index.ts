@@ -14,7 +14,8 @@
  * No Node.js-only dependencies — fully edge-compatible (fetch + jose).
  */
 
-import { logger } from '@revealui/core/observability/logger';
+import config from '@revealui/config';
+import { logger } from '@revealui/utils/logger';
 import { importPKCS8, SignJWT } from 'jose';
 
 interface EmailOptions {
@@ -418,9 +419,7 @@ export async function sendRecoveryEmail(
   recoveryUrl?: string,
 ): Promise<{ success: boolean; error?: string }> {
   const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.NEXT_PUBLIC_SERVER_URL ||
-    process.env.REVEALUI_PUBLIC_SERVER_URL;
+    process.env.NEXT_PUBLIC_APP_URL || config.reveal.serverURL || config.reveal.publicServerURL;
   if (!baseUrl) {
     return {
       success: false,
@@ -479,7 +478,7 @@ export async function sendPasswordResetEmail(
   resetToken: string,
   resetUrl?: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || process.env.REVEALUI_PUBLIC_SERVER_URL;
+  const baseUrl = config.reveal.serverURL;
   if (!baseUrl) {
     return {
       success: false,

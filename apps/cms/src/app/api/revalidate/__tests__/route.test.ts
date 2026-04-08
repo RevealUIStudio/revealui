@@ -14,6 +14,16 @@ vi.mock('next/cache', () => ({
   revalidateTag: (...args: unknown[]) => mockRevalidateTag(...args),
 }));
 
+vi.mock('@revealui/config', () => ({
+  default: {
+    reveal: {
+      get secret() {
+        return process.env.REVEALUI_SECRET ?? '';
+      },
+    },
+  },
+}));
+
 vi.mock('next/server', () => {
   class MockNextResponse {
     body: unknown;

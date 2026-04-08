@@ -3,8 +3,7 @@ export const runtime = 'nodejs';
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto';
-import { userApiKeys } from '@revealui/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { deleteApiKeys, getApiKeyMetadata, upsertApiKey } from '@revealui/db/queries/user-api-keys';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { extractRequestContext } from '@/lib/utils/request-context';
@@ -24,13 +23,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   const db = getClient();
-  const rows = await db
-    .select({ provider: userApiKeys.provider, keyHint: userApiKeys.keyHint })
-    .from(userApiKeys)
-    .where(eq(userApiKeys.userId, session.user.id))
-    .limit(1);
+  const metadata = await getApiKeyMetadata(db, session.user.id);
 
-  return NextResponse.json(rows[0] ?? null);
+  return NextResponse.json(metadata);
 }
 
 /** POST /api/user/api-keys — encrypt and upsert an API key */
@@ -58,23 +53,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const encryptedKey = encryptApiKey(key);
   const keyHint = redactApiKey(key);
-  const now = new Date();
 
   const db = getClient();
 
-  // Delete any existing key for this user+provider, then insert fresh
-  await db
-    .delete(userApiKeys)
-    .where(and(eq(userApiKeys.userId, session.user.id), eq(userApiKeys.provider, provider)));
-
-  await db.insert(userApiKeys).values({
+  await upsertApiKey(db, {
     id: crypto.randomUUID(),
     userId: session.user.id,
     provider,
     encryptedKey,
     keyHint,
-    createdAt: now,
-    updatedAt: now,
   });
 
   return NextResponse.json({ provider, keyHint });
@@ -88,7 +75,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
   }
 
   const db = getClient();
-  await db.delete(userApiKeys).where(eq(userApiKeys.userId, session.user.id));
+  await deleteApiKeys(db, session.user.id);
 
   return NextResponse.json({ deleted: true });
 }

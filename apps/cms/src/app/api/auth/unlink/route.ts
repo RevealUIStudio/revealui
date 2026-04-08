@@ -8,7 +8,7 @@
  */
 
 import { getSession, unlinkOAuthAccount } from '@revealui/auth/server';
-import { logger } from '@revealui/core/utils/logger';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 

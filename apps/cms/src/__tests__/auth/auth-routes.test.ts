@@ -46,7 +46,7 @@ vi.mock('@revealui/auth/server', () => ({
   isSignupAllowed: vi.fn().mockReturnValue(true),
 }));
 
-vi.mock('@revealui/core/utils/logger', () => ({
+vi.mock('@revealui/utils/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
@@ -95,6 +95,11 @@ vi.mock('drizzle-orm', () => {
   sqlFn.raw = vi.fn();
   return { eq: vi.fn(), count: vi.fn(), sql: sqlFn };
 });
+
+vi.mock('@revealui/db/queries/users', () => ({
+  updateUser: vi.fn().mockResolvedValue(null),
+  countActiveUsers: vi.fn().mockResolvedValue(0),
+}));
 
 vi.mock('@/lib/email/verification', () => ({
   sendVerificationEmail: vi.fn().mockResolvedValue({ success: true }),

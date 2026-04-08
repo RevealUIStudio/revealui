@@ -9,8 +9,9 @@
  */
 
 import { rotateSession, verifyCookiePayload, verifyMFACode } from '@revealui/auth/server';
+import config from '@revealui/config';
 import { MFAVerifyRequestContract } from '@revealui/contracts';
-import { logger } from '@revealui/core/utils/logger';
+import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import {
@@ -37,7 +38,7 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
 
     const payload = verifyCookiePayload<{ userId: string; expiresAt: number }>(
       mfaPendingCookie,
-      process.env.REVEALUI_SECRET ?? '',
+      config.reveal.secret,
     );
 
     if (!payload) {

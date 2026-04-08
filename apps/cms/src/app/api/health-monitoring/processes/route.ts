@@ -12,6 +12,7 @@
  */
 
 import crypto from 'node:crypto';
+import config from '@revealui/config';
 import {
   getAllProcesses,
   type ProcessSource,
@@ -41,7 +42,7 @@ export async function GET(
   request: NextRequest,
 ): Promise<NextResponse<ProcessListResponse | { error: string }>> {
   const token = request.headers.get('x-internal-token');
-  const secret = process.env.REVEALUI_SECRET;
+  const secret = config.reveal.secret;
   if (
     !(secret && token) ||
     token.length !== secret.length ||
