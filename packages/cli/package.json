@@ -38,7 +38,7 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@types/node": "^25.5.2",
     "tsup": "^8.0.0",
     "typescript": "catalog:"
   },
