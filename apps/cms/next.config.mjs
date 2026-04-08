@@ -10,8 +10,8 @@ import ContentSecurityPolicy from './csp.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// Pro package (@revealui/ai) is gitignored from the public repo.
-// On CI/OSS builds, alias all subpaths to a stub so Turbopack can resolve them.
+// Pro package (@revealui/ai) is Fair Source (FSL-1.1-MIT) and normally present.
+// If someone removes it from a fork, alias all subpaths to a stub for graceful degradation.
 const hasProAI = existsSync(path.join(__dirname, '../../packages/ai/package.json'))
 const proAIStub = './src/lib/ai/pro-stub.ts'
 const proAIAliases = hasProAI ? {} : {
@@ -74,7 +74,7 @@ const nextConfig = {
     return config
   },
   // Externalize problematic packages in server bundle
-  // Pro packages (@revealui/ai, @revealui/services) are optional peer dependencies.
+  // Pro packages (@revealui/ai) and service packages are optional peer dependencies.
   // Mark them as server-external so the bundler skips them at build time;
   // route handlers load them via dynamic import() with a try/catch fallback.
   serverExternalPackages: [
