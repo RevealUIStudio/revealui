@@ -8,7 +8,7 @@
  * @tailwindcss/postcss — no need for postcss-import or autoprefixer.
  */
 
-import type postcssConfig from 'dev/postcss';
+import type postcssConfig from '@revealui/dev/postcss';
 
 const config: typeof postcssConfig = {
   plugins: {

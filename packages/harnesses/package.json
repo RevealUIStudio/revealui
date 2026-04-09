@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "^4.1.3"

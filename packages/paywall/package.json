@@ -24,7 +24,7 @@
     "@types/node": "catalog:",
     "@types/react": "^19.2.14",
     "@types/react-dom": "catalog:",
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "hono": "^4.12.12",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",

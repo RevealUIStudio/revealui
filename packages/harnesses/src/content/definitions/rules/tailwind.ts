@@ -133,7 +133,7 @@ In v4, theme tokens go in CSS, not JS:
 ### Consumer Pattern (current — v3 compat)
 \`\`\`ts
 // apps/admin/tailwind.config.ts
-import { createTailwindConfig } from 'dev/tailwind/create-config'
+import { createTailwindConfig } from '@revealui/dev/tailwind/create-config'
 export default createTailwindConfig({
   content: ['./src/**/*.{ts,tsx}'],
   // app-specific overrides

@@ -12,7 +12,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "drizzle-kit": "^0.31.10",
     "drizzle-zod": "^0.8.3",
     "tsx": "catalog:",

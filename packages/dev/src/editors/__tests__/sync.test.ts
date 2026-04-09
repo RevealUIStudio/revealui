@@ -15,7 +15,7 @@ import * as fs from 'node:fs/promises';
 
 const mockReadFile = vi.mocked(fs.readFile);
 const mockWriteFile = vi.mocked(fs.writeFile);
-const _mockMkdir = vi.mocked(fs.mkdir);
+vi.mocked(fs.mkdir);
 
 // ---------------------------------------------------------------------------
 // Tests

@@ -6,7 +6,7 @@
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.3",
     "@types/node": "catalog:",
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

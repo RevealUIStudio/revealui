@@ -1,9 +1,26 @@
 {
-  "name": "dev",
-  "version": "0.0.1",
-  "description": "Shared development configs (Biome, TypeScript, Tailwind) for RevealUI",
-  "private": true,
+  "name": "@revealui/dev",
+  "version": "0.1.0",
+  "description": "Zero-config dev environment for RevealUI — Biome, TypeScript, Tailwind, Vite, PostCSS, editor integration, and terminal themes",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/dev"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "keywords": [
+    "biome",
+    "dev-environment",
+    "editor-config",
+    "revealui",
+    "tailwind",
+    "typescript",
+    "vite"
+  ],
   "dependencies": {
     "minimatch": "^10.2.5"
   },
@@ -36,7 +53,8 @@
     "./ts/revealui": "./src/ts/revealui.json",
     "./ts/vite": "./src/ts/vite.json",
     "./ts/nextjs": "./src/ts/nextjs.json",
-    "./ts/react-library": "./src/ts/react-library.json"
+    "./ts/react-library": "./src/ts/react-library.json",
+    "./editors": "./src/editors/index.ts"
   },
   "peerDependencies": {
     "vite": ">=5.0.0"
