@@ -1,4 +1,4 @@
-import { usePresence, useSpring, useStagger } from '@revealui/animations';
+import { usePresence, useSpring, useStagger } from '@revealui/presentation/animations';
 import { useState } from 'react';
 import type { ShowcaseStory } from '@/components/showcase/types.js';
 
