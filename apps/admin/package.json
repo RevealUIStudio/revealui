@@ -13,6 +13,7 @@
     "@revealui/db": "workspace:*",
     "@revealui/paywall": "workspace:*",
     "@revealui/presentation": "workspace:*",
+    "@revealui/setup": "workspace:*",
     "@revealui/sync": "workspace:*",
     "@revealui/utils": "workspace:*",
     "@sentry/nextjs": "^10.47.0",
