@@ -75,12 +75,12 @@
     "analyze:bundle": "./scripts/analyze-bundle.sh",
     "build": "env -u NODE_ENV cross-env NODE_OPTIONS=--no-deprecation next build --turbopack",
     "clean": "rm -rf .next dist .turbo",
-    "cms": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" revealui cms",
+    "admin": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" revealui admin",
     "dev": "cross-env NODE_OPTIONS=\"${NODE_OPTIONS} --no-deprecation\" next dev --port 4000",
     "devsafe": "rimraf .next && pnpm dev",
     "format": "biome format --write .",
-    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation revealui cms generate:importmap",
-    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation revealui cms generate:types",
+    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation revealui admin generate:importmap",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation revealui admin generate:types",
     "lint": "biome check .",
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start --port 4000",
     "test": "vitest run",
@@ -88,6 +88,6 @@
     "test:ui": "vitest --ui",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "cd ../.. && pnpm turbo build --filter=cms"
+    "vercel-build": "cd ../.. && pnpm turbo build --filter=admin"
   }
 }
