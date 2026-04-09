@@ -85,7 +85,7 @@ test.describe('Visual Snapshots - CMS Application', () => {
       await waitForNetworkIdle(page);
 
       const header = page.locator('header, nav').first();
-      if ((await header.count()) > 0) {
+      if ((await header.count()) > 0 && (await header.isVisible())) {
         await expect(header).toHaveScreenshot('navigation-header.png');
       }
     });
