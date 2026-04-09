@@ -233,7 +233,7 @@ This table reflects what has been exercised against production infrastructure (c
 | Config validation (`buildConfig`) | ✅ Yes | CMS startup on every Vercel deploy |
 | Collection CRUD operations | ✅ Yes | CMS admin dashboard operations |
 | Session auth (login, logout, session) | ✅ Yes | Full flow verified manually + E2E |
-| Password reset (email via Resend) | ✅ Yes | Real email delivery verified |
+| Password reset (email via Gmail) | ✅ Yes | Real email delivery verified |
 | Rate limiting (IP + brute force) | ✅ Yes | Confirmed: 5 attempts → 429, brute force lockout |
 | License validation | ✅ Yes | Stripe checkout → license key → tier resolution |
 | ElectricSQL real-time sync | ✅ Yes | All 3 shape endpoints + row-level auth |

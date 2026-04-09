@@ -131,7 +131,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | App          | Framework        | Purpose                                      |
 | ------------ | ---------------- | -------------------------------------------- |
 | `api`        | Hono             | REST API with OpenAPI + Swagger              |
-| `cms`        | Next.js 16       | Admin dashboard + content management         |
+| `admin`      | Next.js 16       | Admin dashboard + content management         |
 | `docs`       | Vite + React     | Documentation site                           |
 | `marketing`  | Next.js          | Marketing site + waitlist                    |
 | `studio`     | Tauri 2 + React  | Native AI experience: agent coordination hub, local inference management, visual agent dashboard |
@@ -220,7 +220,7 @@ pnpm dev
 revealui/
 ├── apps/
 │   ├── api/        # Hono REST API (port 3004)
-│   ├── cms/        # Admin dashboard + content management (port 4000)
+│   ├── admin/      # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
 │   ├── marketing/  # Marketing site (port 3000)
 │   ├── revealcoin/ # RevealCoin token explorer (experimental)

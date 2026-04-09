@@ -18,7 +18,7 @@ strategy:
 
 api-surface:
   collections:
-    endpoint: "20 collection definitions in apps/cms/src/lib/collections/"
+    endpoint: "20 collection definitions in apps/admin/src/lib/collections/"
     openapi: true
     tested: true
   rest-api:
@@ -114,7 +114,7 @@ user-roles:
 
 ui-surface:
   document-form:
-    location: "apps/cms/src/components/DocumentForm.tsx"
+    location: "apps/admin/src/components/DocumentForm.tsx"
     status: basic
 
 limitations:

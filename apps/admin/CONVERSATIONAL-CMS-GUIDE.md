@@ -14,7 +14,7 @@ The chat interface connects to an AI agent with 19 CMS tools that can:
 
 1. **Start the CMS dev server:**
    ```bash
-   pnpm dev:cms
+   pnpm dev:admin
    ```
 
 2. **Open the admin panel:**
@@ -230,7 +230,7 @@ Try being more specific or break your request into smaller steps.
 
 ## Configuration
 
-The chat API is configured in `/apps/cms/src/app/api/chat/route.ts`:
+The chat API is configured in `/apps/admin/src/app/api/chat/route.ts`:
 
 - **Rate Limit**: 10 requests per minute
 - **Max Iterations**: 5 tool execution rounds

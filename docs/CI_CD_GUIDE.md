@@ -96,7 +96,7 @@ See [Database Guide](./DATABASE.md) for all database commands and operations.
 
 1. Go to [vercel.com](https://vercel.com)
 2. Import your GitHub repository
-3. Select the `apps/cms` directory as root
+3. Select the `apps/admin` directory as root
 
 ### 2. Configure Build Settings
 
@@ -223,7 +223,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ### 3. Start Development Server
 
 ```bash
-cd apps/cms
+cd apps/admin
 pnpm dev
 ```
 
@@ -263,7 +263,7 @@ For comprehensive troubleshooting including build failures, deployment issues, a
 ┌─────────────────────────────────────────────────────────┐
 │                    Vercel Edge                           │
 ├─────────────────────────────────────────────────────────┤
-│  apps/cms (Next.js 16)                                   │
+│  apps/admin (Next.js 16)                                   │
 │  ├── /admin/* - RevealUI Admin Panel                    │
 │  ├── /api/* - REST API endpoints                        │
 │  └── /* - Frontend pages (SSR/SSG)                      │
@@ -308,7 +308,7 @@ RevealUI supports multiple monitoring services:
 
 #### Current Setup
 
-Sentry is already configured in `apps/cms/next.config.mjs`:
+Sentry is already configured in `apps/admin/next.config.mjs`:
 
 ```javascript
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
@@ -382,7 +382,7 @@ Sentry.setUser({
 #### Vercel Analytics
 
 **Current Setup:**
-Vercel Analytics is configured in `apps/cms/src/instrumentation.ts`:
+Vercel Analytics is configured in `apps/admin/src/instrumentation.ts`:
 
 ```typescript
 if (process.env.NEXT_PUBLIC_VERCEL_ENV) {
@@ -402,7 +402,7 @@ Automatically enabled when deployed to Vercel.
 #### Speed Insights
 
 **Current Setup:**
-Speed Insights is configured in `apps/cms/src/app/layout.tsx`:
+Speed Insights is configured in `apps/admin/src/app/layout.tsx`:
 
 ```typescript
 import { SpeedInsights } from '@vercel/speed-insights/next'
@@ -446,7 +446,7 @@ export default function RootLayout({ children }) {
 #### Implementation Example (Datadog)
 
 ```typescript
-// apps/cms/src/instrumentation.ts
+// apps/admin/src/instrumentation.ts
 import tracer from 'dd-trace'
 
 export async function register() {
@@ -477,7 +477,7 @@ DD_AGENT_HOST=datadog-agent
 Create a health check endpoint:
 
 ```typescript
-// apps/cms/src/app/api/health/route.ts
+// apps/admin/src/app/api/health/route.ts
 import { NextResponse } from 'next/server'
 import { getClient } from '@revealui/db/client'
 
@@ -894,7 +894,7 @@ To reduce need for rollbacks:
    pnpm audit --audit-level=high
 
    # Verify no console.log statements in production code
-   grep -r "console.log" apps/cms/src/lib apps/mainframe/src --exclude="*.test.ts"
+   grep -r "console.log" apps/admin/src/lib apps/mainframe/src --exclude="*.test.ts"
    ```
 
 2. **Create Production Release**
@@ -1109,7 +1109,7 @@ vercel deploy --prod
 #### Build Individual Apps
 ```bash
 # CMS (Next.js)
-docker build -f apps/cms/Dockerfile -t revealui-cms:latest .
+docker build -f apps/admin/Dockerfile -t revealui-cms:latest .
 
 # Mainframe (Hono SSR + React)
 docker build -f apps/mainframe/Dockerfile -t revealui-mainframe:latest .
@@ -1231,7 +1231,7 @@ pnpm typecheck:all
 pnpm build
 
 # Build specific app
-pnpm --filter cms build
+pnpm --filter admin build
 pnpm --filter web build
 ```
 
@@ -1414,7 +1414,7 @@ gh release view v1.0.0
 pnpm lint:fix
 
 # Check specific files
-pnpm lint apps/cms/src/file.ts
+pnpm lint apps/admin/src/file.ts
 ```
 
 #### Type Errors
@@ -1423,7 +1423,7 @@ pnpm lint apps/cms/src/file.ts
 pnpm --filter @revealui/core typecheck
 
 # Build to see full errors
-pnpm --filter cms build
+pnpm --filter admin build
 ```
 
 #### Test Failures
@@ -1449,11 +1449,11 @@ pnpm --filter @revealui/test exec playwright test --debug
 cat .dockerignore
 
 # Verify node_modules excluded
-docker build --no-cache -f apps/cms/Dockerfile -t test . 2>&1 | grep "Sending build context"
+docker build --no-cache -f apps/admin/Dockerfile -t test . 2>&1 | grep "Sending build context"
 
 # Layer Caching Issues
 # Build without cache
-docker build --no-cache -f apps/cms/Dockerfile -t revealui-cms:latest .
+docker build --no-cache -f apps/admin/Dockerfile -t revealui-cms:latest .
 
 # Prune build cache
 docker builder prune
@@ -1466,7 +1466,7 @@ docker builder prune
 vercel logs <deployment-url>
 
 # Build locally to debug
-pnpm --filter cms build
+pnpm --filter admin build
 
 # Check environment variables
 vercel env ls
@@ -1520,7 +1520,7 @@ export default config
 
 #### Files to Update
 
-1. `apps/cms/next.config.js` or `apps/cms/next.config.mjs`
+1. `apps/admin/next.config.js` or `apps/admin/next.config.mjs`
 2. `apps/marketing/next.config.js` or `apps/marketing/next.config.mjs`
 
 #### What This Does
@@ -1539,7 +1539,7 @@ The Dockerfiles expect this structure:
 ├── standalone/          # Minimal production build
 │   ├── server.js       # Entry point
 │   ├── node_modules/   # Only required deps
-│   └── apps/cms/       # App files
+│   └── apps/admin/       # App files
 ├── static/             # Static assets
 └── ...
 ```
@@ -1550,13 +1550,13 @@ After adding `output: 'standalone'`, test the build:
 
 ```bash
 # Build the app
-pnpm --filter cms build
+pnpm --filter admin build
 
 # Check that standalone output exists
-ls -la apps/cms/.next/standalone/
+ls -la apps/admin/.next/standalone/
 
 # Should see server.js
-ls -la apps/cms/.next/standalone/apps/cms/
+ls -la apps/admin/.next/standalone/apps/admin/
 ```
 
 #### Alternative: Modify Dockerfiles
@@ -1565,15 +1565,15 @@ If you don't want to use standalone output, you can modify the Dockerfiles to us
 
 **Current (standalone):**
 ```dockerfile
-COPY --from=builder /app/apps/cms/.next/standalone ./
-COPY --from=builder /app/apps/cms/.next/static ./apps/cms/.next/static
-CMD ["node", "apps/cms/server.js"]
+COPY --from=builder /app/apps/admin/.next/standalone ./
+COPY --from=builder /app/apps/admin/.next/static ./apps/admin/.next/static
+CMD ["node", "apps/admin/server.js"]
 ```
 
 **Alternative (standard):**
 ```dockerfile
-COPY --from=builder /app/apps/cms/.next ./apps/cms/.next
-COPY --from=builder /app/apps/cms/package.json ./apps/cms/
+COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
+COPY --from=builder /app/apps/admin/package.json ./apps/admin/
 CMD ["pnpm", "--filter", "cms", "start"]
 ```
 
@@ -1581,7 +1581,7 @@ CMD ["pnpm", "--filter", "cms", "start"]
 
 The Dockerfiles assume a health check endpoint at `/api/health`. If this doesn't exist, create it:
 
-**File:** `apps/cms/app/api/health/route.ts` (App Router)
+**File:** `apps/admin/app/api/health/route.ts` (App Router)
 ```typescript
 import { NextResponse } from 'next/server'
 
@@ -1593,7 +1593,7 @@ export async function GET() {
 }
 ```
 
-Or **File:** `apps/cms/pages/api/health.ts` (Pages Router)
+Or **File:** `apps/admin/pages/api/health.ts` (Pages Router)
 ```typescript
 import type { NextApiRequest, NextApiResponse } from 'next'
 
@@ -1646,7 +1646,7 @@ Example:
 docker build -f apps/mainframe/Dockerfile -t revealui-mainframe:latest .
 docker build -f apps/docs/Dockerfile -t revealui-docs:latest .
 docker build -f apps/marketing/Dockerfile -t revealui-marketing:latest .
-docker build -f apps/cms/Dockerfile -t revealui-cms:latest .
+docker build -f apps/admin/Dockerfile -t revealui-cms:latest .
 ```
 
 ### Docker Production Deployment Checklist
@@ -2668,7 +2668,7 @@ Configure alerts in `k8s/monitoring/alerts/`:
 
 Alerts are sent to:
 - Slack (if webhook configured)
-- Email (if SMTP configured)
+- Email (if Gmail API configured)
 - PagerDuty (if configured)
 
 ## Disaster Recovery

@@ -45,8 +45,8 @@ This comprehensive guide covers everything you need to know about using the Reve
 
 Your RevealUI project consists of:
 
-- **CMS App** (`apps/cms`): Next.js 16 app with RevealUI CMS backend
-- **Frontend App** (`apps/mainframe`): React 19 app (Vite-based) that consumes CMS data
+- **Admin App** (`apps/admin`): Next.js 16 app with RevealUI CMS backend
+- **Marketing App** (`apps/marketing`): Next.js app that consumes CMS data
 
 The CMS provides a REST API for content delivery and includes collections for:
 
@@ -120,7 +120,7 @@ curl "http://localhost:4000/api/collections/pages?depth=2"
 
 **CMS App Environment Variables**
 
-Create `apps/cms/.env.local`:
+Create `apps/admin/.env.local`:
 
 ```env
 REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
@@ -131,7 +131,7 @@ REVEALUI_SECRET=your-secret-key
 
 **Frontend App Environment Variables**
 
-Create `apps/mainframe/.env.local`:
+Create `apps/marketing/.env.local`:
 
 ```env
 NEXT_PUBLIC_CMS_URL=http://localhost:4000
@@ -143,8 +143,8 @@ REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 
 The CMS has CORS handling in:
 
-- `apps/cms/src/proxy.ts` - Defines allowed origins
-- `apps/cms/revealui.config.ts` - `cors` and `csrf` arrays
+- `apps/admin/src/proxy.ts` - Defines allowed origins
+- `apps/admin/revealui.config.ts` - `cors` and `csrf` arrays
 
 Ensure your frontend URL is in `REVEALUI_WHITELISTORIGINS`.
 
@@ -152,7 +152,7 @@ Ensure your frontend URL is in `REVEALUI_WHITELISTORIGINS`.
 
 Create a base API client function in your frontend app.
 
-**File**: `apps/mainframe/src/lib/api/client.ts`
+**File**: `apps/marketing/src/lib/api/client.ts`
 
 ```typescript
 const CMS_URL =
@@ -187,7 +187,7 @@ Create fetch functions for each collection you need to access.
 
 **fetchMainInfos**
 
-**File**: `apps/mainframe/src/lib/api/fetchMainInfos.ts`
+**File**: `apps/marketing/src/lib/api/fetchMainInfos.ts`
 
 ```typescript
 import { fetchFromCMS } from "./client";
@@ -212,7 +212,7 @@ export default async function fetchMainInfos(): Promise<MainInfo[]> {
 
 **fetchVideos**
 
-**File**: `apps/mainframe/src/lib/api/fetchVideos.ts`
+**File**: `apps/marketing/src/lib/api/fetchVideos.ts`
 
 ```typescript
 import { fetchFromCMS } from "./client";
@@ -236,7 +236,7 @@ export default async function fetchVideos(): Promise<Video[]> {
 
 **fetchCard**
 
-**File**: `apps/mainframe/src/lib/api/fetchCard.ts`
+**File**: `apps/marketing/src/lib/api/fetchCard.ts`
 
 ```typescript
 import { fetchFromCMS } from "./client";
@@ -261,7 +261,7 @@ export default async function fetchCard(): Promise<CardData[]> {
 
 **fetchHero**
 
-**File**: `apps/mainframe/src/lib/api/fetchHero.ts`
+**File**: `apps/marketing/src/lib/api/fetchHero.ts`
 
 ```typescript
 import { fetchFromCMS } from "./client";
@@ -285,7 +285,7 @@ export default async function fetchHero(): Promise<HeroData[]> {
 
 **fetchEvents**
 
-**File**: `apps/mainframe/src/lib/api/fetchEvents.ts`
+**File**: `apps/marketing/src/lib/api/fetchEvents.ts`
 
 ```typescript
 import { fetchFromCMS } from "./client";
@@ -309,7 +309,7 @@ export default async function fetchEvents(): Promise<EventData[]> {
 
 **fetchBanner**
 
-**File**: `apps/mainframe/src/lib/api/fetchBanner.ts`
+**File**: `apps/marketing/src/lib/api/fetchBanner.ts`
 
 ```typescript
 import { fetchFromCMS } from "./client";
@@ -335,7 +335,7 @@ export default async function fetchBanner(): Promise<BannerData[]> {
 
 Update your components to import from the new location:
 
-**In `apps/mainframe/src/components/Home/Main.tsx`**:
+**In `apps/marketing/src/components/Home/Main.tsx`**:
 
 ```typescript
 import fetchMainInfos from "@/lib/api/fetchMainInfos";
@@ -345,16 +345,16 @@ import fetchMainInfos from "../../lib/api/fetchMainInfos";
 
 Apply the same pattern to:
 
-- `apps/mainframe/src/components/Home/Header.tsx`
-- `apps/mainframe/src/components/Home/Card.tsx`
-- `apps/mainframe/src/components/Home/Hero.tsx`
-- `apps/mainframe/src/components/Home/Section.tsx`
-- `apps/mainframe/src/components/Home/Content.tsx`
+- `apps/marketing/src/components/Home/Header.tsx`
+- `apps/marketing/src/components/Home/Card.tsx`
+- `apps/marketing/src/components/Home/Hero.tsx`
+- `apps/marketing/src/components/Home/Section.tsx`
+- `apps/marketing/src/components/Home/Content.tsx`
 
 #### Testing the Connection
 
-1. Start the CMS: `cd apps/cms && pnpm dev` (runs on port 4000)
-2. Start the frontend: `cd apps/mainframe && pnpm dev` (runs on port 5173 or 3000)
+1. Start the CMS: `cd apps/admin && pnpm dev` (runs on port 4000)
+2. Start the frontend: `cd apps/marketing && pnpm dev` (runs on port 5173 or 3000)
 3. Check browser console for API errors
 4. Verify data is loading in components
 
@@ -1205,22 +1205,22 @@ Blog Setup:
 
 **CMS Side (Already Configured)**
 
-- `apps/cms/src/app/(backend)/api/[...slug]/route.ts` - API route handler
-- `apps/cms/revealui.config.ts` - Collections configuration
-- `apps/cms/src/proxy.ts` - CORS configuration
-- `apps/cms/.env.local` - Environment variables
+- `apps/admin/src/app/(backend)/api/[...slug]/route.ts` - API route handler
+- `apps/admin/revealui.config.ts` - Collections configuration
+- `apps/admin/src/proxy.ts` - CORS configuration
+- `apps/admin/.env.local` - Environment variables
 
 **Frontend Side (Need to Create/Modify)**
 
-- `apps/mainframe/src/lib/api/client.ts` - Base API client
-- `apps/mainframe/src/lib/api/fetchMainInfos.ts` - Fetch function
-- `apps/mainframe/src/lib/api/fetchVideos.ts` - Fetch function
-- `apps/mainframe/src/lib/api/fetchCard.ts` - Fetch function
-- `apps/mainframe/src/lib/api/fetchHero.ts` - Fetch function
-- `apps/mainframe/src/lib/api/fetchEvents.ts` - Fetch function
-- `apps/mainframe/src/lib/api/fetchBanner.ts` - Fetch function
-- `apps/mainframe/src/components/Home/*.tsx` - Update import paths
-- `apps/mainframe/.env.local` - Environment variables
+- `apps/marketing/src/lib/api/client.ts` - Base API client
+- `apps/marketing/src/lib/api/fetchMainInfos.ts` - Fetch function
+- `apps/marketing/src/lib/api/fetchVideos.ts` - Fetch function
+- `apps/marketing/src/lib/api/fetchCard.ts` - Fetch function
+- `apps/marketing/src/lib/api/fetchHero.ts` - Fetch function
+- `apps/marketing/src/lib/api/fetchEvents.ts` - Fetch function
+- `apps/marketing/src/lib/api/fetchBanner.ts` - Fetch function
+- `apps/marketing/src/components/Home/*.tsx` - Update import paths
+- `apps/marketing/.env.local` - Environment variables
 
 **Blog Post Fields Reference**
 
@@ -1266,9 +1266,9 @@ Blog Setup:
 **Customize Blog**
 
 1. **Edit frontend components**:
-   - `apps/cms/src/app/(frontend)/posts/page.tsx` - Blog index
-   - `apps/cms/src/app/(frontend)/posts/[slug]/page.tsx` - Post page
-   - `apps/cms/src/lib/components/CollectionArchive/index.tsx` - Post cards
+   - `apps/admin/src/app/(frontend)/posts/page.tsx` - Blog index
+   - `apps/admin/src/app/(frontend)/posts/[slug]/page.tsx` - Post page
+   - `apps/admin/src/lib/components/CollectionArchive/index.tsx` - Post cards
 
 2. **Customize styling**:
    - Modify Tailwind classes

@@ -81,16 +81,16 @@ feature/* ──PR──▶ test ──PR──▶ main
 ### Development
 ```bash
 pnpm dev                    # Start all apps in parallel
-pnpm dev:app                # Build auth + start CMS + API (port 4000 + 3004)
+pnpm dev:app                # Build auth + start Admin + API (port 4000 + 3004)
 pnpm dev:api                # Start API only (port 3004)
-pnpm dev:cms                # Build auth + start CMS only (port 4000)
+pnpm dev:admin              # Build auth + start Admin only (port 4000)
 ```
 
 ### Building
 ```bash
 pnpm build                  # Build all (turbo, respects dependency order)
 pnpm build:api              # Build API only
-pnpm build:cms              # Build auth + CMS
+pnpm build:admin            # Build auth + Admin
 ```
 
 ### Testing

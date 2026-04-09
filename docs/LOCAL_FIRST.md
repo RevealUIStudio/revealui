@@ -150,7 +150,7 @@ The model (~90 MB) is downloaded once and cached. Plug it into `@revealui/ai` vi
 
 ## Step 6 — RevVault setup
 
-RevVault stores all other project secrets (database URLs, Stripe keys, Resend API key):
+RevVault stores all other project secrets (database URLs, Stripe keys, Google service account key):
 
 ```bash
 # Initialize (first time)
@@ -159,7 +159,7 @@ revvault init
 # Store your secrets
 revvault set revealui/db/postgres-url
 revvault set revealui/stripe/secret-key
-revvault set revealui/resend/api-key
+revvault set revealui/google/private-key
 
 # Add to .envrc
 cat >> .envrc <<'EOF'
@@ -214,7 +214,7 @@ pnpm bitnet:serve --port 8081
 Once BitNet is installed and the model is downloaded, the inference stack works with no network connection. The only components that require network access at runtime are:
 
 - Database (NeonDB) — can be replaced with local Postgres
-- Email delivery (Resend) — no offline fallback
+- Email delivery (Gmail API) — no offline fallback
 - Stripe webhooks — requires Stripe CLI (`stripe listen`) for local testing
 
 For a fully offline database, use the local Postgres instance provided by the RevealUI devcontainer or configure `POSTGRES_URL` to point to a local Postgres server.

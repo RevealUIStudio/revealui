@@ -564,7 +564,7 @@ NODE_ENV=production
 ### 1. Verify Database Connection
 
 ```bash
-cd apps/cms
+cd apps/admin
 pnpm dev
 ```
 
@@ -600,7 +600,7 @@ If upload fails:
 
 ```bash
 # In one terminal
-cd apps/cms
+cd apps/admin
 pnpm dev
 
 # In another terminal
@@ -1038,7 +1038,7 @@ revealui/
 The project includes validation in:
 
 - `packages/config/src/validator.ts` - Runtime validation
-- `apps/cms/src/lib/utils/env-validation.ts` - CMS-specific validation
+- `apps/admin/src/lib/utils/env-validation.ts` - CMS-specific validation
 - `scripts/setup/validate-env.ts` - Setup validation script
 
 Run validation:

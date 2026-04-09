@@ -6,7 +6,7 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 ## Prerequisites
 
 - [ ] API running (`pnpm dev:api`)
-- [ ] CMS running (`pnpm dev:cms`)
+- [ ] CMS running (`pnpm dev:admin`)
 - [ ] Signed in as a test user in CMS
 - [ ] Stripe test mode keys in vault (`sk_test_*`, `whsec_*`)
 - [ ] Stripe CLI forwarding webhooks: `stripe listen --forward-to localhost:3004/api/webhooks/stripe`

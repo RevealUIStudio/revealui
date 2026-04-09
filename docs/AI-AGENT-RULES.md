@@ -220,7 +220,7 @@ export interface MyEntity {
 export type { MyEntity } from './entities/my-entity.js'
 
 // Step 4: Import and use
-// apps/cms/src/some-file.ts
+// apps/admin/src/some-file.ts
 import type { MyEntity } from '@revealui/contracts'
 const entity: MyEntity = { ... }
 ```
