@@ -42,7 +42,7 @@
 
 - Zero real users (admin account exists for testing)
 - Stripe live integration unverified
-- Email delivery unverified (Resend API key not set)
+- Email delivery configured (Gmail API via Google Workspace)
 - ~~No `create-revealui` CLI published to npm~~ — published @0.3.4 (latest, validated 2026-03-28)
 - No documentation site deployed
 - No marketing page deployed
@@ -232,7 +232,7 @@ Phase D — Cross-platform:
 - [x] Pre-push gate OOM: router imported `@revealui/core/observability/logger` (re-export from utils), forcing DTS compiler to load 297-file core type graph. Replaced with direct `@revealui/utils/logger` import — DTS build drops from OOM to 2.5s (commit 7e10e731) — 2026-03-31
 - [x] Biome PostToolUse hook cache fix: hook now outputs `additionalContext` JSON when it modifies files, preventing Claude's "file unexpectedly modified" errors — 2026-03-31
 - [x] Marketing site polish (#94): 4 P0 fixes (OG brand, version, component count, broken link), 3 P1 fixes (sponsor metadata, package count, CMS URL) — commits 5e7a6d39, aa8a3254 — 2026-03-31
-- [x] Full signup → login → admin dashboard E2E test — 2026-03-31 (signup-flow.spec.ts, 24 tests, handles both first-user and subsequent-user paths; email verification requires real SMTP for full coverage)
+- [x] Full signup → login → admin dashboard E2E test — 2026-03-31 (signup-flow.spec.ts, 24 tests, handles both first-user and subsequent-user paths; email verification requires Gmail API credentials for full coverage)
 
 #### 5.7 npm Pro Org Management
 - [ ] Verify `@revealui` npm org is claimed and linked to `revealui-org` account

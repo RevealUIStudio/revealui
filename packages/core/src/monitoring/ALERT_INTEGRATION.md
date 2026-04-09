@@ -648,7 +648,7 @@ describe('Alert Integration', () => {
 
 2. **Check middleware is configured:**
    ```typescript
-   // apps/cms/src/middleware.ts should be present
+   // apps/admin/src/middleware.ts should be present
    export function middleware(request: NextRequest) {
      // ... request ID generation
    }

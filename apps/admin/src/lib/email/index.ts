@@ -1,17 +1,14 @@
 /**
  * Email Service
  *
- * Sends emails using configured email provider.
+ * Sends emails using Gmail REST API with domain-wide delegation.
+ * Edge-compatible (fetch + jose, no Node.js-only dependencies).
  *
- * Provider priority:
- *   1. Gmail REST API  (GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY)
- *   2. Resend API      (RESEND_API_KEY)
- *   3. SMTP            (SMTP_HOST + SMTP_USER + SMTP_PASS, requires nodemailer)
- *   4. Mock / throw    (development logs, production throws)
- *
- * Gmail uses a Google Workspace service account with domain-wide delegation
- * to send as EMAIL_FROM (e.g. noreply@revealui.com) via the Gmail REST API.
- * No Node.js-only dependencies — fully edge-compatible (fetch + jose).
+ * Required env vars:
+ *   GOOGLE_SERVICE_ACCOUNT_EMAIL — GCP service account email
+ *   GOOGLE_PRIVATE_KEY           — RSA private key (PKCS8 PEM)
+ *   EMAIL_FROM                   — sender address (e.g. noreply@revealui.com)
+ *   EMAIL_REPLY_TO               — default reply-to (e.g. support@revealui.com)
  */
 
 import config from '@revealui/config';
@@ -23,6 +20,7 @@ interface EmailOptions {
   subject: string;
   html: string;
   text?: string;
+  replyTo?: string;
 }
 
 interface EmailProvider {
@@ -45,8 +43,7 @@ class GmailProvider implements EmailProvider {
   constructor() {
     this.serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || '';
     this.privateKey = process.env.GOOGLE_PRIVATE_KEY || '';
-    this.delegateEmail =
-      process.env.EMAIL_FROM ?? process.env.RESEND_FROM_EMAIL ?? 'noreply@revealui.com';
+    this.delegateEmail = process.env.EMAIL_FROM ?? 'noreply@revealui.com';
   }
 
   private async getAccessToken(): Promise<string> {
@@ -82,23 +79,35 @@ class GmailProvider implements EmailProvider {
     return access_token;
   }
 
-  private buildRawMessage(to: string, subject: string, html: string, text?: string): string {
+  private buildRawMessage(options: EmailOptions): string {
     const boundary = `boundary_${Date.now().toString(36)}`;
+    const replyTo = options.replyTo ?? process.env.EMAIL_REPLY_TO;
 
     const lines = [
       `From: ${this.delegateEmail}`,
-      `To: ${to}`,
-      `Subject: ${subject}`,
+      `To: ${sanitizeEmailHeader(options.to)}`,
+      `Subject: ${sanitizeEmailHeader(options.subject)}`,
       'MIME-Version: 1.0',
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
-      '',
     ];
 
-    if (text) {
-      lines.push(`--${boundary}`, 'Content-Type: text/plain; charset="UTF-8"', '', text, '');
+    if (replyTo) {
+      lines.push(`Reply-To: ${sanitizeEmailHeader(replyTo)}`);
     }
 
-    lines.push(`--${boundary}`, 'Content-Type: text/html; charset="UTF-8"', '', html, '');
+    lines.push('');
+
+    if (options.text) {
+      lines.push(
+        `--${boundary}`,
+        'Content-Type: text/plain; charset="UTF-8"',
+        '',
+        options.text,
+        '',
+      );
+    }
+
+    lines.push(`--${boundary}`, 'Content-Type: text/html; charset="UTF-8"', '', options.html, '');
     lines.push(`--${boundary}--`);
 
     const raw = lines.join('\r\n');
@@ -117,13 +126,7 @@ class GmailProvider implements EmailProvider {
 
     try {
       const accessToken = await this.getAccessToken();
-
-      const raw = this.buildRawMessage(
-        sanitizeEmailHeader(options.to),
-        sanitizeEmailHeader(options.subject),
-        options.html,
-        options.text,
-      );
+      const raw = this.buildRawMessage(options);
 
       const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
         method: 'POST',
@@ -157,168 +160,15 @@ class GmailProvider implements EmailProvider {
 }
 
 // ---------------------------------------------------------------------------
-// Resend API provider
-// ---------------------------------------------------------------------------
-
-class ResendProvider implements EmailProvider {
-  private apiKey: string;
-  private fromEmail: string;
-
-  constructor() {
-    this.apiKey = process.env.RESEND_API_KEY || '';
-    this.fromEmail =
-      process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || 'noreply@example.com';
-  }
-
-  async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
-    if (!this.apiKey) {
-      const message = 'RESEND_API_KEY not configured';
-      if (process.env.NODE_ENV === 'production') {
-        logger.error('Resend email delivery failed', new Error(message), { to: options.to });
-        throw new Error(`Resend email delivery failed: ${message}`);
-      }
-      return { success: false, error: message };
-    }
-
-    try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: this.fromEmail,
-          to: options.to,
-          subject: options.subject,
-          html: options.html,
-          text: options.text,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        const message = `Resend API error: ${errorText}`;
-        if (process.env.NODE_ENV === 'production') {
-          logger.error('Resend email delivery failed', new Error(message), { to: options.to });
-          throw new Error(`Resend email delivery failed: ${message}`);
-        }
-        return { success: false, error: message };
-      }
-
-      return { success: true };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      if (process.env.NODE_ENV === 'production') {
-        logger.error('Resend email delivery failed', new Error(message), { to: options.to });
-        throw new Error(`Resend email delivery failed: ${message}`);
-      }
-      return { success: false, error: message };
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-// SMTP provider (requires nodemailer)
-// ---------------------------------------------------------------------------
-
-class SMTPProvider implements EmailProvider {
-  private config: {
-    host: string;
-    port: number;
-    secure: boolean;
-    auth: {
-      user: string;
-      pass: string;
-    };
-  };
-  private fromEmail: string;
-
-  constructor() {
-    this.config = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587', 10),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: {
-        user: process.env.SMTP_USER || '',
-        pass: process.env.SMTP_PASS || '',
-      },
-    };
-    this.fromEmail = process.env.EMAIL_FROM || this.config.auth.user;
-  }
-
-  async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
-    let createTransport: typeof import('nodemailer').createTransport;
-    try {
-      const nodemailerModule = await import('nodemailer');
-      createTransport = nodemailerModule.createTransport;
-    } catch (_error) {
-      const message = 'nodemailer not installed. Run: pnpm add nodemailer @types/nodemailer';
-      if (process.env.NODE_ENV === 'production') {
-        logger.error('SMTP email delivery failed', new Error(message));
-        throw new Error(`SMTP email delivery failed: ${message}`);
-      }
-      return { success: false, error: message };
-    }
-
-    if (!(this.config.auth.user && this.config.auth.pass)) {
-      const message = 'SMTP_USER and SMTP_PASS must be configured';
-      if (process.env.NODE_ENV === 'production') {
-        logger.error('SMTP email delivery failed', new Error(message));
-        throw new Error(`SMTP email delivery failed: ${message}`);
-      }
-      return { success: false, error: message };
-    }
-
-    try {
-      const transporter = createTransport({
-        host: this.config.host,
-        port: this.config.port,
-        secure: this.config.secure,
-        auth: {
-          user: this.config.auth.user,
-          pass: this.config.auth.pass,
-        },
-      });
-
-      await transporter.sendMail({
-        from: this.fromEmail,
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-        text: options.text,
-      });
-
-      return { success: true };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown SMTP error';
-      if (process.env.NODE_ENV === 'production') {
-        logger.error('SMTP email delivery failed', new Error(message), { to: options.to });
-        throw new Error(`SMTP email delivery failed: ${message}`);
-      }
-      return { success: false, error: message };
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Mock provider (development)
 // ---------------------------------------------------------------------------
 
 class MockEmailProvider implements EmailProvider {
   async send(options: EmailOptions): Promise<{ success: boolean; error?: string }> {
-    if (process.env.NODE_ENV === 'development') {
-      import('@revealui/core/utils/logger')
-        .then(({ logger }) => {
-          logger.debug('Mock email sent', {
-            to: options.to,
-            subject: options.subject,
-          });
-        })
-        .catch(() => {
-          // Logger not available, skip logging
-        });
-    }
+    logger.debug('Mock email sent', {
+      to: options.to,
+      subject: options.subject,
+    });
     return { success: true };
   }
 }
@@ -328,23 +178,12 @@ class MockEmailProvider implements EmailProvider {
 // ---------------------------------------------------------------------------
 
 function getEmailProvider(): EmailProvider {
-  // 1. Gmail REST API (preferred — edge-compatible, free with Workspace)
+  // Gmail REST API (production — edge-compatible, free with Workspace)
   if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
     return new GmailProvider();
   }
 
-  // 2. Resend API
-  if (process.env.RESEND_API_KEY) {
-    return new ResendProvider();
-  }
-
-  // 3. SMTP (requires nodemailer)
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    return new SMTPProvider();
-  }
-
-  // 4. No provider — warn and return a provider that reports failure
-  //    so auth flows surface delivery errors instead of silently succeeding.
+  // No provider configured
   logger.warn('No email provider configured — emails will not be sent.');
   if (process.env.NODE_ENV === 'development') {
     return new MockEmailProvider();
@@ -370,7 +209,7 @@ export async function sendEmail(
 
       if (result.success) return result;
 
-      if (result.error && /not configured|not installed|unauthorized/i.test(result.error)) {
+      if (result.error && /not configured/i.test(result.error)) {
         return result;
       }
 

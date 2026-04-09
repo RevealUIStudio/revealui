@@ -113,16 +113,6 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
       message: 'Must be a JWT (starts with eyJ)',
     }),
   },
-  // Services
-  {
-    key: 'RESEND_API_KEY',
-    label: 'Resend API key',
-    required: false,
-    validate: (v) => ({
-      valid: v.startsWith('re_'),
-      message: 'Must start with re_',
-    }),
-  },
   // npm
   {
     key: 'NPM_TOKEN',

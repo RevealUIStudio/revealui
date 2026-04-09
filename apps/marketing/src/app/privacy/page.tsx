@@ -73,8 +73,8 @@ export default function PrivacyPolicyPage() {
             <a href="https://vercel.com/legal/privacy-policy">Vercel Privacy Policy</a>)
           </li>
           <li>
-            <strong>Resend</strong> — transactional email delivery (
-            <a href="https://resend.com/legal/privacy-policy">Resend Privacy Policy</a>)
+            <strong>Google Workspace</strong> — transactional email delivery via Gmail API (
+            <a href="https://policies.google.com/privacy">Google Privacy Policy</a>)
           </li>
         </ul>
 

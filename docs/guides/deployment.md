@@ -41,7 +41,7 @@ pnpm add -g vercel
 2. Link each app to a Vercel project:
 
 ```bash
-cd apps/cms && vercel link
+cd apps/admin && vercel link
 cd apps/api && vercel link
 cd apps/marketing && vercel link
 ```
@@ -125,7 +125,7 @@ services:
   cms:
     build:
       context: .
-      dockerfile: apps/cms/Dockerfile
+      dockerfile: apps/admin/Dockerfile
     ports:
       - '4000:4000'
     environment:
@@ -214,7 +214,7 @@ Each app can be started independently:
 
 ```bash
 # CMS (Next.js standalone)
-cd apps/cms
+cd apps/admin
 node .next/standalone/server.js
 
 # API (Hono)
@@ -227,7 +227,7 @@ node dist/index.js
 Use a process manager like PM2 for production:
 
 ```bash
-pm2 start apps/cms/.next/standalone/server.js --name revealui-cms
+pm2 start apps/admin/.next/standalone/server.js --name revealui-cms
 pm2 start apps/api/dist/index.js --name revealui-api
 pm2 save
 pm2 startup

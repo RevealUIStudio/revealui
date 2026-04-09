@@ -106,9 +106,8 @@ pnpm dev
 revealui/
 ├── apps/
 │   ├── api/            # Hono REST API (OpenAPI + Swagger)
-│   ├── cms/            # Next.js 16 admin dashboard + content management
+│   ├── admin/          # Next.js 16 admin dashboard + content management
 │   ├── docs/           # Documentation site (Vite + React)
-│   ├── mainframe/      # Hono SSR + React demo/showcase app
 │   ├── marketing/      # Marketing + waitlist (Next.js)
 │   └── studio/         # Native AI experience (Tauri 2 + React 19)
 ├── packages/

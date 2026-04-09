@@ -53,14 +53,14 @@ export interface CollectionMetadata {
   description?: string
 }
 
-// apps/cms/src/app/api/chat/route.ts
+// apps/admin/src/app/api/chat/route.ts
 import type { CollectionMetadata } from '@revealui/ai/tools/cms'
 const meta: CollectionMetadata = {...}
 ```
 
 ```typescript
 // ❌ WRONG - Define inline at usage site
-// apps/cms/src/app/api/chat/route.ts
+// apps/admin/src/app/api/chat/route.ts
 const meta: { slug: string; label?: string } = {...}
 ```
 

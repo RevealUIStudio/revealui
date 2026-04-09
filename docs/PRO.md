@@ -365,7 +365,7 @@ The Next.js DevTools MCP provides runtime diagnostics, automated upgrades, and i
 
 ### Integration with Your CMS App
 
-Your CMS app (`apps/cms`) is perfectly configured for Next.js DevTools MCP:
+Your CMS app (`apps/admin`) is perfectly configured for Next.js DevTools MCP:
 
 ```json
 {
@@ -632,7 +632,7 @@ To use the Next.js DevTools MCP effectively:
 **Step 1: Start Your CMS Dev Server**
 
 ```bash
-cd apps/cms
+cd apps/admin
 pnpm dev
 ```
 
@@ -759,7 +759,7 @@ revealui dev up --include mcp
 
 **Solutions:**
 
-1. Ensure dev server is running: `cd apps/cms && pnpm dev`
+1. Ensure dev server is running: `cd apps/admin && pnpm dev`
 2. Check port 4000 is accessible: `curl http://localhost:4000`
 3. Verify Next.js version is 16+: Check `package.json`
 
@@ -827,7 +827,7 @@ revealui dev status --profile agent
 
 Use this checklist to verify everything is working:
 
-- [ ] CMS dev server running (`cd apps/cms && pnpm dev`)
+- [ ] CMS dev server running (`cd apps/admin && pnpm dev`)
 - [ ] MCP credentials validated (`pnpm setup:mcp`)
 - [ ] MCP endpoint accessible (`curl http://localhost:4000/_next/mcp`)
 - [ ] Can discover servers (ask: "what servers are running?")
@@ -1118,10 +1118,10 @@ wb.registerSession({
 });
 
 // Claim file ownership (prevents conflicts with other sessions)
-wb.claimFiles("zed-1", ["apps/cms/src/lib/auth.ts"]);
+wb.claimFiles("zed-1", ["apps/admin/src/lib/auth.ts"]);
 
 // Check for conflicts before editing
-const result = wb.checkConflicts("zed-1", ["apps/cms/src/lib/auth.ts"]);
+const result = wb.checkConflicts("zed-1", ["apps/admin/src/lib/auth.ts"]);
 if (!result.clean) {
   console.warn("File conflict:", result.conflicts);
 }

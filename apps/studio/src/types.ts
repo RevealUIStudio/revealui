@@ -259,12 +259,10 @@ export interface WizardData {
   stripePriceIds: { pro: string; max: string; enterprise: string };
   licensePrivateKey: string;
   licensePublicKey: string;
-  emailProvider: 'resend' | 'smtp';
-  resendApiKey?: string;
-  smtpHost?: string;
-  smtpPort?: string;
-  smtpUser?: string;
-  smtpPass?: string;
+  emailProvider: 'gmail';
+  googleServiceAccountEmail?: string;
+  googlePrivateKey?: string;
+  emailFrom?: string;
   blobToken: string;
   revealuiSecret: string;
   revealuiKek: string;

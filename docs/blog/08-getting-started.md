@@ -216,7 +216,7 @@ Open [http://localhost:4000/admin](http://localhost:4000/admin) in your browser.
   API     docs   http://localhost:3004/docs
 ```
 
-> **Tip:** Each app can be started independently. Use `pnpm dev:cms` for just the CMS, or `pnpm dev:api` for just the API server.
+> **Tip:** Each app can be started independently. Use `pnpm dev:admin` for just the CMS, or `pnpm dev:api` for just the API server.
 
 ---
 

@@ -77,7 +77,7 @@ pnpm lint
 
 **Biome-only in a specific package**:
 ```bash
-cd apps/cms
+cd apps/admin
 pnpm lint
 ```
 
@@ -263,10 +263,10 @@ Help the LLM understand where code belongs:
 
 ```markdown
 ### File Organization
-- Components: `apps/mainframe/src/components/`
-- Utilities: `apps/mainframe/src/lib/`
+- Components: `apps/marketing/src/components/`
+- Utilities: `apps/marketing/src/lib/`
 - Types: `packages/core/src/types/`
-- Collections: `apps/cms/src/lib/collections/`
+- Collections: `apps/admin/src/lib/collections/`
 ```
 
 #### 6. Add Validation Commands
@@ -645,7 +645,7 @@ In a monorepo with Next.js 16 and Turbopack, there's a fundamental tension betwe
 
 #### 2. TypeScript Path Mappings (For Type Checking Only)
 
-**For TypeScript type checking:** `apps/cms/tsconfig.json` uses path mappings that point to **source files** (not `dist/`):
+**For TypeScript type checking:** `apps/admin/tsconfig.json` uses path mappings that point to **source files** (not `dist/`):
 
 ```json
 {
@@ -666,7 +666,7 @@ In a monorepo with Next.js 16 and Turbopack, there's a fundamental tension betwe
 
 #### 3. TranspilePackages (Bridge Between Source and Runtime)
 
-**In `apps/cms/next.config.mjs`:**
+**In `apps/admin/next.config.mjs`:**
 
 ```javascript
 transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@revealui/auth', '@revealui/config']
@@ -1254,7 +1254,7 @@ catch (error) {
 
 ### Sentry Integration
 
-Sentry is configured in `apps/cms/next.config.mjs` and will automatically capture errors.
+Sentry is configured in `apps/admin/next.config.mjs` and will automatically capture errors.
 
 **Manual Error Capture:**
 ```typescript

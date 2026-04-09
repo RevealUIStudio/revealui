@@ -284,7 +284,7 @@ The Next.js DevTools MCP provides runtime diagnostics, automated upgrades, and i
 
 ### Integration with Your CMS App
 
-Your CMS app (`apps/cms`) is perfectly configured for Next.js DevTools MCP:
+Your CMS app (`apps/admin`) is perfectly configured for Next.js DevTools MCP:
 
 ```json
 {
@@ -525,7 +525,7 @@ To use the Next.js DevTools MCP effectively:
 
 **Step 1: Start Your CMS Dev Server**
 ```bash
-cd apps/cms
+cd apps/admin
 pnpm dev
 ```
 
@@ -623,7 +623,7 @@ Complete automated setup with error detection and fixing.
 **Problem:** `No server info found`
 
 **Solutions:**
-1. Ensure dev server is running: `cd apps/cms && pnpm dev`
+1. Ensure dev server is running: `cd apps/admin && pnpm dev`
 2. Check port 4000 is accessible: `curl http://localhost:4000`
 3. Verify Next.js version is 16+: Check `package.json`
 
@@ -699,7 +699,7 @@ pnpm mcp:all
 
 Use this checklist to verify everything is working:
 
-- [ ] CMS dev server running (`cd apps/cms && pnpm dev`)
+- [ ] CMS dev server running (`cd apps/admin && pnpm dev`)
 - [ ] Next.js DevTools MCP running (`pnpm mcp:next-devtools`)
 - [ ] MCP endpoint accessible (`curl http://localhost:4000/_next/mcp`)
 - [ ] Can discover servers (ask: "what servers are running?")

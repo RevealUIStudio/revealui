@@ -221,43 +221,13 @@ describe('envSchema — wizard env vars', () => {
     });
   });
 
-  describe('email provider — Resend', () => {
-    it('accepts RESEND_API_KEY', () => {
-      const result = envSchema.safeParse(makeValidEnv({ RESEND_API_KEY: 're_123456789' }));
+  describe('email provider — Gmail', () => {
+    it('accepts EMAIL_REPLY_TO', () => {
+      const result = envSchema.safeParse(makeValidEnv({ EMAIL_REPLY_TO: 'support@example.com' }));
       expect(result.success).toBe(true);
     });
 
-    it('is optional', () => {
-      const result = envSchema.safeParse(makeValidEnv());
-      expect(result.success).toBe(true);
-    });
-  });
-
-  describe('email provider — SMTP', () => {
-    it('accepts all SMTP fields together', () => {
-      const result = envSchema.safeParse(
-        makeValidEnv({
-          SMTP_HOST: 'smtp.example.com',
-          SMTP_PORT: '587',
-          SMTP_USER: 'user@example.com',
-          SMTP_PASS: 'password123',
-        }),
-      );
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.SMTP_PORT).toBe(587);
-      }
-    });
-
-    it('coerces SMTP_PORT from string to number', () => {
-      const result = envSchema.safeParse(makeValidEnv({ SMTP_PORT: '465' }));
-      expect(result.success).toBe(true);
-      if (result.success) {
-        expect(result.data.SMTP_PORT).toBe(465);
-      }
-    });
-
-    it('all SMTP fields are optional', () => {
+    it('email fields are optional', () => {
       const result = envSchema.safeParse(makeValidEnv());
       expect(result.success).toBe(true);
     });

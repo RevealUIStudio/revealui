@@ -241,7 +241,7 @@ export async function POST(req: Request) {
 ### Stripe Webhook Handler
 
 ```ts
-// apps/cms/src/app/api/webhooks/stripe/route.ts
+// apps/admin/src/app/api/webhooks/stripe/route.ts
 import Stripe from "stripe";
 import { getRestClient } from "@revealui/db/client";
 import { licenses } from "@revealui/db/schema/licenses";
