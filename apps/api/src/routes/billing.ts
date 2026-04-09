@@ -108,7 +108,7 @@ function getStripeClient(): Stripe {
   if (!key) {
     throw new HTTPException(500, { message: 'Stripe is not configured' });
   }
-  cachedStripe = new Stripe(key, { maxNetworkRetries: 2 });
+  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
   return cachedStripe;
 }
 
@@ -1591,14 +1591,17 @@ app.openapi(reportOverageRoute, async (c) => {
     }
 
     try {
-      await stripe.billing.meterEvents.create({
-        event_name: meterEventName,
-        payload: {
-          stripe_customer_id: row.stripeCustomerId,
-          value: String(row.overage),
+      await stripe.billing.meterEvents.create(
+        {
+          event_name: meterEventName,
+          payload: {
+            stripe_customer_id: row.stripeCustomerId,
+            value: String(row.overage),
+          },
+          timestamp: getMeterEventTimestamp(prevCycle),
         },
-        timestamp: getMeterEventTimestamp(prevCycle),
-      });
+        { idempotencyKey: `overage-${row.userId}-${prevCycle}` },
+      );
       reported++;
     } catch (err) {
       logger.error('Stripe meter event creation failed', err instanceof Error ? err : undefined, {

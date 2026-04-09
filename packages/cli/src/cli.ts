@@ -2,8 +2,12 @@
  * CLI definition using Commander.js
  */
 
+import { createRequire } from 'node:module';
 import { createLogger } from '@revealui/setup/utils';
 import { Command } from 'commander';
+
+const cliRequire = createRequire(import.meta.url);
+const CLI_VERSION: string = (cliRequire('../package.json') as { version: string }).version;
 import {
   runAgentHeadlessCommand,
   runAgentReplCommand,
@@ -63,7 +67,7 @@ function configureCreateCommand(command: Command, legacyName?: string): Command 
 export function createCli(): Command {
   const program = new Command();
 
-  program.name('revealui').description('RevealUI operational CLI').version('0.2.0');
+  program.name('revealui').description('RevealUI operational CLI').version(CLI_VERSION);
 
   configureCreateCommand(program.command('create'), undefined);
 
@@ -343,7 +347,7 @@ export function createCli(): Command {
 export function createLegacyCreateCli(): Command {
   const program = new Command();
 
-  program.name('create-revealui').version('0.2.0');
+  program.name('create-revealui').version(CLI_VERSION);
   configureCreateCommand(program, 'create-revealui');
 
   return program;

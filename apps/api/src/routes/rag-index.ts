@@ -293,7 +293,8 @@ app.openapi(
     },
   }),
   async (c) => {
-    const { documentId } = c.req.valid('param');
+    const { workspaceId, documentId } = c.req.valid('param');
+    assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
 
     const [embeddingsMod, ingestionMod] = await Promise.all([
       import('@revealui/ai/embeddings').catch(() => null),

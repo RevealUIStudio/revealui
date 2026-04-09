@@ -13,6 +13,7 @@ import { getClient } from '@revealui/db';
 import { conversations } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
 import { type NextRequest, NextResponse } from 'next/server';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
@@ -23,9 +24,23 @@ import { extractRequestContext } from '@/lib/utils/request-context';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const AGENT_ID_RE = /^[a-zA-Z0-9_-]+$/;
+function isValidAgentId(id: string): boolean {
+  if (id.length === 0) return false;
+  for (let i = 0; i < id.length; i++) {
+    const c = id.charCodeAt(i);
+    const isAlphaNum =
+      (c >= 48 && c <= 57) || // 0-9
+      (c >= 65 && c <= 90) || // A-Z
+      (c >= 97 && c <= 122); // a-z
+    if (!(isAlphaNum || c === 95 || c === 45)) return false; // _ or -
+  }
+  return true;
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
+
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
@@ -38,7 +53,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       device_id?: string;
     };
 
-    if (!(body.agent_id && AGENT_ID_RE.test(body.agent_id))) {
+    if (!(body.agent_id && isValidAgentId(body.agent_id))) {
       return createValidationErrorResponse(
         'agent_id is required and must be alphanumeric with hyphens/underscores',
         'agent_id',

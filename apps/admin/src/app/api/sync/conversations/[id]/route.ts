@@ -13,6 +13,7 @@ import { conversations } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
 import { and, eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
   createApplicationErrorResponse,
   createErrorResponse,
@@ -23,12 +24,30 @@ import { extractRequestContext } from '@/lib/utils/request-context';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isValidUUID(s: string): boolean {
+  if (s.length !== 36) return false;
+  for (let i = 0; i < 36; i++) {
+    if (i === 8 || i === 13 || i === 18 || i === 23) {
+      if (s[i] !== '-') return false;
+    } else {
+      const c = s.charCodeAt(i);
+      const isHex =
+        (c >= 48 && c <= 57) || // 0-9
+        (c >= 65 && c <= 70) || // A-F
+        (c >= 97 && c <= 102); // a-f
+      if (!isHex) return false;
+    }
+  }
+  return true;
+}
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
+
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
@@ -36,7 +55,7 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    if (!UUID_RE.test(id)) {
+    if (!isValidUUID(id)) {
       return createValidationErrorResponse('id must be a valid UUID', 'id', id);
     }
 
@@ -76,6 +95,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
+
   try {
     const session = await getSession(request.headers, extractRequestContext(request));
     if (!session) {
@@ -83,7 +105,7 @@ export async function DELETE(
     }
 
     const { id } = await params;
-    if (!UUID_RE.test(id)) {
+    if (!isValidUUID(id)) {
       return createValidationErrorResponse('id must be a valid UUID', 'id', id);
     }
 

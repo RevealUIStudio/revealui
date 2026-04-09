@@ -88,33 +88,27 @@ export const createPaymentIntent = async (
       return { status: 400, json: { error: 'No items in cart' } };
     }
 
-    await Promise.allSettled(
-      cart.items.map(async (item: CartItem): Promise<void> => {
-        const { product, quantity } = item;
+    for (const item of cart.items) {
+      const { product, quantity } = item;
 
-        if (
-          !quantity ||
-          typeof product !== 'object' ||
-          typeof product.stripeProductID !== 'string'
-        ) {
-          throw new Error('Invalid product or quantity');
-        }
+      if (!quantity || typeof product !== 'object' || typeof product.stripeProductID !== 'string') {
+        return { status: 400, json: { error: 'Invalid product or quantity in cart' } };
+      }
 
-        const prices = await protectedStripe.prices.list({
-          product: product.stripeProductID,
-          limit: 100,
-        });
+      const prices = await protectedStripe.prices.list({
+        product: product.stripeProductID,
+        limit: 100,
+      });
 
-        if (prices.data.length === 0) {
-          throw new Error('No prices found for product');
-        }
+      if (prices.data.length === 0) {
+        return { status: 400, json: { error: 'No price found for a product in your cart' } };
+      }
 
-        const price = prices.data[0];
-        if (price && price.unit_amount !== null && typeof price.unit_amount === 'number') {
-          total += price.unit_amount * quantity;
-        }
-      }),
-    );
+      const price = prices.data[0];
+      if (price?.unit_amount !== null && typeof price?.unit_amount === 'number') {
+        total += price.unit_amount * quantity;
+      }
+    }
 
     if (total === 0) {
       throw new Error('There is nothing to pay for, add some items to your cart and try again.');
@@ -139,11 +133,10 @@ export const createPaymentIntent = async (
       send: { client_secret: paymentIntent.client_secret },
     };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    const revealuiInstance = revealui;
-    if (revealuiInstance?.logger) {
-      revealuiInstance.logger.error(message);
+    const internalMessage = err instanceof Error ? err.message : 'Unknown error';
+    if (revealui?.logger) {
+      revealui.logger.error(internalMessage);
     }
-    return { status: 500, json: { error: message } };
+    return { status: 500, json: { error: 'Payment processing failed. Please try again.' } };
   }
 };
