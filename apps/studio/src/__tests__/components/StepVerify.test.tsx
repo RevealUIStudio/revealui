@@ -41,8 +41,10 @@ const BASE_DATA: WizardData = {
   stripePriceIds: { pro: 'price_pro', max: 'price_max', enterprise: 'price_ent' },
   licensePrivateKey: 'PRIVATE_KEY',
   licensePublicKey: 'PUBLIC_KEY',
-  emailProvider: 'resend',
-  resendApiKey: 'rk_test_123',
+  emailProvider: 'gmail',
+  googleServiceAccountEmail: 'sa@project.iam.gserviceaccount.com',
+  googlePrivateKey: '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----',
+  emailFrom: 'noreply@example.com',
   blobToken: 'blob_test',
   revealuiSecret: 'secret_test',
   revealuiKek: 'kek_test',
@@ -324,11 +326,11 @@ describe('StepVerify', () => {
     expect(screen.getByLabelText('Admin Password')).toBeDisabled();
   });
 
-  // -- Email delivery — SMTP provider ------------------------------------
+  // -- Email delivery — Gmail provider ------------------------------------
 
-  it('marks email as validated in email step for SMTP provider', async () => {
+  it('marks email as validated in email step for Gmail provider', async () => {
     renderStep({
-      data: { emailProvider: 'smtp', resendApiKey: undefined },
+      data: { emailProvider: 'gmail' },
     });
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {

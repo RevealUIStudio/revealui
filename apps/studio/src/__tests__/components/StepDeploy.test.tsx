@@ -40,8 +40,10 @@ const MOCK_DATA: WizardData = {
   stripePriceIds: { pro: 'price_pro', max: 'price_max', enterprise: 'price_ent' },
   licensePrivateKey: 'PRIVATE_KEY',
   licensePublicKey: 'PUBLIC_KEY',
-  emailProvider: 'resend',
-  resendApiKey: 'rk_test_123',
+  emailProvider: 'gmail',
+  googleServiceAccountEmail: 'sa@project.iam.gserviceaccount.com',
+  googlePrivateKey: '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----',
+  emailFrom: 'noreply@example.com',
   blobToken: 'blob_test',
   revealuiSecret: 'secret_test',
   revealuiKek: 'kek_test',
@@ -184,12 +186,12 @@ describe('StepDeploy', () => {
 
     const setEnvCalls = mockVercelSetEnv.mock.calls;
 
-    // Admin should have RESEND_API_KEY
-    const adminResend = setEnvCalls.find(
-      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'RESEND_API_KEY',
+    // Admin should have GOOGLE_SERVICE_ACCOUNT_EMAIL
+    const adminGmail = setEnvCalls.find(
+      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'GOOGLE_SERVICE_ACCOUNT_EMAIL',
     );
-    expect(adminResend).toBeDefined();
-    expect(adminResend?.[3]).toBe('rk_test_123');
+    expect(adminGmail).toBeDefined();
+    expect(adminGmail?.[3]).toBe('sa@project.iam.gserviceaccount.com');
 
     // Admin should have REVEALUI_SIGNUP_OPEN
     const adminSignup = setEnvCalls.find(
@@ -199,7 +201,7 @@ describe('StepDeploy', () => {
     expect(adminSignup?.[3]).toBe('true');
   });
 
-  it('builds Admin env vars with SMTP email provider', async () => {
+  it('builds Admin env vars with Gmail email provider', async () => {
     mockVercelSetEnv.mockResolvedValue(undefined);
     mockVercelDeploy.mockResolvedValue('mock-deploy-id');
     mockVercelGetDeployment.mockResolvedValue({
@@ -209,17 +211,7 @@ describe('StepDeploy', () => {
       createdAt: 0,
     });
 
-    const smtpData: WizardData = {
-      ...MOCK_DATA,
-      emailProvider: 'smtp',
-      resendApiKey: undefined,
-      smtpHost: 'smtp.example.com',
-      smtpPort: '587',
-      smtpUser: 'user@example.com',
-      smtpPass: 'smtp_pass',
-    };
-
-    render(<StepDeploy config={MOCK_CONFIG} data={smtpData} onNext={vi.fn()} />);
+    render(<StepDeploy config={MOCK_CONFIG} data={MOCK_DATA} onNext={vi.fn()} />);
 
     fireEvent.click(screen.getByText('Deploy All'));
 
@@ -229,23 +221,16 @@ describe('StepDeploy', () => {
 
     const setEnvCalls = mockVercelSetEnv.mock.calls;
 
-    // Admin should have SMTP vars
-    const adminSmtpHost = setEnvCalls.find(
-      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'SMTP_HOST',
+    // Admin should have Gmail vars
+    const adminGmail = setEnvCalls.find(
+      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'GOOGLE_SERVICE_ACCOUNT_EMAIL',
     );
-    expect(adminSmtpHost).toBeDefined();
-    expect(adminSmtpHost?.[3]).toBe('smtp.example.com');
+    expect(adminGmail).toBeDefined();
 
-    const adminSmtpPort = setEnvCalls.find(
-      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'SMTP_PORT',
+    const adminEmailFrom = setEnvCalls.find(
+      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'EMAIL_FROM',
     );
-    expect(adminSmtpPort).toBeDefined();
-    expect(adminSmtpPort?.[3]).toBe('587');
-
-    // Admin should NOT have RESEND_API_KEY with smtp provider
-    const adminResend = setEnvCalls.find(
-      (c: unknown[]) => c[1] === 'prj-admin' && c[2] === 'RESEND_API_KEY',
-    );
-    expect(adminResend).toBeUndefined();
+    expect(adminEmailFrom).toBeDefined();
+    expect(adminEmailFrom?.[3]).toBe('noreply@example.com');
   });
 });
