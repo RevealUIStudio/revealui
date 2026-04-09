@@ -503,7 +503,7 @@ jobs:
           done
 
       - name: Run visual regression tests
-        run: pnpm test:e2e -- --project=chromium e2e/visual-snapshots.e2e.ts
+        run: npx playwright test --project=chromium e2e/visual-snapshots.e2e.ts
         env:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
