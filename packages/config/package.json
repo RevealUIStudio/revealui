@@ -1,6 +1,6 @@
 {
   "name": "@revealui/config",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Type-safe environment configuration with Zod validation and lazy proxy loading",
   "license": "MIT",
   "dependencies": {
@@ -49,5 +49,10 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/config"
+  }
 }

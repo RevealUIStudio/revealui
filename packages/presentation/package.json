@@ -1,6 +1,6 @@
 {
   "name": "@revealui/presentation",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Shared UI components and presentation layer for RevealUI applications",
   "keywords": [
     "components",
@@ -83,5 +83,10 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/presentation"
+  }
 }

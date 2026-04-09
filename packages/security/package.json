@@ -1,6 +1,6 @@
 {
   "name": "@revealui/security",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Security infrastructure for RevealUI - headers, CORS, RBAC/ABAC, encryption, audit, GDPR",
   "license": "MIT",
   "dependencies": {
@@ -43,5 +43,10 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/security"
+  }
 }

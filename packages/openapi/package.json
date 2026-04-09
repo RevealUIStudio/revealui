@@ -1,6 +1,6 @@
 {
   "name": "@revealui/openapi",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "OpenAPI integration for Hono with Zod validation",
   "license": "MIT",
   "dependencies": {
@@ -49,5 +49,10 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/openapi"
+  }
 }

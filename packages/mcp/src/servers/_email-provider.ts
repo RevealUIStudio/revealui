@@ -98,8 +98,9 @@ function buildRawMessage(payload: EmailPayload): string {
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ];
 
-  if (payload.reply_to) {
-    lines.push(`Reply-To: ${payload.reply_to}`);
+  const replyTo = payload.reply_to ?? process.env.EMAIL_REPLY_TO;
+  if (replyTo) {
+    lines.push(`Reply-To: ${replyTo}`);
   }
 
   lines.push('');

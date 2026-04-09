@@ -1,6 +1,6 @@
 {
   "name": "@revealui/core",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "Runtime engine, REST API, auth, rich text, admin UI, and plugins for RevealUI",
   "license": "MIT",
   "dependencies": {
@@ -298,5 +298,10 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/core"
+  }
 }

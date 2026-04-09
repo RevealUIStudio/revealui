@@ -1,6 +1,6 @@
 {
   "name": "@revealui/ai",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "[Pro] AI system for RevealUI - memory, LLM, orchestration, and tools",
   "keywords": [
     "agent",
