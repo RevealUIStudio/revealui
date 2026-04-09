@@ -1,4 +1,4 @@
-import { bootstrap, type BootstrapResult, type RevealUILike } from '@revealui/setup/bootstrap';
+import { type BootstrapResult, bootstrap, type RevealUILike } from '@revealui/setup/bootstrap';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';

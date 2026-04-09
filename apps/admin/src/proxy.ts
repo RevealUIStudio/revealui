@@ -37,7 +37,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   if (pathname === '/' || pathname === '/login' || pathname === '/admin') {
     const session = request.cookies.get('revealui-session')?.value;
     const setupDone = request.cookies.get('revealui-setup-done')?.value;
-    if (!session && !setupDone) {
+    if (!(session || setupDone)) {
       // Check the setup API to see if setup is needed (lightweight JSON call)
       try {
         const origin = request.nextUrl.origin;

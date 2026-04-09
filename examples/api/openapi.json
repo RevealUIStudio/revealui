@@ -7092,12 +7092,7 @@
                 "properties": {
                   "provider": {
                     "type": "string",
-                    "enum": [
-                      "ollama",
-                      "huggingface",
-                      "vultr",
-                      "inference-snaps"
-                    ],
+                    "enum": ["ollama", "huggingface", "vultr", "inference-snaps"],
                     "description": "LLM provider for this key",
                     "example": "ollama"
                   },
@@ -13874,12 +13869,7 @@
                 "properties": {
                   "provider": {
                     "type": "string",
-                    "enum": [
-                      "ollama",
-                      "huggingface",
-                      "vultr",
-                      "inference-snaps"
-                    ],
+                    "enum": ["ollama", "huggingface", "vultr", "inference-snaps"],
                     "description": "LLM provider for this key",
                     "example": "ollama"
                   },
