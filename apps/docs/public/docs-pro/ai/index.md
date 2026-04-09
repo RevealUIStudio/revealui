@@ -8,7 +8,7 @@ AI agents, open-model inference, CRDT memory, and the A2A protocol for RevealUI 
 
 - **Agents** — long-running task agents with persistent state
 - **Memory** — four-store cognitive memory (episodic, working, semantic, procedural)
-- **Open-model inference** — Ubuntu snaps, BitNet, and open source models via the harness
+- **Open-model inference** — Ubuntu snaps, Ollama, and open source models via the harness
 - **Orchestration** — multi-agent coordination with the A2A protocol
 - **MCP integration** — tool use via Model Context Protocol
 
@@ -70,8 +70,7 @@ const memory = {
 | Path | Chat | Embeddings | Notes |
 |------|------|-----------|-------|
 | **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime — hardware-aware, single command install |
-| BitNet | Yes | No | 1-bit quantized, CPU-only, ~700 MB RAM |
-| Ollama | Yes | Yes | Any open source GGUF model, local inference |
+| Ollama | Yes | Yes | Any open source GGUF model (Gemma 4, Qwen, Mistral) |
 | HuggingFace | Yes | Yes | Open models via HuggingFace Inference API |
 | Vultr | Yes | Depends on model | Open models on Vultr serverless GPU inference |
 
@@ -101,7 +100,7 @@ sudo snap install nemotron-3-nano   # free tier default
 ```typescript
 import { createLLMClient } from '@revealui/ai/llm'
 
-// Auto-detects from environment (snaps > BitNet > Ollama)
+// Auto-detects from environment (snaps > Groq > Ollama)
 const llm = createLLMClient()
 ```
 

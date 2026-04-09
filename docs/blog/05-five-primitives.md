@@ -391,7 +391,7 @@ app.openapi(agentStreamRoute, async (c) => {
     return c.json({ error: "Feature 'ai' requires a Pro or Enterprise license." }, 403);
   }
 
-  // Create inference client from environment (snaps > BitNet > Ollama)
+  // Create inference client from environment (snaps > Ollama)
   const llmClient = llmClientMod.createLLMClientFromEnv();
 
   const runtime = new streamingRuntimeMod.StreamingAgentRuntime({
@@ -414,11 +414,8 @@ The `@revealui/ai` package is loaded dynamically. If the license is free, the im
 
 RevealUI runs AI on open models only — no proprietary cloud APIs, no vendor lock-in, no API bills. The inference path is auto-detected from environment variables:
 
-1. **Ubuntu Inference Snaps** — Canonical snap runtime (Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano)
-2. **BitNet** — 1-bit quantized models, CPU-only, ~700 MB RAM
-3. **Ollama** — Any open source GGUF model (chat: `llama3.2:3b`, embeddings: `nomic-embed-text`)
-
-When both BitNet and Ollama are available, chat routes to BitNet and embeddings route to Ollama automatically. No additional configuration needed.
+1. **Ubuntu Inference Snaps** (recommended) — Canonical snap runtime (Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano)
+2. **Ollama** (fallback) — Any open source GGUF model (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)
 
 ### CRDT-based memory system
 

@@ -7093,17 +7093,13 @@
                   "provider": {
                     "type": "string",
                     "enum": [
-                      "openai",
-                      "anthropic",
-                      "groq",
                       "ollama",
-                      "bitnet",
                       "huggingface",
                       "vultr",
                       "inference-snaps"
                     ],
                     "description": "LLM provider for this key",
-                    "example": "anthropic"
+                    "example": "ollama"
                   },
                   "apiKey": {
                     "type": "string",
@@ -13879,17 +13875,13 @@
                   "provider": {
                     "type": "string",
                     "enum": [
-                      "openai",
-                      "anthropic",
-                      "groq",
                       "ollama",
-                      "bitnet",
                       "huggingface",
                       "vultr",
                       "inference-snaps"
                     ],
                     "description": "LLM provider for this key",
-                    "example": "anthropic"
+                    "example": "ollama"
                   },
                   "apiKey": {
                     "type": "string",

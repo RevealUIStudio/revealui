@@ -24,7 +24,7 @@ export const userApiKeys = pgTable(
       .references(() => users.id, { onDelete: 'cascade' }),
 
     // Which LLM provider this key belongs to
-    provider: text('provider').notNull(), // 'ollama' | 'bitnet' | 'huggingface' | 'vultr' | 'inference-snaps'
+    provider: text('provider').notNull(), // 'ollama' | 'huggingface' | 'vultr' | 'inference-snaps'
 
     // AES-256-GCM envelope-encrypted API key
     // Format: <base64(iv)>.<base64(authTag)>.<base64(ciphertext)>

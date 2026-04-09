@@ -10,8 +10,8 @@ import {
 
 describe('context budget', () => {
   describe('classifyModel', () => {
-    it('classifies BitNet as small', () => {
-      expect(classifyModel('bitnet-b1.58-2B-4T')).toBe('small');
+    it('classifies Gemma 4 E2B as small', () => {
+      expect(classifyModel('gemma4:e2b')).toBe('small');
     });
 
     it('classifies TinyLlama as small', () => {
@@ -22,20 +22,20 @@ describe('context budget', () => {
       expect(classifyModel('some-model-2b')).toBe('small');
     });
 
-    it('classifies Llama 7B as medium', () => {
-      expect(classifyModel('llama-3.2-7b')).toBe('medium');
+    it('classifies Gemma 9B as medium', () => {
+      expect(classifyModel('gemma-9b-it')).toBe('medium');
     });
 
-    it('classifies Llama 8B as medium', () => {
-      expect(classifyModel('llama-3.2-8b')).toBe('medium');
+    it('classifies Qwen 8B as medium', () => {
+      expect(classifyModel('qwen2.5-8b-instruct')).toBe('medium');
     });
 
     it('classifies Mistral 7B as medium', () => {
       expect(classifyModel('mistral-7b-instruct')).toBe('medium');
     });
 
-    it('classifies Llama 70B as medium', () => {
-      expect(classifyModel('llama-3.3-70b-versatile')).toBe('medium');
+    it('classifies Qwen 70B as medium', () => {
+      expect(classifyModel('qwen2.5-72b-instruct')).toBe('medium');
     });
 
     it('classifies Mixtral as medium', () => {
@@ -97,7 +97,7 @@ describe('context budget', () => {
 
   describe('getContextBudgetForModel', () => {
     it('returns correct budget for a known model', () => {
-      const budget = getContextBudgetForModel('bitnet-b1.58-2B-4T');
+      const budget = getContextBudgetForModel('gemma4:e2b');
       expect(budget.historyTurns).toBe(2);
     });
 

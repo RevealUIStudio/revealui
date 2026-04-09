@@ -408,9 +408,6 @@ All inference runs on open models only. No proprietary providers (OpenAI, Anthro
 # Ubuntu Inference Snaps (Canonical)
 INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
 
-# BitNet (1-bit quantized, CPU-only)
-BITNET_BASE_URL=http://localhost:8080/v1
-
 # Ollama (any open source GGUF model)
 OLLAMA_BASE_URL=http://localhost:11434/v1
 
@@ -422,7 +419,7 @@ VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
 VULTR_BASE_URL=https://api.vultrinference.com/v1
 
 # Force a specific inference provider (overrides auto-detection)
-# Valid values: ollama, bitnet, huggingface, vultr, inference-snaps
+# Valid values: ollama, huggingface, vultr, inference-snaps
 LLM_PROVIDER=ollama
 ```
 

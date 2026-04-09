@@ -87,7 +87,7 @@ export interface AgentSession {
 // ── Agent Spawner ──────────────────────────────────────────────────────────
 
 /** Inference backend for spawned agents */
-export type AgentBackend = 'Snap' | 'BitNet' | 'Ollama';
+export type AgentBackend = 'Snap' | 'Ollama';
 
 /** Snapshot of a spawned agent session */
 export interface AgentSessionInfo {
@@ -191,12 +191,6 @@ export interface OllamaModel {
 export interface ModelPullResult {
   success: boolean;
   message: string;
-}
-
-/** BitNet inference engine status */
-export interface BitNetStatus {
-  installed: boolean;
-  model_path: string | null;
 }
 
 /** Canonical inference snap status */

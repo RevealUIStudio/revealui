@@ -3,7 +3,7 @@ use tauri::State;
 use super::error::StudioError;
 use crate::spawner::{AgentBackend, SpawnerState};
 
-/// Spawn a new agent process using local inference (BitNet or Ollama).
+/// Spawn a new agent process using local inference (Snap or Ollama).
 #[tauri::command]
 pub fn agent_spawn(
     name: String,

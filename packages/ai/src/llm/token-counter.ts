@@ -32,18 +32,23 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   // OpenAI
   'gpt-4o': { input: 5.0, output: 15.0 },
   'gpt-4o-mini': { input: 0.15, output: 0.6 },
-  // Groq (Llama)
-  'llama-3.3-70b-versatile': { input: 0.59, output: 0.79 },
-  'llama-3.1-8b-instant': { input: 0.05, output: 0.08 },
+  // Groq (Qwen — Apache 2.0)
+  'qwen/qwen3-32b': { input: 0.59, output: 0.79 },
   // Ollama (self-hosted — no cost)
-  'llama3.2:3b': { input: 0, output: 0 },
-  'llama3.2:1b': { input: 0, output: 0 },
+  'gemma4:e2b': { input: 0, output: 0 },
+  'gemma4:e4b': { input: 0, output: 0 },
+  'gemma4:26b': { input: 0, output: 0 },
   'nomic-embed-text': { input: 0, output: 0 },
 };
 
 function charsPerToken(model: string): number {
   const lower = model.toLowerCase();
-  if (lower.includes('ollama') || lower.includes('llama') || lower.includes('nomic')) {
+  if (
+    lower.includes('ollama') ||
+    lower.includes('gemma') ||
+    lower.includes('nomic') ||
+    lower.includes('qwen')
+  ) {
     return 3.5;
   }
   return 4.0;

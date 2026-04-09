@@ -121,7 +121,7 @@ const key = cache.getCacheKey(messages, {
   temperature: 0.7,
   maxTokens: 1000,
   tools: [...],
-  model: 'vultr-llama-3',
+  model: 'qwen2.5-72b-instruct',
 })
 ```
 

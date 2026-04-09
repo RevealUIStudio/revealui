@@ -60,7 +60,7 @@ export const TIER_COLORS: Record<LicenseTierId, string> = {
 // =============================================================================
 
 export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
-  aiLocal: 'Local AI (Inference Snaps, BitNet)',
+  aiLocal: 'Local AI (Inference Snaps, Ollama)',
   ai: 'AI Agents',
   aiMemory: 'AI Memory',
   mcp: 'MCP Framework',
@@ -69,7 +69,7 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   dashboard: 'Monitoring Dashboard',
   customDomain: 'Custom Domain Mapping',
   analytics: 'Analytics & Tracking',
-  aiInference: 'Open-Model Inference (Snaps, BitNet, Harness)',
+  aiInference: 'Open-Model Inference (Snaps, Ollama, Harness)',
   auditLog: 'Audit Logging',
   multiTenant: 'Multi-tenant Management',
   whiteLabel: 'White-label Branding (Coming Soon)',
@@ -126,7 +126,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Up to 3 users/editors',
       'Session-based auth',
       'Basic real-time sync',
-      'Local AI inference (BitNet / Ollama)',
+      'Local AI inference (Inference Snaps / Ollama)',
       'Community support',
       'Full source code access',
     ],

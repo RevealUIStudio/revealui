@@ -32,8 +32,6 @@ pub struct AgentExitEvent {
 pub enum AgentBackend {
     /// Ubuntu Inference Snap (recommended — one command install)
     Snap,
-    /// BitNet 1-bit inference (local CPU, no GPU required)
-    BitNet,
     /// Ollama local inference (any supported model)
     Ollama,
 }
@@ -77,7 +75,7 @@ impl Default for SpawnerState {
 
 // ── Core logic ──────────────────────────────────────────────────────
 
-/// Spawn an agent process using local inference (BitNet or Ollama).
+/// Spawn an agent process using local inference (Snap or Ollama).
 /// Returns the session ID.
 pub fn spawn(
     name: String,
@@ -115,15 +113,6 @@ pub fn spawn(
             c.arg(&prompt);
             c
         }
-        AgentBackend::BitNet => {
-            let mut c = Command::new("bitnet");
-            c.arg("run");
-            c.arg("--model");
-            c.arg(&model);
-            c.arg("--prompt");
-            c.arg(&prompt);
-            c
-        }
     };
 
     cmd.stdout(Stdio::piped());
@@ -133,7 +122,6 @@ pub fn spawn(
     let binary_name = match &backend {
         AgentBackend::Snap => "snap-inference",
         AgentBackend::Ollama => "ollama",
-        AgentBackend::BitNet => "bitnet",
     };
 
     let mut child = cmd

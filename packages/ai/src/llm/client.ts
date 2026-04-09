@@ -59,7 +59,6 @@ import type {
   LLMStreamOptions,
   Message,
 } from './providers/base.js';
-import { BitnetProvider, type BitnetProviderConfig } from './providers/bitnet.js';
 import { GroqProvider, type GroqProviderConfig } from './providers/groq.js';
 import {
   InferenceSnapsProvider,
@@ -76,13 +75,7 @@ import {
 } from './semantic-cache.js';
 import { estimateRequest as _estimateRequestTokens } from './token-counter.js';
 
-export type LLMProviderType =
-  | 'vultr'
-  | 'groq'
-  | 'ollama'
-  | 'bitnet'
-  | 'huggingface'
-  | 'inference-snaps';
+export type LLMProviderType = 'vultr' | 'groq' | 'ollama' | 'huggingface' | 'inference-snaps';
 
 export interface LLMClientConfig {
   provider: LLMProviderType;
@@ -98,10 +91,7 @@ export interface LLMClientConfig {
   /**
    * Dedicated embedding provider. When set, all embed() calls are routed here
    * instead of the primary provider. Required when the primary provider does not
-   * support embeddings (e.g. BitNet).
-   *
-   * Auto-wired by createLLMClientFromEnv() when BITNET_BASE_URL + OLLAMA_BASE_URL
-   * are both set.
+   * support embeddings natively.
    */
   embedProvider?: LLMProvider;
   temperature?: number;
@@ -165,7 +155,7 @@ export class LLMClient {
     // Wire health monitor if provided
     this.healthMonitor = config.healthMonitor;
 
-    // Wire dedicated embed provider if supplied (e.g. Ollama when BitNet is primary)
+    // Wire dedicated embed provider if supplied
     this.embedProviderOverride = config.embedProvider;
 
     // Create primary provider
@@ -196,7 +186,6 @@ export class LLMClient {
       | VultrProviderConfig
       | GroqProviderConfig
       | OllamaProviderConfig
-      | BitnetProviderConfig
       | InferenceSnapsProviderConfig,
   ): LLMProvider {
     switch (type) {
@@ -206,8 +195,6 @@ export class LLMClient {
         return new GroqProvider(config as GroqProviderConfig);
       case 'ollama':
         return new OllamaProvider(config as OllamaProviderConfig);
-      case 'bitnet':
-        return new BitnetProvider(config as BitnetProviderConfig);
       case 'inference-snaps':
         return new InferenceSnapsProvider(config as InferenceSnapsProviderConfig);
       default:
@@ -404,7 +391,7 @@ export class LLMClient {
       throw new Error('Rate limit exceeded');
     }
 
-    // Use dedicated embed provider if one was configured (e.g. Ollama when BitNet is primary)
+    // Use dedicated embed provider if one was configured
     const embedProvider = this.embedProviderOverride ?? this.provider;
 
     try {
@@ -503,13 +490,13 @@ export class LLMClient {
  * Create an LLM client from environment variables.
  *
  * When LLM_PROVIDER is not set, auto-detects the provider by checking env vars
- * in priority order: INFERENCE_SNAPS → BITNET → GROQ → OLLAMA.
+ * in priority order: INFERENCE_SNAPS → GROQ → OLLAMA.
  *
  * All providers use OpenAI-compatible APIs. No proprietary provider SDKs.
  *
  * Provider defaults:
- *   groq   → llama-3.3-70b-versatile
- *   ollama → llama3.2:3b
+ *   groq   → qwen/qwen3-32b
+ *   ollama → gemma4:e2b
  */
 export function createLLMClientFromEnv(): LLMClient {
   // Auto-detect provider when LLM_PROVIDER is not explicitly set
@@ -518,17 +505,14 @@ export function createLLMClientFromEnv(): LLMClient {
     provider = process.env.LLM_PROVIDER as LLMProviderType;
   } else if (process.env.INFERENCE_SNAPS_BASE_URL) {
     provider = 'inference-snaps';
-  } else if (process.env.BITNET_BASE_URL) {
-    provider = 'bitnet';
   } else if (process.env.GROQ_API_KEY) {
     provider = 'groq';
   } else if (process.env.OLLAMA_BASE_URL) {
     provider = 'ollama';
   } else {
     throw new Error(
-      'No LLM provider configured. Set one of: BITNET_BASE_URL (local BitNet), ' +
-        'INFERENCE_SNAPS_BASE_URL (local snap), GROQ_API_KEY (recommended cloud), ' +
-        'OLLAMA_BASE_URL (local Ollama). ' +
+      'No LLM provider configured. Set one of: OLLAMA_BASE_URL (local Ollama), ' +
+        'INFERENCE_SNAPS_BASE_URL (local snap), GROQ_API_KEY (cloud). ' +
         'Alternatively, set LLM_PROVIDER explicitly.',
     );
   }
@@ -546,17 +530,13 @@ export function createLLMClientFromEnv(): LLMClient {
   } else if (provider === 'groq') {
     apiKey = process.env.GROQ_API_KEY;
     baseURL = process.env.GROQ_BASE_URL;
-    defaultModel = 'llama-3.3-70b-versatile';
+    defaultModel = 'qwen/qwen3-32b';
   } else if (provider === 'ollama') {
     apiKey = 'ollama'; // Ollama ignores the API key
     // Ollama's OpenAI-compatible endpoint lives at /v1
     const ollamaBase = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
     baseURL = ollamaBase.endsWith('/v1') ? ollamaBase : `${ollamaBase}/v1`;
-    defaultModel = 'llama3.2:3b';
-  } else if (provider === 'bitnet') {
-    apiKey = 'bitnet'; // llama-server ignores the API key
-    baseURL = process.env.BITNET_BASE_URL;
-    defaultModel = 'bitnet-b1.58-2B-4T';
+    defaultModel = 'gemma4:e2b';
   } else if (provider === 'inference-snaps') {
     apiKey = 'inference-snaps'; // inference-snaps ignores the API key
     baseURL = process.env.INFERENCE_SNAPS_BASE_URL;
@@ -566,20 +546,8 @@ export function createLLMClientFromEnv(): LLMClient {
   if (!apiKey) {
     throw new Error(
       `API key not found for provider "${provider}". Set the corresponding env var ` +
-        `(INFERENCE_SNAPS_BASE_URL, GROQ_API_KEY, OLLAMA_BASE_URL, ANTHROPIC_API_KEY, or OPENAI_API_KEY).`,
+        `(INFERENCE_SNAPS_BASE_URL, GROQ_API_KEY, OLLAMA_BASE_URL, VULTR_API_KEY, or HF_TOKEN).`,
     );
-  }
-
-  // When BitNet is the chat provider, auto-wire Ollama as the embed backend.
-  // BitNet does not support /v1/embeddings; Ollama (nomic-embed-text) fills that role.
-  // If OLLAMA_BASE_URL is not set, embed() will throw with a helpful message.
-  let embedProvider: LLMProvider | undefined;
-  if (provider === 'bitnet' && process.env.OLLAMA_BASE_URL) {
-    embedProvider = new OllamaProvider({
-      apiKey: 'ollama',
-      baseURL: process.env.OLLAMA_BASE_URL,
-      embedModel: process.env.OLLAMA_EMBED_MODEL ?? 'nomic-embed-text',
-    });
   }
 
   return new LLMClient({
@@ -597,7 +565,6 @@ export function createLLMClientFromEnv(): LLMClient {
     enableSemanticCache:
       process.env.LLM_ENABLE_SEMANTIC_CACHE === 'true' ||
       process.env.SEMANTIC_CACHE_ENABLED === 'true',
-    embedProvider,
   });
 }
 

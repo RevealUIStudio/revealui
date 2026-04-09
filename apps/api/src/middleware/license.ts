@@ -293,11 +293,11 @@ export const checkLicenseStatus = (
 };
 
 /**
- * Require AI access — local inference (BitNet/Ollama) on free tier, full harness on Pro+.
+ * Require AI access — local inference (Ollama/Snaps) on free tier, full harness on Pro+.
  *
- * When BITNET_BASE_URL or OLLAMA_BASE_URL is set, free-tier users can use local inference.
+ * When OLLAMA_BASE_URL or INFERENCE_SNAPS_BASE_URL is set, free-tier users can use local inference.
  * Cloud-hosted open models via the RevealUI harness require a Pro+ license.
- * The route handler is responsible for enforcing BitNet-only when the caller
+ * The route handler is responsible for enforcing local-only when the caller
  * is on the free tier (see agent-stream.ts).
  */
 export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHandler => {
@@ -318,8 +318,9 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
       return;
     }
 
-    // Free tier: allow if local inference is configured (BitNet or Ollama)
-    const hasLocalInference = !!process.env.BITNET_BASE_URL || !!process.env.OLLAMA_BASE_URL;
+    // Free tier: allow if local inference is configured (Ollama or Snaps)
+    const hasLocalInference =
+      !!process.env.OLLAMA_BASE_URL || !!process.env.INFERENCE_SNAPS_BASE_URL;
     if (hasLocalInference) {
       // Tag the request so downstream handlers know this is local-only access
       c.set('aiAccessMode', 'local');
@@ -348,7 +349,7 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
       return c.json(
         {
           success: false as const,
-          error: `AI requires a ${requiredTier} license or local BitNet inference (BITNET_BASE_URL). Current tier: ${currentTier}.`,
+          error: `AI requires a ${requiredTier} license or local inference (OLLAMA_BASE_URL or INFERENCE_SNAPS_BASE_URL). Current tier: ${currentTier}.`,
           code: 'HTTP_402',
           upgrade_url: PRICING_URL,
         },
@@ -363,7 +364,7 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
     return c.json(
       {
         success: false as const,
-        error: `AI requires a ${requiredTier} license or local BitNet inference (set BITNET_BASE_URL). Current tier: ${currentTier}. Upgrade at ${PRICING_URL}`,
+        error: `AI requires a ${requiredTier} license or local inference (set OLLAMA_BASE_URL or INFERENCE_SNAPS_BASE_URL). Current tier: ${currentTier}. Upgrade at ${PRICING_URL}`,
         code: 'HTTP_403',
       },
       403,

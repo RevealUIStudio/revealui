@@ -150,7 +150,7 @@ describe('agent-stream route — mode parameter', () => {
       workspaceId: 'ws-99',
       priority: 'high',
       provider: 'ollama',
-      model: 'llama3.2',
+      model: 'gemma4:e2b',
       mode: 'coding',
     });
 

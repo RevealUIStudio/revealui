@@ -49,18 +49,12 @@ interface ModelOption {
 
 const MODEL_OPTIONS: ModelOption[] = [
   { id: 'auto', label: 'Auto', provider: '', model: '' },
-  {
-    id: 'bitnet',
-    label: 'BitNet (Local)',
-    provider: 'bitnet',
-    model: 'bitnet-b1.58-2B-4T',
-  },
   { id: 'local', label: 'Ollama (Local)', provider: 'ollama', model: '' },
   {
-    id: 'llama-70b',
-    label: 'Llama 3.3 70B (Cloud)',
+    id: 'gemma-27b',
+    label: 'Gemma 4 27B (Cloud)',
     provider: 'huggingface',
-    model: 'meta-llama/Llama-3.3-70B-Instruct',
+    model: 'google/gemma-4-27b-it',
   },
 ];
 

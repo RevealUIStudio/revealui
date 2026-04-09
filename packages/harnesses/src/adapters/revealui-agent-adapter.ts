@@ -84,20 +84,9 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
 
   /**
    * The RevealUI agent is available if at least one LLM provider is reachable.
-   * Checks in order: BitNet (localhost), Ollama (localhost), Groq (API key).
+   * Checks in order: Ollama (localhost), Groq (API key).
    */
   async isAvailable(): Promise<boolean> {
-    // Check BitNet
-    if (process.env.BITNET_BASE_URL) {
-      try {
-        const url = `${process.env.BITNET_BASE_URL}/v1/models`;
-        const res = await fetch(url, { signal: AbortSignal.timeout(2000) });
-        if (res.ok) return true;
-      } catch {
-        // BitNet not running
-      }
-    }
-
     // Check Ollama
     const ollamaUrl = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
     try {
@@ -270,7 +259,7 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
       llmClient = new LLMClient({
         provider: this.config.provider,
         model: this.config.model,
-        baseURL: process.env.BITNET_BASE_URL ?? process.env.OLLAMA_BASE_URL,
+        baseURL: process.env.INFERENCE_SNAPS_BASE_URL ?? process.env.OLLAMA_BASE_URL,
         apiKey: process.env.GROQ_API_KEY ?? 'not-needed',
       });
     } else {

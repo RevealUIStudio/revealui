@@ -27,9 +27,7 @@ export async function runAgentStatusCommand(): Promise<void> {
   logger.info(`Available:    ${available ? 'yes' : 'no'}`);
 
   if (!available) {
-    logger.warn(
-      'No LLM provider detected. Start BitNet, Ollama, or install an Ubuntu inference snap.',
-    );
+    logger.warn('No LLM provider detected. Install an Ubuntu inference snap or start Ollama.');
   }
 }
 
@@ -250,26 +248,28 @@ async function detectProvider(): Promise<{
 }> {
   const projectRoot = process.cwd();
 
-  if (process.env.BITNET_BASE_URL) {
+  // Check inference snaps first (recommended)
+  if (process.env.INFERENCE_SNAPS_BASE_URL) {
     try {
-      const res = await fetch(`${process.env.BITNET_BASE_URL}/v1/models`, {
+      const res = await fetch(`${process.env.INFERENCE_SNAPS_BASE_URL}/v1/models`, {
         signal: AbortSignal.timeout(2000),
       });
       if (res.ok) {
-        return { available: true, provider: 'bitnet', model: 'bitnet-b1.58-2B-4T', projectRoot };
+        return { available: true, provider: 'inference-snaps', model: 'gemma3', projectRoot };
       }
     } catch {
       // not running
     }
   }
 
+  // Check Ollama (fallback)
   const ollamaUrl = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434';
   try {
     const res = await fetch(`${ollamaUrl}/api/tags`, {
       signal: AbortSignal.timeout(2000),
     });
     if (res.ok) {
-      return { available: true, provider: 'ollama', model: 'llama3.2:3b', projectRoot };
+      return { available: true, provider: 'ollama', model: 'gemma4:e2b', projectRoot };
     }
   } catch {
     // not running

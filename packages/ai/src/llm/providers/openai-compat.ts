@@ -2,7 +2,7 @@
  * OpenAI-Compatible Provider
  *
  * Base implementation for any LLM API that follows the OpenAI chat/completions
- * format. Used by: Ollama, Groq, Inference Snaps, BitNet, Vultr.
+ * format. Used by: Ollama, Groq, Inference Snaps, Vultr.
  * NOT for direct OpenAI usage — RevealUI uses open-source models only.
  */
 
@@ -81,7 +81,7 @@ export class OpenAICompatProvider implements LLMProvider {
     this.config = config;
     if (!config.baseURL) {
       throw new Error(
-        'OpenAICompatProvider requires a baseURL — use a specific provider (InferenceSnapsProvider, BitNetProvider, OllamaProvider, etc.)',
+        'OpenAICompatProvider requires a baseURL — use a specific provider (InferenceSnapsProvider, OllamaProvider, etc.)',
       );
     }
     this.baseURL = config.baseURL;

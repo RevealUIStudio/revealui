@@ -74,7 +74,7 @@ describe('provider health monitor', () => {
 describe('token counter', () => {
   it('estimates tokens by provider family', () => {
     expect(countTokens('12345678')).toEqual({ tokens: 2, method: 'estimated' });
-    expect(countTokens('12345678', { model: 'llama3.2:3b' })).toEqual({
+    expect(countTokens('12345678', { model: 'gemma4:e2b' })).toEqual({
       tokens: 3,
       method: 'estimated',
     });

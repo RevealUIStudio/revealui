@@ -135,7 +135,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 
 **Goal:** Complete the four-revenue-track pricing model by adding Track B (agent credits/metering), Track C (perpetual licenses), Track D (professional services), Forge self-hosted delivery, and the MCP marketplace foundation.
 
-**Completed:** 5.1 Agent Task Metering, 5.2 x402 Payments, 5.3 Perpetual Licenses (code + UX), 5.4 Forge Docker, 5.5 MCP Marketplace, 5.5.1 Pro Package Test Fixes, 5.6 Post-Launch Cleanup, 5.7 npm Pro Org (partial), 5.8 BitNet (code complete), 5.11 AI Inference Pivot (open models only), 5.12 Track D Services, 5.13 Charge Readiness Audit. Full details in [`archive/completed-phases.md`](archive/completed-phases.md).
+**Completed:** 5.1 Agent Task Metering, 5.2 x402 Payments, 5.3 Perpetual Licenses (code + UX), 5.4 Forge Docker, 5.5 MCP Marketplace, 5.5.1 Pro Package Test Fixes, 5.6 Post-Launch Cleanup, 5.7 npm Pro Org (partial), 5.8 Local Inference (code complete), 5.11 AI Inference Pivot (open models only), 5.12 Track D Services, 5.13 Charge Readiness Audit. Full details in [`archive/completed-phases.md`](archive/completed-phases.md).
 
 **In progress:** 5.14 RevVault Vercel Sync (Phase A+B complete, C owner migration pending), 5.15 Harness Coordination Runtime (complete), 5.16 RevMarket (complete — A-D all done).
 
@@ -239,7 +239,7 @@ Phase D — Cross-platform:
 - [ ] Enable npm security scanning on all `@revealui/*` packages
 - [ ] Enable 2FA enforcement on the npm org
 
-#### 5.8 BitNet Local Inference
+#### 5.8 Local Inference
 - [x] Integration tests — 17 tests (provider unit + LLMClient wiring, graceful skip without model) — 2026-03-31
 - [x] `docs/architecture/ai-stack.md` — comprehensive doc covering 8 providers, tiers, memory, RAG — 2026-03-31
 - [ ] Marketing copy — deferred: owner action
@@ -266,7 +266,7 @@ Phase D — Cross-platform:
 #### 5.11 AI Inference Pivot ✅ COMPLETE (2026-04-05)
 - [x] Remove BYOK code paths and proprietary provider support — 2026-04-05
 - [x] Remove `aiSampling` feature flag (Groq sampling removed) — 2026-04-05
-- [x] Align all messaging: free = local inference (BitNet/Ollama), Pro+ = local + cloud harness (self-hosted open models) — 2026-04-05
+- [x] Align all messaging: free = local inference (inference snaps/Ollama), Pro+ = local + cloud harness (self-hosted open models) — 2026-04-05
 - [x] Update docs, marketing, and CMS upgrade page to reflect open-model-only policy — 2026-04-05
 
 #### 5.12 Track D — Professional Services ✅ COMPLETE (2026-04-05)
