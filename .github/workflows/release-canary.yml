@@ -81,7 +81,7 @@ jobs:
 
       - name: Build all packages
         if: steps.changesets.outputs.count != '0'
-        run: pnpm build --concurrency=4
+        run: pnpm build
         env:
           SKIP_ENV_VALIDATION: "true"
 
