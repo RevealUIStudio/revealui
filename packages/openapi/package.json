@@ -4,16 +4,16 @@
   "description": "OpenAPI integration for Hono with Zod validation",
   "license": "MIT",
   "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^8.4.0",
+    "@asteasolutions/zod-to-openapi": "^8.5.0",
     "openapi3-ts": "^4.5.0"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@types/node": "catalog:",
     "dev": "workspace:*",
     "hono": "4.12.12",
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
     "zod": "catalog:"
   },
   "engines": {

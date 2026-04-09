@@ -8,21 +8,21 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/presentation": "workspace:*",
-    "drizzle-orm": "^0.45.2",
-    "next": "catalog:",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "drizzle-orm": "catalog:",
+    "next": "^16.2.3",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "react-markdown": "^10.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "@types/node": "^25.5.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@tailwindcss/postcss": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "dev": "workspace:*",
-    "tailwindcss": "^4.1.18",
-    "typescript": "^6.0.2"
+    "tailwindcss": "^4.2.2",
+    "typescript": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

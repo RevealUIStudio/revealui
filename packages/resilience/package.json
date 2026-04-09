@@ -3,14 +3,13 @@
   "version": "0.2.3",
   "description": "Resilience infrastructure for RevealUI - circuit breaker, retry, bulkhead patterns",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.2",
-    "@types/node": "^25.5.0",
+    "@electric-sql/pglite": "^0.4.3",
+    "@types/node": "catalog:",
     "dev": "workspace:*",
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

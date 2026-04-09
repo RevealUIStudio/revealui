@@ -16,11 +16,11 @@
   },
   "devDependencies": {
     "@revealui/db": "workspace:*",
-    "@types/node": "^25.5.0",
+    "@types/node": "catalog:",
     "dev": "workspace:*",
     "drizzle-zod": "^0.8.3",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

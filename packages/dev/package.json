@@ -5,20 +5,20 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
-    "minimatch": "^10.1.2"
+    "minimatch": "^10.2.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.8",
+    "@biomejs/biome": "catalog:",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.19",
-    "@vitest/coverage-v8": "^4.1.0",
-    "@vitest/ui": "^4.1.0",
-    "globals": "^17.4.0",
-    "tailwindcss": "^4.1.18",
-    "typescript": "^6.0.2",
+    "@vitest/coverage-v8": "catalog:",
+    "@vitest/ui": "catalog:",
+    "globals": "catalog:",
+    "tailwindcss": "^4.2.2",
+    "typescript": "catalog:",
     "vite": "catalog:",
-    "vitest": "^4.1.0"
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"
