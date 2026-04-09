@@ -199,14 +199,44 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 
 ## Quick start
 
-For contributing to RevealUI itself:
+### Option A: Local development (recommended)
 
 ```bash
 git clone https://github.com/RevealUIStudio/revealui.git
 cd revealui
 pnpm install
-pnpm dev
+
+# Set up environment
+cp apps/admin/.env.example apps/admin/.env.local
+# Edit .env.local: set POSTGRES_URL, REVEALUI_SECRET (min 32 chars),
+# REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
+
+# Initialize database
+pnpm db:migrate
+pnpm db:seed
+
+# Start admin dashboard + API
+pnpm dev:app    # Admin (port 4000) + API (port 3004)
 ```
+
+Three dev modes:
+- `pnpm dev:app` — Admin + API (recommended for most work)
+- `pnpm dev:admin` — Admin only (if API already running)
+- `pnpm dev` — All apps in parallel (heavy)
+
+### Option B: Docker Compose
+
+```bash
+cp .env.production.example .env
+# Edit .env with your values
+docker compose up -d
+```
+
+Services: PostgreSQL (5432), API (3004), Admin (4000), Marketing (3000).
+
+### Option C: Dev Containers
+
+Open in VS Code or GitHub Codespaces — the `.devcontainer/` config handles everything.
 
 | Platform    | Recommended setup                 |
 | ----------- | --------------------------------- |

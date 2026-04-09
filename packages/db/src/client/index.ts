@@ -507,13 +507,13 @@ export async function withTransaction<T>(
   if (db === restClient && !restSupportsTransactions) {
     throw new Error(
       'Transaction not supported: REST database is using Neon HTTP driver. ' +
-        'Switch to Supabase pooler or pg driver for transaction support.',
+        'Use withSaga() for NeonDB-safe multi-step writes, or switch to Supabase pooler / pg driver for transaction support.',
     );
   }
   if (db === vectorClient && !vectorSupportsTransactions) {
     throw new Error(
       'Transaction not supported: Vector database is using Neon HTTP driver. ' +
-        'Switch to Supabase pooler or pg driver for transaction support.',
+        'Use withSaga() for NeonDB-safe multi-step writes, or switch to Supabase pooler / pg driver for transaction support.',
     );
   }
 
@@ -523,7 +523,7 @@ export async function withTransaction<T>(
   if (!hasPgTransaction) {
     throw new Error(
       'Transaction not supported: Database client is using Neon HTTP driver which does not support transactions. ' +
-        'To use transactions, configure your database with Supabase or localhost connection string. ' +
+        'Use withSaga() for NeonDB-safe multi-step writes, or configure your database with Supabase / localhost connection string. ' +
         'Neon HTTP driver uses stateless requests and cannot maintain transaction state.',
     );
   }
