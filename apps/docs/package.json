@@ -4,7 +4,6 @@
   "description": "Documentation site for RevealUI",
   "private": true,
   "dependencies": {
-    "@revealui/animations": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/presentation": "workspace:*",
     "@revealui/router": "workspace:*",
