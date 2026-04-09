@@ -50,6 +50,10 @@
     "./validators": {
       "types": "./dist/validators/index.d.ts",
       "import": "./dist/validators/index.js"
+    },
+    "./bootstrap": {
+      "types": "./dist/bootstrap/index.d.ts",
+      "import": "./dist/bootstrap/index.js"
     }
   },
   "files": [
