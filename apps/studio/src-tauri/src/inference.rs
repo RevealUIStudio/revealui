@@ -31,14 +31,6 @@ pub struct ModelPullResult {
     pub message: String,
 }
 
-/// Status of BitNet inference engine.
-#[derive(Clone, Serialize, TS)]
-#[ts(export, export_to = "bindings/")]
-pub struct BitNetStatus {
-    pub installed: bool,
-    pub model_path: Option<String>,
-}
-
 // ── Ollama ──────────────────────────────────────────────────────────
 
 /// Check if Ollama is installed and running.
@@ -335,32 +327,3 @@ pub fn snap_remove(snap_name: &str) -> Result<(), String> {
     }
 }
 
-// ── BitNet ──────────────────────────────────────────────────────────
-
-/// Check if BitNet is available on this system.
-pub fn bitnet_status() -> BitNetStatus {
-    // Check for bitnet binary or python module
-    let installed = Command::new("which")
-        .arg("bitnet")
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false);
-
-    let model_path = if installed {
-        // Check standard model locations
-        let paths = [
-            dirs::home_dir()
-                .map(|h| format!("{}/models/bitnet", h.display()))
-                .unwrap_or_default(),
-            "/mnt/forge/models/bitnet".to_string(),
-        ];
-        paths.into_iter().find(|p| std::path::Path::new(p).exists())
-    } else {
-        None
-    };
-
-    BitNetStatus {
-        installed,
-        model_path,
-    }
-}

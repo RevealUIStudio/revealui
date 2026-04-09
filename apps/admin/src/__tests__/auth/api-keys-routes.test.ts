@@ -290,7 +290,7 @@ describe('POST /api/user/api-keys', () => {
   it('accepts all valid provider values', async () => {
     vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
 
-    const providers = ['ollama', 'bitnet', 'huggingface', 'vultr', 'inference-snaps'];
+    const providers = ['ollama', 'huggingface', 'vultr', 'inference-snaps'];
     for (const provider of providers) {
       vi.clearAllMocks();
       vi.mocked(getSession).mockResolvedValue(mockSessionData as never);

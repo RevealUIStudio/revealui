@@ -134,8 +134,8 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
   },
   // AI (open-model inference)
   {
-    key: 'BITNET_BASE_URL',
-    label: 'BitNet base URL',
+    key: 'INFERENCE_SNAPS_BASE_URL',
+    label: 'Inference snaps base URL',
     required: false,
   },
   {

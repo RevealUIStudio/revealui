@@ -874,7 +874,7 @@ Frontend → Generated Types → API Route → Contract Validation → Type Adap
 - ✅ **React Hooks:** `useChat`, `useCompletion`, `useAssistant`
 - ✅ **Type Safety:** Full TypeScript support
 - ✅ **Error Handling:** Built-in error boundaries
-- ✅ **Open-Model Inference:** Ubuntu Inference Snaps, BitNet, Ollama
+- ✅ **Open-Model Inference:** Ubuntu Inference Snaps, Ollama
 
 **Integration with Vector Database:**
 
@@ -1590,7 +1590,7 @@ NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 # Vercel Blob Storage
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
-# AI Inference — open-model only (Ubuntu Inference Snaps, BitNet, Ollama)
+# AI Inference — open-model only (Ubuntu Inference Snaps, Ollama)
 # See docs/PRO.md for inference configuration
 ```
 

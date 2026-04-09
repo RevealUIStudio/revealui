@@ -34,7 +34,7 @@ RevealUI Pro includes:
 
 - **AI agents** -- task execution, multi-step workflows, autonomous operations
 - **CRDT memory** -- working memory, episodic memory, and vector storage that persists across agent sessions
-- **LLM orchestration** -- open-model inference via Ubuntu Inference Snaps, BitNet, and Ollama
+- **LLM orchestration** -- open-model inference via Ubuntu Inference Snaps and Ollama
 - **Editor integrations** -- daemon adapters for Zed, VS Code, and Neovim
 - **Harness coordination** -- workboard-based agent orchestration, JSON-RPC communication, daemon management
 

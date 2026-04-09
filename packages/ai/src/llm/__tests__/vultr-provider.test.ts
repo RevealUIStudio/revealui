@@ -11,7 +11,7 @@ import { VultrProvider } from '../providers/vultr.js';
 
 const defaultConfig: VultrProviderConfig = {
   apiKey: 'test-api-key',
-  model: 'llama-3.1-70b-instruct',
+  model: 'qwen2.5-72b-instruct',
   temperature: 0.7,
 };
 
@@ -106,7 +106,7 @@ describe('VultrProvider', () => {
 
       const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
       const body = JSON.parse(init.body as string) as Record<string, unknown>;
-      expect(body.model).toBe('llama-3.1-70b-instruct');
+      expect(body.model).toBe('qwen2.5-72b-instruct');
       expect(body.temperature).toBe(0.5);
       expect(Array.isArray(body.messages)).toBe(true);
     });
@@ -177,7 +177,7 @@ describe('VultrProvider', () => {
 
   describe('embed()', () => {
     const embeddingResponse = {
-      data: [{ embedding: [0.1, 0.2, 0.3], model: 'llama-3.1-70b-instruct' }],
+      data: [{ embedding: [0.1, 0.2, 0.3], model: 'qwen2.5-72b-instruct' }],
     };
 
     it('should POST to /embeddings and return single embedding for string input', async () => {
@@ -198,8 +198,8 @@ describe('VultrProvider', () => {
     it('should return array of embeddings for array input', async () => {
       const multiResponse = {
         data: [
-          { embedding: [0.1, 0.2], model: 'llama-3.1-70b-instruct' },
-          { embedding: [0.3, 0.4], model: 'llama-3.1-70b-instruct' },
+          { embedding: [0.1, 0.2], model: 'qwen2.5-72b-instruct' },
+          { embedding: [0.3, 0.4], model: 'qwen2.5-72b-instruct' },
         ],
       };
       fetchSpy.mockResolvedValueOnce(makeFetchResponse(multiResponse));

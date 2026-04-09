@@ -48,7 +48,7 @@ This guide covers the full Pro surface area, not just MCP setup:
 
 - account-level commercial packaging
 - MCP servers and developer tooling
-- Open-model inference (Ubuntu snaps, BitNet, Ollama)
+- Open-model inference (Ubuntu snaps, Ollama)
 - editor and harness workflows
 - Stripe, Supabase, and x402 payment features
 - marketplace monetization
@@ -910,8 +910,7 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 | Path | Runtime | Notes |
 |------|---------|-------|
 | **Ubuntu Inference Snaps** | Canonical snap runtime | Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
-| **BitNet** | Microsoft llama-server | 1-bit quantized, CPU-only, ~700 MB RAM |
-| **Ollama** | Local GGUF models | Any open source GGUF model via the RevealUI harness |
+| **Ollama** | Local GGUF models | Any open source GGUF model. Default: `gemma4:e2b` |
 | **HuggingFace** | HuggingFace Inference API | Open models hosted on HuggingFace infrastructure |
 | **Vultr** | Vultr GPU Cloud | Open models on Vultr serverless inference |
 
@@ -920,7 +919,7 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 ```typescript
 import { createLLMClient } from "@revealui/ai/llm";
 
-// Auto-detects from environment (snaps > BitNet > Ollama)
+// Auto-detects from environment (snaps > Ollama)
 const llm = createLLMClient();
 
 const response = await llm.chat([{ role: "user", content: "Hello!" }]);
@@ -931,9 +930,6 @@ const response = await llm.chat([{ role: "user", content: "Hello!" }]);
 ```bash
 # Ubuntu inference snap
 INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
-
-# BitNet (CPU-only, air-gap capable)
-BITNET_BASE_URL=http://localhost:8080/v1
 
 # Ollama (any open source model)
 OLLAMA_BASE_URL=http://localhost:11434/v1
@@ -946,8 +942,8 @@ VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
 VULTR_BASE_URL=https://api.vultrinference.com/v1
 
 # Force specific inference path (overrides auto-detection)
-# Valid values: ollama, bitnet, huggingface, vultr, inference-snaps
-LLM_PROVIDER=bitnet
+# Valid values: ollama, huggingface, vultr, inference-snaps
+LLM_PROVIDER=ollama
 ```
 
 ## Security notes

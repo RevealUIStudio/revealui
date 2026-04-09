@@ -17,7 +17,7 @@ import { streamSSE } from 'hono/streaming';
 type Variables = {
   tenant?: { id: string };
   user?: { id: string; role: string };
-  /** Set by requireAIAccess middleware — local = BitNet (free tier) */
+  /** Set by requireAIAccess middleware — local = free tier inference */
   aiAccessMode?: 'local';
 };
 
@@ -104,20 +104,22 @@ app.openapi(agentStreamRoute, async (c) => {
     );
   }
 
-  // Free tier: BitNet local inference only
+  // Free tier: local inference only (Ollama or inference snaps)
   const aiAccessMode = c.get('aiAccessMode');
   const isLocalOnly = aiAccessMode === 'local';
 
   let llmClient: unknown;
   try {
     if (isLocalOnly) {
-      // Free tier: force BitNet provider regardless of other env vars
+      // Free tier: force local provider regardless of other env vars
       type LLMConfig = ConstructorParameters<typeof llmClientMod.LLMClient>[0];
+      const localBaseURL = process.env.INFERENCE_SNAPS_BASE_URL ?? process.env.OLLAMA_BASE_URL;
+      const localProvider = process.env.INFERENCE_SNAPS_BASE_URL ? 'inference-snaps' : 'ollama';
       llmClient = new llmClientMod.LLMClient({
-        provider: 'bitnet' as LLMConfig['provider'],
-        apiKey: 'bitnet',
-        baseURL: process.env.BITNET_BASE_URL,
-        model: process.env.LLM_MODEL ?? 'bitnet-b1.58-2B-4T',
+        provider: localProvider as LLMConfig['provider'],
+        apiKey: localProvider,
+        baseURL: localBaseURL,
+        model: process.env.LLM_MODEL ?? 'gemma4:e2b',
       });
     } else {
       llmClient = aiMod.createLLMClientFromEnv();

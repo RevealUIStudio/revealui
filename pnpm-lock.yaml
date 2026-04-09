@@ -274,6 +274,9 @@ importers:
       '@revealui/services':
         specifier: workspace:^
         version: link:../../packages/services
+      '@revealui/setup':
+        specifier: workspace:*
+        version: link:../../packages/setup
       '@revealui/sync':
         specifier: workspace:*
         version: link:../../packages/sync

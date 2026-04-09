@@ -147,7 +147,7 @@ curl -X POST https://api.example.com/a2a \
   }'
 ```
 
-Agents use the host's configured inference path. The `createLLMClientFromEnv()` factory auto-detects the available backend (Ubuntu Inference Snaps, BitNet, or Ollama) — no API keys required, no vendor lock-in.
+Agents use the host's configured inference path. The `createLLMClientFromEnv()` factory auto-detects the available backend (Ubuntu Inference Snaps or Ollama) — no API keys required, no vendor lock-in.
 
 ### MCP: How agents use tools
 

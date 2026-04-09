@@ -1,7 +1,7 @@
 /**
  * InferencePanel — local AI inference management
  *
- * Three engines: Ubuntu Inference Snaps (recommended), BitNet (1-bit CPU), Ollama.
+ * Two engines: Ubuntu Inference Snaps (recommended), Ollama (fallback).
  * Shows installed status, available models, install/pull/delete, server start/stop.
  */
 
@@ -12,7 +12,6 @@ import { useInference } from '../../hooks/use-inference';
 export default function InferencePanel() {
   const {
     ollama,
-    bitnet,
     models,
     snaps,
     loading,
@@ -63,7 +62,7 @@ export default function InferencePanel() {
       ) : null}
 
       {/* ── Engine status cards ── */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
+      <div className="mb-6 grid grid-cols-2 gap-4">
         {/* Inference Snaps */}
         <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-4">
           <div className="flex items-center gap-2">
@@ -93,42 +92,6 @@ export default function InferencePanel() {
           </div>
         </div>
 
-        {/* BitNet */}
-        <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-4">
-          <div className="flex items-center gap-2">
-            <span
-              className={`size-2.5 shrink-0 rounded-full ${
-                bitnet?.installed ? 'bg-green-500' : 'bg-neutral-600'
-              }`}
-            />
-            <h2 className="text-sm font-semibold text-neutral-200">BitNet</h2>
-          </div>
-          <p className="mt-1 text-[11px] text-neutral-500">
-            1-bit inference — runs on CPU, no GPU required
-          </p>
-          <div className="mt-3">
-            {bitnet?.installed ? (
-              <>
-                <span className="inline-block rounded bg-green-900/30 px-2 py-0.5 text-[10px] font-medium text-green-400">
-                  Installed
-                </span>
-                {bitnet.model_path ? (
-                  <p
-                    className="mt-1 truncate text-[10px] text-neutral-600"
-                    title={bitnet.model_path}
-                  >
-                    {bitnet.model_path}
-                  </p>
-                ) : null}
-              </>
-            ) : (
-              <span className="inline-block rounded bg-neutral-800 px-2 py-0.5 text-[10px] text-neutral-500">
-                Not installed
-              </span>
-            )}
-          </div>
-        </div>
-
         {/* Ollama */}
         <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-4">
           <div className="flex items-center gap-2">
@@ -147,7 +110,7 @@ export default function InferencePanel() {
             ) : null}
           </div>
           <p className="mt-1 text-[11px] text-neutral-500">
-            Run open models — Llama, Mistral, Gemma
+            Run open models — Gemma, Qwen, Mistral
           </p>
           <div className="mt-3 flex items-center gap-2">
             {ollama?.installed ? (
@@ -252,7 +215,7 @@ export default function InferencePanel() {
             <input
               value={pullInput}
               onChange={(e) => setPullInput(e.target.value)}
-              placeholder="Pull a model (e.g. llama3.2, mistral, gemma2)"
+              placeholder="Pull a model (e.g. gemma4:e2b, qwen3.5, mistral)"
               disabled={pulling}
               className="flex-1 rounded border border-neutral-700 bg-neutral-800 px-2.5 py-1.5 text-xs text-neutral-200 placeholder:text-neutral-600 focus:border-orange-600 focus:outline-none disabled:opacity-50"
             />

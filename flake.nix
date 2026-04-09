@@ -71,15 +71,6 @@
             # Go (Terminal TUI app)
             go
 
-            # BitNet local inference (pnpm bitnet:install / pnpm bitnet:serve)
-            # Provides clang 18, cmake, ninja, python3, and huggingface-cli for
-            # building and running microsoft/BitNet from source.
-            clang_18
-            cmake
-            ninja
-            python3
-            python3Packages.huggingface-hub
-
             # Services & APIs
             stripe-cli
 

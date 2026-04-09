@@ -66,7 +66,7 @@ RevealUI's licensing is a dual-model system:
 
 2. **No revenue yet.** Adding $299/mo (Keygen) or $19-99/mo (Anystack) before the first paying customer is wrong. The current system has zero marginal cost.
 
-3. **Offline-first is critical.** RevealUI supports BitNet local inference and self-hosted deployments. JWT validation with a cached public key works offline. External platforms require network calls.
+3. **Offline-first is critical.** RevealUI supports local inference (inference snaps, Ollama) and self-hosted deployments. JWT validation with a cached public key works offline. External platforms require network calls.
 
 4. **The dual model is an advantage.** Self-hosted gets JWT process-global validation (fast, offline). Hosted SaaS gets account-level entitlements (request-scoped, DB-backed). External platforms don't natively support this split.
 

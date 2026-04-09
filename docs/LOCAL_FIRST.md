@@ -16,25 +16,20 @@ The local-first stack uses four components:
 | Component | Purpose |
 |-----------|---------|
 | **Nix + direnv** | Reproducible dev environment — all build deps provided automatically |
-| **BitNet** | Local LLM inference (OpenAI-compatible, CPU-only, ~700 MB RAM) |
+| **Inference snaps / Ollama** | Local LLM inference (OpenAI-compatible, open models) |
 | **RevVault** | Age-encrypted local secret store |
 | **RevealUI Pro** | Business logic, AI agents, MCP integrations |
 
 ## Hardware requirements
 
-- **CPU:** x86-64 with AVX2 (any CPU from 2013+), or ARM64 with NEON
-- **RAM:** 4 GB minimum, 8 GB recommended (BitNet 2B uses ~700 MB; the rest is for Node.js + OS)
-- **Disk:** ~3 GB free (1.19 GB model + BitNet build artifacts)
+- **CPU:** x86-64 or ARM64
+- **RAM:** 4 GB minimum, 8 GB recommended
+- **Disk:** ~2 GB free (model weights + runtime)
 - **OS:** Linux, macOS, or WSL2 (Ubuntu 22.04+)
-
-Check AVX2 support:
-```bash
-grep -m1 avx2 /proc/cpuinfo && echo "AVX2 supported" || echo "AVX2 not found"
-```
 
 ## Step 1 — Nix + direnv
 
-Nix provides all build dependencies including clang 18 (required by BitNet) automatically.
+Nix provides all build dependencies automatically.
 
 If Nix isn't installed:
 ```bash
@@ -56,68 +51,58 @@ In the RevealUI directory:
 direnv allow
 ```
 
-The Nix flake activates: Node 24, pnpm 10, Biome, clang 18, cmake, ninja, Python 3, and `huggingface-cli` are all available without any other installs.
+The Nix flake activates: Node 24, pnpm 10, Biome, and all build dependencies are available without any other installs.
 
-## Step 2 — Install BitNet
+## Step 2 — Local inference (inference snaps or Ollama)
 
-With the Nix devshell active:
+**Option A: Ubuntu Inference Snaps (recommended)**
 
-```bash
-pnpm bitnet:install
-```
-
-This script:
-1. Clones `microsoft/BitNet` into `.bitnet/`
-2. Runs `python setup_env.py` (compiles llama-server and BitNet kernels using clang 18 from Nix)
-3. Downloads `microsoft/bitnet-b1.58-2B-4T-gguf` (~1.19 GB) via `huggingface-cli`
-
-First run takes 5–10 minutes (compilation). Subsequent runs are instant.
-
-## Step 3 — Start the inference server
+Inference snaps are the primary recommended path for local AI. Canonical's snap-packaged model serving provides hardware-aware engine selection, signed packages, and zero configuration:
 
 ```bash
-pnpm bitnet:serve
+sudo snap install nemotron-3-nano   # general-purpose, low resource
+# or: sudo snap install gemma3      # general + vision
 ```
 
-This starts `llama-server` on `http://localhost:8080` with an OpenAI-compatible API. You can verify it:
-
+Verify the snap is running:
 ```bash
-curl http://localhost:8080/v1/models
-# {"data":[{"id":"bitnet-b1.58-2B-4T","object":"model",...}]}
+nemotron-3-nano status
 ```
 
-## Step 4 — Configure `@revealui/ai`
+Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.
 
-Set `BITNET_BASE_URL` in your environment. RevVault is the recommended way:
+**Option B: Ollama (fallback)**
 
+Install Ollama, then pull a model:
 ```bash
-revvault set revealui/local/bitnet-base-url
-# Enter: http://localhost:8080
+ollama serve &
+ollama pull gemma4:e2b
+ollama pull nomic-embed-text   # for embeddings
 ```
 
-In your `.envrc`:
+Add to `.envrc`:
 ```bash
-export BITNET_BASE_URL=$(revvault get revealui/local/bitnet-base-url)
+export OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-The `createLLMClientFromEnv()` function in `@revealui/ai` auto-detects `BITNET_BASE_URL` and routes all agent calls to the local server. No API key is needed.
+## Step 3 — Configure `@revealui/ai`
+
+The `createLLMClientFromEnv()` function in `@revealui/ai` auto-detects the available inference backend. No API key is needed for local inference.
+
+Auto-detection priority: `INFERENCE_SNAPS_BASE_URL` > `OLLAMA_BASE_URL`.
 
 ```typescript
 import { createLLMClientFromEnv } from '@revealui/ai/llm';
 
-// Automatically uses BITNET_BASE_URL if set
+// Automatically detects inference snaps or Ollama
 const client = createLLMClientFromEnv();
 ```
 
-## Step 5 — Embeddings
+## Step 4 — Embeddings
 
-BitNet is a generative model only — it does not support `/v1/embeddings`. For vector search and AI memory, `@revealui/ai` auto-wires Ollama as the embed backend when both `BITNET_BASE_URL` and `OLLAMA_BASE_URL` are set.
+For vector search and AI memory, use Ollama with an embedding model:
 
-**Option A: Ollama (recommended — auto-wired)**
-
-Install Ollama, then pull the embed model:
 ```bash
-ollama serve &
 ollama pull nomic-embed-text
 ```
 
@@ -128,11 +113,7 @@ export OLLAMA_BASE_URL=http://localhost:11434
 # export OLLAMA_EMBED_MODEL=nomic-embed-text
 ```
 
-When both `BITNET_BASE_URL` and `OLLAMA_BASE_URL` are set, `createLLMClientFromEnv()` automatically uses BitNet for chat and Ollama for embeddings — no additional configuration needed.
-
-**Option B: `@xenova/transformers` (fully offline, no server)**
-
-If you can't run an Ollama server, use `@xenova/transformers` directly:
+Alternatively, use `@xenova/transformers` for fully offline embeddings (no server):
 
 ```bash
 pnpm add @xenova/transformers
@@ -148,7 +129,7 @@ const output = await embedder('Hello world', { pooling: 'mean', normalize: true 
 
 The model (~90 MB) is downloaded once and cached. Plug it into `@revealui/ai` via the `embedProvider` option on `LLMClient`.
 
-## Step 6 — RevVault setup
+## Step 5 — RevVault setup
 
 RevVault stores all other project secrets (database URLs, Stripe keys, Google service account key):
 
@@ -176,10 +157,9 @@ Secrets are age-encrypted at rest and never written to disk in plaintext during 
 Once set up, the full local-first stack starts with:
 
 ```bash
-# Terminal 1 — BitNet inference server
-pnpm bitnet:serve
+# Local inference is already running (snap or Ollama)
 
-# Terminal 2 — RevealUI (uses local inference automatically)
+# Start RevealUI (uses local inference automatically)
 pnpm dev:app
 ```
 
@@ -187,31 +167,22 @@ Or use Studio to manage services, agents, and local inference from a native desk
 
 ## Verifying local inference
 
-In the CMS admin dashboard, navigate to **Admin → AI → Agent Tasks** and run a test task. Check the server logs in Terminal 1 — you should see the inference request handled locally with no outbound network traffic to any AI provider.
+In the CMS admin dashboard, navigate to **Admin → AI → Agent Tasks** and run a test task. You should see the inference request handled locally with no outbound network traffic to any AI provider.
 
 ## Troubleshooting
 
-**`avx2` not found in /proc/cpuinfo**
-Your CPU does not support AVX2. BitNet will not work. Use Ollama or another local inference runtime instead.
+**Snap install fails**
+Ensure `snapd` is installed and running. On WSL2, snap support requires systemd (`systemctl` must work).
 
-**`setup_env.py` fails with clang not found**
-Make sure you entered the Nix devshell (`direnv allow` or `nix develop`). Run `which clang` — it should point to a path in `/nix/store`.
+**Ollama model pull fails**
+Check that `ollama serve` is running and accessible at `http://localhost:11434`.
 
-**Inference is very slow (< 1 tok/s)**
-You likely built in debug mode. Run `pnpm bitnet:install --rebuild` to force a release build.
-
-**WSL2: slow inference**
-Same as above — ensure release build. WSL2 passes AVX2 instructions through to the host CPU correctly in recent versions (kernel 5.15+).
-
-**Port 8080 already in use**
-```bash
-pnpm bitnet:serve --port 8081
-# Then set BITNET_BASE_URL=http://localhost:8081
-```
+**Port conflict**
+If the default port is already in use, configure a different port in the snap or Ollama settings and update the corresponding `*_BASE_URL` env var.
 
 ## Offline operation
 
-Once BitNet is installed and the model is downloaded, the inference stack works with no network connection. The only components that require network access at runtime are:
+Once models are downloaded, the inference stack works with no network connection. The only components that require network access at runtime are:
 
 - Database (NeonDB) — can be replaced with local Postgres
 - Email delivery (Gmail API) — no offline fallback

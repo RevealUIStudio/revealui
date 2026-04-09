@@ -116,8 +116,6 @@
     "audit:any": "tsx scripts/analyze/audit-any-types.ts",
     "audit:console": "tsx scripts/analyze/audit-console.ts",
     "billing:catalog:sync": "tsx scripts/setup/sync-billing-catalog.ts",
-    "bitnet:install": "bash scripts/bitnet/install.sh",
-    "bitnet:serve": "bash scripts/bitnet/serve.sh",
     "build": "turbo run build --concurrency=4",
     "build:api": "pnpm --filter api build",
     "build:auth": "pnpm --filter @revealui/auth build",

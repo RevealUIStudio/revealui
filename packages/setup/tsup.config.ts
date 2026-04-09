@@ -6,6 +6,7 @@ export default defineConfig({
     'environment/index': 'src/environment/index.ts',
     'utils/index': 'src/utils/index.ts',
     'validators/index': 'src/validators/index.ts',
+    'bootstrap/index': 'src/bootstrap/index.ts',
   },
   format: ['esm'],
   dts: true,

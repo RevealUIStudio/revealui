@@ -21,7 +21,7 @@ api-surface:
     endpoint: "@revealui/ai — 18 import subpaths"
     openapi: false
     tested: true
-    notes: "CRDT memory, open-model LLM providers (BitNet, Ollama), agent orchestration"
+    notes: "CRDT memory, open-model LLM providers (inference snaps, Ollama), agent orchestration"
 
 package-notes:
   subpaths: 18
@@ -35,7 +35,7 @@ limitations:
     summary: "@revealui/ai is dist-only in public repo — source in private revealui-jv"
   - id: llm-providers
     surface: api
-    summary: "Open models only — BitNet (local), Ollama (local), cloud via self-hosted harness (Pro+). No proprietary providers."
+    summary: "Open models only — inference snaps (local, recommended), Ollama (local, fallback), cloud via self-hosted harness (Pro+). No proprietary providers."
   - id: license-required
     surface: api
     summary: "Requires Pro tier — currently gated by legacy feature checks that should converge on account-level entitlements"

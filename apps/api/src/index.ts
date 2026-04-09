@@ -569,7 +569,7 @@ app.use('/a2a/*', licenseStatusCheck);
 app.use('/a2a/*', supportExpiryCheck);
 
 // License enforcement — gate premium routes by feature
-// Agent stream + tasks: free tier allowed with local BitNet, Pro+ for cloud providers
+// Agent stream + tasks: free tier allowed with local inference, Pro+ for cloud providers
 app.use('/api/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
 app.use('/api/v1/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
 app.use('/api/agent-stream', requireAIAccess({ mode: 'entitlements' }));
