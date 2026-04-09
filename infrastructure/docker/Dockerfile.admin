@@ -5,22 +5,26 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-# Dependencies
+# Dependencies — copy all workspace package.jsons so pnpm resolves the full graph
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY packages/*/package.json ./packages/
 COPY apps/admin/package.json ./apps/admin/
 
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --filter=@revealui/admin...
+    pnpm install --frozen-lockfile --filter=admin...
 
-# Builder
+# Builder — full source copy, then build admin + transitive deps
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages/*/node_modules ./packages/
 COPY . .
 
-# Build Admin and dependencies
-RUN pnpm --filter=@revealui/admin... build
+# Re-install to ensure hoisted + nested node_modules are complete
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --filter=admin...
+
+RUN pnpm --filter=admin... build
 
 # Production
 FROM base AS runner
