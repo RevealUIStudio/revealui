@@ -6,7 +6,7 @@
  *
  * @example
  * ```typescript
- * import tailwindConfig from 'dev/tailwind'
+ * import tailwindConfig from '@revealui/dev/tailwind'
  *
  * export default {
  *   ...tailwindConfig,

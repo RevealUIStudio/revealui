@@ -17,7 +17,7 @@
   "devDependencies": {
     "@revealui/db": "workspace:*",
     "@types/node": "catalog:",
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "drizzle-zod": "^0.8.3",
     "typescript": "catalog:",
     "vitest": "catalog:"

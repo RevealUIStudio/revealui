@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "hono": "4.12.12",
     "tsup": "catalog:",
     "typescript": "catalog:",

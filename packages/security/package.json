@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

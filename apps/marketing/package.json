@@ -20,7 +20,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "tailwindcss": "^4.2.2",
     "typescript": "catalog:"
   },

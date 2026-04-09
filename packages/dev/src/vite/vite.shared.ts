@@ -7,7 +7,7 @@
  * @example
  * ```ts
  * import { defineConfig } from 'vite'
- * import sharedViteConfig from 'dev/vite'
+ * import sharedViteConfig from '@revealui/dev/vite'
  *
  * export default defineConfig({
  *   ...sharedViteConfig,

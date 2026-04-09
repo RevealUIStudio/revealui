@@ -25,7 +25,7 @@
     "@vitest/coverage-v8": "catalog:",
     "@vitest/ui": "catalog:",
     "bcryptjs": "catalog:",
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "jsdom": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
