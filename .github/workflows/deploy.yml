@@ -284,10 +284,10 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
-      - name: Skip Vercel internal install (CI already installed)
+      - name: Override Vercel project settings for CI
         run: |
           if [ -f .vercel/project.json ]; then
-            jq '.settings.installCommand = ""' .vercel/project.json > .vercel/project.json.tmp
+            jq '.settings.installCommand = "" | .settings.buildCommand = "pnpm turbo build --filter=${{ matrix.app }}"' .vercel/project.json > .vercel/project.json.tmp
             mv .vercel/project.json.tmp .vercel/project.json
           fi
 
