@@ -486,7 +486,7 @@ services:
 ### Shape Proxy Routes
 
 ```typescript
-// apps/cms/src/app/api/shapes/agent-contexts/route.ts
+// apps/admin/src/app/api/shapes/agent-contexts/route.ts
 export async function GET(request: NextRequest) {
   const session = await getSession(request.headers);
 
@@ -664,7 +664,7 @@ All collections implement tenant-aware access control:
 
 ### Access Control Functions
 
-Located in `apps/cms/src/lib/access/`:
+Located in `apps/admin/src/lib/access/`:
 
 - `isAdmin.ts` - Checks for user-admin or user-super-admin
 - `isSuperAdmin.ts` - Checks for user-super-admin only
@@ -787,7 +787,7 @@ function dbRowToContract<TContract, TDbRow>(
 **Usage in API Routes:**
 
 ```typescript
-// apps/cms/src/app/api/users/route.ts
+// apps/admin/src/app/api/users/route.ts
 import { getRestClient } from "@revealui/db/client";
 import { UserSchema } from "@revealui/contracts";
 import { dbRowToContract } from "@revealui/core/database/type-adapter";
@@ -879,7 +879,7 @@ Frontend → Generated Types → API Route → Contract Validation → Type Adap
 **Integration with Vector Database:**
 
 ```typescript
-// Server: apps/cms/src/app/api/chat/route.ts
+// Server: apps/admin/src/app/api/chat/route.ts
 import { streamText, convertToModelMessages } from 'ai'
 import { getVectorClient } from '@revealui/db/client'
 
@@ -905,7 +905,7 @@ export async function POST(request: NextRequest) {
   return result.toUIMessageStreamResponse()
 }
 
-// Client: apps/cms/src/lib/components/Agent/index.tsx
+// Client: apps/admin/src/lib/components/Agent/index.tsx
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from '@ai-sdk/react'
 
@@ -951,7 +951,7 @@ export type RPCRouter = {
 **Server-Side RPC Handler:**
 
 ```typescript
-// apps/cms/src/app/api/rpc/route.ts
+// apps/admin/src/app/api/rpc/route.ts
 import type { RPCRouter } from "@revealui/core/rpc/types";
 
 export async function POST(request: NextRequest) {
@@ -1036,7 +1036,7 @@ Media Upload → Next.js API → Vercel Blob Storage → Store URL in NeonDB
 **Setup:**
 
 ```typescript
-// apps/cms/src/app/(frontend)/layout.tsx
+// apps/admin/src/app/(frontend)/layout.tsx
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 
@@ -1071,7 +1071,7 @@ export default function RootLayout({ children }) {
 ### Development Mode
 
 ```javascript
-// apps/cms/next.config.mjs
+// apps/admin/next.config.mjs
 turbopack: {
   root: path.join(__dirname, '../..'), // Point to monorepo root
   resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.json'],
@@ -1087,7 +1087,7 @@ turbopack: {
 ### Production Mode
 
 ```json
-// apps/cms/package.json
+// apps/admin/package.json
 "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
 ```
 
@@ -1138,7 +1138,7 @@ turbopack: {
 When re-evaluating Turbopack for production:
 
 - [ ] Remove `TURBOPACK=0` flag from build script
-- [ ] Run `pnpm build:cms` to test production build
+- [ ] Run `pnpm build:admin` to test production build
 - [ ] Check for module resolution errors
 - [ ] Verify all workspace package imports resolve
 - [ ] Test instrumentation.ts Edge Runtime warnings
@@ -1158,7 +1158,7 @@ When re-evaluating Turbopack for production:
 Client Request
     │
     ▼
-Next.js API Route (apps/cms/src/app/api/...)
+Next.js API Route (apps/admin/src/app/api/...)
     │
     ├─→ NeonDB (POSTGRES_URL) ──┐
     │                            │
@@ -1200,7 +1200,7 @@ Client (Browser)
     ├─→ Shape Request (/api/shapes/agent-contexts)
     │       │
     │       ▼
-    │   CMS API Route (apps/cms/src/app/api/shapes/...)
+    │   CMS API Route (apps/admin/src/app/api/shapes/...)
     │       │
     │       ▼
     │   ElectricSQL Service (localhost:5133)
@@ -1675,7 +1675,7 @@ This section provides a comprehensive mapping of all UI components, the business
 
 ### UI Components
 
-#### CMS Blocks (`apps/cms/src/lib/blocks/`)
+#### CMS Blocks (`apps/admin/src/lib/blocks/`)
 
 Blocks are the primary content building units in the CMS. Each block has a corresponding component and schema.
 
@@ -1756,7 +1756,7 @@ Blocks are the primary content building units in the CMS. Each block has a corre
   - **Type**: `BlockProps` (union of all block prop types)
   - **Mapping**: `blockComponents` object maps `blockType` to component
 
-#### CMS Components (`apps/cms/src/lib/components/`)
+#### CMS Components (`apps/admin/src/lib/components/`)
 
 Reusable UI components used throughout the CMS.
 
@@ -1898,7 +1898,7 @@ Frontend application components.
    - **HomeHero** (`Hero.tsx`)
    - **HomeContent** (`Content.tsx`)
 
-#### CMS RevealUI Elements (`apps/cms/src/components/revealui/elements/`)
+#### CMS RevealUI Elements (`apps/admin/src/components/revealui/elements/`)
 
 Reusable page elements.
 
@@ -1919,7 +1919,7 @@ Reusable page elements.
 15. `text.tsx`
 16. `wallpaper.tsx`
 
-#### CMS RevealUI Sections (`apps/cms/src/components/revealui/sections/`)
+#### CMS RevealUI Sections (`apps/admin/src/components/revealui/sections/`)
 
 Pre-built section components.
 
@@ -1931,7 +1931,7 @@ Pre-built section components.
 
 ### Business Logic
 
-#### React Hooks (`apps/cms/src/lib/hooks/`)
+#### React Hooks (`apps/admin/src/lib/hooks/`)
 
 1. **useChat** (`useChat.ts`)
    - **Purpose**: Chat interface with voice recognition
@@ -1993,7 +1993,7 @@ Pre-built section components.
 19. **revalidate** (`revalidate.ts`)
     - **Purpose**: General revalidation
 
-#### Collection Hooks (`apps/cms/src/lib/collections/*/hooks/`)
+#### Collection Hooks (`apps/admin/src/lib/collections/*/hooks/`)
 
 Business logic hooks that run on collection operations.
 
@@ -2082,7 +2082,7 @@ Memory management hooks.
 2. **useWorkingMemory** (`useWorkingMemory.ts`)
    - **Purpose**: Working memory management
 
-#### API Routes (`apps/cms/src/app/api/`)
+#### API Routes (`apps/admin/src/app/api/`)
 
 Server-side API endpoints that provide data to components.
 
@@ -2285,7 +2285,7 @@ The central contract layer defining all data structures.
    - `EMBEDDING_DIMENSIONS` - Model dimensions
    - `createEmbedding` - Factory function
 
-#### Generated Types (`apps/cms/src/types/revealui.ts`)
+#### Generated Types (`apps/admin/src/types/revealui.ts`)
 
 Auto-generated TypeScript types from RevealUI config.
 
@@ -2306,7 +2306,7 @@ Auto-generated TypeScript types from RevealUI config.
 5. **Auth Operations**
    - `UserAuthOperations` - Login, register, forgot password
 
-#### Validation Schemas (`apps/cms/src/lib/validation/`)
+#### Validation Schemas (`apps/admin/src/lib/validation/`)
 
 1. **Schemas** (`schemas.ts`)
    - Validation schemas for forms and data
@@ -2393,7 +2393,7 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 #### 4. Data Flow
 
 1. **Schema Definition** → `@revealui/contracts`
-2. **Type Generation** → `apps/cms/src/types/revealui.ts`
+2. **Type Generation** → `apps/admin/src/types/revealui.ts`
 3. **Component Props** → Extracted from types
 4. **Business Logic** → Hooks and API routes
 5. **Data Validation** → Zod schemas
@@ -2408,17 +2408,17 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 
 #### UI Components
 
-- **CMS Blocks**: `apps/cms/src/lib/blocks/`
-- **CMS Components**: `apps/cms/src/lib/components/`
+- **CMS Blocks**: `apps/admin/src/lib/blocks/`
+- **CMS Components**: `apps/admin/src/lib/components/`
 - **Framework UI**: `packages/core/src/client/ui/`
 - **Web App**: `apps/mainframe/src/components/`
-- **RevealUI Elements**: `apps/cms/src/components/revealui/`
+- **RevealUI Elements**: `apps/admin/src/components/revealui/`
 
 #### Business Logic
 
-- **Hooks**: `apps/cms/src/lib/hooks/`
-- **Collection Hooks**: `apps/cms/src/lib/collections/*/hooks/`
-- **API Routes**: `apps/cms/src/app/api/`
+- **Hooks**: `apps/admin/src/lib/hooks/`
+- **Collection Hooks**: `apps/admin/src/lib/collections/*/hooks/`
+- **API Routes**: `apps/admin/src/app/api/`
 - **Electric Hooks**: `packages/sync/src/hooks/`
 - **Memory Hooks**: `packages/ai/src/memory/src/client/hooks/`
 
@@ -2427,17 +2427,17 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 - **Core Schemas**: `packages/contracts/src/core/`
 - **Block Schemas**: `packages/contracts/src/blocks/`
 - **Agent Schemas**: `packages/contracts/src/agents/`
-- **Generated Types**: `apps/cms/src/types/revealui.ts`
-- **Validation**: `apps/cms/src/lib/validation/`
+- **Generated Types**: `apps/admin/src/types/revealui.ts`
+- **Validation**: `apps/admin/src/lib/validation/`
 
 ### Extension Guide
 
 To extend this mapping:
 
-1. **Add New Block**: Create component in `apps/cms/src/lib/blocks/`, add schema in `packages/contracts/src/blocks/`, register in `RenderBlocks.tsx`
+1. **Add New Block**: Create component in `apps/admin/src/lib/blocks/`, add schema in `packages/contracts/src/blocks/`, register in `RenderBlocks.tsx`
 2. **Add New Hook**: Create in appropriate `hooks/` directory, reference in component
 3. **Add New Schema**: Create in `packages/contracts/src/`, export from `index.ts`, use in components
-4. **Add New API Route**: Create in `apps/cms/src/app/api/`, reference in hooks/components
+4. **Add New API Route**: Create in `apps/admin/src/app/api/`, reference in hooks/components
 
 ---
 

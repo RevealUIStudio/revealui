@@ -28,7 +28,7 @@
       "onAutoForward": "notify"
     },
     "4000": {
-      "label": "CMS",
+      "label": "Admin",
       "onAutoForward": "notify"
     },
     "5432": {
