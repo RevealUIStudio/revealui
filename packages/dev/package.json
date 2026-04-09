@@ -36,8 +36,7 @@
     "./ts/revealui": "./src/ts/revealui.json",
     "./ts/vite": "./src/ts/vite.json",
     "./ts/nextjs": "./src/ts/nextjs.json",
-    "./ts/react-library": "./src/ts/react-library.json",
-    "./editors": "./src/editors/index.ts"
+    "./ts/react-library": "./src/ts/react-library.json"
   },
   "peerDependencies": {
     "vite": ">=5.0.0"
