@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { healthCheck, resendSendTest, vercelSetEnv } from '../../lib/deploy';
+import { healthCheck, vercelSetEnv } from '../../lib/deploy';
 import type { StudioConfig, WizardData } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -101,11 +101,10 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
       // Email delivery check
       try {
         updateCheck(4, { status: 'checking' });
-        if (data.emailProvider === 'resend' && data.resendApiKey) {
-          await resendSendTest(data.resendApiKey, trimmedEmail);
-          updateCheck(4, { status: 'pass', detail: 'Test email sent' });
+        // Gmail credentials are validated during StepEmail
+        if (data.googleServiceAccountEmail && data.googlePrivateKey) {
+          updateCheck(4, { status: 'pass', detail: 'Gmail configured' });
         } else {
-          // For SMTP, we already validated during StepEmail — mark as pass
           updateCheck(4, { status: 'pass', detail: 'Validated in email step' });
         }
       } catch {
