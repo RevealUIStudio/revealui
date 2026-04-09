@@ -125,7 +125,7 @@ export default function StepEmail({
             variant="primary"
             onClick={handleSendTest}
             loading={loading}
-            disabled={!testEmail.trim() || !isConfigured || loading}
+            disabled={!(testEmail.trim() && isConfigured) || loading}
           >
             Send Test Email
           </Button>
