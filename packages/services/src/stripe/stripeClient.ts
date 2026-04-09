@@ -265,10 +265,12 @@ function createProtectedStripe(stripeInstance?: Stripe) {
             'checkout.sessions.create',
           ),
         retrieve: (
-          ...args: Parameters<Stripe['checkout']['sessions']['retrieve']>
+          id: string,
+          params?: Stripe.Checkout.SessionRetrieveParams,
+          options?: Stripe.RequestOptions,
         ): Promise<Stripe.Checkout.Session> =>
           callWithResilience(
-            () => getStripeInstance().checkout.sessions.retrieve(...args),
+            () => getStripeInstance().checkout.sessions.retrieve(id, params, options),
             'checkout.sessions.retrieve',
           ),
       },
