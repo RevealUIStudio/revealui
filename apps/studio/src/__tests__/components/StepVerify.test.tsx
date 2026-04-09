@@ -9,12 +9,10 @@ import type { StudioConfig, WizardData } from '../../types';
 
 const mockHealthCheck = vi.fn();
 const mockVercelSetEnv = vi.fn();
-const mockResendSendTest = vi.fn();
 
 vi.mock('../../lib/deploy', () => ({
   healthCheck: (...args: unknown[]) => mockHealthCheck(...args),
   vercelSetEnv: (...args: unknown[]) => mockVercelSetEnv(...args),
-  resendSendTest: (...args: unknown[]) => mockResendSendTest(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -71,7 +69,6 @@ describe('StepVerify', () => {
     vi.clearAllMocks();
     mockHealthCheck.mockResolvedValue(200);
     mockVercelSetEnv.mockResolvedValue(undefined);
-    mockResendSendTest.mockResolvedValue(true);
   });
 
   // -- Rendering ----------------------------------------------------------
@@ -260,10 +257,9 @@ describe('StepVerify', () => {
     fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Test email sent')).toBeInTheDocument();
+      expect(screen.getByText('Gmail configured')).toBeInTheDocument();
     });
 
-    expect(mockResendSendTest).toHaveBeenCalledWith('rk_test_123', 'admin@test.com');
     expect(mockHealthCheck).toHaveBeenCalledTimes(4);
   });
 
@@ -328,9 +324,9 @@ describe('StepVerify', () => {
 
   // -- Email delivery — Gmail provider ------------------------------------
 
-  it('marks email as validated in email step for Gmail provider', async () => {
+  it('marks email as validated in email step when no Gmail credentials', async () => {
     renderStep({
-      data: { emailProvider: 'gmail' },
+      data: { emailProvider: 'gmail', googleServiceAccountEmail: '', googlePrivateKey: '' },
     });
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {
@@ -344,8 +340,6 @@ describe('StepVerify', () => {
     await waitFor(() => {
       expect(screen.getByText('Validated in email step')).toBeInTheDocument();
     });
-
-    expect(mockResendSendTest).not.toHaveBeenCalled();
   });
 
   // -- Health check flow — failures --------------------------------------

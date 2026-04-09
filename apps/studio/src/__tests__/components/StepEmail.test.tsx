@@ -3,19 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import StepEmail from '../../components/deploy/StepEmail';
 import type { StudioConfig, WizardData } from '../../types';
 
-const mockResendSendTest = vi.fn();
-const mockSmtpSendTest = vi.fn();
-
-beforeEach(() => {
-  mockResendSendTest.mockReset();
-  mockSmtpSendTest.mockReset();
-});
-
-vi.mock('../../lib/deploy', () => ({
-  resendSendTest: (...args: unknown[]) => mockResendSendTest(...args),
-  smtpSendTest: (...args: unknown[]) => mockSmtpSendTest(...args),
-}));
-
 const MOCK_CONFIG: StudioConfig = {
   intent: 'deploy',
   setupComplete: true,
@@ -54,28 +41,25 @@ function renderStep(overrides?: Partial<WizardData>) {
 }
 
 describe('StepEmail', () => {
-  it('renders provider toggle (Resend / SMTP)', () => {
-    renderStep();
-
-    expect(screen.getByText('Resend')).toBeInTheDocument();
-    expect(screen.getByText('SMTP')).toBeInTheDocument();
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('shows Resend API key input by default', () => {
+  it('renders Gmail configuration fields', () => {
     renderStep();
 
-    expect(screen.getByPlaceholderText('re_...')).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText('revealui-email@project.iam.gserviceaccount.com'),
+    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('-----BEGIN PRIVATE KEY-----')).toBeInTheDocument(); // gitleaks:allow — placeholder text, not a real key
+    expect(screen.getByPlaceholderText('noreply@yourdomain.com')).toBeInTheDocument();
   });
 
-  it('shows SMTP fields when SMTP is selected', () => {
+  it('renders test email input and send button', () => {
     renderStep();
 
-    fireEvent.click(screen.getByText('SMTP'));
-
-    expect(screen.getByPlaceholderText('smtp.example.com')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('587')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('user@example.com')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('SMTP password')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
+    expect(screen.getByText('Send Test Email')).toBeInTheDocument();
   });
 
   it('disables Next until test email is sent', () => {
@@ -84,120 +68,43 @@ describe('StepEmail', () => {
     expect(screen.getByText('Next')).toBeDisabled();
   });
 
-  it('calls resendSendTest for Resend provider', async () => {
-    mockResendSendTest.mockResolvedValue(true);
+  it('disables Send Test Email when fields are empty', () => {
     renderStep();
 
-    fireEvent.change(screen.getByPlaceholderText('re_...'), {
-      target: { value: 're_test_abc' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.click(screen.getByText('Send Test Email'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Test email sent — check your inbox.')).toBeInTheDocument();
-    });
-
-    expect(mockResendSendTest).toHaveBeenCalledWith('re_test_abc', 'test@example.com');
-    expect(mockSmtpSendTest).not.toHaveBeenCalled();
-    expect(screen.getByText('Next')).not.toBeDisabled();
+    expect(screen.getByText('Send Test Email')).toBeDisabled();
   });
 
-  it('calls smtpSendTest for SMTP provider', async () => {
-    mockSmtpSendTest.mockResolvedValue(true);
+  it('enables Send Test Email when all required fields are filled', () => {
     renderStep();
 
-    fireEvent.click(screen.getByText('SMTP'));
-
-    fireEvent.change(screen.getByPlaceholderText('smtp.example.com'), {
-      target: { value: 'mail.test.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('user@example.com'), {
-      target: { value: 'smtp-user@test.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('SMTP password'), {
-      target: { value: 'secret123' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'recipient@test.com' },
-    });
-    fireEvent.click(screen.getByText('Send Test Email'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Test email sent — check your inbox.')).toBeInTheDocument();
-    });
-
-    expect(mockSmtpSendTest).toHaveBeenCalledWith(
-      'mail.test.com',
-      587,
-      'smtp-user@test.com',
-      'secret123',
-      'recipient@test.com',
+    fireEvent.change(
+      screen.getByPlaceholderText('revealui-email@project.iam.gserviceaccount.com'),
+      { target: { value: 'sa@project.iam.gserviceaccount.com' } },
     );
-    expect(mockResendSendTest).not.toHaveBeenCalled();
-    expect(screen.getByText('Next')).not.toBeDisabled();
-  });
-
-  it('shows error when SMTP fields are missing', async () => {
-    renderStep();
-
-    fireEvent.click(screen.getByText('SMTP'));
-
-    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'test@example.com' },
-    });
-    fireEvent.click(screen.getByText('Send Test Email'));
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('SMTP host, username, and password are required'),
-      ).toBeInTheDocument();
-    });
-
-    expect(mockSmtpSendTest).not.toHaveBeenCalled();
-  });
-
-  it('shows error when send fails', async () => {
-    mockResendSendTest.mockRejectedValue(new Error('API key invalid'));
-    renderStep();
-
-    fireEvent.change(screen.getByPlaceholderText('re_...'), {
-      target: { value: 're_bad_key' },
+    fireEvent.change(screen.getByPlaceholderText('-----BEGIN PRIVATE KEY-----'), {
+      // gitleaks:allow
+      target: { value: 'test-private-key-fixture' },
     });
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
       target: { value: 'test@example.com' },
     });
-    fireEvent.click(screen.getByText('Send Test Email'));
 
-    await waitFor(() => {
-      expect(screen.getByText('API key invalid')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('Next')).toBeDisabled();
+    expect(screen.getByText('Send Test Email')).not.toBeDisabled();
   });
 
-  it('uses custom SMTP port when provided', async () => {
-    mockSmtpSendTest.mockResolvedValue(true);
-    renderStep();
+  it('shows success message after test email is sent', async () => {
+    const { onUpdateData, onUpdateConfig } = renderStep();
 
-    fireEvent.click(screen.getByText('SMTP'));
-
-    fireEvent.change(screen.getByPlaceholderText('smtp.example.com'), {
-      target: { value: 'mail.test.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('587'), {
-      target: { value: '465' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('user@example.com'), {
-      target: { value: 'user@test.com' },
-    });
-    fireEvent.change(screen.getByPlaceholderText('SMTP password'), {
-      target: { value: 'pass' },
+    fireEvent.change(
+      screen.getByPlaceholderText('revealui-email@project.iam.gserviceaccount.com'),
+      { target: { value: 'sa@project.iam.gserviceaccount.com' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText('-----BEGIN PRIVATE KEY-----'), {
+      // gitleaks:allow
+      target: { value: 'test-private-key-fixture' },
     });
     fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
-      target: { value: 'to@test.com' },
+      target: { value: 'test@example.com' },
     });
     fireEvent.click(screen.getByText('Send Test Email'));
 
@@ -205,12 +112,68 @@ describe('StepEmail', () => {
       expect(screen.getByText('Test email sent — check your inbox.')).toBeInTheDocument();
     });
 
-    expect(mockSmtpSendTest).toHaveBeenCalledWith(
-      'mail.test.com',
-      465,
-      'user@test.com',
-      'pass',
-      'to@test.com',
+    expect(screen.getByText('Next')).not.toBeDisabled();
+    expect(onUpdateData).toHaveBeenCalledWith({
+      emailProvider: 'gmail',
+      googleServiceAccountEmail: 'sa@project.iam.gserviceaccount.com',
+      googlePrivateKey: 'test-private-key-fixture',
+      emailFrom: '',
+    });
+    expect(onUpdateConfig).toHaveBeenCalled();
+  });
+
+  it('disables Send Test Email when service account fields are missing', () => {
+    renderStep();
+
+    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
+      target: { value: 'test@example.com' },
+    });
+
+    expect(screen.getByText('Send Test Email')).toBeDisabled();
+  });
+
+  it('updates from address in wizard data', async () => {
+    const { onUpdateData } = renderStep();
+
+    fireEvent.change(
+      screen.getByPlaceholderText('revealui-email@project.iam.gserviceaccount.com'),
+      { target: { value: 'sa@project.iam.gserviceaccount.com' } },
+    );
+    fireEvent.change(screen.getByPlaceholderText('-----BEGIN PRIVATE KEY-----'), {
+      // gitleaks:allow
+      target: { value: 'test-private-key-fixture' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('noreply@yourdomain.com'), {
+      target: { value: 'noreply@example.com' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('you@example.com'), {
+      target: { value: 'test@example.com' },
+    });
+    fireEvent.click(screen.getByText('Send Test Email'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Test email sent — check your inbox.')).toBeInTheDocument();
+    });
+
+    expect(onUpdateData).toHaveBeenCalledWith(
+      expect.objectContaining({
+        emailFrom: 'noreply@example.com',
+      }),
+    );
+  });
+
+  it('pre-fills from existing wizard data', () => {
+    renderStep({
+      googleServiceAccountEmail: 'existing@project.iam.gserviceaccount.com',
+      googlePrivateKey: 'existing-key',
+      emailFrom: 'noreply@existing.com',
+    });
+
+    expect(
+      screen.getByPlaceholderText('revealui-email@project.iam.gserviceaccount.com'),
+    ).toHaveValue('existing@project.iam.gserviceaccount.com');
+    expect(screen.getByPlaceholderText('noreply@yourdomain.com')).toHaveValue(
+      'noreply@existing.com',
     );
   });
 });
