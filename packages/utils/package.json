@@ -1,6 +1,6 @@
 {
   "name": "@revealui/utils",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Shared utilities for RevealUI - logger, SSL config, and common helpers",
   "license": "MIT",
   "dependencies": {

@@ -1,6 +1,6 @@
 {
   "name": "@revealui/animations",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zero-dependency animation library for RevealUI. Spring physics, gestures, variants, and presence animations.",
   "keywords": [
     "animation",

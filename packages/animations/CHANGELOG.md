@@ -1,6 +1,6 @@
-# @revealui/harnesses
+# @revealui/animations
 
-## 0.1.8
+## 0.1.1
 
 ### Patch Changes
 
@@ -14,46 +14,3 @@
   - Fix CodeQL security alerts (XSS validation, path traversal guard, prototype-safe objects)
   - Align all coverage thresholds with actual coverage
   - Add 4 ADRs (dual-database, Fair Source licensing, session-only auth, two-repo model)
-
-- Updated dependencies [0f195e4]
-  - @revealui/core@0.5.5
-
-## 0.1.7
-
-### Patch Changes
-
-- Updated dependencies
-  - @revealui/core@0.5.4
-
-## 0.1.6
-
-### Patch Changes
-
-- Updated dependencies
-  - @revealui/core@0.5.3
-
-## 0.1.5
-
-### Patch Changes
-
-- @revealui/core@0.5.2
-
-## 0.1.4
-
-### Patch Changes
-
-- @revealui/core@0.5.1
-
-## 0.1.3
-
-### Patch Changes
-
-- Updated dependencies
-  - @revealui/core@0.5.0
-
-## 0.1.2
-
-### Patch Changes
-
-- Updated dependencies [f89b9ff]
-  - @revealui/core@0.4.0
