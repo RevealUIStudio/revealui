@@ -1,7 +1,17 @@
 {
   "name": "@revealui/router",
   "version": "0.3.7",
-  "description": "Lightweight internal router for RevealUI apps (docs, marketing). Not a general-purpose router.",
+  "description": "Lightweight file-based router for React apps with SSR, data loaders, middleware, and nested layouts. No framework required — works with Vite, Hono, or any React setup.",
+  "keywords": [
+    "file-based-routing",
+    "middleware",
+    "nested-routes",
+    "react",
+    "react-router",
+    "revealui",
+    "ssr",
+    "vite"
+  ],
   "license": "MIT",
   "dependencies": {
     "@hono/node-server": "^1.19.13",
