@@ -104,7 +104,7 @@ describe('GET /api/health', () => {
     const body = (res as unknown as { body: Record<string, unknown> }).body;
     expect(body).toHaveProperty('checks');
     expect(body).toHaveProperty('metrics');
-    expect(body.service).toBe('RevealUI CMS');
+    expect(body.service).toBe('RevealUI Admin');
   });
 
   it('returns 503 when database is unhealthy', async () => {

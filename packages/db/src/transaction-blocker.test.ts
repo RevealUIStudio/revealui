@@ -39,7 +39,7 @@ describe('Critical Fix #1: Transaction Implementation', () => {
         await withTransaction(neonMockDb, async () => ({ success: true }));
         expect.fail('Should have thrown');
       } catch (error) {
-        expect((error as Error).message).toContain('Supabase or localhost');
+        expect((error as Error).message).toContain('Supabase / localhost');
       }
     });
 

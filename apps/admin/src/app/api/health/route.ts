@@ -147,7 +147,7 @@ export async function GET(request: Request) {
     {
       status: overallStatus,
       timestamp: new Date().toISOString(),
-      service: 'RevealUI CMS',
+      service: 'RevealUI Admin',
       version: process.env.npm_package_version || 'unknown',
       checks,
       metrics,
