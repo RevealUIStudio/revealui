@@ -4,14 +4,14 @@
   "description": "Type-safe environment configuration with Zod validation and lazy proxy loading",
   "license": "MIT",
   "dependencies": {
-    "dotenv": "^17.2.4",
+    "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@types/node": "catalog:",
     "dev": "workspace:*",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

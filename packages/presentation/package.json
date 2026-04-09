@@ -11,23 +11,22 @@
     "ui"
   ],
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^25.5.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/coverage-v8": "^4.1.0",
+    "@vitest/coverage-v8": "catalog:",
     "cross-env": "^10.1.0",
     "dev": "workspace:*",
-    "jsdom": "^29.0.1",
-    "typescript": "^6.0.2",
+    "jsdom": "catalog:",
+    "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "^4.1.0"
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"
