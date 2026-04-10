@@ -51,6 +51,24 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
+// Mock license + DB modules used by callback route (user limit enforcement)
+vi.mock('@revealui/core/license', () => ({
+  initializeLicense: vi.fn().mockResolvedValue(undefined),
+  getMaxUsers: vi.fn().mockReturnValue(Infinity),
+}));
+
+vi.mock('@revealui/db', () => ({
+  getClient: vi.fn().mockReturnValue({}),
+}));
+
+vi.mock('@revealui/db/queries/oauth-accounts', () => ({
+  getOAuthAccountByProviderUser: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock('@revealui/db/queries/users', () => ({
+  countActiveUsers: vi.fn().mockResolvedValue(0),
+}));
+
 // ---------------------------------------------------------------------------
 // Test data
 // ---------------------------------------------------------------------------
@@ -128,6 +146,7 @@ describe('GET /api/auth/[provider]', () => {
       mockGenerateOAuthState.mockReturnValue({
         state: 'test-state',
         cookieValue: 'test-state.hmac',
+        codeChallenge: 'test-challenge',
       });
       mockBuildAuthUrl.mockReturnValue(`https://${provider}.example.com/auth`);
 
@@ -145,6 +164,7 @@ describe('GET /api/auth/[provider]', () => {
     mockGenerateOAuthState.mockReturnValue({
       state: 'state-abc',
       cookieValue: 'state-abc.hmac',
+      codeChallenge: 'challenge-abc',
     });
     mockBuildAuthUrl.mockReturnValue('https://github.com/login/oauth/authorize');
 
@@ -160,6 +180,7 @@ describe('GET /api/auth/[provider]', () => {
     mockGenerateOAuthState.mockReturnValue({
       state: 'state-abc',
       cookieValue: 'state-abc.hmac',
+      codeChallenge: 'challenge-abc',
     });
     mockBuildAuthUrl.mockReturnValue('https://github.com/login/oauth/authorize');
 
@@ -175,6 +196,7 @@ describe('GET /api/auth/[provider]', () => {
     mockGenerateOAuthState.mockReturnValue({
       state: 'state-abc',
       cookieValue: 'state-abc.hmac',
+      codeChallenge: 'challenge-abc',
     });
     mockBuildAuthUrl.mockReturnValue('https://github.com/auth');
 
@@ -185,6 +207,7 @@ describe('GET /api/auth/[provider]', () => {
       'github',
       `${BASE_URL}/api/auth/callback/github`,
       'state-abc',
+      'challenge-abc',
     );
   });
 
@@ -194,6 +217,7 @@ describe('GET /api/auth/[provider]', () => {
     mockGenerateOAuthState.mockReturnValue({
       state: 'state-xyz',
       cookieValue: 'state-xyz.hmac-sig',
+      codeChallenge: 'challenge-xyz',
     });
     mockBuildAuthUrl.mockReturnValue('https://github.com/auth');
 
@@ -216,6 +240,7 @@ describe('GET /api/auth/[provider]', () => {
     mockGenerateOAuthState.mockReturnValue({
       state: 's',
       cookieValue: 's.h',
+      codeChallenge: 'c',
     });
     mockBuildAuthUrl.mockReturnValue('https://github.com/auth');
 
@@ -235,6 +260,7 @@ describe('GET /api/auth/[provider]', () => {
     mockGenerateOAuthState.mockReturnValue({
       state: 's',
       cookieValue: 's.h',
+      codeChallenge: 'c',
     });
     mockBuildAuthUrl.mockImplementation(() => {
       throw new Error('Missing client ID for github');
@@ -254,6 +280,7 @@ describe('GET /api/auth/[provider]', () => {
     mockGenerateOAuthState.mockReturnValue({
       state: 's',
       cookieValue: 's.h',
+      codeChallenge: 'c',
     });
     mockBuildAuthUrl.mockImplementation(() => {
       throw 'string error';
@@ -273,7 +300,7 @@ describe('GET /api/auth/[provider]', () => {
     process.env.NEXT_PUBLIC_APP_URL = 'https://cms.revealui.com';
     process.env.NEXT_PUBLIC_SERVER_URL = 'https://server.revealui.com';
 
-    mockGenerateOAuthState.mockReturnValue({ state: 's', cookieValue: 's.h' });
+    mockGenerateOAuthState.mockReturnValue({ state: 's', cookieValue: 's.h', codeChallenge: 'c' });
     mockBuildAuthUrl.mockReturnValue('https://github.com/auth');
 
     const req = createRequest('/api/auth/github');
@@ -283,6 +310,7 @@ describe('GET /api/auth/[provider]', () => {
       'github',
       'https://cms.revealui.com/api/auth/callback/github',
       's',
+      'c',
     );
 
     delete process.env.NEXT_PUBLIC_APP_URL;
@@ -371,7 +399,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   // ---- Successful flow ----
 
   it('should exchange code, upsert user, create session, and redirect', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('access-token-123');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-user-1',
@@ -401,6 +433,7 @@ describe('GET /api/auth/callback/[provider]', () => {
       'github',
       'valid-code',
       `${BASE_URL}/api/auth/callback/github`,
+      'test-verifier',
     );
     expect(mockFetchProviderUser).toHaveBeenCalledWith('github', 'access-token-123');
     expect(mockUpsertOAuthUser).toHaveBeenCalledWith(
@@ -421,7 +454,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   });
 
   it('should set revealui-session cookie on success', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -453,7 +490,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   });
 
   it('should delete oauth_state cookie on success', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -483,7 +524,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   // ---- User-agent and IP extraction ----
 
   it('should pass user-agent to createSession', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -511,7 +556,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   });
 
   it('should extract IP from x-forwarded-for header (last entry)', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -539,7 +588,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   });
 
   it('should fall back to x-real-ip when x-forwarded-for is absent', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -571,7 +624,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should allow any email when OAUTH_ADMIN_EMAILS is not set', async () => {
     delete process.env.OAUTH_ADMIN_EMAILS;
 
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -595,7 +652,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should block email not in OAUTH_ADMIN_EMAILS allowlist', async () => {
     process.env.OAUTH_ADMIN_EMAILS = 'admin@revealui.com, boss@revealui.com';
 
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -620,7 +681,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should allow email that IS in OAUTH_ADMIN_EMAILS allowlist', async () => {
     process.env.OAUTH_ADMIN_EMAILS = 'admin@revealui.com, boss@revealui.com';
 
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -646,7 +711,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   // ---- Redirect safety (open redirect prevention) ----
 
   it('should redirect to /admin by default', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -673,6 +742,7 @@ describe('GET /api/auth/callback/[provider]', () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
       redirectTo: '/dashboard/settings?tab=profile',
+      codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
@@ -701,6 +771,7 @@ describe('GET /api/auth/callback/[provider]', () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
       redirectTo: 'https://evil.com/steal',
+      codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
@@ -728,7 +799,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   // ---- Error handling ----
 
   it('should redirect with account_exists on OAuthAccountConflictError', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -752,7 +827,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   });
 
   it('should redirect with oauth_error on generic error during code exchange', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockRejectedValue(new Error('Token exchange failed'));
 
     const req = createRequest('/api/auth/callback/github?code=bad&state=s');
@@ -767,7 +846,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   });
 
   it('should redirect with oauth_error on generic error during user fetch', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockRejectedValue(new Error('Provider API down'));
 
@@ -783,7 +866,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   });
 
   it('should redirect with oauth_error when session creation fails', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -809,7 +896,11 @@ describe('GET /api/auth/callback/[provider]', () => {
 
   for (const provider of ['google', 'github', 'vercel']) {
     it(`should process callback for "${provider}" provider`, async () => {
-      mockVerifyOAuthState.mockReturnValue({ provider, redirectTo: '/admin' });
+      mockVerifyOAuthState.mockReturnValue({
+        provider,
+        redirectTo: '/admin',
+        codeVerifier: 'test-verifier',
+      });
       mockExchangeCode.mockResolvedValue('token');
       mockFetchProviderUser.mockResolvedValue({
         id: `${provider}-user-1`,
@@ -832,6 +923,7 @@ describe('GET /api/auth/callback/[provider]', () => {
         provider,
         'c',
         `${BASE_URL}/api/auth/callback/${provider}`,
+        'test-verifier',
       );
     });
   }
@@ -842,7 +934,11 @@ describe('GET /api/auth/callback/[provider]', () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('SESSION_COOKIE_DOMAIN', '.revealui.com');
 
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -871,7 +967,11 @@ describe('GET /api/auth/callback/[provider]', () => {
   // ---- Missing code parameter ----
 
   it('should pass empty string when code query param is missing', async () => {
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin' });
+    mockVerifyOAuthState.mockReturnValue({
+      provider: 'github',
+      redirectTo: '/admin',
+      codeVerifier: 'test-verifier',
+    });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-1',
@@ -893,6 +993,7 @@ describe('GET /api/auth/callback/[provider]', () => {
       'github',
       '',
       `${BASE_URL}/api/auth/callback/github`,
+      'test-verifier',
     );
   });
 });

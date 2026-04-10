@@ -16,6 +16,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
+// Mock auth — proxy routes now require a valid session
+vi.mock('@revealui/auth/server', () => ({
+  getSession: vi.fn().mockResolvedValue({ userId: 'test-user', token: 'tok' }),
+}));
+
+vi.mock('@/lib/utils/request-context', () => ({
+  extractRequestContext: vi.fn().mockReturnValue({}),
+}));
+
+vi.mock('@revealui/utils/logger', () => ({
+  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
+}));
+
 // ---------------------------------------------------------------------------
 // Route imports (after mocks)
 // ---------------------------------------------------------------------------
