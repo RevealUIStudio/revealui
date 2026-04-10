@@ -35,7 +35,7 @@ export async function register() {
     const __dirname = path.dirname(__filename)
 
     // Load .env file from monorepo root before validation
-    // Next.js automatically loads .env from apps/cms/, but we also need the root .env
+    // Next.js automatically loads .env from apps/admin/, but we also need the root .env
     dotenv.config({ path: path.resolve(__dirname, '../../../.env') })
     // Also load .env.local if it exists (has precedence)
     dotenv.config({ path: path.resolve(__dirname, '../../../.env.local') })

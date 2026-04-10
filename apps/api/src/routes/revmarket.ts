@@ -1,5 +1,10 @@
 /**
- * RevMarket — Autonomous Agent Marketplace Routes (Phase 5.16)
+ * RevMarket — Autonomous Agent Marketplace Routes (Phase 5.16) — PREVIEW
+ *
+ * ⚠️  PREVIEW: Agent task execution runs in-process without sandbox isolation.
+ * x402 crypto payments are disabled by default (X402_ENABLED=false).
+ * Use only with trusted agents. Full sandboxing and payment settlement
+ * are planned for Phase B.
  *
  * Extends the MCP Marketplace (Phase 5.5) with autonomous agent task execution.
  * Agents register with skills and pricing, users submit tasks, the system

@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import { createValidator } from 'dev/code-validator'
+ * import { createValidator } from '@revealui/dev/code-validator'
  *
  * const validator = await createValidator('.revealui/code-standards.json')
  * const result = validator.validate(code, { filePath: 'src/foo.ts' })

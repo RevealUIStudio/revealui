@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events';
 
 // ── Types ───────────────────────────────────────────────────────────
 
-export type AgentBackend = 'Snap' | 'BitNet' | 'Ollama';
+export type AgentBackend = 'Snap' | 'Ollama';
 
 export interface AgentSessionInfo {
   id: string;
@@ -102,12 +102,6 @@ export class SpawnerService extends EventEmitter {
       }
       case 'Ollama': {
         child = nodeSpawn('ollama', ['run', model, prompt], {
-          stdio: ['ignore', 'pipe', 'pipe'],
-        });
-        break;
-      }
-      case 'BitNet': {
-        child = nodeSpawn('bitnet', ['run', '--model', model, '--prompt', prompt], {
           stdio: ['ignore', 'pipe', 'pipe'],
         });
         break;

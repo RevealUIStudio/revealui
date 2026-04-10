@@ -6,7 +6,7 @@
  * its results back as a comment.
  *
  * These are injected by createTicketTools() and are always paired with
- * CMS tools so agents can act on content AND report back through the ticket.
+ * admin tools so agents can act on content AND report back through the ticket.
  */
 
 import { z } from 'zod/v4';
@@ -66,7 +66,7 @@ export function createTicketTools(ticketId: string, client: TicketMutationClient
   const addCommentTool: Tool = {
     name: 'add_ticket_comment',
     description:
-      'Write a comment on the current ticket. Use this to report what you did, what changed in the CMS, or why you could not complete the task.',
+      'Write a comment on the current ticket. Use this to report what you did, what changed in the admin, or why you could not complete the task.',
     parameters: z.object({
       text: z.string().min(1).describe('The comment text to add to the ticket'),
     }),

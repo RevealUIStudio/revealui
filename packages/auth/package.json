@@ -16,21 +16,21 @@
     "@revealui/db": "workspace:*",
     "@revealui/security": "workspace:*",
     "@simplewebauthn/server": "^13.3.0",
-    "bcryptjs": "^3.0.3",
-    "drizzle-orm": "^0.45.2",
+    "bcryptjs": "catalog:",
+    "drizzle-orm": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@simplewebauthn/browser": "^13.3.0",
     "@testing-library/react": "^16.3.2",
-    "@types/node": "^25.5.0",
-    "@types/react": "^19.2.14",
-    "@vitest/coverage-v8": "^4.1.0",
-    "dev": "workspace:*",
-    "happy-dom": "^20.8.4",
-    "react": "^19.2.3",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "@revealui/dev": "workspace:*",
+    "happy-dom": "^20.8.9",
+    "react": "^19.2.5",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

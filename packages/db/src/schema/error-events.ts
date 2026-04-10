@@ -1,8 +1,8 @@
 /**
  * Error Events Table - Persistent storage for application errors.
  *
- * Append-only table. Captures unhandled errors from CMS (client + server)
- * and API. Queryable via the CMS admin /admin/errors page.
+ * Append-only table. Captures unhandled errors from admin (client + server)
+ * and API. Queryable via the admin dashboard /admin/errors page.
  * Supplemented by Axiom log drain for full log search.
  */
 
@@ -33,7 +33,7 @@ export const errorEvents = pgTable(
     stack: text('stack'),
 
     /** Which app generated the error */
-    app: text('app').notNull(), // 'cms' | 'api' | 'marketing'
+    app: text('app').notNull(), // 'admin' | 'api' | 'marketing'
 
     /** Runtime context within the app */
     context: text('context'), // 'server' | 'client' | 'edge'

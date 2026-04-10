@@ -1,14 +1,12 @@
-import type { OpenAPIObject } from 'openapi3-ts/oas30';
 import { describe, expect, it } from 'vitest';
 import { $, addBasePathToDocument } from '../helpers.js';
 
 describe('addBasePathToDocument', () => {
-  const makeDoc = (paths: Record<string, unknown>): OpenAPIObject =>
-    ({
-      openapi: '3.0.0',
-      info: { title: 'Test', version: '1.0.0' },
-      paths,
-    }) as OpenAPIObject;
+  const makeDoc = (paths: Record<string, unknown>): Record<string, unknown> => ({
+    openapi: '3.0.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths,
+  });
 
   it('prepends base path to all document paths', () => {
     const doc = makeDoc({

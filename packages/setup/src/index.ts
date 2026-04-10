@@ -8,6 +8,8 @@
  * - Shared utilities (logging, etc.)
  */
 
+// Bootstrap (Suite-wide setup primitive)
+export * from './bootstrap/index.js';
 // Environment setup
 export * from './environment/index.js';
 // Utilities

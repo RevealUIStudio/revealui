@@ -112,7 +112,7 @@ const PriceObjectSchema = DualEntitySchema.extend({
   /** Schema version for migrations */
   schemaVersion: z.number().int().default(PRICE_SCHEMA_VERSION),
 
-  /** Numeric ID (from CMS) */
+  /** Numeric ID (from admin) */
   id: z.number().int().positive(),
 
   /** Price title for admin display */
@@ -167,7 +167,7 @@ const PriceObjectSchema = DualEntitySchema.extend({
   updatedAt: z.string().datetime(),
   createdAt: z.string().datetime(),
 
-  /** CMS status */
+  /** admin status */
   _status: PriceStatusSchema.nullable().optional(),
 });
 

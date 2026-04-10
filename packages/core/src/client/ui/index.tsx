@@ -1,7 +1,7 @@
 /**
- * RevealUI CMS UI Components
+ * RevealUI admin UI Components
  *
- * Provides form field components and utilities for the CMS admin interface.
+ * Provides form field components and utilities for the admin dashboard interface.
  */
 
 'use client';

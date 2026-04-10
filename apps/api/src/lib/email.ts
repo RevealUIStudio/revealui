@@ -1,14 +1,14 @@
 /**
  * Edge-compatible email sender for the API service.
  *
- * Provider priority:
- *   1. Gmail REST API  (GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY)
- *   2. Resend API      (RESEND_API_KEY)
- *   3. Mock / throw    (development logs, production throws)
- *
- * Gmail uses a Google Workspace service account with domain-wide delegation
- * to send as EMAIL_FROM (e.g. noreply@revealui.com) via the Gmail REST API.
+ * Uses Gmail REST API with domain-wide delegation.
  * No Node.js-only dependencies — fully edge-compatible (fetch + jose).
+ *
+ * Required env vars:
+ *   GOOGLE_SERVICE_ACCOUNT_EMAIL — GCP service account email
+ *   GOOGLE_PRIVATE_KEY           — RSA private key (PKCS8 PEM)
+ *   EMAIL_FROM                   — sender address (e.g. noreply@revealui.com)
+ *   EMAIL_REPLY_TO               — default reply-to (e.g. support@revealui.com)
  */
 
 import { logger } from '@revealui/core/observability/logger';
@@ -19,6 +19,7 @@ interface EmailOptions {
   subject: string;
   html: string;
   text?: string;
+  replyTo?: string;
 }
 
 export function sanitizeEmailHeader(value: string): string {
@@ -39,23 +40,22 @@ interface GmailConfig {
 function getGmailConfig(): GmailConfig | null {
   const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const privateKey = process.env.GOOGLE_PRIVATE_KEY;
-  const delegateEmail =
-    process.env.EMAIL_FROM ?? process.env.RESEND_FROM_EMAIL ?? 'noreply@revealui.com';
+  const delegateEmail = process.env.EMAIL_FROM ?? 'noreply@revealui.com';
 
   if (!(serviceAccountEmail && privateKey)) return null;
   return { serviceAccountEmail, privateKey, delegateEmail };
 }
 
-async function getGmailAccessToken(config: GmailConfig): Promise<string> {
-  const key = await importPKCS8(config.privateKey.replace(/\\n/g, '\n'), 'RS256');
+async function getGmailAccessToken(cfg: GmailConfig): Promise<string> {
+  const key = await importPKCS8(cfg.privateKey.replace(/\\n/g, '\n'), 'RS256');
 
   const now = Math.floor(Date.now() / 1000);
   const jwt = await new SignJWT({
     scope: 'https://www.googleapis.com/auth/gmail.send',
-    sub: config.delegateEmail,
+    sub: cfg.delegateEmail,
   })
     .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
-    .setIssuer(config.serviceAccountEmail)
+    .setIssuer(cfg.serviceAccountEmail)
     .setAudience('https://oauth2.googleapis.com/token')
     .setIssuedAt(now)
     .setExpirationTime(now + 3600)
@@ -85,8 +85,10 @@ function buildRawMessage(
   subject: string,
   html: string,
   text?: string,
+  replyTo?: string,
 ): string {
   const boundary = `boundary_${Date.now().toString(36)}`;
+  const effectiveReplyTo = replyTo ?? process.env.EMAIL_REPLY_TO;
 
   const lines = [
     `From: ${from}`,
@@ -94,8 +96,13 @@ function buildRawMessage(
     `Subject: ${subject}`,
     'MIME-Version: 1.0',
     `Content-Type: multipart/alternative; boundary="${boundary}"`,
-    '',
   ];
+
+  if (effectiveReplyTo) {
+    lines.push(`Reply-To: ${sanitizeEmailHeader(effectiveReplyTo)}`);
+  }
+
+  lines.push('');
 
   if (text) {
     lines.push(`--${boundary}`, 'Content-Type: text/plain; charset="UTF-8"', '', text, '');
@@ -113,15 +120,16 @@ function buildRawMessage(
   return btoa(b64).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
-async function sendViaGmail(config: GmailConfig, options: EmailOptions): Promise<void> {
-  const accessToken = await getGmailAccessToken(config);
+async function sendViaGmail(cfg: GmailConfig, options: EmailOptions): Promise<void> {
+  const accessToken = await getGmailAccessToken(cfg);
 
   const raw = buildRawMessage(
-    config.delegateEmail,
+    cfg.delegateEmail,
     sanitizeEmailHeader(options.to),
     sanitizeEmailHeader(options.subject),
     options.html,
     options.text,
+    options.replyTo,
   );
 
   const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
@@ -140,59 +148,19 @@ async function sendViaGmail(config: GmailConfig, options: EmailOptions): Promise
 }
 
 // ---------------------------------------------------------------------------
-// Resend API provider
-// ---------------------------------------------------------------------------
-
-async function sendViaResend(options: EmailOptions): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail =
-    process.env.RESEND_FROM_EMAIL ?? process.env.EMAIL_FROM ?? 'noreply@revealui.com';
-
-  if (!apiKey) {
-    throw new Error('RESEND_API_KEY is not configured');
-  }
-
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: fromEmail,
-      to: sanitizeEmailHeader(options.to),
-      subject: sanitizeEmailHeader(options.subject),
-      html: options.html,
-      text: options.text,
-    }),
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Resend API error (${response.status}): ${body}`);
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
 export async function sendEmail(options: EmailOptions): Promise<void> {
-  // 1. Gmail REST API (preferred — edge-compatible, free with Workspace)
+  // Gmail REST API (edge-compatible, free with Workspace)
   const gmailConfig = getGmailConfig();
   if (gmailConfig) {
     await sendViaGmail(gmailConfig, options);
     return;
   }
 
-  // 2. Resend API (fallback)
-  if (process.env.RESEND_API_KEY) {
-    await sendViaResend(options);
-    return;
-  }
-
-  // 3. No provider — in production, throw so callers (e.g. OTP flows) can
-  //    surface the delivery failure instead of silently succeeding.
+  // No provider — in production, throw so callers (e.g. OTP flows) can
+  // surface the delivery failure instead of silently succeeding.
   if (process.env.NODE_ENV === 'production') {
     throw new Error('No email provider configured');
   }

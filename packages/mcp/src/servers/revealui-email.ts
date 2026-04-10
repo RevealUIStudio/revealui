@@ -7,16 +7,13 @@
  * Lets AI agents send notification emails, digests, alerts, and
  * templated messages on behalf of a RevealUI site.
  *
- * Provider priority (auto-detected):
- *   1. Gmail REST API  (GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY)
- *   2. Resend API      (RESEND_API_KEY) — deprecated fallback
+ * Provider: Gmail REST API (GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY)
  *
  * Environment:
  *   GOOGLE_SERVICE_ACCOUNT_EMAIL — Google Workspace service account
  *   GOOGLE_PRIVATE_KEY           — RSA private key (PKCS8, \n-escaped)
  *   EMAIL_FROM                   — Sender address (default: noreply@revealui.com)
- *   RESEND_API_KEY               — Resend API key (deprecated fallback)
- *   REVEALUI_FROM_EMAIL          — Legacy from address (fallback for EMAIL_FROM)
+ *   EMAIL_REPLY_TO               — Default reply-to (e.g. support@revealui.com)
  *
  * Tools:
  *   email_send          — Send a single email (HTML or plain text)
@@ -65,7 +62,7 @@ const TOOLS: Tool[] = [
     name: 'email_send',
     description:
       'Send a single transactional email via the configured email provider ' +
-      '(Gmail REST API or Resend). Provide either html or text (or both). Returns the message ID.',
+      '(Gmail REST API). Provide either html or text (or both). Returns the message ID.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -252,7 +249,7 @@ async function main() {
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  logger.info('revealui-email MCP server running (Gmail → Resend fallback)');
+  logger.info('revealui-email MCP server running (Gmail REST API)');
 }
 
 main().catch((err: unknown) => {

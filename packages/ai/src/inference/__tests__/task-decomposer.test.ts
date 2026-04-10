@@ -131,7 +131,7 @@ describe('task-decomposer', () => {
       const result = await decomposeTask(
         'read the file and update the test and then fix all imports',
         llmClient as never,
-        'bitnet-2b',
+        'gemma4:e2b',
       );
 
       expect(result.decomposed).toBe(true);
@@ -150,7 +150,7 @@ describe('task-decomposer', () => {
       };
 
       const instruction = 'refactor all the things and migrate everything';
-      const result = await decomposeTask(instruction, llmClient as never, 'bitnet-2b');
+      const result = await decomposeTask(instruction, llmClient as never, 'gemma4:e2b');
 
       expect(result.decomposed).toBe(false);
       expect(result.steps).toHaveLength(1);
@@ -165,7 +165,7 @@ describe('task-decomposer', () => {
       };
 
       const instruction = 'refactor and migrate all the multiple files across directories';
-      const result = await decomposeTask(instruction, llmClient as never, 'bitnet-2b');
+      const result = await decomposeTask(instruction, llmClient as never, 'gemma4:e2b');
 
       expect(result.decomposed).toBe(false);
       expect(result.steps).toHaveLength(1);
@@ -190,7 +190,7 @@ describe('task-decomposer', () => {
       const result = await decomposeTask(
         'refactor and migrate all files and update tests across the codebase',
         llmClient as never,
-        'bitnet-2b',
+        'gemma4:e2b',
       );
 
       expect(result.steps.length).toBeLessThanOrEqual(2);
@@ -208,7 +208,7 @@ describe('task-decomposer', () => {
       const result = await decomposeTask(
         'refactor and migrate all the multiple files across directories',
         llmClient as never,
-        'bitnet-2b',
+        'gemma4:e2b',
       );
 
       expect(result.decomposed).toBe(false); // Only 1 step, so decomposed = false

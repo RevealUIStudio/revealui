@@ -13,7 +13,7 @@ import { isLicensed, type LicenseTier } from './license.js';
 
 /** All gated features in RevealUI */
 export interface FeatureFlags {
-  /** Local AI inference via Inference Snaps or BitNet — available at all tiers (no API key needed) */
+  /** Local AI inference via Inference Snaps or Ollama — available at all tiers (no API key needed) */
   aiLocal: boolean;
   /** AI agent system — local + cloud via RevealUI harness (Pro+) */
   ai: boolean;
@@ -29,7 +29,7 @@ export interface FeatureFlags {
   whiteLabel: boolean;
   /** SSO/SAML authentication (planned — not yet implemented) */
   sso: boolean;
-  /** Open-model inference configuration — snaps, BitNet, harness (Max+) */
+  /** Open-model inference configuration — snaps, Ollama, harness (Max+) */
   aiInference: boolean;
   /** Audit logging and compliance trail */
   auditLog: boolean;

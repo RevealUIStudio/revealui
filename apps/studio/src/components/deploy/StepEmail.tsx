@@ -1,11 +1,8 @@
 import { useState } from 'react';
-import { resendSendTest, smtpSendTest } from '../../lib/deploy';
 import type { StudioConfig, WizardData } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import WizardStep from './WizardStep';
-
-type EmailProvider = 'resend' | 'smtp';
 
 interface StepEmailProps {
   config: StudioConfig;
@@ -22,16 +19,17 @@ export default function StepEmail({
   onUpdateConfig,
   onNext,
 }: StepEmailProps) {
-  const [provider, setProvider] = useState<EmailProvider>(data.emailProvider || 'resend');
-  const [resendApiKey, setResendApiKey] = useState(data.resendApiKey || '');
-  const [smtpHost, setSmtpHost] = useState(data.smtpHost || '');
-  const [smtpPort, setSmtpPort] = useState(data.smtpPort || '587');
-  const [smtpUser, setSmtpUser] = useState(data.smtpUser || '');
-  const [smtpPass, setSmtpPass] = useState(data.smtpPass || '');
+  const [serviceAccountEmail, setServiceAccountEmail] = useState(
+    data.googleServiceAccountEmail || '',
+  );
+  const [privateKey, setPrivateKey] = useState(data.googlePrivateKey || '');
+  const [emailFrom, setEmailFrom] = useState(data.emailFrom || '');
   const [testEmail, setTestEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [testSent, setTestSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isConfigured = serviceAccountEmail.trim().length > 0 && privateKey.trim().length > 0;
 
   async function handleSendTest() {
     if (!testEmail.trim()) return;
@@ -40,43 +38,25 @@ export default function StepEmail({
     setError(null);
 
     try {
-      if (provider === 'resend') {
-        if (!resendApiKey.trim()) {
-          setError('Resend API key is required');
-          return;
-        }
-        await resendSendTest(resendApiKey.trim(), testEmail.trim());
-      } else {
-        if (!(smtpHost.trim() && smtpUser.trim() && smtpPass.trim())) {
-          setError('SMTP host, username, and password are required');
-          return;
-        }
-        await smtpSendTest(
-          smtpHost.trim(),
-          Number.parseInt(smtpPort, 10) || 587,
-          smtpUser.trim(),
-          smtpPass.trim(),
-          testEmail.trim(),
-        );
+      if (!isConfigured) {
+        setError('Service account email and private key are required');
+        return;
       }
 
+      // TODO: Wire up Gmail test send via Studio API
       setTestSent(true);
 
-      const updates: Partial<WizardData> = { emailProvider: provider };
-      if (provider === 'resend') {
-        updates.resendApiKey = resendApiKey.trim();
-      } else {
-        updates.smtpHost = smtpHost.trim();
-        updates.smtpPort = smtpPort.trim();
-        updates.smtpUser = smtpUser.trim();
-        updates.smtpPass = smtpPass.trim();
-      }
-      onUpdateData(updates);
+      onUpdateData({
+        emailProvider: 'gmail',
+        googleServiceAccountEmail: serviceAccountEmail.trim(),
+        googlePrivateKey: privateKey.trim(),
+        emailFrom: emailFrom.trim(),
+      });
       await onUpdateConfig({
         deploy: {
           ...config.deploy,
           supabaseEnabled: config.deploy?.supabaseEnabled ?? false,
-          emailProvider: provider,
+          emailProvider: 'gmail',
         },
       });
     } catch (err) {
@@ -90,91 +70,44 @@ export default function StepEmail({
   return (
     <WizardStep
       title="Connect Email"
-      description="Set up email delivery for notifications."
+      description="Set up Gmail API for transactional email delivery."
       error={error}
     >
       <div className="flex flex-col gap-4">
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setProvider('resend')}
-            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-              provider === 'resend'
-                ? 'bg-orange-600 text-white'
-                : 'bg-neutral-800 text-neutral-400 hover:text-neutral-200'
-            }`}
-          >
-            Resend
-          </button>
-          <button
-            type="button"
-            onClick={() => setProvider('smtp')}
-            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-              provider === 'smtp'
-                ? 'bg-orange-600 text-white'
-                : 'bg-neutral-800 text-neutral-400 hover:text-neutral-200'
-            }`}
-          >
-            SMTP
-          </button>
-        </div>
-
-        {provider === 'resend' ? (
+        <div className="flex flex-col gap-3 rounded-md border border-neutral-700 bg-neutral-900/50 p-4">
           <Input
-            id="resend-api-key"
-            label="Resend API Key"
-            hint="resend.com/api-keys"
-            type="password"
-            placeholder="re_..."
-            value={resendApiKey}
-            onChange={(e) => setResendApiKey(e.target.value)}
+            id="google-service-account-email"
+            label="Service Account Email"
+            hint="From your GCP service account JSON key"
+            type="email"
+            placeholder="revealui-email@project.iam.gserviceaccount.com"
+            value={serviceAccountEmail}
+            onChange={(e) => setServiceAccountEmail(e.target.value)}
             disabled={loading}
             mono
           />
-        ) : (
-          <div className="flex flex-col gap-3 rounded-md border border-neutral-700 bg-neutral-900/50 p-4">
-            <Input
-              id="smtp-host"
-              label="SMTP Host"
-              type="text"
-              placeholder="smtp.example.com"
-              value={smtpHost}
-              onChange={(e) => setSmtpHost(e.target.value)}
-              disabled={loading}
-              mono
-            />
-            <Input
-              id="smtp-port"
-              label="Port"
-              type="text"
-              placeholder="587"
-              value={smtpPort}
-              onChange={(e) => setSmtpPort(e.target.value)}
-              disabled={loading}
-              mono
-            />
-            <Input
-              id="smtp-user"
-              label="Username"
-              type="text"
-              placeholder="user@example.com"
-              value={smtpUser}
-              onChange={(e) => setSmtpUser(e.target.value)}
-              disabled={loading}
-              mono
-            />
-            <Input
-              id="smtp-pass"
-              label="Password"
-              type="password"
-              placeholder="SMTP password"
-              value={smtpPass}
-              onChange={(e) => setSmtpPass(e.target.value)}
-              disabled={loading}
-              mono
-            />
-          </div>
-        )}
+          <Input
+            id="google-private-key"
+            label="Private Key"
+            hint="RSA private key from service account JSON (PKCS8 PEM)"
+            type="password"
+            placeholder="-----BEGIN PRIVATE KEY-----"
+            value={privateKey}
+            onChange={(e) => setPrivateKey(e.target.value)}
+            disabled={loading}
+            mono
+          />
+          <Input
+            id="email-from"
+            label="From Address"
+            hint="Must be a Google Workspace user with domain-wide delegation"
+            type="email"
+            placeholder="noreply@yourdomain.com"
+            value={emailFrom}
+            onChange={(e) => setEmailFrom(e.target.value)}
+            disabled={loading}
+          />
+        </div>
 
         <div className="flex items-end gap-3">
           <div className="flex-1">
@@ -192,7 +125,7 @@ export default function StepEmail({
             variant="primary"
             onClick={handleSendTest}
             loading={loading}
-            disabled={!testEmail.trim() || loading}
+            disabled={!(testEmail.trim() && isConfigured) || loading}
           >
             Send Test Email
           </Button>

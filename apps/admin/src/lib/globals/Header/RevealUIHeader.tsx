@@ -15,7 +15,7 @@ interface RevealUIHeaderProps {
 }
 
 /**
- * RevealUI-themed Header component that maps CMS navItems to RevealUI navbar
+ * RevealUI-themed Header component that maps admin navItems to RevealUI navbar
  */
 export function RevealUIHeader({ header }: RevealUIHeaderProps) {
   return (
@@ -52,7 +52,7 @@ export function RevealUIHeader({ header }: RevealUIHeaderProps) {
       }
       actions={
         <>
-          {/* You can customize these action buttons or make them configurable via CMS */}
+          {/* You can customize these action buttons or make them configurable via admin */}
           <PlainButtonLink href="/login" size="md">
             Log in
           </PlainButtonLink>

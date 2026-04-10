@@ -85,7 +85,7 @@ describe('rag-index routes', () => {
     });
 
     it('accepts valid collection names with alphanumeric, dashes, underscores', async () => {
-      // Will fail at CMS fetch since we have no mock for global fetch,
+      // Will fail at admin fetch since we have no mock for global fetch,
       // but the collection name validation should pass
       const originalFetch = globalThis.fetch;
       globalThis.fetch = vi.fn().mockRejectedValue(new Error('network error'));
@@ -97,14 +97,14 @@ describe('rag-index routes', () => {
           method: 'POST',
         });
 
-        // Should get past validation — will fail at CMS fetch (502)
+        // Should get past validation — will fail at admin fetch (502)
         expect(res.status).toBe(502);
       } finally {
         globalThis.fetch = originalFetch;
       }
     });
 
-    it('returns 502 when CMS responds with a non-ok HTTP status', async () => {
+    it('returns 502 when admin responds with a non-ok HTTP status', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn().mockResolvedValue({
@@ -123,10 +123,10 @@ describe('rag-index routes', () => {
       expect(res.status).toBe(502);
       const body = await parseBody(res);
       expect(body.success).toBe(false);
-      expect(body.error).toBe('CMS fetch failed: HTTP 404');
+      expect(body.error).toBe('Admin fetch failed: HTTP 404');
     });
 
-    it('returns 502 with CMS HTTP 500 status in error message', async () => {
+    it('returns 502 with admin HTTP 500 status in error message', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn().mockResolvedValue({
@@ -144,10 +144,10 @@ describe('rag-index routes', () => {
 
       expect(res.status).toBe(502);
       const body = await parseBody(res);
-      expect(body.error).toBe('CMS fetch failed: HTTP 500');
+      expect(body.error).toBe('Admin fetch failed: HTTP 500');
     });
 
-    it('returns 502 when CMS fetch throws a network error', async () => {
+    it('returns 502 when admin fetch throws a network error', async () => {
       vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('ECONNREFUSED')));
 
       const app = createApp();
@@ -159,10 +159,10 @@ describe('rag-index routes', () => {
       expect(res.status).toBe(502);
       const body = await parseBody(res);
       expect(body.success).toBe(false);
-      expect(body.error).toBe('CMS fetch error: upstream service unavailable');
+      expect(body.error).toBe('Admin fetch error: upstream service unavailable');
     });
 
-    it('returns 502 when CMS fetch throws a non-Error object', async () => {
+    it('returns 502 when admin fetch throws a non-Error object', async () => {
       vi.stubGlobal('fetch', vi.fn().mockRejectedValue('timeout'));
 
       const app = createApp();
@@ -173,10 +173,10 @@ describe('rag-index routes', () => {
 
       expect(res.status).toBe(502);
       const body = await parseBody(res);
-      expect(body.error).toBe('CMS fetch error: upstream service unavailable');
+      expect(body.error).toBe('Admin fetch error: upstream service unavailable');
     });
 
-    it('returns 403 when AI packages are unavailable (CMS returns empty docs)', async () => {
+    it('returns 403 when AI packages are unavailable (Admin returns empty docs)', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn().mockResolvedValue({
@@ -197,7 +197,7 @@ describe('rag-index routes', () => {
       expect(body.error).toContain('requires a Pro or Enterprise license');
     });
 
-    it('returns 403 when AI packages are unavailable (CMS returns docs without docs key)', async () => {
+    it('returns 403 when AI packages are unavailable (Admin returns docs without docs key)', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn().mockResolvedValue({
@@ -498,7 +498,7 @@ describe('rag-index routes — AI available', () => {
   }
 
   describe('POST /rag/workspaces/:workspaceId/index/:collection', () => {
-    it('returns 200 with correct shape when CMS returns zero documents', async () => {
+    it('returns 200 with correct shape when admin returns zero documents', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn().mockResolvedValue({
@@ -533,7 +533,7 @@ describe('rag-index routes — AI available', () => {
       vi.unstubAllGlobals();
     });
 
-    it('returns 200 and indexes all documents when CMS returns docs', async () => {
+    it('returns 200 and indexes all documents when admin returns docs', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn().mockResolvedValue({

@@ -179,8 +179,6 @@ CLAUDE.md
 .pgdata/
 .pgdata.*
 
-# BitNet local inference (repo clone + compiled binaries + model)
-.bitnet/
 :memory:/
 
 # Nix build results (if building packages)

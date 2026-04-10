@@ -1,10 +1,10 @@
 /**
- * RichText + CMS API Integration Test
+ * RichText + admin API Integration Test
  *
  * Tests the full cycle:
  * 1. Editor configuration (lexicalEditor factory)
  * 2. Serialization for rendering
- * 3. CMS CRUD operations (skipped - requires database layer)
+ * 3. admin CRUD operations (skipped - requires database layer)
  *
  * @dependencies
  * - packages/core/src/richtext/lexical.ts

@@ -192,7 +192,7 @@ describe('api-keys routes', () => {
     });
 
     it('accepts all valid providers', async () => {
-      const providers = ['ollama', 'bitnet', 'huggingface', 'vultr', 'inference-snaps'];
+      const providers = ['ollama', 'huggingface', 'vultr', 'inference-snaps'];
 
       for (const provider of providers) {
         vi.clearAllMocks();

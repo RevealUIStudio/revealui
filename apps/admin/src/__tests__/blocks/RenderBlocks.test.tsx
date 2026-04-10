@@ -2,7 +2,7 @@
  * Tests for RenderBlocks component
  */
 
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import { render, screen } from '@testing-library/react';
 import type React from 'react';
 import { describe, expect, it, vi } from 'vitest';

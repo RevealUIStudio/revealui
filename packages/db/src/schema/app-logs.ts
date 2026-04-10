@@ -16,7 +16,7 @@ export const appLogs = pgTable(
     timestamp: timestamp('timestamp', { withTimezone: true }).defaultNow().notNull(),
     level: text('level').notNull(), // 'warn' | 'error' | 'fatal'
     message: text('message').notNull(),
-    app: text('app').notNull(), // 'cms' | 'api' | 'marketing' | 'mainframe'
+    app: text('app').notNull(), // 'admin' | 'api' | 'marketing' | 'mainframe'
     environment: text('environment').notNull().default('production'),
     requestId: text('request_id'),
     userId: text('user_id'),

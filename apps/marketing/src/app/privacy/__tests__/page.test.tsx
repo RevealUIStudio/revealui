@@ -62,7 +62,7 @@ describe('PrivacyPolicyPage', () => {
     expect(html).toContain('Stripe');
     expect(html).toContain('NeonDB');
     expect(html).toContain('Vercel');
-    expect(html).toContain('Resend');
+    expect(html).toContain('Google Workspace');
   });
 
   it('includes support contact email', () => {

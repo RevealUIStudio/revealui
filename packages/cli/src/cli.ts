@@ -2,6 +2,7 @@
  * CLI definition using Commander.js
  */
 
+import { createRequire } from 'node:module';
 import { createLogger } from '@revealui/setup/utils';
 import { Command } from 'commander';
 import {
@@ -35,6 +36,9 @@ import {
 import { runDoctorCommand } from './commands/doctor.js';
 import { runTerminalInstallCommand, runTerminalListCommand } from './commands/terminal.js';
 
+const cliRequire = createRequire(import.meta.url);
+const CLI_VERSION: string = (cliRequire('../package.json') as { version: string }).version;
+
 const logger = createLogger({ prefix: 'CLI' });
 
 export interface CliOptions {
@@ -63,7 +67,7 @@ function configureCreateCommand(command: Command, legacyName?: string): Command 
 export function createCli(): Command {
   const program = new Command();
 
-  program.name('revealui').description('RevealUI operational CLI').version('0.2.0');
+  program.name('revealui').description('RevealUI operational CLI').version(CLI_VERSION);
 
   configureCreateCommand(program.command('create'), undefined);
 
@@ -164,7 +168,7 @@ export function createCli(): Command {
     .option('--dry-run', 'Print the effective plan and actions without executing them', false)
     .option('--fix', 'Apply safe automatic fixes before bootstrapping when possible', false)
     .option('--no-ensure', 'Skip automatic local DB initialization/start')
-    .option('--profile <name>', 'Named dev profile: local, agent, cms, fullstack')
+    .option('--profile <name>', 'Named dev profile: local, agent, admin, fullstack')
     .option(
       '--include <service...>',
       'Additional development services to prepare (currently supports: mcp)',
@@ -190,7 +194,7 @@ export function createCli(): Command {
     .command('status')
     .description('Show current RevealUI development environment status')
     .option('--json', 'Output machine-readable JSON', false)
-    .option('--profile <name>', 'Named dev profile: local, agent, cms, fullstack')
+    .option('--profile <name>', 'Named dev profile: local, agent, admin, fullstack')
     .option(
       '--include <service...>',
       'Additional development services to preview in the effective plan',
@@ -223,7 +227,7 @@ export function createCli(): Command {
     .option('--dry-run', 'Print the effective plan and actions without executing them', false)
     .option('--fix', 'Apply safe automatic fixes before bootstrapping when possible', false)
     .option('--no-ensure', 'Skip automatic local DB initialization/start')
-    .option('--profile <name>', 'Named dev profile: local, agent, cms, fullstack')
+    .option('--profile <name>', 'Named dev profile: local, agent, admin, fullstack')
     .option(
       '--include <service...>',
       'Additional development services to prepare (currently supports: mcp)',
@@ -258,7 +262,7 @@ export function createCli(): Command {
   devProfile
     .command('set')
     .description('Set the default profile used by `revealui dev up` and `revealui dev status`')
-    .argument('<name>', 'Profile name: local, agent, cms, fullstack')
+    .argument('<name>', 'Profile name: local, agent, admin, fullstack')
     .action(async (name: DevProfileName) => {
       await runDevProfileSetCommand(name);
     });
@@ -343,7 +347,7 @@ export function createCli(): Command {
 export function createLegacyCreateCli(): Command {
   const program = new Command();
 
-  program.name('create-revealui').version('0.2.0');
+  program.name('create-revealui').version(CLI_VERSION);
   configureCreateCommand(program, 'create-revealui');
 
   return program;

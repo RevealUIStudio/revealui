@@ -244,4 +244,4 @@ If Node.js version changed, consider using nvm/fnm to switch back.
 
 - [Process Monitoring](../lib/monitoring/README.md)
 - [Development Workflow](../../README.md#development)
-- [Health Monitoring API](../../apps/cms/src/app/api/health-monitoring/README.md)
+- [Health Monitoring API](../../apps/admin/src/app/api/health-monitoring/README.md)

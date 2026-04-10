@@ -1,7 +1,7 @@
 /**
  * Access Control Role Tests
  *
- * Tests for all role-based access functions used by CMS collections.
+ * Tests for all role-based access functions used by admin collections.
  */
 
 import { describe, expect, it } from 'vitest';

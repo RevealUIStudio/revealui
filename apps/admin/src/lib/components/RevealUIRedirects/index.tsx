@@ -1,4 +1,4 @@
-import type { Page, Post, Redirect } from '@revealui/core/types/cms';
+import type { Page, Post, Redirect } from '@revealui/core/types/admin';
 import { notFound, redirect } from 'next/navigation';
 import { getCachedDocument } from '@/lib/utilities/getDocument';
 import { getCachedRedirects } from '@/lib/utilities/getRedirects';

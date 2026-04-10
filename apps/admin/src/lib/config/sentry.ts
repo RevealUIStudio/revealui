@@ -2,7 +2,7 @@
  * Sentry Configuration for Error Tracking
  *
  * To enable Sentry:
- * 1. Install: pnpm add @sentry/nextjs --filter cms
+ * 1. Install: pnpm add @sentry/nextjs --filter admin
  * 2. Set environment variables:
  *    - NEXT_PUBLIC_SENTRY_DSN
  *    - SENTRY_AUTH_TOKEN (for source maps)
@@ -80,7 +80,7 @@ export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
  * Instructions to complete Sentry setup:
  *
  * 1. Install Sentry SDK:
- *    pnpm add @sentry/nextjs --filter cms
+ *    pnpm add @sentry/nextjs --filter admin
  *
  * 2. Create sentry.client.config.ts:
  *    import * as Sentry from "@sentry/nextjs"

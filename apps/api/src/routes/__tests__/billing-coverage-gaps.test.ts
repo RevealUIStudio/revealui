@@ -937,7 +937,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       vi.clearAllMocks();
       resetChains();
       process.env.STRIPE_SECRET_KEY = 'stripe_test_placeholder';
-      process.env.ADMIN_URL = 'https://cms.example.com';
+      process.env.ADMIN_URL = 'https://admin.example.com';
     });
 
     it('returns error when user has no billing account', async () => {

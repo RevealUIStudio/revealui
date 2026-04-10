@@ -1,6 +1,6 @@
 import type { RevealUIInstance } from '@revealui/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { getTestRevealUI } from './utils/cms-test-utils';
+import { getTestRevealUI } from './utils/admin-test-utils';
 
 /**
  * Health Check Endpoint Tests
@@ -88,7 +88,7 @@ describe.skipIf(!testDatabaseUrl || isTestMode)('Health Check Endpoint', () => {
 
   describe('Readiness Probe', () => {
     it('should verify service readiness', async () => {
-      // Test that RevealUI CMS is initialized and ready
+      // Test that RevealUI admin is initialized and ready
       expect(revealui).toBeDefined();
       expect(revealui.config).toBeDefined();
       expect(revealui.config.db).toBeDefined();

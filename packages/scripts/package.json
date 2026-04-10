@@ -7,7 +7,7 @@
     "@revealui/core": "workspace:*"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.2"
+    "@electric-sql/pglite": "^0.4.3"
   },
   "exports": {
     ".": "./index.ts",

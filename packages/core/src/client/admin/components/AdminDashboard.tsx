@@ -371,7 +371,7 @@ function DashboardHome({
                 </div>
               </div>
               <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm text-gray-600">RevealUI CMS is running successfully</div>
+                <div className="text-sm text-gray-600">RevealUI admin is running successfully</div>
               </div>
             </div>
           </div>

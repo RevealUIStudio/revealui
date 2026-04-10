@@ -10,7 +10,7 @@
  */
 
 import type { RevealDocument, RevealRequest } from '@revealui/core';
-import type { Price } from '@revealui/core/types/cms';
+import type { Price } from '@revealui/core/types/admin';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { beforePriceChange } from '../hooks/beforeChange';
 import { calculatePrice, type EnrichedPrice } from '../hooks/calculatePrice';

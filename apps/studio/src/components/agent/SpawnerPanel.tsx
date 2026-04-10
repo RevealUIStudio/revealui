@@ -1,5 +1,5 @@
 /**
- * SpawnerPanel — spawn and manage local inference agents (BitNet / Ollama)
+ * SpawnerPanel — spawn and manage local inference agents (Snaps / Ollama)
  *
  * Renders inside the Agent page left pane, below the workboard sessions.
  * Provides: spawn dialog, running agent list, output viewer, stop/remove.
@@ -77,7 +77,7 @@ export default function SpawnerPanel() {
                   {s.name}
                 </span>
                 <span className="shrink-0 rounded bg-neutral-800 px-1.5 py-0.5 text-[10px] text-neutral-500">
-                  {s.backend === 'Snap' ? 'Snap' : s.backend === 'BitNet' ? 'BitNet' : 'Ollama'}
+                  {s.backend === 'Snap' ? 'Snap' : 'Ollama'}
                 </span>
               </div>
               <p className="mt-1 truncate text-[10px] text-neutral-500">{s.model}</p>
@@ -168,7 +168,7 @@ function SpawnForm({ onSpawn, onCancel }: SpawnFormProps) {
       <div className="mb-2">
         <span className="mb-0.5 block text-[10px] font-medium text-neutral-400">Backend</span>
         <div className="flex gap-1.5">
-          {(['Snap', 'BitNet', 'Ollama'] as const).map((b) => (
+          {(['Snap', 'Ollama'] as const).map((b) => (
             <button
               key={b}
               type="button"
@@ -190,13 +190,7 @@ function SpawnForm({ onSpawn, onCancel }: SpawnFormProps) {
         <input
           value={model}
           onChange={(e) => setModel(e.target.value)}
-          placeholder={
-            backend === 'Snap'
-              ? 'nemotron-3-nano'
-              : backend === 'BitNet'
-                ? 'bitnet-b1.58'
-                : 'llama3.2'
-          }
+          placeholder={backend === 'Snap' ? 'nemotron-3-nano' : 'gemma4:e2b'}
           className="w-full rounded border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-neutral-200 focus:border-orange-600 focus:outline-none"
         />
       </label>

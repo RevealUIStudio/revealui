@@ -50,33 +50,17 @@ When `INFERENCE_SNAPS_BASE_URL` is set, the LLM client auto-detects it as the pr
 
 | Path | Runtime | Cost | Use Case |
 |------|---------|------|----------|
-| **Ubuntu Inference Snaps** (recommended) | Canonical snap runtime | Free (your hardware) | Production — Nemotron-Nano, Gemma3, DeepSeek-R1, Qwen-VL |
-| **BitNet** | Microsoft llama-server | Free (CPU-only, ~700 MB RAM) | Air-gapped / low-resource — 1-bit quantized models |
-| **Ollama** | Local GGUF models | Free (your hardware) | Flexible — any open source GGUF model |
+| **Ubuntu Inference Snaps** (recommended) | Canonical snap runtime | Free (your hardware) | Production — Gemma 4, Nemotron-Nano, DeepSeek-R1, Qwen-VL |
+| **Ollama** | Local GGUF models | Free (your hardware) | Flexible — any open source GGUF model (Gemma 4, Qwen, Mistral) |
 | **HuggingFace** | HuggingFace Inference API | API usage costs | Open models hosted on HuggingFace infrastructure |
 | **Vultr** | Vultr GPU Cloud | API usage costs | Open models on Vultr serverless inference |
-
-## BitNet
-
-1-bit quantized models that run on CPU with minimal RAM. Ideal for air-gapped deployments.
-
-```bash
-pnpm bitnet:install   # Clone + compile + download model
-pnpm bitnet:serve     # Start inference server on :8080
-```
-
-Configure:
-
-```bash
-BITNET_BASE_URL=http://localhost:8080/v1
-```
 
 ## Ollama (Open Source Models)
 
 Run any open source model locally via the RevealUI harness.
 
 ```bash
-ollama pull llama3.2:3b           # Chat model
+ollama pull gemma4:e2b            # Chat model (Gemma 4 — Apache 2.0)
 ollama pull nomic-embed-text      # Embedding model
 ```
 
@@ -113,12 +97,10 @@ The LLM client factory auto-detects your inference path in this order:
 
 1. `LLM_PROVIDER` (explicit override)
 2. `INFERENCE_SNAPS_BASE_URL`
-3. `BITNET_BASE_URL`
+3. `GROQ_API_KEY`
 4. `OLLAMA_BASE_URL`
 5. `HUGGINGFACE_API_KEY`
 6. `VULTR_API_KEY`
-
-When both BitNet and Ollama are configured, chat routes to BitNet and embeddings route to Ollama automatically.
 
 ## Server-side Usage
 
@@ -135,7 +117,7 @@ const response = await llm.chat([
 
 ## Security
 
-- Local providers (snaps, BitNet, Ollama): no API keys leave your infrastructure
+- Local providers (snaps, Ollama): no API keys leave your infrastructure
 - Cloud providers (HuggingFace, Vultr): data is sent to your chosen cloud endpoint, but only open models are used — no proprietary APIs
-- Full air-gap capability with BitNet (zero network required)
+- Full air-gap capability with Ollama (zero network required after model download)
 - Inference snaps are signed and verified by Canonical

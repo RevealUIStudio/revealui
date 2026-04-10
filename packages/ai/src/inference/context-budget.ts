@@ -1,7 +1,7 @@
 /**
  * Context Budget Policy
  * Model-tier-aware context allocation for the coding agent.
- * Ensures small models (BitNet 2B) get only essential context,
+ * Ensures small models (Gemma 4 E2B) get only essential context,
  * while large models (Claude, GPT-4) get full context.
  */
 
@@ -55,7 +55,7 @@ const BUDGETS: Record<ModelTier, ContextBudget> = {
 /** Known model patterns → tier mapping */
 const MODEL_TIER_PATTERNS: Array<{ pattern: RegExp; tier: ModelTier }> = [
   // Small: local quantized models
-  { pattern: /bitnet/i, tier: 'small' },
+  { pattern: /gemma4.*e2b/i, tier: 'small' },
   { pattern: /tinyllama/i, tier: 'small' },
   { pattern: /phi-[12]/i, tier: 'small' },
   { pattern: /\b[12]b\b/i, tier: 'small' },
@@ -67,7 +67,7 @@ const MODEL_TIER_PATTERNS: Array<{ pattern: RegExp; tier: ModelTier }> = [
   { pattern: /gemma.*[79]b/i, tier: 'medium' },
   { pattern: /llama.*70b/i, tier: 'medium' },
   { pattern: /mixtral/i, tier: 'medium' },
-  { pattern: /qwen.*[78]b/i, tier: 'medium' },
+  { pattern: /qwen.*\d{1,3}b/i, tier: 'medium' },
   { pattern: /deepseek.*[78]b/i, tier: 'medium' },
 
   // Large: cloud models with large context

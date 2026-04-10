@@ -96,7 +96,7 @@ The RevealUI authentication system is a modern, database-backed authentication s
 - ✅ Password hashing (bcrypt)
 - ✅ CSRF protection
 - ✅ SQL injection prevention
-- ✅ Password reset (with email delivery via Resend/SMTP)
+- ✅ Password reset (with email delivery via Gmail API)
 
 ### Design Principles
 
@@ -609,7 +609,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 ### 1. Session Validation in API Route
 
 ```typescript
-// apps/cms/src/app/api/protected/route.ts
+// apps/admin/src/app/api/protected/route.ts
 import { getSession } from '@revealui/auth/server'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -630,7 +630,7 @@ export async function GET(request: NextRequest) {
 ### 2. Shape Proxy with Authentication
 
 ```typescript
-// apps/cms/src/app/api/shapes/agent-contexts/route.ts
+// apps/admin/src/app/api/shapes/agent-contexts/route.ts
 import { getSession } from '@revealui/auth/server'
 import { prepareElectricUrl, proxyElectricRequest } from '@/lib/api/electric-proxy'
 import { type NextRequest, NextResponse } from 'next/server'
@@ -658,7 +658,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 ### 3. Middleware for Route Protection
 
 ```typescript
-// apps/cms/src/middleware.ts
+// apps/admin/src/middleware.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getSession } from '@revealui/auth/server'
@@ -817,7 +817,7 @@ Generates a password reset token.
 }
 ```
 
-**✅ Status:** Fully implemented with support for Resend and SMTP email providers.
+**✅ Status:** Fully implemented with Gmail API (Google Workspace) email delivery.
 
 ---
 
@@ -1211,7 +1211,7 @@ Test the following scenarios:
 
 ### What Needs Work
 
-1. ✅ **Email Sending** - Fully implemented with Resend and SMTP support
+1. ✅ **Email Sending** - Fully implemented with Gmail API (Google Workspace)
 2. **In-Memory Stores** - Rate limiting and brute force protection won't scale horizontally
 3. ✅ **Missing Endpoints** - `/api/auth/session` and `/api/auth/me` fully implemented
 4. **Integration Tests** - Not running (need DATABASE_URL)
@@ -1396,7 +1396,7 @@ The authentication system uses **cookie-based sessions** with the following CSRF
 - **Status:** ✅ Implemented
 - **Value:** `sameSite: 'lax'`
 - **Protection:** Prevents cookies from being sent in cross-site requests (except top-level navigation)
-- **Location:** `apps/cms/src/app/api/auth/sign-up/route.ts`, `sign-in/route.ts`
+- **Location:** `apps/admin/src/app/api/auth/sign-up/route.ts`, `sign-in/route.ts`
 
 #### 2. HttpOnly Cookie Flag
 - **Status:** ✅ Implemented

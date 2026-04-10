@@ -1,5 +1,5 @@
 import type { RevealCollectionConfig } from '@revealui/core';
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import { authenticated } from '@/lib/access';
 import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished';
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config';

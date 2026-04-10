@@ -101,7 +101,7 @@ export async function register() {
           body: JSON.stringify({
             level: entry.level,
             message: entry.message,
-            app: 'cms',
+            app: 'admin',
             environment: 'production',
             requestId: entry.context?.requestId,
             userId: entry.context?.userId,
@@ -120,7 +120,7 @@ export async function register() {
       // Keep instrumentation Edge-safe. Process-level crash hooks belong in an
       // explicitly Node-only runtime surface, not Next's shared instrumentation
       // entrypoint, which Turbopack statically analyzes for Edge compatibility.
-      logger.info('CMS telemetry transport initialized', {
+      logger.info('admin telemetry transport initialized', {
         apiUrl,
         processCapture: 'disabled-in-instrumentation',
       });

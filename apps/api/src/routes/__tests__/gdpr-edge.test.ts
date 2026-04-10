@@ -27,8 +27,12 @@ const {
   mockHasConsent,
   mockGetStatistics,
   mockRequestDeletion,
+  mockProcessDeletion,
   mockGetUserRequests,
   mockGetRequest,
+  mockAnonymizeUser,
+  mockDeleteAllUserSessions,
+  mockGetClient,
 } = vi.hoisted(() => ({
   mockGrantConsent: vi.fn().mockResolvedValue({ id: 'consent-1', type: 'analytics' }),
   mockRevokeConsent: vi.fn().mockResolvedValue(undefined),
@@ -38,8 +42,18 @@ const {
   mockRequestDeletion: vi
     .fn()
     .mockResolvedValue({ id: 'del-1', userId: 'user-1', status: 'pending' }),
+  mockProcessDeletion: vi.fn().mockImplementation(async (_id: string, cb: Function) => {
+    await cb('user-1', ['personal']);
+  }),
   mockGetUserRequests: vi.fn().mockResolvedValue([]),
   mockGetRequest: vi.fn().mockResolvedValue(null),
+  mockAnonymizeUser: vi.fn().mockResolvedValue({ id: 'user-1' }),
+  mockDeleteAllUserSessions: vi.fn().mockResolvedValue(undefined),
+  mockGetClient: vi.fn().mockReturnValue({}),
+}));
+
+vi.mock('@revealui/auth/server', () => ({
+  deleteAllUserSessions: mockDeleteAllUserSessions,
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -56,10 +70,19 @@ vi.mock('@revealui/core/security', () => ({
   }),
   createDataDeletionSystem: () => ({
     requestDeletion: mockRequestDeletion,
+    processDeletion: mockProcessDeletion,
     getUserRequests: mockGetUserRequests,
     getRequest: mockGetRequest,
   }),
   createDataBreachManager: () => ({}),
+}));
+
+vi.mock('@revealui/db', () => ({
+  getClient: mockGetClient,
+}));
+
+vi.mock('@revealui/db/queries/users', () => ({
+  anonymizeUser: mockAnonymizeUser,
 }));
 
 vi.mock('../../lib/drizzle-gdpr-storage.js', () => ({
@@ -115,6 +138,15 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockGrantConsent.mockResolvedValue({ id: 'consent-1', type: 'analytics' });
   mockRequestDeletion.mockResolvedValue({ id: 'del-1', userId: 'user-1', status: 'pending' });
+  mockProcessDeletion.mockImplementation(async (_id: string, cb: Function) => {
+    await cb('user-1', ['personal']);
+  });
+  mockGetRequest.mockResolvedValue({
+    id: 'del-1',
+    userId: 'user-1',
+    status: 'completed',
+  });
+  mockAnonymizeUser.mockResolvedValue({ id: 'user-1' });
   mockHasConsent.mockResolvedValue(true);
 });
 

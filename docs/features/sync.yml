@@ -14,7 +14,7 @@ api-surface:
     endpoint: "useSyncMutations(endpoint) — REST CRUD via /api/sync/{endpoint}"
     openapi: false
     tested: true
-    notes: "Authenticated fetch with credentials:'include', cross-origin CMS support"
+    notes: "Authenticated fetch with credentials:'include', cross-origin admin support"
   conversations-hook:
     endpoint: "useConversations(userId) — real-time conversation subscription"
     openapi: false

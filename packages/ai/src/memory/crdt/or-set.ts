@@ -230,6 +230,35 @@ export class ORSet<T> {
   }
 
   /**
+   * Removes tombstones — entries in `added` whose tag appears in `removed`.
+   * Reduces memory usage and serialization size. Safe to call after all peers
+   * have merged the corresponding remove operations.
+   *
+   * @returns Number of tombstones compacted
+   */
+  compact(): number {
+    let count = 0;
+    for (const tag of this.removed) {
+      if (this.added.has(tag)) {
+        this.added.delete(tag);
+        count++;
+      }
+    }
+    // Clear the removed set — all tombstones have been applied
+    if (count > 0) {
+      this.removed.clear();
+    }
+    return count;
+  }
+
+  /**
+   * Number of tombstones (removed tags still tracked).
+   */
+  get tombstoneCount(): number {
+    return this.removed.size;
+  }
+
+  /**
    * Clears all elements from the set.
    */
   clear(): void {

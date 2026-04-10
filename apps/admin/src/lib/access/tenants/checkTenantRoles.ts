@@ -5,7 +5,7 @@ import { hasRole } from '@/lib/access/roles/hasRole';
 import type { Tenant } from '../../../types/index';
 
 export interface TenantAccess extends Tenant {
-  tenantId: string; // FK to Tenant collection in RevealUI CMS or Supabase
+  tenantId: string; // FK to Tenant collection in RevealUI admin or Supabase
   roles: Role[]; // User's roles specific to this tenant
   accessLevel: AccessLevel; // Reflects the highest-level role within the tenant
   collection: string;

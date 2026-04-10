@@ -125,7 +125,7 @@ That last exception is temporary, not a preferred pattern. It exists because the
 │                        Frontend (React/Next.js)                  │
 │  ┌──────────────────────────────────────────────────────────┐  │
 │  │  Generated Types (@revealui/core/generated/types)        │  │
-│  │  - CMS Config Types    - Supabase Types                  │  │
+│  │  - Admin Config Types    - Supabase Types                  │  │
 │  │  - NeonDB Types        - Shared Type Definitions         │  │
 │  └──────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
@@ -138,7 +138,7 @@ That last exception is temporary, not a preferred pattern. It exists because the
 ┌─────────────────────────────────────────────────────────────────┐
 │              Type Safety Layer & Contracts                      │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Contracts (@revealui/contracts/cms)                     │  │
+│  │  Contracts (@revealui/contracts/admin)                     │  │
 │  │  - ConfigContract    - CollectionContract                │  │
 │  │  - FieldContract     - GlobalContract                    │  │
 │  │  - Runtime Validation (Zod) + Compile-time (TypeScript)  │  │
@@ -266,7 +266,7 @@ Scenario: Agent performs semantic search over 1M embeddings
 **Access Pattern:**
 
 ```
-REST API Services → NeonDB (user data, CMS)
+REST API Services → NeonDB (user data, admin)
 AI Agent Services → Supabase (vector search)
 Client Apps → ElectricSQL → NeonDB (real-time sync)
 ```
@@ -303,7 +303,7 @@ Transactional REST API + Real-time Sync Source
 **Core Relational Data:**
 
 - Users, sessions, authentication
-- Sites, pages, CMS content
+- Sites, pages, admin content
 - Media, posts, metadata
 
 **Agent Relational Data:**
@@ -486,7 +486,7 @@ services:
 ### Shape Proxy Routes
 
 ```typescript
-// apps/cms/src/app/api/shapes/agent-contexts/route.ts
+// apps/admin/src/app/api/shapes/agent-contexts/route.ts
 export async function GET(request: NextRequest) {
   const session = await getSession(request.headers);
 
@@ -506,7 +506,7 @@ export async function GET(request: NextRequest) {
 ```typescript
 // packages/sync/src/hooks/useAgentContext.ts
 export function useAgentContext(agentId: string, sessionId: string) {
-  // Shape request goes to CMS API proxy
+  // Shape request goes to Admin API proxy
   const shape = useShape({
     source: "http://localhost:3000/api/shapes/agent-contexts",
     table: "agent_contexts",
@@ -583,7 +583,7 @@ const memories = await vectorDb
 
 ### Tenant Model
 
-RevealUI implements robust multi-tenancy using RevealUI CMS 3.x, allowing multiple organizations to share the same application instance with complete data isolation.
+RevealUI implements robust multi-tenancy using RevealUI admin 3.x, allowing multiple organizations to share the same application instance with complete data isolation.
 
 ```typescript
 Tenants Collection {
@@ -664,7 +664,7 @@ All collections implement tenant-aware access control:
 
 ### Access Control Functions
 
-Located in `apps/cms/src/lib/access/`:
+Located in `apps/admin/src/lib/access/`:
 
 - `isAdmin.ts` - Checks for user-admin or user-super-admin
 - `isSuperAdmin.ts` - Checks for user-super-admin only
@@ -678,7 +678,7 @@ Located in `apps/cms/src/lib/access/`:
 
 ### Automatic Tenant Filtering
 
-RevealUI CMS hooks automatically filter data by tenant:
+RevealUI admin hooks automatically filter data by tenant:
 
 ```typescript
 // All queries are scoped to user's current tenant
@@ -724,7 +724,7 @@ hooks: {
 
 The contracts system provides unified validation (TypeScript + Zod):
 
-**Location:** `packages/contracts/src/cms/`
+**Location:** `packages/contracts/src/admin/`
 
 **What Contracts Provide:**
 
@@ -736,7 +736,7 @@ The contracts system provides unified validation (TypeScript + Zod):
 
 **Contract Types:**
 
-- **ConfigContract** - Root CMS configuration validation
+- **ConfigContract** - Root admin configuration validation
 - **CollectionContract** - Collection configuration validation
 - **FieldContract** - Field configuration validation
 - **GlobalContract** - Global configuration validation
@@ -787,7 +787,7 @@ function dbRowToContract<TContract, TDbRow>(
 **Usage in API Routes:**
 
 ```typescript
-// apps/cms/src/app/api/users/route.ts
+// apps/admin/src/app/api/users/route.ts
 import { getRestClient } from "@revealui/db/client";
 import { UserSchema } from "@revealui/contracts";
 import { dbRowToContract } from "@revealui/core/database/type-adapter";
@@ -833,7 +833,7 @@ function createContractToDbMapper<TContract, TInsert>(
 
 **Sources:**
 
-1. **CMS Config Types** (`cms.ts`) - Generated from `revealui.config.ts`
+1. **Admin Config Types** (`admin.ts`) - Generated from `revealui.config.ts`
 2. **Supabase Types** (`supabase.ts`) - Generated from Supabase schema
 3. **NeonDB Types** (`neon.ts`) - Generated from Drizzle schema
 
@@ -874,12 +874,12 @@ Frontend → Generated Types → API Route → Contract Validation → Type Adap
 - ✅ **React Hooks:** `useChat`, `useCompletion`, `useAssistant`
 - ✅ **Type Safety:** Full TypeScript support
 - ✅ **Error Handling:** Built-in error boundaries
-- ✅ **Open-Model Inference:** Ubuntu Inference Snaps, BitNet, Ollama
+- ✅ **Open-Model Inference:** Ubuntu Inference Snaps, Ollama
 
 **Integration with Vector Database:**
 
 ```typescript
-// Server: apps/cms/src/app/api/chat/route.ts
+// Server: apps/admin/src/app/api/chat/route.ts
 import { streamText, convertToModelMessages } from 'ai'
 import { getVectorClient } from '@revealui/db/client'
 
@@ -905,7 +905,7 @@ export async function POST(request: NextRequest) {
   return result.toUIMessageStreamResponse()
 }
 
-// Client: apps/cms/src/lib/components/Agent/index.tsx
+// Client: apps/admin/src/lib/components/Agent/index.tsx
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from '@ai-sdk/react'
 
@@ -951,7 +951,7 @@ export type RPCRouter = {
 **Server-Side RPC Handler:**
 
 ```typescript
-// apps/cms/src/app/api/rpc/route.ts
+// apps/admin/src/app/api/rpc/route.ts
 import type { RPCRouter } from "@revealui/core/rpc/types";
 
 export async function POST(request: NextRequest) {
@@ -998,7 +998,7 @@ const memories = await rpc.call("memory.search", { queryEmbedding });
 
 ### Vercel Blob Storage
 
-**Role:** Scalable media and file storage for CMS content
+**Role:** Scalable media and file storage for admin content
 
 **Implementation:**
 
@@ -1036,7 +1036,7 @@ Media Upload → Next.js API → Vercel Blob Storage → Store URL in NeonDB
 **Setup:**
 
 ```typescript
-// apps/cms/src/app/(frontend)/layout.tsx
+// apps/admin/src/app/(frontend)/layout.tsx
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 
@@ -1071,7 +1071,7 @@ export default function RootLayout({ children }) {
 ### Development Mode
 
 ```javascript
-// apps/cms/next.config.mjs
+// apps/admin/next.config.mjs
 turbopack: {
   root: path.join(__dirname, '../..'), // Point to monorepo root
   resolveExtensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.json'],
@@ -1087,7 +1087,7 @@ turbopack: {
 ### Production Mode
 
 ```json
-// apps/cms/package.json
+// apps/admin/package.json
 "vercel-build": "cross-env NODE_OPTIONS=--no-deprecation TURBOPACK=0 next build"
 ```
 
@@ -1138,7 +1138,7 @@ turbopack: {
 When re-evaluating Turbopack for production:
 
 - [ ] Remove `TURBOPACK=0` flag from build script
-- [ ] Run `pnpm build:cms` to test production build
+- [ ] Run `pnpm build:admin` to test production build
 - [ ] Check for module resolution errors
 - [ ] Verify all workspace package imports resolve
 - [ ] Test instrumentation.ts Edge Runtime warnings
@@ -1158,7 +1158,7 @@ When re-evaluating Turbopack for production:
 Client Request
     │
     ▼
-Next.js API Route (apps/cms/src/app/api/...)
+Next.js API Route (apps/admin/src/app/api/...)
     │
     ├─→ NeonDB (POSTGRES_URL) ──┐
     │                            │
@@ -1200,7 +1200,7 @@ Client (Browser)
     ├─→ Shape Request (/api/shapes/agent-contexts)
     │       │
     │       ▼
-    │   CMS API Route (apps/cms/src/app/api/shapes/...)
+    │   Admin API Route (apps/admin/src/app/api/shapes/...)
     │       │
     │       ▼
     │   ElectricSQL Service (localhost:5133)
@@ -1455,7 +1455,7 @@ test('agent context syncs via ElectricSQL', async () => {
   // Create context in NeonDB
   await restDb.insert(agentContexts).values(...)
 
-  // Request shape via CMS API
+  // Request shape via Admin API
   const response = await fetch('/api/shapes/agent-contexts')
 
   // Verify ElectricSQL syncs from NeonDB
@@ -1590,7 +1590,7 @@ NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 # Vercel Blob Storage
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
-# AI Inference — open-model only (Ubuntu Inference Snaps, BitNet, Ollama)
+# AI Inference — open-model only (Ubuntu Inference Snaps, Ollama)
 # See docs/PRO.md for inference configuration
 ```
 
@@ -1675,9 +1675,9 @@ This section provides a comprehensive mapping of all UI components, the business
 
 ### UI Components
 
-#### CMS Blocks (`apps/cms/src/lib/blocks/`)
+#### admin Blocks (`apps/admin/src/lib/blocks/`)
 
-Blocks are the primary content building units in the CMS. Each block has a corresponding component and schema.
+Blocks are the primary content building units in the admin. Each block has a corresponding component and schema.
 
 ##### Active Blocks
 
@@ -1756,9 +1756,9 @@ Blocks are the primary content building units in the CMS. Each block has a corre
   - **Type**: `BlockProps` (union of all block prop types)
   - **Mapping**: `blockComponents` object maps `blockType` to component
 
-#### CMS Components (`apps/cms/src/lib/components/`)
+#### Admin Components (`apps/admin/src/lib/components/`)
 
-Reusable UI components used throughout the CMS.
+Reusable UI components used throughout the admin.
 
 1. **AdminBar** (`AdminBar/index.tsx`)
    - **Purpose**: Admin toolbar/bar component
@@ -1827,7 +1827,7 @@ Reusable UI components used throughout the CMS.
 
 #### RevealUI Framework Components (`packages/core/src/client/ui/`)
 
-Core framework UI components for the CMS admin interface.
+Core framework UI components for the admin admin interface.
 
 1. **TextInput** (`index.tsx`)
    - **Props**: `TextInputProps`
@@ -1898,7 +1898,7 @@ Frontend application components.
    - **HomeHero** (`Hero.tsx`)
    - **HomeContent** (`Content.tsx`)
 
-#### CMS RevealUI Elements (`apps/cms/src/components/revealui/elements/`)
+#### admin RevealUI Elements (`apps/admin/src/components/revealui/elements/`)
 
 Reusable page elements.
 
@@ -1919,7 +1919,7 @@ Reusable page elements.
 15. `text.tsx`
 16. `wallpaper.tsx`
 
-#### CMS RevealUI Sections (`apps/cms/src/components/revealui/sections/`)
+#### admin RevealUI Sections (`apps/admin/src/components/revealui/sections/`)
 
 Pre-built section components.
 
@@ -1931,7 +1931,7 @@ Pre-built section components.
 
 ### Business Logic
 
-#### React Hooks (`apps/cms/src/lib/hooks/`)
+#### React Hooks (`apps/admin/src/lib/hooks/`)
 
 1. **useChat** (`useChat.ts`)
    - **Purpose**: Chat interface with voice recognition
@@ -1993,7 +1993,7 @@ Pre-built section components.
 19. **revalidate** (`revalidate.ts`)
     - **Purpose**: General revalidation
 
-#### Collection Hooks (`apps/cms/src/lib/collections/*/hooks/`)
+#### Collection Hooks (`apps/admin/src/lib/collections/*/hooks/`)
 
 Business logic hooks that run on collection operations.
 
@@ -2082,7 +2082,7 @@ Memory management hooks.
 2. **useWorkingMemory** (`useWorkingMemory.ts`)
    - **Purpose**: Working memory management
 
-#### API Routes (`apps/cms/src/app/api/`)
+#### API Routes (`apps/admin/src/app/api/`)
 
 Server-side API endpoints that provide data to components.
 
@@ -2139,7 +2139,7 @@ External service integrations.
 
 The central contract layer defining all data structures.
 
-##### Core Contracts (`packages/contracts/src/entities/` and `packages/contracts/src/cms/`)
+##### Core Contracts (`packages/contracts/src/entities/` and `packages/contracts/src/admin/`)
 
 1. **User Schema** (`user.ts`)
    - `UserSchema` - Complete user entity
@@ -2285,7 +2285,7 @@ The central contract layer defining all data structures.
    - `EMBEDDING_DIMENSIONS` - Model dimensions
    - `createEmbedding` - Factory function
 
-#### Generated Types (`apps/cms/src/types/revealui.ts`)
+#### Generated Types (`apps/admin/src/types/revealui.ts`)
 
 Auto-generated TypeScript types from RevealUI config.
 
@@ -2306,7 +2306,7 @@ Auto-generated TypeScript types from RevealUI config.
 5. **Auth Operations**
    - `UserAuthOperations` - Login, register, forgot password
 
-#### Validation Schemas (`apps/cms/src/lib/validation/`)
+#### Validation Schemas (`apps/admin/src/lib/validation/`)
 
 1. **Schemas** (`schemas.ts`)
    - Validation schemas for forms and data
@@ -2335,12 +2335,12 @@ ElectricSQL database schema for real-time sync.
 
 | Component       | Schema                            | Location                  |
 | --------------- | --------------------------------- | ------------------------- |
-| `Form/Text`     | `TextFieldSchema`                 | `@revealui/contracts/cms` |
-| `Form/Email`    | `TextFieldSchema` (email variant) | `@revealui/contracts/cms` |
-| `Form/Number`   | `NumberFieldSchema`               | `@revealui/contracts/cms` |
-| `Form/Select`   | `SelectFieldSchema`               | `@revealui/contracts/cms` |
-| `Form/Checkbox` | `FieldSchema` (boolean)           | `@revealui/contracts/cms` |
-| `Form/Textarea` | `TextFieldSchema` (multiline)     | `@revealui/contracts/cms` |
+| `Form/Text`     | `TextFieldSchema`                 | `@revealui/contracts/admin` |
+| `Form/Email`    | `TextFieldSchema` (email variant) | `@revealui/contracts/admin` |
+| `Form/Number`   | `NumberFieldSchema`               | `@revealui/contracts/admin` |
+| `Form/Select`   | `SelectFieldSchema`               | `@revealui/contracts/admin` |
+| `Form/Checkbox` | `FieldSchema` (boolean)           | `@revealui/contracts/admin` |
+| `Form/Textarea` | `TextFieldSchema` (multiline)     | `@revealui/contracts/admin` |
 
 #### Collection Components → Collection Schemas
 
@@ -2393,7 +2393,7 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 #### 4. Data Flow
 
 1. **Schema Definition** → `@revealui/contracts`
-2. **Type Generation** → `apps/cms/src/types/revealui.ts`
+2. **Type Generation** → `apps/admin/src/types/revealui.ts`
 3. **Component Props** → Extracted from types
 4. **Business Logic** → Hooks and API routes
 5. **Data Validation** → Zod schemas
@@ -2408,17 +2408,17 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 
 #### UI Components
 
-- **CMS Blocks**: `apps/cms/src/lib/blocks/`
-- **CMS Components**: `apps/cms/src/lib/components/`
+- **admin Blocks**: `apps/admin/src/lib/blocks/`
+- **Admin Components**: `apps/admin/src/lib/components/`
 - **Framework UI**: `packages/core/src/client/ui/`
 - **Web App**: `apps/mainframe/src/components/`
-- **RevealUI Elements**: `apps/cms/src/components/revealui/`
+- **RevealUI Elements**: `apps/admin/src/components/revealui/`
 
 #### Business Logic
 
-- **Hooks**: `apps/cms/src/lib/hooks/`
-- **Collection Hooks**: `apps/cms/src/lib/collections/*/hooks/`
-- **API Routes**: `apps/cms/src/app/api/`
+- **Hooks**: `apps/admin/src/lib/hooks/`
+- **Collection Hooks**: `apps/admin/src/lib/collections/*/hooks/`
+- **API Routes**: `apps/admin/src/app/api/`
 - **Electric Hooks**: `packages/sync/src/hooks/`
 - **Memory Hooks**: `packages/ai/src/memory/src/client/hooks/`
 
@@ -2427,17 +2427,17 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 - **Core Schemas**: `packages/contracts/src/core/`
 - **Block Schemas**: `packages/contracts/src/blocks/`
 - **Agent Schemas**: `packages/contracts/src/agents/`
-- **Generated Types**: `apps/cms/src/types/revealui.ts`
-- **Validation**: `apps/cms/src/lib/validation/`
+- **Generated Types**: `apps/admin/src/types/revealui.ts`
+- **Validation**: `apps/admin/src/lib/validation/`
 
 ### Extension Guide
 
 To extend this mapping:
 
-1. **Add New Block**: Create component in `apps/cms/src/lib/blocks/`, add schema in `packages/contracts/src/blocks/`, register in `RenderBlocks.tsx`
+1. **Add New Block**: Create component in `apps/admin/src/lib/blocks/`, add schema in `packages/contracts/src/blocks/`, register in `RenderBlocks.tsx`
 2. **Add New Hook**: Create in appropriate `hooks/` directory, reference in component
 3. **Add New Schema**: Create in `packages/contracts/src/`, export from `index.ts`, use in components
-4. **Add New API Route**: Create in `apps/cms/src/app/api/`, reference in hooks/components
+4. **Add New API Route**: Create in `apps/admin/src/app/api/`, reference in hooks/components
 
 ---
 

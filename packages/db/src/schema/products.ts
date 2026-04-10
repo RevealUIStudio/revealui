@@ -5,7 +5,17 @@
  * Orders track purchases with status, line items, and customer info.
  */
 
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  check,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -69,6 +79,7 @@ export const products = pgTable(
     index('products_status_idx').on(table.status),
     index('products_deleted_at_idx').on(table.deletedAt),
     index('products_slug_idx').on(table.slug),
+    check('products_status_check', sql`status IN ('draft', 'published', 'archived')`),
   ],
 );
 
@@ -149,6 +160,10 @@ export const orders = pgTable(
     index('orders_status_idx').on(table.status),
     index('orders_created_at_idx').on(table.createdAt),
     index('orders_deleted_at_idx').on(table.deletedAt),
+    check(
+      'orders_status_check',
+      sql`status IN ('pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded')`,
+    ),
   ],
 );
 

@@ -17,10 +17,10 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 /**
- * Server-side Chat API with CMS Tools Integration
+ * Server-side Chat API with admin Tools Integration
  *
  * Features:
- * - AI-powered CMS management through conversation
+ * - AI-powered admin management through conversation
  * - Full CRUD operations on collections, globals, media, users
  * - Vector search integration for context
  * - Rate limiting
@@ -40,12 +40,18 @@ let toolRegistry: unknown = null;
  * Returns null if the Pro package is not installed.
  */
 async function loadChatAIDeps() {
-  const moduleNames = ['embeddings', 'llm/server', 'memory/vector', 'tools/cms', 'tools/registry'];
+  const moduleNames = [
+    'embeddings',
+    'llm/server',
+    'memory/vector',
+    'tools/admin',
+    'tools/registry',
+  ];
   const results = await Promise.all([
     import('@revealui/ai/embeddings').catch(() => null),
     import('@revealui/ai/llm/server').catch(() => null),
     import('@revealui/ai/memory/vector').catch(() => null),
-    import('@revealui/ai/tools/cms').catch(() => null),
+    import('@revealui/ai/tools/admin').catch(() => null),
     import('@revealui/ai/tools/registry').catch(() => null),
   ]);
   const [embeddingsMod, llmServerMod, vectorMod, cmsMod, registryMod] = results;
@@ -64,12 +70,12 @@ async function loadChatAIDeps() {
     generateEmbedding: embeddingsMod.generateEmbedding,
     createLLMClientFromEnv: llmServerMod.createLLMClientFromEnv,
     VectorMemoryService: vectorMod.VectorMemoryService,
-    createCMSTools: cmsMod.createCMSTools,
+    createAdminTools: cmsMod.createAdminTools,
     ToolRegistry: registryMod.ToolRegistry,
   };
 }
 
-// Initialize CMS tools lazily (on first request)
+// Initialize admin tools lazily (on first request)
 async function initializeCMSTools(deps: NonNullable<Awaited<ReturnType<typeof loadChatAIDeps>>>) {
   // Create registry on first call
   if (!toolRegistry) {
@@ -84,9 +90,9 @@ async function initializeCMSTools(deps: NonNullable<Awaited<ReturnType<typeof lo
   }
 
   try {
-    // Create CMS tools with API client and config
-    const cmsTools = deps.createCMSTools({
-      apiClient: apiClient as unknown as Parameters<typeof deps.createCMSTools>[0]['apiClient'],
+    // Create admin tools with API client and config
+    const cmsTools = deps.createAdminTools({
+      apiClient: apiClient as unknown as Parameters<typeof deps.createAdminTools>[0]['apiClient'],
       collections: config.collections?.map(
         (c): { slug: string; label: string; description: string } => ({
           slug: String(c.slug),
@@ -102,17 +108,17 @@ async function initializeCMSTools(deps: NonNullable<Awaited<ReturnType<typeof lo
       // User context will be added per-request
     });
 
-    // Register all CMS tools
+    // Register all admin tools
     for (const tool of cmsTools) {
       registry.register(tool);
     }
 
-    logger.info('CMS tools initialized', {
+    logger.info('admin tools initialized', {
       toolCount: cmsTools.length,
       tools: cmsTools.map((t: { name: string }) => t.name),
     });
   } catch (error) {
-    logger.error('Failed to initialize CMS tools', { error });
+    logger.error('Failed to initialize admin tools', { error });
     throw error;
   }
 
@@ -150,7 +156,7 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Initialize CMS tools on first request
+  // Initialize admin tools on first request
   let registry: Awaited<ReturnType<typeof initializeCMSTools>>;
   try {
     registry = await initializeCMSTools(aiDeps);
@@ -335,7 +341,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 2. Build enhanced system prompt with CMS capabilities
+    // 2. Build enhanced system prompt with admin capabilities
     const systemPrompt = buildSystemPrompt(memoryContext);
 
     // Enable caching for cost savings (system prompt + tools get cached)
@@ -519,10 +525,10 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Build system prompt with CMS tool capabilities
+ * Build system prompt with admin tool capabilities
  */
 function buildSystemPrompt(memoryContext: string): string {
-  const basePrompt = `You are an AI-powered CMS management assistant for RevealUI. You can help users manage their content through natural conversation.
+  const basePrompt = `You are an AI-powered admin management assistant for RevealUI. You can help users manage their content through natural conversation.
 
 **Your Capabilities:**
 
@@ -548,12 +554,12 @@ function buildSystemPrompt(memoryContext: string): string {
 
 **How to Help Users:**
 
-When a user asks you to modify the CMS, use the available tools to make the changes. Be conversational and explain what you're doing.
+When a user asks you to modify the admin, use the available tools to make the changes. Be conversational and explain what you're doing.
 
 **Examples:**
 
 User: "Add a new page called About"
-You: I'll create a new page for you. [Use create_document tool] The About page has been created successfully! You can now edit it in the CMS.
+You: I'll create a new page for you. [Use create_document tool] The About page has been created successfully! You can now edit it in the admin.
 
 User: "Change the header to include a Blog link"
 You: Let me update the header navigation. [Use get_global, then update_global] Done! I've added a Blog link to your header navigation.

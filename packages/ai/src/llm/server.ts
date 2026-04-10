@@ -10,7 +10,6 @@ export * from './client.js';
 
 // Export provider implementations
 export * from './providers/base.js';
-export * from './providers/bitnet.js';
 export * from './providers/groq.js';
 export * from './providers/inference-snaps.js';
 export * from './providers/ollama.js';

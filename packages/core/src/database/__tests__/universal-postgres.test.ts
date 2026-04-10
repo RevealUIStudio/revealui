@@ -6,7 +6,7 @@
  * table creation, health checks, and error handling.
  */
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // --- Mock pg ---

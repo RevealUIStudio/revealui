@@ -1,5 +1,5 @@
 import type { RevealAfterChangeHook } from '@revealui/core';
-import type { Order } from '@revealui/core/types/cms';
+import type { Order } from '@revealui/core/types/admin';
 
 export const updateUserPurchases: RevealAfterChangeHook<Order> = async ({
   doc,

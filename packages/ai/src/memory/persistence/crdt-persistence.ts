@@ -9,7 +9,9 @@ import { randomUUID } from 'node:crypto';
 import type { Database } from '@revealui/db/client';
 import { agentContexts, crdtOperations } from '@revealui/db/schema';
 import { and, eq, gte } from 'drizzle-orm';
-import type { LWWRegisterData, ORSetData, PNCounterData } from '../crdt/index.js';
+import { LWWRegister, type LWWRegisterData } from '../crdt/lww-register.js';
+import { ORSet, type ORSetData } from '../crdt/or-set.js';
+import { PNCounter, type PNCounterData } from '../crdt/pn-counter.js';
 import { findAgentContextById } from '../utils/sql-helpers.js';
 
 // =============================================================================
@@ -255,5 +257,79 @@ export class CRDTPersistence {
     }
 
     return result;
+  }
+
+  /**
+   * Rebuilds CRDT state by replaying operations from the log.
+   *
+   * @param crdtId - CRDT instance identifier
+   * @param crdtType - Type of CRDT to rebuild
+   * @param nodeId - Node ID for the rebuilt CRDT
+   * @param since - Optional timestamp to replay from (defaults to 0 = all)
+   * @returns Rebuilt CRDT instance, or null if no operations found
+   */
+  async replayOperations(
+    crdtId: string,
+    crdtType: CRDTType,
+    nodeId: string,
+    since: number = 0,
+  ): Promise<LWWRegister<unknown> | ORSet<unknown> | PNCounter | null> {
+    const operations = await this.getOperationsSince(crdtId, since);
+
+    if (operations.length === 0) {
+      return null;
+    }
+
+    if (crdtType === 'lww_register') {
+      const register = new LWWRegister<unknown>(nodeId, null, 0);
+      for (const op of operations) {
+        if (op.operationType === 'set') {
+          register.set(op.payload.value, op.timestamp);
+        }
+      }
+      return register;
+    }
+
+    if (crdtType === 'or_set') {
+      const set = new ORSet<unknown>(nodeId);
+      for (const op of operations) {
+        if (op.operationType === 'add') {
+          set.add(op.payload.value);
+        } else if (op.operationType === 'remove' && typeof op.payload.tag === 'string') {
+          set.remove(op.payload.tag);
+        }
+      }
+      return set;
+    }
+
+    if (crdtType === 'pn_counter') {
+      const counter = new PNCounter(nodeId);
+      for (const op of operations) {
+        if (op.operationType === 'increment') {
+          counter.increment(typeof op.payload.delta === 'number' ? op.payload.delta : 1);
+        } else if (op.operationType === 'decrement') {
+          counter.decrement(typeof op.payload.delta === 'number' ? op.payload.delta : 1);
+        }
+      }
+      return counter;
+    }
+
+    return null;
+  }
+
+  /**
+   * Deletes operations older than a timestamp (for cleanup after compaction).
+   *
+   * @param crdtId - CRDT instance identifier
+   * @param before - Unix timestamp (milliseconds) — delete operations older than this
+   * @returns Number of operations deleted
+   */
+  async deleteOperationsBefore(crdtId: string, before: number): Promise<number> {
+    const { lt } = await import('drizzle-orm');
+    const result = await this.db
+      .delete(crdtOperations)
+      .where(and(eq(crdtOperations.crdtId, crdtId), lt(crdtOperations.timestamp, before)))
+      .returning();
+    return result.length;
   }
 }

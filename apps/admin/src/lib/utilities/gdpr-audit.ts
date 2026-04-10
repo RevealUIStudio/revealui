@@ -21,7 +21,7 @@ export interface GDPRAuditEntry {
 /**
  * Write a GDPR audit entry.
  *
- * Attempts to persist the entry via the CMS `gdpr_audit_log` collection.
+ * Attempts to persist the entry via the admin `gdpr_audit_log` collection.
  * If the collection is unavailable (e.g. not yet migrated), logs the entry
  * as a structured JSON line so it is captured by the server log aggregator.
  */

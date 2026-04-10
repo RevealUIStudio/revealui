@@ -121,7 +121,7 @@ const key = cache.getCacheKey(messages, {
   temperature: 0.7,
   maxTokens: 1000,
   tools: [...],
-  model: 'vultr-llama-3',
+  model: 'qwen2.5-72b-instruct',
 })
 ```
 
@@ -426,7 +426,7 @@ await runtime.executeTask(agent, task1, client)
 await runtime.executeTask(agent, task2, client)  // May hit cache
 ```
 
-### With CMS Chat API
+### With admin Chat API
 
 Already integrated! Just enable the environment variable:
 

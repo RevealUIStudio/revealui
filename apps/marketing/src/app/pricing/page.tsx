@@ -72,7 +72,7 @@ const faqs = [
   {
     question: 'How does AI inference work?',
     answer:
-      'RevealUI runs AI on open models only — no proprietary cloud APIs, no vendor lock-in, no API bills. The recommended path is Ubuntu Inference Snaps from Canonical: run "sudo snap install nemotron-3-nano" for instant local inference. Also supported: BitNet (1-bit quantized, CPU-only), Ollama (local), and cloud-hosted open models via the RevealUI harness (Pro+). Studio manages snap lifecycle, model switching, and multi-agent coordination.',
+      'RevealUI runs AI on open models only (Apache 2.0) — no proprietary cloud APIs, no vendor lock-in, no API bills. The recommended path is Ubuntu Inference Snaps from Canonical: run "sudo snap install gemma3 --beta" for instant local inference. Also supported: Ollama (local, any GGUF model), and cloud-hosted open models via the RevealUI harness (Pro+). Studio manages snap lifecycle, model switching, and multi-agent coordination.',
   },
   {
     question: 'What is Studio?',

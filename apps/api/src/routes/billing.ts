@@ -108,7 +108,7 @@ function getStripeClient(): Stripe {
   if (!key) {
     throw new HTTPException(500, { message: 'Stripe is not configured' });
   }
-  cachedStripe = new Stripe(key, { maxNetworkRetries: 2 });
+  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
   return cachedStripe;
 }
 
@@ -1591,14 +1591,17 @@ app.openapi(reportOverageRoute, async (c) => {
     }
 
     try {
-      await stripe.billing.meterEvents.create({
-        event_name: meterEventName,
-        payload: {
-          stripe_customer_id: row.stripeCustomerId,
-          value: String(row.overage),
+      await stripe.billing.meterEvents.create(
+        {
+          event_name: meterEventName,
+          payload: {
+            stripe_customer_id: row.stripeCustomerId,
+            value: String(row.overage),
+          },
+          timestamp: getMeterEventTimestamp(prevCycle),
         },
-        timestamp: getMeterEventTimestamp(prevCycle),
-      });
+        { idempotencyKey: `overage-${row.userId}-${prevCycle}` },
+      );
       reported++;
     } catch (err) {
       logger.error('Stripe meter event creation failed', err instanceof Error ? err : undefined, {
@@ -1699,7 +1702,7 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
   // ── Phase 2: Mark perpetual licenses with expired support ───────────────
   // Perpetual licenses never expire, but their support contract does.
   // status = 'support_expired' signals that premium features are downgraded
-  // to free tier while basic CMS access remains perpetual.
+  // to free tier while basic admin access remains perpetual.
   const supportExpiring = await db
     .select({ id: licenses.id })
     .from(licenses)

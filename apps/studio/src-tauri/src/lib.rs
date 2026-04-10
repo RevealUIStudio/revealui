@@ -150,7 +150,6 @@ pub fn run() {
             inference_cmds::inference_ollama_delete,
             inference_cmds::inference_ollama_start,
             inference_cmds::inference_ollama_stop,
-            inference_cmds::inference_bitnet_status,
             inference_cmds::inference_snap_status,
             inference_cmds::inference_snap_list,
             inference_cmds::inference_snap_install,

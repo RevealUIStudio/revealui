@@ -1,5 +1,5 @@
 /**
- * Register the CMS service worker for offline support.
+ * Register the admin service worker for offline support.
  *
  * Call this once on app startup (e.g. in a top-level layout or provider).
  * No-ops when service workers are not supported by the browser.

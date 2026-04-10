@@ -40,7 +40,7 @@ updates:
 
   # CMS app
   - package-ecosystem: "npm"
-    directory: "/apps/cms"
+    directory: "/apps/admin"
     schedule:
       interval: "weekly"
       day: "monday"

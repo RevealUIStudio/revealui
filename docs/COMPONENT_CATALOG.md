@@ -25,8 +25,8 @@ audience: developer
 7. [Headless Components](#headless-components) (5 components)
 
 ### Core Components (@revealui/core)
-8. [CMS Admin Components](#cms-admin-components) (3 components)
-9. [CMS UI Components](#cms-ui-components) (8 components)
+8. [Admin Dashboard Components](#admin-admin-components) (3 components)
+9. [Admin UI Components](#admin-ui-components) (8 components)
 10. [Rich Text Editor](#rich-text-editor) (7 components)
 
 ---
@@ -853,13 +853,13 @@ import { stackedLayout } from '@revealui/presentation'
 
 ---
 
-## CMS Admin Components
+## Admin Dashboard Components
 
-Components for the RevealUI CMS admin interface (packages/core/src/client/admin/components/).
+Components for the RevealUI admin admin interface (packages/core/src/client/admin/components/).
 
 ### AdminDashboard
 
-Main CMS admin dashboard component.
+Main admin admin dashboard component.
 
 **Package:** `@revealui/core/client/admin`
 
@@ -927,7 +927,7 @@ import { CollectionList } from '@revealui/core/client/admin'
 
 ### DocumentForm
 
-Form for creating/editing CMS documents.
+Form for creating/editing admin documents.
 
 **Package:** `@revealui/core/client/admin`
 
@@ -957,15 +957,15 @@ import { DocumentForm } from '@revealui/core/client/admin'
 
 ---
 
-## CMS UI Components
+## Admin UI Components
 
-Form components for the CMS admin interface (packages/core/src/client/ui/).
+Form components for the admin admin interface (packages/core/src/client/ui/).
 
 **Package:** `@revealui/core/client/ui`
 
-### TextInput (CMS)
+### TextInput (admin)
 
-CMS text input field with form integration.
+admin text input field with form integration.
 
 **Props:**
 ```typescript
@@ -1017,9 +1017,9 @@ import { FieldLabel } from '@revealui/core/client/ui'
 
 ---
 
-### Button (CMS)
+### Button (admin)
 
-CMS button component.
+admin button component.
 
 **Props:**
 ```typescript
@@ -1047,7 +1047,7 @@ import { Button } from '@revealui/core/client/ui'
 
 ### SelectInput
 
-CMS select dropdown input.
+admin select dropdown input.
 
 **Props:**
 ```typescript
@@ -1079,9 +1079,9 @@ import { SelectInput } from '@revealui/core/client/ui'
 
 ---
 
-### Textarea (CMS)
+### Textarea (admin)
 
-CMS textarea component.
+admin textarea component.
 
 **Props:**
 ```typescript
@@ -1110,9 +1110,9 @@ import { Textarea } from '@revealui/core/client/ui'
 
 ---
 
-### Checkbox (CMS)
+### Checkbox (admin)
 
-CMS checkbox component.
+admin checkbox component.
 
 **Props:**
 ```typescript
@@ -1202,7 +1202,7 @@ import { FieldsDrawer } from '@revealui/core/client/ui'
 
 ---
 
-## CMS Hooks
+## admin Hooks
 
 Form state management hooks from `@revealui/core/client/ui`.
 
@@ -1464,7 +1464,7 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ### @revealui/core (21 components)
 - 3 Admin Components (AdminDashboard, CollectionList, DocumentForm)
-- 8 CMS UI Components (TextInput, Button, SelectInput, Textarea, Checkbox, FieldLabel, ModalProvider, FieldsDrawer)
+- 8 Admin UI Components (TextInput, Button, SelectInput, Textarea, Checkbox, FieldLabel, ModalProvider, FieldsDrawer)
 - 7 Rich Text Editor (RichTextEditor, ImageNode, ImageNodeComponent, ImageUploadButton, ToolbarPlugin, FloatingToolbarPlugin, ImagePlugin)
 - 3 Form Hooks (useFormFields, useField, useModal)
 

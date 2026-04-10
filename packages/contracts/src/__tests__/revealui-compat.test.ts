@@ -1,7 +1,7 @@
 /**
- * RevealUI CMS Type Compatibility Tests
+ * RevealUI admin Type Compatibility Tests
  *
- * These tests verify that RevealUI types are compatible with standard CMS patterns.
+ * These tests verify that RevealUI types are compatible with standard admin patterns.
  * They use compile-time type assertions that will fail if types become incompatible.
  *
  * NOTE: These tests verify RevealUI's type system compatibility.
@@ -14,7 +14,7 @@ import type {
   Field,
   GlobalConfig,
   RevealRequest,
-} from '@revealui/contracts/cms';
+} from '@revealui/contracts/admin';
 import { describe, expect, it } from 'vitest';
 
 // Type-level compatibility assertions

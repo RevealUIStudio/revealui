@@ -1,5 +1,5 @@
 import type { RevealAfterReadHook, RevealDocument } from '@revealui/core';
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import { asRecord } from '@/lib/utils/type-guards';
 
 type ArchiveBlockProps = Extract<Page['layout'][0], { blockType: 'archive' }>;

@@ -1,20 +1,16 @@
-import type { ZodMediaTypeObject } from '@asteasolutions/zod-to-openapi';
-import {
-  extendZodWithOpenApi,
-  getOpenApiMetadata,
-  OpenAPIRegistry,
-  OpenApiGeneratorV3,
-  OpenApiGeneratorV31,
-} from '@asteasolutions/zod-to-openapi';
 import type { Context, Env, Handler, Input, MiddlewareHandler, Schema, ToSchema } from 'hono';
 import { Hono } from 'hono';
 import type { MergePath } from 'hono/types';
 import { mergePath } from 'hono/utils/url';
-import type { OpenAPIObject } from 'openapi3-ts/oas30';
-import type { OpenAPIObject as OpenAPIObject31 } from 'openapi3-ts/oas31';
 import { z } from 'zod';
 
 import { addBasePathToDocument } from './helpers.js';
+import {
+  extendZodWithOpenApi,
+  NativeOpenAPIRegistry,
+  NativeOpenApiGeneratorV3,
+  NativeOpenApiGeneratorV31,
+} from './native/index.js';
 import { isFormContentType, isJSONContentType, isZod } from './type-guard.js';
 import type {
   ConvertPathType,
@@ -34,6 +30,7 @@ import type {
   RouteConfig,
   RouteConfigToTypedResponse,
   RouteMiddlewareParams,
+  ZodMediaTypeObject,
 } from './types.js';
 import { zValidator } from './zod-validator.js';
 
@@ -50,28 +47,6 @@ function getBasePath(app: Hono): string {
   return (app as unknown as { _basePath?: string })._basePath ?? '';
 }
 
-/**
- * Discriminated union for `OpenAPIRegistry.definitions` entries.
- * The library exports `OpenAPIDefinitions` but its member types are not
- * individually exported, so we mirror the shapes here for safe narrowing.
- */
-type RegistryComponentDef = {
-  type: 'component';
-  componentType: string;
-  name: string;
-  component: unknown;
-};
-type RegistryRouteDef = { type: 'route'; route: { path: string; [k: string]: unknown } };
-type RegistryWebhookDef = { type: 'webhook'; webhook: { path: string; [k: string]: unknown } };
-type RegistrySchemaDef = { type: 'schema'; schema: z.ZodType };
-type RegistryParameterDef = { type: 'parameter'; schema: z.ZodType };
-type RegistryDef =
-  | RegistryComponentDef
-  | RegistryRouteDef
-  | RegistryWebhookDef
-  | RegistrySchemaDef
-  | RegistryParameterDef;
-
 // Extend Zod with OpenAPI metadata methods (.openapi())
 extendZodWithOpenApi(z);
 
@@ -85,12 +60,12 @@ export class OpenAPIHono<
   S extends Schema = {},
   BasePath extends string = '/',
 > extends Hono<E, S, BasePath> {
-  openAPIRegistry: OpenAPIRegistry;
+  openAPIRegistry: NativeOpenAPIRegistry;
   defaultHook?: HonoInit<E>['defaultHook'];
 
   constructor(init?: HonoInit<E>) {
     super(init);
-    this.openAPIRegistry = new OpenAPIRegistry();
+    this.openAPIRegistry = new NativeOpenAPIRegistry();
     this.defaultHook = init?.defaultHook;
   }
 
@@ -247,8 +222,8 @@ export class OpenAPIHono<
   getOpenAPIDocument = (
     objectConfig: OpenAPIObjectConfig,
     generatorConfig?: OpenAPIGeneratorOptions,
-  ): OpenAPIObject => {
-    const document = new OpenApiGeneratorV3(
+  ): Record<string, unknown> => {
+    const document = new NativeOpenApiGeneratorV3(
       this.openAPIRegistry.definitions,
       generatorConfig,
     ).generateDocument(objectConfig);
@@ -262,18 +237,13 @@ export class OpenAPIHono<
   getOpenAPI31Document = (
     objectConfig: OpenAPIObjectConfig,
     generatorConfig?: OpenAPIGeneratorOptions,
-  ): OpenAPIObject31 => {
-    const document = new OpenApiGeneratorV31(
+  ): Record<string, unknown> => {
+    const document = new NativeOpenApiGeneratorV31(
       this.openAPIRegistry.definitions,
       generatorConfig,
     ).generateDocument(objectConfig);
     const basePath = getBasePath(this as unknown as Hono);
-    return basePath
-      ? (addBasePathToDocument(
-          document as unknown as OpenAPIObject,
-          basePath,
-        ) as unknown as OpenAPIObject31)
-      : document;
+    return basePath ? addBasePathToDocument(document, basePath) : document;
   };
 
   /**
@@ -334,46 +304,29 @@ export class OpenAPIHono<
 
     const appBasePath = getBasePath(app).replaceAll(/:([^/]+)/g, '{$1}');
 
-    for (const rawDef of app.openAPIRegistry.definitions) {
-      // Cast once per iteration: the library's OpenAPIDefinitions type does not
-      // expose individual member shapes, so we narrow via our local union.
-      const def = rawDef as RegistryDef;
+    for (const def of app.openAPIRegistry.definitions) {
       switch (def.type) {
         case 'component':
-          this.openAPIRegistry.registerComponent(
-            // biome-ignore lint/suspicious/noExplicitAny: registerComponent's first param is a generic keyof ComponentsObject — our string type is correct at runtime but the generic signature requires the exact literal
-            def.componentType as any,
-            def.name,
-            // biome-ignore lint/suspicious/noExplicitAny: registerComponent's third param is a mapped generic — our unknown is correct at runtime
-            def.component as any,
-          );
+          this.openAPIRegistry.registerComponent(def.componentType, def.name, def.component);
           break;
         case 'route':
           this.openAPIRegistry.registerPath({
-            // biome-ignore lint/suspicious/noExplicitAny: registerPath expects RouteConfig which has a complex shape; spread preserves all fields
-            ...(def.route as any),
+            ...def.route,
             path: mergePath(pathForOpenAPI, appBasePath, def.route.path),
           });
           break;
         case 'webhook':
           this.openAPIRegistry.registerWebhook({
-            // biome-ignore lint/suspicious/noExplicitAny: registerWebhook expects RouteConfig; spread preserves all fields
-            ...(def.webhook as any),
+            ...def.webhook,
             path: mergePath(pathForOpenAPI, appBasePath, def.webhook.path),
           });
           break;
-        case 'schema': {
-          const meta = getOpenApiMetadata(def.schema) as { _internal?: { refId?: string } };
-          const refId = meta?._internal?.refId ?? '';
-          this.openAPIRegistry.register(refId, def.schema);
+        case 'schema':
+          this.openAPIRegistry.register(def.refId, def.schema);
           break;
-        }
-        case 'parameter': {
-          const meta = getOpenApiMetadata(def.schema) as { _internal?: { refId?: string } };
-          const paramRefId = meta?._internal?.refId ?? '';
-          this.openAPIRegistry.registerParameter(paramRefId, def.schema);
+        case 'parameter':
+          this.openAPIRegistry.registerParameter(def.refId, def.schema);
           break;
-        }
         default: {
           const exhaustive: never = def as never;
           throw new Error(`Unknown registry type: ${exhaustive}`);

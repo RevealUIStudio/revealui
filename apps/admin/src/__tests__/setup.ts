@@ -39,7 +39,7 @@ beforeAll(async () => {
 
   // Clear any cached RevealUI instance to ensure fresh initialization
   // This is imported dynamically to avoid circular dependencies
-  const utils = await import('./utils/cms-test-utils.js');
+  const utils = await import('./utils/admin-test-utils.js');
   if (utils.clearTestRevealUI) {
     utils.clearTestRevealUI();
   }

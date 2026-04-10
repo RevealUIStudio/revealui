@@ -21,7 +21,7 @@ import {
   GlobalStructureSchema,
   type RevealRequest,
   safeValidate,
-} from '../cms/index.js';
+} from '../admin/index.js';
 
 describe('Real Config Patterns from apps/admin', () => {
   describe('Posts Collection (apps/admin/src/lib/collections/Posts)', () => {

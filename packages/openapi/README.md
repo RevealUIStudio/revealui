@@ -1,14 +1,13 @@
 # @revealui/openapi
 
-OpenAPI integration for Hono with Zod validation. Generates OpenAPI 3.x specs from route definitions and provides type-safe request validation middleware.
+Type-safe OpenAPI 3.x integration for Hono. Define routes with Zod schemas, get automatic spec generation, request validation, and Swagger UI — zero manual spec writing.
 
 ## When to Use This
 
-- You're building API routes in `apps/api` and need OpenAPI documentation
+- You're building a Hono API and want OpenAPI documentation
 - You want type-safe request/response validation with Zod schemas
-- You need auto-generated Swagger UI documentation
-
-If you're building frontend components or CLI tools, you don't need this package.
+- You need auto-generated Swagger UI at `/docs`
+- You want a single route definition to drive types, validation, AND documentation
 
 ## Installation
 
@@ -64,7 +63,8 @@ app.openapi(route, (c) => c.json({ id: '1', name: 'test' }, 201));
 - **Orthogonal**: Decoupled from business logic — validates at the boundary, not inside handlers
 - **Hermetic**: Request validation happens before handler execution, preventing invalid data from leaking through
 
-## Related Packages
+## Related
 
-- `apps/api` — Primary consumer, serves Swagger UI at `/docs`
-- `@revealui/contracts` — Zod schemas shared between API and clients
+- Pairs well with `@revealui/contracts` for shared Zod schemas between API and clients
+- Built on `@asteasolutions/zod-to-openapi` for Zod → OpenAPI schema generation
+- Supports OpenAPI 3.0 and 3.1 spec output

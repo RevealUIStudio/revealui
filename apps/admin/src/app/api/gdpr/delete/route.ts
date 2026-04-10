@@ -1,7 +1,12 @@
 export const runtime = 'nodejs';
 
 import { getSession } from '@revealui/auth/server';
+import { getClient } from '@revealui/db';
+import { users } from '@revealui/db/schema';
+import { logger } from '@revealui/utils/logger';
+import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
@@ -103,6 +108,28 @@ async function gdprDeleteHandler(request: NextRequest) {
         },
         { status: 500 },
       );
+    }
+
+    // Clean up Stripe customer record (GDPR: remove PII from third-party systems)
+    try {
+      const db = getClient();
+      const [userRow] = await db
+        .select({ stripeCustomerId: users.stripeCustomerId })
+        .from(users)
+        .where(eq(users.id, userIdToDelete));
+
+      if (userRow?.stripeCustomerId && process.env.STRIPE_SECRET_KEY) {
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+          apiVersion: '2026-03-25.dahlia',
+        });
+        await stripe.customers.del(userRow.stripeCustomerId);
+      }
+    } catch (stripeErr) {
+      // Non-blocking: Stripe cleanup failure should not prevent user deletion
+      logger.error('Stripe customer cleanup failed during GDPR delete', {
+        userId: userIdToDelete,
+        error: stripeErr instanceof Error ? stripeErr.message : String(stripeErr),
+      });
     }
 
     // Delete the user record itself (only after all cascades succeeded)

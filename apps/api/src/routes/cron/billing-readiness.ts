@@ -127,8 +127,7 @@ app.post('/billing-readiness', async (c) => {
   //    email, but transactional emails will silently fail)
   const hasGmail =
     Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) && Boolean(process.env.GOOGLE_PRIVATE_KEY);
-  const hasResend = Boolean(process.env.RESEND_API_KEY);
-  if (!(hasGmail || hasResend)) {
+  if (!hasGmail) {
     warnings.push({
       check: 'email:provider',
       detail:

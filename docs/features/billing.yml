@@ -66,10 +66,10 @@ api-surface:
 
 ui-surface:
   upgrade-dialog:
-    location: "apps/cms/src/app/(backend)/admin/upgrade/page.tsx"
+    location: "apps/admin/src/app/(backend)/admin/upgrade/page.tsx"
     status: functional
   account-billing:
-    location: "apps/cms/src/app/(backend)/admin/settings/account/page.tsx"
+    location: "apps/admin/src/app/(backend)/admin/settings/account/page.tsx"
     status: basic
 
 limitations:
@@ -96,7 +96,7 @@ limitations:
       trust/governance add-ons.
   - id: email-production-throw
     surface: api
-    summary: "Missing RESEND_API_KEY throws in production (fixed — was silent skip)"
+    summary: "Missing GOOGLE_PRIVATE_KEY throws in production (fixed — was silent skip)"
   - id: billing-meter
     surface: api
     summary: "Usage overage tracked in DB but not reported to Stripe Billing Meter"

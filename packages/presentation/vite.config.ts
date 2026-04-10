@@ -19,6 +19,7 @@ export default defineConfig({
         index: path.resolve(import.meta.dirname, 'src/index.ts'),
         server: path.resolve(import.meta.dirname, 'src/server.ts'),
         client: path.resolve(import.meta.dirname, 'src/client.ts'),
+        'animations/index': path.resolve(import.meta.dirname, 'src/animations/index.ts'),
       },
       formats: ['es'],
     },

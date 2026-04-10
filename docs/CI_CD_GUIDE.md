@@ -8,7 +8,7 @@ audience: maintainer
 # RevealUI CI/CD Deployment Guide
 
 **Last Updated**: March 2026
-**Status**: Deployment Guide (Production — live at cms.revealui.com and api.revealui.com)
+**Status**: Deployment Guide (Production — live at admin.revealui.com and api.revealui.com)
 
 ---
 
@@ -40,8 +40,8 @@ This comprehensive guide covers deploying RevealUI to production using Vercel wi
 ```env
 # Core (3)
 REVEALUI_SECRET=<32+ char random string>
-REVEALUI_PUBLIC_SERVER_URL=https://cms.yourdomain.com
-NEXT_PUBLIC_SERVER_URL=https://cms.yourdomain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.yourdomain.com
+NEXT_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 
 # Database (1)
 POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
@@ -96,7 +96,7 @@ See [Database Guide](./DATABASE.md) for all database commands and operations.
 
 1. Go to [vercel.com](https://vercel.com)
 2. Import your GitHub repository
-3. Select the `apps/cms` directory as root
+3. Select the `apps/admin` directory as root
 
 ### 2. Configure Build Settings
 
@@ -223,7 +223,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ### 3. Start Development Server
 
 ```bash
-cd apps/cms
+cd apps/admin
 pnpm dev
 ```
 
@@ -233,7 +233,7 @@ Visit `http://localhost:4000/admin`
 
 ## Build Process
 
-The CMS build uses these fallback environment variables when not set:
+The admin build uses these fallback environment variables when not set:
 
 ```bash
 # In package.json vercel-build script
@@ -263,7 +263,7 @@ For comprehensive troubleshooting including build failures, deployment issues, a
 ┌─────────────────────────────────────────────────────────┐
 │                    Vercel Edge                           │
 ├─────────────────────────────────────────────────────────┤
-│  apps/cms (Next.js 16)                                   │
+│  apps/admin (Next.js 16)                                   │
 │  ├── /admin/* - RevealUI Admin Panel                    │
 │  ├── /api/* - REST API endpoints                        │
 │  └── /* - Frontend pages (SSR/SSG)                      │
@@ -308,7 +308,7 @@ RevealUI supports multiple monitoring services:
 
 #### Current Setup
 
-Sentry is already configured in `apps/cms/next.config.mjs`:
+Sentry is already configured in `apps/admin/next.config.mjs`:
 
 ```javascript
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
@@ -382,7 +382,7 @@ Sentry.setUser({
 #### Vercel Analytics
 
 **Current Setup:**
-Vercel Analytics is configured in `apps/cms/src/instrumentation.ts`:
+Vercel Analytics is configured in `apps/admin/src/instrumentation.ts`:
 
 ```typescript
 if (process.env.NEXT_PUBLIC_VERCEL_ENV) {
@@ -402,7 +402,7 @@ Automatically enabled when deployed to Vercel.
 #### Speed Insights
 
 **Current Setup:**
-Speed Insights is configured in `apps/cms/src/app/layout.tsx`:
+Speed Insights is configured in `apps/admin/src/app/layout.tsx`:
 
 ```typescript
 import { SpeedInsights } from '@vercel/speed-insights/next'
@@ -446,13 +446,13 @@ export default function RootLayout({ children }) {
 #### Implementation Example (Datadog)
 
 ```typescript
-// apps/cms/src/instrumentation.ts
+// apps/admin/src/instrumentation.ts
 import tracer from 'dd-trace'
 
 export async function register() {
   if (process.env.DD_SERVICE) {
     tracer.init({
-      service: 'revealui-cms',
+      service: 'revealui-admin',
       env: process.env.NODE_ENV,
     })
     tracer.use('http')
@@ -463,7 +463,7 @@ export async function register() {
 
 **Environment Variables:**
 ```bash
-DD_SERVICE=revealui-cms
+DD_SERVICE=revealui-admin
 DD_ENV=production
 DD_VERSION=1.0.0
 DD_API_KEY=your-api-key
@@ -477,7 +477,7 @@ DD_AGENT_HOST=datadog-agent
 Create a health check endpoint:
 
 ```typescript
-// apps/cms/src/app/api/health/route.ts
+// apps/admin/src/app/api/health/route.ts
 import { NextResponse } from 'next/server'
 import { getClient } from '@revealui/db/client'
 
@@ -894,7 +894,7 @@ To reduce need for rollbacks:
    pnpm audit --audit-level=high
 
    # Verify no console.log statements in production code
-   grep -r "console.log" apps/cms/src/lib apps/mainframe/src --exclude="*.test.ts"
+   grep -r "console.log" apps/admin/src/lib apps/mainframe/src --exclude="*.test.ts"
    ```
 
 2. **Create Production Release**
@@ -1108,8 +1108,8 @@ vercel deploy --prod
 
 #### Build Individual Apps
 ```bash
-# CMS (Next.js)
-docker build -f apps/cms/Dockerfile -t revealui-cms:latest .
+# admin (Next.js)
+docker build -f apps/admin/Dockerfile -t revealui-admin:latest .
 
 # Mainframe (Hono SSR + React)
 docker build -f apps/mainframe/Dockerfile -t revealui-mainframe:latest .
@@ -1141,7 +1141,7 @@ docker-compose -f infrastructure/docker-compose/production.yml down -v
 
 #### Health Checks
 ```bash
-# CMS health check
+# admin health check
 curl http://localhost:4000/api/health
 
 # Mainframe health check
@@ -1154,18 +1154,18 @@ docker exec revealui-postgres pg_isready -U revealui
 #### Troubleshooting
 ```bash
 # View container logs
-docker logs revealui-cms
+docker logs revealui-admin
 docker logs revealui-mainframe
 docker logs revealui-postgres
 
 # Inspect image
-docker inspect revealui-cms:latest
+docker inspect revealui-admin:latest
 
 # Check image history
-docker history revealui-cms:latest
+docker history revealui-admin:latest
 
 # Exec into container
-docker exec -it revealui-cms sh
+docker exec -it revealui-admin sh
 docker exec -it revealui-postgres psql -U revealui
 
 # Clean up
@@ -1231,7 +1231,7 @@ pnpm typecheck:all
 pnpm build
 
 # Build specific app
-pnpm --filter cms build
+pnpm --filter admin build
 pnpm --filter web build
 ```
 
@@ -1414,7 +1414,7 @@ gh release view v1.0.0
 pnpm lint:fix
 
 # Check specific files
-pnpm lint apps/cms/src/file.ts
+pnpm lint apps/admin/src/file.ts
 ```
 
 #### Type Errors
@@ -1423,7 +1423,7 @@ pnpm lint apps/cms/src/file.ts
 pnpm --filter @revealui/core typecheck
 
 # Build to see full errors
-pnpm --filter cms build
+pnpm --filter admin build
 ```
 
 #### Test Failures
@@ -1449,11 +1449,11 @@ pnpm --filter @revealui/test exec playwright test --debug
 cat .dockerignore
 
 # Verify node_modules excluded
-docker build --no-cache -f apps/cms/Dockerfile -t test . 2>&1 | grep "Sending build context"
+docker build --no-cache -f apps/admin/Dockerfile -t test . 2>&1 | grep "Sending build context"
 
 # Layer Caching Issues
 # Build without cache
-docker build --no-cache -f apps/cms/Dockerfile -t revealui-cms:latest .
+docker build --no-cache -f apps/admin/Dockerfile -t revealui-admin:latest .
 
 # Prune build cache
 docker builder prune
@@ -1466,14 +1466,14 @@ docker builder prune
 vercel logs <deployment-url>
 
 # Build locally to debug
-pnpm --filter cms build
+pnpm --filter admin build
 
 # Check environment variables
 vercel env ls
 
 # Health Check Failures
 # Check application logs
-docker logs revealui-cms
+docker logs revealui-admin
 
 # Test health endpoint locally
 curl -v http://localhost:4000/api/health
@@ -1488,7 +1488,7 @@ netstat -an | grep 4000
 
 ### Important: Next.js Standalone Output
 
-The Dockerfiles for CMS, Dashboard, and Landing apps assume Next.js standalone output mode. This needs to be configured in each app's `next.config.js` or `next.config.mjs`.
+The Dockerfiles for admin, Dashboard, and Landing apps assume Next.js standalone output mode. This needs to be configured in each app's `next.config.js` or `next.config.mjs`.
 
 #### Required Configuration
 
@@ -1520,7 +1520,7 @@ export default config
 
 #### Files to Update
 
-1. `apps/cms/next.config.js` or `apps/cms/next.config.mjs`
+1. `apps/admin/next.config.js` or `apps/admin/next.config.mjs`
 2. `apps/marketing/next.config.js` or `apps/marketing/next.config.mjs`
 
 #### What This Does
@@ -1539,7 +1539,7 @@ The Dockerfiles expect this structure:
 ├── standalone/          # Minimal production build
 │   ├── server.js       # Entry point
 │   ├── node_modules/   # Only required deps
-│   └── apps/cms/       # App files
+│   └── apps/admin/       # App files
 ├── static/             # Static assets
 └── ...
 ```
@@ -1550,13 +1550,13 @@ After adding `output: 'standalone'`, test the build:
 
 ```bash
 # Build the app
-pnpm --filter cms build
+pnpm --filter admin build
 
 # Check that standalone output exists
-ls -la apps/cms/.next/standalone/
+ls -la apps/admin/.next/standalone/
 
 # Should see server.js
-ls -la apps/cms/.next/standalone/apps/cms/
+ls -la apps/admin/.next/standalone/apps/admin/
 ```
 
 #### Alternative: Modify Dockerfiles
@@ -1565,23 +1565,23 @@ If you don't want to use standalone output, you can modify the Dockerfiles to us
 
 **Current (standalone):**
 ```dockerfile
-COPY --from=builder /app/apps/cms/.next/standalone ./
-COPY --from=builder /app/apps/cms/.next/static ./apps/cms/.next/static
-CMD ["node", "apps/cms/server.js"]
+COPY --from=builder /app/apps/admin/.next/standalone ./
+COPY --from=builder /app/apps/admin/.next/static ./apps/admin/.next/static
+CMD ["node", "apps/admin/server.js"]
 ```
 
 **Alternative (standard):**
 ```dockerfile
-COPY --from=builder /app/apps/cms/.next ./apps/cms/.next
-COPY --from=builder /app/apps/cms/package.json ./apps/cms/
-CMD ["pnpm", "--filter", "cms", "start"]
+COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
+COPY --from=builder /app/apps/admin/package.json ./apps/admin/
+CMD ["pnpm", "--filter", "admin", "start"]
 ```
 
 ### Health Check Endpoints
 
 The Dockerfiles assume a health check endpoint at `/api/health`. If this doesn't exist, create it:
 
-**File:** `apps/cms/app/api/health/route.ts` (App Router)
+**File:** `apps/admin/app/api/health/route.ts` (App Router)
 ```typescript
 import { NextResponse } from 'next/server'
 
@@ -1593,7 +1593,7 @@ export async function GET() {
 }
 ```
 
-Or **File:** `apps/cms/pages/api/health.ts` (Pages Router)
+Or **File:** `apps/admin/pages/api/health.ts` (Pages Router)
 ```typescript
 import type { NextApiRequest, NextApiResponse } from 'next'
 
@@ -1639,14 +1639,14 @@ When building multiple apps, build in this order for optimal cache usage:
 1. **mainframe** (smallest, static only)
 2. **docs** (similar to mainframe)
 3. **marketing** (Next.js, fewer dependencies)
-4. **cms** (largest, most dependencies)
+4. **admin** (largest, most dependencies)
 
 Example:
 ```bash
 docker build -f apps/mainframe/Dockerfile -t revealui-mainframe:latest .
 docker build -f apps/docs/Dockerfile -t revealui-docs:latest .
 docker build -f apps/marketing/Dockerfile -t revealui-marketing:latest .
-docker build -f apps/cms/Dockerfile -t revealui-cms:latest .
+docker build -f apps/admin/Dockerfile -t revealui-admin:latest .
 ```
 
 ### Docker Production Deployment Checklist
@@ -1702,7 +1702,7 @@ Before deploying to production:
 docker ps --format "table {{.Names}}\t{{.Status}}"
 
 # View health check logs
-docker inspect revealui-cms | jq '.[0].State.Health'
+docker inspect revealui-admin | jq '.[0].State.Health'
 ```
 
 #### Resource Usage
@@ -1711,19 +1711,19 @@ docker inspect revealui-cms | jq '.[0].State.Health'
 docker stats
 
 # Specific container
-docker stats revealui-cms
+docker stats revealui-admin
 ```
 
 #### Logs
 ```bash
 # View logs
-docker logs revealui-cms
+docker logs revealui-admin
 
 # Follow logs
-docker logs -f revealui-cms
+docker logs -f revealui-admin
 
 # Last 100 lines
-docker logs --tail 100 revealui-cms
+docker logs --tail 100 revealui-admin
 ```
 
 ---
@@ -2306,7 +2306,7 @@ docker-compose down
 ```
 
 **Services Available:**
-- **CMS**: http://localhost:3000
+- **admin**: http://localhost:3000
 - **Dashboard**: http://localhost:3001
 - **PostgreSQL**: localhost:5432
 - **MinIO**: http://localhost:9000
@@ -2328,7 +2328,7 @@ pnpm db:seed
 # Start development servers
 pnpm dev
 
-# CMS: http://localhost:3000
+# admin: http://localhost:3000
 # Dashboard: http://localhost:3001
 ```
 
@@ -2342,8 +2342,8 @@ Build production Docker images:
 # Build base image
 docker build -f docker/Dockerfile.base -t revealui/base:latest .
 
-# Build CMS
-docker build -f docker/Dockerfile.cms -t revealui/cms:v1.0.0 .
+# Build admin
+docker build -f docker/Dockerfile.admin -t revealui/admin:v1.0.0 .
 
 # Build Dashboard
 docker build -f docker/Dockerfile.dashboard -t revealui/dashboard:v1.0.0 .
@@ -2360,8 +2360,8 @@ docker buildx create --use
 # Build and push multi-arch images
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -f docker/Dockerfile.cms \
-  -t revealui/cms:v1.0.0 \
+  -f docker/Dockerfile.admin \
+  -t revealui/admin:v1.0.0 \
   --push .
 ```
 
@@ -2372,10 +2372,10 @@ docker buildx build \
 docker login
 
 # Tag images
-docker tag revealui/cms:v1.0.0 registry.example.com/revealui/cms:v1.0.0
+docker tag revealui/admin:v1.0.0 registry.example.com/revealui/admin:v1.0.0
 
 # Push images
-docker push registry.example.com/revealui/cms:v1.0.0
+docker push registry.example.com/revealui/admin:v1.0.0
 docker push registry.example.com/revealui/dashboard:v1.0.0
 ```
 
@@ -2503,14 +2503,14 @@ kubectl wait --for=condition=ready pod -l app=postgres -n revealui --timeout=300
 #### 4. Deploy Applications
 
 ```bash
-# Deploy CMS
-kubectl apply -f k8s/deployments/cms.yaml
+# Deploy admin
+kubectl apply -f k8s/deployments/admin.yaml
 
 # Deploy Dashboard
 kubectl apply -f k8s/deployments/dashboard.yaml
 
 # Wait for deployments
-kubectl rollout status deployment/revealui-cms -n revealui
+kubectl rollout status deployment/revealui-admin -n revealui
 kubectl rollout status deployment/revealui-dashboard -n revealui
 ```
 
@@ -2668,7 +2668,7 @@ Configure alerts in `k8s/monitoring/alerts/`:
 
 Alerts are sent to:
 - Slack (if webhook configured)
-- Email (if SMTP configured)
+- Email (if Gmail API configured)
 - PagerDuty (if configured)
 
 ## Disaster Recovery
@@ -2726,7 +2726,7 @@ Use the rollback script:
 ./scripts/rollback.sh rollback-all
 
 # Rollback to specific revision
-./scripts/rollback.sh rollback-cms 5
+./scripts/rollback.sh rollback-admin 5
 
 # Rollback database migration
 ./scripts/rollback.sh rollback-db
@@ -2741,7 +2741,7 @@ Use the rollback script:
 ./scripts/rollback.sh pause
 
 # Or manually
-kubectl scale deployment/revealui-cms --replicas=0 -n revealui
+kubectl scale deployment/revealui-admin --replicas=0 -n revealui
 kubectl scale deployment/revealui-dashboard --replicas=0 -n revealui
 ```
 
@@ -2752,7 +2752,7 @@ kubectl scale deployment/revealui-dashboard --replicas=0 -n revealui
 ./scripts/rollback.sh resume
 
 # Or manually
-kubectl scale deployment/revealui-cms --replicas=3 -n revealui
+kubectl scale deployment/revealui-admin --replicas=3 -n revealui
 kubectl scale deployment/revealui-dashboard --replicas=2 -n revealui
 ```
 
@@ -2828,7 +2828,7 @@ kubectl describe certificate revealui-tls -n revealui
 kubectl top pods -n revealui
 
 # Increase resource limits
-kubectl set resources deployment/revealui-cms \
+kubectl set resources deployment/revealui-admin \
   --limits=memory=2Gi \
   -n revealui
 ```
@@ -2840,7 +2840,7 @@ kubectl set resources deployment/revealui-cms \
 kubectl get hpa -n revealui
 
 # Manually scale up
-kubectl scale deployment/revealui-cms --replicas=10 -n revealui
+kubectl scale deployment/revealui-admin --replicas=10 -n revealui
 
 # Check database performance
 kubectl exec -n revealui postgres-0 -- psql -U postgres revealui -c \
@@ -2867,8 +2867,8 @@ kubectl exec -it <pod-name> -n revealui -- /bin/sh
 kubectl port-forward -n revealui pod/<pod-name> 3000:3000
 
 # View deployment status
-kubectl rollout status deployment/revealui-cms -n revealui
-kubectl rollout history deployment/revealui-cms -n revealui
+kubectl rollout status deployment/revealui-admin -n revealui
+kubectl rollout history deployment/revealui-admin -n revealui
 
 # Check configuration
 kubectl get configmap revealui-config -n revealui -o yaml
@@ -2895,7 +2895,7 @@ spec:
 
 ```bash
 # Increase connection pool
-kubectl set env deployment/revealui-cms \
+kubectl set env deployment/revealui-admin \
   DATABASE_POOL_SIZE=50 \
   -n revealui
 

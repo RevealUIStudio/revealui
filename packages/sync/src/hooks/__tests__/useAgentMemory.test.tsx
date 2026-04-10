@@ -130,13 +130,13 @@ describe('useAgentMemory', () => {
     mockUseShape.mockReturnValue({ data: [], isLoading: false, error: null });
 
     const wrapper = ({ children }: { children: ReactNode }) => (
-      <ElectricProvider proxyBaseUrl="https://cms.example.com">{children}</ElectricProvider>
+      <ElectricProvider proxyBaseUrl="https://admin.example.com">{children}</ElectricProvider>
     );
 
     renderHook(() => useAgentMemory('agent-123'), { wrapper });
 
     expect(mockUseShape).toHaveBeenCalledWith({
-      url: 'https://cms.example.com/api/shapes/agent-memories',
+      url: 'https://admin.example.com/api/shapes/agent-memories',
       params: { agent_id: 'agent-123' },
       fetchClient: expect.any(Function),
     });

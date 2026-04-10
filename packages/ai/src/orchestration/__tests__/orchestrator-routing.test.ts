@@ -45,18 +45,18 @@ describe('AgentOrchestrator.findBestAgent — capability routing', () => {
       chat: vi.fn().mockResolvedValue({ content: 'ok', toolCalls: [] }),
     } as never;
 
-    const cms = makeAgent('cms-agent', ['cms', 'content', 'search']);
-    const ticket = makeAgent('ticket-agent', ['ticket', 'cms', 'summarize']);
-    orchestrator.registerAgent(cms);
+    const adminAgent = makeAgent('admin-agent', ['admin', 'content', 'search']);
+    const ticket = makeAgent('ticket-agent', ['ticket', 'admin', 'summarize']);
+    orchestrator.registerAgent(adminAgent);
     orchestrator.registerAgent(ticket);
     orchestrator.setLLMClient(mockClient);
 
-    // task requires ['cms', 'content'] — cms-agent has both, ticket-agent has only 'cms'
-    const task = makeTask('content', ['cms', 'content']);
+    // task requires ['admin', 'content'] — admin-agent has both, ticket-agent has only 'admin'
+    const task = makeTask('content', ['admin', 'content']);
     await orchestrator.delegateTask(task);
 
     const calls = vi.mocked(mockClient.chat).mock.calls;
-    // The system message should be from the cms-agent's instructions
+    // The system message should be from the admin-agent's instructions
     // We can verify indirectly by checking it was called (not throwing)
     expect(calls.length).toBeGreaterThan(0);
   });
@@ -108,14 +108,14 @@ describe('AgentOrchestrator.findBestAgent — capability routing', () => {
       chat: vi.fn().mockResolvedValue({ content: 'ok', toolCalls: [] }),
     } as never;
 
-    const agentA = makeAgent('a', ['cms']);
-    const agentB = makeAgent('b', ['cms', 'content']);
+    const agentA = makeAgent('a', ['admin']);
+    const agentB = makeAgent('b', ['admin', 'content']);
     orchestrator.registerAgent(agentA);
     orchestrator.registerAgent(agentB);
     orchestrator.setLLMClient(mockClient);
 
     // preferredAgentId overrides capability routing
-    const task = makeTask('content', ['cms', 'content']);
+    const task = makeTask('content', ['admin', 'content']);
     await orchestrator.delegateTask(task, 'a'); // explicitly pick 'a'
     expect(mockClient.chat).toHaveBeenCalled();
   });

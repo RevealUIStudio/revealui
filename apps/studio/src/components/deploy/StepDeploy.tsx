@@ -53,13 +53,14 @@ function buildApiEnvVars(data: WizardData): Record<string, string> {
     vars.REVEALUI_BRAND_LOGO_URL = data.brandLogo;
   }
 
-  if (data.emailProvider === 'resend' && data.resendApiKey) {
-    vars.RESEND_API_KEY = data.resendApiKey;
-  } else if (data.emailProvider === 'smtp') {
-    if (data.smtpHost) vars.SMTP_HOST = data.smtpHost;
-    if (data.smtpPort) vars.SMTP_PORT = data.smtpPort;
-    if (data.smtpUser) vars.SMTP_USER = data.smtpUser;
-    if (data.smtpPass) vars.SMTP_PASS = data.smtpPass;
+  if (data.googleServiceAccountEmail) {
+    vars.GOOGLE_SERVICE_ACCOUNT_EMAIL = data.googleServiceAccountEmail;
+  }
+  if (data.googlePrivateKey) {
+    vars.GOOGLE_PRIVATE_KEY = data.googlePrivateKey;
+  }
+  if (data.emailFrom) {
+    vars.EMAIL_FROM = data.emailFrom;
   }
 
   // Supabase (when enabled)
@@ -91,20 +92,21 @@ function buildAdminEnvVars(data: WizardData): Record<string, string> {
     REVEALUI_LICENSE_PUBLIC_KEY: data.licensePublicKey,
   };
 
-  // Email vars for CMS password reset
-  if (data.emailProvider === 'resend' && data.resendApiKey) {
-    vars.RESEND_API_KEY = data.resendApiKey;
-  } else if (data.emailProvider === 'smtp') {
-    if (data.smtpHost) vars.SMTP_HOST = data.smtpHost;
-    if (data.smtpPort) vars.SMTP_PORT = data.smtpPort;
-    if (data.smtpUser) vars.SMTP_USER = data.smtpUser;
-    if (data.smtpPass) vars.SMTP_PASS = data.smtpPass;
+  // Email vars for admin password reset
+  if (data.googleServiceAccountEmail) {
+    vars.GOOGLE_SERVICE_ACCOUNT_EMAIL = data.googleServiceAccountEmail;
+  }
+  if (data.googlePrivateKey) {
+    vars.GOOGLE_PRIVATE_KEY = data.googlePrivateKey;
+  }
+  if (data.emailFrom) {
+    vars.EMAIL_FROM = data.emailFrom;
   }
 
   // Signup control
   vars.REVEALUI_SIGNUP_OPEN = String(data.signupOpen);
 
-  // Supabase for CMS AI features
+  // Supabase for admin AI features
   if (data.supabaseUrl) {
     vars.NEXT_PUBLIC_SUPABASE_URL = data.supabaseUrl;
     if (data.supabasePublishableKey)

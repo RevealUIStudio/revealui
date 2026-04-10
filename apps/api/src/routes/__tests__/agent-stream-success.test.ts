@@ -428,16 +428,16 @@ describe('agent-stream — success path (AI modules working)', () => {
 
   // ── Mode parameter ──────────────────────────────────────────────────────
 
-  it('uses CMS agent identity when mode is "cms"', async () => {
+  it('uses admin agent identity when mode is "admin"', async () => {
     const app = createApp();
-    await jsonPost(app, '/agent-stream', { instruction: 'List posts', mode: 'cms' });
+    await jsonPost(app, '/agent-stream', { instruction: 'List posts', mode: 'admin' });
 
     const runtime = await getRuntimeMock();
     // biome-ignore lint/suspicious/noExplicitAny: capturing agent argument from dynamic mock
     const agentArg = runtime.streamTask.mock.calls[0]?.[0] as any;
-    expect(agentArg.id).toBe('cms-stream-agent');
-    expect(agentArg.name).toBe('CMS Stream Agent');
-    expect(agentArg.instructions).toContain('CMS management');
+    expect(agentArg.id).toBe('admin-stream-agent');
+    expect(agentArg.name).toBe('Admin Stream Agent');
+    expect(agentArg.instructions).toContain('admin management');
     expect(agentArg.instructions).not.toContain('coding tools');
   });
 
@@ -450,17 +450,17 @@ describe('agent-stream — success path (AI modules working)', () => {
     const agentArg = runtime.streamTask.mock.calls[0]?.[0] as any;
     expect(agentArg.id).toBe('coding-stream-agent');
     expect(agentArg.name).toBe('Coding Agent');
-    expect(agentArg.instructions).toContain('coding and CMS');
+    expect(agentArg.instructions).toContain('coding and admin');
     expect(agentArg.instructions).toContain('coding tools');
   });
 
-  it('defaults to CMS agent when mode is omitted', async () => {
+  it('defaults to admin agent when mode is omitted', async () => {
     const app = createApp();
     await jsonPost(app, '/agent-stream', { instruction: 'Hello' });
 
     const runtime = await getRuntimeMock();
     // biome-ignore lint/suspicious/noExplicitAny: capturing agent argument from dynamic mock
     const agentArg = runtime.streamTask.mock.calls[0]?.[0] as any;
-    expect(agentArg.id).toBe('cms-stream-agent');
+    expect(agentArg.id).toBe('admin-stream-agent');
   });
 });

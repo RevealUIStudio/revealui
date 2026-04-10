@@ -3,7 +3,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getSharedCMSConfig } from '@revealui/config/revealui';
-import type { CollectionConfig, Field } from '@revealui/contracts/cms';
+import type { CollectionConfig, Field } from '@revealui/contracts/admin';
 import type { RevealUIField, RevealUIInstance } from '@revealui/core';
 import {
   BoldFeature,
@@ -271,12 +271,34 @@ export default buildConfig({
       return;
     }
 
-    // Check if any users exist
-    const existingUsers = await revealui.find({
-      collection: 'users',
-      limit: 1,
-      depth: 0,
-    });
+    // Validate database connectivity before proceeding
+    let existingUsers: { totalDocs: number };
+    try {
+      existingUsers = await revealui.find({
+        collection: 'users',
+        limit: 1,
+        depth: 0,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const isConnectionError =
+        message.includes('ECONNREFUSED') ||
+        message.includes('connection') ||
+        message.includes('ENOTFOUND') ||
+        message.includes('timeout');
+
+      if (isConnectionError) {
+        revealui.logger.error(
+          'Database connection failed. Check that POSTGRES_URL or DATABASE_URL is set and the database is reachable.',
+        );
+      } else {
+        revealui.logger.error(`Database query failed during initialization: ${message}`);
+      }
+      revealui.logger.warn(
+        'Admin app started without database. Dashboard will show errors until a database is connected.',
+      );
+      return;
+    }
 
     // If no users exist, create the first admin user
     if (existingUsers.totalDocs === 0) {

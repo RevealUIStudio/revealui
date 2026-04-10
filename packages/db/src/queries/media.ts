@@ -4,7 +4,7 @@
 
 import { and, desc, eq, isNull, like } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
-import { media } from '../schema/cms.js';
+import { media } from '../schema/admin.js';
 
 export async function getAllMedia(
   db: Database,

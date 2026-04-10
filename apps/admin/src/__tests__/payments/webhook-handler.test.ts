@@ -1,8 +1,8 @@
 /**
- * Stripe Webhook Handler — Comprehensive CMS-side Tests
+ * Stripe Webhook Handler — Comprehensive admin-side Tests
  *
  * Tests the webhook processing logic independent of the Hono transport layer.
- * Covers scenarios specific to CMS billing integration:
+ * Covers scenarios specific to admin billing integration:
  *
  * - Signature verification schema validation
  * - Stripe webhook event schema validation
@@ -13,7 +13,7 @@
  * - Error handling and security
  *
  * NOTE: The actual Hono webhook handler lives in apps/api/src/routes/webhooks.ts
- * and is tested there. These tests validate the CMS-side validation schemas and
+ * and is tested there. These tests validate the admin-side validation schemas and
  * Stripe event structures used by the webhook system.
  */
 

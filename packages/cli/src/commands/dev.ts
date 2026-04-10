@@ -11,7 +11,7 @@ import { runShellCommand } from './shell.js';
 const logger = createLogger({ prefix: 'Dev' });
 
 export type DevService = 'mcp';
-export type DevProfileName = 'local' | 'agent' | 'cms' | 'fullstack';
+export type DevProfileName = 'local' | 'agent' | 'admin' | 'fullstack';
 
 interface DevProfile {
   include?: DevService[];
@@ -23,8 +23,8 @@ const DEV_PROFILES: Record<DevProfileName, DevProfile> = {
   agent: {
     include: ['mcp'],
   },
-  cms: {
-    script: 'dev:cms',
+  admin: {
+    script: 'dev:admin',
   },
   fullstack: {
     include: ['mcp'],

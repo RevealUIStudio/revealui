@@ -1,5 +1,5 @@
 /**
- * RevealUI singleton accessor for the CMS app.
+ * RevealUI singleton accessor for the admin app.
  *
  * Caches the RevealUI instance at module scope so that every route handler
  * and utility shares a single initialized instance instead of creating a new

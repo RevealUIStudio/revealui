@@ -4,7 +4,7 @@
   "description": "Runtime engine, REST API, auth, rich text, admin UI, and plugins for RevealUI",
   "license": "MIT",
   "dependencies": {
-    "@electric-sql/pglite": "^0.4.2",
+    "@electric-sql/pglite": "^0.4.3",
     "@lexical/clipboard": "^0.42.0",
     "@lexical/code": "^0.42.0",
     "@lexical/html": "^0.42.0",
@@ -21,25 +21,25 @@
     "@revealui/resilience": "workspace:*",
     "@revealui/security": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@vercel/blob": "^2.3.2",
-    "bcryptjs": "^3.0.3",
+    "@vercel/blob": "^2.3.3",
+    "bcryptjs": "catalog:",
     "dataloader": "^2.2.3",
-    "jose": "^6.1.3",
+    "jose": "^6.2.2",
     "lexical": "^0.42.0",
-    "pg": "^8.18.0",
-    "yjs": "^13.6.29",
+    "pg": "catalog:",
+    "yjs": "^13.6.30",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/json-schema": "^7.0.15",
-    "@types/pg": "^8.16.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitest/coverage-v8": "^4.1.0",
-    "dev": "workspace:*",
+    "@types/pg": "^8.20.0",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "@revealui/dev": "workspace:*",
     "expect-type": "^1.3.0",
-    "tsup": "^8.5.1",
-    "vitest": "^4.1.0"
+    "tsup": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"
@@ -77,9 +77,9 @@
       "types": "./dist/types/generated.d.ts",
       "import": "./dist/types/generated.js"
     },
-    "./types/cms": {
-      "types": "./dist/types/cms.d.ts",
-      "import": "./dist/types/cms.js"
+    "./types/admin": {
+      "types": "./dist/types/admin.d.ts",
+      "import": "./dist/types/admin.js"
     },
     "./types/frontend": {
       "types": "./dist/types/frontend.d.ts",
@@ -93,9 +93,9 @@
       "types": "./dist/generated/types/index.d.ts",
       "import": "./dist/generated/types/index.js"
     },
-    "./generated/types/cms": {
-      "types": "./dist/generated/types/cms.d.ts",
-      "import": "./dist/generated/types/cms.js"
+    "./generated/types/admin": {
+      "types": "./dist/generated/types/admin.d.ts",
+      "import": "./dist/generated/types/admin.js"
     },
     "./generated/types/neon": {
       "types": "./dist/generated/types/neon.d.ts",

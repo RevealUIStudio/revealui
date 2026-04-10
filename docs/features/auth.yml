@@ -45,16 +45,16 @@ api-surface:
 
 ui-surface:
   sign-in-page:
-    location: "apps/cms/src/app/(auth)/sign-in/page.tsx"
+    location: "apps/admin/src/app/(auth)/sign-in/page.tsx"
     status: functional
   sign-up-page:
-    location: "apps/cms/src/app/(auth)/sign-up/page.tsx"
+    location: "apps/admin/src/app/(auth)/sign-up/page.tsx"
     status: functional
   password-reset-page:
-    location: "apps/cms/src/app/(auth)/password-reset/page.tsx"
+    location: "apps/admin/src/app/(auth)/password-reset/page.tsx"
     status: functional
   verify-email-page:
-    location: "apps/cms/src/app/(auth)/verify-email/page.tsx"
+    location: "apps/admin/src/app/(auth)/verify-email/page.tsx"
     status: functional
 
 limitations:

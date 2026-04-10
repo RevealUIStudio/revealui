@@ -2,103 +2,103 @@
  * End-to-End Import Path Verification Tests
  *
  * These tests verify that:
- * 1. All expected types are exported from @revealui/contracts/cms
+ * 1. All expected types are exported from @revealui/contracts/admin
  * 2. Types match expected shapes
  * 3. No type shadowing or conflicts exist
  */
 
 import { describe, expect, it } from 'vitest';
-import * as SchemaCMS from '../cms/index.js';
+import * as Schemaadmin from '../admin/index.js';
 
 describe('E2E Import Path Verification', () => {
   describe('Schema Package Exports', () => {
     it('exports core field types', () => {
       // Type exports (these will be undefined at runtime but TypeScript validates them)
-      expect(SchemaCMS.FieldSchema).toBeDefined();
-      expect(SchemaCMS.TextFieldSchema).toBeDefined();
-      expect(SchemaCMS.NumberFieldSchema).toBeDefined();
-      expect(SchemaCMS.RelationshipFieldSchema).toBeDefined();
-      expect(SchemaCMS.ArrayFieldSchema).toBeDefined();
-      expect(SchemaCMS.GroupFieldSchema).toBeDefined();
-      expect(SchemaCMS.SelectFieldSchema).toBeDefined();
-      expect(SchemaCMS.TabsFieldSchema).toBeDefined();
+      expect(Schemaadmin.FieldSchema).toBeDefined();
+      expect(Schemaadmin.TextFieldSchema).toBeDefined();
+      expect(Schemaadmin.NumberFieldSchema).toBeDefined();
+      expect(Schemaadmin.RelationshipFieldSchema).toBeDefined();
+      expect(Schemaadmin.ArrayFieldSchema).toBeDefined();
+      expect(Schemaadmin.GroupFieldSchema).toBeDefined();
+      expect(Schemaadmin.SelectFieldSchema).toBeDefined();
+      expect(Schemaadmin.TabsFieldSchema).toBeDefined();
     });
 
     it('exports collection configuration', () => {
-      expect(SchemaCMS.CollectionConfigSchema).toBeDefined();
-      expect(SchemaCMS.CollectionLabelsSchema).toBeDefined();
-      expect(SchemaCMS.CollectionAccessSchema).toBeDefined();
-      expect(SchemaCMS.CollectionHooksSchema).toBeDefined();
-      expect(SchemaCMS.CollectionAdminConfigSchema).toBeDefined();
+      expect(Schemaadmin.CollectionConfigSchema).toBeDefined();
+      expect(Schemaadmin.CollectionLabelsSchema).toBeDefined();
+      expect(Schemaadmin.CollectionAccessSchema).toBeDefined();
+      expect(Schemaadmin.CollectionHooksSchema).toBeDefined();
+      expect(Schemaadmin.CollectionAdminConfigSchema).toBeDefined();
     });
 
     it('exports global configuration', () => {
-      expect(SchemaCMS.GlobalConfigSchema).toBeDefined();
-      expect(SchemaCMS.GlobalLabelsSchema).toBeDefined();
-      expect(SchemaCMS.GlobalAccessSchema).toBeDefined();
-      expect(SchemaCMS.GlobalHooksSchema).toBeDefined();
-      expect(SchemaCMS.GlobalAdminConfigSchema).toBeDefined();
+      expect(Schemaadmin.GlobalConfigSchema).toBeDefined();
+      expect(Schemaadmin.GlobalLabelsSchema).toBeDefined();
+      expect(Schemaadmin.GlobalAccessSchema).toBeDefined();
+      expect(Schemaadmin.GlobalHooksSchema).toBeDefined();
+      expect(Schemaadmin.GlobalAdminConfigSchema).toBeDefined();
     });
 
     it('exports factory functions', () => {
-      expect(typeof SchemaCMS.createCollectionConfig).toBe('function');
-      expect(typeof SchemaCMS.createAuthCollectionConfig).toBe('function');
-      expect(typeof SchemaCMS.createUploadCollectionConfig).toBe('function');
-      expect(typeof SchemaCMS.createGlobalConfig).toBe('function');
+      expect(typeof Schemaadmin.createCollectionConfig).toBe('function');
+      expect(typeof Schemaadmin.createAuthCollectionConfig).toBe('function');
+      expect(typeof Schemaadmin.createUploadCollectionConfig).toBe('function');
+      expect(typeof Schemaadmin.createGlobalConfig).toBe('function');
     });
 
     it('exports validation utilities', () => {
-      expect(SchemaCMS.ConfigValidationError).toBeDefined();
-      expect(typeof SchemaCMS.validateWithErrors).toBe('function');
-      expect(typeof SchemaCMS.safeValidate).toBe('function');
+      expect(Schemaadmin.ConfigValidationError).toBeDefined();
+      expect(typeof Schemaadmin.validateWithErrors).toBe('function');
+      expect(typeof Schemaadmin.safeValidate).toBe('function');
     });
 
     it('exports config helpers', () => {
-      expect(typeof SchemaCMS.defineCollection).toBe('function');
-      expect(typeof SchemaCMS.defineGlobal).toBe('function');
-      expect(typeof SchemaCMS.defineField).toBe('function');
+      expect(typeof Schemaadmin.defineCollection).toBe('function');
+      expect(typeof Schemaadmin.defineGlobal).toBe('function');
+      expect(typeof Schemaadmin.defineField).toBe('function');
     });
 
     it('exports extensibility utilities', () => {
-      expect(typeof SchemaCMS.registerCustomFieldType).toBe('function');
-      expect(typeof SchemaCMS.getCustomFieldType).toBe('function');
-      expect(typeof SchemaCMS.isValidFieldType).toBe('function');
-      expect(typeof SchemaCMS.registerPluginExtension).toBe('function');
-      expect(typeof SchemaCMS.applyPluginExtensions).toBe('function');
-      expect(typeof SchemaCMS.mergeFields).toBe('function');
-      expect(typeof SchemaCMS.mergeCollectionConfigs).toBe('function');
+      expect(typeof Schemaadmin.registerCustomFieldType).toBe('function');
+      expect(typeof Schemaadmin.getCustomFieldType).toBe('function');
+      expect(typeof Schemaadmin.isValidFieldType).toBe('function');
+      expect(typeof Schemaadmin.registerPluginExtension).toBe('function');
+      expect(typeof Schemaadmin.applyPluginExtensions).toBe('function');
+      expect(typeof Schemaadmin.mergeFields).toBe('function');
+      expect(typeof Schemaadmin.mergeCollectionConfigs).toBe('function');
     });
 
-    it('exports CMS compatibility utilities', () => {
-      expect(typeof SchemaCMS.toCMSCollectionConfig).toBe('function');
-      expect(typeof SchemaCMS.toCMSGlobalConfig).toBe('function');
-      expect(typeof SchemaCMS.fromCMSCollectionConfig).toBe('function');
-      expect(typeof SchemaCMS.fromCMSGlobalConfig).toBe('function');
-      expect(typeof SchemaCMS.isValidSlug).toBe('function');
-      expect(typeof SchemaCMS.toSlug).toBe('function');
-      expect(typeof SchemaCMS.assertValidSlug).toBe('function');
+    it('exports admin compatibility utilities', () => {
+      expect(typeof Schemaadmin.toAdminCollectionConfig).toBe('function');
+      expect(typeof Schemaadmin.toAdminGlobalConfig).toBe('function');
+      expect(typeof Schemaadmin.fromAdminCollectionConfig).toBe('function');
+      expect(typeof Schemaadmin.fromAdminGlobalConfig).toBe('function');
+      expect(typeof Schemaadmin.isValidSlug).toBe('function');
+      expect(typeof Schemaadmin.toSlug).toBe('function');
+      expect(typeof Schemaadmin.assertValidSlug).toBe('function');
     });
 
     it('exports type guards', () => {
-      expect(typeof SchemaCMS.isTextField).toBe('function');
-      expect(typeof SchemaCMS.isNumberField).toBe('function');
-      expect(typeof SchemaCMS.isRelationshipField).toBe('function');
-      expect(typeof SchemaCMS.isArrayField).toBe('function');
-      expect(typeof SchemaCMS.isGroupField).toBe('function');
-      expect(typeof SchemaCMS.isLayoutField).toBe('function');
-      expect(typeof SchemaCMS.hasNestedFields).toBe('function');
+      expect(typeof Schemaadmin.isTextField).toBe('function');
+      expect(typeof Schemaadmin.isNumberField).toBe('function');
+      expect(typeof Schemaadmin.isRelationshipField).toBe('function');
+      expect(typeof Schemaadmin.isArrayField).toBe('function');
+      expect(typeof Schemaadmin.isGroupField).toBe('function');
+      expect(typeof Schemaadmin.isLayoutField).toBe('function');
+      expect(typeof Schemaadmin.hasNestedFields).toBe('function');
     });
 
     it('exports schema versions', () => {
-      expect(typeof SchemaCMS.FIELD_SCHEMA_VERSION).toBe('number');
-      expect(typeof SchemaCMS.COLLECTION_SCHEMA_VERSION).toBe('number');
-      expect(typeof SchemaCMS.GLOBAL_SCHEMA_VERSION).toBe('number');
+      expect(typeof Schemaadmin.FIELD_SCHEMA_VERSION).toBe('number');
+      expect(typeof Schemaadmin.COLLECTION_SCHEMA_VERSION).toBe('number');
+      expect(typeof Schemaadmin.GLOBAL_SCHEMA_VERSION).toBe('number');
     });
   });
 
   describe('Type Inference Verification', () => {
     it('Field type inference works', () => {
-      const field: SchemaCMS.Field = {
+      const field: Schemaadmin.Field = {
         type: 'text',
         name: 'title',
         required: true,
@@ -107,7 +107,7 @@ describe('E2E Import Path Verification', () => {
     });
 
     it('CollectionConfig type inference works', () => {
-      const config: SchemaCMS.CollectionConfig = {
+      const config: Schemaadmin.CollectionConfig = {
         slug: 'posts',
         fields: [{ type: 'text', name: 'title' }],
       };
@@ -115,7 +115,7 @@ describe('E2E Import Path Verification', () => {
     });
 
     it('GlobalConfig type inference works', () => {
-      const config: SchemaCMS.GlobalConfig = {
+      const config: Schemaadmin.GlobalConfig = {
         slug: 'settings',
         fields: [{ type: 'text', name: 'siteName' }],
       };
@@ -128,7 +128,7 @@ describe('E2E Import Path Verification', () => {
         title: string;
       }
 
-      const Posts = SchemaCMS.defineCollection<Post>({
+      const Posts = Schemaadmin.defineCollection<Post>({
         slug: 'posts',
         fields: [{ type: 'text', name: 'title' }],
       });
@@ -144,8 +144,8 @@ describe('E2E Import Path Verification', () => {
         fields: [{ type: 'text', name: 'title' }],
       };
 
-      const result = SchemaCMS.safeValidate(
-        SchemaCMS.CollectionStructureSchema,
+      const result = Schemaadmin.safeValidate(
+        Schemaadmin.CollectionStructureSchema,
         config,
         'collection',
         'test-collection',
@@ -160,8 +160,8 @@ describe('E2E Import Path Verification', () => {
         fields: [],
       };
 
-      const result = SchemaCMS.safeValidate(
-        SchemaCMS.CollectionStructureSchema,
+      const result = Schemaadmin.safeValidate(
+        Schemaadmin.CollectionStructureSchema,
         config,
         'collection',
         'Invalid Slug',
@@ -180,19 +180,19 @@ describe('E2E Import Path Verification', () => {
       };
 
       expect(() => {
-        SchemaCMS.validateWithErrors(
-          SchemaCMS.CollectionStructureSchema,
+        Schemaadmin.validateWithErrors(
+          Schemaadmin.CollectionStructureSchema,
           config,
           'collection',
           'Invalid Slug',
         );
-      }).toThrow(SchemaCMS.ConfigValidationError);
+      }).toThrow(Schemaadmin.ConfigValidationError);
     });
   });
 
   describe('Factory Function Integration', () => {
     it('createCollectionConfig produces valid config', () => {
-      const config = SchemaCMS.createCollectionConfig(
+      const config = Schemaadmin.createCollectionConfig(
         'products',
         [
           { type: 'text', name: 'name' },
@@ -210,7 +210,7 @@ describe('E2E Import Path Verification', () => {
     });
 
     it('createAuthCollectionConfig adds auth defaults', () => {
-      const config = SchemaCMS.createAuthCollectionConfig('users', [
+      const config = Schemaadmin.createAuthCollectionConfig('users', [
         { type: 'text', name: 'name' },
       ]);
 
@@ -222,7 +222,7 @@ describe('E2E Import Path Verification', () => {
     });
 
     it('createUploadCollectionConfig adds upload defaults', () => {
-      const config = SchemaCMS.createUploadCollectionConfig('media', [
+      const config = Schemaadmin.createUploadCollectionConfig('media', [
         { type: 'text', name: 'alt' },
       ]);
 
@@ -232,7 +232,9 @@ describe('E2E Import Path Verification', () => {
     });
 
     it('createGlobalConfig produces valid global', () => {
-      const config = SchemaCMS.createGlobalConfig('settings', [{ type: 'text', name: 'siteName' }]);
+      const config = Schemaadmin.createGlobalConfig('settings', [
+        { type: 'text', name: 'siteName' },
+      ]);
 
       expect(config.slug).toBe('settings');
     });
@@ -240,25 +242,25 @@ describe('E2E Import Path Verification', () => {
 
   describe('Slug Utilities', () => {
     it('isValidSlug validates correctly', () => {
-      expect(SchemaCMS.isValidSlug('posts')).toBe(true);
-      expect(SchemaCMS.isValidSlug('my-posts')).toBe(true);
-      expect(SchemaCMS.isValidSlug('posts-123')).toBe(true);
+      expect(Schemaadmin.isValidSlug('posts')).toBe(true);
+      expect(Schemaadmin.isValidSlug('my-posts')).toBe(true);
+      expect(Schemaadmin.isValidSlug('posts-123')).toBe(true);
 
-      expect(SchemaCMS.isValidSlug('Posts')).toBe(false);
-      expect(SchemaCMS.isValidSlug('my_posts')).toBe(false);
-      expect(SchemaCMS.isValidSlug('123posts')).toBe(false);
-      expect(SchemaCMS.isValidSlug('')).toBe(false);
+      expect(Schemaadmin.isValidSlug('Posts')).toBe(false);
+      expect(Schemaadmin.isValidSlug('my_posts')).toBe(false);
+      expect(Schemaadmin.isValidSlug('123posts')).toBe(false);
+      expect(Schemaadmin.isValidSlug('')).toBe(false);
     });
 
     it('toSlug converts strings', () => {
-      expect(SchemaCMS.toSlug('My Posts')).toBe('my-posts');
-      expect(SchemaCMS.toSlug('Hello World!')).toBe('hello-world');
-      expect(SchemaCMS.toSlug('already-valid')).toBe('already-valid');
+      expect(Schemaadmin.toSlug('My Posts')).toBe('my-posts');
+      expect(Schemaadmin.toSlug('Hello World!')).toBe('hello-world');
+      expect(Schemaadmin.toSlug('already-valid')).toBe('already-valid');
     });
 
     it('assertValidSlug throws on invalid', () => {
-      expect(() => SchemaCMS.assertValidSlug('valid-slug')).not.toThrow();
-      expect(() => SchemaCMS.assertValidSlug('Invalid Slug')).toThrow();
+      expect(() => Schemaadmin.assertValidSlug('valid-slug')).not.toThrow();
+      expect(() => Schemaadmin.assertValidSlug('Invalid Slug')).toThrow();
     });
   });
 });

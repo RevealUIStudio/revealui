@@ -138,7 +138,7 @@ describe('checkSupportExpiry', () => {
     });
     const res = await app.request('/resource');
 
-    expect(res.status).toBe(200); // Still passes — basic CMS access remains
+    expect(res.status).toBe(200); // Still passes — basic admin access remains
     expect(res.headers.get('X-Support-Expires')).toBe(pastDate.toISOString());
     expect(res.headers.get('X-Support-Status')).toBe('expired');
   });

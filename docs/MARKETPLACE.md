@@ -123,7 +123,7 @@ Redirect your user (or yourself) to `url`. Stripe walks you through identity ver
 
 ### 2. Complete onboarding
 
-After completing the Stripe flow, you're redirected back to the CMS. Your `stripeAccountId` is stored on all your published servers.
+After completing the Stripe flow, you're redirected back to the admin. Your `stripeAccountId` is stored on all your published servers.
 
 ### Payout schedule
 

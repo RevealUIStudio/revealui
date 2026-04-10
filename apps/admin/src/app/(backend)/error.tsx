@@ -9,10 +9,18 @@ export default function BackendError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const message = error.message.toLowerCase();
   const isNetworkError =
-    error.message.includes('fetch') ||
-    error.message.includes('network') ||
-    error.message.includes('ECONNREFUSED');
+    message.includes('fetch') || message.includes('network') || message.includes('econnrefused');
+
+  const isDatabaseError =
+    message.includes('econnrefused') ||
+    message.includes('connection') ||
+    message.includes('postgres') ||
+    message.includes('database') ||
+    message.includes('relation') ||
+    message.includes('timeout') ||
+    message.includes('enotfound');
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center gap-5 p-8">
@@ -34,13 +42,33 @@ export default function BackendError({
         </svg>
       </div>
 
-      <h2 className="text-lg font-semibold text-white">Something went wrong</h2>
+      <h2 className="text-lg font-semibold text-white">
+        {isDatabaseError ? 'Database connection failed' : 'Something went wrong'}
+      </h2>
 
-      <p className="max-w-md text-center text-sm text-zinc-400">
-        {isNetworkError
-          ? 'Unable to reach the server. Check your connection and try again.'
-          : 'An unexpected error occurred while loading this page.'}
-      </p>
+      {isDatabaseError ? (
+        <div className="flex max-w-lg flex-col gap-3 text-center text-sm text-zinc-400">
+          <p>The admin dashboard cannot reach the database. To fix this:</p>
+          <ol className="list-inside list-decimal text-left text-xs text-zinc-500">
+            <li>
+              Set <code className="text-zinc-300">POSTGRES_URL</code> or{' '}
+              <code className="text-zinc-300">DATABASE_URL</code> in your environment
+            </li>
+            <li>
+              Run <code className="text-zinc-300">pnpm db:migrate</code> to create tables
+            </li>
+            <li>
+              Run <code className="text-zinc-300">pnpm db:seed</code> for sample content
+            </li>
+          </ol>
+        </div>
+      ) : (
+        <p className="max-w-md text-center text-sm text-zinc-400">
+          {isNetworkError
+            ? 'Unable to reach the server. Check your connection and try again.'
+            : 'An unexpected error occurred while loading this page.'}
+        </p>
+      )}
 
       {error.digest && <p className="font-mono text-xs text-zinc-600">Error ID: {error.digest}</p>}
 

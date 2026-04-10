@@ -22,11 +22,6 @@ export interface ModelPullResult {
   message: string;
 }
 
-export interface BitNetStatus {
-  installed: boolean;
-  modelPath: string | null;
-}
-
 export interface SnapStatus {
   installed: boolean;
   running: boolean;
@@ -50,11 +45,6 @@ const KNOWN_SNAPS: Array<[string, string]> = [
   ['qwen-vl', 'Vision-language — document parsing, visual Q&A'],
 ];
 
-const BITNET_MODEL_PATHS = [
-  `${process.env.HOME ?? '/root'}/models/bitnet`,
-  '/mnt/forge/models/bitnet',
-];
-
 // ── Helpers ─────────────────────────────────────────────────────────
 
 async function commandExists(cmd: string): Promise<boolean> {
@@ -73,7 +63,7 @@ async function run(cmd: string, args: string[]): Promise<{ stdout: string; stder
 // ── Service ─────────────────────────────────────────────────────────
 
 /**
- * Manages local inference engines (Ollama, Snaps, BitNet) on the daemon host.
+ * Manages local inference engines (Ollama, Snaps) on the daemon host.
  * Each method mirrors the equivalent Tauri command from `inference.rs`.
  */
 export class InferenceService {
@@ -154,25 +144,6 @@ export class InferenceService {
     } catch {
       // pkill exit 1 = no processes matched — that's fine
     }
-  }
-
-  // ── BitNet ──────────────────────────────────────────────────────
-
-  async bitnetStatus(): Promise<BitNetStatus> {
-    const installed = await commandExists('bitnet');
-    let modelPath: string | null = null;
-
-    if (installed) {
-      const { existsSync } = await import('node:fs');
-      for (const p of BITNET_MODEL_PATHS) {
-        if (existsSync(p)) {
-          modelPath = p;
-          break;
-        }
-      }
-    }
-
-    return { installed, modelPath };
   }
 
   // ── Inference Snaps ─────────────────────────────────────────────

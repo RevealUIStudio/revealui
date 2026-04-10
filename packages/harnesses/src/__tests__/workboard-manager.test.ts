@@ -23,7 +23,7 @@ const V2_FIXTURE = `# Workboard
 | T-001 | External quick-start validation | P1 | available | — | #88 | 2026-03-30 | need cold-start devs |
 | T-005 | Dependency version bumps | P2 | claimed | agent-system | — | 2026-03-30 | russh CVE |
 | T-009 | Workboard v2 hooks + harnesses | P1 | claimed | agent-edit | — | 2026-03-30 | parser written |
-| T-006 | CMS clsx cleanup | P3 | partial | — | — | 2026-03-30 | 15 of 25 components done |
+| T-006 | admin clsx cleanup | P3 | partial | — | — | 2026-03-30 | 15 of 25 components done |
 
 ## Blocked
 
@@ -211,11 +211,11 @@ describe('WorkboardManager', () => {
 
   describe('updateAgent', () => {
     it('updates specific fields', () => {
-      manager.updateAgent('agent-edit', { task: 'new task', files: 'apps/cms/**' });
+      manager.updateAgent('agent-edit', { task: 'new task', files: 'apps/admin/**' });
       const state = manager.read();
       const row = state.agents.find((a) => a.id === 'agent-edit');
       expect(row?.task).toBe('new task');
-      expect(row?.files).toBe('apps/cms/**');
+      expect(row?.files).toBe('apps/admin/**');
     });
 
     it('is a no-op for unknown agent', () => {

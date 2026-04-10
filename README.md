@@ -111,7 +111,7 @@ The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work
 
 - **AI agent system** — build and deploy purpose-built agents for your workflows
 - **MCP framework** — hypervisor, adapter framework, and tool discovery for connecting agents to external services
-- **Open-model inference** — Ubuntu Inference Snaps (recommended), BitNet, Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for instant local AI. No proprietary APIs, no vendor lock-in, zero API bills
+- **Open-model inference** — Ubuntu Inference Snaps (recommended), Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for instant local AI. No proprietary APIs, no vendor lock-in, zero API bills
 - **Task history** — every agent action logged, auditable, and visible in the dashboard
 - **Editor config sync** — generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 
@@ -131,7 +131,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | App          | Framework        | Purpose                                      |
 | ------------ | ---------------- | -------------------------------------------- |
 | `api`        | Hono             | REST API with OpenAPI + Swagger              |
-| `cms`        | Next.js 16       | Admin dashboard + content management         |
+| `admin`      | Next.js 16       | Admin dashboard + content management         |
 | `docs`       | Vite + React     | Documentation site                           |
 | `marketing`  | Next.js          | Marketing site + waitlist                    |
 | `studio`     | Tauri 2 + React  | Native AI experience: agent coordination hub, local inference management, visual agent dashboard |
@@ -199,14 +199,44 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 
 ## Quick start
 
-For contributing to RevealUI itself:
+### Option A: Local development (recommended)
 
 ```bash
 git clone https://github.com/RevealUIStudio/revealui.git
 cd revealui
 pnpm install
-pnpm dev
+
+# Set up environment
+cp apps/admin/.env.example apps/admin/.env.local
+# Edit .env.local: set POSTGRES_URL, REVEALUI_SECRET (min 32 chars),
+# REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
+
+# Initialize database
+pnpm db:migrate
+pnpm db:seed
+
+# Start admin dashboard + API
+pnpm dev:app    # Admin (port 4000) + API (port 3004)
 ```
+
+Three dev modes:
+- `pnpm dev:app` — Admin + API (recommended for most work)
+- `pnpm dev:admin` — Admin only (if API already running)
+- `pnpm dev` — All apps in parallel (heavy)
+
+### Option B: Docker Compose
+
+```bash
+cp .env.production.example .env
+# Edit .env with your values
+docker compose up -d
+```
+
+Services: PostgreSQL (5432), API (3004), Admin (4000), Marketing (3000).
+
+### Option C: Dev Containers
+
+Open in VS Code or GitHub Codespaces — the `.devcontainer/` config handles everything.
 
 | Platform    | Recommended setup                 |
 | ----------- | --------------------------------- |
@@ -220,7 +250,7 @@ pnpm dev
 revealui/
 ├── apps/
 │   ├── api/        # Hono REST API (port 3004)
-│   ├── cms/        # Admin dashboard + content management (port 4000)
+│   ├── admin/      # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
 │   ├── marketing/  # Marketing site (port 3000)
 │   ├── revealcoin/ # RevealCoin token explorer (experimental)

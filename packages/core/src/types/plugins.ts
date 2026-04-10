@@ -6,7 +6,7 @@
  * @module @revealui/core/types/plugins
  */
 
-import type { Config } from '@revealui/contracts/cms';
+import type { Config } from '@revealui/contracts/admin';
 
 // =============================================================================
 // PLUGINS

@@ -1,15 +1,15 @@
 /**
- * @deprecated Use @revealui/core/types or @revealui/core/types/cms instead
+ * @deprecated Use @revealui/core/types or @revealui/core/types/admin instead
  * This file is kept for backward compatibility.
  *
  * New code should import from:
  * ```typescript
- * import type { Config, Page, Post } from '@revealui/core/types/cms'
+ * import type { Config, Page, Post } from '@revealui/core/types/admin'
  * ```
  */
 
-// Re-export all generated CMS types from unified package
-export type * from '@revealui/core/generated/types/cms';
+// Re-export all generated admin types from unified package
+export type * from '@revealui/core/generated/types/admin';
 
 // Re-export commonly used types for convenience
 export type {
@@ -32,4 +32,4 @@ export type {
   Tag,
   Tenant,
   User,
-} from '@revealui/core/generated/types/cms';
+} from '@revealui/core/generated/types/admin';

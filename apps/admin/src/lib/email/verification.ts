@@ -2,7 +2,7 @@
  * Email Verification
  *
  * Sends verification emails and handles token verification for the grace period flow.
- * Users can log in without verifying, but the CMS shows a reminder banner.
+ * Users can log in without verifying, but the admin shows a reminder banner.
  */
 
 import config from '@revealui/config';

@@ -112,7 +112,7 @@ describe('useSyncMutations', () => {
 
       mockUseElectricConfig.mockReturnValue({
         serviceUrl: null,
-        proxyBaseUrl: 'https://cms.example.com',
+        proxyBaseUrl: 'https://admin.example.com',
         debug: false,
       });
 
@@ -152,7 +152,7 @@ describe('useSyncMutations', () => {
     it('should use proxyBaseUrl from context', async () => {
       mockUseElectricConfig.mockReturnValue({
         serviceUrl: null,
-        proxyBaseUrl: 'https://cms.example.com',
+        proxyBaseUrl: 'https://admin.example.com',
         debug: false,
       });
 
@@ -168,7 +168,7 @@ describe('useSyncMutations', () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://cms.example.com/api/sync/items',
+        'https://admin.example.com/api/sync/items',
         expect.objectContaining({ method: 'POST' }),
       );
     });

@@ -75,7 +75,7 @@ afterAll(() => {
 
 describe('POST / — payload validation', () => {
   it('returns 202 with success:true on minimal valid payload', async () => {
-    const res = await errorsApp.request(post({ message: 'Something broke', app: 'cms' }));
+    const res = await errorsApp.request(post({ message: 'Something broke', app: 'admin' }));
     expect(res.status).toBe(202);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.success).toBe(true);
@@ -87,7 +87,7 @@ describe('POST / — payload validation', () => {
         level: 'fatal',
         message: 'Uncaught exception',
         stack: 'Error: Oops\n  at handler (index.ts:42)',
-        app: 'cms',
+        app: 'admin',
         context: 'AdminDashboard',
         environment: 'production',
         url: 'https://admin.revealui.com/admin',
@@ -102,7 +102,7 @@ describe('POST / — payload validation', () => {
   });
 
   it('defaults level to error when omitted', async () => {
-    await errorsApp.request(post({ message: 'No level field', app: 'cms' }));
+    await errorsApp.request(post({ message: 'No level field', app: 'admin' }));
     await flushAsync();
 
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
@@ -118,7 +118,7 @@ describe('POST / — payload validation', () => {
   });
 
   it('returns 400 when message is missing', async () => {
-    const res = await errorsApp.request(post({ app: 'cms' }));
+    const res = await errorsApp.request(post({ app: 'admin' }));
     expect(res.status).toBe(400);
     // zod-openapi wraps validation errors in { success: false, error: ZodError }
     const body = (await res.json()) as Record<string, unknown>;
@@ -137,7 +137,9 @@ describe('POST / — payload validation', () => {
   });
 
   it('returns 400 when level is not a valid enum value', async () => {
-    const res = await errorsApp.request(post({ message: 'Bad level', app: 'cms', level: 'info' }));
+    const res = await errorsApp.request(
+      post({ message: 'Bad level', app: 'admin', level: 'info' }),
+    );
     expect(res.status).toBe(400);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.success).toBe(false);
@@ -150,7 +152,7 @@ describe('POST / — fire-and-forget DB write', () => {
   it('returns 202 even when DB insert throws', async () => {
     mockInsertValues.mockRejectedValueOnce(new Error('DB connection lost'));
 
-    const res = await errorsApp.request(post({ message: 'Client error', app: 'cms' }));
+    const res = await errorsApp.request(post({ message: 'Client error', app: 'admin' }));
     expect(res.status).toBe(202);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.success).toBe(true);
@@ -160,7 +162,7 @@ describe('POST / — fire-and-forget DB write', () => {
     const dbErr = new Error('DB connection lost');
     mockInsertValues.mockRejectedValueOnce(dbErr);
 
-    await errorsApp.request(post({ message: 'Client error', app: 'cms' }));
+    await errorsApp.request(post({ message: 'Client error', app: 'admin' }));
     await flushAsync();
 
     expect(mockLoggerError).toHaveBeenCalledOnce();
@@ -195,7 +197,7 @@ describe('POST / — fire-and-forget DB write', () => {
   it('defaults environment to process.env.NODE_ENV when not in payload', async () => {
     process.env.NODE_ENV = 'production';
 
-    await errorsApp.request(post({ message: 'No env field', app: 'cms' }));
+    await errorsApp.request(post({ message: 'No env field', app: 'admin' }));
     await flushAsync();
 
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
@@ -204,7 +206,7 @@ describe('POST / — fire-and-forget DB write', () => {
 
   it('passes metadata as-is when provided', async () => {
     await errorsApp.request(
-      post({ message: 'With meta', app: 'cms', metadata: { buildId: '42', retry: true } }),
+      post({ message: 'With meta', app: 'admin', metadata: { buildId: '42', retry: true } }),
     );
     await flushAsync();
 
@@ -213,7 +215,7 @@ describe('POST / — fire-and-forget DB write', () => {
   });
 
   it('sets metadata to null when not provided', async () => {
-    await errorsApp.request(post({ message: 'No meta', app: 'cms' }));
+    await errorsApp.request(post({ message: 'No meta', app: 'admin' }));
     await flushAsync();
 
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
@@ -230,25 +232,25 @@ describe('POST / — authentication', () => {
   });
 
   it('returns 403 when X-Internal-Token header is absent', async () => {
-    const res = await errorsApp.request(post({ message: 'test', app: 'cms' }, false, null));
+    const res = await errorsApp.request(post({ message: 'test', app: 'admin' }, false, null));
     expect(res.status).toBe(403);
   });
 
   it('returns 403 when token is wrong', async () => {
     const res = await errorsApp.request(
-      post({ message: 'test', app: 'cms' }, false, 'wrong-secret'),
+      post({ message: 'test', app: 'admin' }, false, 'wrong-secret'),
     );
     expect(res.status).toBe(403);
   });
 
   it('returns 403 when token has a different length (timing-safe branch)', async () => {
-    const res = await errorsApp.request(post({ message: 'test', app: 'cms' }, false, 'short'));
+    const res = await errorsApp.request(post({ message: 'test', app: 'admin' }, false, 'short'));
     expect(res.status).toBe(403);
   });
 
   it('returns 403 when REVEALUI_SECRET env var is unset', async () => {
     delete process.env.REVEALUI_SECRET;
-    const res = await errorsApp.request(post({ message: 'test', app: 'cms' }));
+    const res = await errorsApp.request(post({ message: 'test', app: 'admin' }));
     expect(res.status).toBe(403);
   });
 
@@ -263,18 +265,18 @@ describe('POST / — authentication', () => {
 
 describe('POST / — input size limits', () => {
   it('returns 400 when message exceeds 2000 characters', async () => {
-    const res = await errorsApp.request(post({ message: 'x'.repeat(2001), app: 'cms' }));
+    const res = await errorsApp.request(post({ message: 'x'.repeat(2001), app: 'admin' }));
     expect(res.status).toBe(400);
   });
 
   it('accepts message at exactly 2000 characters', async () => {
-    const res = await errorsApp.request(post({ message: 'x'.repeat(2000), app: 'cms' }));
+    const res = await errorsApp.request(post({ message: 'x'.repeat(2000), app: 'admin' }));
     expect(res.status).toBe(202);
   });
 
   it('returns 400 when stack exceeds 10,000 characters', async () => {
     const res = await errorsApp.request(
-      post({ message: 'Error', app: 'cms', stack: 'x'.repeat(10_001) }),
+      post({ message: 'Error', app: 'admin', stack: 'x'.repeat(10_001) }),
     );
     expect(res.status).toBe(400);
   });
@@ -286,35 +288,35 @@ describe('POST / — input size limits', () => {
 
   it('accepts stack at exactly 10000 characters', async () => {
     const res = await errorsApp.request(
-      post({ message: 'Error', app: 'cms', stack: 'x'.repeat(10_000) }),
+      post({ message: 'Error', app: 'admin', stack: 'x'.repeat(10_000) }),
     );
     expect(res.status).toBe(202);
   });
 
   it('returns 400 when context exceeds 50 characters', async () => {
     const res = await errorsApp.request(
-      post({ message: 'Error', app: 'cms', context: 'c'.repeat(51) }),
+      post({ message: 'Error', app: 'admin', context: 'c'.repeat(51) }),
     );
     expect(res.status).toBe(400);
   });
 
   it('returns 400 when url exceeds 2000 characters', async () => {
     const res = await errorsApp.request(
-      post({ message: 'Error', app: 'cms', url: `https://example.com/${'x'.repeat(2000)}` }),
+      post({ message: 'Error', app: 'admin', url: `https://example.com/${'x'.repeat(2000)}` }),
     );
     expect(res.status).toBe(400);
   });
 
   it('returns 400 when requestId exceeds 255 characters', async () => {
     const res = await errorsApp.request(
-      post({ message: 'Error', app: 'cms', requestId: 'r'.repeat(256) }),
+      post({ message: 'Error', app: 'admin', requestId: 'r'.repeat(256) }),
     );
     expect(res.status).toBe(400);
   });
 
   it('returns 400 when environment exceeds 50 characters', async () => {
     const res = await errorsApp.request(
-      post({ message: 'Error', app: 'cms', environment: 'e'.repeat(51) }),
+      post({ message: 'Error', app: 'admin', environment: 'e'.repeat(51) }),
     );
     expect(res.status).toBe(400);
   });
@@ -324,7 +326,7 @@ describe('POST / — non-Error thrown from DB', () => {
   it('wraps non-Error DB failure into an Error for logging', async () => {
     mockInsertValues.mockRejectedValueOnce('string-error-value');
 
-    await errorsApp.request(post({ message: 'Client error', app: 'cms' }));
+    await errorsApp.request(post({ message: 'Client error', app: 'admin' }));
     await flushAsync();
 
     expect(mockLoggerError).toHaveBeenCalledOnce();

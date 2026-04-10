@@ -3,7 +3,7 @@ import type {
   RevealHookContext,
   RevealUIInstance,
 } from '@revealui/core';
-import type { User } from '@revealui/core/types/cms';
+import type { User } from '@revealui/core/types/admin';
 import { Role } from '@/lib/access/permissions/roles';
 
 interface CreateTenantContext extends RevealHookContext {

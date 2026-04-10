@@ -58,7 +58,12 @@ export async function GET(
 
   try {
     const redirectUri = `${baseUrl}/api/auth/callback/${provider}`;
-    const accessToken = await exchangeCode(provider, code ?? '', redirectUri);
+    const accessToken = await exchangeCode(
+      provider,
+      code ?? '',
+      redirectUri,
+      verified.codeVerifier,
+    );
     const providerUser = await fetchProviderUser(provider, accessToken);
 
     // Allowlist check — leave OAUTH_ADMIN_EMAILS empty to allow any authenticated user

@@ -1,3 +1,4 @@
+import { deleteAllUserSessions } from '@revealui/auth/server';
 import { logger } from '@revealui/core/observability/logger';
 import {
   type ConsentType,
@@ -5,6 +6,8 @@ import {
   createDataBreachManager,
   createDataDeletionSystem,
 } from '@revealui/core/security';
+import { getClient } from '@revealui/db';
+import { anonymizeUser } from '@revealui/db/queries/users';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { DrizzleBreachStorage, DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
@@ -337,7 +340,31 @@ app.openapi(
 
     logger.info('Deletion request created', { userId: user.id, requestId: request.id });
 
-    return c.json({ success: true, request }, 201);
+    // Process the deletion immediately — anonymize PII and revoke sessions
+    await deletionSystem.processDeletion(request.id, async (userId, categories) => {
+      const db = getClient();
+      const anonymized = await anonymizeUser(db, userId);
+      if (!anonymized) {
+        throw new Error(`User ${userId} not found for anonymization`);
+      }
+
+      await deleteAllUserSessions(userId);
+
+      logger.info('GDPR deletion processed', {
+        userId,
+        requestId: request.id,
+        categories,
+      });
+
+      return {
+        deleted: ['profile', 'email', 'avatar', 'mfa', 'sessions', 'preferences'],
+        retained: ['billing_records', 'audit_logs'],
+      };
+    });
+
+    const processed = await deletionSystem.getRequest(request.id);
+
+    return c.json({ success: true, request: processed ?? request }, 201);
   },
 );
 

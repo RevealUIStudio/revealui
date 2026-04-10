@@ -13,7 +13,7 @@ interface AccessRequest {
   revealui?: unknown;
 }
 
-// Access function type for RevealUI CMS
+// Access function type for RevealUI admin
 type RevealAccessFunction = (args: { req: AccessRequest }) => AccessResult | Promise<AccessResult>;
 
 export const anyone: RevealAccessFunction = () => true;

@@ -1,4 +1,4 @@
-import type { Page, Post } from '@revealui/core/types/cms';
+import type { Page, Post } from '@revealui/core/types/admin';
 import type { Metadata } from 'next';
 import { mergeOpenGraph } from './mergeOpenGraph';
 

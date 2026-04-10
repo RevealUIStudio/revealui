@@ -1,7 +1,7 @@
 /**
  * RevealUI REST API Implementation
  *
- * Based on RevealUI CMS REST API but adapted for RevealUI.
+ * Based on RevealUI admin REST API but adapted for RevealUI.
  *
  * WARNING: This module is server-only.
  * Do NOT import in client-side code or edge runtime.

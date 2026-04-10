@@ -3,7 +3,7 @@
 // Only revalidate existing docs that are published
 
 import type { RevealAfterChangeHook } from '@revealui/core';
-import type { Price } from '@revealui/core/types/cms';
+import type { Price } from '@revealui/core/types/admin';
 import { revalidate } from '@/lib/hooks';
 
 // Don't scope to `operation` in order to purge static demo pages

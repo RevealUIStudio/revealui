@@ -66,7 +66,7 @@ RevealUI's core framework is **real and production-grade** — auth, billing, ru
 | UI components | 50+ | **56** |
 | Doc guides | 25 | **25 root + 7 subdirectories** with additional files |
 | x402 payments | PRO.md describes protocol | **385-line middleware** with USDC + RVUI verification, gated behind env var |
-| CMS agent chat | ROADMAP marks as done | Full implementation: `/api/chat`, `/api/agent-stream`, admin UI with agent selection, conversation persistence |
+| admin agent chat | ROADMAP marks as done | Full implementation: `/api/chat`, `/api/agent-stream`, admin UI with agent selection, conversation persistence |
 
 ### Overstated or Aspirational
 
@@ -190,7 +190,7 @@ _Updated: 2026-03-28 | Commit: e1858051_
 | npm packages published | ✅ MET | `@revealui/core@0.3.0`, `create-revealui@0.3.3` live on npm |
 | `npx create-revealui` works | ✅ MET | Validated 2026-03-28 |
 | Pro tier purchasable | ✅ MET | Stripe flow verified (test mode) |
-| All 5 apps deployed | ✅ MET | revealui.com, cms, api, docs all return 200 |
+| All 5 apps deployed | ✅ MET | revealui.com, admin, api, docs all return 200 |
 | CI gate passes | ✅ MET | `pnpm gate:quick` PASS |
 | 13,700+ tests | ✅ MET | 13,700+ tests across 811 test files |
 | Zero avoidable `any` types | ✅ MET | `pnpm audit:any` = 0 avoidable |

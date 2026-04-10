@@ -61,7 +61,7 @@ import {
 } from '@revealui/auth/server';
 
 // resetStorage is not part of the server barrel export; reach into the source
-// via the relative path (the CMS vitest config inlines @revealui/* packages).
+// via the relative path (the admin vitest config inlines @revealui/* packages).
 import { resetStorage } from '../../../../../../packages/auth/src/server/storage/index.js';
 
 // ---------------------------------------------------------------------------
