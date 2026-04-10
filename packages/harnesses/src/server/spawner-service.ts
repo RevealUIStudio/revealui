@@ -189,7 +189,6 @@ export class SpawnerService extends EventEmitter {
     // node-pty is dynamically required — it's optional and native
     let ptyModule: { spawn: (file: string, args: string[], opts: unknown) => IPty };
     try {
-      // biome-ignore lint/style/noCommaOperator: dynamic require for optional native module
       ptyModule = require('node-pty');
     } catch {
       throw new Error(
