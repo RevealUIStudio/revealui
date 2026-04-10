@@ -16,7 +16,7 @@ Forge is best treated as a deployment-level commercial product, distinct from th
 | Component     | Image                                 | Port            |
 | ------------- | ------------------------------------- | --------------- |
 | API (Hono)    | `ghcr.io/revealuistudio/revealui-api` | 3004            |
-| CMS (Next.js) | `ghcr.io/revealuistudio/revealui-cms` | 4000            |
+| Admin (Next.js) | `ghcr.io/revealuistudio/revealui-admin` | 4000            |
 | PostgreSQL 16 | `postgres:16-alpine`                  | 5432 (internal) |
 
 All three services are wired together in `docker-compose.forge.yml` at the root of the repository.
@@ -47,7 +47,7 @@ Forge sits beside, not underneath, the hosted pricing model:
 
 ```bash
 docker pull ghcr.io/revealuistudio/revealui-api:latest
-docker pull ghcr.io/revealuistudio/revealui-cms:latest
+docker pull ghcr.io/revealuistudio/revealui-admin:latest
 ```
 
 > GHCR access is gated by your license key. Log in with the token provided in your Forge welcome email:
@@ -163,7 +163,7 @@ The Next.js admin dashboard (standalone output — no Node.js server required be
 
 ```yaml
 cms:
-  image: ghcr.io/revealuistudio/revealui-cms:latest
+  image: ghcr.io/revealuistudio/revealui-admin:latest
   ports: ["4000:4000"]
   environment:
     DATABASE_URL: postgresql://revealui:${DB_PASSWORD}@db:5432/revealui

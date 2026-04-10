@@ -1,7 +1,7 @@
 /**
  * Billing UI Accuracy Tests (Phase 2.4 — Stripe Go-Live Readiness)
  *
- * Validates that the CMS billing page (apps/cms/src/app/(frontend)/account/billing/page.tsx)
+ * Validates that the CMS billing page (apps/admin/src/app/(frontend)/account/billing/page.tsx)
  * makes API calls that match the actual billing routes, and that hardcoded UI text
  * (tier names, limits, feature descriptions) matches contracts/pricing.ts.
  *

@@ -211,11 +211,11 @@ describe('WorkboardManager', () => {
 
   describe('updateAgent', () => {
     it('updates specific fields', () => {
-      manager.updateAgent('agent-edit', { task: 'new task', files: 'apps/cms/**' });
+      manager.updateAgent('agent-edit', { task: 'new task', files: 'apps/admin/**' });
       const state = manager.read();
       const row = state.agents.find((a) => a.id === 'agent-edit');
       expect(row?.task).toBe('new task');
-      expect(row?.files).toBe('apps/cms/**');
+      expect(row?.files).toBe('apps/admin/**');
     });
 
     it('is a no-op for unknown agent', () => {

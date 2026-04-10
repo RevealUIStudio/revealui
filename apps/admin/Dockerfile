@@ -26,30 +26,30 @@ COPY packages/resilience/package.json ./packages/resilience/
 COPY packages/security/package.json ./packages/security/
 COPY packages/sync/package.json ./packages/sync/
 COPY packages/utils/package.json ./packages/utils/
-COPY apps/cms/package.json ./apps/cms/
+COPY apps/admin/package.json ./apps/admin/
 
 # Install dependencies with frozen lockfile
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter cms...
+    pnpm install --frozen-lockfile --filter admin...
 
 # Builder stage
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/apps/cms/node_modules ./apps/cms/node_modules
+COPY --from=deps /app/apps/admin/node_modules ./apps/admin/node_modules
 
 # Copy source code
 COPY turbo.json ./
 COPY tsconfig.json ./
 COPY packages ./packages
-COPY apps/cms ./apps/cms
+COPY apps/admin ./apps/admin
 
 # Build the application
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=true
 
-RUN pnpm --filter cms run build
+RUN pnpm --filter admin run build
 
 # Runner stage
 FROM base AS runner
@@ -61,9 +61,9 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 # Copy built application
-COPY --from=builder /app/apps/cms/.next/standalone ./
-COPY --from=builder /app/apps/cms/.next/static ./apps/cms/.next/static
-COPY --from=builder /app/apps/cms/public ./apps/cms/public
+COPY --from=builder /app/apps/admin/.next/standalone ./
+COPY --from=builder /app/apps/admin/.next/static ./apps/admin/.next/static
+COPY --from=builder /app/apps/admin/public ./apps/admin/public
 
 # Set ownership
 RUN chown -R nextjs:nodejs /app
@@ -79,4 +79,4 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:4000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-CMD ["node", "apps/cms/server.js"]
+CMD ["node", "apps/admin/server.js"]

@@ -8,7 +8,7 @@ audience: maintainer
 # RevealUI CI/CD Deployment Guide
 
 **Last Updated**: March 2026
-**Status**: Deployment Guide (Production — live at cms.revealui.com and api.revealui.com)
+**Status**: Deployment Guide (Production — live at admin.revealui.com and api.revealui.com)
 
 ---
 
@@ -452,7 +452,7 @@ import tracer from 'dd-trace'
 export async function register() {
   if (process.env.DD_SERVICE) {
     tracer.init({
-      service: 'revealui-cms',
+      service: 'revealui-admin',
       env: process.env.NODE_ENV,
     })
     tracer.use('http')
@@ -463,7 +463,7 @@ export async function register() {
 
 **Environment Variables:**
 ```bash
-DD_SERVICE=revealui-cms
+DD_SERVICE=revealui-admin
 DD_ENV=production
 DD_VERSION=1.0.0
 DD_API_KEY=your-api-key
@@ -1109,7 +1109,7 @@ vercel deploy --prod
 #### Build Individual Apps
 ```bash
 # CMS (Next.js)
-docker build -f apps/admin/Dockerfile -t revealui-cms:latest .
+docker build -f apps/admin/Dockerfile -t revealui-admin:latest .
 
 # Mainframe (Hono SSR + React)
 docker build -f apps/mainframe/Dockerfile -t revealui-mainframe:latest .
@@ -1154,18 +1154,18 @@ docker exec revealui-postgres pg_isready -U revealui
 #### Troubleshooting
 ```bash
 # View container logs
-docker logs revealui-cms
+docker logs revealui-admin
 docker logs revealui-mainframe
 docker logs revealui-postgres
 
 # Inspect image
-docker inspect revealui-cms:latest
+docker inspect revealui-admin:latest
 
 # Check image history
-docker history revealui-cms:latest
+docker history revealui-admin:latest
 
 # Exec into container
-docker exec -it revealui-cms sh
+docker exec -it revealui-admin sh
 docker exec -it revealui-postgres psql -U revealui
 
 # Clean up
@@ -1453,7 +1453,7 @@ docker build --no-cache -f apps/admin/Dockerfile -t test . 2>&1 | grep "Sending 
 
 # Layer Caching Issues
 # Build without cache
-docker build --no-cache -f apps/admin/Dockerfile -t revealui-cms:latest .
+docker build --no-cache -f apps/admin/Dockerfile -t revealui-admin:latest .
 
 # Prune build cache
 docker builder prune
@@ -1473,7 +1473,7 @@ vercel env ls
 
 # Health Check Failures
 # Check application logs
-docker logs revealui-cms
+docker logs revealui-admin
 
 # Test health endpoint locally
 curl -v http://localhost:4000/api/health
@@ -1646,7 +1646,7 @@ Example:
 docker build -f apps/mainframe/Dockerfile -t revealui-mainframe:latest .
 docker build -f apps/docs/Dockerfile -t revealui-docs:latest .
 docker build -f apps/marketing/Dockerfile -t revealui-marketing:latest .
-docker build -f apps/admin/Dockerfile -t revealui-cms:latest .
+docker build -f apps/admin/Dockerfile -t revealui-admin:latest .
 ```
 
 ### Docker Production Deployment Checklist
@@ -1702,7 +1702,7 @@ Before deploying to production:
 docker ps --format "table {{.Names}}\t{{.Status}}"
 
 # View health check logs
-docker inspect revealui-cms | jq '.[0].State.Health'
+docker inspect revealui-admin | jq '.[0].State.Health'
 ```
 
 #### Resource Usage
@@ -1711,19 +1711,19 @@ docker inspect revealui-cms | jq '.[0].State.Health'
 docker stats
 
 # Specific container
-docker stats revealui-cms
+docker stats revealui-admin
 ```
 
 #### Logs
 ```bash
 # View logs
-docker logs revealui-cms
+docker logs revealui-admin
 
 # Follow logs
-docker logs -f revealui-cms
+docker logs -f revealui-admin
 
 # Last 100 lines
-docker logs --tail 100 revealui-cms
+docker logs --tail 100 revealui-admin
 ```
 
 ---
@@ -2510,7 +2510,7 @@ kubectl apply -f k8s/deployments/cms.yaml
 kubectl apply -f k8s/deployments/dashboard.yaml
 
 # Wait for deployments
-kubectl rollout status deployment/revealui-cms -n revealui
+kubectl rollout status deployment/revealui-admin -n revealui
 kubectl rollout status deployment/revealui-dashboard -n revealui
 ```
 
@@ -2741,7 +2741,7 @@ Use the rollback script:
 ./scripts/rollback.sh pause
 
 # Or manually
-kubectl scale deployment/revealui-cms --replicas=0 -n revealui
+kubectl scale deployment/revealui-admin --replicas=0 -n revealui
 kubectl scale deployment/revealui-dashboard --replicas=0 -n revealui
 ```
 
@@ -2752,7 +2752,7 @@ kubectl scale deployment/revealui-dashboard --replicas=0 -n revealui
 ./scripts/rollback.sh resume
 
 # Or manually
-kubectl scale deployment/revealui-cms --replicas=3 -n revealui
+kubectl scale deployment/revealui-admin --replicas=3 -n revealui
 kubectl scale deployment/revealui-dashboard --replicas=2 -n revealui
 ```
 
@@ -2828,7 +2828,7 @@ kubectl describe certificate revealui-tls -n revealui
 kubectl top pods -n revealui
 
 # Increase resource limits
-kubectl set resources deployment/revealui-cms \
+kubectl set resources deployment/revealui-admin \
   --limits=memory=2Gi \
   -n revealui
 ```
@@ -2840,7 +2840,7 @@ kubectl set resources deployment/revealui-cms \
 kubectl get hpa -n revealui
 
 # Manually scale up
-kubectl scale deployment/revealui-cms --replicas=10 -n revealui
+kubectl scale deployment/revealui-admin --replicas=10 -n revealui
 
 # Check database performance
 kubectl exec -n revealui postgres-0 -- psql -U postgres revealui -c \
@@ -2867,8 +2867,8 @@ kubectl exec -it <pod-name> -n revealui -- /bin/sh
 kubectl port-forward -n revealui pod/<pod-name> 3000:3000
 
 # View deployment status
-kubectl rollout status deployment/revealui-cms -n revealui
-kubectl rollout history deployment/revealui-cms -n revealui
+kubectl rollout status deployment/revealui-admin -n revealui
+kubectl rollout history deployment/revealui-admin -n revealui
 
 # Check configuration
 kubectl get configmap revealui-config -n revealui -o yaml
@@ -2895,7 +2895,7 @@ spec:
 
 ```bash
 # Increase connection pool
-kubectl set env deployment/revealui-cms \
+kubectl set env deployment/revealui-admin \
   DATABASE_POOL_SIZE=50 \
   -n revealui
 

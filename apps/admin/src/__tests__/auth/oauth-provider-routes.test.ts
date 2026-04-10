@@ -297,7 +297,7 @@ describe('GET /api/auth/[provider]', () => {
   // ---- Base URL resolution ----
 
   it('should prefer NEXT_PUBLIC_APP_URL for base URL', async () => {
-    process.env.NEXT_PUBLIC_APP_URL = 'https://cms.revealui.com';
+    process.env.NEXT_PUBLIC_APP_URL = 'https://admin.revealui.com';
     process.env.NEXT_PUBLIC_SERVER_URL = 'https://server.revealui.com';
 
     mockGenerateOAuthState.mockReturnValue({ state: 's', cookieValue: 's.h', codeChallenge: 'c' });
@@ -308,7 +308,7 @@ describe('GET /api/auth/[provider]', () => {
 
     expect(mockBuildAuthUrl).toHaveBeenCalledWith(
       'github',
-      'https://cms.revealui.com/api/auth/callback/github',
+      'https://admin.revealui.com/api/auth/callback/github',
       's',
       'c',
     );

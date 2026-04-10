@@ -84,13 +84,13 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 #### 3.10 Pre-Launch Smoke Checklist (verified 2026-03-30)
 - [x] `GET https://api.revealui.com/openapi.json` → 200 with full spec ✓ OpenAPI 3.0.0, 100+ endpoints
 - [x] `GET https://api.revealui.com/.well-known/agent.json` → 200 ✓ Valid agent card
-- [x] `cms.revealui.com` without session → /login (not landing page) ✓ 307 → /login
-- [x] `revealui.com` "Get Started" → cms.revealui.com/signup ✓
-- [x] `revealui.com` "Log in" → cms.revealui.com/login ✓
-- [x] `cms.revealui.com/posts` → 301 to revealui.com/blog ✓ 308 redirect (permanent, functional)
+- [x] `admin.revealui.com` without session → /login (not landing page) ✓ 307 → /login
+- [x] `revealui.com` "Get Started" → admin.revealui.com/signup ✓
+- [x] `revealui.com` "Log in" → admin.revealui.com/login ✓
+- [x] `admin.revealui.com/posts` → 301 to revealui.com/blog ✓ 308 redirect (permanent, functional)
 - [x] At least 1 blog post visible at revealui.com/blog ✓ "Why I Built RevealUI" (Mar 26, 2026)
 - [x] `BuiltWithRevealUI` badge renders in dark mode in footer — verified via Playwright MCP (2026-03-31)
-- [x] Signup → login page flow — verified: cms.revealui.com → /login redirect, signup form at /signup with Name/Email/Password + OAuth (2026-03-31). Full email verification flow requires manual test.
+- [x] Signup → login page flow — verified: admin.revealui.com → /login redirect, signup form at /signup with Name/Email/Password + OAuth (2026-03-31). Full email verification flow requires manual test.
 - [x] Pricing page loads with live Stripe prices — verified: /api/pricing returns 200, page shows $0/$49/$149/$299 for all 4 tiers (2026-03-31)
 - [x] E2E smoke spec added: `packages/test/src/e2e/smoke-production.spec.ts` (8 tests, @smoke tagged: badge, pricing, auth flow, performance budget, security headers, OAuth hrefs, OpenAPI spec, visual regression)
 

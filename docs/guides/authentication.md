@@ -346,7 +346,7 @@ await revokeSession(sessionId);
 
 ### Cookie Domain
 
-For cross-subdomain auth (e.g., `cms.revealui.com` and `api.revealui.com`), set the cookie domain to `.revealui.com`. This allows the session cookie to be sent to all subdomains.
+For cross-subdomain auth (e.g., `admin.revealui.com` and `api.revealui.com`), set the cookie domain to `.revealui.com`. This allows the session cookie to be sent to all subdomains.
 
 ---
 

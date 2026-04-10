@@ -80,7 +80,7 @@ describe('Users collection access', () => {
 
   describe('read (admin sees all, non-admin sees only self)', () => {
     // Re-implementing the Users collection read logic inline for testing
-    // (matches apps/cms/src/lib/collections/Users/index.ts)
+    // (matches apps/admin/src/lib/collections/Users/index.ts)
     function usersRead({ req }: { req: { user?: unknown } }) {
       const user = req?.user as { id?: string } | null;
       if (!user?.id) return false;
