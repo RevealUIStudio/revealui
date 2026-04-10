@@ -69,8 +69,8 @@ import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
 import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
-import ticketsRoute from './routes/tickets/index.js';
 import { createTerminalRoute } from './routes/terminal-ws.js';
+import ticketsRoute from './routes/tickets/index.js';
 import webhooksRoute from './routes/webhooks.js';
 
 // Ship warn+ logs to NeonDB in production

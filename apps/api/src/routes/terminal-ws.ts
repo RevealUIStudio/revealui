@@ -14,10 +14,10 @@
  * The daemon runs locally — WebSocket bridge gives remote access.
  */
 
+import { createConnection } from 'node:net';
 import type { ServerType } from '@hono/node-server';
 import { createNodeWebSocket } from '@hono/node-ws';
 import { Hono } from 'hono';
-import { createConnection } from 'node:net';
 
 const DAEMON_SOCKET = `${process.env.HOME ?? '/tmp'}/.local/share/revealui/harness.sock`;
 
