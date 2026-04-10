@@ -5,9 +5,6 @@
 import { createRequire } from 'node:module';
 import { createLogger } from '@revealui/setup/utils';
 import { Command } from 'commander';
-
-const cliRequire = createRequire(import.meta.url);
-const CLI_VERSION: string = (cliRequire('../package.json') as { version: string }).version;
 import {
   runAgentHeadlessCommand,
   runAgentReplCommand,
@@ -38,6 +35,9 @@ import {
 } from './commands/dev.js';
 import { runDoctorCommand } from './commands/doctor.js';
 import { runTerminalInstallCommand, runTerminalListCommand } from './commands/terminal.js';
+
+const cliRequire = createRequire(import.meta.url);
+const CLI_VERSION: string = (cliRequire('../package.json') as { version: string }).version;
 
 const logger = createLogger({ prefix: 'CLI' });
 
