@@ -36,5 +36,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Fire-and-forget — lastUsedAt update failure is non-critical
   });
 
-  return NextResponse.json({ provider: row.provider, key });
+  return NextResponse.json(
+    { provider: row.provider, key },
+    { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } },
+  );
 }

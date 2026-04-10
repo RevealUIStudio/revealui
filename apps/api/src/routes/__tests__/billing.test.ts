@@ -894,6 +894,10 @@ describe('POST /report-agent-overage', () => {
           stripe_customer_id: 'cus_abc',
           value: '42',
         },
+        timestamp: expect.any(Number),
+      }),
+      expect.objectContaining({
+        idempotencyKey: expect.stringContaining('overage-user-1-'),
       }),
     );
   });

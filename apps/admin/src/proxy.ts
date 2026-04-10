@@ -121,7 +121,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     const cspHeader = [
       "default-src 'self'",
       `script-src 'self'${process.env.NODE_ENV === 'development' ? " 'unsafe-inline' 'unsafe-eval'" : ''} https://js.stripe.com https://cdn.vercel-insights.com`,
-      "style-src 'self' 'unsafe-inline'",
+      `style-src 'self'${process.env.NODE_ENV === 'development' ? " 'unsafe-inline'" : ''}`,
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "connect-src 'self' https://*.supabase.co https://api.stripe.com",

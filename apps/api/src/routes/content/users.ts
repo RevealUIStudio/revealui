@@ -41,6 +41,7 @@ const SENSITIVE_FIELDS = new Set([
   'mfaSecret',
   'mfaBackupCodes',
   'emailVerificationToken',
+  'stripeCustomerId',
 ]);
 
 // =============================================================================
@@ -58,7 +59,6 @@ const UserSchema = z
     status: z.string(),
     emailVerified: z.boolean(),
     mfaEnabled: z.boolean(),
-    stripeCustomerId: z.string().nullable(),
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     lastActiveAt: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
@@ -107,7 +107,6 @@ function serializeUser(
     status: user.status,
     emailVerified: user.emailVerified,
     mfaEnabled: user.mfaEnabled,
-    stripeCustomerId: user.stripeCustomerId ?? null,
     createdAt: dateToString(user.createdAt),
     updatedAt: dateToString(user.updatedAt),
     lastActiveAt: nullableDateToString(user.lastActiveAt),

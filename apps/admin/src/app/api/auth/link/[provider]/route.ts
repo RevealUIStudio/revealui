@@ -46,7 +46,7 @@ export async function GET(
   // The callback will check for the link_oauth_state cookie to distinguish
   // link flow from login flow.
   const redirectTo = request.nextUrl.searchParams.get('redirectTo') ?? '/admin/settings';
-  const { state, cookieValue } = generateOAuthState(provider, redirectTo);
+  const { state, cookieValue, codeChallenge } = generateOAuthState(provider, redirectTo);
 
   // Build the auth URL using the link callback endpoint
   const redirectUri = `${baseUrl}/api/auth/link/callback/${provider}`;
@@ -56,7 +56,7 @@ export async function GET(
 
   let authUrl: string;
   try {
-    authUrl = buildAuthUrl(provider, redirectUri, state);
+    authUrl = buildAuthUrl(provider, redirectUri, state, codeChallenge);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'OAuth not configured';
     return NextResponse.redirect(

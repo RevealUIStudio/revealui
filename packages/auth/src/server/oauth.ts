@@ -39,12 +39,16 @@ export function generateOAuthState(
   provider: string,
   redirectTo: string,
   options?: { linkConsent?: boolean },
-): { state: string; cookieValue: string } {
+): { state: string; cookieValue: string; codeChallenge: string } {
   const nonce = crypto.randomBytes(16).toString('hex');
+  // PKCE: generate a code_verifier (RFC 7636 §4.1 — 32 random bytes → 43 base64url chars)
+  const codeVerifier = crypto.randomBytes(32).toString('base64url');
+  const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
   const payload = JSON.stringify({
     provider,
     redirectTo,
     nonce,
+    cv: codeVerifier,
     ...(options?.linkConsent ? { linkConsent: true } : {}),
   });
   const state = Buffer.from(payload).toString('base64url');
@@ -56,7 +60,7 @@ export function generateOAuthState(
     );
   }
   const hmac = crypto.createHmac('sha256', secret).update(state).digest('hex');
-  return { state, cookieValue: `${state}.${hmac}` };
+  return { state, cookieValue: `${state}.${hmac}`, codeChallenge };
 }
 
 /**
@@ -67,7 +71,7 @@ export function generateOAuthState(
 export function verifyOAuthState(
   state: string | null | undefined,
   cookieValue: string | null | undefined,
-): { provider: string; redirectTo: string; linkConsent?: boolean } | null {
+): { provider: string; redirectTo: string; linkConsent?: boolean; codeVerifier?: string } | null {
   if (!(state && cookieValue)) return null;
 
   const dotIdx = cookieValue.lastIndexOf('.');
@@ -110,12 +114,14 @@ export function verifyOAuthState(
       provider: string;
       redirectTo: string;
       nonce: string;
+      cv?: string;
       linkConsent?: boolean;
     };
     return {
       provider: parsed.provider,
       redirectTo: parsed.redirectTo,
       ...(parsed.linkConsent ? { linkConsent: true } : {}),
+      ...(parsed.cv ? { codeVerifier: parsed.cv } : {}),
     };
   } catch {
     return null;
@@ -144,7 +150,12 @@ function getClientId(provider: Provider): string {
   return id;
 }
 
-export function buildAuthUrl(provider: string, redirectUri: string, state: string): string {
+export function buildAuthUrl(
+  provider: string,
+  redirectUri: string,
+  state: string,
+  codeChallenge?: string,
+): string {
   if (!isProvider(provider)) throw new Error(`Unknown provider: ${provider}`);
   const clientId = getClientId(provider);
   const builders: Record<Provider, typeof google.buildAuthUrl> = {
@@ -152,13 +163,14 @@ export function buildAuthUrl(provider: string, redirectUri: string, state: strin
     github: github.buildAuthUrl,
     vercel: vercel.buildAuthUrl,
   };
-  return builders[provider](clientId, redirectUri, state);
+  return builders[provider](clientId, redirectUri, state, codeChallenge);
 }
 
 export async function exchangeCode(
   provider: string,
   code: string,
   redirectUri: string,
+  codeVerifier?: string,
 ): Promise<string> {
   if (!isProvider(provider)) throw new Error(`Unknown provider: ${provider}`);
   const exchangers: Record<Provider, typeof google.exchangeCode> = {
@@ -166,7 +178,7 @@ export async function exchangeCode(
     github: github.exchangeCode,
     vercel: vercel.exchangeCode,
   };
-  return exchangers[provider](code, redirectUri);
+  return exchangers[provider](code, redirectUri, codeVerifier);
 }
 
 export async function fetchProviderUser(

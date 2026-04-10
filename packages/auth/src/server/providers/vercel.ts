@@ -7,7 +7,12 @@
 
 import type { ProviderUser } from '../oauth.js';
 
-export function buildAuthUrl(clientId: string, redirectUri: string, state: string): string {
+export function buildAuthUrl(
+  clientId: string,
+  redirectUri: string,
+  state: string,
+  _codeChallenge?: string,
+): string {
   const url = new URL('https://vercel.com/oauth/authorize');
   url.searchParams.set('client_id', clientId);
   url.searchParams.set('redirect_uri', redirectUri);
@@ -15,7 +20,11 @@ export function buildAuthUrl(clientId: string, redirectUri: string, state: strin
   return url.toString();
 }
 
-export async function exchangeCode(code: string, redirectUri: string): Promise<string> {
+export async function exchangeCode(
+  code: string,
+  redirectUri: string,
+  _codeVerifier?: string,
+): Promise<string> {
   const response = await fetch('https://api.vercel.com/v2/oauth/access_token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
