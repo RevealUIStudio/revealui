@@ -2,10 +2,16 @@
  * Native OpenAPI implementation — zero external dependencies.
  *
  * Replaces @asteasolutions/zod-to-openapi with native Zod → OpenAPI conversion.
- * Status: Phase A — Zod extension, registry, and schema converter implemented.
- * The document generator (Phase B) will complete the replacement.
+ * Phase A: Zod extension, registry, and schema converter.
+ * Phase B: Document generators (V3 + V31).
  */
 
+export {
+  type GeneratorOptions,
+  NativeOpenApiGeneratorV3,
+  NativeOpenApiGeneratorV31,
+  type OpenAPIDocumentConfig,
+} from './generator.js';
 export {
   type ComponentDefinition,
   NativeOpenAPIRegistry,
@@ -21,4 +27,4 @@ export {
   type OpenAPIMetadata,
   setOpenApiMetadata,
 } from './zod-extension.js';
-export { type JSONSchema, zodToJsonSchema } from './zod-to-schema.js';
+export { type JSONSchema, isOptional, zodToJsonSchema } from './zod-to-schema.js';

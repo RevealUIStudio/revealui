@@ -13,10 +13,7 @@
     "zod"
   ],
   "license": "MIT",
-  "dependencies": {
-    "@asteasolutions/zod-to-openapi": "^8.5.0",
-    "openapi3-ts": "^4.5.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "catalog:",
     "@revealui/dev": "workspace:*",

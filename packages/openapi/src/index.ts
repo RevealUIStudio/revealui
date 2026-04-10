@@ -8,7 +8,7 @@
  */
 
 /** Add `.openapi()` method to Zod types for OpenAPI schema generation. */
-export { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+export { extendZodWithOpenApi } from './native/zod-extension.js';
 
 /** Zod re-export — consumers can import from either `zod` or this package. */
 export { z } from 'zod';
