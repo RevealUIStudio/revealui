@@ -17,18 +17,18 @@
  */
 
 // ============================================
-// CMS INSTANCE TYPE
+// admin INSTANCE TYPE
 // ============================================
 
 /**
- * Minimal RevealUI CMS instance interface for hook context.
+ * Minimal RevealUI admin instance interface for hook context.
  *
  * Kept in contracts (not core) to avoid a circular dependency.
  * Describes the subset of RevealUIInstance that hook authors need:
  * find(), create(), and the logger. The full RevealUIInstance type
  * in @revealui/core extends this shape with additional methods.
  */
-export interface RevealCMSInstance {
+export interface RevealAdminInstance {
   find(options: {
     collection: string;
     where?: Where;
@@ -49,7 +49,7 @@ export interface RevealCMSInstance {
 }
 
 // ============================================
-// CMS REQUEST TYPE
+// admin REQUEST TYPE
 // ============================================
 
 /**
@@ -68,8 +68,8 @@ export interface BaseRevealUser {
  */
 export interface RevealRequest<TUser extends BaseRevealUser = BaseRevealUser> {
   user?: TUser | null;
-  /** The RevealUI CMS instance */
-  revealui?: RevealCMSInstance;
+  /** The RevealUI admin instance */
+  revealui?: RevealAdminInstance;
   locale?: string;
   fallbackLocale?: string;
   context?: Record<string, unknown>;

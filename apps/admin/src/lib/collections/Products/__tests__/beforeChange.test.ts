@@ -10,7 +10,7 @@
  * - skipSync flag behavior
  */
 
-import type { Product } from '@revealui/core/types/cms';
+import type { Product } from '@revealui/core/types/admin';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMockRequest } from '@/__tests__/helpers/mockRevealUI';
 import { beforeProductChange } from '@/lib/collections/Products/hooks/beforeChange';

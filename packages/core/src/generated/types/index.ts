@@ -1,7 +1,7 @@
 /**
  * Generated types for RevealUI framework.
  * This module contains auto-generated types from:
- * - CMS configuration (revealui.config.ts)
+ * - admin configuration (revealui.config.ts)
  * - Supabase database schema
  * - NeonDB database schema (Drizzle ORM)
  * - Other generated sources
@@ -11,7 +11,7 @@
  */
 
 // Re-export all generated types
-export * from './cms.js'
+export * from './admin.js'
 
 // Re-export Neon types
 // Note: neon.ts re-exports types from @revealui/contracts/generated to break circular dependencies

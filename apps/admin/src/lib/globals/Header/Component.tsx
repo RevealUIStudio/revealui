@@ -1,4 +1,4 @@
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import { getCachedGlobal } from '@/lib/utilities/getGlobals';
 import { RevealUIHeader } from './RevealUIHeader';
 

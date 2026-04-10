@@ -74,7 +74,7 @@ The `/api/agent-stream` POST route serves SSE responses. The React hook `useAgen
 
 ### Tool Categories
 
-- **CMS tools**: Content CRUD, media management, user/globals operations
+- **admin tools**: Content CRUD, media management, user/globals operations
 - **Coding tools** (Pro+): `file_read`, `file_write`, `file_edit`, `file_glob`, `file_grep`, `shell_exec`, `git_ops`, `project_context`
 - **Coding tools** (free tier): Read-only subset only (`file_read`, `file_glob`, `file_grep`, `project_context`)
 - **Memory tools**: Episodic recall, working memory access
@@ -108,7 +108,7 @@ Memory integration is optional — agents degrade gracefully without it. Require
 - **Text splitter**: Chunk documents for embedding
 - **File parsers**: Extract text from various formats
 - **Hybrid search**: BM25 (keyword) + vector (semantic) with reranking
-- **CMS indexer**: Auto-indexes CMS content for agent context
+- **admin indexer**: Auto-indexes admin content for agent context
 
 Embeddings stored in Supabase (pgvector). Search queries use the dual-database pattern: NeonDB for metadata, Supabase for vectors.
 
@@ -137,7 +137,7 @@ Both are opt-in via `LLMClientConfig.enableResponseCache` and `enableSemanticCac
 @revealui/ai/skills             Agent skill definitions
 @revealui/ai/llm/client         LLMClient factory
 @revealui/ai/llm/providers/base Provider interface
-@revealui/ai/tools/cms          CMS tool integration
+@revealui/ai/tools/admin          admin tool integration
 @revealui/ai/tools/registry     Tool registry
 @revealui/ai/ingestion          RAG pipeline
 @revealui/ai/orchestration/*    Agent runtime, streaming, memory integration

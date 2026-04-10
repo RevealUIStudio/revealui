@@ -2,7 +2,7 @@ import { AuthLayout } from '@revealui/presentation/server';
 import type React from 'react';
 
 /**
- * CMS-specific auth layout wrapper.
+ * Admin-specific auth layout wrapper.
  * Adds RevealUI branding (logo, tagline, learn-more link) around the auth form
  * via AuthLayout's header/footer slots.
  */

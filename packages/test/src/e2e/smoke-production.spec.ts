@@ -68,7 +68,7 @@ test.describe('Production Smoke Tests', () => {
   });
 
   test('signup redirect flow and login page @smoke', async ({ page }) => {
-    // CMS root without session should redirect to login
+    // admin root without session should redirect to login
     await page.goto('https://admin.revealui.com');
     await page.waitForURL(/\/(login|signin|admin)/);
 

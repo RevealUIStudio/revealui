@@ -1,7 +1,7 @@
 /**
- * CMS RAG Indexer Singleton
+ * admin RAG Indexer Singleton
  *
- * Creates a shared CmsIndexer + IngestionPipeline that collection afterChange
+ * Creates a shared AdminIndexer + IngestionPipeline that collection afterChange
  * hooks can call without re-initialising the pipeline on every document save.
  *
  * Only initialised when first accessed so the module can be imported at the
@@ -42,7 +42,7 @@ async function getIndexer(): Promise<typeof indexerInstance> {
 
   const pipeline = new ingestionMod.IngestionPipeline(db, restDb, embeddingFn);
 
-  indexerInstance = new ingestionMod.CmsIndexer({
+  indexerInstance = new ingestionMod.AdminIndexer({
     ingestionPipeline: pipeline,
     enabledCollections: ['posts', 'pages'],
     defaultWorkspaceId: process.env.DEFAULT_WORKSPACE_ID ?? 'default',

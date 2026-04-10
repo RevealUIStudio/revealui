@@ -99,7 +99,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
           });
         } catch (txError) {
           // Neon HTTP driver doesn't support transactions — fall back to simple count.
-          // Safe for single-instance CMS; concurrent sign-ups have a small TOCTOU window.
+          // Safe for single-instance admin; concurrent sign-ups have a small TOCTOU window.
           logger.warn('Transaction not supported, falling back to non-atomic user count', {
             error: txError instanceof Error ? txError.message : String(txError),
           });

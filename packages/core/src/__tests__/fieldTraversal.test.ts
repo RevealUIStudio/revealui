@@ -4,7 +4,7 @@
  * Tests for the modern field traversal implementation using Promise.allSettled()
  */
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 import { describe, expect, it } from 'vitest';
 import {
   afterChangeTraverseFields,

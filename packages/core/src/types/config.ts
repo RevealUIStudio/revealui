@@ -2,12 +2,12 @@
  * RevealUI Configuration Types
  *
  * Defines RevealUI-specific configuration interfaces that extend
- * the base CMS configuration types.
+ * the base admin configuration types.
  *
  * @module @revealui/core/types/config
  */
 
-import type { CollectionConfig, GlobalConfig, UnknownRecord } from '@revealui/contracts/cms';
+import type { CollectionConfig, GlobalConfig, UnknownRecord } from '@revealui/contracts/admin';
 import type { RevealDocument } from './query.js';
 import type { RevealRequest } from './request.js';
 import type { DatabaseAdapter, RevealUIInstance } from './runtime.js';

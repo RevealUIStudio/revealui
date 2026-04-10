@@ -50,9 +50,9 @@ import {
   TextFieldSchema,
   UploadConfigSchema,
   VersionsConfigSchema,
-} from '../cms/index.js';
+} from '../admin/index.js';
 
-describe('CMS Contracts', () => {
+describe('Admin Contracts', () => {
   describe('Field Schemas', () => {
     describe('FieldTypeSchema', () => {
       it('should accept all valid field types', () => {

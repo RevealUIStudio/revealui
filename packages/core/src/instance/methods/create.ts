@@ -4,7 +4,7 @@
  * Creates a new document in a collection with hook handling.
  */
 
-import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms';
+import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/admin';
 import type { RevealCreateOptions, RevealDocument, RevealUIInstance } from '../../types/index.js';
 import { callHooks } from './hooks.js';
 

@@ -111,7 +111,7 @@ const getErrorField = (payload: APIErrorPayload): string | undefined => {
 };
 
 /**
- * API Client class for making authenticated requests to RevealUI CMS API
+ * API Client class for making authenticated requests to RevealUI admin API
  */
 export class APIClient {
   private baseURL: string;

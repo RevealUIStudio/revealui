@@ -8,7 +8,7 @@ import type { RelationshipMetadata } from '../types/query.js';
  * Analyzes a collection config and extracts all relationship fields with their metadata.
  * This is the foundation for depth-based relationship population.
  *
- * Based on RevealUI CMS analysis:
+ * Based on RevealUI admin analysis:
  * - Simple relationships (single, no hasMany): Direct Foreign Keys
  * - hasMany relationships: Junction Tables
  * - Polymorphic relationships (relationTo array): Junction Tables with multiple FK columns
@@ -98,7 +98,7 @@ export function getRelationshipFields(
 
 /**
  * Creates relationship metadata for a single field.
- * Determines storage type based on field properties following RevealUI CMS patterns.
+ * Determines storage type based on field properties following RevealUI admin patterns.
  */
 function createRelationshipMetadata(
   field: RevealUIField,
@@ -120,7 +120,7 @@ function createRelationshipMetadata(
   const hasMany = field.hasMany ?? false;
   const isPolymorphic = Array.isArray(relationTo);
 
-  // Determine storage type based on RevealUI CMS analysis
+  // Determine storage type based on RevealUI admin analysis
   let storageType: RelationshipMetadata['storageType'];
   if (isPolymorphic) {
     storageType = 'polymorphic';

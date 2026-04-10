@@ -4,7 +4,7 @@
 
 ---
 
-I have been building RevealUI for the past year as an agentic business runtime -- the kind of thing where you get users, content, products, payments, and AI pre-wired, open source, and ready to deploy. The whole point is that you should not have to re-implement billing or auth or a CMS every time you start a new software business.
+I have been building RevealUI for the past year as an agentic business runtime -- the kind of thing where you get users, content, products, payments, and AI pre-wired, open source, and ready to deploy. The whole point is that you should not have to re-implement billing or auth or an admin every time you start a new software business.
 
 But somewhere around the third month of building, I realized something that changed the architecture fundamentally: **the next wave of customers for software platforms are not human.**
 
@@ -53,7 +53,7 @@ Every RevealUI instance ships with four machine-readable discovery endpoints. Th
     {
       "id": "content-management",
       "name": "Content Management",
-      "description": "Create, update, and query CMS collections via REST"
+      "description": "Create, update, and query admin collections via REST"
     },
     {
       "id": "billing-operations",
@@ -249,7 +249,7 @@ If you deploy a RevealUI instance today, you get agent-native infrastructure wit
 
 **You can earn money from MCP servers while you sleep.** Publish an MCP server to the marketplace, set a per-call price, onboard with Stripe Connect, and agent calls generate passive revenue. The marketplace handles discovery, payment verification, proxying, transaction recording, and developer payouts.
 
-**The same code serves both audiences.** This is the key architectural insight. You do not build a "human API" and an "agent API." You build one API with Zod schemas and OpenAPI definitions. Humans consume it via the CMS dashboard. Agents consume it via the OpenAPI spec and A2A protocol. The code is identical.
+**The same code serves both audiences.** This is the key architectural insight. You do not build a "human API" and an "agent API." You build one API with Zod schemas and OpenAPI definitions. Humans consume it via the admin dashboard. Agents consume it via the OpenAPI spec and A2A protocol. The code is identical.
 
 ## How to make your RevealUI instance agent-discoverable
 

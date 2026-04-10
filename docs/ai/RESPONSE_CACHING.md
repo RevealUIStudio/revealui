@@ -426,7 +426,7 @@ await runtime.executeTask(agent, task1, client)
 await runtime.executeTask(agent, task2, client)  // May hit cache
 ```
 
-### With CMS Chat API
+### With admin Chat API
 
 Already integrated! Just enable the environment variable:
 

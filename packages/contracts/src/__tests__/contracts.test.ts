@@ -2,7 +2,7 @@
  * Contracts Integration Tests
  *
  * Tests the hybrid contract system with:
- * 1. Mocked CMS types (no external dependencies)
+ * 1. Mocked admin types (no external dependencies)
  * 2. Real validation scenarios
  * 3. Type safety verification
  * 4. Error handling
@@ -10,7 +10,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ZodError } from 'zod/v4';
-import type { Field, RevealRequest } from '../cms/index.js';
+import type { Field, RevealRequest } from '../admin/index.js';
 import {
   applyPluginExtensions,
   assertValidSlug,
@@ -24,7 +24,7 @@ import {
   GlobalStructureSchema,
   getValidFieldTypes,
   isValidFieldType,
-  // CMS compat
+  // admin compat
   isValidSlug,
   // Extensibility
   registerCustomFieldType,
@@ -33,7 +33,7 @@ import {
   toSlug,
   unregisterCustomFieldType,
   validateWithErrors,
-} from '../cms/index.js';
+} from '../admin/index.js';
 
 import {
   createAdminRequest,

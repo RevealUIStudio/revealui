@@ -19,7 +19,7 @@ export const WORKSPACE_AGENT_DEFAULT_TOOLS: Tool[] = [webSearchTool];
 
 /**
  * Returns the workspace agent default tool set, optionally merged with
- * additional tools (e.g. CMS tools, MCP-discovered tools).
+ * additional tools (e.g. admin tools, MCP-discovered tools).
  */
 export function getWorkspaceAgentTools(additionalTools: Tool[] = []): Tool[] {
   return [...WORKSPACE_AGENT_DEFAULT_TOOLS, ...additionalTools];

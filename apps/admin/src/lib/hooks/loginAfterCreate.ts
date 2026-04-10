@@ -25,7 +25,7 @@ export async function loginAfterCreate({
   if (operation === 'create' && !req.user && req.revealui && 'login' in req.revealui) {
     const revealui = req.revealui as RevealUIWithLogin;
 
-    // In RevealUI CMS 3.x, access body data from the doc itself
+    // In RevealUI admin 3.x, access body data from the doc itself
     const email = doc.email as string | undefined;
     const password = req.data?.password as string | undefined;
 

@@ -28,7 +28,7 @@ export const FieldContract: Contract<FieldStructure> = createContract({
   schema: FieldStructureSchema,
   description: 'Field configuration contract',
   docsUrl: 'https://revealui.dev/docs/api-reference/fields',
-  tags: ['field', 'config', 'cms'],
+  tags: ['field', 'config', 'admin'],
 });
 
 /**

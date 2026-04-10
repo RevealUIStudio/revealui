@@ -185,7 +185,7 @@ When rate-limited, the response includes a `Retry-After` header.
 
 ## CORS
 
-The API allows cross-origin requests from configured domains. In production, CORS is restricted to your CMS and marketing domains. In development, `localhost` origins are permitted.
+The API allows cross-origin requests from configured domains. In production, CORS is restricted to your admin and marketing domains. In development, `localhost` origins are permitted.
 
 ---
 

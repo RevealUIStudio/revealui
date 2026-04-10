@@ -33,7 +33,7 @@ pnpm add @revealui/auth
 REVEALUI_SECRET=<your-secret>
 
 # Required: your app URL (used for cookie domain)
-REVEALUI_PUBLIC_SERVER_URL=https://cms.yourdomain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 
 # Optional: OAuth providers
 GITHUB_CLIENT_ID=...

@@ -10,7 +10,7 @@
  *   const schema = z.string().openapi({ description: 'User name', example: 'Alice' });
  */
 
-import type { z as zod } from 'zod';
+import type { z } from 'zod';
 
 // =============================================================================
 // Types
@@ -55,7 +55,7 @@ const OPENAPI_METADATA = Symbol.for('revealui:openapi-metadata');
  * Get OpenAPI metadata from a Zod schema.
  * Returns undefined if no metadata has been attached.
  */
-export function getOpenApiMetadata(schema: zod.ZodTypeAny): OpenAPIMetadata | undefined {
+export function getOpenApiMetadata(schema: z.ZodTypeAny): OpenAPIMetadata | undefined {
   return (schema as unknown as Record<symbol, unknown>)[OPENAPI_METADATA] as
     | OpenAPIMetadata
     | undefined;
@@ -64,7 +64,7 @@ export function getOpenApiMetadata(schema: zod.ZodTypeAny): OpenAPIMetadata | un
 /**
  * Set OpenAPI metadata on a Zod schema.
  */
-export function setOpenApiMetadata(schema: zod.ZodTypeAny, metadata: OpenAPIMetadata): void {
+export function setOpenApiMetadata(schema: z.ZodTypeAny, metadata: OpenAPIMetadata): void {
   (schema as unknown as Record<symbol, unknown>)[OPENAPI_METADATA] = metadata;
 }
 
@@ -80,13 +80,16 @@ export function setOpenApiMetadata(schema: zod.ZodTypeAny, metadata: OpenAPIMeta
  *   import { extendZodWithOpenApi } from '@revealui/openapi/native';
  *   extendZodWithOpenApi(z);
  */
-export function extendZodWithOpenApi(zod: typeof import('zod').z): void {
+export function extendZodWithOpenApi(zod: typeof z): void {
   if ('openapi' in zod.ZodType.prototype) {
     return; // Already extended
   }
 
   // Add .openapi() method to all Zod types
-  zod.ZodType.prototype.openapi = function (metadata: OpenAPIMetadata) {
+  // Accepts either an OpenAPIMetadata object or a string shorthand for refId
+  zod.ZodType.prototype.openapi = function (metadataOrRefId: OpenAPIMetadata | string) {
+    const metadata: OpenAPIMetadata =
+      typeof metadataOrRefId === 'string' ? { refId: metadataOrRefId } : metadataOrRefId;
     const clone = this.describe(metadata.description ?? '');
     (clone as Record<symbol, unknown>)[OPENAPI_METADATA] = {
       ...getOpenApiMetadata(this),
@@ -99,6 +102,6 @@ export function extendZodWithOpenApi(zod: typeof import('zod').z): void {
 // Type augmentation for TypeScript
 declare module 'zod' {
   interface ZodType {
-    openapi(metadata: OpenAPIMetadata): this;
+    openapi(metadata: OpenAPIMetadata | string): this;
   }
 }

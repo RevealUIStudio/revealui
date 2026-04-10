@@ -10,7 +10,7 @@ import {
   isCollectionConfig,
   parseCollection,
   validateCollection,
-} from '../../cms/collection.js';
+} from '../../admin/collection.js';
 import { MockPostsCollection } from '../mocks/revealui.js';
 
 describe('Collection Contract', () => {

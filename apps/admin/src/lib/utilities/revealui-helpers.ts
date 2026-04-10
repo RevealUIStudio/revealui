@@ -1,13 +1,13 @@
 /**
- * Helper functions for integrating RevealUI theme components with CMS data
+ * Helper functions for integrating RevealUI theme components with admin data
  */
 
-import type { Page, Post } from '@revealui/core/types/cms';
+import type { Page, Post } from '@revealui/core/types/admin';
 import type { FooterType } from '@/lib/globals/Footer/Component';
 import type { HeaderType } from '@/lib/globals/Header/Component';
 
 /**
- * Resolves a CMS link to a URL string
+ * Resolves an admin link to a URL string
  * Handles both custom URLs and references to pages/posts
  */
 export function getLinkUrl(
@@ -46,7 +46,7 @@ export function getLinkUrl(
 }
 
 /**
- * Gets the label for a CMS link
+ * Gets the label for an admin link
  * Header links have a label field, Footer links might not
  */
 export function getLinkLabel(

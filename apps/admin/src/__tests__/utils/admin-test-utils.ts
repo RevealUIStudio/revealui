@@ -1,6 +1,6 @@
 /**
- * RevealUI CMS Test Utilities
- * Helper functions for testing RevealUI CMS collections and authentication
+ * RevealUI admin Test Utilities
+ * Helper functions for testing RevealUI admin collections and authentication
  */
 
 import { randomUUID } from 'node:crypto';
@@ -43,7 +43,7 @@ export function clearTestRevealUI(): void {
 }
 
 /**
- * Get or create RevealUI CMS instance for testing
+ * Get or create RevealUI admin instance for testing
  * Ensures database is initialized and tables are created
  */
 export async function getTestRevealUI(): Promise<RevealUIInstance> {

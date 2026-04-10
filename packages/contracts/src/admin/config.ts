@@ -240,7 +240,7 @@ export interface GlobalConfig extends Omit<GlobalStructure, 'fields'> {
 }
 
 // ============================================
-// CONFIG TYPE (Full CMS Config)
+// CONFIG TYPE (Full admin Config)
 // ============================================
 
 /**

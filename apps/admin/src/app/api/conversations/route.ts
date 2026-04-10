@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   const conversation = await createConversation(db, {
     id,
     userId: session.user.id,
-    agentId: 'cms-assistant',
+    agentId: 'admin-assistant',
     title: body.title,
   });
 

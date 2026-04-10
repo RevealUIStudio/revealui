@@ -1,4 +1,4 @@
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import type React from 'react';
 import RichText from '@/lib/components/RichText/index';
 

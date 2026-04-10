@@ -12,7 +12,7 @@ export interface BlogPost {
   createdAt: string;
   /** Author display name (static posts only). */
   author?: string;
-  /** Whether this post comes from the static registry vs the CMS. */
+  /** Whether this post comes from the static registry vs the admin. */
   isStatic?: boolean;
 }
 
@@ -39,8 +39,8 @@ function toShared(post: StaticBlogPost): BlogPost {
 }
 
 /**
- * Fetch published posts from the CMS API, falling back to an empty list on
- * error. Static blog posts are always appended and de-duped by slug (CMS
+ * Fetch published posts from the admin API, falling back to an empty list on
+ * error. Static blog posts are always appended and de-duped by slug (admin
  * posts with a matching slug take priority).
  */
 export async function getPosts(page = 1, limit = 12): Promise<PaginatedResult> {
@@ -58,10 +58,10 @@ export async function getPosts(page = 1, limit = 12): Promise<PaginatedResult> {
       cmsPosts = json.data ?? [];
     }
   } catch {
-    // CMS unreachable — static posts still render.
+    // admin unreachable — static posts still render.
   }
 
-  // Merge: CMS posts take priority when slugs overlap.
+  // Merge: admin posts take priority when slugs overlap.
   const cmsSlugs = new Set(cmsPosts.map((p) => p.slug));
   const staticPosts = staticBlogPosts.filter((p) => !cmsSlugs.has(p.slug)).map(toShared);
 
@@ -80,7 +80,7 @@ export async function getPosts(page = 1, limit = 12): Promise<PaginatedResult> {
 }
 
 /**
- * Fetch a single post by slug. Checks the CMS first, then falls back to the
+ * Fetch a single post by slug. Checks the admin first, then falls back to the
  * static registry.
  */
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
@@ -94,7 +94,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       if (json.data) return json.data;
     }
   } catch {
-    // CMS unreachable — fall through to static lookup.
+    // admin unreachable — fall through to static lookup.
   }
 
   const staticPost = getStaticPost(slug);

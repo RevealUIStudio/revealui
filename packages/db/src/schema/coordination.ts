@@ -5,7 +5,7 @@
  * @revealui/harnesses. The daemon syncs local PGLite state to/from
  * these tables via ElectricSQL shape subscriptions.
  *
- * Used by: CMS dashboard (agent activity), Forge customers (multi-machine coordination)
+ * Used by: admin dashboard (agent activity), Forge customers (multi-machine coordination)
  */
 
 import {

@@ -26,7 +26,7 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
   const [error, setError] = useState<string | null>(null);
   const [checks, setChecks] = useState<CheckState[]>([
     { label: 'API Health', status: 'idle' },
-    { label: 'CMS', status: 'idle' },
+    { label: 'Admin', status: 'idle' },
     { label: 'Marketing', status: 'idle' },
     { label: 'Database (via API)', status: 'idle' },
     { label: 'Email Delivery', status: 'idle' },
@@ -163,7 +163,7 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
           <p className="mb-1 font-medium text-neutral-400">Manual verification (after setup):</p>
           <ul className="list-inside list-disc flex flex-col gap-0.5">
             <li>Stripe webhook test event fires and is received</li>
-            <li>CORS allows CMS → API requests</li>
+            <li>CORS allows admin → API requests</li>
             <li>Session cookie works cross-subdomain</li>
             <li>Signup flow works end-to-end</li>
           </ul>

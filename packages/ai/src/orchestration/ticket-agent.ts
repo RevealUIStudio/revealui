@@ -4,8 +4,8 @@
  * Closes the loop between the ticketing system and the AI agent system.
  *
  * Flow:
- *   Ticket (title + description) → Task → Agent (CMS tools + ticket tools)
- *   → agentic loop → CMS mutations + ticket status updated + comment written
+ *   Ticket (title + description) → Task → Agent (admin tools + ticket tools)
+ *   → agentic loop → admin mutations + ticket status updated + comment written
  *
  * Usage:
  *   const dispatcher = new TicketAgentDispatcher({ llmClient, apiClient, ticketClient })
@@ -16,12 +16,12 @@ import type { Database } from '@revealui/db/client';
 import type { LLMClient } from '../llm/client.js';
 import type { EpisodicMemory } from '../memory/stores/episodic-memory.js';
 import type {
-  CMSAPIClient,
-  CMSToolsConfig,
+  AdminAPIClient,
+  AdminToolsConfig,
   CollectionMetadata,
   GlobalMetadata,
-} from '../tools/cms/factory.js';
-import { createCMSTools } from '../tools/cms/factory.js';
+} from '../tools/admin/factory.js';
+import { createAdminTools } from '../tools/admin/factory.js';
 import { createDocumentSummarizerTool } from '../tools/document-summarizer.js';
 import type { TicketMutationClient } from '../tools/ticket-tools.js';
 import { createTicketTools } from '../tools/ticket-tools.js';
@@ -42,16 +42,16 @@ export interface TicketAgentConfig {
   /** LLM client (Anthropic, OpenAI, etc.) */
   llmClient: LLMClient;
 
-  /** CMS API client — used to inject into CMS tools */
-  apiClient: CMSAPIClient;
+  /** admin API client — used to inject into admin tools */
+  apiClient: AdminAPIClient;
 
   /** Ticket mutation client — used to update status and add comments */
   ticketClient: TicketMutationClient;
 
-  /** Available CMS collections (optional, improves tool descriptions) */
+  /** Available admin collections (optional, improves tool descriptions) */
   collections?: CollectionMetadata[];
 
-  /** Available CMS globals (optional) */
+  /** Available admin globals (optional) */
   globals?: GlobalMetadata[];
 
   /**
@@ -114,7 +114,7 @@ function buildInstructions(ticket: TicketInput): string {
 
 Your job is to:
 1. Understand the intent of the ticket
-2. Use the available CMS tools to take the necessary actions (create, update, or delete content)
+2. Use the available admin tools to take the necessary actions (create, update, or delete content)
 3. When your work is done, call add_ticket_comment to summarize what you did
 4. Finally, call update_ticket_status with status="done"
 5. If you cannot complete the task, call add_ticket_comment to explain why, then update_ticket_status with status="blocked"
@@ -147,16 +147,16 @@ export class TicketAgentDispatcher {
    *
    * The agent will:
    * - Receive the ticket as its task description
-   * - Have access to all CMS tools (create/update/delete content, globals, media, users)
+   * - Have access to all admin tools (create/update/delete content, globals, media, users)
    * - Have access to ticket mutation tools (update status, add comment)
    * - Run the agentic loop until done or max iterations
    */
   async dispatch(ticket: TicketInput): Promise<AgentResult> {
     const { apiClient, ticketClient, collections, globals, memory: sharedMemory, db } = this.config;
 
-    // Build tool set: CMS tools + ticket mutation tools + web scraper + optional summarizer
-    const cmsConfig: CMSToolsConfig = { apiClient, collections, globals };
-    const cmsTools = createCMSTools(cmsConfig);
+    // Build tool set: admin tools + ticket mutation tools + web scraper + optional summarizer
+    const cmsConfig: AdminToolsConfig = { apiClient, collections, globals };
+    const cmsTools = createAdminTools(cmsConfig);
     const ticketTools = createTicketTools(ticket.id, ticketClient);
     const extraTools = db
       ? [webScraperTool, createDocumentSummarizerTool(db, this.config.llmClient)]
@@ -178,7 +178,7 @@ export class TicketAgentDispatcher {
           agentId: `ticket-agent-${ticket.id}`,
           currentTask: {
             id: ticket.id,
-            type: ticket.type ?? 'cms',
+            type: ticket.type ?? 'admin',
             description: descriptionToString(ticket.description),
           },
         };
@@ -195,7 +195,7 @@ export class TicketAgentDispatcher {
 
     const task: Task = {
       id: ticket.id,
-      type: ticket.type ?? 'cms',
+      type: ticket.type ?? 'admin',
       description: taskDescription,
       priority: ticket.priority === 'critical' ? 1 : ticket.priority === 'high' ? 2 : 3,
     };

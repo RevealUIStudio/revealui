@@ -2,7 +2,7 @@
  * @revealui/contracts/pricing
  *
  * Single source of truth for all tier, pricing, and feature display data.
- * Eliminates duplication across marketing, CMS billing, license, and upgrade pages.
+ * Eliminates duplication across marketing, admin billing, license, and upgrade pages.
  *
  * @packageDocumentation
  */
@@ -121,7 +121,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     name: 'Free (OSS)',
     description: 'Perfect for trying out RevealUI and small projects.',
     features: [
-      'Unlimited CMS collections',
+      'Unlimited admin collections',
       '1 site',
       'Up to 3 users/editors',
       'Session-based auth',
@@ -139,7 +139,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     name: 'Pro',
     description: 'For software companies building production products.',
     features: [
-      'Unlimited CMS collections',
+      'Unlimited admin collections',
       'Up to 5 sites',
       'Up to 25 users/editors',
       'Session-based auth',
@@ -292,7 +292,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     id: 'migration-assist',
     name: 'Migration Assist',
     description:
-      'We migrate your existing CMS, database, or billing system to RevealUI. Includes data mapping, schema translation, and validation testing.',
+      'We migrate your existing admin, database, or billing system to RevealUI. Includes data mapping, schema translation, and validation testing.',
     includes: [
       'Data audit and mapping plan',
       'Schema translation and migration scripts',

@@ -1,5 +1,5 @@
 import type { RevealRequest } from '@revealui/core';
-import type { User } from '@revealui/core/types/cms';
+import type { User } from '@revealui/core/types/admin';
 
 export const lastLoggedInTenant = (req: RevealRequest): string | null => {
   const user = req?.user as User | undefined;

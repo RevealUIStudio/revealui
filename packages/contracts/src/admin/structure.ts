@@ -1,7 +1,7 @@
 /**
  * Structure Schemas (Zod)
  *
- * These schemas validate the STRUCTURE of CMS configurations.
+ * These schemas validate the STRUCTURE of admin configurations.
  *
  * IMPORTANT: These schemas do NOT validate function types (hooks, access, validate).
  * Function types are handled by TypeScript contracts in functions.ts.
@@ -29,7 +29,7 @@ export const GLOBAL_SCHEMA_VERSION = 1;
 // ============================================
 
 /**
- * Valid field types in RevealUI CMS
+ * Valid field types in RevealUI admin
  */
 export const FieldTypeSchema = z.enum([
   // Basic fields

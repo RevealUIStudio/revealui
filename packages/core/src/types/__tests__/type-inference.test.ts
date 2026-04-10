@@ -7,7 +7,7 @@
  * @module @revealui/core/types/__tests__/type-inference
  */
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 import { describe, expect, it } from 'vitest';
 import type { RevealCollectionConfig, RevealUIField } from '../index.js';
 

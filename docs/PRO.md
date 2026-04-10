@@ -363,9 +363,9 @@ The Next.js DevTools MCP provides runtime diagnostics, automated upgrades, and i
 2. **Cursor starts** MCP servers automatically when needed
 3. **You use them** through Cursor's AI chat - no manual commands needed
 
-### Integration with Your CMS App
+### Integration with Your admin App
 
-Your CMS app (`apps/admin`) is perfectly configured for Next.js DevTools MCP:
+Your admin app (`apps/admin`) is perfectly configured for Next.js DevTools MCP:
 
 ```json
 {
@@ -431,7 +431,7 @@ Next Devtools, what servers are running?
 - Available diagnostic tools
 - Framework metadata (Turbopack, App Directory, etc.)
 
-**Key Point:** Zero configuration - it automatically finds your CMS app!
+**Key Point:** Zero configuration - it automatically finds your admin app!
 
 #### 2. Runtime Diagnostics
 
@@ -629,7 +629,7 @@ MCP: Runs enable_cache_components tool:
 
 To use the Next.js DevTools MCP effectively:
 
-**Step 1: Start Your CMS Dev Server**
+**Step 1: Start Your admin Dev Server**
 
 ```bash
 cd apps/admin
@@ -662,7 +662,7 @@ Shows all Next.js 16+ dev servers with their ports, tools, and metadata.
 Next Devtools, what errors are in my Next.js app?
 ```
 
-Shows real-time build and runtime errors from your CMS app.
+Shows real-time build and runtime errors from your admin app.
 
 **Runtime Diagnostics - Routes:**
 
@@ -827,7 +827,7 @@ revealui dev status --profile agent
 
 Use this checklist to verify everything is working:
 
-- [ ] CMS dev server running (`cd apps/admin && pnpm dev`)
+- [ ] admin dev server running (`cd apps/admin && pnpm dev`)
 - [ ] MCP credentials validated (`pnpm setup:mcp`)
 - [ ] MCP endpoint accessible (`curl http://localhost:4000/_next/mcp`)
 - [ ] Can discover servers (ask: "what servers are running?")
@@ -1416,7 +1416,7 @@ RevealUI offers four professional service engagements for teams that need hands-
 | Service | Description | Deliverable |
 |---------|-------------|-------------|
 | **Architecture Review** | Codebase, schema, deployment, and security review (up to 50K LOC) | Written report within 5 business days |
-| **Migration Assist** | Migrate existing CMS, database, or billing to RevealUI | Working migration with verified data integrity |
+| **Migration Assist** | Migrate existing admin, database, or billing to RevealUI | Working migration with verified data integrity |
 | **Launch Package** | Zero to production in one week (setup, billing, deploy, onboarding) | Production-ready deployment within 5 business days |
 | **Consulting Hour** | One-on-one video call — pair programming, architecture, debugging | Session recording and written follow-up notes |
 
@@ -1515,7 +1515,7 @@ Forge is the enterprise tier of RevealUI. Deploy the entire stack on your own in
 
 See **[FORGE.md](./FORGE.md)** for the complete deployment guide, including:
 
-- Docker Compose stack (API + CMS + PostgreSQL)
+- Docker Compose stack (API + admin + PostgreSQL)
 - Environment variables (`FORGE_LICENSE_KEY`, `FORGE_LICENSED_DOMAIN`, etc.)
 - Domain lock enforcement
 - Reverse proxy configuration (Caddy + Nginx examples)

@@ -10,7 +10,7 @@
  * @module @revealui/core/types/__tests__/type-inference-problem-cases
  */
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 import { expectTypeOf } from 'expect-type';
 import type { RevealCollectionConfig, RevealUIField } from '../index.js';
 

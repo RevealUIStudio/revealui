@@ -1,5 +1,5 @@
 /**
- * Standard Error Response Utilities for CMS App
+ * Standard Error Response Utilities for admin App
  *
  * Provides standardized error response formatting for API routes.
  * Ensures consistent error format across all endpoints.

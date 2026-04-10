@@ -125,7 +125,7 @@ That last exception is temporary, not a preferred pattern. It exists because the
 │                        Frontend (React/Next.js)                  │
 │  ┌──────────────────────────────────────────────────────────┐  │
 │  │  Generated Types (@revealui/core/generated/types)        │  │
-│  │  - CMS Config Types    - Supabase Types                  │  │
+│  │  - Admin Config Types    - Supabase Types                  │  │
 │  │  - NeonDB Types        - Shared Type Definitions         │  │
 │  └──────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
@@ -138,7 +138,7 @@ That last exception is temporary, not a preferred pattern. It exists because the
 ┌─────────────────────────────────────────────────────────────────┐
 │              Type Safety Layer & Contracts                      │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │  Contracts (@revealui/contracts/cms)                     │  │
+│  │  Contracts (@revealui/contracts/admin)                     │  │
 │  │  - ConfigContract    - CollectionContract                │  │
 │  │  - FieldContract     - GlobalContract                    │  │
 │  │  - Runtime Validation (Zod) + Compile-time (TypeScript)  │  │
@@ -266,7 +266,7 @@ Scenario: Agent performs semantic search over 1M embeddings
 **Access Pattern:**
 
 ```
-REST API Services → NeonDB (user data, CMS)
+REST API Services → NeonDB (user data, admin)
 AI Agent Services → Supabase (vector search)
 Client Apps → ElectricSQL → NeonDB (real-time sync)
 ```
@@ -303,7 +303,7 @@ Transactional REST API + Real-time Sync Source
 **Core Relational Data:**
 
 - Users, sessions, authentication
-- Sites, pages, CMS content
+- Sites, pages, admin content
 - Media, posts, metadata
 
 **Agent Relational Data:**
@@ -506,7 +506,7 @@ export async function GET(request: NextRequest) {
 ```typescript
 // packages/sync/src/hooks/useAgentContext.ts
 export function useAgentContext(agentId: string, sessionId: string) {
-  // Shape request goes to CMS API proxy
+  // Shape request goes to Admin API proxy
   const shape = useShape({
     source: "http://localhost:3000/api/shapes/agent-contexts",
     table: "agent_contexts",
@@ -583,7 +583,7 @@ const memories = await vectorDb
 
 ### Tenant Model
 
-RevealUI implements robust multi-tenancy using RevealUI CMS 3.x, allowing multiple organizations to share the same application instance with complete data isolation.
+RevealUI implements robust multi-tenancy using RevealUI admin 3.x, allowing multiple organizations to share the same application instance with complete data isolation.
 
 ```typescript
 Tenants Collection {
@@ -678,7 +678,7 @@ Located in `apps/admin/src/lib/access/`:
 
 ### Automatic Tenant Filtering
 
-RevealUI CMS hooks automatically filter data by tenant:
+RevealUI admin hooks automatically filter data by tenant:
 
 ```typescript
 // All queries are scoped to user's current tenant
@@ -724,7 +724,7 @@ hooks: {
 
 The contracts system provides unified validation (TypeScript + Zod):
 
-**Location:** `packages/contracts/src/cms/`
+**Location:** `packages/contracts/src/admin/`
 
 **What Contracts Provide:**
 
@@ -736,7 +736,7 @@ The contracts system provides unified validation (TypeScript + Zod):
 
 **Contract Types:**
 
-- **ConfigContract** - Root CMS configuration validation
+- **ConfigContract** - Root admin configuration validation
 - **CollectionContract** - Collection configuration validation
 - **FieldContract** - Field configuration validation
 - **GlobalContract** - Global configuration validation
@@ -833,7 +833,7 @@ function createContractToDbMapper<TContract, TInsert>(
 
 **Sources:**
 
-1. **CMS Config Types** (`cms.ts`) - Generated from `revealui.config.ts`
+1. **Admin Config Types** (`admin.ts`) - Generated from `revealui.config.ts`
 2. **Supabase Types** (`supabase.ts`) - Generated from Supabase schema
 3. **NeonDB Types** (`neon.ts`) - Generated from Drizzle schema
 
@@ -998,7 +998,7 @@ const memories = await rpc.call("memory.search", { queryEmbedding });
 
 ### Vercel Blob Storage
 
-**Role:** Scalable media and file storage for CMS content
+**Role:** Scalable media and file storage for admin content
 
 **Implementation:**
 
@@ -1200,7 +1200,7 @@ Client (Browser)
     ├─→ Shape Request (/api/shapes/agent-contexts)
     │       │
     │       ▼
-    │   CMS API Route (apps/admin/src/app/api/shapes/...)
+    │   Admin API Route (apps/admin/src/app/api/shapes/...)
     │       │
     │       ▼
     │   ElectricSQL Service (localhost:5133)
@@ -1455,7 +1455,7 @@ test('agent context syncs via ElectricSQL', async () => {
   // Create context in NeonDB
   await restDb.insert(agentContexts).values(...)
 
-  // Request shape via CMS API
+  // Request shape via Admin API
   const response = await fetch('/api/shapes/agent-contexts')
 
   // Verify ElectricSQL syncs from NeonDB
@@ -1675,9 +1675,9 @@ This section provides a comprehensive mapping of all UI components, the business
 
 ### UI Components
 
-#### CMS Blocks (`apps/admin/src/lib/blocks/`)
+#### admin Blocks (`apps/admin/src/lib/blocks/`)
 
-Blocks are the primary content building units in the CMS. Each block has a corresponding component and schema.
+Blocks are the primary content building units in the admin. Each block has a corresponding component and schema.
 
 ##### Active Blocks
 
@@ -1756,9 +1756,9 @@ Blocks are the primary content building units in the CMS. Each block has a corre
   - **Type**: `BlockProps` (union of all block prop types)
   - **Mapping**: `blockComponents` object maps `blockType` to component
 
-#### CMS Components (`apps/admin/src/lib/components/`)
+#### Admin Components (`apps/admin/src/lib/components/`)
 
-Reusable UI components used throughout the CMS.
+Reusable UI components used throughout the admin.
 
 1. **AdminBar** (`AdminBar/index.tsx`)
    - **Purpose**: Admin toolbar/bar component
@@ -1827,7 +1827,7 @@ Reusable UI components used throughout the CMS.
 
 #### RevealUI Framework Components (`packages/core/src/client/ui/`)
 
-Core framework UI components for the CMS admin interface.
+Core framework UI components for the admin admin interface.
 
 1. **TextInput** (`index.tsx`)
    - **Props**: `TextInputProps`
@@ -1898,7 +1898,7 @@ Frontend application components.
    - **HomeHero** (`Hero.tsx`)
    - **HomeContent** (`Content.tsx`)
 
-#### CMS RevealUI Elements (`apps/admin/src/components/revealui/elements/`)
+#### admin RevealUI Elements (`apps/admin/src/components/revealui/elements/`)
 
 Reusable page elements.
 
@@ -1919,7 +1919,7 @@ Reusable page elements.
 15. `text.tsx`
 16. `wallpaper.tsx`
 
-#### CMS RevealUI Sections (`apps/admin/src/components/revealui/sections/`)
+#### admin RevealUI Sections (`apps/admin/src/components/revealui/sections/`)
 
 Pre-built section components.
 
@@ -2139,7 +2139,7 @@ External service integrations.
 
 The central contract layer defining all data structures.
 
-##### Core Contracts (`packages/contracts/src/entities/` and `packages/contracts/src/cms/`)
+##### Core Contracts (`packages/contracts/src/entities/` and `packages/contracts/src/admin/`)
 
 1. **User Schema** (`user.ts`)
    - `UserSchema` - Complete user entity
@@ -2335,12 +2335,12 @@ ElectricSQL database schema for real-time sync.
 
 | Component       | Schema                            | Location                  |
 | --------------- | --------------------------------- | ------------------------- |
-| `Form/Text`     | `TextFieldSchema`                 | `@revealui/contracts/cms` |
-| `Form/Email`    | `TextFieldSchema` (email variant) | `@revealui/contracts/cms` |
-| `Form/Number`   | `NumberFieldSchema`               | `@revealui/contracts/cms` |
-| `Form/Select`   | `SelectFieldSchema`               | `@revealui/contracts/cms` |
-| `Form/Checkbox` | `FieldSchema` (boolean)           | `@revealui/contracts/cms` |
-| `Form/Textarea` | `TextFieldSchema` (multiline)     | `@revealui/contracts/cms` |
+| `Form/Text`     | `TextFieldSchema`                 | `@revealui/contracts/admin` |
+| `Form/Email`    | `TextFieldSchema` (email variant) | `@revealui/contracts/admin` |
+| `Form/Number`   | `NumberFieldSchema`               | `@revealui/contracts/admin` |
+| `Form/Select`   | `SelectFieldSchema`               | `@revealui/contracts/admin` |
+| `Form/Checkbox` | `FieldSchema` (boolean)           | `@revealui/contracts/admin` |
+| `Form/Textarea` | `TextFieldSchema` (multiline)     | `@revealui/contracts/admin` |
 
 #### Collection Components → Collection Schemas
 
@@ -2408,8 +2408,8 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 
 #### UI Components
 
-- **CMS Blocks**: `apps/admin/src/lib/blocks/`
-- **CMS Components**: `apps/admin/src/lib/components/`
+- **admin Blocks**: `apps/admin/src/lib/blocks/`
+- **Admin Components**: `apps/admin/src/lib/components/`
 - **Framework UI**: `packages/core/src/client/ui/`
 - **Web App**: `apps/mainframe/src/components/`
 - **RevealUI Elements**: `apps/admin/src/components/revealui/`

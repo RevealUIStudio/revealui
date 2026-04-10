@@ -1,5 +1,5 @@
 import type { RevealAfterChangeHook } from '@revealui/core';
-import type { Order } from '@revealui/core/types/cms';
+import type { Order } from '@revealui/core/types/admin';
 
 export const clearUserCart: RevealAfterChangeHook<Order> = async ({ doc, req, operation }) => {
   const { revealui } = req;

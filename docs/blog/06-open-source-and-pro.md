@@ -62,7 +62,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Agent tasks/mo** | 1,000 | 10,000 | 50,000 | Unlimited |
 | **API rate limit** | 200 req/min | 300 req/min | 600 req/min | 1,000 req/min |
 | **Auth** | Session-based | Session-based | Session-based | Session + OAuth + SSO/SAML (planned) |
-| **CMS collections** | Unlimited | Unlimited | Unlimited | Unlimited |
+| **admin collections** | Unlimited | Unlimited | Unlimited | Unlimited |
 | **Real-time sync** | Basic | Full | Full | Full |
 | **AI agents (open-model)** | -- | Yes | Yes | Yes |
 | **AI memory** | -- | -- | Full (working + episodic + vector) | Full |
@@ -78,7 +78,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 
 A few things worth noting about this table.
 
-**The free tier is genuinely useful.** Unlimited CMS collections, session-based auth, basic real-time sync, 1,000 agent tasks per month, and full source code access. You can build and run a real product on the free tier. I don't want "free" to mean "demo."
+**The free tier is genuinely useful.** Unlimited admin collections, session-based auth, basic real-time sync, 1,000 agent tasks per month, and full source code access. You can build and run a real product on the free tier. I don't want "free" to mean "demo."
 
 **All four business primitives work on free.** Users, Content, Products, Payments -- the MIT core -- are fully functional at every tier. Free doesn't cripple the business stack to pressure upgrades. The tier boundaries are about scale (more sites, more users, higher rate limits) and AI capabilities.
 

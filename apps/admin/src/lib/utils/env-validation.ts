@@ -1,5 +1,5 @@
 /**
- * Environment Variable Validation for CMS App
+ * Environment Variable Validation for admin App
  *
  * Lightweight validation that can be imported without bundling script dependencies.
  * Validates critical environment variables at startup.

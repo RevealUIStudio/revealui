@@ -1,6 +1,6 @@
 /**
- * CMS Tools Factory
- * Creates CMS tools with API client injected for actual execution
+ * admin Tools Factory
+ * Creates admin tools with API client injected for actual execution
  */
 
 import type { Tool } from '../base.js';
@@ -31,7 +31,7 @@ import {
 /**
  * API Client interface (compatible with @revealui/core/admin/utils/apiClient)
  */
-export interface CMSAPIClient {
+export interface AdminAPIClient {
   find(options: {
     collection: string;
     page?: number;
@@ -63,7 +63,7 @@ export interface CMSAPIClient {
 }
 
 /**
- * Collection metadata for CMS tools
+ * Collection metadata for admin tools
  * Simplified representation of a collection configuration
  */
 export interface CollectionMetadata {
@@ -73,7 +73,7 @@ export interface CollectionMetadata {
 }
 
 /**
- * Global metadata for CMS tools
+ * Global metadata for admin tools
  * Simplified representation of a global configuration
  */
 export interface GlobalMetadata {
@@ -83,7 +83,7 @@ export interface GlobalMetadata {
 }
 
 /**
- * User context for CMS tools
+ * User context for admin tools
  */
 export interface UserContext {
   id: string;
@@ -92,11 +92,11 @@ export interface UserContext {
 }
 
 /**
- * Configuration interface for CMS tools
+ * Configuration interface for admin tools
  */
-export interface CMSToolsConfig {
+export interface AdminToolsConfig {
   /** API client instance */
-  apiClient: CMSAPIClient;
+  apiClient: AdminAPIClient;
 
   /** Available collections (optional, for list_collections tool) */
   collections?: CollectionMetadata[];
@@ -109,10 +109,10 @@ export interface CMSToolsConfig {
 }
 
 /**
- * Create CMS tools with API client injected
+ * Create admin tools with API client injected
  * This factory function creates functional tools by injecting the actual API implementation
  */
-export function createCMSTools(config: CMSToolsConfig): Tool[] {
+export function createAdminTools(config: AdminToolsConfig): Tool[] {
   const { apiClient, collections, globals, user } = config;
 
   // Clone tools and inject API client implementation

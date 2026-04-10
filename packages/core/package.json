@@ -77,9 +77,9 @@
       "types": "./dist/types/generated.d.ts",
       "import": "./dist/types/generated.js"
     },
-    "./types/cms": {
-      "types": "./dist/types/cms.d.ts",
-      "import": "./dist/types/cms.js"
+    "./types/admin": {
+      "types": "./dist/types/admin.d.ts",
+      "import": "./dist/types/admin.js"
     },
     "./types/frontend": {
       "types": "./dist/types/frontend.d.ts",
@@ -93,9 +93,9 @@
       "types": "./dist/generated/types/index.d.ts",
       "import": "./dist/generated/types/index.js"
     },
-    "./generated/types/cms": {
-      "types": "./dist/generated/types/cms.d.ts",
-      "import": "./dist/generated/types/cms.js"
+    "./generated/types/admin": {
+      "types": "./dist/generated/types/admin.d.ts",
+      "import": "./dist/generated/types/admin.js"
     },
     "./generated/types/neon": {
       "types": "./dist/generated/types/neon.d.ts",

@@ -1702,7 +1702,7 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
   // ── Phase 2: Mark perpetual licenses with expired support ───────────────
   // Perpetual licenses never expire, but their support contract does.
   // status = 'support_expired' signals that premium features are downgraded
-  // to free tier while basic CMS access remains perpetual.
+  // to free tier while basic admin access remains perpetual.
   const supportExpiring = await db
     .select({ id: licenses.id })
     .from(licenses)

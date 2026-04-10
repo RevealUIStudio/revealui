@@ -19,9 +19,9 @@ This comprehensive guide covers everything you need to know about using the Reve
 
 ### Admin Guide Table of Contents
 
-1. [CMS Overview](#cms-overview)
+1. [Admin Overview](#admin-overview)
 2. [Frontend Connection](#frontend-connection)
-   - [CMS API Endpoints](#cms-api-endpoints)
+   - [Admin API Endpoints](#admin-api-endpoints)
    - [Environment Configuration](#environment-configuration)
    - [Creating API Client](#creating-api-client)
    - [Creating Fetch Functions](#creating-fetch-functions)
@@ -41,14 +41,14 @@ This comprehensive guide covers everything you need to know about using the Reve
 
 ---
 
-### CMS Overview
+### Admin Overview
 
 Your RevealUI project consists of:
 
-- **Admin App** (`apps/admin`): Next.js 16 app with RevealUI CMS backend
-- **Marketing App** (`apps/marketing`): Next.js app that consumes CMS data
+- **Admin App** (`apps/admin`): Next.js 16 app with RevealUI admin backend
+- **Marketing App** (`apps/marketing`): Next.js app that consumes admin data
 
-The CMS provides a REST API for content delivery and includes collections for:
+The admin provides a REST API for content delivery and includes collections for:
 
 - **Pages**, **Posts** (blog), **Media**, **Heros**, **Cards**, **Contents**, **Events**, **Banners**
 - **Products**, **Prices**, **Categories**, **Tags**, **Orders**, **Subscriptions**
@@ -56,7 +56,7 @@ The CMS provides a REST API for content delivery and includes collections for:
 
 ### Commercial framing
 
-For hosted RevealUI deployments, premium CMS access should be modeled primarily around account or workspace entitlements.
+For hosted RevealUI deployments, premium admin access should be modeled primarily around account or workspace entitlements.
 
 That means:
 
@@ -68,9 +68,9 @@ That means:
 
 ### Frontend Connection
 
-#### CMS API Endpoints
+#### Admin API Endpoints
 
-The CMS exposes a REST API at `/api/[...slug]/route.ts` using `handleRESTRequest` from `@revealui/core/api/rest`.
+The admin exposes a REST API at `/api/[...slug]/route.ts` using `handleRESTRequest` from `@revealui/core/api/rest`.
 
 **Collections API**
 
@@ -100,7 +100,7 @@ PATCH  /api/globals/{global}                   - Update global
 
 **Testing API Endpoints**
 
-You can test the CMS API directly:
+You can test the Admin API directly:
 
 ```bash
 # Get all pages
@@ -118,7 +118,7 @@ curl "http://localhost:4000/api/collections/pages?depth=2"
 
 #### Environment Configuration
 
-**CMS App Environment Variables**
+**admin App Environment Variables**
 
 Create `apps/admin/.env.local`:
 
@@ -141,7 +141,7 @@ REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 
 **CORS Configuration**
 
-The CMS has CORS handling in:
+The admin has CORS handling in:
 
 - `apps/admin/src/proxy.ts` - Defines allowed origins
 - `apps/admin/revealui.config.ts` - `cors` and `csrf` arrays
@@ -174,7 +174,7 @@ export async function fetchFromCMS<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`CMS API error: ${response.status} ${response.statusText}`);
+    throw new Error(`Admin API error: ${response.status} ${response.statusText}`);
   }
 
   return response.json();
@@ -353,7 +353,7 @@ Apply the same pattern to:
 
 #### Testing the Connection
 
-1. Start the CMS: `cd apps/admin && pnpm dev` (runs on port 4000)
+1. Start the admin: `cd apps/admin && pnpm dev` (runs on port 4000)
 2. Start the frontend: `cd apps/marketing && pnpm dev` (runs on port 5173 or 3000)
 3. Check browser console for API errors
 4. Verify data is loading in components
@@ -417,7 +417,7 @@ Each collection serves a specific purpose on the frontend:
 **Step 4: Verify Frontend**
 
 - Visit `http://localhost:3000` or `http://localhost:5173`
-- Check that components display CMS data
+- Check that components display admin data
 - Verify images load correctly
 - Test links and navigation
 
@@ -427,7 +427,7 @@ Each collection serves a specific purpose on the frontend:
 
 **Component**: `HomeMain`
 **Fetch Function**: `fetchMainInfos()`
-**CMS Collection**: `contents`
+**Admin Collection**: `contents`
 
 **Required Fields**:
 
@@ -444,7 +444,7 @@ Each collection serves a specific purpose on the frontend:
 
 **Component**: `HomeCard`
 **Fetch Function**: `fetchCard()`
-**CMS Collection**: `cards`
+**Admin Collection**: `cards`
 
 **Required Fields**:
 
@@ -465,7 +465,7 @@ Each collection serves a specific purpose on the frontend:
 
 **Component**: `HomeHero`
 **Fetch Function**: `fetchHero()`
-**CMS Collection**: `heros`
+**Admin Collection**: `heros`
 
 **Required Fields**:
 
@@ -484,7 +484,7 @@ Each collection serves a specific purpose on the frontend:
 
 **Component**: `HomeSection`
 **Fetch Function**: `fetchEvents()`
-**CMS Collection**: `events`
+**Admin Collection**: `events`
 
 **Required Fields**:
 
@@ -503,7 +503,7 @@ Each collection serves a specific purpose on the frontend:
 
 **Component**: `HomeContent`
 **Fetch Function**: `fetchBanner()`
-**CMS Collection**: `banners`
+**Admin Collection**: `banners`
 
 **Required Fields**:
 
@@ -554,7 +554,7 @@ Each collection serves a specific purpose on the frontend:
 pnpm dev
 ```
 
-The CMS app will start on `http://localhost:4000`
+The admin app will start on `http://localhost:4000`
 
 **Step 2: Navigate to Admin Dashboard**
 
@@ -831,7 +831,7 @@ Before creating posts, you may want to set up categories:
 
 ### Content Examples
 
-Ready-to-use content examples for each collection. Copy and paste these into your CMS admin panel and replace the placeholder text with your own content.
+Ready-to-use content examples for each collection. Copy and paste these into your admin admin panel and replace the placeholder text with your own content.
 
 **Contents Collection Examples**
 
@@ -1039,8 +1039,8 @@ Image: [Link uploaded media]
 
 **CORS Errors**
 
-**Problem**: Frontend can't access CMS API
-**Solution**: Add frontend URL to `REVEALUI_WHITELISTORIGINS` in CMS `.env`
+**Problem**: Frontend can't access Admin API
+**Solution**: Add frontend URL to `REVEALUI_WHITELISTORIGINS` in admin `.env`
 
 **404 Errors**
 
@@ -1052,14 +1052,14 @@ Image: [Link uploaded media]
 **Problem**: API returns empty `docs` array
 **Solutions**:
 
-- Check if data exists in CMS admin
+- Check if data exists in admin admin
 - Verify collection access permissions
 - Check `where` filters are correct
 
 **Type Mismatches**
 
 **Problem**: TypeScript errors in fetch functions
-**Solution**: Match the actual CMS collection schema structure
+**Solution**: Match the actual admin collection schema structure
 
 **Content Display Issues**
 
@@ -1203,7 +1203,7 @@ Blog Setup:
 
 **File Locations Reference**
 
-**CMS Side (Already Configured)**
+**admin Side (Already Configured)**
 
 - `apps/admin/src/app/(backend)/api/[...slug]/route.ts` - API route handler
 - `apps/admin/revealui.config.ts` - Collections configuration
@@ -1254,13 +1254,13 @@ Blog Setup:
 | `authors`     | Relationship | No       | Post authors            |
 | `slug`        | Text         | Auto     | URL-friendly identifier |
 
-**CMS Guide Next Steps**
+**admin Guide Next Steps**
 
 **Enhance Frontend Connection**
 
 1. **Add error handling** - Consider adding retry logic, error boundaries
 2. **Add caching** - Consider React Query or SWR for data fetching
-3. **Add TypeScript types** - Generate types from CMS schema if available
+3. **Add TypeScript types** - Generate types from admin schema if available
 4. **Create shared package** - Move fetch functions to `packages/api-client` for reusability
 
 **Customize Blog**
@@ -1299,7 +1299,7 @@ If you want to share fetch functions across multiple apps:
 1. Create `packages/api-client` package
 2. Move fetch functions there
 3. Export from package
-4. Import in both CMS and Web apps
+4. Import in both admin and Web apps
 
 This allows:
 

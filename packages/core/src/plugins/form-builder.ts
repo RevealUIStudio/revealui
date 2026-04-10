@@ -1,4 +1,4 @@
-import type { CollectionConfig } from '@revealui/contracts/cms';
+import type { CollectionConfig } from '@revealui/contracts/admin';
 import type { Plugin, RevealCollectionConfig, RevealUIField } from '../types/index.js';
 
 // Base form field interface with common properties

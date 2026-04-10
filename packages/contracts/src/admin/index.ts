@@ -1,9 +1,9 @@
 /**
- * CMS Contracts
+ * Admin Contracts
  *
- * This module exports all contract types for the CMS type system.
+ * This module exports all contract types for the admin type system.
  *
- * @module @revealui/contracts/cms
+ * @module @revealui/contracts/admin
  */
 
 // ============================================
@@ -40,18 +40,18 @@ export type {
   RevealUIGlobalConfig,
 } from './compat.js';
 // ============================================
-// CMS COMPATIBILITY
+// admin COMPATIBILITY
 // ============================================
 export {
   assertValidSlug,
-  fromCMSCollectionConfig,
-  fromCMSGlobalConfig,
+  fromAdminCollectionConfig,
+  fromAdminGlobalConfig,
   getRevealUIExtensions,
   hasRevealUIExtensions,
   isValidSlug,
-  toCMSCollectionConfig,
-  toCMSConfig,
-  toCMSGlobalConfig,
+  toAdminCollectionConfig,
+  toAdminConfig,
+  toAdminGlobalConfig,
   toSlug,
 } from './compat.js';
 
@@ -189,7 +189,7 @@ export type {
   GlobalBeforeChangeHook,
   GlobalBeforeReadHook,
   GlobalHooksConfig,
-  RevealCMSInstance,
+  RevealAdminInstance,
   RevealRequest,
   Where,
 } from './functions.js';

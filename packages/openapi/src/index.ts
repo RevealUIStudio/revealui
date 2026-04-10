@@ -7,17 +7,14 @@
  * @packageDocumentation
  */
 
-/** Add `.openapi()` method to Zod types for OpenAPI schema generation. */
-export { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-
 /** Zod re-export — consumers can import from either `zod` or this package. */
 export { z } from 'zod';
-
 /** Define a typed route with request/response schemas for OpenAPI generation. */
 export { createRoute } from './create-route.js';
-
 /** Shorthand helper for OpenAPI schema references (`$ref`). */
 export { $ } from './helpers.js';
+/** Add `.openapi()` method to Zod types for OpenAPI schema generation. */
+export { extendZodWithOpenApi } from './native/zod-extension.js';
 
 /** Extended Hono app with OpenAPI route registration and spec generation. */
 export { OpenAPIHono } from './openapi-hono.js';

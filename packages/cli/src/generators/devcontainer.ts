@@ -26,7 +26,7 @@ export async function generateDevContainer(projectPath: string): Promise<void> {
         onAutoForward: 'notify',
       },
       '4000': {
-        label: 'CMS',
+        label: 'Admin',
         onAutoForward: 'notify',
       },
       '5432': {
@@ -144,7 +144,7 @@ For GitHub Codespaces, set secrets in your repository settings.
 ## Ports
 
 - 3000: Web application
-- 4000: CMS
+- 4000: Admin
 - 5432: PostgreSQL database
 `;
 

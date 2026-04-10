@@ -26,7 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     isEnabled = draft.isEnabled;
   } catch (error: unknown) {
     logger.error(
-      `[CMS Layout] draftMode() failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[admin Layout] draftMode() failed: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
@@ -79,7 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     );
   } catch (error: unknown) {
     logger.error(
-      `[CMS Layout] Render failed: ${error instanceof Error ? error.message : String(error)}`,
+      `[admin Layout] Render failed: ${error instanceof Error ? error.message : String(error)}`,
     );
     // Fallback minimal layout so pages don't 500
     return (
@@ -87,7 +87,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <body>
           <main style={{ padding: '20px', fontFamily: 'system-ui, sans-serif' }}>
             <p style={{ color: '#525252' }}>
-              CMS is initializing. Some features may be unavailable.
+              admin is initializing. Some features may be unavailable.
             </p>
             {children}
           </main>
@@ -99,8 +99,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 export const metadata: Metadata = {
   title: {
-    default: 'RevealUI CMS',
-    template: '%s | RevealUI CMS',
+    default: 'RevealUI admin',
+    template: '%s | RevealUI admin',
   },
   metadataBase: new URL((process.env.NEXT_PUBLIC_SERVER_URL || 'https://revealui.com').trim()),
   openGraph: mergeOpenGraph(),

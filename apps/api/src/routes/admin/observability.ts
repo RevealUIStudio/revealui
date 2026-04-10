@@ -1,7 +1,7 @@
 /**
  * Admin Observability Routes
  *
- * Read-only endpoints for the CMS admin dashboard observability pages.
+ * Read-only endpoints for the admin dashboard dashboard observability pages.
  * All endpoints require admin role (admin, super-admin, user-admin, user-super-admin).
  *
  * GET /admin/logs      — paginated app logs, filterable by app and level

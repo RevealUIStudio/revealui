@@ -2,7 +2,7 @@
 /**
  * OAuth Account Linking API Route Tests
  *
- * Unit tests for the CMS OAuth link/unlink/me API routes.
+ * Unit tests for the admin OAuth link/unlink/me API routes.
  * Mocks session, auth functions, and logger to test route logic in isolation.
  */
 

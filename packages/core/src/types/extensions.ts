@@ -6,7 +6,7 @@
  * @module @revealui/core/types/extensions
  */
 
-import type { CollectionConfig, Field } from '@revealui/contracts/cms';
+import type { CollectionConfig, Field } from '@revealui/contracts/admin';
 import type { ComponentType } from 'react';
 import type { Access, RevealUIAccessResult } from './access.js';
 import type { RevealUIFieldValidator, RevealUIValidationRule } from './hooks.js';

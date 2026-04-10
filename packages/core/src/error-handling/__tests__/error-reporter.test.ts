@@ -276,7 +276,7 @@ describe('ErrorReportingSystem', () => {
     });
 
     it('should merge global tags and context', () => {
-      system.setTag('app', 'cms');
+      system.setTag('app', 'admin');
       system.setContext({ environment: 'prod' });
       system.captureMessage('hello', 'info', { tags: { extra: 'tag' } });
 
@@ -284,7 +284,7 @@ describe('ErrorReportingSystem', () => {
         'hello',
         'info',
         expect.objectContaining({
-          tags: { app: 'cms', extra: 'tag' },
+          tags: { app: 'admin', extra: 'tag' },
           context: expect.objectContaining({ environment: 'prod' }),
         }),
       );
@@ -368,13 +368,13 @@ describe('ErrorReportingSystem', () => {
 
     it('should include tags in error reports', () => {
       system.addReporter(mockReporter);
-      system.setTag('app', 'cms');
+      system.setTag('app', 'admin');
       system.captureError(new Error('test'));
 
       expect(mockReporter.captureError).toHaveBeenCalledWith(
         expect.any(Error),
         expect.objectContaining({
-          tags: { app: 'cms' },
+          tags: { app: 'admin' },
         }),
       );
     });

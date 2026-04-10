@@ -6,7 +6,7 @@ import {
   StripeProductIDSchema,
 } from '@revealui/contracts/entities';
 import type { RevealBeforeChangeHook } from '@revealui/core';
-import type { Product } from '@revealui/core/types/cms';
+import type { Product } from '@revealui/core/types/admin';
 import { LRUCache } from '@revealui/core/utils/cache';
 import type Stripe from 'stripe';
 

@@ -17,7 +17,7 @@
 // Types
 // ---------------------------------------------------------------------------
 
-/** Minimal interface for the RevealUI CMS instance (injected by consumer). */
+/** Minimal interface for the RevealUI admin instance (injected by consumer). */
 export interface RevealUILike {
   find: (args: {
     collection: string;
@@ -38,7 +38,7 @@ export interface BootstrapAdminConfig {
 }
 
 export interface BootstrapOptions {
-  /** RevealUI CMS instance (injected — keeps setup package lightweight). */
+  /** RevealUI admin instance (injected — keeps setup package lightweight). */
   revealui: RevealUILike;
   /** First admin user credentials. */
   admin: BootstrapAdminConfig;

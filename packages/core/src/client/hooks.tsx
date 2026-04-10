@@ -1,7 +1,7 @@
 /**
  * RevealUI Client-Side React Hooks
  *
- * Client-side React hooks and HOCs for RevealUI CMS
+ * Client-side React hooks and HOCs for RevealUI admin
  */
 
 'use client';

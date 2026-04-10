@@ -28,7 +28,7 @@ export const GlobalContract: Contract<GlobalStructure> = createContract({
   schema: GlobalStructureSchema,
   description: 'Global configuration contract',
   docsUrl: 'https://revealui.dev/docs/api-reference/globals',
-  tags: ['global', 'config', 'cms'],
+  tags: ['global', 'config', 'admin'],
 });
 
 /**

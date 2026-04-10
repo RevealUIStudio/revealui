@@ -1,7 +1,7 @@
 /**
  * Error Capture Route
  *
- * POST /api/errors — accepts structured error payloads from CMS client-side
+ * POST /api/errors — accepts structured error payloads from admin client-side
  * and any other app that can't write to the DB directly.
  *
  * No authentication required — errors can occur before login.
@@ -34,7 +34,7 @@ const captureErrorRoute = createRoute({
   tags: ['errors'],
   summary: 'Capture client-side error',
   description:
-    'Accepts structured error payloads from CMS client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.',
+    'Accepts structured error payloads from admin client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.',
   request: {
     body: {
       content: {

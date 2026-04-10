@@ -19,7 +19,7 @@
  * - `@revealui/contracts/representation` - Dual representation types
  * - `@revealui/contracts/entities` - User, Site, Page contracts
  * - `@revealui/contracts/content` - Block contracts
- * - `@revealui/contracts/cms` - CMS configuration contracts
+ * - `@revealui/contracts/admin` - admin configuration contracts
  * - `@revealui/contracts/agents` - Agent memory/context contracts
  * - `@revealui/contracts/database` - DB ↔ Contract bridges
  * - `@revealui/contracts/actions` - Action validation
@@ -295,7 +295,7 @@ export {
 } from './a2a/index.js';
 
 // =============================================================================
-// CMS Contracts
+// Admin Contracts
 // =============================================================================
 
 export {
@@ -304,7 +304,7 @@ export {
   isCollectionConfig,
   parseCollection,
   validateCollection,
-} from './cms/collection.js';
+} from './admin/collection.js';
 export {
   type CollectionConfig,
   type Config,
@@ -316,24 +316,24 @@ export {
   type SanitizedConfig,
   type TypedCollectionConfig,
   type TypedGlobalConfig,
-} from './cms/config.js';
+} from './admin/config.js';
 export {
   ConfigContract,
   type ConfigContractType,
   isConfigStructure,
   parseConfigStructure,
   validateConfigStructure,
-} from './cms/config-contract.js';
+} from './admin/config-contract.js';
 
 export {
   ConfigValidationError,
   safeValidate,
   type ValidationResult,
   validateWithErrors,
-} from './cms/errors.js';
+} from './admin/errors.js';
 
-// Re-export all CMS contracts from the main CMS index
-export * from './cms/index.js';
+// Re-export all admin contracts from the main admin index
+export * from './admin/index.js';
 
 // =============================================================================
 // Database Bridges
@@ -390,7 +390,7 @@ export type {
   FailedAttemptsRow,
   FailedAttemptsUpdate,
   GlobalFooterInsert,
-  // CMS tables
+  // admin tables
   GlobalFooterRow,
   GlobalFooterUpdate,
   GlobalHeaderInsert,

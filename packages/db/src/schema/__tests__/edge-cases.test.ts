@@ -135,7 +135,7 @@ beforeAll(async () => {
   // Composite unique index on pages (slug, site_id) — matches schema
   await db.query('CREATE UNIQUE INDEX pages_slug_site_id_idx ON pages (slug, site_id)');
 
-  // Posts table (matches packages/db/src/schema/cms.ts)
+  // Posts table (matches packages/db/src/schema/admin.ts)
   await db.query(`
     CREATE TABLE posts (
       id                TEXT PRIMARY KEY,

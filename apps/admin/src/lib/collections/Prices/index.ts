@@ -20,7 +20,7 @@
  */
 
 import type { RevealCollectionConfig } from '@revealui/core';
-import type { Price } from '@revealui/core/types/cms';
+import type { Price } from '@revealui/core/types/admin';
 import { isAdmin } from '@/lib/access';
 import { ArchiveBlock } from '@/lib/blocks/ArchiveBlock/config';
 import { CallToAction } from '@/lib/blocks/CallToAction/config';

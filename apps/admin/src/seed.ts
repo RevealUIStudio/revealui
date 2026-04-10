@@ -114,7 +114,7 @@ const pages = [
             richText: richTextDoc(
               heading('About RevealUI'),
               paragraph(
-                'RevealUI is an agentic business runtime for the post-SaaS era. Instead of bolting together auth, payments, CMS, and AI from different vendors, RevealUI ships them as one coherent stack — pre-wired, tested, and ready to deploy.',
+                'RevealUI is an agentic business runtime for the post-SaaS era. Instead of bolting together auth, payments, admin, and AI from different vendors, RevealUI ships them as one coherent stack — pre-wired, tested, and ready to deploy.',
               ),
               paragraph(
                 'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Designed for product teams who ship fast and founders who build alone.',
@@ -337,7 +337,7 @@ async function main() {
     const contentOnly = args.includes('--content-only');
 
     logger.header('RevealUI Seed');
-    logger.info('Initializing CMS...\n');
+    logger.info('Initializing admin...\n');
 
     const revealuiConfig = await config;
     const revealui = await getRevealUI({ config: revealuiConfig });

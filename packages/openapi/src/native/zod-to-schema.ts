@@ -70,20 +70,23 @@ interface ConversionContext {
 export function zodToJsonSchema(schema: z.ZodTypeAny, ctx?: ConversionContext): JSONSchema {
   const context = ctx ?? { seen: new WeakSet(), components: new Map() };
 
+  // Check for OpenAPI metadata (refId → $ref) before circular check
+  // so that reused schemas always produce $ref regardless of visit order
+  const metadata = getOpenApiMetadata(schema);
+  if (metadata?.refId && ctx) {
+    if (!context.components.has(metadata.refId)) {
+      // First encounter: convert and register as component
+      const refSchema = convertType(schema, context);
+      context.components.set(metadata.refId, refSchema);
+    }
+    return { $ref: `#/components/schemas/${metadata.refId}` };
+  }
+
   // Prevent infinite recursion on circular schemas
   if (context.seen.has(schema)) {
     return {};
   }
   context.seen.add(schema);
-
-  // Check for OpenAPI metadata (refId → $ref)
-  const metadata = getOpenApiMetadata(schema);
-  if (metadata?.refId && ctx) {
-    // Register as component and return $ref
-    const refSchema = convertType(schema, context);
-    context.components.set(metadata.refId, refSchema);
-    return { $ref: `#/components/schemas/${metadata.refId}` };
-  }
 
   const result = convertType(schema, context);
 
@@ -395,7 +398,7 @@ function convertDefault(def: Record<string, unknown>, ctx: ConversionContext): J
 // Helpers
 // =============================================================================
 
-function isOptional(schema: z.ZodTypeAny): boolean {
+export function isOptional(schema: z.ZodTypeAny): boolean {
   const def = schema._def as unknown as Record<string, unknown>;
   const type = def.type as string;
   if (type === 'optional') return true;

@@ -40,10 +40,10 @@ export const ragDocuments = pgTable('rag_documents', {
   /** Source type: cms_collection, url, file, text */
   sourceType: text('source_type').notNull(),
 
-  /** Source-specific identifier (e.g. CMS document ID, URL, file path) */
+  /** Source-specific identifier (e.g. admin document ID, URL, file path) */
   sourceId: text('source_id'),
 
-  /** CMS collection name when sourceType = 'cms_collection' */
+  /** admin collection name when sourceType = 'cms_collection' */
   sourceCollection: text('source_collection'),
 
   title: text('title'),

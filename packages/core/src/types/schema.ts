@@ -73,7 +73,7 @@ export type {
 } from '@revealui/contracts';
 
 export type {
-  // Core Contracts - from @revealui/contracts/cms
+  // Core Contracts - from @revealui/contracts/admin
   AccessArgs,
   AccessFunction,
   AccessResult,
@@ -150,4 +150,4 @@ export type {
   ValidationResult,
   // VersionsConfig,
   Where,
-} from '@revealui/contracts/cms';
+} from '@revealui/contracts/admin';

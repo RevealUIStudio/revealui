@@ -272,7 +272,7 @@ describe('PricingPage', () => {
     expect(html).toContain('What are perpetual licenses?');
   });
 
-  it('resolves relative CTA hrefs to CMS URL', async () => {
+  it('resolves relative CTA hrefs to admin URL', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
     const result = await PricingPage();

@@ -1,5 +1,5 @@
 /**
- * CMS User Tools
+ * Admin User Tools
  * Tools for user management and authentication
  */
 

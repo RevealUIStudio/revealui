@@ -1,4 +1,4 @@
-import type { Post } from '@revealui/core/types/cms';
+import type { Post } from '@revealui/core/types/admin';
 import React from 'react';
 import { Media } from '@/lib/components/Media/index';
 import { formatDateTime } from '@/lib/utilities/formatDateTime';

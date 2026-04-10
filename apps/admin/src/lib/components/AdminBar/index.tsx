@@ -3,7 +3,7 @@
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState } from 'react';
 
-// Local type definitions for RevealUI CMS
+// Local type definitions for RevealUI admin
 export interface RevealUIAdminBarProps {
   className?: string;
   classNames?: {

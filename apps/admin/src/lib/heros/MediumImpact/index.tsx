@@ -1,4 +1,4 @@
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import { CMSLink } from '@/lib/components/Link/index';
 import { Media } from '@/lib/components/Media/index';
 import RichText from '@/lib/components/RichText/index';

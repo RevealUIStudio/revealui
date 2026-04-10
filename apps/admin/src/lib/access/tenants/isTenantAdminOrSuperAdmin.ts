@@ -1,5 +1,5 @@
 import type { AccessArgs, RevealUIInstance } from '@revealui/core';
-import type { Tenant } from '@revealui/core/types/cms';
+import type { Tenant } from '@revealui/core/types/admin';
 import { Role } from '@/lib/access/permissions/roles';
 import { hasRole } from '@/lib/access/roles/hasRole';
 import { isSuperAdmin } from '@/lib/access/roles/isSuperAdmin';

@@ -56,7 +56,7 @@ const richText = (overrides: Partial<{ admin: Admin }> = {}): TextField => {
       Error: undefined, // You can provide your custom error component here if needed
       Label: undefined, // Same for label
       Cell: undefined,
-      // Description removed to avoid type conflicts with RevealUI CMS v3
+      // Description removed to avoid type conflicts with RevealUI admin v3
       Field: undefined,
       Filter: undefined,
     },

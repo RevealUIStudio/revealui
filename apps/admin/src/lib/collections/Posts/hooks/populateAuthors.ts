@@ -1,5 +1,5 @@
 import type { RevealAfterReadHook, RevealDocument, RevealUIInstance } from '@revealui/core';
-import type { User } from '@revealui/core/types/cms';
+import type { User } from '@revealui/core/types/admin';
 import { asDocument } from '@/lib/utils/type-guards';
 
 interface PostWithAuthors extends RevealDocument {}

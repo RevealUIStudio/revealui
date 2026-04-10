@@ -1,5 +1,5 @@
 /**
- * Critical CMS Hooks Tests
+ * Critical admin Hooks Tests
  *
  * Tests for security-critical hooks:
  * - ensureFirstUserIsSuperAdmin: first-user bootstrap promotion

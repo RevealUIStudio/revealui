@@ -1,5 +1,5 @@
 import type { RevealCollectionConfig } from '@revealui/core';
-import type { Tenant } from '@revealui/core/types/cms';
+import type { Tenant } from '@revealui/core/types/admin';
 import { isSuperAdmin } from '@/lib/access';
 import { Role } from '@/lib/access/permissions/roles';
 import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin';

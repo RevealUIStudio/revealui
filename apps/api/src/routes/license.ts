@@ -30,7 +30,7 @@ const LicenseVerifyResponseSchema = z.object({
     .optional()
     .openapi({
       description:
-        'Why the license is invalid or degraded. "expired": JWT past expiry or DB status expired. "revoked": explicitly revoked in the DB (chargeback, refund, cancellation). "support_expired": perpetual license with expired support contract (basic CMS still valid, premium features downgraded). "invalid": bad signature or malformed JWT. "misconfigured": server public key not configured.',
+        'Why the license is invalid or degraded. "expired": JWT past expiry or DB status expired. "revoked": explicitly revoked in the DB (chargeback, refund, cancellation). "support_expired": perpetual license with expired support contract (basic admin still valid, premium features downgraded). "invalid": bad signature or malformed JWT. "misconfigured": server public key not configured.',
       example: 'revoked',
     }),
   tier: z.enum(['free', 'pro', 'max', 'enterprise']).openapi({
@@ -255,7 +255,7 @@ app.openapi(verifyRoute, async (c) => {
     payload.perpetual === true && supportExpiresAt !== null && supportExpiresAt < now;
 
   // Perpetual license with expired support: license is still valid but premium
-  // features are downgraded to free tier. Basic CMS access remains perpetual.
+  // features are downgraded to free tier. Basic admin access remains perpetual.
   if (dbStatus === 'support_expired' || isSupportExpired) {
     return c.json(
       {

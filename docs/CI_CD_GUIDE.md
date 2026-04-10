@@ -40,8 +40,8 @@ This comprehensive guide covers deploying RevealUI to production using Vercel wi
 ```env
 # Core (3)
 REVEALUI_SECRET=<32+ char random string>
-REVEALUI_PUBLIC_SERVER_URL=https://cms.yourdomain.com
-NEXT_PUBLIC_SERVER_URL=https://cms.yourdomain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.yourdomain.com
+NEXT_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 
 # Database (1)
 POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
@@ -233,7 +233,7 @@ Visit `http://localhost:4000/admin`
 
 ## Build Process
 
-The CMS build uses these fallback environment variables when not set:
+The admin build uses these fallback environment variables when not set:
 
 ```bash
 # In package.json vercel-build script
@@ -1108,7 +1108,7 @@ vercel deploy --prod
 
 #### Build Individual Apps
 ```bash
-# CMS (Next.js)
+# admin (Next.js)
 docker build -f apps/admin/Dockerfile -t revealui-admin:latest .
 
 # Mainframe (Hono SSR + React)
@@ -1141,7 +1141,7 @@ docker-compose -f infrastructure/docker-compose/production.yml down -v
 
 #### Health Checks
 ```bash
-# CMS health check
+# admin health check
 curl http://localhost:4000/api/health
 
 # Mainframe health check
@@ -1488,7 +1488,7 @@ netstat -an | grep 4000
 
 ### Important: Next.js Standalone Output
 
-The Dockerfiles for CMS, Dashboard, and Landing apps assume Next.js standalone output mode. This needs to be configured in each app's `next.config.js` or `next.config.mjs`.
+The Dockerfiles for admin, Dashboard, and Landing apps assume Next.js standalone output mode. This needs to be configured in each app's `next.config.js` or `next.config.mjs`.
 
 #### Required Configuration
 
@@ -1574,7 +1574,7 @@ CMD ["node", "apps/admin/server.js"]
 ```dockerfile
 COPY --from=builder /app/apps/admin/.next ./apps/admin/.next
 COPY --from=builder /app/apps/admin/package.json ./apps/admin/
-CMD ["pnpm", "--filter", "cms", "start"]
+CMD ["pnpm", "--filter", "admin", "start"]
 ```
 
 ### Health Check Endpoints
@@ -1639,7 +1639,7 @@ When building multiple apps, build in this order for optimal cache usage:
 1. **mainframe** (smallest, static only)
 2. **docs** (similar to mainframe)
 3. **marketing** (Next.js, fewer dependencies)
-4. **cms** (largest, most dependencies)
+4. **admin** (largest, most dependencies)
 
 Example:
 ```bash
@@ -2306,7 +2306,7 @@ docker-compose down
 ```
 
 **Services Available:**
-- **CMS**: http://localhost:3000
+- **admin**: http://localhost:3000
 - **Dashboard**: http://localhost:3001
 - **PostgreSQL**: localhost:5432
 - **MinIO**: http://localhost:9000
@@ -2328,7 +2328,7 @@ pnpm db:seed
 # Start development servers
 pnpm dev
 
-# CMS: http://localhost:3000
+# admin: http://localhost:3000
 # Dashboard: http://localhost:3001
 ```
 
@@ -2342,8 +2342,8 @@ Build production Docker images:
 # Build base image
 docker build -f docker/Dockerfile.base -t revealui/base:latest .
 
-# Build CMS
-docker build -f docker/Dockerfile.cms -t revealui/cms:v1.0.0 .
+# Build admin
+docker build -f docker/Dockerfile.admin -t revealui/admin:v1.0.0 .
 
 # Build Dashboard
 docker build -f docker/Dockerfile.dashboard -t revealui/dashboard:v1.0.0 .
@@ -2360,8 +2360,8 @@ docker buildx create --use
 # Build and push multi-arch images
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -f docker/Dockerfile.cms \
-  -t revealui/cms:v1.0.0 \
+  -f docker/Dockerfile.admin \
+  -t revealui/admin:v1.0.0 \
   --push .
 ```
 
@@ -2372,10 +2372,10 @@ docker buildx build \
 docker login
 
 # Tag images
-docker tag revealui/cms:v1.0.0 registry.example.com/revealui/cms:v1.0.0
+docker tag revealui/admin:v1.0.0 registry.example.com/revealui/admin:v1.0.0
 
 # Push images
-docker push registry.example.com/revealui/cms:v1.0.0
+docker push registry.example.com/revealui/admin:v1.0.0
 docker push registry.example.com/revealui/dashboard:v1.0.0
 ```
 
@@ -2503,8 +2503,8 @@ kubectl wait --for=condition=ready pod -l app=postgres -n revealui --timeout=300
 #### 4. Deploy Applications
 
 ```bash
-# Deploy CMS
-kubectl apply -f k8s/deployments/cms.yaml
+# Deploy admin
+kubectl apply -f k8s/deployments/admin.yaml
 
 # Deploy Dashboard
 kubectl apply -f k8s/deployments/dashboard.yaml
@@ -2726,7 +2726,7 @@ Use the rollback script:
 ./scripts/rollback.sh rollback-all
 
 # Rollback to specific revision
-./scripts/rollback.sh rollback-cms 5
+./scripts/rollback.sh rollback-admin 5
 
 # Rollback database migration
 ./scripts/rollback.sh rollback-db

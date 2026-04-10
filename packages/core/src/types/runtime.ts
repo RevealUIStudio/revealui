@@ -154,10 +154,10 @@ export interface RevealPaginatedResult<T = RevealDocument> {
 export type PaginatedDocs<T = RevealDocument> = RevealPaginatedResult<T>;
 
 // =============================================================================
-// CMS INTERFACE
+// ADMIN INTERFACE
 // =============================================================================
 
-/** RevealUI CMS instance interface */
+/** RevealUI admin instance interface */
 export interface RevealUIInstance {
   db: DatabaseAdapter | null | undefined;
   collections: Record<string, RevealCollection>;
@@ -284,7 +284,7 @@ export interface DatabaseAdapter {
   collectionStorage?: QueryableDatabaseAdapter['collectionStorage'];
 }
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 
 export interface StorageAdapter {
   upload: (file: {

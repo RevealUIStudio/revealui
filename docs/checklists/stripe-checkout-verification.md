@@ -6,8 +6,8 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 ## Prerequisites
 
 - [ ] API running (`pnpm dev:api`)
-- [ ] CMS running (`pnpm dev:admin`)
-- [ ] Signed in as a test user in CMS
+- [ ] admin running (`pnpm dev:admin`)
+- [ ] Signed in as a test user in admin
 - [ ] Stripe test mode keys in vault (`sk_test_*`, `whsec_*`)
 - [ ] Stripe CLI forwarding webhooks: `stripe listen --forward-to localhost:3004/api/webhooks/stripe`
 
@@ -16,7 +16,7 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 ## 1. Subscription Checkout
 
 ### 1a. Pro subscription ($49/mo)
-- [ ] Navigate to CMS → Account → Billing (or pricing page)
+- [ ] Navigate to admin → Account → Billing (or pricing page)
 - [ ] Click subscribe to Pro
 - [ ] Verify: redirects to Stripe Checkout with correct amount ($49/mo)
 - [ ] Verify: 7-day trial shown (if REVEALUI_TRIAL_DAYS=7)
@@ -24,7 +24,7 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 - [ ] Verify: redirected to `/account/billing?success=true`
 - [ ] Verify: `checkout.session.completed` webhook received (check Stripe CLI output)
 - [ ] Verify: license created in DB (`SELECT * FROM licenses WHERE user_id = ...`)
-- [ ] Verify: user tier shows "pro" in CMS dashboard
+- [ ] Verify: user tier shows "pro" in admin dashboard
 
 ### 1b. Max subscription ($149/mo)
 - [ ] Same flow as 1a but for Max tier

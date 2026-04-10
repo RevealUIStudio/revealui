@@ -1,7 +1,7 @@
 const BeforeLogin = () => {
   return (
     <div className="rounded-xl bg-zinc-900 p-6 shadow-lg">
-      <p className="mb-4 text-2xl font-bold">Welcome to RevealUI CMS</p>
+      <p className="mb-4 text-2xl font-bold">Welcome to RevealUI admin</p>
       <p className="text-lg">
         This is where site admins log in to manage content, users, and settings. If you are a
         customer looking to access your account, please{' '}

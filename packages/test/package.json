@@ -17,6 +17,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.4.3",
     "@playwright/test": "catalog:",
     "@supabase/supabase-js": "^2.102.1",
     "@testing-library/jest-dom": "^6.9.1",

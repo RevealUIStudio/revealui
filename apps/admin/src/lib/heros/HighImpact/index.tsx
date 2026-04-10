@@ -1,5 +1,5 @@
 'use client';
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import React, { useEffect } from 'react';
 import { CMSLink } from '@/lib/components/Link/index';
 import { Media } from '@/lib/components/Media/index';

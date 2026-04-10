@@ -1,6 +1,6 @@
 import type { Role } from '@/lib/access/permissions/roles';
 
-// User type with roles - matches the actual structure from RevealUI CMS
+// User type with roles - matches the actual structure from RevealUI admin
 // Using index signature for maximum compatibility
 export interface UserWithRoles {
   id?: string | number;

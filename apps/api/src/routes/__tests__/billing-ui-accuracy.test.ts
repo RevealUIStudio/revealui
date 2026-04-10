@@ -1,7 +1,7 @@
 /**
  * Billing UI Accuracy Tests (Phase 2.4 — Stripe Go-Live Readiness)
  *
- * Validates that the CMS billing page (apps/admin/src/app/(frontend)/account/billing/page.tsx)
+ * Validates that the admin billing page (apps/admin/src/app/(frontend)/account/billing/page.tsx)
  * makes API calls that match the actual billing routes, and that hardcoded UI text
  * (tier names, limits, feature descriptions) matches contracts/pricing.ts.
  *
@@ -17,7 +17,7 @@ import {
 import { describe, expect, it } from 'vitest';
 
 // ─── Constants extracted from the billing page UI ──────────────────────────
-// These mirror what the CMS billing page hardcodes in its JSX.
+// These mirror what the admin billing page hardcodes in its JSX.
 // If these values change in the UI, update here and verify they still
 // match contracts/pricing.ts.
 
@@ -65,7 +65,7 @@ const UI_ENTERPRISE_CLAIMS = {
 
 // ─── Tests ─────────────────────────────────────────────────────────────────
 
-describe('Billing UI Accuracy — CMS Billing Page vs API + Contracts', () => {
+describe('Billing UI Accuracy — admin Billing Page vs API + Contracts', () => {
   describe('API endpoint paths used by billing page', () => {
     it('subscription endpoint follows /api/billing/ convention', () => {
       expect(BILLING_API_ENDPOINTS.subscription).toBe('/api/billing/subscription');
