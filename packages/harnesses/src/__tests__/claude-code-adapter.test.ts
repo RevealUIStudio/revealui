@@ -34,10 +34,10 @@ describe('ClaudeCodeAdapter — identity', () => {
 });
 
 describe('ClaudeCodeAdapter — getCapabilities', () => {
-  it('returns false for interactive-only capabilities', () => {
+  it('returns correct capabilities', () => {
     const caps = new ClaudeCodeAdapter().getCapabilities();
-    expect(caps.generateCode).toBe(false);
-    expect(caps.analyzeCode).toBe(false);
+    expect(caps.generateCode).toBe(true);
+    expect(caps.analyzeCode).toBe(true);
     expect(caps.applyEdit).toBe(false);
     expect(caps.applyConfig).toBe(false);
   });
@@ -98,22 +98,45 @@ describe('ClaudeCodeAdapter — execute', () => {
     expect(result.data).toEqual([]);
   });
 
-  it('generate-code returns failure with message', async () => {
+  it('generate-code returns success when claude --print works', async () => {
+    stubExecFile(null, 'function hello() { return "world"; }');
+    const result = await new ClaudeCodeAdapter().execute({
+      type: 'generate-code',
+      prompt: 'write a function',
+    });
+    expect(result.success).toBe(true);
+    expect(result.data).toContain('function hello');
+  });
+
+  it('generate-code returns failure when claude --print fails', async () => {
+    stubExecFile(new Error('claude not found'));
     const result = await new ClaudeCodeAdapter().execute({
       type: 'generate-code',
       prompt: 'write a function',
     });
     expect(result.success).toBe(false);
-    expect(result.message).toContain('generate-code');
+    expect(result.message).toBeTruthy();
   });
 
-  it('analyze-code returns failure with message', async () => {
+  it('analyze-code returns success when claude --print works', async () => {
+    stubExecFile(null, 'The function is well-structured.');
+    const result = await new ClaudeCodeAdapter().execute({
+      type: 'analyze-code',
+      filePath: '/src/foo.ts',
+      question: 'Is this well-structured?',
+    });
+    expect(result.success).toBe(true);
+    expect(result.data).toContain('well-structured');
+  });
+
+  it('analyze-code returns failure when claude --print fails', async () => {
+    stubExecFile(new Error('claude not found'));
     const result = await new ClaudeCodeAdapter().execute({
       type: 'analyze-code',
       filePath: '/src/foo.ts',
     });
     expect(result.success).toBe(false);
-    expect(result.message).toContain('analyze-code');
+    expect(result.message).toBeTruthy();
   });
 
   it('apply-config returns failure', async () => {

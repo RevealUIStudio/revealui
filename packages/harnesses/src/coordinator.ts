@@ -1,5 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { CIFeedback } from './coordination/ci-feedback.js';
+import { MergePipeline } from './coordination/merge-pipeline.js';
 import { autoDetectHarnesses } from './detection/auto-detector.js';
 import { HarnessRegistry } from './registry/harness-registry.js';
 import { HttpGateway } from './server/http-gateway.js';
@@ -47,6 +49,8 @@ export class HarnessCoordinator {
   private store: DaemonStore | null = null;
   private spawner: SpawnerService | null = null;
   private inference: InferenceService | null = null;
+  private mergePipeline: MergePipeline | null = null;
+  private ciFeedback: CIFeedback | null = null;
   private sessionId: string | null = null;
   private readonly workboard: WorkboardManager;
 
@@ -100,6 +104,14 @@ export class HarnessCoordinator {
     this.rpcServer.setSpawner(this.spawner);
     this.rpcServer.setInference(this.inference);
 
+    // 4c. Wire merge pipeline and CI feedback into RPC
+    this.mergePipeline = new MergePipeline(this.store, {
+      repoRoot: this.options.projectRoot,
+    });
+    this.ciFeedback = new CIFeedback(this.store);
+    this.rpcServer.setMergePipeline(this.mergePipeline);
+    this.rpcServer.setCIFeedback(this.ciFeedback);
+
     await this.rpcServer.start();
 
     // 5. Optionally start HTTP gateway for remote access
@@ -137,6 +149,8 @@ export class HarnessCoordinator {
       this.spawner = null;
     }
     this.inference = null;
+    this.mergePipeline = null;
+    this.ciFeedback = null;
 
     // Stop RPC server
     if (this.rpcServer) {

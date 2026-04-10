@@ -104,6 +104,11 @@ AI agents CAN make these decisions without asking:
 - Adding JSDoc comments
 - Fixing obvious typos
 - Applying automated linter fixes
+- Multi-file refactors within the same package (rename, restructure, extract)
+- Adding dependencies that follow established patterns in the package
+- Error handling that follows existing conventions in the same module
+- Creating or updating test files for code the agent modified
+- Fixing CI failures (lint, typecheck, test, build) on agent-owned branches
 
 ### ⚠️ Guided (AI Asks First)
 
