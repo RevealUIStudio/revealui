@@ -14,11 +14,12 @@
   "dependencies": {
     "@electric-sql/pglite": "^0.4.3",
     "@revealui/core": "workspace:*",
+    "node-pty": "^1.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
     "@revealui/dev": "workspace:*",
+    "@types/node": "^25.5.2",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "^4.1.3"
