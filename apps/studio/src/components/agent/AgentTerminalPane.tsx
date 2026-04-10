@@ -10,9 +10,9 @@ import type { Terminal } from '@xterm/xterm';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { agentInput, agentList, agentResize, agentSpawn, agentStop } from '../../lib/invoke';
 import type { AgentSessionInfo } from '../../types';
+import TerminalView from '../terminal/TerminalView';
 import Button from '../ui/Button';
 import StatusDot from '../ui/StatusDot';
-import TerminalView from '../terminal/TerminalView';
 
 function isTauri(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
