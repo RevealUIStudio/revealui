@@ -7,7 +7,12 @@
 
 import type { ProviderUser } from '../oauth.js';
 
-export function buildAuthUrl(clientId: string, redirectUri: string, state: string): string {
+export function buildAuthUrl(
+  clientId: string,
+  redirectUri: string,
+  state: string,
+  codeChallenge?: string,
+): string {
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.searchParams.set('client_id', clientId);
   url.searchParams.set('redirect_uri', redirectUri);
@@ -15,20 +20,32 @@ export function buildAuthUrl(clientId: string, redirectUri: string, state: strin
   url.searchParams.set('scope', 'openid email profile');
   url.searchParams.set('state', state);
   url.searchParams.set('access_type', 'online');
+  if (codeChallenge) {
+    url.searchParams.set('code_challenge', codeChallenge);
+    url.searchParams.set('code_challenge_method', 'S256');
+  }
   return url.toString();
 }
 
-export async function exchangeCode(code: string, redirectUri: string): Promise<string> {
+export async function exchangeCode(
+  code: string,
+  redirectUri: string,
+  codeVerifier?: string,
+): Promise<string> {
+  const params: Record<string, string> = {
+    code,
+    client_id: process.env.GOOGLE_CLIENT_ID ?? '',
+    client_secret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+    redirect_uri: redirectUri,
+    grant_type: 'authorization_code',
+  };
+  if (codeVerifier) {
+    params.code_verifier = codeVerifier;
+  }
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      code,
-      client_id: process.env.GOOGLE_CLIENT_ID ?? '',
-      client_secret: process.env.GOOGLE_CLIENT_SECRET ?? '',
-      redirect_uri: redirectUri,
-      grant_type: 'authorization_code',
-    }),
+    body: new URLSearchParams(params),
   });
 
   if (!response.ok) {

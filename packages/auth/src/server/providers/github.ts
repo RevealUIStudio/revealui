@@ -10,28 +10,45 @@
 
 import type { ProviderUser } from '../oauth.js';
 
-export function buildAuthUrl(clientId: string, redirectUri: string, state: string): string {
+export function buildAuthUrl(
+  clientId: string,
+  redirectUri: string,
+  state: string,
+  codeChallenge?: string,
+): string {
   const url = new URL('https://github.com/login/oauth/authorize');
   url.searchParams.set('client_id', clientId);
   url.searchParams.set('redirect_uri', redirectUri);
   url.searchParams.set('scope', 'read:user user:email');
   url.searchParams.set('state', state);
+  if (codeChallenge) {
+    url.searchParams.set('code_challenge', codeChallenge);
+    url.searchParams.set('code_challenge_method', 'S256');
+  }
   return url.toString();
 }
 
-export async function exchangeCode(code: string, redirectUri: string): Promise<string> {
+export async function exchangeCode(
+  code: string,
+  redirectUri: string,
+  codeVerifier?: string,
+): Promise<string> {
+  const params: Record<string, string> = {
+    code,
+    client_id: process.env.GITHUB_CLIENT_ID ?? '',
+    client_secret: process.env.GITHUB_CLIENT_SECRET ?? '',
+    redirect_uri: redirectUri,
+  };
+  if (codeVerifier) {
+    params.code_verifier = codeVerifier;
+  }
   const response = await fetch('https://github.com/login/oauth/access_token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       Accept: 'application/json',
     },
-    body: new URLSearchParams({
-      code,
-      client_id: process.env.GITHUB_CLIENT_ID ?? '',
-      client_secret: process.env.GITHUB_CLIENT_SECRET ?? '',
-      redirect_uri: redirectUri,
-    }),
+    body: new URLSearchParams(params),
   });
 
   if (!response.ok) {
