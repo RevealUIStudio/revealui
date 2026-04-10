@@ -4,12 +4,12 @@
  * Runs once before all tests:
  * - Creates output directories
  * - Optionally seeds test database (requires TEST_DATABASE_URL)
- * - Optionally saves authenticated browser state (requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD)
+ * - Optionally saves authenticated browser state (requires ADMIN_EMAIL + ADMIN_PASSWORD)
  *
  * All steps are best-effort — failures are logged and skipped, never throw.
  *
  * Required env vars for authenticated state:
- *   CMS_ADMIN_EMAIL=admin@example.com
+ *   ADMIN_EMAIL=admin@example.com
  *   ADMIN_PASSWORD=your-password
  *
  * Required env vars for DB seeding:
@@ -129,8 +129,8 @@ async function globalSetup(config: FullConfig) {
   }
 
   // Save authenticated browser state for reuse across tests
-  // Requires CMS_ADMIN_EMAIL and ADMIN_PASSWORD in environment
-  const adminEmail = process.env.CMS_ADMIN_EMAIL;
+  // Requires ADMIN_EMAIL and ADMIN_PASSWORD in environment
+  const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (adminEmail && adminPassword && !process.env.SKIP_GLOBAL_AUTH) {
@@ -147,7 +147,7 @@ async function globalSetup(config: FullConfig) {
         '⚠️  Could not create authenticated state:',
         error instanceof Error ? error.message : 'Unknown error',
       );
-      console.log('   Set CMS_ADMIN_EMAIL and ADMIN_PASSWORD to enable pre-authenticated tests');
+      console.log('   Set ADMIN_EMAIL and ADMIN_PASSWORD to enable pre-authenticated tests');
       // Preserve existing auth state if it has valid cookies — don't overwrite with empty
       // state just because the refresh failed (e.g. rate-limited). Tests can still reuse
       // the previous session cookie if it hasn't expired.
@@ -165,7 +165,7 @@ async function globalSetup(config: FullConfig) {
       }
     }
   } else {
-    console.log('ℹ️  CMS_ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping auth state creation');
+    console.log('ℹ️  ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping auth state creation');
     // Same preservation logic: keep existing cookies if present
     try {
       const existing = JSON.parse(

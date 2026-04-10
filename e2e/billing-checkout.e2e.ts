@@ -7,11 +7,11 @@
  * ─── PREREQUISITES ──────────────────────────────────────────────────────────────
  *   1. API (apps/api) and Admin (apps/admin) must be running
  *   2. Stripe test mode keys configured (sk_test_...)
- *   3. Authenticated user session (CMS_ADMIN_EMAIL + ADMIN_PASSWORD)
+ *   3. Authenticated user session (ADMIN_EMAIL + ADMIN_PASSWORD)
  *
  * ─── REQUIRED ENV VARS ──────────────────────────────────────────────────────────
  *   STRIPE_SECRET_KEY        sk_test_... (Stripe test key — never charged)
- *   CMS_ADMIN_EMAIL          admin@example.com
+ *   ADMIN_EMAIL          admin@example.com
  *   ADMIN_PASSWORD       <your-admin-password>
  *
  * ─── OPTIONAL ENV VARS ──────────────────────────────────────────────────────────
@@ -22,7 +22,7 @@
  *
  * Run:
  *   STRIPE_SECRET_KEY=sk_test_... \
- *   CMS_ADMIN_EMAIL=admin@example.com \
+ *   ADMIN_EMAIL=admin@example.com \
  *   ADMIN_PASSWORD='...' \
  *   pnpm test:e2e -- --project=chromium e2e/billing-checkout.e2e.ts
  */
@@ -34,8 +34,8 @@ import { expect, type Page, test } from '@playwright/test';
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 const ApiBase = (process.env.API_BASE_URL || 'http://localhost:3004').replace(/\/$/, '');
-const CmsBase = (process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
-const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || '';
+const AdminBase = (process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
 
@@ -93,11 +93,11 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
         const cookie: PlaywrightCookie = {
           name: saved.name,
           value: saved.value,
-          domain: new URL(CmsBase).hostname.replace(/^[^.]+\./, '.'),
+          domain: new URL(AdminBase).hostname.replace(/^[^.]+\./, '.'),
           path: '/',
           expires: -1,
           httpOnly: true,
-          secure: CmsBase.startsWith('https'),
+          secure: AdminBase.startsWith('https'),
           sameSite: 'Lax',
         };
         await page.context().addCookies([cookie]);
@@ -110,7 +110,7 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
   }
 
   // Fresh sign-in (at most once per run)
-  const res = await page.request.post(`${CmsBase}/api/auth/sign-in`, {
+  const res = await page.request.post(`${AdminBase}/api/auth/sign-in`, {
     data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
   });
   if (!res.ok()) {
@@ -118,7 +118,7 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
     return null;
   }
 
-  const contextCookies = await page.context().cookies(CmsBase);
+  const contextCookies = await page.context().cookies(AdminBase);
   const rawCookie = contextCookies[0];
   if (!rawCookie) {
     _session = null;
@@ -127,7 +127,7 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
 
   const cookie: PlaywrightCookie = {
     ...rawCookie,
-    domain: new URL(CmsBase).hostname.replace(/^[^.]+\./, '.'),
+    domain: new URL(AdminBase).hostname.replace(/^[^.]+\./, '.'),
   };
   const cookieHeader = `${cookie.name}=${cookie.value}`;
 
@@ -153,7 +153,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   // ─── API endpoint tests (verify checkout session creation) ─────────────────
 
   test('Subscription checkout (pro) returns Stripe URL', async ({ page }) => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
     test.skip(!sessionCookie, 'No valid session — authentication failed');
 
@@ -172,7 +172,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   });
 
   test('Perpetual license checkout returns Stripe URL', async ({ page }) => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
     test.skip(!sessionCookie, 'No valid session — authentication failed');
 
@@ -194,7 +194,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   });
 
   test('Credits checkout returns Stripe URL', async ({ page }) => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
     test.skip(!sessionCookie, 'No valid session — authentication failed');
 
@@ -213,7 +213,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   });
 
   test('Billing portal returns Stripe URL', async ({ page }) => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
     test.skip(!sessionCookie, 'No valid session — authentication failed');
 
@@ -235,7 +235,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   });
 
   test('RVUI payment returns 501 (disabled)', async ({ page }) => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
     test.skip(!sessionCookie, 'No valid session — authentication failed');
 
@@ -350,7 +350,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
     await submitBtn.click();
 
     // 8. Wait for redirect to admin billing page
-    await page.waitForURL(`${CmsBase}/account/billing**`, { timeout: 30_000 });
+    await page.waitForURL(`${AdminBase}/account/billing**`, { timeout: 30_000 });
     expect(page.url()).toContain('/account/billing');
     expect(page.url()).toContain('success=true');
   });

@@ -7,21 +7,21 @@
  * REQUIRES live services:
  *   - apps/admin (port 4000) with running database
  *   - Stripe test keys in environment (STRIPE_SECRET_KEY=sk_test_...)
- *   - An authenticated admin session (CMS_ADMIN_EMAIL + ADMIN_PASSWORD)
+ *   - An authenticated admin session (ADMIN_EMAIL + ADMIN_PASSWORD)
  *
  * Run with:
  *   pnpm dev
- *   STRIPE_SECRET_KEY=sk_test_... CMS_ADMIN_EMAIL=... pnpm test:e2e -- e2e/payments.e2e.ts
+ *   STRIPE_SECRET_KEY=sk_test_... ADMIN_EMAIL=... pnpm test:e2e -- e2e/payments.e2e.ts
  *
  * Stripe test card: 4242 4242 4242 4242, any future expiry, any CVC
  */
 
 import { expect, test } from '@playwright/test';
 
-const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
+const ADMIN_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 // Billing endpoints live on the API (migrated from admin in Session 19)
 const API_BASE = process.env.API_BASE_URL || 'http://localhost:3004';
-const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || 'admin@example.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
 
@@ -32,7 +32,7 @@ test.beforeAll(async ({ request }) => {
     return;
   }
   try {
-    const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 3000 });
+    const res = await request.get(`${ADMIN_BASE}/api/health`, { timeout: 3000 });
     if (!res.ok()) test.skip();
   } catch {
     test.skip();
@@ -46,7 +46,7 @@ test.beforeAll(async ({ request }) => {
 async function signIn(page: import('@playwright/test').Page) {
   // Admin login page is at /login (not /admin/login — that redirects to /login).
   // After successful sign-in, router.push('/') navigates away from /login.
-  await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${ADMIN_BASE}/login`, { waitUntil: 'domcontentloaded' });
   await page.getByLabel(/email/i).fill(ADMIN_EMAIL);
   await page
     .getByLabel(/password/i)
@@ -67,7 +67,7 @@ test.describe('Product management', () => {
 
   test('admin can create a product', async ({ page }) => {
     await signIn(page);
-    await page.goto(`${CMS_BASE}/admin/collections/products/create`, {
+    await page.goto(`${ADMIN_BASE}/admin/collections/products/create`, {
       waitUntil: 'domcontentloaded',
     });
 
@@ -87,7 +87,7 @@ test.describe('Product management', () => {
 
   test('admin can add a price to a product', async ({ page }) => {
     await signIn(page);
-    await page.goto(`${CMS_BASE}/admin/collections/prices/create`, {
+    await page.goto(`${ADMIN_BASE}/admin/collections/prices/create`, {
       waitUntil: 'domcontentloaded',
     });
 
@@ -110,9 +110,9 @@ test.describe('Checkout flow', () => {
   test('checkout page renders with Stripe elements', async ({ page }) => {
     // Navigate to the checkout page — URL varies by implementation
     const checkoutUrls = [
-      `${CMS_BASE}/checkout`,
-      `${CMS_BASE}/shop/checkout`,
-      `${CMS_BASE}/api/checkout`,
+      `${ADMIN_BASE}/checkout`,
+      `${ADMIN_BASE}/shop/checkout`,
+      `${ADMIN_BASE}/api/checkout`,
     ];
 
     let found = false;
@@ -139,7 +139,7 @@ test.describe('Checkout flow', () => {
   test('checkout with Stripe test card completes', async ({ page }) => {
     // Navigate to checkout with a test product
     const response = await page
-      .goto(`${CMS_BASE}/checkout?test=1`, { waitUntil: 'domcontentloaded', timeout: 5000 })
+      .goto(`${ADMIN_BASE}/checkout?test=1`, { waitUntil: 'domcontentloaded', timeout: 5000 })
       .catch(() => null);
 
     if (!response || response.status() >= 400) {

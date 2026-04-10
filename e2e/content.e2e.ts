@@ -9,7 +9,7 @@
  *
  * REQUIRES live services:
  *   - apps/admin deployed and accessible via PLAYWRIGHT_BASE_URL
- *   - CMS_ADMIN_EMAIL + ADMIN_PASSWORD so global-setup can create auth state
+ *   - ADMIN_EMAIL + ADMIN_PASSWORD so global-setup can create auth state
  *
  * Auth strategy:
  *   global-setup signs in ONCE and saves the session cookie to e2e/.auth/user.json.
@@ -25,7 +25,7 @@
  *
  * Run with:
  *   CI=1 PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
- *     CMS_ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD=<pass> \
+ *     ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD=<pass> \
  *     node_modules/.bin/playwright test e2e/content.e2e.ts \
  *     --project=chromium --retries=0 --reporter=line
  */
@@ -34,7 +34,7 @@ import { readFileSync } from 'node:fs';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
-const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
+const ADMIN_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
 // Auth state file written by global-setup (one sign-in per test run)
 const AUTH_STATE_FILE = 'e2e/.auth/user.json';
@@ -44,7 +44,7 @@ const AUTH_STATE_FILE = 'e2e/.auth/user.json';
 // ---------------------------------------------------------------------------
 
 async function goToAdmin(page: Page) {
-  await page.goto(`${CMS_BASE}/admin`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${ADMIN_BASE}/admin`, { waitUntil: 'domcontentloaded' });
   // Wait for SSR heading — signals HTML is ready
   await page.getByRole('heading', { name: /RevealUI Admin/i }).waitFor({ timeout: 15000 });
   // Wait for JS bundles to load so React can hydrate and attach onClick handlers
@@ -82,7 +82,7 @@ test.describe('Content CRUD lifecycle', () => {
     }
     // Skip if Admin is unreachable
     try {
-      const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 5000 });
+      const res = await request.get(`${ADMIN_BASE}/api/health`, { timeout: 5000 });
       if (!res.ok()) test.skip();
     } catch {
       test.skip();
@@ -183,7 +183,7 @@ test.describe('Media upload via API', () => {
       return;
     }
     try {
-      const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 5000 });
+      const res = await request.get(`${ADMIN_BASE}/api/health`, { timeout: 5000 });
       if (!res.ok()) test.skip();
     } catch {
       test.skip();
@@ -197,7 +197,7 @@ test.describe('Media upload via API', () => {
       'base64',
     );
 
-    const response = await request.post(`${CMS_BASE}/api/collections/media`, {
+    const response = await request.post(`${ADMIN_BASE}/api/collections/media`, {
       multipart: {
         file: {
           name: `e2e-test-${Date.now()}.png`,
@@ -232,7 +232,7 @@ test.describe('Media upload via API', () => {
       'base64',
     );
 
-    const response = await req.post(`${CMS_BASE}/api/collections/media`, {
+    const response = await req.post(`${ADMIN_BASE}/api/collections/media`, {
       multipart: {
         file: {
           name: 'unauthorized.png',

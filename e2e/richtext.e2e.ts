@@ -14,7 +14,7 @@
  *
  * Run with:
  *   CI=1 PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
- *     CMS_ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD=<pass> \
+ *     ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD=<pass> \
  *     node_modules/.bin/playwright test e2e/richtext.e2e.ts \
  *     --project=chromium --retries=0 --reporter=line
  */
@@ -23,7 +23,7 @@ import { readFileSync } from 'node:fs';
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 
-const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
+const ADMIN_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 const AUTH_STATE_FILE = 'e2e/.auth/user.json';
 
 // Minimal Lexical editor state with a single paragraph
@@ -58,7 +58,7 @@ const LEXICAL_HELLO = {
 };
 
 async function goToAdmin(page: Page) {
-  await page.goto(`${CMS_BASE}/admin`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${ADMIN_BASE}/admin`, { waitUntil: 'domcontentloaded' });
   await page.getByRole('heading', { name: /RevealUI Admin/i }).waitFor({ timeout: 15000 });
   await page.waitForLoadState('load');
 }
@@ -81,7 +81,7 @@ async function skipIfNoAuth(
     return;
   }
   try {
-    const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 5000 });
+    const res = await request.get(`${ADMIN_BASE}/api/health`, { timeout: 5000 });
     if (!res.ok()) test.skip();
   } catch {
     test.skip();
@@ -163,7 +163,7 @@ test.describe('Rich text serialization roundtrip', () => {
     const title = `E2E Roundtrip ${Date.now()}`;
 
     // Create a post with explicit Lexical content
-    const createRes = await request.post(`${CMS_BASE}/api/collections/posts`, {
+    const createRes = await request.post(`${ADMIN_BASE}/api/collections/posts`, {
       data: { title, content: LEXICAL_HELLO },
       headers: { 'Content-Type': 'application/json' },
     });
@@ -173,7 +173,7 @@ test.describe('Rich text serialization roundtrip', () => {
     expect(created.id).toBeTruthy();
 
     // Read it back
-    const readRes = await request.get(`${CMS_BASE}/api/collections/posts/${created.id}`);
+    const readRes = await request.get(`${ADMIN_BASE}/api/collections/posts/${created.id}`);
     expect(readRes.status()).toBe(200);
 
     const doc = (await readRes.json()) as { content?: typeof LEXICAL_HELLO };

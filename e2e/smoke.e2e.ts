@@ -70,11 +70,11 @@ test.describe('API health', () => {
 // ---------------------------------------------------------------------------
 
 test.describe('Admin basic render', () => {
-  const CmsBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
+  const AdminBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
   test('Admin root path responds', async ({ page }) => {
     // Soft-navigate — allow redirect to /admin or /login
-    const response = await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+    const response = await page.goto(AdminBase, { waitUntil: 'domcontentloaded' });
     // Any 2xx or 3xx (redirect to admin) is acceptable
     expect(response?.status()).toBeLessThan(500);
   });
@@ -83,7 +83,7 @@ test.describe('Admin basic render', () => {
     const jsErrors: string[] = [];
     page.on('pageerror', (err) => jsErrors.push(err.message));
 
-    await page.goto(`${CmsBase}/admin`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${AdminBase}/admin`, { waitUntil: 'domcontentloaded' });
 
     // Filter out known non-blocking warnings (HMR, Next dev overlay)
     const criticalErrors = jsErrors.filter(
@@ -99,7 +99,7 @@ test.describe('Admin basic render', () => {
   });
 
   test('Admin root has no critical accessibility violations', async ({ page }) => {
-    await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+    await page.goto(AdminBase, { waitUntil: 'domcontentloaded' });
     // Admin root may redirect to /admin or /login — wait for navigation to settle
     await page.waitForLoadState('networkidle');
     await checkAccessibilityCritical(page);

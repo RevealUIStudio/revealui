@@ -28,12 +28,12 @@
 
 import { expect, test } from '@playwright/test';
 
-const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
+const ADMIN_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
 // Skip entire suite if Admin is not reachable
 test.beforeAll(async ({ request }) => {
   try {
-    const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 3000 });
+    const res = await request.get(`${ADMIN_BASE}/api/health`, { timeout: 3000 });
     if (!res.ok()) {
       test.skip();
     }
@@ -52,7 +52,7 @@ test.describe('Sign-up and sign-in flow', () => {
   const testName = 'E2E Test User';
 
   test('user can sign up with email and password', async ({ page }) => {
-    await page.goto(`${CMS_BASE}/signup`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/signup`, { waitUntil: 'domcontentloaded' });
 
     // If signup is gated and we get redirected, skip
     if (!page.url().includes('/signup')) {
@@ -96,7 +96,7 @@ test.describe('Sign-up and sign-in flow', () => {
 
   test('user can sign in with valid credentials', async ({ page, request }) => {
     // Probe for rate limiting before attempting browser sign-in
-    const probe = await request.post(`${CMS_BASE}/api/auth/sign-in`, {
+    const probe = await request.post(`${ADMIN_BASE}/api/auth/sign-in`, {
       data: { email: testEmail, password: testPassword },
     });
     if (probe.status() === 429) {
@@ -105,7 +105,7 @@ test.describe('Sign-up and sign-in flow', () => {
       return;
     }
 
-    await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/login`, { waitUntil: 'domcontentloaded' });
 
     await page.getByLabel(/email/i).fill(testEmail);
     await page
@@ -123,7 +123,7 @@ test.describe('Sign-up and sign-in flow', () => {
 
   test('sign-in fails with wrong password', async ({ page, request }) => {
     // Probe for rate limiting before attempting browser sign-in
-    const probe = await request.post(`${CMS_BASE}/api/auth/sign-in`, {
+    const probe = await request.post(`${ADMIN_BASE}/api/auth/sign-in`, {
       data: { email: testEmail, password: 'WrongProbePassword!' },
     });
     if (probe.status() === 429) {
@@ -131,7 +131,7 @@ test.describe('Sign-up and sign-in flow', () => {
       return;
     }
 
-    await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/login`, { waitUntil: 'domcontentloaded' });
 
     await page.getByLabel(/email/i).fill(testEmail);
     await page
@@ -149,7 +149,7 @@ test.describe('Sign-up and sign-in flow', () => {
 
   test('user can sign out', async ({ page, request }) => {
     // Probe for rate limiting before attempting browser sign-in
-    const probe = await request.post(`${CMS_BASE}/api/auth/sign-in`, {
+    const probe = await request.post(`${ADMIN_BASE}/api/auth/sign-in`, {
       data: { email: testEmail, password: testPassword },
     });
     if (probe.status() === 429) {
@@ -158,7 +158,7 @@ test.describe('Sign-up and sign-in flow', () => {
     }
 
     // Sign in first
-    await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/login`, { waitUntil: 'domcontentloaded' });
     await page.getByLabel(/email/i).fill(testEmail);
     await page
       .getByLabel(/password/i)
@@ -170,10 +170,10 @@ test.describe('Sign-up and sign-in flow', () => {
     });
 
     // Sign out via API endpoint (admin frontend has no sign-out button for viewer role)
-    await page.request.post(`${CMS_BASE}/api/auth/sign-out`);
+    await page.request.post(`${ADMIN_BASE}/api/auth/sign-out`);
 
     // Session should be cleared — /api/auth/me should return 401
-    const meRes = await page.request.get(`${CMS_BASE}/api/auth/me`);
+    const meRes = await page.request.get(`${ADMIN_BASE}/api/auth/me`);
     expect([401, 403]).toContain(meRes.status());
   });
 });
@@ -185,7 +185,7 @@ test.describe('Sign-up and sign-in flow', () => {
 test.describe('Session persistence', () => {
   test('authenticated session persists across page reload', async ({ page, context }) => {
     // Set a cookie or local-storage session if needed; skip if no way to auth
-    await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/login`, { waitUntil: 'domcontentloaded' });
 
     // Check that reload of admin while logged in keeps user on admin page
     const cookies = await context.cookies();
@@ -211,7 +211,7 @@ test.describe('Session persistence', () => {
 test.describe('Password reset flow', () => {
   test('forgot-password page renders and accepts email', async ({ page }) => {
     // /reset-password (without token) shows the "request reset link" form
-    await page.goto(`${CMS_BASE}/reset-password`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/reset-password`, { waitUntil: 'domcontentloaded' });
 
     const emailInput = page.getByLabel(/email/i);
     await expect(emailInput).toBeVisible();
@@ -249,7 +249,7 @@ test.describe('Rate limiting', () => {
   test('repeated failed logins trigger rate limit or lock message', async ({ page }) => {
     const blockedEmail = `rate-limit-${Date.now()}@revealui-test.com`;
 
-    await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/login`, { waitUntil: 'domcontentloaded' });
 
     // Attempt 6 failed logins
     for (let i = 0; i < 6; i++) {
