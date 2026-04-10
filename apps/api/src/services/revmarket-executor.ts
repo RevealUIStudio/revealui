@@ -1,9 +1,14 @@
 /**
- * RevMarket Task Executor (Phase 5.16-B)
+ * RevMarket Task Executor (Phase 5.16-B) — PREVIEW
+ *
+ * ⚠️  PREVIEW FEATURE: Task execution runs in-process with timeout enforcement
+ * only. There is no process isolation, filesystem sandboxing, or memory limit
+ * enforcement. Use only with trusted agents you control or have reviewed.
+ * Full sandboxed execution (child process isolation) is planned for Phase B.
  *
  * Manages the lifecycle of autonomous agent task execution:
  *   1. Task claiming — atomic claim with priority ordering
- *   2. Sandboxed execution — resource limits, timeout enforcement
+ *   2. Timeout enforcement — AbortController with configurable maxExecutionMs
  *   3. Progress reporting — status updates to task_submissions
  *   4. Output validation — schema-checked results
  *   5. Audit trail — append-only audit_log entries
@@ -11,7 +16,7 @@
  * Architecture:
  *   - Uses the existing `jobs` table as a task queue bridge
  *   - Execution is in-process (not child-process) for Phase A
- *   - Resource limits enforced via timeout + memory monitoring
+ *   - Resource limits enforced via timeout only (memory monitoring planned)
  *   - All state transitions are atomic (single UPDATE with WHERE state = X)
  */
 
