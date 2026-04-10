@@ -124,9 +124,10 @@ export default function SetupPage() {
                   minLength={12}
                   autoComplete="new-password"
                   className="pr-10"
+                  aria-label="Password"
                 />
               </PasswordInput>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Minimum 12 characters</p>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">Minimum 12 characters</p>
             </div>
 
             {error ? (
