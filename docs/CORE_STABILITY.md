@@ -33,7 +33,7 @@ audience: developer
 
 ### Stable — Production-ready
 
-These exports are the load-bearing core of RevealUI. They are covered by unit and integration tests, have been deployed and verified in production (cms.revealui.com, revealui-api.vercel.app), and will not break without a major version bump.
+These exports are the load-bearing core of RevealUI. They are covered by unit and integration tests, have been deployed and verified in production (admin.revealui.com, revealui-api.vercel.app), and will not break without a major version bump.
 
 #### Setup & Instance
 
@@ -226,7 +226,7 @@ import { ... } from '@revealui/core/security'
 
 ## Production Verification Status
 
-This table reflects what has been exercised against production infrastructure (cms.revealui.com, revealui-api.vercel.app, NeonDB production, Electric on Railway).
+This table reflects what has been exercised against production infrastructure (admin.revealui.com, revealui-api.vercel.app, NeonDB production, Electric on Railway).
 
 | Feature | Verified in Production | Notes |
 |---------|----------------------|-------|

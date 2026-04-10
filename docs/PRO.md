@@ -1529,7 +1529,7 @@ See **[FORGE.md](./FORGE.md)** for the complete deployment guide, including:
 # Pull images (requires GHCR token from Forge welcome email)
 echo "$GHCR_TOKEN" | docker login ghcr.io -u revealuistudio --password-stdin
 docker pull ghcr.io/revealuistudio/revealui-api:latest
-docker pull ghcr.io/revealuistudio/revealui-cms:latest
+docker pull ghcr.io/revealuistudio/revealui-admin:latest
 
 # Start the stack
 docker compose -f docker-compose.forge.yml --env-file .env.forge up -d

@@ -12,7 +12,7 @@ interface ElectricContextValue {
   /**
    * Base URL prefix for authenticated CMS shape proxy routes.
    * Default '' keeps all hook URLs relative (works for same-origin apps).
-   * Set to 'https://cms.revealui.com' when consuming from a different origin.
+   * Set to 'https://admin.revealui.com' when consuming from a different origin.
    */
   proxyBaseUrl: string;
   debug: boolean;

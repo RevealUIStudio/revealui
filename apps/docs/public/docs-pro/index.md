@@ -17,7 +17,7 @@ RevealUI Pro adds AI agents, MCP servers, and editor integrations on top of the 
 Pro packages are commercially licensed. An active Pro or Forge subscription, or a perpetual license, is required.
 
 - [View pricing](https://revealui.com/pricing)
-- [Manage your license](https://cms.revealui.com)
+- [Manage your license](https://admin.revealui.com)
 
 ## Installation
 

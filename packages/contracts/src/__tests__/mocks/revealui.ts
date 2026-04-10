@@ -1,7 +1,7 @@
 /**
  * Mock RevealUI Types for Isolated Unit Testing
  *
- * These mocks allow tests to run without importing from apps/cms.
+ * These mocks allow tests to run without importing from apps/admin.
  * Use these for unit tests that need to validate type behavior
  * in isolation.
  *

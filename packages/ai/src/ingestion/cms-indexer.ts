@@ -5,7 +5,7 @@
  * Wire into CMS collection afterChange hooks — no CMS API calls from here,
  * the event payload carries the document content directly.
  *
- * Usage (in apps/cms/src/lib/ai/indexer.ts):
+ * Usage (in apps/admin/src/lib/ai/indexer.ts):
  *   export const cmsIndexer = new CmsIndexer({ db, ingestionPipeline, enabledCollections: ['posts', 'pages'] })
  *
  * In each CMS collection afterChange hook:

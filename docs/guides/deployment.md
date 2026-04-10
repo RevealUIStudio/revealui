@@ -20,7 +20,7 @@ Vercel is the recommended deployment target. RevealUI auto-deploys three service
 
 | App | Vercel Project | Domain |
 |-----|---------------|--------|
-| CMS | `revealui-cms` | cms.yourdomain.com |
+| Admin | `revealui-admin` | admin.yourdomain.com |
 | API | `revealui-api` | api.yourdomain.com |
 | Marketing | `revealui-marketing` | yourdomain.com |
 
@@ -61,8 +61,8 @@ These must be set in every Vercel project:
 ```env
 # Core (required)
 REVEALUI_SECRET=<32+ character random string>
-REVEALUI_PUBLIC_SERVER_URL=https://cms.yourdomain.com
-NEXT_PUBLIC_SERVER_URL=https://cms.yourdomain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.yourdomain.com
+NEXT_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
 
 # Storage (required for media uploads)
@@ -103,7 +103,7 @@ Configure domains in the Vercel dashboard:
 2. Update DNS (CNAME to `cname.vercel-dns.com`)
 3. Update `REVEALUI_PUBLIC_SERVER_URL` to match
 
-For cross-subdomain auth, the session cookie domain should be set to `.yourdomain.com` so it works across `cms.yourdomain.com` and `api.yourdomain.com`.
+For cross-subdomain auth, the session cookie domain should be set to `.yourdomain.com` so it works across `admin.yourdomain.com` and `api.yourdomain.com`.
 
 ---
 
@@ -227,7 +227,7 @@ node dist/index.js
 Use a process manager like PM2 for production:
 
 ```bash
-pm2 start apps/admin/.next/standalone/server.js --name revealui-cms
+pm2 start apps/admin/.next/standalone/server.js --name revealui-admin
 pm2 start apps/api/dist/index.js --name revealui-api
 pm2 save
 pm2 startup
@@ -239,7 +239,7 @@ Place Nginx or Caddy in front of the Node.js processes:
 
 ```nginx
 server {
-    server_name cms.yourdomain.com;
+    server_name admin.yourdomain.com;
 
     location / {
         proxy_pass http://127.0.0.1:4000;

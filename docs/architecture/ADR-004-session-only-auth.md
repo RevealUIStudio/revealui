@@ -32,6 +32,6 @@ JWTs are used only for **license validation** (RS256, asymmetric), not for user 
 ## Consequences
 
 - Every authenticated request hits the database (session lookup). This is acceptable at current scale and can be cached later with PGlite or an in-memory session cache.
-- Cross-subdomain auth works natively via cookie domain (`.revealui.com` covers `cms.revealui.com`, `api.revealui.com`)
+- Cross-subdomain auth works natively via cookie domain (`.revealui.com` covers `admin.revealui.com`, `api.revealui.com`)
 - Session revocation is instant (delete the row)
 - No token refresh flow needed — sessions have a configurable TTL with sliding window

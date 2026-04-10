@@ -6,7 +6,7 @@
  *
  * ## Usage
  *
- * ### CMS App (apps/cms/revealui.config.ts)
+ * ### Admin App (apps/admin/revealui.config.ts)
  * ```typescript
  * import { getSharedCMSConfig } from '@revealui/config/revealui'
  *
@@ -121,7 +121,7 @@ export const sharedConfig = {
 
 /**
  * Get shared configuration for CMS app
- * Returns base config that can be extended in apps/cms/revealui.config.ts
+ * Returns base config that can be extended in apps/admin/revealui.config.ts
  */
 export function getSharedCMSConfig(): { serverURL: string; secret: string } {
   return {

@@ -4480,7 +4480,7 @@ import { ElectricProvider } from "@revealui/sync";
 
 function App() {
   return (
-    <ElectricProvider proxyBaseUrl="https://cms.revealui.com" debug={false}>
+    <ElectricProvider proxyBaseUrl="https://admin.revealui.com" debug={false}>
       <MyApp />
     </ElectricProvider>
   );

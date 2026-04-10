@@ -1,6 +1,6 @@
 // @ts-nocheck — plain JavaScript service worker (not processed by TypeScript)
 
-var CACHE_NAME = 'revealui-cms-v1';
+var CACHE_NAME = 'revealui-admin-v1';
 
 var PRE_CACHE_URLS = ['/', '/admin', '/login'];
 
