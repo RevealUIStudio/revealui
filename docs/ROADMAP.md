@@ -11,7 +11,30 @@ audience: developer
 
 This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
 
-**Last updated:** 2026-04-05
+**Last updated:** 2026-04-10
+
+---
+
+## Suite Product Maturity
+
+Honest labels for every product in the RevealUI ecosystem. Updated 2026-04-10.
+
+| Product | Maturity | Notes |
+|---------|----------|-------|
+| **RevealUI** (monorepo) | Beta | Deployed, 13,700+ tests, 23 npm packages. No paying users yet. |
+| **Forge** (self-hosted) | Beta | Docker stack complete, license enforcement built. No external customers. |
+| **RevVault** (secrets) | Beta | Rust CLI + desktop app, age-encrypted vault. Not published to crates.io. |
+| **Studio** (desktop) | Alpha | Tauri 2 + React 19, agent coordination UI. No published binaries. |
+| **Terminal** (TUI) | Alpha | Go SSH server + Bubble Tea. Functional, not deployed. |
+| **RevCon** (configs) | Alpha | Editor config sync tooling. Functional, undocumented. |
+| **RevealCoin** (token) | Alpha | Solana devnet proof-of-concept. Not on mainnet. |
+| **RevSkills** (skills) | Alpha | 6 Claude Code skills on GitHub. No tests. |
+| **RevDev** (dev tools) | Planned | Harness infrastructure exists. Not a standalone product yet. |
+| **RevMarket** (marketplace) | Planned | Database schema defined. No API routes or UI. |
+| **RevKit** (templates) | Planned | Design documented. Stub implementation. |
+
+**Labels:** Production = real users + stable API. Beta = feature-complete, deployed, pre-users.
+Alpha = functional, not deployed/published. Planned = design or schema only.
 
 ---
 
