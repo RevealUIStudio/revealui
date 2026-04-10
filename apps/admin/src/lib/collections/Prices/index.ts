@@ -38,9 +38,9 @@ const Prices: RevealCollectionConfig<Price> = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'stripePriceID', '_status'],
     preview: (doc: Record<string, unknown>) => {
-      return `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/api/preview?url=${encodeURIComponent(
-        `${import.meta.env.REVEALUI_PUBLIC_SERVER_URL}/prices/${doc.slug}`,
-      )}&secret=${import.meta.env.REVEALUI_DRAFT_SECRET}`;
+      // process.env (not import.meta.env) so the value is read at runtime, not inlined at build time
+      const serverUrl = process.env.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000';
+      return `${serverUrl}/next/preview?path=${encodeURIComponent(`/prices/${doc.slug}`)}`;
     },
   },
   hooks: {
