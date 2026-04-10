@@ -231,7 +231,7 @@ export const ConfigContract: Contract<ConfigStructure> = createContract({
   schema: ConfigStructureSchema,
   description: 'Root configuration contract',
   docsUrl: 'https://revealui.dev/docs/api-reference/config',
-  tags: ['config', 'root', 'cms'],
+  tags: ['config', 'root', 'admin'],
 });
 
 /**

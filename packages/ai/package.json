@@ -99,9 +99,9 @@
       "types": "./dist/llm/providers/base.d.ts",
       "import": "./dist/llm/providers/base.js"
     },
-    "./tools/cms": {
-      "types": "./dist/tools/cms/index.d.ts",
-      "import": "./dist/tools/cms/index.js"
+    "./tools/admin": {
+      "types": "./dist/tools/admin/index.d.ts",
+      "import": "./dist/tools/admin/index.js"
     },
     "./tools/registry": {
       "types": "./dist/tools/registry.d.ts",

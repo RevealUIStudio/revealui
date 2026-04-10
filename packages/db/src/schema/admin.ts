@@ -1,7 +1,7 @@
 /**
- * CMS-specific tables - Posts, Media, and Globals
+ * Admin-specific tables - Posts, Media, and Globals
  *
- * These tables provide content management functionality for the CMS app.
+ * These tables provide content management functionality for the admin app.
  */
 
 import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';

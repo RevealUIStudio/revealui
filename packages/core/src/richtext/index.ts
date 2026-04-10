@@ -2,7 +2,7 @@
  * RevealUI Rich Text Editor - Lexical Integration
  *
  * Uses vanilla Lexical npm packages for rich text editing.
- * Provides a CMS-compatible API for configuring the editor.
+ * Provides an admin-compatible API for configuring the editor.
  */
 
 export type {

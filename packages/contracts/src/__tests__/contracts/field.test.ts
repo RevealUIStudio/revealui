@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { isFieldConfig, parseField, validateField } from '../../cms/field.js';
+import { isFieldConfig, parseField, validateField } from '../../admin/field.js';
 
 describe('Field Contract', () => {
   describe('Validation', () => {

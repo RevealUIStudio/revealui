@@ -11,7 +11,7 @@ import {
   deleteTestUser,
   generateUniqueTestEmail,
   getTestRevealUI,
-} from '../utils/cms-test-utils';
+} from '../utils/admin-test-utils';
 
 /**
  * Access Control & Multi-Tenant Isolation Tests
@@ -61,7 +61,7 @@ describe('Access Control Tests', () => {
       'Test Tenant 2',
       'https://tenant2.example.com',
     )) as TestTenant;
-  }, 60000); // Full-suite fan-out can make CMS startup and tenant creation slow
+  }, 60000); // Full-suite fan-out can make admin startup and tenant creation slow
 
   afterAll(async () => {
     if (tenant1) await deleteTestTenant(tenant1.id);

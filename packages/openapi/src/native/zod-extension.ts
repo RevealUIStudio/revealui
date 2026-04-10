@@ -86,7 +86,10 @@ export function extendZodWithOpenApi(zod: typeof z): void {
   }
 
   // Add .openapi() method to all Zod types
-  zod.ZodType.prototype.openapi = function (metadata: OpenAPIMetadata) {
+  // Accepts either an OpenAPIMetadata object or a string shorthand for refId
+  zod.ZodType.prototype.openapi = function (metadataOrRefId: OpenAPIMetadata | string) {
+    const metadata: OpenAPIMetadata =
+      typeof metadataOrRefId === 'string' ? { refId: metadataOrRefId } : metadataOrRefId;
     const clone = this.describe(metadata.description ?? '');
     (clone as Record<symbol, unknown>)[OPENAPI_METADATA] = {
       ...getOpenApiMetadata(this),
@@ -99,6 +102,6 @@ export function extendZodWithOpenApi(zod: typeof z): void {
 // Type augmentation for TypeScript
 declare module 'zod' {
   interface ZodType {
-    openapi(metadata: OpenAPIMetadata): this;
+    openapi(metadata: OpenAPIMetadata | string): this;
   }
 }

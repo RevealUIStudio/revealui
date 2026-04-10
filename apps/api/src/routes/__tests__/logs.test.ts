@@ -60,7 +60,7 @@ beforeEach(() => {
 describe('POST / — schema validation', () => {
   it('returns 202 with received:true on valid warn payload', async () => {
     const res = await logsApp.request(
-      post({ level: 'warn', message: 'Low disk space', app: 'cms' }),
+      post({ level: 'warn', message: 'Low disk space', app: 'admin' }),
     );
     expect(res.status).toBe(202);
     const body = (await res.json()) as Record<string, unknown>;
@@ -86,14 +86,14 @@ describe('POST / — schema validation', () => {
 
   it('accepts all three valid levels (warn, error, fatal)', async () => {
     for (const level of ['warn', 'error', 'fatal'] as const) {
-      const res = await logsApp.request(post({ level, message: 'test', app: 'cms' }));
+      const res = await logsApp.request(post({ level, message: 'test', app: 'admin' }));
       expect(res.status).toBe(202);
     }
   });
 
   it('returns 400 when level is info (not in schema enum)', async () => {
     const res = await logsApp.request(
-      post({ level: 'info', message: 'Informational', app: 'cms' }),
+      post({ level: 'info', message: 'Informational', app: 'admin' }),
     );
     expect(res.status).toBe(400);
   });
@@ -104,7 +104,7 @@ describe('POST / — schema validation', () => {
   });
 
   it('returns 400 when message is missing', async () => {
-    const res = await logsApp.request(post({ level: 'error', app: 'cms' }));
+    const res = await logsApp.request(post({ level: 'error', app: 'admin' }));
     expect(res.status).toBe(400);
   });
 
@@ -114,7 +114,7 @@ describe('POST / — schema validation', () => {
   });
 
   it('returns 400 when level is missing', async () => {
-    const res = await logsApp.request(post({ message: 'No level', app: 'cms' }));
+    const res = await logsApp.request(post({ message: 'No level', app: 'admin' }));
     expect(res.status).toBe(400);
   });
 });
@@ -124,7 +124,7 @@ describe('POST / — fire-and-forget DB write', () => {
     mockInsertValues.mockRejectedValueOnce(new Error('DB timeout'));
 
     const res = await logsApp.request(
-      post({ level: 'error', message: 'DB write will fail', app: 'cms' }),
+      post({ level: 'error', message: 'DB write will fail', app: 'admin' }),
     );
     expect(res.status).toBe(202);
     const body = (await res.json()) as Record<string, unknown>;
@@ -159,7 +159,7 @@ describe('POST / — fire-and-forget DB write', () => {
   it('defaults environment to process.env.NODE_ENV when not in payload', async () => {
     process.env.NODE_ENV = 'production';
 
-    await logsApp.request(post({ level: 'warn', message: 'No env field', app: 'cms' }));
+    await logsApp.request(post({ level: 'warn', message: 'No env field', app: 'admin' }));
     await flushAsync();
 
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
@@ -167,7 +167,7 @@ describe('POST / — fire-and-forget DB write', () => {
   });
 
   it('sets requestId to null when not provided', async () => {
-    await logsApp.request(post({ level: 'warn', message: 'No requestId', app: 'cms' }));
+    await logsApp.request(post({ level: 'warn', message: 'No requestId', app: 'admin' }));
     await flushAsync();
 
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
@@ -183,7 +183,7 @@ describe('POST / — fire-and-forget DB write', () => {
   });
 
   it('sets data to null when not provided', async () => {
-    await logsApp.request(post({ level: 'fatal', message: 'No data', app: 'cms' }));
+    await logsApp.request(post({ level: 'fatal', message: 'No data', app: 'admin' }));
     await flushAsync();
 
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
@@ -201,25 +201,27 @@ describe('POST / — authentication', () => {
 
   it('returns 403 when X-Internal-Token header is absent', async () => {
     // Pass null to omit the header
-    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'cms' }, null));
+    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'admin' }, null));
     expect(res.status).toBe(403);
   });
 
   it('returns 403 when token is wrong', async () => {
     const res = await logsApp.request(
-      post({ level: 'warn', message: 'hi', app: 'cms' }, 'wrong-secret'),
+      post({ level: 'warn', message: 'hi', app: 'admin' }, 'wrong-secret'),
     );
     expect(res.status).toBe(403);
   });
 
   it('returns 403 when token has a different length (timing-safe branch)', async () => {
-    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'cms' }, 'short'));
+    const res = await logsApp.request(
+      post({ level: 'warn', message: 'hi', app: 'admin' }, 'short'),
+    );
     expect(res.status).toBe(403);
   });
 
   it('returns 403 when REVEALUI_SECRET env var is unset', async () => {
     delete process.env.REVEALUI_SECRET;
-    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'cms' }));
+    const res = await logsApp.request(post({ level: 'warn', message: 'hi', app: 'admin' }));
     expect(res.status).toBe(403);
   });
 
@@ -241,7 +243,7 @@ describe('POST / — input sanitization', () => {
   });
 
   it('strips newlines from message', async () => {
-    await logsApp.request(post({ level: 'warn', message: 'line1\nline2\r\nline3', app: 'cms' }));
+    await logsApp.request(post({ level: 'warn', message: 'line1\nline2\r\nline3', app: 'admin' }));
     await new Promise((r) => setTimeout(r, 0));
 
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
@@ -250,14 +252,14 @@ describe('POST / — input sanitization', () => {
 
   it('returns 400 when message exceeds 2000 characters', async () => {
     const res = await logsApp.request(
-      post({ level: 'error', message: 'x'.repeat(2001), app: 'cms' }),
+      post({ level: 'error', message: 'x'.repeat(2001), app: 'admin' }),
     );
     expect(res.status).toBe(400);
   });
 
   it('accepts message at exactly 2000 characters', async () => {
     const res = await logsApp.request(
-      post({ level: 'error', message: 'x'.repeat(2000), app: 'cms' }),
+      post({ level: 'error', message: 'x'.repeat(2000), app: 'admin' }),
     );
     expect(res.status).toBe(202);
   });
@@ -283,34 +285,34 @@ describe('POST / — field length boundaries', () => {
 
   it('accepts requestId at exactly 255 characters', async () => {
     const res = await logsApp.request(
-      post({ level: 'warn', message: 'hi', app: 'cms', requestId: 'r'.repeat(255) }),
+      post({ level: 'warn', message: 'hi', app: 'admin', requestId: 'r'.repeat(255) }),
     );
     expect(res.status).toBe(202);
   });
 
   it('returns 400 when requestId exceeds 255 characters', async () => {
     const res = await logsApp.request(
-      post({ level: 'warn', message: 'hi', app: 'cms', requestId: 'r'.repeat(256) }),
+      post({ level: 'warn', message: 'hi', app: 'admin', requestId: 'r'.repeat(256) }),
     );
     expect(res.status).toBe(400);
   });
 
   it('accepts environment at exactly 50 characters', async () => {
     const res = await logsApp.request(
-      post({ level: 'warn', message: 'hi', app: 'cms', environment: 'e'.repeat(50) }),
+      post({ level: 'warn', message: 'hi', app: 'admin', environment: 'e'.repeat(50) }),
     );
     expect(res.status).toBe(202);
   });
 
   it('returns 400 when environment exceeds 50 characters', async () => {
     const res = await logsApp.request(
-      post({ level: 'warn', message: 'hi', app: 'cms', environment: 'e'.repeat(51) }),
+      post({ level: 'warn', message: 'hi', app: 'admin', environment: 'e'.repeat(51) }),
     );
     expect(res.status).toBe(400);
   });
 
   it('strips standalone \\r from message', async () => {
-    await logsApp.request(post({ level: 'warn', message: 'line1\rline2', app: 'cms' }));
+    await logsApp.request(post({ level: 'warn', message: 'line1\rline2', app: 'admin' }));
     await new Promise((r) => setTimeout(r, 0));
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(insertArgs.message).toBe('line1 line2');
@@ -336,7 +338,7 @@ describe('POST / — environment fallback', () => {
   it('defaults environment to "production" when neither payload nor NODE_ENV is set', async () => {
     const savedNodeEnv = process.env.NODE_ENV;
     delete process.env.NODE_ENV;
-    await logsApp.request(post({ level: 'warn', message: 'no env', app: 'cms' }));
+    await logsApp.request(post({ level: 'warn', message: 'no env', app: 'admin' }));
     await new Promise((r) => setTimeout(r, 0));
     const insertArgs = mockInsertValues.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(insertArgs.environment).toBe('production');
@@ -367,7 +369,7 @@ describe('notFound handler', () => {
           'Content-Type': 'application/json',
           'X-Internal-Token': 'test-secret',
         },
-        body: JSON.stringify({ level: 'warn', message: 'hi', app: 'cms' }),
+        body: JSON.stringify({ level: 'warn', message: 'hi', app: 'admin' }),
       }),
     );
     expect(res.status).toBe(404);
@@ -390,7 +392,7 @@ describe('POST / — stderr on DB failure', () => {
     const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     mockInsertValues.mockRejectedValueOnce(new Error('connection reset'));
 
-    await logsApp.request(post({ level: 'error', message: 'will fail', app: 'cms' }));
+    await logsApp.request(post({ level: 'error', message: 'will fail', app: 'admin' }));
     await flushAsync();
 
     expect(stderrSpy).toHaveBeenCalledOnce();
@@ -404,7 +406,7 @@ describe('POST / — stderr on DB failure', () => {
     const stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     mockInsertValues.mockRejectedValueOnce('timeout string');
 
-    await logsApp.request(post({ level: 'error', message: 'will fail', app: 'cms' }));
+    await logsApp.request(post({ level: 'error', message: 'will fail', app: 'admin' }));
     await flushAsync();
 
     expect(stderrSpy).toHaveBeenCalledOnce();
@@ -432,7 +434,7 @@ describe('POST / — additional validation edge cases', () => {
   });
 
   it('returns 400 for unrecognized level string', async () => {
-    const res = await logsApp.request(post({ level: 'critical', message: 'hi', app: 'cms' }));
+    const res = await logsApp.request(post({ level: 'critical', message: 'hi', app: 'admin' }));
     expect(res.status).toBe(400);
   });
 
@@ -441,7 +443,7 @@ describe('POST / — additional validation edge cases', () => {
       post({
         level: 'warn',
         message: 'test',
-        app: 'cms',
+        app: 'admin',
         extraField: 'should be ignored',
         anotherExtra: 123,
       }),
@@ -477,7 +479,7 @@ describe('POST / — additional validation edge cases', () => {
   });
 
   it('returns 400 when level is a number', async () => {
-    const res = await logsApp.request(post({ level: 42, message: 'hi', app: 'cms' }));
+    const res = await logsApp.request(post({ level: 42, message: 'hi', app: 'admin' }));
     expect(res.status).toBe(400);
   });
 

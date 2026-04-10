@@ -7,7 +7,7 @@ import {
   deleteTestUser,
   generateUniqueTestEmail,
   getTestRevealUI,
-} from '../utils/cms-test-utils';
+} from '../utils/admin-test-utils';
 
 /**
  * Authentication Flow Tests
@@ -109,7 +109,7 @@ describe('Authentication Tests', () => {
         throw new Error('Token is required for logout test');
       }
 
-      // RevealUI CMS doesn't have a logout method - logout is handled via API endpoints
+      // RevealUI admin doesn't have a logout method - logout is handled via API endpoints
       // In a real scenario, you would call POST /api/users/logout
       // Token invalidation happens server-side via cookie clearing
       expect(token).toBeDefined();
@@ -164,7 +164,7 @@ describe('Authentication Tests', () => {
 
     it('should expire session after timeout', async () => {
       // This test verifies that sessions expire
-      // RevealUI CMS handles session expiration internally
+      // RevealUI admin handles session expiration internally
       // We test that expired sessions are rejected
       const { token } = await createTestUser(testEmail, testPassword);
 
@@ -178,7 +178,7 @@ describe('Authentication Tests', () => {
       // Session fixation prevention: new session ID on login
       const { token: token1 } = await createTestUser(testEmail, testPassword);
 
-      // Logout - RevealUI CMS doesn't have a logout method
+      // Logout - RevealUI admin doesn't have a logout method
       // In production, logout would be handled via API endpoint POST /api/users/logout
       // which clears the JWT cookie. For testing, we just verify token exists.
       if (!token1) {
@@ -223,7 +223,7 @@ describe('Authentication Tests', () => {
       const { user } = await createTestUser(testEmail, testPassword);
 
       // Password should not be stored in plain text
-      // RevealUI CMS automatically hashes passwords
+      // RevealUI admin automatically hashes passwords
       expect(user.password).not.toBe(testPassword);
       expect(user.password).toBeDefined();
       // Hashed passwords are typically longer than original
@@ -265,8 +265,8 @@ describe('Authentication Tests', () => {
  * Test implementation notes:
  *
  * 1. Set up test database with seed data
- * 2. Use RevealUI CMS test utilities
+ * 2. Use RevealUI admin test utilities
  * 3. Mock Supabase client if needed
  * 4. Clean up test data after each test
- * 5. Use actual RevealUI CMS auth API for integration tests
+ * 5. Use actual RevealUI admin auth API for integration tests
  */

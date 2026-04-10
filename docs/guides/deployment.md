@@ -8,7 +8,7 @@ RevealUI supports three deployment targets: Vercel (recommended), Docker Compose
 
 | Target | Best For | Services Included |
 |--------|----------|-------------------|
-| Vercel | SaaS, serverless | CMS, API, Marketing, Docs |
+| Vercel | SaaS, serverless | admin, API, Marketing, Docs |
 | Docker Compose | Self-hosted, on-prem | All apps in containers |
 | Node.js | Custom infrastructure | Manual process management |
 
@@ -76,7 +76,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 ### Build Configuration
 
-The CMS app uses Next.js standalone output mode. Vercel detects the framework automatically. No custom build settings are needed beyond environment variables.
+The admin app uses Next.js standalone output mode. Vercel detects the framework automatically. No custom build settings are needed beyond environment variables.
 
 The API app uses Hono and builds with tsup. Set the Vercel project framework to "Other" and configure:
 
@@ -122,7 +122,7 @@ For self-hosted deployments, RevealUI provides a Docker Compose configuration.
 version: '3.8'
 
 services:
-  cms:
+  admin:
     build:
       context: .
       dockerfile: apps/admin/Dockerfile
@@ -213,7 +213,7 @@ pnpm build
 Each app can be started independently:
 
 ```bash
-# CMS (Next.js standalone)
+# admin (Next.js standalone)
 cd apps/admin
 node .next/standalone/server.js
 
@@ -278,7 +278,7 @@ server {
 |----------|-------------|
 | `REVEALUI_SECRET` | 32+ char random string for session token hashing |
 | `POSTGRES_URL` | NeonDB or PostgreSQL connection string |
-| `REVEALUI_PUBLIC_SERVER_URL` | Full URL of the CMS app |
+| `REVEALUI_PUBLIC_SERVER_URL` | Full URL of the admin app |
 | `NEXT_PUBLIC_SERVER_URL` | Same as above (client-side usage) |
 
 ### Optional

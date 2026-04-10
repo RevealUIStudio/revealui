@@ -246,7 +246,7 @@ export async function checkBrokenLinks(projectRoot: string): Promise<string[]> {
  * @returns Assessment result
  */
 export async function checkAPICoverage(projectRoot: string): Promise<AssessmentResult> {
-  const apiDir = join(projectRoot, 'apps', 'cms', 'src', 'app', 'api');
+  const apiDir = join(projectRoot, 'apps', 'admin', 'src', 'app', 'api');
   let totalEndpoints = 0;
   let documentedEndpoints = 0;
   const undocumented: string[] = [];

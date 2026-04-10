@@ -60,11 +60,11 @@ app.openapi(
     method: 'post',
     path: '/workspaces/{workspaceId}/index/{collection}',
     tags: ['rag'],
-    summary: 'Trigger RAG indexing for a CMS collection',
+    summary: 'Trigger RAG indexing for an admin collection',
     request: {
       params: z.object({
         workspaceId: z.string().openapi({ description: 'Workspace ID' }),
-        collection: z.string().openapi({ description: 'CMS collection name' }),
+        collection: z.string().openapi({ description: 'Admin collection name' }),
       }),
     },
     responses: {
@@ -91,7 +91,7 @@ app.openapi(
       },
       502: {
         content: { 'application/json': { schema: z.unknown() } },
-        description: 'CMS fetch error',
+        description: 'Admin fetch error',
       },
       403: {
         content: { 'application/json': { schema: z.unknown() } },
@@ -115,14 +115,14 @@ app.openapi(
       [];
 
     try {
-      // Paginated fetch from CMS collection REST API
+      // Paginated fetch from admin collection REST API
       const res = await fetch(`${adminBaseUrl}/api/${collection}?limit=100&depth=0`, {
         headers: { 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(300_000), // 5 minute timeout
       });
 
       if (!res.ok) {
-        return c.json({ success: false, error: `CMS fetch failed: HTTP ${res.status}` }, 502);
+        return c.json({ success: false, error: `Admin fetch failed: HTTP ${res.status}` }, 502);
       }
 
       const data = (await res.json()) as { docs?: typeof documents };
@@ -131,7 +131,7 @@ app.openapi(
       return c.json(
         {
           success: false,
-          error: 'CMS fetch error: upstream service unavailable',
+          error: 'Admin fetch error: upstream service unavailable',
         },
         502,
       );

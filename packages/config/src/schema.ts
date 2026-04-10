@@ -74,7 +74,7 @@ const optionalSchema = z.object({
 
   // CORS
   CORS_ORIGIN: z.string().optional(), // API: comma-separated allowed origins (required in production)
-  REVEALUI_CORS_ORIGINS: z.string().optional(), // CMS: comma-separated allowed origins (alias for CORS_ORIGIN)
+  REVEALUI_CORS_ORIGINS: z.string().optional(), // admin: comma-separated allowed origins (alias for CORS_ORIGIN)
   REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated — use CORS_ORIGIN
 
   // Database

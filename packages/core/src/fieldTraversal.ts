@@ -7,7 +7,7 @@
  * @module @revealui/core/fieldTraversal
  */
 
-import type { Field, TabDefinition } from '@revealui/contracts/cms';
+import type { Field, TabDefinition } from '@revealui/contracts/admin';
 import type { Block } from './fields/config/types.js';
 import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/legacy.js';
 

@@ -181,7 +181,7 @@ export function RootPage({ config }: RootPageProps) {
               </div>
               <div className="bg-gray-50 px-5 py-3">
                 <div className="text-sm text-gray-600">
-                  RevealUI CMS is running successfully with {collections.length} collections and{' '}
+                  RevealUI admin is running successfully with {collections.length} collections and{' '}
                   {globals.length} globals configured.
                 </div>
               </div>

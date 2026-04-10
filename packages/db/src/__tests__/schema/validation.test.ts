@@ -9,7 +9,7 @@
 import { getTableColumns, getTableName } from 'drizzle-orm';
 import { getTableConfig } from 'drizzle-orm/pg-core';
 import { describe, expect, it } from 'vitest';
-import { media, posts } from '../../schema/cms.js';
+import { media, posts } from '../../schema/admin.js';
 import { licenses } from '../../schema/licenses.js';
 import { marketplaceServers, marketplaceTransactions } from '../../schema/marketplace.js';
 import { pageRevisions, pages } from '../../schema/pages.js';

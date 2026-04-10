@@ -2,7 +2,7 @@ import { draftMode } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { NextRequest } from 'next/server';
 
-// Force dynamic rendering to prevent build-time RevealUI CMS initialization
+// Force dynamic rendering to prevent build-time RevealUI admin initialization
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest): Promise<Response> {

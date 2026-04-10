@@ -1,15 +1,15 @@
 /**
- * CMS Indexer
+ * admin Indexer
  *
- * Handles automatic re-indexing of CMS documents when they change.
- * Wire into CMS collection afterChange hooks — no CMS API calls from here,
+ * Handles automatic re-indexing of admin documents when they change.
+ * Wire into admin collection afterChange hooks — no admin API calls from here,
  * the event payload carries the document content directly.
  *
  * Usage (in apps/admin/src/lib/ai/indexer.ts):
- *   export const cmsIndexer = new CmsIndexer({ db, ingestionPipeline, enabledCollections: ['posts', 'pages'] })
+ *   export const adminIndexer = new AdminIndexer({ db, ingestionPipeline, enabledCollections: ['posts', 'pages'] })
  *
- * In each CMS collection afterChange hook:
- *   await cmsIndexer.onDocumentChanged({ collection: 'posts', id: doc.id, operation, doc })
+ * In each admin collection afterChange hook:
+ *   await adminIndexer.onDocumentChanged({ collection: 'posts', id: doc.id, operation, doc })
  */
 
 import type { IngestionPipeline } from './pipeline.js';
@@ -22,7 +22,7 @@ export interface CmsDocumentEvent {
   workspaceId?: string;
 }
 
-export interface CmsIndexerConfig {
+export interface AdminIndexerConfig {
   ingestionPipeline: IngestionPipeline;
   enabledCollections: string[];
   /** Default workspaceId when not provided per-event */
@@ -47,19 +47,19 @@ function extractTitle(doc: Record<string, unknown>): string | undefined {
   return undefined;
 }
 
-export class CmsIndexer {
+export class AdminIndexer {
   private pipeline: IngestionPipeline;
   private enabledCollections: Set<string>;
   private defaultWorkspaceId: string;
 
-  constructor(config: CmsIndexerConfig) {
+  constructor(config: AdminIndexerConfig) {
     this.pipeline = config.ingestionPipeline;
     this.enabledCollections = new Set(config.enabledCollections);
     this.defaultWorkspaceId = config.defaultWorkspaceId ?? 'default';
   }
 
   /**
-   * Handle a CMS document change event.
+   * Handle an admin document change event.
    * Skips collections not in enabledCollections.
    */
   async onDocumentChanged(event: CmsDocumentEvent): Promise<void> {

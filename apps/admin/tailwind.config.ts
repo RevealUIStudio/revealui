@@ -1,5 +1,5 @@
 /**
- * Tailwind CSS Configuration for CMS App
+ * Tailwind CSS Configuration for admin App
  *
  * Uses shared config from dev package and extends with app-specific settings
  */

@@ -33,7 +33,7 @@ These variables **must** be set for the application to function:
 | Variable                             | Purpose                      | Security Level        |
 | ------------------------------------ | ---------------------------- | --------------------- |
 | `REVEALUI_SECRET`                    | Application secret (session signing, CSRF, HMAC operations) | 🔴 HIGH (Server-only) |
-| `REVEALUI_PUBLIC_SERVER_URL`         | RevealUI CMS server URL      | 🟢 LOW (Client-safe)  |
+| `REVEALUI_PUBLIC_SERVER_URL`         | RevealUI admin server URL      | 🟢 LOW (Client-safe)  |
 | `NEXT_PUBLIC_SERVER_URL`             | Next.js server URL           | 🟢 LOW (Client-safe)  |
 | `POSTGRES_URL`                       | PostgreSQL connection string | 🔴 HIGH (Server-only) |
 | `BLOB_READ_WRITE_TOKEN`              | Vercel Blob Storage token    | 🔴 HIGH (Server-only) |
@@ -196,8 +196,8 @@ NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 **Production**:
 
 ```env
-REVEALUI_PUBLIC_SERVER_URL=https://cms.your-domain.com
-NEXT_PUBLIC_SERVER_URL=https://cms.your-domain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.your-domain.com
+NEXT_PUBLIC_SERVER_URL=https://admin.your-domain.com
 ```
 
 ---
@@ -489,8 +489,8 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...  # Use test keys
 
 ```env
 NODE_ENV=production
-REVEALUI_PUBLIC_SERVER_URL=https://cms.your-domain.com  # Must be HTTPS
-NEXT_PUBLIC_SERVER_URL=https://cms.your-domain.com  # Must be HTTPS
+REVEALUI_PUBLIC_SERVER_URL=https://admin.your-domain.com  # Must be HTTPS
+NEXT_PUBLIC_SERVER_URL=https://admin.your-domain.com  # Must be HTTPS
 STRIPE_SECRET_KEY=sk_live_...  # Use live keys
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...  # Use live keys
 ```
@@ -543,8 +543,8 @@ Before starting development:
 
 ```env
 # MUST be HTTPS in production
-REVEALUI_PUBLIC_SERVER_URL=https://cms.your-domain.com
-NEXT_PUBLIC_SERVER_URL=https://cms.your-domain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.your-domain.com
+NEXT_PUBLIC_SERVER_URL=https://admin.your-domain.com
 
 # MUST use production Stripe keys
 STRIPE_SECRET_KEY=sk_live_XXXXX
@@ -1035,7 +1035,7 @@ revealui/
 The project includes validation in:
 
 - `packages/config/src/validator.ts` - Runtime validation
-- `apps/admin/src/lib/utils/env-validation.ts` - CMS-specific validation
+- `apps/admin/src/lib/utils/env-validation.ts` - Admin-specific validation
 - `scripts/setup/validate-env.ts` - Setup validation script
 
 Run validation:

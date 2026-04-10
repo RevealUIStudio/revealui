@@ -3,7 +3,7 @@
  *
  * The collab layer (Yjs-based) is fully functional.
  * ElectricProvider provides proxyBaseUrl config to child hooks. All hooks route
- * through the authenticated CMS proxy at /api/shapes/* — no direct Electric client.
+ * through the authenticated admin proxy at /api/shapes/* — no direct Electric client.
  *
  * Reads use ElectricSQL shape subscriptions for real-time updates.
  * Writes use REST mutations via /api/sync/* — changes propagate to all

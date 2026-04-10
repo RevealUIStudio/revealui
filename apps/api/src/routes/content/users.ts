@@ -8,7 +8,7 @@
  *
  * No POST — users are created via auth signup flows.
  *
- * Returns the paginated envelope format expected by the CMS admin panel:
+ * Returns the paginated envelope format expected by the admin dashboard panel:
  *   { docs, totalDocs, totalPages, page, limit, ... }
  */
 
@@ -68,7 +68,7 @@ const UserSchema = z
 const PaginatedUsersSchema = z.object({
   success: z.literal(true),
   data: z.array(UserSchema),
-  docs: z.array(UserSchema).openapi({ description: 'Alias for data (CMS admin compat)' }),
+  docs: z.array(UserSchema).openapi({ description: 'Alias for data (admin dashboard compat)' }),
   totalDocs: z.number(),
   totalPages: z.number(),
   page: z.number(),

@@ -13,7 +13,7 @@ export interface MutationResult<T = unknown> {
 }
 
 /**
- * Make an authenticated mutation request to the CMS API.
+ * Make an authenticated mutation request to the admin API.
  * Credentials are included so the session cookie is sent cross-origin.
  * Requests are aborted after {@link MUTATION_FETCH_TIMEOUT_MS} (10 s).
  */

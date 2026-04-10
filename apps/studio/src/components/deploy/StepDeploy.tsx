@@ -106,7 +106,7 @@ function buildAdminEnvVars(data: WizardData): Record<string, string> {
   // Signup control
   vars.REVEALUI_SIGNUP_OPEN = String(data.signupOpen);
 
-  // Supabase for CMS AI features
+  // Supabase for admin AI features
   if (data.supabaseUrl) {
     vars.NEXT_PUBLIC_SUPABASE_URL = data.supabaseUrl;
     if (data.supabasePublishableKey)

@@ -1,5 +1,5 @@
 import type { RevealAfterChangeHook } from '@revealui/core';
-import type { Post } from '@revealui/core/types/cms';
+import type { Post } from '@revealui/core/types/admin';
 import { getIndexer } from '@/lib/ai/indexer';
 import { asRecord } from '@/lib/utils/type-guards';
 

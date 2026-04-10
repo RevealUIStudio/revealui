@@ -4,7 +4,7 @@
  * Deletes a document from a collection.
  */
 
-import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/cms';
+import type { RevealRequest as ContractsRevealRequest } from '@revealui/contracts/admin';
 import type { RevealDeleteOptions, RevealDocument, RevealUIInstance } from '../../types/index.js';
 
 export async function deleteMethod(

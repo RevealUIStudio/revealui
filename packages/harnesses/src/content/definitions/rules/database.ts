@@ -32,7 +32,7 @@ RevealUI uses **two databases with strictly separated responsibilities**:
 - \`apps/*/src/lib/supabase/\` — app-level Supabase utilities
 
 ### Forbidden: Supabase imports in
-- \`packages/core/\` — CMS engine must be DB-agnostic
+- \`packages/core/\` — admin engine must be DB-agnostic
 - \`packages/contracts/\` — contracts are schema-only
 - \`packages/config/\` — config must not hardcode DB client
 - \`apps/admin/src/collections/\` — collection hooks use Drizzle/Neon only
@@ -45,7 +45,7 @@ packages/db/src/schema/
 ├── accounts.ts       # NeonDB: user accounts
 ├── agents.ts         # NeonDB: AI agent definitions
 ├── api-keys.ts       # NeonDB: API key management
-├── cms.ts            # NeonDB: CMS collections, media
+├── admin.ts            # NeonDB: admin collections, media
 ├── gdpr.ts           # NeonDB: GDPR consent, deletion
 ├── licenses.ts       # NeonDB: license keys, tiers
 ├── pages.ts          # NeonDB: pages, navigation

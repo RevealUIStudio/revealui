@@ -1,4 +1,4 @@
-import type { Redirect } from '@revealui/core/types/cms';
+import type { Redirect } from '@revealui/core/types/admin';
 import { unstable_cache } from 'next/cache';
 import { asDocuments } from '@/lib/utils/type-guards';
 import { getRevealUIInstance } from './revealui-singleton';

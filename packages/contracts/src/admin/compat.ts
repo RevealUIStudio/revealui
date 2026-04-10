@@ -1,7 +1,7 @@
 /**
- * RevealUI CMS Compatibility Layer
+ * RevealUI admin Compatibility Layer
  *
- * This module provides adapter functions for CMS configuration compatibility.
+ * This module provides adapter functions for admin configuration compatibility.
  *
  * Compatibility is enforced through:
  * 1. Type assertions that fail at compile time if incompatible
@@ -18,11 +18,11 @@ import type { CollectionConfig, Config, GlobalConfig, UnknownRecord } from './co
 // ============================================
 
 /**
- * Normalize a RevealUI CollectionConfig for CMS compatibility
+ * Normalize a RevealUI CollectionConfig for admin compatibility
  *
  * This is useful when:
- * - Passing config to external CMS build functions
- * - Integrating with plugins that expect standard CMS types
+ * - Passing config to external admin build functions
+ * - Integrating with plugins that expect standard admin types
  *
  * @example
  * ```typescript
@@ -30,14 +30,14 @@ import type { CollectionConfig, Config, GlobalConfig, UnknownRecord } from './co
  * import { Posts } from './collections/Posts.js';
 
  * export default buildConfig({
- *   collections: [toCMSCollectionConfig(Posts)],
+ *   collections: [toAdminCollectionConfig(Posts)],
  * });
  * ```
  */
-export function toCMSCollectionConfig<T = UnknownRecord>(
+export function toAdminCollectionConfig<T = UnknownRecord>(
   config: CollectionConfig<T>,
 ): CollectionConfig<T> {
-  // Currently a pass-through since RevealUI configs are CMS-compatible
+  // Currently a pass-through since RevealUI configs are admin-compatible
   // This function exists for:
   // 1. Explicit conversion intent
   // 2. Future compatibility shims
@@ -46,22 +46,22 @@ export function toCMSCollectionConfig<T = UnknownRecord>(
 }
 
 /**
- * Normalize a RevealUI GlobalConfig for CMS compatibility
+ * Normalize a RevealUI GlobalConfig for admin compatibility
  */
-export function toCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
+export function toAdminGlobalConfig(config: GlobalConfig): GlobalConfig {
   return config;
 }
 
 /**
- * Normalize a full RevealUI Config for CMS compatibility
+ * Normalize a full RevealUI Config for admin compatibility
  */
-export function toCMSConfig(config: Config): Config {
+export function toAdminConfig(config: Config): Config {
   const result = {
     secret: config.secret,
     ...(config.collections
-      ? { collections: config.collections.map((c) => toCMSCollectionConfig(c)) }
+      ? { collections: config.collections.map((c) => toAdminCollectionConfig(c)) }
       : {}),
-    ...(config.globals ? { globals: config.globals.map((g) => toCMSGlobalConfig(g)) } : {}),
+    ...(config.globals ? { globals: config.globals.map((g) => toAdminGlobalConfig(g)) } : {}),
     ...(config.db ? { db: config.db } : {}),
     ...(config.serverURL ? { serverURL: config.serverURL } : {}),
     ...(config.admin ? { admin: config.admin } : {}),
@@ -72,31 +72,31 @@ export function toCMSConfig(config: Config): Config {
 }
 
 /**
- * Import a CMS config and convert to RevealUI config format
+ * Import an admin config and convert to RevealUI config format
  *
  * Use this when:
  * - Consuming configs from external sources
- * - Migrating existing CMS configs to RevealUI
+ * - Migrating existing admin configs to RevealUI
  *
  * @example
  * ```typescript
- * // Existing CMS config
+ * // Existing admin config
  * const legacyConfig = { slug: 'posts', fields: [...] };
  *
  * // Validate and convert to RevealUI config
- * const revealConfig = fromCMSCollectionConfig(legacyConfig);
+ * const revealConfig = fromAdminCollectionConfig(legacyConfig);
  * ```
  */
-export function fromCMSCollectionConfig(config: CollectionConfig): CollectionConfig {
-  // CMS configs should be compatible by design
+export function fromAdminCollectionConfig(config: CollectionConfig): CollectionConfig {
+  // admin configs should be compatible by design
   // Add any RevealUI defaults or transformations here
   return config;
 }
 
 /**
- * Convert CMS GlobalConfig to RevealUI GlobalConfig
+ * Convert admin GlobalConfig to RevealUI GlobalConfig
  */
-export function fromCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
+export function fromAdminGlobalConfig(config: GlobalConfig): GlobalConfig {
   return config;
 }
 
@@ -107,7 +107,7 @@ export function fromCMSGlobalConfig(config: GlobalConfig): GlobalConfig {
 /**
  * RevealUI-specific extensions that can be added to configs
  *
- * These are RevealUI-exclusive features beyond standard CMS types.
+ * These are RevealUI-exclusive features beyond standard admin types.
  */
 export interface RevealUIExtensions {
   /** Enable AI-assisted content features */

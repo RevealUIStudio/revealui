@@ -91,7 +91,7 @@ describe('StepVerify', () => {
     renderStep();
 
     expect(screen.getByText('API Health')).toBeInTheDocument();
-    expect(screen.getByText('CMS')).toBeInTheDocument();
+    expect(screen.getByText('Admin')).toBeInTheDocument();
     expect(screen.getByText('Marketing')).toBeInTheDocument();
     expect(screen.getByText('Database (via API)')).toBeInTheDocument();
     expect(screen.getByText('Email Delivery')).toBeInTheDocument();
@@ -188,7 +188,7 @@ describe('StepVerify', () => {
 
     expect(screen.getByText('Manual verification (after setup):')).toBeInTheDocument();
     expect(screen.getByText('Stripe webhook test event fires and is received')).toBeInTheDocument();
-    expect(screen.getByText(/CORS allows CMS/)).toBeInTheDocument();
+    expect(screen.getByText(/CORS allows admin/)).toBeInTheDocument();
     expect(screen.getByText('Session cookie works cross-subdomain')).toBeInTheDocument();
     expect(screen.getByText('Signup flow works end-to-end')).toBeInTheDocument();
   });

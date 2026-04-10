@@ -26,7 +26,7 @@ describe('revalidate', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.REVEALUI_PUBLIC_SERVER_URL = 'https://cms.example.com';
+    process.env.REVEALUI_PUBLIC_SERVER_URL = 'https://admin.example.com';
     process.env.REVEALUI_SECRET = 'test-secret';
     vi.stubGlobal('fetch', vi.fn());
   });
@@ -53,7 +53,7 @@ describe('revalidate', () => {
     });
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://cms.example.com/api/revalidate',
+      'https://admin.example.com/api/revalidate',
       expect.objectContaining({
         method: 'POST',
         headers: {

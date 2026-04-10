@@ -4,7 +4,7 @@
 
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
-import { posts } from '../schema/cms.js';
+import { posts } from '../schema/admin.js';
 import { users } from '../schema/users.js';
 
 export async function getAllPosts(

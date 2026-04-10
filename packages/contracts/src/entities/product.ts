@@ -2,7 +2,7 @@
  * Product Schema
  *
  * Products represent Stripe-backed product information with associated pricing.
- * They support content management and integrate with RevealUI's CMS.
+ * They support content management and integrate with RevealUI's admin.
  *
  * This schema provides:
  * - Stripe product validation (prod_xxx format)
@@ -116,7 +116,7 @@ const ProductObjectSchema = DualEntitySchema.extend({
   /** Schema version for migrations */
   schemaVersion: z.number().int().default(PRODUCT_SCHEMA_VERSION),
 
-  /** Numeric ID (from CMS) */
+  /** Numeric ID (from admin) */
   id: z.number().int().positive(),
 
   /** Product title */
@@ -171,7 +171,7 @@ const ProductObjectSchema = DualEntitySchema.extend({
   updatedAt: z.string().datetime(),
   createdAt: z.string().datetime(),
 
-  /** CMS status */
+  /** admin status */
   _status: ProductStatusSchema.nullable().optional(),
 });
 

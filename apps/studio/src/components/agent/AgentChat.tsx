@@ -1,7 +1,7 @@
 /**
  * AgentChat — inline coding agent chat for Studio
  *
- * Streams responses from the agent-stream API endpoint. Supports CMS and coding
+ * Streams responses from the agent-stream API endpoint. Supports admin and coding
  * modes with model selection. Renders tool call badges inline with text output.
  */
 
@@ -381,11 +381,11 @@ export default function AgentChat() {
                   : 'bg-neutral-800 text-neutral-500 hover:text-neutral-300'
               }`}
             >
-              CMS
+              admin
             </button>
           </div>
           <span className="text-[10px] text-neutral-600">
-            {mode === 'coding' ? 'Code + CMS tools' : 'CMS tools only'}
+            {mode === 'coding' ? 'Code + admin tools' : 'admin tools only'}
           </span>
         </div>
 

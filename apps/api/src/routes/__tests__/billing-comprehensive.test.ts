@@ -859,7 +859,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('uses ADMIN_URL when both ADMIN_URL and NEXT_PUBLIC_SERVER_URL are set', async () => {
-      process.env.ADMIN_URL = 'https://cms.example.com';
+      process.env.ADMIN_URL = 'https://admin.example.com';
       process.env.NEXT_PUBLIC_SERVER_URL = 'https://fallback.example.com';
       queueSelectResults(
         [{ stripePriceId: 'price_pro_server' }],
@@ -873,7 +873,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
       await app.request(post('/checkout', { priceId: 'price_pro_server' }));
 
       const sessionArgs = mockCheckoutSessionsCreate.mock.calls[0]?.[0] as Record<string, unknown>;
-      expect(sessionArgs.success_url).toContain('https://cms.example.com');
+      expect(sessionArgs.success_url).toContain('https://admin.example.com');
     });
 
     it('falls back to NEXT_PUBLIC_SERVER_URL when ADMIN_URL is not set', async () => {

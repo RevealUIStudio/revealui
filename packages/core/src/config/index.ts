@@ -1,4 +1,4 @@
-import { ConfigValidationError, validateConfigStructure } from '@revealui/contracts/cms';
+import { ConfigValidationError, validateConfigStructure } from '@revealui/contracts/admin';
 import type { Config } from '../types/index.js';
 import { deepMerge } from './utils.js';
 

@@ -85,7 +85,7 @@ function printPostCreateSummary(projectName: string): void {
   logger.info('  RevealUI ecosystem:');
   logger.info('    Studio:   Native AI experience — agent hub, local inference, dev environment');
   logger.info('    Terminal: TUI client — run `revealui terminal install`');
-  logger.info('    CMS:      Admin dashboard at your-domain.com/admin');
+  logger.info('    admin:      Admin dashboard at your-domain.com/admin');
   logger.info('');
   logger.info('  Helpful links:');
   logger.info('    Docs:    https://docs.revealui.com');

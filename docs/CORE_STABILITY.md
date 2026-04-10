@@ -204,7 +204,7 @@ import { metrics } from '@revealui/core/observability/logger'
 
 #### Build Optimization
 
-The `@revealui/core` package includes internal optimization utilities (`bundle-analyzer`, `build-optimizer`, `asset-optimizer`) used by the CMS build pipeline. These are **not public API** and may be moved to `@revealui/dev` before 1.0. Do not import from subpaths not listed in the package's `exports` map.
+The `@revealui/core` package includes internal optimization utilities (`bundle-analyzer`, `build-optimizer`, `asset-optimizer`) used by the admin build pipeline. These are **not public API** and may be moved to `@revealui/dev` before 1.0. Do not import from subpaths not listed in the package's `exports` map.
 
 #### Error Reporting
 
@@ -230,8 +230,8 @@ This table reflects what has been exercised against production infrastructure (a
 
 | Feature | Verified in Production | Notes |
 |---------|----------------------|-------|
-| Config validation (`buildConfig`) | ✅ Yes | CMS startup on every Vercel deploy |
-| Collection CRUD operations | ✅ Yes | CMS admin dashboard operations |
+| Config validation (`buildConfig`) | ✅ Yes | admin startup on every Vercel deploy |
+| Collection CRUD operations | ✅ Yes | admin admin dashboard operations |
 | Session auth (login, logout, session) | ✅ Yes | Full flow verified manually + E2E |
 | Password reset (email via Gmail) | ✅ Yes | Real email delivery verified |
 | Rate limiting (IP + brute force) | ✅ Yes | Confirmed: 5 attempts → 429, brute force lockout |

@@ -1,4 +1,4 @@
-import type { Page, Post } from '@revealui/core/types/cms';
+import type { Page, Post } from '@revealui/core/types/admin';
 import { ButtonCVA as Button, type ButtonProps } from '@revealui/presentation/server';
 import Link from 'next/link';
 import type React from 'react';

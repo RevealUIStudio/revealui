@@ -18,7 +18,7 @@ RevealUI is that integration layer.
 
 ## What RevealUI Is
 
-RevealUI is an agentic business runtime. It is not a CMS. It is not a framework. It is the infrastructure layer that every software business needs, pre-assembled and ready to deploy.
+RevealUI is an agentic business runtime. It is not an admin. It is not a framework. It is the infrastructure layer that every software business needs, pre-assembled and ready to deploy.
 
 Five primitives:
 

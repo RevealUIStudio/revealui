@@ -119,7 +119,7 @@ describe('POST /api/capture-error', () => {
 
   it('proxies valid payload to upstream and returns its status', async () => {
     mockUpstream(202, { success: true });
-    const res = await POST(makeRequest('{"message":"err","app":"cms","level":"error"}'));
+    const res = await POST(makeRequest('{"message":"err","app":"admin","level":"error"}'));
     expect(res.status).toBe(202);
     const body = await res.json();
     expect(body.success).toBe(true);
@@ -137,7 +137,7 @@ describe('POST /api/capture-error', () => {
 
   it('passes upstream error status through to client', async () => {
     mockUpstream(400, { error: 'bad request' }, false);
-    const res = await POST(makeRequest('{"message":"err","app":"cms","level":"error"}'));
+    const res = await POST(makeRequest('{"message":"err","app":"admin","level":"error"}'));
     expect(res.status).toBe(400);
   });
 

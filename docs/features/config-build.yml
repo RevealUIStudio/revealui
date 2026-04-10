@@ -19,7 +19,7 @@ api-surface:
     openapi: false
     tested: true
     functions:
-      - "getSharedCMSConfig() — CMS-specific subset"
+      - "getSharedCMSConfig() — Admin-specific subset"
       - "getSharedWebConfig() — web app config"
       - "getSharedViteConfig() — Vite build settings"
       - "getSharedNextJSConfig() — Next.js build settings"
@@ -41,7 +41,7 @@ api-surface:
     openapi: false
     tested: true
   dockerfiles:
-    endpoint: "Dockerfiles for api, cms, marketing, docs, terminal"
+    endpoint: "Dockerfiles for api, admin, marketing, docs, terminal"
     openapi: false
     tested: false
 

@@ -39,7 +39,7 @@ describe('resolveDevUpOptions', () => {
 
   it('lets explicit options override the selected profile', () => {
     const resolved = resolveDevUpOptions({
-      profile: 'cms',
+      profile: 'admin',
       script: 'dev:api',
       include: ['mcp'],
     });

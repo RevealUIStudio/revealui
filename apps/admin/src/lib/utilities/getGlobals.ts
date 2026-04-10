@@ -24,7 +24,7 @@ async function getGlobal(slug: Global, depth = 0): Promise<RevealDocument | null
   } catch (error) {
     // Return null if instance init or global fetch fails
     // This allows the app to render without the global data
-    logger.warn(`Global '${slug}' not found or CMS instance failed to initialize`, {
+    logger.warn(`Global '${slug}' not found or admin instance failed to initialize`, {
       slug,
       error: error instanceof Error ? error.message : String(error),
     });

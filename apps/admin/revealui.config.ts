@@ -3,7 +3,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getSharedCMSConfig } from '@revealui/config/revealui';
-import type { CollectionConfig, Field } from '@revealui/contracts/cms';
+import type { CollectionConfig, Field } from '@revealui/contracts/admin';
 import type { RevealUIField, RevealUIInstance } from '@revealui/core';
 import {
   BoldFeature,

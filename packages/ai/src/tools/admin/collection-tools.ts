@@ -1,5 +1,5 @@
 /**
- * CMS Collection Tools
+ * Admin Collection Tools
  * Tools for managing collection documents (create, read, update, delete)
  */
 
@@ -8,12 +8,12 @@ import type { Tool, ToolResult } from '../base.js';
 
 /**
  * Tool: List all collections
- * Returns available collections in the CMS
+ * Returns available collections in the admin
  */
 export const listCollectionsTool: Tool = {
   name: 'list_collections',
   description:
-    'Get a list of all available CMS collections. Use this to discover what content types exist (e.g., pages, posts, users, media).',
+    'Get a list of all available admin collections. Use this to discover what content types exist (e.g., pages, posts, users, media).',
   parameters: z.object({}),
 
   async execute(): Promise<ToolResult> {
@@ -52,7 +52,7 @@ export const listCollectionsTool: Tool = {
 export const findDocumentsTool: Tool = {
   name: 'find_documents',
   description:
-    'Search for documents in a CMS collection. Use this to find existing content before creating or updating.',
+    'Search for documents in an admin collection. Use this to find existing content before creating or updating.',
   parameters: z.object({
     collection: z.string().describe('The collection slug (e.g., "pages", "posts", "users")'),
     page: z.number().optional().describe('Page number for pagination (default: 1)'),
@@ -101,7 +101,7 @@ export const findDocumentsTool: Tool = {
 export const getDocumentTool: Tool = {
   name: 'get_document',
   description:
-    'Get a specific document by ID from a CMS collection. Use this to retrieve full details of a single item.',
+    'Get a specific document by ID from an admin collection. Use this to retrieve full details of a single item.',
   parameters: z.object({
     collection: z.string().describe('The collection slug (e.g., "pages", "posts")'),
     id: z.string().describe('The document ID'),
@@ -131,7 +131,7 @@ export const getDocumentTool: Tool = {
 export const createDocumentTool: Tool = {
   name: 'create_document',
   description:
-    'Create a new document in a CMS collection. Use this to add new content like pages, posts, or other records.',
+    'Create a new document in an admin collection. Use this to add new content like pages, posts, or other records.',
   parameters: z.object({
     collection: z.string().describe('The collection slug (e.g., "pages", "posts")'),
     data: z
@@ -168,7 +168,7 @@ export const createDocumentTool: Tool = {
 export const updateDocumentTool: Tool = {
   name: 'update_document',
   description:
-    'Update an existing document in a CMS collection. Use this to modify content like changing titles, updating text, etc.',
+    'Update an existing document in an admin collection. Use this to modify content like changing titles, updating text, etc.',
   parameters: z.object({
     collection: z.string().describe('The collection slug (e.g., "pages", "posts")'),
     id: z.string().describe('The document ID to update'),
@@ -209,7 +209,7 @@ export const updateDocumentTool: Tool = {
 export const deleteDocumentTool: Tool = {
   name: 'delete_document',
   description:
-    'Delete a document from a CMS collection. Use this to remove unwanted content. This action is permanent.',
+    'Delete a document from an admin collection. Use this to remove unwanted content. This action is permanent.',
   parameters: z.object({
     collection: z.string().describe('The collection slug (e.g., "pages", "posts")'),
     id: z.string().describe('The document ID to delete'),

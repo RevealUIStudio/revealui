@@ -1,5 +1,5 @@
-feature: cms-engine
-name: CMS Engine (Collections + REST)
+feature: admin-engine
+name: Admin Engine (Collections + REST)
 status: beta
 tier: free
 last-verified: 2026-03-11
@@ -10,7 +10,7 @@ description: >
   (not a Payload fork, though some patterns are inspired by it).
 
 strategy:
-  entitlement-model: "Hosted premium CMS capabilities should resolve from account/workspace entitlements first"
+  entitlement-model: "Hosted premium admin capabilities should resolve from account/workspace entitlements first"
   commercial-fit:
     - "content and admin features are primarily platform subscription value"
     - "AI or automation features can layer in metered usage"

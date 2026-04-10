@@ -1,5 +1,5 @@
 /**
- * Runtime type guards for CMS document narrowing.
+ * Runtime type guards for admin document narrowing.
  *
  * Replaces `as unknown as T` double casts with runtime validation.
  * All RevealUI collections use text('id').primaryKey() — IDs are always
@@ -46,7 +46,7 @@ export function asRecord(value: unknown): Record<string, unknown> {
 /**
  * Narrows a typed document back to RevealDocument for hook return values.
  *
- * CMS hooks must return RevealDocument. Enriched objects (EnrichedProduct, etc.)
+ * admin hooks must return RevealDocument. Enriched objects (EnrichedProduct, etc.)
  * have an `id` and are structurally compatible, but TypeScript can't prove it
  * because RevealDocument uses an index signature. This guard validates at runtime.
  */
@@ -66,7 +66,7 @@ export function toRevealDocument(value: unknown): import('@revealui/core').Revea
 /**
  * Bridge between two type systems that describe the same document shape.
  *
- * CMS types (e.g., `Product` from @revealui/core/types/cms) and Contracts types
+ * admin types (e.g., `Product` from @revealui/core/types/admin) and Contracts types
  * (e.g., `Product` from @revealui/contracts/entities) describe the same documents
  * but are structurally incompatible in TypeScript. This guard validates the object
  * has an `id` before casting, providing a runtime safety net at the boundary.
@@ -87,7 +87,7 @@ export function asBridgedDoc<T extends { id: string | number }>(value: unknown):
 /**
  * Narrows a normalized block/component props object.
  *
- * Generated CMS types and component prop types have minor structural differences
+ * Generated admin types and component prop types have minor structural differences
  * (null vs undefined, number vs string IDs). Normalizer functions fix these at
  * runtime. This guard validates the result is a non-null object with a `blockType`
  * before casting to the target component props type.

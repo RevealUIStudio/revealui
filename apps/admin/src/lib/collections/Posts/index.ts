@@ -7,7 +7,7 @@ import {
   InlineToolbarFeature,
   lexicalEditor,
 } from '@revealui/core/richtext';
-import type { Post } from '@revealui/core/types/cms';
+import type { Post } from '@revealui/core/types/admin';
 import { authenticated } from '@/lib/access';
 import { authenticatedOrPublished } from '@/lib/access/roles/authenticatedOrPublished';
 import { Banner } from '@/lib/blocks/Banner/config';

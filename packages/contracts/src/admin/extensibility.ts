@@ -1,7 +1,7 @@
 /**
  * Extensibility Contracts
  *
- * Contracts for extending the CMS type system with:
+ * Contracts for extending the admin type system with:
  * - Custom field types (from plugins)
  * - Plugin field extensions
  * - Custom validation rules
@@ -104,7 +104,7 @@ export function clearCustomFieldTypes(): void {
 }
 
 /**
- * Built-in field types in RevealUI CMS
+ * Built-in field types in RevealUI admin
  */
 export const BUILTIN_FIELD_TYPES = [
   'text',

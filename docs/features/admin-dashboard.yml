@@ -1,5 +1,5 @@
-feature: cms-admin
-name: CMS Admin Dashboard
+feature: admin-admin
+name: Admin Dashboard Dashboard
 status: alpha
 tier: free
 last-verified: 2026-03-11

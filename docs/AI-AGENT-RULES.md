@@ -167,7 +167,7 @@ const user: { id: string, email: string } = { ... }
 1. Search in `packages/contracts/src/`
    - entities/ for domain models
    - generated/ for database types
-   - cms/ for CMS types
+   - admin/ for admin types
 2. Search package exports for package-specific types
 3. Grep for similar types: `grep -r "interface.*User" packages/contracts/`
 4. If found → Import
@@ -205,7 +205,7 @@ const user: { id: string, email: string } = { ... }
 ```typescript
 // Step 1: Determine location
 // - Domain entity → packages/contracts/src/entities/
-// - CMS config → packages/contracts/src/cms/
+// - admin config → packages/contracts/src/admin/
 // - Package-specific → packages/<pkg>/src/types/
 
 // Step 2: Create type
@@ -228,7 +228,7 @@ const entity: MyEntity = { ... }
 ### Pattern 2: Using Contract Types in Callbacks
 
 ```typescript
-import type { CollectionMetadata } from '@revealui/ai/tools/cms'
+import type { CollectionMetadata } from '@revealui/ai/tools/admin'
 
 // ✅ CORRECT - Explicit return type from contract
 collections?.map((c): CollectionMetadata => ({
@@ -243,10 +243,10 @@ collections?.map((c: { slug: string }) => ({ ... }))
 ### Pattern 3: Type Assertions with Contracts
 
 ```typescript
-import type { CMSAPIClient } from '@revealui/ai/tools/cms'
+import type { AdminAPIClient } from '@revealui/ai/tools/admin'
 
 // ✅ CORRECT - Assert to contract type
-const client = apiClient as CMSAPIClient
+const client = apiClient as AdminAPIClient
 
 // ❌ WRONG - Assert to any
 const client = apiClient as any

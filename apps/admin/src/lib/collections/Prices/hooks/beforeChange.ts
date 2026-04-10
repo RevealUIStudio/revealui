@@ -4,7 +4,7 @@ import {
   StripePriceIDSchema,
 } from '@revealui/contracts/entities';
 import type { RevealBeforeChangeHook } from '@revealui/core';
-import type { Price } from '@revealui/core/types/cms';
+import type { Price } from '@revealui/core/types/admin';
 import { LRUCache } from '@revealui/core/utils/cache';
 
 const logs = false;

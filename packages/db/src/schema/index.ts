@@ -66,7 +66,7 @@ import { agentActions, agentContexts, agentMemories, conversations } from './age
 import { tenantProviderConfigs, userApiKeys } from './api-keys.js';
 import { appLogs } from './app-logs.js';
 import { auditLog } from './audit-log.js';
-import { media, posts } from './cms.js';
+import { media, posts } from './admin.js';
 import { codeProvenance, codeReviews } from './code-provenance.js';
 import { collabEdits } from './collab-edits.js';
 import { errorEvents } from './error-events.js';
@@ -295,7 +295,7 @@ export const agentActionsRelations = relations(agentActions, ({ one }) => ({
 }));
 
 // =============================================================================
-// CMS Relations
+// admin Relations
 // =============================================================================
 
 // Post relations

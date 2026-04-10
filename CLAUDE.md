@@ -49,7 +49,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 ### OSS Packages (MIT)
 | Package | Purpose |
 |---------|---------|
-| @revealui/core | CMS engine, REST API, auth, rich text, admin UI, plugins |
+| @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
 | @revealui/db | Drizzle ORM schema (76 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
@@ -155,7 +155,7 @@ pnpm --filter ./packages/* build     # Build all packages
 pnpm --filter admin dev                # Dev one app
 ```
 
-### CMS Collections
+### admin Collections
 Collections are defined in `apps/admin/src/collections/` with access control, hooks, and field definitions. Use `@revealui/contracts` for type schemas.
 
 ### Feature Gating
@@ -199,7 +199,7 @@ Biome, typecheck, tests, and build all block pushes. Audits and structure checks
 - `overrideAccess` query param stripped from external requests in proxy.ts
 - License enforcement: 5-min DB status check (checkLicenseStatus) + requireFeature middleware on Pro routes
 - Feature gates: AI routes (agent-tasks, agent-stream, RAG, collab/agent), dashboard (provenance)
-- Resource limits: enforceSiteLimit on site creation, advisory-locked user limit in CMS sign-up
+- Resource limits: enforceSiteLimit on site creation, advisory-locked user limit in admin sign-up
 - Encryption keys: non-extractable by default (configurable via `extractable` option)
 - Rich text: isSafeUrl() blocks javascript:/vbscript:/data: in Lexical link/image rendering
 - Webhook rate limiting: 100 req/min on /api/webhooks

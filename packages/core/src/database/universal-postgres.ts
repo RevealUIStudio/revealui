@@ -1,5 +1,5 @@
 /**
- * Universal PostgreSQL Adapter for RevealUI CMS
+ * Universal PostgreSQL Adapter for RevealUI admin
  *
  * Supports multiple PostgreSQL providers:
  * - Neon Database (https://neon.tech)
@@ -12,7 +12,7 @@
  * Do NOT import in client-side code or edge runtime.
  */
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 import { defaultLogger } from '../instance/logger.js';
 import { logger } from '../observability/logger.js';
 import type { DatabaseAdapter, DatabaseResult } from '../types/index.js';

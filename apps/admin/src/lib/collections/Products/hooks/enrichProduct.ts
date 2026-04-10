@@ -8,7 +8,7 @@ import {
   hasStripeProduct,
 } from '@revealui/contracts/entities';
 import type { RevealAfterReadHook } from '@revealui/core';
-import type { Product } from '@revealui/core/types/cms';
+import type { Product } from '@revealui/core/types/admin';
 import { asBridgedDoc, asDocument, toRevealDocument } from '@/lib/utils/type-guards';
 
 /**
@@ -115,7 +115,7 @@ export const enrichProduct: RevealAfterReadHook = async ({ doc }) => {
 
   // Only enrich if product has Stripe product
   // Product and ContractsProduct describe the same document shape from different type systems.
-  // The cast bridges CMS runtime types to contracts validation types.
+  // The cast bridges admin runtime types to contracts validation types.
   if (!hasStripeProduct(asBridgedDoc<ContractsProduct>(product))) {
     return toRevealDocument({
       ...product,

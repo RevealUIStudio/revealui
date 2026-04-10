@@ -35,7 +35,7 @@ RevealUI uses **two databases with strictly separated responsibilities**:
 - \`apps/*/src/lib/supabase/\` — app-level Supabase utilities
 
 ### Forbidden: Supabase imports in
-- \`packages/core/\` — CMS engine must be DB-agnostic
+- \`packages/core/\` — admin engine must be DB-agnostic
 - \`packages/contracts/\` — contracts are schema-only
 - \`packages/config/\` — config must not hardcode DB client
 - \`apps/admin/src/collections/\` — collection hooks use Drizzle/Neon only

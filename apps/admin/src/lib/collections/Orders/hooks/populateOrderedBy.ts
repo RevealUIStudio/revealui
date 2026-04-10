@@ -1,4 +1,4 @@
-import type { FieldBeforeChangeHook } from '@revealui/contracts/cms';
+import type { FieldBeforeChangeHook } from '@revealui/contracts/admin';
 import type { RevealUser } from '@revealui/core';
 
 // Field hook for populating orderedBy with current user ID

@@ -63,7 +63,7 @@ export default function DeployDashboard() {
       if (domain) {
         const initial: ServiceState[] = [
           { label: 'API', url: `https://api.${domain}`, status: 'checking' },
-          { label: 'CMS', url: `https://cms.${domain}`, status: 'checking' },
+          { label: 'Admin', url: `https://admin.${domain}`, status: 'checking' },
           { label: 'Marketing', url: `https://${domain}`, status: 'checking' },
         ];
         setServices(initial);
@@ -111,7 +111,7 @@ export default function DeployDashboard() {
         <div className="rounded-md border border-neutral-700 bg-neutral-900/50 p-4">
           <p className="mb-3 text-xs font-medium text-neutral-400">Quick Links</p>
           <div className="flex flex-col gap-2">
-            <QuickLink label="CMS Dashboard" url={`https://cms.${domain}/admin`} />
+            <QuickLink label="Admin Dashboard" url={`https://admin.${domain}/admin`} />
             <QuickLink label="API Docs" url={`https://api.${domain}/docs`} />
             <QuickLink label="Marketing Site" url={`https://${domain}`} />
           </div>

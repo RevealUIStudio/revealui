@@ -776,7 +776,7 @@ transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@r
 #### Pattern 3: Package Needing Specific Subpath Type Resolution
 
 **Package:** `@revealui/contracts` (schema merged into contracts)
-- **Has main export** but also specific subpaths like `./cms`, `./entities`, `./agents`
+- **Has main export** but also specific subpaths like `./admin`, `./entities`, `./agents`
 - **No `tsconfig.json` path** for main export (use package.json exports)
 - **Has specific `tsconfig.json` path** for subpaths if needed (needed for TypeScript type inference)
 
@@ -1365,7 +1365,7 @@ RevealUI uses a **simplified safeguard system** (20% of original complexity) foc
 
 #### ✅ Performance Monitoring (Build Success)
 - **Protection**: All builds must succeed before merge
-- **Mechanism**: Multiple CI build jobs (CMS, Web, packages) with biome linting
+- **Mechanism**: Multiple CI build jobs (admin, Web, packages) with biome linting
 - **Coverage**: TypeScript compilation, bundling, testing, code quality
 - **Impact**: Ensures deployable, well-formatted, type-safe code
 - **Maintenance**: Automatic via CI with unified biome tooling
@@ -2661,7 +2661,7 @@ if (diff.titleChanged) {
 
 #### 5. Post (`packages/contracts/src/entities/post.ts`)
 - **Lines:** 710 lines, 50+ helper functions
-- **Purpose:** CMS publishing workflow with Lexical editor
+- **Purpose:** admin publishing workflow with Lexical editor
 - **Features:**
   - Publishing workflow (draft → published → archived)
   - Lexical editor content management

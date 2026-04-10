@@ -26,7 +26,7 @@ api-surface:
 package-notes:
   subpaths: 18
   path-alias: "Does NOT use ~/  — do NOT add to tsconfig.json paths"
-  cms-import: "Use ^0.0.2 not workspace:* (Pro, not in workspace)"
+  admin-import: "Use ^0.0.2 not workspace:* (Pro, not in workspace)"
   bundling: "noExternal: [/^@revealui\\/(?!ai($|\\/))/] — excluded from tsup bundling"
 
 limitations:

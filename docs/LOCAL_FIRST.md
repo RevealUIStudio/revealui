@@ -167,7 +167,7 @@ Or use Studio to manage services, agents, and local inference from a native desk
 
 ## Verifying local inference
 
-In the CMS admin dashboard, navigate to **Admin → AI → Agent Tasks** and run a test task. You should see the inference request handled locally with no outbound network traffic to any AI provider.
+In the admin admin dashboard, navigate to **Admin → AI → Agent Tasks** and run a test task. You should see the inference request handled locally with no outbound network traffic to any AI provider.
 
 ## Troubleshooting
 

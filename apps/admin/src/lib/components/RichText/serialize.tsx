@@ -3,11 +3,11 @@
 // biome-ignore-all lint/a11y/useSemanticElements: Lexical checklist uses li with checkbox role
 // biome-ignore-all lint/a11y/noNoninteractiveElementToInteractiveRole: Lexical checklist pattern
 import type { DefaultNodeTypes, SerializedBlockNode } from '@revealui/core/richtext';
-import type { Page, Post } from '@revealui/core/types/cms';
+import type { Page, Post } from '@revealui/core/types/admin';
 import Image from 'next/image';
 import React, { Fragment, type JSX } from 'react';
 
-// Link reference type for CMSLink component
+// Link reference type for adminLink component
 interface LinkReference {
   relationTo: 'pages' | 'posts';
   value: Page | Post | string | number;

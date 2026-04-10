@@ -340,7 +340,7 @@ Metrics in JSON format — useful for internal dashboards and debugging. Require
 
 **Capture client-side error**
 
-Accepts structured error payloads from CMS client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.
+Accepts structured error payloads from admin client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.
 
 **Request body** (JSON)
 
@@ -368,7 +368,7 @@ Accepts structured error payloads from CMS client-side and any other app that ca
 
 **Capture client-side error**
 
-Accepts structured error payloads from CMS client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.
+Accepts structured error payloads from admin client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.
 
 **Request body** (JSON)
 
@@ -2778,7 +2778,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with CMS tools to resolve it, and returns the result.
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.
 
 **Request body** (JSON)
 
@@ -2818,7 +2818,7 @@ Creates a ticket from the instruction, dispatches an AI agent with CMS tools to 
 
 **Submit a natural language task for an agent to execute**
 
-Creates a ticket from the instruction, dispatches an AI agent with CMS tools to resolve it, and returns the result.
+Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.
 
 **Request body** (JSON)
 
@@ -4528,21 +4528,21 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 ### `POST` `/api/rag/workspaces/{workspaceId}/index/{collection}`
 
-**Trigger RAG indexing for a CMS collection**
+**Trigger RAG indexing for an admin collection**
 
 **Path parameters**
 
 | Name | Type | Required | Description |
 |------|------|:--------:|-------------|
 | `workspaceId` | `string` | ✓ | Workspace ID |
-| `collection` | `string` | ✓ | CMS collection name |
+| `collection` | `string` | ✓ | admin collection name |
 
 **Responses**
 
 - `200` — Indexing completed
 - `400` — Invalid collection name
 - `403` — AI feature requires Pro or Forge license
-- `502` — CMS fetch error
+- `502` — admin fetch error
 
 ---
 
@@ -4598,21 +4598,21 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 ### `POST` `/api/v1/rag/workspaces/{workspaceId}/index/{collection}`
 
-**Trigger RAG indexing for a CMS collection**
+**Trigger RAG indexing for an admin collection**
 
 **Path parameters**
 
 | Name | Type | Required | Description |
 |------|------|:--------:|-------------|
 | `workspaceId` | `string` | ✓ | Workspace ID |
-| `collection` | `string` | ✓ | CMS collection name |
+| `collection` | `string` | ✓ | admin collection name |
 
 **Responses**
 
 - `200` — Indexing completed
 - `400` — Invalid collection name
 - `403` — AI feature requires Pro or Forge license
-- `502` — CMS fetch error
+- `502` — admin fetch error
 
 ---
 

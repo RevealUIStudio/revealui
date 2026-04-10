@@ -168,7 +168,7 @@ export function createCli(): Command {
     .option('--dry-run', 'Print the effective plan and actions without executing them', false)
     .option('--fix', 'Apply safe automatic fixes before bootstrapping when possible', false)
     .option('--no-ensure', 'Skip automatic local DB initialization/start')
-    .option('--profile <name>', 'Named dev profile: local, agent, cms, fullstack')
+    .option('--profile <name>', 'Named dev profile: local, agent, admin, fullstack')
     .option(
       '--include <service...>',
       'Additional development services to prepare (currently supports: mcp)',
@@ -194,7 +194,7 @@ export function createCli(): Command {
     .command('status')
     .description('Show current RevealUI development environment status')
     .option('--json', 'Output machine-readable JSON', false)
-    .option('--profile <name>', 'Named dev profile: local, agent, cms, fullstack')
+    .option('--profile <name>', 'Named dev profile: local, agent, admin, fullstack')
     .option(
       '--include <service...>',
       'Additional development services to preview in the effective plan',
@@ -227,7 +227,7 @@ export function createCli(): Command {
     .option('--dry-run', 'Print the effective plan and actions without executing them', false)
     .option('--fix', 'Apply safe automatic fixes before bootstrapping when possible', false)
     .option('--no-ensure', 'Skip automatic local DB initialization/start')
-    .option('--profile <name>', 'Named dev profile: local, agent, cms, fullstack')
+    .option('--profile <name>', 'Named dev profile: local, agent, admin, fullstack')
     .option(
       '--include <service...>',
       'Additional development services to prepare (currently supports: mcp)',
@@ -262,7 +262,7 @@ export function createCli(): Command {
   devProfile
     .command('set')
     .description('Set the default profile used by `revealui dev up` and `revealui dev status`')
-    .argument('<name>', 'Profile name: local, agent, cms, fullstack')
+    .argument('<name>', 'Profile name: local, agent, admin, fullstack')
     .action(async (name: DevProfileName) => {
       await runDevProfileSetCommand(name);
     });

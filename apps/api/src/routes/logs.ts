@@ -1,7 +1,7 @@
 /**
  * Log Ingestion Route — POST /api/logs
  *
- * Accepts structured log entries from CMS and other Next.js apps that cannot
+ * Accepts structured log entries from admin and other Next.js apps that cannot
  * import @revealui/db directly (Edge bundle constraints). Writes to app_logs table.
  *
  * No authentication required — internal-use endpoint, rate-limited.

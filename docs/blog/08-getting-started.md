@@ -4,7 +4,7 @@
 
 RevealUI is an agentic business runtime. Instead of gluing together a dozen SaaS tools and spending weeks on boilerplate, you get users, content, products, payments, and intelligence pre-wired and ready to deploy.
 
-This tutorial walks you through creating a real business application from scratch. By the end, you will have a working CMS with typed collections, session-based authentication, a REST API with Swagger documentation, Stripe billing, license enforcement, and an admin dashboard — deployed to production on Vercel.
+This tutorial walks you through creating a real business application from scratch. By the end, you will have a working admin with typed collections, session-based authentication, a REST API with Swagger documentation, Stripe billing, license enforcement, and an admin dashboard — deployed to production on Vercel.
 
 Let's start the clock.
 
@@ -203,20 +203,20 @@ Three services come up:
 
 | Service | URL | What it does |
 |---------|-----|-------------|
-| **CMS Admin** | [http://localhost:4000/admin](http://localhost:4000/admin) | Admin dashboard — manage collections, users, and settings |
-| **CMS API** | [http://localhost:4000/api](http://localhost:4000/api) | Auto-generated REST API for all your collections |
+| **Admin Dashboard** | [http://localhost:4000/admin](http://localhost:4000/admin) | Admin dashboard — manage collections, users, and settings |
+| **Admin API** | [http://localhost:4000/api](http://localhost:4000/api) | Auto-generated REST API for all your collections |
 | **API Server** | [http://localhost:3004](http://localhost:3004) | Standalone API with OpenAPI spec |
 | **Swagger Docs** | [http://localhost:3004/docs](http://localhost:3004/docs) | Interactive API documentation |
 
 Open [http://localhost:4000/admin](http://localhost:4000/admin) in your browser. You should see the RevealUI admin login screen.
 
 ```
-  CMS     ready  http://localhost:4000
+  admin     ready  http://localhost:4000
   API     ready  http://localhost:3004
   API     docs   http://localhost:3004/docs
 ```
 
-> **Tip:** Each app can be started independently. Use `pnpm dev:admin` for just the CMS, or `pnpm dev:api` for just the API server.
+> **Tip:** Each app can be started independently. Use `pnpm dev:admin` for just the admin, or `pnpm dev:api` for just the API server.
 
 ---
 
@@ -574,7 +574,7 @@ Your application is live. Visit `https://my-business.vercel.app/admin` to access
 
 Stop the clock. In roughly 10 minutes, you have a ready-to-deploy business application with:
 
-- **A CMS with typed collections and access control** — define your data model in TypeScript, get a full admin UI and REST API automatically
+- **A admin with typed collections and access control** — define your data model in TypeScript, get a full admin UI and REST API automatically
 - **User authentication with session-based auth** — secure by default with httpOnly cookies, brute force protection, and rate limiting
 - **A REST API with OpenAPI documentation** — every collection gets CRUD endpoints with interactive Swagger docs at `/docs`
 - **Stripe billing with subscription management** — checkout sessions, webhook handling, and automatic license generation

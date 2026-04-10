@@ -88,7 +88,7 @@ Integration tests are gated to `main` branch in CI (not run on feature branches 
 
 ### E2E Tests (Playwright)
 
-End-to-end tests that exercise the full application stack (CMS + API + Marketing).
+End-to-end tests that exercise the full application stack (admin + API + Marketing).
 
 ```bash
 # Run all E2E tests
@@ -152,7 +152,7 @@ Tests run as part of the CI gate:
 | Unit tests | all | `pnpm test` (turbo, all packages) |
 | Integration tests | main only | `pnpm test:integration` (requires PostgreSQL service) |
 | Coverage gate | main only | `pnpm coverage:check --fail-on-zero` |
-| E2E smoke | main only | Playwright smoke tests (CMS + API + Marketing) |
+| E2E smoke | main only | Playwright smoke tests (admin + API + Marketing) |
 | Accessibility | main only | Playwright accessibility audit |
 | Visual regression | main only | Screenshot comparison against baselines |
 

@@ -381,12 +381,12 @@ const supportExpiryCache = new Map<
 /**
  * Enforce support contract expiry on perpetual licenses.
  *
- * Perpetual licenses never expire — the holder keeps basic CMS access forever.
+ * Perpetual licenses never expire — the holder keeps basic admin access forever.
  * However, the annual support contract (supportExpiresAt) gates premium features:
  * AI, dashboard, advanced sync, analytics, etc.
  *
  * When support is expired, this middleware:
- * 1. Downgrades the request entitlements to free tier (keeps basic CMS)
+ * 1. Downgrades the request entitlements to free tier (keeps basic admin)
  * 2. Sets an `X-Support-Expires` response header so clients can prompt for renewal
  *
  * When support is active, this middleware:
@@ -437,7 +437,7 @@ export const checkSupportExpiry = (
     // Check if support has expired
     if (effective.supportExpiresAt && effective.supportExpiresAt.getTime() < now) {
       // Support expired — downgrade entitlements to free tier.
-      // The perpetual license itself remains valid (basic CMS access),
+      // The perpetual license itself remains valid (basic admin access),
       // but premium features (AI, dashboard, sync, analytics) require active support.
       const requestEntitlements = getRequestEntitlements(c);
       if (requestEntitlements) {

@@ -52,7 +52,7 @@ export const CollectionContract: Contract<CollectionStructure> = createContract(
   schema: CollectionStructureSchema,
   description: 'Collection configuration contract',
   docsUrl: 'https://revealui.dev/docs/api-reference/collections',
-  tags: ['collection', 'config', 'cms'],
+  tags: ['collection', 'config', 'admin'],
 });
 
 /**

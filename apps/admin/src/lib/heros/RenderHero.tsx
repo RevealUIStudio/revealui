@@ -1,4 +1,4 @@
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import { HighImpactHero } from './HighImpact/index';
 import { LowImpactHero } from './LowImpact/index';
 import { MediumImpactHero } from './MediumImpact/index';

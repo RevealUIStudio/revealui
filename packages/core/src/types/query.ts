@@ -99,7 +99,7 @@ export type SelectType = Record<string, boolean | Record<string, boolean>> | str
 /** JSON object type */
 export type JsonObject = Record<string, unknown>;
 
-/** Where clause alias for CMS compatibility */
+/** Where clause alias for admin compatibility */
 export type WhereClause = Record<string, unknown>;
 
 // =============================================================================
@@ -152,5 +152,5 @@ export interface RelationshipMetadata {
   depth?: number;
 }
 
-/** Document type alias for CMS compatibility */
+/** Document type alias for admin compatibility */
 export type Document = RevealDocument;

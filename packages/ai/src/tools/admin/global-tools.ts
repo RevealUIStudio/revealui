@@ -1,5 +1,5 @@
 /**
- * CMS Global Tools
+ * Admin Global Tools
  * Tools for managing global content (Header, Footer, Settings)
  */
 
@@ -13,7 +13,7 @@ import type { Tool, ToolResult } from '../base.js';
 export const listGlobalsTool: Tool = {
   name: 'list_globals',
   description:
-    'Get a list of all available CMS globals. Globals are site-wide settings like Header, Footer, and Settings.',
+    'Get a list of all available admin globals. Globals are site-wide settings like Header, Footer, and Settings.',
   parameters: z.object({}),
 
   async execute(): Promise<ToolResult> {
@@ -48,7 +48,7 @@ export const listGlobalsTool: Tool = {
 export const getGlobalTool: Tool = {
   name: 'get_global',
   description:
-    'Get the current configuration of a CMS global. Use this to see the current state before updating (e.g., current header navigation items).',
+    'Get the current configuration of a admin global. Use this to see the current state before updating (e.g., current header navigation items).',
   parameters: z.object({
     slug: z.string().describe('The global slug (e.g., "header", "footer", "settings")'),
     depth: z.number().optional().describe('Depth of populated relationships (default: 0, max: 10)'),
@@ -78,7 +78,7 @@ export const getGlobalTool: Tool = {
 export const updateGlobalTool: Tool = {
   name: 'update_global',
   description:
-    'Update a CMS global configuration. Use this to modify site-wide settings like header navigation, footer links, or global settings. Common uses:\n- Add/remove navigation links in header\n- Update footer content\n- Change site-wide settings\n\nExample for header navigation:\n{\n  "slug": "header",\n  "data": {\n    "navItems": [\n      {"link": {"type": "custom", "label": "Home", "url": "/"}},\n      {"link": {"type": "custom", "label": "About", "url": "/about"}}\n    ]\n  }\n}',
+    'Update a admin global configuration. Use this to modify site-wide settings like header navigation, footer links, or global settings. Common uses:\n- Add/remove navigation links in header\n- Update footer content\n- Change site-wide settings\n\nExample for header navigation:\n{\n  "slug": "header",\n  "data": {\n    "navItems": [\n      {"link": {"type": "custom", "label": "Home", "url": "/"}},\n      {"link": {"type": "custom", "label": "About", "url": "/about"}}\n    ]\n  }\n}',
   parameters: z.object({
     slug: z.string().describe('The global slug (e.g., "header", "footer", "settings")'),
     data: z

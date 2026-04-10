@@ -16,7 +16,7 @@ export const isUserOrTenant = async (args: AccessArgs): Promise<boolean> => {
   const user = req?.user as UserWithTenants | undefined;
   const revealui = req?.revealui as RevealUIInstance | undefined;
 
-  // Bail if no RevealUI CMS instance
+  // Bail if no RevealUI admin instance
   if (!revealui) {
     return false;
   }

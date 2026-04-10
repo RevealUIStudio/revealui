@@ -24,7 +24,7 @@ import {
   type StripePriceData,
 } from '@revealui/contracts/entities';
 import type { RevealAfterReadHook } from '@revealui/core';
-import type { Price } from '@revealui/core/types/cms';
+import type { Price } from '@revealui/core/types/admin';
 import { asBridgedDoc, asDocument, toRevealDocument } from '@/lib/utils/type-guards';
 
 const logs = false;
@@ -165,7 +165,7 @@ export const calculatePrice: RevealAfterReadHook = async ({ doc, req }) => {
   }
 
   // Create a temporary Price object with parsed priceJSON for utility functions
-  // The utility functions expect priceJSON to be an object, but CMS type has it as string
+  // The utility functions expect priceJSON to be an object, but admin type has it as string
   const priceWithParsedJSON = asBridgedDoc<ContractsPrice>({
     ...price,
     priceJSON: stripePriceData,

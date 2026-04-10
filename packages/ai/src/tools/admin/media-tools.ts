@@ -1,5 +1,5 @@
 /**
- * CMS Media Tools
+ * Admin Media Tools
  * Tools for managing media files (images, videos, documents)
  */
 
@@ -13,7 +13,7 @@ import type { Tool, ToolResult } from '../base.js';
 export const listMediaTool: Tool = {
   name: 'list_media',
   description:
-    'Get a list of media files from the CMS media library. Use this to browse uploaded images, videos, and documents.',
+    'Get a list of media files from the admin media library. Use this to browse uploaded images, videos, and documents.',
   parameters: z.object({
     page: z.number().optional().describe('Page number for pagination (default: 1)'),
     limit: z.number().optional().describe('Number of results per page (default: 10)'),
@@ -84,7 +84,7 @@ export const getMediaTool: Tool = {
 export const uploadMediaTool: Tool = {
   name: 'upload_media',
   description:
-    'Upload a new media file (image, video, or document) to the CMS. The file should be provided as a base64-encoded string.',
+    'Upload a new media file (image, video, or document) to the admin. The file should be provided as a base64-encoded string.',
   parameters: z.object({
     filename: z.string().describe('The filename (e.g., "logo.png")'),
     mimeType: z.string().describe('The MIME type (e.g., "image/png", "image/jpeg")'),
@@ -131,7 +131,7 @@ export const uploadMediaTool: Tool = {
 export const deleteMediaTool: Tool = {
   name: 'delete_media',
   description:
-    'Delete a media file from the CMS media library. This removes both the database record and the file from storage. This action is permanent.',
+    'Delete a media file from the admin media library. This removes both the database record and the file from storage. This action is permanent.',
   parameters: z.object({
     id: z.string().describe('The media file ID to delete'),
   }),

@@ -2,7 +2,7 @@
  * Authentication Middleware for Hono API
  *
  * Supports two auth mechanisms:
- * 1. Session cookie (browsers, CMS admin) — via @revealui/auth
+ * 1. Session cookie (browsers, admin dashboard) — via @revealui/auth
  * 2. Bearer token (Studio desktop, CLI, terminal) — via device token in userDevices
  *
  * Bearer tokens are checked first (fast path for API clients).
@@ -98,7 +98,7 @@ export const authMiddleware = (options: AuthOptions = {}): MiddlewareHandler => 
       }
     }
 
-    // 2. Fall back to session cookie (browsers, CMS admin)
+    // 2. Fall back to session cookie (browsers, admin dashboard)
     const sessionData = await getSession(c.req.raw.headers);
     if (sessionData) {
       c.set('user', sessionData.user);

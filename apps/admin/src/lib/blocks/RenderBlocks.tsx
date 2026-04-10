@@ -1,5 +1,5 @@
 import { BlockSchema } from '@revealui/contracts/content';
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import { logger } from '@revealui/utils/logger';
 import type React from 'react';
 import { Fragment } from 'react';

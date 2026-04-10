@@ -1,12 +1,12 @@
 /**
- * Internal CMS API Client
+ * Internal admin API Client
  *
- * Implements the CMSAPIClient interface from @revealui/ai by calling
+ * Implements the AdminAPIClient interface from @revealui/ai by calling
  * the API's own content routes internally. Used by agent-stream to give
- * agents CMS tool access without an external HTTP round-trip.
+ * agents admin tool access without an external HTTP round-trip.
  */
 
-/** Matches CMSAPIClient from @revealui/ai/tools/cms */
+/** Matches AdminAPIClient from @revealui/ai/tools/admin */
 export interface InternalCMSClient {
   find(options: {
     collection: string;
@@ -39,12 +39,15 @@ export interface InternalCMSClient {
 }
 
 /**
- * Create an internal CMS client that calls the API's own content routes.
+ * Create an internal admin client that calls the API's own content routes.
  *
  * @param baseUrl — The API's own origin (e.g., 'http://localhost:3004' or derived from request)
  * @param sessionCookie — The user's session cookie for auth passthrough
  */
-export function createInternalCMSClient(baseUrl: string, sessionCookie: string): InternalCMSClient {
+export function createInternalAdminClient(
+  baseUrl: string,
+  sessionCookie: string,
+): InternalCMSClient {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     Cookie: `revealui-session=${sessionCookie}`,
@@ -57,7 +60,7 @@ export function createInternalCMSClient(baseUrl: string, sessionCookie: string):
     });
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`CMS API ${res.status}: ${text}`);
+      throw new Error(`admin API ${res.status}: ${text}`);
     }
     return res.json() as Promise<T>;
   }

@@ -108,7 +108,7 @@ export const Products = defineCollection({
 });
 ```
 
-Register it in your CMS config (`apps/admin/src/collections/index.ts`):
+Register it in your admin config (`apps/admin/src/collections/index.ts`):
 
 ```typescript
 export { Products } from "./products.js";
@@ -329,7 +329,7 @@ git push origin main
 On [vercel.com](https://vercel.com):
 
 1. **Import** your repository
-2. Set the **Root Directory** to `apps/admin` (for the CMS/admin app)
+2. Set the **Root Directory** to `apps/admin` (for the admin/admin app)
 3. Add your **environment variables** (same as `.env.development.local`, with production values)
 4. Click **Deploy**
 
@@ -339,7 +339,7 @@ Your API deploys separately:
 2. Add env vars
 3. Deploy
 
-Update your `CORS_ORIGIN` in the API project to point at your CMS domain, and `NEXT_PUBLIC_API_URL` in the CMS project to point at your API domain.
+Update your `CORS_ORIGIN` in the API project to point at your admin domain, and `NEXT_PUBLIC_API_URL` in the admin project to point at your API domain.
 
 ```bash
 # Verify production health

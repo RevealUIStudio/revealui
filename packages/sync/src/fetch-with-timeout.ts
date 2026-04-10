@@ -4,7 +4,7 @@ const SHAPE_FETCH_TIMEOUT_MS = 10_000;
 /**
  * A fetch wrapper that aborts requests after {@link SHAPE_FETCH_TIMEOUT_MS} (10 s).
  * Passed as `fetchClient` to ElectricSQL `useShape` so that shape subscription
- * requests to the CMS proxy do not hang indefinitely.
+ * requests to the admin proxy do not hang indefinitely.
  */
 export function fetchWithTimeout(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   // If the caller already provides a signal, respect it and compose with our timeout.

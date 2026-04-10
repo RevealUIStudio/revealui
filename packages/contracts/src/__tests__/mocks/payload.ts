@@ -16,7 +16,7 @@ import type {
   Field,
   FieldHooksConfig,
   GlobalConfig,
-} from '../../cms/index.js';
+} from '../../admin/index.js';
 
 // ============================================
 // MOCK DOCUMENT TYPES
@@ -52,7 +52,7 @@ export interface MockSettings {
 }
 
 // ============================================
-// MOCK CMS REQUEST
+// MOCK admin REQUEST
 // ============================================
 
 export interface MockRevealUIRequest {
