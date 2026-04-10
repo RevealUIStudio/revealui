@@ -12,8 +12,12 @@ const {
   mockHasConsent,
   mockGetStatistics,
   mockRequestDeletion,
+  mockProcessDeletion,
   mockGetUserRequests,
   mockGetRequest,
+  mockAnonymizeUser,
+  mockDeleteAllUserSessions,
+  mockGetClient,
 } = vi.hoisted(() => ({
   mockGrantConsent: vi.fn().mockResolvedValue({ id: 'consent-1', type: 'analytics' }),
   mockRevokeConsent: vi.fn().mockResolvedValue(undefined),
@@ -23,8 +27,18 @@ const {
   mockRequestDeletion: vi
     .fn()
     .mockResolvedValue({ id: 'del-1', userId: 'user-1', status: 'pending' }),
+  mockProcessDeletion: vi.fn().mockImplementation(async (_id: string, cb: Function) => {
+    await cb('user-1', ['personal']);
+  }),
   mockGetUserRequests: vi.fn().mockResolvedValue([]),
   mockGetRequest: vi.fn().mockResolvedValue(null),
+  mockAnonymizeUser: vi.fn().mockResolvedValue({ id: 'user-1' }),
+  mockDeleteAllUserSessions: vi.fn().mockResolvedValue(undefined),
+  mockGetClient: vi.fn().mockReturnValue({}),
+}));
+
+vi.mock('@revealui/auth/server', () => ({
+  deleteAllUserSessions: mockDeleteAllUserSessions,
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -41,10 +55,19 @@ vi.mock('@revealui/core/security', () => ({
   }),
   createDataDeletionSystem: () => ({
     requestDeletion: mockRequestDeletion,
+    processDeletion: mockProcessDeletion,
     getUserRequests: mockGetUserRequests,
     getRequest: mockGetRequest,
   }),
   createDataBreachManager: () => ({}),
+}));
+
+vi.mock('@revealui/db', () => ({
+  getClient: mockGetClient,
+}));
+
+vi.mock('@revealui/db/queries/users', () => ({
+  anonymizeUser: mockAnonymizeUser,
 }));
 
 vi.mock('../../lib/drizzle-gdpr-storage.js', () => ({
@@ -218,16 +241,33 @@ describe('POST /gdpr/deletion', () => {
     expect(res.status).toBe(401);
   });
 
-  it('creates deletion request with defaults', async () => {
+  it('creates and processes deletion request with defaults', async () => {
+    mockGetRequest.mockResolvedValueOnce({
+      id: 'del-1',
+      userId: 'user-1',
+      status: 'completed',
+      deletedData: ['profile', 'email', 'avatar', 'mfa', 'sessions', 'preferences'],
+      retainedData: ['billing_records', 'audit_logs'],
+    });
+
     const app = createApp(testUser);
     const res = await jsonPost(app, '/gdpr/deletion', {});
     expect(res.status).toBe(201);
     const body = await parseBody(res);
     expect(body.success).toBe(true);
     expect(mockRequestDeletion).toHaveBeenCalledWith('user-1', ['personal'], undefined);
+    expect(mockProcessDeletion).toHaveBeenCalledWith('del-1', expect.any(Function));
+    expect(mockAnonymizeUser).toHaveBeenCalled();
+    expect(mockDeleteAllUserSessions).toHaveBeenCalledWith('user-1');
   });
 
   it('accepts valid categories', async () => {
+    mockGetRequest.mockResolvedValueOnce({
+      id: 'del-1',
+      userId: 'user-1',
+      status: 'completed',
+    });
+
     const app = createApp(testUser);
     const res = await jsonPost(app, '/gdpr/deletion', { categories: ['personal', 'financial'] });
     expect(res.status).toBe(201);
@@ -239,6 +279,12 @@ describe('POST /gdpr/deletion', () => {
   });
 
   it('accepts reason field', async () => {
+    mockGetRequest.mockResolvedValueOnce({
+      id: 'del-1',
+      userId: 'user-1',
+      status: 'completed',
+    });
+
     const app = createApp(testUser);
     const res = await jsonPost(app, '/gdpr/deletion', { reason: 'Account closure' });
     expect(res.status).toBe(201);
@@ -257,6 +303,26 @@ describe('POST /gdpr/deletion', () => {
     const app = createApp(testUser);
     const res = await jsonPost(app, '/gdpr/deletion', { reason: 'x'.repeat(1001) });
     expect(res.status).toBe(400);
+  });
+
+  it('returns processed request with deletion details', async () => {
+    const processedRequest = {
+      id: 'del-1',
+      userId: 'user-1',
+      status: 'completed',
+      processedAt: '2026-04-10T00:00:00.000Z',
+      deletedData: ['profile', 'email', 'avatar', 'mfa', 'sessions', 'preferences'],
+      retainedData: ['billing_records', 'audit_logs'],
+    };
+    mockGetRequest.mockResolvedValueOnce(processedRequest);
+
+    const app = createApp(testUser);
+    const res = await jsonPost(app, '/gdpr/deletion', {});
+    expect(res.status).toBe(201);
+    const body = await parseBody(res);
+    expect(body.request.status).toBe('completed');
+    expect(body.request.deletedData).toContain('profile');
+    expect(body.request.retainedData).toContain('billing_records');
   });
 });
 

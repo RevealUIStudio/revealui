@@ -116,6 +116,33 @@ export async function createUser(db: Database, data: typeof users.$inferInsert) 
   return result[0] ?? null;
 }
 
+/** Anonymize PII for GDPR right-to-erasure. Soft-deletes if not already deleted. */
+export async function anonymizeUser(db: Database, id: string) {
+  const now = new Date();
+  const result = await db
+    .update(users)
+    .set({
+      name: 'Deleted User',
+      email: null,
+      avatarUrl: null,
+      password: null,
+      mfaSecret: null,
+      mfaBackupCodes: null,
+      sshKeyFingerprint: null,
+      preferences: null,
+      emailVerificationToken: null,
+      emailVerificationTokenExpiresAt: null,
+      agentConfig: null,
+      anonymizedAt: now,
+      deletedAt: now,
+      updatedAt: now,
+      status: 'deleted',
+    })
+    .where(eq(users.id, id))
+    .returning();
+  return result[0] ?? null;
+}
+
 /** Permanently remove a soft-deleted user (GDPR compliance / admin cleanup) */
 export async function purgeUser(db: Database, id: string) {
   await db.delete(users).where(eq(users.id, id));
