@@ -16,7 +16,7 @@
  *     PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *     playwright test e2e/auth.e2e.ts --project=chromium
  *
- * CMS auth routes:
+ * Admin auth routes:
  *   /login          — sign in page (button: "Sign in")
  *   /signup         — create account (button: "Create account")
  *   /reset-password — request reset link (no ?token) or set new password (?token=...)
@@ -30,7 +30,7 @@ import { expect, test } from '@playwright/test';
 
 const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
-// Skip entire suite if CMS is not reachable
+// Skip entire suite if Admin is not reachable
 test.beforeAll(async ({ request }) => {
   try {
     const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 3000 });
@@ -169,7 +169,7 @@ test.describe('Sign-up and sign-in flow', () => {
       timeout: 10000,
     });
 
-    // Sign out via API endpoint (CMS frontend has no sign-out button for viewer role)
+    // Sign out via API endpoint (admin frontend has no sign-out button for viewer role)
     await page.request.post(`${CMS_BASE}/api/auth/sign-out`);
 
     // Session should be cleared — /api/auth/me should return 401

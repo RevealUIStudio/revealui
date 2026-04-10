@@ -242,6 +242,7 @@ function SignupContent() {
                   disabled={anyLoading}
                   autoComplete="new-password"
                   className="pr-10"
+                  aria-label="Password"
                   minLength={8}
                   required
                 />

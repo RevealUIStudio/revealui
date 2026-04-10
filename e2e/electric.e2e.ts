@@ -1,13 +1,13 @@
 /**
  * ElectricSQL Integration E2E Tests
  *
- * Tests the CMS → ElectricSQL proxy shape endpoints:
+ * Tests the admin → ElectricSQL proxy shape endpoints:
  *   GET /api/shapes/conversations    — row-level filtered by user_id
  *   GET /api/shapes/agent-contexts   — row-level filtered by session_id
  *   GET /api/shapes/agent-memories   — row-level filtered by agent_id
  *
  * Architecture:
- *   CMS (Next.js) → shape route → Electric (Railway) → NeonDB (logical replication)
+ *   Admin (Next.js) → shape route → Electric (Railway) → NeonDB (logical replication)
  *
  * Test strategy:
  *   - Unauthenticated tests verify auth enforcement — no credentials required.
@@ -31,7 +31,7 @@ import { expect, test } from '@playwright/test';
 
 const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
-// Skip entire suite if CMS is not reachable
+// Skip entire suite if Admin is not reachable
 test.beforeAll(async ({ request }) => {
   try {
     const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 3000 });

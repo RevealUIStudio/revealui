@@ -14,7 +14,7 @@
  *
  * Run with:
  *   CI=1 PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
- *     CMS_ADMIN_EMAIL=admin@example.com CMS_ADMIN_PASSWORD=<pass> \
+ *     CMS_ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD=<pass> \
  *     node_modules/.bin/playwright test e2e/richtext.e2e.ts \
  *     --project=chromium --retries=0 --reporter=line
  */

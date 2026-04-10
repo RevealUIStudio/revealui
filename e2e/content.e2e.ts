@@ -1,7 +1,7 @@
 /**
  * Content E2E Tests
  *
- * Tests content creation through the CMS admin panel by driving the actual UI
+ * Tests content creation through the Admin panel by driving the actual UI
  * (click collection → Create New → fill form → Save).
  *
  * The AdminDashboard is a state-machine SPA — URL segments are ignored.
@@ -9,7 +9,7 @@
  *
  * REQUIRES live services:
  *   - apps/admin deployed and accessible via PLAYWRIGHT_BASE_URL
- *   - CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD so global-setup can create auth state
+ *   - CMS_ADMIN_EMAIL + ADMIN_PASSWORD so global-setup can create auth state
  *
  * Auth strategy:
  *   global-setup signs in ONCE and saves the session cookie to e2e/.auth/user.json.
@@ -25,7 +25,7 @@
  *
  * Run with:
  *   CI=1 PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
- *     CMS_ADMIN_EMAIL=admin@example.com CMS_ADMIN_PASSWORD=<pass> \
+ *     CMS_ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD=<pass> \
  *     node_modules/.bin/playwright test e2e/content.e2e.ts \
  *     --project=chromium --retries=0 --reporter=line
  */
@@ -80,7 +80,7 @@ test.describe('Content CRUD lifecycle', () => {
       test.skip();
       return;
     }
-    // Skip if CMS is unreachable
+    // Skip if Admin is unreachable
     try {
       const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 5000 });
       if (!res.ok()) test.skip();

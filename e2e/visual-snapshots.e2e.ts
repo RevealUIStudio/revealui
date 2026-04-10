@@ -5,7 +5,7 @@
  * These tests ensure visual consistency across changes and detect unintended
  * visual regressions.
  *
- * Updated to target actual CMS routes that exist in the application.
+ * Updated to target actual admin routes that exist in the application.
  *
  * Usage:
  * - Run tests: pnpm test:e2e:visual
@@ -16,7 +16,7 @@
 import { expect, test } from '@playwright/test';
 import { waitForNetworkIdle } from './utils/test-helpers';
 
-test.describe('Visual Snapshots - CMS Application', () => {
+test.describe('Visual Snapshots - Admin Application', () => {
   test.describe('Admin Panel', () => {
     test('admin login page should match snapshot', async ({ page }) => {
       await page.goto('/admin/login');

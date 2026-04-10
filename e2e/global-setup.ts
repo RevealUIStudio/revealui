@@ -4,13 +4,13 @@
  * Runs once before all tests:
  * - Creates output directories
  * - Optionally seeds test database (requires TEST_DATABASE_URL)
- * - Optionally saves authenticated browser state (requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD)
+ * - Optionally saves authenticated browser state (requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD)
  *
  * All steps are best-effort — failures are logged and skipped, never throw.
  *
  * Required env vars for authenticated state:
  *   CMS_ADMIN_EMAIL=admin@example.com
- *   CMS_ADMIN_PASSWORD=your-password
+ *   ADMIN_PASSWORD=your-password
  *
  * Required env vars for DB seeding:
  *   TEST_DATABASE_URL=postgresql://...
@@ -25,7 +25,7 @@ import { createTestDb } from './utils/db-helpers';
 const EMPTY_AUTH_STATE = JSON.stringify({ cookies: [], origins: [] });
 
 /**
- * Sign in via the CMS API and build a Playwright storageState JSON.
+ * Sign in via the admin API and build a Playwright storageState JSON.
  * Avoids the browser hydration race (Next.js SSR + React onClick timing).
  */
 async function signInViaAPI(baseURL: string, email: string, password: string): Promise<string> {
@@ -103,7 +103,7 @@ async function globalSetup(config: FullConfig) {
       const db = createTestDb();
       await db.connect();
 
-      // Seed test products (users are created via the CMS signup API in auth tests)
+      // Seed test products (users are created via the admin signup API in auth tests)
       await db
         .query(`
         INSERT INTO products (id, name, description, price, created_at, updated_at)
@@ -129,9 +129,9 @@ async function globalSetup(config: FullConfig) {
   }
 
   // Save authenticated browser state for reuse across tests
-  // Requires CMS_ADMIN_EMAIL and CMS_ADMIN_PASSWORD in environment
+  // Requires CMS_ADMIN_EMAIL and ADMIN_PASSWORD in environment
   const adminEmail = process.env.CMS_ADMIN_EMAIL;
-  const adminPassword = process.env.CMS_ADMIN_PASSWORD;
+  const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (adminEmail && adminPassword && !process.env.SKIP_GLOBAL_AUTH) {
     const baseURL = config.projects[0].use.baseURL || 'http://localhost:4000';
@@ -147,9 +147,7 @@ async function globalSetup(config: FullConfig) {
         '⚠️  Could not create authenticated state:',
         error instanceof Error ? error.message : 'Unknown error',
       );
-      console.log(
-        '   Set CMS_ADMIN_EMAIL and CMS_ADMIN_PASSWORD to enable pre-authenticated tests',
-      );
+      console.log('   Set CMS_ADMIN_EMAIL and ADMIN_PASSWORD to enable pre-authenticated tests');
       // Preserve existing auth state if it has valid cookies — don't overwrite with empty
       // state just because the refresh failed (e.g. rate-limited). Tests can still reuse
       // the previous session cookie if it hasn't expired.
@@ -167,7 +165,7 @@ async function globalSetup(config: FullConfig) {
       }
     }
   } else {
-    console.log('ℹ️  CMS_ADMIN_EMAIL/CMS_ADMIN_PASSWORD not set — skipping auth state creation');
+    console.log('ℹ️  CMS_ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping auth state creation');
     // Same preservation logic: keep existing cookies if present
     try {
       const existing = JSON.parse(

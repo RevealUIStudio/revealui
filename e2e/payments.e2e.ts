@@ -7,7 +7,7 @@
  * REQUIRES live services:
  *   - apps/admin (port 4000) with running database
  *   - Stripe test keys in environment (STRIPE_SECRET_KEY=sk_test_...)
- *   - An authenticated admin session (CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD)
+ *   - An authenticated admin session (CMS_ADMIN_EMAIL + ADMIN_PASSWORD)
  *
  * Run with:
  *   pnpm dev
@@ -19,10 +19,10 @@
 import { expect, test } from '@playwright/test';
 
 const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
-// Billing endpoints live on the API (migrated from CMS in Session 19)
+// Billing endpoints live on the API (migrated from admin in Session 19)
 const API_BASE = process.env.API_BASE_URL || 'http://localhost:3004';
 const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || 'admin@example.com';
-const ADMIN_PASSWORD = process.env.CMS_ADMIN_PASSWORD || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
 
 // Skip when Stripe test keys or admin credentials are not configured
@@ -44,7 +44,7 @@ test.beforeAll(async ({ request }) => {
 // ---------------------------------------------------------------------------
 
 async function signIn(page: import('@playwright/test').Page) {
-  // CMS login page is at /login (not /admin/login — that redirects to /login).
+  // Admin login page is at /login (not /admin/login — that redirects to /login).
   // After successful sign-in, router.push('/') navigates away from /login.
   await page.goto(`${CMS_BASE}/login`, { waitUntil: 'domcontentloaded' });
   await page.getByLabel(/email/i).fill(ADMIN_EMAIL);
@@ -189,7 +189,7 @@ test.describe('Checkout flow', () => {
 
 test.describe('Stripe webhook', () => {
   test('webhook endpoint exists and rejects unsigned payload', async ({ request }) => {
-    // Webhook handler lives on the API (migrated from CMS in Session 19)
+    // Webhook handler lives on the API (migrated from admin in Session 19)
     const response = await request.post(`${API_BASE}/api/webhooks/stripe`, {
       data: JSON.stringify({ type: 'test' }),
       headers: { 'Content-Type': 'application/json' },

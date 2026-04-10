@@ -148,6 +148,7 @@ function LoginContent() {
                   disabled={anyLoading}
                   autoComplete="current-password"
                   className="pr-10"
+                  aria-label="Password"
                   required
                 />
               </PasswordInput>

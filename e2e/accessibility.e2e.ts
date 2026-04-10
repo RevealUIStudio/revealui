@@ -20,7 +20,7 @@ import {
 } from './utils/a11y-helper';
 
 // ---------------------------------------------------------------------------
-// CMS Pages (apps/admin — port 4000)
+// Admin Pages (apps/admin — port 4000)
 // ---------------------------------------------------------------------------
 
 test.describe('Accessibility', () => {
@@ -116,9 +116,9 @@ test.describe('Accessibility', () => {
   // ---------------------------------------------------------------------------
 
   test.describe('Cross-cutting', () => {
-    test('no critical violations across CMS root', async ({ page }) => {
+    test('no critical violations across admin root', async ({ page }) => {
       await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
-      // CMS root may redirect to /login — wait for navigation to settle
+      // Admin root may redirect to /login — wait for navigation to settle
       await page.waitForLoadState('networkidle');
       const allViolations = await checkAccessibilityCritical(page);
 

@@ -10,7 +10,7 @@
  *   PLAYWRIGHT_BASE_URL   https://admin.revealui.com
  *   API_BASE_URL          https://api.revealui.com
  *   CMS_ADMIN_EMAIL       admin@example.com
- *   CMS_ADMIN_PASSWORD    <your-cms-admin-password>
+ *   ADMIN_PASSWORD    <your-admin-password>
  *
  * ─── REQUIRED FOR STRIPE CHECKOUT TESTS ─────────────────────────────────────
  *   STRIPE_SECRET_KEY     sk_test_...  (Stripe test key — not charged)
@@ -26,7 +26,7 @@
  *   PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *   API_BASE_URL=https://api.revealui.com \
  *   CMS_ADMIN_EMAIL=admin@example.com \
- *   CMS_ADMIN_PASSWORD='<your-cms-admin-password>' \
+ *   ADMIN_PASSWORD='<your-admin-password>' \
  *   STRIPE_SECRET_KEY=sk_test_... \
  *   node_modules/.bin/playwright test e2e/billing-funnel.e2e.ts \
  *     --project=chromium --retries=0 --reporter=line
@@ -34,7 +34,7 @@
  * Run (auth + UI only — no Stripe key required):
  *   PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *   CMS_ADMIN_EMAIL=admin@example.com \
- *   CMS_ADMIN_PASSWORD='<your-cms-admin-password>' \
+ *   ADMIN_PASSWORD='<your-admin-password>' \
  *   node_modules/.bin/playwright test e2e/billing-funnel.e2e.ts \
  *     --project=chromium --retries=0
  */
@@ -51,7 +51,7 @@ const AUTH_STATE_PATH = join(import.meta.dirname, '.auth', 'user.json');
 const CMS_BASE = (process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
 const API_BASE = (process.env.API_BASE_URL || 'http://localhost:3004').replace(/\/$/, '');
 const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || '';
-const ADMIN_PASSWORD = process.env.CMS_ADMIN_PASSWORD || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
 const PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID;
 const ENTERPRISE_PRICE_ID = process.env.STRIPE_ENTERPRISE_PRICE_ID;
@@ -222,7 +222,7 @@ test.describe('Billing page — auth gate', () => {
 
 test.describe('Billing page — free tier', () => {
   test.beforeEach(async () => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
   test('shows plan badge and upgrade CTA', async ({ page }) => {
@@ -272,7 +272,7 @@ test.describe('Billing page — free tier', () => {
 
 test.describe('Billing page — checkout redirect', () => {
   test.beforeEach(async () => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
   test('POST /api/billing/checkout returns a Stripe URL', async ({ page }) => {
@@ -308,7 +308,7 @@ test.describe('Billing page — checkout redirect', () => {
 
 test.describe('Billing page — success banner', () => {
   test.beforeEach(async () => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
   test('billing page shows activation success banner after checkout', async ({ page }) => {
@@ -332,7 +332,7 @@ test.describe('Stripe checkout — test mode', () => {
   test.beforeEach(async () => {
     test.skip(
       !(hasCredentials && hasStripeKey),
-      'Requires CMS credentials and STRIPE_SECRET_KEY=sk_test_...',
+      'Requires Admin credentials and STRIPE_SECRET_KEY=sk_test_...',
     );
   });
 
@@ -439,7 +439,7 @@ test.describe('Stripe checkout — test mode', () => {
 
 test.describe('License verification', () => {
   test.beforeEach(async () => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
   test('GET /api/billing/subscription returns a valid tier and status', async ({ page }) => {
@@ -489,7 +489,7 @@ test.describe('Pro → Enterprise upgrade', () => {
     // Requires a Stripe test key to avoid triggering real Stripe API calls in production.
     test.skip(
       !(hasCredentials && hasStripeKey),
-      'Requires CMS credentials and STRIPE_SECRET_KEY=sk_test_...',
+      'Requires Admin credentials and STRIPE_SECRET_KEY=sk_test_...',
     );
   });
 
@@ -549,7 +549,7 @@ test.describe('Billing portal', () => {
   test.beforeEach(async () => {
     test.skip(
       !(hasCredentials && hasStripeKey),
-      'Requires CMS credentials and STRIPE_SECRET_KEY=sk_test_...',
+      'Requires Admin credentials and STRIPE_SECRET_KEY=sk_test_...',
     );
   });
 

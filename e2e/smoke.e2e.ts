@@ -69,17 +69,17 @@ test.describe('API health', () => {
 // Admin Basic Render (apps/admin — port 4000)
 // ---------------------------------------------------------------------------
 
-test.describe('CMS basic render', () => {
+test.describe('Admin basic render', () => {
   const CmsBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
-  test('CMS root path responds', async ({ page }) => {
+  test('Admin root path responds', async ({ page }) => {
     // Soft-navigate — allow redirect to /admin or /login
     const response = await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
     // Any 2xx or 3xx (redirect to admin) is acceptable
     expect(response?.status()).toBeLessThan(500);
   });
 
-  test('CMS admin panel loads without JS error', async ({ page }) => {
+  test('Admin panel loads without JS error', async ({ page }) => {
     const jsErrors: string[] = [];
     page.on('pageerror', (err) => jsErrors.push(err.message));
 
@@ -98,9 +98,9 @@ test.describe('CMS basic render', () => {
     expect(criticalErrors).toHaveLength(0);
   });
 
-  test('CMS root has no critical accessibility violations', async ({ page }) => {
+  test('Admin root has no critical accessibility violations', async ({ page }) => {
     await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
-    // CMS root may redirect to /admin or /login — wait for navigation to settle
+    // Admin root may redirect to /admin or /login — wait for navigation to settle
     await page.waitForLoadState('networkidle');
     await checkAccessibilityCritical(page);
   });

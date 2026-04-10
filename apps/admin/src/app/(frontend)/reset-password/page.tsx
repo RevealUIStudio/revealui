@@ -195,6 +195,7 @@ function ResetWithTokenForm({ tokenId, token }: { tokenId: string; token: string
                   disabled={isLoading}
                   autoComplete="new-password"
                   className="pr-10"
+                  aria-label="Password"
                   minLength={8}
                   required
                 />
