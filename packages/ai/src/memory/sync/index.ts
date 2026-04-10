@@ -1,1 +1,1 @@
-export { SyncManager, type SyncDelta, type SyncResult, type SyncState } from './sync-manager.js';
+export { type SyncDelta, SyncManager, type SyncResult, type SyncState } from './sync-manager.js';

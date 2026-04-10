@@ -100,26 +100,6 @@ describe('ORSet tombstone GC', () => {
 // =============================================================================
 
 describe('CRDTPersistence.replayOperations', () => {
-  function createMockPersistence() {
-    const operations: CRDTOperationPayload[] = [];
-
-    return {
-      appendOperation: vi.fn(async (op: CRDTOperationPayload) => {
-        operations.push(op);
-      }),
-      getOperationsSince: vi.fn(async (crdtId: string, since: number) => {
-        return operations.filter((op) => op.crdtId === crdtId && op.timestamp >= since);
-      }),
-      loadCompositeState: vi.fn(async () => new Map()),
-      saveCompositeState: vi.fn(async () => {}),
-      saveCRDTState: vi.fn(async () => {}),
-      loadCRDTState: vi.fn(async () => null),
-      replayOperations: vi.fn(),
-      deleteOperationsBefore: vi.fn(),
-      _operations: operations,
-    };
-  }
-
   it('replays LWWRegister set operations', async () => {
     // Simulate what replayOperations would do
     const nodeId = 'node-a';
