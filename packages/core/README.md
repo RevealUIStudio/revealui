@@ -6,7 +6,7 @@ The core runtime engine for RevealUI — collections, admin UI, rich text, secur
 
 - **Collections & CRUD** — Define content types with field hooks, access control, and validation
 - **Admin Dashboard** — Ready-to-use React admin UI (collection browser, document editor, global forms)
-- **Rich Text** — Lexical-based editor with 20+ features (bold, headings, lists, links, images, blocks)
+- **Rich Text Fields** — Lexical-powered content fields in the admin editor (bold, headings, lists, links, images, blocks)
 - **Security** — CORS, CSP, HSTS, RBAC/ABAC policy engine, encryption (AES-256-GCM), audit logging
 - **GDPR Compliance** — Consent management, data export, deletion, anonymization, breach reporting
 - **Observability** — Structured logging, process health monitoring, alert system, graceful shutdown
@@ -78,15 +78,15 @@ function App() {
 }
 ```
 
-### Rich Text
+### Rich Text Fields
+
+Rich text editing is available as a field type in the admin dashboard.
+Define a `richText` field in your collection schema — the admin UI renders
+a Lexical editor automatically. Not a standalone component.
 
 ```typescript
-import { RichTextEditor, BoldFeature, HeadingFeature, ListFeature } from '@revealui/core/richtext/client'
-
-<RichTextEditor
-  features={[BoldFeature(), HeadingFeature(), ListFeature()]}
-  onChange={(json) => console.log(json)}
-/>
+// In your collection definition:
+defineField({ name: 'body', type: 'richText' })
 ```
 
 ### Feature Gating
