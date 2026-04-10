@@ -134,7 +134,7 @@ REVEALUI_SECRET=your-secret-key
 Create `apps/marketing/.env.local`:
 
 ```env
-NEXT_PUBLIC_CMS_URL=http://localhost:4000
+NEXT_PUBLIC_ADMIN_URL=http://localhost:4000
 # OR
 REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 ```
@@ -155,16 +155,16 @@ Create a base API client function in your frontend app.
 **File**: `apps/marketing/src/lib/api/client.ts`
 
 ```typescript
-const CMS_URL =
-  process.env.NEXT_PUBLIC_CMS_URL ||
+const ADMIN_URL =
+  process.env.NEXT_PUBLIC_ADMIN_URL ||
   process.env.REVEALUI_PUBLIC_SERVER_URL ||
   "http://localhost:4000";
 
-export async function fetchFromCMS<T>(
+export async function fetchFromAdmin<T>(
   endpoint: string,
   options?: RequestInit,
 ): Promise<T> {
-  const url = `${CMS_URL}${endpoint}`;
+  const url = `${ADMIN_URL}${endpoint}`;
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -190,7 +190,7 @@ Create fetch functions for each collection you need to access.
 **File**: `apps/marketing/src/lib/api/fetchMainInfos.ts`
 
 ```typescript
-import { fetchFromCMS } from "./client";
+import { fetchFromAdmin } from "./client";
 
 export interface MainInfo {
   id: number;
@@ -201,7 +201,7 @@ export interface MainInfo {
 }
 
 export default async function fetchMainInfos(): Promise<MainInfo[]> {
-  const response = await fetchFromCMS<{
+  const response = await fetchFromAdmin<{
     docs: MainInfo[];
     totalDocs: number;
   }>("/api/collections/contents?where[type][equals]=main-info&depth=1");
@@ -215,14 +215,14 @@ export default async function fetchMainInfos(): Promise<MainInfo[]> {
 **File**: `apps/marketing/src/lib/api/fetchVideos.ts`
 
 ```typescript
-import { fetchFromCMS } from "./client";
+import { fetchFromAdmin } from "./client";
 
 export interface Video {
   url: string;
 }
 
 export default async function fetchVideos(): Promise<Video[]> {
-  const response = await fetchFromCMS<{
+  const response = await fetchFromAdmin<{
     docs: Array<{ url?: string; file?: { url?: string } }>;
   }>("/api/collections/videos?depth=1");
 
@@ -239,7 +239,7 @@ export default async function fetchVideos(): Promise<Video[]> {
 **File**: `apps/marketing/src/lib/api/fetchCard.ts`
 
 ```typescript
-import { fetchFromCMS } from "./client";
+import { fetchFromAdmin } from "./client";
 
 export interface CardData {
   name: string;
@@ -251,7 +251,7 @@ export interface CardData {
 }
 
 export default async function fetchCard(): Promise<CardData[]> {
-  const response = await fetchFromCMS<{
+  const response = await fetchFromAdmin<{
     docs: CardData[];
   }>("/api/collections/cards?depth=1");
 
@@ -264,7 +264,7 @@ export default async function fetchCard(): Promise<CardData[]> {
 **File**: `apps/marketing/src/lib/api/fetchHero.ts`
 
 ```typescript
-import { fetchFromCMS } from "./client";
+import { fetchFromAdmin } from "./client";
 
 export interface HeroData {
   id: number;
@@ -275,7 +275,7 @@ export interface HeroData {
 }
 
 export default async function fetchHero(): Promise<HeroData[]> {
-  const response = await fetchFromCMS<{
+  const response = await fetchFromAdmin<{
     docs: HeroData[];
   }>("/api/collections/heros?depth=1");
 
@@ -288,7 +288,7 @@ export default async function fetchHero(): Promise<HeroData[]> {
 **File**: `apps/marketing/src/lib/api/fetchEvents.ts`
 
 ```typescript
-import { fetchFromCMS } from "./client";
+import { fetchFromAdmin } from "./client";
 
 export interface EventData {
   title: string;
@@ -299,7 +299,7 @@ export interface EventData {
 }
 
 export default async function fetchEvents(): Promise<EventData[]> {
-  const response = await fetchFromCMS<{
+  const response = await fetchFromAdmin<{
     docs: EventData[];
   }>("/api/collections/events?depth=1");
 
@@ -312,7 +312,7 @@ export default async function fetchEvents(): Promise<EventData[]> {
 **File**: `apps/marketing/src/lib/api/fetchBanner.ts`
 
 ```typescript
-import { fetchFromCMS } from "./client";
+import { fetchFromAdmin } from "./client";
 
 export interface BannerData {
   title: string;
@@ -323,7 +323,7 @@ export interface BannerData {
 }
 
 export default async function fetchBanner(): Promise<BannerData[]> {
-  const response = await fetchFromCMS<{
+  const response = await fetchFromAdmin<{
     docs: BannerData[];
   }>("/api/collections/banners?depth=1");
 

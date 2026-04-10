@@ -161,7 +161,7 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 
 - [ ] Duplicate subscription prevention: try checkout when already subscribed
 - [ ] Duplicate perpetual prevention: try perpetual checkout when already purchased
-- [ ] Missing `CMS_URL` env var: verify 500 with clear error
+- [ ] Missing `ADMIN_URL` env var: verify 500 with clear error
 - [ ] Expired session cookie: verify 401 on all endpoints
 - [ ] Rate limiting: hit checkout 11 times rapidly, verify 429
 

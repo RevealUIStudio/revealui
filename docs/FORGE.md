@@ -71,7 +71,7 @@ FORGE_LICENSE_KEY=rui_forge_...
 FORGE_LICENSED_DOMAIN=admin.acme.com
 
 # admin URL (used by API for redirects)
-CMS_URL=https://admin.acme.com
+ADMIN_URL=https://admin.acme.com
 
 # CORS (must include your domain)
 CORS_ORIGIN=https://admin.acme.com
@@ -116,7 +116,7 @@ All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT_VA
 | `FORGE_LICENSED_DOMAIN`        | Yes      | The domain this instance is locked to                |
 | `POSTGRES_URL`                 | Yes      | PostgreSQL 16 connection URL                         |
 | `REVEALUI_SECRET`              | Yes      | 32+ char application secret (session signing, CSRF, HMAC operations) |
-| `CMS_URL`                      | Yes      | Full URL of your admin (e.g. `https://admin.acme.com`) |
+| `ADMIN_URL`                      | Yes      | Full URL of your admin (e.g. `https://admin.acme.com`) |
 | `CORS_ORIGIN`                  | Yes      | Comma-separated allowed origins                      |
 | `STRIPE_SECRET_KEY`            | Billing  | Stripe secret key                                    |
 | `STRIPE_WEBHOOK_SECRET`        | Billing  | Stripe webhook signing secret                        |

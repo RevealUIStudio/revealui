@@ -1,7 +1,11 @@
 # RevealUI Master Plan
 
+> **AGENTS:** This is the PUBLIC snapshot. The canonical, up-to-date version is at:
+> `~/projects/revealui-jv/docs/MASTER_PLAN.md`
+> Always read and update the private repo version. This file is synced periodically.
+
 **Last Updated:** 2026-03-30 (Refactored — split into MASTER_PLAN + ARCHITECTURE + archive)
-**Status:** Active — Single source of truth for all planning
+**Status:** Public snapshot — canonical version in revealui-jv
 **Owner:** RevealUI Studio
 
 > This document supersedes all previous roadmaps, action plans, and status docs.
