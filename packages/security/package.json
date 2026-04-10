@@ -8,11 +8,11 @@
     "@revealui/utils": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
-    "dev": "workspace:*",
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "@types/node": "catalog:",
+    "@revealui/dev": "workspace:*",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

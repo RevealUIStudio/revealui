@@ -10,9 +10,9 @@ interface ElectricContextValue {
    */
   serviceUrl: string | null;
   /**
-   * Base URL prefix for authenticated CMS shape proxy routes.
+   * Base URL prefix for authenticated admin shape proxy routes.
    * Default '' keeps all hook URLs relative (works for same-origin apps).
-   * Set to 'https://cms.revealui.com' when consuming from a different origin.
+   * Set to 'https://admin.revealui.com' when consuming from a different origin.
    */
   proxyBaseUrl: string;
   debug: boolean;
@@ -28,7 +28,7 @@ const ElectricContext = createContext<ElectricContextValue>({
  * Provides ElectricSQL configuration to child hooks (`useConversations`, `useCollabDocument`).
  *
  * Provides proxyBaseUrl (and optional serviceUrl/debug) to child hooks via context.
- * All hooks use the CMS proxy pattern — no direct Electric connection is established here.
+ * All hooks use the admin proxy pattern — no direct Electric connection is established here.
  */
 export function ElectricProvider(props: {
   children: ReactNode;

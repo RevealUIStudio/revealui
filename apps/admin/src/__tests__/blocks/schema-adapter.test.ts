@@ -2,7 +2,7 @@
  * Tests for schema adapter
  */
 
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import { describe, expect, it } from 'vitest';
 import {
   safeParseBlock,

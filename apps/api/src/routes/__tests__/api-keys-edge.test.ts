@@ -167,14 +167,14 @@ describe('api-keys edge cases', () => {
         provider: 'ollama',
         apiKey: 'sk-test-12345678',
         setAsDefault: true,
-        model: 'llama-3.3-70b',
+        model: 'gemma4:e2b',
       });
 
       expect(res.status).toBe(201);
       // Second insert is for tenantProviderConfigs
       expect(mockInsertValues).toHaveBeenCalledTimes(2);
       expect(mockInsertValues.mock.calls[1]![0]).toMatchObject({
-        model: 'llama-3.3-70b',
+        model: 'gemma4:e2b',
         isDefault: true,
         provider: 'ollama',
       });
@@ -210,7 +210,7 @@ describe('api-keys edge cases', () => {
         provider: 'huggingface',
         apiKey: 'sk-test-12345678',
         setAsDefault: true,
-        model: 'meta-llama/Llama-3.3-70B-Instruct',
+        model: 'google/gemma-4-27b-it',
       });
 
       expect(res.status).toBe(201);
@@ -221,7 +221,7 @@ describe('api-keys edge cases', () => {
       // Second: mark the new config as default
       expect(mockUpdateSet.mock.calls[1]![0]).toMatchObject({
         isDefault: true,
-        model: 'meta-llama/Llama-3.3-70B-Instruct',
+        model: 'google/gemma-4-27b-it',
       });
     });
   });

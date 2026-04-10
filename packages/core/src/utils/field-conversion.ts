@@ -25,8 +25,8 @@
  * (isTextField, isArrayField, switch on field.type).
  */
 
-import type { FieldValidateArgs } from '@revealui/contracts/cms';
-import { isArrayField, isTextField } from '@revealui/contracts/cms';
+import type { FieldValidateArgs } from '@revealui/contracts/admin';
+import { isArrayField, isTextField } from '@revealui/contracts/admin';
 import type {
   ArrayField,
   CheckboxField,

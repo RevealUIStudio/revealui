@@ -20,20 +20,20 @@ import {
 } from './utils/a11y-helper';
 
 // ---------------------------------------------------------------------------
-// CMS Pages (apps/admin — port 4000)
+// Admin Pages (apps/admin — port 4000)
 // ---------------------------------------------------------------------------
 
 test.describe('Accessibility', () => {
-  const CmsBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
+  const AdminBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
   test.describe('Login page', () => {
     test('meets WCAG 2.1 AA standards', async ({ page }) => {
-      await page.goto(`${CmsBase}/login`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${AdminBase}/login`, { waitUntil: 'domcontentloaded' });
       await checkAccessibility(page);
     });
 
     test('form inputs have accessible labels', async ({ page }) => {
-      await page.goto(`${CmsBase}/login`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${AdminBase}/login`, { waitUntil: 'domcontentloaded' });
       const violations = await getAccessibilityViolations(page, {
         includeSelectors: ['form'],
       });
@@ -50,13 +50,13 @@ test.describe('Accessibility', () => {
 
   test.describe('Dashboard / Admin panel', () => {
     test('admin page meets WCAG 2.1 AA standards', async ({ page }) => {
-      await page.goto(`${CmsBase}/admin`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${AdminBase}/admin`, { waitUntil: 'domcontentloaded' });
       // Dashboard may redirect to login if unauthenticated — scan whatever renders
       await checkAccessibility(page);
     });
 
     test('navigation is keyboard accessible', async ({ page }) => {
-      await page.goto(`${CmsBase}/admin`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${AdminBase}/admin`, { waitUntil: 'domcontentloaded' });
       const violations = await getAccessibilityViolations(page);
 
       const keyboardViolations = violations.filter(
@@ -71,14 +71,14 @@ test.describe('Accessibility', () => {
 
   test.describe('Settings page', () => {
     test('account settings page meets WCAG 2.1 AA standards', async ({ page }) => {
-      await page.goto(`${CmsBase}/admin/settings/account`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${AdminBase}/admin/settings/account`, { waitUntil: 'domcontentloaded' });
       await checkAccessibility(page);
     });
   });
 
   test.describe('Content editor', () => {
     test('content list page meets WCAG 2.1 AA standards', async ({ page }) => {
-      await page.goto(`${CmsBase}/admin/collections/posts`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${AdminBase}/admin/collections/posts`, { waitUntil: 'domcontentloaded' });
       // May redirect to login — scan whatever renders
       await checkAccessibility(page);
     });
@@ -86,7 +86,7 @@ test.describe('Accessibility', () => {
     test('content editor page meets WCAG 2.1 AA (critical/serious only)', async ({ page }) => {
       // Rich text editors often have minor a11y issues from contenteditable.
       // Check critical/serious only to avoid noise from editor internals.
-      await page.goto(`${CmsBase}/admin/collections/posts/create`, {
+      await page.goto(`${AdminBase}/admin/collections/posts/create`, {
         waitUntil: 'domcontentloaded',
       });
       await checkAccessibilityCritical(page);
@@ -116,9 +116,9 @@ test.describe('Accessibility', () => {
   // ---------------------------------------------------------------------------
 
   test.describe('Cross-cutting', () => {
-    test('no critical violations across CMS root', async ({ page }) => {
-      await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
-      // CMS root may redirect to /login — wait for navigation to settle
+    test('no critical violations across admin root', async ({ page }) => {
+      await page.goto(AdminBase, { waitUntil: 'domcontentloaded' });
+      // Admin root may redirect to /login — wait for navigation to settle
       await page.waitForLoadState('networkidle');
       const allViolations = await checkAccessibilityCritical(page);
 
@@ -135,7 +135,7 @@ test.describe('Accessibility', () => {
     });
 
     test('images have alt text', async ({ page }) => {
-      await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+      await page.goto(AdminBase, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle');
       const violations = await getAccessibilityViolations(page);
       const imageViolations = violations.filter((v) => v.id === 'image-alt');
@@ -143,7 +143,7 @@ test.describe('Accessibility', () => {
     });
 
     test('page has proper heading hierarchy', async ({ page }) => {
-      await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+      await page.goto(AdminBase, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle');
       const violations = await getAccessibilityViolations(page);
       const headingViolations = violations.filter(
@@ -156,7 +156,7 @@ test.describe('Accessibility', () => {
     });
 
     test('color contrast meets AA minimum', async ({ page }) => {
-      await page.goto(CmsBase, { waitUntil: 'domcontentloaded' });
+      await page.goto(AdminBase, { waitUntil: 'domcontentloaded' });
       await page.waitForLoadState('networkidle');
       const violations = await getAccessibilityViolations(page);
       const contrastViolations = violations.filter((v) => v.id === 'color-contrast');

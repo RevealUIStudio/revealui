@@ -11,7 +11,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     // Fire-and-forget — never let capture failure affect the error UI
-    // Route through the CMS server-side proxy (same origin) which adds the
+    // Route through the admin server-side proxy (same origin) which adds the
     // X-Internal-Token header. Sending REVEALUI_SECRET from the client would
     // expose it in the browser bundle.
     fetch('/api/capture-error', {
@@ -21,7 +21,7 @@ export default function GlobalError({
         level: 'fatal',
         message: error?.message ?? 'Unknown client error',
         stack: error?.stack,
-        app: 'cms',
+        app: 'admin',
         context: 'client',
         url: typeof window !== 'undefined' ? window.location.href : undefined,
         metadata: error?.digest ? { digest: error.digest } : undefined,

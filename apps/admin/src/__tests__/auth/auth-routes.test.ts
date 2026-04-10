@@ -1,5 +1,5 @@
 /**
- * CMS Auth Route Tests
+ * admin Auth Route Tests
  *
  * Tests for sign-in, sign-up, and resend-verification route handlers.
  * Focuses on validation, error handling, rate limiting config,

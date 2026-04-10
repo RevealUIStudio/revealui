@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest';
 describe('Dev Package Configs Integration', () => {
   describe('Tailwind Config', () => {
     it('should import tailwind config', async () => {
-      const config = await import('dev/tailwind');
+      const config = await import('@revealui/dev/tailwind');
       expect(config.default).toBeDefined();
       expect(config.default.theme).toBeDefined();
       expect(config.default.plugins).toBeDefined();
@@ -18,12 +18,12 @@ describe('Dev Package Configs Integration', () => {
     }, 15_000);
 
     it('should import createTailwindConfig helper', async () => {
-      const { createTailwindConfig } = await import('dev/tailwind/create-config');
+      const { createTailwindConfig } = await import('@revealui/dev/tailwind/create-config');
       expect(typeof createTailwindConfig).toBe('function');
     });
 
     it('should create valid config with createTailwindConfig', async () => {
-      const { createTailwindConfig } = await import('dev/tailwind/create-config');
+      const { createTailwindConfig } = await import('@revealui/dev/tailwind/create-config');
       const config = createTailwindConfig({
         content: ['./src/**/*.{ts,tsx}'],
         theme: {
@@ -42,7 +42,7 @@ describe('Dev Package Configs Integration', () => {
     });
 
     it('should deep merge theme.extend correctly', async () => {
-      const { createTailwindConfig } = await import('dev/tailwind/create-config');
+      const { createTailwindConfig } = await import('@revealui/dev/tailwind/create-config');
       const config = createTailwindConfig({
         content: ['./test'],
         theme: {
@@ -71,14 +71,14 @@ describe('Dev Package Configs Integration', () => {
 
   describe('PostCSS Config', () => {
     it('should import postcss config', async () => {
-      const config = await import('dev/postcss');
+      const config = await import('@revealui/dev/postcss');
       expect(config.default).toBeDefined();
       expect(config.default.plugins).toBeDefined();
       expect(typeof config.default.plugins).toBe('object');
     });
 
     it('should have required plugins', async () => {
-      const config = await import('dev/postcss');
+      const config = await import('@revealui/dev/postcss');
       const plugins = config.default.plugins as Record<string, unknown>;
       // Tailwind CSS v4 handles imports natively via @tailwindcss/postcss
       // postcss-import and autoprefixer are no longer needed
@@ -88,21 +88,21 @@ describe('Dev Package Configs Integration', () => {
 
   describe('Vite Config', () => {
     it('should import vite config', async () => {
-      const config = await import('dev/vite');
+      const config = await import('@revealui/dev/vite');
       expect(config.default).toBeDefined();
       expect(config.default.build).toBeDefined();
       expect(config.default.resolve).toBeDefined();
     });
 
     it('should have build configuration', async () => {
-      const config = await import('dev/vite');
+      const config = await import('@revealui/dev/vite');
       expect(config.default.build?.target).toBeDefined();
       expect(config.default.build?.sourcemap).toBe(true);
       expect(config.default.build?.rolldownOptions).toBeDefined();
     });
 
     it('should have resolve aliases', async () => {
-      const config = await import('dev/vite');
+      const config = await import('@revealui/dev/vite');
       expect(config.default.resolve?.alias).toBeDefined();
       expect(typeof config.default.resolve?.alias).toBe('object');
     });
@@ -110,13 +110,13 @@ describe('Dev Package Configs Integration', () => {
 
   describe('Biome Config', () => {
     it('should import biome config', async () => {
-      const config = await import('dev/biome');
+      const config = await import('@revealui/dev/biome');
       expect(config.biomeConfig).toBeDefined();
       expect(typeof config.biomeConfig).toBe('object');
     });
 
     it('should have formatter configuration', async () => {
-      const config = await import('dev/biome');
+      const config = await import('@revealui/dev/biome');
       expect(config.biomeConfig.formatter).toBeDefined();
     });
   });
@@ -159,7 +159,7 @@ describe('Dev Package Configs Integration', () => {
       // Test that configs can be imported and use dev package correctly
       // We test by verifying the config structure rather than importing from relative paths
       // (which may not resolve correctly in test context)
-      const tailwindConfig = await import('dev/tailwind/create-config');
+      const tailwindConfig = await import('@revealui/dev/tailwind/create-config');
       const config = tailwindConfig.createTailwindConfig({
         content: ['./src/**/*.{ts,tsx}'],
       });
@@ -168,9 +168,9 @@ describe('Dev Package Configs Integration', () => {
     });
 
     it('should verify all config exports are accessible', async () => {
-      const tailwind = await import('dev/tailwind');
-      const postcss = await import('dev/postcss');
-      const vite = await import('dev/vite');
+      const tailwind = await import('@revealui/dev/tailwind');
+      const postcss = await import('@revealui/dev/postcss');
+      const vite = await import('@revealui/dev/vite');
 
       expect(tailwind.default).toBeDefined();
       expect(postcss.default).toBeDefined();

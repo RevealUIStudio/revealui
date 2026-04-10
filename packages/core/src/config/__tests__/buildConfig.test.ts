@@ -4,7 +4,7 @@
  * Tests the buildConfig function with ConfigContract validation
  */
 
-import { ConfigValidationError } from '@revealui/contracts/cms';
+import { ConfigValidationError } from '@revealui/contracts/admin';
 import { describe, expect, it } from 'vitest';
 import type { Config } from '../../../types/index.js';
 import { buildConfig } from '../index.js';
@@ -196,7 +196,7 @@ describe('buildConfig Integration', () => {
   });
 
   describe('Real Config Integration', () => {
-    it('validates real config structure from CMS app', () => {
+    it('validates real config structure from admin app', () => {
       // This tests with a realistic config structure
       const realConfig: Config = {
         secret: 'test-secret-key',

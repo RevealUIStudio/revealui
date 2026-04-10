@@ -8,7 +8,7 @@
  *
  * No POST — users are created via auth signup flows.
  *
- * Returns the paginated envelope format expected by the CMS admin panel:
+ * Returns the paginated envelope format expected by the admin dashboard panel:
  *   { docs, totalDocs, totalPages, page, limit, ... }
  */
 
@@ -41,6 +41,7 @@ const SENSITIVE_FIELDS = new Set([
   'mfaSecret',
   'mfaBackupCodes',
   'emailVerificationToken',
+  'stripeCustomerId',
 ]);
 
 // =============================================================================
@@ -58,7 +59,6 @@ const UserSchema = z
     status: z.string(),
     emailVerified: z.boolean(),
     mfaEnabled: z.boolean(),
-    stripeCustomerId: z.string().nullable(),
     createdAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     updatedAt: z.string().openapi({ type: 'string', format: 'date-time' }),
     lastActiveAt: z.string().nullable().openapi({ type: 'string', format: 'date-time' }),
@@ -68,7 +68,7 @@ const UserSchema = z
 const PaginatedUsersSchema = z.object({
   success: z.literal(true),
   data: z.array(UserSchema),
-  docs: z.array(UserSchema).openapi({ description: 'Alias for data (CMS admin compat)' }),
+  docs: z.array(UserSchema).openapi({ description: 'Alias for data (admin dashboard compat)' }),
   totalDocs: z.number(),
   totalPages: z.number(),
   page: z.number(),
@@ -107,7 +107,6 @@ function serializeUser(
     status: user.status,
     emailVerified: user.emailVerified,
     mfaEnabled: user.mfaEnabled,
-    stripeCustomerId: user.stripeCustomerId ?? null,
     createdAt: dateToString(user.createdAt),
     updatedAt: dateToString(user.updatedAt),
     lastActiveAt: nullableDateToString(user.lastActiveAt),

@@ -62,7 +62,12 @@ export async function GET(
 
   try {
     const redirectUri = `${baseUrl}/api/auth/link/callback/${provider}`;
-    const accessToken = await exchangeCode(provider, code ?? '', redirectUri);
+    const accessToken = await exchangeCode(
+      provider,
+      code ?? '',
+      redirectUri,
+      verified.codeVerifier,
+    );
     const providerUser = await fetchProviderUser(provider, accessToken);
 
     // Link the provider to the authenticated user

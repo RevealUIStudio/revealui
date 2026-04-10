@@ -5,7 +5,7 @@ import type { FeatureFlags } from '@revealui/core/features';
 import { createPaywall } from '@revealui/paywall';
 import { PaywallProvider, usePaywall } from '@revealui/paywall/client';
 
-/** Shared paywall instance for the CMS. */
+/** Shared paywall instance for the admin. */
 const paywall = createPaywall();
 
 /** The value exposed by the license context (backwards-compatible shape). */
@@ -48,7 +48,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
 /**
  * Hook to read the current license state.
  *
- * Thin wrapper around `usePaywall()` that preserves the CMS's
+ * Thin wrapper around `usePaywall()` that preserves the admin's
  * `LicenseContextValue` shape for backwards compatibility.
  */
 export function useLicense(): LicenseContextValue {

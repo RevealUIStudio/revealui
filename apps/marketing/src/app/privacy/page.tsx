@@ -41,7 +41,7 @@ export default function PrivacyPolicyPage() {
         </p>
         <h3>Content Data</h3>
         <p>
-          Any content you create through the CMS (posts, pages, media) is stored in your database.
+          Any content you create through the admin (posts, pages, media) is stored in your database.
           For hosted plans, this data is stored in NeonDB (PostgreSQL) and Supabase.
         </p>
 
@@ -73,8 +73,8 @@ export default function PrivacyPolicyPage() {
             <a href="https://vercel.com/legal/privacy-policy">Vercel Privacy Policy</a>)
           </li>
           <li>
-            <strong>Resend</strong> — transactional email delivery (
-            <a href="https://resend.com/legal/privacy-policy">Resend Privacy Policy</a>)
+            <strong>Google Workspace</strong> — transactional email delivery via Gmail API (
+            <a href="https://policies.google.com/privacy">Google Privacy Policy</a>)
           </li>
         </ul>
 
@@ -94,14 +94,14 @@ export default function PrivacyPolicyPage() {
             contacting us
           </li>
           <li>
-            <strong>Export</strong> your data — use the GDPR export endpoint in the CMS
+            <strong>Export</strong> your data — use the GDPR export endpoint in the admin
           </li>
           <li>
             <strong>Delete</strong> your account and all associated data — use the account deletion
             feature or contact us
           </li>
           <li>
-            <strong>Correct</strong> inaccurate data — update your profile in the CMS admin
+            <strong>Correct</strong> inaccurate data — update your profile in the admin dashboard
           </li>
           <li>
             <strong>Object</strong> to processing — contact us at the email below

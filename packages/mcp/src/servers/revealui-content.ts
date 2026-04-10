@@ -4,7 +4,7 @@
  * RevealUI Content MCP Server
  *
  * Model Context Protocol server that gives AI agents read/write access to
- * RevealUI CMS content via the RevealUI REST API. Useful for agents that need
+ * RevealUI admin content via the RevealUI REST API. Useful for agents that need
  * to query site data, list content, manage users, or inspect deployment state.
  *
  * Environment:

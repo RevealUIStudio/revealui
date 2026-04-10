@@ -15,7 +15,7 @@ AI agents, LLM providers, CRDT memory, and the A2A protocol for RevealUI Pro.
 
 - **Agents** — long-running task agents with persistent state
 - **Memory** — four-store cognitive memory (episodic, working, semantic, procedural)
-- **Open-model inference** — Ubuntu snaps, BitNet, and open source models via the harness
+- **Open-model inference** — Ubuntu snaps, Ollama, and open source models via the harness
 - **Streaming** — SSE-based token streaming via `StreamingAgentRuntime` and `useAgentStream`
 - **Orchestration** — multi-agent coordination with the A2A protocol
 - **MCP integration** — tool use via Model Context Protocol
@@ -91,8 +91,7 @@ const memory = {
 | Path | Chat | Embeddings | Notes |
 | ---- | ---- | ---------- | ----- |
 | **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime — hardware-aware, single command install, OpenAI-compatible API |
-| BitNet | Yes | No | 1-bit quantized, CPU-only, ~700 MB RAM |
-| Ollama | Yes | Yes | Any open source GGUF model, local inference |
+| Ollama | Yes | Yes | Any open source GGUF model, local inference. Default chat: `gemma4:e2b`, embed: `nomic-embed-text` |
 
 ### Inference Snaps Models
 
@@ -137,11 +136,11 @@ nemotron-3-nano status
 ```typescript
 import { createLLMClient } from "@revealui/ai/llm";
 
-// Auto-detects from environment (snaps > BitNet > Ollama)
+// Auto-detects from environment (snaps > Ollama)
 const llm = createLLMClient();
 ```
 
-Auto-detection priority: `INFERENCE_SNAPS_BASE_URL` > `BITNET_BASE_URL` > `OLLAMA_BASE_URL`. See the [inference guide](/pro/inference) for full configuration details.
+Auto-detection priority: `INFERENCE_SNAPS_BASE_URL` > `OLLAMA_BASE_URL`. See the [inference guide](/pro/inference) for full configuration details.
 
 ## Streaming
 
@@ -260,7 +259,7 @@ function AgentChat() {
 
 # Caching Strategies
 
-RevealUI provides two application-level caching strategies that work with all supported inference paths (Ubuntu Inference Snaps, BitNet, Ollama). These reduce inference costs and latency by avoiding redundant LLM calls.
+RevealUI provides two application-level caching strategies that work with all supported inference paths (Ubuntu Inference Snaps, Ollama). These reduce inference costs and latency by avoiding redundant LLM calls.
 
 ## Overview
 
@@ -425,7 +424,7 @@ Semantic caching uses Ollama's `nomic-embed-text` model for embeddings:
 - **Speed**: ~50ms average
 - **Storage**: ~3 KB per cached entry embedding
 
-Requires `OLLAMA_BASE_URL` to be set. When using BitNet as the primary chat provider, Ollama is automatically used for embeddings (see [auto-wiring](/pro/inference)).
+Requires `OLLAMA_BASE_URL` to be set.
 
 ### Monitoring
 
@@ -487,4 +486,4 @@ LLM_ENABLE_SEMANTIC_CACHE=true
 
 **Implementation**: Production-ready
 **Status**: Fully tested
-**Inference paths**: All (Ubuntu Inference Snaps, BitNet, Ollama)
+**Inference paths**: All (Ubuntu Inference Snaps, Ollama)

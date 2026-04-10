@@ -17,7 +17,7 @@
 
 - **Codebase:** ~123,700 lines of TypeScript/Rust across apps + packages
 - **History:** 1,842+ commits (Dec 30, 2025 – Mar 2026), solo developer
-- **Apps:** 7 (api, cms, docs, marketing, revealcoin, studio, terminal)
+- **Apps:** 7 (api, admin, docs, marketing, revealcoin, studio, terminal)
 - **Packages:** 24 (@revealui/core, contracts, db, auth, presentation, router, config, utils, cli, setup, sync, dev, test, ai, mcp, editors, services, harnesses, openapi, resilience, security, cache, create-revealui, plus scripts)
 - **Tests:** 753 test files, 10,784+ tests passing, all workspaces build and typecheck
 - **CI:** GitHub Actions (ci.yml with E2E smoke job, release.yml, release-pro.yml, security.yml), 3-phase CI gate + E2E
@@ -28,7 +28,7 @@
 
 | Feature | Status | Confidence |
 |---------|--------|------------|
-| CMS engine (core) | Built | High — 237 files, deep implementation |
+| admin engine (core) | Built | High — 237 files, deep implementation |
 | AI agent system | Built | Medium — untested in production |
 | UI components (56) | Built | High — native hooks, no external deps |
 | Database schema (75 tables) | Built | Medium — migrations exist, production verified |
@@ -42,7 +42,7 @@
 
 - Zero real users (admin account exists for testing)
 - Stripe live integration unverified
-- Email delivery unverified (Resend API key not set)
+- Email delivery configured (Gmail API via Google Workspace)
 - ~~No `create-revealui` CLI published to npm~~ — published @0.3.4 (latest, validated 2026-03-28)
 - No documentation site deployed
 - No marketing page deployed
@@ -84,20 +84,20 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 #### 3.10 Pre-Launch Smoke Checklist (verified 2026-03-30)
 - [x] `GET https://api.revealui.com/openapi.json` → 200 with full spec ✓ OpenAPI 3.0.0, 100+ endpoints
 - [x] `GET https://api.revealui.com/.well-known/agent.json` → 200 ✓ Valid agent card
-- [x] `cms.revealui.com` without session → /login (not landing page) ✓ 307 → /login
-- [x] `revealui.com` "Get Started" → cms.revealui.com/signup ✓
-- [x] `revealui.com` "Log in" → cms.revealui.com/login ✓
-- [x] `cms.revealui.com/posts` → 301 to revealui.com/blog ✓ 308 redirect (permanent, functional)
+- [x] `admin.revealui.com` without session → /login (not landing page) ✓ 307 → /login
+- [x] `revealui.com` "Get Started" → admin.revealui.com/signup ✓
+- [x] `revealui.com` "Log in" → admin.revealui.com/login ✓
+- [x] `admin.revealui.com/posts` → 301 to revealui.com/blog ✓ 308 redirect (permanent, functional)
 - [x] At least 1 blog post visible at revealui.com/blog ✓ "Why I Built RevealUI" (Mar 26, 2026)
 - [x] `BuiltWithRevealUI` badge renders in dark mode in footer — verified via Playwright MCP (2026-03-31)
-- [x] Signup → login page flow — verified: cms.revealui.com → /login redirect, signup form at /signup with Name/Email/Password + OAuth (2026-03-31). Full email verification flow requires manual test.
+- [x] Signup → login page flow — verified: admin.revealui.com → /login redirect, signup form at /signup with Name/Email/Password + OAuth (2026-03-31). Full email verification flow requires manual test.
 - [x] Pricing page loads with live Stripe prices — verified: /api/pricing returns 200, page shows $0/$49/$149/$299 for all 4 tiers (2026-03-31)
 - [x] E2E smoke spec added: `packages/test/src/e2e/smoke-production.spec.ts` (8 tests, @smoke tagged: badge, pricing, auth flow, performance budget, security headers, OAuth hrefs, OpenAPI spec, visual regression)
 
 **Quick-Start Validation Request Template:**
 
 > Hey [name], I just open-sourced RevealUI — a full-stack TypeScript framework for building SaaS
-> products (auth, CMS, payments, AI pre-wired). Would you be willing to spend 15-20 minutes trying
+> products (auth, admin, payments, AI pre-wired). Would you be willing to spend 15-20 minutes trying
 > the quick-start guide from scratch? Fresh clone, no help from me — just let me know what breaks.
 >
 > `npx create-revealui@latest my-app`
@@ -110,7 +110,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 > Hi [name], I run [agency name] — I saw your recent work on [project/post].
 >
 > I just open-sourced RevealUI (revealui.com) — a TypeScript framework that pre-wires everything
-> agencies need for client products: auth, CMS, Stripe billing, AI agents. MIT licensed, single
+> agencies need for client products: auth, admin, Stripe billing, AI agents. MIT licensed, single
 > `npx create-revealui` to scaffold. Designed for exactly the kind of work you do.
 >
 > Pro tier ($49/mo) includes AI agents + MCP servers for agents that can manage content and
@@ -135,7 +135,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 
 **Goal:** Complete the four-revenue-track pricing model by adding Track B (agent credits/metering), Track C (perpetual licenses), Track D (professional services), Forge self-hosted delivery, and the MCP marketplace foundation.
 
-**Completed:** 5.1 Agent Task Metering, 5.2 x402 Payments, 5.3 Perpetual Licenses (code + UX), 5.4 Forge Docker, 5.5 MCP Marketplace, 5.5.1 Pro Package Test Fixes, 5.6 Post-Launch Cleanup, 5.7 npm Pro Org (partial), 5.8 BitNet (code complete), 5.11 AI Inference Pivot (open models only), 5.12 Track D Services, 5.13 Charge Readiness Audit. Full details in [`archive/completed-phases.md`](archive/completed-phases.md).
+**Completed:** 5.1 Agent Task Metering, 5.2 x402 Payments, 5.3 Perpetual Licenses (code + UX), 5.4 Forge Docker, 5.5 MCP Marketplace, 5.5.1 Pro Package Test Fixes, 5.6 Post-Launch Cleanup, 5.7 npm Pro Org (partial), 5.8 Local Inference (code complete), 5.11 AI Inference Pivot (open models only), 5.12 Track D Services, 5.13 Charge Readiness Audit. Full details in [`archive/completed-phases.md`](archive/completed-phases.md).
 
 **In progress:** 5.14 RevVault Vercel Sync (Phase A+B complete, C owner migration pending), 5.15 Harness Coordination Runtime (complete), 5.16 RevMarket (complete — A-D all done).
 
@@ -152,8 +152,8 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded — separ
 - [x] Support renewal checkout route (`POST /api/billing/checkout-support-renewal`) — 2026-04-05
 - [x] Support renewal webhook handler (extends `supportExpiresAt` +1 year) — 2026-04-05
 - [x] Support renewal confirmation email — 2026-04-05
-- [x] CMS license page: perpetual badge, support expiry display, renewal button — 2026-04-05
-- [x] CMS billing page: renewal success banner — 2026-04-05
+- [x] admin license page: perpetual badge, support expiry display, renewal button — 2026-04-05
+- [x] admin billing page: renewal success banner — 2026-04-05
 - [x] Subscription API: returns `perpetual` and `supportExpiresAt` fields — 2026-04-05
 - [x] Renewal catalog entries (`renewal:pro`, `renewal:max`, `renewal:enterprise`) — 2026-04-05
 - [x] Stripe seed script: 3 renewal products with env key mappings — 2026-04-05
@@ -231,15 +231,15 @@ Phase D — Cross-platform:
 #### 5.6.3 CI/DX Fixes
 - [x] Pre-push gate OOM: router imported `@revealui/core/observability/logger` (re-export from utils), forcing DTS compiler to load 297-file core type graph. Replaced with direct `@revealui/utils/logger` import — DTS build drops from OOM to 2.5s (commit 7e10e731) — 2026-03-31
 - [x] Biome PostToolUse hook cache fix: hook now outputs `additionalContext` JSON when it modifies files, preventing Claude's "file unexpectedly modified" errors — 2026-03-31
-- [x] Marketing site polish (#94): 4 P0 fixes (OG brand, version, component count, broken link), 3 P1 fixes (sponsor metadata, package count, CMS URL) — commits 5e7a6d39, aa8a3254 — 2026-03-31
-- [x] Full signup → login → admin dashboard E2E test — 2026-03-31 (signup-flow.spec.ts, 24 tests, handles both first-user and subsequent-user paths; email verification requires real SMTP for full coverage)
+- [x] Marketing site polish (#94): 4 P0 fixes (OG brand, version, component count, broken link), 3 P1 fixes (sponsor metadata, package count, admin URL) — commits 5e7a6d39, aa8a3254 — 2026-03-31
+- [x] Full signup → login → admin dashboard E2E test — 2026-03-31 (signup-flow.spec.ts, 24 tests, handles both first-user and subsequent-user paths; email verification requires Gmail API credentials for full coverage)
 
 #### 5.7 npm Pro Org Management
 - [ ] Verify `@revealui` npm org is claimed and linked to `revealui-org` account
 - [ ] Enable npm security scanning on all `@revealui/*` packages
 - [ ] Enable 2FA enforcement on the npm org
 
-#### 5.8 BitNet Local Inference
+#### 5.8 Local Inference
 - [x] Integration tests — 17 tests (provider unit + LLMClient wiring, graceful skip without model) — 2026-03-31
 - [x] `docs/architecture/ai-stack.md` — comprehensive doc covering 8 providers, tiers, memory, RAG — 2026-03-31
 - [ ] Marketing copy — deferred: owner action
@@ -266,8 +266,8 @@ Phase D — Cross-platform:
 #### 5.11 AI Inference Pivot ✅ COMPLETE (2026-04-05)
 - [x] Remove BYOK code paths and proprietary provider support — 2026-04-05
 - [x] Remove `aiSampling` feature flag (Groq sampling removed) — 2026-04-05
-- [x] Align all messaging: free = local inference (BitNet/Ollama), Pro+ = local + cloud harness (self-hosted open models) — 2026-04-05
-- [x] Update docs, marketing, and CMS upgrade page to reflect open-model-only policy — 2026-04-05
+- [x] Align all messaging: free = local inference (inference snaps/Ollama), Pro+ = local + cloud harness (self-hosted open models) — 2026-04-05
+- [x] Update docs, marketing, and admin upgrade page to reflect open-model-only policy — 2026-04-05
 
 #### 5.12 Track D — Professional Services ✅ COMPLETE (2026-04-05)
 - [x] `ServiceOffering` contract type + `SERVICE_OFFERINGS` constant (4 offerings) — 2026-04-05
@@ -346,8 +346,8 @@ Phase C — Distributed invalidation + PGlite state stores (agent): ✅ COMPLETE
 
 Phase D — Edge + CDN caching audit (agent): ✅ COMPLETE (2026-04-05)
 - [x] Audit Vercel Edge Cache usage in `@revealui/cache` — presets defined but unused in routes
-- [x] Tag-based revalidation for CMS content changes — already implemented (`revalidateTag()` + on-demand ISR)
-- [x] ISR strategy per route — marketing (5min blog, 1hr pricing), CMS (on-demand via `/api/revalidate`)
+- [x] Tag-based revalidation for admin content changes — already implemented (`revalidateTag()` + on-demand ISR)
+- [x] ISR strategy per route — marketing (5min blog, 1hr pricing), admin (on-demand via `/api/revalidate`)
 - [x] Cache-Control headers audit across API routes — 22+ routes lacked headers
 - [x] Cache-Control middleware (`apps/api/src/middleware/cache-control.ts`):
   - `noStoreCacheMiddleware`: auth, billing, webhooks, GDPR, license, api-keys, agent routes
@@ -562,7 +562,7 @@ Phase D — Agent publisher tools (agent):
 #### 6.2 Technical Controls (owner: agent)
 - [ ] Tamper-evident audit log: append-only, off-system sink (S3 or CloudWatch) — replaces in-memory `AuditSystem`
 - [ ] Automated alerting on anomalous access (failed logins, privilege escalation, unusual API volume)
-- [ ] MFA enforcement for all admin accounts (CMS admin + infrastructure consoles)
+- [ ] MFA enforcement for all admin accounts (admin admin + infrastructure consoles)
 - [ ] Formal asset inventory (services, data stores, third-party processors)
 - [ ] Uptime monitoring + SLA tracking dashboard (Availability TSC)
 - [ ] Backup restore verification procedure (quarterly restore drills)
@@ -659,7 +659,7 @@ Currently `scripts/lib/` is the `@revealui/scripts` package, co-located with the
 Rotate all credentials exposed during the Revvault plaintext migration (the old passage store held secrets in plaintext before `revault migrate` was run). Affected services: Stripe, Supabase, Neon. Also covers replacing `KEY: VALUE` format in the vault with `KEY=VALUE` so `revvault export-env` works cleanly.
 
 **Steps:**
-1. Rotate Stripe restricted key: Stripe Dashboard → API keys → create new restricted key → update `STRIPE_SECRET_KEY` in Vercel (CMS + API) → delete old key
+1. Rotate Stripe restricted key: Stripe Dashboard → API keys → create new restricted key → update `STRIPE_SECRET_KEY` in Vercel (admin + API) → delete old key
 2. Rotate Supabase service role key: Supabase Dashboard → Project Settings → API → regenerate service_role key → update all Vercel env vars
 3. Rotate Neon password: Neon Dashboard → Branches → main → reset role password → update `POSTGRES_URL` / `DATABASE_URL` / `DIRECT_URL` in all Vercel projects
 4. Update vault entries: `revvault edit revealui/env/reveal-saas-dev-secrets` → replace `: ` with `=` in each line → switch `.envrc` to use `eval "$(revault export-env revealui/env/reveal-saas-dev-secrets)"`

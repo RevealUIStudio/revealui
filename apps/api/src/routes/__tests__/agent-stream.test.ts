@@ -94,12 +94,12 @@ describe('agent-stream route — mode parameter', () => {
     vi.clearAllMocks();
   });
 
-  it('accepts mode: "cms" without error', async () => {
+  it('accepts mode: "admin" without error', async () => {
     const app = createApp();
 
     const res = await jsonPost(app, '/agent-stream', {
       instruction: 'List collections',
-      mode: 'cms',
+      mode: 'admin',
     });
 
     // AI modules not available → 403 (schema validation passed)
@@ -118,14 +118,14 @@ describe('agent-stream route — mode parameter', () => {
     expect(res.status).toBe(403);
   });
 
-  it('defaults to cms mode when mode is omitted', async () => {
+  it('defaults to admin mode when mode is omitted', async () => {
     const app = createApp();
 
     const res = await jsonPost(app, '/agent-stream', {
       instruction: 'Hello',
     });
 
-    // Schema defaults mode to 'cms'; AI not available → 403
+    // Schema defaults mode to 'admin'; AI not available → 403
     expect(res.status).toBe(403);
   });
 
@@ -150,7 +150,7 @@ describe('agent-stream route — mode parameter', () => {
       workspaceId: 'ws-99',
       priority: 'high',
       provider: 'ollama',
-      model: 'llama3.2',
+      model: 'gemma4:e2b',
       mode: 'coding',
     });
 

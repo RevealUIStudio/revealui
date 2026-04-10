@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { healthCheck, resendSendTest, vercelSetEnv } from '../../lib/deploy';
+import { healthCheck, vercelSetEnv } from '../../lib/deploy';
 import type { StudioConfig, WizardData } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -26,7 +26,7 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
   const [error, setError] = useState<string | null>(null);
   const [checks, setChecks] = useState<CheckState[]>([
     { label: 'API Health', status: 'idle' },
-    { label: 'CMS', status: 'idle' },
+    { label: 'Admin', status: 'idle' },
     { label: 'Marketing', status: 'idle' },
     { label: 'Database (via API)', status: 'idle' },
     { label: 'Email Delivery', status: 'idle' },
@@ -101,11 +101,10 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
       // Email delivery check
       try {
         updateCheck(4, { status: 'checking' });
-        if (data.emailProvider === 'resend' && data.resendApiKey) {
-          await resendSendTest(data.resendApiKey, trimmedEmail);
-          updateCheck(4, { status: 'pass', detail: 'Test email sent' });
+        // Gmail credentials are validated during StepEmail
+        if (data.googleServiceAccountEmail && data.googlePrivateKey) {
+          updateCheck(4, { status: 'pass', detail: 'Gmail configured' });
         } else {
-          // For SMTP, we already validated during StepEmail — mark as pass
           updateCheck(4, { status: 'pass', detail: 'Validated in email step' });
         }
       } catch {
@@ -164,7 +163,7 @@ export default function StepVerify({ config, data, onComplete }: StepVerifyProps
           <p className="mb-1 font-medium text-neutral-400">Manual verification (after setup):</p>
           <ul className="list-inside list-disc flex flex-col gap-0.5">
             <li>Stripe webhook test event fires and is received</li>
-            <li>CORS allows CMS → API requests</li>
+            <li>CORS allows admin → API requests</li>
             <li>Session cookie works cross-subdomain</li>
             <li>Signup flow works end-to-end</li>
           </ul>

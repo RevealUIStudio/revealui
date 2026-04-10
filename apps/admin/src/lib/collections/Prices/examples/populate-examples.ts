@@ -7,7 +7,7 @@
 
 import type { PriceWithCategories, PriceWithRelated } from '@revealui/contracts/entities';
 import type { RevealDocument, RevealUIInstance } from '@revealui/core';
-import type { Price } from '@revealui/core/types/cms';
+import type { Price } from '@revealui/core/types/admin';
 
 // =============================================================================
 // Example 1: Fetch with Automatic Population

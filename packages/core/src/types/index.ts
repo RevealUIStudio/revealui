@@ -1,12 +1,12 @@
 /**
- * RevealUI CMS Framework - Type System
+ * RevealUI admin Framework - Type System
  *
- * This module consolidates the CMS type system using @revealui/contracts
+ * This module consolidates the admin type system using @revealui/contracts
  * as the single source of truth, while extending with RevealUI-specific features.
  *
  * ## Architecture
  *
- * 1. **Contracts** (@revealui/contracts/cms)
+ * 1. **Contracts** (@revealui/contracts/admin)
  *    - Core field, collection, and global schemas
  *    - Runtime validation with Zod
  *    - Type inference from schemas
@@ -104,8 +104,8 @@ export {
   type FieldValidateArgs,
   // Validation contracts
   // type FieldValidateFunction,
-  fromCMSCollectionConfig,
-  fromCMSGlobalConfig,
+  fromAdminCollectionConfig,
+  fromAdminGlobalConfig,
   // Global contracts
   GLOBAL_SCHEMA_VERSION,
   type GlobalAccess,
@@ -169,9 +169,9 @@ export {
   TabsFieldSchema,
   type TextField,
   TextFieldSchema,
-  // CMS compatibility
-  toCMSCollectionConfig,
-  toCMSGlobalConfig,
+  // admin compatibility
+  toAdminCollectionConfig,
+  toAdminGlobalConfig,
   toSlug,
   type UploadConfig,
   UploadConfigSchema,
@@ -180,7 +180,7 @@ export {
   VersionsConfigSchema,
   validateWithErrors,
   type Where,
-} from '@revealui/contracts/cms';
+} from '@revealui/contracts/admin';
 
 // =============================================================================
 // QUERY TYPES
@@ -291,7 +291,7 @@ export type {
 // =============================================================================
 // ACCESS TYPES (RevealUI-specific)
 // =============================================================================
-// Note: Core AccessFunction, AccessArgs, AccessResult come from @revealui/contracts/cms
+// Note: Core AccessFunction, AccessArgs, AccessResult come from @revealui/contracts/admin
 // These are RevealUI-specific extensions
 
 export type {

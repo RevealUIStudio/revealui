@@ -8,7 +8,7 @@ RevealUI supports three deployment targets: Vercel (recommended), Docker Compose
 
 | Target | Best For | Services Included |
 |--------|----------|-------------------|
-| Vercel | SaaS, serverless | CMS, API, Marketing, Docs |
+| Vercel | SaaS, serverless | admin, API, Marketing, Docs |
 | Docker Compose | Self-hosted, on-prem | All apps in containers |
 | Node.js | Custom infrastructure | Manual process management |
 
@@ -20,7 +20,7 @@ Vercel is the recommended deployment target. RevealUI auto-deploys three service
 
 | App | Vercel Project | Domain |
 |-----|---------------|--------|
-| CMS | `revealui-cms` | cms.yourdomain.com |
+| Admin | `revealui-admin` | admin.yourdomain.com |
 | API | `revealui-api` | api.yourdomain.com |
 | Marketing | `revealui-marketing` | yourdomain.com |
 
@@ -41,7 +41,7 @@ pnpm add -g vercel
 2. Link each app to a Vercel project:
 
 ```bash
-cd apps/cms && vercel link
+cd apps/admin && vercel link
 cd apps/api && vercel link
 cd apps/marketing && vercel link
 ```
@@ -61,8 +61,8 @@ These must be set in every Vercel project:
 ```env
 # Core (required)
 REVEALUI_SECRET=<32+ character random string>
-REVEALUI_PUBLIC_SERVER_URL=https://cms.yourdomain.com
-NEXT_PUBLIC_SERVER_URL=https://cms.yourdomain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.yourdomain.com
+NEXT_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
 
 # Storage (required for media uploads)
@@ -76,7 +76,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 
 ### Build Configuration
 
-The CMS app uses Next.js standalone output mode. Vercel detects the framework automatically. No custom build settings are needed beyond environment variables.
+The admin app uses Next.js standalone output mode. Vercel detects the framework automatically. No custom build settings are needed beyond environment variables.
 
 The API app uses Hono and builds with tsup. Set the Vercel project framework to "Other" and configure:
 
@@ -103,7 +103,7 @@ Configure domains in the Vercel dashboard:
 2. Update DNS (CNAME to `cname.vercel-dns.com`)
 3. Update `REVEALUI_PUBLIC_SERVER_URL` to match
 
-For cross-subdomain auth, the session cookie domain should be set to `.yourdomain.com` so it works across `cms.yourdomain.com` and `api.yourdomain.com`.
+For cross-subdomain auth, the session cookie domain should be set to `.yourdomain.com` so it works across `admin.yourdomain.com` and `api.yourdomain.com`.
 
 ---
 
@@ -122,10 +122,10 @@ For self-hosted deployments, RevealUI provides a Docker Compose configuration.
 version: '3.8'
 
 services:
-  cms:
+  admin:
     build:
       context: .
-      dockerfile: apps/cms/Dockerfile
+      dockerfile: apps/admin/Dockerfile
     ports:
       - '4000:4000'
     environment:
@@ -213,8 +213,8 @@ pnpm build
 Each app can be started independently:
 
 ```bash
-# CMS (Next.js standalone)
-cd apps/cms
+# admin (Next.js standalone)
+cd apps/admin
 node .next/standalone/server.js
 
 # API (Hono)
@@ -227,7 +227,7 @@ node dist/index.js
 Use a process manager like PM2 for production:
 
 ```bash
-pm2 start apps/cms/.next/standalone/server.js --name revealui-cms
+pm2 start apps/admin/.next/standalone/server.js --name revealui-admin
 pm2 start apps/api/dist/index.js --name revealui-api
 pm2 save
 pm2 startup
@@ -239,7 +239,7 @@ Place Nginx or Caddy in front of the Node.js processes:
 
 ```nginx
 server {
-    server_name cms.yourdomain.com;
+    server_name admin.yourdomain.com;
 
     location / {
         proxy_pass http://127.0.0.1:4000;
@@ -278,7 +278,7 @@ server {
 |----------|-------------|
 | `REVEALUI_SECRET` | 32+ char random string for session token hashing |
 | `POSTGRES_URL` | NeonDB or PostgreSQL connection string |
-| `REVEALUI_PUBLIC_SERVER_URL` | Full URL of the CMS app |
+| `REVEALUI_PUBLIC_SERVER_URL` | Full URL of the admin app |
 | `NEXT_PUBLIC_SERVER_URL` | Same as above (client-side usage) |
 
 ### Optional

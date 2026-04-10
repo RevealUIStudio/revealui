@@ -64,7 +64,7 @@ Performance testing is designed to:
 
 Located in `packages/test/load-tests/`:
 - `auth-load.js` - Authentication system load test
-- `cms-load.js` - CMS operations load test
+- `admin-load.js` - admin operations load test
 - `ai-load.js` - AI/agent operations load test
 
 ### 2. Stress Tests (k6)
@@ -144,8 +144,8 @@ Add these secrets to your GitHub repository:
 # Run auth load test
 k6 run packages/test/load-tests/auth-load.js
 
-# Run CMS load test
-k6 run packages/test/load-tests/cms-load.js
+# Run admin load test
+k6 run packages/test/load-tests/admin-load.js
 
 # Run AI load test
 k6 run packages/test/load-tests/ai-load.js
@@ -1657,7 +1657,7 @@ Location: `packages/core/src/optimization/bundle-analyzer.ts`
 pnpm benchmark:bundle:size
 
 # Analyze specific app
-pnpm benchmark:bundle:size -- cms
+pnpm benchmark:bundle:size -- admin
 ```
 
 ### Using the Bundle Analyzer
@@ -2313,7 +2313,7 @@ Example output:
 ```
 === Bundle Size Analysis ===
 
-CMS Bundle:
+admin Bundle:
   Total Size: 387.45 KB
   Files: 124
   Large Files: 3
@@ -2431,14 +2431,14 @@ Added `inputs` arrays to track which files trigger cache invalidation:
 
 - **TypeScript files**: `src/**/*.ts`, `src/**/*.tsx`
 - **Config files**: `package.json`, `tsconfig.json`
-- **Styles**: `src/**/*.css` (for web/cms builds)
-- **Assets**: `public/**` (for web/cms builds)
+- **Styles**: `src/**/*.css` (for web/admin builds)
+- **Assets**: `public/**` (for web/admin builds)
 - **Build configs**: `vite.config.ts`, `next.config.mjs`
 
 **Example**:
 ```json
 {
-  "cms:build": {
+  "admin:build": {
     "inputs": [
       "src/**/*.ts",
       "src/**/*.tsx",

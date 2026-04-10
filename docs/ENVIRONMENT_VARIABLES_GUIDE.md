@@ -33,7 +33,7 @@ These variables **must** be set for the application to function:
 | Variable                             | Purpose                      | Security Level        |
 | ------------------------------------ | ---------------------------- | --------------------- |
 | `REVEALUI_SECRET`                    | Application secret (session signing, CSRF, HMAC operations) | 🔴 HIGH (Server-only) |
-| `REVEALUI_PUBLIC_SERVER_URL`         | RevealUI CMS server URL      | 🟢 LOW (Client-safe)  |
+| `REVEALUI_PUBLIC_SERVER_URL`         | RevealUI admin server URL      | 🟢 LOW (Client-safe)  |
 | `NEXT_PUBLIC_SERVER_URL`             | Next.js server URL           | 🟢 LOW (Client-safe)  |
 | `POSTGRES_URL`                       | PostgreSQL connection string | 🔴 HIGH (Server-only) |
 | `BLOB_READ_WRITE_TOKEN`              | Vercel Blob Storage token    | 🔴 HIGH (Server-only) |
@@ -196,8 +196,8 @@ NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 **Production**:
 
 ```env
-REVEALUI_PUBLIC_SERVER_URL=https://cms.your-domain.com
-NEXT_PUBLIC_SERVER_URL=https://cms.your-domain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.your-domain.com
+NEXT_PUBLIC_SERVER_URL=https://admin.your-domain.com
 ```
 
 ---
@@ -408,9 +408,6 @@ All inference runs on open models only. No proprietary providers (OpenAI, Anthro
 # Ubuntu Inference Snaps (Canonical)
 INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
 
-# BitNet (1-bit quantized, CPU-only)
-BITNET_BASE_URL=http://localhost:8080/v1
-
 # Ollama (any open source GGUF model)
 OLLAMA_BASE_URL=http://localhost:11434/v1
 
@@ -422,7 +419,7 @@ VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
 VULTR_BASE_URL=https://api.vultrinference.com/v1
 
 # Force a specific inference provider (overrides auto-detection)
-# Valid values: ollama, bitnet, huggingface, vultr, inference-snaps
+# Valid values: ollama, huggingface, vultr, inference-snaps
 LLM_PROVIDER=ollama
 ```
 
@@ -492,8 +489,8 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...  # Use test keys
 
 ```env
 NODE_ENV=production
-REVEALUI_PUBLIC_SERVER_URL=https://cms.your-domain.com  # Must be HTTPS
-NEXT_PUBLIC_SERVER_URL=https://cms.your-domain.com  # Must be HTTPS
+REVEALUI_PUBLIC_SERVER_URL=https://admin.your-domain.com  # Must be HTTPS
+NEXT_PUBLIC_SERVER_URL=https://admin.your-domain.com  # Must be HTTPS
 STRIPE_SECRET_KEY=sk_live_...  # Use live keys
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...  # Use live keys
 ```
@@ -546,8 +543,8 @@ Before starting development:
 
 ```env
 # MUST be HTTPS in production
-REVEALUI_PUBLIC_SERVER_URL=https://cms.your-domain.com
-NEXT_PUBLIC_SERVER_URL=https://cms.your-domain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.your-domain.com
+NEXT_PUBLIC_SERVER_URL=https://admin.your-domain.com
 
 # MUST use production Stripe keys
 STRIPE_SECRET_KEY=sk_live_XXXXX
@@ -564,7 +561,7 @@ NODE_ENV=production
 ### 1. Verify Database Connection
 
 ```bash
-cd apps/cms
+cd apps/admin
 pnpm dev
 ```
 
@@ -600,7 +597,7 @@ If upload fails:
 
 ```bash
 # In one terminal
-cd apps/cms
+cd apps/admin
 pnpm dev
 
 # In another terminal
@@ -1038,7 +1035,7 @@ revealui/
 The project includes validation in:
 
 - `packages/config/src/validator.ts` - Runtime validation
-- `apps/cms/src/lib/utils/env-validation.ts` - CMS-specific validation
+- `apps/admin/src/lib/utils/env-validation.ts` - Admin-specific validation
 - `scripts/setup/validate-env.ts` - Setup validation script
 
 Run validation:

@@ -1,13 +1,13 @@
 /**
  * ElectricSQL Integration E2E Tests
  *
- * Tests the CMS → ElectricSQL proxy shape endpoints:
+ * Tests the admin → ElectricSQL proxy shape endpoints:
  *   GET /api/shapes/conversations    — row-level filtered by user_id
  *   GET /api/shapes/agent-contexts   — row-level filtered by session_id
  *   GET /api/shapes/agent-memories   — row-level filtered by agent_id
  *
  * Architecture:
- *   CMS (Next.js) → shape route → Electric (Railway) → NeonDB (logical replication)
+ *   Admin (Next.js) → shape route → Electric (Railway) → NeonDB (logical replication)
  *
  * Test strategy:
  *   - Unauthenticated tests verify auth enforcement — no credentials required.
@@ -29,12 +29,12 @@
 
 import { expect, test } from '@playwright/test';
 
-const CMS_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
+const ADMIN_BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
-// Skip entire suite if CMS is not reachable
+// Skip entire suite if Admin is not reachable
 test.beforeAll(async ({ request }) => {
   try {
-    const res = await request.get(`${CMS_BASE}/api/health`, { timeout: 3000 });
+    const res = await request.get(`${ADMIN_BASE}/api/health`, { timeout: 3000 });
     if (!res.ok()) {
       test.skip();
     }
@@ -50,21 +50,23 @@ test.beforeAll(async ({ request }) => {
 
 test.describe('Shape endpoints enforce authentication', () => {
   test('GET /api/shapes/conversations returns 401 without session', async ({ request }) => {
-    const response = await request.get(`${CMS_BASE}/api/shapes/conversations`);
+    const response = await request.get(`${ADMIN_BASE}/api/shapes/conversations`);
     expect(response.status()).toBe(401);
     const body = (await response.json()) as Record<string, unknown>;
     expect(body).toHaveProperty('error', 'UNAUTHORIZED');
   });
 
   test('GET /api/shapes/agent-contexts returns 401 without session', async ({ request }) => {
-    const response = await request.get(`${CMS_BASE}/api/shapes/agent-contexts`);
+    const response = await request.get(`${ADMIN_BASE}/api/shapes/agent-contexts`);
     expect(response.status()).toBe(401);
     const body = (await response.json()) as Record<string, unknown>;
     expect(body).toHaveProperty('error', 'UNAUTHORIZED');
   });
 
   test('GET /api/shapes/agent-memories returns 401 without session', async ({ request }) => {
-    const response = await request.get(`${CMS_BASE}/api/shapes/agent-memories?agent_id=assistant`);
+    const response = await request.get(
+      `${ADMIN_BASE}/api/shapes/agent-memories?agent_id=assistant`,
+    );
     expect(response.status()).toBe(401);
     const body = (await response.json()) as Record<string, unknown>;
     expect(body).toHaveProperty('error', 'UNAUTHORIZED');
@@ -88,7 +90,7 @@ test.describe('Shape endpoints proxy Electric when authenticated', () => {
   test.beforeAll(async ({ request }) => {
     // Probe sign-up endpoint for rate limiting before attempting
     const probe = await request
-      .post(`${CMS_BASE}/api/auth/sign-up`, {
+      .post(`${ADMIN_BASE}/api/auth/sign-up`, {
         data: { email: `probe-electric-${Date.now()}@revealui-test.com`, password: 'ProbePass!1' },
       })
       .catch(() => null);
@@ -99,7 +101,7 @@ test.describe('Shape endpoints proxy Electric when authenticated', () => {
     }
 
     // Sign up a fresh test user
-    const signUpRes = await request.post(`${CMS_BASE}/api/auth/sign-up`, {
+    const signUpRes = await request.post(`${ADMIN_BASE}/api/auth/sign-up`, {
       data: { email: testEmail, password: testPassword, name: testName },
     });
 
@@ -129,7 +131,7 @@ test.describe('Shape endpoints proxy Electric when authenticated', () => {
       return;
     }
 
-    const response = await request.get(`${CMS_BASE}/api/shapes/conversations`, {
+    const response = await request.get(`${ADMIN_BASE}/api/shapes/conversations`, {
       headers: { cookie: sessionCookie },
     });
 
@@ -145,7 +147,7 @@ test.describe('Shape endpoints proxy Electric when authenticated', () => {
       return;
     }
 
-    const response = await request.get(`${CMS_BASE}/api/shapes/agent-contexts`, {
+    const response = await request.get(`${ADMIN_BASE}/api/shapes/agent-contexts`, {
       headers: { cookie: sessionCookie },
     });
 
@@ -160,9 +162,12 @@ test.describe('Shape endpoints proxy Electric when authenticated', () => {
       return;
     }
 
-    const response = await request.get(`${CMS_BASE}/api/shapes/agent-memories?agent_id=assistant`, {
-      headers: { cookie: sessionCookie },
-    });
+    const response = await request.get(
+      `${ADMIN_BASE}/api/shapes/agent-memories?agent_id=assistant`,
+      {
+        headers: { cookie: sessionCookie },
+      },
+    );
 
     expect(response.status()).toBe(200);
   });

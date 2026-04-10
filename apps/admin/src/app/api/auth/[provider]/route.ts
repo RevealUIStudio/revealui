@@ -37,13 +37,13 @@ export async function GET(
   const redirectTo = request.nextUrl.searchParams.get('redirectTo') ?? '/admin';
   const linkConsent = request.nextUrl.searchParams.get('linkConsent') === 'true';
 
-  const { state, cookieValue } = generateOAuthState(provider, redirectTo, {
+  const { state, cookieValue, codeChallenge } = generateOAuthState(provider, redirectTo, {
     linkConsent: linkConsent || undefined,
   });
 
   let authUrl: string;
   try {
-    authUrl = buildAuthUrl(provider, redirectUri, state);
+    authUrl = buildAuthUrl(provider, redirectUri, state, codeChallenge);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'OAuth not configured';
     return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(message)}`, baseUrl));

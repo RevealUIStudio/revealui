@@ -51,7 +51,7 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 
 **Project Overview**
 
-- **Framework**: RevealUI — Full-stack React 19 + Next.js 16 CMS Framework
+- **Framework**: RevealUI — Full-stack React 19 + Next.js 16 Admin Framework
 - **Package Count**: 22 packages (17 OSS + 5 Pro)
 - **Test Status**: 811 test files, all packages build and typecheck ✅
 - **Build Status**: All 24 workspaces build successfully ✅
@@ -119,7 +119,7 @@ packages/
 **Working with Types**
 
 1. [Package Conventions - Types Section](../packages/PACKAGE-CONVENTIONS.md#types-and-generated-code)
-2. Types live in `@revealui/contracts` (Zod schemas) and `@revealui/core/types` (CMS types)
+2. Types live in `@revealui/contracts` (Zod schemas) and `@revealui/core/types` (admin types)
 
 **Database Operations**
 
@@ -140,7 +140,7 @@ packages/
 
 **Import Paths**
 
-- Use `@/lib/*` for CMS app imports
+- Use `@/lib/*` for admin app imports
 - Use `revealui/*` for framework imports
 - Use `@revealui/core/types` (NOT `@revealui/types` - merged)
 - Use `@revealui/core/generated` (NOT `@revealui/generated` - merged)
@@ -267,7 +267,7 @@ The agent enforces these RevealUI-specific conventions:
 
 #### Type Generation Scripts
 
-- **RevealUI Types**: `pnpm generate:revealui-types` - Generate CMS types
+- **RevealUI Types**: `pnpm generate:revealui-types` - Generate admin types
 - **Neon Types**: `pnpm generate:neon-types` - Generate database types
 - **OpenAPI Spec**: `pnpm generate:openapi` - Generate API documentation
 
@@ -299,7 +299,7 @@ The agent understands the **pnpm workspace structure**:
 
 ```
 apps/
-  ├── cms/        # Next.js 16 + @revealui/core application
+  ├── admin/        # Next.js 16 + @revealui/core application
   └── web/        # RevealUI + React application
 
 packages/
@@ -316,7 +316,7 @@ packages/
 
 The agent enforces correct import paths:
 
-- `@/lib/*` - CMS app imports
+- `@/lib/*` - admin app imports
 - `@revealui/core` - Runtime engine imports
 - `@revealui/db` - Database imports
 - `@revealui/config` - Configuration imports
@@ -324,7 +324,7 @@ The agent enforces correct import paths:
 
 #### Framework-Specific Patterns
 
-- **CMS Initialization**: `getRevealUI({ config })` pattern
+- **admin Initialization**: `getRevealUI({ config })` pattern
 - **Collection Access**: Aware of collection hooks and access control
 - **Admin Interface**: Understands admin layout and routing patterns
 - **Block Rendering**: Knows `RenderBlocks` and block normalization patterns
@@ -485,9 +485,9 @@ The codebase includes **specialized agent configurations** that guide behavior f
 - **Experimental**: Capture and analyze browser console errors using MCP
 - Integrated debugging capabilities
 
-### 3. CMS Agent (`.cursor/agents/cms.md`)
+### 3. Admin Agent (`.cursor/agents/admin.md`)
 
-- RevealUI CMS collections, hooks, and access control patterns
+- RevealUI admin collections, hooks, and access control patterns
 - Collection configuration patterns
 - Admin interface patterns
 
@@ -502,7 +502,7 @@ The codebase includes **specialized agent configurations** that guide behavior f
 - Vitest and Playwright patterns
 - Framework-specific test utilities from `@revealui/test`
 
-**Usage**: Reference agents in chat: "Use the CMS agent to help with..." or "Apply the TypeScript agent for..."
+**Usage**: Reference agents in chat: "Use the admin agent to help with..." or "Apply the TypeScript agent for..."
 
 ---
 
@@ -593,7 +593,7 @@ The agent has access to **7 MCP servers** configured specifically for RevealUI:
 ### Summary: Unique Capabilities vs Generic Codebase
 
 1. **Mandatory Legacy Removal**: Top-priority enforcement not present in generic codebases
-2. **Specialized Agents**: Task-specific AI behaviors (CMS, Next.js, TypeScript)
+2. **Specialized Agents**: Task-specific AI behaviors (admin, Next.js, TypeScript)
 3. **MCP Integration**: 6 configured servers (Vercel, Stripe, Neon, Supabase, Playwright, Next.js DevTools)
 4. **Cohesion Analysis**: Access to code pattern analysis and technical debt metrics
 5. **Framework-Specific Tooling**: Scaffolding, type generation, documentation management
@@ -608,7 +608,7 @@ The agent has access to **7 MCP servers** configured specifically for RevealUI:
 - **Proactive Legacy Removal**: Removes old code as part of every change
 - **MCP-Aware**: Can leverage deployment, payment, and database tools directly
 - **Pattern Recognition**: Uses cohesion analysis to suggest improvements
-- **Type Generation**: Automatically generates types from CMS/database schemas
+- **Type Generation**: Automatically generates types from admin/database schemas
 - **Quality Focus**: Runs validation and auditing as part of development workflow
 
 ---
@@ -901,7 +901,7 @@ PRODUCTION_URL        # Production domain URL
 
 1. Connect your GitHub repository to Vercel
 2. Configure build settings:
-   - **Framework**: Next.js (for CMS) + Static (for Web)
+   - **Framework**: Next.js (for admin) + Static (for Web)
    - **Build Command**: `pnpm build:packages && pnpm build`
    - **Output Directory**: Auto-detected from `vercel.json`
    - **Install Command**: `pnpm install --frozen-lockfile`
@@ -1100,7 +1100,7 @@ pnpm changeset:version --dry-run
 - [ ] `test` - Should run unit tests with coverage
 - [ ] `security-scan` - Should check for vulnerabilities
 - [ ] `docs-verification` - Should validate documentation
-- [ ] `build-cms` - Should build Next.js CMS application
+- [ ] `build-admin` - Should build Next.js admin application
 - [ ] `build-web` - Should build Vite web application
 - [ ] `validate-crdt` - Should validate database schema
 - [ ] `integration-tests` - Should run database integration tests
@@ -1279,7 +1279,7 @@ Solution: Ensure all dependencies are installed and Node.js version matches
   - `lint`: < 2 minutes
   - `typecheck`: < 3 minutes
   - `test`: < 5 minutes
-  - `build-cms`: < 4 minutes
+  - `build-admin`: < 4 minutes
   - `build-web`: < 2 minutes
 
 #### Deployment Performance
@@ -1624,7 +1624,7 @@ Allow deletions: false
 - `test` (CI)
 - `security-scan` (CI)
 - `docs-verification` (CI)
-- `build-cms` (CI)
+- `build-admin` (CI)
 - `build-web` (CI)
 - `validate-crdt` (CI)
 - `integration-tests` (CI)
@@ -1681,7 +1681,7 @@ gh api repos/{owner}/{repo}/branches/main/protection \
       "test",
       "security-scan",
       "docs-verification",
-      "build-cms",
+      "build-admin",
       "build-web",
       "validate-crdt",
       "integration-tests",
@@ -1746,7 +1746,7 @@ try {
   // Verify critical checks are present
   const criticalChecks = [
     'validate-config', 'lint', 'typecheck', 'test',
-    'security-scan', 'build-cms', 'build-web'
+    'security-scan', 'build-admin', 'build-web'
   ];
 
   const missingChecks = criticalChecks.filter(check =>
@@ -1793,7 +1793,7 @@ try {
 - **`test`**: Unit test execution and coverage
 - **`security-scan`**: Dependency vulnerability scanning
 - **`docs-verification`**: Documentation validation
-- **`build-cms`**: Next.js CMS application build
+- **`build-admin`**: Next.js admin application build
 - **`build-web`**: Vite web application build
 - **`validate-crdt`**: Database schema validation
 - **`integration-tests`**: End-to-end integration testing

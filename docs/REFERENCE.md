@@ -780,7 +780,7 @@ Import from `@revealui/core/plugins`.
 
 ### `formBuilderPlugin(config?: FormBuilderPluginConfig)`
 
-Adds a drag-and-drop form builder collection to your CMS. Creates `forms` and `form-submissions` collections automatically.
+Adds a drag-and-drop form builder collection to your admin. Creates `forms` and `form-submissions` collections automatically.
 
 ```ts
 import { formBuilderPlugin } from "@revealui/core/plugins";
@@ -974,7 +974,7 @@ npm install @revealui/contracts
 | Import path                     | Purpose                              |
 | ------------------------------- | ------------------------------------ |
 | `@revealui/contracts`           | All contracts + A2A protocol         |
-| `@revealui/contracts/cms`       | CMS config types and helpers         |
+| `@revealui/contracts/admin`       | admin config types and helpers         |
 | `@revealui/contracts/agents`    | Agent definitions and memory         |
 | `@revealui/contracts/database`  | DB ↔ contract mapping utilities      |
 | `@revealui/contracts/generated` | Generated row/insert/update types    |
@@ -983,16 +983,16 @@ npm install @revealui/contracts
 
 ---
 
-## CMS Configuration
+## admin Configuration
 
-Import from `@revealui/contracts/cms`.
+Import from `@revealui/contracts/admin`.
 
 ### `defineCollection(name, config): CollectionConfig`
 
-Type-safe helper for defining a CMS collection. Pass the result to `buildConfig({ collections: [...] })`.
+Type-safe helper for defining an admin collection. Pass the result to `buildConfig({ collections: [...] })`.
 
 ```ts
-import { defineCollection } from "@revealui/contracts/cms";
+import { defineCollection } from "@revealui/contracts/admin";
 
 export const Posts = defineCollection("posts", {
   fields: [
@@ -1019,7 +1019,7 @@ export const Posts = defineCollection("posts", {
 Defines a singleton global (e.g. site settings, navigation).
 
 ```ts
-import { defineGlobal } from "@revealui/contracts/cms";
+import { defineGlobal } from "@revealui/contracts/admin";
 
 export const SiteSettings = defineGlobal("site-settings", {
   fields: [
@@ -1039,7 +1039,7 @@ export const SiteSettings = defineGlobal("site-settings", {
 Type-safe helper for defining a field. Useful when sharing field definitions across collections.
 
 ```ts
-import { defineField } from "@revealui/contracts/cms";
+import { defineField } from "@revealui/contracts/admin";
 
 const statusField = defineField("status", {
   type: "select",
@@ -1061,7 +1061,7 @@ Merges multiple collection configs. Useful for extending base configs with app-s
 Validates data against a Zod schema without throwing. Returns a discriminated union.
 
 ```ts
-import { safeValidate } from "@revealui/contracts/cms";
+import { safeValidate } from "@revealui/contracts/admin";
 import { UserSchema } from "@revealui/contracts";
 
 const result = safeValidate(UserSchema, unknownData);
@@ -1392,7 +1392,7 @@ import type {
 
 ### `registerCustomFieldType(name, config): void`
 
-Registers a custom CMS field type that can be used in collection definitions.
+Registers a custom admin field type that can be used in collection definitions.
 
 ### `registerPluginExtension(name, ext): void`
 
@@ -1430,7 +1430,7 @@ npm install @revealui/db
 | `@revealui/db/schema/users`    | Users, sessions, password reset         |
 | `@revealui/db/schema/sites`    | Sites and collaborators                 |
 | `@revealui/db/schema/pages`    | Pages and revisions                     |
-| `@revealui/db/schema/cms`      | Posts and media                         |
+| `@revealui/db/schema/admin`      | Posts and media                         |
 | `@revealui/db/schema/agents`   | Agent memories, contexts, conversations |
 | `@revealui/db/schema/licenses` | License records                         |
 | `@revealui/db/schema/api-keys` | User inference API keys                 |
@@ -1558,7 +1558,7 @@ import {
 ```ts
 import { sites, siteCollaborators } from "@revealui/db/schema/sites";
 import { pages, pageRevisions } from "@revealui/db/schema/pages";
-import { posts, media } from "@revealui/db/schema/cms";
+import { posts, media } from "@revealui/db/schema/admin";
 ```
 
 ### Agents & AI
@@ -1955,7 +1955,7 @@ Minimum required variables for a working RevealUI deployment:
 ```bash
 # Core
 REVEALUI_SECRET=your-application-secret
-NEXT_PUBLIC_SERVER_URL=https://your-cms.com
+NEXT_PUBLIC_SERVER_URL=https://your-admin.com
 
 # Database (one of:)
 POSTGRES_URL=postgresql://...
@@ -3582,7 +3582,7 @@ interface AuthSession {
 ## Architecture Notes
 
 - **Session-only auth** — no JWT tokens. Sessions are stored in PostgreSQL and identified by a `revealui-session` cookie containing an opaque `randomBytes(32).toString('hex')` token.
-- **Cookie domain** — `.revealui.com` for cross-subdomain support (CMS, API, marketing all share sessions).
+- **Cookie domain** — `.revealui.com` for cross-subdomain support (admin, API, marketing all share sessions).
 - **Password hashing** — bcrypt with automatic salt generation.
 - **Token hashing** — session tokens and reset tokens are hashed with SHA-256 before storage.
 - **OAuth state** — CSRF-protected with HMAC-signed state parameters.
@@ -4051,7 +4051,7 @@ The CLI walks through five configuration steps:
 ```
 my-project/
 ├── apps/
-│   ├── cms/          # Next.js admin + CMS
+│   ├── admin/          # Next.js admin + admin
 │   └── api/          # Hono REST API
 ├── packages/
 │   └── db/           # Project-local schema extensions
@@ -4122,7 +4122,7 @@ pnpm db:seed
 pnpm dev
 ```
 
-The CMS will be at `http://localhost:4000` and the API at `http://localhost:3004`.
+The admin will be at `http://localhost:4000` and the API at `http://localhost:3004`.
 
 ---
 
@@ -4480,7 +4480,7 @@ import { ElectricProvider } from "@revealui/sync";
 
 function App() {
   return (
-    <ElectricProvider proxyBaseUrl="https://cms.revealui.com" debug={false}>
+    <ElectricProvider proxyBaseUrl="https://admin.revealui.com" debug={false}>
       <MyApp />
     </ElectricProvider>
   );
@@ -4491,7 +4491,7 @@ function App() {
 | -------------- | ----------- | ------- | --------------------------------------------------- |
 | `children`     | `ReactNode` | —       | Child components (required)                         |
 | `serviceUrl`   | `string`    | `null`  | Direct Electric service URL (stored for future use) |
-| `proxyBaseUrl` | `string`    | `''`    | Base URL for authenticated CMS proxy routes         |
+| `proxyBaseUrl` | `string`    | `''`    | Base URL for authenticated admin proxy routes         |
 | `debug`        | `boolean`   | `false` | Enable debug mode                                   |
 
 ---

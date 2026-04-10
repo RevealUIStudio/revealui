@@ -2,7 +2,7 @@
  * @revealui/generated
  *
  * Generated code for RevealUI framework.
- * Contains auto-generated types from CMS configuration and database schemas.
+ * Contains auto-generated types from admin configuration and database schemas.
  *
  * @packageDocumentation
  */

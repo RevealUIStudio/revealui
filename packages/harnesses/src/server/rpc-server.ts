@@ -70,7 +70,6 @@ const ERR_INTERNAL = -32603;
  *   inference.ollama.delete   → { ok: true }
  *   inference.ollama.start    → { ok: true }
  *   inference.ollama.stop     → { ok: true }
- *   inference.bitnet.status   → BitNetStatus
  *   inference.snap.list       → SnapModel[]
  *   inference.snap.status     → SnapStatus
  *   inference.snap.install    → ModelPullResult
@@ -461,12 +460,7 @@ export class RpcServer {
         if (!(name && backend && model && prompt)) {
           return this.missingParam(id, 'name, backend, model, prompt');
         }
-        const sessionId = this.spawner.spawn(
-          name,
-          backend as 'Snap' | 'BitNet' | 'Ollama',
-          model,
-          prompt,
-        );
+        const sessionId = this.spawner.spawn(name, backend as 'Snap' | 'Ollama', model, prompt);
         return { jsonrpc: '2.0', id, result: { sessionId } };
       }
 
@@ -492,7 +486,7 @@ export class RpcServer {
       }
 
       // -----------------------------------------------------------------------
-      // Inference management (Ollama, BitNet, Snaps)
+      // Inference management (Ollama, Snaps)
       // -----------------------------------------------------------------------
       case 'inference.ollama.status': {
         if (!this.inference) return this.noService(id, 'inference');
@@ -529,11 +523,6 @@ export class RpcServer {
         if (!this.inference) return this.noService(id, 'inference');
         await this.inference.ollamaStop();
         return { jsonrpc: '2.0', id, result: { ok: true } };
-      }
-
-      case 'inference.bitnet.status': {
-        if (!this.inference) return this.noService(id, 'inference');
-        return { jsonrpc: '2.0', id, result: await this.inference.bitnetStatus() };
       }
 
       case 'inference.snap.list': {

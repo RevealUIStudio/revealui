@@ -292,4 +292,210 @@ describe('OpenAPIHono', () => {
 
     expect(order).toEqual(['middleware', 'handler']);
   });
+
+  // ---------------------------------------------------------------------------
+  // OpenAPI 3.1 document generation
+  // ---------------------------------------------------------------------------
+
+  it('generates OpenAPI 3.1 document via .doc31()', async () => {
+    const app = new OpenAPIHono();
+    const route = createRoute({
+      method: 'get',
+      path: '/items',
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({ items: z.array(z.string()) }),
+            },
+          },
+          description: 'Success',
+        },
+      },
+    });
+
+    app.openapi(route, (c) => c.json({ items: [] }));
+    app.doc31('/openapi31.json', {
+      openapi: '3.1.0',
+      info: { title: 'Test v31', version: '2.0.0' },
+    });
+
+    const res = await app.request('/openapi31.json');
+    expect(res.status).toBe(200);
+
+    const doc = await res.json();
+    expect(doc.openapi).toBe('3.1.0');
+    expect(doc.info.title).toBe('Test v31');
+    expect(doc.paths['/items']).toBeDefined();
+  });
+
+  it('getOpenAPI31Document returns spec object directly', () => {
+    const app = new OpenAPIHono();
+    const route = createRoute({
+      method: 'get',
+      path: '/test',
+      responses: { 200: { description: 'OK' } },
+    });
+
+    app.openapi(route, (c) => c.json({ ok: true }));
+
+    const doc = app.getOpenAPI31Document({
+      openapi: '3.1.0',
+      info: { title: 'Direct', version: '1.0.0' },
+    });
+
+    expect(doc.openapi).toBe('3.1.0');
+    expect(doc.info.title).toBe('Direct');
+    expect(doc.paths?.['/test']).toBeDefined();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Header validation
+  // ---------------------------------------------------------------------------
+
+  it('validates headers from route config', async () => {
+    const app = new OpenAPIHono();
+    const route = createRoute({
+      method: 'get',
+      path: '/test',
+      request: {
+        headers: z.object({
+          'x-api-key': z.string().min(10),
+        }),
+      },
+      responses: { 200: { description: 'OK' } },
+    });
+
+    app.openapi(route, (c) => {
+      const headers = c.req.valid('header');
+      return c.json({ key: headers['x-api-key'] });
+    });
+
+    // Valid header
+    const valid = await app.request('/test', {
+      headers: { 'x-api-key': 'abcdefghij' },
+    });
+    expect(valid.status).toBe(200);
+
+    // Invalid header (too short)
+    const invalid = await app.request('/test', {
+      headers: { 'x-api-key': 'short' },
+    });
+    expect(invalid.status).toBe(400);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Path parameter validation
+  // ---------------------------------------------------------------------------
+
+  it('validates path params from route config', async () => {
+    const app = new OpenAPIHono();
+    const route = createRoute({
+      method: 'get',
+      path: '/users/{id}',
+      request: {
+        params: z.object({
+          id: z.string().min(1),
+        }),
+      },
+      responses: { 200: { description: 'OK' } },
+    });
+
+    app.openapi(route, (c) => {
+      const { id } = c.req.valid('param');
+      return c.json({ userId: id });
+    });
+
+    const res = await app.request('/users/user-123');
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ userId: 'user-123' });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Cookie validation
+  // ---------------------------------------------------------------------------
+
+  it('validates cookies from route config', async () => {
+    const app = new OpenAPIHono();
+    const route = createRoute({
+      method: 'get',
+      path: '/test',
+      request: {
+        cookies: z.object({
+          session: z.string().min(1),
+        }),
+      },
+      responses: { 200: { description: 'OK' } },
+    });
+
+    app.openapi(route, (c) => {
+      const cookies = c.req.valid('cookie');
+      return c.json({ session: cookies.session });
+    });
+
+    const valid = await app.request('/test', {
+      headers: { Cookie: 'session=abc123' },
+    });
+    expect(valid.status).toBe(200);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Form data validation
+  // ---------------------------------------------------------------------------
+
+  it('validates form body from route config', async () => {
+    const app = new OpenAPIHono();
+    const route = createRoute({
+      method: 'post',
+      path: '/submit',
+      request: {
+        body: {
+          content: {
+            'application/x-www-form-urlencoded': {
+              schema: z.object({ name: z.string() }),
+            },
+          },
+          required: true,
+        },
+      },
+      responses: { 200: { description: 'OK' } },
+    });
+
+    app.openapi(route, (c) => {
+      const form = c.req.valid('form');
+      return c.json({ name: form.name });
+    });
+
+    const body = new URLSearchParams({ name: 'Alice' });
+    const res = await app.request('/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ name: 'Alice' });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Doc generation with configure function
+  // ---------------------------------------------------------------------------
+
+  it('doc() accepts a configure function for OpenAPI object', async () => {
+    const app = new OpenAPIHono();
+    const route = createRoute({
+      method: 'get',
+      path: '/test',
+      responses: { 200: { description: 'OK' } },
+    });
+
+    app.openapi(route, (c) => c.json({ ok: true }));
+    app.doc('/openapi.json', (c) => ({
+      openapi: '3.0.0',
+      info: { title: 'Dynamic', version: '1.0.0' },
+    }));
+
+    const res = await app.request('/openapi.json');
+    const doc = await res.json();
+    expect(doc.info.title).toBe('Dynamic');
+  });
 });

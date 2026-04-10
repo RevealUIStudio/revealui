@@ -34,7 +34,7 @@ export {
   type NodeIdMappingsRow,
   type NodeIdMappingsInsert,
   type NodeIdMappingsUpdate,
-  // CMS tables
+  // admin tables
   type GlobalFooterRow,
   type GlobalFooterInsert,
   type GlobalFooterUpdate,

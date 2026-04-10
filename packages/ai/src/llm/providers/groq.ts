@@ -2,7 +2,7 @@
  * Groq Provider
  *
  * Thin wrapper over OpenAIProvider using Groq's OpenAI-compatible API.
- * Free tier: 6,000 TPM / 500k TPD for Llama 3.3 70B.
+ * Free tier: 6,000 TPM / 500k TPD.
  * Sign up: console.groq.com
  */
 
@@ -23,7 +23,7 @@ export interface GroqProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> {
   apiKey: string;
   /** Defaults to https://api.groq.com/openai/v1 */
   baseURL?: string;
-  /** Defaults to llama-3.3-70b-versatile */
+  /** Defaults to qwen/qwen3-32b */
   model?: string;
 }
 
@@ -34,7 +34,7 @@ export class GroqProvider implements LLMProvider {
     this.inner = new OpenAICompatProvider({
       ...config,
       baseURL: config.baseURL ?? 'https://api.groq.com/openai/v1',
-      model: config.model ?? 'llama-3.3-70b-versatile',
+      model: config.model ?? 'qwen/qwen3-32b',
     });
   }
 

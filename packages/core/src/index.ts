@@ -103,7 +103,7 @@ export {
 export { formBuilderPlugin } from './plugins/form-builder.js';
 export { nestedDocsPlugin } from './plugins/nested-docs.js';
 export { redirectsPlugin } from './plugins/redirects.js';
-// Core RevealUI CMS implementation
+// Core RevealUI admin implementation
 export {
   // Field traversal utilities
   afterChangeTraverseFields,
@@ -184,7 +184,7 @@ export { flattenFields, isJsonFieldType, isObject } from './utils/type-guards.js
 // =============================================================================
 // BASE TYPES FROM SCHEMA (Single Source of Truth)
 // =============================================================================
-// These are the authoritative types from @revealui/contracts/cms.
+// These are the authoritative types from @revealui/contracts/admin.
 // They are re-exported here for convenience.
 
 export {
@@ -218,8 +218,8 @@ export {
   type FieldValidateArgs,
   // Validation types
   // type FieldValidateFunction,
-  fromCMSCollectionConfig,
-  fromCMSGlobalConfig,
+  fromAdminCollectionConfig,
+  fromAdminGlobalConfig,
   type GlobalAccessConfig,
   type GlobalConfig,
   type GlobalHooksConfig,
@@ -238,13 +238,13 @@ export {
   type SanitizedConfig,
   type SanitizedGlobalConfig,
   safeValidate,
-  // CMS compatibility
-  toCMSCollectionConfig,
-  toCMSGlobalConfig,
+  // admin compatibility
+  toAdminCollectionConfig,
+  toAdminGlobalConfig,
   toSlug,
   validateWithErrors,
   type Where,
-} from '@revealui/contracts/cms';
+} from '@revealui/contracts/admin';
 
 // =============================================================================
 // REVEALUI-SPECIFIC TYPES
@@ -403,11 +403,11 @@ export type {
  * ## Import Guide
  *
  * ### Base Types (from schema - single source of truth)
- * For standard RevealUI CMS types that work everywhere:
+ * For standard RevealUI admin types that work everywhere:
  * ```typescript
  * import { CollectionConfig, GlobalConfig, Field } from '@revealui/core'
  * // OR directly from schema:
- * import { CollectionConfig, GlobalConfig, Field } from '@revealui/contracts/cms'
+ * import { CollectionConfig, GlobalConfig, Field } from '@revealui/contracts/admin'
  * ```
  *
  * ### Extended Types (RevealUI-specific)

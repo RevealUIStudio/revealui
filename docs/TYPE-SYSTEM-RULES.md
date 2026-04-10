@@ -22,7 +22,7 @@ This is not a guideline—it's a hard requirement enforced through code review a
 
 ```typescript
 // ✅ CORRECT - Using contract types
-import type { CollectionMetadata, GlobalMetadata } from '@revealui/ai/tools/cms'
+import type { CollectionMetadata, GlobalMetadata } from '@revealui/ai/tools/admin'
 import type { ChatRequestContract } from '@revealui/contracts'
 
 const collection: CollectionMetadata = {
@@ -46,21 +46,21 @@ If you need a type that doesn't exist in contracts, create it in the appropriate
 
 ```typescript
 // ✅ CORRECT - Define in contracts/factory, export, then use
-// packages/ai/src/tools/cms/factory.ts
+// packages/ai/src/tools/admin/factory.ts
 export interface CollectionMetadata {
   slug: string
   label?: string
   description?: string
 }
 
-// apps/cms/src/app/api/chat/route.ts
-import type { CollectionMetadata } from '@revealui/ai/tools/cms'
+// apps/admin/src/app/api/chat/route.ts
+import type { CollectionMetadata } from '@revealui/ai/tools/admin'
 const meta: CollectionMetadata = {...}
 ```
 
 ```typescript
 // ❌ WRONG - Define inline at usage site
-// apps/cms/src/app/api/chat/route.ts
+// apps/admin/src/app/api/chat/route.ts
 const meta: { slug: string; label?: string } = {...}
 ```
 
@@ -90,8 +90,8 @@ When type assertions are necessary, assert to contract types, not inline types.
 
 ```typescript
 // ✅ CORRECT - Assert to contract type
-import type { CMSAPIClient } from '@revealui/ai/tools/cms'
-apiClient as CMSAPIClient
+import type { AdminAPIClient } from '@revealui/ai/tools/admin'
+apiClient as AdminAPIClient
 ```
 
 ```typescript
@@ -105,7 +105,7 @@ All function parameters and return types must reference contract types.
 
 ```typescript
 // ✅ CORRECT
-import type { CollectionMetadata } from '@revealui/ai/tools/cms'
+import type { CollectionMetadata } from '@revealui/ai/tools/admin'
 
 function transformCollection(config: unknown): CollectionMetadata {
   return {
@@ -129,7 +129,7 @@ function transformCollection(config: unknown): { slug: string; label?: string } 
 ### Core Contracts (`@revealui/contracts`)
 
 - **Entities**: `@revealui/contracts` - User, Post, Page, Media, etc.
-- **CMS Types**: `@revealui/contracts/cms` - CollectionConfig, GlobalConfig, Field
+- **Admin Types**: `@revealui/contracts/admin` - CollectionConfig, GlobalConfig, Field
 - **Database Types**: `@revealui/contracts` - Generated from database schema
 - **API Contracts**: `@revealui/contracts` - Request/response schemas
 
@@ -143,15 +143,15 @@ When a type is specific to a package and doesn't represent a cross-cutting domai
 
 Example:
 ```typescript
-// packages/ai/src/tools/cms/factory.ts
+// packages/ai/src/tools/admin/factory.ts
 export interface CollectionMetadata { ... }
 export interface GlobalMetadata { ... }
 
-// packages/ai/src/tools/cms/index.ts
+// packages/ai/src/tools/admin/index.ts
 export type { CollectionMetadata, GlobalMetadata } from './factory.js'
 
 // Usage in other files
-import type { CollectionMetadata } from '@revealui/ai/tools/cms'
+import type { CollectionMetadata } from '@revealui/ai/tools/admin'
 ```
 
 ---
@@ -232,12 +232,12 @@ Need a type?
 
 ## Examples
 
-### Example 1: Chat API with CMS Tools
+### Example 1: Chat API with admin Tools
 
 **Before (Incorrect):**
 ```typescript
 // ❌ Inline types everywhere
-const cmsTools = createCMSTools({
+const cmsTools = createAdminTools({
   apiClient: apiClient as any,
   collections: config.collections?.map((c: any) => ({
     slug: String(c.slug),
@@ -250,13 +250,13 @@ const cmsTools = createCMSTools({
 ```typescript
 // ✅ Contract types imported and used
 import type {
-  CMSAPIClient,
+  AdminAPIClient,
   CollectionMetadata,
   GlobalMetadata,
-} from '@revealui/ai/tools/cms'
+} from '@revealui/ai/tools/admin'
 
-const cmsTools = createCMSTools({
-  apiClient: apiClient as CMSAPIClient,
+const cmsTools = createAdminTools({
+  apiClient: apiClient as AdminAPIClient,
   collections: config.collections?.map((c): CollectionMetadata => ({
     slug: String(c.slug),
     label: c.labels?.singular || String(c.slug),
@@ -283,7 +283,7 @@ function processUser(user: { id: string; email: string; role?: string }) {
 **After (Correct):**
 ```typescript
 // Step 1: Add to contracts or package types
-// packages/ai/src/tools/cms/factory.ts
+// packages/ai/src/tools/admin/factory.ts
 export interface UserContext {
   id: string
   email: string
@@ -291,12 +291,12 @@ export interface UserContext {
 }
 
 // Step 2: Export from package index
-// packages/ai/src/tools/cms/index.ts
+// packages/ai/src/tools/admin/index.ts
 export type { UserContext } from './factory.js'
 
 // Step 3: Import and use
 // some-other-file.ts
-import type { UserContext } from '@revealui/ai/tools/cms'
+import type { UserContext } from '@revealui/ai/tools/admin'
 
 function processUser(user: UserContext) {
   // ...

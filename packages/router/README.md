@@ -1,17 +1,17 @@
 # @revealui/router
 
-Lightweight, type-safe file-based router for RevealUI with built-in SSR support.
+Lightweight file-based router for React apps with SSR, data loaders, middleware, and nested layouts. No framework required — works with Vite, Hono, or any React setup.
 
 ## Features
 
-- 🚀 **Simple & Fast** - Minimal API, maximum performance
-- 📁 **File-based routing** - Convention over configuration
-- 🔒 **Type-safe** - Full TypeScript support
-- 🌊 **SSR & Hydration** - Built-in server-side rendering with React
-- 🎯 **Hono Integration** - First-class support for Hono server
-- 📦 **No dependencies** - Except React and path-to-regexp
-- ⚡ **Code splitting ready** - Supports lazy loading
-- 🔗 **Data loading** - Built-in loader support per route
+- **File-based routing** — named params (`:id`), wildcards (`*path`), optional segments
+- **Nested routes** — composable layouts that stack automatically
+- **Data loaders** — async per-route data loading with typed access via `useData()`
+- **Middleware** — global + per-route, supports blocking and redirects
+- **SSR + streaming** — Hono integration with `renderToReadableStream`
+- **Client-side navigation** — History API, link interception, back/forward
+- **Type-safe** — full TypeScript support, generic route data types
+- **React 18/19** — uses `useSyncExternalStore` for stable rendering
 
 ## Installation
 

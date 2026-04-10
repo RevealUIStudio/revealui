@@ -8,7 +8,7 @@
 
 import type { Block, BlockType } from '@revealui/contracts/content';
 import { BlockSchema } from '@revealui/contracts/content';
-import type { Page } from '@revealui/core/types/cms';
+import type { Page } from '@revealui/core/types/admin';
 import { createBlockFromSchema, transformPageBlockToSchema } from './schema-adapter';
 
 // Map generated block types to schema block types
@@ -82,7 +82,7 @@ export function convertGeneratedBlockToSchema(block: Page['layout'][number]): Bl
  * Converts a schema block type back to a generated block type
  *
  * This is the reverse transformation, useful when you need to convert
- * schema blocks back to the format expected by the CMS.
+ * schema blocks back to the format expected by the admin.
  *
  * @param block - Schema Block type
  * @returns Generated block type matching Page layout structure

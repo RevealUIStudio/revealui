@@ -49,7 +49,7 @@ Audit the codebase for security issues across these categories:
 - **Auth**: Session-only (no JWT). \`revealui-session\` cookie across \`.revealui.com\`.
 - **Dual-DB**: NeonDB (REST content) + Supabase (vectors/auth). Strict import boundary.
 - **Tiers**: free, pro, max, enterprise. License checks via \`isLicensed()\`.
-- **API**: Hono on port 3004. CMS calls API cross-origin (CORS configured).
+- **API**: Hono on port 3004. admin calls API cross-origin (CORS configured).
 
 ## Rules
 - Use AST-based analysis over regex for code-shape checks (see .claude/rules/code-analysis-policy.md)

@@ -2,7 +2,7 @@
  * @revealui/contracts/pricing
  *
  * Single source of truth for all tier, pricing, and feature display data.
- * Eliminates duplication across marketing, CMS billing, license, and upgrade pages.
+ * Eliminates duplication across marketing, admin billing, license, and upgrade pages.
  *
  * @packageDocumentation
  */
@@ -60,7 +60,7 @@ export const TIER_COLORS: Record<LicenseTierId, string> = {
 // =============================================================================
 
 export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
-  aiLocal: 'Local AI (Inference Snaps, BitNet)',
+  aiLocal: 'Local AI (Inference Snaps, Ollama)',
   ai: 'AI Agents',
   aiMemory: 'AI Memory',
   mcp: 'MCP Framework',
@@ -69,7 +69,7 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   dashboard: 'Monitoring Dashboard',
   customDomain: 'Custom Domain Mapping',
   analytics: 'Analytics & Tracking',
-  aiInference: 'Open-Model Inference (Snaps, BitNet, Harness)',
+  aiInference: 'Open-Model Inference (Snaps, Ollama, Harness)',
   auditLog: 'Audit Logging',
   multiTenant: 'Multi-tenant Management',
   whiteLabel: 'White-label Branding (Coming Soon)',
@@ -121,12 +121,12 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     name: 'Free (OSS)',
     description: 'Perfect for trying out RevealUI and small projects.',
     features: [
-      'Unlimited CMS collections',
+      'Unlimited admin collections',
       '1 site',
       'Up to 3 users/editors',
       'Session-based auth',
       'Basic real-time sync',
-      'Local AI inference (BitNet / Ollama)',
+      'Local AI inference (Inference Snaps / Ollama)',
       'Community support',
       'Full source code access',
     ],
@@ -139,7 +139,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     name: 'Pro',
     description: 'For software companies building production products.',
     features: [
-      'Unlimited CMS collections',
+      'Unlimited admin collections',
       'Up to 5 sites',
       'Up to 25 users/editors',
       'Session-based auth',
@@ -168,10 +168,10 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Up to 15 sites',
       'Up to 100 users/editors',
       'Full AI memory (working + episodic + vector)',
-      'Advanced inference configuration',
+      'Advanced inference configuration (coming soon)',
       'Audit logging',
       '50,000 agent tasks/month included',
-      'RevKit environment provisioning (tiered dev profiles)',
+      'RevKit environment provisioning (coming soon)',
       'Email support (24h response)',
       'Full source code access',
     ],
@@ -292,7 +292,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     id: 'migration-assist',
     name: 'Migration Assist',
     description:
-      'We migrate your existing CMS, database, or billing system to RevealUI. Includes data mapping, schema translation, and validation testing.',
+      'We migrate your existing admin, database, or billing system to RevealUI. Includes data mapping, schema translation, and validation testing.',
     includes: [
       'Data audit and mapping plan',
       'Schema translation and migration scripts',

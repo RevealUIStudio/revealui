@@ -18,4 +18,5 @@ export * from './errors/index.js';
 export * from './persistence/index.js';
 export * from './preferences/index.js';
 export * from './services/index.js';
+export * from './sync/index.js';
 export * from './vector/index.js';

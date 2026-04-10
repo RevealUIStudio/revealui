@@ -9,8 +9,8 @@
  * ─── REQUIRED ENV VARS ────────────────────────────────────────────────────────
  *   PLAYWRIGHT_BASE_URL   https://admin.revealui.com
  *   API_BASE_URL          https://api.revealui.com
- *   CMS_ADMIN_EMAIL       admin@example.com
- *   CMS_ADMIN_PASSWORD    <your-cms-admin-password>
+ *   ADMIN_EMAIL       admin@example.com
+ *   ADMIN_PASSWORD    <your-admin-password>
  *
  * ─── REQUIRED FOR STRIPE CHECKOUT TESTS ─────────────────────────────────────
  *   STRIPE_SECRET_KEY     sk_test_...  (Stripe test key — not charged)
@@ -25,16 +25,16 @@
  *   CI=1 \
  *   PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *   API_BASE_URL=https://api.revealui.com \
- *   CMS_ADMIN_EMAIL=admin@example.com \
- *   CMS_ADMIN_PASSWORD='<your-cms-admin-password>' \
+ *   ADMIN_EMAIL=admin@example.com \
+ *   ADMIN_PASSWORD='<your-admin-password>' \
  *   STRIPE_SECRET_KEY=sk_test_... \
  *   node_modules/.bin/playwright test e2e/billing-funnel.e2e.ts \
  *     --project=chromium --retries=0 --reporter=line
  *
  * Run (auth + UI only — no Stripe key required):
  *   PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
- *   CMS_ADMIN_EMAIL=admin@example.com \
- *   CMS_ADMIN_PASSWORD='<your-cms-admin-password>' \
+ *   ADMIN_EMAIL=admin@example.com \
+ *   ADMIN_PASSWORD='<your-admin-password>' \
  *   node_modules/.bin/playwright test e2e/billing-funnel.e2e.ts \
  *     --project=chromium --retries=0
  */
@@ -48,10 +48,10 @@ const AUTH_STATE_PATH = join(import.meta.dirname, '.auth', 'user.json');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const CMS_BASE = (process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
+const ADMIN_BASE = (process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000').replace(/\/$/, '');
 const API_BASE = (process.env.API_BASE_URL || 'http://localhost:3004').replace(/\/$/, '');
-const ADMIN_EMAIL = process.env.CMS_ADMIN_EMAIL || '';
-const ADMIN_PASSWORD = process.env.CMS_ADMIN_PASSWORD || '';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const STRIPE_KEY = process.env.STRIPE_SECRET_KEY || '';
 const PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID;
 const ENTERPRISE_PRICE_ID = process.env.STRIPE_ENTERPRISE_PRICE_ID;
@@ -135,11 +135,11 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
         const cookie: PlaywrightCookie = {
           name: saved.name,
           value: saved.value,
-          domain: new URL(CMS_BASE).hostname.replace(/^[^.]+\./, '.'), // '.revealui.com'
+          domain: new URL(ADMIN_BASE).hostname.replace(/^[^.]+\./, '.'), // '.revealui.com'
           path: '/',
           expires: -1,
           httpOnly: true,
-          secure: CMS_BASE.startsWith('https'),
+          secure: ADMIN_BASE.startsWith('https'),
           sameSite: 'Lax',
         };
         await page.context().addCookies([cookie]);
@@ -154,7 +154,7 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
   }
 
   // ── 2. Fresh sign-in (at most once per run) ────────────────────────────────
-  const res = await page.request.post(`${CMS_BASE}/api/auth/sign-in`, {
+  const res = await page.request.post(`${ADMIN_BASE}/api/auth/sign-in`, {
     data: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
   });
   if (!res.ok()) {
@@ -163,7 +163,7 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
   }
 
   // page.request.post stores the response cookie in the browser context
-  const contextCookies = await page.context().cookies(CMS_BASE);
+  const contextCookies = await page.context().cookies(ADMIN_BASE);
   const rawCookie = contextCookies[0];
   if (!rawCookie) {
     _session = null;
@@ -174,7 +174,7 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
     ...rawCookie,
     // Wildcard parent domain so in-page fetch to api.revealui.com also gets the cookie.
     // page.request.* uses a separate APIRequestContext so no conflict with manual headers.
-    domain: new URL(CMS_BASE).hostname.replace(/^[^.]+\./, '.'), // '.revealui.com'
+    domain: new URL(ADMIN_BASE).hostname.replace(/^[^.]+\./, '.'), // '.revealui.com'
   };
   const cookieHeader = `${cookie.name}=${cookie.value}`;
 
@@ -211,7 +211,7 @@ async function signInViaApi(
 
 test.describe('Billing page — auth gate', () => {
   test('redirects to /login when not authenticated', async ({ page }) => {
-    await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
     // Next.js client redirect — wait for URL to change
     await page.waitForURL(/\/login/, { timeout: 8_000 });
     expect(page.url()).toContain('/login');
@@ -222,12 +222,12 @@ test.describe('Billing page — auth gate', () => {
 
 test.describe('Billing page — free tier', () => {
   test.beforeEach(async () => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
   test('shows plan badge and upgrade CTA', async ({ page }) => {
     await signIn(page);
-    await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByText(/current plan/i)).toBeVisible({ timeout: 8_000 });
     // Should show either Free badge or a subscription badge
     await expect(page.getByText(/free|pro|enterprise/i).first()).toBeVisible({ timeout: 5_000 });
@@ -237,7 +237,7 @@ test.describe('Billing page — free tier', () => {
     const { tier } = await signInViaApi(page);
     test.skip(tier !== 'free', 'Skipped: user is not free tier');
 
-    await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('button', { name: /upgrade to pro/i })).toBeVisible({
       timeout: 8_000,
     });
@@ -247,7 +247,7 @@ test.describe('Billing page — free tier', () => {
     const { tier } = await signInViaApi(page);
     test.skip(tier !== 'pro', 'Skipped: user is not pro tier');
 
-    await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('button', { name: /upgrade to enterprise/i })).toBeVisible({
       timeout: 8_000,
     });
@@ -260,7 +260,7 @@ test.describe('Billing page — free tier', () => {
     const { tier } = await signInViaApi(page);
     test.skip(tier !== 'enterprise', 'Skipped: user is not enterprise tier');
 
-    await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('button', { name: /manage billing/i })).toBeVisible({
       timeout: 8_000,
     });
@@ -272,7 +272,7 @@ test.describe('Billing page — free tier', () => {
 
 test.describe('Billing page — checkout redirect', () => {
   test.beforeEach(async () => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
   test('POST /api/billing/checkout returns a Stripe URL', async ({ page }) => {
@@ -298,7 +298,7 @@ test.describe('Billing page — checkout redirect', () => {
     test.skip(tier !== 'free', 'Skipped: user is not free tier');
 
     const navigationPromise = page.waitForURL(/checkout\.stripe\.com/, { timeout: 15_000 });
-    await page.goto(`${CMS_BASE}/account/billing?upgrade=pro`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing?upgrade=pro`, { waitUntil: 'domcontentloaded' });
     await navigationPromise;
     expect(page.url()).toContain('checkout.stripe.com');
   });
@@ -308,14 +308,16 @@ test.describe('Billing page — checkout redirect', () => {
 
 test.describe('Billing page — success banner', () => {
   test.beforeEach(async () => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
   test('billing page shows activation success banner after checkout', async ({ page }) => {
     // Verifies the ?success=true query param produces the correct UI.
     // Does not require a Stripe key — just navigates to the billing page with the param.
     await signIn(page);
-    await page.goto(`${CMS_BASE}/account/billing?success=true`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing?success=true`, {
+      waitUntil: 'domcontentloaded',
+    });
     await expect(
       page.getByText(/subscription activated|pro features are now available/i),
     ).toBeVisible({ timeout: 8_000 });
@@ -332,7 +334,7 @@ test.describe('Stripe checkout — test mode', () => {
   test.beforeEach(async () => {
     test.skip(
       !(hasCredentials && hasStripeKey),
-      'Requires CMS credentials and STRIPE_SECRET_KEY=sk_test_...',
+      'Requires Admin credentials and STRIPE_SECRET_KEY=sk_test_...',
     );
   });
 
@@ -429,7 +431,7 @@ test.describe('Stripe checkout — test mode', () => {
     await submitBtn.click();
 
     // ── Wait for redirect back to billing page ──
-    await page.waitForURL(`${CMS_BASE}/account/billing**`, { timeout: 30_000 });
+    await page.waitForURL(`${ADMIN_BASE}/account/billing**`, { timeout: 30_000 });
     expect(page.url()).toContain('/account/billing');
     expect(page.url()).toContain('success=true');
   });
@@ -439,7 +441,7 @@ test.describe('Stripe checkout — test mode', () => {
 
 test.describe('License verification', () => {
   test.beforeEach(async () => {
-    test.skip(!hasCredentials, 'Requires CMS_ADMIN_EMAIL + CMS_ADMIN_PASSWORD');
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
   test('GET /api/billing/subscription returns a valid tier and status', async ({ page }) => {
@@ -475,7 +477,7 @@ test.describe('License verification', () => {
     const { tier } = await signInViaApi(page);
     test.skip(tier === 'free' || !tier, 'Skipped: free tier does not have monitoring access');
 
-    await page.goto(`${CMS_BASE}/admin/monitoring`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/admin/monitoring`, { waitUntil: 'domcontentloaded' });
 
     // Should NOT show the UpgradePrompt — should show actual monitoring content
     await expect(page.getByText(/upgrade|requires pro/i)).not.toBeVisible({ timeout: 5_000 });
@@ -489,7 +491,7 @@ test.describe('Pro → Enterprise upgrade', () => {
     // Requires a Stripe test key to avoid triggering real Stripe API calls in production.
     test.skip(
       !(hasCredentials && hasStripeKey),
-      'Requires CMS credentials and STRIPE_SECRET_KEY=sk_test_...',
+      'Requires Admin credentials and STRIPE_SECRET_KEY=sk_test_...',
     );
   });
 
@@ -515,7 +517,7 @@ test.describe('Pro → Enterprise upgrade', () => {
     const { tier } = await signInViaApi(page);
     test.skip(tier !== 'pro', 'Skipped: user is not pro tier');
 
-    await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('button', { name: /upgrade to enterprise/i })).toBeVisible({
       timeout: 8_000,
     });
@@ -531,7 +533,7 @@ test.describe('Pro → Enterprise upgrade', () => {
     const { tier } = await signInViaApi(page);
     test.skip(tier !== 'pro', 'Skipped: user is not pro tier');
 
-    await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
 
     // Wait for billing data to load
     await expect(page.getByText(/pro/i).first()).toBeVisible({ timeout: 8_000 });
@@ -549,7 +551,7 @@ test.describe('Billing portal', () => {
   test.beforeEach(async () => {
     test.skip(
       !(hasCredentials && hasStripeKey),
-      'Requires CMS credentials and STRIPE_SECRET_KEY=sk_test_...',
+      'Requires Admin credentials and STRIPE_SECRET_KEY=sk_test_...',
     );
   });
 
@@ -559,7 +561,7 @@ test.describe('Billing portal', () => {
     const { tier } = await signInViaApi(page);
     test.skip(!tier || tier === 'free', 'Skipped: free tier has no billing portal');
 
-    await page.goto(`${CMS_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('button', { name: /manage billing/i })).toBeVisible({
       timeout: 8_000,
     });

@@ -4,7 +4,7 @@
  * Proves that collection-level access.read functions are evaluated and
  * their return values are respected by find() and findByID().
  *
- * This is the most critical test file in the CMS core — it proves that
+ * This is the most critical test file in the admin core — it proves that
  * non-admin users cannot read data they shouldn't see.
  */
 

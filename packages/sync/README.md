@@ -28,7 +28,7 @@ import { ElectricProvider } from '@revealui/sync/provider'
 
 export default function App() {
   return (
-    <ElectricProvider proxyBaseUrl="https://cms.revealui.com">
+    <ElectricProvider proxyBaseUrl="https://admin.revealui.com">
       <YourComponents />
     </ElectricProvider>
   )

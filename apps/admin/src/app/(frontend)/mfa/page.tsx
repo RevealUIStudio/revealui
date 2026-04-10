@@ -121,7 +121,7 @@ export default function MFAPage() {
                 {useBackupCode ? 'Use authenticator app instead' : 'Use a backup code instead'}
               </button>
 
-              <Link href="/login" className="text-zinc-500 hover:underline">
+              <Link href="/login" className="text-zinc-600 hover:underline">
                 Back to sign in
               </Link>
             </div>

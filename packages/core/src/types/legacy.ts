@@ -6,7 +6,7 @@
  * @module @revealui/core/types/internal
  */
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 
 // =============================================================================
 // BLOCK TYPE
@@ -64,7 +64,7 @@ export interface RevealUIBlock extends Block {
 }
 
 // =============================================================================
-// INTERNAL TYPES (CMS compatibility)
+// INTERNAL TYPES (admin compatibility)
 // =============================================================================
 
 /**

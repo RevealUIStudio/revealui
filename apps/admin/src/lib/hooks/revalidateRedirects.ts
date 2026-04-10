@@ -6,7 +6,7 @@ interface RevalidateContext {
   operation?: string;
 }
 
-// Generic hook that works with various CMS hook signatures
+// Generic hook that works with various admin hook signatures
 export function revalidateRedirects(args: {
   doc: unknown;
   req?: unknown;

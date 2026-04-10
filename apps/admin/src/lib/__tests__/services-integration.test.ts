@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 const servicesModule = await import('@revealui/services').catch(() => null);
 const describeIfServices = servicesModule ? describe : describe.skip;
 
-describeIfServices('Services Integration in CMS Context', () => {
+describeIfServices('Services Integration in admin Context', () => {
   const { createPaymentIntent, createServerClient, protectedStripe } = servicesModule!;
 
   it('should import protectedStripe from services', () => {

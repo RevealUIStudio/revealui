@@ -77,7 +77,7 @@ pnpm lint
 
 **Biome-only in a specific package**:
 ```bash
-cd apps/cms
+cd apps/admin
 pnpm lint
 ```
 
@@ -263,10 +263,10 @@ Help the LLM understand where code belongs:
 
 ```markdown
 ### File Organization
-- Components: `apps/mainframe/src/components/`
-- Utilities: `apps/mainframe/src/lib/`
+- Components: `apps/marketing/src/components/`
+- Utilities: `apps/marketing/src/lib/`
 - Types: `packages/core/src/types/`
-- Collections: `apps/cms/src/lib/collections/`
+- Collections: `apps/admin/src/lib/collections/`
 ```
 
 #### 6. Add Validation Commands
@@ -645,7 +645,7 @@ In a monorepo with Next.js 16 and Turbopack, there's a fundamental tension betwe
 
 #### 2. TypeScript Path Mappings (For Type Checking Only)
 
-**For TypeScript type checking:** `apps/cms/tsconfig.json` uses path mappings that point to **source files** (not `dist/`):
+**For TypeScript type checking:** `apps/admin/tsconfig.json` uses path mappings that point to **source files** (not `dist/`):
 
 ```json
 {
@@ -666,7 +666,7 @@ In a monorepo with Next.js 16 and Turbopack, there's a fundamental tension betwe
 
 #### 3. TranspilePackages (Bridge Between Source and Runtime)
 
-**In `apps/cms/next.config.mjs`:**
+**In `apps/admin/next.config.mjs`:**
 
 ```javascript
 transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@revealui/auth', '@revealui/config']
@@ -776,7 +776,7 @@ transpilePackages: ['@revealui/core', '@revealui/db', '@revealui/contracts', '@r
 #### Pattern 3: Package Needing Specific Subpath Type Resolution
 
 **Package:** `@revealui/contracts` (schema merged into contracts)
-- **Has main export** but also specific subpaths like `./cms`, `./entities`, `./agents`
+- **Has main export** but also specific subpaths like `./admin`, `./entities`, `./agents`
 - **No `tsconfig.json` path** for main export (use package.json exports)
 - **Has specific `tsconfig.json` path** for subpaths if needed (needed for TypeScript type inference)
 
@@ -1254,7 +1254,7 @@ catch (error) {
 
 ### Sentry Integration
 
-Sentry is configured in `apps/cms/next.config.mjs` and will automatically capture errors.
+Sentry is configured in `apps/admin/next.config.mjs` and will automatically capture errors.
 
 **Manual Error Capture:**
 ```typescript
@@ -1365,7 +1365,7 @@ RevealUI uses a **simplified safeguard system** (20% of original complexity) foc
 
 #### ✅ Performance Monitoring (Build Success)
 - **Protection**: All builds must succeed before merge
-- **Mechanism**: Multiple CI build jobs (CMS, Web, packages) with biome linting
+- **Mechanism**: Multiple CI build jobs (admin, Web, packages) with biome linting
 - **Coverage**: TypeScript compilation, bundling, testing, code quality
 - **Impact**: Ensures deployable, well-formatted, type-safe code
 - **Maintenance**: Automatic via CI with unified biome tooling
@@ -2661,7 +2661,7 @@ if (diff.titleChanged) {
 
 #### 5. Post (`packages/contracts/src/entities/post.ts`)
 - **Lines:** 710 lines, 50+ helper functions
-- **Purpose:** CMS publishing workflow with Lexical editor
+- **Purpose:** admin publishing workflow with Lexical editor
 - **Features:**
   - Publishing workflow (draft → published → archived)
   - Lexical editor content management

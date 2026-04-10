@@ -8,7 +8,6 @@ import type {
   AgentSession,
   AgentSessionInfo,
   AppStatus,
-  BitNetStatus,
   GitBranch,
   GitCommitInfo,
   GitDiffContent,
@@ -191,10 +190,6 @@ const MOCK_DATA: Record<string, unknown> = {
   inference_ollama_delete: undefined,
   inference_ollama_start: undefined,
   inference_ollama_stop: undefined,
-  inference_bitnet_status: {
-    installed: false,
-    model_path: null,
-  } satisfies BitNetStatus,
   inference_snap_status: {
     installed: false,
     running: false,
@@ -358,7 +353,6 @@ const HARNESS_RPC_MAP: Record<string, string> = {
   inference_ollama_delete: 'inference.ollama.delete',
   inference_ollama_start: 'inference.ollama.start',
   inference_ollama_stop: 'inference.ollama.stop',
-  inference_bitnet_status: 'inference.bitnet.status',
   inference_snap_list: 'inference.snap.list',
   inference_snap_status: 'inference.snap.status',
   inference_snap_install: 'inference.snap.install',
@@ -754,10 +748,6 @@ export function inferenceOllamaStart(): Promise<void> {
 
 export function inferenceOllamaStop(): Promise<void> {
   return invoke<void>('inference_ollama_stop');
-}
-
-export function inferenceBitnetStatus(): Promise<BitNetStatus> {
-  return invoke<BitNetStatus>('inference_bitnet_status');
 }
 
 // ── Inference Snaps ─────────────────────────────────────────────────────────

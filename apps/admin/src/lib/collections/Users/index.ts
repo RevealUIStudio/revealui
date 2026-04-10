@@ -1,5 +1,5 @@
 import type { RevealCollectionConfig } from '@revealui/core';
-import type { User } from '@revealui/core/types/cms';
+import type { User } from '@revealui/core/types/admin';
 import { isAdmin, isAdminAndUser, isSuperAdmin } from '@/lib/access';
 import { isTenantAdminOrSuperAdmin } from '@/lib/access/tenants/isTenantAdminOrSuperAdmin';
 import { loginAfterCreate, recordLastLoggedInTenant } from '@/lib/hooks/index';

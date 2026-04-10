@@ -69,7 +69,7 @@ pnpm dev
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| CMS | http://localhost:4000 | Admin dashboard + auth pages |
+| admin | http://localhost:4000 | Admin dashboard + auth pages |
 | API | http://localhost:3004 | REST API + Swagger docs |
 
 ---

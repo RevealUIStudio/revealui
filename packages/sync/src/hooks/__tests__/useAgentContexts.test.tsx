@@ -101,13 +101,13 @@ describe('useAgentContexts', () => {
     mockUseShape.mockReturnValue({ data: [], isLoading: false, error: null });
 
     const wrapper = ({ children }: { children: ReactNode }) => (
-      <ElectricProvider proxyBaseUrl="https://cms.example.com">{children}</ElectricProvider>
+      <ElectricProvider proxyBaseUrl="https://admin.example.com">{children}</ElectricProvider>
     );
 
     renderHook(() => useAgentContexts(), { wrapper });
 
     expect(mockUseShape).toHaveBeenCalledWith({
-      url: 'https://cms.example.com/api/shapes/agent-contexts',
+      url: 'https://admin.example.com/api/shapes/agent-contexts',
       fetchClient: expect.any(Function),
     });
   });
@@ -256,13 +256,13 @@ describe('useAgentContexts', () => {
     // Note: the hook concatenates proxyBaseUrl + '/api/shapes/...' so a trailing
     // slash in proxyBaseUrl would produce a double-slash. This tests current behavior.
     const wrapper = ({ children }: { children: ReactNode }) => (
-      <ElectricProvider proxyBaseUrl="https://cms.example.com">{children}</ElectricProvider>
+      <ElectricProvider proxyBaseUrl="https://admin.example.com">{children}</ElectricProvider>
     );
 
     renderHook(() => useAgentContexts(), { wrapper });
 
     expect(mockUseShape).toHaveBeenCalledWith({
-      url: 'https://cms.example.com/api/shapes/agent-contexts',
+      url: 'https://admin.example.com/api/shapes/agent-contexts',
       fetchClient: expect.any(Function),
     });
   });

@@ -1,4 +1,4 @@
-import type { Media } from '@revealui/core/types/cms';
+import type { Media } from '@revealui/core/types/admin';
 import type { StaticImageData } from 'next/image';
 import type { ElementType, Ref } from 'react';
 

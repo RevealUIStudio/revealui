@@ -37,12 +37,6 @@ pub fn inference_ollama_stop() -> Result<(), StudioError> {
     inference::ollama_stop().map_err(|e| StudioError::Process(e))
 }
 
-/// Get BitNet status (installed, model path).
-#[tauri::command]
-pub fn inference_bitnet_status() -> inference::BitNetStatus {
-    inference::bitnet_status()
-}
-
 // ── Inference Snaps ─────────────────────────────────────────────────
 
 /// Check status of a specific inference snap (installed, running, endpoint).

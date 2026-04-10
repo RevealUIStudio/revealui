@@ -48,7 +48,7 @@ This guide covers the full Pro surface area, not just MCP setup:
 
 - account-level commercial packaging
 - MCP servers and developer tooling
-- Open-model inference (Ubuntu snaps, BitNet, Ollama)
+- Open-model inference (Ubuntu snaps, Ollama)
 - editor and harness workflows
 - Stripe, Supabase, and x402 payment features
 - marketplace monetization
@@ -363,9 +363,9 @@ The Next.js DevTools MCP provides runtime diagnostics, automated upgrades, and i
 2. **Cursor starts** MCP servers automatically when needed
 3. **You use them** through Cursor's AI chat - no manual commands needed
 
-### Integration with Your CMS App
+### Integration with Your admin App
 
-Your CMS app (`apps/cms`) is perfectly configured for Next.js DevTools MCP:
+Your admin app (`apps/admin`) is perfectly configured for Next.js DevTools MCP:
 
 ```json
 {
@@ -431,7 +431,7 @@ Next Devtools, what servers are running?
 - Available diagnostic tools
 - Framework metadata (Turbopack, App Directory, etc.)
 
-**Key Point:** Zero configuration - it automatically finds your CMS app!
+**Key Point:** Zero configuration - it automatically finds your admin app!
 
 #### 2. Runtime Diagnostics
 
@@ -629,10 +629,10 @@ MCP: Runs enable_cache_components tool:
 
 To use the Next.js DevTools MCP effectively:
 
-**Step 1: Start Your CMS Dev Server**
+**Step 1: Start Your admin Dev Server**
 
 ```bash
-cd apps/cms
+cd apps/admin
 pnpm dev
 ```
 
@@ -662,7 +662,7 @@ Shows all Next.js 16+ dev servers with their ports, tools, and metadata.
 Next Devtools, what errors are in my Next.js app?
 ```
 
-Shows real-time build and runtime errors from your CMS app.
+Shows real-time build and runtime errors from your admin app.
 
 **Runtime Diagnostics - Routes:**
 
@@ -759,7 +759,7 @@ revealui dev up --include mcp
 
 **Solutions:**
 
-1. Ensure dev server is running: `cd apps/cms && pnpm dev`
+1. Ensure dev server is running: `cd apps/admin && pnpm dev`
 2. Check port 4000 is accessible: `curl http://localhost:4000`
 3. Verify Next.js version is 16+: Check `package.json`
 
@@ -827,7 +827,7 @@ revealui dev status --profile agent
 
 Use this checklist to verify everything is working:
 
-- [ ] CMS dev server running (`cd apps/cms && pnpm dev`)
+- [ ] admin dev server running (`cd apps/admin && pnpm dev`)
 - [ ] MCP credentials validated (`pnpm setup:mcp`)
 - [ ] MCP endpoint accessible (`curl http://localhost:4000/_next/mcp`)
 - [ ] Can discover servers (ask: "what servers are running?")
@@ -910,8 +910,7 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 | Path | Runtime | Notes |
 |------|---------|-------|
 | **Ubuntu Inference Snaps** | Canonical snap runtime | Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
-| **BitNet** | Microsoft llama-server | 1-bit quantized, CPU-only, ~700 MB RAM |
-| **Ollama** | Local GGUF models | Any open source GGUF model via the RevealUI harness |
+| **Ollama** | Local GGUF models | Any open source GGUF model. Default: `gemma4:e2b` |
 | **HuggingFace** | HuggingFace Inference API | Open models hosted on HuggingFace infrastructure |
 | **Vultr** | Vultr GPU Cloud | Open models on Vultr serverless inference |
 
@@ -920,7 +919,7 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 ```typescript
 import { createLLMClient } from "@revealui/ai/llm";
 
-// Auto-detects from environment (snaps > BitNet > Ollama)
+// Auto-detects from environment (snaps > Ollama)
 const llm = createLLMClient();
 
 const response = await llm.chat([{ role: "user", content: "Hello!" }]);
@@ -931,9 +930,6 @@ const response = await llm.chat([{ role: "user", content: "Hello!" }]);
 ```bash
 # Ubuntu inference snap
 INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
-
-# BitNet (CPU-only, air-gap capable)
-BITNET_BASE_URL=http://localhost:8080/v1
 
 # Ollama (any open source model)
 OLLAMA_BASE_URL=http://localhost:11434/v1
@@ -946,8 +942,8 @@ VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
 VULTR_BASE_URL=https://api.vultrinference.com/v1
 
 # Force specific inference path (overrides auto-detection)
-# Valid values: ollama, bitnet, huggingface, vultr, inference-snaps
-LLM_PROVIDER=bitnet
+# Valid values: ollama, huggingface, vultr, inference-snaps
+LLM_PROVIDER=ollama
 ```
 
 ## Security notes
@@ -1118,10 +1114,10 @@ wb.registerSession({
 });
 
 // Claim file ownership (prevents conflicts with other sessions)
-wb.claimFiles("zed-1", ["apps/cms/src/lib/auth.ts"]);
+wb.claimFiles("zed-1", ["apps/admin/src/lib/auth.ts"]);
 
 // Check for conflicts before editing
-const result = wb.checkConflicts("zed-1", ["apps/cms/src/lib/auth.ts"]);
+const result = wb.checkConflicts("zed-1", ["apps/admin/src/lib/auth.ts"]);
 if (!result.clean) {
   console.warn("File conflict:", result.conflicts);
 }
@@ -1420,7 +1416,7 @@ RevealUI offers four professional service engagements for teams that need hands-
 | Service | Description | Deliverable |
 |---------|-------------|-------------|
 | **Architecture Review** | Codebase, schema, deployment, and security review (up to 50K LOC) | Written report within 5 business days |
-| **Migration Assist** | Migrate existing CMS, database, or billing to RevealUI | Working migration with verified data integrity |
+| **Migration Assist** | Migrate existing admin, database, or billing to RevealUI | Working migration with verified data integrity |
 | **Launch Package** | Zero to production in one week (setup, billing, deploy, onboarding) | Production-ready deployment within 5 business days |
 | **Consulting Hour** | One-on-one video call — pair programming, architecture, debugging | Session recording and written follow-up notes |
 
@@ -1519,7 +1515,7 @@ Forge is the enterprise tier of RevealUI. Deploy the entire stack on your own in
 
 See **[FORGE.md](./FORGE.md)** for the complete deployment guide, including:
 
-- Docker Compose stack (API + CMS + PostgreSQL)
+- Docker Compose stack (API + admin + PostgreSQL)
 - Environment variables (`FORGE_LICENSE_KEY`, `FORGE_LICENSED_DOMAIN`, etc.)
 - Domain lock enforcement
 - Reverse proxy configuration (Caddy + Nginx examples)
@@ -1533,7 +1529,7 @@ See **[FORGE.md](./FORGE.md)** for the complete deployment guide, including:
 # Pull images (requires GHCR token from Forge welcome email)
 echo "$GHCR_TOKEN" | docker login ghcr.io -u revealuistudio --password-stdin
 docker pull ghcr.io/revealuistudio/revealui-api:latest
-docker pull ghcr.io/revealuistudio/revealui-cms:latest
+docker pull ghcr.io/revealuistudio/revealui-admin:latest
 
 # Start the stack
 docker compose -f docker-compose.forge.yml --env-file .env.forge up -d

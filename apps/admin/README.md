@@ -86,7 +86,7 @@ Target commercial layers:
 
 ## Deployment
 
-Deployed to Vercel as `revealui-cms`. GitHub auto-deploy is enabled.
+Deployed to Vercel as `revealui-admin`. GitHub auto-deploy is enabled.
 
 ```bash
 # Vercel build uses a custom chain to build workspace dependencies first

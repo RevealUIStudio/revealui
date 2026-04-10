@@ -4,13 +4,13 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 const SCREENSHOTS = [
-  { src: '/screenshots/cms-dashboard.png', label: 'Dashboard' },
-  { src: '/screenshots/cms-content.png', label: 'Content' },
-  { src: '/screenshots/cms-editor-new.png', label: 'Editor' },
-  { src: '/screenshots/cms-users-list.png', label: 'Users' },
-  { src: '/screenshots/cms-agents.png', label: 'AI Agents' },
-  { src: '/screenshots/cms-billing.png', label: 'Billing' },
-  { src: '/screenshots/cms-monitoring.png', label: 'Monitoring' },
+  { src: '/screenshots/admin-dashboard.png', label: 'Dashboard' },
+  { src: '/screenshots/admin-content.png', label: 'Content' },
+  { src: '/screenshots/admin-editor-new.png', label: 'Editor' },
+  { src: '/screenshots/admin-users-list.png', label: 'Users' },
+  { src: '/screenshots/admin-agents.png', label: 'AI Agents' },
+  { src: '/screenshots/admin-billing.png', label: 'Billing' },
+  { src: '/screenshots/admin-monitoring.png', label: 'Monitoring' },
   { src: '/screenshots/api-swagger.png', label: 'API' },
 ];
 

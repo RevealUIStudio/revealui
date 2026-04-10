@@ -9,12 +9,10 @@ import type { StudioConfig, WizardData } from '../../types';
 
 const mockHealthCheck = vi.fn();
 const mockVercelSetEnv = vi.fn();
-const mockResendSendTest = vi.fn();
 
 vi.mock('../../lib/deploy', () => ({
   healthCheck: (...args: unknown[]) => mockHealthCheck(...args),
   vercelSetEnv: (...args: unknown[]) => mockVercelSetEnv(...args),
-  resendSendTest: (...args: unknown[]) => mockResendSendTest(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -41,8 +39,10 @@ const BASE_DATA: WizardData = {
   stripePriceIds: { pro: 'price_pro', max: 'price_max', enterprise: 'price_ent' },
   licensePrivateKey: 'PRIVATE_KEY',
   licensePublicKey: 'PUBLIC_KEY',
-  emailProvider: 'resend',
-  resendApiKey: 'rk_test_123',
+  emailProvider: 'gmail',
+  googleServiceAccountEmail: 'sa@project.iam.gserviceaccount.com',
+  googlePrivateKey: '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----',
+  emailFrom: 'noreply@example.com',
   blobToken: 'blob_test',
   revealuiSecret: 'secret_test',
   revealuiKek: 'kek_test',
@@ -69,7 +69,6 @@ describe('StepVerify', () => {
     vi.clearAllMocks();
     mockHealthCheck.mockResolvedValue(200);
     mockVercelSetEnv.mockResolvedValue(undefined);
-    mockResendSendTest.mockResolvedValue(true);
   });
 
   // -- Rendering ----------------------------------------------------------
@@ -92,7 +91,7 @@ describe('StepVerify', () => {
     renderStep();
 
     expect(screen.getByText('API Health')).toBeInTheDocument();
-    expect(screen.getByText('CMS')).toBeInTheDocument();
+    expect(screen.getByText('Admin')).toBeInTheDocument();
     expect(screen.getByText('Marketing')).toBeInTheDocument();
     expect(screen.getByText('Database (via API)')).toBeInTheDocument();
     expect(screen.getByText('Email Delivery')).toBeInTheDocument();
@@ -189,7 +188,7 @@ describe('StepVerify', () => {
 
     expect(screen.getByText('Manual verification (after setup):')).toBeInTheDocument();
     expect(screen.getByText('Stripe webhook test event fires and is received')).toBeInTheDocument();
-    expect(screen.getByText(/CORS allows CMS/)).toBeInTheDocument();
+    expect(screen.getByText(/CORS allows admin/)).toBeInTheDocument();
     expect(screen.getByText('Session cookie works cross-subdomain')).toBeInTheDocument();
     expect(screen.getByText('Signup flow works end-to-end')).toBeInTheDocument();
   });
@@ -258,10 +257,9 @@ describe('StepVerify', () => {
     fireEvent.click(screen.getByRole('button', { name: /run checks/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Test email sent')).toBeInTheDocument();
+      expect(screen.getByText('Gmail configured')).toBeInTheDocument();
     });
 
-    expect(mockResendSendTest).toHaveBeenCalledWith('rk_test_123', 'admin@test.com');
     expect(mockHealthCheck).toHaveBeenCalledTimes(4);
   });
 
@@ -324,11 +322,11 @@ describe('StepVerify', () => {
     expect(screen.getByLabelText('Admin Password')).toBeDisabled();
   });
 
-  // -- Email delivery — SMTP provider ------------------------------------
+  // -- Email delivery — Gmail provider ------------------------------------
 
-  it('marks email as validated in email step for SMTP provider', async () => {
+  it('marks email as validated in email step when no Gmail credentials', async () => {
     renderStep({
-      data: { emailProvider: 'smtp', resendApiKey: undefined },
+      data: { emailProvider: 'gmail', googleServiceAccountEmail: '', googlePrivateKey: '' },
     });
 
     fireEvent.change(screen.getByLabelText('Admin Email'), {
@@ -342,8 +340,6 @@ describe('StepVerify', () => {
     await waitFor(() => {
       expect(screen.getByText('Validated in email step')).toBeInTheDocument();
     });
-
-    expect(mockResendSendTest).not.toHaveBeenCalled();
   });
 
   // -- Health check flow — failures --------------------------------------

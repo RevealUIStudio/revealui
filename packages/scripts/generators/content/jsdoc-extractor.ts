@@ -62,7 +62,7 @@ export async function extractAPIDocs(
 
   const projectRoot = options.projectRoot || (await getProjectRoot(import.meta.url));
   const sourceDirs = options.sourceDirs || [
-    join(projectRoot, 'apps', 'cms', 'src'),
+    join(projectRoot, 'apps', 'admin', 'src'),
     join(projectRoot, 'packages'),
   ];
   const outputPath = options.outputPath || join(projectRoot, 'docs', 'api', 'extracted-docs.json');

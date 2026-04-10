@@ -367,7 +367,7 @@ describe('getFeaturesForTier', () => {
 // =============================================================================
 
 describe('getRequiredTier', () => {
-  it('returns free for aiLocal feature (BitNet)', () => {
+  it('returns free for aiLocal feature (local inference)', () => {
     expect(getRequiredTier('aiLocal')).toBe('free');
   });
 
@@ -482,7 +482,7 @@ describe('tier progression', () => {
 describe('feature blocking — free tier restrictions', () => {
   beforeEach(() => simulateTier('free'));
 
-  it('allows local AI inference (BitNet)', () => {
+  it('allows local AI inference (Ollama/Snaps)', () => {
     expect(isFeatureEnabled('aiLocal')).toBe(true);
   });
 

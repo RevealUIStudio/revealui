@@ -11,7 +11,7 @@ const mockDDGResponse = {
   AbstractURL: 'https://revealui.com',
   RelatedTopics: [
     {
-      Text: 'Open source CMS - A content management system for developers',
+      Text: 'Open source admin - A content management system for developers',
       FirstURL: 'https://example.com/cms',
     },
     {

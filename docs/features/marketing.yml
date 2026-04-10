@@ -21,7 +21,7 @@ api-surface:
     details: >
       DB-backed rate limiting (5 per IP per hour, survives cold starts).
       Zod validation. Duplicate-safe (returns 200, no leak). Metadata stored:
-      email, source, referrer, user-agent, IP. Fire-and-forget Resend
+      email, source, referrer, user-agent, IP. Fire-and-forget Gmail
       notification to founder. Rate limit headers (X-RateLimit-*).
       Email masked in logs for GDPR.
   waitlist-get:
@@ -77,7 +77,7 @@ test-coverage:
 dependencies:
   - "Next.js 16, React 19, Tailwind CSS v4"
   - "@revealui/contracts, @revealui/core, @revealui/db, drizzle-orm"
-  - "Zod (validation), Resend (transactional email, optional)"
+  - "Zod (validation), Gmail API (transactional email, optional)"
 
 limitations:
   - id: no-presentation-components

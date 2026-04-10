@@ -25,7 +25,7 @@ export interface AgentConfig {
 
   /**
    * Capability tags used by AgentOrchestrator.findBestAgent() for routing.
-   * Example: ['cms', 'search', 'ticket', 'summarize']
+   * Example: ['admin', 'search', 'ticket', 'summarize']
    */
   capabilities?: string[];
 }

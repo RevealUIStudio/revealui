@@ -3,14 +3,13 @@
   "version": "0.1.3",
   "description": "Caching infrastructure for RevealUI - CDN config, edge cache, ISR presets, revalidation",
   "license": "MIT",
-  "dependencies": {},
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.2",
-    "@types/node": "^25.5.0",
-    "dev": "workspace:*",
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "@electric-sql/pglite": "^0.4.3",
+    "@types/node": "catalog:",
+    "@revealui/dev": "workspace:*",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

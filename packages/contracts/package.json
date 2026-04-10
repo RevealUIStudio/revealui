@@ -16,11 +16,11 @@
   },
   "devDependencies": {
     "@revealui/db": "workspace:*",
-    "@types/node": "^25.5.0",
-    "dev": "workspace:*",
+    "@types/node": "catalog:",
+    "@revealui/dev": "workspace:*",
     "drizzle-zod": "^0.8.3",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"
@@ -46,9 +46,9 @@
       "types": "./dist/content/index.d.ts",
       "import": "./dist/content/index.js"
     },
-    "./cms": {
-      "types": "./dist/cms/index.d.ts",
-      "import": "./dist/cms/index.js"
+    "./admin": {
+      "types": "./dist/admin/index.d.ts",
+      "import": "./dist/admin/index.js"
     },
     "./agents": {
       "types": "./dist/agents/index.d.ts",

@@ -1,7 +1,7 @@
 /**
  * Mock RevealUI Types for Isolated Unit Testing
  *
- * These mocks allow tests to run without importing from apps/cms.
+ * These mocks allow tests to run without importing from apps/admin.
  * Use these for unit tests that need to validate type behavior
  * in isolation.
  *
@@ -16,7 +16,7 @@ import type {
   Field,
   FieldHooksConfig,
   GlobalConfig,
-} from '../../cms/index.js';
+} from '../../admin/index.js';
 
 // ============================================
 // MOCK DOCUMENT TYPES
@@ -52,7 +52,7 @@ export interface MockSettings {
 }
 
 // ============================================
-// MOCK CMS REQUEST
+// MOCK admin REQUEST
 // ============================================
 
 export interface MockRevealUIRequest {

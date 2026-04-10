@@ -1,6 +1,6 @@
 import path from 'node:path';
+import sharedViteConfig from '@revealui/dev/vite';
 import react from '@vitejs/plugin-react';
-import sharedViteConfig from 'dev/vite';
 import { defineConfig, loadEnv } from 'vite';
 
 const { VITE_API_URL, VITE_REVALIDATION_KEY } = loadEnv('', import.meta.dirname);

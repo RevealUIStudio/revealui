@@ -1,6 +1,6 @@
 'use client';
 
-import type { Media as CmsMedia, Post } from '@revealui/core/types/cms';
+import type { Media as CmsMedia, Post } from '@revealui/core/types/admin';
 import { CardContent, Card as PresentationCard } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { Fragment } from 'react';

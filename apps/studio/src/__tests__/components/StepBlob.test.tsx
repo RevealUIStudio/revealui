@@ -19,7 +19,7 @@ const MOCK_DATA: WizardData = {
   stripePriceIds: { pro: '', max: '', enterprise: '' },
   licensePrivateKey: '',
   licensePublicKey: '',
-  emailProvider: 'resend',
+  emailProvider: 'gmail',
   blobToken: '',
   revealuiSecret: '',
   revealuiKek: '',

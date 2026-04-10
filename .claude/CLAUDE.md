@@ -40,7 +40,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | api | 3004 | Hono | REST API (OpenAPI + Swagger) |
-| cms | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
+| admin | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
 | studio | — | Tauri 2 + React 19 | Native AI experience: agent coordination hub, local inference management, visual agent dashboard |
@@ -49,7 +49,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 ### OSS Packages (MIT)
 | Package | Purpose |
 |---------|---------|
-| @revealui/core | CMS engine, REST API, auth, rich text, admin UI, plugins |
+| @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
 | @revealui/db | Drizzle ORM schema (76 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
@@ -81,16 +81,16 @@ feature/* ──PR──▶ test ──PR──▶ main
 ### Development
 ```bash
 pnpm dev                    # Start all apps in parallel
-pnpm dev:app                # Build auth + start CMS + API (port 4000 + 3004)
+pnpm dev:app                # Build auth + start Admin + API (port 4000 + 3004)
 pnpm dev:api                # Start API only (port 3004)
-pnpm dev:cms                # Build auth + start CMS only (port 4000)
+pnpm dev:admin              # Build auth + start Admin only (port 4000)
 ```
 
 ### Building
 ```bash
 pnpm build                  # Build all (turbo, respects dependency order)
 pnpm build:api              # Build API only
-pnpm build:cms              # Build auth + CMS
+pnpm build:admin            # Build auth + Admin
 ```
 
 ### Testing
@@ -152,11 +152,11 @@ Always use `workspace:*` for internal package dependencies:
 ```bash
 pnpm --filter @revealui/core test    # Run tests for one package
 pnpm --filter ./packages/* build     # Build all packages
-pnpm --filter cms dev                # Dev one app
+pnpm --filter admin dev              # Dev one app
 ```
 
-### CMS Collections
-Collections are defined in `apps/cms/src/collections/` with access control, hooks, and field definitions. Use `@revealui/contracts` for type schemas.
+### admin Collections
+Collections are defined in `apps/admin/src/collections/` with access control, hooks, and field definitions. Use `@revealui/contracts` for type schemas.
 
 ### Feature Gating
 Pro features use `isLicensed('pro')` and `isFeatureEnabled('ai')` from `@revealui/core`. Tiers: free, pro, max, enterprise (code string for Forge).
@@ -199,7 +199,7 @@ Biome, typecheck, tests, and build all block pushes. Audits and structure checks
 - `overrideAccess` query param stripped from external requests in proxy.ts
 - License enforcement: 5-min DB status check (checkLicenseStatus) + requireFeature middleware on Pro routes
 - Feature gates: AI routes (agent-tasks, agent-stream, RAG, collab/agent), dashboard (provenance)
-- Resource limits: enforceSiteLimit on site creation, advisory-locked user limit in CMS sign-up
+- Resource limits: enforceSiteLimit on site creation, advisory-locked user limit in admin sign-up
 - Encryption keys: non-extractable by default (configurable via `extractable` option)
 - Rich text: isSafeUrl() blocks javascript:/vbscript:/data: in Lexical link/image rendering
 - Webhook rate limiting: 100 req/min on /api/webhooks

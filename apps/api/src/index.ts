@@ -232,7 +232,7 @@ function isVercelPreviewOrigin(origin: string): boolean {
   return origin.endsWith('-revealuistudios-projects.vercel.app');
 }
 
-/** Check if origin matches test/dev subdomain: https://(dev|test).(cms.|api.|docs.)?revealui.com */
+/** Check if origin matches test/dev subdomain: https://(dev|test).(admin.|api.|docs.)?revealui.com */
 function isTestSubdomainOrigin(origin: string): boolean {
   if (!origin.startsWith('https://')) return false;
   const host = origin.slice(8); // strip https://
@@ -553,7 +553,7 @@ app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
 
 // Perpetual license support expiry enforcement — downgrades premium features to free
-// when the annual support contract has expired. Basic CMS access remains perpetual.
+// when the annual support contract has expired. Basic admin access remains perpetual.
 // Sets X-Support-Expires header so clients can show renewal prompts.
 const supportExpiryCheck = checkSupportExpiry(async (customerId) => {
   return querySupportExpiry(getClient(), customerId);
@@ -569,7 +569,7 @@ app.use('/a2a/*', licenseStatusCheck);
 app.use('/a2a/*', supportExpiryCheck);
 
 // License enforcement — gate premium routes by feature
-// Agent stream + tasks: free tier allowed with local BitNet, Pro+ for cloud providers
+// Agent stream + tasks: free tier allowed with local inference, Pro+ for cloud providers
 app.use('/api/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
 app.use('/api/v1/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
 app.use('/api/agent-stream', requireAIAccess({ mode: 'entitlements' }));

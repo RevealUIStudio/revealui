@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * React Error Boundary for CMS App
+ * React Error Boundary for admin App
  *
  * Catches React errors and displays a fallback UI instead of crashing the app.
  * Integrates with Sentry for error reporting in production.

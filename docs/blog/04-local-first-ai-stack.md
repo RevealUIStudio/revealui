@@ -17,7 +17,7 @@ RevealUI's local-first story comes from four independent pieces that happen to c
 | Layer | Technology | What it does |
 |-------|-----------|-------------|
 | **Secrets** | RevVault (age encryption) | Credentials stay on your machine, encrypted at rest |
-| **AI inference** | BitNet / Ollama (open models) | LLM inference with no proprietary APIs — local or self-hosted cloud via harness |
+| **AI inference** | Inference snaps / Ollama (open models) | LLM inference with no proprietary APIs — local or self-hosted cloud via harness |
 | **Dev environment** | Nix flakes + direnv | Reproducible environment, zero manual tool installs |
 | **Business logic** | RevealUI Pro | Auth, content, payments, AI agents — all wired |
 
@@ -42,37 +42,32 @@ The practical upside: your `.env` never touches Vercel's secret storage, your CI
 
 Contrast this with the standard pattern: secrets in Vercel, AWS Secrets Manager, or a `.env` file checked into a private repo. All three involve trusting a third party with values that should only exist on hardware you control.
 
-## BitNet: AI inference that stays on your machine
+## Local inference: your models, your hardware
 
-[BitNet](https://github.com/microsoft/BitNet) is Microsoft's 1-bit quantization framework. The flagship model — `bitnet-b1.58-2B-4T` — is a 2.4B parameter instruction-tuned model that fits in **1.19 GB on disk** and uses roughly **700 MB of RAM** at runtime.
-
-That's not a toy. The 1-bit quantization in BitNet is trained from scratch (not post-quantized), which preserves quality in a way that standard int4 quantization can't match at this size. It runs at usable speed on a standard AVX2 CPU — no GPU, no CUDA, no driver hell.
-
-For RevealUI, this means your AI agents run locally:
+RevealUI's AI agents run on open source models locally. The recommended path is **Ubuntu Inference Snaps** — Canonical's snap-packaged model serving with hardware-aware engine selection, signed packages, and zero configuration:
 
 ```bash
-# Start the BitNet inference server (port 8080, OpenAI-compatible)
-pnpm bitnet:serve
+# Install a model (one command)
+sudo snap install nemotron-3-nano
 
-# Connect @revealui/ai to it
-BITNET_BASE_URL=http://localhost:8080
+# Check status
+nemotron-3-nano status
 ```
 
-The `@revealui/ai` package auto-detects `BITNET_BASE_URL` and routes agent calls to it. The same agent orchestration, memory system, and MCP integrations that work with Ubuntu Inference Snaps or Ollama work with BitNet — because all three expose OpenAI-compatible `/v1/chat/completions` endpoints.
+Each snap serves an OpenAI-compatible API locally. The `@revealui/ai` package auto-detects the running snap and routes agent calls to it. The same agent orchestration, memory system, and MCP integrations work with any supported inference path — because they all expose OpenAI-compatible `/v1/chat/completions` endpoints.
+
+As a fallback, **Ollama** supports any open source GGUF model (default: `gemma4:e2b`):
+
+```bash
+ollama serve &
+ollama pull gemma4:e2b
+```
 
 No API key. No usage bill. No data leaving your machine.
 
-### Hardware requirements
-
-BitNet requires **AVX2** (standard on any x86-64 CPU made after 2013). It works on WSL2. It does not require AVX-512 or a GPU.
-
-Reference hardware: Ryzen 7 5800U, 7.1 GB RAM — this is the development machine RevealUI is built on. BitNet runs comfortably on it with 6+ GB available for the rest of the stack.
-
 ## Nix: the environment that installs itself
 
-The operational friction with BitNet is the build: it requires clang 18, cmake, ninja, and Python, and must be compiled from source. On most systems that means a manual dependency chain.
-
-RevealUI uses Nix flakes + direnv. The entire development environment — Node, pnpm, Biome, and now clang 18 + all BitNet build dependencies — is declared in `flake.nix` and activated automatically when you enter the project directory.
+RevealUI uses Nix flakes + direnv. The entire development environment — Node, pnpm, Biome, and all build dependencies — is declared in `flake.nix` and activated automatically when you enter the project directory.
 
 ```bash
 # First time
@@ -80,16 +75,14 @@ git clone https://github.com/RevealUIStudio/revealui
 cd RevealUI
 direnv allow        # Nix builds and activates the full dev environment
 
-# Build and download BitNet (all deps already provided by Nix)
-pnpm bitnet:install
+# Install a model via inference snaps (recommended)
+sudo snap install nemotron-3-nano
 
-# Start the inference server
-pnpm bitnet:serve
+# Or use Ollama
+ollama pull gemma4:e2b
 ```
 
-No `apt install`, no `brew install`, no conda environment. Every developer on the project gets the same clang 18 regardless of what's on their system. It works the same on a Ryzen laptop as it does on a Mac or a Linux CI runner.
-
-The Nix guarantee matters here: if `pnpm bitnet:install` works on your machine, it works on every machine with Nix. That's a stronger guarantee than a README that says "install clang >= 18."
+No `apt install`, no `brew install`, no conda environment. Every developer on the project gets the same toolchain regardless of what's on their system. It works the same on a Ryzen laptop as it does on a Mac or a Linux CI runner.
 
 ## Putting it together
 
@@ -101,27 +94,21 @@ Here's the full picture of what "local-first RevealUI" looks like in practice:
 
 flake.nix
 └── devShell
-    ├── nodejs, pnpm, biome          # Standard RevealUI toolchain
-    └── clang_18, cmake, ninja       # BitNet build deps (no manual install)
+    └── nodejs, pnpm, biome          # Standard RevealUI toolchain
 
-pnpm bitnet:install
-└── git clone microsoft/BitNet       # Clones and compiles inference server
-    huggingface-cli download         # Downloads bitnet-b1.58-2B-4T-gguf
+sudo snap install nemotron-3-nano    # Or: ollama pull gemma4:e2b
+└── OpenAI-compatible API served locally
 
-pnpm bitnet:serve
-└── run_inference_server.py          # Starts OpenAI-compatible server on :8080
-
-BITNET_BASE_URL=http://localhost:8080
-└── @revealui/ai                     # Agent orchestration routes to local model
-    ├── planning, memory, CRDT       # Full agent stack
-    └── @revealui/mcp                # MCP tool integrations
+@revealui/ai                         # Agent orchestration routes to local model
+├── planning, memory, CRDT           # Full agent stack
+└── @revealui/mcp                    # MCP tool integrations
 ```
 
 The entire AI-powered business stack — auth, content, products, payments, agents — running without a cloud API call in sight.
 
 ## Who this is for
 
-The "local-first" configuration is one of three inference paths. RevealUI also supports Ubuntu Inference Snaps (Canonical's managed runtime) and Ollama (any open source GGUF model). All paths run open models — no proprietary cloud APIs, no vendor lock-in.
+The "local-first" configuration is one of two inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, recommended) and Ollama (any open source GGUF model, fallback). Both paths run open models — no proprietary cloud APIs, no vendor lock-in.
 
 But there's a real and growing audience for whom those concerns matter:
 
@@ -131,22 +118,22 @@ But there's a real and growing audience for whom those concerns matter:
 - **Developers in bandwidth-constrained environments** — offline-capable software, edge deployments
 - **Anyone who has been burned by a provider sunset** — your inference doesn't disappear when a company pivots
 
-For these cases, RevealUI with BitNet is the only full-stack agentic runtime option that doesn't require trusting a cloud provider with your most sensitive business data.
+For these cases, RevealUI with local inference is the only full-stack agentic runtime option that doesn't require trusting a cloud provider with your most sensitive business data.
 
 ## What you don't give up
 
-Running locally doesn't mean running poorly. The RevealUI agent stack has the same capabilities whether it's talking to Claude or BitNet:
+Running locally doesn't mean running poorly. The RevealUI agent stack has the same capabilities whether it's talking to a cloud model or a local Gemma 4 instance:
 
 - **Planning and tools** — agents can create todos, read and write files, execute shell commands
 - **Memory** — episodic memory, working memory, CRDT-based persistence across sessions
 - **MCP integrations** — Stripe, Supabase, Neon, Vercel, Playwright tool servers
 - **Orchestration** — multi-agent coordination, sub-agent spawning, streaming
 
-What you do give up: the raw capability of a 70B+ cloud model. BitNet 2B is excellent for structured tasks — code generation, data processing, form filling, API orchestration — but won't match a frontier model on open-ended reasoning. For most business automation use cases, that's an acceptable trade.
+What you do give up: the raw capability of a 70B+ cloud model. Smaller local models like Gemma 4 are excellent for structured tasks — code generation, data processing, form filling, API orchestration — but won't match a frontier model on open-ended reasoning. For most business automation use cases, that's an acceptable trade.
 
 ## Setup guide
 
-See [Local-First Setup](/docs/LOCAL_FIRST) for the step-by-step guide: hardware requirements, Nix setup, BitNet installation, connecting `@revealui/ai`, and configuring RevVault.
+See [Local-First Setup](/docs/LOCAL_FIRST) for the step-by-step guide: hardware requirements, Nix setup, inference snaps / Ollama installation, connecting `@revealui/ai`, and configuring RevVault.
 
 ---
 

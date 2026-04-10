@@ -16,7 +16,7 @@ Forge is best treated as a deployment-level commercial product, distinct from th
 | Component     | Image                                 | Port            |
 | ------------- | ------------------------------------- | --------------- |
 | API (Hono)    | `ghcr.io/revealuistudio/revealui-api` | 3004            |
-| CMS (Next.js) | `ghcr.io/revealuistudio/revealui-cms` | 4000            |
+| Admin (Next.js) | `ghcr.io/revealuistudio/revealui-admin` | 4000            |
 | PostgreSQL 16 | `postgres:16-alpine`                  | 5432 (internal) |
 
 All three services are wired together in `docker-compose.forge.yml` at the root of the repository.
@@ -47,7 +47,7 @@ Forge sits beside, not underneath, the hosted pricing model:
 
 ```bash
 docker pull ghcr.io/revealuistudio/revealui-api:latest
-docker pull ghcr.io/revealuistudio/revealui-cms:latest
+docker pull ghcr.io/revealuistudio/revealui-admin:latest
 ```
 
 > GHCR access is gated by your license key. Log in with the token provided in your Forge welcome email:
@@ -70,7 +70,7 @@ REVEALUI_SECRET=<32+ char random string>
 FORGE_LICENSE_KEY=rui_forge_...
 FORGE_LICENSED_DOMAIN=admin.acme.com
 
-# CMS URL (used by API for redirects)
+# admin URL (used by API for redirects)
 CMS_URL=https://admin.acme.com
 
 # CORS (must include your domain)
@@ -116,7 +116,7 @@ All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT_VA
 | `FORGE_LICENSED_DOMAIN`        | Yes      | The domain this instance is locked to                |
 | `POSTGRES_URL`                 | Yes      | PostgreSQL 16 connection URL                         |
 | `REVEALUI_SECRET`              | Yes      | 32+ char application secret (session signing, CSRF, HMAC operations) |
-| `CMS_URL`                      | Yes      | Full URL of your CMS (e.g. `https://admin.acme.com`) |
+| `CMS_URL`                      | Yes      | Full URL of your admin (e.g. `https://admin.acme.com`) |
 | `CORS_ORIGIN`                  | Yes      | Comma-separated allowed origins                      |
 | `STRIPE_SECRET_KEY`            | Billing  | Stripe secret key                                    |
 | `STRIPE_WEBHOOK_SECRET`        | Billing  | Stripe webhook signing secret                        |
@@ -157,18 +157,18 @@ api:
       condition: service_healthy
 ```
 
-### CMS
+### admin
 
 The Next.js admin dashboard (standalone output — no Node.js server required beyond what's bundled).
 
 ```yaml
-cms:
-  image: ghcr.io/revealuistudio/revealui-cms:latest
+admin:
+  image: ghcr.io/revealuistudio/revealui-admin:latest
   ports: ["4000:4000"]
   environment:
     DATABASE_URL: postgresql://revealui:${DB_PASSWORD}@db:5432/revealui
     API_URL: http://api:3004
-    # ... (all CMS env vars)
+    # ... (all admin env vars)
   depends_on:
     - api
 ```
@@ -198,7 +198,7 @@ docker compose -f docker-compose.forge.yml pull
 
 # Restart with zero downtime (rolling update)
 docker compose -f docker-compose.forge.yml up -d --no-deps api
-docker compose -f docker-compose.forge.yml up -d --no-deps cms
+docker compose -f docker-compose.forge.yml up -d --no-deps admin
 
 # Apply any new migrations
 docker compose -f docker-compose.forge.yml exec api pnpm db:migrate
@@ -208,7 +208,7 @@ docker compose -f docker-compose.forge.yml exec api pnpm db:migrate
 
 ## Reverse proxy
 
-Forge does not bundle a reverse proxy. Point Nginx, Caddy, or Traefik at port 3004 (API) and 4000 (CMS).
+Forge does not bundle a reverse proxy. Point Nginx, Caddy, or Traefik at port 3004 (API) and 4000 (admin).
 
 ### Caddy example
 
@@ -267,9 +267,9 @@ The domain in your license key does not match `FORGE_LICENSED_DOMAIN`. Contact s
 
 Ensure the `db` service is healthy before the API starts. The `depends_on.condition: service_healthy` in `docker-compose.forge.yml` handles this automatically, but manual restarts may require `docker compose restart api` after the database is ready.
 
-### CMS shows blank page
+### admin shows blank page
 
-The CMS requires `NEXT_PUBLIC_API_URL` to point to your API. Verify it is set correctly and the API health check returns 200.
+The admin requires `NEXT_PUBLIC_API_URL` to point to your API. Verify it is set correctly and the API health check returns 200.
 
 ---
 
@@ -325,7 +325,7 @@ For production, use S3-compatible storage (`STORAGE_ADAPTER=s3`) so media is bac
 
 ### Docker health checks
 
-Both API and CMS containers have built-in health checks. Monitor with:
+Both API and admin containers have built-in health checks. Monitor with:
 
 ```bash
 docker compose -f docker-compose.forge.yml ps
@@ -390,9 +390,9 @@ docker compose -f docker-compose.forge.yml up -d --scale api=3
 
 The API is stateless — all state lives in PostgreSQL. Session cookies are signed with `REVEALUI_SECRET`, so all replicas must share the same secret.
 
-### CMS
+### admin
 
-The CMS (Next.js standalone) can also run multiple replicas. ISR revalidation is coordinated via the API's `/api/revalidate` endpoint.
+The admin (Next.js standalone) can also run multiple replicas. ISR revalidation is coordinated via the API's `/api/revalidate` endpoint.
 
 ---
 
@@ -400,7 +400,7 @@ The CMS (Next.js standalone) can also run multiple replicas. ISR revalidation is
 
 If you're migrating from hosted RevealUI to a self-hosted Forge deployment:
 
-1. **Export your data** — use the CMS admin panel (Settings → Export) or the API: `GET /api/export?collections=pages,posts,products,users`
+1. **Export your data** — use the admin admin panel (Settings → Export) or the API: `GET /api/export?collections=pages,posts,products,users`
 2. **Set up Forge** — follow the quick start above
 3. **Import your data** — `POST /api/import` with the exported JSON
 4. **Update DNS** — point your domain to the Forge instance

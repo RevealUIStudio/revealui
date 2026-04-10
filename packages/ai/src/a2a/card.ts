@@ -27,7 +27,7 @@ const THE_CREATOR_DEF: AgentDefinition = {
   systemPrompt:
     'You are The Creator, the meta-agent for RevealUI. You design, configure, and deploy ' +
     'purpose-built AI agents for RevealUI users. You have access to agent scaffolding tools, ' +
-    'the RevealUI CMS, and the billing system.',
+    'the RevealUI admin, and the billing system.',
   tools: [
     {
       name: 'scaffoldAgent',
@@ -82,7 +82,7 @@ const TICKET_AGENT_DEF: AgentDefinition = {
   name: 'Ticket Agent',
   description:
     'Handles support tickets, resolves user issues, and escalates when needed. ' +
-    'Uses the RevealUI CMS to create and update tickets.',
+    'Uses the RevealUI admin to create and update tickets.',
   model: 'claude-sonnet-4-6',
   systemPrompt:
     'You are the RevealUI Ticket Agent. You help users resolve issues by creating tickets, ' +

@@ -55,7 +55,7 @@ app.openapi(
     tags: ['agent-tasks'],
     summary: 'Submit a natural language task for an agent to execute',
     description:
-      'Creates a ticket from the instruction, dispatches an AI agent with CMS tools to resolve it, and returns the result.',
+      'Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.',
     request: {
       body: {
         content: {
@@ -394,7 +394,7 @@ async function buildDispatcher(
     },
   };
 
-  // CMSAPIClient — routes through the CMS REST API if configured, otherwise no-ops
+  // AdminAPIClient — routes through the admin REST API if configured, otherwise no-ops
   const adminBaseUrl = process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL;
   const apiClient = buildCMSClient(adminBaseUrl);
 
@@ -410,8 +410,8 @@ async function buildDispatcher(
 }
 
 /**
- * Build a CMSAPIClient that calls the CMS REST API.
- * If no CMS URL is available, returns a stub that reports the misconfiguration.
+ * Build a AdminAPIClient that calls the admin REST API.
+ * If no admin URL is available, returns a stub that reports the misconfiguration.
  */
 function buildCMSClient(baseUrl: string | undefined) {
   if (!baseUrl) {
@@ -451,7 +451,7 @@ function buildCMSClient(baseUrl: string | undefined) {
       const res = await fetch(`${baseUrl}/api/${options.collection}?${params}`, {
         headers: headers(),
       });
-      if (!res.ok) throw new Error(`CMS find failed: ${res.statusText}`);
+      if (!res.ok) throw new Error(`Admin find failed: ${res.statusText}`);
       const body: unknown = await res.json();
       const data =
         body !== null && typeof body === 'object' ? (body as Record<string, unknown>) : {};
@@ -465,7 +465,7 @@ function buildCMSClient(baseUrl: string | undefined) {
 
     async findById(collection: string, id: string) {
       const res = await fetch(`${baseUrl}/api/${collection}/${id}`, { headers: headers() });
-      if (!res.ok) throw new Error(`CMS findById failed: ${res.statusText}`);
+      if (!res.ok) throw new Error(`Admin findById failed: ${res.statusText}`);
       return res.json();
     },
 
@@ -475,7 +475,7 @@ function buildCMSClient(baseUrl: string | undefined) {
         headers: headers(),
         body: JSON.stringify(options.data),
       });
-      if (!res.ok) throw new Error(`CMS create failed: ${res.statusText}`);
+      if (!res.ok) throw new Error(`Admin create failed: ${res.statusText}`);
       return res.json();
     },
 
@@ -485,7 +485,7 @@ function buildCMSClient(baseUrl: string | undefined) {
         headers: headers(),
         body: JSON.stringify(options.data),
       });
-      if (!res.ok) throw new Error(`CMS update failed: ${res.statusText}`);
+      if (!res.ok) throw new Error(`Admin update failed: ${res.statusText}`);
       return res.json();
     },
 
@@ -494,7 +494,7 @@ function buildCMSClient(baseUrl: string | undefined) {
         method: 'DELETE',
         headers: headers(),
       });
-      if (!res.ok) throw new Error(`CMS delete failed: ${res.statusText}`);
+      if (!res.ok) throw new Error(`Admin delete failed: ${res.statusText}`);
     },
 
     async findGlobal(options: { slug: string; depth?: number }) {
@@ -502,7 +502,7 @@ function buildCMSClient(baseUrl: string | undefined) {
       const res = await fetch(`${baseUrl}/api/globals/${options.slug}${params}`, {
         headers: headers(),
       });
-      if (!res.ok) throw new Error(`CMS findGlobal failed: ${res.statusText}`);
+      if (!res.ok) throw new Error(`Admin findGlobal failed: ${res.statusText}`);
       return res.json();
     },
 
@@ -512,7 +512,7 @@ function buildCMSClient(baseUrl: string | undefined) {
         headers: headers(),
         body: JSON.stringify(options.data),
       });
-      if (!res.ok) throw new Error(`CMS updateGlobal failed: ${res.statusText}`);
+      if (!res.ok) throw new Error(`Admin updateGlobal failed: ${res.statusText}`);
       return res.json();
     },
   };

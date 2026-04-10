@@ -127,7 +127,7 @@ export default buildConfig({
 ```ts
 // In your frontend (Next.js, Vite, etc.)
 const res = await fetch(
-  "https://your-cms.com/api/posts?where[status][equals]=published&sort=-publishedAt&limit=10",
+  "https://your-admin.com/api/posts?where[status][equals]=published&sort=-publishedAt&limit=10",
 );
 const { docs: posts } = await res.json();
 ```
@@ -241,7 +241,7 @@ export async function POST(req: Request) {
 ### Stripe Webhook Handler
 
 ```ts
-// apps/cms/src/app/api/webhooks/stripe/route.ts
+// apps/admin/src/app/api/webhooks/stripe/route.ts
 import Stripe from "stripe";
 import { getRestClient } from "@revealui/db/client";
 import { licenses } from "@revealui/db/schema/licenses";
@@ -375,7 +375,7 @@ if (event.type === "checkout.session.completed") {
 ```ts
 // Fetch all active products for your storefront
 const res = await fetch(
-  "https://your-cms.com/api/products" +
+  "https://your-admin.com/api/products" +
     "?where[active][equals]=true" +
     "&depth=1" +
     "&sort=name",

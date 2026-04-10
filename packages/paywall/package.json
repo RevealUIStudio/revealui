@@ -21,16 +21,16 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
-    "@types/react": "^19.1.8",
+    "@types/node": "catalog:",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "catalog:",
-    "dev": "workspace:*",
+    "@revealui/dev": "workspace:*",
     "hono": "^4.12.12",
-    "react": "^19.2.4",
-    "react-dom": "catalog:",
-    "tsup": "^8.5.1",
-    "typescript": "^6.0.2",
-    "vitest": "^4.1.0"
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

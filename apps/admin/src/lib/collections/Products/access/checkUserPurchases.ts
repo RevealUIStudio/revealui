@@ -1,5 +1,5 @@
 import type { FieldAccess, RevealUser } from '@revealui/core';
-import type { Product } from '@revealui/core/types/cms';
+import type { Product } from '@revealui/core/types/admin';
 import { Role } from '@/lib/access/permissions/roles';
 import { hasRole } from '@/lib/access/roles/hasRole';
 import { asDocument } from '@/lib/utils/type-guards';

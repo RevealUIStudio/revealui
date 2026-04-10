@@ -8,7 +8,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import type { CollectionConfig } from '@revealui/contracts/cms';
+import type { CollectionConfig } from '@revealui/contracts/admin';
 import type { RevealUIInstance } from '@revealui/core';
 import { buildConfig, getRevealUI, universalPostgresAdapter } from '@revealui/core';
 import type { DatabaseAdapter, RevealDataObject } from '@revealui/core/types';

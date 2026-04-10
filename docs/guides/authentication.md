@@ -33,7 +33,7 @@ pnpm add @revealui/auth
 REVEALUI_SECRET=<your-secret>
 
 # Required: your app URL (used for cookie domain)
-REVEALUI_PUBLIC_SERVER_URL=https://cms.yourdomain.com
+REVEALUI_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 
 # Optional: OAuth providers
 GITHUB_CLIENT_ID=...
@@ -346,7 +346,7 @@ await revokeSession(sessionId);
 
 ### Cookie Domain
 
-For cross-subdomain auth (e.g., `cms.revealui.com` and `api.revealui.com`), set the cookie domain to `.revealui.com`. This allows the session cookie to be sent to all subdomains.
+For cross-subdomain auth (e.g., `admin.revealui.com` and `api.revealui.com`), set the cookie domain to `.revealui.com`. This allows the session cookie to be sent to all subdomains.
 
 ---
 

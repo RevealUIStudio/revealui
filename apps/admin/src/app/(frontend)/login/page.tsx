@@ -148,6 +148,7 @@ function LoginContent() {
                   disabled={anyLoading}
                   autoComplete="current-password"
                   className="pr-10"
+                  aria-label="Password"
                   required
                 />
               </PasswordInput>
@@ -157,7 +158,7 @@ function LoginContent() {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
 
-            <p className="text-center text-sm text-zinc-500">
+            <p className="text-center text-sm text-zinc-600">
               <Link
                 href="/reset-password"
                 className="text-blue-600 hover:underline dark:text-blue-400"

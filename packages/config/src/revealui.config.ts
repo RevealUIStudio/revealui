@@ -2,11 +2,11 @@
  * RevealUI Framework Configuration
  *
  * This is the unified configuration file for the RevealUI monorepo.
- * It provides shared configuration values that both the web (RevealUI) and CMS (Next.js) apps can use.
+ * It provides shared configuration values that both the web (RevealUI) and admin (Next.js) apps can use.
  *
  * ## Usage
  *
- * ### CMS App (apps/cms/revealui.config.ts)
+ * ### Admin App (apps/admin/revealui.config.ts)
  * ```typescript
  * import { getSharedCMSConfig } from '@revealui/config/revealui'
  *
@@ -49,12 +49,12 @@ function requireInProduction(name: string, devFallback: string): string {
  */
 export const sharedConfig = {
   /**
-   * Server URL - used by both CMS and web apps
+   * Server URL - used by both admin and web apps
    */
   serverURL: requireInProduction('REVEALUI_PUBLIC_SERVER_URL', 'http://localhost:4000'),
 
   /**
-   * Secret key - used by CMS for encryption
+   * Secret key - used by admin for encryption
    */
   secret: requireInProduction(
     'REVEALUI_SECRET',
@@ -120,8 +120,8 @@ export const sharedConfig = {
 } as const;
 
 /**
- * Get shared configuration for CMS app
- * Returns base config that can be extended in apps/cms/revealui.config.ts
+ * Get shared configuration for admin app
+ * Returns base config that can be extended in apps/admin/revealui.config.ts
  */
 export function getSharedCMSConfig(): { serverURL: string; secret: string } {
   return {

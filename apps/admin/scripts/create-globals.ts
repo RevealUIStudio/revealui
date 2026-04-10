@@ -120,7 +120,7 @@ async function createGlobals() {
     process.exit(0);
   } catch (error) {
     console.error('\n❌ Error creating globals:', error);
-    console.error('\n💡 Make sure the dev server is running: pnpm dev:cms');
+    console.error('\n💡 Make sure the dev server is running: pnpm dev:admin');
     process.exit(1);
   }
 }

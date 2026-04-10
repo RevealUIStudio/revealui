@@ -6,7 +6,7 @@
  * @module @revealui/core/types/hooks
  */
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 import type { RevealDataObject, RevealDocument } from './query.js';
 import type { RevealRequest } from './request.js';
 

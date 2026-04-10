@@ -1,11 +1,4 @@
 import type {
-  RouteConfig as BaseRouteConfig,
-  OpenApiGeneratorV3,
-  ZodContentObject,
-  ZodMediaTypeObject,
-  ZodRequestBody,
-} from '@asteasolutions/zod-to-openapi';
-import type {
   Context,
   Env,
   Handler,
@@ -26,15 +19,58 @@ import type {
 } from 'hono/utils/http-status';
 import type { JSONParsed } from 'hono/utils/types';
 import type { ZodError, ZodType, z } from 'zod';
+import type { GeneratorOptions, OpenAPIDocumentConfig } from './native/generator.js';
+
+// ---------------------------------------------------------------------------
+// Zod-OpenAPI types (replaces @asteasolutions/zod-to-openapi types)
+// ---------------------------------------------------------------------------
+
+export interface ZodMediaTypeObject {
+  schema: ZodType;
+  example?: unknown;
+  examples?: Record<string, { value?: unknown }>;
+}
+
+export type ZodContentObject = Record<string, ZodMediaTypeObject>;
+
+export interface ZodRequestBody {
+  content: ZodContentObject;
+  required?: boolean;
+  description?: string;
+}
 
 // ---------------------------------------------------------------------------
 // Route config
 // ---------------------------------------------------------------------------
 
-export type RouteConfig = BaseRouteConfig & {
+export interface RouteConfig {
+  method: string;
+  path: string;
+  description?: string;
+  summary?: string;
+  tags?: string[];
+  operationId?: string;
+  deprecated?: boolean;
+  request?: {
+    body?: ZodRequestBody;
+    params?: ZodType;
+    query?: ZodType;
+    headers?: ZodType | ZodType[];
+    cookies?: ZodType;
+  };
+  responses: Record<
+    string,
+    {
+      description: string;
+      content?: ZodContentObject;
+      headers?: Record<string, ZodType | ZodMediaTypeObject>;
+    }
+  >;
+  security?: Array<Record<string, string[]>>;
+  externalDocs?: { description?: string; url: string };
   middleware?: H | H[];
   hide?: boolean;
-};
+}
 
 export interface RequestTypes {
   body?: ZodRequestBody;
@@ -347,15 +383,13 @@ export type RouteHook<
 // OpenAPI config
 // ---------------------------------------------------------------------------
 
-export type OpenAPIObjectConfig = Parameters<
-  InstanceType<typeof OpenApiGeneratorV3>['generateDocument']
->[0];
+export type OpenAPIObjectConfig = OpenAPIDocumentConfig;
 
 export type OpenAPIObjectConfigure<E extends Env, P extends string> =
   | OpenAPIObjectConfig
   | ((context: Context<E, P>) => OpenAPIObjectConfig);
 
-export type OpenAPIGeneratorOptions = ConstructorParameters<typeof OpenApiGeneratorV3>[1];
+export type OpenAPIGeneratorOptions = GeneratorOptions;
 
 export type OpenAPIGeneratorConfigure<E extends Env, P extends string> =
   | OpenAPIGeneratorOptions

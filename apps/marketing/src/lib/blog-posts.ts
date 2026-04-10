@@ -1,8 +1,8 @@
 /**
  * Static blog posts for the marketing site.
  *
- * These posts are rendered locally without requiring the CMS API.
- * When the CMS has published posts, they take priority (by publishedAt date)
+ * These posts are rendered locally without requiring the admin API.
+ * When the admin has published posts, they take priority (by publishedAt date)
  * and are merged with static posts on the blog index.
  *
  * Content is loaded from docs/blog/ markdown files at request time (server-only).

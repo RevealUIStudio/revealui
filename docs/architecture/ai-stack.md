@@ -11,8 +11,7 @@ All LLM access flows through `LLMClient`, a factory that wraps inference backend
 | Path | Chat | Embeddings | Key Env Var | Notes |
 |------|------|-----------|-------------|-------|
 | **Ubuntu Inference Snaps** | yes | depends on model | `INFERENCE_SNAPS_BASE_URL` | Canonical snap runtime — Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
-| **BitNet** | yes | no | `BITNET_BASE_URL` | Local CPU-only. Model: `bitnet-b1.58-2B-4T`, ~700 MB RAM |
-| **Ollama** | yes | yes | `OLLAMA_BASE_URL` | Any open source GGUF model. Chat: `llama3.2:3b`, Embed: `nomic-embed-text` |
+| **Ollama** | yes | yes | `OLLAMA_BASE_URL` | Any open source GGUF model. Chat: `gemma4:e2b`, Embed: `nomic-embed-text` |
 
 ### Auto-Detection Priority
 
@@ -20,12 +19,7 @@ All LLM access flows through `LLMClient`, a factory that wraps inference backend
 
 1. `LLM_PROVIDER` (explicit override)
 2. `INFERENCE_SNAPS_BASE_URL`
-3. `BITNET_BASE_URL`
-4. `OLLAMA_BASE_URL`
-
-### BitNet + Ollama Auto-Wiring
-
-When both `BITNET_BASE_URL` and `OLLAMA_BASE_URL` are set, the factory automatically routes chat to BitNet and embeddings to Ollama (`nomic-embed-text`). No additional config needed.
+3. `OLLAMA_BASE_URL`
 
 ## Tier Model
 
@@ -33,16 +27,16 @@ Revenue tiers control AI access via runtime feature gating:
 
 | Tier | AI Access | Task Quota | Coding Tools | Inference |
 |------|-----------|-----------|--------------|-----------|
-| **Free** | Local only (BitNet / Ollama) | 1,000/mo | Read-only | `BITNET_BASE_URL` or `OLLAMA_BASE_URL` |
-| **Pro** ($49/mo) | Local + cloud harness | 10,000/mo | Full | Snaps, BitNet, Ollama, RevealUI cloud |
-| **Max** ($149/mo) | Local + cloud + advanced config | 50,000/mo | Full + memory | Snaps, BitNet, Ollama, RevealUI cloud |
+| **Free** | Local only (Ollama / snaps) | 1,000/mo | Read-only | `INFERENCE_SNAPS_BASE_URL` or `OLLAMA_BASE_URL` |
+| **Pro** ($49/mo) | Local + cloud harness | 10,000/mo | Full | Snaps, Ollama, RevealUI cloud |
+| **Max** ($149/mo) | Local + cloud + advanced config | 50,000/mo | Full + memory | Snaps, Ollama, RevealUI cloud |
 | **Enterprise** ($299/mo) | Unlimited | Metered | Full + memory + multi-tenant | All open models |
 
 ### Access Modes
 
 The `aiAccessMode` field on entitlements controls enforcement:
 
-- **`local`**: Free tier uses BitNet or Ollama. No API key needed. Read-only coding tools (`file_read`, `file_glob`, `file_grep`, `project_context`).
+- **`local`**: Free tier uses inference snaps or Ollama. No API key needed. Read-only coding tools (`file_read`, `file_glob`, `file_grep`, `project_context`).
 
 ### Quota Enforcement
 
@@ -80,7 +74,7 @@ The `/api/agent-stream` POST route serves SSE responses. The React hook `useAgen
 
 ### Tool Categories
 
-- **CMS tools**: Content CRUD, media management, user/globals operations
+- **admin tools**: Content CRUD, media management, user/globals operations
 - **Coding tools** (Pro+): `file_read`, `file_write`, `file_edit`, `file_glob`, `file_grep`, `shell_exec`, `git_ops`, `project_context`
 - **Coding tools** (free tier): Read-only subset only (`file_read`, `file_glob`, `file_grep`, `project_context`)
 - **Memory tools**: Episodic recall, working memory access
@@ -114,7 +108,7 @@ Memory integration is optional — agents degrade gracefully without it. Require
 - **Text splitter**: Chunk documents for embedding
 - **File parsers**: Extract text from various formats
 - **Hybrid search**: BM25 (keyword) + vector (semantic) with reranking
-- **CMS indexer**: Auto-indexes CMS content for agent context
+- **admin indexer**: Auto-indexes admin content for agent context
 
 Embeddings stored in Supabase (pgvector). Search queries use the dual-database pattern: NeonDB for metadata, Supabase for vectors.
 
@@ -143,7 +137,7 @@ Both are opt-in via `LLMClientConfig.enableResponseCache` and `enableSemanticCac
 @revealui/ai/skills             Agent skill definitions
 @revealui/ai/llm/client         LLMClient factory
 @revealui/ai/llm/providers/base Provider interface
-@revealui/ai/tools/cms          CMS tool integration
+@revealui/ai/tools/admin          admin tool integration
 @revealui/ai/tools/registry     Tool registry
 @revealui/ai/ingestion          RAG pipeline
 @revealui/ai/orchestration/*    Agent runtime, streaming, memory integration
@@ -153,11 +147,11 @@ Both are opt-in via `LLMClientConfig.enableResponseCache` and `enableSemanticCac
 ## Feature Flag Reference
 
 ```
-aiLocal:         free     Local inference (BitNet / Ollama)
+aiLocal:         free     Local inference (snaps / Ollama)
 ai:              pro      AI agents (local + cloud via RevealUI harness)
 mcp:             pro      MCP framework integration
 aiMemory:        max      Working + episodic memory
-aiInference:     max      Open-model inference configuration (snaps, BitNet, harness)
+aiInference:     max      Open-model inference configuration (snaps, harness)
 ```
 
 ## Environment Variables
@@ -165,7 +159,6 @@ aiInference:     max      Open-model inference configuration (snaps, BitNet, har
 | Variable | Required | Description |
 |----------|---------|-------------|
 | `INFERENCE_SNAPS_BASE_URL` | No | Ubuntu inference snap URL |
-| `BITNET_BASE_URL` | No | BitNet llama-server URL (default: `http://localhost:8080/v1`) |
 | `OLLAMA_BASE_URL` | No | Ollama server URL (default: `http://localhost:11434/v1`) |
 | `LLM_PROVIDER` | No | Force specific inference path (overrides auto-detection) |
 | `LLM_MODEL` | No | Override default model for the selected inference path |

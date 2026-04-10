@@ -28,7 +28,7 @@ export interface RAGOptions {
   llmClient?: LLMClient;
   /** Maximum tokens for assembled context (default 2000) */
   maxContextTokens?: number;
-  /** Filter to a specific CMS collection */
+  /** Filter to a specific admin collection */
   sourceCollection?: string;
 }
 

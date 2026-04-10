@@ -17,7 +17,7 @@ import { streamSSE } from 'hono/streaming';
 type Variables = {
   tenant?: { id: string };
   user?: { id: string; role: string };
-  /** Set by requireAIAccess middleware — local = BitNet (free tier) */
+  /** Set by requireAIAccess middleware — local = free tier inference */
   aiAccessMode?: 'local';
 };
 
@@ -41,7 +41,7 @@ const agentStreamRoute = createRoute({
             priority: z.string().optional(),
             provider: z.string().optional(),
             model: z.string().optional(),
-            mode: z.enum(['cms', 'coding']).default('cms').optional(),
+            mode: z.enum(['admin', 'coding']).default('admin').optional(),
           }),
         },
       },
@@ -104,20 +104,22 @@ app.openapi(agentStreamRoute, async (c) => {
     );
   }
 
-  // Free tier: BitNet local inference only
+  // Free tier: local inference only (Ollama or inference snaps)
   const aiAccessMode = c.get('aiAccessMode');
   const isLocalOnly = aiAccessMode === 'local';
 
   let llmClient: unknown;
   try {
     if (isLocalOnly) {
-      // Free tier: force BitNet provider regardless of other env vars
+      // Free tier: force local provider regardless of other env vars
       type LLMConfig = ConstructorParameters<typeof llmClientMod.LLMClient>[0];
+      const localBaseURL = process.env.INFERENCE_SNAPS_BASE_URL ?? process.env.OLLAMA_BASE_URL;
+      const localProvider = process.env.INFERENCE_SNAPS_BASE_URL ? 'inference-snaps' : 'ollama';
       llmClient = new llmClientMod.LLMClient({
-        provider: 'bitnet' as LLMConfig['provider'],
-        apiKey: 'bitnet',
-        baseURL: process.env.BITNET_BASE_URL,
-        model: process.env.LLM_MODEL ?? 'bitnet-b1.58-2B-4T',
+        provider: localProvider as LLMConfig['provider'],
+        apiKey: localProvider,
+        baseURL: localBaseURL,
+        model: process.env.LLM_MODEL ?? 'gemma4:e2b',
       });
     } else {
       llmClient = aiMod.createLLMClientFromEnv();
@@ -135,12 +137,12 @@ app.openapi(agentStreamRoute, async (c) => {
   }
 
   const workspaceId = body.workspaceId ?? c.get('tenant')?.id ?? 'default';
-  const mode = body.mode ?? 'cms';
+  const mode = body.mode ?? 'admin';
 
-  // Load CMS tools so the agent can manage content, media, users, globals
+  // Load admin tools so the agent can manage content, media, users, globals
   let cmsTools: unknown[] = [];
   try {
-    const cmsToolsMod = await import('@revealui/ai/tools/cms').catch(() => null);
+    const cmsToolsMod = await import('@revealui/ai/tools/admin').catch(() => null);
     if (cmsToolsMod) {
       // Build internal API base URL from the request
       const requestUrl = new URL(c.req.url);
@@ -157,13 +159,13 @@ app.openapi(agentStreamRoute, async (c) => {
         }
       }
 
-      const { createInternalCMSClient } = await import('../lib/internal-cms-client.js');
-      const apiClient = createInternalCMSClient(apiBase, sessionToken);
+      const { createInternalAdminClient } = await import('../lib/internal-admin-client.js');
+      const apiClient = createInternalAdminClient(apiBase, sessionToken);
 
-      cmsTools = cmsToolsMod.createCMSTools({ apiClient });
+      cmsTools = cmsToolsMod.createAdminTools({ apiClient });
     }
   } catch {
-    // CMS tools unavailable — agent will work without them
+    // admin tools unavailable — agent will work without them
   }
 
   // Read-only coding tools allowed for free tier (local inference)
@@ -194,7 +196,7 @@ app.openapi(agentStreamRoute, async (c) => {
         });
       }
     } catch {
-      // Coding tools unavailable — agent will work with CMS tools only
+      // Coding tools unavailable — agent will work with admin tools only
     }
   }
 
@@ -223,18 +225,18 @@ Always confirm before making destructive changes. Explain what you're doing as y
       : '';
 
   const agent = {
-    id: mode === 'coding' ? 'coding-stream-agent' : 'cms-stream-agent',
-    name: mode === 'coding' ? 'Coding Agent' : 'CMS Stream Agent',
-    instructions: `You are an AI-powered ${mode === 'coding' ? 'coding and CMS' : 'CMS management'} assistant for RevealUI. You can help users manage their content, media, users, and settings through natural conversation.
+    id: mode === 'coding' ? 'coding-stream-agent' : 'admin-stream-agent',
+    name: mode === 'coding' ? 'Coding Agent' : 'Admin Stream Agent',
+    instructions: `You are an AI-powered ${mode === 'coding' ? 'coding and admin' : 'admin management'} assistant for RevealUI. You can help users manage their content, media, users, and settings through natural conversation.
 
-When asked to modify the CMS, use the available tools. Be conversational and explain what you're doing. For destructive operations (delete), confirm the user's intent first.${codingInstructions}
+When asked to modify the admin, use the available tools. Be conversational and explain what you're doing. For destructive operations (delete), confirm the user's intent first.${codingInstructions}
 
 Workspace: ${workspaceId}`,
     tools: allTools as Parameters<
       typeof streamingRuntimeMod.StreamingAgentRuntime.prototype.streamTask
     >[0]['tools'],
     memory: undefined,
-    getContext: () => ({ agentId: 'cms-stream-agent' }),
+    getContext: () => ({ agentId: 'admin-stream-agent' }),
   };
 
   const task = {

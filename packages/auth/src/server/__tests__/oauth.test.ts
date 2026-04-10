@@ -221,7 +221,8 @@ describe('oauth', () => {
     it('returns provider and redirectTo for valid state', () => {
       const { state, cookieValue } = generateOAuthState('github', '/dashboard');
       const result = verifyOAuthState(state, cookieValue);
-      expect(result).toEqual({ provider: 'github', redirectTo: '/dashboard' });
+      expect(result).toMatchObject({ provider: 'github', redirectTo: '/dashboard' });
+      expect(result?.codeVerifier).toBeDefined();
     });
 
     it('returns null when state is null', () => {
@@ -275,29 +276,32 @@ describe('oauth', () => {
   // =========================================================================
   describe('buildAuthUrl', () => {
     it('delegates to github provider', () => {
-      buildAuthUrl('github', 'http://localhost/callback', 'state123');
+      buildAuthUrl('github', 'http://localhost/callback', 'state123', 'challenge');
       expect(mockGithubBuildAuthUrl).toHaveBeenCalledWith(
         'gh-client-id',
         'http://localhost/callback',
         'state123',
+        'challenge',
       );
     });
 
     it('delegates to google provider', () => {
-      buildAuthUrl('google', 'http://localhost/callback', 'state123');
+      buildAuthUrl('google', 'http://localhost/callback', 'state123', 'challenge');
       expect(mockGoogleBuildAuthUrl).toHaveBeenCalledWith(
         'google-client-id',
         'http://localhost/callback',
         'state123',
+        'challenge',
       );
     });
 
     it('delegates to vercel provider', () => {
-      buildAuthUrl('vercel', 'http://localhost/callback', 'state123');
+      buildAuthUrl('vercel', 'http://localhost/callback', 'state123', 'challenge');
       expect(mockVercelBuildAuthUrl).toHaveBeenCalledWith(
         'vercel-client-id',
         'http://localhost/callback',
         'state123',
+        'challenge',
       );
     });
 
@@ -320,20 +324,47 @@ describe('oauth', () => {
   // =========================================================================
   describe('exchangeCode', () => {
     it('delegates to github provider', async () => {
-      const token = await exchangeCode('github', 'auth-code', 'http://localhost/callback');
-      expect(mockGithubExchangeCode).toHaveBeenCalledWith('auth-code', 'http://localhost/callback');
+      const token = await exchangeCode(
+        'github',
+        'auth-code',
+        'http://localhost/callback',
+        'verifier',
+      );
+      expect(mockGithubExchangeCode).toHaveBeenCalledWith(
+        'auth-code',
+        'http://localhost/callback',
+        'verifier',
+      );
       expect(token).toBe('gh-access-token');
     });
 
     it('delegates to google provider', async () => {
-      const token = await exchangeCode('google', 'auth-code', 'http://localhost/callback');
-      expect(mockGoogleExchangeCode).toHaveBeenCalledWith('auth-code', 'http://localhost/callback');
+      const token = await exchangeCode(
+        'google',
+        'auth-code',
+        'http://localhost/callback',
+        'verifier',
+      );
+      expect(mockGoogleExchangeCode).toHaveBeenCalledWith(
+        'auth-code',
+        'http://localhost/callback',
+        'verifier',
+      );
       expect(token).toBe('google-access-token');
     });
 
     it('delegates to vercel provider', async () => {
-      const token = await exchangeCode('vercel', 'auth-code', 'http://localhost/callback');
-      expect(mockVercelExchangeCode).toHaveBeenCalledWith('auth-code', 'http://localhost/callback');
+      const token = await exchangeCode(
+        'vercel',
+        'auth-code',
+        'http://localhost/callback',
+        'verifier',
+      );
+      expect(mockVercelExchangeCode).toHaveBeenCalledWith(
+        'auth-code',
+        'http://localhost/callback',
+        'verifier',
+      );
       expect(token).toBe('vercel-access-token');
     });
 

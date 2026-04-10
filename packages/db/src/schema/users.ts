@@ -8,6 +8,7 @@
 import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -103,6 +104,12 @@ export const users = pgTable(
     index('users_stripe_customer_id_idx').on(table.stripeCustomerId),
     index('users_ssh_key_fingerprint_idx').on(table.sshKeyFingerprint),
     index('users_email_verified_idx').on(table.emailVerified),
+    check(
+      'users_role_check',
+      sql`role IN ('owner', 'admin', 'editor', 'viewer', 'agent', 'contributor')`,
+    ),
+    check('users_status_check', sql`status IN ('active', 'suspended', 'deleted', 'pending')`),
+    check('users_type_check', sql`type IN ('human', 'agent', 'system')`),
   ],
 );
 

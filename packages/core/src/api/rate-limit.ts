@@ -22,7 +22,7 @@ interface RateLimitEntry {
 
 // WARNING: In-memory store — resets on every serverless cold start or process restart.
 // This module is NOT used by any app in production (API uses apps/api/src/middleware/rate-limit.ts,
-// CMS uses @revealui/auth/server which is DB-backed). Exported for framework consumers only.
+// admin uses @revealui/auth/server which is DB-backed). Exported for framework consumers only.
 // Replace with a database-backed store before using in production.
 const rateLimitStore = new Map<string, RateLimitEntry>();
 

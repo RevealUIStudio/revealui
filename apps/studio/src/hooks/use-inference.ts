@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  inferenceBitnetStatus,
   inferenceOllamaDelete,
   inferenceOllamaModels,
   inferenceOllamaPull,
@@ -11,11 +10,10 @@ import {
   inferenceSnapList,
   inferenceSnapRemove,
 } from '../lib/invoke';
-import type { BitNetStatus, OllamaModel, OllamaStatus, SnapModel } from '../types';
+import type { OllamaModel, OllamaStatus, SnapModel } from '../types';
 
 export function useInference() {
   const [ollama, setOllama] = useState<OllamaStatus | null>(null);
-  const [bitnet, setBitnet] = useState<BitNetStatus | null>(null);
   const [models, setModels] = useState<OllamaModel[]>([]);
   const [snaps, setSnaps] = useState<SnapModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,13 +23,11 @@ export function useInference() {
 
   async function refresh(): Promise<void> {
     try {
-      const [ollamaResult, bitnetResult, snapList] = await Promise.all([
+      const [ollamaResult, snapList] = await Promise.all([
         inferenceOllamaStatus(),
-        inferenceBitnetStatus(),
         inferenceSnapList(),
       ]);
       setOllama(ollamaResult);
-      setBitnet(bitnetResult);
       setSnaps(snapList);
 
       if (ollamaResult.running) {
@@ -132,7 +128,6 @@ export function useInference() {
 
   return {
     ollama,
-    bitnet,
     models,
     snaps,
     loading,

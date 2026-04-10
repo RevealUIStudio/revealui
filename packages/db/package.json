@@ -4,19 +4,19 @@
   "description": "Drizzle ORM schema and dual-database client (NeonDB + Supabase) for RevealUI",
   "license": "MIT",
   "dependencies": {
-    "@neondatabase/serverless": "^1.0.2",
+    "@neondatabase/serverless": "catalog:",
     "@revealui/config": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "drizzle-orm": "^0.45.2",
-    "pg": "^8.18.0",
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "dev": "workspace:*",
-    "drizzle-kit": "^0.31.8",
+    "@revealui/dev": "workspace:*",
+    "drizzle-kit": "^0.31.10",
     "drizzle-zod": "^0.8.3",
-    "tsx": "^4.21.0",
-    "typescript": "^6.0.2"
+    "tsx": "catalog:",
+    "typescript": "catalog:"
   },
   "engines": {
     "node": ">=24.13.0"

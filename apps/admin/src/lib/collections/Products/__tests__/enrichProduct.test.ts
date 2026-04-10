@@ -10,7 +10,7 @@
  */
 
 import type { RevealDocument, RevealRequest } from '@revealui/core';
-import type { Product } from '@revealui/core/types/cms';
+import type { Product } from '@revealui/core/types/admin';
 import { describe, expect, it } from 'vitest';
 import {
   type EnrichedProduct,

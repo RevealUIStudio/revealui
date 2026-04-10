@@ -3,7 +3,7 @@
  *
  * This is a generic Link component that works with any framework.
  * For framework-specific implementations:
- * - Next.js: Use Next.js Link component (see apps/cms/src/lib/components/Link)
+ * - Next.js: Use Next.js Link component (see apps/admin/src/lib/components/Link)
  * - Other frameworks: Wrap this component with your framework's Link
  *
  * See Catalyst documentation for framework-specific examples:

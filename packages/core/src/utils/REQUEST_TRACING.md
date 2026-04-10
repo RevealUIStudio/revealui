@@ -460,7 +460,7 @@ async function apiCall(url: string) {
 ### Next.js Middleware (CMS App)
 
 ```typescript
-// apps/cms/src/middleware.ts
+// apps/admin/src/middleware.ts
 import { createRequestContext, extractRequestId, generateRequestId } from '@revealui/core/utils/request-context'
 import { NextResponse } from 'next/server'
 

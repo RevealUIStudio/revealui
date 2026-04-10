@@ -1,6 +1,5 @@
 import type { Hono } from 'hono';
 import { mergePath } from 'hono/utils/url';
-import type { OpenAPIObject, PathItemObject } from 'openapi3-ts/oas30';
 
 import type { HonoToOpenAPIHono } from './types.js';
 
@@ -8,12 +7,16 @@ import type { HonoToOpenAPIHono } from './types.js';
  * Prepends a base path to all paths in an OpenAPI document.
  * Converts Hono `:param` syntax to OpenAPI `{param}` in the base path.
  */
-export function addBasePathToDocument(document: OpenAPIObject, basePath: string): OpenAPIObject {
-  const updatedPaths: Record<string, PathItemObject> = {};
+export function addBasePathToDocument(
+  document: Record<string, unknown>,
+  basePath: string,
+): Record<string, unknown> {
+  const paths = document.paths as Record<string, unknown>;
+  const updatedPaths: Record<string, unknown> = {};
 
-  for (const path of Object.keys(document.paths)) {
+  for (const path of Object.keys(paths)) {
     const newPath = mergePath(basePath.replaceAll(/:([^/]+)/g, '{$1}'), path);
-    updatedPaths[newPath] = document.paths[path] as PathItemObject;
+    updatedPaths[newPath] = paths[path];
   }
 
   return {

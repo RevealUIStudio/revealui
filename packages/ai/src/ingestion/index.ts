@@ -1,5 +1,5 @@
+export * from './admin-indexer.js';
 export * from './bm25.js';
-export * from './cms-indexer.js';
 export * from './file-parsers.js';
 export * from './hybrid-search.js';
 export * from './pipeline.js';

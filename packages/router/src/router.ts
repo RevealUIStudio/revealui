@@ -102,7 +102,11 @@ function pathMatch(
 }
 
 /**
- * RevealUI Router - Lightweight file-based routing with SSR support
+ * File-based router for React apps with SSR, data loaders, and middleware.
+ *
+ * Works with Vite, Hono, or any React setup. Supports named params (:id),
+ * wildcards (*path), optional segments ({/...}), nested routes with composable
+ * layouts, and a middleware chain (global + per-route).
  */
 export class Router {
   private routes: Route[] = [];

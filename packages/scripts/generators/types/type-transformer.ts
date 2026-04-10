@@ -17,7 +17,7 @@
  * ```typescript
  * import { copyFileWithTransform, validateTransformation } from './type-transformer.js'
  *
- * await copyFileWithTransform(source, dest, 'CMS types')
+ * await copyFileWithTransform(source, dest, 'admin types')
  * ```
  */
 

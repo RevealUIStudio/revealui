@@ -1,4 +1,4 @@
-import type { Category, Post } from '@revealui/core/types/cms';
+import type { Category, Post } from '@revealui/core/types/admin';
 import { logger } from '@revealui/utils/logger';
 import { CollectionArchive } from '@/lib/components/CollectionArchive/index';
 import { ErrorBoundary } from '@/lib/components/ErrorBoundary/index';

@@ -31,6 +31,33 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     }
   }
 
+  // Setup redirect: when no users exist, redirect unauthenticated requests to /setup.
+  // Uses a lightweight cookie probe — the setup page itself calls GET /api/setup to confirm.
+  // Once setup completes and a session cookie exists, this path is never taken again.
+  if (pathname === '/' || pathname === '/login' || pathname === '/admin') {
+    const session = request.cookies.get('revealui-session')?.value;
+    const setupDone = request.cookies.get('revealui-setup-done')?.value;
+    if (!(session || setupDone)) {
+      // Check the setup API to see if setup is needed (lightweight JSON call)
+      try {
+        const origin = request.nextUrl.origin;
+        const checkRes = await fetch(`${origin}/api/setup`, {
+          headers: { 'x-internal-proxy': '1' },
+        });
+        if (checkRes.ok) {
+          const data = await checkRes.json();
+          if (data.needed === true) {
+            const setupUrl = request.nextUrl.clone();
+            setupUrl.pathname = '/setup';
+            return NextResponse.redirect(setupUrl);
+          }
+        }
+      } catch {
+        // If check fails, fall through to normal auth flow
+      }
+    }
+  }
+
   // Auth gate: protect /admin routes — require session + admin role
   // The role cookie is a defense-in-depth UI hint (set at login).
   // Real enforcement is at the API level via collection access.read checks.
@@ -94,7 +121,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     const cspHeader = [
       "default-src 'self'",
       `script-src 'self'${process.env.NODE_ENV === 'development' ? " 'unsafe-inline' 'unsafe-eval'" : ''} https://js.stripe.com https://cdn.vercel-insights.com`,
-      "style-src 'self' 'unsafe-inline'",
+      `style-src 'self'${process.env.NODE_ENV === 'development' ? " 'unsafe-inline'" : ''}`,
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "connect-src 'self' https://*.supabase.co https://api.stripe.com",

@@ -1,6 +1,6 @@
 import config from '@revealui/config';
 import type { RevealCollectionConfig } from '@revealui/core';
-import type { Order } from '@revealui/core/types/cms';
+import type { Order } from '@revealui/core/types/admin';
 import { isAdmin, isAdminOrLoggedIn } from '@/lib/access';
 import { adminsOrOrderedBy } from './access/adminsOrOrderedBy';
 import { clearUserCart } from './hooks/clearUserCart';

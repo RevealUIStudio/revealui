@@ -5,7 +5,7 @@
  * The Field interface already includes hasMany, so simple checks are sufficient.
  */
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 import type { RevealUIField } from '../types/extensions.js';
 
 /**

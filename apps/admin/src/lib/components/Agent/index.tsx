@@ -49,18 +49,12 @@ interface ModelOption {
 
 const MODEL_OPTIONS: ModelOption[] = [
   { id: 'auto', label: 'Auto', provider: '', model: '' },
-  {
-    id: 'bitnet',
-    label: 'BitNet (Local)',
-    provider: 'bitnet',
-    model: 'bitnet-b1.58-2B-4T',
-  },
   { id: 'local', label: 'Ollama (Local)', provider: 'ollama', model: '' },
   {
-    id: 'llama-70b',
-    label: 'Llama 3.3 70B (Cloud)',
+    id: 'gemma-27b',
+    label: 'Gemma 4 27B (Cloud)',
     provider: 'huggingface',
-    model: 'meta-llama/Llama-3.3-70B-Instruct',
+    model: 'google/gemma-4-27b-it',
   },
 ];
 
@@ -81,10 +75,10 @@ const SUGGESTED_PROMPTS = [
   'How many media files do we have?',
 ];
 
-type AgentMode = 'cms' | 'coding';
+type AgentMode = 'admin' | 'coding';
 
 const TOOL_LABELS: Record<string, string> = {
-  // CMS tools
+  // admin tools
   find_documents: 'Searching documents',
   get_document: 'Reading document',
   create_document: 'Creating document',
@@ -486,7 +480,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
   const [pendingConfirmation, setPendingConfirmation] = useState<PendingConfirmation | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>('auto');
-  const [agentMode, setAgentMode] = useState<AgentMode>('cms');
+  const [agentMode, setAgentMode] = useState<AgentMode>('admin');
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     conversationId ?? null,
@@ -637,7 +631,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
     }
   }, [stream.isStreaming, stream.text, stream.reset, persistMessage]);
 
-  /** Send message via /api/chat (CMS tools, confirmation support) */
+  /** Send message via /api/chat (admin tools, confirmation support) */
   const sendChatMessage = useCallback(
     async (allMessages: ChatMessage[], confirmedToolCalls?: string[]) => {
       stream.reset();
@@ -797,7 +791,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
             <div className="text-center">
               <div className="mb-2 text-4xl">&#x1F916;</div>
               <h2 className="text-lg font-semibold text-zinc-700 dark:text-zinc-300">
-                CMS Assistant
+                admin Assistant
               </h2>
               <p className="mt-1 max-w-md text-sm text-zinc-500">
                 {agentMode === 'coding'
@@ -888,15 +882,15 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
           <div className="flex items-center rounded-md border border-zinc-200 dark:border-zinc-700">
             <button
               type="button"
-              onClick={() => setAgentMode('cms')}
+              onClick={() => setAgentMode('admin')}
               disabled={stream.isStreaming}
               className={`rounded-l-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                agentMode === 'cms'
+                agentMode === 'admin'
                   ? 'bg-blue-600 text-white'
                   : 'bg-zinc-50 text-zinc-500 hover:bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-700'
               }`}
             >
-              CMS
+              admin
             </button>
             <button
               type="button"

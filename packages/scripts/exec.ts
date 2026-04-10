@@ -260,7 +260,7 @@ export async function execSequence(
  * @example
  * ```typescript
  * const results = await execParallel([
- *   ['pnpm', ['--filter', 'cms', 'build']],
+ *   ['pnpm', ['--filter', 'admin', 'build']],
  *   ['pnpm', ['--filter', 'web', 'build']],
  * ])
  * ```
@@ -285,7 +285,7 @@ export async function execParallel(
  * @example
  * ```typescript
  * await runPnpmScript('build')
- * await runPnpmScript('test', { filter: 'cms' })
+ * await runPnpmScript('test', { filter: 'admin' })
  * ```
  */
 export async function runPnpmScript(

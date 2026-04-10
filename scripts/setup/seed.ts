@@ -76,17 +76,17 @@ const pages = [
           {
             size: 'full',
             richText: richTextDoc(
-              heading('Welcome to RevealUI'),
+              heading('Build Your Business, Not Your Boilerplate'),
               paragraph(
-                'RevealUI is an open-source business runtime. Users, content, products, payments, and AI — five primitives, pre-wired into one deployable stack built on React 19, Next.js 16, and TypeScript.',
+                'RevealUI is an agentic business runtime. Users, content, products, payments, and intelligence — five primitives, pre-wired into one deployable stack. Ship in days what used to take months.',
+              ),
+              heading('Why RevealUI?', 'h3'),
+              paragraph(
+                'Traditional SaaS is dying. Customers expect adaptive, intelligent products — not static dashboards with manual workflows. RevealUI gives you the runtime to build what comes next: products that learn, adapt, and act on behalf of your users.',
               ),
               heading('Get Started', 'h3'),
               paragraph(
-                'Visit the admin panel at /admin to manage your content, create pages, and configure your application.',
-              ),
-              heading('Features', 'h3'),
-              paragraph(
-                'Authentication, real-time collaboration, AI agents, rich text editing, media management, payments, and more — build your business, not your boilerplate.',
+                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. Everything works out of the box.',
               ),
             ),
           },
@@ -107,10 +107,14 @@ const pages = [
             richText: richTextDoc(
               heading('About RevealUI'),
               paragraph(
-                'RevealUI is an agentic business runtime that ships with users, content, products, payments, and AI out of the box. Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4.',
+                'RevealUI is an agentic business runtime for the post-SaaS era. Instead of bolting together auth, payments, CMS, and AI from different vendors, RevealUI ships them as one coherent stack — pre-wired, tested, and ready to deploy.',
               ),
               paragraph(
-                'Designed for TypeScript-first agencies, SaaS builders, and enterprise teams who want to ship faster without sacrificing quality.',
+                'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Designed for product teams who ship fast and founders who build alone.',
+              ),
+              heading('Open Source + Pro', 'h3'),
+              paragraph(
+                'The core runtime is MIT-licensed. AI agents and harnesses are Fair Source (FSL-1.1-MIT) — free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
               ),
             ),
           },
@@ -130,14 +134,18 @@ const pages = [
             size: 'full',
             richText: richTextDoc(
               heading('Getting Started'),
-              paragraph('Follow these steps to set up your RevealUI project.'),
-              heading('1. Install Dependencies', 'h3'),
-              paragraph('Run pnpm install to install all workspace dependencies.'),
-              heading('2. Start Development', 'h3'),
-              paragraph('Run pnpm dev to start all development servers.'),
-              heading('3. Create Content', 'h3'),
+              paragraph('Three commands from zero to running application.'),
+              heading('1. Scaffold', 'h3'),
               paragraph(
-                'Visit /admin to access the CMS admin panel. From there you can create pages, manage media, and configure your application.',
+                'Run npx create-revealui my-app to create a new project with everything pre-configured.',
+              ),
+              heading('2. Start', 'h3'),
+              paragraph(
+                'Run pnpm dev to start the admin dashboard, API, and frontend in parallel.',
+              ),
+              heading('3. Build', 'h3'),
+              paragraph(
+                'Visit /admin to create pages, manage content, configure products and pricing. Your first customer can sign up immediately.',
               ),
             ),
           },
@@ -150,78 +158,78 @@ const pages = [
 const sampleContent = {
   contents: [
     {
-      name: 'Getting Started',
+      name: 'The Post-SaaS Playbook',
       description:
-        'Welcome to RevealUI — an open-source business runtime. Users, content, products, payments, and AI are pre-wired so you can focus on building your business. Explore the admin panel to manage content and configure your application.',
+        'Everyone says SaaS is dead. They are half right. Static dashboards and manual workflows are dead. What replaces them are adaptive runtimes — products that ship with intelligence built in, not bolted on. RevealUI is the runtime for that transition.',
     },
     {
-      name: 'About RevealUI',
+      name: 'Five Primitives, One Stack',
       description:
-        'RevealUI is an agentic business runtime — users, content, products, payments, and AI in one deployable stack. Built with React 19, Next.js 16, TypeScript, and Tailwind CSS v4, featuring authentication, media management, and real-time collaboration.',
+        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them into a single deployable stack — authenticated, tested, and production-ready from day one.',
     },
   ],
   cards: [
     {
-      name: 'Documentation',
-      label: 'Learn More',
-      cta: 'View Docs',
-      href: '/docs',
+      name: 'Quick Start',
+      label: 'Get Running',
+      cta: 'npx create-revealui',
+      href: '/getting-started',
       loading: 'eager' as const,
     },
     {
-      name: 'Components',
-      label: 'UI Library',
-      cta: 'Browse Components',
-      href: '/components',
+      name: 'Documentation',
+      label: 'Learn More',
+      cta: 'Read the Docs',
+      href: '/docs',
       loading: 'lazy' as const,
     },
     {
-      name: 'Examples',
-      label: 'Code Samples',
-      cta: 'View Examples',
-      href: '/examples',
+      name: 'Pro Tier',
+      label: 'AI Agents',
+      cta: 'Explore Pro',
+      href: '/docs/pro',
       loading: 'lazy' as const,
     },
   ],
   heros: [
     {
       href: 'https://revealui.com',
-      altText: 'RevealUI hero image',
+      altText: 'RevealUI — agentic business runtime',
       video: 'https://revealui.com',
     },
   ],
   events: [
     {
-      title: 'GETTING STARTED',
-      name: 'Quick Start Guide',
+      title: 'LAUNCH',
+      name: 'RevealUI is Open Source',
       description:
-        'Learn how to set up RevealUI, configure your collections, and start building your application. Follow our step-by-step guide to get up and running in minutes.',
-      alt: 'RevealUI getting started guide',
+        'The core runtime is MIT-licensed and available on npm. 23 packages, 13,700+ tests, zero avoidable type errors. Run npx create-revealui to start building.',
+      alt: 'RevealUI open source launch',
     },
     {
-      title: 'FEATURES',
-      name: 'Runtime Features',
+      title: 'VISION',
+      name: 'The Agentic Business Runtime',
       description:
-        'Discover all the powerful features RevealUI has to offer: five built-in primitives (users, content, products, payments, AI), React 19 Server Components, TypeScript support, authentication, media management, and more.',
-      alt: 'RevealUI runtime features',
+        'SaaS taught us subscription pricing. The next era teaches us adaptive intelligence. RevealUI ships with AI agents that learn from your data, automate your workflows, and act on behalf of your users — all running on open-source models.',
+      alt: 'RevealUI agentic vision',
     },
   ],
   banners: [
     {
-      heading: 'Welcome to RevealUI!',
-      subheading: 'Build Your Business',
+      heading: 'Build Your Business, Not Your Boilerplate',
+      subheading: 'Agentic Business Runtime',
       description:
-        'Build your business, not your boilerplate. RevealUI gives you users, content, products, payments, and AI — five primitives, one runtime.',
+        'Users, content, products, payments, and intelligence — five primitives, one runtime. Ship in days what used to take months. The post-SaaS era starts here.',
       cta: 'Get Started',
-      highlight: 'Agentic Business Runtime',
+      highlight: 'Open Source',
       punctuation: '.',
-      alt: 'RevealUI banner image',
-      link: { href: '/docs', text: 'Read Documentation' },
+      alt: 'RevealUI banner',
+      link: { href: '/getting-started', text: 'Start Building' },
       stats: [
-        { label: 'React 19', value: 'Latest' },
-        { label: 'Next.js', value: '16' },
-        { label: 'TypeScript', value: '5.9' },
-        { label: 'Packages', value: '50+' },
+        { label: 'Packages', value: '23' },
+        { label: 'Tests', value: '13,700+' },
+        { label: 'License', value: 'MIT' },
+        { label: 'AI Agents', value: 'Pro' },
       ],
     },
   ],

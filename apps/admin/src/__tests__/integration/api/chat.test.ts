@@ -1,6 +1,6 @@
 /**
  * Chat API Integration Tests
- * Tests the conversational AI interface for CMS management
+ * Tests the conversational AI interface for admin management
  */
 
 import type { NextRequest } from 'next/server';
@@ -78,8 +78,8 @@ vi.mock('@revealui/ai/memory/vector', () => ({
   })),
 }));
 
-vi.mock('@revealui/ai/tools/cms', () => ({
-  createCMSTools: vi.fn().mockReturnValue([
+vi.mock('@revealui/ai/tools/admin', () => ({
+  createAdminTools: vi.fn().mockReturnValue([
     { name: 'list_collections', description: 'List collections', execute: vi.fn() },
     { name: 'find_documents', description: 'Find documents', execute: vi.fn() },
   ]),
@@ -201,7 +201,7 @@ describe('Chat API', () => {
       expect(typeof data.error).toBe('string');
     });
 
-    it('should initialize CMS tools', async () => {
+    it('should initialize admin tools', async () => {
       const { createLLMClientFromEnv } = await import('@revealui/ai/llm/server');
       const mockChat = vi.fn().mockResolvedValue({
         content: 'Tools are ready!',

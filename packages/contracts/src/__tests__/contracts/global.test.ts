@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { isGlobalConfig, parseGlobal, validateGlobal } from '../../cms/global.js';
+import { isGlobalConfig, parseGlobal, validateGlobal } from '../../admin/global.js';
 import { MockSettingsGlobal } from '../mocks/revealui.js';
 
 describe('Global Contract', () => {

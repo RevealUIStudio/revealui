@@ -1,4 +1,4 @@
-import type { Page as PageType } from '@revealui/core/types/cms';
+import type { Page as PageType } from '@revealui/core/types/admin';
 import { logger } from '@revealui/utils/logger';
 import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
@@ -9,7 +9,7 @@ import { RenderHero } from '@/lib/heros/RenderHero';
 import { generateMeta } from '@/lib/utilities/generateMeta';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
 
-// Force dynamic rendering to prevent build-time RevealUI CMS initialization
+// Force dynamic rendering to prevent build-time RevealUI admin initialization
 export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
 

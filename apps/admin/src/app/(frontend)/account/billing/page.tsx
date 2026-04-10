@@ -40,7 +40,7 @@ export default function BillingPage() {
     <Suspense
       fallback={
         <div className="flex min-h-[60vh] items-center justify-center">
-          <p className="text-zinc-500">Loading...</p>
+          <p className="text-zinc-600">Loading...</p>
         </div>
       }
     >
@@ -246,7 +246,7 @@ function BillingContent() {
   if (sessionLoading || isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-zinc-500">Loading...</p>
+        <p className="text-zinc-600">Loading...</p>
       </div>
     );
   }
@@ -404,14 +404,14 @@ function BillingContent() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-500">Plan</span>
+            <span className="text-sm text-zinc-600">Plan</span>
             <span className={`rounded-full px-3 py-1 text-sm font-medium ${TIER_COLORS[tier]}`}>
               {TIER_LABELS[tier]}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-500">Status</span>
+            <span className="text-sm text-zinc-600">Status</span>
             <span
               className={`text-sm font-medium capitalize ${
                 subscription?.status === 'active' || subscription?.status === 'trialing'
@@ -433,7 +433,7 @@ function BillingContent() {
 
           {subscription?.expiresAt && (
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-500">Expires</span>
+              <span className="text-sm text-zinc-600">Expires</span>
               <span className="text-sm">
                 {new Date(subscription.expiresAt).toLocaleDateString()}
               </span>
@@ -443,7 +443,7 @@ function BillingContent() {
           <div className="border-t pt-4 dark:border-zinc-800">
             {tier === 'free' && (
               <div className="space-y-3">
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-zinc-600">
                   Upgrade to Pro for AI agents, advanced sync, built-in payments, and more.
                 </p>
                 <Button onClick={handleCheckout} disabled={actionLoading} className="w-full">
@@ -457,7 +457,7 @@ function BillingContent() {
 
             {tier === 'pro' && (
               <div className="space-y-3">
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-zinc-600">
                   Upgrade to Max for AI memory, advanced inference, audit logging, and higher limits
                   (15 projects, 100 users).
                 </p>
@@ -494,7 +494,7 @@ function BillingContent() {
 
             {tier === 'max' && (
               <div className="space-y-3">
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-zinc-600">
                   Upgrade to Forge for unlimited projects and users, SSO, white-label branding,
                   multi-tenant isolation, and self-hosted deployment.
                 </p>
@@ -567,7 +567,7 @@ function BillingContent() {
           <CardContent className="space-y-3">
             <div className="flex items-end justify-between text-sm">
               <span className="font-medium">{usage.used.toLocaleString()} used</span>
-              <span className="text-zinc-500">
+              <span className="text-zinc-600">
                 {usage.quota === -1 ? 'Unlimited' : `of ${usage.quota.toLocaleString()}`}
               </span>
             </div>

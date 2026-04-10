@@ -33,7 +33,7 @@ audience: developer
 
 ### Stable — Production-ready
 
-These exports are the load-bearing core of RevealUI. They are covered by unit and integration tests, have been deployed and verified in production (cms.revealui.com, revealui-api.vercel.app), and will not break without a major version bump.
+These exports are the load-bearing core of RevealUI. They are covered by unit and integration tests, have been deployed and verified in production (admin.revealui.com, revealui-api.vercel.app), and will not break without a major version bump.
 
 #### Setup & Instance
 
@@ -204,7 +204,7 @@ import { metrics } from '@revealui/core/observability/logger'
 
 #### Build Optimization
 
-The `@revealui/core` package includes internal optimization utilities (`bundle-analyzer`, `build-optimizer`, `asset-optimizer`) used by the CMS build pipeline. These are **not public API** and may be moved to `@revealui/dev` before 1.0. Do not import from subpaths not listed in the package's `exports` map.
+The `@revealui/core` package includes internal optimization utilities (`bundle-analyzer`, `build-optimizer`, `asset-optimizer`) used by the admin build pipeline. These are **not public API** and may be moved to `@revealui/dev` before 1.0. Do not import from subpaths not listed in the package's `exports` map.
 
 #### Error Reporting
 
@@ -226,14 +226,14 @@ import { ... } from '@revealui/core/security'
 
 ## Production Verification Status
 
-This table reflects what has been exercised against production infrastructure (cms.revealui.com, revealui-api.vercel.app, NeonDB production, Electric on Railway).
+This table reflects what has been exercised against production infrastructure (admin.revealui.com, revealui-api.vercel.app, NeonDB production, Electric on Railway).
 
 | Feature | Verified in Production | Notes |
 |---------|----------------------|-------|
-| Config validation (`buildConfig`) | ✅ Yes | CMS startup on every Vercel deploy |
-| Collection CRUD operations | ✅ Yes | CMS admin dashboard operations |
+| Config validation (`buildConfig`) | ✅ Yes | admin startup on every Vercel deploy |
+| Collection CRUD operations | ✅ Yes | admin admin dashboard operations |
 | Session auth (login, logout, session) | ✅ Yes | Full flow verified manually + E2E |
-| Password reset (email via Resend) | ✅ Yes | Real email delivery verified |
+| Password reset (email via Gmail) | ✅ Yes | Real email delivery verified |
 | Rate limiting (IP + brute force) | ✅ Yes | Confirmed: 5 attempts → 429, brute force lockout |
 | License validation | ✅ Yes | Stripe checkout → license key → tier resolution |
 | ElectricSQL real-time sync | ✅ Yes | All 3 shape endpoints + row-level auth |

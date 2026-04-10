@@ -101,7 +101,7 @@ export default function LicensePage() {
   if (sessionLoading || isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-zinc-500">Loading...</p>
+        <p className="text-zinc-600">Loading...</p>
       </div>
     );
   }
@@ -180,20 +180,20 @@ export default function LicensePage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-500">Plan</span>
+            <span className="text-sm text-zinc-600">Plan</span>
             <span className={`rounded-full px-3 py-1 text-sm font-medium ${TIER_COLORS[tier]}`}>
               {TIER_LABELS[tier]}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-500">Status</span>
+            <span className="text-sm text-zinc-600">Status</span>
             <span className="text-sm font-medium capitalize">
               {subscription?.status ?? 'active'}
             </span>
           </div>
           {subscription?.expiresAt && (
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-500">Expires</span>
+              <span className="text-sm text-zinc-600">Expires</span>
               <span className="text-sm">
                 {new Date(subscription.expiresAt).toLocaleDateString()}
               </span>
@@ -201,7 +201,7 @@ export default function LicensePage() {
           )}
           {subscription?.perpetual && (
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-500">License Type</span>
+              <span className="text-sm text-zinc-600">License Type</span>
               <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
                 Perpetual
               </span>
@@ -209,7 +209,7 @@ export default function LicensePage() {
           )}
           {subscription?.perpetual && subscription.supportExpiresAt && (
             <div className="flex items-center justify-between">
-              <span className="text-sm text-zinc-500">Support Expires</span>
+              <span className="text-sm text-zinc-600">Support Expires</span>
               <span
                 className={`text-sm font-medium ${
                   new Date(subscription.supportExpiresAt) < new Date()
@@ -262,7 +262,7 @@ export default function LicensePage() {
               </button>
             </div>
             <div className="rounded-lg border p-3 dark:border-zinc-800">
-              <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide mb-2">
+              <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide mb-2">
                 Activation
               </p>
               <div className="space-y-1.5 text-sm text-zinc-600 dark:text-zinc-400">
@@ -297,13 +297,13 @@ export default function LicensePage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-500">Sites</span>
+            <span className="text-sm text-zinc-600">Sites</span>
             <span className="text-sm font-medium">
               {limits.sites === null ? 'Unlimited' : limits.sites}
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-zinc-500">Users per site</span>
+            <span className="text-sm text-zinc-600">Users per site</span>
             <span className="text-sm font-medium">
               {limits.users === null ? 'Unlimited' : limits.users}
             </span>
@@ -323,7 +323,7 @@ export default function LicensePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3 rounded-lg border p-3 dark:border-zinc-800">
-              <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+              <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide">
                 Optional — for package access
               </p>
               <div className="space-y-2">
@@ -336,7 +336,7 @@ export default function LicensePage() {
                     onChange={(e) => setGithubUsername(e.target.value)}
                     className="rounded-md border px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                   />
-                  <span className="text-xs text-zinc-500">
+                  <span className="text-xs text-zinc-600">
                     Added to the revealui-pro GitHub team for private package access.
                   </span>
                 </label>
@@ -349,7 +349,7 @@ export default function LicensePage() {
               >
                 <div>
                   <p className="text-sm font-medium">{plan.label}</p>
-                  <p className="text-xs text-zinc-500">{plan.description}</p>
+                  <p className="text-xs text-zinc-600">{plan.description}</p>
                 </div>
                 <button
                   type="button"
@@ -380,7 +380,7 @@ export default function LicensePage() {
           <CardContent className="space-y-3">
             {subscription.supportExpiresAt && (
               <div className="flex items-center justify-between">
-                <span className="text-sm text-zinc-500">Support status</span>
+                <span className="text-sm text-zinc-600">Support status</span>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-medium ${
                     new Date(subscription.supportExpiresAt) < new Date()

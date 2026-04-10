@@ -4,7 +4,7 @@
  * Tests for the checkDependencies utility function that validates field dependencies
  */
 
-import type { Field } from '@revealui/contracts/cms';
+import type { Field } from '@revealui/contracts/admin';
 import { describe, expect, it } from 'vitest';
 import { checkDependencies } from '../revealui.js';
 

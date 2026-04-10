@@ -23,7 +23,7 @@ export interface OllamaProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> 
   apiKey?: string;
   /** Defaults to http://localhost:11434/v1 */
   baseURL?: string;
-  /** Chat model. Defaults to llama3.2:3b — run `ollama pull llama3.2:3b` first */
+  /** Chat model. Defaults to gemma4:e2b — run `ollama pull gemma4:e2b` first */
   model?: string;
   /** Embedding model. Defaults to nomic-embed-text — run `ollama pull nomic-embed-text` first */
   embedModel?: string;
@@ -43,7 +43,7 @@ export class OllamaProvider implements LLMProvider {
       // Ollama ignores the API key but the OpenAI client requires a non-empty value
       apiKey: config.apiKey ?? 'ollama',
       baseURL,
-      model: config.model ?? 'llama3.2:3b',
+      model: config.model ?? 'gemma4:e2b',
     });
   }
 

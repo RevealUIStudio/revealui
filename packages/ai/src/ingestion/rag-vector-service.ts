@@ -14,7 +14,7 @@ export interface RagSearchOptions {
   workspaceId: string;
   limit?: number; // default 5
   threshold?: number; // minimum similarity 0–1 (default 0.6)
-  sourceCollection?: string; // filter by CMS collection
+  sourceCollection?: string; // filter by admin collection
 }
 
 export interface RagSearchResult {

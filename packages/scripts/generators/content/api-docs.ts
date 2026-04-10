@@ -81,7 +81,7 @@ export async function generateAPIDocs(
   logger.header('Generating API Documentation');
 
   const projectRoot = options.projectRoot || (await getProjectRoot(import.meta.url));
-  const apiDir = options.apiDir || join(projectRoot, 'apps', 'cms', 'src', 'app', 'api');
+  const apiDir = options.apiDir || join(projectRoot, 'apps', 'admin', 'src', 'app', 'api');
   const outputPath =
     options.outputPath || join(projectRoot, 'docs', 'api', 'generated-openapi.json');
 
@@ -199,7 +199,7 @@ export function generateOpenAPISpec(endpoints: APIEndpoint[]): OpenApiSpec {
     info: {
       title: 'RevealUI API',
       version: '1.0.0',
-      description: 'Generated API documentation for RevealUI CMS',
+      description: 'Generated API documentation for RevealUI admin',
     },
     paths,
   };
