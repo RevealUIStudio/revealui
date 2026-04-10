@@ -14,6 +14,7 @@ import { LWWRegister, type LWWRegisterData } from '../crdt/lww-register.js';
 import { ORSet, type ORSetData } from '../crdt/or-set.js';
 import type { PNCounterData } from '../crdt/pn-counter.js';
 import type { CRDTPersistence } from '../persistence/crdt-persistence.js';
+import type { SyncManager } from '../sync/sync-manager.js';
 import { deepClone } from '../utils/deep-clone.js';
 
 // =============================================================================
@@ -70,6 +71,7 @@ export class WorkingMemory {
   private sessionId: string;
   private nodeId: string;
   private persistence?: CRDTPersistence;
+  private syncManager?: SyncManager;
 
   /**
    * Creates a new WorkingMemory instance.
@@ -77,11 +79,18 @@ export class WorkingMemory {
    * @param sessionId - Unique session identifier
    * @param nodeId - Unique node identifier (for CRDT operations)
    * @param persistence - Optional persistence adapter
+   * @param syncManager - Optional sync manager for operation logging
    */
-  constructor(sessionId: string, nodeId: string, persistence?: CRDTPersistence) {
+  constructor(
+    sessionId: string,
+    nodeId: string,
+    persistence?: CRDTPersistence,
+    syncManager?: SyncManager,
+  ) {
     this.sessionId = sessionId;
     this.nodeId = nodeId;
     this.persistence = persistence;
+    this.syncManager = syncManager;
 
     // Initialize CRDTs
     this.context = new LWWRegister<Record<string, unknown>>(nodeId, {});
@@ -96,6 +105,17 @@ export class WorkingMemory {
    *
    * @param context - Context data to set
    */
+  /** Logs a CRDT operation to the sync manager (fire-and-forget). */
+  private logOp(
+    crdtType: 'lww_register' | 'or_set' | 'pn_counter',
+    operationType: 'set' | 'add' | 'remove',
+    payload: Record<string, unknown>,
+  ): void {
+    if (!this.syncManager) return;
+    const crdtId = `working-memory:${this.sessionId}`;
+    void this.syncManager.logOperation(crdtId, crdtType, operationType, payload);
+  }
+
   /**
    * Sets the entire context object.
    *
@@ -109,6 +129,7 @@ export class WorkingMemory {
    */
   setContext(context: Record<string, unknown>): void {
     this.context.set(context);
+    this.logOp('lww_register', 'set', { value: context, key: 'context' });
   }
 
   /**
@@ -128,10 +149,9 @@ export class WorkingMemory {
    */
   updateContext(updates: Partial<Record<string, unknown>>): void {
     const current = this.context.get();
-    this.context.set({
-      ...current,
-      ...updates,
-    });
+    const merged = { ...current, ...updates };
+    this.context.set(merged);
+    this.logOp('lww_register', 'set', { value: merged, key: 'context' });
   }
 
   /**
@@ -172,10 +192,9 @@ export class WorkingMemory {
    */
   setContextValue(key: string, value: unknown): void {
     const current = this.context.get();
-    this.context.set({
-      ...current,
-      [key]: value,
-    });
+    const updated = { ...current, [key]: value };
+    this.context.set(updated);
+    this.logOp('lww_register', 'set', { value: updated, key: 'context' });
   }
 
   /**
@@ -185,7 +204,9 @@ export class WorkingMemory {
    * @returns Unique tag for this agent addition
    */
   addAgent(agent: AgentDefinition): string {
-    return this.activeAgents.add(agent);
+    const tag = this.activeAgents.add(agent);
+    this.logOp('or_set', 'add', { value: agent, tag });
+    return tag;
   }
 
   /**
@@ -195,7 +216,11 @@ export class WorkingMemory {
    * @returns true if agent was removed
    */
   removeAgent(tag: string): boolean {
-    return this.activeAgents.remove(tag);
+    const removed = this.activeAgents.remove(tag);
+    if (removed) {
+      this.logOp('or_set', 'remove', { tag });
+    }
+    return removed;
   }
 
   /**
@@ -250,10 +275,9 @@ export class WorkingMemory {
    */
   updateSessionState(state: Partial<SessionState>): void {
     const current = this.sessionState.get();
-    this.sessionState.set({
-      ...current,
-      ...state,
-    });
+    const merged = { ...current, ...state };
+    this.sessionState.set(merged);
+    this.logOp('lww_register', 'set', { value: merged, key: 'sessionState' });
   }
 
   /**
@@ -365,8 +389,12 @@ export class WorkingMemory {
    * @param persistence - Optional persistence adapter
    * @returns New WorkingMemory instance
    */
-  static fromData(data: WorkingMemoryData, persistence?: CRDTPersistence): WorkingMemory {
-    const memory = new WorkingMemory(data.sessionId, data.nodeId, persistence);
+  static fromData(
+    data: WorkingMemoryData,
+    persistence?: CRDTPersistence,
+    syncManager?: SyncManager,
+  ): WorkingMemory {
+    const memory = new WorkingMemory(data.sessionId, data.nodeId, persistence, syncManager);
     memory.context = LWWRegister.fromData(data.context);
     memory.sessionState = LWWRegister.fromData(data.sessionState);
     memory.activeAgents = ORSet.fromData<AgentDefinition>(data.activeAgents);
