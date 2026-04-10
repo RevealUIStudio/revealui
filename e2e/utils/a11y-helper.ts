@@ -159,7 +159,7 @@ export async function checkAccessibilityCritical(
   options: A11yCheckOptions = {},
 ): Promise<FormattedViolation[]> {
   const all = await getAccessibilityViolations(page, options);
-  const critical = all.filter((v) => v.impact === 'critical');
+  const critical = all.filter((v) => v.impact === 'critical' || v.impact === 'serious');
 
   expect(critical, buildViolationReport(critical)).toHaveLength(0);
 

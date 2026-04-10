@@ -71,7 +71,7 @@ export default defineConfig({
   webServer: process.env.CI
     ? undefined
     : {
-        command: 'pnpm dev:cms',
+        command: 'pnpm dev:admin',
         url: 'http://localhost:4000',
         reuseExistingServer: !process.env.CI,
         timeout: 300000, // 5 minutes for initial build

@@ -104,7 +104,7 @@ function RequestResetForm() {
               {isLoading ? 'Sending...' : 'Send Reset Link'}
             </Button>
 
-            <p className="text-center text-sm text-zinc-500">
+            <p className="text-center text-sm text-zinc-600">
               <Link href="/login" className="text-blue-600 hover:underline dark:text-blue-400">
                 Back to Sign In
               </Link>
@@ -200,7 +200,7 @@ function ResetWithTokenForm({ tokenId, token }: { tokenId: string; token: string
                   required
                 />
               </PasswordInput>
-              <p className="text-xs text-zinc-500">Minimum 8 characters</p>
+              <p className="text-xs text-zinc-600">Minimum 8 characters</p>
             </div>
 
             <Button type="submit" disabled={isLoading} className="w-full">

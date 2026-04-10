@@ -154,7 +154,7 @@ function SignupContent() {
                 ))}
               </div>
 
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-zinc-600">
                 Each code can only be used once. Keep them somewhere safe.
               </p>
 
@@ -247,7 +247,7 @@ function SignupContent() {
                   required
                 />
               </PasswordInput>
-              <p className="text-xs text-zinc-500">
+              <p className="text-xs text-zinc-600">
                 Min 8 characters, uppercase, lowercase, and a number
               </p>
             </div>
