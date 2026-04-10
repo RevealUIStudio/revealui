@@ -69,6 +69,7 @@ import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
 import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
+import { createTerminalRoute } from './routes/terminal-ws.js';
 import ticketsRoute from './routes/tickets/index.js';
 import webhooksRoute from './routes/webhooks.js';
 
@@ -815,6 +816,11 @@ app.route('/api/studio-auth', studioAuthRoute);
 app.use('/api/terminal-auth/*', routeLimit('terminal-auth'));
 app.use('/api/v1/terminal-auth/*', routeLimit('terminal-auth'));
 app.route('/api/terminal-auth', terminalAuthRoute);
+
+// Terminal WebSocket bridge — daemon PTY sessions for remote access
+const terminalWs = createTerminalRoute();
+app.route('/api/terminal', terminalWs.app);
+
 app.route('', createCollabRoute());
 app.route('', createAgentCollabRoute());
 
@@ -954,7 +960,8 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   initPriceOracle();
   initAlerting();
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
-  serve({ fetch: app.fetch, port });
+  const server = serve({ fetch: app.fetch, port });
+  terminalWs.injectWebSocket(server);
   logger.info(`🚀 API server running on http://localhost:${port}`);
   logger.info(`📚 API documentation available at http://localhost:${port}/docs`);
   logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`);
