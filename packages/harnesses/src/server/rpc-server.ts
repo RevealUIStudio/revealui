@@ -66,6 +66,8 @@ const ERR_INTERNAL = -32603;
  *   agent.stop                → { ok: true }
  *   agent.list                → AgentSessionInfo[]
  *   agent.remove              → { ok: true }
+ *   agent.input               → { ok: true }
+ *   agent.resize              → { ok: true }
  *   inference.ollama.status   → OllamaStatus
  *   inference.ollama.models   → OllamaModel[]
  *   inference.ollama.pull     → ModelPullResult
@@ -564,7 +566,17 @@ export class RpcServer {
         if (!(name && backend && model && prompt)) {
           return this.missingParam(id, 'name, backend, model, prompt');
         }
-        const sessionId = this.spawner.spawn(name, backend as 'Snap' | 'Ollama', model, prompt);
+        const sessionId = this.spawner.spawn(
+          name,
+          backend as 'Snap' | 'Ollama' | 'ClaudeCode',
+          model,
+          prompt,
+          {
+            cwd: p.cwd as string | undefined,
+            cols: p.cols as number | undefined,
+            rows: p.rows as number | undefined,
+          },
+        );
         return { jsonrpc: '2.0', id, result: { sessionId } };
       }
 
@@ -586,6 +598,25 @@ export class RpcServer {
         const sessionId = p.sessionId as string | undefined;
         if (!sessionId) return this.missingParam(id, 'sessionId');
         this.spawner.remove(sessionId);
+        return { jsonrpc: '2.0', id, result: { ok: true } };
+      }
+
+      case 'agent.input': {
+        if (!this.spawner) return this.noService(id, 'spawner');
+        const sessionId = p.sessionId as string | undefined;
+        const data = p.data as string | undefined;
+        if (!(sessionId && data !== undefined)) return this.missingParam(id, 'sessionId, data');
+        this.spawner.write(sessionId, data);
+        return { jsonrpc: '2.0', id, result: { ok: true } };
+      }
+
+      case 'agent.resize': {
+        if (!this.spawner) return this.noService(id, 'spawner');
+        const sessionId = p.sessionId as string | undefined;
+        const cols = p.cols as number | undefined;
+        const rows = p.rows as number | undefined;
+        if (!(sessionId && cols && rows)) return this.missingParam(id, 'sessionId, cols, rows');
+        this.spawner.resize(sessionId, cols, rows);
         return { jsonrpc: '2.0', id, result: { ok: true } };
       }
 
