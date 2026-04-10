@@ -517,3 +517,53 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # CI Feedback — notify harness daemon of CI results
+  # ---------------------------------------------------------------------------
+  ci-feedback:
+    name: CI Feedback
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    needs: [quality, typecheck, test-unit, build]
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Determine CI result
+        id: result
+        run: |
+          if [[ "${{ needs.quality.result }}" == "failure" ]]; then
+            echo "success=false" >> "$GITHUB_OUTPUT"
+            echo "failed_job=quality" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ needs.typecheck.result }}" == "failure" ]]; then
+            echo "success=false" >> "$GITHUB_OUTPUT"
+            echo "failed_job=typecheck" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ needs.test-unit.result }}" == "failure" ]]; then
+            echo "success=false" >> "$GITHUB_OUTPUT"
+            echo "failed_job=test-unit" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ needs.build.result }}" == "failure" ]]; then
+            echo "success=false" >> "$GITHUB_OUTPUT"
+            echo "failed_job=build" >> "$GITHUB_OUTPUT"
+          else
+            echo "success=true" >> "$GITHUB_OUTPUT"
+            echo "failed_job=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Post to harness daemon
+        if: vars.HARNESS_GATEWAY_URL != ''
+        continue-on-error: true
+        run: |
+          curl -sf -X POST "${{ vars.HARNESS_GATEWAY_URL }}/rpc" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "jsonrpc": "2.0",
+              "id": 1,
+              "method": "ci.report",
+              "params": {
+                "prNumber": ${{ github.event.pull_request.number }},
+                "branch": "${{ github.head_ref }}",
+                "success": ${{ steps.result.outputs.success }},
+                "failedJob": "${{ steps.result.outputs.failed_job }}",
+                "runUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              }
+            }'

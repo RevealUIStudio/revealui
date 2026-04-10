@@ -76,6 +76,52 @@ export const SCHEMA_SQL = `
 
   CREATE INDEX IF NOT EXISTS idx_events_agent
     ON events (agent_id, created_at DESC);
+
+  CREATE TABLE IF NOT EXISTS worktrees (
+    agent_id      TEXT PRIMARY KEY,
+    branch        TEXT NOT NULL,
+    worktree_path TEXT NOT NULL,
+    base_branch   TEXT NOT NULL DEFAULT 'test',
+    status        TEXT NOT NULL DEFAULT 'active',
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW()
+  );
+
+  CREATE TABLE IF NOT EXISTS agent_memory (
+    id            SERIAL PRIMARY KEY,
+    agent_id      TEXT NOT NULL,
+    memory_type   TEXT NOT NULL,
+    content       TEXT NOT NULL,
+    metadata      JSONB NOT NULL DEFAULT '{}',
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW()
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_memory_agent_type
+    ON agent_memory (agent_id, memory_type, created_at DESC);
+
+  CREATE TABLE IF NOT EXISTS merge_requests (
+    id            TEXT PRIMARY KEY,
+    agent_id      TEXT NOT NULL,
+    task_id       TEXT,
+    source_branch TEXT NOT NULL,
+    base_branch   TEXT NOT NULL DEFAULT 'test',
+    status        TEXT NOT NULL DEFAULT 'pending',
+    pr_number     INTEGER,
+    pr_url        TEXT,
+    retry_count   INTEGER NOT NULL DEFAULT 0,
+    error_message TEXT,
+    ci_output     TEXT,
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMP NOT NULL DEFAULT NOW()
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_merge_requests_agent
+    ON merge_requests (agent_id, status);
+
+  CREATE INDEX IF NOT EXISTS idx_merge_requests_branch
+    ON merge_requests (source_branch);
+
+  CREATE INDEX IF NOT EXISTS idx_merge_requests_pr
+    ON merge_requests (pr_number) WHERE pr_number IS NOT NULL;
 `;
 
 /** Session row shape. */
@@ -128,5 +174,50 @@ export interface DaemonEvent {
   agent_id: string;
   event_type: string;
   payload: Record<string, unknown>;
+  created_at: string;
+}
+
+/** Worktree row shape. */
+export interface AgentWorktree {
+  agent_id: string;
+  branch: string;
+  worktree_path: string;
+  base_branch: string;
+  status: 'active' | 'merged' | 'abandoned';
+  created_at: string;
+}
+
+/** Merge request row shape. */
+export interface MergeRequest {
+  id: string;
+  agent_id: string;
+  task_id: string | null;
+  source_branch: string;
+  base_branch: string;
+  status:
+    | 'pending'
+    | 'merging'
+    | 'pr_created'
+    | 'ci_running'
+    | 'merged'
+    | 'ci_failed'
+    | 'conflict'
+    | 'escalated';
+  pr_number: number | null;
+  pr_url: string | null;
+  retry_count: number;
+  error_message: string | null;
+  ci_output: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Memory row shape. */
+export interface AgentMemoryEntry {
+  id: number;
+  agent_id: string;
+  memory_type: 'thought' | 'action' | 'result' | 'decision' | 'disagreement';
+  content: string;
+  metadata: Record<string, unknown>;
   created_at: string;
 }

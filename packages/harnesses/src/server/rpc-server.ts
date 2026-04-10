@@ -1,6 +1,8 @@
 import { existsSync, unlinkSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { diffConfig, syncConfig } from '../config/config-sync.js';
+import type { CIFeedback } from '../coordination/ci-feedback.js';
+import type { MergePipeline } from '../coordination/merge-pipeline.js';
 import { findHarnessProcesses } from '../detection/process-detector.js';
 import type { HarnessRegistry } from '../registry/harness-registry.js';
 import type { DaemonStore } from '../storage/daemon-store.js';
@@ -74,12 +76,19 @@ const ERR_INTERNAL = -32603;
  *   inference.snap.status     → SnapStatus
  *   inference.snap.install    → ModelPullResult
  *   inference.snap.remove     → { ok: true }
+ *   merge.request             → MergeResult
+ *   merge.status              → MergeResult
+ *   merge.resolve             → MergeResult
+ *   merge.list                → MergeRequest[]
+ *   ci.report                 → CIFeedbackResult
  */
 export class RpcServer {
   private server = createServer();
   private healthCheckFn: (() => Promise<unknown>) | null = null;
   private spawner: SpawnerService | null = null;
   private inference: InferenceService | null = null;
+  private mergePipeline: MergePipeline | null = null;
+  private ciFeedback: CIFeedback | null = null;
 
   constructor(
     private readonly registry: HarnessRegistry,
@@ -449,6 +458,101 @@ export class RpcServer {
       }
 
       // -----------------------------------------------------------------------
+      // Worktrees (PGlite-backed)
+      // -----------------------------------------------------------------------
+      case 'worktree.create': {
+        if (!this.store) return this.noStore(id);
+        const agentId = p.agentId as string | undefined;
+        const branch = p.branch as string | undefined;
+        const worktreePath = p.worktreePath as string | undefined;
+        if (!(agentId && branch && worktreePath))
+          return this.missingParam(id, 'agentId, branch, worktreePath');
+        const wt = await this.store.registerWorktree({
+          agentId,
+          branch,
+          worktreePath,
+          baseBranch: p.baseBranch as string | undefined,
+        });
+        return { jsonrpc: '2.0', id, result: wt };
+      }
+
+      case 'worktree.get': {
+        if (!this.store) return this.noStore(id);
+        const agentId = p.agentId as string | undefined;
+        if (!agentId) return this.missingParam(id, 'agentId');
+        const wt = await this.store.getWorktree(agentId);
+        return { jsonrpc: '2.0', id, result: wt };
+      }
+
+      case 'worktree.list': {
+        if (!this.store) return this.noStore(id);
+        const worktrees = await this.store.getActiveWorktrees();
+        return { jsonrpc: '2.0', id, result: worktrees };
+      }
+
+      case 'worktree.status': {
+        if (!this.store) return this.noStore(id);
+        const agentId = p.agentId as string | undefined;
+        const status = p.status as string | undefined;
+        if (!(agentId && status)) return this.missingParam(id, 'agentId, status');
+        const ok = await this.store.updateWorktreeStatus(agentId, status as 'merged' | 'abandoned');
+        return { jsonrpc: '2.0', id, result: { success: ok } };
+      }
+
+      case 'worktree.remove': {
+        if (!this.store) return this.noStore(id);
+        const agentId = p.agentId as string | undefined;
+        if (!agentId) return this.missingParam(id, 'agentId');
+        const ok = await this.store.removeWorktree(agentId);
+        return { jsonrpc: '2.0', id, result: { success: ok } };
+      }
+
+      // -----------------------------------------------------------------------
+      // Agent Memory (PGlite-backed)
+      // -----------------------------------------------------------------------
+      case 'memory.store': {
+        if (!this.store) return this.noStore(id);
+        const agentId = p.agentId as string | undefined;
+        const memoryType = p.memoryType as string | undefined;
+        const content = p.content as string | undefined;
+        if (!(agentId && memoryType && content))
+          return this.missingParam(id, 'agentId, memoryType, content');
+        const entry = await this.store.storeMemory({
+          agentId,
+          memoryType: memoryType as 'thought' | 'action' | 'result' | 'decision' | 'disagreement',
+          content,
+          metadata: p.metadata as Record<string, unknown> | undefined,
+        });
+        return { jsonrpc: '2.0', id, result: entry };
+      }
+
+      case 'memory.recall': {
+        if (!this.store) return this.noStore(id);
+        const entries = await this.store.recallMemory({
+          agentId: p.agentId as string | undefined,
+          memoryType: p.memoryType as
+            | 'thought'
+            | 'action'
+            | 'result'
+            | 'decision'
+            | 'disagreement'
+            | undefined,
+          keyword: p.keyword as string | undefined,
+          limit: p.limit as number | undefined,
+        });
+        return { jsonrpc: '2.0', id, result: entries };
+      }
+
+      case 'memory.summarize': {
+        if (!this.store) return this.noStore(id);
+        const agentId = p.agentId as string | undefined;
+        if (!agentId) return this.missingParam(id, 'agentId');
+        const perType = (p.perType as number | undefined) ?? 5;
+        const entries = await this.store.summarizeMemory(agentId, perType);
+        return { jsonrpc: '2.0', id, result: entries };
+      }
+
+      // -----------------------------------------------------------------------
       // Agent spawner (process management)
       // -----------------------------------------------------------------------
       case 'agent.spawn': {
@@ -552,6 +656,61 @@ export class RpcServer {
         return { jsonrpc: '2.0', id, result: { ok: true } };
       }
 
+      // -----------------------------------------------------------------------
+      // Merge Pipeline
+      // -----------------------------------------------------------------------
+      case 'merge.request': {
+        if (!this.mergePipeline) return this.noService(id, 'merge-pipeline');
+        const agentId = p.agentId as string | undefined;
+        const sourceBranch = p.sourceBranch as string | undefined;
+        if (!(agentId && sourceBranch)) return this.missingParam(id, 'agentId, sourceBranch');
+        const result = await this.mergePipeline.requestMerge({
+          agentId,
+          sourceBranch,
+          taskId: p.taskId as string | undefined,
+          baseBranch: p.baseBranch as string | undefined,
+        });
+        return { jsonrpc: '2.0', id, result };
+      }
+
+      case 'merge.status': {
+        if (!this.mergePipeline) return this.noService(id, 'merge-pipeline');
+        const mergeId = p.mergeId as string | undefined;
+        if (!mergeId) return this.missingParam(id, 'mergeId');
+        const result = await this.mergePipeline.getStatus(mergeId);
+        return { jsonrpc: '2.0', id, result };
+      }
+
+      case 'merge.resolve': {
+        if (!this.mergePipeline) return this.noService(id, 'merge-pipeline');
+        const mergeId = p.mergeId as string | undefined;
+        if (!mergeId) return this.missingParam(id, 'mergeId');
+        const result = await this.mergePipeline.resolve(mergeId);
+        return { jsonrpc: '2.0', id, result };
+      }
+
+      case 'merge.list': {
+        if (!this.mergePipeline) return this.noService(id, 'merge-pipeline');
+        const result = await this.mergePipeline.listActive();
+        return { jsonrpc: '2.0', id, result };
+      }
+
+      // -----------------------------------------------------------------------
+      // CI Feedback
+      // -----------------------------------------------------------------------
+      case 'ci.report': {
+        if (!this.ciFeedback) return this.noService(id, 'ci-feedback');
+        const result = await this.ciFeedback.report({
+          prNumber: p.prNumber as number | undefined,
+          branch: p.branch as string | undefined,
+          success: p.success as boolean,
+          output: p.output as string | undefined,
+          runUrl: p.runUrl as string | undefined,
+          failedJob: p.failedJob as string | undefined,
+        });
+        return { jsonrpc: '2.0', id, result };
+      }
+
       default:
         return {
           jsonrpc: '2.0',
@@ -609,6 +768,16 @@ export class RpcServer {
   /** Attach the inference service (called by coordinator after construction). */
   setInference(inference: InferenceService): void {
     this.inference = inference;
+  }
+
+  /** Attach the merge pipeline (called by coordinator after construction). */
+  setMergePipeline(pipeline: MergePipeline): void {
+    this.mergePipeline = pipeline;
+  }
+
+  /** Attach the CI feedback handler (called by coordinator after construction). */
+  setCIFeedback(feedback: CIFeedback): void {
+    this.ciFeedback = feedback;
   }
 
   /** Get the spawner service (used by HTTP gateway for SSE). */

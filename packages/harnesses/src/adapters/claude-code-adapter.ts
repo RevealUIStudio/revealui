@@ -35,8 +35,8 @@ export class ClaudeCodeAdapter implements HarnessAdapter {
 
   getCapabilities(): HarnessCapabilities {
     return {
-      generateCode: false, // interactive only — no headless CLI interface
-      analyzeCode: false, // interactive only — no headless CLI interface
+      generateCode: true, // via `claude --print` CLI mode
+      analyzeCode: true, // via `claude --print` CLI mode
       applyEdit: false, // interactive only — edits are applied inside Claude Code sessions
       applyConfig: false, // config managed interactively via ~/.claude/settings.json
       readWorkboard: this.workboardPath !== undefined,
@@ -94,13 +94,36 @@ export class ClaudeCodeAdapter implements HarnessAdapter {
         // Claude Code process enumeration is not supported.
         return { success: true, command: command.type, data: [] };
       }
-      case 'generate-code':
+      case 'generate-code': {
+        const genArgs = ['--print', command.prompt];
+        if (command.context) {
+          genArgs.push('--context', command.context);
+        }
+        try {
+          const { stdout } = await execFileAsync('claude', genArgs, { timeout: 120_000 });
+          return { success: true, command: command.type, data: stdout.trim() };
+        } catch (err) {
+          return {
+            success: false,
+            command: command.type,
+            message: err instanceof Error ? err.message : String(err),
+          };
+        }
+      }
       case 'analyze-code': {
-        return {
-          success: false,
-          command: command.type,
-          message: `${command.type} is not supported — Claude Code operates interactively`,
-        };
+        const analyzePrompt = `Analyze the file ${command.filePath}${command.question ? `: ${command.question}` : ''}`;
+        try {
+          const { stdout } = await execFileAsync('claude', ['--print', analyzePrompt], {
+            timeout: 120_000,
+          });
+          return { success: true, command: command.type, data: stdout.trim() };
+        } catch (err) {
+          return {
+            success: false,
+            command: command.type,
+            message: err instanceof Error ? err.message : String(err),
+          };
+        }
       }
       case 'apply-config': {
         return {
