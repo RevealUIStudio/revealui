@@ -12,6 +12,8 @@
 // Export agent schemas — agentMemories lives in NeonDB (same as all other tables)
 // despite having a vector column, because its FK constraints reference NeonDB tables.
 export * from './accounts.js';
+// Export all REST schemas
+export * from './admin.js';
 export {
   type AgentAction,
   type AgentContext,
@@ -44,8 +46,6 @@ export * from './api-keys.js';
 export * from './app-logs.js';
 export * from './audit-log.js';
 export * from './circuit-breaker.js';
-// Export all REST schemas
-export * from './admin.js';
 export * from './code-provenance.js';
 export * from './collab-edits.js';
 export * from './coordination.js';

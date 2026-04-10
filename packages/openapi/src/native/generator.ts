@@ -18,7 +18,7 @@ import type {
   WebhookDefinition,
 } from './registry.js';
 import { getOpenApiMetadata } from './zod-extension.js';
-import { type JSONSchema, isOptional, zodToJsonSchema } from './zod-to-schema.js';
+import { isOptional, type JSONSchema, zodToJsonSchema } from './zod-to-schema.js';
 
 // =============================================================================
 // Config Types
@@ -48,9 +48,7 @@ export interface OpenAPIDocumentConfig {
   externalDocs?: { url: string; description?: string };
 }
 
-export interface GeneratorOptions {
-  // Reserved for future options
-}
+export type GeneratorOptions = {};
 
 // =============================================================================
 // Internal Types

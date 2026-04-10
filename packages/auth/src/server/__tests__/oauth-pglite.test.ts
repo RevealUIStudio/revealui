@@ -15,12 +15,12 @@
  */
 
 import { eq } from 'drizzle-orm';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
-  type TestDb,
   createTestDb,
   seedTestUser,
+  type TestDb,
 } from '../../../../../packages/test/src/utils/drizzle-test-db.js';
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
@@ -39,9 +39,9 @@ vi.mock('@revealui/core/observability/logger', () => ({
 import { oauthAccounts, sessions, users } from '@revealui/db/schema';
 import { OAuthAccountConflictError } from '../errors.js';
 import {
-  type ProviderUser,
   getLinkedProviders,
   linkOAuthAccount,
+  type ProviderUser,
   unlinkOAuthAccount,
   upsertOAuthUser,
 } from '../oauth.js';

@@ -9,12 +9,12 @@
  */
 
 import { eq } from 'drizzle-orm';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  type TestDb,
   createTestDb,
   seedTestUser,
+  type TestDb,
 } from '../../../../../packages/test/src/utils/drizzle-test-db.js';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks (before imports) ─────────────────────────────────────────────────
 

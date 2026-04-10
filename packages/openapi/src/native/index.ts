@@ -27,4 +27,4 @@ export {
   type OpenAPIMetadata,
   setOpenApiMetadata,
 } from './zod-extension.js';
-export { type JSONSchema, isOptional, zodToJsonSchema } from './zod-to-schema.js';
+export { isOptional, type JSONSchema, zodToJsonSchema } from './zod-to-schema.js';

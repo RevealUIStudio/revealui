@@ -5,7 +5,7 @@
 
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { type TestDb, cleanTables, createTestDb, seedTestUser } from '../utils/drizzle-test-db.js';
+import { cleanTables, createTestDb, seedTestUser, type TestDb } from '../utils/drizzle-test-db.js';
 
 describe('createTestDb', () => {
   let db: TestDb;

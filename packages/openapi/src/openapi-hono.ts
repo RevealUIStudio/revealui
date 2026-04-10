@@ -6,10 +6,10 @@ import { z } from 'zod';
 
 import { addBasePathToDocument } from './helpers.js';
 import {
+  extendZodWithOpenApi,
+  NativeOpenAPIRegistry,
   NativeOpenApiGeneratorV3,
   NativeOpenApiGeneratorV31,
-  NativeOpenAPIRegistry,
-  extendZodWithOpenApi,
 } from './native/index.js';
 import { isFormContentType, isJSONContentType, isZod } from './type-guard.js';
 import type {
@@ -24,13 +24,13 @@ import type {
   InputTypeQuery,
   MaybePromise,
   OpenAPIGeneratorConfigure,
-  ZodMediaTypeObject,
   OpenAPIGeneratorOptions,
   OpenAPIObjectConfig,
   OpenAPIObjectConfigure,
   RouteConfig,
   RouteConfigToTypedResponse,
   RouteMiddlewareParams,
+  ZodMediaTypeObject,
 } from './types.js';
 import { zValidator } from './zod-validator.js';
 

@@ -21,8 +21,8 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type { PGlite } from '@electric-sql/pglite';
-import type { PgliteDatabase } from 'drizzle-orm/pglite';
 import type * as schema from '@revealui/db/schema';
+import type { PgliteDatabase } from 'drizzle-orm/pglite';
 
 // =============================================================================
 // Types
