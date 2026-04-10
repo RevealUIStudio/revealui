@@ -96,8 +96,19 @@ async function checkAndMarkProcessed(
     // Unique constraint violation = already processed.
     // Check PostgreSQL error code '23505' (stable across all pg drivers) in addition
     // to the message, since NeonDB's HTTP driver may format the message differently.
-    const pgCode = (err as { code?: string }).code;
-    if (pgCode === '23505' || (err instanceof Error && err.message.includes('duplicate key'))) {
+    // Drizzle wraps driver errors in DrizzleQueryError — check both err and err.cause.
+    const pgCode =
+      (err as { code?: string }).code ?? (err as { cause?: { code?: string } }).cause?.code;
+    const errMsg = err instanceof Error ? err.message : '';
+    const causeMsg =
+      (err as { cause?: Error }).cause instanceof Error
+        ? (err as { cause: Error }).cause.message
+        : '';
+    if (
+      pgCode === '23505' ||
+      errMsg.includes('duplicate key') ||
+      causeMsg.includes('duplicate key')
+    ) {
       return true;
     }
     // Any other DB error is unexpected — throw so the caller returns 500 to Stripe.
