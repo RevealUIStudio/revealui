@@ -144,6 +144,8 @@ pub fn run() {
             spawner_cmds::agent_stop,
             spawner_cmds::agent_list,
             spawner_cmds::agent_remove,
+            spawner_cmds::agent_input,
+            spawner_cmds::agent_resize,
             inference_cmds::inference_ollama_status,
             inference_cmds::inference_ollama_models,
             inference_cmds::inference_ollama_pull,

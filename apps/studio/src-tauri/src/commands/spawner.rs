@@ -44,3 +44,31 @@ pub fn agent_remove(
     crate::spawner::remove(&session_id, state.sessions.clone())
         .map_err(|e| StudioError::Process(e))
 }
+
+/// Write input data to a daemon PTY session (agent.input RPC).
+#[tauri::command]
+pub async fn agent_input(session_id: String, data: String) -> Result<(), StudioError> {
+    crate::harness::rpc_call(
+        "agent.input",
+        serde_json::json!({ "sessionId": session_id, "data": data }),
+    )
+    .await
+    .map_err(|e| StudioError::Other(e))?;
+    Ok(())
+}
+
+/// Resize a daemon PTY session's terminal (agent.resize RPC).
+#[tauri::command]
+pub async fn agent_resize(
+    session_id: String,
+    cols: u32,
+    rows: u32,
+) -> Result<(), StudioError> {
+    crate::harness::rpc_call(
+        "agent.resize",
+        serde_json::json!({ "sessionId": session_id, "cols": cols, "rows": rows }),
+    )
+    .await
+    .map_err(|e| StudioError::Other(e))?;
+    Ok(())
+}
