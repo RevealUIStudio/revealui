@@ -1619,6 +1619,9 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
+      '@electric-sql/pglite':
+        specifier: ^0.4.3
+        version: 0.4.3
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.59.1
