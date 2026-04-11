@@ -6,7 +6,7 @@ export default defineConfig({
   platform: 'node',
   bundle: true,
   dts: false,
-  sourcemap: true,
+  sourcemap: false,
   outDir: 'dist',
   // Bundle workspace packages so extensionless ESM imports are resolved at build
   // time rather than failing at runtime in Node.js strict ESM mode.

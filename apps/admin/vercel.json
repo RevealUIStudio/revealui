@@ -3,5 +3,14 @@
   "installCommand": "",
   "framework": "nextjs",
   "github": { "silent": true },
-  "relatedProjects": ["prj_zk6EQijYXwd9L7BccuBssi436ktM"]
+  "relatedProjects": ["prj_zk6EQijYXwd9L7BccuBssi436ktM"],
+  "headers": [
+    {
+      "source": "/(.*).map",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
 }
