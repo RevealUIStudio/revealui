@@ -281,6 +281,16 @@ export async function signUp(
       };
     }
 
+    // Check password against known data breaches (non-blocking on failure)
+    const { checkPasswordBreach } = await import('./password-validation.js');
+    const breachCount = await checkPasswordBreach(password);
+    if (breachCount > 0) {
+      return {
+        success: false,
+        error: `This password has appeared in ${breachCount.toLocaleString()} data breaches. Please choose a different password.`,
+      };
+    }
+
     let db: ReturnType<typeof getClient>;
     try {
       db = getClient();

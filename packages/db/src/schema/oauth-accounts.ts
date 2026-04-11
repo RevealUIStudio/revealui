@@ -29,7 +29,10 @@ export const oauthAccounts = pgTable(
 
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
 
     // Soft-delete: null = active, timestamp = when unlinked
     deletedAt: timestamp('deleted_at', { withTimezone: true }),

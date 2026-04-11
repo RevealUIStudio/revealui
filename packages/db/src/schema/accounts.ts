@@ -30,7 +30,10 @@ export const accounts = pgTable(
     slug: text('slug').notNull(),
     status: text('status').notNull().default('active'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     uniqueIndex('accounts_slug_idx').on(table.slug),
@@ -52,7 +55,10 @@ export const accountMemberships = pgTable(
     role: text('role').notNull().default('member'),
     status: text('status').notNull().default('active'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     uniqueIndex('account_memberships_account_user_idx').on(table.accountId, table.userId),
@@ -77,7 +83,10 @@ export const accountSubscriptions = pgTable(
     currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     uniqueIndex('account_subscriptions_stripe_subscription_idx').on(table.stripeSubscriptionId),
@@ -112,7 +121,10 @@ export const accountEntitlements = pgTable(
       .default({}),
     meteringStatus: text('metering_status').notNull().default('active'),
     graceUntil: timestamp('grace_until', { withTimezone: true }),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     index('account_entitlements_tier_idx').on(table.tier),
@@ -138,7 +150,10 @@ export const billingCatalog = pgTable(
     active: boolean('active').notNull().default(true),
     metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default({}),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     uniqueIndex('billing_catalog_plan_id_idx').on(table.planId),

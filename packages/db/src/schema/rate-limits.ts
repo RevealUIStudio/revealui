@@ -25,7 +25,10 @@ export const rateLimits = pgTable(
 
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     // R5-H6: Index for cleanup queries that scan by expiry
@@ -52,7 +55,10 @@ export const failedAttempts = pgTable('failed_attempts', {
 
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .$onUpdateFn(() => new Date())
+    .defaultNow()
+    .notNull(),
 });
 
 // =============================================================================

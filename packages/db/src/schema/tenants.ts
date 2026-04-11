@@ -12,7 +12,10 @@ export const tenants = pgTable(
     domains: jsonb('domains').$type<Array<{ domain: string }>>().default([]).notNull(),
     _json: jsonb('_json').default({}).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [uniqueIndex('tenants_email_idx').on(table.email)],
 );

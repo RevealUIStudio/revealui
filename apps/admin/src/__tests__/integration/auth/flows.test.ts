@@ -25,6 +25,20 @@ vi.mock('@revealui/core/observability/logger', () => ({
   },
 }));
 
+// Stub global fetch for HIBP breach check — returns no breaches so
+// signUp/signIn flows don't fail due to network calls in CI.
+const originalFetch = globalThis.fetch;
+vi.stubGlobal(
+  'fetch',
+  vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    if (url.includes('pwnedpasswords.com')) {
+      return new Response('0000000000000000000000000000000000000:0\n', { status: 200 });
+    }
+    return originalFetch(input, init);
+  }),
+);
+
 // Chainable Drizzle-style mock returned by getClient()
 const buildChainMock = () => {
   const chain: Record<string, unknown> = {};

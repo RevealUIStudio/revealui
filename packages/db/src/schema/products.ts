@@ -71,7 +71,10 @@ export const products = pgTable(
     ownerId: text('owner_id').references(() => users.id, { onDelete: 'set null' }),
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
@@ -150,7 +153,10 @@ export const orders = pgTable(
     metadata: jsonb('metadata'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
 
     /** Soft-delete — financial records must never be hard-deleted */
     deletedAt: timestamp('deleted_at', { withTimezone: true }),

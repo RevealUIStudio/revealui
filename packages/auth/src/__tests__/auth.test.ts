@@ -46,6 +46,15 @@ vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => mockDb),
 }));
 
+// Mock HIBP breach check to avoid real network calls
+vi.mock('../server/password-validation.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../server/password-validation.js')>();
+  return {
+    ...actual,
+    checkPasswordBreach: vi.fn().mockResolvedValue(0),
+  };
+});
+
 vi.mock('../server/session', () => ({
   createSession: vi.fn(async () => ({
     token: 'session-token-123',

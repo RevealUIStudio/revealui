@@ -19,8 +19,10 @@ vi.mock('bcryptjs', () => ({
 
 // Mock password validation
 const mockValidatePasswordStrength = vi.fn();
+const mockCheckPasswordBreach = vi.fn();
 vi.mock('../password-validation.js', () => ({
   validatePasswordStrength: (...args: unknown[]) => mockValidatePasswordStrength(...args),
+  checkPasswordBreach: (...args: unknown[]) => mockCheckPasswordBreach(...args),
 }));
 
 // Mock brute force
@@ -128,6 +130,7 @@ describe('auth', () => {
     mockBcryptCompare.mockResolvedValue(true);
     mockBcryptHash.mockResolvedValue('$2a$12$newhashedpassword');
     mockValidatePasswordStrength.mockReturnValue({ valid: true, errors: [] });
+    mockCheckPasswordBreach.mockResolvedValue(0); // Not breached by default
     // Default: user lookup returns nothing (for signUp), or user (for signIn)
     mockLimit.mockResolvedValue([]);
     mockReturning.mockResolvedValue([makeUser()]);

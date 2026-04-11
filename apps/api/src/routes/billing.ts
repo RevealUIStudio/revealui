@@ -207,6 +207,25 @@ const RefundResponseSchema = z.object({
   currency: z.string().openapi({ description: 'Currency code', example: 'usd' }),
 });
 
+const InvoiceItemSchema = z.object({
+  id: z.string().openapi({ description: 'Stripe invoice ID', example: 'in_abc123' }),
+  number: z.string().nullable().openapi({ description: 'Invoice number', example: 'INV-0001' }),
+  status: z.string().openapi({ description: 'Invoice status', example: 'paid' }),
+  amountDue: z.number().openapi({ description: 'Amount due in cents', example: 4900 }),
+  amountPaid: z.number().openapi({ description: 'Amount paid in cents', example: 4900 }),
+  currency: z.string().openapi({ description: 'Currency code', example: 'usd' }),
+  created: z.string().openapi({ description: 'Created date (ISO 8601)' }),
+  periodStart: z.string().openapi({ description: 'Billing period start (ISO 8601)' }),
+  periodEnd: z.string().openapi({ description: 'Billing period end (ISO 8601)' }),
+  pdfUrl: z.string().nullable().openapi({ description: 'URL to download invoice PDF' }),
+  hostedUrl: z.string().nullable().openapi({ description: 'URL to view invoice online' }),
+});
+
+const InvoicesResponseSchema = z.object({
+  invoices: z.array(InvoiceItemSchema),
+  hasMore: z.boolean().openapi({ description: 'Whether more invoices exist' }),
+});
+
 const UpgradeRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the target tier',
@@ -677,6 +696,82 @@ app.openapi(subscriptionRoute, async (c) => {
   );
 });
 
+// GET /api/billing/invoices — List invoices for the current user
+const invoicesRoute = createRoute({
+  method: 'get',
+  path: '/invoices',
+  tags: ['billing'],
+  summary: 'List invoices',
+  description:
+    "Returns the current user's Stripe invoices with amounts, status, and PDF download links.",
+  request: {
+    query: z.object({
+      limit: z
+        .string()
+        .optional()
+        .openapi({ description: 'Max invoices to return (1-100, default 10)', example: '10' }),
+      starting_after: z
+        .string()
+        .optional()
+        .openapi({ description: 'Cursor for pagination (Stripe invoice ID)', example: 'in_abc' }),
+    }),
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: InvoicesResponseSchema } },
+      description: 'List of invoices',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(invoicesRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const db = getClient();
+  const [dbUser] = await db
+    .select({ stripeCustomerId: users.stripeCustomerId })
+    .from(users)
+    .where(eq(users.id, user.id));
+
+  if (!dbUser?.stripeCustomerId) {
+    return c.json({ invoices: [], hasMore: false }, 200);
+  }
+
+  const query = c.req.query();
+  const limit = Math.min(Math.max(Number.parseInt(query.limit ?? '10', 10) || 10, 1), 100);
+
+  const stripeInvoices = await withStripe((stripe) =>
+    stripe.invoices.list({
+      customer: dbUser.stripeCustomerId!,
+      limit,
+      ...(query.starting_after ? { starting_after: query.starting_after } : {}),
+    }),
+  );
+
+  const invoices = stripeInvoices.data.map((inv) => ({
+    id: inv.id,
+    number: inv.number ?? null,
+    status: inv.status ?? 'unknown',
+    amountDue: inv.amount_due,
+    amountPaid: inv.amount_paid,
+    currency: inv.currency,
+    created: new Date(inv.created * 1000).toISOString(),
+    periodStart: new Date(inv.period_start * 1000).toISOString(),
+    periodEnd: new Date(inv.period_end * 1000).toISOString(),
+    pdfUrl: inv.invoice_pdf ?? null,
+    hostedUrl: inv.hosted_invoice_url ?? null,
+  }));
+
+  return c.json({ invoices, hasMore: stripeInvoices.has_more }, 200);
+});
+
 /** Tier rank ordering for upgrade/downgrade direction validation */
 const TIER_ORDER: Record<string, number> = { free: 0, pro: 1, max: 2, enterprise: 3 };
 
@@ -945,6 +1040,122 @@ app.openapi(downgradeRoute, async (c) => {
   }
 
   return c.json({ success: true, effectiveAt: effectiveDate }, 200);
+});
+
+// POST /api/billing/pause — Pause an active subscription
+const PauseResponseSchema = z.object({
+  success: z.boolean(),
+  resumesAt: z.string().nullable().openapi({ description: 'When billing resumes (ISO 8601)' }),
+});
+
+const pauseRoute = createRoute({
+  method: 'post',
+  path: '/pause',
+  tags: ['billing'],
+  summary: 'Pause subscription',
+  description:
+    'Pauses billing for the current subscription. Access is retained during the pause period.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: PauseResponseSchema } },
+      description: 'Subscription paused',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(pauseRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
+
+  const subscriptionList = await withStripe((stripe) =>
+    stripe.subscriptions.list({ customer: stripeCustomerId, status: 'active', limit: 1 }),
+  );
+
+  const subscription = subscriptionList.data[0];
+  if (!subscription) {
+    throw new HTTPException(400, { message: 'No active subscription found to pause.' });
+  }
+
+  if (subscription.pause_collection) {
+    throw new HTTPException(400, { message: 'Subscription is already paused.' });
+  }
+
+  const updated = await withStripe((stripe) =>
+    stripe.subscriptions.update(
+      subscription.id,
+      { pause_collection: { behavior: 'keep_as_draft' } },
+      { idempotencyKey: `pause-${subscription.id}-${user.id}-${Date.now()}` },
+    ),
+  );
+
+  const resumesAt = updated.pause_collection?.resumes_at
+    ? new Date(updated.pause_collection.resumes_at * 1000).toISOString()
+    : null;
+
+  return c.json({ success: true, resumesAt }, 200);
+});
+
+// POST /api/billing/resume — Resume a paused subscription
+const ResumeResponseSchema = z.object({
+  success: z.boolean(),
+});
+
+const resumeRoute = createRoute({
+  method: 'post',
+  path: '/resume',
+  tags: ['billing'],
+  summary: 'Resume subscription',
+  description: 'Resumes billing for a paused subscription.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: ResumeResponseSchema } },
+      description: 'Subscription resumed',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(resumeRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
+
+  const subscriptionList = await withStripe((stripe) =>
+    stripe.subscriptions.list({ customer: stripeCustomerId, status: 'active', limit: 1 }),
+  );
+
+  const subscription = subscriptionList.data[0];
+  if (!subscription) {
+    throw new HTTPException(400, { message: 'No active subscription found to resume.' });
+  }
+
+  if (!subscription.pause_collection) {
+    throw new HTTPException(400, { message: 'Subscription is not paused.' });
+  }
+
+  await withStripe((stripe) =>
+    stripe.subscriptions.update(
+      subscription.id,
+      { pause_collection: '' as unknown as Stripe.SubscriptionUpdateParams.PauseCollection },
+      { idempotencyKey: `resume-${subscription.id}-${user.id}-${Date.now()}` },
+    ),
+  );
+
+  return c.json({ success: true }, 200);
 });
 
 // POST /api/billing/checkout-perpetual — One-time perpetual license purchase

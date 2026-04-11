@@ -67,6 +67,15 @@ vi.mock('../server/storage/index.js', () => ({
   })),
 }));
 
+// Mock HIBP breach check to avoid real network calls
+vi.mock('../../server/password-validation.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../server/password-validation.js')>();
+  return {
+    ...actual,
+    checkPasswordBreach: vi.fn().mockResolvedValue(0),
+  };
+});
+
 // Import functions to test AFTER mocks are set up
 import { signIn, signUp } from '../../server/auth.js';
 import {

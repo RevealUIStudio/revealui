@@ -64,7 +64,10 @@ export const codeProvenance = pgTable('code_provenance', {
   metadata: jsonb('metadata').default('{}').notNull(),
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdateFn(() => new Date()),
 });
 
 export type CodeProvenance = typeof codeProvenance.$inferSelect;

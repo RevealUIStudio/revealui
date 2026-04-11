@@ -5,6 +5,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { createAIError } from '../errors.js';
 
 // =============================================================================
 // Types
@@ -198,7 +199,7 @@ export function useWorkingMemory(
 
         const response = await fetch(`/api/memory/working/${sessionId}`);
         if (!response.ok) {
-          throw new Error(`Failed to load working memory: ${response.statusText}`);
+          throw createAIError('load working memory', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;
@@ -230,7 +231,7 @@ export function useWorkingMemory(
     try {
       const response = await fetch(`/api/memory/working/${sessionId}`);
       if (!response.ok) {
-        throw new Error(`Failed to sync working memory: ${response.statusText}`);
+        throw createAIError('sync working memory', response.status, response.statusText);
       }
 
       const payload = (await response.json()) as unknown;
@@ -267,7 +268,7 @@ export function useWorkingMemory(
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to update context: ${response.statusText}`);
+          throw createAIError('update context', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;
@@ -317,7 +318,7 @@ export function useWorkingMemory(
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to update session state: ${response.statusText}`);
+          throw createAIError('update session state', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;
@@ -343,7 +344,7 @@ export function useWorkingMemory(
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to add agent: ${response.statusText}`);
+          throw createAIError('add agent', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;
@@ -369,7 +370,7 @@ export function useWorkingMemory(
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to remove agent: ${response.statusText}`);
+          throw createAIError('remove agent', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;

@@ -229,12 +229,23 @@ export async function resetPasswordWithToken(
     }
 
     // Validate password strength
-    const { validatePasswordStrength } = await import('./password-validation.js');
+    const { validatePasswordStrength, checkPasswordBreach } = await import(
+      './password-validation.js'
+    );
     const passwordValidation = validatePasswordStrength(newPassword);
     if (!passwordValidation.valid) {
       return {
         success: false,
         error: passwordValidation.errors.join('. '),
+      };
+    }
+
+    // Check password against known data breaches (non-blocking on failure)
+    const breachCount = await checkPasswordBreach(newPassword);
+    if (breachCount > 0) {
+      return {
+        success: false,
+        error: `This password has appeared in ${breachCount.toLocaleString()} data breaches. Please choose a different password.`,
       };
     }
 

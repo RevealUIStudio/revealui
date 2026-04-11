@@ -17,33 +17,7 @@ function isValidEmail(email: string): boolean {
   return true;
 }
 
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 5;
-const recentRequests = new Map<string, number[]>();
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const timestamps = recentRequests.get(ip) ?? [];
-  const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-  if (recent.length >= RATE_LIMIT_MAX) return true;
-  recent.push(now);
-  recentRequests.set(ip, recent);
-  return false;
-}
-
 export async function POST(request: Request) {
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    request.headers.get('x-real-ip') ??
-    'unknown';
-
-  if (isRateLimited(ip)) {
-    return NextResponse.json(
-      { message: 'Too many requests. Please try again later.' },
-      { status: 429 },
-    );
-  }
-
   let body: { email?: string };
   try {
     body = (await request.json()) as { email?: string };
