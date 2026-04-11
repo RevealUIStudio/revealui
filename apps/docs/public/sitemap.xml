@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://docs.revealui.com/</loc><priority>1.0</priority></url>
+  <!-- Getting Started -->
+  <url><loc>https://docs.revealui.com/docs/QUICK_START</loc><priority>0.9</priority></url>
+  <url><loc>https://docs.revealui.com/docs/BUILD_YOUR_BUSINESS</loc><priority>0.9</priority></url>
+  <url><loc>https://docs.revealui.com/docs/EXAMPLES</loc><priority>0.8</priority></url>
+  <!-- Tutorials -->
+  <url><loc>https://docs.revealui.com/guides/quick-start</loc><priority>0.9</priority></url>
+  <url><loc>https://docs.revealui.com/guides/authentication</loc><priority>0.8</priority></url>
+  <url><loc>https://docs.revealui.com/guides/collections</loc><priority>0.8</priority></url>
+  <url><loc>https://docs.revealui.com/guides/billing</loc><priority>0.8</priority></url>
+  <url><loc>https://docs.revealui.com/guides/deployment</loc><priority>0.8</priority></url>
+  <!-- Core Guides -->
+  <url><loc>https://docs.revealui.com/docs/ADMIN_GUIDE</loc><priority>0.8</priority></url>
+  <url><loc>https://docs.revealui.com/docs/AUTH</loc><priority>0.8</priority></url>
+  <url><loc>https://docs.revealui.com/docs/DATABASE</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/CI_CD_GUIDE</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/ENVIRONMENT_VARIABLES_GUIDE</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/TESTING</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/TROUBLESHOOTING</loc><priority>0.7</priority></url>
+  <!-- Architecture -->
+  <url><loc>https://docs.revealui.com/docs/ARCHITECTURE</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/PERFORMANCE</loc><priority>0.6</priority></url>
+  <url><loc>https://docs.revealui.com/docs/STANDARDS</loc><priority>0.6</priority></url>
+  <url><loc>https://docs.revealui.com/docs/CORE_STABILITY</loc><priority>0.6</priority></url>
+  <url><loc>https://docs.revealui.com/docs/JOSHUA</loc><priority>0.7</priority></url>
+  <!-- Reference -->
+  <url><loc>https://docs.revealui.com/docs/REFERENCE</loc><priority>0.8</priority></url>
+  <url><loc>https://docs.revealui.com/api/rest-api</loc><priority>0.8</priority></url>
+  <url><loc>https://docs.revealui.com/docs/COMPONENT_CATALOG</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/AI</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/MARKETPLACE</loc><priority>0.7</priority></url>
+  <!-- Pro & Enterprise -->
+  <url><loc>https://docs.revealui.com/docs/PRO</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/FORGE</loc><priority>0.6</priority></url>
+  <url><loc>https://docs.revealui.com/docs/LOCAL_FIRST</loc><priority>0.6</priority></url>
+  <!-- Blog -->
+  <url><loc>https://docs.revealui.com/docs/blog/01-why-we-built-revealui</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/blog/02-http-402-payments</loc><priority>0.6</priority></url>
+  <url><loc>https://docs.revealui.com/docs/blog/03-multi-agent-coordination</loc><priority>0.6</priority></url>
+  <url><loc>https://docs.revealui.com/docs/blog/04-local-first-ai-stack</loc><priority>0.6</priority></url>
+  <url><loc>https://docs.revealui.com/docs/blog/05-five-primitives</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/docs/blog/06-open-source-and-pro</loc><priority>0.6</priority></url>
+  <url><loc>https://docs.revealui.com/docs/blog/07-agent-first-future</loc><priority>0.6</priority></url>
+  <url><loc>https://docs.revealui.com/docs/blog/08-getting-started</loc><priority>0.7</priority></url>
+  <!-- Architecture Decision Records -->
+  <url><loc>https://docs.revealui.com/docs/architecture/ADR-001-agent-first</loc><priority>0.5</priority></url>
+  <url><loc>https://docs.revealui.com/docs/architecture/ADR-002-dual-database</loc><priority>0.5</priority></url>
+  <url><loc>https://docs.revealui.com/docs/architecture/ADR-003-fair-source-licensing</loc><priority>0.5</priority></url>
+  <url><loc>https://docs.revealui.com/docs/architecture/ADR-004-session-only-auth</loc><priority>0.5</priority></url>
+  <url><loc>https://docs.revealui.com/docs/architecture/ADR-005-two-repo-model</loc><priority>0.5</priority></url>
+  <!-- Showcase -->
+  <url><loc>https://docs.revealui.com/showcase</loc><priority>0.7</priority></url>
+  <url><loc>https://docs.revealui.com/showcase/tokens</loc><priority>0.5</priority></url>
+</urlset>
