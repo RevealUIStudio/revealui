@@ -11,8 +11,8 @@ if (process.env.SENTRY_DSN) {
       if (process.env.NODE_ENV !== 'production') return null;
       // Strip sensitive headers
       if (event.request?.headers) {
-        event.request.headers.cookie = undefined;
-        event.request.headers.authorization = undefined;
+        const { cookie: _, authorization: __, ...safe } = event.request.headers;
+        event.request.headers = safe;
       }
       return event;
     },
