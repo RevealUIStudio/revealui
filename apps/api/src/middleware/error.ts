@@ -1,7 +1,7 @@
-import * as Sentry from '@sentry/node';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { errorEvents } from '@revealui/db/schema';
+import * as Sentry from '@sentry/node';
 import type { ErrorHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
