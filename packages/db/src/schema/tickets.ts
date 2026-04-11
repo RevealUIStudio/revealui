@@ -53,7 +53,10 @@ export const boards = pgTable(
     settings: jsonb('settings').default('{}').notNull(),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   },
   (table) => [
     index('boards_tenant_id_idx').on(table.tenantId),
@@ -91,7 +94,10 @@ export const boardColumns = pgTable('board_columns', {
   isDefault: boolean('is_default').notNull().default(false),
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdateFn(() => new Date()),
 });
 
 export type BoardColumn = typeof boardColumns.$inferSelect;
@@ -118,7 +124,10 @@ export const ticketLabels = pgTable(
     description: text('description'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   },
   (table) => [index('ticket_labels_tenant_id_idx').on(table.tenantId)],
 );
@@ -197,7 +206,10 @@ export const tickets = pgTable(
     closedAt: timestamp('closed_at', { withTimezone: true }),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   },
   (table) => [
     index('tickets_board_id_idx').on(table.boardId),
@@ -232,7 +244,10 @@ export const ticketComments = pgTable(
     body: jsonb('body').notNull(),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   },
   (table) => [
     index('ticket_comments_ticket_id_idx').on(table.ticketId),

@@ -300,9 +300,6 @@ export default async function PricingPage() {
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               Perpetual Licenses
             </h2>
-            <span className="mt-2 inline-block text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full">
-              Coming soon
-            </span>
             <p className="mt-4 text-lg text-gray-600">
               Pay once, use forever. No subscription required. Support renewals are optional.
             </p>

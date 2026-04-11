@@ -137,7 +137,7 @@ vi.mock('@revealui/contracts/pricing', () => ({
       cta: 'Contact Sales',
       ctaHref: 'mailto:support@revealui.com',
       features: ['All Forge features', '1 year updates'],
-      comingSoon: true,
+      comingSoon: false,
     },
   ],
   SERVICE_OFFERINGS: [

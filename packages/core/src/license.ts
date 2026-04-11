@@ -47,8 +47,17 @@ export interface LicenseCacheConfig {
   ttlMs: number;
 }
 
+const DEFAULT_TTL_MS = 15_000; // 15 seconds — revoked licenses lose access quickly
+
 const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
-  ttlMs: 60 * 1000, // 60 seconds — revoked licenses lose access within 1 min
+  ttlMs: (() => {
+    const envTtl = process.env.LICENSE_CACHE_TTL_MS;
+    if (envTtl) {
+      const parsed = Number.parseInt(envTtl, 10);
+      if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    }
+    return DEFAULT_TTL_MS;
+  })(),
 };
 
 let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG };

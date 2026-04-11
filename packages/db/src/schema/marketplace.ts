@@ -77,7 +77,10 @@ export const marketplaceServers = pgTable('marketplace_servers', {
   metadata: jsonb('metadata').$type<Record<string, unknown>>().default({}),
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .$onUpdateFn(() => new Date())
+    .defaultNow()
+    .notNull(),
 });
 
 // =============================================================================

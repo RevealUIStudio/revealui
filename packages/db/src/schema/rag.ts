@@ -58,7 +58,10 @@ export const ragDocuments = pgTable('rag_documents', {
   indexedAt: timestamp('indexed_at', { withTimezone: true }),
 
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .$onUpdateFn(() => new Date())
+    .defaultNow()
+    .notNull(),
 });
 
 // =============================================================================

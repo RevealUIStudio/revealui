@@ -33,7 +33,7 @@ function getStripeClient(): Stripe {
   if (cachedStripe) return cachedStripe;
   const key = process.env.STRIPE_SECRET_KEY?.trim();
   if (!key) throw new Error('STRIPE_SECRET_KEY not configured');
-  cachedStripe = new Stripe(key);
+  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
   return cachedStripe;
 }
 

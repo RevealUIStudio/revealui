@@ -33,7 +33,10 @@ export const circuitBreakerState = pgTable(
     stateChangedAt: timestamp('state_changed_at', { withTimezone: true }).defaultNow().notNull(),
 
     /** Row last-written timestamp */
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [index('circuit_breaker_state_at_idx').on(table.stateChangedAt)],
 );

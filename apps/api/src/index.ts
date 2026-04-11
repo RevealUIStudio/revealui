@@ -372,6 +372,9 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-subscription': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-usage': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-credits': { maxRequests: 30, windowMs: ONE_MINUTE },
+    'billing-invoices': { maxRequests: 20, windowMs: ONE_MINUTE },
+    'billing-pause': { maxRequests: 5, windowMs: ONE_MINUTE },
+    'billing-resume': { maxRequests: 5, windowMs: ONE_MINUTE },
     'billing-metrics': { maxRequests: 10, windowMs: ONE_MINUTE },
     'admin-observability': { maxRequests: 30, windowMs: ONE_MINUTE },
     'content-batch': { maxRequests: 10, windowMs: ONE_MINUTE },
@@ -384,6 +387,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
     'studio-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
     'terminal-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
+    'terminal-sessions': { maxRequests: 10, windowMs: ONE_MINUTE },
     maintenance: { maxRequests: 1, windowMs: ONE_MINUTE },
     webhook: { maxRequests: 100, windowMs: ONE_MINUTE },
   },
@@ -482,6 +486,12 @@ app.use('/api/billing/usage', routeLimit('billing-usage'));
 app.use('/api/v1/billing/usage', routeLimit('billing-usage'));
 app.use('/api/billing/credits', routeLimit('billing-credits'));
 app.use('/api/v1/billing/credits', routeLimit('billing-credits'));
+app.use('/api/billing/invoices', routeLimit('billing-invoices'));
+app.use('/api/v1/billing/invoices', routeLimit('billing-invoices'));
+app.use('/api/billing/pause', routeLimit('billing-pause'));
+app.use('/api/v1/billing/pause', routeLimit('billing-pause'));
+app.use('/api/billing/resume', routeLimit('billing-resume'));
+app.use('/api/v1/billing/resume', routeLimit('billing-resume'));
 app.use('/api/billing/metrics', routeLimit('billing-metrics'));
 app.use('/api/v1/billing/metrics', routeLimit('billing-metrics'));
 
@@ -655,6 +665,20 @@ app.use('/api/v1/collab/update', requireFeature('advancedSync', { mode: 'entitle
 
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true });
+
+// Block recovery sessions (magic link) from mutating routes.
+// Recovery sessions should only be used for password change and sign-out.
+const rejectRecovery = createMiddleware(async (c, next) => {
+  const session = c.get('session') as Record<string, unknown> | undefined;
+  const metadata = session?.metadata as Record<string, unknown> | undefined;
+  if (metadata?.recovery === true) {
+    return c.json(
+      { error: 'Recovery sessions cannot perform this action. Please sign in with your password.' },
+      403,
+    );
+  }
+  return next();
+});
 app.get('/api/collab/snapshot/*', writeProtected);
 app.get('/api/v1/collab/snapshot/*', writeProtected);
 app.get('/api/collab/agent/snapshot/*', writeProtected);
@@ -706,16 +730,26 @@ const billingWriteGuard = createMiddleware(async (c, next) => {
 });
 app.post('/api/billing/*', billingWriteGuard);
 app.post('/api/v1/billing/*', billingWriteGuard);
+app.post('/api/billing/*', rejectRecovery);
+app.post('/api/v1/billing/*', rejectRecovery);
 app.get('/api/gdpr/*', writeProtected);
 app.get('/api/v1/gdpr/*', writeProtected);
 app.post('/api/gdpr/*', writeProtected);
 app.post('/api/v1/gdpr/*', writeProtected);
+app.post('/api/gdpr/*', rejectRecovery);
+app.post('/api/v1/gdpr/*', rejectRecovery);
 app.post('/api/content/*', writeProtected);
 app.post('/api/v1/content/*', writeProtected);
 app.patch('/api/content/*', writeProtected);
 app.patch('/api/v1/content/*', writeProtected);
 app.delete('/api/content/*', writeProtected);
 app.delete('/api/v1/content/*', writeProtected);
+app.post('/api/content/*', rejectRecovery);
+app.post('/api/v1/content/*', rejectRecovery);
+app.patch('/api/content/*', rejectRecovery);
+app.patch('/api/v1/content/*', rejectRecovery);
+app.delete('/api/content/*', rejectRecovery);
+app.delete('/api/v1/content/*', rejectRecovery);
 
 // Resource limits — enforce tier-based caps on site creation
 const siteLimit = enforceSiteLimit(() => sites);
@@ -839,6 +873,9 @@ app.use('/api/v1/terminal-auth/*', routeLimit('terminal-auth'));
 app.route('/api/terminal-auth', terminalAuthRoute);
 
 // Terminal WebSocket bridge — daemon PTY sessions for remote access
+// Auth required: terminal sessions give PTY access to the server
+app.use('/api/terminal/*', writeProtected);
+app.use('/api/terminal/*', routeLimit('terminal-sessions'));
 const terminalWs = createTerminalRoute();
 app.route('/api/terminal', terminalWs.app);
 
@@ -902,9 +939,11 @@ function validateStartup(): void {
     const prodRequired = [
       'REVEALUI_SECRET',
       'REVEALUI_KEK',
+      'REVEALUI_PUBLIC_SERVER_URL',
       'STRIPE_SECRET_KEY',
       'STRIPE_WEBHOOK_SECRET',
       'REVEALUI_LICENSE_PRIVATE_KEY',
+      'REVEALUI_CRON_SECRET',
       'CORS_ORIGIN',
     ];
     const missingProd = prodRequired.filter((key) => !process.env[key]);

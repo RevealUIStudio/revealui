@@ -12,7 +12,10 @@ export const yjsDocuments = pgTable('yjs_documents', {
   stateVector: bytea('state_vector'),
   connectedClients: integer('connected_clients').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .$onUpdateFn(() => new Date())
+    .defaultNow()
+    .notNull(),
 });
 
 export type YjsDocument = typeof yjsDocuments.$inferSelect;
