@@ -2,9 +2,27 @@
  * Product database queries
  */
 
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, isNull } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { products } from '../schema/products.js';
+
+/** Count products matching filters (for pagination) */
+export async function countProducts(
+  db: Database,
+  options: { status?: string; ownerId?: string } = {},
+) {
+  const { status, ownerId } = options;
+  const conditions = [
+    isNull(products.deletedAt),
+    ...(status ? [eq(products.status, status)] : []),
+    ...(ownerId ? [eq(products.ownerId, ownerId)] : []),
+  ];
+  const result = await db
+    .select({ total: count() })
+    .from(products)
+    .where(and(...conditions));
+  return result[0]?.total ?? 0;
+}
 
 export async function getAllProducts(
   db: Database,

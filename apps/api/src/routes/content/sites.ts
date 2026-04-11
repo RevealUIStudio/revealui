@@ -82,7 +82,14 @@ app.openapi(
       200: {
         content: {
           'application/json': {
-            schema: z.object({ success: z.literal(true), data: z.array(SiteSchema) }),
+            schema: z.object({
+              success: z.literal(true),
+              data: z.array(SiteSchema),
+              totalDocs: z.number(),
+              totalPages: z.number(),
+              limit: z.number(),
+              offset: z.number(),
+            }),
           },
         },
         description: 'Site list',
@@ -94,8 +101,22 @@ app.openapi(
     const user = c.get('user');
     if (!user) throw new HTTPException(401, { message: 'Authentication required' });
     const { status, limit, offset } = c.req.valid('query');
-    const data = await siteQueries.getAllSites(db, { ownerId: user.id, status, limit, offset });
-    return c.json({ success: true as const, data: data.map(serializeSite) }, 200);
+    const filterOpts = { ownerId: user.id, status };
+    const [data, totalDocs] = await Promise.all([
+      siteQueries.getAllSites(db, { ...filterOpts, limit, offset }),
+      siteQueries.countSites(db, filterOpts),
+    ]);
+    return c.json(
+      {
+        success: true as const,
+        data: data.map(serializeSite),
+        totalDocs,
+        totalPages: Math.ceil(totalDocs / limit),
+        limit,
+        offset,
+      },
+      200,
+    );
   },
 );
 

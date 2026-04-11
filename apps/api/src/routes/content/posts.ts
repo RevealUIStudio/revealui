@@ -92,7 +92,14 @@ app.openapi(
       200: {
         content: {
           'application/json': {
-            schema: z.object({ success: z.literal(true), data: z.array(PostSchema) }),
+            schema: z.object({
+              success: z.literal(true),
+              data: z.array(PostSchema),
+              totalDocs: z.number(),
+              totalPages: z.number(),
+              limit: z.number(),
+              offset: z.number(),
+            }),
           },
         },
         description: 'Post list',
@@ -105,18 +112,41 @@ app.openapi(
     const { status, authorId, limit, offset } = c.req.valid('query');
     if (!user) {
       // Public access: only published posts, no author filtering
-      const data = await postQueries.getAllPosts(db, { status: 'published', limit, offset });
-      return c.json({ success: true as const, data: data.map(serializePost) }, 200);
+      const filterOpts = { status: 'published' as const };
+      const [data, totalDocs] = await Promise.all([
+        postQueries.getAllPosts(db, { ...filterOpts, limit, offset }),
+        postQueries.countPosts(db, filterOpts),
+      ]);
+      return c.json(
+        {
+          success: true as const,
+          data: data.map(serializePost),
+          totalDocs,
+          totalPages: Math.ceil(totalDocs / limit),
+          limit,
+          offset,
+        },
+        200,
+      );
     }
     // Non-admin users can only read their own posts
     const effectiveAuthorId = user.role === 'admin' ? authorId : user.id;
-    const data = await postQueries.getAllPosts(db, {
-      status,
-      authorId: effectiveAuthorId,
-      limit,
-      offset,
-    });
-    return c.json({ success: true as const, data: data.map(serializePost) }, 200);
+    const filterOpts = { status, authorId: effectiveAuthorId };
+    const [data, totalDocs] = await Promise.all([
+      postQueries.getAllPosts(db, { ...filterOpts, limit, offset }),
+      postQueries.countPosts(db, filterOpts),
+    ]);
+    return c.json(
+      {
+        success: true as const,
+        data: data.map(serializePost),
+        totalDocs,
+        totalPages: Math.ceil(totalDocs / limit),
+        limit,
+        offset,
+      },
+      200,
+    );
   },
 );
 

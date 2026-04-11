@@ -88,7 +88,14 @@ app.openapi(
       200: {
         content: {
           'application/json': {
-            schema: z.object({ success: z.literal(true), data: z.array(OrderSchema) }),
+            schema: z.object({
+              success: z.literal(true),
+              data: z.array(OrderSchema),
+              totalDocs: z.number(),
+              totalPages: z.number(),
+              limit: z.number(),
+              offset: z.number(),
+            }),
           },
         },
         description: 'Order list',
@@ -104,8 +111,22 @@ app.openapi(
 
     // Admin sees all orders; non-admin sees only their own
     const customerId = user.role === 'admin' ? undefined : user.id;
-    const data = await orderQueries.getAllOrders(db, { customerId, status, limit, offset });
-    return c.json({ success: true as const, data: data.map(serializeOrder) }, 200);
+    const filterOpts = { customerId, status };
+    const [data, totalDocs] = await Promise.all([
+      orderQueries.getAllOrders(db, { ...filterOpts, limit, offset }),
+      orderQueries.countOrders(db, filterOpts),
+    ]);
+    return c.json(
+      {
+        success: true as const,
+        data: data.map(serializeOrder),
+        totalDocs,
+        totalPages: Math.ceil(totalDocs / limit),
+        limit,
+        offset,
+      },
+      200,
+    );
   },
 );
 

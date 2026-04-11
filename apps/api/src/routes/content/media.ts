@@ -167,7 +167,14 @@ app.openapi(
       200: {
         content: {
           'application/json': {
-            schema: z.object({ success: z.literal(true), data: z.array(MediaSchema) }),
+            schema: z.object({
+              success: z.literal(true),
+              data: z.array(MediaSchema),
+              totalDocs: z.number(),
+              totalPages: z.number(),
+              limit: z.number(),
+              offset: z.number(),
+            }),
           },
         },
         description: 'Media list',
@@ -181,8 +188,22 @@ app.openapi(
     const { mimeType, limit, offset } = c.req.valid('query');
     // Non-admin users only see their own uploads (R5-C5 multi-tenancy fix)
     const uploadedBy = user.role === 'admin' ? undefined : user.id;
-    const data = await mediaQueries.getAllMedia(db, { mimeType, uploadedBy, limit, offset });
-    return c.json({ success: true as const, data }, 200);
+    const filterOpts = { mimeType, uploadedBy };
+    const [data, totalDocs] = await Promise.all([
+      mediaQueries.getAllMedia(db, { ...filterOpts, limit, offset }),
+      mediaQueries.countMedia(db, filterOpts),
+    ]);
+    return c.json(
+      {
+        success: true as const,
+        data,
+        totalDocs,
+        totalPages: Math.ceil(totalDocs / limit),
+        limit,
+        offset,
+      },
+      200,
+    );
   },
 );
 

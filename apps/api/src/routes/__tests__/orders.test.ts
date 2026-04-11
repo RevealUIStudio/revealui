@@ -23,6 +23,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { mockOrderQueries } = vi.hoisted(() => ({
   mockOrderQueries: {
     getAllOrders: vi.fn(),
+    countOrders: vi.fn(),
     createOrder: vi.fn(),
     getOrderById: vi.fn(),
     updateOrder: vi.fn(),
@@ -106,6 +107,7 @@ describe('GET /orders — list orders', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockOrderQueries.getAllOrders.mockResolvedValue([]);
+    mockOrderQueries.countOrders.mockResolvedValue(0);
   });
 
   it('admin sees all orders (no customerId filter)', async () => {
