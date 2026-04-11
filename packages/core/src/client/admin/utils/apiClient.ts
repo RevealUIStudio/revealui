@@ -297,6 +297,35 @@ export class APIClient {
   }
 
   /**
+   * Batch delete documents
+   */
+  async batchDelete(options: { collection: string; ids: string[] }): Promise<void> {
+    await this.request('/api/batch/delete', {
+      method: 'POST',
+      body: JSON.stringify({
+        collection: options.collection,
+        items: options.ids.map((id) => ({ id })),
+      }),
+    });
+  }
+
+  /**
+   * Batch update documents (e.g., bulk publish)
+   */
+  async batchUpdate(options: {
+    collection: string;
+    items: Array<{ id: string } & Record<string, unknown>>;
+  }): Promise<void> {
+    await this.request('/api/batch/update', {
+      method: 'POST',
+      body: JSON.stringify({
+        collection: options.collection,
+        items: options.items,
+      }),
+    });
+  }
+
+  /**
    * Find a global by slug
    */
   async findGlobal(options: FindGlobalOptions): Promise<RevealDocument> {
