@@ -1048,49 +1048,6 @@ await coordinator.stop();
 
 `start()` auto-detects installed harnesses, registers this session in `.claude/workboard.md`, and opens a JSON-RPC socket. `stop()` cleans up the session and closes the socket.
 
-## Adapters
-
-### ClaudeCodeAdapter
-
-Adapter for Claude Code running in a terminal or Zed ACP session.
-
-```typescript
-import { ClaudeCodeAdapter } from "@revealui/harnesses";
-
-const adapter = new ClaudeCodeAdapter({
-  workboardPath: process.env.REVEALUI_WORKBOARD_PATH,
-});
-```
-
-**Actual capabilities:**
-
-| Capability       | Supported                                  |
-| ---------------- | ------------------------------------------ |
-| `applyEdit`      | ✅                                         |
-| `readWorkboard`  | ✅ (when `REVEALUI_WORKBOARD_PATH` is set) |
-| `writeWorkboard` | ✅ (when `REVEALUI_WORKBOARD_PATH` is set) |
-| `generateCode`   | ❌ (delegates to the model)                |
-| `analyzeCode`    | ❌ (delegates to the model)                |
-| `applyConfig`    | ❌                                         |
-
-**Commands:**
-
-```typescript
-// Read the current workboard state
-await adapter.execute({ type: "read-workboard" });
-
-// Update your session row
-await adapter.execute({
-  type: "update-workboard",
-  sessionId: "zed-1",
-  task: "Add rate limiting to API routes",
-  files: ["apps/api/src/routes/auth.ts"],
-});
-
-// Get Claude Code status
-await adapter.execute({ type: "get-status" });
-```
-
 ## Workboard
 
 The workboard is a markdown file at `.claude/workboard.md` that tracks active sessions, claimed files, and recent events.
@@ -1139,7 +1096,7 @@ const stale = wb.detectStale();
 import { HarnessRegistry, RpcServer } from "@revealui/harnesses";
 
 const registry = new HarnessRegistry();
-registry.register("claude-code", new ClaudeCodeAdapter());
+registry.register("native", new RevealUIAgentAdapter());
 
 const server = new RpcServer(registry, "/tmp/harness.sock");
 await server.start();

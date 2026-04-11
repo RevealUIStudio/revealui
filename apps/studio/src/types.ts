@@ -87,7 +87,7 @@ export interface AgentSession {
 // ── Agent Spawner ──────────────────────────────────────────────────────────
 
 /** Inference backend for spawned agents */
-export type AgentBackend = 'Snap' | 'Ollama' | 'ClaudeCode';
+export type AgentBackend = 'Snap' | 'Ollama';
 
 /** Snapshot of a spawned agent session */
 export interface AgentSessionInfo {
@@ -98,8 +98,6 @@ export interface AgentSessionInfo {
   prompt: string;
   status: 'running' | 'stopped' | 'errored';
   pid: number | null;
-  /** Whether this session is a PTY (interactive terminal). */
-  isPty: boolean;
 }
 
 /** Streamed output from an agent process */

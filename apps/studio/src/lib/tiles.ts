@@ -118,12 +118,6 @@ const CROSS_PLATFORM_TILES: TileDefinition[] = [
     category: 'editor',
     action: { type: 'shell', program: 'zed', args: ['.'] },
   },
-  {
-    id: 'claude-code',
-    label: 'Claude Code',
-    category: 'ai',
-    action: { type: 'shell', program: 'claude' },
-  },
 ];
 
 // ── Platform-specific shell tiles ───────────────────────────────────────────
@@ -146,12 +140,6 @@ const WINDOWS_TILES: TileDefinition[] = [
     label: 'PowerShell',
     category: 'terminal',
     action: { type: 'shell', program: 'wt.exe', args: ['-p', 'PowerShell'] },
-  },
-  {
-    id: 'claude-desktop',
-    label: 'Claude Desktop',
-    category: 'ai',
-    action: { type: 'shell', program: 'claude-desktop' },
   },
   {
     id: 'chrome-dev',
@@ -179,12 +167,6 @@ const MACOS_TILES: TileDefinition[] = [
     label: 'Terminal',
     category: 'terminal',
     action: { type: 'shell', program: 'open', args: ['-a', 'Terminal'] },
-  },
-  {
-    id: 'claude-desktop',
-    label: 'Claude Desktop',
-    category: 'ai',
-    action: { type: 'shell', program: 'open', args: ['-a', 'Claude'] },
   },
   {
     id: 'chrome-dev',
@@ -220,12 +202,6 @@ const LINUX_TILES: TileDefinition[] = [
     label: 'GNOME Terminal',
     category: 'terminal',
     action: { type: 'shell', program: 'gnome-terminal' },
-  },
-  {
-    id: 'claude-desktop',
-    label: 'Claude Desktop',
-    category: 'ai',
-    action: { type: 'shell', program: 'claude-desktop' },
   },
   {
     id: 'chrome-dev',
@@ -302,8 +278,6 @@ const PROCESS_NAMES_WINDOWS: Record<string, string[]> = {
   'revealui-tmux': ['tmux'],
   wsl: ['wt.exe', 'WindowsTerminal.exe'],
   powershell: ['powershell.exe', 'pwsh.exe'],
-  'claude-desktop': ['Claude.exe'],
-  'claude-code': ['claude'],
   'chrome-dev': ['chrome.exe'],
   'chrome-personal': ['chrome.exe'],
 };
@@ -312,8 +286,6 @@ const PROCESS_NAMES_MACOS: Record<string, string[]> = {
   zed: ['zed', 'Zed'],
   'revealui-tmux': ['tmux'],
   'terminal-app': ['Terminal'],
-  'claude-desktop': ['Claude'],
-  'claude-code': ['claude'],
   'chrome-dev': ['Google Chrome'],
   'chrome-personal': ['Google Chrome'],
 };
@@ -322,8 +294,6 @@ const PROCESS_NAMES_LINUX: Record<string, string[]> = {
   zed: ['zed'],
   'revealui-tmux': ['tmux'],
   'gnome-terminal': ['gnome-terminal'],
-  'claude-desktop': ['claude-desktop'],
-  'claude-code': ['claude'],
   'chrome-dev': ['chrome', 'google-chrome'],
   'chrome-personal': ['chrome', 'google-chrome'],
 };

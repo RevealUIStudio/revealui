@@ -566,17 +566,7 @@ export class RpcServer {
         if (!(name && backend && model && prompt)) {
           return this.missingParam(id, 'name, backend, model, prompt');
         }
-        const sessionId = this.spawner.spawn(
-          name,
-          backend as 'Snap' | 'Ollama' | 'ClaudeCode',
-          model,
-          prompt,
-          {
-            cwd: p.cwd as string | undefined,
-            cols: p.cols as number | undefined,
-            rows: p.rows as number | undefined,
-          },
-        );
+        const sessionId = this.spawner.spawn(name, backend as 'Snap' | 'Ollama', model, prompt);
         return { jsonrpc: '2.0', id, result: { sessionId } };
       }
 
@@ -601,23 +591,14 @@ export class RpcServer {
         return { jsonrpc: '2.0', id, result: { ok: true } };
       }
 
-      case 'agent.input': {
-        if (!this.spawner) return this.noService(id, 'spawner');
-        const sessionId = p.sessionId as string | undefined;
-        const data = p.data as string | undefined;
-        if (!(sessionId && data !== undefined)) return this.missingParam(id, 'sessionId, data');
-        this.spawner.write(sessionId, data);
-        return { jsonrpc: '2.0', id, result: { ok: true } };
-      }
-
+      case 'agent.input':
       case 'agent.resize': {
-        if (!this.spawner) return this.noService(id, 'spawner');
-        const sessionId = p.sessionId as string | undefined;
-        const cols = p.cols as number | undefined;
-        const rows = p.rows as number | undefined;
-        if (!(sessionId && cols && rows)) return this.missingParam(id, 'sessionId, cols, rows');
-        this.spawner.resize(sessionId, cols, rows);
-        return { jsonrpc: '2.0', id, result: { ok: true } };
+        // PTY interaction removed — Snap/Ollama backends are request-response only
+        return {
+          jsonrpc: '2.0',
+          id,
+          error: { code: -32601, message: 'PTY interaction not supported for current backends' },
+        };
       }
 
       // -----------------------------------------------------------------------

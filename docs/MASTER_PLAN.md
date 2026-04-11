@@ -706,8 +706,7 @@ Holster: "Here is the shared state where coordination happens"
 
 **Phase 2 — VAUGHN Core:**
 - [ ] Define `VaughnAdapter` interface in `@revealui/harnesses`
-- [ ] Refactor `ClaudeCodeAdapter` to implement `VaughnAdapter`
-- [ ] Implement `CodexAdapter` (new)
+- [ ] Implement native `VaughnAdapter` (replaces removed vendor adapters)
 - [ ] Event normalization layer (tool events → VAUGHN events)
 - [ ] Capability-aware task dispatch in coordinator
 - [ ] Config normalization (JSON ↔ TOML ↔ Markdown)
