@@ -387,6 +387,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     pricing: { maxRequests: 10, windowMs: ONE_MINUTE },
     'studio-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
     'terminal-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
+    'terminal-sessions': { maxRequests: 10, windowMs: ONE_MINUTE },
     maintenance: { maxRequests: 1, windowMs: ONE_MINUTE },
     webhook: { maxRequests: 100, windowMs: ONE_MINUTE },
   },
@@ -872,6 +873,9 @@ app.use('/api/v1/terminal-auth/*', routeLimit('terminal-auth'));
 app.route('/api/terminal-auth', terminalAuthRoute);
 
 // Terminal WebSocket bridge — daemon PTY sessions for remote access
+// Auth required: terminal sessions give PTY access to the server
+app.use('/api/terminal/*', writeProtected);
+app.use('/api/terminal/*', routeLimit('terminal-sessions'));
 const terminalWs = createTerminalRoute();
 app.route('/api/terminal', terminalWs.app);
 
