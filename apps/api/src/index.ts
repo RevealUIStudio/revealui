@@ -372,6 +372,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-subscription': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-usage': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-credits': { maxRequests: 30, windowMs: ONE_MINUTE },
+    'billing-invoices': { maxRequests: 20, windowMs: ONE_MINUTE },
     'billing-metrics': { maxRequests: 10, windowMs: ONE_MINUTE },
     'admin-observability': { maxRequests: 30, windowMs: ONE_MINUTE },
     'content-batch': { maxRequests: 10, windowMs: ONE_MINUTE },
@@ -482,6 +483,8 @@ app.use('/api/billing/usage', routeLimit('billing-usage'));
 app.use('/api/v1/billing/usage', routeLimit('billing-usage'));
 app.use('/api/billing/credits', routeLimit('billing-credits'));
 app.use('/api/v1/billing/credits', routeLimit('billing-credits'));
+app.use('/api/billing/invoices', routeLimit('billing-invoices'));
+app.use('/api/v1/billing/invoices', routeLimit('billing-invoices'));
 app.use('/api/billing/metrics', routeLimit('billing-metrics'));
 app.use('/api/v1/billing/metrics', routeLimit('billing-metrics'));
 
@@ -902,9 +905,11 @@ function validateStartup(): void {
     const prodRequired = [
       'REVEALUI_SECRET',
       'REVEALUI_KEK',
+      'REVEALUI_PUBLIC_SERVER_URL',
       'STRIPE_SECRET_KEY',
       'STRIPE_WEBHOOK_SECRET',
       'REVEALUI_LICENSE_PRIVATE_KEY',
+      'REVEALUI_CRON_SECRET',
       'CORS_ORIGIN',
     ];
     const missingProd = prodRequired.filter((key) => !process.env[key]);

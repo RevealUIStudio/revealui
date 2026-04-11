@@ -207,6 +207,25 @@ const RefundResponseSchema = z.object({
   currency: z.string().openapi({ description: 'Currency code', example: 'usd' }),
 });
 
+const InvoiceItemSchema = z.object({
+  id: z.string().openapi({ description: 'Stripe invoice ID', example: 'in_abc123' }),
+  number: z.string().nullable().openapi({ description: 'Invoice number', example: 'INV-0001' }),
+  status: z.string().openapi({ description: 'Invoice status', example: 'paid' }),
+  amountDue: z.number().openapi({ description: 'Amount due in cents', example: 4900 }),
+  amountPaid: z.number().openapi({ description: 'Amount paid in cents', example: 4900 }),
+  currency: z.string().openapi({ description: 'Currency code', example: 'usd' }),
+  created: z.string().openapi({ description: 'Created date (ISO 8601)' }),
+  periodStart: z.string().openapi({ description: 'Billing period start (ISO 8601)' }),
+  periodEnd: z.string().openapi({ description: 'Billing period end (ISO 8601)' }),
+  pdfUrl: z.string().nullable().openapi({ description: 'URL to download invoice PDF' }),
+  hostedUrl: z.string().nullable().openapi({ description: 'URL to view invoice online' }),
+});
+
+const InvoicesResponseSchema = z.object({
+  invoices: z.array(InvoiceItemSchema),
+  hasMore: z.boolean().openapi({ description: 'Whether more invoices exist' }),
+});
+
 const UpgradeRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the target tier',
@@ -675,6 +694,82 @@ app.openapi(subscriptionRoute, async (c) => {
     },
     200,
   );
+});
+
+// GET /api/billing/invoices — List invoices for the current user
+const invoicesRoute = createRoute({
+  method: 'get',
+  path: '/invoices',
+  tags: ['billing'],
+  summary: 'List invoices',
+  description:
+    "Returns the current user's Stripe invoices with amounts, status, and PDF download links.",
+  request: {
+    query: z.object({
+      limit: z
+        .string()
+        .optional()
+        .openapi({ description: 'Max invoices to return (1-100, default 10)', example: '10' }),
+      starting_after: z
+        .string()
+        .optional()
+        .openapi({ description: 'Cursor for pagination (Stripe invoice ID)', example: 'in_abc' }),
+    }),
+  },
+  responses: {
+    200: {
+      content: { 'application/json': { schema: InvoicesResponseSchema } },
+      description: 'List of invoices',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(invoicesRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const db = getClient();
+  const [dbUser] = await db
+    .select({ stripeCustomerId: users.stripeCustomerId })
+    .from(users)
+    .where(eq(users.id, user.id));
+
+  if (!dbUser?.stripeCustomerId) {
+    return c.json({ invoices: [], hasMore: false }, 200);
+  }
+
+  const query = c.req.query();
+  const limit = Math.min(Math.max(Number.parseInt(query.limit ?? '10', 10) || 10, 1), 100);
+
+  const stripeInvoices = await withStripe((stripe) =>
+    stripe.invoices.list({
+      customer: dbUser.stripeCustomerId!,
+      limit,
+      ...(query.starting_after ? { starting_after: query.starting_after } : {}),
+    }),
+  );
+
+  const invoices = stripeInvoices.data.map((inv) => ({
+    id: inv.id,
+    number: inv.number ?? null,
+    status: inv.status ?? 'unknown',
+    amountDue: inv.amount_due,
+    amountPaid: inv.amount_paid,
+    currency: inv.currency,
+    created: new Date(inv.created * 1000).toISOString(),
+    periodStart: new Date(inv.period_start * 1000).toISOString(),
+    periodEnd: new Date(inv.period_end * 1000).toISOString(),
+    pdfUrl: inv.invoice_pdf ?? null,
+    hostedUrl: inv.hosted_invoice_url ?? null,
+  }));
+
+  return c.json({ invoices, hasMore: stripeInvoices.has_more }, 200);
 });
 
 /** Tier rank ordering for upgrade/downgrade direction validation */

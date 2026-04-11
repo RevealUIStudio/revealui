@@ -17,20 +17,6 @@ function isValidEmail(email: string): boolean {
   return true;
 }
 
-const RATE_LIMIT_WINDOW_MS = 300_000; // 5 minutes
-const RATE_LIMIT_MAX = 3;
-const recentRequests = new Map<string, number[]>();
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const timestamps = recentRequests.get(ip) ?? [];
-  const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
-  if (recent.length >= RATE_LIMIT_MAX) return true;
-  recent.push(now);
-  recentRequests.set(ip, recent);
-  return false;
-}
-
 interface ContactBody {
   name?: string;
   email?: string;
@@ -39,18 +25,6 @@ interface ContactBody {
 }
 
 export async function POST(request: Request) {
-  const ip =
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
-    request.headers.get('x-real-ip') ??
-    'unknown';
-
-  if (isRateLimited(ip)) {
-    return NextResponse.json(
-      { message: 'Too many requests. Please try again in a few minutes.' },
-      { status: 429 },
-    );
-  }
-
   let body: ContactBody;
   try {
     body = (await request.json()) as ContactBody;
