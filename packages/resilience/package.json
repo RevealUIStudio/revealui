@@ -45,5 +45,18 @@
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/resilience"
-  }
+  },
+  "homepage": "https://revealui.com",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
+  },
+  "keywords": [
+    "revealui",
+    "resilience",
+    "circuit-breaker",
+    "retry",
+    "bulkhead",
+    "fault-tolerance"
+  ]
 }
