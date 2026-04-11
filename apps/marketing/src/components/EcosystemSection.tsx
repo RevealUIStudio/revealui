@@ -1,7 +1,7 @@
 const projects = [
   {
     name: 'RevealUI',
-    tagline: 'The agentic business runtime',
+    tagline: 'Agentic business runtime',
     description:
       'Users, content, products, payments, and AI agents — five business primitives, pre-wired into one deployable stack. 22 packages on npm, MIT licensed.',
     license: 'MIT + Fair Source (Pro)',

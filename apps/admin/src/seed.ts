@@ -215,7 +215,7 @@ const sampleContent = {
     },
     {
       title: 'VISION',
-      name: 'The Agentic Business Runtime',
+      name: 'Agentic Business Runtime',
       description:
         'SaaS taught us subscription pricing. The next era teaches us adaptive intelligence. RevealUI ships with AI agents that learn from your data, automate your workflows, and act on behalf of your users — all running on open-source models.',
       alt: 'RevealUI agentic vision',

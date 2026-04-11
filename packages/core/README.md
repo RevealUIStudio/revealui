@@ -6,7 +6,7 @@
 
 The core runtime engine for [RevealUI](https://revealui.com) — collections, admin UI, rich text, security, observability, and plugins.
 
-Part of the [RevealUI monorepo](https://github.com/RevealUIStudio/revealui) — the open-source agentic business runtime.
+Part of the [RevealUI monorepo](https://github.com/RevealUIStudio/revealui) — open-source agentic business runtime.
 
 ## Features
 
