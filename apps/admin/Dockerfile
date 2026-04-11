@@ -14,6 +14,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY .npmrc* ./
 
 # Copy all workspace package.json files for dependency resolution
+COPY packages/ai/package.json ./packages/ai/
 COPY packages/auth/package.json ./packages/auth/
 COPY packages/cache/package.json ./packages/cache/
 COPY packages/config/package.json ./packages/config/
@@ -21,9 +22,12 @@ COPY packages/contracts/package.json ./packages/contracts/
 COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
 COPY packages/dev/package.json ./packages/dev/
+COPY packages/paywall/package.json ./packages/paywall/
 COPY packages/presentation/package.json ./packages/presentation/
 COPY packages/resilience/package.json ./packages/resilience/
 COPY packages/security/package.json ./packages/security/
+COPY packages/services/package.json ./packages/services/
+COPY packages/setup/package.json ./packages/setup/
 COPY packages/sync/package.json ./packages/sync/
 COPY packages/utils/package.json ./packages/utils/
 COPY apps/admin/package.json ./apps/admin/
@@ -49,7 +53,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV SKIP_ENV_VALIDATION=true
 
-RUN pnpm --filter admin run build
+RUN pnpm turbo run build --filter=admin...
 
 # Runner stage
 FROM base AS runner
