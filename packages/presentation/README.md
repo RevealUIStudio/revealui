@@ -1,10 +1,10 @@
 # @revealui/presentation
 
-50+ native UI components for RevealUI — built with React 19, Tailwind CSS v4, and CVA. Zero external UI library dependencies (only clsx + class-variance-authority).
+57 native UI components for RevealUI — built with React 19, Tailwind CSS v4, and CVA. Zero external UI library dependencies (only clsx + class-variance-authority).
 
 ## Features
 
-- **48 Components** — Forms, data display, feedback, navigation, media, and layout
+- **57 Components** — Forms, data display, feedback, navigation, media, and layout
 - **6 Primitives** — Low-level building blocks (Box, Flex, Grid, Heading, Text, Slot)
 - **14 Hooks** — Focus trap, click outside, popover, roving tabindex, scroll lock, and more
 - **Headless + Styled** — Many components ship both unstyled (headless) and styled (CVA) variants
@@ -26,7 +26,7 @@ import { Box, Flex } from '@revealui/presentation/primitives'
 import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 ```
 
-## Components (48)
+## Components (57)
 
 ### Layout
 | Component | Description |

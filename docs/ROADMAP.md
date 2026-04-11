@@ -21,7 +21,7 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-04-10.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
-| **RevealUI** (monorepo) | Beta | Deployed, 13,700+ tests, 23 npm packages. No paying users yet. |
+| **RevealUI** (monorepo) | Beta | Deployed, 20,000+ tests, 22 npm packages. No paying users yet. |
 | **Forge** (self-hosted) | Beta | Docker stack complete, license enforcement built. No external customers. |
 | **RevVault** (secrets) | Beta | Rust CLI + desktop app, age-encrypted vault. Not published to crates.io. |
 | **Studio** (desktop) | Alpha | Tauri 2 + React 19, agent coordination UI. No published binaries. |
@@ -45,9 +45,9 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **Auth system** — Session-based auth with bcrypt, RBAC/ABAC, rate limiting, brute-force protection, TOTP 2FA _(infrastructure built, not yet wired into sign-in flow)_, WebAuthn passkeys, magic link recovery, OAuth (GitHub, Google, Vercel) _(note: sessions are not currently bound to IP/UA)_
 - **Content engine** — Schema-first collections, Lexical rich text, media handling, draft/live lifecycle, REST API with OpenAPI spec
 - **Billing stack** — Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/forge)
-- **UI components** — 52 native React 19 components (Tailwind v4, zero external UI deps)
+- **UI components** — 57 native React 19 components (Tailwind v4, zero external UI deps)
 - **Real-time sync** — ElectricSQL integration for editor/client/agent sync _(experimental — basic shape subscriptions, no offline-first)_
-- **Database** — 76+ tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
+- **Database** — 81 tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
 - **CLI** — `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents** — A2A protocol, CRDT memory, open-model inference, streaming, tool execution
 - **MCP servers** — 5 production servers (Stripe, Neon, Supabase, Vercel, Playwright)
