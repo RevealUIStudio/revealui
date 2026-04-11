@@ -373,6 +373,8 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-usage': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-credits': { maxRequests: 30, windowMs: ONE_MINUTE },
     'billing-invoices': { maxRequests: 20, windowMs: ONE_MINUTE },
+    'billing-pause': { maxRequests: 5, windowMs: ONE_MINUTE },
+    'billing-resume': { maxRequests: 5, windowMs: ONE_MINUTE },
     'billing-metrics': { maxRequests: 10, windowMs: ONE_MINUTE },
     'admin-observability': { maxRequests: 30, windowMs: ONE_MINUTE },
     'content-batch': { maxRequests: 10, windowMs: ONE_MINUTE },
@@ -485,6 +487,10 @@ app.use('/api/billing/credits', routeLimit('billing-credits'));
 app.use('/api/v1/billing/credits', routeLimit('billing-credits'));
 app.use('/api/billing/invoices', routeLimit('billing-invoices'));
 app.use('/api/v1/billing/invoices', routeLimit('billing-invoices'));
+app.use('/api/billing/pause', routeLimit('billing-pause'));
+app.use('/api/v1/billing/pause', routeLimit('billing-pause'));
+app.use('/api/billing/resume', routeLimit('billing-resume'));
+app.use('/api/v1/billing/resume', routeLimit('billing-resume'));
 app.use('/api/billing/metrics', routeLimit('billing-metrics'));
 app.use('/api/v1/billing/metrics', routeLimit('billing-metrics'));
 

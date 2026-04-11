@@ -1042,6 +1042,122 @@ app.openapi(downgradeRoute, async (c) => {
   return c.json({ success: true, effectiveAt: effectiveDate }, 200);
 });
 
+// POST /api/billing/pause — Pause an active subscription
+const PauseResponseSchema = z.object({
+  success: z.boolean(),
+  resumesAt: z.string().nullable().openapi({ description: 'When billing resumes (ISO 8601)' }),
+});
+
+const pauseRoute = createRoute({
+  method: 'post',
+  path: '/pause',
+  tags: ['billing'],
+  summary: 'Pause subscription',
+  description:
+    'Pauses billing for the current subscription. Access is retained during the pause period.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: PauseResponseSchema } },
+      description: 'Subscription paused',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(pauseRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
+
+  const subscriptionList = await withStripe((stripe) =>
+    stripe.subscriptions.list({ customer: stripeCustomerId, status: 'active', limit: 1 }),
+  );
+
+  const subscription = subscriptionList.data[0];
+  if (!subscription) {
+    throw new HTTPException(400, { message: 'No active subscription found to pause.' });
+  }
+
+  if (subscription.pause_collection) {
+    throw new HTTPException(400, { message: 'Subscription is already paused.' });
+  }
+
+  const updated = await withStripe((stripe) =>
+    stripe.subscriptions.update(
+      subscription.id,
+      { pause_collection: { behavior: 'keep_as_draft' } },
+      { idempotencyKey: `pause-${subscription.id}-${user.id}-${Date.now()}` },
+    ),
+  );
+
+  const resumesAt = updated.pause_collection?.resumes_at
+    ? new Date(updated.pause_collection.resumes_at * 1000).toISOString()
+    : null;
+
+  return c.json({ success: true, resumesAt }, 200);
+});
+
+// POST /api/billing/resume — Resume a paused subscription
+const ResumeResponseSchema = z.object({
+  success: z.boolean(),
+});
+
+const resumeRoute = createRoute({
+  method: 'post',
+  path: '/resume',
+  tags: ['billing'],
+  summary: 'Resume subscription',
+  description: 'Resumes billing for a paused subscription.',
+  responses: {
+    200: {
+      content: { 'application/json': { schema: ResumeResponseSchema } },
+      description: 'Subscription resumed',
+    },
+    401: {
+      content: { 'application/json': { schema: ErrorSchema } },
+      description: 'Not authenticated',
+    },
+  },
+});
+
+app.openapi(resumeRoute, async (c) => {
+  const user = c.get('user');
+  if (!user) {
+    throw new HTTPException(401, { message: 'Authentication required' });
+  }
+
+  const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
+
+  const subscriptionList = await withStripe((stripe) =>
+    stripe.subscriptions.list({ customer: stripeCustomerId, status: 'active', limit: 1 }),
+  );
+
+  const subscription = subscriptionList.data[0];
+  if (!subscription) {
+    throw new HTTPException(400, { message: 'No active subscription found to resume.' });
+  }
+
+  if (!subscription.pause_collection) {
+    throw new HTTPException(400, { message: 'Subscription is not paused.' });
+  }
+
+  await withStripe((stripe) =>
+    stripe.subscriptions.update(
+      subscription.id,
+      { pause_collection: '' as unknown as Stripe.SubscriptionUpdateParams.PauseCollection },
+      { idempotencyKey: `resume-${subscription.id}-${user.id}-${Date.now()}` },
+    ),
+  );
+
+  return c.json({ success: true }, 200);
+});
+
 // POST /api/billing/checkout-perpetual — One-time perpetual license purchase
 const PerpetualCheckoutRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({

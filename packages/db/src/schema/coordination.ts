@@ -118,7 +118,10 @@ export const coordinationWorkItems = pgTable(
     parentId: text('parent_id'),
     metadata: jsonb('metadata').$type<Record<string, unknown>>(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
     completedAt: timestamp('completed_at', { withTimezone: true }),
   },
   (table) => [index('coordination_work_items_status_owner_idx').on(table.status, table.ownerAgent)],

@@ -9,7 +9,15 @@ vi.mock('@revealui/core/observability/logger', () => ({
 }));
 
 // Use real validatePasswordStrength (not mocked) — ensures test coverage
-// catches regressions in password strength rules
+// catches regressions in password strength rules.
+// Mock checkPasswordBreach to avoid real HIBP network calls.
+vi.mock('../password-validation.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../password-validation.js')>();
+  return {
+    ...actual,
+    checkPasswordBreach: vi.fn().mockResolvedValue(0),
+  };
+});
 
 // Mock bcryptjs
 vi.mock('bcryptjs', () => ({

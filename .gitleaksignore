@@ -46,3 +46,9 @@ apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:250
 apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:261
 apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:313
 packages/security/src/__tests__/security.test.ts:generic-api-key:64
+apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:422
+apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:509
+apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:620
+apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:733
+apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:815
+apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:863

@@ -72,7 +72,10 @@ export const marketplaceAgents = pgTable(
     stripeAccountId: text('stripe_account_id'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     index('marketplace_agents_publisher_id_idx').on(table.publisherId),
@@ -222,7 +225,10 @@ export const taskSubmissions = pgTable(
     errorMessage: text('error_message'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     index('task_submissions_submitter_id_idx').on(table.submitterId),

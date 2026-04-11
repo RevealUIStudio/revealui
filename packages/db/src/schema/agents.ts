@@ -75,7 +75,10 @@ export const agentContexts = pgTable(
 
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     index('agent_contexts_session_id_idx').on(table.sessionId),
@@ -173,7 +176,10 @@ export const conversations = pgTable(
 
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [
     index('conversations_user_id_idx').on(table.userId),
@@ -239,7 +245,10 @@ export const userDevices = pgTable('user_devices', {
 
   // Timestamps
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .$onUpdateFn(() => new Date())
+    .defaultNow()
+    .notNull(),
 });
 
 // =============================================================================
@@ -270,7 +279,10 @@ export const syncMetadata = pgTable(
 
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [index('sync_metadata_user_id_idx').on(table.userId)],
 );
@@ -353,7 +365,10 @@ export const registeredAgents = pgTable(
     id: text('id').primaryKey(),
     definition: jsonb('definition').$type<unknown>().notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [index('registered_agents_updated_at_idx').on(table.updatedAt)],
 );
@@ -387,7 +402,10 @@ export const agentTaskUsage = pgTable(
     /** Tasks beyond the tier quota (for overage billing). */
     overage: integer('overage').notNull().default(0),
 
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   (table) => [primaryKey({ columns: [table.userId, table.cycleStart] })],
 );
@@ -417,7 +435,10 @@ export const agentCreditBalance = pgTable(
     /** Lifetime total credits ever purchased (for analytics). */
     totalPurchased: integer('total_purchased').notNull().default(0),
 
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
   },
   () => [
     check('agent_credit_balance_non_negative', sql`balance >= 0`),

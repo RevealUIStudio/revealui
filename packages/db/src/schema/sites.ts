@@ -52,7 +52,10 @@ export const sites = pgTable(
 
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
     publishedAt: timestamp('published_at', { withTimezone: true }),
 
     // Soft-delete: null = active, timestamp = when deleted

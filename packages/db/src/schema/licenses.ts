@@ -44,7 +44,10 @@ export const licenses = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 
     /** When the license was last updated */
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
 
     /** When the license expires (null = never for perpetual licenses) */
     expiresAt: timestamp('expires_at', { withTimezone: true }),
