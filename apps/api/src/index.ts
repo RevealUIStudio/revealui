@@ -1,3 +1,24 @@
+import * as Sentry from '@sentry/node';
+
+// Initialize Sentry before all other imports for proper instrumentation
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV ?? 'production',
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    beforeSend(event) {
+      // Don't send events in non-production environments
+      if (process.env.NODE_ENV !== 'production') return null;
+      // Strip sensitive headers
+      if (event.request?.headers) {
+        delete event.request.headers.cookie;
+        delete event.request.headers.authorization;
+      }
+      return event;
+    },
+  });
+}
+
 import { serve } from '@hono/node-server';
 import { swaggerUI } from '@hono/swagger-ui';
 import { initializeLicense } from '@revealui/core/license';

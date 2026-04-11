@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/node';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { errorEvents } from '@revealui/db/schema';
@@ -53,6 +54,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
   if (err instanceof HTTPException) {
     // Only persist 5xx server errors — 4xx are client mistakes, not bugs
     if (err.status >= 500) {
+      Sentry.captureException(err, { extra: { requestId, url } });
       persistError('error', err.message, err.stack, requestId, url);
     }
     return c.json(
@@ -89,7 +91,8 @@ export const errorHandler: ErrorHandler = (err, c) => {
     );
   }
 
-  // Unhandled server error — persist
+  // Unhandled server error — persist and report to Sentry
+  Sentry.captureException(error, { extra: { requestId, url } });
   persistError('error', error.message, error.stack, requestId, url);
 
   return c.json(
