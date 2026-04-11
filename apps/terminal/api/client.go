@@ -29,6 +29,11 @@ func NewClient(baseURL, serviceToken string) *Client {
 	}
 }
 
+// HTTPClient returns the underlying http.Client for reuse by other packages.
+func (c *Client) HTTPClient() *http.Client {
+	return c.httpClient
+}
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
