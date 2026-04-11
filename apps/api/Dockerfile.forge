@@ -12,7 +12,6 @@ WORKDIR /app
 
 # Install dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
-COPY patches ./patches
 COPY packages/auth/package.json       ./packages/auth/
 COPY packages/config/package.json     ./packages/config/
 COPY packages/contracts/package.json  ./packages/contracts/
