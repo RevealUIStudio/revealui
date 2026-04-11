@@ -18,6 +18,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { mockPostQueries, mockMediaQueries, mockSiteQueries, mockPageQueries } = vi.hoisted(() => ({
   mockPostQueries: {
     getAllPosts: vi.fn(),
+    countPosts: vi.fn(),
     createPost: vi.fn(),
     getPostById: vi.fn(),
     getPostBySlug: vi.fn(),
@@ -26,12 +27,14 @@ const { mockPostQueries, mockMediaQueries, mockSiteQueries, mockPageQueries } = 
   },
   mockMediaQueries: {
     getAllMedia: vi.fn(),
+    countMedia: vi.fn(),
     getMediaById: vi.fn(),
     updateMedia: vi.fn(),
     deleteMedia: vi.fn(),
   },
   mockSiteQueries: {
     getAllSites: vi.fn(),
+    countSites: vi.fn(),
     createSite: vi.fn(),
     getSiteById: vi.fn(),
     updateSite: vi.fn(),
@@ -169,6 +172,7 @@ describe('GET /posts — list posts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPostQueries.getAllPosts.mockResolvedValue([]);
+    mockPostQueries.countPosts.mockResolvedValue(0);
   });
 
   it('returns 200 with published posts for unauthenticated requests (public read)', async () => {
@@ -497,6 +501,7 @@ describe('GET /media — list media', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMediaQueries.getAllMedia.mockResolvedValue([]);
+    mockMediaQueries.countMedia.mockResolvedValue(0);
   });
 
   it('returns 401 without authentication', async () => {
@@ -622,6 +627,7 @@ describe('GET /sites — list sites', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSiteQueries.getAllSites.mockResolvedValue([]);
+    mockSiteQueries.countSites.mockResolvedValue(0);
   });
 
   it('returns 401 without authentication', async () => {

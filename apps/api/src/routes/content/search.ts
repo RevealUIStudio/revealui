@@ -10,7 +10,7 @@
 import { getClient } from '@revealui/db/client';
 import { pages, posts } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, count, desc, eq, sql } from 'drizzle-orm';
 import type { ContentVariables } from './index.js';
 
 const app = new OpenAPIHono<{ Variables: ContentVariables }>();
@@ -43,7 +43,8 @@ const SearchResponse = z.object({
   query: z.string(),
   type: z.enum(['posts', 'pages', 'all']),
   results: z.array(SearchResultItem),
-  count: z.number(),
+  totalDocs: z.number(),
+  totalPages: z.number(),
   limit: z.number(),
   offset: z.number(),
 });
@@ -92,44 +93,55 @@ app.openapi(
 
     // plainto_tsquery is safe against injection — it treats input as plain text
     const tsquery = sql`plainto_tsquery('english', ${q})`;
+    let totalDocs = 0;
 
     if (type === 'posts' || type === 'all') {
-      const postResults = await db
-        .select({
-          id: posts.id,
-          title: posts.title,
-          slug: posts.slug,
-          status: posts.status,
-          createdAt: posts.createdAt,
-          rank: sql<number>`ts_rank(search_vector, ${tsquery})`,
-        })
-        .from(posts)
-        .where(and(sql`search_vector @@ ${tsquery}`, eq(posts.status, 'published')))
-        .orderBy(desc(sql`ts_rank(search_vector, ${tsquery})`))
-        .limit(limit)
-        .offset(offset);
+      const postWhere = and(sql`search_vector @@ ${tsquery}`, eq(posts.status, 'published'));
+      const [postResults, postCount] = await Promise.all([
+        db
+          .select({
+            id: posts.id,
+            title: posts.title,
+            slug: posts.slug,
+            status: posts.status,
+            createdAt: posts.createdAt,
+            rank: sql<number>`ts_rank(search_vector, ${tsquery})`,
+          })
+          .from(posts)
+          .where(postWhere)
+          .orderBy(desc(sql`ts_rank(search_vector, ${tsquery})`))
+          .limit(limit)
+          .offset(offset),
+        db.select({ total: count() }).from(posts).where(postWhere),
+      ]);
 
+      totalDocs += postCount[0]?.total ?? 0;
       for (const r of postResults) {
         results.push({ ...r, type: 'post' });
       }
     }
 
     if (type === 'pages' || type === 'all') {
-      const pageResults = await db
-        .select({
-          id: pages.id,
-          title: pages.title,
-          slug: pages.slug,
-          status: pages.status,
-          createdAt: pages.createdAt,
-          rank: sql<number>`ts_rank(search_vector, ${tsquery})`,
-        })
-        .from(pages)
-        .where(and(sql`search_vector @@ ${tsquery}`, eq(pages.status, 'published')))
-        .orderBy(desc(sql`ts_rank(search_vector, ${tsquery})`))
-        .limit(limit)
-        .offset(offset);
+      const pageWhere = and(sql`search_vector @@ ${tsquery}`, eq(pages.status, 'published'));
+      const [pageResults, pageCount] = await Promise.all([
+        db
+          .select({
+            id: pages.id,
+            title: pages.title,
+            slug: pages.slug,
+            status: pages.status,
+            createdAt: pages.createdAt,
+            rank: sql<number>`ts_rank(search_vector, ${tsquery})`,
+          })
+          .from(pages)
+          .where(pageWhere)
+          .orderBy(desc(sql`ts_rank(search_vector, ${tsquery})`))
+          .limit(limit)
+          .offset(offset),
+        db.select({ total: count() }).from(pages).where(pageWhere),
+      ]);
 
+      totalDocs += pageCount[0]?.total ?? 0;
       for (const r of pageResults) {
         results.push({ ...r, type: 'page' });
       }
@@ -148,7 +160,8 @@ app.openapi(
           ...r,
           createdAt: r.createdAt?.toISOString() ?? null,
         })),
-        count: sliced.length,
+        totalDocs,
+        totalPages: Math.ceil(totalDocs / limit),
         limit,
         offset,
       },

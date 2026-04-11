@@ -93,7 +93,14 @@ app.openapi(
       200: {
         content: {
           'application/json': {
-            schema: z.object({ success: z.literal(true), data: z.array(ProductSchema) }),
+            schema: z.object({
+              success: z.literal(true),
+              data: z.array(ProductSchema),
+              totalDocs: z.number(),
+              totalPages: z.number(),
+              limit: z.number(),
+              offset: z.number(),
+            }),
           },
         },
         description: 'Product list',
@@ -107,22 +114,42 @@ app.openapi(
 
     if (!user) {
       // Public access: only published products
-      const data = await productQueries.getAllProducts(db, {
-        status: 'published',
-        limit,
-        offset,
-      });
-      return c.json({ success: true as const, data: data.map(serializeProduct) }, 200);
+      const filterOpts = { status: 'published' as const };
+      const [data, totalDocs] = await Promise.all([
+        productQueries.getAllProducts(db, { ...filterOpts, limit, offset }),
+        productQueries.countProducts(db, filterOpts),
+      ]);
+      return c.json(
+        {
+          success: true as const,
+          data: data.map(serializeProduct),
+          totalDocs,
+          totalPages: Math.ceil(totalDocs / limit),
+          limit,
+          offset,
+        },
+        200,
+      );
     }
 
     // Admin sees all; non-admin sees only published
     const effectiveStatus = user.role === 'admin' ? status : 'published';
-    const data = await productQueries.getAllProducts(db, {
-      status: effectiveStatus,
-      limit,
-      offset,
-    });
-    return c.json({ success: true as const, data: data.map(serializeProduct) }, 200);
+    const filterOpts = { status: effectiveStatus };
+    const [data, totalDocs] = await Promise.all([
+      productQueries.getAllProducts(db, { ...filterOpts, limit, offset }),
+      productQueries.countProducts(db, filterOpts),
+    ]);
+    return c.json(
+      {
+        success: true as const,
+        data: data.map(serializeProduct),
+        totalDocs,
+        totalPages: Math.ceil(totalDocs / limit),
+        limit,
+        offset,
+      },
+      200,
+    );
   },
 );
 

@@ -2,10 +2,28 @@
  * Post database queries
  */
 
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, isNull } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { posts } from '../schema/admin.js';
 import { users } from '../schema/users.js';
+
+/** Count posts matching filters (for pagination) */
+export async function countPosts(
+  db: Database,
+  options: { status?: string; authorId?: string } = {},
+) {
+  const { status, authorId } = options;
+  const conditions = [
+    isNull(posts.deletedAt),
+    ...(status ? [eq(posts.status, status)] : []),
+    ...(authorId ? [eq(posts.authorId, authorId)] : []),
+  ];
+  const result = await db
+    .select({ total: count() })
+    .from(posts)
+    .where(and(...conditions));
+  return result[0]?.total ?? 0;
+}
 
 export async function getAllPosts(
   db: Database,
