@@ -1,6 +1,5 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
 import {
   Sidebar,
   SidebarBody,
@@ -9,10 +8,11 @@ import {
   SidebarHeading,
   SidebarItem,
   SidebarLabel,
+  SidebarLayout,
   SidebarSection,
   SidebarSpacer,
 } from '@revealui/presentation/client';
-import { SidebarLayout } from '@revealui/presentation/client';
+import { usePathname } from 'next/navigation';
 
 interface NavItem {
   href: string;
