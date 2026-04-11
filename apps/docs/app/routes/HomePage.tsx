@@ -26,7 +26,7 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 ### Getting Started
 - [Quick Start](/docs/QUICK_START) — Get running in 5 minutes
 - [Build Your Business](/docs/BUILD_YOUR_BUSINESS) — End-to-end tutorial: scaffold to deploy
-- [Examples](/docs/EXAMPLES) — Blog, SaaS starter, e-commerce storefront
+- [Examples](/docs/EXAMPLES) — Blog, subscription starter, e-commerce storefront
 
 ### Core Guides
 - [Admin Guide](/docs/ADMIN_GUIDE) — Collections, fields, access control, rich text

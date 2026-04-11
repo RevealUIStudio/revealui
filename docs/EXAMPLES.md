@@ -134,9 +134,9 @@ const { docs: posts } = await res.json();
 
 ---
 
-## 2. SaaS Starter
+## 2. Subscription Starter
 
-A subscription-based SaaS with Stripe billing, tiered feature access, and an admin dashboard. The full business stack in one project.
+A subscription-based product with Stripe billing, tiered feature access, and an admin dashboard. The full business stack in one project.
 
 **What you get:**
 

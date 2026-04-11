@@ -42,8 +42,8 @@ describe('HeroSection', () => {
   it('contains the brand tagline', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    // Hero H1 splits "Ship Your SaaS, / Not Your / Infrastructure" across span blocks
-    expect(html).toContain('Ship Your SaaS,');
+    // Hero H1 splits "Ship Your Product, / Not Your / Infrastructure" across span blocks
+    expect(html).toContain('Ship Your Product,');
     expect(html).toContain('Infrastructure');
     expect(html).toContain('Build your business, not your boilerplate.');
   });

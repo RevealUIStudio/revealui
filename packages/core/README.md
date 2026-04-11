@@ -161,7 +161,7 @@ pnpm dev
 
 ## JOSHUA Alignment
 
-- **Sovereign**: Self-hosted runtime engine — no SaaS dependency for content management, auth, or storage
+- **Sovereign**: Self-hosted runtime engine — no vendor dependency for content management, auth, or storage
 - **Unified**: One `buildConfig()` call wires collections, globals, plugins, security, and feature gates into a single configuration
 - **Adaptive**: Plugin system and tier-based feature gating let the platform evolve without breaking existing deployments
 

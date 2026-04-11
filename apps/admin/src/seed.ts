@@ -89,7 +89,7 @@ const pages = [
               ),
               heading('Why RevealUI?', 'h3'),
               paragraph(
-                'Traditional SaaS is dying. Customers expect adaptive, intelligent products — not static dashboards with manual workflows. RevealUI gives you the runtime to build what comes next: products that learn, adapt, and act on behalf of your users.',
+                'Customers expect adaptive, intelligent products — not static dashboards with manual workflows. RevealUI gives you the runtime to build what comes next: products that learn, adapt, and act on behalf of your users.',
               ),
               heading('Get Started', 'h3'),
               paragraph(
@@ -114,7 +114,7 @@ const pages = [
             richText: richTextDoc(
               heading('About RevealUI'),
               paragraph(
-                'RevealUI is an agentic business runtime for the post-SaaS era. Instead of bolting together auth, payments, admin, and AI from different vendors, RevealUI ships them as one coherent stack — pre-wired, tested, and ready to deploy.',
+                'RevealUI is an agentic business runtime. Instead of bolting together auth, payments, admin, and AI from different vendors, RevealUI ships them as one coherent stack — pre-wired, tested, and ready to deploy.',
               ),
               paragraph(
                 'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Designed for product teams who ship fast and founders who build alone.',
@@ -165,9 +165,9 @@ const pages = [
 const sampleContent = {
   contents: [
     {
-      name: 'The Post-SaaS Playbook',
+      name: 'The Adaptive Runtime Playbook',
       description:
-        'Everyone says SaaS is dead. They are half right. Static dashboards and manual workflows are dead. What replaces them are adaptive runtimes — products that ship with intelligence built in, not bolted on. RevealUI is the runtime for that transition.',
+        'Static dashboards and manual workflows are finished. What replaces them are adaptive runtimes — products that ship with intelligence built in, not bolted on. RevealUI is the runtime for that transition.',
     },
     {
       name: 'Five Primitives, One Stack',
@@ -217,7 +217,7 @@ const sampleContent = {
       title: 'VISION',
       name: 'Agentic Business Runtime',
       description:
-        'SaaS taught us subscription pricing. The next era teaches us adaptive intelligence. RevealUI ships with AI agents that learn from your data, automate your workflows, and act on behalf of your users — all running on open-source models.',
+        'Subscription software taught us recurring revenue. The next era teaches us adaptive intelligence. RevealUI ships with AI agents that learn from your data, automate your workflows, and act on behalf of your users — all running on open-source models.',
       alt: 'RevealUI agentic vision',
     },
   ],
@@ -226,7 +226,7 @@ const sampleContent = {
       heading: 'Build Your Business, Not Your Boilerplate',
       subheading: 'Agentic Business Runtime',
       description:
-        'Users, content, products, payments, and intelligence — five primitives, one runtime. Ship in days what used to take months. The post-SaaS era starts here.',
+        'Users, content, products, payments, and intelligence — five primitives, one runtime. Ship in days what used to take months.',
       cta: 'Get Started',
       highlight: 'Open Source',
       punctuation: '.',

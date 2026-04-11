@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     'open source',
     'agentic business runtime',
     'JOSHUA Stack',
-    'SaaS',
+    'software product',
     'auth',
     'billing',
     'AI agents',
