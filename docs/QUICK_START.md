@@ -102,7 +102,7 @@ Before starting the dev server, initialize the database schema:
 pnpm db:migrate
 ```
 
-This creates all 80+ tables. If you see a connection error, double-check your `POSTGRES_URL` — it must include `?sslmode=require` for NeonDB.
+This creates all 81 tables. If you see a connection error, double-check your `POSTGRES_URL` — it must include `?sslmode=require` for NeonDB.
 
 ---
 
@@ -170,8 +170,8 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 ## Next Steps
 
 - [Full documentation](./INDEX.md)
-- [Component catalog](./COMPONENT_CATALOG.md) — 52 native UI components
-- [Example projects](./EXAMPLES.md) — blog, SaaS starter, storefront
+- [Component catalog](./COMPONENT_CATALOG.md) — 57 native UI components
+- [Example projects](./EXAMPLES.md) — blog, subscription starter, storefront
 - [Deployment guide](./CI_CD_GUIDE.md) — Vercel, environment variables, production checklist
 - [AI agents](./AI.md) — agent orchestration, open-model inference, MCP framework (Pro)
 

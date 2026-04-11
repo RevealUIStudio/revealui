@@ -1,13 +1,13 @@
 ---
 title: "Build Your First Business"
-description: "Step-by-step tutorial for building a SaaS product with RevealUI"
+description: "Step-by-step tutorial for building a software product with RevealUI"
 category: tutorial
 audience: developer
 ---
 
 # Build Your First Business with RevealUI
 
-This tutorial walks you from zero to a deployed SaaS product in under an hour. You'll build a simple product catalog with user accounts, billing, and an admin dashboard — the same foundation you'd use for any software business.
+This tutorial walks you from zero to a deployed product in under an hour. You'll build a simple product catalog with user accounts, billing, and an admin dashboard — the same foundation you'd use for any software business.
 
 **What you'll build:** A product catalog where users can sign up, browse products, and purchase a Pro subscription.
 
@@ -351,7 +351,7 @@ curl https://your-api.vercel.app/health
 
 ## What you built
 
-In ~45 minutes you went from nothing to a deployed SaaS application with:
+In ~45 minutes you went from nothing to a deployed application with:
 
 - **User accounts** — sign up, sign in, sessions, password reset, RBAC
 - **Product catalog** — defined in TypeScript, with a full REST API and admin UI

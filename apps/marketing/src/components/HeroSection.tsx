@@ -51,7 +51,7 @@ export function HeroSection() {
             Auth. Billing. Content. AI. Already wired together.
           </p>
           <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
-            <span className="block">Ship Your SaaS,</span>
+            <span className="block">Ship Your Product,</span>
             <span className="block">Not Your</span>
             <span className="block">Infrastructure</span>
           </h1>

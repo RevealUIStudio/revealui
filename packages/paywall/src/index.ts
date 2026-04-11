@@ -1,7 +1,7 @@
 /**
  * @revealui/paywall
  *
- * Runtime license enforcement, feature gating, and upgrade UI for SaaS applications.
+ * Runtime license enforcement, feature gating, and upgrade UI for software products.
  *
  * Zero-config defaults for the common case; fully configurable for custom tiers and features.
  *
