@@ -6,6 +6,7 @@
 
 import type { AgentMemory } from '@revealui/contracts/agents';
 import { useCallback, useEffect, useState } from 'react';
+import { createAIError } from '../errors.js';
 
 // =============================================================================
 // Types
@@ -79,7 +80,7 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
 
         const response = await fetch(`/api/memory/episodic/${userId}`);
         if (!response.ok) {
-          throw new Error(`Failed to load episodic memory: ${response.statusText}`);
+          throw createAIError('load episodic memory', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;
@@ -113,7 +114,7 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
 
       const response = await fetch(`/api/memory/episodic/${userId}`);
       if (!response.ok) {
-        throw new Error(`Failed to refresh episodic memory: ${response.statusText}`);
+        throw createAIError('refresh episodic memory', response.status, response.statusText);
       }
 
       const payload = (await response.json()) as unknown;
@@ -140,7 +141,7 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to add memory: ${response.statusText}`);
+          throw createAIError('add memory', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;
@@ -168,7 +169,7 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to remove memory: ${response.statusText}`);
+          throw createAIError('remove memory', response.status, response.statusText);
         }
 
         // Refresh to get updated list
@@ -200,7 +201,7 @@ export function useEpisodicMemory(userId: string): UseEpisodicMemoryReturn {
         });
 
         if (!response.ok) {
-          throw new Error(`Search failed: ${response.statusText}`);
+          throw createAIError('search memory', response.status, response.statusText);
         }
 
         const data = (await response.json()) as {

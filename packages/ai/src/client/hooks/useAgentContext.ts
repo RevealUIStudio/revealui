@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { createAIError } from '../errors.js';
 
 // =============================================================================
 // Types
@@ -70,7 +71,7 @@ export function useAgentContext(
 
         const response = await fetch(`/api/memory/context/${sessionId}/${agentId}`);
         if (!response.ok) {
-          throw new Error(`Failed to load agent context: ${response.statusText}`);
+          throw createAIError('load agent context', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;
@@ -99,7 +100,7 @@ export function useAgentContext(
     try {
       const response = await fetch(`/api/memory/context/${sessionId}/${agentId}`);
       if (!response.ok) {
-        throw new Error(`Failed to sync agent context: ${response.statusText}`);
+        throw createAIError('sync agent context', response.status, response.statusText);
       }
 
       const payload = (await response.json()) as unknown;
@@ -141,7 +142,7 @@ export function useAgentContext(
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to update context: ${response.statusText}`);
+          throw createAIError('update context', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;
@@ -166,7 +167,7 @@ export function useAgentContext(
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to update context: ${response.statusText}`);
+          throw createAIError('update context', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;
@@ -191,7 +192,7 @@ export function useAgentContext(
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to remove context key: ${response.statusText}`);
+          throw createAIError('remove context key', response.status, response.statusText);
         }
 
         const payload = (await response.json()) as unknown;

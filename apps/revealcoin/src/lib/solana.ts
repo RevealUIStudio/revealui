@@ -5,7 +5,7 @@
  * Only used in API routes (server-side), never in the browser.
  */
 
-const RPC_URL = process.env.SOLANA_RPC_URL ?? 'https://api.mainnet-beta.solana.com';
+const RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 
 interface RpcResponse<T> {
   jsonrpc: string;

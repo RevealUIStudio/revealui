@@ -658,6 +658,20 @@ app.use('/api/v1/collab/update', requireFeature('advancedSync', { mode: 'entitle
 
 // Write-protect mutation endpoints — these require authentication
 const writeProtected = authMiddleware({ required: true });
+
+// Block recovery sessions (magic link) from mutating routes.
+// Recovery sessions should only be used for password change and sign-out.
+const rejectRecovery = createMiddleware(async (c, next) => {
+  const session = c.get('session') as Record<string, unknown> | undefined;
+  const metadata = session?.metadata as Record<string, unknown> | undefined;
+  if (metadata?.recovery === true) {
+    return c.json(
+      { error: 'Recovery sessions cannot perform this action. Please sign in with your password.' },
+      403,
+    );
+  }
+  return next();
+});
 app.get('/api/collab/snapshot/*', writeProtected);
 app.get('/api/v1/collab/snapshot/*', writeProtected);
 app.get('/api/collab/agent/snapshot/*', writeProtected);
@@ -709,16 +723,26 @@ const billingWriteGuard = createMiddleware(async (c, next) => {
 });
 app.post('/api/billing/*', billingWriteGuard);
 app.post('/api/v1/billing/*', billingWriteGuard);
+app.post('/api/billing/*', rejectRecovery);
+app.post('/api/v1/billing/*', rejectRecovery);
 app.get('/api/gdpr/*', writeProtected);
 app.get('/api/v1/gdpr/*', writeProtected);
 app.post('/api/gdpr/*', writeProtected);
 app.post('/api/v1/gdpr/*', writeProtected);
+app.post('/api/gdpr/*', rejectRecovery);
+app.post('/api/v1/gdpr/*', rejectRecovery);
 app.post('/api/content/*', writeProtected);
 app.post('/api/v1/content/*', writeProtected);
 app.patch('/api/content/*', writeProtected);
 app.patch('/api/v1/content/*', writeProtected);
 app.delete('/api/content/*', writeProtected);
 app.delete('/api/v1/content/*', writeProtected);
+app.post('/api/content/*', rejectRecovery);
+app.post('/api/v1/content/*', rejectRecovery);
+app.patch('/api/content/*', rejectRecovery);
+app.patch('/api/v1/content/*', rejectRecovery);
+app.delete('/api/content/*', rejectRecovery);
+app.delete('/api/v1/content/*', rejectRecovery);
 
 // Resource limits — enforce tier-based caps on site creation
 const siteLimit = enforceSiteLimit(() => sites);
