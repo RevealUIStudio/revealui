@@ -29,6 +29,8 @@ export default defineConfig({
         'src/**/__tests__/**',
         'src/**/test-fixtures.ts',
         'src/types/database.ts', // Generated file
+        'src/schema/**', // Declarative Drizzle pgTable/relations definitions
+        'src/scripts/**', // Utility scripts (cleanup crons, etc.)
         'dist/**',
       ],
       thresholds: {
