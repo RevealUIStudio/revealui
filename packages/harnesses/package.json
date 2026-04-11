@@ -14,7 +14,6 @@
   "dependencies": {
     "@electric-sql/pglite": "^0.4.3",
     "@revealui/core": "workspace:*",
-    "node-pty": "^1.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {

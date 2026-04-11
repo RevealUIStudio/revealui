@@ -1,9 +1,9 @@
 /**
- * AgentTerminalPane — embedded terminal for daemon-managed Claude Code sessions.
+ * AgentTerminalPane — embedded terminal for daemon-managed agent sessions.
  *
- * Left sidebar: list of active PTY sessions + "New Agent" button.
+ * Left sidebar: list of active sessions + "New Agent" button.
  * Main area: xterm.js terminal connected to the selected session via
- * agent.input (keystrokes) and agent:output (PTY data) events.
+ * agent.input (keystrokes) and agent:output (data) events.
  */
 
 import type { Terminal } from '@xterm/xterm';
@@ -112,8 +112,8 @@ export default function AgentTerminalPane() {
       const rows = terminalRef.current?.rows ?? 30;
       const sessionId = await agentSpawn(
         `agent-${Date.now().toString(36)}`,
-        'ClaudeCode',
-        'claude-opus-4-6',
+        'Snap',
+        'default',
         '',
         { cols, rows },
       );
@@ -141,7 +141,7 @@ export default function AgentTerminalPane() {
     }
   }
 
-  const ptyCount = sessions.filter((s) => s.isPty && s.status === 'running').length;
+  const runningCount = sessions.filter((s) => s.status === 'running').length;
 
   return (
     <div className="flex h-full flex-col overflow-hidden md:flex-row">
@@ -149,7 +149,7 @@ export default function AgentTerminalPane() {
       <div className="flex w-full flex-col border-b border-neutral-800 md:w-56 md:border-r md:border-b-0">
         <div className="flex items-center justify-between border-b border-neutral-800 px-3 py-2">
           <span className="text-sm font-medium text-neutral-300">
-            Agents {ptyCount > 0 && `(${ptyCount})`}
+            Agents {runningCount > 0 && `(${runningCount})`}
           </span>
           <Button size="sm" onClick={spawnAgent} disabled={spawning}>
             {spawning ? '...' : '+ New'}
@@ -159,7 +159,7 @@ export default function AgentTerminalPane() {
         <div className="flex-1 overflow-y-auto">
           {sessions.length === 0 && (
             <p className="px-3 py-4 text-xs text-neutral-500">
-              No agent sessions. Click "+ New" to spawn a Claude Code agent.
+              No agent sessions. Click "+ New" to spawn an agent.
             </p>
           )}
           {sessions.map((s) => (
@@ -178,7 +178,6 @@ export default function AgentTerminalPane() {
                 <div className="truncate text-neutral-200">{s.name}</div>
                 <div className="truncate text-xs text-neutral-500">
                   {s.backend} · {s.status}
-                  {s.isPty && ' · PTY'}
                 </div>
               </div>
               {s.status === 'running' && (

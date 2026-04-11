@@ -2,8 +2,7 @@
  * @revealui/harnesses — AI Harness Integration System (Server-side)
  *
  * Adapters, registry, workboard coordination, and JSON-RPC server for
- * integrating AI coding tools (Claude Code, Cursor) into the
- * RevealUI development workflow.
+ * integrating native AI agents into the RevealUI development workflow.
  *
  * Pro tier feature: gated behind isFeatureEnabled("ai").
  *
@@ -27,10 +26,6 @@ export async function checkHarnessesLicense(): Promise<boolean> {
   }
   return true;
 }
-
-// Adapters
-export { ClaudeCodeAdapter } from './adapters/claude-code-adapter.js';
-export { CursorAdapter } from './adapters/cursor-adapter.js';
 
 // Config
 export {
