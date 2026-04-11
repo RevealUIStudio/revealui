@@ -1,0 +1,81 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    "schedule:weekly",
+    "group:allNonMajor",
+    ":disablePeerDependencies"
+  ],
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "assignees": ["RevealUIStudio"],
+  "ignoreDeps": [
+    "node",
+    "@types/node",
+    "pnpm"
+  ],
+  "postUpdateOptions": ["pnpmDedupe"],
+  "packageRules": [
+    {
+      "description": "Group React ecosystem packages",
+      "matchPackagePatterns": ["react", "react-dom", "@types/react", "@types/react-dom"],
+      "groupName": "React ecosystem"
+    },
+    {
+      "description": "Group testing-related packages",
+      "matchPackagePatterns": ["vitest", "@vitest", "jsdom", "testing-library", "@testing-library"],
+      "groupName": "Testing ecosystem"
+    },
+    {
+      "description": "Group TypeScript-related packages",
+      "matchPackagePatterns": ["typescript", "@types/*", "ts-*"],
+      "groupName": "TypeScript ecosystem"
+    },
+    {
+      "description": "Group Next.js ecosystem packages",
+      "matchPackagePatterns": ["next", "@next", "next-*"],
+      "groupName": "Next.js ecosystem"
+    },
+    {
+      "description": "Limit major version updates to separate PRs",
+      "matchUpdateTypes": ["major"],
+      "groupName": "Major version updates",
+      "separateMinorPatchUpdates": true
+    },
+    {
+      "description": "Security updates get priority and auto-merge if tests pass",
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["patch"],
+      "matchDatasources": ["npm"],
+      "dependencyDashboardApproval": false,
+      "automerge": true,
+      "automergeType": "pr",
+      "schedule": ["at any time"],
+      "prPriority": 5
+    },
+    {
+      "description": "Vulnerability alerts always create PRs immediately",
+      "matchDatasources": ["npm"],
+      "vulnerabilityAlerts": {
+        "enabled": true,
+        "schedule": ["at any time"],
+        "prPriority": 10
+      }
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "schedule": ["at any time"]
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 4am on Monday"]
+  },
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "branchPrefix": "renovate/",
+  "commitMessagePrefix": "chore(deps): ",
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps"
+}
