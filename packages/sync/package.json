@@ -70,5 +70,17 @@
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/sync"
-  }
+  },
+  "homepage": "https://revealui.com",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
+  },
+  "keywords": [
+    "revealui",
+    "sync",
+    "real-time",
+    "electricsql",
+    "collaborative"
+  ]
 }

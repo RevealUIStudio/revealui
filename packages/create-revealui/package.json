@@ -36,5 +36,10 @@
     "test": "echo 'No tests — thin wrapper for @revealui/cli'",
     "typecheck": "echo 'No source — bin wrapper only'"
   },
-  "type": "module"
+  "type": "module",
+  "homepage": "https://revealui.com",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
+  }
 }
