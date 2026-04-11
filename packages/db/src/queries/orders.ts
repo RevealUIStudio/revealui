@@ -2,9 +2,26 @@
  * Order database queries
  */
 
-import { and, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { orders } from '../schema/products.js';
+
+/** Count orders matching filters (for pagination) */
+export async function countOrders(
+  db: Database,
+  options: { customerId?: string; status?: string } = {},
+) {
+  const { customerId, status } = options;
+  const conditions = [
+    ...(customerId ? [eq(orders.customerId, customerId)] : []),
+    ...(status ? [eq(orders.status, status)] : []),
+  ];
+  const result = await db
+    .select({ total: count() })
+    .from(orders)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
+  return result[0]?.total ?? 0;
+}
 
 export async function getAllOrders(
   db: Database,

@@ -9,11 +9,14 @@
 
 import type { PGlite } from '@electric-sql/pglite';
 import type {
+  AgentMemoryEntry,
   AgentMessage,
   AgentSession,
   AgentTask,
+  AgentWorktree,
   DaemonEvent,
   FileReservation,
+  MergeRequest,
 } from './schema.js';
 import { SCHEMA_SQL } from './schema.js';
 
@@ -401,5 +404,288 @@ export class DaemonStore {
       [String(olderThanDays)],
     );
     return result.affectedRows ?? 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Worktrees
+  // ---------------------------------------------------------------------------
+
+  /** Register a worktree for an agent. */
+  async registerWorktree(wt: {
+    agentId: string;
+    branch: string;
+    worktreePath: string;
+    baseBranch?: string;
+  }): Promise<AgentWorktree> {
+    const db = this.getDb();
+    const result = await db.query<AgentWorktree>(
+      `INSERT INTO worktrees (agent_id, branch, worktree_path, base_branch)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (agent_id) DO UPDATE SET
+         branch = EXCLUDED.branch,
+         worktree_path = EXCLUDED.worktree_path,
+         base_branch = EXCLUDED.base_branch,
+         status = 'active'
+       RETURNING *`,
+      [wt.agentId, wt.branch, wt.worktreePath, wt.baseBranch ?? 'test'],
+    );
+    return result.rows[0] as AgentWorktree;
+  }
+
+  /** Get a worktree by agent ID. */
+  async getWorktree(agentId: string): Promise<AgentWorktree | null> {
+    const db = this.getDb();
+    const result = await db.query<AgentWorktree>('SELECT * FROM worktrees WHERE agent_id = $1', [
+      agentId,
+    ]);
+    return result.rows[0] ?? null;
+  }
+
+  /** List all active worktrees. */
+  async getActiveWorktrees(): Promise<AgentWorktree[]> {
+    const db = this.getDb();
+    const result = await db.query<AgentWorktree>(
+      "SELECT * FROM worktrees WHERE status = 'active' ORDER BY created_at",
+    );
+    return result.rows;
+  }
+
+  /** Update worktree status (active → merged | abandoned). */
+  async updateWorktreeStatus(agentId: string, status: 'merged' | 'abandoned'): Promise<boolean> {
+    const db = this.getDb();
+    const result = await db.query(
+      'UPDATE worktrees SET status = $2 WHERE agent_id = $1 RETURNING agent_id',
+      [agentId, status],
+    );
+    return (result.rows?.length ?? 0) > 0;
+  }
+
+  /** Remove a worktree record. */
+  async removeWorktree(agentId: string): Promise<boolean> {
+    const db = this.getDb();
+    const result = await db.query('DELETE FROM worktrees WHERE agent_id = $1 RETURNING agent_id', [
+      agentId,
+    ]);
+    return (result.rows?.length ?? 0) > 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Agent Memory
+  // ---------------------------------------------------------------------------
+
+  /** Store a memory entry. */
+  async storeMemory(entry: {
+    agentId: string;
+    memoryType: AgentMemoryEntry['memory_type'];
+    content: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<AgentMemoryEntry> {
+    const db = this.getDb();
+    const result = await db.query<AgentMemoryEntry>(
+      `INSERT INTO agent_memory (agent_id, memory_type, content, metadata)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [entry.agentId, entry.memoryType, entry.content, JSON.stringify(entry.metadata ?? {})],
+    );
+    return result.rows[0] as AgentMemoryEntry;
+  }
+
+  /** Recall memory entries by agent and type (newest first). */
+  async recallMemory(query: {
+    agentId?: string;
+    memoryType?: AgentMemoryEntry['memory_type'];
+    keyword?: string;
+    limit?: number;
+  }): Promise<AgentMemoryEntry[]> {
+    const db = this.getDb();
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    let paramIdx = 1;
+
+    if (query.agentId) {
+      conditions.push(`agent_id = $${paramIdx++}`);
+      params.push(query.agentId);
+    }
+    if (query.memoryType) {
+      conditions.push(`memory_type = $${paramIdx++}`);
+      params.push(query.memoryType);
+    }
+    if (query.keyword) {
+      conditions.push(`content ILIKE $${paramIdx++}`);
+      params.push(`%${query.keyword}%`);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const limit = query.limit ?? 20;
+    params.push(limit);
+
+    const result = await db.query<AgentMemoryEntry>(
+      `SELECT * FROM agent_memory ${where} ORDER BY created_at DESC LIMIT $${paramIdx}`,
+      params,
+    );
+    return result.rows;
+  }
+
+  /** Get a summary of recent memory (last N per type for context injection). */
+  async summarizeMemory(agentId: string, perType: number): Promise<AgentMemoryEntry[]> {
+    const db = this.getDb();
+    // Use a window function to get the last N entries per memory_type
+    const result = await db.query<AgentMemoryEntry>(
+      `SELECT * FROM (
+         SELECT *, ROW_NUMBER() OVER (PARTITION BY memory_type ORDER BY created_at DESC) AS rn
+         FROM agent_memory WHERE agent_id = $1
+       ) sub WHERE rn <= $2
+       ORDER BY memory_type, created_at DESC`,
+      [agentId, perType],
+    );
+    return result.rows;
+  }
+
+  /** Prune old memory entries (keep last N per agent). */
+  async pruneMemory(keepPerAgent: number): Promise<number> {
+    const db = this.getDb();
+    const result = await db.query(
+      `DELETE FROM agent_memory WHERE id IN (
+         SELECT id FROM (
+           SELECT id, ROW_NUMBER() OVER (PARTITION BY agent_id ORDER BY created_at DESC) AS rn
+           FROM agent_memory
+         ) sub WHERE rn > $1
+       )`,
+      [keepPerAgent],
+    );
+    return result.affectedRows ?? 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Merge Requests
+  // ---------------------------------------------------------------------------
+
+  /** Create a merge request for an agent's branch. */
+  async createMergeRequest(mr: {
+    id: string;
+    agentId: string;
+    taskId?: string;
+    sourceBranch: string;
+    baseBranch?: string;
+  }): Promise<MergeRequest> {
+    const db = this.getDb();
+    const result = await db.query<MergeRequest>(
+      `INSERT INTO merge_requests (id, agent_id, task_id, source_branch, base_branch)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (id) DO UPDATE SET
+         status = 'pending',
+         retry_count = merge_requests.retry_count,
+         updated_at = NOW()
+       RETURNING *`,
+      [mr.id, mr.agentId, mr.taskId ?? null, mr.sourceBranch, mr.baseBranch ?? 'test'],
+    );
+    return result.rows[0] as MergeRequest;
+  }
+
+  /** Get a merge request by ID. */
+  async getMergeRequest(id: string): Promise<MergeRequest | null> {
+    const db = this.getDb();
+    const result = await db.query<MergeRequest>('SELECT * FROM merge_requests WHERE id = $1', [id]);
+    return result.rows[0] ?? null;
+  }
+
+  /** Get a merge request by source branch. */
+  async getMergeRequestByBranch(branch: string): Promise<MergeRequest | null> {
+    const db = this.getDb();
+    const result = await db.query<MergeRequest>(
+      "SELECT * FROM merge_requests WHERE source_branch = $1 AND status NOT IN ('merged', 'escalated') ORDER BY created_at DESC LIMIT 1",
+      [branch],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /** Get a merge request by PR number. */
+  async getMergeRequestByPr(prNumber: number): Promise<MergeRequest | null> {
+    const db = this.getDb();
+    const result = await db.query<MergeRequest>(
+      'SELECT * FROM merge_requests WHERE pr_number = $1 ORDER BY created_at DESC LIMIT 1',
+      [prNumber],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /** Update a merge request's fields. */
+  async updateMergeRequest(
+    id: string,
+    updates: {
+      status?: MergeRequest['status'];
+      prNumber?: number;
+      prUrl?: string;
+      errorMessage?: string;
+      ciOutput?: string;
+    },
+  ): Promise<MergeRequest | null> {
+    const db = this.getDb();
+    const sets: string[] = ['updated_at = NOW()'];
+    const params: unknown[] = [];
+    let paramIdx = 1;
+
+    if (updates.status !== undefined) {
+      sets.push(`status = $${paramIdx++}`);
+      params.push(updates.status);
+    }
+    if (updates.prNumber !== undefined) {
+      sets.push(`pr_number = $${paramIdx++}`);
+      params.push(updates.prNumber);
+    }
+    if (updates.prUrl !== undefined) {
+      sets.push(`pr_url = $${paramIdx++}`);
+      params.push(updates.prUrl);
+    }
+    if (updates.errorMessage !== undefined) {
+      sets.push(`error_message = $${paramIdx++}`);
+      params.push(updates.errorMessage);
+    }
+    if (updates.ciOutput !== undefined) {
+      sets.push(`ci_output = $${paramIdx++}`);
+      params.push(updates.ciOutput);
+    }
+
+    params.push(id);
+    const result = await db.query<MergeRequest>(
+      `UPDATE merge_requests SET ${sets.join(', ')} WHERE id = $${paramIdx} RETURNING *`,
+      params,
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /** Increment the retry count for a merge request. */
+  async incrementMergeRetry(id: string): Promise<number> {
+    const db = this.getDb();
+    const result = await db.query<{ retry_count: number }>(
+      `UPDATE merge_requests SET retry_count = retry_count + 1, updated_at = NOW()
+       WHERE id = $1 RETURNING retry_count`,
+      [id],
+    );
+    return result.rows[0]?.retry_count ?? 0;
+  }
+
+  /** List merge requests, optionally filtered by status and/or agent. */
+  async listMergeRequests(filter?: { status?: string; agentId?: string }): Promise<MergeRequest[]> {
+    const db = this.getDb();
+    const conditions: string[] = [];
+    const params: unknown[] = [];
+    let paramIdx = 1;
+
+    if (filter?.status) {
+      conditions.push(`status = $${paramIdx++}`);
+      params.push(filter.status);
+    }
+    if (filter?.agentId) {
+      conditions.push(`agent_id = $${paramIdx++}`);
+      params.push(filter.agentId);
+    }
+
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const result = await db.query<MergeRequest>(
+      `SELECT * FROM merge_requests ${where} ORDER BY created_at DESC`,
+      params,
+    );
+    return result.rows;
   }
 }

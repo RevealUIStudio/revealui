@@ -17,8 +17,8 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^25.5.2",
     "@revealui/dev": "workspace:*",
+    "@types/node": "^25.5.2",
     "tsup": "catalog:",
     "typescript": "catalog:",
     "vitest": "^4.1.3"

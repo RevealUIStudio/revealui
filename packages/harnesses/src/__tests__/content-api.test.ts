@@ -36,29 +36,6 @@ describe('Content Public API', () => {
   });
 
   describe('generateContent', () => {
-    it('generates files for claude-code generator', () => {
-      const manifest = buildManifest();
-      const files = generateContent('claude-code', manifest, { projectRoot: '/test' });
-      expect(files.length).toBeGreaterThan(20);
-
-      for (const file of files) {
-        expect(file.relativePath).toBeTruthy();
-        expect(file.content).toBeTruthy();
-        expect(file.relativePath.startsWith('.claude/')).toBe(true);
-      }
-    });
-
-    it('generates files for cursor generator', () => {
-      const manifest = buildManifest();
-      const files = generateContent('cursor', manifest, { projectRoot: '/test' });
-      expect(files.length).toBe(9); // Only rules have Cursor equivalents
-
-      for (const file of files) {
-        expect(file.relativePath.startsWith('.cursor/')).toBe(true);
-        expect(file.relativePath.endsWith('.mdc')).toBe(true);
-      }
-    });
-
     it('throws for unknown generator', () => {
       const manifest = buildManifest();
       expect(() => generateContent('nonexistent', manifest, { projectRoot: '/test' })).toThrow(

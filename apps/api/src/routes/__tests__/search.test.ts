@@ -166,7 +166,7 @@ describe('GET /search — type=posts', () => {
   it('queries only the posts table (one select call)', async () => {
     setupChain([]);
     await createApp().request('/search?q=hello&type=posts');
-    expect(mockDb.select).toHaveBeenCalledTimes(1);
+    expect(mockDb.select).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -187,7 +187,7 @@ describe('GET /search — type=pages', () => {
   it('queries only the pages table (one select call)', async () => {
     setupChain([]);
     await createApp().request('/search?q=hello&type=pages');
-    expect(mockDb.select).toHaveBeenCalledTimes(1);
+    expect(mockDb.select).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -207,7 +207,7 @@ describe('GET /search — type=all', () => {
   it('queries both posts and pages tables', async () => {
     setupDualChain([], []);
     await createApp().request('/search?q=hello&type=all');
-    expect(mockDb.select).toHaveBeenCalledTimes(2);
+    expect(mockDb.select).toHaveBeenCalledTimes(4);
   });
 
   it('merges results from both tables', async () => {
@@ -297,7 +297,8 @@ describe('GET /search — response shape', () => {
       query: 'test',
       type: 'posts',
       results: expect.any(Array),
-      count: expect.any(Number),
+      totalDocs: expect.any(Number),
+      totalPages: expect.any(Number),
       limit: expect.any(Number),
       offset: expect.any(Number),
     });
@@ -315,7 +316,7 @@ describe('GET /search — response shape', () => {
     const res = await createApp().request('/search?q=notfound&type=posts');
     const body = await parseBody(res);
     expect(body.results).toHaveLength(0);
-    expect(body.count).toBe(0);
+    expect(body.totalDocs).toBe(0);
   });
 
   it('result items include id, title, slug, status, type, rank fields', async () => {

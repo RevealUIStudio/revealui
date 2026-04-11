@@ -14,15 +14,18 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY .npmrc* ./
 
 # Copy workspace package.json files needed by api
+COPY packages/ai/package.json ./packages/ai/
 COPY packages/auth/package.json ./packages/auth/
 COPY packages/cache/package.json ./packages/cache/
 COPY packages/config/package.json ./packages/config/
 COPY packages/contracts/package.json ./packages/contracts/
 COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
+COPY packages/dev/package.json ./packages/dev/
 COPY packages/openapi/package.json ./packages/openapi/
 COPY packages/resilience/package.json ./packages/resilience/
 COPY packages/security/package.json ./packages/security/
+COPY packages/services/package.json ./packages/services/
 COPY packages/utils/package.json ./packages/utils/
 COPY apps/api/package.json ./apps/api/
 
@@ -46,7 +49,7 @@ COPY apps/api ./apps/api
 ENV NODE_ENV=production
 ENV SKIP_ENV_VALIDATION=true
 
-RUN pnpm --filter api run build
+RUN pnpm turbo run build --filter=api...
 
 # Create a self-contained deploy directory with only production deps
 # pnpm deploy resolves hoisted packages into a flat node_modules

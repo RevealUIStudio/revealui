@@ -180,6 +180,8 @@ const MOCK_DATA: Record<string, unknown> = {
   agent_stop: undefined,
   agent_list: [] satisfies AgentSessionInfo[],
   agent_remove: undefined,
+  agent_input: undefined,
+  agent_resize: undefined,
   inference_ollama_status: {
     installed: false,
     running: false,
@@ -346,6 +348,8 @@ const HARNESS_RPC_MAP: Record<string, string> = {
   agent_stop: 'agent.stop',
   agent_list: 'agent.list',
   agent_remove: 'agent.remove',
+  agent_input: 'agent.input',
+  agent_resize: 'agent.resize',
   // Inference engine management
   inference_ollama_status: 'inference.ollama.status',
   inference_ollama_models: 'inference.ollama.models',
@@ -708,8 +712,17 @@ export function agentSpawn(
   backend: AgentBackend,
   model: string,
   prompt: string,
+  options?: { cwd?: string; cols?: number; rows?: number },
 ): Promise<string> {
-  return invoke<string>('agent_spawn', { name, backend, model, prompt });
+  return invoke<string>('agent_spawn', {
+    name,
+    backend,
+    model,
+    prompt,
+    cwd: options?.cwd ?? null,
+    cols: options?.cols ?? null,
+    rows: options?.rows ?? null,
+  });
 }
 
 export function agentStop(sessionId: string): Promise<void> {
@@ -722,6 +735,14 @@ export function agentList(): Promise<AgentSessionInfo[]> {
 
 export function agentRemove(sessionId: string): Promise<void> {
   return invoke<void>('agent_remove', { sessionId });
+}
+
+export function agentInput(sessionId: string, data: string): Promise<void> {
+  return invoke<void>('agent_input', { sessionId, data });
+}
+
+export function agentResize(sessionId: string, cols: number, rows: number): Promise<void> {
+  return invoke<void>('agent_resize', { sessionId, cols, rows });
 }
 
 // ── Local Inference ─────────────────────────────────────────────────────────

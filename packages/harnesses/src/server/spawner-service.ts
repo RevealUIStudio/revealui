@@ -19,7 +19,7 @@ export interface AgentSessionInfo {
 export interface AgentOutputEvent {
   sessionId: string;
   stream: 'stdout' | 'stderr';
-  line: string;
+  data: string;
 }
 
 export interface AgentExitEvent {
@@ -108,26 +108,29 @@ export class SpawnerService extends EventEmitter {
       }
     }
 
-    const proc: AgentProcess = { name, model, backend, prompt, child, status: 'running' };
+    const proc: AgentProcess = {
+      name,
+      model,
+      backend,
+      prompt,
+      child,
+      status: 'running',
+    };
     this.sessions.set(sessionId, proc);
 
     // Stream stdout
     child.stdout?.on('data', (chunk: Buffer) => {
-      const lines = chunk.toString().split('\n');
-      for (const line of lines) {
-        if (line.length > 0) {
-          this.emit('output', { sessionId, stream: 'stdout', line } satisfies AgentOutputEvent);
-        }
+      const data = chunk.toString();
+      if (data.length > 0) {
+        this.emit('output', { sessionId, stream: 'stdout', data } satisfies AgentOutputEvent);
       }
     });
 
     // Stream stderr
     child.stderr?.on('data', (chunk: Buffer) => {
-      const lines = chunk.toString().split('\n');
-      for (const line of lines) {
-        if (line.length > 0) {
-          this.emit('output', { sessionId, stream: 'stderr', line } satisfies AgentOutputEvent);
-        }
+      const data = chunk.toString();
+      if (data.length > 0) {
+        this.emit('output', { sessionId, stream: 'stderr', data } satisfies AgentOutputEvent);
       }
     });
 

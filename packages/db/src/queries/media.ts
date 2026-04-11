@@ -2,9 +2,27 @@
  * Media database queries
  */
 
-import { and, desc, eq, isNull, like } from 'drizzle-orm';
+import { and, count, desc, eq, isNull, like } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { media } from '../schema/admin.js';
+
+/** Count media matching filters (for pagination) */
+export async function countMedia(
+  db: Database,
+  options: { mimeType?: string; uploadedBy?: string } = {},
+) {
+  const { mimeType, uploadedBy } = options;
+  const conditions = [
+    isNull(media.deletedAt),
+    ...(mimeType ? [like(media.mimeType, `${mimeType}%`)] : []),
+    ...(uploadedBy ? [eq(media.uploadedBy, uploadedBy)] : []),
+  ];
+  const result = await db
+    .select({ total: count() })
+    .from(media)
+    .where(and(...conditions));
+  return result[0]?.total ?? 0;
+}
 
 export async function getAllMedia(
   db: Database,

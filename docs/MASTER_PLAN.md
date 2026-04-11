@@ -1,7 +1,11 @@
 # RevealUI Master Plan
 
+> **AGENTS:** This is the PUBLIC snapshot. The canonical, up-to-date version is at:
+> `~/projects/revealui-jv/docs/MASTER_PLAN.md`
+> Always read and update the private repo version. This file is synced periodically.
+
 **Last Updated:** 2026-03-30 (Refactored — split into MASTER_PLAN + ARCHITECTURE + archive)
-**Status:** Active — Single source of truth for all planning
+**Status:** Public snapshot — canonical version in revealui-jv
 **Owner:** RevealUI Studio
 
 > This document supersedes all previous roadmaps, action plans, and status docs.
@@ -702,8 +706,7 @@ Holster: "Here is the shared state where coordination happens"
 
 **Phase 2 — VAUGHN Core:**
 - [ ] Define `VaughnAdapter` interface in `@revealui/harnesses`
-- [ ] Refactor `ClaudeCodeAdapter` to implement `VaughnAdapter`
-- [ ] Implement `CodexAdapter` (new)
+- [ ] Implement native `VaughnAdapter` (replaces removed vendor adapters)
 - [ ] Event normalization layer (tool events → VAUGHN events)
 - [ ] Capability-aware task dispatch in coordinator
 - [ ] Config normalization (JSON ↔ TOML ↔ Markdown)

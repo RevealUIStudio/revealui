@@ -18,6 +18,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const { mockProductQueries } = vi.hoisted(() => ({
   mockProductQueries: {
     getAllProducts: vi.fn(),
+    countProducts: vi.fn(),
     createProduct: vi.fn(),
     getProductById: vi.fn(),
     updateProduct: vi.fn(),
@@ -92,6 +93,7 @@ describe('GET /products — list products', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockProductQueries.getAllProducts.mockResolvedValue([]);
+    mockProductQueries.countProducts.mockResolvedValue(0);
   });
 
   it('returns 200 with published-only filter for unauthenticated requests', async () => {

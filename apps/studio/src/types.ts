@@ -103,7 +103,7 @@ export interface AgentSessionInfo {
 /** Streamed output from an agent process */
 export interface AgentOutputEvent {
   session_id: string;
-  stream: 'stdout' | 'stderr';
+  stream: 'stdout' | 'stderr' | 'pty';
   line: string;
 }
 

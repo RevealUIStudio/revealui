@@ -6,8 +6,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // ---------------------------------------------------------------------------
 
 function mockHeavySubmodules(): void {
-  vi.doMock('../adapters/claude-code-adapter.js', () => ({ ClaudeCodeAdapter: vi.fn() }));
-  vi.doMock('../adapters/cursor-adapter.js', () => ({ CursorAdapter: vi.fn() }));
   vi.doMock('../config/config-sync.js', () => ({
     diffAllConfigs: vi.fn(),
     diffConfig: vi.fn(),

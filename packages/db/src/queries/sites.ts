@@ -2,12 +2,30 @@
  * Site database queries
  */
 
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, count, desc, eq, isNull, sql } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { sites } from '../schema/sites.js';
 
 /** Condition that excludes soft-deleted sites */
 const notDeleted = isNull(sites.deletedAt);
+
+/** Count sites matching filters (for pagination) */
+export async function countSites(
+  db: Database,
+  options: { ownerId?: string; status?: string; includeDeleted?: boolean } = {},
+) {
+  const { ownerId, status, includeDeleted = false } = options;
+  const conditions = [
+    ...(includeDeleted ? [] : [notDeleted]),
+    ...(ownerId ? [eq(sites.ownerId, ownerId)] : []),
+    ...(status ? [eq(sites.status, status)] : []),
+  ];
+  const result = await db
+    .select({ total: count() })
+    .from(sites)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
+  return result[0]?.total ?? 0;
+}
 
 export async function getAllSites(
   db: Database,

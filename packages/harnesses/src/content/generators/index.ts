@@ -1,15 +1,8 @@
-import { ClaudeCodeGenerator } from './claude.js';
-import { CursorGenerator } from './cursor.js';
 import type { ContentGenerator } from './types.js';
 
-export { ClaudeCodeGenerator } from './claude.js';
-export { CursorGenerator } from './cursor.js';
 export type { ContentGenerator, DiffEntry, GeneratedFile } from './types.js';
 
-const generators = new Map<string, ContentGenerator>([
-  ['claude-code', new ClaudeCodeGenerator()],
-  ['cursor', new CursorGenerator()],
-]);
+const generators = new Map<string, ContentGenerator>();
 
 /** Get a generator by ID. */
 export function getGenerator(id: string): ContentGenerator | undefined {
