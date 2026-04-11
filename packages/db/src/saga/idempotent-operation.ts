@@ -18,7 +18,7 @@
  * );
  *
  * if (alreadyProcessed) {
- *   // Email was already sent — skip
+ *   // Email was already sent  -  skip
  * }
  * ```
  */
@@ -79,7 +79,7 @@ export async function idempotentWrite<T>(
     if (!row.expiresAt || row.expiresAt >= new Date()) {
       return { alreadyProcessed: true };
     }
-    // Expired — clean up and proceed
+    // Expired  -  clean up and proceed
     await db.delete(idempotencyKeys).where(eq(idempotencyKeys.key, key));
   }
 

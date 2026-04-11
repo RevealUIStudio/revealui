@@ -252,7 +252,7 @@ export function loadTilePreferences(): TilePreferences {
       return parsed;
     }
   } catch {
-    // Corrupted — reset
+    // Corrupted  -  reset
   }
   return { hiddenTileIds: [], collapsedCategories: [], recentTileIds: [] };
 }

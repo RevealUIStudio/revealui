@@ -1,5 +1,5 @@
 /**
- * Tests for DaemonStore — PGlite-backed persistent state.
+ * Tests for DaemonStore  -  PGlite-backed persistent state.
  *
  * Uses in-memory PGlite (no data directory) for isolation.
  */

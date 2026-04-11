@@ -84,7 +84,7 @@ function buildMockStripe() {
   };
 }
 
-describe('createProtectedStripe — products', () => {
+describe('createProtectedStripe  -  products', () => {
   let mockStripe: ReturnType<typeof buildMockStripe>;
   let client: ReturnType<typeof createProtectedStripe>;
 
@@ -124,7 +124,7 @@ describe('createProtectedStripe — products', () => {
   });
 });
 
-describe('createProtectedStripe — prices', () => {
+describe('createProtectedStripe  -  prices', () => {
   let mockStripe: ReturnType<typeof buildMockStripe>;
   let client: ReturnType<typeof createProtectedStripe>;
 
@@ -167,7 +167,7 @@ describe('createProtectedStripe — prices', () => {
   });
 });
 
-describe('createProtectedStripe — subscriptions', () => {
+describe('createProtectedStripe  -  subscriptions', () => {
   let mockStripe: ReturnType<typeof buildMockStripe>;
   let client: ReturnType<typeof createProtectedStripe>;
 
@@ -206,7 +206,7 @@ describe('createProtectedStripe — subscriptions', () => {
   });
 });
 
-describe('createProtectedStripe — checkout.sessions', () => {
+describe('createProtectedStripe  -  checkout.sessions', () => {
   let mockStripe: ReturnType<typeof buildMockStripe>;
   let client: ReturnType<typeof createProtectedStripe>;
 
@@ -235,7 +235,7 @@ describe('createProtectedStripe — checkout.sessions', () => {
   });
 });
 
-describe('createProtectedStripe — billingPortal.sessions', () => {
+describe('createProtectedStripe  -  billingPortal.sessions', () => {
   let mockStripe: ReturnType<typeof buildMockStripe>;
   let client: ReturnType<typeof createProtectedStripe>;
 
@@ -256,7 +256,7 @@ describe('createProtectedStripe — billingPortal.sessions', () => {
   });
 });
 
-describe('createProtectedStripe — webhooks and balance getters', () => {
+describe('createProtectedStripe  -  webhooks and balance getters', () => {
   let mockStripe: ReturnType<typeof buildMockStripe>;
   let client: ReturnType<typeof createProtectedStripe>;
 
@@ -275,7 +275,7 @@ describe('createProtectedStripe — webhooks and balance getters', () => {
   });
 });
 
-describe('createProtectedStripe — error propagation', () => {
+describe('createProtectedStripe  -  error propagation', () => {
   let mockStripe: ReturnType<typeof buildMockStripe>;
   let client: ReturnType<typeof createProtectedStripe>;
 

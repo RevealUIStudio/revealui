@@ -593,7 +593,7 @@ export class RpcServer {
 
       case 'agent.input':
       case 'agent.resize': {
-        // PTY interaction removed — Snap/Ollama backends are request-response only
+        // PTY interaction removed  -  Snap/Ollama backends are request-response only
         return {
           jsonrpc: '2.0',
           id,

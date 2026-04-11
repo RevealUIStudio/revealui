@@ -1,19 +1,19 @@
 #!/usr/bin/env tsx
 
 /**
- * CI Gate — Local CI/CD Quality Gate for RevealUI
+ * CI Gate  -  Local CI/CD Quality Gate for RevealUI
  *
  * Replaces GitHub Actions CI pipeline with local phased checks.
  * Uses turbo caching for fast warm runs (~1-2 min).
  *
  * Usage:
- *   pnpm gate                  — run all phases
- *   pnpm gate --phase=1        — quick quality checks only
- *   pnpm gate --skip=security  — skip security audit
- *   pnpm gate --no-build       — skip build in phase 3
- *   pnpm gate --no-test        — skip tests in phase 3 (pre-push: CI runs tests)
- *   pnpm gate --changed        — scope to packages changed vs origin/<branch> (pre-push fast path)
- *   pnpm gate --types          — include full type-system validation (gate:types) in phase 2
+ *   pnpm gate                   -  run all phases
+ *   pnpm gate --phase=1         -  quick quality checks only
+ *   pnpm gate --skip=security   -  skip security audit
+ *   pnpm gate --no-build        -  skip build in phase 3
+ *   pnpm gate --no-test         -  skip tests in phase 3 (pre-push: CI runs tests)
+ *   pnpm gate --changed         -  scope to packages changed vs origin/<branch> (pre-push fast path)
+ *   pnpm gate --types           -  include full type-system validation (gate:types) in phase 2
  *
  * Phases:
  *   1. Quality (parallel): lint, audits, structure validation, boundary enforcement
@@ -193,7 +193,7 @@ function printSummary(results: CheckResult[], totalMs: number): void {
 async function gate(): Promise<void> {
   await getProjectRoot(import.meta.url);
 
-  // Skip env validation during gate builds — same as CI.
+  // Skip env validation during gate builds  -  same as CI.
   // Build sets NODE_ENV=production but real env vars aren't available locally.
   process.env.SKIP_ENV_VALIDATION = 'true';
 
@@ -311,7 +311,7 @@ async function gate(): Promise<void> {
     logger.success('Phase 1 passed\n');
   }
 
-  // Pro packages (Fair Source) are now in the public repo — no exclusion needed
+  // Pro packages (Fair Source) are now in the public repo  -  no exclusion needed
   const proFilter: string[] = [];
 
   // --- Phase 2: Types (serial) ---

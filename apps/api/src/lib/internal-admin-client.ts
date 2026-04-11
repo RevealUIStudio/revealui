@@ -41,8 +41,8 @@ export interface InternalCMSClient {
 /**
  * Create an internal admin client that calls the API's own content routes.
  *
- * @param baseUrl — The API's own origin (e.g., 'http://localhost:3004' or derived from request)
- * @param sessionCookie — The user's session cookie for auth passthrough
+ * @param baseUrl  -  The API's own origin (e.g., 'http://localhost:3004' or derived from request)
+ * @param sessionCookie  -  The user's session cookie for auth passthrough
  */
 export function createInternalAdminClient(
   baseUrl: string,

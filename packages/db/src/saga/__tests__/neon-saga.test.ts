@@ -3,7 +3,7 @@ import { executeSaga } from '../neon-saga.js';
 import type { SagaStep } from '../types.js';
 
 // ---------------------------------------------------------------------------
-// Mock helpers — chainable Drizzle query builders for saga operations
+// Mock helpers  -  chainable Drizzle query builders for saga operations
 // ---------------------------------------------------------------------------
 
 function createSelectChain(result: unknown[] = []) {

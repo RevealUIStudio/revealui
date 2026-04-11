@@ -51,7 +51,7 @@ export const users = pgTable(
     agentCapabilities: jsonb('agent_capabilities').$type<string[]>(),
     agentConfig: jsonb('agent_config'),
 
-    // Email verification (grace period — login allowed, reminders shown)
+    // Email verification (grace period  -  login allowed, reminders shown)
     emailVerified: boolean('email_verified').default(false).notNull(),
     // SHA-256 hash of the raw verification token sent in the email link
     emailVerificationToken: text('email_verification_token'),
@@ -62,7 +62,7 @@ export const users = pgTable(
 
     // Terms of Service acceptance (required for legal compliance)
     tosAcceptedAt: timestamp('tos_accepted_at', { withTimezone: true }),
-    tosVersion: text('tos_version'), // e.g. '2026-03-01' — version accepted at signup
+    tosVersion: text('tos_version'), // e.g. '2026-03-01'  -  version accepted at signup
 
     // Stripe integration
     stripeCustomerId: text('stripe_customer_id'),
@@ -74,7 +74,7 @@ export const users = pgTable(
     mfaVerifiedAt: timestamp('mfa_verified_at', { withTimezone: true }),
     mfaLastUsedCounter: integer('mfa_last_used_counter'), // TOTP time counter of last used code (replay prevention)
 
-    // SSH terminal auth (Phase E — `ssh terminal.revealui.com`)
+    // SSH terminal auth (Phase E  -  `ssh terminal.revealui.com`)
     sshKeyFingerprint: text('ssh_key_fingerprint'),
 
     // User preferences (JSON blob)

@@ -87,7 +87,7 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Backup code verified — create a full session
+    // Backup code verified  -  create a full session
     const userAgent = request.headers.get('user-agent') ?? undefined;
     const ipAddress =
       request.headers.get('x-real-ip') ||
@@ -116,7 +116,7 @@ async function backupHandler(request: NextRequest): Promise<NextResponse> {
           ? (() => {
               if (!process.env.SESSION_COOKIE_DOMAIN) {
                 logger.error(
-                  'SESSION_COOKIE_DOMAIN env var is required in production — session cookie will not be set cross-subdomain',
+                  'SESSION_COOKIE_DOMAIN env var is required in production  -  session cookie will not be set cross-subdomain',
                 );
               }
               return process.env.SESSION_COOKIE_DOMAIN ?? undefined;

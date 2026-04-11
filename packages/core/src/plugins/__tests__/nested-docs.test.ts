@@ -4,7 +4,7 @@ import { nestedDocsPlugin } from '../nested-docs.js';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-// biome-ignore lint/suspicious/noExplicitAny: test helper — minimal config shape
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal config shape
 function createBaseConfig(collections: any[] = []) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
   return { collections } as any;
@@ -21,7 +21,7 @@ function createMockDb(rows: Record<string, unknown>[] = []) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — plugin configuration
+// Tests  -  plugin configuration
 // ---------------------------------------------------------------------------
 describe('nestedDocsPlugin', () => {
   describe('plugin configuration', () => {
@@ -146,7 +146,7 @@ describe('nestedDocsPlugin', () => {
     });
   });
 
-  describe('beforeChange hook — breadcrumb building', () => {
+  describe('beforeChange hook  -  breadcrumb building', () => {
     it('sets empty breadcrumbs when no parent', async () => {
       const plugin = nestedDocsPlugin({
         collections: ['pages'],

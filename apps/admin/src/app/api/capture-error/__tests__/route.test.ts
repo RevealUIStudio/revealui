@@ -1,7 +1,7 @@
 /**
  * Tests for POST /api/capture-error
  *
- * Client error capture proxy — forwards error reports to upstream API
+ * Client error capture proxy  -  forwards error reports to upstream API
  * with server-side X-Internal-Token header injection.
  */
 
@@ -106,7 +106,7 @@ describe('POST /api/capture-error', () => {
     const req = { text: () => Promise.resolve('{}') } as never;
     const res = await POST(req);
 
-    // Should silently accept — never break the error UI
+    // Should silently accept  -  never break the error UI
     expect((res as { status: number }).status).toBe(202);
     expect((res as unknown as { body: { success: boolean } }).body.success).toBe(true);
   });

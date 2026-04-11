@@ -34,7 +34,7 @@ async function revokeAllHandler(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// Export rate-limited handler — same window as sign-out
+// Export rate-limited handler  -  same window as sign-out
 export const POST = withRateLimit(revokeAllHandler, {
   maxAttempts: 10,
   windowMs: 15 * 60 * 1000, // 15 minutes

@@ -1,5 +1,5 @@
 /**
- * Agent task quota middleware (Track B — metered billing).
+ * Agent task quota middleware (Track B  -  metered billing).
  *
  * For authenticated users:
  *   - Looks up current billing cycle row in agent_task_usage
@@ -77,7 +77,7 @@ export async function requireTaskQuota(
 ): Promise<Response | void> {
   const user = c.get('user');
   if (!user) {
-    // No auth — feature gate already handles this; just pass through
+    // No auth  -  feature gate already handles this; just pass through
     return next();
   }
 
@@ -118,7 +118,7 @@ export async function requireTaskQuota(
         .limit(1);
 
       if (creditRow && creditRow.balance > 0) {
-        // Decrement one credit — awaited because a silent failure means free tasks
+        // Decrement one credit  -  awaited because a silent failure means free tasks
         try {
           await db
             .update(agentCreditBalance)
@@ -128,16 +128,16 @@ export async function requireTaskQuota(
             })
             .where(eq(agentCreditBalance.userId, user.id));
         } catch (err) {
-          // Credit deduction failed — block the request to prevent free usage
+          // Credit deduction failed  -  block the request to prevent free usage
           logger.error(
-            'Credit deduction failed — blocking task',
+            'Credit deduction failed  -  blocking task',
             err instanceof Error ? err : undefined,
             { userId: user.id },
           );
-          return c.json({ error: 'Billing error — please retry.' }, 503);
+          return c.json({ error: 'Billing error  -  please retry.' }, 503);
         }
 
-        // Increment usage count for metering (fire-and-forget — credit already deducted)
+        // Increment usage count for metering (fire-and-forget  -  credit already deducted)
         void db
           .insert(agentTaskUsage)
           .values({ userId: user.id, cycleStart: cycle, count: current + 1, overage: 1 })
@@ -154,7 +154,7 @@ export async function requireTaskQuota(
         return next();
       }
     } catch {
-      // Credit check failed — fall through to normal quota enforcement
+      // Credit check failed  -  fall through to normal quota enforcement
     }
 
     // Track overage for billing reports (fire-and-forget)
@@ -173,7 +173,7 @@ export async function requireTaskQuota(
     ).toISOString();
 
     if (x402.enabled && x402.receivingAddress) {
-      // x402 payment path — agents can pay USDC per task instead of hard-blocking
+      // x402 payment path  -  agents can pay USDC per task instead of hard-blocking
       const parsedUrl = new URL(c.req.url);
       const resource = `${parsedUrl.origin}${parsedUrl.pathname}`;
       const payloadHeader = c.req.header('X-PAYMENT-PAYLOAD');
@@ -183,7 +183,7 @@ export async function requireTaskQuota(
         const result = await verifyPayment(payloadHeader, resource);
 
         if (result.valid) {
-          logger.info('x402 payment accepted — task quota bypassed', {
+          logger.info('x402 payment accepted  -  task quota bypassed', {
             userId: user.id,
             resource,
             used: current,
@@ -203,7 +203,7 @@ export async function requireTaskQuota(
         );
       }
 
-      // No payment header — return 402 with x402 payment requirements
+      // No payment header  -  return 402 with x402 payment requirements
       const paymentRequired = buildPaymentRequired(resource);
       return c.json(
         {
@@ -232,7 +232,7 @@ export async function requireTaskQuota(
     );
   }
 
-  // Increment usage count — awaited to ensure metering accuracy.
+  // Increment usage count  -  awaited to ensure metering accuracy.
   // On failure, allow the request but log for reconciliation.
   try {
     await db
@@ -245,7 +245,7 @@ export async function requireTaskQuota(
     quotaWriteFailures = 0; // Reset on success
   } catch (err) {
     onQuotaWriteError(err);
-    // Allow the request — one lost increment is better than blocking paid users.
+    // Allow the request  -  one lost increment is better than blocking paid users.
     // The failure counter + logs enable reconciliation.
   }
 

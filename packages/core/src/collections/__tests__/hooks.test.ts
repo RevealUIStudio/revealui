@@ -7,7 +7,7 @@ import { callAfterChangeHooks } from '../hooks.js';
 // ---------------------------------------------------------------------------
 function createConfig(
   slug: string,
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — hook signature varies
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  hook signature varies
   hooks?: { afterChange?: any[] },
 ): RevealCollectionConfig {
   // biome-ignore lint/suspicious/noExplicitAny: test helper

@@ -27,7 +27,7 @@ export default function StepBlob({ data, onUpdateData, onNext }: StepBlobProps) 
     try {
       const valid = await vercelValidateBlobToken(trimmed);
       if (!valid) {
-        setError('Invalid blob token — check the token has read+write permissions.');
+        setError('Invalid blob token  -  check the token has read+write permissions.');
         return;
       }
       onUpdateData({ blobToken: trimmed });

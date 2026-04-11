@@ -61,7 +61,7 @@ function emptyPaginatedResult(docs: Array<{ id: string | number }> = []): Reveal
 }
 
 // ---------------------------------------------------------------------------
-// Tests — createDataloaderCacheKey
+// Tests  -  createDataloaderCacheKey
 // ---------------------------------------------------------------------------
 describe('createDataloaderCacheKey', () => {
   const baseArgs = {
@@ -243,7 +243,7 @@ describe('createDataloaderCacheKey', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — getDataLoader
+// Tests  -  getDataLoader
 // ---------------------------------------------------------------------------
 describe('getDataLoader', () => {
   beforeEach(() => {
@@ -263,7 +263,7 @@ describe('getDataLoader', () => {
   });
 
   // -----------------------------------------------------------------------
-  // find() — caching
+  // find()  -  caching
   // -----------------------------------------------------------------------
   describe('find()', () => {
     it('delegates to revealui.find', async () => {
@@ -389,7 +389,7 @@ describe('getDataLoader', () => {
   });
 
   // -----------------------------------------------------------------------
-  // load() — DataLoader batch loading
+  // load()  -  DataLoader batch loading
   // -----------------------------------------------------------------------
   describe('load()', () => {
     it('batches loads for the same collection into a single find call', async () => {
@@ -425,7 +425,7 @@ describe('getDataLoader', () => {
         transactionID: undefined,
       });
 
-      // Trigger both loads — DataLoader batches them on next microtask
+      // Trigger both loads  -  DataLoader batches them on next microtask
       const [result1, result2] = await Promise.all([loader.load(key1), loader.load(key2)]);
 
       // Both should resolve
@@ -480,7 +480,7 @@ describe('getDataLoader', () => {
 
       await Promise.all([loader.load(postKey), loader.load(userKey)]);
 
-      // Two separate find calls — one per collection
+      // Two separate find calls  -  one per collection
       expect(mockRevealUI.find).toHaveBeenCalledTimes(2);
     });
 

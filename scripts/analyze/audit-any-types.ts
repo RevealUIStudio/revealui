@@ -203,7 +203,7 @@ function findAnyUsage(filePath: string): AnyUsage[] {
           backticks % 2 !== 0 ||
           inTemplateLiteral;
 
-        // Detect JSX text content — "any" appearing as an English word in HTML, not as a TS type.
+        // Detect JSX text content  -  "any" appearing as an English word in HTML, not as a TS type.
         // JSX text lines typically contain HTML entities, JSX tags, or are inside tag content.
         const trimmedLine = line.trim();
         const looksLikeJSXText =

@@ -10,7 +10,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Fire-and-forget — never let capture failure affect the error UI
+    // Fire-and-forget  -  never let capture failure affect the error UI
     // Route through the admin server-side proxy (same origin) which adds the
     // X-Internal-Token header. Sending REVEALUI_SECRET from the client would
     // expose it in the browser bundle.
@@ -27,7 +27,7 @@ export default function GlobalError({
         metadata: error?.digest ? { digest: error.digest } : undefined,
       }),
     }).catch(() => {
-      // Intentionally silent — capturing errors must never throw
+      // Intentionally silent  -  capturing errors must never throw
     });
   }, [error]);
 

@@ -178,7 +178,7 @@ function SignOutButton() {
         credentials: 'include',
       });
     } catch {
-      // Sign out even if the API call fails — clear client state regardless
+      // Sign out even if the API call fails  -  clear client state regardless
     }
     window.location.href = '/login';
   }, []);

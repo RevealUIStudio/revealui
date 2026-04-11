@@ -3,7 +3,7 @@
 /**
  * Internal/Productized Boundary Validator
  *
- * Phase 2.11 enforcement — run as part of pnpm gate phase 1 (hard fail).
+ * Phase 2.11 enforcement  -  run as part of pnpm gate phase 1 (hard fail).
  *
  * Four checks:
  *   1. OSS packages do not statically import Fair Source Pro packages
@@ -29,7 +29,7 @@ const PACKAGES_DIR = join(REPO_ROOT, 'packages');
 const APPS_DIR = join(REPO_ROOT, 'apps');
 const SCRIPTS_DIR = join(REPO_ROOT, 'scripts');
 
-// Fair Source Pro packages (FSL-1.1-MIT) — OSS packages should not statically
+// Fair Source Pro packages (FSL-1.1-MIT)  -  OSS packages should not statically
 // import these; apps should use dynamic imports for graceful degradation.
 const FAIR_SOURCE_PACKAGES = ['@revealui/ai', '@revealui/harnesses'];
 
@@ -110,7 +110,7 @@ const INTERNAL_FILE_DIRS = ['.claude', 'business', 'docs', 'scripts', 'MASTER_PL
 
 // Source file extensions to scan
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs']);
-// PRO_SOURCE_ALIAS_PATTERNS removed — Pro source is now in the public repo under FSL-1.1-MIT
+// PRO_SOURCE_ALIAS_PATTERNS removed  -  Pro source is now in the public repo under FSL-1.1-MIT
 
 // =============================================================================
 // File Utilities
@@ -159,7 +159,7 @@ function checkOssImportBoundary(): string[] {
   const violations: string[] = [];
 
   for (const pkgName of OSS_PACKAGE_NAMES) {
-    // Private packages are dev-only and not published — skip them
+    // Private packages are dev-only and not published  -  skip them
     if (isPrivateOrFairSourcePackage(pkgName)) continue;
 
     const srcDir = join(PACKAGES_DIR, pkgName, 'src');
@@ -197,7 +197,7 @@ function checkInternalReferences(): string[] {
     .map((e) => e.name);
 
   for (const pkgName of allPackageNames) {
-    // Private packages are dev-only and not published — skip them
+    // Private packages are dev-only and not published  -  skip them
     if (isPrivateOrFairSourcePackage(pkgName)) continue;
 
     const srcDir = join(PACKAGES_DIR, pkgName, 'src');
@@ -237,7 +237,7 @@ function checkFilesFields(): string[] {
       private?: boolean;
     };
 
-    // Skip private packages (harnesses, editors, etc.) — they're not published
+    // Skip private packages (harnesses, editors, etc.)  -  they're not published
     if (pkg.private) continue;
 
     const files = pkg.files ?? [];
@@ -255,7 +255,7 @@ function checkFilesFields(): string[] {
   return violations;
 }
 
-// Check 4 removed — Pro source is now in the public repo under FSL-1.1-MIT
+// Check 4 removed  -  Pro source is now in the public repo under FSL-1.1-MIT
 
 // =============================================================================
 // Check 4: Apps/scripts do not hard-require optional Fair Source packages
@@ -263,7 +263,7 @@ function checkFilesFields(): string[] {
 
 function checkPublicRepoProDependencies(): string[] {
   const violations: string[] = [];
-  // Include test files in apps/ — static Pro imports should use dynamic imports
+  // Include test files in apps/  -  static Pro imports should use dynamic imports
   // for graceful degradation when Pro packages are not installed.
   const files = [
     ...collectSourceFiles(APPS_DIR, [], { includeTests: true }),
@@ -282,7 +282,7 @@ function checkPublicRepoProDependencies(): string[] {
         const trimmed = line.trimStart();
         // Skip non-import/export lines early
         if (!(trimmed.startsWith('import') || trimmed.startsWith('export'))) continue;
-        // Skip dynamic imports: import('...') — these are intentional for feature gating
+        // Skip dynamic imports: import('...')  -  these are intentional for feature gating
         if (trimmed.startsWith('import(')) continue;
         // Static imports have a space after 'import': import { ... } from '...'
         // Static exports: export { ... } from '...'
@@ -392,7 +392,7 @@ function main(): void {
     process.exit(1);
   }
 
-  console.log('✓ Boundary validation passed — internal/productized boundary is clean');
+  console.log('✓ Boundary validation passed  -  internal/productized boundary is clean');
   console.log(`${Sep}\n`);
 }
 

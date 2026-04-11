@@ -6,7 +6,7 @@ import { redirectsPlugin } from '../redirects.js';
 // Helpers
 // ---------------------------------------------------------------------------
 function createBaseConfig(collections: { slug: string; fields: unknown[] }[] = []): RevealUIConfig {
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal config shape
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal config shape
   return { collections } as any;
 }
 

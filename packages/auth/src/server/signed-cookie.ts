@@ -60,7 +60,7 @@ export function verifyCookiePayload<T extends { expiresAt: number }>(
 
     const actualSignature = Buffer.from(signatureB64, 'base64url');
 
-    // Timing-safe comparison — buffers must be same length
+    // Timing-safe comparison  -  buffers must be same length
     if (expectedSignature.length !== actualSignature.length) {
       return null;
     }
@@ -69,7 +69,7 @@ export function verifyCookiePayload<T extends { expiresAt: number }>(
       return null;
     }
 
-    // Signature valid — decode and parse the payload
+    // Signature valid  -  decode and parse the payload
     const payloadJson = Buffer.from(payloadB64, 'base64url').toString('utf8');
     const payload = JSON.parse(payloadJson) as T;
 

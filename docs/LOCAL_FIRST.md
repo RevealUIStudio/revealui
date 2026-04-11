@@ -7,7 +7,7 @@ audience: developer
 
 # Local-First Setup
 
-Run RevealUI entirely on your own hardware with local AI inference — no proprietary APIs, no remote secret storage, fully reproducible dev environment. Pro tier also supports cloud-hosted open models via the RevealUI harness.
+Run RevealUI entirely on your own hardware with local AI inference  -  no proprietary APIs, no remote secret storage, fully reproducible dev environment. Pro tier also supports cloud-hosted open models via the RevealUI harness.
 
 ## Overview
 
@@ -15,7 +15,7 @@ The local-first stack uses four components:
 
 | Component | Purpose |
 |-----------|---------|
-| **Nix + direnv** | Reproducible dev environment — all build deps provided automatically |
+| **Nix + direnv** | Reproducible dev environment  -  all build deps provided automatically |
 | **Inference snaps / Ollama** | Local LLM inference (OpenAI-compatible, open models) |
 | **RevVault** | Age-encrypted local secret store |
 | **RevealUI Pro** | Business logic, AI agents, MCP integrations |
@@ -27,7 +27,7 @@ The local-first stack uses four components:
 - **Disk:** ~2 GB free (model weights + runtime)
 - **OS:** Linux, macOS, or WSL2 (Ubuntu 22.04+)
 
-## Step 1 — Nix + direnv
+## Step 1  -  Nix + direnv
 
 Nix provides all build dependencies automatically.
 
@@ -53,7 +53,7 @@ direnv allow
 
 The Nix flake activates: Node 24, pnpm 10, Biome, and all build dependencies are available without any other installs.
 
-## Step 2 — Local inference (inference snaps or Ollama)
+## Step 2  -  Local inference (inference snaps or Ollama)
 
 **Option A: Ubuntu Inference Snaps (recommended)**
 
@@ -85,7 +85,7 @@ Add to `.envrc`:
 export OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-## Step 3 — Configure `@revealui/ai`
+## Step 3  -  Configure `@revealui/ai`
 
 The `createLLMClientFromEnv()` function in `@revealui/ai` auto-detects the available inference backend. No API key is needed for local inference.
 
@@ -98,7 +98,7 @@ import { createLLMClientFromEnv } from '@revealui/ai/llm';
 const client = createLLMClientFromEnv();
 ```
 
-## Step 4 — Embeddings
+## Step 4  -  Embeddings
 
 For vector search and AI memory, use Ollama with an embedding model:
 
@@ -129,7 +129,7 @@ const output = await embedder('Hello world', { pooling: 'mean', normalize: true 
 
 The model (~90 MB) is downloaded once and cached. Plug it into `@revealui/ai` via the `embedProvider` option on `LLMClient`.
 
-## Step 5 — RevVault setup
+## Step 5  -  RevVault setup
 
 RevVault stores all other project secrets (database URLs, Stripe keys, Google service account key):
 
@@ -184,8 +184,8 @@ If the default port is already in use, configure a different port in the snap or
 
 Once models are downloaded, the inference stack works with no network connection. The only components that require network access at runtime are:
 
-- Database (NeonDB) — can be replaced with local Postgres
-- Email delivery (Gmail API) — no offline fallback
-- Stripe webhooks — requires Stripe CLI (`stripe listen`) for local testing
+- Database (NeonDB)  -  can be replaced with local Postgres
+- Email delivery (Gmail API)  -  no offline fallback
+- Stripe webhooks  -  requires Stripe CLI (`stripe listen`) for local testing
 
 For a fully offline database, use the local Postgres instance provided by the RevealUI devcontainer or configure `POSTGRES_URL` to point to a local Postgres server.

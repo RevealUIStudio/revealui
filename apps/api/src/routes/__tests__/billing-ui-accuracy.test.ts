@@ -1,5 +1,5 @@
 /**
- * Billing UI Accuracy Tests (Phase 2.4 — Stripe Go-Live Readiness)
+ * Billing UI Accuracy Tests (Phase 2.4  -  Stripe Go-Live Readiness)
  *
  * Validates that the admin billing page (apps/admin/src/app/(frontend)/account/billing/page.tsx)
  * makes API calls that match the actual billing routes, and that hardcoded UI text
@@ -65,7 +65,7 @@ const UI_ENTERPRISE_CLAIMS = {
 
 // ─── Tests ─────────────────────────────────────────────────────────────────
 
-describe('Billing UI Accuracy — admin Billing Page vs API + Contracts', () => {
+describe('Billing UI Accuracy  -  admin Billing Page vs API + Contracts', () => {
   describe('API endpoint paths used by billing page', () => {
     it('subscription endpoint follows /api/billing/ convention', () => {
       expect(BILLING_API_ENDPOINTS.subscription).toBe('/api/billing/subscription');
@@ -253,7 +253,7 @@ describe('Billing UI Accuracy — admin Billing Page vs API + Contracts', () => 
     });
 
     it('enterprise tier only shows manage billing (no upgrade option)', () => {
-      // Enterprise is the highest tier — no further upgrade available
+      // Enterprise is the highest tier  -  no further upgrade available
       const enterpriseUpgradeTarget = null;
       expect(enterpriseUpgradeTarget).toBeNull();
     });

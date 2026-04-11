@@ -16,9 +16,9 @@ import { flattenFields } from '../../utils/type-guards.js';
  * previous hook, so hooks compose (later hooks see the output of earlier ones).
  *
  * Called twice per write operation:
- *   1. `beforeValidate` — before required-field checks, so hooks can generate values
+ *   1. `beforeValidate`  -  before required-field checks, so hooks can generate values
  *      (e.g. slug auto-generation from title) that satisfy required constraints.
- *   2. `beforeChange`   — after validation, before the DB write.
+ *   2. `beforeChange`    -  after validation, before the DB write.
  */
 export async function runBeforeFieldHooks(
   config: RevealCollectionConfig,

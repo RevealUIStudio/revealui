@@ -6,7 +6,7 @@
  * - Optionally seeds test database (requires TEST_DATABASE_URL)
  * - Optionally saves authenticated browser state (requires ADMIN_EMAIL + ADMIN_PASSWORD)
  *
- * All steps are best-effort — failures are logged and skipped, never throw.
+ * All steps are best-effort  -  failures are logged and skipped, never throw.
  *
  * Required env vars for authenticated state:
  *   ADMIN_EMAIL=admin@example.com
@@ -125,7 +125,7 @@ async function globalSetup(config: FullConfig) {
       console.log('   Tests requiring database will be skipped or may fail');
     }
   } else {
-    console.log('ℹ️  TEST_DATABASE_URL not set — skipping DB seeding');
+    console.log('ℹ️  TEST_DATABASE_URL not set  -  skipping DB seeding');
   }
 
   // Save authenticated browser state for reuse across tests
@@ -137,7 +137,7 @@ async function globalSetup(config: FullConfig) {
     const baseURL = config.projects[0].use.baseURL || 'http://localhost:4000';
     try {
       console.log('🔐 Creating authenticated browser state via API...');
-      // Use the API directly — avoids Next.js hydration race when clicking the
+      // Use the API directly  -  avoids Next.js hydration race when clicking the
       // Sign In button via browser (onClick not attached until React hydrates).
       const state = await signInViaAPI(baseURL, adminEmail, adminPassword);
       await writeFile('e2e/.auth/user.json', state);
@@ -148,7 +148,7 @@ async function globalSetup(config: FullConfig) {
         error instanceof Error ? error.message : 'Unknown error',
       );
       console.log('   Set ADMIN_EMAIL and ADMIN_PASSWORD to enable pre-authenticated tests');
-      // Preserve existing auth state if it has valid cookies — don't overwrite with empty
+      // Preserve existing auth state if it has valid cookies  -  don't overwrite with empty
       // state just because the refresh failed (e.g. rate-limited). Tests can still reuse
       // the previous session cookie if it hasn't expired.
       try {
@@ -165,7 +165,7 @@ async function globalSetup(config: FullConfig) {
       }
     }
   } else {
-    console.log('ℹ️  ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping auth state creation');
+    console.log('ℹ️  ADMIN_EMAIL/ADMIN_PASSWORD not set  -  skipping auth state creation');
     // Same preservation logic: keep existing cookies if present
     try {
       const existing = JSON.parse(

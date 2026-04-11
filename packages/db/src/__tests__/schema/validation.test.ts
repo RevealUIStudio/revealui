@@ -3,7 +3,7 @@
  *
  * Verifies that critical Drizzle ORM table definitions have the expected
  * columns, constraints, foreign keys, and NOT NULL requirements.
- * These tests use Drizzle's table metadata directly — no database connection needed.
+ * These tests use Drizzle's table metadata directly  -  no database connection needed.
  */
 
 import { getTableColumns, getTableName } from 'drizzle-orm';

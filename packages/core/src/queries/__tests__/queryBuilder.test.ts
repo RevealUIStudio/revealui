@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildWhereClause, extractWhereValues } from '../queryBuilder.js';
 
 // ---------------------------------------------------------------------------
-// Tests — buildWhereClause
+// Tests  -  buildWhereClause
 // ---------------------------------------------------------------------------
 describe('buildWhereClause', () => {
   describe('basic field conditions', () => {
@@ -247,7 +247,7 @@ describe('buildWhereClause', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — extractWhereValues
+// Tests  -  extractWhereValues
 // ---------------------------------------------------------------------------
 describe('extractWhereValues', () => {
   it('returns empty array for undefined', () => {

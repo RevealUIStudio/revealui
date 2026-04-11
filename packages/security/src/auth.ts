@@ -2,7 +2,7 @@
  * Authentication Utilities
  *
  * OAuth support, password hashing, and two-factor authentication.
- * JWT-based auth was removed — session auth is handled by @revealui/auth.
+ * JWT-based auth was removed  -  session auth is handled by @revealui/auth.
  */
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
@@ -170,7 +170,7 @@ export class OAuthClient {
  *
  * Uses PBKDF2 with a random salt for secure password hashing.
  *
- * @deprecated Use `@revealui/auth` instead — it uses bcrypt which is more
+ * @deprecated Use `@revealui/auth` instead  -  it uses bcrypt which is more
  * resistant to GPU brute-force attacks. This PBKDF2 implementation will be
  * removed in a future major version.
  */
@@ -258,7 +258,7 @@ function base32Encode(buffer: Uint8Array): string {
 }
 
 /**
- * Base32 decode (RFC 4648) — converts base32 string back to raw bytes.
+ * Base32 decode (RFC 4648)  -  converts base32 string back to raw bytes.
  * Required by RFC 6238: the HMAC key must be the decoded binary secret,
  * not the base32-encoded string.
  */
@@ -286,7 +286,7 @@ function base32Decode(encoded: string): Uint8Array {
 
 /**
  * Encode a 64-bit counter as an 8-byte big-endian buffer (RFC 4226 §5.2).
- * Standard authenticator apps expect this encoding — NOT a decimal string.
+ * Standard authenticator apps expect this encoding  -  NOT a decimal string.
  */
 function counterToBytes(counter: number): Buffer {
   const buf = Buffer.alloc(8);
@@ -321,8 +321,8 @@ function generateSecret(): string {
 
 /**
  * Generate TOTP code (RFC 6238 compliant).
- * Secret is base32-encoded — decoded before HMAC.
- * Counter is encoded as 8-byte big-endian — matches all standard authenticator apps.
+ * Secret is base32-encoded  -  decoded before HMAC.
+ * Counter is encoded as 8-byte big-endian  -  matches all standard authenticator apps.
  */
 function generateCode(secret: string, timestamp?: number): string {
   const time = Math.floor((timestamp || Date.now()) / 30000);

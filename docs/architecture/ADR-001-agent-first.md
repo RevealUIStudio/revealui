@@ -13,7 +13,7 @@ Every system in RevealUI has two interfaces:
 
 1. **Programmatic surface:** Structured data (YAML, JSON, OpenAPI, Zod schemas) that agents and automated tools parse deterministically. This is the primary interface.
 
-2. **Human surface:** Rendered views produced on demand when a human requests information. Browser-based UIs, dashboards, and documentation sites are renderers — projections of the programmatic surface.
+2. **Human surface:** Rendered views produced on demand when a human requests information. Browser-based UIs, dashboards, and documentation sites are renderers  -  projections of the programmatic surface.
 
 The programmatic surface is built first. The human surface is built on top of it.
 
@@ -31,4 +31,4 @@ When triaging work, programmatic surface gaps outrank human surface gaps at the 
 - Admin UI work is deprioritized relative to API completeness
 - All new features must have an API/structured interface before any UI
 - Feature flags only exist for implemented features; aspirational features live in roadmap YAML
-- Absence of a reality doc signals a feature is not implemented — no placeholder files for planned features
+- Absence of a reality doc signals a feature is not implemented  -  no placeholder files for planned features

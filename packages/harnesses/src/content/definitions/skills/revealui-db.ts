@@ -27,19 +27,19 @@ RevealUI uses **two databases with strictly separated responsibilities**:
 **\`@supabase/supabase-js\` must only be imported inside designated vector/auth modules:**
 
 ### Allowed paths for Supabase imports
-- \`packages/db/src/vector/\` — vector schema and queries
-- \`packages/db/src/auth/\` — Supabase auth helpers
-- \`packages/auth/src/\` — authentication implementation
-- \`packages/ai/src/\` — AI memory and embedding storage
-- \`packages/services/src/supabase/\` — Supabase service integrations
-- \`apps/*/src/lib/supabase/\` — app-level Supabase utilities
+- \`packages/db/src/vector/\`  -  vector schema and queries
+- \`packages/db/src/auth/\`  -  Supabase auth helpers
+- \`packages/auth/src/\`  -  authentication implementation
+- \`packages/ai/src/\`  -  AI memory and embedding storage
+- \`packages/services/src/supabase/\`  -  Supabase service integrations
+- \`apps/*/src/lib/supabase/\`  -  app-level Supabase utilities
 
 ### Forbidden: Supabase imports in
-- \`packages/core/\` — admin engine must be DB-agnostic
-- \`packages/contracts/\` — contracts are schema-only
-- \`packages/config/\` — config must not hardcode DB client
-- \`apps/admin/src/collections/\` — collection hooks use Drizzle/Neon only
-- \`apps/admin/src/routes/\` — REST routes use Neon only
+- \`packages/core/\`  -  admin engine must be DB-agnostic
+- \`packages/contracts/\`  -  contracts are schema-only
+- \`packages/config/\`  -  config must not hardcode DB client
+- \`apps/admin/src/collections/\`  -  collection hooks use Drizzle/Neon only
+- \`apps/admin/src/routes/\`  -  REST routes use Neon only
 
 ## Schema Organization
 
@@ -74,7 +74,7 @@ const { data } = await supabase.rpc('match_documents', { query_embedding: embedd
 ## Enforcement
 
 The \`pnpm validate:structure\` script checks for Supabase imports outside permitted paths.
-CI runs this as part of phase 1 (warn-only — violations are flagged but don't block builds).
+CI runs this as part of phase 1 (warn-only  -  violations are flagged but don't block builds).
 
 To check locally:
 \`\`\`bash

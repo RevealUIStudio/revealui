@@ -57,7 +57,7 @@ export function NavBar() {
             <a href="https://admin.revealui.com/signup">Get Started</a>
           </ButtonCVA>
 
-          {/* Hamburger — mobile only */}
+          {/* Hamburger  -  mobile only */}
           <button
             type="button"
             className="sm:hidden -mr-1 flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 transition-colors"

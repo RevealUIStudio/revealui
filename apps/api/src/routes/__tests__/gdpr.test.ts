@@ -3,7 +3,7 @@ import { HTTPException } from 'hono/http-exception';
 import { describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mock dependencies — no real DB or security layer needed
+// Mock dependencies  -  no real DB or security layer needed
 // ---------------------------------------------------------------------------
 const {
   mockGrantConsent,
@@ -127,13 +127,13 @@ function jsonPost(app: Hono, path: string, body: unknown): Promise<Response> {
   });
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
 
 // ---------------------------------------------------------------------------
-// POST /gdpr/consent/grant — Zod validation
+// POST /gdpr/consent/grant  -  Zod validation
 // ---------------------------------------------------------------------------
 
 describe('POST /gdpr/consent/grant', () => {
@@ -191,7 +191,7 @@ describe('POST /gdpr/consent/grant', () => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /gdpr/consent/revoke — Zod validation
+// POST /gdpr/consent/revoke  -  Zod validation
 // ---------------------------------------------------------------------------
 
 describe('POST /gdpr/consent/revoke', () => {
@@ -231,7 +231,7 @@ describe('POST /gdpr/consent/revoke', () => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /gdpr/deletion — Zod validation
+// POST /gdpr/deletion  -  Zod validation
 // ---------------------------------------------------------------------------
 
 describe('POST /gdpr/deletion', () => {
@@ -370,7 +370,7 @@ describe('GET /gdpr/consent/check/:type', () => {
 });
 
 // ---------------------------------------------------------------------------
-// GET /gdpr/deletion — list user's deletion requests
+// GET /gdpr/deletion  -  list user's deletion requests
 // ---------------------------------------------------------------------------
 
 describe('GET /gdpr/deletion', () => {
@@ -415,7 +415,7 @@ describe('GET /gdpr/deletion', () => {
 });
 
 // ---------------------------------------------------------------------------
-// GET /gdpr/deletion/:id — get specific deletion request
+// GET /gdpr/deletion/:id  -  get specific deletion request
 // ---------------------------------------------------------------------------
 
 describe('GET /gdpr/deletion/:id', () => {

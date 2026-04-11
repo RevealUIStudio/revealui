@@ -249,7 +249,7 @@ describe('Router', () => {
       const listener = vi.fn();
       const unsubscribe = router.subscribe(listener);
       unsubscribe();
-      // Trigger a resolve to potentially notify — no notification expected
+      // Trigger a resolve to potentially notify  -  no notification expected
       expect(listener).not.toHaveBeenCalled();
     });
 

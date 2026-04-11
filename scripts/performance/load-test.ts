@@ -1,5 +1,5 @@
 /**
- * HTTP Load Test — OV-4
+ * HTTP Load Test  -  OV-4
  *
  * Baseline load test for RevealUI API endpoints.
  * Uses autocannon for HTTP load generation.
@@ -8,13 +8,13 @@
  *   npx tsx scripts/performance/load-test.ts [target]
  *
  * Targets:
- *   health    — API health endpoint (1000 req/s sanity check)
- *   pricing   — Public pricing endpoint (cached)
- *   all       — Run all targets sequentially
+ *   health     -  API health endpoint (1000 req/s sanity check)
+ *   pricing    -  Public pricing endpoint (cached)
+ *   all        -  Run all targets sequentially
  *
  * Environment:
- *   API_URL   — API base URL (default: http://localhost:3004)
- *   DURATION  — Test duration in seconds (default: 10)
+ *   API_URL    -  API base URL (default: http://localhost:3004)
+ *   DURATION   -  Test duration in seconds (default: 10)
  */
 
 import autocannon from 'autocannon';
@@ -185,7 +185,7 @@ async function main() {
   const target = process.argv[2] || 'all';
 
   console.log('╔══════════════════════════════════════════════════════════╗');
-  console.log('║  RevealUI API Load Test — OV-4 Baseline                 ║');
+  console.log('║  RevealUI API Load Test  -  OV-4 Baseline                 ║');
   console.log(`║  Target: ${API_URL.padEnd(48)}║`);
   console.log(`║  Duration: ${DURATION}s per test${' '.repeat(39 - String(DURATION).length)}║`);
   console.log('╚══════════════════════════════════════════════════════════╝');

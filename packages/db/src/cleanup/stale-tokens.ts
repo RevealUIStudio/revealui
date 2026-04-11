@@ -6,13 +6,13 @@
  * via `revealui db cleanup` when crons are unavailable (e.g. Hobby plan).
  *
  * Tables:
- * - sessions             — expiresAt < now OR deletedAt IS NOT NULL
- * - rate_limits          — resetAt < now
- * - password_reset_tokens — expiresAt < now
- * - magic_links          — expiresAt < now
- * - pages (scheduled)    — status = 'scheduled' AND scheduledAt <= now
+ * - sessions              -  expiresAt < now OR deletedAt IS NOT NULL
+ * - rate_limits           -  resetAt < now
+ * - password_reset_tokens  -  expiresAt < now
+ * - magic_links           -  expiresAt < now
+ * - pages (scheduled)     -  status = 'scheduled' AND scheduledAt <= now
  *
- * Idempotent — safe to run multiple times.
+ * Idempotent  -  safe to run multiple times.
  */
 
 import { and, eq, isNotNull, lt, lte, or } from 'drizzle-orm';

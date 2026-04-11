@@ -20,7 +20,7 @@ Run \`pnpm install\` first to establish symlinks in this worktree.
 
 ## Rules
 - Report test failures with file paths, test names, and error messages
-- Do NOT modify source code — only test and report
+- Do NOT modify source code  -  only test and report
 - If tests fail, identify the root cause and suggest fixes
 - Report coverage numbers when running with coverage`,
 };

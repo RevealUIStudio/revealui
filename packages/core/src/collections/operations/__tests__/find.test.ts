@@ -178,7 +178,7 @@ describe('find operation', () => {
       },
     };
 
-    // No mock setup needed — the error throws before any query executes
+    // No mock setup needed  -  the error throws before any query executes
     await expect(find(mockConfig, mockDb as never, options)).rejects.toThrow(
       'Invalid sort field: "nonexistent_field"',
     );

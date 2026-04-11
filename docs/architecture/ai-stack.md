@@ -1,6 +1,6 @@
 # AI Stack Architecture
 
-RevealUI's AI subsystem lives in `@revealui/ai` (Pro, Fair Source FSL-1.1-MIT). It provides open-model inference, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime — all gated by tier. No proprietary cloud APIs are supported.
+RevealUI's AI subsystem lives in `@revealui/ai` (Pro, Fair Source FSL-1.1-MIT). It provides open-model inference, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime  -  all gated by tier. No proprietary cloud APIs are supported.
 
 ## Inference Abstraction
 
@@ -10,7 +10,7 @@ All LLM access flows through `LLMClient`, a factory that wraps inference backend
 
 | Path | Chat | Embeddings | Key Env Var | Notes |
 |------|------|-----------|-------------|-------|
-| **Ubuntu Inference Snaps** | yes | depends on model | `INFERENCE_SNAPS_BASE_URL` | Canonical snap runtime — Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
+| **Ubuntu Inference Snaps** | yes | depends on model | `INFERENCE_SNAPS_BASE_URL` | Canonical snap runtime  -  Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
 | **Ollama** | yes | yes | `OLLAMA_BASE_URL` | Any open source GGUF model. Chat: `gemma4:e2b`, Embed: `nomic-embed-text` |
 
 ### Auto-Detection Priority
@@ -99,7 +99,7 @@ CRDT-based distributed memory with four stores:
 - **PNCounter**: Distributed increment/decrement counter
 - **VectorClock**: Causal ordering across nodes
 
-Memory integration is optional — agents degrade gracefully without it. Requires Max tier (`aiMemory` feature flag).
+Memory integration is optional  -  agents degrade gracefully without it. Requires Max tier (`aiMemory` feature flag).
 
 ## RAG Pipeline
 

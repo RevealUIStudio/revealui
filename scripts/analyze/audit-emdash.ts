@@ -2,7 +2,7 @@
 /**
  * Em Dash Audit Script
  *
- * Scans user-facing files for em dash characters (U+2014) and &mdash; entities.
+ * Scans user-facing files for em dash characters (U+2014) and  -  entities.
  * Em dashes are not used in RevealUI copy - use spaced hyphens ( - ) instead.
  *
  * Skips:
@@ -147,8 +147,8 @@ function getContext(line: string, column: number, radius: number = 40): string {
   const start = Math.max(0, column - radius);
   const end = Math.min(line.length, column + radius + 1);
   let ctx = line.substring(start, end).trim();
-  if (start > 0) ctx = '...' + ctx;
-  if (end < line.length) ctx = ctx + '...';
+  if (start > 0) ctx = `...${ctx}`;
+  if (end < line.length) ctx = `${ctx}...`;
   return ctx;
 }
 
@@ -174,8 +174,9 @@ function scanFile(filePath: string): EmDashFinding[] {
       });
       col = line.indexOf('\u2014', col + 1);
     }
-    // Search for &mdash; entity
-    col = line.indexOf('&mdash;');
+    // Search for HTML em-dash entity (built from parts to survive Biome formatting)
+    const mdashEntity = ['&', 'mdash', ';'].join('');
+    col = line.indexOf(mdashEntity);
     while (col !== -1) {
       const inCode = codeBlockMap[i] || isInsideInlineCode(line, col);
       findings.push({
@@ -185,7 +186,7 @@ function scanFile(filePath: string): EmDashFinding[] {
         context: getContext(line, col),
         inCodeBlock: inCode,
       });
-      col = line.indexOf('&mdash;', col + 7);
+      col = line.indexOf(mdashEntity, col + 7);
     }
   }
 
@@ -202,21 +203,7 @@ function fixFile(filePath: string): number {
     if (codeBlockMap[i]) return line;
 
     let result = '';
-    let lastIndex = 0;
-
-    // Process character by character to respect inline backticks
-    const chars = [...line];
     let insideBacktick = false;
-
-    for (let j = 0; j < chars.length; j++) {
-      if (chars[j] === '`') {
-        insideBacktick = !insideBacktick;
-      }
-    }
-
-    // Simpler approach: rebuild line segments outside backticks
-    insideBacktick = false;
-    result = '';
 
     for (let j = 0; j < line.length; j++) {
       if (line[j] === '`') {
@@ -237,11 +224,11 @@ function fixFile(filePath: string): number {
         continue;
       }
 
-      // Check for &mdash; entity
-      if (line.substring(j, j + 7) === '&mdash;') {
+      // Check for HTML em-dash entity (built from parts to survive Biome formatting)
+      if (line.substring(j, j + 7) === ['&', 'mdash', ';'].join('')) {
         result += ' - ';
         fixCount++;
-        j += 6; // Skip remaining chars of &mdash;
+        j += 6; // Skip remaining chars of  -
         continue;
       }
 

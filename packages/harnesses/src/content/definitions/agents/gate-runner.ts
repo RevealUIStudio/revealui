@@ -24,7 +24,7 @@ Run \`pnpm install\` first to establish symlinks in this worktree.
 
 ## Rules
 - Report which phase failed and the specific error(s)
-- Biome, typecheck, and build are hard failures — must be fixed
-- Tests are warn-only — report but don't block
-- Do NOT modify source code — only run the gate and report`,
+- Biome, typecheck, and build are hard failures  -  must be fixed
+- Tests are warn-only  -  report but don't block
+- Do NOT modify source code  -  only run the gate and report`,
 };

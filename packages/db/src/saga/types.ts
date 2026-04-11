@@ -33,7 +33,7 @@ export interface SagaContext {
  * A single step in a saga.
  *
  * Each step has an execute function (forward operation) and a compensate
- * function (undo/rollback). Both must be individually atomic — a single
+ * function (undo/rollback). Both must be individually atomic  -  a single
  * INSERT/UPDATE/DELETE that NeonDB can execute in one HTTP request.
  */
 export interface SagaStep<TOutput = unknown> {
@@ -50,7 +50,7 @@ export interface SagaStep<TOutput = unknown> {
   /**
    * Undo the forward operation.
    * Receives the output from execute so it knows what to clean up.
-   * Must be idempotent — safe to call multiple times (e.g., DELETE WHERE
+   * Must be idempotent  -  safe to call multiple times (e.g., DELETE WHERE
    * that's a no-op if the row doesn't exist).
    */
   compensate: (ctx: SagaContext, output: TOutput) => Promise<void>;

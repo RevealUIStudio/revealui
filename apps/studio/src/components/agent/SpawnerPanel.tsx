@@ -1,5 +1,5 @@
 /**
- * SpawnerPanel — spawn and manage local inference agents (Snaps / Ollama)
+ * SpawnerPanel  -  spawn and manage local inference agents (Snaps / Ollama)
  *
  * Renders inside the Agent page left pane, below the workboard sessions.
  * Provides: spawn dialog, running agent list, output viewer, stop/remove.

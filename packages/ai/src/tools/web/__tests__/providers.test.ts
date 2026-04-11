@@ -1,6 +1,6 @@
 /**
  * Tests for Tavily, Exa, and the createWebSearchTool factory.
- * All HTTP calls are mocked — no real network requests.
+ * All HTTP calls are mocked  -  no real network requests.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

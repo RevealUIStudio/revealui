@@ -351,16 +351,16 @@ export const licensesRelations = relations(licenses, ({ one }) => ({
 // Audit Log Relations
 // =============================================================================
 
-// Audit log entries are standalone — no foreign keys by design.
+// Audit log entries are standalone  -  no foreign keys by design.
 // The agentId, taskId, and sessionId are stored as plain text for
 // decoupling the audit trail from agent lifecycle tables.
 export const auditLogRelations = relations(auditLog, () => ({}));
 
-// App logs are standalone — no foreign keys by design.
+// App logs are standalone  -  no foreign keys by design.
 // Append-only structured log store (warn+ in production).
 export const appLogsRelations = relations(appLogs, () => ({}));
 
-// Error events are standalone — no foreign keys by design.
+// Error events are standalone  -  no foreign keys by design.
 // userId is stored as plain text so errors outlive user deletion.
 export const errorEventsRelations = relations(errorEvents, () => ({}));
 
@@ -500,7 +500,7 @@ export const codeReviewsRelations = relations(codeReviews, ({ one }) => ({
 }));
 
 // =============================================================================
-// RevMarket — Autonomous Agent Marketplace Relations
+// RevMarket  -  Autonomous Agent Marketplace Relations
 // =============================================================================
 
 export const marketplaceAgentsRelations = relations(marketplaceAgents, ({ one, many }) => ({

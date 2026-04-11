@@ -80,7 +80,7 @@ describe('CircuitBreaker', () => {
     });
   });
 
-  describe('execute — success path', () => {
+  describe('execute  -  success path', () => {
     it('should return the result of the function', async () => {
       const result = await breaker.execute(async () => 42);
       expect(result).toBe(42);
@@ -117,7 +117,7 @@ describe('CircuitBreaker', () => {
     });
   });
 
-  describe('execute — failure path', () => {
+  describe('execute  -  failure path', () => {
     it('should re-throw the original error', async () => {
       const err = new Error('test error');
       await expect(
@@ -170,7 +170,7 @@ describe('CircuitBreaker', () => {
     });
   });
 
-  describe('state transitions — closed to open', () => {
+  describe('state transitions  -  closed to open', () => {
     it('should open after reaching failure threshold with volume threshold met', async () => {
       for (let i = 0; i < 3; i++) {
         await expect(
@@ -208,7 +208,7 @@ describe('CircuitBreaker', () => {
     });
   });
 
-  describe('state transitions — open to half-open', () => {
+  describe('state transitions  -  open to half-open', () => {
     it('should reject with CircuitBreakerOpenError when open and timeout not elapsed', async () => {
       breaker.trip();
 
@@ -237,7 +237,7 @@ describe('CircuitBreaker', () => {
     });
   });
 
-  describe('state transitions — half-open to closed', () => {
+  describe('state transitions  -  half-open to closed', () => {
     it('should close after enough consecutive successes in half-open state', async () => {
       breaker.trip();
       vi.advanceTimersByTime(5000); // Move to half-open
@@ -259,7 +259,7 @@ describe('CircuitBreaker', () => {
     });
   });
 
-  describe('state transitions — half-open to open', () => {
+  describe('state transitions  -  half-open to open', () => {
     it('should immediately open on failure in half-open state', async () => {
       breaker.trip();
       vi.advanceTimersByTime(5000);

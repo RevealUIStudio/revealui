@@ -15,7 +15,7 @@ function makeContext(overrides: Record<string, unknown> = {}) {
     user: undefined,
     tenant: undefined,
     ...overrides,
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal context shape
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal context shape
   } as any;
 }
 
@@ -24,7 +24,7 @@ function makeUser(overrides: Record<string, unknown> = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — createRevealUIAccessRule
+// Tests  -  createRevealUIAccessRule
 // ---------------------------------------------------------------------------
 describe('createRevealUIAccessRule', () => {
   it('creates rule with all options', () => {
@@ -53,7 +53,7 @@ describe('createRevealUIAccessRule', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — convertToRevealUIAccessRule
+// Tests  -  convertToRevealUIAccessRule
 // ---------------------------------------------------------------------------
 describe('convertToRevealUIAccessRule', () => {
   it('attaches permissions and a condition', () => {
@@ -102,7 +102,7 @@ describe('convertToRevealUIAccessRule', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — createEnhancedAccessRule
+// Tests  -  createEnhancedAccessRule
 // ---------------------------------------------------------------------------
 describe('createEnhancedAccessRule', () => {
   it('grants access to superAdmin by default', () => {
@@ -120,7 +120,7 @@ describe('createEnhancedAccessRule', () => {
       makeContext({ user: makeUser({ revealUI: { isSuperAdmin: true } }) }),
     );
 
-    // Falls through to permission check — superAdmin user has no roles
+    // Falls through to permission check  -  superAdmin user has no roles
     expect(result).toBe(false);
   });
 
@@ -190,7 +190,7 @@ describe('createEnhancedAccessRule', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — evaluateRevealUIAccessRule
+// Tests  -  evaluateRevealUIAccessRule
 // ---------------------------------------------------------------------------
 describe('evaluateRevealUIAccessRule', () => {
   it('returns true for empty rule', () => {
@@ -284,7 +284,7 @@ describe('evaluateRevealUIAccessRule', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — combineRevealUIAccessRules
+// Tests  -  combineRevealUIAccessRules
 // ---------------------------------------------------------------------------
 describe('combineRevealUIAccessRules', () => {
   it('OR: returns true if any rule passes', () => {

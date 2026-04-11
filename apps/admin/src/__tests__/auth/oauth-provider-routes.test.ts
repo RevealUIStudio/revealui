@@ -3,8 +3,8 @@
  * OAuth Provider Route Tests
  *
  * Tests for:
- * - GET /api/auth/[provider] — OAuth initiate (redirect to provider)
- * - GET /api/auth/callback/[provider] — OAuth callback (code exchange, session creation)
+ * - GET /api/auth/[provider]  -  OAuth initiate (redirect to provider)
+ * - GET /api/auth/callback/[provider]  -  OAuth callback (code exchange, session creation)
  *
  * Mocks @revealui/auth/server and @revealui/core logger to test route logic in isolation.
  */
@@ -13,7 +13,7 @@ import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mock setup — must be before any route imports
+// Mock setup  -  must be before any route imports
 // ---------------------------------------------------------------------------
 
 const mockGenerateOAuthState = vi.fn();

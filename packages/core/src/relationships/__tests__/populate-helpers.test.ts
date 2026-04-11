@@ -7,7 +7,7 @@ import {
 } from '../populate-core.js';
 
 // ---------------------------------------------------------------------------
-// Tests — extractRelationInfo
+// Tests  -  extractRelationInfo
 // ---------------------------------------------------------------------------
 describe('extractRelationInfo', () => {
   const emptyReq = { revealui: { collections: {} } };
@@ -135,7 +135,7 @@ describe('extractRelationInfo', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — shouldPopulateRelationship
+// Tests  -  shouldPopulateRelationship
 // ---------------------------------------------------------------------------
 describe('shouldPopulateRelationship', () => {
   it('returns true when depth > 0 and currentDepth <= depth', () => {
@@ -157,7 +157,7 @@ describe('shouldPopulateRelationship', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — updateDocumentWithPopulatedValue
+// Tests  -  updateDocumentWithPopulatedValue
 // ---------------------------------------------------------------------------
 describe('updateDocumentWithPopulatedValue', () => {
   describe('single value (no index/key)', () => {

@@ -68,7 +68,7 @@ export async function POST(request: Request) {
     // API unavailable
   }
 
-  // API down or errored — tell the user so they can retry
+  // API down or errored  -  tell the user so they can retry
   return NextResponse.json(
     { message: 'Our service is temporarily unavailable. Please try again in a few minutes.' },
     { status: 503 },

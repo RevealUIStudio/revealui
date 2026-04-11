@@ -1,7 +1,7 @@
 /**
  * Agent Contexts Sync Mutation Route
  *
- * POST /api/sync/agent-contexts — Create a new agent context
+ * POST /api/sync/agent-contexts  -  Create a new agent context
  *
  * Authenticated. The context is scoped to the current session.
  * ElectricSQL picks up the database change and pushes it to all shape subscribers.

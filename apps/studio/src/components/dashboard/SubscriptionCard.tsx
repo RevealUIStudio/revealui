@@ -1,5 +1,5 @@
 /**
- * SubscriptionCard — Shows billing tier, status, and agent task usage.
+ * SubscriptionCard  -  Shows billing tier, status, and agent task usage.
  *
  * Fetches live data from the API via useSubscription.
  * Displays tier badge, subscription status, grace period warnings,
@@ -94,7 +94,7 @@ export default function SubscriptionCard() {
       {/* Grace period warning */}
       {graceUntil ? (
         <div className="mt-2 rounded border border-amber-800/50 bg-amber-950/20 px-2.5 py-1.5 text-xs text-amber-400">
-          Grace period until {graceDate} — update your payment method to avoid losing access.
+          Grace period until {graceDate} - update your payment method to avoid losing access.
         </div>
       ) : null}
 

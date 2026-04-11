@@ -261,7 +261,7 @@ describe('Collection CRUD concurrency', () => {
         } as DatabaseResult)
         .mockResolvedValueOnce({ rows: [] } as DatabaseResult);
 
-      // Should not throw — logs warning and continues with empty JSON
+      // Should not throw  -  logs warning and continues with empty JSON
       const result = await update(
         mockConfig,
         mockDb as never,
@@ -332,7 +332,7 @@ describe('Collection CRUD concurrency', () => {
       }));
       mockDb.query.mockResolvedValue({ rows: [] } as DatabaseResult);
 
-      // All creates omit slug — hooks must generate it before required check
+      // All creates omit slug  -  hooks must generate it before required check
       const creates = ['Hello World', 'Another Post', 'Third One'].map((title) =>
         create(
           configWithHook,

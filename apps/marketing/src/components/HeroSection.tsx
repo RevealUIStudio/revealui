@@ -60,7 +60,7 @@ export function HeroSection() {
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-lg leading-8 text-gray-500">
             RevealUI is an open-source business runtime. Users, content, products, payments, and AI
-            &mdash; five primitives, pre-wired into one deployable stack.
+            - five primitives, pre-wired into one deployable stack.
           </p>
 
           {/* Five primitives */}

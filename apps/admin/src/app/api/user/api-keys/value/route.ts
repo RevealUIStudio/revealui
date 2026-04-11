@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/user/api-keys/value
  *
  * Returns the decrypted plaintext key for the current user.
- * Used only at task call time — the key is NOT stored in client state between calls.
+ * Used only at task call time  -  the key is NOT stored in client state between calls.
  * Updates lastUsedAt on each fetch.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -31,9 +31,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const key = decryptApiKey(row.encryptedKey);
 
-  // Update lastUsedAt (fire-and-forget — don't block the response)
+  // Update lastUsedAt (fire-and-forget  -  don't block the response)
   touchApiKeyUsage(db, row.id).catch(() => {
-    // Fire-and-forget — lastUsedAt update failure is non-critical
+    // Fire-and-forget  -  lastUsedAt update failure is non-critical
   });
 
   return NextResponse.json(

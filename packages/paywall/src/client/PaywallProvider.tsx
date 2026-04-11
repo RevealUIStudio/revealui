@@ -69,7 +69,7 @@ export function PaywallProvider({ paywall, resolveTier, children }: PaywallProvi
     }
   }
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — fetch once on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional  -  fetch once on mount
   useEffect(() => {
     void fetchTier();
   }, []);

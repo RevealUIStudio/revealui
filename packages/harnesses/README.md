@@ -1,9 +1,9 @@
 # @revealui/harnesses
 
-> **Commercial package** — requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
+> **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
 
 
-AI harness coordination for RevealUI — enables multiple AI coding tools to work on the same codebase safely and in parallel.
+AI harness coordination for RevealUI  -  enables multiple AI coding tools to work on the same codebase safely and in parallel.
 
 ## Features
 
@@ -99,10 +99,10 @@ pnpm --filter @revealui/harnesses build
 
 ## Related Documentation
 
-- [Coordination Rules](../../.claude/rules/coordination.md) — Multi-instance protocol
-- [Architecture Guide](../../docs/ARCHITECTURE.md) — System architecture
-- [Editors Package](../editors/README.md) — Editor daemon (parallel architecture)
+- [Coordination Rules](../../.claude/rules/coordination.md)  -  Multi-instance protocol
+- [Architecture Guide](../../docs/ARCHITECTURE.md)  -  System architecture
+- [Editors Package](../editors/README.md)  -  Editor daemon (parallel architecture)
 
 ## License
 
-Commercial — see [LICENSE.commercial](../../LICENSE.commercial)
+Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)

@@ -346,7 +346,7 @@ describe('verifyPayment', () => {
   it('uses the same resource URL for both 402 response and verification', () => {
     // This test verifies the fix for the resource URL mismatch bug.
     // buildPaymentRequired must produce the same resource whether called from
-    // the 402 response path or the verify path — both use the full canonical URL.
+    // the 402 response path or the verify path  -  both use the full canonical URL.
     const resource = 'https://api.revealui.com/api/agent-stream';
     const paymentRequired = buildPaymentRequired(resource);
     const requirement = paymentRequired.accepts[0];

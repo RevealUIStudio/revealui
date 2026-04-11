@@ -4,7 +4,7 @@
 
 **Agentic business runtime.**
 
-Users. Content. Products. Payments. Intelligence. Five primitives, one deployment — build your business, not your boilerplate.
+Users. Content. Products. Payments. Intelligence. Five primitives, one deployment  -  build your business, not your boilerplate.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![React 19](https://img.shields.io/badge/React-19-61dafb.svg)](https://react.dev)
@@ -17,7 +17,7 @@ Users. Content. Products. Payments. Intelligence. Five primitives, one deploymen
 
 ---
 
-RevealUI is an open-source runtime that ships the business logic layer every software product needs — auth, content, products, billing, and AI agents — pre-wired and development-hardened. Instead of assembling a dozen services, you start on day one with a running business and agents that natively operate on your data.
+RevealUI is an open-source runtime that ships the business logic layer every software product needs  -  auth, content, products, billing, and AI agents  -  pre-wired and development-hardened. Instead of assembling a dozen services, you start on day one with a running business and agents that natively operate on your data.
 
 ## What you get on day one
 
@@ -31,12 +31,12 @@ Open [http://localhost:4000/admin](http://localhost:4000/admin).
 
 You have:
 
-- **User accounts** — sign up, sign in, password reset, sessions, RBAC, rate limiting, brute force protection
-- **Content management** — define collections in TypeScript, get a full REST API and admin UI instantly
-- **Billing** — Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
-- **Admin dashboard** — manage users, content, billing, and settings out of the box
-- **57 UI components** — built with Tailwind CSS v4, zero external UI dependencies
-- **Type-safe throughout** — Zod schemas shared between client, server, and database
+- **User accounts**  -  sign up, sign in, password reset, sessions, RBAC, rate limiting, brute force protection
+- **Content management**  -  define collections in TypeScript, get a full REST API and admin UI instantly
+- **Billing**  -  Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
+- **Admin dashboard**  -  manage users, content, billing, and settings out of the box
+- **57 UI components**  -  built with Tailwind CSS v4, zero external UI dependencies
+- **Type-safe throughout**  -  Zod schemas shared between client, server, and database
 
 No assembly required. No consulting 12 different documentation sites. No decisions about which auth library to use.
 
@@ -52,7 +52,7 @@ No assembly required. No consulting 12 different documentation sites. No decisio
 
 ## The JOSHUA Stack
 
-Six principles that give you a tested starting point for every architectural decision. Not the only way — a way that works. Evolve it as you grow:
+Six principles that give you a tested starting point for every architectural decision. Not the only way  -  a way that works. Evolve it as you grow:
 
 | Principle | What it means |
 | --- | --- |
@@ -78,7 +78,7 @@ Each project stands alone. Together, they cover the full lifecycle of building, 
 
 ## Define your business data
 
-Add a collection. Get an API, admin UI, and TypeScript types — automatically.
+Add a collection. Get an API, admin UI, and TypeScript types  -  automatically.
 
 ```typescript
 import { defineCollection, defineField } from "@revealui/core";
@@ -109,19 +109,19 @@ const Products = defineCollection({
 
 The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work on your behalf:
 
-- **AI agent system** — build and deploy purpose-built agents for your workflows
-- **MCP framework** — hypervisor, adapter framework, and tool discovery for connecting agents to external services
-- **Open-model inference** — Ubuntu Inference Snaps (recommended), Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for instant local AI. No proprietary APIs, no vendor lock-in, zero API bills
-- **Task history** — every agent action logged, auditable, and visible in the dashboard
-- **Editor config sync** — generate and sync settings for Zed, VS Code, Cursor, and Antigravity
+- **AI agent system**  -  build and deploy purpose-built agents for your workflows
+- **MCP framework**  -  hypervisor, adapter framework, and tool discovery for connecting agents to external services
+- **Open-model inference**  -  Ubuntu Inference Snaps (recommended), Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for instant local AI. No proprietary APIs, no vendor lock-in, zero API bills
+- **Task history**  -  every agent action logged, auditable, and visible in the dashboard
+- **Editor config sync**  -  generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 
-Pro packages are source-available under the [Functional Source License (FSL-1.1-MIT)](packages/ai/LICENSE) — you can read, modify, and self-host. The license converts to MIT after 2 years. Install with `pnpm add @revealui/ai`.
+Pro packages are source-available under the [Functional Source License (FSL-1.1-MIT)](packages/ai/LICENSE)  -  you can read, modify, and self-host. The license converts to MIT after 2 years. Install with `pnpm add @revealui/ai`.
 
 ## Tiers
 
 | Tier           | Price     | What you get                                                       |
 | -------------- | --------- | ------------------------------------------------------------------ |
-| **Free**       | $0        | Full OSS core — users, content, products, payments, admin          |
+| **Free**       | $0        | Full OSS core  -  users, content, products, payments, admin          |
 | **Pro**        | $49/mo    | Studio desktop app, AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
 | **Max**        | $149/mo   | Full AI memory, audit log, higher limits, RevKit environment provisioning         |
 | **Forge**      | $299/mo   | Multi-tenant, SSO (planned), domain-locked, RevealCoin x402 agent payments       |
@@ -220,9 +220,9 @@ pnpm dev:app    # Admin (port 4000) + API (port 3004)
 ```
 
 Three dev modes:
-- `pnpm dev:app` — Admin + API (recommended for most work)
-- `pnpm dev:admin` — Admin only (if API already running)
-- `pnpm dev` — All apps in parallel (heavy)
+- `pnpm dev:app`  -  Admin + API (recommended for most work)
+- `pnpm dev:admin`  -  Admin only (if API already running)
+- `pnpm dev`  -  All apps in parallel (heavy)
 
 ### Option B: Docker Compose
 
@@ -236,7 +236,7 @@ Services: PostgreSQL (5432), API (3004), Admin (4000), Marketing (3000).
 
 ### Option C: Dev Containers
 
-Open in VS Code or GitHub Codespaces — the `.devcontainer/` config handles everything.
+Open in VS Code or GitHub Codespaces  -  the `.devcontainer/` config handles everything.
 
 | Platform    | Recommended setup                 |
 | ----------- | --------------------------------- |
@@ -263,18 +263,18 @@ revealui/
 
 ## Documentation
 
-- **[Build Your Business](docs/BUILD_YOUR_BUSINESS.md)** — End-to-end tutorial: scaffold, collections, pricing, billing, deploy
-- **[Quick Start](docs/QUICK_START.md)** — From zero to running app
-- **[The JOSHUA Stack](docs/JOSHUA.md)** — Six engineering principles and the evidence behind them
-- **[Architecture](docs/ARCHITECTURE.md)** — How the pieces fit together
-- **[The VAUGHN Protocol](docs/VAUGHN.md)** — Multi-agent coordination across heterogeneous AI tools
-- **[Pro](docs/PRO.md)** — AI features, MCP, marketplace, and trust controls
-- **[Database Guide](docs/DATABASE.md)** — Schema, migrations, queries
-- **[Auth Guide](docs/AUTH.md)** — Authentication, sessions, RBAC
-- **[Admin Guide](docs/ADMIN_GUIDE.md)** — Collections, fields, access control
-- **[Testing](docs/TESTING.md)** — Vitest, Playwright, coverage
-- **[Deployment](docs/CI_CD_GUIDE.md)** — Vercel, Railway, or self-host
-- **[All docs](docs/INDEX.md)** — Full index (25 guides)
+- **[Build Your Business](docs/BUILD_YOUR_BUSINESS.md)**  -  End-to-end tutorial: scaffold, collections, pricing, billing, deploy
+- **[Quick Start](docs/QUICK_START.md)**  -  From zero to running app
+- **[The JOSHUA Stack](docs/JOSHUA.md)**  -  Six engineering principles and the evidence behind them
+- **[Architecture](docs/ARCHITECTURE.md)**  -  How the pieces fit together
+- **[The VAUGHN Protocol](docs/VAUGHN.md)**  -  Multi-agent coordination across heterogeneous AI tools
+- **[Pro](docs/PRO.md)**  -  AI features, MCP, marketplace, and trust controls
+- **[Database Guide](docs/DATABASE.md)**  -  Schema, migrations, queries
+- **[Auth Guide](docs/AUTH.md)**  -  Authentication, sessions, RBAC
+- **[Admin Guide](docs/ADMIN_GUIDE.md)**  -  Collections, fields, access control
+- **[Testing](docs/TESTING.md)**  -  Vitest, Playwright, coverage
+- **[Deployment](docs/CI_CD_GUIDE.md)**  -  Vercel, Railway, or self-host
+- **[All docs](docs/INDEX.md)**  -  Full index (25 guides)
 
 ## Contributing
 
@@ -299,14 +299,14 @@ RevealUI is MIT-licensed and free to use. Sponsorship funds development, documen
 
 [![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=github-sponsors&logoColor=white)](https://github.com/sponsors/RevealUIStudio)
 
-- **Individuals** — [github.com/sponsors/RevealUIStudio](https://github.com/sponsors/RevealUIStudio)
-- **Businesses** — [revealui.com/sponsor](https://revealui.com/sponsor) for Gold and Platinum tiers (logo placement, office hours, roadmap input)
+- **Individuals**  -  [github.com/sponsors/RevealUIStudio](https://github.com/sponsors/RevealUIStudio)
+- **Businesses**  -  [revealui.com/sponsor](https://revealui.com/sponsor) for Gold and Platinum tiers (logo placement, office hours, roadmap input)
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT  -  see [LICENSE](LICENSE).
 
-Pro packages are commercially licensed — see [LICENSE.commercial](LICENSE.commercial).
+Pro packages are commercially licensed  -  see [LICENSE.commercial](LICENSE.commercial).
 
 ---
 

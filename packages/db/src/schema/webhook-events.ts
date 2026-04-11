@@ -11,7 +11,7 @@ import { index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 export const processedWebhookEvents = pgTable(
   'processed_webhook_events',
   {
-    /** Stripe event ID (evt_...) — serves as primary key for idempotency */
+    /** Stripe event ID (evt_...)  -  serves as primary key for idempotency */
     id: text('id').primaryKey(),
 
     /** Stripe event type (e.g. checkout.session.completed) */

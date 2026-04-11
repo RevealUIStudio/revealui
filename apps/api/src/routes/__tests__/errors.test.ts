@@ -7,7 +7,7 @@
 
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 //
 // `mockLoggerError` is used inside the vi.mock factory, which is hoisted to the
 // top of the file before any const declarations are initialized. vi.hoisted()
@@ -73,7 +73,7 @@ afterAll(() => {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('POST / — payload validation', () => {
+describe('POST /  -  payload validation', () => {
   it('returns 202 with success:true on minimal valid payload', async () => {
     const res = await errorsApp.request(post({ message: 'Something broke', app: 'admin' }));
     expect(res.status).toBe(202);
@@ -148,7 +148,7 @@ describe('POST / — payload validation', () => {
   });
 });
 
-describe('POST / — fire-and-forget DB write', () => {
+describe('POST /  -  fire-and-forget DB write', () => {
   it('returns 202 even when DB insert throws', async () => {
     mockInsertValues.mockRejectedValueOnce(new Error('DB connection lost'));
 
@@ -223,7 +223,7 @@ describe('POST / — fire-and-forget DB write', () => {
   });
 });
 
-describe('POST / — authentication', () => {
+describe('POST /  -  authentication', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsertValues.mockResolvedValue({ rowCount: 1 });
@@ -263,7 +263,7 @@ describe('POST / — authentication', () => {
   });
 });
 
-describe('POST / — input size limits', () => {
+describe('POST /  -  input size limits', () => {
   it('returns 400 when message exceeds 2000 characters', async () => {
     const res = await errorsApp.request(post({ message: 'x'.repeat(2001), app: 'admin' }));
     expect(res.status).toBe(400);
@@ -322,7 +322,7 @@ describe('POST / — input size limits', () => {
   });
 });
 
-describe('POST / — non-Error thrown from DB', () => {
+describe('POST /  -  non-Error thrown from DB', () => {
   it('wraps non-Error DB failure into an Error for logging', async () => {
     mockInsertValues.mockRejectedValueOnce('string-error-value');
 

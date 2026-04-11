@@ -17,7 +17,7 @@ import { z } from 'zod/v4';
 import type { AgentDefinition, ToolDefinition } from '../agents/index.js';
 
 // =============================================================================
-// Agent Card — discovery document served at /.well-known/agent.json
+// Agent Card  -  discovery document served at /.well-known/agent.json
 // =============================================================================
 
 /**
@@ -88,7 +88,7 @@ export const A2AAuthSchema = z.object({
 export type A2AAuth = z.infer<typeof A2AAuthSchema>;
 
 /**
- * A2A Agent Card — the full discovery document.
+ * A2A Agent Card  -  the full discovery document.
  * Served at /.well-known/agent.json (platform) or
  * /.well-known/agents/:id/agent.json (per-agent).
  */
@@ -130,7 +130,7 @@ export const A2AAgentCardSchema = z.object({
 export type A2AAgentCard = z.infer<typeof A2AAgentCardSchema>;
 
 // =============================================================================
-// Task & Message — runtime protocol types
+// Task & Message  -  runtime protocol types
 // =============================================================================
 
 /**
@@ -300,7 +300,7 @@ export const A2ASendTaskParamsSchema = z.object({
 export type A2ASendTaskParams = z.infer<typeof A2ASendTaskParamsSchema>;
 
 // =============================================================================
-// Mapper functions — bind A2A spec to RevealUI contracts
+// Mapper functions  -  bind A2A spec to RevealUI contracts
 // =============================================================================
 
 /**

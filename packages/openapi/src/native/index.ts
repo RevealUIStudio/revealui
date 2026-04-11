@@ -1,5 +1,5 @@
 /**
- * Native OpenAPI implementation — zero external dependencies.
+ * Native OpenAPI implementation  -  zero external dependencies.
  *
  * Replaces @asteasolutions/zod-to-openapi with native Zod → OpenAPI conversion.
  * Phase A: Zod extension, registry, and schema converter.

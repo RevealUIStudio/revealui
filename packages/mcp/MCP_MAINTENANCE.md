@@ -15,9 +15,9 @@ This document consolidates all MCP-related maintenance information including CRD
 
 ## Decision Log
 
-### MCP Decision — pglite (ElectricSQL) + Logs‑First Metrics
+### MCP Decision  -  pglite (ElectricSQL) + Logs‑First Metrics
 
-**TL;DR** — Default to ElectricSQL (`pglite`) for local development to get Postgres parity, CRDT sync, and smooth production migration. Start observability with a logs‑first approach (`MCP_METRICS_MODE=logs`). Provide a documented migration path to managed Postgres + `pgvector` for production, and TODOs to add Prometheus + Grafana later.
+**TL;DR**  -  Default to ElectricSQL (`pglite`) for local development to get Postgres parity, CRDT sync, and smooth production migration. Start observability with a logs‑first approach (`MCP_METRICS_MODE=logs`). Provide a documented migration path to managed Postgres + `pgvector` for production, and TODOs to add Prometheus + Grafana later.
 
 #### Why `pglite` (ElectricSQL)
 
@@ -65,9 +65,9 @@ This document consolidates all MCP-related maintenance information including CRD
 
 ## CRDT Audit
 
-### CRDT Audit — Candidate Entities & Strategy
+### CRDT Audit  -  Candidate Entities & Strategy
 
-**Goal** — ensure all replicated, collaborative, or concurrent state uses CRDT semantics to avoid manual conflict resolution.
+**Goal**  -  ensure all replicated, collaborative, or concurrent state uses CRDT semantics to avoid manual conflict resolution.
 
 #### Scope
 
@@ -120,21 +120,21 @@ This document consolidates all MCP-related maintenance information including CRD
 
 #### Risk & mitigation
 
-- Existing payload types incompatible with CRDT fields — use non-destructive migrations and backfill.
-- Vector index (pgvector) mapping must be preserved during schema changes — treat embedding columns as orthogonal.
+- Existing payload types incompatible with CRDT fields  -  use non-destructive migrations and backfill.
+- Vector index (pgvector) mapping must be preserved during schema changes  -  treat embedding columns as orthogonal.
 
 #### Suggested tests to add
 
-- `packages/mcp/__tests__/crdt.unit.test.ts` — unit semantics.
-- `packages/mcp/__tests__/crdt.integration.test.ts` — compose-based concurrent writes.
+- `packages/mcp/__tests__/crdt.unit.test.ts`  -  unit semantics.
+- `packages/mcp/__tests__/crdt.integration.test.ts`  -  compose-based concurrent writes.
 
 ---
 
 ## Migration Checklist
 
-### MCP Migration Checklist — pglite → Managed Postgres + pgvector
+### MCP Migration Checklist  -  pglite → Managed Postgres + pgvector
 
-**Goal** — safely cut over from `pglite` dev workflows to managed Postgres in production while preserving CRDT semantics and vector index integrity.
+**Goal**  -  safely cut over from `pglite` dev workflows to managed Postgres in production while preserving CRDT semantics and vector index integrity.
 
 #### Pre‑reqs
 
@@ -205,7 +205,7 @@ pg_restore -d "$PROD_DB_URL" backup.before.mcp.dump
 
 ## Metrics & Observability
 
-### MCP Metrics & Observability — Logs‑First (Option C)
+### MCP Metrics & Observability  -  Logs‑First (Option C)
 
 #### Decision
 

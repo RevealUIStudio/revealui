@@ -379,7 +379,7 @@ export function DocLayout({ children }: DocLayoutProps) {
   const isHome = pathname === '/';
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Close sidebar on route change — pathname is the intentional trigger
+  // Close sidebar on route change  -  pathname is the intentional trigger
   // biome-ignore lint/correctness/useExhaustiveDependencies: pathname change is what triggers this effect
   useEffect(() => {
     setSidebarOpen(false);
@@ -468,7 +468,7 @@ export function DocLayout({ children }: DocLayoutProps) {
         />
       )}
 
-      {/* Sidebar — desktop: sticky, mobile: off-canvas drawer */}
+      {/* Sidebar  -  desktop: sticky, mobile: off-canvas drawer */}
       <nav
         className={`fixed inset-y-0 left-0 z-40 flex w-72 shrink-0 flex-col overflow-y-auto border-r border-border bg-sidebar p-4 pb-6 transition-transform md:sticky md:top-0 md:h-screen md:w-[var(--width-sidebar)] md:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'

@@ -96,7 +96,7 @@ describe('QueryMonitor', () => {
     });
 
     it('should not log a warning for exactly 100ms queries', async () => {
-      vi.spyOn(Date, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(1100); // exactly 100ms — not > threshold
+      vi.spyOn(Date, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(1100); // exactly 100ms  -  not > threshold
 
       await monitorQuery('borderline-query', async () => null);
 
@@ -492,7 +492,7 @@ describe('QueryMonitor', () => {
 
       const report = getQueryReport();
       expect(report.slowQueries).toHaveLength(10);
-      // Should be sorted by duration desc — the top 10 slowest
+      // Should be sorted by duration desc  -  the top 10 slowest
       expect(report.slowQueries[0].duration).toBe(214);
     });
 

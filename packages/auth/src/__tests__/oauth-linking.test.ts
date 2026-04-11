@@ -271,7 +271,7 @@ describe('unlinkOAuthAccount', { timeout: 60_000 }, () => {
     mockDb.select.mockReturnValueOnce(mockSelectChain([link]));
     // 2nd select: user WITHOUT password
     mockDb.select.mockReturnValueOnce(mockSelectChain([{ ...testUser, password: null }]));
-    // 3rd select (allLinks): only one link — removing it would lock user out
+    // 3rd select (allLinks): only one link  -  removing it would lock user out
     mockDb.select.mockReturnValueOnce(mockSelectArrayChain([{ id: 'link-1' }]));
 
     await expect(unlinkOAuthAccount(TEST_USER_ID, 'github')).rejects.toThrow(

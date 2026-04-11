@@ -33,8 +33,8 @@ const CATEGORIES = [
 ] as const;
 
 const PRICING_MODELS = [
-  { value: 'per-task', label: 'Per Task — charge once per execution' },
-  { value: 'per-minute', label: 'Per Minute — charge by execution time' },
+  { value: 'per-task', label: 'Per Task  -  charge once per execution' },
+  { value: 'per-minute', label: 'Per Minute  -  charge by execution time' },
 ] as const;
 
 // =============================================================================
@@ -700,7 +700,7 @@ function StepReview({
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
             <span className="text-zinc-500">Name:</span>{' '}
-            <span className="text-white">{name || '—'}</span>
+            <span className="text-white">{name || ' - '}</span>
           </div>
           <div>
             <span className="text-zinc-500">Category:</span>{' '}
@@ -708,7 +708,7 @@ function StepReview({
           </div>
           <div className="col-span-2">
             <span className="text-zinc-500">Description:</span>{' '}
-            <span className="text-zinc-300">{description || '—'}</span>
+            <span className="text-zinc-300">{description || ' - '}</span>
           </div>
           <div>
             <span className="text-zinc-500">Tags:</span>{' '}

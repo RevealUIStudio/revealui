@@ -7,10 +7,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { getCacheTTL, warmCDNCache } from '../cdn-config.js';
 
 // ---------------------------------------------------------------------------
-// getCacheTTL — malformed directive values
+// getCacheTTL  -  malformed directive values
 // ---------------------------------------------------------------------------
 
-describe('getCacheTTL — malformed directive values', () => {
+describe('getCacheTTL  -  malformed directive values', () => {
   it('skips non-numeric s-maxage and falls back to max-age', () => {
     const headers = new Headers({ 'cache-control': 's-maxage=abc, max-age=120' });
     expect(getCacheTTL(headers)).toBe(120);
@@ -43,10 +43,10 @@ describe('getCacheTTL — malformed directive values', () => {
 });
 
 // ---------------------------------------------------------------------------
-// warmCDNCache — non-Error rejection in fetch
+// warmCDNCache  -  non-Error rejection in fetch
 // ---------------------------------------------------------------------------
 
-describe('warmCDNCache — non-Error fetch rejection', () => {
+describe('warmCDNCache  -  non-Error fetch rejection', () => {
   it('converts a non-Error thrown value to "Unknown error"', async () => {
     const mockFetch = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce('string error');
 

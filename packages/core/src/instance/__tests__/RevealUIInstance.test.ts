@@ -82,7 +82,7 @@ import { createRevealUIInstance } from '../RevealUIInstance.js';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-// biome-ignore lint/suspicious/noExplicitAny: test helper — minimal config shape
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal config shape
 function makeConfig(overrides: Record<string, any> = {}) {
   return {
     collections: [
@@ -116,7 +116,7 @@ function makeConfig(overrides: Record<string, any> = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — createRevealUIInstance
+// Tests  -  createRevealUIInstance
 // ---------------------------------------------------------------------------
 describe('createRevealUIInstance', () => {
   beforeEach(() => {
@@ -194,7 +194,7 @@ describe('createRevealUIInstance', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — instance.find
+// Tests  -  instance.find
 // ---------------------------------------------------------------------------
 describe('instance.find', () => {
   it('delegates to find method', async () => {
@@ -208,7 +208,7 @@ describe('instance.find', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — instance.findByID
+// Tests  -  instance.findByID
 // ---------------------------------------------------------------------------
 describe('instance.findByID', () => {
   it('delegates to findByID method', async () => {
@@ -225,7 +225,7 @@ describe('instance.findByID', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — instance.create
+// Tests  -  instance.create
 // ---------------------------------------------------------------------------
 describe('instance.create', () => {
   it('delegates to create method', async () => {
@@ -242,7 +242,7 @@ describe('instance.create', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — instance.update
+// Tests  -  instance.update
 // ---------------------------------------------------------------------------
 describe('instance.update', () => {
   it('delegates to update method', async () => {
@@ -260,7 +260,7 @@ describe('instance.update', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — instance.delete
+// Tests  -  instance.delete
 // ---------------------------------------------------------------------------
 describe('instance.delete', () => {
   it('delegates to deleteMethod', async () => {
@@ -277,7 +277,7 @@ describe('instance.delete', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — instance.login
+// Tests  -  instance.login
 // ---------------------------------------------------------------------------
 describe('instance.login', () => {
   it('throws for unknown collection', async () => {
@@ -354,7 +354,7 @@ describe('instance.login', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — instance.findGlobal
+// Tests  -  instance.findGlobal
 // ---------------------------------------------------------------------------
 describe('instance.findGlobal', () => {
   it('throws for unknown global', async () => {
@@ -406,7 +406,7 @@ describe('instance.findGlobal', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — instance.updateGlobal
+// Tests  -  instance.updateGlobal
 // ---------------------------------------------------------------------------
 describe('instance.updateGlobal', () => {
   it('throws for unknown global', async () => {
@@ -431,7 +431,7 @@ describe('instance.updateGlobal', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — instance.populate
+// Tests  -  instance.populate
 // ---------------------------------------------------------------------------
 describe('instance.populate', () => {
   it('throws for unknown collection', async () => {
@@ -490,7 +490,7 @@ describe('instance.populate', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — DB table setup during instance creation
+// Tests  -  DB table setup during instance creation
 // ---------------------------------------------------------------------------
 describe('DB table setup', () => {
   it('does not call db methods when no db is configured', async () => {

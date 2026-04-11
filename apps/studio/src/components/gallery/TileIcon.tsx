@@ -1,4 +1,4 @@
-/** SVG icons for tile gallery — one per tile id prefix or category. */
+/** SVG icons for tile gallery  -  one per tile id prefix or category. */
 export default function TileIcon({ tileId }: { tileId: string }) {
   const cls = 'size-5 shrink-0';
 

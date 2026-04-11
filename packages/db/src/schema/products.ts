@@ -158,7 +158,7 @@ export const orders = pgTable(
       .defaultNow()
       .notNull(),
 
-    /** Soft-delete — financial records must never be hard-deleted */
+    /** Soft-delete  -  financial records must never be hard-deleted */
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [

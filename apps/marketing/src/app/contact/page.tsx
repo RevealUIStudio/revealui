@@ -3,11 +3,11 @@ import { ContactForm } from '@/components/ContactForm';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Contact — RevealUI',
+  title: 'Contact  -  RevealUI',
   description:
     'Get in touch with the RevealUI team. Enterprise inquiries, partnership requests, and general questions.',
   openGraph: {
-    title: 'Contact — RevealUI',
+    title: 'Contact  -  RevealUI',
     description: 'Get in touch with the RevealUI team.',
     type: 'website',
   },

@@ -8,15 +8,15 @@
  * to query site data, list content, manage users, or inspect deployment state.
  *
  * Environment:
- *   REVEALUI_API_URL     — Base URL of the RevealUI API (e.g. https://api.mysite.com)
- *   REVEALUI_API_KEY     — API key for authenticating with the RevealUI API
+ *   REVEALUI_API_URL      -  Base URL of the RevealUI API (e.g. https://api.mysite.com)
+ *   REVEALUI_API_KEY      -  API key for authenticating with the RevealUI API
  *
  * Tools:
- *   revealui_list_sites        — List all sites in the RevealUI instance
- *   revealui_list_content      — List content entries for a site and collection
- *   revealui_get_content       — Fetch a single content entry by ID
- *   revealui_list_users        — List users (admin only)
- *   revealui_site_stats        — Get user + content counts for a site
+ *   revealui_list_sites         -  List all sites in the RevealUI instance
+ *   revealui_list_content       -  List content entries for a site and collection
+ *   revealui_get_content        -  Fetch a single content entry by ID
+ *   revealui_list_users         -  List users (admin only)
+ *   revealui_site_stats         -  Get user + content counts for a site
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';

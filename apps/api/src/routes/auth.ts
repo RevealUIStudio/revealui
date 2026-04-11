@@ -1,7 +1,7 @@
 /**
- * Auth Routes — Public Signup Endpoint
+ * Auth Routes  -  Public Signup Endpoint
  *
- * POST /api/auth/signup — Register a new user account
+ * POST /api/auth/signup  -  Register a new user account
  *
  * This route is rate-limited and enforces the tier-based user limit
  * (enforceUserLimit middleware is applied in index.ts).

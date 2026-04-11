@@ -1,5 +1,5 @@
 /**
- * OAuth Unlink Route — POST /api/auth/unlink
+ * OAuth Unlink Route  -  POST /api/auth/unlink
  *
  * Removes an OAuth provider link from the authenticated user's account.
  * Refuses to unlink the last authentication method (prevents lockout).

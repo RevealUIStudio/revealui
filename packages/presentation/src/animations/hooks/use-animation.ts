@@ -90,7 +90,7 @@ export function useAnimation<T extends HTMLElement>(): [
       if (useCustomEasing && animation.effect) {
         const effect = animation.effect as KeyframeEffect;
         // Apply custom easing by interpolating keyframes manually
-        // This is a simplified approach — for complex keyframes, use WAAPI's native easing
+        // This is a simplified approach  -  for complex keyframes, use WAAPI's native easing
         void easingFn; // acknowledged but WAAPI handles most cases natively
         void effect;
       }

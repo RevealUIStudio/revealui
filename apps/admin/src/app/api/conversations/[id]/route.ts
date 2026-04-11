@@ -1,9 +1,9 @@
 /**
  * Single Conversation API Route
  *
- * GET    /api/conversations/:id — get conversation details
- * PATCH  /api/conversations/:id — update title
- * DELETE /api/conversations/:id — delete conversation
+ * GET    /api/conversations/:id  -  get conversation details
+ * PATCH  /api/conversations/:id  -  update title
+ * DELETE /api/conversations/:id  -  delete conversation
  */
 
 import { getSession } from '@revealui/auth/server';

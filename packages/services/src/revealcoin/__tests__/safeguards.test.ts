@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Chainable mock DB — every method returns `chain` so any Drizzle query order works.
+// Chainable mock DB  -  every method returns `chain` so any Drizzle query order works.
 let queryResult: unknown[] = [];
 
 const chain: Record<string, ReturnType<typeof vi.fn>> = {};
@@ -360,9 +360,9 @@ describe('recordPayment', () => {
 });
 
 // ---------------------------------------------------------------------------
-// TWAP — Extended Scenarios
+// TWAP  -  Extended Scenarios
 // ---------------------------------------------------------------------------
-describe('getTwapPrice — extended', () => {
+describe('getTwapPrice  -  extended', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     chain.select = vi.fn(() => chain);
@@ -374,7 +374,7 @@ describe('getTwapPrice — extended', () => {
 
   it('calculates TWAP correctly with many snapshots (simulated 1-hour polling)', async () => {
     const now = Date.now();
-    // 60 snapshots over 1 hour — price ramps from 0.004 to 0.006
+    // 60 snapshots over 1 hour  -  price ramps from 0.004 to 0.006
     const snapshots = Array.from({ length: 60 }, (_, i) => ({
       priceUsd: String(0.004 + (i / 59) * 0.002),
       recordedAt: new Date(now - (59 - i) * 60_000),
@@ -426,8 +426,8 @@ describe('getTwapPrice — extended', () => {
 // ---------------------------------------------------------------------------
 describe('isPriceCircuitBreakerOpen', () => {
   // This function makes 2 DB calls:
-  // 1. db.select().from().orderBy().limit(1) — latest snapshot
-  // 2. getTwapPrice() — db.select().from().where().orderBy() — all snapshots in window
+  // 1. db.select().from().orderBy().limit(1)  -  latest snapshot
+  // 2. getTwapPrice()  -  db.select().from().where().orderBy()  -  all snapshots in window
   //
   // We need to return different data for each call. We do this by making
   // chain.then return different values on sequential calls.
@@ -461,7 +461,7 @@ describe('isPriceCircuitBreakerOpen', () => {
       callCount++;
       if (callCount === 1)
         resolve([snapshot]); // latest
-      else resolve([snapshot]); // TWAP — 1 snapshot, returns null
+      else resolve([snapshot]); // TWAP  -  1 snapshot, returns null
     });
 
     const result = await isPriceCircuitBreakerOpen();

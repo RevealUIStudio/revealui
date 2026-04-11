@@ -1,7 +1,7 @@
 /**
- * useAgentStream — React hook for streaming agent responses via SSE
+ * useAgentStream  -  React hook for streaming agent responses via SSE
  *
- * Uses fetch + ReadableStream (NOT EventSource — it doesn't support POST).
+ * Uses fetch + ReadableStream (NOT EventSource  -  it doesn't support POST).
  * Accumulates AgentStreamChunks into state and exposes:
  *   - text: accumulated output text
  *   - chunks: all received chunks in order
@@ -123,7 +123,7 @@ export function useAgentStream(): UseAgentStreamReturn {
               isStreaming: chunk.type !== 'done' && chunk.type !== 'error',
             }));
           } catch {
-            // Malformed SSE data — skip
+            // Malformed SSE data  -  skip
           }
         }
       }

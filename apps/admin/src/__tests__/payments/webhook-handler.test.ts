@@ -1,5 +1,5 @@
 /**
- * Stripe Webhook Handler — Comprehensive admin-side Tests
+ * Stripe Webhook Handler  -  Comprehensive admin-side Tests
  *
  * Tests the webhook processing logic independent of the Hono transport layer.
  * Covers scenarios specific to admin billing integration:
@@ -26,7 +26,7 @@ import {
   createMockWebhookSignature,
 } from '../utils/stripe-test-utils';
 
-describe('Stripe webhook handler — comprehensive', () => {
+describe('Stripe webhook handler  -  comprehensive', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -213,7 +213,7 @@ describe('Stripe webhook handler — comprehensive', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // EVENT TYPE COVERAGE — all handled event types
+  // EVENT TYPE COVERAGE  -  all handled event types
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Event type coverage', () => {
@@ -302,10 +302,10 @@ describe('Stripe webhook handler — comprehensive', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CHECKOUT SESSION METADATA — SUBSCRIPTION MODE
+  // CHECKOUT SESSION METADATA  -  SUBSCRIPTION MODE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('Checkout session metadata — subscription mode', () => {
+  describe('Checkout session metadata  -  subscription mode', () => {
     it('validates event with required metadata for subscription activation', () => {
       const event = createMockWebhookEvent('checkout.session.completed', {
         mode: 'subscription',
@@ -359,10 +359,10 @@ describe('Stripe webhook handler — comprehensive', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CHECKOUT SESSION METADATA — PERPETUAL MODE
+  // CHECKOUT SESSION METADATA  -  PERPETUAL MODE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('Checkout session metadata — perpetual (one-time payment)', () => {
+  describe('Checkout session metadata  -  perpetual (one-time payment)', () => {
     it('validates perpetual checkout event with tier and perpetual flag', () => {
       const event = createMockWebhookEvent('checkout.session.completed', {
         mode: 'payment',
@@ -408,13 +408,13 @@ describe('Stripe webhook handler — comprehensive', () => {
       const event = createMockWebhookEvent('checkout.session.completed', {
         mode: 'payment',
         customer: 'cus_other',
-        metadata: {}, // no tier — non-RevealUI product
+        metadata: {}, // no tier  -  non-RevealUI product
       });
 
       const result = stripeWebhookSchema.safeParse(event);
       expect(result.success).toBe(true);
 
-      // Handler checks session.metadata?.tier — without it, the event is silently skipped
+      // Handler checks session.metadata?.tier  -  without it, the event is silently skipped
       const dataObj = event.data.object as unknown as Record<string, unknown>;
       const metadata = dataObj.metadata as Record<string, string>;
       expect(metadata.tier).toBeUndefined();
@@ -515,7 +515,7 @@ describe('Stripe webhook handler — comprehensive', () => {
         status: 'active',
         metadata: { tier: 'platinum' },
       });
-      // Schema doesn't restrict tier values — that's the handler's job
+      // Schema doesn't restrict tier values  -  that's the handler's job
       const result = stripeWebhookSchema.safeParse(event);
       expect(result.success).toBe(true);
     });
@@ -536,7 +536,7 @@ describe('Stripe webhook handler — comprehensive', () => {
   // IDEMPOTENCY EVENT STRUCTURE
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('Idempotency — event ID uniqueness', () => {
+  describe('Idempotency  -  event ID uniqueness', () => {
     it('event IDs include a timestamp component for traceability', () => {
       const event = createMockWebhookEvent('test.event', {});
       // The mock helper prefixes IDs with `evt_test_` followed by Date.now()
@@ -618,10 +618,10 @@ describe('Stripe webhook handler — comprehensive', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // SECURITY — MALFORMED PAYLOADS
+  // SECURITY  -  MALFORMED PAYLOADS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('Security — malformed payloads', () => {
+  describe('Security  -  malformed payloads', () => {
     it('rejects null as an event', () => {
       const result = stripeWebhookSchema.safeParse(null);
       expect(result.success).toBe(false);
@@ -682,10 +682,10 @@ describe('Stripe webhook handler — comprehensive', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // CUSTOMER OWNERSHIP — METADATA VERIFICATION
+  // CUSTOMER OWNERSHIP  -  METADATA VERIFICATION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('Customer ownership — metadata verification', () => {
+  describe('Customer ownership  -  metadata verification', () => {
     it('checkout event includes revealui_user_id for user-to-customer binding', () => {
       const event = createMockWebhookEvent('checkout.session.completed', {
         mode: 'subscription',
@@ -739,7 +739,7 @@ describe('Stripe webhook handler — comprehensive', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // RESPONSE TIME — HANDLER SHOULD ACK QUICKLY
+  // RESPONSE TIME  -  HANDLER SHOULD ACK QUICKLY
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Response time expectations', () => {

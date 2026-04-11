@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Role } from '@/lib/access/permissions/roles';
 
 // ---------------------------------------------------------------------------
-// Mock @revealui/services — dynamic import used by proxy handlers
+// Mock @revealui/services  -  dynamic import used by proxy handlers
 // ---------------------------------------------------------------------------
 
 const mockCustomersList = vi.fn();
@@ -195,7 +195,7 @@ describe('customerProxy', () => {
   });
 
   // -------------------------------------------------------------------------
-  // GET — retrieve customer
+  // GET  -  retrieve customer
   // -------------------------------------------------------------------------
 
   it('GET retrieves the Stripe customer', async () => {
@@ -251,7 +251,7 @@ describe('customerProxy', () => {
   });
 
   // -------------------------------------------------------------------------
-  // PATCH — update customer
+  // PATCH  -  update customer
   // -------------------------------------------------------------------------
 
   it('PATCH updates the customer with validated data', async () => {
@@ -304,7 +304,7 @@ describe('customerProxy', () => {
   });
 
   // -------------------------------------------------------------------------
-  // POST — create customer
+  // POST  -  create customer
   // -------------------------------------------------------------------------
 
   it('POST creates a customer with validated data', async () => {
@@ -357,7 +357,7 @@ describe('customerProxy', () => {
   });
 
   // -------------------------------------------------------------------------
-  // DELETE — remove customer
+  // DELETE  -  remove customer
   // -------------------------------------------------------------------------
 
   it('DELETE removes the customer', async () => {

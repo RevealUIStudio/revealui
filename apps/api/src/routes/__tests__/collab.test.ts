@@ -37,7 +37,7 @@ function createApp(user?: { id: string; role: string }, dbMock?: any) {
   return app;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono generics vary per test
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono generics vary per test
 function jsonPost(app: Hono<any>, path: string, body: unknown) {
   return app.request(path, {
     method: 'POST',
@@ -324,10 +324,10 @@ describe('collab routes', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Pass 15 — edge case expansion
+  // Pass 15  -  edge case expansion
   // ---------------------------------------------------------------------------
 
-  describe('POST /api/collab/update — edge cases', () => {
+  describe('POST /api/collab/update  -  edge cases', () => {
     it('returns 400 for empty string documentId', async () => {
       const app = createApp(testUser, {});
 
@@ -473,7 +473,7 @@ describe('collab routes', () => {
     });
   });
 
-  describe('GET /api/collab/snapshot — edge cases', () => {
+  describe('GET /api/collab/snapshot  -  edge cases', () => {
     it('returns decodable Yjs state that can reconstruct the original document', async () => {
       const Y = await import('yjs');
 

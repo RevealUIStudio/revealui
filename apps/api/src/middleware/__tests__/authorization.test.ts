@@ -55,7 +55,7 @@ const { requirePermission, requireAccess, invalidateUserPermissions, authorizati
   await import('../authorization.js');
 
 // ---------------------------------------------------------------------------
-// Helpers — mock Hono context
+// Helpers  -  mock Hono context
 // ---------------------------------------------------------------------------
 
 interface MockUser {

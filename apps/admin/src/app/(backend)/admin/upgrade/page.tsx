@@ -21,7 +21,7 @@ export default function UpgradePage() {
     try {
       const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim();
 
-      // Verify session before initiating checkout — redirect to login if expired
+      // Verify session before initiating checkout  -  redirect to login if expired
       const meRes = await fetch('/api/auth/me', { credentials: 'include' });
       if (!meRes.ok) {
         window.location.href = '/login?redirect=/admin/upgrade';
@@ -194,7 +194,7 @@ export default function UpgradePage() {
                               role="img"
                               aria-label="Not included"
                             >
-                              &mdash;
+                              -
                             </span>
                           )}
                         </td>
@@ -211,7 +211,7 @@ export default function UpgradePage() {
   );
 }
 
-/** Simple tier rank check — mirrors @revealui/core/features logic */
+/** Simple tier rank check  -  mirrors @revealui/core/features logic */
 function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): boolean {
   const tierRank: Record<LicenseTierId, number> = {
     free: 0,

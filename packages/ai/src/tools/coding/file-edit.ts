@@ -1,5 +1,5 @@
 /**
- * file_edit — Surgical string replacement in a file
+ * file_edit  -  Surgical string replacement in a file
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -33,7 +33,7 @@ export const fileEditTool: Tool = {
     }
 
     if (old_text === new_text) {
-      return { success: false, error: 'old_text and new_text are identical — nothing to change' };
+      return { success: false, error: 'old_text and new_text are identical  -  nothing to change' };
     }
 
     const resolvedPath = resolveSafePath(path, config);

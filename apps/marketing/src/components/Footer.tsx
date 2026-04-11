@@ -11,7 +11,7 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="text-2xl font-bold tracking-tight text-white mb-4">RevealUI</div>
             <p className="text-gray-400 text-sm leading-6 max-w-sm">
-              Agentic business runtime. Users, content, products, payments, and AI — pre-wired, open
+              Agentic business runtime. Users, content, products, payments, and AI - pre-wired, open
               source, and ready to deploy.
             </p>
             <div className="mt-6">

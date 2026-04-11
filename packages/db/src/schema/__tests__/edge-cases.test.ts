@@ -5,7 +5,7 @@
  * unique constraint violations, foreign key cascades, soft delete semantics,
  * NOT NULL enforcement, default values, and composite indexes.
  *
- * Uses PGlite (in-memory PostgreSQL) — no external connection required.
+ * Uses PGlite (in-memory PostgreSQL)  -  no external connection required.
  */
 
 import { PGlite } from '@electric-sql/pglite';
@@ -14,7 +14,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 let db: PGlite;
 
 // ---------------------------------------------------------------------------
-// Setup — create production-equivalent tables
+// Setup  -  create production-equivalent tables
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
@@ -56,7 +56,7 @@ beforeAll(async () => {
     )
   `);
 
-  // Unique index on email (matches schema: unconditional unique — not a partial index)
+  // Unique index on email (matches schema: unconditional unique  -  not a partial index)
   await db.query('CREATE UNIQUE INDEX users_email_idx ON users (email)');
 
   // Sessions table (matches packages/db/src/schema/users.ts)
@@ -132,7 +132,7 @@ beforeAll(async () => {
     )
   `);
 
-  // Composite unique index on pages (slug, site_id) — matches schema
+  // Composite unique index on pages (slug, site_id)  -  matches schema
   await db.query('CREATE UNIQUE INDEX pages_slug_site_id_idx ON pages (slug, site_id)');
 
   // Posts table (matches packages/db/src/schema/admin.ts)
@@ -453,7 +453,7 @@ describe('Soft delete semantics', () => {
     await insertSite('s1', 'my-site');
     await db.query("UPDATE sites SET deleted_at = NOW() WHERE id = 's1'");
 
-    // Same slug should fail — unique constraint is unconditional
+    // Same slug should fail  -  unique constraint is unconditional
     await expect(insertSite('s2', 'my-site')).rejects.toThrow(/unique|duplicate/i);
   });
 
@@ -734,10 +734,10 @@ describe('Default values', () => {
 });
 
 // =============================================================================
-// 6. Composite Indexes — pages (slug, siteId)
+// 6. Composite Indexes  -  pages (slug, siteId)
 // =============================================================================
 
-describe('Composite indexes — pages (slug, siteId)', () => {
+describe('Composite indexes  -  pages (slug, siteId)', () => {
   it('allows same slug on different sites', async () => {
     await insertUser();
     await insertSite('s1', 'site-one');

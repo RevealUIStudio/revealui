@@ -4,8 +4,8 @@
  * Single source of truth for RevealCoin (RVUI) token parameters, addresses,
  * and discount rates within the RevealUI ecosystem.
  *
- * Token: Solana Token-2022 (Token Extensions) — MetadataPointer + TokenMetadata
- * Supply: 58,906,000,000 RVUI — US currency in circulation, August 14, 1971
+ * Token: Solana Token-2022 (Token Extensions)  -  MetadataPointer + TokenMetadata
+ * Supply: 58,906,000,000 RVUI  -  US currency in circulation, August 14, 1971
  *
  * @packageDocumentation
  */
@@ -23,7 +23,7 @@ export interface RvuiTokenConfig {
 }
 
 /**
- * Core token parameters — immutable after mainnet deployment.
+ * Core token parameters  -  immutable after mainnet deployment.
  *
  * Total supply anchors to the amount of US currency in circulation on
  * August 14, 1971, the day before Nixon ended dollar-gold convertibility.
@@ -60,7 +60,7 @@ export const RVUI_MINT_AUTHORITY: Record<SolanaNetwork, string> = {
 };
 
 // =============================================================================
-// Distribution Wallets (Devnet — White Paper Section 5.1)
+// Distribution Wallets (Devnet  -  White Paper Section 5.1)
 // =============================================================================
 
 export interface RvuiAllocation {

@@ -51,7 +51,7 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 
 **Project Overview**
 
-- **Framework**: RevealUI — Full-stack React 19 + Next.js 16 Admin Framework
+- **Framework**: RevealUI  -  Full-stack React 19 + Next.js 16 Admin Framework
 - **Package Count**: 22 packages (17 OSS + 5 Pro)
 - **Test Status**: 1,300+ test files, all packages build and typecheck ✅
 - **Build Status**: All 30 workspaces build successfully ✅
@@ -124,7 +124,7 @@ packages/
 **Database Operations**
 
 1. [Database Guide](./DATABASE.md) - Schema, migrations, queries
-2. Schemas in `packages/db/src/schema/` — Drizzle ORM
+2. Schemas in `packages/db/src/schema/`  -  Drizzle ORM
 
 **Authentication**
 

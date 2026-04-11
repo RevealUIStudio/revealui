@@ -1,9 +1,9 @@
 # RevealUI Monorepo
 
-Agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.
+Agentic business runtime. Users, content, products, payments, and AI  -  pre-wired, open source, and ready to deploy.
 
 ## Current Phase
-**Phase 3 — Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
+**Phase 3  -  Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
 
 ## Stack
 - React 19, Next.js 16, Node 24, TypeScript 6
@@ -29,7 +29,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 
 - **Default branch:** `test` (PRs target it by default)
 - **Production deploys:** `deploy.yml` on push to `main` only (Vercel Git Integration disabled)
-- **Test previews:** `deploy-test.yml` manual trigger — Vercel preview URLs, not production
+- **Test previews:** `deploy-test.yml` manual trigger  -  Vercel preview URLs, not production
 - **Pre-push gate:** `main`/`test` = full gate, `feature/*` = quality-only (phase 1)
 - **CI:** Triggers on push/PR to `test` or `main`
 - **Canary releases:** `release-canary.yml` on push to `test` (npm snapshot versions)
@@ -43,8 +43,8 @@ feature/* ──PR──▶ test ──PR──▶ main
 | admin | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
-| studio | — | Tauri 2 + React 19 | Native AI experience: agent coordination hub, local inference management, visual agent dashboard |
-| terminal | — | Go (Bubble Tea) | TUI client: API integration, QR checkout, SSH fingerprint lookup |
+| studio |  -  | Tauri 2 + React 19 | Native AI experience: agent coordination hub, local inference management, visual agent dashboard |
+| terminal |  -  | Go (Bubble Tea) | TUI client: API integration, QR checkout, SSH fingerprint lookup |
 
 ### OSS Packages (MIT)
 | Package | Purpose |
@@ -53,7 +53,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
 | @revealui/db | Drizzle ORM schema (81 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
-| @revealui/presentation | 57 native UI components (Tailwind v4, zero external UI deps — only clsx + CVA) |
+| @revealui/presentation | 57 native UI components (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
 | @revealui/config | Type-safe env config (Zod + lazy Proxy) |
 | @revealui/utils | Logger, DB helpers, validation |
@@ -70,7 +70,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
 | @revealui/services | Stripe + Supabase integrations |
 
-### Pro Packages (Fair Source — FSL-1.1-MIT, converts to MIT after 2 years)
+### Pro Packages (Fair Source  -  FSL-1.1-MIT, converts to MIT after 2 years)
 | Package | Purpose |
 |---------|---------|
 | @revealui/ai | AI agents, CRDT memory, LLM providers, orchestration |
@@ -193,7 +193,7 @@ Biome, typecheck, tests, and build all block pushes. Audits and structure checks
 ## Security
 - CSP, CORS, HSTS headers in `@revealui/security` (re-exported via `packages/core/src/security/`)
 - Auth: bcrypt (12 rounds), brute force protection, rate limiting, session-only (no JWT)
-- Session cookies: httpOnly, secure, sameSite=lax — set in sign-in/sign-up/OAuth routes
+- Session cookies: httpOnly, secure, sameSite=lax  -  set in sign-in/sign-up/OAuth routes
 - Admin gate: proxy.ts checks `revealui-role` cookie for /admin routes (defense-in-depth)
 - Access control: find/findByID enforce `access.read`, update enforces `access.update`, delete enforces `access.delete` (boolean or WhereClause)
 - `overrideAccess` query param stripped from external requests in proxy.ts

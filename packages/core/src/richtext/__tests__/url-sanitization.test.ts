@@ -158,7 +158,7 @@ function findAllLinkHrefs(state: SerializedEditorState): string[] {
 // ============================================
 
 describe('isSafeUrl()', () => {
-  describe('XSS prevention — javascript: protocol', () => {
+  describe('XSS prevention  -  javascript: protocol', () => {
     it('blocks javascript: links', () => {
       expect(isSafeUrl('javascript:alert(1)')).toBe(false);
     });
@@ -174,7 +174,7 @@ describe('isSafeUrl()', () => {
     });
   });
 
-  describe('XSS prevention — vbscript: protocol', () => {
+  describe('XSS prevention  -  vbscript: protocol', () => {
     it('blocks vbscript: links', () => {
       expect(isSafeUrl('vbscript:MsgBox("XSS")')).toBe(false);
     });
@@ -184,7 +184,7 @@ describe('isSafeUrl()', () => {
     });
   });
 
-  describe('XSS prevention — data: protocol', () => {
+  describe('XSS prevention  -  data: protocol', () => {
     it('blocks data:text/html links', () => {
       expect(isSafeUrl('data:text/html,<script>alert(1)</script>')).toBe(false);
     });
@@ -254,7 +254,7 @@ describe('isSafeUrl()', () => {
     });
   });
 
-  describe('safe URLs — allowed protocols', () => {
+  describe('safe URLs  -  allowed protocols', () => {
     it('allows http:// URLs', () => {
       expect(isSafeUrl('http://example.com')).toBe(true);
     });
@@ -272,7 +272,7 @@ describe('isSafeUrl()', () => {
     });
   });
 
-  describe('safe URLs — relative paths and anchors', () => {
+  describe('safe URLs  -  relative paths and anchors', () => {
     it('allows relative paths', () => {
       expect(isSafeUrl('/about')).toBe(true);
     });
@@ -332,7 +332,7 @@ describe('isSafeUrl()', () => {
     });
   });
 
-  describe('image context — data:image/ URIs', () => {
+  describe('image context  -  data:image/ URIs', () => {
     it('allows data:image/png;base64 for images', () => {
       expect(isSafeUrl('data:image/png;base64,iVBORw0KGgo=', 'image')).toBe(true);
     });
@@ -419,7 +419,7 @@ describe('sanitizeUrl()', () => {
 // rendering with URL sanitization
 // ============================================
 
-describe('serializeLexicalState() — URL sanitization in rendered output', () => {
+describe('serializeLexicalState()  -  URL sanitization in rendered output', () => {
   describe('link nodes', () => {
     it('renders safe https link with correct href', () => {
       const href = findLinkHref(linkState('https://example.com'));

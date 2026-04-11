@@ -1,5 +1,5 @@
 /**
- * Integration tests — sites.page_count DB trigger (GAP-012)
+ * Integration tests  -  sites.page_count DB trigger (GAP-012)
  *
  * Uses PGlite (in-memory PostgreSQL) to verify that the trigger function
  * correctly maintains sites.page_count on page INSERT and soft-delete UPDATE.
@@ -105,7 +105,7 @@ describe('page_count_trigger', () => {
   it('does not go below zero on double soft-delete attempt', async () => {
     await db.query(`INSERT INTO pages (id, site_id) VALUES ('p1', 's1')`);
     await db.query(`UPDATE pages SET deleted_at = NOW() WHERE id = 'p1'`);
-    // Update deleted_at again (already deleted — trigger ELSIF doesn't match)
+    // Update deleted_at again (already deleted  -  trigger ELSIF doesn't match)
     await db.query(`UPDATE pages SET deleted_at = NOW() WHERE id = 'p1'`);
     expect(await getPageCount()).toBe(0);
   });

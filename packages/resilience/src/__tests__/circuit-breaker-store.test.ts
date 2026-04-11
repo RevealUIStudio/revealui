@@ -21,7 +21,7 @@ const SAMPLE_SNAPSHOT: CircuitBreakerSnapshot = {
 };
 
 // =============================================================================
-// Shared test suite — runs against any CircuitBreakerStore implementation
+// Shared test suite  -  runs against any CircuitBreakerStore implementation
 // =============================================================================
 
 function circuitBreakerStoreSuite(name: string, createStore: () => Promise<CircuitBreakerStore>) {
@@ -127,7 +127,7 @@ try {
   await import('@electric-sql/pglite');
   pgliteAvailable = true;
 } catch {
-  // PGlite not installed — skip
+  // PGlite not installed  -  skip
 }
 
 if (pgliteAvailable) {
@@ -148,7 +148,7 @@ if (pgliteAvailable) {
     return store;
   });
 
-  describe('PGliteCircuitBreakerStore — SQL-specific', () => {
+  describe('PGliteCircuitBreakerStore  -  SQL-specific', () => {
     it('handles special characters in service names', async () => {
       const store = new PGliteCircuitBreakerStore({ db: sharedDb, closeOnDestroy: false });
       await store.save('svc\'with"quotes', SAMPLE_SNAPSHOT);
@@ -176,7 +176,7 @@ if (pgliteAvailable) {
     });
   });
 } else {
-  describe.skip('PGliteCircuitBreakerStore (skipped — @electric-sql/pglite not available)', () => {
+  describe.skip('PGliteCircuitBreakerStore (skipped  -  @electric-sql/pglite not available)', () => {
     it('placeholder', () => {});
   });
 }

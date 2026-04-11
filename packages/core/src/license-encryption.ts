@@ -51,7 +51,7 @@ export function encryptLicenseKey(plaintext: string): string {
  */
 export function decryptLicenseKey(stored: string): string {
   if (!stored.startsWith(ENC_PREFIX)) {
-    return stored; // plaintext — backward compatible
+    return stored; // plaintext  -  backward compatible
   }
 
   const key = getEncryptionKey();
@@ -64,7 +64,7 @@ export function decryptLicenseKey(stored: string): string {
 
   const parts = stored.slice(ENC_PREFIX.length).split(':');
   if (parts.length !== 3) {
-    throw new Error('Malformed encrypted license key — expected enc:<iv>:<ciphertext>:<tag>');
+    throw new Error('Malformed encrypted license key  -  expected enc:<iv>:<ciphertext>:<tag>');
   }
 
   const [ivHex, ciphertextHex, tagHex] = parts as [string, string, string];

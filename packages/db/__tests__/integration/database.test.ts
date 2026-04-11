@@ -3,7 +3,7 @@
  *
  * Real PGlite integration tests for CRUD operations, transactions,
  * constraints, and error handling. Uses @electric-sql/pglite for
- * an in-memory PostgreSQL-compatible database — no external connection required.
+ * an in-memory PostgreSQL-compatible database  -  no external connection required.
  */
 
 import { PGlite } from '@electric-sql/pglite';
@@ -50,10 +50,10 @@ beforeEach(async () => {
 });
 
 // ---------------------------------------------------------------------------
-// CRUD — Create
+// CRUD  -  Create
 // ---------------------------------------------------------------------------
 
-describe('CRUD — Create', () => {
+describe('CRUD  -  Create', () => {
   it('inserts a new user and returns it', async () => {
     const result = await db.query<{ id: string; email: string; name: string }>(
       `INSERT INTO users (id, email, name) VALUES ($1, $2, $3) RETURNING id, email, name`,
@@ -111,10 +111,10 @@ describe('CRUD — Create', () => {
 });
 
 // ---------------------------------------------------------------------------
-// CRUD — Read
+// CRUD  -  Read
 // ---------------------------------------------------------------------------
 
-describe('CRUD — Read', () => {
+describe('CRUD  -  Read', () => {
   beforeEach(async () => {
     await db.query(
       `INSERT INTO users (id, email, name, role, status) VALUES
@@ -210,10 +210,10 @@ describe('CRUD — Read', () => {
 });
 
 // ---------------------------------------------------------------------------
-// CRUD — Update
+// CRUD  -  Update
 // ---------------------------------------------------------------------------
 
-describe('CRUD — Update', () => {
+describe('CRUD  -  Update', () => {
   beforeEach(async () => {
     await db.query('INSERT INTO users (id, email, name, status) VALUES ($1, $2, $3, $4)', [
       'u1',
@@ -260,10 +260,10 @@ describe('CRUD — Update', () => {
 });
 
 // ---------------------------------------------------------------------------
-// CRUD — Delete
+// CRUD  -  Delete
 // ---------------------------------------------------------------------------
 
-describe('CRUD — Delete', () => {
+describe('CRUD  -  Delete', () => {
   beforeEach(async () => {
     await db.query('INSERT INTO users (id, email, name, status) VALUES ($1, $2, $3, $4)', [
       'u1',
@@ -376,7 +376,7 @@ describe('Transaction Management', () => {
     expect(result.rows).toHaveLength(1);
   });
 
-  it('rolls back a failed transaction — leaves no trace', async () => {
+  it('rolls back a failed transaction  -  leaves no trace', async () => {
     await db.query('BEGIN');
     await db.query('INSERT INTO users (id, email, name) VALUES ($1, $2, $3)', [
       'u99',
@@ -406,7 +406,7 @@ describe('Transaction Management', () => {
     ]);
 
     await expect(
-      // Duplicate of u1's email — should throw and abort the transaction
+      // Duplicate of u1's email  -  should throw and abort the transaction
       db.query('INSERT INTO users (id, email, name) VALUES ($1, $2, $3)', [
         'u3',
         'existing@example.com',

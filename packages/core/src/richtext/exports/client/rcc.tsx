@@ -311,7 +311,7 @@ function serializeNode(
     );
   }
 
-  // Unknown node type — try to render children
+  // Unknown node type  -  try to render children
   if (n.children) {
     return <Fragment key={index}>{serializeChildren(n.children, options)}</Fragment>;
   }

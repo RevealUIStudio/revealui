@@ -3,7 +3,7 @@
  *
  * Explicit memory storage tool that agents must call to persist information
  * to long-term episodic memory. Agents are never auto-enrolled into memory
- * writes — they must invoke this tool with a clear reason.
+ * writes  -  they must invoke this tool with a clear reason.
  *
  * GDPR rationale: Requiring explicit intent aligns with the data minimisation
  * principle (GDPR Art. 5(1)(c)) and purpose limitation principle (Art. 5(1)(b)).
@@ -44,7 +44,7 @@ export function createStoreMemoryTool(memory: EpisodicMemory, agentId: string): 
     description:
       'Explicitly store important information in long-term memory for future sessions. ' +
       'Only call this when information is genuinely valuable to retain. ' +
-      'Provide a clear reason — this is required for privacy compliance.',
+      'Provide a clear reason  -  this is required for privacy compliance.',
     parameters: StoreMemoryParamsSchema,
 
     async execute(params: unknown): Promise<ToolResult> {

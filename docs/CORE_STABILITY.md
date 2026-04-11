@@ -5,7 +5,7 @@ category: reference
 audience: developer
 ---
 
-# @revealui/core — API Stability Reference
+# @revealui/core  -  API Stability Reference
 
 **Version:** 0.2.x
 **Last Updated:** 2026-03-07
@@ -31,7 +31,7 @@ audience: developer
 
 ## Export Stability
 
-### Stable — Production-ready
+### Stable  -  Production-ready
 
 These exports are the load-bearing core of RevealUI. They are covered by unit and integration tests, have been deployed and verified in production (admin.revealui.com, revealui-api.vercel.app), and will not break without a major version bump.
 
@@ -41,7 +41,7 @@ These exports are the load-bearing core of RevealUI. They are covered by unit an
 |--------|-----------|-------|
 | `import { buildConfig } from '@revealui/core'` | **Stable** | Validates config, merges defaults. Throws `ConfigValidationError` on invalid input. |
 | `import { createRevealUI } from '@revealui/core'` | **Stable** | Creates a RevealUI instance. |
-| `import { getRevealUI } from '@revealui/core'` | **Stable** | Singleton pattern — safe in serverless cold starts. |
+| `import { getRevealUI } from '@revealui/core'` | **Stable** | Singleton pattern  -  safe in serverless cold starts. |
 | `import { withRevealUI } from '@revealui/core/nextjs'` | **Stable** | Next.js config wrapper. |
 
 #### Collections & Fields
@@ -62,7 +62,7 @@ These exports are the load-bearing core of RevealUI. They are covered by unit an
 | `revealui.create(options)` | **Stable** | Create with hooks, validation, and access control. |
 | `revealui.update(options)` | **Stable** | Update with hooks and access control. |
 | `revealui.delete(options)` | **Stable** | Soft-delete aware. |
-| `revealui.login(options)` | **Stable** | Auth-aware login — delegates to `@revealui/auth`. |
+| `revealui.login(options)` | **Stable** | Auth-aware login  -  delegates to `@revealui/auth`. |
 
 #### Access Control
 
@@ -80,7 +80,7 @@ These exports are the load-bearing core of RevealUI. They are covered by unit an
 | Import | Stability | Notes |
 |--------|-----------|-------|
 | `initializeLicense()` | **Stable** | Validates license key against RSA public key. Fails safe to `free` tier. |
-| `isLicensed(tier)` | **Stable** | Gate check — `free \| pro \| max \| enterprise`. |
+| `isLicensed(tier)` | **Stable** | Gate check  -  `free \| pro \| max \| enterprise`. |
 | `getCurrentTier()` | **Stable** | Returns active tier. |
 | `isFeatureEnabled(feature)` | **Stable** | Feature flag check per tier. |
 | `getFeatures()` | **Stable** | Full feature map for current tier. |
@@ -97,7 +97,7 @@ Imports: `@revealui/core/license`, `@revealui/core/features`
 
 Imports: `@revealui/core/observability/logger`, `@revealui/core/utils/logger`, `@revealui/core/utils/logger/server`, `@revealui/core/utils/logger/client`
 
-**Do not use `console.*` directly** — all production logging should go through `createLogger`. The `audit:console` script enforces this.
+**Do not use `console.*` directly**  -  all production logging should go through `createLogger`. The `audit:console` script enforces this.
 
 #### Next.js Utilities
 
@@ -107,7 +107,7 @@ Imports: `@revealui/core/observability/logger`, `@revealui/core/utils/logger`, `
 
 ---
 
-### Beta — Mostly settled, minor changes possible
+### Beta  -  Mostly settled, minor changes possible
 
 These exports are fully functional and tested but their API surface may see ergonomic tweaks before the 1.0 release. They are safe to use in production with awareness of potential minor changes.
 
@@ -144,11 +144,11 @@ The security model (IP-based limits, brute force lockout) is hardened and not ch
 | `@revealui/core/richtext/client` | **Beta** | Client-side Lexical editor components. |
 | `@revealui/core/richtext/lexical` | **Beta** | Direct Lexical node exports. |
 
-Lexical itself (the underlying editor) is at v0.40.x and may introduce node API changes. RevealUI tracks Lexical semver — the `HeadingFeature` and node APIs exposed here follow Lexical's own stability guarantees.
+Lexical itself (the underlying editor) is at v0.40.x and may introduce node API changes. RevealUI tracks Lexical semver  -  the `HeadingFeature` and node APIs exposed here follow Lexical's own stability guarantees.
 
 #### Collection Hooks
 
-The hook interface (`afterChange`, `beforeChange`, `afterRead`, `beforeValidate`) is **Beta** — the shape is established but additional lifecycle events may be added before 1.0.
+The hook interface (`afterChange`, `beforeChange`, `afterRead`, `beforeValidate`) is **Beta**  -  the shape is established but additional lifecycle events may be added before 1.0.
 
 #### Plugins
 
@@ -180,7 +180,7 @@ Full auth implementation lives in `@revealui/auth`. The `@revealui/core/auth` su
 
 ---
 
-### Experimental — Use with caution
+### Experimental  -  Use with caution
 
 These exports are built and included in the package but have not been verified in production and may change significantly before 1.0. They are documented here for transparency, not recommendation.
 
@@ -251,20 +251,20 @@ This table reflects what has been exercised against production infrastructure (a
 The following security properties are enforced in `@revealui/core` and its dependencies:
 
 ### Authentication
-- Session tokens are random 32-byte hex (via `crypto.getRandomValues`) — not guessable
+- Session tokens are random 32-byte hex (via `crypto.getRandomValues`)  -  not guessable
 - Sessions expire after 7 days; short-lived tokens (API keys) after 24 hours
 - Password hashing: bcrypt with cost factor 12
 - Password reset tokens: hashed with SHA-256 before DB storage (no plaintext tokens in DB)
 
 ### Authorisation
 - RBAC (`free → pro → max → enterprise`) enforced at the `isLicensed()` and `isFeatureEnabled()` gates
-- Collection-level access control via `access` field — evaluated on every CRUD operation, not just at the route level
+- Collection-level access control via `access` field  -  evaluated on every CRUD operation, not just at the route level
 - A2A (agent-to-agent) API requires a signed bearer token; A2A endpoints are separate from user-facing endpoints
 
 ### Rate Limiting
-- Auth endpoints: 5 attempts per 15 min per IP (sliding window, DB-backed — survives cold starts)
+- Auth endpoints: 5 attempts per 15 min per IP (sliding window, DB-backed  -  survives cold starts)
 - Brute force: email-based lockout after failed attempts
-- Rate limit counters are stored in the database — not in-memory. Cold starts do not reset them.
+- Rate limit counters are stored in the database  -  not in-memory. Cold starts do not reset them.
 
 ### Input Validation
 - All public API inputs validated with Zod before processing
@@ -327,7 +327,7 @@ Peer dependencies: React 18/19 and Next.js 14/15/16 are both supported.
 
 ## Related
 
-- [Package Reference](./REFERENCE.md) — full API documentation for all @revealui/* packages
-- [Auth & Security](./AUTH.md) — authentication system, RBAC, security policy
-- [Architecture](./ARCHITECTURE.md) — system design, dual-database, multi-tenant patterns
-- [Admin Guide](./ADMIN_GUIDE.md) — collections, content management, admin dashboard
+- [Package Reference](./REFERENCE.md)  -  full API documentation for all @revealui/* packages
+- [Auth & Security](./AUTH.md)  -  authentication system, RBAC, security policy
+- [Architecture](./ARCHITECTURE.md)  -  system design, dual-database, multi-tenant patterns
+- [Admin Guide](./ADMIN_GUIDE.md)  -  collections, content management, admin dashboard

@@ -56,7 +56,7 @@ export function sanitizeString(input: string, maxLength: number = 255): string {
 export function sanitizeName(name: string, maxLength: number = 100): string {
   let sanitized = sanitizeString(name, maxLength);
 
-  // Remove HTML tags without regex — walk the string and strip < ... > sequences
+  // Remove HTML tags without regex  -  walk the string and strip < ... > sequences
   sanitized = stripHtmlTags(sanitized);
 
   // Remove dangerous URI schemes and event handler patterns

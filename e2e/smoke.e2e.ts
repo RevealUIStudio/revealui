@@ -26,7 +26,7 @@ import { expect, test } from '@playwright/test';
 import { checkAccessibilityCritical } from './utils/a11y-helper';
 
 // ---------------------------------------------------------------------------
-// API Health Checks (apps/api — port 3004)
+// API Health Checks (apps/api  -  port 3004)
 // ---------------------------------------------------------------------------
 
 test.describe('API health', () => {
@@ -42,7 +42,7 @@ test.describe('API health', () => {
   });
 
   test('GET /health/ready returns 200 or 503', async ({ request }) => {
-    // ready endpoint may return 503 if DB is not connected — that is acceptable
+    // ready endpoint may return 503 if DB is not connected  -  that is acceptable
     // in a no-DB smoke test context. We only verify the server responds.
     const response = await request.get(`${ApiBase}/health/ready`);
     expect([200, 503]).toContain(response.status());
@@ -66,14 +66,14 @@ test.describe('API health', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Admin Basic Render (apps/admin — port 4000)
+// Admin Basic Render (apps/admin  -  port 4000)
 // ---------------------------------------------------------------------------
 
 test.describe('Admin basic render', () => {
   const AdminBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4000';
 
   test('Admin root path responds', async ({ page }) => {
-    // Soft-navigate — allow redirect to /admin or /login
+    // Soft-navigate  -  allow redirect to /admin or /login
     const response = await page.goto(AdminBase, { waitUntil: 'domcontentloaded' });
     // Any 2xx or 3xx (redirect to admin) is acceptable
     expect(response?.status()).toBeLessThan(500);
@@ -100,14 +100,14 @@ test.describe('Admin basic render', () => {
 
   test('Admin root has no critical accessibility violations', async ({ page }) => {
     await page.goto(AdminBase, { waitUntil: 'domcontentloaded' });
-    // Admin root may redirect to /admin or /login — wait for navigation to settle
+    // Admin root may redirect to /admin or /login  -  wait for navigation to settle
     await page.waitForLoadState('networkidle');
     await checkAccessibilityCritical(page);
   });
 });
 
 // ---------------------------------------------------------------------------
-// Marketing Page (apps/marketing — port 3002)
+// Marketing Page (apps/marketing  -  port 3002)
 // ---------------------------------------------------------------------------
 
 test.describe('Marketing page', () => {

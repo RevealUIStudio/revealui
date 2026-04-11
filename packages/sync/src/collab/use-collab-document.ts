@@ -9,14 +9,14 @@ export interface CollabDocumentState {
   error: Error | null;
 }
 
-// UUID v4 pattern — only format accepted as a yjs_documents PK
+// UUID v4 pattern  -  only format accepted as a yjs_documents PK
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function useCollabDocument(documentId: string): CollabDocumentState {
   const { proxyBaseUrl } = useElectricConfig();
 
   // Validate before interpolating into the WHERE clause. yjs_documents PKs are
-  // always UUIDs — reject anything else so no untrusted string enters the query.
+  // always UUIDs  -  reject anything else so no untrusted string enters the query.
   const isValidId = UUID_RE.test(documentId);
 
   // Hook must always be called (Rules of Hooks). Pass an impossible WHERE when

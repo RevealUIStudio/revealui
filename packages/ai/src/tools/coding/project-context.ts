@@ -1,5 +1,5 @@
 /**
- * project_context — Query the harness content layer for relevant project rules and skills
+ * project_context  -  Query the harness content layer for relevant project rules and skills
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -71,7 +71,7 @@ function searchContent(projectRoot: string, query: string, scope?: string): Cont
           }
         }
       } catch {
-        // Directory not readable or does not exist — skip silently
+        // Directory not readable or does not exist  -  skip silently
       }
     }
   }

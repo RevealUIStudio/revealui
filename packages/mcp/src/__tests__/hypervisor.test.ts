@@ -82,7 +82,7 @@ describe('MCPHypervisor', () => {
     it('ignores duplicate registrations', () => {
       const hv = MCPHypervisor.getInstance();
       hv.registerServer(testConfig);
-      hv.registerServer(testConfig); // duplicate — no throw
+      hv.registerServer(testConfig); // duplicate  -  no throw
 
       const status = hv.getStatus();
       expect(Object.keys(status)).toHaveLength(1);
@@ -103,7 +103,7 @@ describe('MCPHypervisor', () => {
 
       // Directly inject tools into the server entry via internal state
       // (bypasses spawn for unit testing)
-      // Access private state via type cast — for testing only
+      // Access private state via type cast  -  for testing only
       const servers = (
         hv as unknown as { servers: Map<string, { healthy: boolean; tools: unknown[] }> }
       ).servers;
@@ -259,7 +259,7 @@ describe('MCPHypervisor', () => {
       // callTool creates a pending request
       const toolPromise = hv.callTool('test-server', 'some_tool', {});
 
-      // Simulate server crash — exit handler rejects all pending requests
+      // Simulate server crash  -  exit handler rejects all pending requests
       mockProcess.exitCode = 1;
       exitCb(1);
 
@@ -335,7 +335,7 @@ describe('MCPHypervisor', () => {
 
       const { stdoutCb } = await startServerWithFakeTimers(hv);
 
-      // Send garbage data — should not throw
+      // Send garbage data  -  should not throw
       expect(() => {
         stdoutCb(Buffer.from('NOT VALID JSON\n'));
         stdoutCb(Buffer.from('{{{{broken\n'));
@@ -353,7 +353,7 @@ describe('MCPHypervisor', () => {
 
       const { exitCb } = await startServerWithFakeTimers(hv);
 
-      // Create a pending request — attach catch before kill to prevent unhandled rejection
+      // Create a pending request  -  attach catch before kill to prevent unhandled rejection
       const toolPromise = hv.callTool('test-server', 'some_tool', {});
       const caught = toolPromise.catch((e: Error) => e);
 
@@ -393,7 +393,7 @@ describe('MCPHypervisor', () => {
       const req1 = JSON.parse(writes[0]?.[0] as string);
       const req2 = JSON.parse(writes[1]?.[0] as string);
 
-      // Respond in reverse order — proves routing is by ID, not order
+      // Respond in reverse order  -  proves routing is by ID, not order
       stdoutCb(
         Buffer.from(`${JSON.stringify({ jsonrpc: '2.0', id: req2.id, result: 'result_b' })}\n`),
       );
@@ -435,7 +435,7 @@ describe('MCPHypervisor', () => {
       const callCountAfterFirst = (spawnMock as ReturnType<typeof vi.fn>).mock.calls.length;
       expect(callCountAfterFirst).toBe(callCountBefore + 1);
 
-      // Start again — process.exitCode is still null (running)
+      // Start again  -  process.exitCode is still null (running)
       const startPromise2 = hv.startServer('test-server');
       await vi.advanceTimersByTimeAsync(5_501);
       await startPromise2;
@@ -473,7 +473,7 @@ describe('MCPHypervisor', () => {
       const hv = MCPHypervisor.getInstance();
       hv.registerServer(testConfig);
 
-      // Server registered but not started — process is null
+      // Server registered but not started  -  process is null
       await expect(hv.callTool('test-server', 'some_tool', {})).rejects.toThrow(
         'Server "test-server" is not running',
       );
@@ -504,7 +504,7 @@ describe('MCPHypervisor', () => {
       // Clear write mock to isolate callTool writes
       mockProcess.stdin.write.mockClear();
 
-      // Fire a callTool — attach catch immediately to prevent unhandled rejection
+      // Fire a callTool  -  attach catch immediately to prevent unhandled rejection
       const toolPromise = hv.callTool('test-server', 'create_payment', { amount: 1000 });
       const caught = toolPromise.catch(() => {});
 
@@ -522,7 +522,7 @@ describe('MCPHypervisor', () => {
       });
       expect(parsed.id).toBeTypeOf('number');
 
-      // Clean up — advance past timeout
+      // Clean up  -  advance past timeout
       await vi.advanceTimersByTimeAsync(5_001);
       await caught;
     });

@@ -1,4 +1,4 @@
-# VAUGHN — Versioned Agent Unification, Governance, Handoff, and Normalization
+# VAUGHN  -  Versioned Agent Unification, Governance, Handoff, and Normalization
 
 **Version:** 0.1.0 (Draft)
 **Status:** Proposal
@@ -40,7 +40,7 @@ VAUGHN solves this by defining a **canonical representation** for agent capabili
 1. **Canonical, not lowest-common-denominator.** VAUGHN defines the full superset of capabilities. Adapters degrade gracefully when a tool lacks a feature, rather than omitting the feature entirely.
 2. **Translation, not abstraction.** VAUGHN does not replace MCP, A2A, or the Holster workboard. It translates between them so they can interoperate.
 3. **Statically verifiable.** An adapter declares its capabilities at registration time. The coordinator knows what each agent can and cannot do before dispatching work.
-4. **Wire-format agnostic.** VAUGHN defines operations and types, not serialization. Implementations may use JSON-RPC, protobuf, file I/O, or HTTP — the protocol is the same.
+4. **Wire-format agnostic.** VAUGHN defines operations and types, not serialization. Implementations may use JSON-RPC, protobuf, file I/O, or HTTP  -  the protocol is the same.
 5. **Additive only.** New capabilities extend the protocol without breaking existing adapters. Unknown capabilities are ignored, not rejected.
 
 ---
@@ -89,7 +89,7 @@ The coordinator consumes VAUGHN adapters and provides:
 
 ### 3.3 MCP Integration
 
-MCP servers are available to all VAUGHN-registered agents through the hypervisor. VAUGHN does not wrap MCP — it ensures that MCP tool access is coordinated (e.g., two agents don't call `stripe_create_customer` for the same tenant simultaneously).
+MCP servers are available to all VAUGHN-registered agents through the hypervisor. VAUGHN does not wrap MCP  -  it ensures that MCP tool access is coordinated (e.g., two agents don't call `stripe_create_customer` for the same tenant simultaneously).
 
 ### 3.4 A2A Integration
 
@@ -175,7 +175,7 @@ interface VaughnCapabilities {
 | supportsMcp | **true** | **true** | false | **true** |
 | memory.backend | `none` | `sqlite` | `none` | `crdt` |
 
-**Why `dispatch.*` is false for Claude Code and Codex:** These tools are interactive — a human submits prompts and approves actions. The adapter can observe and coordinate (via hooks and workboard) but cannot programmatically send prompts and receive structured results. The RevealUI Agent adapter CAN do this because it exposes a headless API for programmatic dispatch.
+**Why `dispatch.*` is false for Claude Code and Codex:** These tools are interactive  -  a human submits prompts and approves actions. The adapter can observe and coordinate (via hooks and workboard) but cannot programmatically send prompts and receive structured results. The RevealUI Agent adapter CAN do this because it exposes a headless API for programmatic dispatch.
 
 ---
 
@@ -232,7 +232,7 @@ When a tool does not emit a native event for a VAUGHN event, the adapter applies
 | `tool.before` | Cursor | **Absent** | Cursor adapter operates in passive/read-only mode. Cannot block any operation. |
 | `session.crash` | All tools | **Polyfill** | Inferred from stale heartbeat (>4h without workboard timestamp update). Coordinator marks claimed tasks as `partial (orphaned)`. Latency: up to 4h detection delay. |
 | `prompt.submit` | Cursor | **Absent** | No prompt interception. Cursor adapter only observes file changes. |
-| `agent.heartbeat` | All tools | **Polyfill** | Synthesized from workboard timestamp updates. Not a real heartbeat signal — accuracy depends on tool's workboard write frequency. |
+| `agent.heartbeat` | All tools | **Polyfill** | Synthesized from workboard timestamp updates. Not a real heartbeat signal  -  accuracy depends on tool's workboard write frequency. |
 
 **Safety implications of degradation:**
 - A degraded `tool.before` is NOT equivalent to a present `tool.before`. The coordinator MUST track which agents have blocking capability and which don't. When dispatching safety-critical tasks (e.g., database migrations), prefer agents with `hooks.canBlock: true`.
@@ -427,7 +427,7 @@ Examples: `claude-root`, `codex-builder-2`, `cursor-edit`, `revagent-headless-1`
 ```
 Examples: `conductor`, `agent-extension`, `agent-system-2`, `revealui-terminal`
 
-Both formats are valid. The coordinator accepts either. The `tool` prefix is optional — when absent, the coordinator infers the tool from the adapter that registered the identity. Legacy identities from existing Holster deployments continue to work without migration.
+Both formats are valid. The coordinator accepts either. The `tool` prefix is optional  -  when absent, the coordinator infers the tool from the adapter that registered the identity. Legacy identities from existing Holster deployments continue to work without migration.
 
 ---
 
@@ -437,7 +437,7 @@ VAUGHN is wire-format agnostic. Reference implementations use:
 
 ### 9.1 File Transport (hooks)
 
-Events are communicated via workboard file mutations. No separate wire format — the workboard markdown IS the state.
+Events are communicated via workboard file mutations. No separate wire format  -  the workboard markdown IS the state.
 
 ### 9.2 RPC Transport (daemon)
 
@@ -687,7 +687,7 @@ Failed verifications downgrade the declared capability to `false` and log a warn
 
 | Term | Definition |
 |---|---|
-| **VAUGHN** | Versioned Agent Unification, Governance, Handoff, and Normalization — this protocol |
+| **VAUGHN** | Versioned Agent Unification, Governance, Handoff, and Normalization  -  this protocol |
 | **Adapter** | VAUGHN boundary component that translates between a tool's native interface and the VAUGHN protocol |
 | **Holster** | RevealUI's workboard-based agent coordination system |
 | **RevHolster** | The product/project name for the combined VAUGHN + Holster system |

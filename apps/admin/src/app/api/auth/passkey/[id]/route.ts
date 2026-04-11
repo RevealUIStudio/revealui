@@ -1,8 +1,8 @@
 /**
  * Passkey [id] API Route
  *
- * PATCH /api/auth/passkey/:id — Rename a passkey
- * DELETE /api/auth/passkey/:id — Delete a passkey
+ * PATCH /api/auth/passkey/:id  -  Rename a passkey
+ * DELETE /api/auth/passkey/:id  -  Delete a passkey
  */
 
 import { deletePasskey, getSession, renamePasskey } from '@revealui/auth/server';

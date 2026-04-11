@@ -1,5 +1,5 @@
 /**
- * API Key tables — encrypted credential storage for inference endpoints
+ * API Key tables  -  encrypted credential storage for inference endpoints
  *
  * Server-side AES-256-GCM envelope encryption for background agent workflows.
  * Keys are encrypted at rest with a KEK from REVEALUI_KEK env var.

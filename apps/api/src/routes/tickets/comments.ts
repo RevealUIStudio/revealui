@@ -94,7 +94,7 @@ app.openapi(
     const body = c.req.valid('json');
     const user = c.get('user');
     await assertTicketAccess(db, ticketId, c);
-    // Force authorId to session user — never trust client-supplied authorId
+    // Force authorId to session user  -  never trust client-supplied authorId
     const comment = await commentQueries.createComment(db, {
       id: crypto.randomUUID(),
       ticketId,

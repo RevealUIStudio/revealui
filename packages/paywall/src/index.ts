@@ -36,11 +36,11 @@
  * ```
  *
  * Subpath exports:
- * - `@revealui/paywall/server/hono` — Hono middleware
- * - `@revealui/paywall/server/next` — Next.js route handler gates
- * - `@revealui/paywall/client` — React components (LicenseGate, UpgradePrompt)
- * - `@revealui/paywall/stripe` — Stripe webhook/checkout helpers
- * - `@revealui/paywall/x402` — HTTP 402 agent payment negotiation
+ * - `@revealui/paywall/server/hono`  -  Hono middleware
+ * - `@revealui/paywall/server/next`  -  Next.js route handler gates
+ * - `@revealui/paywall/client`  -  React components (LicenseGate, UpgradePrompt)
+ * - `@revealui/paywall/stripe`  -  Stripe webhook/checkout helpers
+ * - `@revealui/paywall/x402`  -  HTTP 402 agent payment negotiation
  *
  * @packageDocumentation
  */

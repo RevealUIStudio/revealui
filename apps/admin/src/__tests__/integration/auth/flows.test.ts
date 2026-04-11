@@ -25,7 +25,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   },
 }));
 
-// Stub global fetch for HIBP breach check — returns no breaches so
+// Stub global fetch for HIBP breach check  -  returns no breaches so
 // signUp/signIn flows don't fail due to network calls in CI.
 const originalFetch = globalThis.fetch;
 vi.stubGlobal(
@@ -379,7 +379,7 @@ describe('Authentication Flow Integration', () => {
       for (let i = 0; i < 5; i++) {
         await recordFailedAttempt(email);
       }
-      // Account is now locked — signIn should fail regardless of credentials
+      // Account is now locked  -  signIn should fail regardless of credentials
       (mockDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
         { id: 'ulocked', email, password: 'any-hash', emailVerified: true, createdAt: new Date() },
       ]);

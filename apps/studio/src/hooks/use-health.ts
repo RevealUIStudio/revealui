@@ -1,5 +1,5 @@
 /**
- * useHealth — Polls the production API's readiness probe.
+ * useHealth  -  Polls the production API's readiness probe.
  *
  * Returns the health status (healthy/degraded/unhealthy/unreachable)
  * along with individual check results. Polls on the settings interval.

@@ -138,7 +138,7 @@ function resolveCatalogSeeds(localCache: {
       ),
     },
     // Credit bundles (Track B)
-    // Support renewal (Track C — annual renewal for perpetual licenses)
+    // Support renewal (Track C  -  annual renewal for perpetual licenses)
     {
       planId: 'renewal:pro',
       tier: 'pro',
@@ -223,7 +223,7 @@ function resolveConnectionString(): string {
     console.error(
       JSON.stringify(
         {
-          error: 'Connection string points to localhost — no local PostgreSQL available',
+          error: 'Connection string points to localhost  -  no local PostgreSQL available',
           resolved: `${url.split('@')[0].split('://')[0]}://****@localhost/...`,
           hint: 'Set NEON_DATABASE_URL to your NeonDB connection string, or pass --database-url <url>',
           example:

@@ -1,6 +1,6 @@
 # @revealui/sync
 
-ElectricSQL sync utilities for RevealUI — real-time data synchronization with local-first architecture.
+ElectricSQL sync utilities for RevealUI  -  real-time data synchronization with local-first architecture.
 
 ## Features
 
@@ -122,7 +122,7 @@ const {
 
 ### `useConversations(userId)`
 
-Subscribe to conversation history. Server-side proxy enforces row-level filtering by session — the `userId` parameter is for API compatibility but filtering is handled server-side.
+Subscribe to conversation history. Server-side proxy enforces row-level filtering by session  -  the `userId` parameter is for API compatibility but filtering is handled server-side.
 
 ```typescript
 const {
@@ -187,13 +187,13 @@ pnpm --filter @revealui/sync typecheck  # Type check
 - You need real-time data sync between your database and React UI via ElectricSQL
 - You want CRDT-based collaborative editing (Yjs) for multi-user document workflows
 - You need React hooks that subscribe to live database changes with automatic mutation support
-- **Not** for batch data loading or static pages — use server components with `@revealui/db` directly
-- **Not** for offline-first mobile apps — ElectricSQL targets web clients with persistent connections
+- **Not** for batch data loading or static pages  -  use server components with `@revealui/db` directly
+- **Not** for offline-first mobile apps  -  ElectricSQL targets web clients with persistent connections
 
 ## JOSHUA Alignment
 
-- **Adaptive**: Shape subscriptions dynamically sync only the data your component needs — scales from one user to many
-- **Sovereign**: Sync runs through your own CMS proxy and PostgreSQL — no third-party real-time service required
+- **Adaptive**: Shape subscriptions dynamically sync only the data your component needs  -  scales from one user to many
+- **Sovereign**: Sync runs through your own CMS proxy and PostgreSQL  -  no third-party real-time service required
 - **Hermetic**: All mutations go through authenticated REST endpoints; ElectricSQL replication is read-only on the client
 
 ## License

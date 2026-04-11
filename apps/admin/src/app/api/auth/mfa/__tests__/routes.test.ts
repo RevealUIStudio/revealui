@@ -133,7 +133,7 @@ const mockRegenerateBackupCodes = vi.mocked(authServer.regenerateBackupCodes);
 const mockIsMFAEnabled = vi.mocked(authServer.isMFAEnabled);
 const mockRotateSession = vi.mocked(authServer.rotateSession);
 const mockVerifyAuthentication = vi.mocked(authServer.verifyAuthentication);
-// verifyCookiePayload is generic — use vi.fn() cast to avoid excess property errors
+// verifyCookiePayload is generic  -  use vi.fn() cast to avoid excess property errors
 const mockVerifyCookiePayload = authServer.verifyCookiePayload as unknown as ReturnType<
   typeof vi.fn
 >;

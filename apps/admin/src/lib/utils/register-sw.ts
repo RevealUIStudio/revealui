@@ -16,7 +16,7 @@ export function registerServiceWorker(): void {
   // Defer registration until after the page load for better performance.
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
-      // Registration failed — non-critical. The app works without the SW.
+      // Registration failed  -  non-critical. The app works without the SW.
     });
   });
 }

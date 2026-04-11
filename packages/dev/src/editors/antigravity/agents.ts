@@ -9,11 +9,11 @@ Package manager: pnpm 10 (\`workspace:*\` for internal deps).
 
 ## Key Packages
 
-- \`@revealui/core\` — Runtime engine, collections, access control, hooks
-- \`@revealui/db\` — Drizzle schema (NeonDB) + vector schema (Supabase)
-- \`@revealui/auth\` — session auth, bcrypt, rate limiting
-- \`@revealui/contracts\` — Zod schemas (canonical source of truth)
-- \`@revealui/presentation\` — UI components (Tailwind v4)
+- \`@revealui/core\`  -  Runtime engine, collections, access control, hooks
+- \`@revealui/db\`  -  Drizzle schema (NeonDB) + vector schema (Supabase)
+- \`@revealui/auth\`  -  session auth, bcrypt, rate limiting
+- \`@revealui/contracts\`  -  Zod schemas (canonical source of truth)
+- \`@revealui/presentation\`  -  UI components (Tailwind v4)
 
 ## Agent Guidelines
 
@@ -21,9 +21,9 @@ Package manager: pnpm 10 (\`workspace:*\` for internal deps).
 - Run \`pnpm --filter <package> test\` to verify tests pass
 - Use \`pnpm gate:quick\` for fast quality check (lint + typecheck)
 - Use \`pnpm gate\` before pushing (full CI: lint, typecheck, test, build)
-- Biome 2 is the formatter/linter — do not add ESLint or Prettier config
+- Biome 2 is the formatter/linter  -  do not add ESLint or Prettier config
 - All new code must use ES Modules (\`import\`/\`export\`)
-- No \`any\` types — use \`unknown\` with type guards
+- No \`any\` types  -  use \`unknown\` with type guards
 - Soft-delete: set \`deletedAt\` instead of hard-deleting rows
 
 ## Database Rules

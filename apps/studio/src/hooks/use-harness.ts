@@ -122,7 +122,7 @@ export function useHarness(agentId?: string): UseHarnessReturn {
     const unlistenFns: Array<() => void> = [];
 
     async function setupListeners(): Promise<void> {
-      // Dynamic import — only resolved in Tauri context
+      // Dynamic import  -  only resolved in Tauri context
       const { listen } = await import('@tauri-apps/api/event');
 
       interface StatePayload {

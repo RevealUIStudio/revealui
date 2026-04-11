@@ -126,7 +126,7 @@ export class CodeValidator {
    * File-level exemptions must be standalone comment lines whose only
    * meaningful content is the exemption directive (e.g. "console-allowed"
    * as the sole content of a block or line comment). A regular code line
-   * that happens to have an inline exemption comment does NOT qualify —
+   * that happens to have an inline exemption comment does NOT qualify  -
    * that is a line-level exemption handled in the per-line loop.
    */
   private hasFileLevelExemption(
@@ -140,7 +140,7 @@ export class CodeValidator {
     const headerLines = lines.slice(0, 3);
     return headerLines.some((line) => {
       if (line === undefined) return false;
-      // Strip the line to its core content — remove comment delimiters and whitespace
+      // Strip the line to its core content  -  remove comment delimiters and whitespace
       const stripped = line.trim().replace('/*', '').replace('*/', '').replace('//', '').trim();
       return exemptionComments.some((comment) => stripped === comment);
     });

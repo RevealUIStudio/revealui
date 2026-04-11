@@ -3,7 +3,7 @@
  *
  * Splits text into chunks using a hierarchy of separators:
  *   double-newline → single-newline → period+space → space
- * Token count is estimated as Math.ceil(length / 4) — sufficient for chunking.
+ * Token count is estimated as Math.ceil(length / 4)  -  sufficient for chunking.
  */
 
 export interface Chunk {
@@ -64,7 +64,7 @@ function recursiveSplit(text: string, chunkSize: number, sepIndex = 0): string[]
 
   const separator = SEPARATORS[sepIndex];
   if (separator === undefined) {
-    // No separator left — hard-split at chunkSize
+    // No separator left  -  hard-split at chunkSize
     const chunks: string[] = [];
     for (let i = 0; i < text.length; i += chunkSize) {
       chunks.push(text.slice(i, i + chunkSize));

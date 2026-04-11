@@ -20,10 +20,10 @@ import {
 import { describe, expect, it } from 'vitest';
 
 // =============================================================================
-// SERVICE_OFFERINGS — Track D completeness
+// SERVICE_OFFERINGS  -  Track D completeness
 // =============================================================================
 
-describe('SERVICE_OFFERINGS — Track D', () => {
+describe('SERVICE_OFFERINGS  -  Track D', () => {
   it('exports exactly 4 service offerings', () => {
     expect(SERVICE_OFFERINGS).toHaveLength(4);
   });
@@ -111,7 +111,7 @@ describe('SERVICE_OFFERINGS — Track D', () => {
 });
 
 // =============================================================================
-// PricingResponse — services field
+// PricingResponse  -  services field
 // =============================================================================
 
 describe('PricingResponse includes services', () => {
@@ -150,22 +150,22 @@ describe('PricingResponse includes services', () => {
       services: SERVICE_OFFERINGS,
     };
 
-    // Track A — Subscriptions
+    // Track A  -  Subscriptions
     expect(response.subscriptions).toHaveLength(4);
-    // Track B — Credits
+    // Track B  -  Credits
     expect(response.credits).toHaveLength(3);
-    // Track C — Perpetual
+    // Track C  -  Perpetual
     expect(response.perpetual).toHaveLength(3);
-    // Track D — Services
+    // Track D  -  Services
     expect(response.services).toHaveLength(4);
   });
 });
 
 // =============================================================================
-// Perpetual tiers — all enabled (comingSoon: false)
+// Perpetual tiers  -  all enabled (comingSoon: false)
 // =============================================================================
 
-describe('Perpetual tiers — launch enabled', () => {
+describe('Perpetual tiers  -  launch enabled', () => {
   it('all 3 perpetual tiers have comingSoon: false', () => {
     for (const tier of PERPETUAL_TIERS) {
       expect(tier.comingSoon).toBe(false);
@@ -203,7 +203,7 @@ describe('Perpetual tiers — launch enabled', () => {
 });
 
 // =============================================================================
-// Subscription response — perpetual and supportExpiresAt fields
+// Subscription response  -  perpetual and supportExpiresAt fields
 // =============================================================================
 
 describe('Subscription response fields', () => {
@@ -277,7 +277,7 @@ describe('Subscription response fields', () => {
 });
 
 // =============================================================================
-// Support renewal — webhook handler contract
+// Support renewal  -  webhook handler contract
 // =============================================================================
 
 describe('Support renewal webhook contract', () => {
@@ -324,7 +324,7 @@ describe('Support renewal webhook contract', () => {
 });
 
 // =============================================================================
-// BillingCatalogKind — renewal type
+// BillingCatalogKind  -  renewal type
 // =============================================================================
 
 describe('BillingCatalogKind includes renewal', () => {

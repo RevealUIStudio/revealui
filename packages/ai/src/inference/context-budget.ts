@@ -85,7 +85,7 @@ export function classifyModel(modelName: string): ModelTier {
   for (const { pattern, tier } of MODEL_TIER_PATTERNS) {
     if (pattern.test(modelName)) return tier;
   }
-  // Default to medium — safe middle ground
+  // Default to medium  -  safe middle ground
   return 'medium';
 }
 

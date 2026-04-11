@@ -95,7 +95,7 @@ export async function createTicket(
     estimatedEffort?: number;
   },
 ) {
-  // Atomic ticket number assignment — the subquery computes MAX+1 inside the
+  // Atomic ticket number assignment  -  the subquery computes MAX+1 inside the
   // INSERT so concurrent inserts cannot produce duplicate numbers. The UNIQUE
   // constraint on (board_id, ticket_number) acts as a safety net.
   const result = await db

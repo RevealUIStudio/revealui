@@ -33,7 +33,7 @@ import { update } from './methods/update.js';
 export async function createRevealUIInstance(config: RevealConfig): Promise<RevealUIInstance> {
   const logger = createLogger();
 
-  // Database connection is lazy — only connect on first query.
+  // Database connection is lazy  -  only connect on first query.
   // A single shared promise guards against concurrent init from multiple requests.
   let dbConnected = false;
   let dbInitPromise: Promise<void> | null = null;
@@ -185,7 +185,7 @@ export async function createRevealUIInstance(config: RevealConfig): Promise<Reve
 
       // Verify password against bcrypt hash
       if (!hashedPassword.startsWith('$2')) {
-        // Reject plain-text passwords — they must be migrated first
+        // Reject plain-text passwords  -  they must be migrated first
         throw new Error('Invalid credentials');
       }
       const isPasswordValid = await bcrypt.compare(data.password, hashedPassword);

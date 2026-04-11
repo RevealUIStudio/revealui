@@ -132,7 +132,7 @@ function MainApp() {
           ) : null}
           {page === 'editor' && !editorTarget ? (
             <div className="flex h-full items-center justify-center text-sm text-neutral-500">
-              No file selected — open a file from the Git panel
+              No file selected - open a file from the Git panel
             </div>
           ) : null}
           {page === 'agent' ? <AgentPanel /> : null}
@@ -148,7 +148,7 @@ function MainApp() {
     );
   }
 
-  // Setup complete — deploy intent shows deploy dashboard
+  // Setup complete  -  deploy intent shows deploy dashboard
   if (config.intent === 'deploy') {
     return (
       <AppShell currentPage={page} onNavigate={setPage}>
@@ -159,7 +159,7 @@ function MainApp() {
     );
   }
 
-  // Setup complete — develop intent shows full experience
+  // Setup complete  -  develop intent shows full experience
   return (
     <AppShell currentPage={page} onNavigate={setPage} padless={page === 'git' || page === 'editor'}>
       {page === 'dashboard' ? <Dashboard /> : null}
@@ -179,7 +179,7 @@ function MainApp() {
       ) : null}
       {page === 'editor' && !editorTarget ? (
         <div className="flex h-full items-center justify-center text-sm text-neutral-500">
-          No file selected — open a file from the Git panel
+          No file selected - open a file from the Git panel
         </div>
       ) : null}
       {page === 'agent' ? <AgentPanel /> : null}

@@ -1,8 +1,8 @@
 /**
  * Agent Context Sync Mutation Route (by ID)
  *
- * PATCH /api/sync/agent-contexts/:id — Update an agent context
- * DELETE /api/sync/agent-contexts/:id — Delete an agent context
+ * PATCH /api/sync/agent-contexts/:id  -  Update an agent context
+ * DELETE /api/sync/agent-contexts/:id  -  Delete an agent context
  *
  * Authenticated. Only the session owner can modify their contexts.
  */

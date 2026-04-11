@@ -4,7 +4,7 @@
  * Uses the DuckDuckGo Instant Answer API (no API key required).
  * Returns structured results suitable for agent consumption.
  *
- * Part of the WebSearch skill family — see types.ts for the
+ * Part of the WebSearch skill family  -  see types.ts for the
  * WebSearchProvider interface used by future Tavily/Exa backends (P4-3).
  */
 
@@ -14,7 +14,7 @@ import type { WebSearchProvider, WebSearchResponse, WebSearchResult } from './ty
 
 const DDG_API_URL = 'https://api.duckduckgo.com/';
 
-// DuckDuckGo Instant Answer API uses PascalCase — must match the external shape exactly.
+// DuckDuckGo Instant Answer API uses PascalCase  -  must match the external shape exactly.
 interface DdgRelatedTopic {
   Text?: string;
   FirstURL?: string;
@@ -37,7 +37,7 @@ function estimateTokens(text: string): number {
 // =============================================================================
 
 /**
- * DuckDuckGo search provider — zero-config, no API key required.
+ * DuckDuckGo search provider  -  zero-config, no API key required.
  *
  * Uses the DuckDuckGo Instant Answer API to retrieve the abstract summary
  * and related topics for a query.
@@ -80,7 +80,7 @@ export class DuckDuckGoProvider implements WebSearchProvider {
     // Add related topics (skip category group entries that have nested Topics)
     for (const topic of data.RelatedTopics ?? []) {
       if (results.length >= maxResults) break;
-      if (topic.Topics) continue; // category group — skip
+      if (topic.Topics) continue; // category group  -  skip
 
       const text = topic.Text;
       const firstURL = topic.FirstURL;
@@ -184,7 +184,7 @@ export function createWebSearchTool(provider: WebSearchProvider): Tool {
  * Web search tool backed by DuckDuckGo (zero-config).
  *
  * Register this on any agent that needs live web access. Requires no
- * API key — backed by the DuckDuckGo Instant Answer API.
+ * API key  -  backed by the DuckDuckGo Instant Answer API.
  *
  * @example
  * ```typescript

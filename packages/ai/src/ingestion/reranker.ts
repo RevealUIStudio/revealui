@@ -2,7 +2,7 @@
  * LLM-based Re-ranker
  *
  * Scores chunks 0–10 for relevance to the query using the configured LLMClient.
- * No cross-encoder model required — uses the existing LLM.
+ * No cross-encoder model required  -  uses the existing LLM.
  */
 
 import type { LLMClient } from '../llm/client.js';

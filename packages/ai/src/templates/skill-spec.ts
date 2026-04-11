@@ -84,7 +84,7 @@ export const SkillSpecSchema = z.object({
   /** Security constraints */
   security: SkillSecuritySchema,
 
-  /** Test cases — at least one required */
+  /** Test cases  -  at least one required */
   testCases: z.array(SkillTestCaseSchema).min(1, 'At least one test case is required'),
 
   /** Who created this skill */

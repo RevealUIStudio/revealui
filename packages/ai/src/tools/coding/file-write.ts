@@ -1,5 +1,5 @@
 /**
- * file_write — Write entire file contents
+ * file_write  -  Write entire file contents
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';

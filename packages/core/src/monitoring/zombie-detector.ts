@@ -33,7 +33,7 @@ class ZombieDetector {
 
     // Skip on serverless environments where ps is unavailable or meaningless
     if (process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME) {
-      logger.debug('Zombie detection skipped — serverless environment detected');
+      logger.debug('Zombie detection skipped  -  serverless environment detected');
       return;
     }
 

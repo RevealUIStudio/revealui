@@ -2,7 +2,7 @@
  * Payments E2E Tests
  *
  * Tests Stripe integration: product creation, pricing, and checkout flow.
- * Uses Stripe test mode — no real charges are made.
+ * Uses Stripe test mode  -  no real charges are made.
  *
  * REQUIRES live services:
  *   - apps/admin (port 4000) with running database
@@ -44,7 +44,7 @@ test.beforeAll(async ({ request }) => {
 // ---------------------------------------------------------------------------
 
 async function signIn(page: import('@playwright/test').Page) {
-  // Admin login page is at /login (not /admin/login — that redirects to /login).
+  // Admin login page is at /login (not /admin/login  -  that redirects to /login).
   // After successful sign-in, router.push('/') navigates away from /login.
   await page.goto(`${ADMIN_BASE}/login`, { waitUntil: 'domcontentloaded' });
   await page.getByLabel(/email/i).fill(ADMIN_EMAIL);
@@ -108,7 +108,7 @@ test.describe('Product management', () => {
 
 test.describe('Checkout flow', () => {
   test('checkout page renders with Stripe elements', async ({ page }) => {
-    // Navigate to the checkout page — URL varies by implementation
+    // Navigate to the checkout page  -  URL varies by implementation
     const checkoutUrls = [
       `${ADMIN_BASE}/checkout`,
       `${ADMIN_BASE}/shop/checkout`,

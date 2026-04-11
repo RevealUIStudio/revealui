@@ -7,7 +7,7 @@
  * Run locally with: pnpm validate:artifacts
  * Also used by release-canary.yml to replace inline bash validation.
  *
- * Packages that don't compile (e.g. create-revealui — thin bin/ wrapper)
+ * Packages that don't compile (e.g. create-revealui  -  thin bin/ wrapper)
  * are excluded from the dist/ check but validated for their bin/ entry.
  *
  * @dependencies
@@ -43,7 +43,7 @@ const DIST_PACKAGES = [
   'utils',
 ];
 
-/** Packages that ship raw (no compilation) — validated differently */
+/** Packages that ship raw (no compilation)  -  validated differently */
 const BIN_ONLY_PACKAGES = [{ name: 'create-revealui', bin: 'bin/create-revealui.js' }];
 
 interface Result {

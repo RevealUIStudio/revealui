@@ -17,7 +17,7 @@ describe('Slider', () => {
     const onChange = vi.fn();
     render(<Slider defaultValue={0} min={0} max={100} onChange={onChange} />);
     const slider = screen.getByRole('slider');
-    // jsdom does not fire change events from keyboard on range inputs — use fireEvent
+    // jsdom does not fire change events from keyboard on range inputs  -  use fireEvent
     fireEvent.change(slider, { target: { value: '1' } });
     expect(onChange).toHaveBeenCalledWith(1);
   });

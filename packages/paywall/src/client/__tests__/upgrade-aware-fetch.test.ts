@@ -45,7 +45,7 @@ describe('dispatchUpgradeEvent', () => {
 
   it('is a no-op when window is undefined', () => {
     const originalWindow = globalThis.window;
-    // @ts-expect-error — testing SSR path
+    // @ts-expect-error  -  testing SSR path
     delete globalThis.window;
 
     // Should not throw

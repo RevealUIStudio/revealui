@@ -43,7 +43,7 @@ export function getStorage(): Storage {
       dbUrl = configUrl;
     }
   } catch {
-    // Config validation failed — try process.env fallback below
+    // Config validation failed  -  try process.env fallback below
   }
   dbUrl = dbUrl || process.env.POSTGRES_URL || process.env.DATABASE_URL;
 
@@ -88,7 +88,7 @@ export function createStorage(): Storage {
       }
     }
   } catch {
-    // Config validation failed — fall through to in-memory
+    // Config validation failed  -  fall through to in-memory
   }
 
   return new InMemoryStorage();

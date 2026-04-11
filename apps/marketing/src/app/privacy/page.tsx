@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — RevealUI',
+  title: 'Privacy Policy  -  RevealUI',
   description: 'Privacy policy for RevealUI and RevealUI Studio.',
 };
 
@@ -61,19 +61,19 @@ export default function PrivacyPolicyPage() {
         <p>We share data only with:</p>
         <ul>
           <li>
-            <strong>Stripe</strong> — for payment processing (
+            <strong>Stripe</strong> - for payment processing (
             <a href="https://stripe.com/privacy">Stripe Privacy Policy</a>)
           </li>
           <li>
-            <strong>NeonDB</strong> — database hosting (
+            <strong>NeonDB</strong> - database hosting (
             <a href="https://neon.tech/privacy">Neon Privacy Policy</a>)
           </li>
           <li>
-            <strong>Vercel</strong> — application hosting (
+            <strong>Vercel</strong> - application hosting (
             <a href="https://vercel.com/legal/privacy-policy">Vercel Privacy Policy</a>)
           </li>
           <li>
-            <strong>Google Workspace</strong> — transactional email delivery via Gmail API (
+            <strong>Google Workspace</strong> - transactional email delivery via Gmail API (
             <a href="https://policies.google.com/privacy">Google Privacy Policy</a>)
           </li>
         </ul>
@@ -90,21 +90,21 @@ export default function PrivacyPolicyPage() {
         <p>You have the right to:</p>
         <ul>
           <li>
-            <strong>Access</strong> your personal data — available via your account settings or by
+            <strong>Access</strong> your personal data - available via your account settings or by
             contacting us
           </li>
           <li>
-            <strong>Export</strong> your data — use the GDPR export endpoint in the admin
+            <strong>Export</strong> your data - use the GDPR export endpoint in the admin
           </li>
           <li>
-            <strong>Delete</strong> your account and all associated data — use the account deletion
+            <strong>Delete</strong> your account and all associated data - use the account deletion
             feature or contact us
           </li>
           <li>
-            <strong>Correct</strong> inaccurate data — update your profile in the admin dashboard
+            <strong>Correct</strong> inaccurate data - update your profile in the admin dashboard
           </li>
           <li>
-            <strong>Object</strong> to processing — contact us at the email below
+            <strong>Object</strong> to processing - contact us at the email below
           </li>
         </ul>
         <p>

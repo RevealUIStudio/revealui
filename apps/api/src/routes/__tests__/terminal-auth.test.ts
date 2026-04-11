@@ -48,7 +48,7 @@ import terminalAuth, { clearOtpStore, configureTerminalAuth } from '../terminal-
 
 type TestUser = { id: string };
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — loose Variables type
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  loose Variables type
 function createApp(dbMock?: any, user?: TestUser) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
   const app = new Hono<{ Variables: { db?: any; user?: TestUser } }>();
@@ -65,7 +65,7 @@ function createApp(dbMock?: any, user?: TestUser) {
   return app;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono generics vary per test
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono generics vary per test
 function jsonPost(app: Hono<any>, path: string, body: unknown) {
   return app.request(path, {
     method: 'POST',
@@ -367,7 +367,7 @@ describe('terminal-auth routes', () => {
     });
   });
 
-  describe('POST /terminal-auth/verify — happy path', () => {
+  describe('POST /terminal-auth/verify  -  happy path', () => {
     it('links fingerprint to user when code is correct', async () => {
       const mockUpdateSet = vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),

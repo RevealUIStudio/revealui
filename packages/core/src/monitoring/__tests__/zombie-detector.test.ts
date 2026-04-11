@@ -154,7 +154,7 @@ describe('ZombieDetector', () => {
 
       expect(zombieDetector.isRunning()).toBe(false);
       expect(logger.debug).toHaveBeenCalledWith(
-        'Zombie detection skipped — serverless environment detected',
+        'Zombie detection skipped  -  serverless environment detected',
       );
     });
 
@@ -166,7 +166,7 @@ describe('ZombieDetector', () => {
 
       expect(zombieDetector.isRunning()).toBe(false);
       expect(logger.debug).toHaveBeenCalledWith(
-        'Zombie detection skipped — serverless environment detected',
+        'Zombie detection skipped  -  serverless environment detected',
       );
     });
 
@@ -242,7 +242,7 @@ describe('ZombieDetector', () => {
       const killSpy = vi.spyOn(process, 'kill').mockImplementation(() => true);
 
       const scanPromise = zombieDetector.scan();
-      // The attemptCleanup has a setTimeout(1000) — advance past it
+      // The attemptCleanup has a setTimeout(1000)  -  advance past it
       await vi.advanceTimersByTimeAsync(1500);
       const result = await scanPromise;
 

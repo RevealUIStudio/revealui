@@ -232,7 +232,7 @@ export function serializeLexical({ nodes }: Props): JSX.Element {
             }
 
             case 'upload': {
-              // Payload upload node — inline image from Media collection
+              // Payload upload node  -  inline image from Media collection
               const value = n.value as
                 | { url?: string; alt?: string; width?: number; height?: number }
                 | undefined;

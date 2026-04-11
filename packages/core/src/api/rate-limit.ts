@@ -20,7 +20,7 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
-// WARNING: In-memory store — resets on every serverless cold start or process restart.
+// WARNING: In-memory store  -  resets on every serverless cold start or process restart.
 // This module is NOT used by any app in production (API uses apps/api/src/middleware/rate-limit.ts,
 // admin uses @revealui/auth/server which is DB-backed). Exported for framework consumers only.
 // Replace with a database-backed store before using in production.
@@ -310,7 +310,7 @@ export function resetRateLimitPresets(): void {
 }
 
 /**
- * Rate limit presets — backward-compatible accessor.
+ * Rate limit presets  -  backward-compatible accessor.
  *
  * Reads from the mutable `rateLimitPresets` so overrides from
  * `configureRateLimitPresets()` are reflected automatically.

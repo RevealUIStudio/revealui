@@ -28,7 +28,7 @@ vi.mock('@vercel/blob', () => ({ put: mockBlobPut, del: mockBlobDel }));
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
-// Sites/pages/posts queries are pulled in transitively by contentApp — mock them too
+// Sites/pages/posts queries are pulled in transitively by contentApp  -  mock them too
 vi.mock('@revealui/db/queries/posts', () => ({
   getAllPosts: vi.fn(),
   createPost: vi.fn(),
@@ -108,9 +108,9 @@ function makeMediaRecord(overrides: Partial<Record<string, unknown>> = {}) {
   };
 }
 
-// ─── POST /media — Upload ────────────────────────────────────────────────────
+// ─── POST /media  -  Upload ────────────────────────────────────────────────────
 
-describe('POST /media — upload', () => {
+describe('POST /media  -  upload', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockBlobPut.mockResolvedValue({ url: 'https://abc.blob.vercel-storage.com/media/uuid.png' });
@@ -221,9 +221,9 @@ describe('POST /media — upload', () => {
   });
 });
 
-// ─── GET /media — List scoping ───────────────────────────────────────────────
+// ─── GET /media  -  List scoping ───────────────────────────────────────────────
 
-describe('GET /media — list scoping', () => {
+describe('GET /media  -  list scoping', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMediaQueries.getAllMedia.mockResolvedValue([]);
@@ -266,9 +266,9 @@ describe('GET /media — list scoping', () => {
   });
 });
 
-// ─── DELETE /media — Blob cleanup ────────────────────────────────────────────
+// ─── DELETE /media  -  Blob cleanup ────────────────────────────────────────────
 
-describe('DELETE /media/:id — blob cleanup', () => {
+describe('DELETE /media/:id  -  blob cleanup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMediaQueries.deleteMedia.mockResolvedValue(undefined);
@@ -302,9 +302,9 @@ describe('DELETE /media/:id — blob cleanup', () => {
   });
 });
 
-// ─── GET /media — auth ────────────────────────────────────────────────────────
+// ─── GET /media  -  auth ────────────────────────────────────────────────────────
 
-describe('GET /media — auth', () => {
+describe('GET /media  -  auth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMediaQueries.getAllMedia.mockResolvedValue([]);
@@ -317,9 +317,9 @@ describe('GET /media — auth', () => {
   });
 });
 
-// ─── GET /media/:id — Single item retrieval ──────────────────────────────────
+// ─── GET /media/:id  -  Single item retrieval ──────────────────────────────────
 
-describe('GET /media/:id — single item', () => {
+describe('GET /media/:id  -  single item', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -366,9 +366,9 @@ describe('GET /media/:id — single item', () => {
   });
 });
 
-// ─── PATCH /media/:id — Metadata update ──────────────────────────────────────
+// ─── PATCH /media/:id  -  Metadata update ──────────────────────────────────────
 
-describe('PATCH /media/:id — metadata update', () => {
+describe('PATCH /media/:id  -  metadata update', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMediaQueries.getMediaById.mockResolvedValue(makeMediaRecord({ uploadedBy: USER_A.id }));
@@ -443,9 +443,9 @@ describe('PATCH /media/:id — metadata update', () => {
   });
 });
 
-// ─── DELETE /media/:id — auth and access control ─────────────────────────────
+// ─── DELETE /media/:id  -  auth and access control ─────────────────────────────
 
-describe('DELETE /media/:id — auth and access control', () => {
+describe('DELETE /media/:id  -  auth and access control', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMediaQueries.deleteMedia.mockResolvedValue(undefined);

@@ -362,7 +362,7 @@ export default function AgentDetailPage({ params }: PageProps) {
                   View Agent Card JSON ↗
                 </a>
 
-                {/* Danger zone — built-in agents are protected */}
+                {/* Danger zone  -  built-in agents are protected */}
                 {!BUILTIN_AGENTS.has(agentId) && (
                   <div className="rounded-xl border border-red-900/40 bg-red-950/10 p-5">
                     <h2 className="mb-3 text-sm font-medium text-red-400">Danger Zone</h2>

@@ -1,7 +1,7 @@
 /**
  * Content REST API routes
  *
- * Minimal CRUD for the core content tables — making admin content
+ * Minimal CRUD for the core content tables  -  making admin content
  * accessible to headless consumers without going through the admin UI.
  *
  * Posts:     GET|POST /api/content/posts

@@ -4,7 +4,7 @@
  * Run with: pnpm db:seed
  *
  * Customize this file to populate your database with initial data.
- * The examples below show common patterns — uncomment and adapt as needed.
+ * The examples below show common patterns  -  uncomment and adapt as needed.
  */
 
 // import { getClient } from '@revealui/db/client';

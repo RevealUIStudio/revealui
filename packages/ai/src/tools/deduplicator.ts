@@ -26,7 +26,7 @@ function stableStringify(obj: unknown): string {
 
 /**
  * Compute a stable cache key for a (toolName, params) pair.
- * Uses a simple djb2-style hash — no crypto dep required.
+ * Uses a simple djb2-style hash  -  no crypto dep required.
  */
 function hashKey(toolName: string, params: unknown): string {
   const raw = `${toolName}::${stableStringify(params)}`;

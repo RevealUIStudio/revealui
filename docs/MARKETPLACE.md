@@ -1,6 +1,6 @@
 ---
 title: "MCP Marketplace"
-description: "MCP server marketplace — discovery, publishing, invocation, and monetization"
+description: "MCP server marketplace  -  discovery, publishing, invocation, and monetization"
 category: guide
 audience: developer
 ---
@@ -65,7 +65,7 @@ Content-Type: application/json
 }
 ```
 
-Your server is immediately discoverable and callable. Save the `id` — you'll use it for management operations.
+Your server is immediately discoverable and callable. Save the `id`  -  you'll use it for management operations.
 
 ### 2. Choose a category
 
@@ -306,15 +306,15 @@ All transactions are recorded in `marketplace_transactions`. You can query your 
 Your MCP server must:
 
 1. **Accept HTTP POST requests** at its configured URL
-2. **Speak JSON-RPC 2.0** — the marketplace proxy forwards the caller's request body as-is
+2. **Speak JSON-RPC 2.0**  -  the marketplace proxy forwards the caller's request body as-is
 3. **Be reachable via HTTPS** (HTTP is only permitted in development)
-4. **Respond within 30 seconds** — the proxy times out at 30s
+4. **Respond within 30 seconds**  -  the proxy times out at 30s
 
 The marketplace does not modify request or response bodies. It passes through the caller's JSON-RPC payload and returns your server's response verbatim.
 
 ### Security
 
-- Your server's URL is **not publicly exposed** — callers invoke via the marketplace proxy at `/api/marketplace/servers/:id/invoke`
+- Your server's URL is **not publicly exposed**  -  callers invoke via the marketplace proxy at `/api/marketplace/servers/:id/invoke`
 - All invocations are logged in `marketplace_transactions`
 - Payment is verified by the [x402.org](https://x402.org) facilitator before your server is called
 

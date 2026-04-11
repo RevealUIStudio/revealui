@@ -46,7 +46,7 @@ export function tenantMiddleware(
   const { required = true, headerName = 'X-Tenant-ID', validateTenant } = options;
 
   return async (c, next) => {
-    // Tenant context must come from a trusted header — query params are attacker-controlled
+    // Tenant context must come from a trusted header  -  query params are attacker-controlled
     const tenantId = c.req.header(headerName) ?? null;
 
     // Validate format (UUID or slug: alphanumeric + hyphens, 1-128 chars)

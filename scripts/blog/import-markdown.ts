@@ -318,7 +318,7 @@ function parseInline(text: string): LexicalInlineNode[] {
       }
     }
 
-    // Plain text — accumulate until next special character
+    // Plain text  -  accumulate until next special character
     let end = i + 1;
     while (end < text.length && !'`[*_'.includes(text[end])) {
       end++;
@@ -443,14 +443,14 @@ function parseMarkdown(markdown: string): ParseResult {
       continue;
     }
 
-    // Subtitle line: *By Author — Studio* (italic line right after title)
+    // Subtitle line: *By Author  -  Studio* (italic line right after title)
     if (!subtitle && nodes.length === 0 && /^\*[^*]+\*$/.test(line.trim())) {
       subtitle = line.trim().slice(1, -1);
       i++;
       continue;
     }
 
-    // Regular paragraph — may span multiple non-blank lines
+    // Regular paragraph  -  may span multiple non-blank lines
     const paraLines: string[] = [line];
     i++;
     while (
@@ -478,7 +478,7 @@ function parseMarkdown(markdown: string): ParseResult {
         if (finalLines[li - 1].endsWith('  ')) {
           inlineNodes.push(lineBreakNode());
         } else {
-          // Soft wrap — join with space
+          // Soft wrap  -  join with space
           inlineNodes.push(textNode(' '));
         }
       }
@@ -524,7 +524,7 @@ async function main() {
   const { title, subtitle, nodes } = parseMarkdown(markdown);
 
   if (!title) {
-    log.error('No H1 heading found in markdown — cannot determine post title.');
+    log.error('No H1 heading found in markdown  -  cannot determine post title.');
     process.exit(1);
   }
 

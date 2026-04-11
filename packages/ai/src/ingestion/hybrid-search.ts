@@ -1,5 +1,5 @@
 /**
- * Hybrid Search — Vector + BM25 with Reciprocal Rank Fusion
+ * Hybrid Search  -  Vector + BM25 with Reciprocal Rank Fusion
  *
  * speed mode: cosine vector search only (fast, default)
  * accuracy mode: fetch 50 vector candidates → BM25 on those → RRF fusion → optional LLM rerank

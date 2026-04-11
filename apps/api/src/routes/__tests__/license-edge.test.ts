@@ -1,5 +1,5 @@
 /**
- * License Route — Edge Case Tests
+ * License Route  -  Edge Case Tests
  *
  * Supplements license.test.ts with:
  * - Generate schema: expiresInDays:0 fails positive(), expiresInDays:3651 fails max(3650)
@@ -17,7 +17,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must come before imports
+// Mocks  -  must come before imports
 // ---------------------------------------------------------------------------
 
 vi.mock('@revealui/core/features', () => ({
@@ -47,7 +47,7 @@ vi.mock('@revealui/db/schema', () => ({
   licenses: { status: 'status', licenseKey: 'license_key' },
 }));
 
-// Default DB mock — returns no rows
+// Default DB mock  -  returns no rows
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => ({
     select: vi.fn(() => ({
@@ -108,10 +108,10 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — generate schema boundary validation
+// Tests  -  generate schema boundary validation
 // ---------------------------------------------------------------------------
 
-describe('POST /generate — expiresInDays schema boundaries', () => {
+describe('POST /generate  -  expiresInDays schema boundaries', () => {
   it('returns 400 when expiresInDays is 0 (positive() requires > 0)', async () => {
     const app = createApp();
     const res = await app.request(
@@ -158,7 +158,7 @@ describe('POST /generate — expiresInDays schema boundaries', () => {
   });
 });
 
-describe('POST /generate — maxSites and domains schema boundaries', () => {
+describe('POST /generate  -  maxSites and domains schema boundaries', () => {
   it('returns 400 when maxSites is 0 (positive() requires > 0)', async () => {
     const app = createApp();
     const res = await app.request(
@@ -216,7 +216,7 @@ describe('POST /generate — maxSites and domains schema boundaries', () => {
   });
 });
 
-describe('POST /generate — admin key not configured', () => {
+describe('POST /generate  -  admin key not configured', () => {
   it('returns 401 when REVEALUI_ADMIN_API_KEY is not set in env', async () => {
     delete process.env.REVEALUI_ADMIN_API_KEY;
     const app = createApp();
@@ -243,10 +243,10 @@ describe('POST /generate — admin key not configured', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — verify endpoint edge cases
+// Tests  -  verify endpoint edge cases
 // ---------------------------------------------------------------------------
 
-describe('POST /verify — custom maxSites/maxUsers from JWT payload', () => {
+describe('POST /verify  -  custom maxSites/maxUsers from JWT payload', () => {
   it('uses maxSites from JWT payload when present (not fallback 5)', async () => {
     mockedValidate.mockResolvedValue({
       tier: 'pro',
@@ -266,7 +266,7 @@ describe('POST /verify — custom maxSites/maxUsers from JWT payload', () => {
   });
 });
 
-describe('POST /verify — DB throws during invalid-JWT status check', () => {
+describe('POST /verify  -  DB throws during invalid-JWT status check', () => {
   it('falls through to reason:invalid and calls logger.warn when DB throws on invalid JWT check', async () => {
     // JWT is invalid (validateLicenseKey returns null), then DB check for status also throws.
     // Route catches error, logs warn, and falls through to reason:'invalid'.
@@ -287,7 +287,7 @@ describe('POST /verify — DB throws during invalid-JWT status check', () => {
 
     expect(res.status).toBe(200);
     expect(body.valid).toBe(false);
-    expect(body.reason).toBe('invalid'); // DB warn path — falls through to default
+    expect(body.reason).toBe('invalid'); // DB warn path  -  falls through to default
     expect(mockLoggerWarn).toHaveBeenCalledWith(
       expect.stringContaining('Failed to check DB license status'),
       expect.anything(),
@@ -295,7 +295,7 @@ describe('POST /verify — DB throws during invalid-JWT status check', () => {
   });
 });
 
-describe('POST /verify — public key \\n handling', () => {
+describe('POST /verify  -  public key \\n handling', () => {
   it('replaces literal \\\\n with newline in public key env var before calling validateLicenseKey', async () => {
     // Env vars from secrets managers often store newlines as the literal string '\\n'
     // Route: process.env.REVEALUI_LICENSE_PUBLIC_KEY?.replace(/\\n/g, '\n')

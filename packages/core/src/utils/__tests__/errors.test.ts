@@ -19,7 +19,7 @@ import {
 } from '../errors.js';
 
 // ---------------------------------------------------------------------------
-// Tests — Error Classes
+// Tests  -  Error Classes
 // ---------------------------------------------------------------------------
 describe('Error Classes', () => {
   describe('ApplicationError', () => {
@@ -193,7 +193,7 @@ describe('Error Classes', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — handleApiError
+// Tests  -  handleApiError
 // ---------------------------------------------------------------------------
 describe('handleApiError', () => {
   it('handles DatabaseError', () => {
@@ -299,7 +299,7 @@ describe('handleApiError', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — handleDatabaseError
+// Tests  -  handleDatabaseError
 // ---------------------------------------------------------------------------
 describe('handleDatabaseError', () => {
   it('throws DatabaseError for unique violation', () => {

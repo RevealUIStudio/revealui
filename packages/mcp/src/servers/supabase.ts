@@ -89,7 +89,7 @@ async function startSupabaseMCP() {
     logger.info('   See: https://github.com/orgs/supabase/discussions/29260');
   }
 
-  // Build env once — used for all spawn attempts
+  // Build env once  -  used for all spawn attempts
   // Package validates: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, MCP_API_KEY
   // We map new keys to legacy variable names for package compatibility
   const spawnEnv = {

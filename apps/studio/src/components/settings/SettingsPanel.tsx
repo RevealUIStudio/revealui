@@ -35,7 +35,7 @@ export default function SettingsPanel() {
           setAppVersion(version);
         }
       } catch {
-        // Not running in Tauri context — keep "dev" default
+        // Not running in Tauri context  -  keep "dev" default
       }
     }
     void loadVersion();

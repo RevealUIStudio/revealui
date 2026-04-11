@@ -9,7 +9,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Shared mock setup — stubs out heavy sub-modules that cli.ts imports
+// Shared mock setup  -  stubs out heavy sub-modules that cli.ts imports
 // so we don't load the entire content layer, adapters, or detection tree.
 // ---------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ function mockCliDependencies(overrides: {
   }));
   vi.doMock('../workboard/workboard-manager.js', () => ({ WorkboardManager: vi.fn() }));
 
-  // Stub content layer — avoids loading definitions, generators, Zod schemas
+  // Stub content layer  -  avoids loading definitions, generators, Zod schemas
   vi.doMock('../content/index.js', () => ({
     buildManifest: vi
       .fn()
@@ -58,7 +58,7 @@ function mockCliDependencies(overrides: {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('harnesses CLI — license gate', () => {
+describe('harnesses CLI  -  license gate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -83,7 +83,7 @@ describe('harnesses CLI — license gate', () => {
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 
     vi.resetModules();
-    // Use 'status' — a command that requires a Pro license (unlike start/coordinate/health)
+    // Use 'status'  -  a command that requires a Pro license (unlike start/coordinate/health)
     process.argv = ['node', 'revealui-harnesses', 'status'];
 
     mockCliDependencies({ licensed: false });

@@ -1,7 +1,7 @@
 import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 /**
- * Structured application logs — warn and above, all apps.
+ * Structured application logs  -  warn and above, all apps.
  *
  * Append-only. No FK constraints (logs outlive users/requests).
  * Written via the DB log transport (packages/db/src/log-transport.ts).

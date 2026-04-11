@@ -33,7 +33,7 @@ export default function ChatPage() {
     }
   };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only fetch — loadConversations is a plain function that would cause infinite re-fetches if listed
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only fetch  -  loadConversations is a plain function that would cause infinite re-fetches if listed
   useEffect(() => {
     loadConversations();
   }, []);

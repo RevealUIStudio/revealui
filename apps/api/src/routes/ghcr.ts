@@ -5,9 +5,9 @@
  * from GitHub Container Registry (GHCR) by a valid RevealUI license key.
  *
  * Two endpoints:
- * 1. POST /verify — GitHub Packages webhook calls this on image pull.
+ * 1. POST /verify  -  GitHub Packages webhook calls this on image pull.
  *    Returns 200 (allowed) or 403 (denied) based on license entitlement.
- * 2. GET  /status — License status check for CLI/Studio tools.
+ * 2. GET  /status  -  License status check for CLI/Studio tools.
  *
  * License validation uses the account_entitlements table:
  * - Tier must be 'pro', 'max', or 'enterprise'
@@ -33,7 +33,7 @@ const app = new OpenAPIHono<{ Variables: GhcrVariables }>();
 const GHCR_TIERS = new Set(['pro', 'max', 'enterprise']);
 
 // ---------------------------------------------------------------------------
-// POST /verify — Webhook from GHCR on image pull
+// POST /verify  -  Webhook from GHCR on image pull
 // ---------------------------------------------------------------------------
 
 const verifyRoute = createRoute({
@@ -86,7 +86,7 @@ const verifyRoute = createRoute({
           }),
         },
       },
-      description: 'Pull denied — no valid entitlement',
+      description: 'Pull denied  -  no valid entitlement',
     },
   },
 });
@@ -135,7 +135,7 @@ app.openapi(verifyRoute, async (c) => {
 });
 
 // ---------------------------------------------------------------------------
-// GET /status — Authenticated license status for CLI/Studio
+// GET /status  -  Authenticated license status for CLI/Studio
 // ---------------------------------------------------------------------------
 
 const statusRoute = createRoute({

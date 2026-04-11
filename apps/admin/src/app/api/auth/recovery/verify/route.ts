@@ -62,7 +62,7 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Invalidate ALL existing sessions for this user — if the account is
+    // Invalidate ALL existing sessions for this user  -  if the account is
     // compromised, the attacker's active session must not survive recovery.
     await deleteAllUserSessions(verified.userId);
 
@@ -94,7 +94,7 @@ async function verifyHandler(request: NextRequest): Promise<NextResponse> {
           ? (() => {
               if (!process.env.SESSION_COOKIE_DOMAIN) {
                 logger.error(
-                  'SESSION_COOKIE_DOMAIN env var is required in production — session cookie will not be set cross-subdomain',
+                  'SESSION_COOKIE_DOMAIN env var is required in production  -  session cookie will not be set cross-subdomain',
                 );
               }
               return process.env.SESSION_COOKIE_DOMAIN ?? undefined;

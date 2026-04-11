@@ -160,7 +160,7 @@ export default function StepDomain({
         <Input
           id="signup-whitelist"
           label="Signup Whitelist"
-          hint="optional — comma-separated emails"
+          hint="optional  -  comma-separated emails"
           placeholder="user@example.com, admin@example.com"
           value={signupWhitelist}
           onChange={(e) => {
@@ -173,7 +173,7 @@ export default function StepDomain({
         <Input
           id="brand-color"
           label="Brand Color"
-          hint="optional — hex color"
+          hint="optional  -  hex color"
           placeholder="#ea580c"
           value={brandColor}
           onChange={(e) => {
@@ -186,7 +186,7 @@ export default function StepDomain({
         <Input
           id="brand-logo"
           label="Brand Logo URL"
-          hint="optional — URL to logo image"
+          hint="optional  -  URL to logo image"
           placeholder="https://example.com/logo.png"
           value={brandLogo}
           onChange={(e) => {

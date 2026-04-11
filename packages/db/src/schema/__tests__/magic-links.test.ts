@@ -31,7 +31,7 @@ describe('magicLinks schema', () => {
   });
 
   it('exports MagicLink and NewMagicLink types', () => {
-    // Type-level check — if this compiles, the types are exported correctly
+    // Type-level check  -  if this compiles, the types are exported correctly
     const _select: MagicLink | undefined = undefined;
     const _insert: NewMagicLink | undefined = undefined;
     expect(_select).toBeUndefined();

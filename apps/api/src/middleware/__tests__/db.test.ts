@@ -24,7 +24,7 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 describe('dbMiddleware', () => {
   it('sets db on context', async () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — Hono Variables type requires loose typing
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono Variables type requires loose typing
     const app = new Hono<{ Variables: { db: any } }>();
     app.use('*', dbMiddleware());
     app.get('/test', (c) => {
@@ -52,7 +52,7 @@ describe('dbMiddleware', () => {
 
   it('provides the same client returned by getClient', async () => {
     const customDb = { custom: true };
-    // biome-ignore lint/suspicious/noExplicitAny: test mock — partial DB shape
+    // biome-ignore lint/suspicious/noExplicitAny: test mock  -  partial DB shape
     mockedGetClient.mockReturnValue(customDb as any);
 
     // biome-ignore lint/suspicious/noExplicitAny: test helper

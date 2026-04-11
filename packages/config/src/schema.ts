@@ -32,10 +32,10 @@ const requiredSchema = z.object({
   // Database
   POSTGRES_URL: postgresUrlSchema,
 
-  // Storage (optional — not all apps use Blob storage)
+  // Storage (optional  -  not all apps use Blob storage)
   BLOB_READ_WRITE_TOKEN: z.string().min(1, 'Blob token is required').optional(),
 
-  // Stripe (optional — not all apps have checkout)
+  // Stripe (optional  -  not all apps have checkout)
   STRIPE_SECRET_KEY: z.string().min(1, 'Stripe secret key is required').optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(1, 'Stripe webhook secret is required').optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
@@ -53,7 +53,7 @@ const optionalSchema = z.object({
   REVEALUI_ADMIN_EMAIL: z.string().email().optional(),
   REVEALUI_ADMIN_PASSWORD: z.string().min(12, 'Password must be at least 12 characters').optional(),
 
-  // Field-level encryption key — exactly 64 hex characters (32 bytes / 256 bits)
+  // Field-level encryption key  -  exactly 64 hex characters (32 bytes / 256 bits)
   REVEALUI_KEK: z
     .string()
     .regex(/^[0-9a-f]{64}$/i, 'Must be exactly 64 hex characters')
@@ -66,7 +66,7 @@ const optionalSchema = z.object({
   REVEALUI_LICENSE_PRIVATE_KEY: z.string().optional(),
   REVEALUI_LICENSE_PUBLIC_KEY: z.string().optional(),
 
-  // Email provider — Gmail REST API (preferred, edge-compatible)
+  // Email provider  -  Gmail REST API (preferred, edge-compatible)
   GOOGLE_SERVICE_ACCOUNT_EMAIL: z.string().email().optional(),
   GOOGLE_PRIVATE_KEY: z.string().optional(),
   EMAIL_FROM: z.string().email().optional(),
@@ -75,7 +75,7 @@ const optionalSchema = z.object({
   // CORS
   CORS_ORIGIN: z.string().optional(), // API: comma-separated allowed origins (required in production)
   REVEALUI_CORS_ORIGINS: z.string().optional(), // admin: comma-separated allowed origins (alias for CORS_ORIGIN)
-  REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated — use CORS_ORIGIN
+  REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated  -  use CORS_ORIGIN
 
   // Database
   DATABASE_URL: postgresUrlSchema.optional(), // Fallback for POSTGRES_URL (REST) or SUPABASE_DATABASE_URL (vector)

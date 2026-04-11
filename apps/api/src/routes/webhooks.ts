@@ -1,5 +1,5 @@
 /**
- * Stripe Webhook Handler — NeonDB-native
+ * Stripe Webhook Handler  -  NeonDB-native
  *
  * Replaces the Supabase-dependent webhook in packages/services.
  * Writes license records to the NeonDB licenses table via Drizzle,
@@ -91,12 +91,12 @@ async function checkAndMarkProcessed(
       eventType,
       processedAt: new Date(),
     });
-    return false; // Not a duplicate — insert succeeded
+    return false; // Not a duplicate  -  insert succeeded
   } catch (err) {
     // Unique constraint violation = already processed.
     // Check PostgreSQL error code '23505' (stable across all pg drivers) in addition
     // to the message, since NeonDB's HTTP driver may format the message differently.
-    // Drizzle wraps driver errors in DrizzleQueryError — check both err and err.cause.
+    // Drizzle wraps driver errors in DrizzleQueryError  -  check both err and err.cause.
     const pgCode =
       (err as { code?: string }).code ?? (err as { cause?: { code?: string } }).cause?.code;
     const errMsg = err instanceof Error ? err.message : '';
@@ -111,9 +111,9 @@ async function checkAndMarkProcessed(
     ) {
       return true;
     }
-    // Any other DB error is unexpected — throw so the caller returns 500 to Stripe.
+    // Any other DB error is unexpected  -  throw so the caller returns 500 to Stripe.
     // Stripe will retry the event, which is safe because our INSERT is idempotent.
-    logger.error('Idempotency check failed — returning 500 to force Stripe retry', undefined, {
+    logger.error('Idempotency check failed  -  returning 500 to force Stripe retry', undefined, {
       eventId,
       detail: err instanceof Error ? err.message : 'unknown',
     });
@@ -162,8 +162,8 @@ function resolveTier(
   if (tier === 'pro') return 'pro';
   if (tier === 'max') return 'max';
   if (tier === 'enterprise') return 'enterprise';
-  // ALERT: missing or unknown tier metadata — this indicates a Stripe product misconfiguration.
-  // Reject the event so Stripe retries. Do NOT default to 'pro' — that gives away a paid tier.
+  // ALERT: missing or unknown tier metadata  -  this indicates a Stripe product misconfiguration.
+  // Reject the event so Stripe retries. Do NOT default to 'pro'  -  that gives away a paid tier.
   logger.error(
     'CRITICAL: resolveTier received unknown or missing tier in Stripe metadata. Webhook will fail and Stripe will retry. Investigate Stripe product/price metadata immediately.',
     undefined,
@@ -196,7 +196,7 @@ function resolveOptionalTier(
   if (tier === 'enterprise') return 'enterprise';
   if (tier) {
     logger.warn(
-      'Stripe subscription metadata had an unknown tier during hosted status sync — preserving existing tier',
+      'Stripe subscription metadata had an unknown tier during hosted status sync  -  preserving existing tier',
       {
         tier,
         metadata,
@@ -204,8 +204,8 @@ function resolveOptionalTier(
       },
     );
   } else if (metadata) {
-    // Metadata exists but tier key is absent — Stripe product misconfiguration
-    logger.warn('Stripe metadata missing tier key — callers will default to pro', {
+    // Metadata exists but tier key is absent  -  Stripe product misconfiguration
+    logger.warn('Stripe metadata missing tier key  -  callers will default to pro', {
       metadataKeys: Object.keys(metadata),
       context,
     });
@@ -423,7 +423,7 @@ async function resolveHostedAccountId(
  * This function performs multiple DB writes (account resolution/creation,
  * subscription upsert, entitlement upsert). When called inside a
  * db.transaction() callback, all writes are atomic. When called with a
- * bare db client (NeonDB HTTP), the writes are NOT atomic — callers in
+ * bare db client (NeonDB HTTP), the writes are NOT atomic  -  callers in
  * that scenario rely on Stripe's idempotent webhook retries to converge
  * state after partial failures.
  */
@@ -525,7 +525,7 @@ async function syncHostedSubscriptionState(
  *
  * License lifecycle events are always audited for compliance.
  * The isFeatureEnabled('auditLog') gate controls UI access to audit data,
- * not collection. Fire-and-forget — errors are swallowed so that audit
+ * not collection. Fire-and-forget  -  errors are swallowed so that audit
  * failure never blocks the webhook response.
  */
 function auditLicenseEvent(
@@ -682,13 +682,17 @@ app.openapi(stripeWebhookRoute, async (c) => {
     stripe = getStripeClient();
   } catch (initErr) {
     const msg = initErr instanceof Error ? initErr.message : 'Unknown init error';
-    logger.error('Webhook handler init failed — Stripe env vars may be misconfigured', undefined, {
-      detail: msg,
-      hasSecretKey: !!process.env.STRIPE_SECRET_KEY,
-      hasWebhookSecret: !!(
-        process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET
-      ),
-    });
+    logger.error(
+      'Webhook handler init failed  -  Stripe env vars may be misconfigured',
+      undefined,
+      {
+        detail: msg,
+        hasSecretKey: !!process.env.STRIPE_SECRET_KEY,
+        hasWebhookSecret: !!(
+          process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET
+        ),
+      },
+    );
     return c.json({ error: 'Webhook service unavailable' }, 503);
   }
 
@@ -752,7 +756,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             }
 
             if (!resolvedCreditUserId || tasks <= 0) {
-              logger.error('Cannot process credit purchase — missing user or tasks', undefined, {
+              logger.error('Cannot process credit purchase  -  missing user or tasks', undefined, {
                 bundle,
                 tasks,
                 sessionId: session.id,
@@ -861,7 +865,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const customerId = resolveCustomerId(session.customer);
           if (!customerId) {
             logger.error(
-              'CRITICAL: Perpetual checkout completed but customerId is null — payment captured without license',
+              'CRITICAL: Perpetual checkout completed but customerId is null  -  payment captured without license',
               undefined,
               { sessionId: session.id },
             );
@@ -895,7 +899,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
           if (!privateKey) {
             logger.error(
-              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — perpetual license not generated',
+              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  perpetual license not generated',
               undefined,
               { customerId, tier },
             );
@@ -903,7 +907,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           }
 
           const normalizedKey = privateKey.replaceAll('\\n', '\n');
-          // null expiresInSeconds = no exp claim — perpetual license never expires
+          // null expiresInSeconds = no exp claim  -  perpetual license never expires
           const licenseKey = await generateLicenseKey(
             { tier, customerId, perpetual: true },
             normalizedKey,
@@ -927,7 +931,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
                 if (!userRow) {
                   logger.error(
-                    'CRITICAL: Customer has no matching user in DB — perpetual license not created',
+                    'CRITICAL: Customer has no matching user in DB  -  perpetual license not created',
                     undefined,
                     { customerId },
                   );
@@ -938,7 +942,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 return { userId: userRow.id };
               },
               compensate: async () => {
-                // Read-only step — nothing to compensate
+                // Read-only step  -  nothing to compensate
               },
             },
             {
@@ -1033,7 +1037,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const subscriptionId = resolveSubscriptionId(session.subscription);
         if (!(customerId && subscriptionId)) {
           logger.error(
-            'CRITICAL: Subscription checkout completed but customerId/subscriptionId is null — payment captured without license',
+            'CRITICAL: Subscription checkout completed but customerId/subscriptionId is null  -  payment captured without license',
             undefined,
             { sessionId: session.id },
           );
@@ -1061,7 +1065,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             customerId,
             subscriptionId,
           });
-          // Return 500 so Stripe retries — a payment was captured but no license was issued.
+          // Return 500 so Stripe retries  -  a payment was captured but no license was issued.
           throw new Error(
             `Cannot resolve user for checkout session (customerId=${customerId}, subscriptionId=${subscriptionId})`,
           );
@@ -1071,7 +1075,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
         if (!privateKey) {
           logger.error(
-            'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — license not generated',
+            'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  license not generated',
             undefined,
             {
               customerId,
@@ -1079,11 +1083,11 @@ app.openapi(stripeWebhookRoute, async (c) => {
               tier,
             },
           );
-          // Return 500 so Stripe retries — a payment was captured but no license was issued.
+          // Return 500 so Stripe retries  -  a payment was captured but no license was issued.
           throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
         }
 
-        // Unescape literal \n sequences — Vercel stores multi-line PEM keys
+        // Unescape literal \n sequences  -  Vercel stores multi-line PEM keys
         // with \n escaped in the .env format; the runtime preserves the literal
         // \n chars, so we must convert them to real newlines for jose/importPKCS8.
         const normalizedKey = privateKey.replaceAll('\\n', '\n');
@@ -1095,10 +1099,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
         try {
           checkoutSubscription = await stripe.subscriptions.retrieve(subscriptionId);
         } catch (err) {
-          // Throw so Stripe retries the webhook — a payment was captured but we
+          // Throw so Stripe retries the webhook  -  a payment was captured but we
           // cannot determine trialing vs active without the subscription object.
           logger.error(
-            'Failed to retrieve subscription at checkout — returning 500 for retry',
+            'Failed to retrieve subscription at checkout  -  returning 500 for retry',
             undefined,
             {
               subscriptionId,
@@ -1115,7 +1119,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             ? new Date(checkoutSubscription.trial_end * 1000)
             : null;
 
-        // Store license in NeonDB — saga pattern for NeonDB-safe multi-step atomicity
+        // Store license in NeonDB  -  saga pattern for NeonDB-safe multi-step atomicity
         const licenseId = crypto.randomUUID();
         const subscriptionCheckoutSteps: SagaStep[] = [
           {
@@ -1129,7 +1133,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
               if (!userRow) {
                 logger.error(
-                  'CRITICAL: Customer has no matching user in DB — subscription license not created',
+                  'CRITICAL: Customer has no matching user in DB  -  subscription license not created',
                   undefined,
                   { customerId, subscriptionId },
                 );
@@ -1140,7 +1144,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               return { userId: userRow.id };
             },
             compensate: async () => {
-              // Read-only step — nothing to compensate
+              // Read-only step  -  nothing to compensate
             },
           },
           {
@@ -1186,7 +1190,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               return {};
             },
             compensate: async () => {
-              // syncHostedSubscriptionState is convergent — Stripe retries will re-sync
+              // syncHostedSubscriptionState is convergent  -  Stripe retries will re-sync
             },
           },
         ];
@@ -1217,7 +1221,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         resetDbStatusCache();
 
         // Best-effort: also store in Stripe subscription metadata for easy retrieval.
-        // Non-critical — license is already persisted in NeonDB above.
+        // Non-critical  -  license is already persisted in NeonDB above.
         try {
           await stripe.subscriptions.update(subscriptionId, {
             metadata: { license_key: licenseKey, license_tier: tier },
@@ -1272,7 +1276,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const customerId = resolveCustomerId(subscription.customer);
         if (!customerId) break;
 
-        // Revoke license tied to this specific subscription — not all licenses for the customer.
+        // Revoke license tied to this specific subscription  -  not all licenses for the customer.
         // Perpetual licenses (subscriptionId=null) and other subscriptions are left intact.
         // Uses saga pattern for NeonDB-safe multi-step atomicity with compensating actions.
         const revokeSteps: SagaStep[] = [
@@ -1334,7 +1338,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               return {};
             },
             compensate: async () => {
-              // syncHostedSubscriptionState is convergent — Stripe retries will re-sync
+              // syncHostedSubscriptionState is convergent  -  Stripe retries will re-sync
             },
           },
         ];
@@ -1384,7 +1388,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               return {};
             },
             compensate: async () => {
-              // Customer is deleted in Stripe — no meaningful rollback
+              // Customer is deleted in Stripe  -  no meaningful rollback
             },
           },
           {
@@ -1398,7 +1402,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               return {};
             },
             compensate: async () => {
-              // Convergent — Stripe retries will re-sync
+              // Convergent  -  Stripe retries will re-sync
             },
           },
         ];
@@ -1431,7 +1435,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           subscriptionId: subscription.id,
         };
 
-        // ── past_due / unpaid — degrade access ──────────────────────────────
+        // ── past_due / unpaid  -  degrade access ──────────────────────────────
         if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
           const isPastDue = subscription.status === 'past_due';
           const entitlementStatus = isPastDue ? 'past_due' : 'expired';
@@ -1500,7 +1504,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 return {};
               },
               compensate: async () => {
-                // Convergent — Stripe retries will re-sync
+                // Convergent  -  Stripe retries will re-sync
               },
             },
           );
@@ -1532,7 +1536,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           };
         }
 
-        // ── active + cancel_at_period_end — stamp expiry ────────────────────
+        // ── active + cancel_at_period_end  -  stamp expiry ────────────────────
         if (
           subscription.status === 'active' &&
           subscription.cancel_at_period_end &&
@@ -1603,7 +1607,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 return {};
               },
               compensate: async () => {
-                // Convergent — Stripe retries will re-sync
+                // Convergent  -  Stripe retries will re-sync
               },
             },
           );
@@ -1612,7 +1616,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           auditMeta.expiresAt = cancelAt.toISOString();
         }
 
-        // ── active (no cancel) — sync tier + reactivate ─────────────────────
+        // ── active (no cancel)  -  sync tier + reactivate ─────────────────────
         if (subscription.status === 'active' && !subscription.cancel_at_period_end) {
           const newTier = resolveTier(subscription.metadata as Record<string, string>);
           const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
@@ -1620,7 +1624,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
           if (!privateKey) {
             logger.error(
-              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — license sync failed',
+              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  license sync failed',
               undefined,
               { customerId, subscriptionId: subscription.id, tier: newTier },
             );
@@ -1709,7 +1713,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 return {};
               },
               compensate: async () => {
-                // Convergent — Stripe retries will re-sync
+                // Convergent  -  Stripe retries will re-sync
               },
             },
           );
@@ -1745,7 +1749,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           }
         }
 
-        // ── canceled / incomplete_expired — revoke ──────────────────────────
+        // ── canceled / incomplete_expired  -  revoke ──────────────────────────
         if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
           sagaSubtype = `revoked-${subscription.status}`;
 
@@ -1810,7 +1814,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 return {};
               },
               compensate: async () => {
-                // Convergent — Stripe retries will re-sync
+                // Convergent  -  Stripe retries will re-sync
               },
             },
           );
@@ -1820,15 +1824,15 @@ app.openapi(stripeWebhookRoute, async (c) => {
           auditMeta.stripeStatus = subscription.status;
         }
 
-        // ── incomplete — log only, no DB writes ─────────────────────────────
+        // ── incomplete  -  log only, no DB writes ─────────────────────────────
         if (subscription.status === 'incomplete') {
-          logger.warn('Subscription in incomplete state — awaiting payment confirmation', {
+          logger.warn('Subscription in incomplete state  -  awaiting payment confirmation', {
             customerId,
             subscriptionId: subscription.id,
           });
         }
 
-        // ── trialing — sync state only (no license changes) ─────────────────
+        // ── trialing  -  sync state only (no license changes) ─────────────────
         if (subscription.status === 'trialing') {
           sagaSubtype = 'trialing';
 
@@ -1848,18 +1852,18 @@ app.openapi(stripeWebhookRoute, async (c) => {
               return {};
             },
             compensate: async () => {
-              // Convergent — Stripe retries will re-sync
+              // Convergent  -  Stripe retries will re-sync
             },
           });
 
-          logger.info('Subscription in trialing state — syncing hosted state', {
+          logger.info('Subscription in trialing state  -  syncing hosted state', {
             customerId,
             subscriptionId: subscription.id,
             trialEnd: subscription.trial_end,
           });
         }
 
-        // ── paused — revoke access ──────────────────────────────────────────
+        // ── paused  -  revoke access ──────────────────────────────────────────
         if (subscription.status === 'paused') {
           sagaSubtype = 'paused';
 
@@ -1924,7 +1928,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 return {};
               },
               compensate: async () => {
-                // Convergent — Stripe retries will re-sync
+                // Convergent  -  Stripe retries will re-sync
               },
             },
           );
@@ -1974,7 +1978,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
       case 'customer.subscription.created': {
         // Logged for observability; license generation happens on checkout.session.completed.
-        // Use resolveOptionalTier — metadata may not be populated yet at creation time.
+        // Use resolveOptionalTier  -  metadata may not be populated yet at creation time.
         //
         // NOTE: NeonDB HTTP driver does not support transactions.
         // syncHostedSubscriptionState performs multiple DB writes (account
@@ -2016,13 +2020,13 @@ app.openapi(stripeWebhookRoute, async (c) => {
         if (!customerId) break;
 
         // Send payment receipt email for every successful invoice (not just recovery).
-        // Fire-and-forget — receipt delivery must not block license recovery.
+        // Fire-and-forget  -  receipt delivery must not block license recovery.
         if (invoice.amount_paid > 0) {
           const receiptEmail =
             invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
           if (receiptEmail) {
             // Resolve tier from the customer's license in DB (avoids invoice.subscription
-            // which is not typed in Stripe SDK v20 — see existing comment at line 1124).
+            // which is not typed in Stripe SDK v20  -  see existing comment at line 1124).
             let receiptTier = 'pro';
             const [licenseRow] = await db
               .select({ tier: licenses.tier })
@@ -2051,11 +2055,11 @@ app.openapi(stripeWebhookRoute, async (c) => {
           }
         }
 
-        // Payment recovery — re-activate a license that was expired/revoked due to prior payment failure.
+        // Payment recovery  -  re-activate a license that was expired/revoked due to prior payment failure.
         // Only re-activate if the customer has an active subscription after payment.
 
         // Fetch the customer's active subscriptions to confirm payment actually restored access.
-        // We don't read invoice.subscription directly — that field is not typed in this SDK version.
+        // We don't read invoice.subscription directly  -  that field is not typed in this SDK version.
         let recoveredSubscription: Stripe.Subscription | null = null;
         try {
           const subList = await stripe.subscriptions.list({
@@ -2082,7 +2086,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           .limit(1);
         const hostedStatus = await findHostedStatusByCustomerId(db, customerId);
 
-        // Use resolveOptionalTier with fallback — resolveTier would create an infinite retry loop
+        // Use resolveOptionalTier with fallback  -  resolveTier would create an infinite retry loop
         // if the recovered subscription lacks tier metadata (e.g., pre-metadata subscription)
         const recoveredTier =
           resolveOptionalTier(
@@ -2099,7 +2103,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
           if (!privateKey) {
             logger.error(
-              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured — payment recovery failed',
+              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  payment recovery failed',
               undefined,
               { customerId, subscriptionId: recoveredSubscription.id, tier: recoveredTier },
             );
@@ -2111,7 +2115,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             { tier: recoveredTier, customerId },
             normalizedKey,
           );
-          // Scope to the recovered subscription — don't modify perpetual licenses
+          // Scope to the recovered subscription  -  don't modify perpetual licenses
           const recoveryFilter = recoveredSubscription.id
             ? and(
                 eq(licenses.customerId, customerId),
@@ -2140,7 +2144,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         // NOTE: NeonDB HTTP driver does not support transactions. The license
         // reactivation above and the hosted state sync below are not atomic.
-        // Stripe's idempotent retry mechanism mitigates partial failures — if
+        // Stripe's idempotent retry mechanism mitigates partial failures  -  if
         // only one of the two writes succeeds, the next webhook delivery will
         // re-run this handler and converge both to the correct state.
         await syncHostedSubscriptionState(db, {
@@ -2194,7 +2198,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           attemptCount: invoice.attempt_count,
         });
 
-        // Resolve subscription ID from the invoice first — needed for scoped license updates.
+        // Resolve subscription ID from the invoice first  -  needed for scoped license updates.
         // Stripe SDK v20 moved subscription from invoice.subscription to
         // invoice.parent.subscription_details.subscription.
         const invoiceSubscription = invoice.parent?.subscription_details?.subscription ?? null;
@@ -2211,12 +2215,12 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const entitlementStatus = isSuspended ? 'expired' : 'past_due';
 
         if (isSuspended) {
-          logger.error('Payment failed 3+ times — suspending subscription', undefined, {
+          logger.error('Payment failed 3+ times  -  suspending subscription', undefined, {
             customerId,
             attemptCount: invoice.attempt_count,
           });
 
-          // Scope to this subscription if known — don't expire perpetual licenses
+          // Scope to this subscription if known  -  don't expire perpetual licenses
           const licenseFilter = subscriptionId
             ? and(
                 eq(licenses.customerId, customerId),
@@ -2238,7 +2242,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // NOTE: NeonDB HTTP driver does not support transactions. The license
         // expiry above (when isSuspended) and the hosted state sync below are
         // not atomic. Stripe's idempotent retry mechanism mitigates partial
-        // failures — if only one write succeeds, the next webhook delivery
+        // failures  -  if only one write succeeds, the next webhook delivery
         // will re-run this handler and converge both to the correct state.
         await syncHostedSubscriptionState(db, {
           customerId,
@@ -2247,7 +2251,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           graceUntil,
         });
 
-        // Reset caches for any payment failure — both grace period (past_due)
+        // Reset caches for any payment failure  -  both grace period (past_due)
         // and suspension (expired) change the effective entitlement state.
         resetLicenseState();
         resetDbStatusCache();
@@ -2266,7 +2270,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         );
 
         // Resolve tier from the customer's license in DB so the email
-        // references the correct plan (Pro, Max, Enterprise — not hardcoded 'pro').
+        // references the correct plan (Pro, Max, Enterprise  -  not hardcoded 'pro').
         let failedTier = 'pro';
         const [failedLicenseRow] = await db
           .select({ tier: licenses.tier })
@@ -2324,7 +2328,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const dispute = event.data.object as Stripe.Dispute;
 
         if (dispute.status === 'won' || dispute.status === 'warning_closed') {
-          // Dispute resolved in our favor — restore the customer's license if it
+          // Dispute resolved in our favor  -  restore the customer's license if it
           // was previously revoked due to a charge.dispute.created event.
           const wonChargeId =
             typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id;
@@ -2338,7 +2342,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               disputeId: dispute.id,
               detail: firstErr instanceof Error ? firstErr.message : 'unknown',
             });
-            // Retry once before giving up — a transient Stripe outage must not
+            // Retry once before giving up  -  a transient Stripe outage must not
             // silently drop license restoration for a customer who won their dispute.
             try {
               const charge = await stripe.charges.retrieve(wonChargeId);
@@ -2350,7 +2354,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 detail: retryErr instanceof Error ? retryErr.message : 'unknown',
               });
               // Record an audit trail so the operations team can manually restore this license.
-              // Do NOT break silently — the audit entry ensures the failure is visible.
+              // Do NOT break silently  -  the audit entry ensures the failure is visible.
               auditLicenseEvent(db, 'license.restoration_failed.dispute_won', 'critical', {
                 disputeId: dispute.id,
                 chargeId: wonChargeId,
@@ -2437,12 +2441,12 @@ app.openapi(stripeWebhookRoute, async (c) => {
             disputeId: dispute.id,
             detail: err instanceof Error ? err.message : 'unknown',
           });
-          // Throw so Stripe retries — lost-dispute revocation must not be silently skipped
+          // Throw so Stripe retries  -  lost-dispute revocation must not be silently skipped
           throw new Error(`Failed to retrieve charge ${chargeId} for dispute ${dispute.id}`);
         }
 
         if (!disputeCustomerId) {
-          logger.warn('Dispute charge has no customer — cannot revoke license', {
+          logger.warn('Dispute charge has no customer  -  cannot revoke license', {
             chargeId,
             disputeId: dispute.id,
           });
@@ -2535,7 +2539,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
       case 'charge.dispute.created': {
         // A dispute (chargeback) has been opened. Log it for monitoring.
-        // We do not revoke the license here — wait for charge.dispute.closed with status 'lost'.
+        // We do not revoke the license here  -  wait for charge.dispute.closed with status 'lost'.
         const dispute = event.data.object as Stripe.Dispute;
         const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge.id;
         logger.warn('Chargeback dispute opened', {
@@ -2556,7 +2560,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const charge = await stripe.charges.retrieve(chargeId);
           disputeCreatedCustomerId = resolveCustomerId(charge.customer);
         } catch {
-          // Best-effort — don't fail the webhook if we can't resolve the customer
+          // Best-effort  -  don't fail the webhook if we can't resolve the customer
         }
         if (disputeCreatedCustomerId) {
           const disputeEmail = await findUserEmailByCustomerId(db, disputeCreatedCustomerId);
@@ -2573,7 +2577,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
       case 'charge.refunded': {
         // A charge has been refunded (partial or full). Revoke the customer's license
-        // if the refund fully covers the amount — partial refunds leave access intact.
+        // if the refund fully covers the amount  -  partial refunds leave access intact.
         const charge = event.data.object as Stripe.Charge;
         const customerId = resolveCustomerId(charge.customer);
         if (!customerId) break;
@@ -2608,7 +2612,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             amount: charge.amount,
           });
         } else {
-          logger.info('Partial refund issued — license retained', {
+          logger.info('Partial refund issued  -  license retained', {
             customerId,
             chargeId: charge.id,
             amountRefunded: charge.amount_refunded,
@@ -2638,7 +2642,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     logger.error('Webhook handler error', undefined, { detail: msg, eventType: event.type });
 
-    // Fire-and-forget alert to founder — critical for checkout failures where
+    // Fire-and-forget alert to founder  -  critical for checkout failures where
     // customer has paid but license was not generated.
     const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
     sendWebhookFailureAlert(alertEmail, {

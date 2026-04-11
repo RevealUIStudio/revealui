@@ -56,9 +56,9 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 
 **Responses**
 
-- `200` — Agent card
-- `403` — AI feature requires Pro or Forge license
-- `404` — Agent not found
+- `200`  -  Agent card
+- `403`  -  AI feature requires Pro or Forge license
+- `404`  -  Agent not found
 
 ---
 
@@ -74,10 +74,10 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 
 **Responses**
 
-- `200` — Agent card
-- `400` — Invalid agent ID format
-- `403` — AI feature requires Pro or Forge license
-- `404` — Agent not found
+- `200`  -  Agent card
+- `400`  -  Invalid agent ID format
+- `403`  -  AI feature requires Pro or Forge license
+- `404`  -  Agent not found
 
 ---
 
@@ -87,7 +87,7 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 
 **Responses**
 
-- `200` — Marketplace metadata
+- `200`  -  Marketplace metadata
 
 ---
 
@@ -97,8 +97,8 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 
 **Responses**
 
-- `200` — Payment methods
-- `404` — x402 payments not enabled
+- `200`  -  Payment methods
+- `404`  -  x402 payments not enabled
 
 ---
 
@@ -108,8 +108,8 @@ RevealUI uses **session-based authentication** (no JWTs). Sign in via `POST /aut
 
 **Responses**
 
-- `200` — Agent card list
-- `403` — AI feature requires Pro or Forge license
+- `200`  -  Agent card list
+- `403`  -  AI feature requires Pro or Forge license
 
 ---
 
@@ -123,10 +123,10 @@ See API schema for request body shape.
 
 **Responses**
 
-- `201` — Agent registered
-- `400` — Invalid request
-- `403` — AI feature requires Pro or Forge license
-- `409` — Agent already registered
+- `201`  -  Agent registered
+- `400`  -  Invalid request
+- `403`  -  AI feature requires Pro or Forge license
+- `409`  -  Agent already registered
 
 ---
 
@@ -142,10 +142,10 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Agent card
-- `400` — Invalid agent ID format
-- `403` — AI feature requires Pro or Forge license
-- `404` — Agent not found
+- `200`  -  Agent card
+- `400`  -  Invalid agent ID format
+- `403`  -  AI feature requires Pro or Forge license
+- `404`  -  Agent not found
 
 ---
 
@@ -163,20 +163,20 @@ See API schema for request body shape.
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `description` | `string` | — |  |
-| `systemPrompt` | `string` | — |  |
-| `model` | `string` | — |  |
-| `temperature` | `number` | — |  |
-| `maxTokens` | `number` | — |  |
-| `capabilities` | `any` | — |  |
+| `name` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
+| `systemPrompt` | `string` |  -  |  |
+| `model` | `string` |  -  |  |
+| `temperature` | `number` |  -  |  |
+| `maxTokens` | `number` |  -  |  |
+| `capabilities` | `any` |  -  |  |
 
 **Responses**
 
-- `200` — Updated agent card
-- `400` — Invalid request
-- `403` — AI feature requires Pro or Forge license
-- `404` — Agent not found
+- `200`  -  Updated agent card
+- `400`  -  Invalid request
+- `403`  -  AI feature requires Pro or Forge license
+- `404`  -  Agent not found
 
 ---
 
@@ -192,10 +192,10 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Agent retired
-- `400` — Invalid agent ID format
-- `403` — Built-in agents cannot be retired or AI feature requires Pro or Forge license
-- `404` — Agent not found
+- `200`  -  Agent retired
+- `400`  -  Invalid agent ID format
+- `403`  -  Built-in agents cannot be retired or AI feature requires Pro or Forge license
+- `404`  -  Agent not found
 
 ---
 
@@ -211,10 +211,10 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Agent definition
-- `400` — Invalid agent ID format
-- `403` — AI feature requires Pro or Forge license
-- `404` — Agent not found
+- `200`  -  Agent definition
+- `400`  -  Invalid agent ID format
+- `403`  -  AI feature requires Pro or Forge license
+- `404`  -  Agent not found
 
 ---
 
@@ -230,9 +230,9 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Task history
-- `400` — Invalid agent ID format
-- `401` — Authentication required
+- `200`  -  Task history
+- `400`  -  Invalid agent ID format
+- `401`  -  Authentication required
 
 ---
 
@@ -248,8 +248,8 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — SSE event stream
-- `403` — AI feature requires Pro or Forge license
+- `200`  -  SSE event stream
+- `403`  -  AI feature requires Pro or Forge license
 
 ---
 
@@ -263,9 +263,9 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — JSON-RPC response
-- `400` — Parse error or invalid request
-- `403` — AI feature requires Pro or Forge license
+- `200`  -  JSON-RPC response
+- `400`  -  Parse error or invalid request
+- `403`  -  AI feature requires Pro or Forge license
 
 ---
 
@@ -279,7 +279,7 @@ Instant response with no dependencies. Kubernetes/load balancers use this to dec
 
 **Responses**
 
-- `200` — Service is alive
+- `200`  -  Service is alive
 
 ---
 
@@ -287,11 +287,11 @@ Instant response with no dependencies. Kubernetes/load balancers use this to dec
 
 **Liveness probe (alias)**
 
-Alias for the root liveness probe — used by Playwright smoke tests and some load balancer conventions.
+Alias for the root liveness probe  -  used by Playwright smoke tests and some load balancer conventions.
 
 **Responses**
 
-- `200` — Service is alive
+- `200`  -  Service is alive
 
 ---
 
@@ -303,8 +303,8 @@ Runs all registered health checks. Returns 200 when ready to serve traffic, 503 
 
 **Responses**
 
-- `200` — Service is ready
-- `503` — Service is not ready
+- `200`  -  Service is ready
+- `503`  -  Service is not ready
 
 ---
 
@@ -316,8 +316,8 @@ Exposes all application metrics collected by the core MetricsCollector in Promet
 
 **Responses**
 
-- `200` — Prometheus-compatible metrics in text/plain format
-- `401` — Unauthorized — missing or invalid metrics secret
+- `200`  -  Prometheus-compatible metrics in text/plain format
+- `401`  -  Unauthorized  -  missing or invalid metrics secret
 
 ---
 
@@ -325,12 +325,12 @@ Exposes all application metrics collected by the core MetricsCollector in Promet
 
 **Metrics (JSON)**
 
-Metrics in JSON format — useful for internal dashboards and debugging. Requires METRICS_SECRET or CRON_SECRET authentication.
+Metrics in JSON format  -  useful for internal dashboards and debugging. Requires METRICS_SECRET or CRON_SECRET authentication.
 
 **Responses**
 
-- `200` — Metrics as JSON
-- `401` — Unauthorized — missing or invalid metrics secret
+- `200`  -  Metrics as JSON
+- `401`  -  Unauthorized  -  missing or invalid metrics secret
 
 ---
 
@@ -346,21 +346,21 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `level` | `string` | — |  |
+| `level` | `string` |  -  |  |
 | `message` | `string` | ✓ |  |
-| `stack` | `string` | — |  |
+| `stack` | `string` |  -  |  |
 | `app` | `string` | ✓ |  |
-| `context` | `string` | — |  |
-| `environment` | `string` | — |  |
-| `url` | `string` | — |  |
-| `requestId` | `string` | — |  |
-| `metadata` | `object` | — |  |
+| `context` | `string` |  -  |  |
+| `environment` | `string` |  -  |  |
+| `url` | `string` |  -  |  |
+| `requestId` | `string` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `202` — Error accepted for processing
-- `400` — Invalid JSON or payload
-- `403` — Forbidden — invalid or missing internal token
+- `202`  -  Error accepted for processing
+- `400`  -  Invalid JSON or payload
+- `403`  -  Forbidden  -  invalid or missing internal token
 
 ---
 
@@ -374,21 +374,21 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `level` | `string` | — |  |
+| `level` | `string` |  -  |  |
 | `message` | `string` | ✓ |  |
-| `stack` | `string` | — |  |
+| `stack` | `string` |  -  |  |
 | `app` | `string` | ✓ |  |
-| `context` | `string` | — |  |
-| `environment` | `string` | — |  |
-| `url` | `string` | — |  |
-| `requestId` | `string` | — |  |
-| `metadata` | `object` | — |  |
+| `context` | `string` |  -  |  |
+| `environment` | `string` |  -  |  |
+| `url` | `string` |  -  |  |
+| `requestId` | `string` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `202` — Error accepted for processing
-- `400` — Invalid JSON or payload
-- `403` — Forbidden — invalid or missing internal token
+- `202`  -  Error accepted for processing
+- `400`  -  Invalid JSON or payload
+- `403`  -  Forbidden  -  invalid or missing internal token
 
 ---
 
@@ -400,8 +400,8 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — List of user consents
-- `401` — Authentication required
+- `200`  -  List of user consents
+- `401`  -  Authentication required
 
 ---
 
@@ -414,13 +414,13 @@ Accepts structured error payloads from admin client-side and any other app that 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `type` | `string` | ✓ |  |
-| `expiresIn` | `integer` | — |  |
+| `expiresIn` | `integer` |  -  |  |
 
 **Responses**
 
-- `200` — Consent granted
-- `400` — Invalid request body
-- `401` — Authentication required
+- `200`  -  Consent granted
+- `400`  -  Invalid request body
+- `401`  -  Authentication required
 
 ---
 
@@ -436,9 +436,9 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — Consent revoked
-- `400` — Invalid request or cannot revoke necessary consent
-- `401` — Authentication required
+- `200`  -  Consent revoked
+- `400`  -  Invalid request or cannot revoke necessary consent
+- `401`  -  Authentication required
 
 ---
 
@@ -454,9 +454,9 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — Consent check result
-- `400` — Invalid consent type
-- `401` — Authentication required
+- `200`  -  Consent check result
+- `400`  -  Invalid consent type
+- `401`  -  Authentication required
 
 ---
 
@@ -466,8 +466,8 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — List of deletion requests
-- `401` — Authentication required
+- `200`  -  List of deletion requests
+- `401`  -  Authentication required
 
 ---
 
@@ -479,14 +479,14 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `categories` | `array` | — |  |
-| `reason` | `string` | — |  |
+| `categories` | `array` |  -  |  |
+| `reason` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Deletion request created
-- `400` — Invalid request body
-- `401` — Authentication required
+- `201`  -  Deletion request created
+- `400`  -  Invalid request body
+- `401`  -  Authentication required
 
 ---
 
@@ -502,9 +502,9 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — Deletion request details
-- `401` — Authentication required
-- `404` — Deletion request not found
+- `200`  -  Deletion request details
+- `401`  -  Authentication required
+- `404`  -  Deletion request not found
 
 ---
 
@@ -514,8 +514,8 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — Consent statistics
-- `403` — Admin access required
+- `200`  -  Consent statistics
+- `403`  -  Admin access required
 
 ---
 
@@ -525,8 +525,8 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — List of user consents
-- `401` — Authentication required
+- `200`  -  List of user consents
+- `401`  -  Authentication required
 
 ---
 
@@ -539,13 +539,13 @@ Accepts structured error payloads from admin client-side and any other app that 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `type` | `string` | ✓ |  |
-| `expiresIn` | `integer` | — |  |
+| `expiresIn` | `integer` |  -  |  |
 
 **Responses**
 
-- `200` — Consent granted
-- `400` — Invalid request body
-- `401` — Authentication required
+- `200`  -  Consent granted
+- `400`  -  Invalid request body
+- `401`  -  Authentication required
 
 ---
 
@@ -561,9 +561,9 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — Consent revoked
-- `400` — Invalid request or cannot revoke necessary consent
-- `401` — Authentication required
+- `200`  -  Consent revoked
+- `400`  -  Invalid request or cannot revoke necessary consent
+- `401`  -  Authentication required
 
 ---
 
@@ -579,9 +579,9 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — Consent check result
-- `400` — Invalid consent type
-- `401` — Authentication required
+- `200`  -  Consent check result
+- `400`  -  Invalid consent type
+- `401`  -  Authentication required
 
 ---
 
@@ -591,8 +591,8 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — List of deletion requests
-- `401` — Authentication required
+- `200`  -  List of deletion requests
+- `401`  -  Authentication required
 
 ---
 
@@ -604,14 +604,14 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `categories` | `array` | — |  |
-| `reason` | `string` | — |  |
+| `categories` | `array` |  -  |  |
+| `reason` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Deletion request created
-- `400` — Invalid request body
-- `401` — Authentication required
+- `201`  -  Deletion request created
+- `400`  -  Invalid request body
+- `401`  -  Authentication required
 
 ---
 
@@ -627,9 +627,9 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — Deletion request details
-- `401` — Authentication required
-- `404` — Deletion request not found
+- `200`  -  Deletion request details
+- `401`  -  Authentication required
+- `404`  -  Deletion request not found
 
 ---
 
@@ -639,8 +639,8 @@ Accepts structured error payloads from admin client-side and any other app that 
 
 **Responses**
 
-- `200` — Consent statistics
-- `403` — Admin access required
+- `200`  -  Consent statistics
+- `403`  -  Admin access required
 
 ---
 
@@ -659,15 +659,15 @@ Accepts warn/error/fatal log entries from apps that cannot write to the DB direc
 | `level` | `string` | ✓ |  |
 | `message` | `string` | ✓ |  |
 | `app` | `string` | ✓ |  |
-| `environment` | `string` | — |  |
-| `requestId` | `string` | — |  |
-| `data` | `object` | — |  |
+| `environment` | `string` |  -  |  |
+| `requestId` | `string` |  -  |  |
+| `data` | `object` |  -  |  |
 
 **Responses**
 
-- `202` — Log entry accepted
-- `400` — Invalid payload
-- `403` — Forbidden — missing or invalid X-Internal-Token
+- `202`  -  Log entry accepted
+- `400`  -  Invalid payload
+- `403`  -  Forbidden  -  missing or invalid X-Internal-Token
 
 ---
 
@@ -684,15 +684,15 @@ Accepts warn/error/fatal log entries from apps that cannot write to the DB direc
 | `level` | `string` | ✓ |  |
 | `message` | `string` | ✓ |  |
 | `app` | `string` | ✓ |  |
-| `environment` | `string` | — |  |
-| `requestId` | `string` | — |  |
-| `data` | `object` | — |  |
+| `environment` | `string` |  -  |  |
+| `requestId` | `string` |  -  |  |
+| `data` | `object` |  -  |  |
 
 **Responses**
 
-- `202` — Log entry accepted
-- `400` — Invalid payload
-- `403` — Forbidden — missing or invalid X-Internal-Token
+- `202`  -  Log entry accepted
+- `400`  -  Invalid payload
+- `403`  -  Forbidden  -  missing or invalid X-Internal-Token
 
 ---
 
@@ -712,8 +712,8 @@ Validates a JWT license key and returns the tier, features, and limits.
 
 **Responses**
 
-- `200` — License verification result
-- `400` — Missing license key
+- `200`  -  License verification result
+- `400`  -  Missing license key
 
 ---
 
@@ -729,16 +729,16 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 |-------|------|:--------:|-------------|
 | `tier` | `string` | ✓ | License tier to generate |
 | `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
-| `domains` | `array` | — | Licensed domains (optional) |
-| `maxSites` | `integer` | — | Maximum sites (defaults: Pro=5, Forge=unlimited) |
-| `maxUsers` | `integer` | — | Maximum users (defaults: Pro=25, Forge=unlimited) |
-| `expiresInDays` | `integer` | — | License duration in days (default: 365, max: 10 years) |
+| `domains` | `array` |  -  | Licensed domains (optional) |
+| `maxSites` | `integer` |  -  | Maximum sites (defaults: Pro=5, Forge=unlimited) |
+| `maxUsers` | `integer` |  -  | Maximum users (defaults: Pro=25, Forge=unlimited) |
+| `expiresInDays` | `integer` |  -  | License duration in days (default: 365, max: 10 years) |
 
 **Responses**
 
-- `201` — License key generated
-- `401` — Unauthorized — missing or invalid admin API key
-- `500` — Server error — missing private key configuration
+- `201`  -  License key generated
+- `401`  -  Unauthorized  -  missing or invalid admin API key
+- `500`  -  Server error  -  missing private key configuration
 
 ---
 
@@ -750,7 +750,7 @@ Returns which features are available at each license tier.
 
 **Responses**
 
-- `200` — Feature comparison by tier
+- `200`  -  Feature comparison by tier
 
 ---
 
@@ -768,8 +768,8 @@ Validates a JWT license key and returns the tier, features, and limits.
 
 **Responses**
 
-- `200` — License verification result
-- `400` — Missing license key
+- `200`  -  License verification result
+- `400`  -  Missing license key
 
 ---
 
@@ -785,16 +785,16 @@ Creates a signed JWT license key for a customer. Requires REVEALUI_LICENSE_PRIVA
 |-------|------|:--------:|-------------|
 | `tier` | `string` | ✓ | License tier to generate |
 | `customerId` | `string` | ✓ | Stripe customer ID or internal customer identifier |
-| `domains` | `array` | — | Licensed domains (optional) |
-| `maxSites` | `integer` | — | Maximum sites (defaults: Pro=5, Forge=unlimited) |
-| `maxUsers` | `integer` | — | Maximum users (defaults: Pro=25, Forge=unlimited) |
-| `expiresInDays` | `integer` | — | License duration in days (default: 365, max: 10 years) |
+| `domains` | `array` |  -  | Licensed domains (optional) |
+| `maxSites` | `integer` |  -  | Maximum sites (defaults: Pro=5, Forge=unlimited) |
+| `maxUsers` | `integer` |  -  | Maximum users (defaults: Pro=25, Forge=unlimited) |
+| `expiresInDays` | `integer` |  -  | License duration in days (default: 365, max: 10 years) |
 
 **Responses**
 
-- `201` — License key generated
-- `401` — Unauthorized — missing or invalid admin API key
-- `500` — Server error — missing private key configuration
+- `201`  -  License key generated
+- `401`  -  Unauthorized  -  missing or invalid admin API key
+- `500`  -  Server error  -  missing private key configuration
 
 ---
 
@@ -806,7 +806,7 @@ Returns which features are available at each license tier.
 
 **Responses**
 
-- `200` — Feature comparison by tier
+- `200`  -  Feature comparison by tier
 
 ---
 
@@ -822,13 +822,13 @@ Creates a Stripe checkout session for subscription purchase. Requires authentica
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | — | Stripe price ID for the subscription |
-| `tier` | `string` | — | License tier (defaults to pro) |
+| `priceId` | `string` |  -  | Stripe price ID for the subscription |
+| `tier` | `string` |  -  | License tier (defaults to pro) |
 
 **Responses**
 
-- `200` — Checkout session created
-- `401` — Not authenticated
+- `200`  -  Checkout session created
+- `401`  -  Not authenticated
 
 ---
 
@@ -840,8 +840,8 @@ Creates a Stripe billing portal session for subscription management.
 
 **Responses**
 
-- `200` — Portal session created
-- `401` — Not authenticated
+- `200`  -  Portal session created
+- `401`  -  Not authenticated
 
 ---
 
@@ -853,8 +853,8 @@ Returns the current user's license tier, status, and expiration.
 
 **Responses**
 
-- `200` — Current subscription status
-- `401` — Not authenticated
+- `200`  -  Current subscription status
+- `401`  -  Not authenticated
 
 ---
 
@@ -868,14 +868,14 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | — | Stripe price ID for the target tier |
+| `priceId` | `string` |  -  | Stripe price ID for the target tier |
 | `targetTier` | `string` | ✓ | Tier to upgrade to |
 
 **Responses**
 
-- `200` — Subscription upgraded — Stripe will fire customer.subscription.updated
-- `400` — No active subscription or no billing account
-- `401` — Not authenticated
+- `200`  -  Subscription upgraded  -  Stripe will fire customer.subscription.updated
+- `400`  -  No active subscription or no billing account
+- `401`  -  Not authenticated
 
 ---
 
@@ -887,9 +887,9 @@ Cancels the active subscription at the end of the current billing period. The us
 
 **Responses**
 
-- `200` — Subscription scheduled for cancellation at end of billing period
-- `400` — No active subscription found
-- `401` — Not authenticated
+- `200`  -  Subscription scheduled for cancellation at end of billing period
+- `400`  -  No active subscription found
+- `401`  -  Not authenticated
 
 ---
 
@@ -903,14 +903,14 @@ Creates a one-time Stripe payment session for a perpetual license. Includes 1 ye
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | — | Stripe price ID for the perpetual license product |
+| `priceId` | `string` |  -  | Stripe price ID for the perpetual license product |
 | `tier` | `string` | ✓ | Perpetual license tier |
-| `githubUsername` | `string` | — | GitHub username for revealui-pro team access provisioning |
+| `githubUsername` | `string` |  -  | GitHub username for revealui-pro team access provisioning |
 
 **Responses**
 
-- `200` — Checkout session created
-- `401` — Not authenticated
+- `200`  -  Checkout session created
+- `401`  -  Not authenticated
 
 ---
 
@@ -922,8 +922,8 @@ Returns agent task usage for the current billing cycle.
 
 **Responses**
 
-- `200` — Current cycle usage
-- `401` — Not authenticated
+- `200`  -  Current cycle usage
+- `401`  -  Not authenticated
 
 ---
 
@@ -935,8 +935,8 @@ Finds perpetual licenses whose support contract expires within 30 days and sends
 
 **Responses**
 
-- `200` — Reminders sent
-- `403` — Invalid cron secret
+- `200`  -  Reminders sent
+- `403`  -  Invalid cron secret
 
 ---
 
@@ -948,8 +948,8 @@ Reads overage from the previous billing cycle and emits Stripe Billing Meter eve
 
 **Responses**
 
-- `200` — Overage reported
-- `401` — Invalid cron secret
+- `200`  -  Overage reported
+- `401`  -  Invalid cron secret
 
 ---
 
@@ -961,8 +961,8 @@ Marks non-perpetual licenses whose expiresAt is in the past as expired, then cle
 
 **Responses**
 
-- `200` — Sweep complete
-- `403` — Invalid cron secret
+- `200`  -  Sweep complete
+- `403`  -  Invalid cron secret
 
 ---
 
@@ -976,17 +976,17 @@ Creates a Stripe refund for a payment intent or charge. Admin-only. Full or part
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `paymentIntentId` | `string` | — | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
-| `chargeId` | `string` | — | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
-| `amount` | `integer` | — | Amount to refund in cents. Omit for full refund. |
-| `reason` | `string` | — | Reason for the refund (Stripe enum) |
+| `paymentIntentId` | `string` |  -  | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
+| `chargeId` | `string` |  -  | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
+| `amount` | `integer` |  -  | Amount to refund in cents. Omit for full refund. |
+| `reason` | `string` |  -  | Reason for the refund (Stripe enum) |
 
 **Responses**
 
-- `200` — Refund created
-- `400` — Invalid request (missing payment reference)
-- `401` — Not authenticated
-- `403` — Admin access required
+- `200`  -  Refund created
+- `400`  -  Invalid request (missing payment reference)
+- `401`  -  Not authenticated
+- `403`  -  Admin access required
 
 ---
 
@@ -1003,14 +1003,14 @@ Verifies an on-chain RVUI payment transaction and activates the subscription tie
 | `txSignature` | `string` | ✓ |  |
 | `tier` | `string` | ✓ |  |
 | `walletAddress` | `string` | ✓ |  |
-| `network` | `string` | — |  |
+| `network` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Payment verified and subscription activated
-- `400` — Validation failed
-- `401` — Authentication required
-- `403` — Payment rejected by safeguards
+- `200`  -  Payment verified and subscription activated
+- `400`  -  Validation failed
+- `401`  -  Authentication required
+- `403`  -  Payment rejected by safeguards
 
 ---
 
@@ -1024,14 +1024,14 @@ Returns aggregate revenue metrics for the admin dashboard. Requires admin or own
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `from` | `string` | — | — | Start of date range for recent events (ISO 8601). Defaults to 30 days ago. |
-| `to` | `string` | — | — | End of date range for recent events (ISO 8601). Defaults to now. |
+| `from` | `string` |  -  |  -  | Start of date range for recent events (ISO 8601). Defaults to 30 days ago. |
+| `to` | `string` |  -  |  -  | End of date range for recent events (ISO 8601). Defaults to now. |
 
 **Responses**
 
-- `200` — Revenue metrics snapshot
-- `401` — Not authenticated
-- `403` — Admin access required
+- `200`  -  Revenue metrics snapshot
+- `401`  -  Not authenticated
+- `403`  -  Admin access required
 
 ---
 
@@ -1045,13 +1045,13 @@ Creates a Stripe checkout session for subscription purchase. Requires authentica
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | — | Stripe price ID for the subscription |
-| `tier` | `string` | — | License tier (defaults to pro) |
+| `priceId` | `string` |  -  | Stripe price ID for the subscription |
+| `tier` | `string` |  -  | License tier (defaults to pro) |
 
 **Responses**
 
-- `200` — Checkout session created
-- `401` — Not authenticated
+- `200`  -  Checkout session created
+- `401`  -  Not authenticated
 
 ---
 
@@ -1063,8 +1063,8 @@ Creates a Stripe billing portal session for subscription management.
 
 **Responses**
 
-- `200` — Portal session created
-- `401` — Not authenticated
+- `200`  -  Portal session created
+- `401`  -  Not authenticated
 
 ---
 
@@ -1076,8 +1076,8 @@ Returns the current user's license tier, status, and expiration.
 
 **Responses**
 
-- `200` — Current subscription status
-- `401` — Not authenticated
+- `200`  -  Current subscription status
+- `401`  -  Not authenticated
 
 ---
 
@@ -1091,14 +1091,14 @@ Upgrades an active subscription to a new price/tier mid-cycle. Prorations are cr
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | — | Stripe price ID for the target tier |
+| `priceId` | `string` |  -  | Stripe price ID for the target tier |
 | `targetTier` | `string` | ✓ | Tier to upgrade to |
 
 **Responses**
 
-- `200` — Subscription upgraded — Stripe will fire customer.subscription.updated
-- `400` — No active subscription or no billing account
-- `401` — Not authenticated
+- `200`  -  Subscription upgraded  -  Stripe will fire customer.subscription.updated
+- `400`  -  No active subscription or no billing account
+- `401`  -  Not authenticated
 
 ---
 
@@ -1110,9 +1110,9 @@ Cancels the active subscription at the end of the current billing period. The us
 
 **Responses**
 
-- `200` — Subscription scheduled for cancellation at end of billing period
-- `400` — No active subscription found
-- `401` — Not authenticated
+- `200`  -  Subscription scheduled for cancellation at end of billing period
+- `400`  -  No active subscription found
+- `401`  -  Not authenticated
 
 ---
 
@@ -1126,14 +1126,14 @@ Creates a one-time Stripe payment session for a perpetual license. Includes 1 ye
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `priceId` | `string` | — | Stripe price ID for the perpetual license product |
+| `priceId` | `string` |  -  | Stripe price ID for the perpetual license product |
 | `tier` | `string` | ✓ | Perpetual license tier |
-| `githubUsername` | `string` | — | GitHub username for revealui-pro team access provisioning |
+| `githubUsername` | `string` |  -  | GitHub username for revealui-pro team access provisioning |
 
 **Responses**
 
-- `200` — Checkout session created
-- `401` — Not authenticated
+- `200`  -  Checkout session created
+- `401`  -  Not authenticated
 
 ---
 
@@ -1145,8 +1145,8 @@ Returns agent task usage for the current billing cycle.
 
 **Responses**
 
-- `200` — Current cycle usage
-- `401` — Not authenticated
+- `200`  -  Current cycle usage
+- `401`  -  Not authenticated
 
 ---
 
@@ -1158,8 +1158,8 @@ Finds perpetual licenses whose support contract expires within 30 days and sends
 
 **Responses**
 
-- `200` — Reminders sent
-- `403` — Invalid cron secret
+- `200`  -  Reminders sent
+- `403`  -  Invalid cron secret
 
 ---
 
@@ -1171,8 +1171,8 @@ Reads overage from the previous billing cycle and emits Stripe Billing Meter eve
 
 **Responses**
 
-- `200` — Overage reported
-- `401` — Invalid cron secret
+- `200`  -  Overage reported
+- `401`  -  Invalid cron secret
 
 ---
 
@@ -1184,8 +1184,8 @@ Marks non-perpetual licenses whose expiresAt is in the past as expired, then cle
 
 **Responses**
 
-- `200` — Sweep complete
-- `403` — Invalid cron secret
+- `200`  -  Sweep complete
+- `403`  -  Invalid cron secret
 
 ---
 
@@ -1199,17 +1199,17 @@ Creates a Stripe refund for a payment intent or charge. Admin-only. Full or part
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `paymentIntentId` | `string` | — | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
-| `chargeId` | `string` | — | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
-| `amount` | `integer` | — | Amount to refund in cents. Omit for full refund. |
-| `reason` | `string` | — | Reason for the refund (Stripe enum) |
+| `paymentIntentId` | `string` |  -  | Stripe PaymentIntent ID to refund. Provide either this or chargeId. |
+| `chargeId` | `string` |  -  | Stripe Charge ID to refund. Provide either this or paymentIntentId. |
+| `amount` | `integer` |  -  | Amount to refund in cents. Omit for full refund. |
+| `reason` | `string` |  -  | Reason for the refund (Stripe enum) |
 
 **Responses**
 
-- `200` — Refund created
-- `400` — Invalid request (missing payment reference)
-- `401` — Not authenticated
-- `403` — Admin access required
+- `200`  -  Refund created
+- `400`  -  Invalid request (missing payment reference)
+- `401`  -  Not authenticated
+- `403`  -  Admin access required
 
 ---
 
@@ -1226,14 +1226,14 @@ Verifies an on-chain RVUI payment transaction and activates the subscription tie
 | `txSignature` | `string` | ✓ |  |
 | `tier` | `string` | ✓ |  |
 | `walletAddress` | `string` | ✓ |  |
-| `network` | `string` | — |  |
+| `network` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Payment verified and subscription activated
-- `400` — Validation failed
-- `401` — Authentication required
-- `403` — Payment rejected by safeguards
+- `200`  -  Payment verified and subscription activated
+- `400`  -  Validation failed
+- `401`  -  Authentication required
+- `403`  -  Payment rejected by safeguards
 
 ---
 
@@ -1247,14 +1247,14 @@ Returns aggregate revenue metrics for the admin dashboard. Requires admin or own
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `from` | `string` | — | — | Start of date range for recent events (ISO 8601). Defaults to 30 days ago. |
-| `to` | `string` | — | — | End of date range for recent events (ISO 8601). Defaults to now. |
+| `from` | `string` |  -  |  -  | Start of date range for recent events (ISO 8601). Defaults to 30 days ago. |
+| `to` | `string` |  -  |  -  | End of date range for recent events (ISO 8601). Defaults to now. |
 
 **Responses**
 
-- `200` — Revenue metrics snapshot
-- `401` — Not authenticated
-- `403` — Admin access required
+- `200`  -  Revenue metrics snapshot
+- `401`  -  Not authenticated
+- `403`  -  Admin access required
 
 ---
 
@@ -1278,10 +1278,10 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Webhook event received and processed
-- `400` — Missing signature or invalid webhook
-- `500` — Webhook processing failed
-- `503` — Webhook service unavailable (Stripe env vars misconfigured)
+- `200`  -  Webhook event received and processed
+- `400`  -  Missing signature or invalid webhook
+- `500`  -  Webhook processing failed
+- `503`  -  Webhook service unavailable (Stripe env vars misconfigured)
 
 ---
 
@@ -1303,10 +1303,10 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Webhook event received and processed
-- `400` — Missing signature or invalid webhook
-- `500` — Webhook processing failed
-- `503` — Webhook service unavailable (Stripe env vars misconfigured)
+- `200`  -  Webhook event received and processed
+- `400`  -  Missing signature or invalid webhook
+- `500`  -  Webhook processing failed
+- `503`  -  Webhook service unavailable (Stripe env vars misconfigured)
 
 ---
 
@@ -1320,15 +1320,15 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `authorType` | `string` | — | — |  |
-| `reviewStatus` | `string` | — | — |  |
-| `filePathPrefix` | `string` | — | — |  |
-| `limit` | `integer` | — | — |  |
-| `offset` | `integer` | — | — |  |
+| `authorType` | `string` |  -  |  -  |  |
+| `reviewStatus` | `string` |  -  |  -  |  |
+| `filePathPrefix` | `string` |  -  |  -  |  |
+| `limit` | `integer` |  -  |  -  |  |
+| `offset` | `integer` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Provenance list
+- `200`  -  Provenance list
 
 ---
 
@@ -1342,21 +1342,21 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `filePath` | `string` | ✓ |  |
 | `authorType` | `string` | ✓ |  |
-| `functionName` | `string` | — |  |
-| `lineStart` | `integer` | — |  |
-| `lineEnd` | `integer` | — |  |
-| `aiModel` | `string` | — |  |
-| `aiSessionId` | `string` | — |  |
-| `gitCommitHash` | `string` | — |  |
-| `gitAuthor` | `string` | — |  |
-| `confidence` | `number` | — |  |
-| `linesOfCode` | `integer` | — |  |
-| `metadata` | `object` | — |  |
+| `functionName` | `string` |  -  |  |
+| `lineStart` | `integer` |  -  |  |
+| `lineEnd` | `integer` |  -  |  |
+| `aiModel` | `string` |  -  |  |
+| `aiSessionId` | `string` |  -  |  |
+| `gitCommitHash` | `string` |  -  |  |
+| `gitAuthor` | `string` |  -  |  |
+| `confidence` | `number` |  -  |  |
+| `linesOfCode` | `integer` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Provenance entry created
-- `500` — Server error
+- `201`  -  Provenance entry created
+- `500`  -  Server error
 
 ---
 
@@ -1366,7 +1366,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Provenance statistics
+- `200`  -  Provenance statistics
 
 ---
 
@@ -1382,7 +1382,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — File provenance
+- `200`  -  File provenance
 
 ---
 
@@ -1398,8 +1398,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Provenance entry found
-- `404` — Not found
+- `200`  -  Provenance entry found
+- `404`  -  Not found
 
 ---
 
@@ -1417,24 +1417,24 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `filePath` | `string` | — |  |
-| `functionName` | `string` | — |  |
-| `lineStart` | `integer` | — |  |
-| `lineEnd` | `integer` | — |  |
-| `authorType` | `string` | — |  |
-| `aiModel` | `string` | — |  |
-| `aiSessionId` | `string` | — |  |
-| `gitCommitHash` | `string` | — |  |
-| `gitAuthor` | `string` | — |  |
-| `confidence` | `number` | — |  |
-| `reviewStatus` | `string` | — |  |
-| `linesOfCode` | `integer` | — |  |
-| `metadata` | `object` | — |  |
+| `filePath` | `string` |  -  |  |
+| `functionName` | `string` |  -  |  |
+| `lineStart` | `integer` |  -  |  |
+| `lineEnd` | `integer` |  -  |  |
+| `authorType` | `string` |  -  |  |
+| `aiModel` | `string` |  -  |  |
+| `aiSessionId` | `string` |  -  |  |
+| `gitCommitHash` | `string` |  -  |  |
+| `gitAuthor` | `string` |  -  |  |
+| `confidence` | `number` |  -  |  |
+| `reviewStatus` | `string` |  -  |  |
+| `linesOfCode` | `integer` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `200` — Provenance entry updated
-- `404` — Not found
+- `200`  -  Provenance entry updated
+- `404`  -  Not found
 
 ---
 
@@ -1450,7 +1450,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Provenance entry deleted
+- `200`  -  Provenance entry deleted
 
 ---
 
@@ -1470,15 +1470,15 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `reviewType` | `string` | ✓ |  |
 | `status` | `string` | ✓ |  |
-| `reviewerId` | `string` | — |  |
-| `comment` | `string` | — |  |
-| `metadata` | `object` | — |  |
+| `reviewerId` | `string` |  -  |  |
+| `comment` | `string` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Review added
-- `404` — Not found
-- `500` — Server error
+- `201`  -  Review added
+- `404`  -  Not found
+- `500`  -  Server error
 
 ---
 
@@ -1494,7 +1494,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Review list
+- `200`  -  Review list
 
 ---
 
@@ -1506,15 +1506,15 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `authorType` | `string` | — | — |  |
-| `reviewStatus` | `string` | — | — |  |
-| `filePathPrefix` | `string` | — | — |  |
-| `limit` | `integer` | — | — |  |
-| `offset` | `integer` | — | — |  |
+| `authorType` | `string` |  -  |  -  |  |
+| `reviewStatus` | `string` |  -  |  -  |  |
+| `filePathPrefix` | `string` |  -  |  -  |  |
+| `limit` | `integer` |  -  |  -  |  |
+| `offset` | `integer` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Provenance list
+- `200`  -  Provenance list
 
 ---
 
@@ -1528,21 +1528,21 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `filePath` | `string` | ✓ |  |
 | `authorType` | `string` | ✓ |  |
-| `functionName` | `string` | — |  |
-| `lineStart` | `integer` | — |  |
-| `lineEnd` | `integer` | — |  |
-| `aiModel` | `string` | — |  |
-| `aiSessionId` | `string` | — |  |
-| `gitCommitHash` | `string` | — |  |
-| `gitAuthor` | `string` | — |  |
-| `confidence` | `number` | — |  |
-| `linesOfCode` | `integer` | — |  |
-| `metadata` | `object` | — |  |
+| `functionName` | `string` |  -  |  |
+| `lineStart` | `integer` |  -  |  |
+| `lineEnd` | `integer` |  -  |  |
+| `aiModel` | `string` |  -  |  |
+| `aiSessionId` | `string` |  -  |  |
+| `gitCommitHash` | `string` |  -  |  |
+| `gitAuthor` | `string` |  -  |  |
+| `confidence` | `number` |  -  |  |
+| `linesOfCode` | `integer` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Provenance entry created
-- `500` — Server error
+- `201`  -  Provenance entry created
+- `500`  -  Server error
 
 ---
 
@@ -1552,7 +1552,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Provenance statistics
+- `200`  -  Provenance statistics
 
 ---
 
@@ -1568,7 +1568,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — File provenance
+- `200`  -  File provenance
 
 ---
 
@@ -1584,8 +1584,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Provenance entry found
-- `404` — Not found
+- `200`  -  Provenance entry found
+- `404`  -  Not found
 
 ---
 
@@ -1603,24 +1603,24 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `filePath` | `string` | — |  |
-| `functionName` | `string` | — |  |
-| `lineStart` | `integer` | — |  |
-| `lineEnd` | `integer` | — |  |
-| `authorType` | `string` | — |  |
-| `aiModel` | `string` | — |  |
-| `aiSessionId` | `string` | — |  |
-| `gitCommitHash` | `string` | — |  |
-| `gitAuthor` | `string` | — |  |
-| `confidence` | `number` | — |  |
-| `reviewStatus` | `string` | — |  |
-| `linesOfCode` | `integer` | — |  |
-| `metadata` | `object` | — |  |
+| `filePath` | `string` |  -  |  |
+| `functionName` | `string` |  -  |  |
+| `lineStart` | `integer` |  -  |  |
+| `lineEnd` | `integer` |  -  |  |
+| `authorType` | `string` |  -  |  |
+| `aiModel` | `string` |  -  |  |
+| `aiSessionId` | `string` |  -  |  |
+| `gitCommitHash` | `string` |  -  |  |
+| `gitAuthor` | `string` |  -  |  |
+| `confidence` | `number` |  -  |  |
+| `reviewStatus` | `string` |  -  |  |
+| `linesOfCode` | `integer` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `200` — Provenance entry updated
-- `404` — Not found
+- `200`  -  Provenance entry updated
+- `404`  -  Not found
 
 ---
 
@@ -1636,7 +1636,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Provenance entry deleted
+- `200`  -  Provenance entry deleted
 
 ---
 
@@ -1656,15 +1656,15 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `reviewType` | `string` | ✓ |  |
 | `status` | `string` | ✓ |  |
-| `reviewerId` | `string` | — |  |
-| `comment` | `string` | — |  |
-| `metadata` | `object` | — |  |
+| `reviewerId` | `string` |  -  |  |
+| `comment` | `string` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Review added
-- `404` — Not found
-- `500` — Server error
+- `201`  -  Review added
+- `404`  -  Not found
+- `500`  -  Server error
 
 ---
 
@@ -1680,7 +1680,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Review list
+- `200`  -  Review list
 
 ---
 
@@ -1692,7 +1692,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Board list
+- `200`  -  Board list
 
 ---
 
@@ -1706,12 +1706,12 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` | — |  |
-| `isDefault` | `boolean` | — |  |
+| `description` | `string` |  -  |  |
+| `isDefault` | `boolean` |  -  |  |
 
 **Responses**
 
-- `201` — Board created
+- `201`  -  Board created
 
 ---
 
@@ -1727,8 +1727,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Board found
-- `404` — Not found
+- `200`  -  Board found
+- `404`  -  Not found
 
 ---
 
@@ -1746,14 +1746,14 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `description` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Board updated
-- `404` — Not found
+- `200`  -  Board updated
+- `404`  -  Not found
 
 ---
 
@@ -1769,7 +1769,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Board deleted
+- `200`  -  Board deleted
 
 ---
 
@@ -1785,7 +1785,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Columns list
+- `200`  -  Columns list
 
 ---
 
@@ -1806,12 +1806,12 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
 | `position` | `integer` | ✓ |  |
-| `wipLimit` | `integer` | — |  |
-| `color` | `string` | — |  |
+| `wipLimit` | `integer` |  -  |  |
+| `color` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Column created
+- `201`  -  Column created
 
 ---
 
@@ -1829,16 +1829,16 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `position` | `integer` | — |  |
-| `wipLimit` | `integer` | — |  |
-| `color` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `position` | `integer` |  -  |  |
+| `wipLimit` | `integer` |  -  |  |
+| `color` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Column updated
-- `404` — Not found
+- `200`  -  Column updated
+- `404`  -  Not found
 
 ---
 
@@ -1854,7 +1854,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Column deleted
+- `200`  -  Column deleted
 
 ---
 
@@ -1864,7 +1864,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Board list
+- `200`  -  Board list
 
 ---
 
@@ -1878,12 +1878,12 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` | — |  |
-| `isDefault` | `boolean` | — |  |
+| `description` | `string` |  -  |  |
+| `isDefault` | `boolean` |  -  |  |
 
 **Responses**
 
-- `201` — Board created
+- `201`  -  Board created
 
 ---
 
@@ -1899,8 +1899,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Board found
-- `404` — Not found
+- `200`  -  Board found
+- `404`  -  Not found
 
 ---
 
@@ -1918,14 +1918,14 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `description` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Board updated
-- `404` — Not found
+- `200`  -  Board updated
+- `404`  -  Not found
 
 ---
 
@@ -1941,7 +1941,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Board deleted
+- `200`  -  Board deleted
 
 ---
 
@@ -1957,7 +1957,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Columns list
+- `200`  -  Columns list
 
 ---
 
@@ -1978,12 +1978,12 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
 | `position` | `integer` | ✓ |  |
-| `wipLimit` | `integer` | — |  |
-| `color` | `string` | — |  |
+| `wipLimit` | `integer` |  -  |  |
+| `color` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Column created
+- `201`  -  Column created
 
 ---
 
@@ -2001,16 +2001,16 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `position` | `integer` | — |  |
-| `wipLimit` | `integer` | — |  |
-| `color` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `position` | `integer` |  -  |  |
+| `wipLimit` | `integer` |  -  |  |
+| `color` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Column updated
-- `404` — Not found
+- `200`  -  Column updated
+- `404`  -  Not found
 
 ---
 
@@ -2026,7 +2026,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Column deleted
+- `200`  -  Column deleted
 
 ---
 
@@ -2046,15 +2046,15 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `status` | `string` | — | — |  |
-| `priority` | `string` | — | — |  |
-| `type` | `string` | — | — |  |
-| `assigneeId` | `string` | — | — |  |
-| `columnId` | `string` | — | — |  |
+| `status` | `string` |  -  |  -  |  |
+| `priority` | `string` |  -  |  -  |  |
+| `type` | `string` |  -  |  -  |  |
+| `assigneeId` | `string` |  -  |  -  |  |
+| `columnId` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Ticket list
+- `200`  -  Ticket list
 
 ---
 
@@ -2073,20 +2073,20 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
-| `description` | `object` | — |  |
-| `columnId` | `string` | — |  |
-| `parentTicketId` | `string` | — |  |
-| `status` | `string` | — |  |
-| `priority` | `string` | — |  |
-| `type` | `string` | — |  |
-| `assigneeId` | `string` | — |  |
-| `reporterId` | `string` | — |  |
-| `dueDate` | `string (date-time)` | — |  |
-| `estimatedEffort` | `integer` | — |  |
+| `description` | `object` |  -  |  |
+| `columnId` | `string` |  -  |  |
+| `parentTicketId` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `priority` | `string` |  -  |  |
+| `type` | `string` |  -  |  |
+| `assigneeId` | `string` |  -  |  |
+| `reporterId` | `string` |  -  |  |
+| `dueDate` | `string (date-time)` |  -  |  |
+| `estimatedEffort` | `integer` |  -  |  |
 
 **Responses**
 
-- `201` — Ticket created
+- `201`  -  Ticket created
 
 ---
 
@@ -2102,8 +2102,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Ticket found
-- `404` — Not found
+- `200`  -  Ticket found
+- `404`  -  Not found
 
 ---
 
@@ -2121,22 +2121,22 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` | — |  |
-| `description` | `object` | — |  |
-| `status` | `string` | — |  |
-| `priority` | `string` | — |  |
-| `type` | `string` | — |  |
-| `assigneeId` | `string` | — |  |
-| `reporterId` | `string` | — |  |
-| `columnId` | `string` | — |  |
-| `dueDate` | `string (date-time)` | — |  |
-| `estimatedEffort` | `integer` | — |  |
-| `sortOrder` | `number` | — |  |
+| `title` | `string` |  -  |  |
+| `description` | `object` |  -  |  |
+| `status` | `string` |  -  |  |
+| `priority` | `string` |  -  |  |
+| `type` | `string` |  -  |  |
+| `assigneeId` | `string` |  -  |  |
+| `reporterId` | `string` |  -  |  |
+| `columnId` | `string` |  -  |  |
+| `dueDate` | `string (date-time)` |  -  |  |
+| `estimatedEffort` | `integer` |  -  |  |
+| `sortOrder` | `number` |  -  |  |
 
 **Responses**
 
-- `200` — Ticket updated
-- `404` — Not found
+- `200`  -  Ticket updated
+- `404`  -  Not found
 
 ---
 
@@ -2152,7 +2152,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Ticket deleted
+- `200`  -  Ticket deleted
 
 ---
 
@@ -2175,8 +2175,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Ticket moved
-- `404` — Not found
+- `200`  -  Ticket moved
+- `404`  -  Not found
 
 ---
 
@@ -2192,7 +2192,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Subtask list
+- `200`  -  Subtask list
 
 ---
 
@@ -2210,15 +2210,15 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `status` | `string` | — | — |  |
-| `priority` | `string` | — | — |  |
-| `type` | `string` | — | — |  |
-| `assigneeId` | `string` | — | — |  |
-| `columnId` | `string` | — | — |  |
+| `status` | `string` |  -  |  -  |  |
+| `priority` | `string` |  -  |  -  |  |
+| `type` | `string` |  -  |  -  |  |
+| `assigneeId` | `string` |  -  |  -  |  |
+| `columnId` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Ticket list
+- `200`  -  Ticket list
 
 ---
 
@@ -2237,20 +2237,20 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
-| `description` | `object` | — |  |
-| `columnId` | `string` | — |  |
-| `parentTicketId` | `string` | — |  |
-| `status` | `string` | — |  |
-| `priority` | `string` | — |  |
-| `type` | `string` | — |  |
-| `assigneeId` | `string` | — |  |
-| `reporterId` | `string` | — |  |
-| `dueDate` | `string (date-time)` | — |  |
-| `estimatedEffort` | `integer` | — |  |
+| `description` | `object` |  -  |  |
+| `columnId` | `string` |  -  |  |
+| `parentTicketId` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `priority` | `string` |  -  |  |
+| `type` | `string` |  -  |  |
+| `assigneeId` | `string` |  -  |  |
+| `reporterId` | `string` |  -  |  |
+| `dueDate` | `string (date-time)` |  -  |  |
+| `estimatedEffort` | `integer` |  -  |  |
 
 **Responses**
 
-- `201` — Ticket created
+- `201`  -  Ticket created
 
 ---
 
@@ -2266,8 +2266,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Ticket found
-- `404` — Not found
+- `200`  -  Ticket found
+- `404`  -  Not found
 
 ---
 
@@ -2285,22 +2285,22 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` | — |  |
-| `description` | `object` | — |  |
-| `status` | `string` | — |  |
-| `priority` | `string` | — |  |
-| `type` | `string` | — |  |
-| `assigneeId` | `string` | — |  |
-| `reporterId` | `string` | — |  |
-| `columnId` | `string` | — |  |
-| `dueDate` | `string (date-time)` | — |  |
-| `estimatedEffort` | `integer` | — |  |
-| `sortOrder` | `number` | — |  |
+| `title` | `string` |  -  |  |
+| `description` | `object` |  -  |  |
+| `status` | `string` |  -  |  |
+| `priority` | `string` |  -  |  |
+| `type` | `string` |  -  |  |
+| `assigneeId` | `string` |  -  |  |
+| `reporterId` | `string` |  -  |  |
+| `columnId` | `string` |  -  |  |
+| `dueDate` | `string (date-time)` |  -  |  |
+| `estimatedEffort` | `integer` |  -  |  |
+| `sortOrder` | `number` |  -  |  |
 
 **Responses**
 
-- `200` — Ticket updated
-- `404` — Not found
+- `200`  -  Ticket updated
+- `404`  -  Not found
 
 ---
 
@@ -2316,7 +2316,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Ticket deleted
+- `200`  -  Ticket deleted
 
 ---
 
@@ -2339,8 +2339,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Ticket moved
-- `404` — Not found
+- `200`  -  Ticket moved
+- `404`  -  Not found
 
 ---
 
@@ -2356,7 +2356,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Subtask list
+- `200`  -  Subtask list
 
 ---
 
@@ -2374,7 +2374,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Comment list
+- `200`  -  Comment list
 
 ---
 
@@ -2393,11 +2393,11 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `body` | `object` | ✓ |  |
-| `authorId` | `string` | — |  |
+| `authorId` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Comment created
+- `201`  -  Comment created
 
 ---
 
@@ -2419,8 +2419,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Comment updated
-- `404` — Not found
+- `200`  -  Comment updated
+- `404`  -  Not found
 
 ---
 
@@ -2436,7 +2436,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Comment deleted
+- `200`  -  Comment deleted
 
 ---
 
@@ -2452,7 +2452,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Comment list
+- `200`  -  Comment list
 
 ---
 
@@ -2471,11 +2471,11 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `body` | `object` | ✓ |  |
-| `authorId` | `string` | — |  |
+| `authorId` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Comment created
+- `201`  -  Comment created
 
 ---
 
@@ -2497,8 +2497,8 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Comment updated
-- `404` — Not found
+- `200`  -  Comment updated
+- `404`  -  Not found
 
 ---
 
@@ -2514,7 +2514,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Comment deleted
+- `200`  -  Comment deleted
 
 ---
 
@@ -2526,7 +2526,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Label list
+- `200`  -  Label list
 
 ---
 
@@ -2540,12 +2540,12 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `color` | `string` | — |  |
-| `description` | `string` | — |  |
+| `color` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Label created
+- `201`  -  Label created
 
 ---
 
@@ -2563,15 +2563,15 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `color` | `string` | — |  |
-| `description` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `color` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Label updated
-- `404` — Not found
+- `200`  -  Label updated
+- `404`  -  Not found
 
 ---
 
@@ -2587,7 +2587,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Label deleted
+- `200`  -  Label deleted
 
 ---
 
@@ -2603,7 +2603,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Labels for ticket
+- `200`  -  Labels for ticket
 
 ---
 
@@ -2625,7 +2625,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `201` — Label assigned
+- `201`  -  Label assigned
 
 ---
 
@@ -2642,7 +2642,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Label removed
+- `200`  -  Label removed
 
 ---
 
@@ -2652,7 +2652,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Label list
+- `200`  -  Label list
 
 ---
 
@@ -2666,12 +2666,12 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `color` | `string` | — |  |
-| `description` | `string` | — |  |
+| `color` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Label created
+- `201`  -  Label created
 
 ---
 
@@ -2689,15 +2689,15 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `color` | `string` | — |  |
-| `description` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `color` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Label updated
-- `404` — Not found
+- `200`  -  Label updated
+- `404`  -  Not found
 
 ---
 
@@ -2713,7 +2713,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Label deleted
+- `200`  -  Label deleted
 
 ---
 
@@ -2729,7 +2729,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Labels for ticket
+- `200`  -  Labels for ticket
 
 ---
 
@@ -2751,7 +2751,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `201` — Label assigned
+- `201`  -  Label assigned
 
 ---
 
@@ -2768,7 +2768,7 @@ Receives Stripe webhook events for subscription lifecycle, license management, d
 
 **Responses**
 
-- `200` — Label removed
+- `200`  -  Label removed
 
 ---
 
@@ -2786,13 +2786,13 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 |-------|------|:--------:|-------------|
 | `instruction` | `string` | ✓ |  |
 | `boardId` | `string` | ✓ | Board to create the ticket on |
-| `priority` | `string` | — |  |
+| `priority` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Agent task completed
-- `400` — Bad request
-- `403` — AI feature requires Pro or Forge license
+- `200`  -  Agent task completed
+- `400`  -  Bad request
+- `403`  -  AI feature requires Pro or Forge license
 
 ---
 
@@ -2808,9 +2808,9 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Responses**
 
-- `200` — Agent dispatch completed
-- `403` — AI feature requires Pro or Forge license
-- `404` — Ticket not found
+- `200`  -  Agent dispatch completed
+- `403`  -  AI feature requires Pro or Forge license
+- `404`  -  Ticket not found
 
 ---
 
@@ -2826,13 +2826,13 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 |-------|------|:--------:|-------------|
 | `instruction` | `string` | ✓ |  |
 | `boardId` | `string` | ✓ | Board to create the ticket on |
-| `priority` | `string` | — |  |
+| `priority` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Agent task completed
-- `400` — Bad request
-- `403` — AI feature requires Pro or Forge license
+- `200`  -  Agent task completed
+- `400`  -  Bad request
+- `403`  -  AI feature requires Pro or Forge license
 
 ---
 
@@ -2848,9 +2848,9 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Responses**
 
-- `200` — Agent dispatch completed
-- `403` — AI feature requires Pro or Forge license
-- `404` — Ticket not found
+- `200`  -  Agent dispatch completed
+- `403`  -  AI feature requires Pro or Forge license
+- `404`  -  Ticket not found
 
 ---
 
@@ -2860,24 +2860,24 @@ Creates a ticket from the instruction, dispatches an AI agent with admin tools t
 
 **Stream agent execution via SSE**
 
-Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource — it does not support POST).
+Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource  -  it does not support POST).
 
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `instruction` | `string` | ✓ |  |
-| `boardId` | `string` | — |  |
-| `workspaceId` | `string` | — |  |
-| `priority` | `string` | — |  |
-| `provider` | `string` | — |  |
-| `model` | `string` | — |  |
+| `boardId` | `string` |  -  |  |
+| `workspaceId` | `string` |  -  |  |
+| `priority` | `string` |  -  |  |
+| `provider` | `string` |  -  |  |
+| `model` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — SSE stream of agent execution events (text/event-stream)
-- `400` — Missing instruction or invalid provider
-- `403` — AI feature requires Pro or Forge license
+- `200`  -  SSE stream of agent execution events (text/event-stream)
+- `400`  -  Missing instruction or invalid provider
+- `403`  -  AI feature requires Pro or Forge license
 
 ---
 
@@ -2885,24 +2885,24 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Stream agent execution via SSE**
 
-Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource — it does not support POST).
+Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource  -  it does not support POST).
 
 **Request body** (JSON)
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `instruction` | `string` | ✓ |  |
-| `boardId` | `string` | — |  |
-| `workspaceId` | `string` | — |  |
-| `priority` | `string` | — |  |
-| `provider` | `string` | — |  |
-| `model` | `string` | — |  |
+| `boardId` | `string` |  -  |  |
+| `workspaceId` | `string` |  -  |  |
+| `priority` | `string` |  -  |  |
+| `provider` | `string` |  -  |  |
+| `model` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — SSE stream of agent execution events (text/event-stream)
-- `400` — Missing instruction or invalid provider
-- `403` — AI feature requires Pro or Forge license
+- `200`  -  SSE stream of agent execution events (text/event-stream)
+- `400`  -  Missing instruction or invalid provider
+- `403`  -  AI feature requires Pro or Forge license
 
 ---
 
@@ -2916,14 +2916,14 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `status` | `string` | — | — |  |
-| `authorId` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `status` | `string` |  -  |  -  |  |
+| `authorId` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Post list
+- `200`  -  Post list
 
 ---
 
@@ -2937,18 +2937,18 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `excerpt` | `string` | — |  |
-| `content` | `any` | — |  |
-| `featuredImageId` | `string` | — |  |
-| `authorId` | `string` | — |  |
-| `status` | `string` | — |  |
-| `meta` | `object` | — |  |
-| `categories` | `array` | — |  |
+| `excerpt` | `string` |  -  |  |
+| `content` | `any` |  -  |  |
+| `featuredImageId` | `string` |  -  |  |
+| `authorId` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `meta` | `object` |  -  |  |
+| `categories` | `array` |  -  |  |
 
 **Responses**
 
-- `201` — Post created
-- `400` — Content validation failed
+- `201`  -  Post created
+- `400`  -  Content validation failed
 
 ---
 
@@ -2964,8 +2964,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `200` — Post found
-- `404` — Not found
+- `200`  -  Post found
+- `404`  -  Not found
 
 ---
 
@@ -2983,22 +2983,22 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `excerpt` | `string` | — |  |
-| `content` | `any` | — |  |
-| `featuredImageId` | `string` | — |  |
-| `status` | `string` | — |  |
-| `published` | `boolean` | — |  |
-| `meta` | `object` | — |  |
-| `categories` | `array` | — |  |
-| `publishedAt` | `string (date-time)` | — |  |
+| `title` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `excerpt` | `string` |  -  |  |
+| `content` | `any` |  -  |  |
+| `featuredImageId` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `published` | `boolean` |  -  |  |
+| `meta` | `object` |  -  |  |
+| `categories` | `array` |  -  |  |
+| `publishedAt` | `string (date-time)` |  -  |  |
 
 **Responses**
 
-- `200` — Post updated
-- `400` — Content validation failed
-- `404` — Not found
+- `200`  -  Post updated
+- `400`  -  Content validation failed
+- `404`  -  Not found
 
 ---
 
@@ -3014,8 +3014,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `200` — Post deleted
-- `404` — Not found
+- `200`  -  Post deleted
+- `404`  -  Not found
 
 ---
 
@@ -3031,8 +3031,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `200` — Post found
-- `404` — Not found
+- `200`  -  Post found
+- `404`  -  Not found
 
 ---
 
@@ -3044,13 +3044,13 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `mimeType` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `mimeType` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Media list
+- `200`  -  Media list
 
 ---
 
@@ -3060,9 +3060,9 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `201` — Media uploaded
-- `400` — Invalid file
-- `413` — File too large
+- `201`  -  Media uploaded
+- `400`  -  Invalid file
+- `413`  -  File too large
 
 ---
 
@@ -3078,8 +3078,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `200` — Media found
-- `404` — Not found
+- `200`  -  Media found
+- `404`  -  Not found
 
 ---
 
@@ -3097,13 +3097,13 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `alt` | `string` | — |  |
-| `focalPoint` | `object` | — |  |
+| `alt` | `string` |  -  |  |
+| `focalPoint` | `object` |  -  |  |
 
 **Responses**
 
-- `200` — Media updated
-- `404` — Not found
+- `200`  -  Media updated
+- `404`  -  Not found
 
 ---
 
@@ -3119,8 +3119,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `200` — Media deleted
-- `404` — Not found
+- `200`  -  Media deleted
+- `404`  -  Not found
 
 ---
 
@@ -3132,13 +3132,13 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `status` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Site list
+- `200`  -  Site list
 
 ---
 
@@ -3152,12 +3152,12 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` | — |  |
-| `status` | `string` | — |  |
+| `description` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Site created
+- `201`  -  Site created
 
 ---
 
@@ -3173,8 +3173,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `200` — Site found
-- `404` — Not found
+- `200`  -  Site found
+- `404`  -  Not found
 
 ---
 
@@ -3192,16 +3192,16 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `description` | `string` | — |  |
-| `status` | `string` | — |  |
-| `favicon` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `favicon` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Site updated
-- `404` — Not found
+- `200`  -  Site updated
+- `404`  -  Not found
 
 ---
 
@@ -3217,8 +3217,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `200` — Site deleted
-- `404` — Not found
+- `200`  -  Site deleted
+- `404`  -  Not found
 
 ---
 
@@ -3236,12 +3236,12 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `status` | `string` | — | — |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Page list
-- `404` — Site not found
+- `200`  -  Page list
+- `404`  -  Site not found
 
 ---
 
@@ -3262,17 +3262,17 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
 | `path` | `string` | ✓ |  |
-| `status` | `string` | — |  |
-| `parentId` | `string` | — |  |
-| `templateId` | `string` | — |  |
-| `blocks` | `array` | — |  |
-| `seo` | `object` | — |  |
+| `status` | `string` |  -  |  |
+| `parentId` | `string` |  -  |  |
+| `templateId` | `string` |  -  |  |
+| `blocks` | `array` |  -  |  |
+| `seo` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Page created
-- `400` — Content validation failed
-- `404` — Site not found
+- `201`  -  Page created
+- `400`  -  Content validation failed
+- `404`  -  Site not found
 
 ---
 
@@ -3288,8 +3288,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `200` — Page found
-- `404` — Not found
+- `200`  -  Page found
+- `404`  -  Not found
 
 ---
 
@@ -3307,21 +3307,21 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `path` | `string` | — |  |
-| `status` | `string` | — |  |
-| `parentId` | `string` | — |  |
-| `templateId` | `string` | — |  |
-| `blocks` | `array` | — |  |
-| `seo` | `object` | — |  |
-| `publishedAt` | `string (date-time)` | — |  |
+| `title` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `path` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `parentId` | `string` |  -  |  |
+| `templateId` | `string` |  -  |  |
+| `blocks` | `array` |  -  |  |
+| `seo` | `object` |  -  |  |
+| `publishedAt` | `string (date-time)` |  -  |  |
 
 **Responses**
 
-- `200` — Page updated
-- `400` — Content validation failed
-- `404` — Not found
+- `200`  -  Page updated
+- `400`  -  Content validation failed
+- `404`  -  Not found
 
 ---
 
@@ -3337,8 +3337,8 @@ Streams agent execution events in real-time using Server-Sent Events. Client-sid
 
 **Responses**
 
-- `200` — Page deleted
-- `404` — Not found
+- `200`  -  Page deleted
+- `404`  -  Not found
 
 ---
 
@@ -3352,15 +3352,15 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `q` | `string` | ✓ | — |  |
-| `type` | `string` | — | `all` |  |
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
+| `q` | `string` | ✓ |  -  |  |
+| `type` | `string` |  -  | `all` |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
 
 **Responses**
 
-- `200` — Search results sorted by relevance
-- `400` — Invalid query parameters
+- `200`  -  Search results sorted by relevance
+- `400`  -  Invalid query parameters
 
 ---
 
@@ -3372,15 +3372,15 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `page` | `integer` | — | `1` |  |
-| `limit` | `integer` | — | `10` |  |
-| `status` | `string` | — | — |  |
-| `role` | `string` | — | — |  |
-| `search` | `string` | — | — |  |
+| `page` | `integer` |  -  | `1` |  |
+| `limit` | `integer` |  -  | `10` |  |
+| `status` | `string` |  -  |  -  |  |
+| `role` | `string` |  -  |  -  |  |
+| `search` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Paginated user list
+- `200`  -  Paginated user list
 
 ---
 
@@ -3396,8 +3396,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — User found
-- `404` — Not found
+- `200`  -  User found
+- `404`  -  Not found
 
 ---
 
@@ -3415,16 +3415,16 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `email` | `string (email)` | — |  |
-| `role` | `string` | — |  |
-| `status` | `string` | — |  |
-| `avatarUrl` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `email` | `string (email)` |  -  |  |
+| `role` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `avatarUrl` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — User updated
-- `404` — Not found
+- `200`  -  User updated
+- `404`  -  Not found
 
 ---
 
@@ -3440,8 +3440,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — User deleted
-- `404` — Not found
+- `200`  -  User deleted
+- `404`  -  Not found
 
 ---
 
@@ -3453,13 +3453,13 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `status` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Product list
+- `200`  -  Product list
 
 ---
 
@@ -3473,19 +3473,19 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` | — |  |
-| `priceInCents` | `integer` | — |  |
-| `currency` | `string` | — |  |
-| `stripeProductId` | `string` | — |  |
-| `stripePriceId` | `string` | — |  |
-| `active` | `boolean` | — |  |
-| `status` | `string` | — |  |
-| `images` | `array` | — |  |
-| `metadata` | `object` | — |  |
+| `description` | `string` |  -  |  |
+| `priceInCents` | `integer` |  -  |  |
+| `currency` | `string` |  -  |  |
+| `stripeProductId` | `string` |  -  |  |
+| `stripePriceId` | `string` |  -  |  |
+| `active` | `boolean` |  -  |  |
+| `status` | `string` |  -  |  |
+| `images` | `array` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Product created
+- `201`  -  Product created
 
 ---
 
@@ -3501,8 +3501,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Product found
-- `404` — Not found
+- `200`  -  Product found
+- `404`  -  Not found
 
 ---
 
@@ -3520,22 +3520,22 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `description` | `string` | — |  |
-| `priceInCents` | `integer` | — |  |
-| `currency` | `string` | — |  |
-| `stripeProductId` | `string` | — |  |
-| `stripePriceId` | `string` | — |  |
-| `active` | `boolean` | — |  |
-| `status` | `string` | — |  |
-| `images` | `array` | — |  |
-| `metadata` | `object` | — |  |
+| `title` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
+| `priceInCents` | `integer` |  -  |  |
+| `currency` | `string` |  -  |  |
+| `stripeProductId` | `string` |  -  |  |
+| `stripePriceId` | `string` |  -  |  |
+| `active` | `boolean` |  -  |  |
+| `status` | `string` |  -  |  |
+| `images` | `array` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `200` — Product updated
-- `404` — Not found
+- `200`  -  Product updated
+- `404`  -  Not found
 
 ---
 
@@ -3551,8 +3551,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Product deleted
-- `404` — Not found
+- `200`  -  Product deleted
+- `404`  -  Not found
 
 ---
 
@@ -3564,13 +3564,13 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `status` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Order list
+- `200`  -  Order list
 
 ---
 
@@ -3583,13 +3583,13 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `items` | `array` | ✓ |  |
-| `currency` | `string` | — |  |
-| `shippingAddress` | `object` | — |  |
-| `metadata` | `object` | — |  |
+| `currency` | `string` |  -  |  |
+| `shippingAddress` | `object` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Order created
+- `201`  -  Order created
 
 ---
 
@@ -3605,8 +3605,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Order found
-- `404` — Not found
+- `200`  -  Order found
+- `404`  -  Not found
 
 ---
 
@@ -3625,12 +3625,12 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `status` | `string` | ✓ |  |
-| `metadata` | `object` | — |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `200` — Order updated
-- `404` — Not found
+- `200`  -  Order updated
+- `404`  -  Not found
 
 ---
 
@@ -3647,8 +3647,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Batch create results
-- `400` — Bad request
+- `200`  -  Batch create results
+- `400`  -  Bad request
 
 ---
 
@@ -3665,8 +3665,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Batch update results
-- `400` — Bad request
+- `200`  -  Batch update results
+- `400`  -  Bad request
 
 ---
 
@@ -3683,8 +3683,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Batch delete results
-- `400` — Bad request
+- `200`  -  Batch delete results
+- `400`  -  Bad request
 
 ---
 
@@ -3704,15 +3704,15 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `format` | `string` | — | `json` |  |
-| `status` | `string` | — | — |  |
+| `format` | `string` |  -  | `json` |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Export data
-- `400` — Invalid collection
-- `401` — Authentication required
-- `403` — Admin access required
+- `200`  -  Export data
+- `400`  -  Invalid collection
+- `401`  -  Authentication required
+- `403`  -  Admin access required
 
 ---
 
@@ -3724,14 +3724,14 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `status` | `string` | — | — |  |
-| `authorId` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `status` | `string` |  -  |  -  |  |
+| `authorId` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Post list
+- `200`  -  Post list
 
 ---
 
@@ -3745,18 +3745,18 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `excerpt` | `string` | — |  |
-| `content` | `any` | — |  |
-| `featuredImageId` | `string` | — |  |
-| `authorId` | `string` | — |  |
-| `status` | `string` | — |  |
-| `meta` | `object` | — |  |
-| `categories` | `array` | — |  |
+| `excerpt` | `string` |  -  |  |
+| `content` | `any` |  -  |  |
+| `featuredImageId` | `string` |  -  |  |
+| `authorId` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `meta` | `object` |  -  |  |
+| `categories` | `array` |  -  |  |
 
 **Responses**
 
-- `201` — Post created
-- `400` — Content validation failed
+- `201`  -  Post created
+- `400`  -  Content validation failed
 
 ---
 
@@ -3772,8 +3772,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Post found
-- `404` — Not found
+- `200`  -  Post found
+- `404`  -  Not found
 
 ---
 
@@ -3791,22 +3791,22 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `excerpt` | `string` | — |  |
-| `content` | `any` | — |  |
-| `featuredImageId` | `string` | — |  |
-| `status` | `string` | — |  |
-| `published` | `boolean` | — |  |
-| `meta` | `object` | — |  |
-| `categories` | `array` | — |  |
-| `publishedAt` | `string (date-time)` | — |  |
+| `title` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `excerpt` | `string` |  -  |  |
+| `content` | `any` |  -  |  |
+| `featuredImageId` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `published` | `boolean` |  -  |  |
+| `meta` | `object` |  -  |  |
+| `categories` | `array` |  -  |  |
+| `publishedAt` | `string (date-time)` |  -  |  |
 
 **Responses**
 
-- `200` — Post updated
-- `400` — Content validation failed
-- `404` — Not found
+- `200`  -  Post updated
+- `400`  -  Content validation failed
+- `404`  -  Not found
 
 ---
 
@@ -3822,8 +3822,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Post deleted
-- `404` — Not found
+- `200`  -  Post deleted
+- `404`  -  Not found
 
 ---
 
@@ -3839,8 +3839,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Post found
-- `404` — Not found
+- `200`  -  Post found
+- `404`  -  Not found
 
 ---
 
@@ -3852,13 +3852,13 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `mimeType` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `mimeType` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Media list
+- `200`  -  Media list
 
 ---
 
@@ -3868,9 +3868,9 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `201` — Media uploaded
-- `400` — Invalid file
-- `413` — File too large
+- `201`  -  Media uploaded
+- `400`  -  Invalid file
+- `413`  -  File too large
 
 ---
 
@@ -3886,8 +3886,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Media found
-- `404` — Not found
+- `200`  -  Media found
+- `404`  -  Not found
 
 ---
 
@@ -3905,13 +3905,13 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `alt` | `string` | — |  |
-| `focalPoint` | `object` | — |  |
+| `alt` | `string` |  -  |  |
+| `focalPoint` | `object` |  -  |  |
 
 **Responses**
 
-- `200` — Media updated
-- `404` — Not found
+- `200`  -  Media updated
+- `404`  -  Not found
 
 ---
 
@@ -3927,8 +3927,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Media deleted
-- `404` — Not found
+- `200`  -  Media deleted
+- `404`  -  Not found
 
 ---
 
@@ -3940,13 +3940,13 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `status` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Site list
+- `200`  -  Site list
 
 ---
 
@@ -3960,12 +3960,12 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 |-------|------|:--------:|-------------|
 | `name` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` | — |  |
-| `status` | `string` | — |  |
+| `description` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
 
 **Responses**
 
-- `201` — Site created
+- `201`  -  Site created
 
 ---
 
@@ -3981,8 +3981,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Site found
-- `404` — Not found
+- `200`  -  Site found
+- `404`  -  Not found
 
 ---
 
@@ -4000,16 +4000,16 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `description` | `string` | — |  |
-| `status` | `string` | — |  |
-| `favicon` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `favicon` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — Site updated
-- `404` — Not found
+- `200`  -  Site updated
+- `404`  -  Not found
 
 ---
 
@@ -4025,8 +4025,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Site deleted
-- `404` — Not found
+- `200`  -  Site deleted
+- `404`  -  Not found
 
 ---
 
@@ -4044,12 +4044,12 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `status` | `string` | — | — |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Page list
-- `404` — Site not found
+- `200`  -  Page list
+- `404`  -  Site not found
 
 ---
 
@@ -4070,17 +4070,17 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
 | `path` | `string` | ✓ |  |
-| `status` | `string` | — |  |
-| `parentId` | `string` | — |  |
-| `templateId` | `string` | — |  |
-| `blocks` | `array` | — |  |
-| `seo` | `object` | — |  |
+| `status` | `string` |  -  |  |
+| `parentId` | `string` |  -  |  |
+| `templateId` | `string` |  -  |  |
+| `blocks` | `array` |  -  |  |
+| `seo` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Page created
-- `400` — Content validation failed
-- `404` — Site not found
+- `201`  -  Page created
+- `400`  -  Content validation failed
+- `404`  -  Site not found
 
 ---
 
@@ -4096,8 +4096,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Page found
-- `404` — Not found
+- `200`  -  Page found
+- `404`  -  Not found
 
 ---
 
@@ -4115,21 +4115,21 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `path` | `string` | — |  |
-| `status` | `string` | — |  |
-| `parentId` | `string` | — |  |
-| `templateId` | `string` | — |  |
-| `blocks` | `array` | — |  |
-| `seo` | `object` | — |  |
-| `publishedAt` | `string (date-time)` | — |  |
+| `title` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `path` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `parentId` | `string` |  -  |  |
+| `templateId` | `string` |  -  |  |
+| `blocks` | `array` |  -  |  |
+| `seo` | `object` |  -  |  |
+| `publishedAt` | `string (date-time)` |  -  |  |
 
 **Responses**
 
-- `200` — Page updated
-- `400` — Content validation failed
-- `404` — Not found
+- `200`  -  Page updated
+- `400`  -  Content validation failed
+- `404`  -  Not found
 
 ---
 
@@ -4145,8 +4145,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Page deleted
-- `404` — Not found
+- `200`  -  Page deleted
+- `404`  -  Not found
 
 ---
 
@@ -4160,15 +4160,15 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `q` | `string` | ✓ | — |  |
-| `type` | `string` | — | `all` |  |
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
+| `q` | `string` | ✓ |  -  |  |
+| `type` | `string` |  -  | `all` |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
 
 **Responses**
 
-- `200` — Search results sorted by relevance
-- `400` — Invalid query parameters
+- `200`  -  Search results sorted by relevance
+- `400`  -  Invalid query parameters
 
 ---
 
@@ -4180,15 +4180,15 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `page` | `integer` | — | `1` |  |
-| `limit` | `integer` | — | `10` |  |
-| `status` | `string` | — | — |  |
-| `role` | `string` | — | — |  |
-| `search` | `string` | — | — |  |
+| `page` | `integer` |  -  | `1` |  |
+| `limit` | `integer` |  -  | `10` |  |
+| `status` | `string` |  -  |  -  |  |
+| `role` | `string` |  -  |  -  |  |
+| `search` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Paginated user list
+- `200`  -  Paginated user list
 
 ---
 
@@ -4204,8 +4204,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — User found
-- `404` — Not found
+- `200`  -  User found
+- `404`  -  Not found
 
 ---
 
@@ -4223,16 +4223,16 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `name` | `string` | — |  |
-| `email` | `string (email)` | — |  |
-| `role` | `string` | — |  |
-| `status` | `string` | — |  |
-| `avatarUrl` | `string` | — |  |
+| `name` | `string` |  -  |  |
+| `email` | `string (email)` |  -  |  |
+| `role` | `string` |  -  |  |
+| `status` | `string` |  -  |  |
+| `avatarUrl` | `string` |  -  |  |
 
 **Responses**
 
-- `200` — User updated
-- `404` — Not found
+- `200`  -  User updated
+- `404`  -  Not found
 
 ---
 
@@ -4248,8 +4248,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — User deleted
-- `404` — Not found
+- `200`  -  User deleted
+- `404`  -  Not found
 
 ---
 
@@ -4261,13 +4261,13 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `status` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Product list
+- `200`  -  Product list
 
 ---
 
@@ -4281,19 +4281,19 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 |-------|------|:--------:|-------------|
 | `title` | `string` | ✓ |  |
 | `slug` | `string` | ✓ |  |
-| `description` | `string` | — |  |
-| `priceInCents` | `integer` | — |  |
-| `currency` | `string` | — |  |
-| `stripeProductId` | `string` | — |  |
-| `stripePriceId` | `string` | — |  |
-| `active` | `boolean` | — |  |
-| `status` | `string` | — |  |
-| `images` | `array` | — |  |
-| `metadata` | `object` | — |  |
+| `description` | `string` |  -  |  |
+| `priceInCents` | `integer` |  -  |  |
+| `currency` | `string` |  -  |  |
+| `stripeProductId` | `string` |  -  |  |
+| `stripePriceId` | `string` |  -  |  |
+| `active` | `boolean` |  -  |  |
+| `status` | `string` |  -  |  |
+| `images` | `array` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Product created
+- `201`  -  Product created
 
 ---
 
@@ -4309,8 +4309,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Product found
-- `404` — Not found
+- `200`  -  Product found
+- `404`  -  Not found
 
 ---
 
@@ -4328,22 +4328,22 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
-| `title` | `string` | — |  |
-| `slug` | `string` | — |  |
-| `description` | `string` | — |  |
-| `priceInCents` | `integer` | — |  |
-| `currency` | `string` | — |  |
-| `stripeProductId` | `string` | — |  |
-| `stripePriceId` | `string` | — |  |
-| `active` | `boolean` | — |  |
-| `status` | `string` | — |  |
-| `images` | `array` | — |  |
-| `metadata` | `object` | — |  |
+| `title` | `string` |  -  |  |
+| `slug` | `string` |  -  |  |
+| `description` | `string` |  -  |  |
+| `priceInCents` | `integer` |  -  |  |
+| `currency` | `string` |  -  |  |
+| `stripeProductId` | `string` |  -  |  |
+| `stripePriceId` | `string` |  -  |  |
+| `active` | `boolean` |  -  |  |
+| `status` | `string` |  -  |  |
+| `images` | `array` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `200` — Product updated
-- `404` — Not found
+- `200`  -  Product updated
+- `404`  -  Not found
 
 ---
 
@@ -4359,8 +4359,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Product deleted
-- `404` — Not found
+- `200`  -  Product deleted
+- `404`  -  Not found
 
 ---
 
@@ -4372,13 +4372,13 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `limit` | `integer` | — | `20` |  |
-| `offset` | `integer` | — | `0` |  |
-| `status` | `string` | — | — |  |
+| `limit` | `integer` |  -  | `20` |  |
+| `offset` | `integer` |  -  | `0` |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Order list
+- `200`  -  Order list
 
 ---
 
@@ -4391,13 +4391,13 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `items` | `array` | ✓ |  |
-| `currency` | `string` | — |  |
-| `shippingAddress` | `object` | — |  |
-| `metadata` | `object` | — |  |
+| `currency` | `string` |  -  |  |
+| `shippingAddress` | `object` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Order created
+- `201`  -  Order created
 
 ---
 
@@ -4413,8 +4413,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Order found
-- `404` — Not found
+- `200`  -  Order found
+- `404`  -  Not found
 
 ---
 
@@ -4433,12 +4433,12 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 | Field | Type | Required | Description |
 |-------|------|:--------:|-------------|
 | `status` | `string` | ✓ |  |
-| `metadata` | `object` | — |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `200` — Order updated
-- `404` — Not found
+- `200`  -  Order updated
+- `404`  -  Not found
 
 ---
 
@@ -4455,8 +4455,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Batch create results
-- `400` — Bad request
+- `200`  -  Batch create results
+- `400`  -  Bad request
 
 ---
 
@@ -4473,8 +4473,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Batch update results
-- `400` — Bad request
+- `200`  -  Batch update results
+- `400`  -  Bad request
 
 ---
 
@@ -4491,8 +4491,8 @@ Uses PostgreSQL full-text search with plainto_tsquery. Searches published posts 
 
 **Responses**
 
-- `200` — Batch delete results
-- `400` — Bad request
+- `200`  -  Batch delete results
+- `400`  -  Bad request
 
 ---
 
@@ -4512,15 +4512,15 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `format` | `string` | — | `json` |  |
-| `status` | `string` | — | — |  |
+| `format` | `string` |  -  | `json` |  |
+| `status` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — Export data
-- `400` — Invalid collection
-- `401` — Authentication required
-- `403` — Admin access required
+- `200`  -  Export data
+- `400`  -  Invalid collection
+- `401`  -  Authentication required
+- `403`  -  Admin access required
 
 ---
 
@@ -4539,10 +4539,10 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Indexing completed
-- `400` — Invalid collection name
-- `403` — AI feature requires Pro or Forge license
-- `502` — admin fetch error
+- `200`  -  Indexing completed
+- `400`  -  Invalid collection name
+- `403`  -  AI feature requires Pro or Forge license
+- `502`  -  admin fetch error
 
 ---
 
@@ -4558,7 +4558,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Document list
+- `200`  -  Document list
 
 ---
 
@@ -4575,8 +4575,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Document deleted
-- `403` — AI feature requires Pro or Forge license
+- `200`  -  Document deleted
+- `403`  -  AI feature requires Pro or Forge license
 
 ---
 
@@ -4592,7 +4592,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Workspace RAG status
+- `200`  -  Workspace RAG status
 
 ---
 
@@ -4609,10 +4609,10 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Indexing completed
-- `400` — Invalid collection name
-- `403` — AI feature requires Pro or Forge license
-- `502` — admin fetch error
+- `200`  -  Indexing completed
+- `400`  -  Invalid collection name
+- `403`  -  AI feature requires Pro or Forge license
+- `502`  -  admin fetch error
 
 ---
 
@@ -4628,7 +4628,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Document list
+- `200`  -  Document list
 
 ---
 
@@ -4645,8 +4645,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Document deleted
-- `403` — AI feature requires Pro or Forge license
+- `200`  -  Document deleted
+- `403`  -  AI feature requires Pro or Forge license
 
 ---
 
@@ -4662,7 +4662,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Workspace RAG status
+- `200`  -  Workspace RAG status
 
 ---
 
@@ -4674,7 +4674,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — List of key summaries
+- `200`  -  List of key summaries
 
 ---
 
@@ -4688,13 +4688,13 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 |-------|------|:--------:|-------------|
 | `provider` | `string` | ✓ | LLM provider for this key |
 | `apiKey` | `string` | ✓ | The plaintext API key (never stored; encrypted before persisting) |
-| `label` | `string` | — | Optional user-visible label for this key |
-| `setAsDefault` | `boolean` | — | Set this provider as the default for the user's agents |
-| `model` | `string` | — | Preferred model for the default provider config |
+| `label` | `string` |  -  | Optional user-visible label for this key |
+| `setAsDefault` | `boolean` |  -  | Set this provider as the default for the user's agents |
+| `model` | `string` |  -  | Preferred model for the default provider config |
 
 **Responses**
 
-- `201` — Key stored successfully
+- `201`  -  Key stored successfully
 
 ---
 
@@ -4710,8 +4710,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Key deleted
-- `404` — Key not found
+- `200`  -  Key deleted
+- `404`  -  Key not found
 
 ---
 
@@ -4733,8 +4733,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Key rotated
-- `404` — Key not found
+- `200`  -  Key rotated
+- `404`  -  Key not found
 
 ---
 
@@ -4744,7 +4744,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — List of key summaries
+- `200`  -  List of key summaries
 
 ---
 
@@ -4758,13 +4758,13 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 |-------|------|:--------:|-------------|
 | `provider` | `string` | ✓ | LLM provider for this key |
 | `apiKey` | `string` | ✓ | The plaintext API key (never stored; encrypted before persisting) |
-| `label` | `string` | — | Optional user-visible label for this key |
-| `setAsDefault` | `boolean` | — | Set this provider as the default for the user's agents |
-| `model` | `string` | — | Preferred model for the default provider config |
+| `label` | `string` |  -  | Optional user-visible label for this key |
+| `setAsDefault` | `boolean` |  -  | Set this provider as the default for the user's agents |
+| `model` | `string` |  -  | Preferred model for the default provider config |
 
 **Responses**
 
-- `201` — Key stored successfully
+- `201`  -  Key stored successfully
 
 ---
 
@@ -4780,8 +4780,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Key deleted
-- `404` — Key not found
+- `200`  -  Key deleted
+- `404`  -  Key not found
 
 ---
 
@@ -4803,8 +4803,8 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Responses**
 
-- `200` — Key rotated
-- `404` — Key not found
+- `200`  -  Key rotated
+- `404`  -  Key not found
 
 ---
 
@@ -4818,9 +4818,9 @@ Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks
 
 **Responses**
 
-- `200` — Cleanup completed successfully
-- `403` — Invalid cron secret
-- `500` — Cleanup failed
+- `200`  -  Cleanup completed successfully
+- `403`  -  Invalid cron secret
+- `500`  -  Cleanup failed
 
 ---
 
@@ -4832,9 +4832,9 @@ Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks
 
 **Responses**
 
-- `200` — Cleanup completed successfully
-- `403` — Invalid cron secret
-- `500` — Cleanup failed
+- `200`  -  Cleanup completed successfully
+- `403`  -  Invalid cron secret
+- `500`  -  Cleanup failed
 
 ---
 
@@ -4848,13 +4848,13 @@ Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `category` | `string` | — | — |  |
-| `limit` | `string` | — | — |  |
-| `offset` | `string` | — | — |  |
+| `category` | `string` |  -  |  -  |  |
+| `limit` | `string` |  -  |  -  |  |
+| `offset` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — List of active servers
+- `200`  -  List of active servers
 
 ---
 
@@ -4869,17 +4869,17 @@ Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks
 | `name` | `string` | ✓ |  |
 | `description` | `string` | ✓ |  |
 | `url` | `string (uri)` | ✓ |  |
-| `category` | `string` | — |  |
-| `tags` | `array` | — |  |
-| `pricePerCallUsdc` | `string` | — |  |
-| `metadata` | `object` | — |  |
+| `category` | `string` |  -  |  |
+| `tags` | `array` |  -  |  |
+| `pricePerCallUsdc` | `string` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Server published
-- `400` — Invalid request
-- `401` — Unauthorized
-- `422` — Invalid URL
+- `201`  -  Server published
+- `400`  -  Invalid request
+- `401`  -  Unauthorized
+- `422`  -  Invalid URL
 
 ---
 
@@ -4895,9 +4895,9 @@ Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks
 
 **Responses**
 
-- `200` — Server detail
-- `400` — Invalid server ID
-- `404` — Server not found
+- `200`  -  Server detail
+- `400`  -  Invalid server ID
+- `404`  -  Server not found
 
 ---
 
@@ -4913,11 +4913,11 @@ Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks
 
 **Responses**
 
-- `200` — Server unpublished
-- `400` — Invalid server ID
-- `401` — Unauthorized
-- `403` — Forbidden
-- `404` — Server not found
+- `200`  -  Server unpublished
+- `400`  -  Invalid server ID
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Server not found
 
 ---
 
@@ -4937,11 +4937,11 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Proxied response from MCP server
-- `400` — Invalid request
-- `402` — Payment required
-- `404` — Server not found
-- `502` — Upstream server unavailable
+- `200`  -  Proxied response from MCP server
+- `400`  -  Invalid request
+- `402`  -  Payment required
+- `404`  -  Server not found
+- `502`  -  Upstream server unavailable
 
 ---
 
@@ -4951,8 +4951,8 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Onboarding link created
-- `401` — Unauthorized
+- `200`  -  Onboarding link created
+- `401`  -  Unauthorized
 
 ---
 
@@ -4962,7 +4962,7 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Onboarding flow completed
+- `200`  -  Onboarding flow completed
 
 ---
 
@@ -4974,13 +4974,13 @@ See API schema for request body shape.
 
 | Name | Type | Required | Default | Description |
 |------|------|:--------:|---------|-------------|
-| `category` | `string` | — | — |  |
-| `limit` | `string` | — | — |  |
-| `offset` | `string` | — | — |  |
+| `category` | `string` |  -  |  -  |  |
+| `limit` | `string` |  -  |  -  |  |
+| `offset` | `string` |  -  |  -  |  |
 
 **Responses**
 
-- `200` — List of active servers
+- `200`  -  List of active servers
 
 ---
 
@@ -4995,17 +4995,17 @@ See API schema for request body shape.
 | `name` | `string` | ✓ |  |
 | `description` | `string` | ✓ |  |
 | `url` | `string (uri)` | ✓ |  |
-| `category` | `string` | — |  |
-| `tags` | `array` | — |  |
-| `pricePerCallUsdc` | `string` | — |  |
-| `metadata` | `object` | — |  |
+| `category` | `string` |  -  |  |
+| `tags` | `array` |  -  |  |
+| `pricePerCallUsdc` | `string` |  -  |  |
+| `metadata` | `object` |  -  |  |
 
 **Responses**
 
-- `201` — Server published
-- `400` — Invalid request
-- `401` — Unauthorized
-- `422` — Invalid URL
+- `201`  -  Server published
+- `400`  -  Invalid request
+- `401`  -  Unauthorized
+- `422`  -  Invalid URL
 
 ---
 
@@ -5021,9 +5021,9 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Server detail
-- `400` — Invalid server ID
-- `404` — Server not found
+- `200`  -  Server detail
+- `400`  -  Invalid server ID
+- `404`  -  Server not found
 
 ---
 
@@ -5039,11 +5039,11 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Server unpublished
-- `400` — Invalid server ID
-- `401` — Unauthorized
-- `403` — Forbidden
-- `404` — Server not found
+- `200`  -  Server unpublished
+- `400`  -  Invalid server ID
+- `401`  -  Unauthorized
+- `403`  -  Forbidden
+- `404`  -  Server not found
 
 ---
 
@@ -5063,11 +5063,11 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Proxied response from MCP server
-- `400` — Invalid request
-- `402` — Payment required
-- `404` — Server not found
-- `502` — Upstream server unavailable
+- `200`  -  Proxied response from MCP server
+- `400`  -  Invalid request
+- `402`  -  Payment required
+- `404`  -  Server not found
+- `502`  -  Upstream server unavailable
 
 ---
 
@@ -5077,8 +5077,8 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Onboarding link created
-- `401` — Unauthorized
+- `200`  -  Onboarding link created
+- `401`  -  Unauthorized
 
 ---
 
@@ -5088,7 +5088,7 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Onboarding flow completed
+- `200`  -  Onboarding flow completed
 
 ---
 
@@ -5102,7 +5102,7 @@ Returns subscription tiers, credit bundles, and perpetual license pricing. Price
 
 **Responses**
 
-- `200` — Pricing data
+- `200`  -  Pricing data
 
 ---
 
@@ -5114,7 +5114,7 @@ Returns subscription tiers, credit bundles, and perpetual license pricing. Price
 
 **Responses**
 
-- `200` — Pricing data
+- `200`  -  Pricing data
 
 ---
 
@@ -5130,7 +5130,7 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Update applied successfully
+- `200`  -  Update applied successfully
 
 ---
 
@@ -5146,7 +5146,7 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Document snapshot
+- `200`  -  Document snapshot
 
 ---
 
@@ -5162,7 +5162,7 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — WebSocket connection details
+- `200`  -  WebSocket connection details
 
 ---
 
@@ -5176,7 +5176,7 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Edit applied successfully
+- `200`  -  Edit applied successfully
 
 ---
 
@@ -5192,6 +5192,6 @@ See API schema for request body shape.
 
 **Responses**
 
-- `200` — Agent document snapshot
+- `200`  -  Agent document snapshot
 
 ---

@@ -19,12 +19,12 @@ interface UserContext {
   role: string;
 }
 
-// Database-backed storage — persists consent, deletion, and breach records to PostgreSQL.
+// Database-backed storage  -  persists consent, deletion, and breach records to PostgreSQL.
 const gdprStorage = new DrizzleGDPRStorage();
 const breachStorage = new DrizzleBreachStorage();
 const consentManager = createConsentManager(gdprStorage);
 const deletionSystem = createDataDeletionSystem(gdprStorage);
-// Breach manager must be created to register storage — not referenced after initialization
+// Breach manager must be created to register storage  -  not referenced after initialization
 void createDataBreachManager(breachStorage);
 
 const CONSENT_TYPES: ConsentType[] = [
@@ -78,7 +78,7 @@ const app = new OpenAPIHono<{ Variables: { user: UserContext | undefined } }>();
 // ---------------------------------------------------------------------------
 
 /**
- * GET /gdpr/consent — List all consents for the authenticated user.
+ * GET /gdpr/consent  -  List all consents for the authenticated user.
  */
 app.openapi(
   createRoute({
@@ -115,7 +115,7 @@ app.openapi(
 );
 
 /**
- * POST /gdpr/consent/grant — Grant consent for a specific type.
+ * POST /gdpr/consent/grant  -  Grant consent for a specific type.
  *
  * Body: { type: ConsentType, expiresIn?: number }
  */
@@ -173,7 +173,7 @@ app.openapi(
 );
 
 /**
- * POST /gdpr/consent/revoke — Revoke consent for a specific type.
+ * POST /gdpr/consent/revoke  -  Revoke consent for a specific type.
  *
  * Body: { type: ConsentType }
  */
@@ -218,7 +218,7 @@ app.openapi(
 
     if (body.type === 'necessary') {
       throw new HTTPException(400, {
-        message: 'Cannot revoke necessary consent — it is required for service operation',
+        message: 'Cannot revoke necessary consent  -  it is required for service operation',
       });
     }
 
@@ -231,7 +231,7 @@ app.openapi(
 );
 
 /**
- * GET /gdpr/consent/check/:type — Check if a specific consent is active.
+ * GET /gdpr/consent/check/:type  -  Check if a specific consent is active.
  */
 app.openapi(
   createRoute({
@@ -289,7 +289,7 @@ app.openapi(
 // ---------------------------------------------------------------------------
 
 /**
- * POST /gdpr/deletion — Request data deletion (right to be forgotten).
+ * POST /gdpr/deletion  -  Request data deletion (right to be forgotten).
  *
  * Body: { categories?: ('personal'|'sensitive'|'financial'|'health'|'behavioral')[], reason?: string }
  */
@@ -340,7 +340,7 @@ app.openapi(
 
     logger.info('Deletion request created', { userId: user.id, requestId: request.id });
 
-    // Process the deletion immediately — anonymize PII and revoke sessions
+    // Process the deletion immediately  -  anonymize PII and revoke sessions
     await deletionSystem.processDeletion(request.id, async (userId, categories) => {
       const db = getClient();
       const anonymized = await anonymizeUser(db, userId);
@@ -369,7 +369,7 @@ app.openapi(
 );
 
 /**
- * GET /gdpr/deletion — List the authenticated user's deletion requests.
+ * GET /gdpr/deletion  -  List the authenticated user's deletion requests.
  */
 app.openapi(
   createRoute({
@@ -406,7 +406,7 @@ app.openapi(
 );
 
 /**
- * GET /gdpr/deletion/:id — Get a specific deletion request by ID.
+ * GET /gdpr/deletion/:id  -  Get a specific deletion request by ID.
  */
 app.openapi(
   createRoute({
@@ -454,11 +454,11 @@ app.openapi(
 );
 
 // ---------------------------------------------------------------------------
-// Admin — Consent Statistics
+// Admin  -  Consent Statistics
 // ---------------------------------------------------------------------------
 
 /**
- * GET /gdpr/admin/stats — Aggregate consent statistics (admin only).
+ * GET /gdpr/admin/stats  -  Aggregate consent statistics (admin only).
  */
 app.openapi(
   createRoute({

@@ -1,5 +1,5 @@
 /**
- * Pricing Accuracy Tests (Phase 2.5 — Stripe Go-Live Readiness)
+ * Pricing Accuracy Tests (Phase 2.5  -  Stripe Go-Live Readiness)
  *
  * Validates that the contracts/pricing.ts definitions (single source of truth
  * for marketing pages, billing UI, and upgrade prompts) are consistent with
@@ -65,7 +65,7 @@ const ALL_TIERS: LicenseTierId[] = ['free', 'pro', 'max', 'enterprise'];
 
 // ─── Tests ─────────────────────────────────────────────────────────────────
 
-describe('Pricing Accuracy — Contracts vs Code Enforcement', () => {
+describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
   describe('Tier structure completeness', () => {
     it('SUBSCRIPTION_TIERS covers all 4 tiers', () => {
       const tierIds = SUBSCRIPTION_TIERS.map((t) => t.id);
@@ -403,7 +403,7 @@ describe('Pricing Accuracy — Contracts vs Code Enforcement', () => {
     });
   });
 
-  describe('Perpetual tiers — launch readiness', () => {
+  describe('Perpetual tiers  -  launch readiness', () => {
     it('all 3 perpetual tiers are enabled (comingSoon: false)', () => {
       for (const tier of PERPETUAL_TIERS) {
         expect(tier.comingSoon).toBe(false);

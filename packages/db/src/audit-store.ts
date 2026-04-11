@@ -3,7 +3,7 @@
  *
  * Persistent implementation of the AuditStore interface from @revealui/ai.
  * Stores audit entries in the audit_log PostgreSQL table via Drizzle ORM.
- * Append-only — no update or delete operations.
+ * Append-only  -  no update or delete operations.
  *
  * Types are defined locally to avoid a circular dependency on @revealui/ai.
  * They mirror AuditEntry and AuditFilter from @revealui/ai/audit/types.

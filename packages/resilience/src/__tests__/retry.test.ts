@@ -144,7 +144,7 @@ describe('retry', () => {
   });
 
   it('should throw after max retries exhausted', async () => {
-    vi.useRealTimers(); // Use real timers — fast baseDelay makes this instant
+    vi.useRealTimers(); // Use real timers  -  fast baseDelay makes this instant
     const fn = vi.fn(async () => {
       throw new Error('permanent');
     });

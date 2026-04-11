@@ -19,7 +19,7 @@ import {
 } from '../src/stripe/stripeClient.js';
 
 // ---------------------------------------------------------------------------
-// In-memory circuit state store — replaces NeonDB for unit tests
+// In-memory circuit state store  -  replaces NeonDB for unit tests
 // ---------------------------------------------------------------------------
 
 type StoredRow = {
@@ -48,7 +48,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 }));
 
 // Mock the Drizzle client so DbCircuitBreaker reads/writes to circuitStateStore
-// instead of a real NeonDB. The `.where()` arg is ignored — there is only ever
+// instead of a real NeonDB. The `.where()` arg is ignored  -  there is only ever
 // one service name ('stripe') in the store during any given test.
 vi.mock('@revealui/db', () => ({
   getClient: () => ({
@@ -148,7 +148,7 @@ describe('DbCircuitBreaker state transitions', () => {
     __dbCircuitBreaker.clearLocalCache();
 
     // Sub-threshold successes are tracked only in the local cache (no DB write).
-    // Do NOT clear the cache between calls — the in-process counter must survive.
+    // Do NOT clear the cache between calls  -  the in-process counter must survive.
     for (let i = 0; i < __CIRCUIT_BREAKER_CONFIG.successThreshold; i++) {
       await __dbCircuitBreaker.recordSuccess();
     }
@@ -172,7 +172,7 @@ describe('DbCircuitBreaker state transitions', () => {
     });
     __dbCircuitBreaker.clearLocalCache();
 
-    // One success — not yet at threshold
+    // One success  -  not yet at threshold
     await __dbCircuitBreaker.recordSuccess();
     __dbCircuitBreaker.clearLocalCache();
 
@@ -302,7 +302,7 @@ describe('protectedStripe resilience', () => {
     for (let i = 0; i < __CIRCUIT_BREAKER_CONFIG.failureThreshold; i++) {
       await __dbCircuitBreaker.recordFailure();
     }
-    // Local cache is already set to 'open' by recordFailure — no clearLocalCache needed
+    // Local cache is already set to 'open' by recordFailure  -  no clearLocalCache needed
 
     await expect(client.customers.create({ email: 'test@test.com' })).rejects.toThrow(
       'circuit breaker is OPEN',

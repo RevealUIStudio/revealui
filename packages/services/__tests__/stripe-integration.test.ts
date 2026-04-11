@@ -140,7 +140,7 @@ describe.skipIf(!hasStripeKey)('Stripe Integration Tests', () => {
       } catch (error) {
         failureCount++;
         if (error instanceof Error && error.message.includes('Circuit breaker is OPEN')) {
-          // Circuit breaker opened — success, stop early
+          // Circuit breaker opened  -  success, stop early
           break;
         }
       }

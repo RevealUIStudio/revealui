@@ -4,7 +4,7 @@
  * Functions for generating embeddings using the configured LLM provider.
  * Provider is auto-detected from env vars (OLLAMA_BASE_URL → GROQ → ANTHROPIC).
  * For local/free inference use Ollama with `nomic-embed-text`.
- * Note: Groq and Anthropic do not support embeddings — use Ollama for embedding tasks.
+ * Note: Groq and Anthropic do not support embeddings  -  use Ollama for embedding tasks.
  */
 
 import z from 'zod/v4';
@@ -64,10 +64,10 @@ export async function generateEmbedding(
     throw new Error('Text must be a non-empty string');
   }
 
-  // Use unified LLM client — auto-detects provider from env vars
+  // Use unified LLM client  -  auto-detects provider from env vars
   const client = createLLMClientFromEnv();
 
-  // Ask client to embed — each provider uses its own default model when model is undefined
+  // Ask client to embed  -  each provider uses its own default model when model is undefined
   const result = await client.embed(text, model ? { model } : undefined);
 
   // If provider returned batch, pick first
@@ -98,7 +98,7 @@ export async function generateEmbeddings(
   texts: string[],
   options: GenerateEmbeddingOptions = {},
 ): Promise<Embedding[]> {
-  // Generate in parallel — providers that support batch (Ollama, OpenAI) can be
+  // Generate in parallel  -  providers that support batch (Ollama, OpenAI) can be
   // optimised later by passing the full array directly to client.embed()
   const embeddings = await Promise.all(texts.map((text) => generateEmbedding(text, options)));
 

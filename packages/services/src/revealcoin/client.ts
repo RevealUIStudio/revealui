@@ -242,7 +242,7 @@ export async function verifyRvuiPayment(
     const preBalances = tx.meta?.preTokenBalances ?? [];
     const postBalances = tx.meta?.postTokenBalances ?? [];
 
-    // In @solana/kit, addresses are strings — no PublicKey class needed
+    // In @solana/kit, addresses are strings  -  no PublicKey class needed
     const recipientPost = postBalances.find(
       (b) =>
         b.mint === mintAddress &&

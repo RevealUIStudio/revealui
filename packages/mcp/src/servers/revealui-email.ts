@@ -10,14 +10,14 @@
  * Provider: Gmail REST API (GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY)
  *
  * Environment:
- *   GOOGLE_SERVICE_ACCOUNT_EMAIL — Google Workspace service account
- *   GOOGLE_PRIVATE_KEY           — RSA private key (PKCS8, \n-escaped)
- *   EMAIL_FROM                   — Sender address (default: noreply@revealui.com)
- *   EMAIL_REPLY_TO               — Default reply-to (e.g. support@revealui.com)
+ *   GOOGLE_SERVICE_ACCOUNT_EMAIL  -  Google Workspace service account
+ *   GOOGLE_PRIVATE_KEY            -  RSA private key (PKCS8, \n-escaped)
+ *   EMAIL_FROM                    -  Sender address (default: noreply@revealui.com)
+ *   EMAIL_REPLY_TO                -  Default reply-to (e.g. support@revealui.com)
  *
  * Tools:
- *   email_send          — Send a single email (HTML or plain text)
- *   email_send_batch    — Send up to 100 emails in one request
+ *   email_send           -  Send a single email (HTML or plain text)
+ *   email_send_batch     -  Send up to 100 emails in one request
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';

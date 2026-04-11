@@ -26,7 +26,7 @@ async function proxyResponse(response: Response): Promise<NextResponse> {
 
   // Normalize API response shape for the admin dashboard.
   // The Hono API returns { success, data: T[] } but APIClient.find() reads { docs, totalDocs }.
-  // Users route already returns { docs, ... } — only transform the { data } envelope.
+  // Users route already returns { docs, ... }  -  only transform the { data } envelope.
   if (data && Array.isArray(data.data) && !data.docs) {
     return NextResponse.json(
       { docs: data.data, totalDocs: data.data.length, totalPages: 1, page: 1 },

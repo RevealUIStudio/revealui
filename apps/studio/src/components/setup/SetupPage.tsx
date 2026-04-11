@@ -14,7 +14,7 @@ import {
   WslRow,
 } from './SetupRows';
 
-/** Full-page version of setup — shown when navigating to the Setup page after first-run. */
+/** Full-page version of setup  -  shown when navigating to the Setup page after first-run. */
 export default function SetupPage() {
   const setup = useSetup();
 

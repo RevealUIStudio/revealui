@@ -1,11 +1,11 @@
 ---
-title: "Forge — Self-Hosted Deployment"
+title: "Forge  -  Self-Hosted Deployment"
 description: "Enterprise self-hosted deployment with multi-tenant architecture and white-labeling"
 category: guide
 audience: enterprise
 ---
 
-# RevealUI Forge — Self-Hosted Deployment
+# RevealUI Forge  -  Self-Hosted Deployment
 
 Forge is the enterprise tier of RevealUI. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
 
@@ -34,7 +34,7 @@ Forge sits beside, not underneath, the hosted pricing model:
 ## Prerequisites
 
 - Docker Engine 24+ and Docker Compose v2
-- A Forge license key (issued at checkout — `rui_forge_...`)
+- A Forge license key (issued at checkout  -  `rui_forge_...`)
 - A domain you control (e.g. `admin.acme.com`)
 - Stripe keys for billing (if you want to use the billing stack)
 - A NeonDB or PostgreSQL 16 database URL
@@ -159,7 +159,7 @@ api:
 
 ### admin
 
-The Next.js admin dashboard (standalone output — no Node.js server required beyond what's bundled).
+The Next.js admin dashboard (standalone output  -  no Node.js server required beyond what's bundled).
 
 ```yaml
 admin:
@@ -388,7 +388,7 @@ Run multiple API replicas behind a load balancer:
 docker compose -f docker-compose.forge.yml up -d --scale api=3
 ```
 
-The API is stateless — all state lives in PostgreSQL. Session cookies are signed with `REVEALUI_SECRET`, so all replicas must share the same secret.
+The API is stateless  -  all state lives in PostgreSQL. Session cookies are signed with `REVEALUI_SECRET`, so all replicas must share the same secret.
 
 ### admin
 
@@ -400,11 +400,11 @@ The admin (Next.js standalone) can also run multiple replicas. ISR revalidation 
 
 If you're migrating from hosted RevealUI to a self-hosted Forge deployment:
 
-1. **Export your data** — use the admin admin panel (Settings → Export) or the API: `GET /api/export?collections=pages,posts,products,users`
-2. **Set up Forge** — follow the quick start above
-3. **Import your data** — `POST /api/import` with the exported JSON
-4. **Update DNS** — point your domain to the Forge instance
-5. **Transfer Stripe** — update your Stripe webhook endpoint URL to your new domain
+1. **Export your data**  -  use the admin admin panel (Settings → Export) or the API: `GET /api/export?collections=pages,posts,products,users`
+2. **Set up Forge**  -  follow the quick start above
+3. **Import your data**  -  `POST /api/import` with the exported JSON
+4. **Update DNS**  -  point your domain to the Forge instance
+5. **Transfer Stripe**  -  update your Stripe webhook endpoint URL to your new domain
 
 Contact support for assistance with large migrations or custom data transformations.
 

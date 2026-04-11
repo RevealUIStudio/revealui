@@ -37,11 +37,11 @@ export interface ShowcaseStory {
   controls: PropControls;
   /** Render the component with current prop values */
   render: (props: Record<string, unknown>) => React.ReactNode;
-  /** Variant grid axes — each key is a prop name, value is array of values to iterate */
+  /** Variant grid axes  -  each key is a prop name, value is array of values to iterate */
   variantGrid?: Record<string, string[]>;
   /** Static examples shown below the interactive preview */
   examples?: ShowcaseExample[];
-  /** Custom code generator — receives current props, returns JSX string */
+  /** Custom code generator  -  receives current props, returns JSX string */
   code?: (props: Record<string, unknown>) => string;
 }
 

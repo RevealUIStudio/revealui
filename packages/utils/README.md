@@ -1,6 +1,6 @@
 # @revealui/utils
 
-Zero-dependency shared utilities for RevealUI — structured logging, database helpers, and validation.
+Zero-dependency shared utilities for RevealUI  -  structured logging, database helpers, and validation.
 
 ## Why This Package Exists
 
@@ -16,9 +16,9 @@ utils (no dependencies)
 
 ## Features
 
-- **Structured Logger** — Multiple log levels, context propagation, child loggers, pluggable handlers
-- **Database Utilities** — SSL configuration, connection string parsing, security validation
-- **Validation** — Common validation helpers
+- **Structured Logger**  -  Multiple log levels, context propagation, child loggers, pluggable handlers
+- **Database Utilities**  -  SSL configuration, connection string parsing, security validation
+- **Validation**  -  Common validation helpers
 
 ## Installation
 
@@ -102,19 +102,19 @@ pnpm dev
 - You need structured logging with context propagation and pluggable handlers
 - You want SSL configuration or connection string parsing for PostgreSQL
 - You're building a package that must avoid depending on `core` or `db` (breaks circular deps)
-- **Not** for setup-time logging with progress bars — use `@revealui/setup/utils`
-- **Not** for Zod validation schemas — use `@revealui/contracts`
+- **Not** for setup-time logging with progress bars  -  use `@revealui/setup/utils`
+- **Not** for Zod validation schemas  -  use `@revealui/contracts`
 
 ## JOSHUA Alignment
 
-- **Orthogonal**: Zero dependencies — sits at the bottom of the dependency graph so core, db, and contracts can all import without cycles
+- **Orthogonal**: Zero dependencies  -  sits at the bottom of the dependency graph so core, db, and contracts can all import without cycles
 - **Unified**: One logger API with child loggers and pluggable handlers replaces ad-hoc `console.*` across the entire codebase
-- **Justifiable**: Every export exists to break a real circular dependency — no speculative utilities
+- **Justifiable**: Every export exists to break a real circular dependency  -  no speculative utilities
 
 ## Related
 
-- [Core Package](../core/README.md) — Uses utils for logging and error handling
-- [DB Package](../db/README.md) — Uses utils for SSL and connection helpers
+- [Core Package](../core/README.md)  -  Uses utils for logging and error handling
+- [DB Package](../db/README.md)  -  Uses utils for SSL and connection helpers
 
 ## License
 

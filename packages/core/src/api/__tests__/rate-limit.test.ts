@@ -85,7 +85,7 @@ describe('core rate-limit module', () => {
     clearAllRateLimits();
   });
 
-  describe('checkRateLimit — fixed window', () => {
+  describe('checkRateLimit  -  fixed window', () => {
     const config = { windowMs: 60_000, maxRequests: 3 };
 
     it('allows requests under the limit', () => {

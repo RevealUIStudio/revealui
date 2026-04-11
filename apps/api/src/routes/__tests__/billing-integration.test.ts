@@ -1,9 +1,9 @@
 /**
- * Billing Integration Tests — OV-3
+ * Billing Integration Tests  -  OV-3
  *
  * Tests billing endpoints against real Stripe test-mode API.
  * These tests require STRIPE_SECRET_KEY (test mode) to be set.
- * Tagged as integration — run separately from unit tests.
+ * Tagged as integration  -  run separately from unit tests.
  *
  * @group integration
  */
@@ -133,7 +133,7 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
     it('rejects expired timestamps', async () => {
       const payload = JSON.stringify({ id: 'evt_test_ov3', type: 'test' });
       const webhookSecret = 'whsec_test_secret_ov3_expiry'; // gitleaks:allow
-      // 10 minutes ago — Stripe's default tolerance is 5 minutes
+      // 10 minutes ago  -  Stripe's default tolerance is 5 minutes
       const oldTimestamp = Math.floor(Date.now() / 1000) - 600;
 
       const crypto = require('node:crypto');
@@ -193,7 +193,7 @@ describeIf('Stripe Integration Tests (OV-3)', () => {
 
       expect(products.data).toBeDefined();
       expect(Array.isArray(products.data)).toBe(true);
-      // Products may or may not exist in test mode — the API call itself is the test
+      // Products may or may not exist in test mode  -  the API call itself is the test
     });
 
     it('can list prices from Stripe', async () => {

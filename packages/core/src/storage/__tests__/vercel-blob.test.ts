@@ -20,7 +20,7 @@ import { vercelBlobStorage } from '../vercel-blob.js';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-// biome-ignore lint/suspicious/noExplicitAny: test helper — minimal config shape
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal config shape
 function createBaseConfig(collections: any[] = []) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
   return { collections } as any;

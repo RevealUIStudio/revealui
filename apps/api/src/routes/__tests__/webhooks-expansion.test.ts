@@ -14,7 +14,7 @@
 import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockConstructEvent = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
@@ -24,7 +24,7 @@ const mockChargesRetrieve = vi.fn();
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
-    // Must use a class — webhooks.ts calls `new Stripe(key)`
+    // Must use a class  -  webhooks.ts calls `new Stripe(key)`
     class {
       webhooks = { constructEventAsync: mockConstructEvent };
       subscriptions = {
@@ -50,7 +50,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
-// ─── DB Mock — fluent chain for select / insert / update ─────────────────────
+// ─── DB Mock  -  fluent chain for select / insert / update ─────────────────────
 
 const mockAuditAppend = vi.fn();
 
@@ -137,7 +137,7 @@ function postStripe(eventJson: unknown, sig = 'valid-sig') {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('POST /stripe webhook — expansion events', () => {
+describe('POST /stripe webhook  -  expansion events', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -453,7 +453,7 @@ describe('POST /stripe webhook — expansion events', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      // Now throws (500) so Stripe retries — lost-dispute revocation must not be silently skipped
+      // Now throws (500) so Stripe retries  -  lost-dispute revocation must not be silently skipped
       expect(res.status).toBe(500);
       expect(mockDb.update).not.toHaveBeenCalled();
     });
@@ -516,7 +516,7 @@ describe('POST /stripe webhook — expansion events', () => {
       await app.request(postStripe(event));
 
       expect(vi.mocked(loggerModule.logger).info).toHaveBeenCalledWith(
-        'Partial refund issued — license retained',
+        'Partial refund issued  -  license retained',
         expect.objectContaining({
           customerId: 'cus_refund',
           amountRefunded: 2000,
@@ -543,7 +543,7 @@ describe('POST /stripe webhook — expansion events', () => {
         'evt_refund_no_cust_1',
         4900,
         4900,
-        // biome-ignore lint/suspicious/noExplicitAny: test — simulate null customer from Stripe
+        // biome-ignore lint/suspicious/noExplicitAny: test  -  simulate null customer from Stripe
         null as any,
       );
       mockConstructEvent.mockReturnValueOnce(event);
@@ -694,9 +694,9 @@ describe('POST /stripe webhook — expansion events', () => {
     });
   });
 
-  // ─── invoice.payment_failed — suspension threshold ────────────────────
+  // ─── invoice.payment_failed  -  suspension threshold ────────────────────
 
-  describe('invoice.payment_failed — suspension on high attempt count', () => {
+  describe('invoice.payment_failed  -  suspension on high attempt count', () => {
     it('expires license directly after 3+ failed attempts', async () => {
       const event = {
         id: 'evt_susp_1',
@@ -746,7 +746,7 @@ describe('POST /stripe webhook — expansion events', () => {
       await app.request(postStripe(event));
 
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
-        'Payment failed 3+ times — suspending subscription',
+        'Payment failed 3+ times  -  suspending subscription',
         undefined,
         expect.objectContaining({ customerId: 'cus_susp_log', attemptCount: 4 }),
       );
@@ -777,9 +777,9 @@ describe('POST /stripe webhook — expansion events', () => {
     });
   });
 
-  // ─── charge.dispute.closed — null customer on lost dispute ───────────
+  // ─── charge.dispute.closed  -  null customer on lost dispute ───────────
 
-  describe('charge.dispute.closed — null customer', () => {
+  describe('charge.dispute.closed  -  null customer', () => {
     it('logs warning and skips revocation when charge has no customer', async () => {
       mockChargesRetrieve.mockResolvedValueOnce({
         id: 'ch_no_cust',
@@ -808,7 +808,7 @@ describe('POST /stripe webhook — expansion events', () => {
       expect(res.status).toBe(200);
       expect(mockDb.update).not.toHaveBeenCalled();
       expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
-        'Dispute charge has no customer — cannot revoke license',
+        'Dispute charge has no customer  -  cannot revoke license',
         expect.objectContaining({ chargeId: 'ch_no_cust' }),
       );
     });

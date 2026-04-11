@@ -9,7 +9,7 @@ import type {
 } from '../../../types/index.js';
 
 // Lazy-loaded so Lexical (~1.2MB) is only bundled for edit pages with richText
-// fields — list/dashboard pages skip the entire Lexical chunk.
+// fields  -  list/dashboard pages skip the entire Lexical chunk.
 const RichTextEditor = lazy(() =>
   import('../../richtext/RichTextEditor.js').then((m) => ({ default: m.RichTextEditor })),
 );
@@ -500,7 +500,7 @@ function PointFieldRenderer({
 }
 
 // ---------------------------------------------------------------------------
-// Main FieldInput — renders the appropriate control for each field type
+// Main FieldInput  -  renders the appropriate control for each field type
 // ---------------------------------------------------------------------------
 function FieldInput({ field, value, onChange }: FieldInputProps) {
   const baseClasses =

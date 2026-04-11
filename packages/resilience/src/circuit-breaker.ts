@@ -44,13 +44,13 @@ const DEFAULT_CONFIG: Required<CircuitBreakerConfig> = {
   volumeThreshold: 10,
   errorFilter: () => true,
   onStateChange: () => {
-    // No-op default — consumers override via config
+    // No-op default  -  consumers override via config
   },
   onTrip: () => {
-    // No-op default — consumers override via config
+    // No-op default  -  consumers override via config
   },
   onReset: () => {
-    // No-op default — consumers override via config
+    // No-op default  -  consumers override via config
   },
 };
 

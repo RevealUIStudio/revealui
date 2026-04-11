@@ -16,7 +16,7 @@ declare global {
 }
 
 // ---------------------------------------------------------------------------
-// Hand-rolled path matcher — replaces `path-to-regexp`.
+// Hand-rolled path matcher  -  replaces `path-to-regexp`.
 // Supports: exact paths, named params (:id), wildcards (*path),
 // and optional segments ({/...}).
 // ---------------------------------------------------------------------------

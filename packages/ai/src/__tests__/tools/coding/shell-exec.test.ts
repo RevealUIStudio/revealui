@@ -85,7 +85,7 @@ describe('shell_exec tool', () => {
   });
 
   it('caps timeout at 300000ms', async () => {
-    // This shouldn't throw — just verifies the timeout cap is applied
+    // This shouldn't throw  -  just verifies the timeout cap is applied
     const result = await shellExecTool.execute({ command: 'echo ok', timeout: 999999 });
     expect(result.success).toBe(true);
   });

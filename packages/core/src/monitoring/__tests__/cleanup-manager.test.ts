@@ -224,7 +224,7 @@ describe('CleanupManager', () => {
 
       await cleanupManager.cleanup();
 
-      // Same priority — order depends on sort stability (Map insertion order)
+      // Same priority  -  order depends on sort stability (Map insertion order)
       expect(executionOrder).toHaveLength(3);
     });
   });

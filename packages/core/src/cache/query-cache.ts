@@ -2,7 +2,7 @@
  * Query Result Caching
  *
  * In-memory Map-based cache for database queries. No external dependencies
- * (Redis, Memcached, etc.) — RevealUI uses PostgreSQL + ElectricSQL/PGlite
+ * (Redis, Memcached, etc.)  -  RevealUI uses PostgreSQL + ElectricSQL/PGlite
  * for all persistence and sync.
  */
 

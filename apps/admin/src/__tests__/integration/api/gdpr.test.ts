@@ -24,7 +24,7 @@ vi.mock('@/lib/utilities/gdpr-audit', () => ({
   writeGDPRAuditEntry: vi.fn(),
 }));
 
-// withRateLimit is a passthrough in tests — just call the handler directly
+// withRateLimit is a passthrough in tests  -  just call the handler directly
 vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: vi.fn((handler: unknown) => handler),
 }));
@@ -69,7 +69,7 @@ function makeMockRevealUI(overrides: Record<string, any> = {}) {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('GDPR Export — POST /api/gdpr/export', () => {
+describe('GDPR Export  -  POST /api/gdpr/export', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getSession).mockResolvedValue(mockSession as never);
@@ -127,7 +127,7 @@ describe('GDPR Export — POST /api/gdpr/export', () => {
 
     const { POST } = await import('../../../app/api/gdpr/export/route');
     const res = await POST(makeRequest({}));
-    // Partial failures are non-fatal — endpoint still returns 200 with available data
+    // Partial failures are non-fatal  -  endpoint still returns 200 with available data
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.data.orders).toEqual(orders);
@@ -151,7 +151,7 @@ describe('GDPR Export — POST /api/gdpr/export', () => {
   });
 });
 
-describe('GDPR Delete — POST /api/gdpr/delete', () => {
+describe('GDPR Delete  -  POST /api/gdpr/delete', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getSession).mockResolvedValue(mockSession as never);

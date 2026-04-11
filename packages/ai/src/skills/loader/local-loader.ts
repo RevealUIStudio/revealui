@@ -138,7 +138,7 @@ export async function loadAllFromDirectory(
       });
       skills.push(skill);
     } catch {
-      // Skip malformed or unreadable skill files — partial load is better than a hard crash
+      // Skip malformed or unreadable skill files  -  partial load is better than a hard crash
     }
   }
 

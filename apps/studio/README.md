@@ -1,17 +1,17 @@
 # RevealUI Studio
 
-Native AI experience — agent coordination hub, local inference management, visual agent dashboard, DevPod manager, and secret vault.
+Native AI experience  -  agent coordination hub, local inference management, visual agent dashboard, DevPod manager, and secret vault.
 
 Built with Tauri 2 + React 19 + Tailwind CSS v4.
 
 ## Features
 
-- **Dashboard** — Service status overview with tier badge
-- **Vault** — Secret management via Revvault (age encryption), namespace filtering, clipboard integration
-- **Infrastructure** — App launcher (start/stop/open 5 apps by port) + DevPod mount/unmount
-- **Sync** — Repository sync across locations (WSL, LTS, DevPod)
-- **Tunnel** — Tailscale status, connect/disconnect, peer list with 10s polling
-- **Setup** — First-run wizard (environment check, vault init, Tailscale, project setup)
+- **Dashboard**  -  Service status overview with tier badge
+- **Vault**  -  Secret management via Revvault (age encryption), namespace filtering, clipboard integration
+- **Infrastructure**  -  App launcher (start/stop/open 5 apps by port) + DevPod mount/unmount
+- **Sync**  -  Repository sync across locations (WSL, LTS, DevPod)
+- **Tunnel**  -  Tailscale status, connect/disconnect, peer list with 10s polling
+- **Setup**  -  First-run wizard (environment check, vault init, Tailscale, project setup)
 
 ## Stack
 

@@ -1,6 +1,6 @@
 # @revealui/mcp
 
-> **Commercial package** — requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
+> **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
 
 
 **Model Context Protocol (MCP) - Complete Integration Package**
@@ -17,7 +17,7 @@ This package contains everything MCP-related:
 - **Documentation** - Complete guides and per-server docs
 - **Database Migrations** - MCP-related schema
 
-> **Pro Package** — `@revealui/mcp` is available to RevealUI Pro subscribers via GitHub Packages.
+> **Pro Package**  -  `@revealui/mcp` is available to RevealUI Pro subscribers via GitHub Packages.
 > Install: `pnpm add @revealui/mcp --registry https://npm.pkg.github.com`
 
 ## Quick Start
@@ -254,7 +254,7 @@ This package consolidates MCP code from multiple locations:
 
 ## License
 
-Commercial — see [LICENSE.commercial](../../LICENSE.commercial)
+Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)
 
 ---
 

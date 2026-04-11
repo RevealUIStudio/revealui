@@ -43,7 +43,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // Inline the validated UUID in the where clause (safe — UUID format verified above)
+    // Inline the validated UUID in the where clause (safe  -  UUID format verified above)
     originUrl.searchParams.set('where', `user_id = '${userId}'`);
 
     // Proxy the request to ElectricSQL
