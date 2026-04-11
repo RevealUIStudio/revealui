@@ -147,7 +147,7 @@ function describeDestructiveAction(toolName: string, args: unknown): string {
 }
 
 export async function POST(request: NextRequest) {
-  // Dynamic import — @revealui/ai is an optional Pro dependency
+  // Dynamic import  -  @revealui/ai is an optional Pro dependency
   const aiDeps = await loadChatAIDeps();
   if (!aiDeps) {
     return new Response(JSON.stringify({ error: 'AI features require @revealui/ai (Pro)' }), {
@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
       return createApplicationErrorResponse('No messages provided', 'NO_MESSAGES', 400);
     }
     // Extract plain text from the last message for vector search.
-    // Multipart messages (vision) may include image parts — use text parts only.
+    // Multipart messages (vision) may include image parts  -  use text parts only.
     const rawContent = lastMessage.content;
     const userMessage = Array.isArray(rawContent)
       ? rawContent
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
       function: { name: string; arguments: string };
     }
 
-    /** Minimal LLM client shape — matches @revealui/ai LLMProvider without importing the Pro dep */
+    /** Minimal LLM client shape  -  matches @revealui/ai LLMProvider without importing the Pro dep */
     interface ChatLLMClient {
       chat(
         messages: Array<{
@@ -436,7 +436,7 @@ export async function POST(request: NextRequest) {
 
           // Destructive action gate: require explicit user confirmation
           if (DESTRUCTIVE_TOOLS.has(toolName) && !confirmedToolCalls.has(toolCall.id)) {
-            logger.info('Destructive tool blocked — awaiting confirmation', {
+            logger.info('Destructive tool blocked  -  awaiting confirmation', {
               tool: toolName,
               toolCallId: toolCall.id,
             });

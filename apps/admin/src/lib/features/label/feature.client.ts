@@ -1,6 +1,6 @@
 'use client';
 
-// Label feature client — not yet implemented.
+// Label feature client  -  not yet implemented.
 // Server-side feature exists in feature.server.ts with LabelNode + schema.
 // Client integration (toolbar, slash menu, plugin) requires:
 //   - LabelPlugin component

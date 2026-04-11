@@ -131,7 +131,7 @@ export default function StepEmail({
           </Button>
         </div>
 
-        {testSent && <p className="text-sm text-green-400">Test email sent — check your inbox.</p>}
+        {testSent && <p className="text-sm text-green-400">Test email sent - check your inbox.</p>}
 
         <Button variant="primary" onClick={onNext} disabled={!testSent} className="mt-2 self-end">
           Next

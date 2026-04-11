@@ -4,10 +4,10 @@
  * Read-only endpoints for the admin dashboard dashboard observability pages.
  * All endpoints require admin role (admin, super-admin, user-admin, user-super-admin).
  *
- * GET /admin/logs      — paginated app logs, filterable by app and level
- * GET /admin/errors    — paginated error events
- * GET /admin/audit     — paginated audit log, filterable by severity and agentId
- * GET /admin/webhooks  — paginated processed webhook events, filterable by eventType
+ * GET /admin/logs       -  paginated app logs, filterable by app and level
+ * GET /admin/errors     -  paginated error events
+ * GET /admin/audit      -  paginated audit log, filterable by severity and agentId
+ * GET /admin/webhooks   -  paginated processed webhook events, filterable by eventType
  */
 
 import { getClient } from '@revealui/db';
@@ -50,7 +50,7 @@ function paginatedSchema<T extends z.ZodTypeAny>(itemSchema: T) {
 }
 
 // =============================================================================
-// App — all admin observability routes share this Hono instance
+// App  -  all admin observability routes share this Hono instance
 // =============================================================================
 
 const app = new OpenAPIHono<{ Variables: AdminVariables }>();

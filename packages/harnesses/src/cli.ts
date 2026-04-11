@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * revealui-harnesses — CLI daemon and RPC client for AI harness coordination.
+ * revealui-harnesses  -  CLI daemon and RPC client for AI harness coordination.
  *
  * Commands:
  *   start [--project <path>]         Detect harnesses, register in workboard, start RPC server
@@ -348,7 +348,7 @@ async function handleContentCommand(subcommand: string | undefined, args: string
             }
             const content = await fileRes.text();
             const absolutePath = join(projectRoot, relPath);
-            // Guard against path traversal — ensure output stays within project root
+            // Guard against path traversal  -  ensure output stays within project root
             if (!absolutePath.startsWith(projectRoot)) {
               process.stderr.write(`  ✗ ${relPath} (path traversal blocked)\n`);
               errors++;
@@ -381,7 +381,7 @@ async function handleContentCommand(subcommand: string | undefined, args: string
 }
 
 async function main() {
-  // Developer tooling commands — no license required
+  // Developer tooling commands  -  no license required
   // content: canonical content management
   // start/coordinate/health: daemon coordination (multi-agent developer workflow)
   const unlicensedCommands = new Set(['content', 'start', 'coordinate', 'health']);

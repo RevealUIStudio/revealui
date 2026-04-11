@@ -1,7 +1,7 @@
 /**
  * Pure TypeScript BM25 Implementation
  *
- * Built on-demand from top-N vector candidates — no persistent index.
+ * Built on-demand from top-N vector candidates  -  no persistent index.
  * k1=1.5, b=0.75 (standard values). No external deps.
  */
 

@@ -161,7 +161,7 @@ describe('VultrProvider', () => {
       fetchSpy.mockResolvedValueOnce(makeFetchResponse(makeChatResponse('response', [])));
 
       const result = await makeProvider().chat([{ role: 'user', content: 'hi' }]);
-      // Provider maps empty array through — callers should treat [] same as undefined
+      // Provider maps empty array through  -  callers should treat [] same as undefined
       expect(result.toolCalls).toEqual([]);
     });
 

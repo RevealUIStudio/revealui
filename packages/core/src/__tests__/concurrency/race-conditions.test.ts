@@ -1,5 +1,5 @@
 /**
- * Race Condition Tests — Cache, Circuit Breaker, Bulkhead
+ * Race Condition Tests  -  Cache, Circuit Breaker, Bulkhead
  *
  * Verifies correctness under concurrent access:
  * - LRU cache reads/writes on the same key
@@ -195,7 +195,7 @@ describe('Circuit breaker concurrent state transitions', () => {
 
     expect(breaker.getState()).toBe('open');
 
-    // Fire concurrent calls — all should be rejected immediately
+    // Fire concurrent calls  -  all should be rejected immediately
     const results = await Promise.allSettled(
       Array.from({ length: 10 }, () => breaker.execute(async () => 'should not execute')),
     );
@@ -418,7 +418,7 @@ describe('Bulkhead concurrent execution', () => {
         // expected
       });
 
-    // Slot should be freed — next task should execute
+    // Slot should be freed  -  next task should execute
     const result = await bulkhead.execute(async () => 'recovered');
     expect(result).toBe('recovered');
     expect(bulkhead.getActiveRequests()).toBe(0);

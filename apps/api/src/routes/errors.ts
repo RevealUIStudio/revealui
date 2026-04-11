@@ -1,10 +1,10 @@
 /**
  * Error Capture Route
  *
- * POST /api/errors — accepts structured error payloads from admin client-side
+ * POST /api/errors  -  accepts structured error payloads from admin client-side
  * and any other app that can't write to the DB directly.
  *
- * No authentication required — errors can occur before login.
+ * No authentication required  -  errors can occur before login.
  * Protected by a dedicated IP rate limit (50 req/min) to prevent abuse.
  */
 
@@ -75,13 +75,13 @@ const captureErrorRoute = createRoute({
           }),
         },
       },
-      description: 'Forbidden — invalid or missing internal token',
+      description: 'Forbidden  -  invalid or missing internal token',
     },
   },
 });
 
 app.openapi(captureErrorRoute, async (c) => {
-  // Verify shared secret — rejects requests not originating from trusted RevealUI apps
+  // Verify shared secret  -  rejects requests not originating from trusted RevealUI apps
   const token = c.req.header('X-Internal-Token');
   const secret = process.env.REVEALUI_SECRET;
   if (!(secret && token)) {
@@ -99,7 +99,7 @@ app.openapi(captureErrorRoute, async (c) => {
   const { level, message, stack, app: appName, context, url, requestId, metadata } = body;
   const environment = body.environment ?? process.env.NODE_ENV ?? 'production';
 
-  // Fire-and-forget — never fail the caller if DB write fails
+  // Fire-and-forget  -  never fail the caller if DB write fails
   (async () => {
     try {
       const db = getClient();

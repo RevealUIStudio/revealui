@@ -1,11 +1,11 @@
 /**
- * Rich Text (Lexical) E2E Tests — Phase 2.1
+ * Rich Text (Lexical) E2E Tests  -  Phase 2.1
  *
  * Tests two things:
- *   1. UI — Admin creates a Post via the Lexical editor in the admin panel.
+ *   1. UI  -  Admin creates a Post via the Lexical editor in the admin panel.
  *            The `content` richText field is now rendered by DocumentForm after
  *            the Phase 2.1 fix (tabs flattened, richText case added to FieldInput).
- *   2. Serialization roundtrip — POST a Lexical JSON blob directly via API and
+ *   2. Serialization roundtrip  -  POST a Lexical JSON blob directly via API and
  *            GET it back; verify the JSON structure round-trips correctly.
  *
  * Collection: `posts` (has title: text + content: richText, both required).
@@ -89,10 +89,10 @@ async function skipIfNoAuth(
 }
 
 // ---------------------------------------------------------------------------
-// 1. UI test — Lexical editor renders and creates a post
+// 1. UI test  -  Lexical editor renders and creates a post
 // ---------------------------------------------------------------------------
 
-test.describe('Rich text editor — admin UI', () => {
+test.describe('Rich text editor  -  admin UI', () => {
   test.use({ storageState: AUTH_STATE_FILE });
 
   const postTitle = `E2E Post ${Date.now()}`;
@@ -149,7 +149,7 @@ test.describe('Rich text editor — admin UI', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 2. Serialization roundtrip — API-based, no UI
+// 2. Serialization roundtrip  -  API-based, no UI
 // ---------------------------------------------------------------------------
 
 test.describe('Rich text serialization roundtrip', () => {

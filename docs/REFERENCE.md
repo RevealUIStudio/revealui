@@ -21,7 +21,7 @@ npm install @revealui/core
 
 ### `buildConfig<T>(config: T): T`
 
-Validates and finalizes your RevealUI configuration. Call this in your config file — it merges in defaults, runs validation, and applies plugins.
+Validates and finalizes your RevealUI configuration. Call this in your config file  -  it merges in defaults, runs validation, and applies plugins.
 
 ```ts
 import { buildConfig } from "@revealui/core";
@@ -56,7 +56,7 @@ const revealui = await createRevealUI(config);
 
 ### `getRevealUI(options: { config: AcceptedConfig }): Promise<RevealUIInstance>`
 
-Singleton alternative to `createRevealUI`. Returns the same instance on subsequent calls — safe to call at module scope in serverless functions where cold-start re-initialization would be wasteful.
+Singleton alternative to `createRevealUI`. Returns the same instance on subsequent calls  -  safe to call at module scope in serverless functions where cold-start re-initialization would be wasteful.
 
 ```ts
 import { getRevealUI } from "@revealui/core";
@@ -585,9 +585,9 @@ export const middleware = createRateLimitMiddleware({
 
 Pre-keyed middleware factories:
 
-- `createUserRateLimit` — keys by `x-user-id` header
-- `createAPIKeyRateLimit` — keys by `x-api-key` header
-- `createEndpointRateLimit` — keys by `IP + pathname`
+- `createUserRateLimit`  -  keys by `x-user-id` header
+- `createAPIKeyRateLimit`  -  keys by `x-api-key` header
+- `createEndpointRateLimit`  -  keys by `IP + pathname`
 
 ### `RATE_LIMIT_PRESETS`
 
@@ -681,7 +681,7 @@ Verifies a license JWT using RS256/ES256. Returns the decoded payload or `null` 
 
 ### `generateLicenseKey(payload, privateKey, expiresInSeconds?): Promise<string>`
 
-Signs a new license JWT. Default expiry is 1 year. Used by the RevealUI license server — not needed in app code.
+Signs a new license JWT. Default expiry is 1 year. Used by the RevealUI license server  -  not needed in app code.
 
 ---
 
@@ -762,7 +762,7 @@ log.error("Sign-in failed", { error });
 
 ### `logger`
 
-Global default logger instance — use when no request context is available.
+Global default logger instance  -  use when no request context is available.
 
 ```ts
 import { logger } from "@revealui/core";
@@ -954,16 +954,16 @@ import {
 
 ## Related
 
-- [`@revealui/auth`](/reference/auth) — Session auth, sign in/up, rate limiting
-- [`@revealui/db`](/reference/db) — Drizzle ORM schema and NeonDB client
-- [`@revealui/contracts`](/reference/contracts) — Zod schemas and TypeScript types
-- [REST API reference](https://api.revealui.com/swagger) — Interactive OpenAPI documentation
+- [`@revealui/auth`](/reference/auth)  -  Session auth, sign in/up, rate limiting
+- [`@revealui/db`](/reference/db)  -  Drizzle ORM schema and NeonDB client
+- [`@revealui/contracts`](/reference/contracts)  -  Zod schemas and TypeScript types
+- [REST API reference](https://api.revealui.com/swagger)  -  Interactive OpenAPI documentation
 
 ---
 
 # @revealui/contracts
 
-Zod schemas, TypeScript types, and runtime contracts — the single source of truth for all data shapes across RevealUI. Used by every package in the monorepo.
+Zod schemas, TypeScript types, and runtime contracts  -  the single source of truth for all data shapes across RevealUI. Used by every package in the monorepo.
 
 ```bash
 npm install @revealui/contracts
@@ -1098,8 +1098,8 @@ interface User {
 }
 ```
 
-- `createUser(input: CreateUserInput): User` — creates a new user entity with defaults
-- `UserSchema`, `CreateUserInputSchema`, `UpdateUserInputSchema` — Zod schemas
+- `createUser(input: CreateUserInput): User`  -  creates a new user entity with defaults
+- `UserSchema`, `CreateUserInputSchema`, `UpdateUserInputSchema`  -  Zod schemas
 
 ### Site
 
@@ -1116,8 +1116,8 @@ interface Site {
 ```
 
 - `createSite(input: CreateSiteInput): Site`
-- `canUserPerformAction(user, action, resource): boolean` — RBAC check
-- `canAgentEditSite(agent, site): boolean` — AI agent permission check
+- `canUserPerformAction(user, action, resource): boolean`  -  RBAC check
+- `canAgentEditSite(agent, site): boolean`  -  AI agent permission check
 
 ### Page
 
@@ -1136,10 +1136,10 @@ interface Page {
 ```
 
 - `createPage(input: CreatePageInput): Page`
-- `computePagePath(page): string` — computes URL path from hierarchy
+- `computePagePath(page): string`  -  computes URL path from hierarchy
 - `getPageBreadcrumbs(page, pages): Page[]`
 - `estimateWordCount(page): number`
-- `isPageLocked(page): boolean` — collaborative editing lock
+- `isPageLocked(page): boolean`  -  collaborative editing lock
 - `createPageLock(page, userId): PageLock`
 
 ---
@@ -1226,7 +1226,7 @@ isArrayField(field);
 
 ## A2A Protocol (Agent-to-Agent)
 
-Import from `@revealui/contracts` — these types implement the [Google A2A specification](https://github.com/google/A2A).
+Import from `@revealui/contracts`  -  these types implement the [Google A2A specification](https://github.com/google/A2A).
 
 ### Agent Cards
 
@@ -1355,13 +1355,13 @@ Converts a raw database row to a contract type.
 
 ### `safeDbRowToContract(row, contract): T | ValidationError`
 
-Validated conversion — returns a `ValidationError` instead of throwing if the row doesn't match.
+Validated conversion  -  returns a `ValidationError` instead of throwing if the row doesn't match.
 
 ---
 
 ## Generated Types
 
-Import from `@revealui/contracts/generated`. These are auto-generated from the database schema — do not edit manually.
+Import from `@revealui/contracts/generated`. These are auto-generated from the database schema  -  do not edit manually.
 
 ```ts
 import type {
@@ -1396,7 +1396,7 @@ Registers a custom admin field type that can be used in collection definitions.
 
 ### `registerPluginExtension(name, ext): void`
 
-Registers a plugin field extension — adds new fields to existing collections at config-build time.
+Registers a plugin field extension  -  adds new fields to existing collections at config-build time.
 
 ### `registerValidationRule(name, rule): void`
 
@@ -1406,9 +1406,9 @@ Registers a named validation rule that can be referenced in field definitions.
 
 ## Related
 
-- [`@revealui/core`](/reference/core) — Uses contracts for config validation
-- [`@revealui/db`](/reference/db) — Database schema that contracts map to
-- [`@revealui/auth`](/reference/auth) — Uses `User`, `Session` contracts
+- [`@revealui/core`](/reference/core)  -  Uses contracts for config validation
+- [`@revealui/db`](/reference/db)  -  Database schema that contracts map to
+- [`@revealui/auth`](/reference/auth)  -  Uses `User`, `Session` contracts
 
 ---
 
@@ -1455,8 +1455,8 @@ const db = createClient({
 
 **Driver selection:**
 
-- Neon HTTP driver (`@neondatabase/serverless`) — for `neon.tech` connection strings
-- node-postgres (`pg`) — for Supabase, localhost, and other Postgres hosts
+- Neon HTTP driver (`@neondatabase/serverless`)  -  for `neon.tech` connection strings
+- node-postgres (`pg`)  -  for Supabase, localhost, and other Postgres hosts
 
 Returns `NeonHttpDatabase | NodePgDatabase` depending on the connection string.
 
@@ -1629,7 +1629,7 @@ await db.delete(sessions).where(eq(sessions.userId, userId));
 
 Import from `@revealui/db/crypto`.
 
-Requires `REVEALUI_KEK` env var — a 64-character hex string (32 bytes), used as the key-encryption key.
+Requires `REVEALUI_KEK` env var  -  a 64-character hex string (32 bytes), used as the key-encryption key.
 
 ```bash
 # Generate a KEK:
@@ -1705,9 +1705,9 @@ Migration files follow the pattern `NNNN_description.sql`. Run them in order aga
 
 ## Related
 
-- [`@revealui/auth`](/reference/auth) — Uses `users`, `sessions`, `passwordResetTokens`
-- [`@revealui/contracts`](/reference/contracts) — Zod schemas mapping to DB rows
-- [Database architecture](/docs/DATABASE) — Dual-DB design, schema overview
+- [`@revealui/auth`](/reference/auth)  -  Uses `users`, `sessions`, `passwordResetTokens`
+- [`@revealui/contracts`](/reference/contracts)  -  Zod schemas mapping to DB rows
+- [Database architecture](/docs/DATABASE)  -  Dual-DB design, schema overview
 
 ---
 
@@ -1734,9 +1734,9 @@ const serverUrl = config.reveal.serverURL;
 
 ## Design
 
-- **Lazy validation** — variables are validated on first property access, not at import time. This allows Next.js to import the module during build without all env vars being present.
-- **Fail-fast at runtime** — if a required variable is missing at runtime, accessing it throws with a clear error message listing which variables are unset.
-- **Build-time lenient mode** — during `next build` (`NEXT_PHASE=phase-production-build`) or when `SKIP_ENV_VALIDATION=1`, validation is skipped. Missing optional variables return empty strings instead of throwing.
+- **Lazy validation**  -  variables are validated on first property access, not at import time. This allows Next.js to import the module during build without all env vars being present.
+- **Fail-fast at runtime**  -  if a required variable is missing at runtime, accessing it throws with a clear error message listing which variables are unset.
+- **Build-time lenient mode**  -  during `next build` (`NEXT_PHASE=phase-production-build`) or when `SKIP_ENV_VALIDATION=1`, validation is skipped. Missing optional variables return empty strings instead of throwing.
 
 ---
 
@@ -1833,13 +1833,13 @@ interface BrandingConfig {
 }
 ```
 
-On free/pro tiers, `name` and `showPoweredBy` cannot be changed — the badge is always shown.
+On free/pro tiers, `name` and `showPoweredBy` cannot be changed  -  the badge is always shown.
 
 ---
 
 ### `config.optional`
 
-Third-party integrations — all optional, no error thrown if unset.
+Third-party integrations  -  all optional, no error thrown if unset.
 
 ```ts
 interface OptionalConfig {
@@ -1920,7 +1920,7 @@ const vars = loadEnvironment(); // { POSTGRES_URL: '...', ... }
 
 ### `validateEnvVars(env): ValidationResult`
 
-Validates all required env vars. Returns a result object — does not throw.
+Validates all required env vars. Returns a result object  -  does not throw.
 
 ```ts
 import { validateEnvVars } from "@revealui/config";
@@ -1981,15 +1981,15 @@ See `.env.template` in the repo root for the full list with descriptions.
 
 ## Related
 
-- [`@revealui/core`](/reference/core) — Reads config via `buildConfig({ serverURL, ... })`
-- [`@revealui/db`](/reference/db) — Uses `config.database.url` for the client
-- [`@revealui/auth`](/reference/auth) — Uses `config.reveal.secret` for session signing
+- [`@revealui/core`](/reference/core)  -  Reads config via `buildConfig({ serverURL, ... })`
+- [`@revealui/db`](/reference/db)  -  Uses `config.database.url` for the client
+- [`@revealui/auth`](/reference/auth)  -  Uses `config.reveal.secret` for session signing
 
 ---
 
 # @revealui/presentation
 
-52 native UI components for building RevealUI apps. Zero external UI dependencies — only `clsx` and `cva`.
+57 native UI components for building RevealUI apps. Zero external UI dependencies  -  only `clsx` and `cva`.
 
 ```bash
 npm install @revealui/presentation
@@ -2695,7 +2695,7 @@ import { cn } from '@revealui/presentation'
 
 ## Headless Primitives
 
-Behaviour-only versions of form controls — bring your own styles.
+Behaviour-only versions of form controls  -  bring your own styles.
 
 | Export             | Purpose                                  |
 | ------------------ | ---------------------------------------- |
@@ -2709,14 +2709,14 @@ Behaviour-only versions of form controls — bring your own styles.
 
 ## Related
 
-- [`@revealui/core`](/reference/core) — Uses `presentation` for admin UI components
-- [Component catalog](/docs/COMPONENT_CATALOG) — Visual index of all 58 components
+- [`@revealui/core`](/reference/core)  -  Uses `presentation` for admin UI components
+- [Component catalog](/docs/COMPONENT_CATALOG)  -  Visual index of all 58 components
 
 ---
 
 # @revealui/utils
 
-Shared utilities used across the RevealUI monorepo — structured logging, database helpers, and validation.
+Shared utilities used across the RevealUI monorepo  -  structured logging, database helpers, and validation.
 
 ```bash
 npm install @revealui/utils
@@ -2742,7 +2742,7 @@ import { passwordSchema } from "@revealui/utils";
 
 ## Logging
 
-A structured logger with configurable levels, destinations, and request context. Used throughout the monorepo — do not use `console.*` in production code; use this instead.
+A structured logger with configurable levels, destinations, and request context. Used throughout the monorepo  -  do not use `console.*` in production code; use this instead.
 
 ### `logger`
 
@@ -2831,7 +2831,7 @@ Child loggers share parent handlers (e.g. remote transport).
 
 ### `logError(error, context?)`
 
-Convenience function — logs an `Error` at `error` level with the stack trace.
+Convenience function  -  logs an `Error` at `error` level with the stack trace.
 
 ```ts
 import { logError } from '@revealui/utils'
@@ -2969,15 +2969,15 @@ type Password = z.infer<typeof passwordSchema>;
 
 ## Related
 
-- [`@revealui/core`](/reference/core) — Re-exports `createLogger` and `logger` for app-level use
-- [`@revealui/auth`](/reference/auth) — Uses `passwordSchema` and `logAudit`
-- [`@revealui/db`](/reference/db) — Uses `getSSLConfig` for connection pool setup
+- [`@revealui/core`](/reference/core)  -  Re-exports `createLogger` and `logger` for app-level use
+- [`@revealui/auth`](/reference/auth)  -  Uses `passwordSchema` and `logAudit`
+- [`@revealui/db`](/reference/db)  -  Uses `getSSLConfig` for connection pool setup
 
 ---
 
 # @revealui/auth
 
-Session-based authentication for RevealUI apps. Provides sign in/up, session management, OAuth account linking, brute-force protection, rate limiting, and password reset — all backed by PostgreSQL.
+Session-based authentication for RevealUI apps. Provides sign in/up, session management, OAuth account linking, brute-force protection, rate limiting, and password reset  -  all backed by PostgreSQL.
 
 ```bash
 npm install @revealui/auth
@@ -3194,7 +3194,7 @@ if (!verified) throw new Error("Invalid OAuth state");
 
 Exchanges an authorization code for an access token.
 
-**Returns:** `Promise<string>` — the access token
+**Returns:** `Promise<string>`  -  the access token
 
 ---
 
@@ -3357,7 +3357,7 @@ if (result.success) {
 
 Validates a password reset token without consuming it. Returns the user ID if valid.
 
-**Returns:** `Promise<string | null>` — user ID or null
+**Returns:** `Promise<string | null>`  -  user ID or null
 
 ---
 
@@ -3408,7 +3408,7 @@ interface PasswordValidationResult {
 
 ### `meetsMinimumPasswordRequirements(password)`
 
-Quick boolean check — returns `true` if the password passes all strength requirements.
+Quick boolean check  -  returns `true` if the password passes all strength requirements.
 
 ---
 
@@ -3581,25 +3581,25 @@ interface AuthSession {
 
 ## Architecture Notes
 
-- **Session-only auth** — no JWT tokens. Sessions are stored in PostgreSQL and identified by a `revealui-session` cookie containing an opaque `randomBytes(32).toString('hex')` token.
-- **Cookie domain** — `.revealui.com` for cross-subdomain support (admin, API, marketing all share sessions).
-- **Password hashing** — bcrypt with automatic salt generation.
-- **Token hashing** — session tokens and reset tokens are hashed with SHA-256 before storage.
-- **OAuth state** — CSRF-protected with HMAC-signed state parameters.
+- **Session-only auth**  -  no JWT tokens. Sessions are stored in PostgreSQL and identified by a `revealui-session` cookie containing an opaque `randomBytes(32).toString('hex')` token.
+- **Cookie domain**  -  `.revealui.com` for cross-subdomain support (admin, API, marketing all share sessions).
+- **Password hashing**  -  bcrypt with automatic salt generation.
+- **Token hashing**  -  session tokens and reset tokens are hashed with SHA-256 before storage.
+- **OAuth state**  -  CSRF-protected with HMAC-signed state parameters.
 
 ---
 
 ## Related
 
-- [`@revealui/core`](/reference/core) — Runtime engine, uses auth for admin access control
-- [`@revealui/contracts`](/reference/contracts) — `passwordSchema` Zod schema for validation
-- [`@revealui/db`](/reference/db) — `users`, `sessions`, `passwordResetTokens`, `oauthAccounts` tables
+- [`@revealui/core`](/reference/core)  -  Runtime engine, uses auth for admin access control
+- [`@revealui/contracts`](/reference/contracts)  -  `passwordSchema` Zod schema for validation
+- [`@revealui/db`](/reference/db)  -  `users`, `sessions`, `passwordResetTokens`, `oauthAccounts` tables
 
 ---
 
 # @revealui/router
 
-Lightweight client-side router with SSR support. Built on `path-to-regexp` — no heavy dependencies.
+Lightweight client-side router with SSR support. Built on `path-to-regexp`  -  no heavy dependencies.
 
 ```bash
 npm install @revealui/router
@@ -3975,8 +3975,8 @@ import type {
 
 ## Related
 
-- [`@revealui/core`](/reference/core) — Uses the router for admin UI routing
-- [`@revealui/presentation`](/reference/presentation) — `Link`, `Navbar`, and `Sidebar` integrate with the router
+- [`@revealui/core`](/reference/core)  -  Uses the router for admin UI routing
+- [`@revealui/presentation`](/reference/presentation)  -  `Link`, `Navbar`, and `Sidebar` integrate with the router
 
 ---
 
@@ -4012,27 +4012,27 @@ The CLI walks through five configuration steps:
 
 ### 1. Project
 
-- **Project name** — directory name (lowercase letters, numbers, hyphens only; must not already exist)
-- **Template** — starter template to use
+- **Project name**  -  directory name (lowercase letters, numbers, hyphens only; must not already exist)
+- **Template**  -  starter template to use
 
 ### 2. Database
 
-- **Database URL** — Postgres connection string (NeonDB, Supabase, or any Postgres)
+- **Database URL**  -  Postgres connection string (NeonDB, Supabase, or any Postgres)
 
 ### 3. Storage
 
-- **Storage provider** — Vercel Blob (default) or local filesystem
+- **Storage provider**  -  Vercel Blob (default) or local filesystem
 
 ### 4. Payments
 
-- **Stripe keys** — publishable key, secret key, and webhook secret
+- **Stripe keys**  -  publishable key, secret key, and webhook secret
 - Can be skipped to configure later via `.env.local`
 
 ### 5. Dev environment
 
-- **Package manager** — `pnpm` (recommended), `npm`, or `yarn`
-- **Dev shell** — Nix flakes + direnv (optional)
-- **Docker Compose** — generates a `docker-compose.yml` for local Postgres
+- **Package manager**  -  `pnpm` (recommended), `npm`, or `yarn`
+- **Dev shell**  -  Nix flakes + direnv (optional)
+- **Docker Compose**  -  generates a `docker-compose.yml` for local Postgres
 
 ---
 
@@ -4088,7 +4088,7 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 ```
 
-Any values you skipped are left as `PLACEHOLDER` — fill them in before running `pnpm dev`.
+Any values you skipped are left as `PLACEHOLDER`  -  fill them in before running `pnpm dev`.
 
 ### `README.md`
 
@@ -4166,15 +4166,15 @@ interface CreateProjectConfig {
 
 ## Related
 
-- [Quick start guide](/guides/quick-start) — Full walkthrough with `create-revealui`
-- [`@revealui/core`](/reference/core) — `buildConfig` — the config file your project generates
-- [`@revealui/db`](/reference/db) — Database schema and migrations
+- [Quick start guide](/guides/quick-start)  -  Full walkthrough with `create-revealui`
+- [`@revealui/core`](/reference/core)  -  `buildConfig`  -  the config file your project generates
+- [`@revealui/db`](/reference/db)  -  Database schema and migrations
 
 ---
 
 # @revealui/setup
 
-Environment setup utilities for RevealUI projects — secret generation, env file parsing, validation, and interactive setup orchestration.
+Environment setup utilities for RevealUI projects  -  secret generation, env file parsing, validation, and interactive setup orchestration.
 
 ```bash
 npm install @revealui/setup
@@ -4203,7 +4203,7 @@ Generates a cryptographically secure random hex string using `crypto.randomBytes
 | --------- | -------- | ------- | ------------------------------------------- |
 | `length`  | `number` | `32`    | Length in bytes (output is 2x in hex chars) |
 
-**Returns:** `string` — hex-encoded random secret.
+**Returns:** `string`  -  hex-encoded random secret.
 
 ```ts
 import { generateSecret } from "@revealui/setup";
@@ -4222,7 +4222,7 @@ Generates a random password with alphanumeric and special characters using `cryp
 | --------- | -------- | ------- | ----------------------------- |
 | `length`  | `number` | `16`    | Password length in characters |
 
-**Returns:** `string` — random password containing `a-zA-Z0-9!@#$%^&*`.
+**Returns:** `string`  -  random password containing `a-zA-Z0-9!@#$%^&*`.
 
 ```ts
 import { generatePassword } from "@revealui/setup";
@@ -4245,7 +4245,7 @@ Replaces or appends an environment variable in `.env` file content. If the key e
 | `key`     | `string` | Environment variable name    |
 | `value`   | `string` | New value                    |
 
-**Returns:** `string` — updated `.env` file content.
+**Returns:** `string`  -  updated `.env` file content.
 
 ```ts
 import { updateEnvValue } from "@revealui/setup";
@@ -4266,7 +4266,7 @@ Parses `.env` file content into a key-value object. Skips comments (`#`) and emp
 | --------- | -------- | ----------------------- |
 | `content` | `string` | Raw `.env` file content |
 
-**Returns:** `Record<string, string>` — parsed environment variables.
+**Returns:** `Record<string, string>`  -  parsed environment variables.
 
 ```ts
 import { parseEnvContent } from "@revealui/setup";
@@ -4337,7 +4337,7 @@ Pre-defined list of required environment variables for RevealUI projects.
 | ------------------------------------ | --------------------------------- | ---------------------- |
 | `REVEALUI_SECRET`                    | Secret key for session encryption | `minLength(32)`        |
 | `POSTGRES_URL`                       | PostgreSQL connection string      | `postgresUrl`          |
-| `BLOB_READ_WRITE_TOKEN`              | Vercel Blob storage token         | —                      |
+| `BLOB_READ_WRITE_TOKEN`              | Vercel Blob storage token         |  -                       |
 | `STRIPE_SECRET_KEY`                  | Stripe secret key                 | `stripeSecretKey`      |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key            | `stripePublishableKey` |
 
@@ -4347,9 +4347,9 @@ Pre-defined list of optional environment variables.
 
 | Variable                        | Description            | Validator       |
 | ------------------------------- | ---------------------- | --------------- |
-| `STRIPE_WEBHOOK_SECRET`         | Stripe webhook secret  | —               |
+| `STRIPE_WEBHOOK_SECRET`         | Stripe webhook secret  |  -                |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL   | `url`           |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key | —               |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key |  -                |
 | `REVEALUI_ADMIN_EMAIL`          | Initial admin email    | `email`         |
 | `REVEALUI_ADMIN_PASSWORD`       | Initial admin password | `minLength(12)` |
 
@@ -4363,7 +4363,7 @@ Interactive (or non-interactive) environment setup wizard. Copies `.env.template
 
 | Parameter                 | Type            | Default                                | Description                         |
 | ------------------------- | --------------- | -------------------------------------- | ----------------------------------- |
-| `options.projectRoot`     | `string`        | —                                      | Project root directory (required)   |
+| `options.projectRoot`     | `string`        |  -                                       | Project root directory (required)   |
 | `options.templatePath`    | `string`        | `<projectRoot>/.env.template`          | Path to template file               |
 | `options.outputPath`      | `string`        | `<projectRoot>/.env.development.local` | Output path                         |
 | `options.force`           | `boolean`       | `false`                                | Overwrite existing output file      |
@@ -4445,8 +4445,8 @@ logger.progress(3, 10, "Processing files");
 
 ## Related
 
-- [`@revealui/cli`](/reference/cli) — Uses `@revealui/setup` for project scaffolding
-- [`@revealui/config`](/reference/config) — Type-safe env config (consumed after setup)
+- [`@revealui/cli`](/reference/cli)  -  Uses `@revealui/setup` for project scaffolding
+- [`@revealui/config`](/reference/config)  -  Type-safe env config (consumed after setup)
 
 ---
 
@@ -4489,7 +4489,7 @@ function App() {
 
 | Prop           | Type        | Default | Description                                         |
 | -------------- | ----------- | ------- | --------------------------------------------------- |
-| `children`     | `ReactNode` | —       | Child components (required)                         |
+| `children`     | `ReactNode` |  -        | Child components (required)                         |
 | `serviceUrl`   | `string`    | `null`  | Direct Electric service URL (stored for future use) |
 | `proxyBaseUrl` | `string`    | `''`    | Base URL for authenticated admin proxy routes         |
 | `debug`        | `boolean`   | `false` | Enable debug mode                                   |
@@ -4566,11 +4566,11 @@ React hook that manages a collaborative editing session. Creates a Yjs document,
 
 | Parameter              | Type                    | Default | Description                      |
 | ---------------------- | ----------------------- | ------- | -------------------------------- |
-| `options.documentId`   | `string`                | —       | Document identifier (required)   |
-| `options.serverUrl`    | `string`                | —       | WebSocket server URL (required)  |
+| `options.documentId`   | `string`                |  -        | Document identifier (required)   |
+| `options.serverUrl`    | `string`                |  -        | WebSocket server URL (required)  |
 | `options.enabled`      | `boolean`               | `true`  | Enable/disable the connection    |
 | `options.initialState` | `Uint8Array \| null`    | `null`  | Initial Yjs document state       |
-| `options.identity`     | `CollaborationIdentity` | —       | Local user identity for presence |
+| `options.identity`     | `CollaborationIdentity` |  -        | Local user identity for presence |
 
 **`CollaborationIdentity`:**
 
@@ -4700,10 +4700,10 @@ client.destroy();
 
 | Parameter         | Type            | Default     | Description                            |
 | ----------------- | --------------- | ----------- | -------------------------------------- |
-| `serverUrl`       | `string`        | —           | WebSocket server URL (required)        |
-| `documentId`      | `string`        | —           | Document UUID (required)               |
-| `identity`        | `AgentIdentity` | —           | Agent identity for presence (required) |
-| `authToken`       | `string`        | —           | Authentication token                   |
+| `serverUrl`       | `string`        |  -            | WebSocket server URL (required)        |
+| `documentId`      | `string`        |  -            | Document UUID (required)               |
+| `identity`        | `AgentIdentity` |  -            | Agent identity for presence (required) |
+| `authToken`       | `string`        |  -            | Authentication token                   |
 | `autoReconnect`   | `boolean`       | `true`      | Auto-reconnect on disconnect           |
 | `defaultTextName` | `string`        | `'content'` | Default Yjs Text type name             |
 
@@ -4732,12 +4732,12 @@ Factory function that creates an `AgentCollabClient` with sensible defaults.
 
 | Parameter                 | Type      | Default      | Description                     |
 | ------------------------- | --------- | ------------ | ------------------------------- |
-| `options.serverUrl`       | `string`  | —            | WebSocket server URL (required) |
-| `options.documentId`      | `string`  | —            | Document UUID (required)        |
+| `options.serverUrl`       | `string`  |  -             | WebSocket server URL (required) |
+| `options.documentId`      | `string`  |  -             | Document UUID (required)        |
 | `options.name`            | `string`  | `'AI Agent'` | Agent display name              |
 | `options.model`           | `string`  | `'unknown'`  | LLM model identifier            |
 | `options.color`           | `string`  | `'#8B5CF6'`  | Presence cursor color           |
-| `options.authToken`       | `string`  | —            | Authentication token            |
+| `options.authToken`       | `string`  |  -             | Authentication token            |
 | `options.autoReconnect`   | `boolean` | `true`       | Auto-reconnect on disconnect    |
 | `options.defaultTextName` | `string`  | `'content'`  | Default Yjs Text type name      |
 
@@ -4916,6 +4916,6 @@ interface UseAgentContextsResult {
 
 ## Related
 
-- [`@revealui/core`](/reference/core) — Runtime engine that hosts the sync proxy routes
-- [`@revealui/db`](/reference/db) — Database schema for conversations, agent memory, and contexts
-- [`@revealui/ai`](/reference/ai) — AI agents that use `AgentCollabClient` for collaborative editing
+- [`@revealui/core`](/reference/core)  -  Runtime engine that hosts the sync proxy routes
+- [`@revealui/db`](/reference/db)  -  Database schema for conversations, agent memory, and contexts
+- [`@revealui/ai`](/reference/ai)  -  AI agents that use `AgentCollabClient` for collaborative editing

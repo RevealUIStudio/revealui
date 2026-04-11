@@ -71,7 +71,7 @@ export function App() {
   const registered = useRef(false);
 
   // Register routes synchronously during render (before first paint)
-  // so Routes can match on the initial render — avoids flash of 404.
+  // so Routes can match on the initial render  -  avoids flash of 404.
   if (!registered.current && router.getRoutes().length === 0) {
     router.registerRoutes([
       {

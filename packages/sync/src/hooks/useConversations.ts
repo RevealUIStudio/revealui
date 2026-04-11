@@ -42,12 +42,12 @@ export interface UseConversationsResult {
   remove: (id: string) => Promise<MutationResult<void>>;
 }
 
-// _userId kept for API compatibility — filtering is enforced by the server-side
+// _userId kept for API compatibility  -  filtering is enforced by the server-side
 // proxy at /api/shapes/conversations, which reads the session cookie directly.
 export function useConversations(_userId: string): UseConversationsResult {
   const { proxyBaseUrl } = useElectricConfig();
   // The proxy validates the session and enforces row-level filtering server-side.
-  // Client-provided params are not forwarded — the proxy overrides them.
+  // Client-provided params are not forwarded  -  the proxy overrides them.
   const { data, isLoading, error } = useShape({
     url: `${proxyBaseUrl}/api/shapes/conversations`,
     fetchClient: fetchWithTimeout,

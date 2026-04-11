@@ -27,7 +27,7 @@ too large or specialized for the current session.
 ## Rules
 
 1. Don't spawn a profile for work that takes under 15 minutes in the current session.
-2. Check the workboard before spawning — another agent may already own that area.
+2. Check the workboard before spawning  -  another agent may already own that area.
 3. Always give spawned agents:
    - Current phase from \`~/projects/revealui-jv/docs/MASTER_PLAN.md\`
    - Relevant workboard state

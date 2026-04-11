@@ -4,7 +4,7 @@
 
 **NEVER suppress an unused variable/import warning without first determining if the code is incomplete.**
 
-Unused declarations in this codebase frequently signal incomplete implementations — stubs, scaffolded functions, planned integrations — not dead code. Suppressing the warning without completing the code leads to permanent placeholders that silently rot.
+Unused declarations in this codebase frequently signal incomplete implementations  -  stubs, scaffolded functions, planned integrations  -  not dead code. Suppressing the warning without completing the code leads to permanent placeholders that silently rot.
 
 ---
 
@@ -48,7 +48,7 @@ When you determine a declaration is incomplete (case 1), the required steps are:
 
 1. **Search the codebase** for related implementations, types, interfaces, and tests that reveal intent.
 2. **Check the plan file** at `the project's plan files` for any documented phase covering this feature.
-3. **Check for contracts** in `packages/contracts/src/` — the schema often describes the expected behavior.
+3. **Check for contracts** in `packages/contracts/src/`  -  the schema often describes the expected behavior.
 4. **Implement the function/class/module** based on what the surrounding code expects.
 5. **Run `pnpm gate:quick`** after implementing to verify no new errors were introduced.
 
@@ -61,13 +61,13 @@ Do NOT:
 
 ## Examples
 
-### Wrong — suppressing an incomplete stub
+### Wrong  -  suppressing an incomplete stub
 ```ts
 // biome-ignore lint/correctness/noUnusedVariables: TODO
 const semanticMemory = new SemanticMemory()
 ```
 
-### Right — implement it
+### Right  -  implement it
 ```ts
 const semanticMemory = new SemanticMemory()
 await semanticMemory.store('key', content, embedding)
@@ -75,13 +75,13 @@ await semanticMemory.store('key', content, embedding)
 
 ---
 
-### Wrong — deleting a planned integration
+### Wrong  -  deleting a planned integration
 ```ts
 // Was: import { ProceduralMemory } from './procedural-memory.js'
 // Deleted because "unused"
 ```
 
-### Right — implement the module it was waiting for
+### Right  -  implement the module it was waiting for
 ```ts
 // packages/ai/src/memory/memory/procedural-memory.ts
 export class ProceduralMemory { ... }
@@ -90,14 +90,14 @@ export class ProceduralMemory { ... }
 
 ---
 
-### Wrong — renaming away the signal
+### Wrong  -  renaming away the signal
 ```ts
 // Original: const routeTableAssoc = new aws.ec2.RouteTableAssociation(...)
 // "Fixed": const _routeTableAssoc = new aws.ec2.RouteTableAssociation(...)
 // No comment explaining why
 ```
 
-### Right — rename AND document
+### Right  -  rename AND document
 ```ts
 // Route table association must exist for subnet routing to function.
 // The variable is not referenced after creation; AWS manages the association.

@@ -14,7 +14,7 @@
 import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports ─────────────────────────────────────────
+// ─── Mocks  -  declared before imports ─────────────────────────────────────────
 
 vi.mock('@revealui/core/features', () => ({
   getRequiredTier: vi.fn((feature: string) => {

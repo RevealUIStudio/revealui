@@ -5,7 +5,7 @@
  * publishes overdue scheduled pages, recovers stuck sagas, and cleans up
  * expired idempotency keys. Piggybacks on the daily cron dispatcher.
  *
- * Protected by X-Cron-Secret header (defense-in-depth — also validated in dispatch.ts).
+ * Protected by X-Cron-Secret header (defense-in-depth  -  also validated in dispatch.ts).
  */
 
 import { timingSafeEqual } from 'node:crypto';
@@ -82,7 +82,7 @@ app.post('/cleanup', async (c) => {
         });
       }
     } catch (sagaErr) {
-      // Non-fatal — token cleanup already succeeded
+      // Non-fatal  -  token cleanup already succeeded
       const message = sagaErr instanceof Error ? sagaErr.message : String(sagaErr);
       logger.error(`[cron-cleanup] Saga recovery/cleanup failed: ${message}`);
     }

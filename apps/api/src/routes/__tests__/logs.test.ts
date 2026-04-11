@@ -9,7 +9,7 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 vi.mock('@revealui/db/schema', () => ({
   appLogs: 'appLogs',
@@ -57,7 +57,7 @@ beforeEach(() => {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('POST / — schema validation', () => {
+describe('POST /  -  schema validation', () => {
   it('returns 202 with received:true on valid warn payload', async () => {
     const res = await logsApp.request(
       post({ level: 'warn', message: 'Low disk space', app: 'admin' }),
@@ -119,7 +119,7 @@ describe('POST / — schema validation', () => {
   });
 });
 
-describe('POST / — fire-and-forget DB write', () => {
+describe('POST /  -  fire-and-forget DB write', () => {
   it('returns 202 even when DB insert throws', async () => {
     mockInsertValues.mockRejectedValueOnce(new Error('DB timeout'));
 
@@ -191,7 +191,7 @@ describe('POST / — fire-and-forget DB write', () => {
   });
 });
 
-describe('POST / — authentication', () => {
+describe('POST /  -  authentication', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsertValues.mockResolvedValue({ rowCount: 1 });
@@ -234,7 +234,7 @@ describe('POST / — authentication', () => {
   });
 });
 
-describe('POST / — input sanitization', () => {
+describe('POST /  -  input sanitization', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsertValues.mockResolvedValue({ rowCount: 1 });
@@ -270,7 +270,7 @@ describe('POST / — input sanitization', () => {
   });
 });
 
-describe('POST / — field length boundaries', () => {
+describe('POST /  -  field length boundaries', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsertValues.mockResolvedValue({ rowCount: 1 });
@@ -327,7 +327,7 @@ describe('POST / — field length boundaries', () => {
   });
 });
 
-describe('POST / — environment fallback', () => {
+describe('POST /  -  environment fallback', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsertValues.mockResolvedValue({ rowCount: 1 });
@@ -380,7 +380,7 @@ describe('notFound handler', () => {
 // stderr on DB failure (logTransportError)
 // ---------------------------------------------------------------------------
 
-describe('POST / — stderr on DB failure', () => {
+describe('POST /  -  stderr on DB failure', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsertValues.mockResolvedValue({ rowCount: 1 });
@@ -420,7 +420,7 @@ describe('POST / — stderr on DB failure', () => {
 // Additional validation edge cases
 // ---------------------------------------------------------------------------
 
-describe('POST / — additional validation edge cases', () => {
+describe('POST /  -  additional validation edge cases', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsertValues.mockResolvedValue({ rowCount: 1 });

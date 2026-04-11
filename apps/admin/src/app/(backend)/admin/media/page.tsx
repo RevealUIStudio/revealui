@@ -33,7 +33,7 @@ interface MediaListResponse {
 // ---------------------------------------------------------------------------
 
 function formatBytes(bytes: number | null): string {
-  if (bytes === null || bytes === 0) return '—';
+  if (bytes === null || bytes === 0) return ' - ';
   const units = ['B', 'KB', 'MB', 'GB'];
   let i = 0;
   let size = bytes;
@@ -182,7 +182,7 @@ function MediaCard({
       <button type="button" onClick={() => onPreview(item)} className="block w-full">
         <div className="flex h-40 items-center justify-center bg-zinc-950">
           {isImage(item.mimeType) ? (
-            // biome-ignore lint/performance/noImgElement: external Blob URLs — next/image requires configured domains
+            // biome-ignore lint/performance/noImgElement: external Blob URLs  -  next/image requires configured domains
             <img
               src={item.url}
               alt={item.alt ?? item.filename}

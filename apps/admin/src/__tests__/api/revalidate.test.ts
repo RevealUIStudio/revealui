@@ -1,7 +1,7 @@
 /**
  * Revalidate Route Tests
  *
- * Tests for POST /api/revalidate — on-demand ISR revalidation endpoint.
+ * Tests for POST /api/revalidate  -  on-demand ISR revalidation endpoint.
  * Validates secret auth (timingSafeEqual), JSON parsing, and all revalidation
  * strategies (tag, path, collection+slug).
  */

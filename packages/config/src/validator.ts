@@ -46,7 +46,7 @@ export function validateEnvVars(env: Record<string, string>): ValidationResult {
   let normalizedEnv = env;
   if (!env.POSTGRES_URL && env.DATABASE_URL) {
     warnings.push(
-      'DATABASE_URL found without POSTGRES_URL — consider renaming to POSTGRES_URL (DATABASE_URL is used as fallback)',
+      'DATABASE_URL found without POSTGRES_URL  -  consider renaming to POSTGRES_URL (DATABASE_URL is used as fallback)',
     );
     normalizedEnv = { ...env, POSTGRES_URL: env.DATABASE_URL };
   }

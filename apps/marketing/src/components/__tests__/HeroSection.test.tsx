@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-// Mock @revealui/presentation — Badge and ButtonCVA are used
+// Mock @revealui/presentation  -  Badge and ButtonCVA are used
 vi.mock('@revealui/presentation', () => ({
   Badge: ({ children, ...props }: Record<string, unknown>) =>
     createElement('span', { 'data-testid': 'badge', ...props }, children as string),

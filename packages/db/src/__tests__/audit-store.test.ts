@@ -49,7 +49,7 @@ function createMockDb() {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('DrizzleAuditStore — append-only enforcement', () => {
+describe('DrizzleAuditStore  -  append-only enforcement', () => {
   let db: ReturnType<typeof createMockDb>;
   let store: DrizzleAuditStore;
 
@@ -75,7 +75,7 @@ describe('DrizzleAuditStore — append-only enforcement', () => {
 
   // ── append() ─────────────────────────────────────────────────────────────
 
-  it('append() calls db.insert — never db.update or db.delete', async () => {
+  it('append() calls db.insert  -  never db.update or db.delete', async () => {
     await store.append(makeEntry());
 
     expect(db.insert).toHaveBeenCalledOnce();
@@ -136,7 +136,7 @@ describe('DrizzleAuditStore — append-only enforcement', () => {
 
   it('migration SQL contains append-only trigger for audit_log', async () => {
     // Read the migration file and assert the trigger is present.
-    // This is a static check — if someone removes the trigger from the migration,
+    // This is a static check  -  if someone removes the trigger from the migration,
     // this test catches it before it ships.
     const { readFileSync } = await import('node:fs');
     const { resolve } = await import('node:path');

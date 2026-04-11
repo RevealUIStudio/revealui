@@ -140,7 +140,7 @@ class IdempotencyCache {
 
   constructor(store?: IdempotencyStore) {
     this.store = store ?? null;
-    // Cleanup expired entries every minute (memory only — store manages its own TTL)
+    // Cleanup expired entries every minute (memory only  -  store manages its own TTL)
     this.cleanupInterval = setInterval(() => this.cleanup(), 60 * 1000);
   }
 
@@ -199,7 +199,7 @@ class IdempotencyCache {
     // Fire-and-forget write to persistent store
     if (this.store) {
       this.store.set(key, response, ttlMs).catch(() => {
-        // Persistent store write failures are non-fatal — memory cache still works
+        // Persistent store write failures are non-fatal  -  memory cache still works
       });
     }
   }
@@ -220,7 +220,7 @@ class IdempotencyCache {
   }
 
   /**
-   * Remove expired entries (memory only — store manages its own TTL)
+   * Remove expired entries (memory only  -  store manages its own TTL)
    */
   private cleanup(): void {
     const now = Date.now();

@@ -52,7 +52,7 @@ export const rateLimitConfigs = {
  */
 /**
  * Extract the trusted client IP from X-Forwarded-For.
- * Takes the rightmost entry (appended by the outermost trusted proxy — Vercel/Cloudflare),
+ * Takes the rightmost entry (appended by the outermost trusted proxy  -  Vercel/Cloudflare),
  * not the leftmost (which is attacker-controlled in multi-hop scenarios).
  */
 function extractTrustedIp(request: NextRequest): string {

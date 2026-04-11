@@ -23,7 +23,7 @@ export const pages = pgTable(
     // Schema versioning for migrations
     schemaVersion: text('schema_version').notNull().default('1'),
 
-    // Optimistic locking — incremented on each update, checked to detect concurrent edits
+    // Optimistic locking  -  incremented on each update, checked to detect concurrent edits
     version: integer('version').notNull().default(1),
 
     // Relationships

@@ -280,7 +280,7 @@ export async function POST(req: Request) {
 
 ## 3. Product Catalog & Storefront
 
-A public-facing product catalog with a Stripe checkout flow. No subscription required — one-time purchases and license keys.
+A public-facing product catalog with a Stripe checkout flow. No subscription required  -  one-time purchases and license keys.
 
 **What you get:**
 
@@ -450,7 +450,7 @@ export const slugField: Field = {
 
 ## Related
 
-- [Quick start guide](/guides/quick-start) — Get your first project running
-- [`@revealui/cli`](/reference/cli) — Full CLI reference
-- [`@revealui/core`](/reference/core) — `defineCollection`, `buildConfig`, feature flags
-- [`@revealui/auth`](/reference/auth) — Session auth and access control
+- [Quick start guide](/guides/quick-start)  -  Get your first project running
+- [`@revealui/cli`](/reference/cli)  -  Full CLI reference
+- [`@revealui/core`](/reference/core)  -  `defineCollection`, `buildConfig`, feature flags
+- [`@revealui/auth`](/reference/auth)  -  Session auth and access control

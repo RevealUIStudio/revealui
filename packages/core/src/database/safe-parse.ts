@@ -1,7 +1,7 @@
 /**
  * Safe row parsing for database results.
  *
- * Database drivers return untyped rows — this module provides a type guard
+ * Database drivers return untyped rows  -  this module provides a type guard
  * that filters out malformed rows (missing `id`) before they reach the application.
  * All RevealUI tables have `id` as a non-nullable primary key, so filtering these
  * out prevents crashes from unexpected driver behavior or schema migrations.
@@ -22,14 +22,14 @@ import type { RevealDocument } from '../types/index.js';
  */
 export function safeParseRevealDocument(row: unknown): RevealDocument | null {
   if (row === null || typeof row !== 'object') {
-    defaultLogger.warn('Database row is not an object — skipping', { row });
+    defaultLogger.warn('Database row is not an object  -  skipping', { row });
     return null;
   }
 
   const r = row as Record<string, unknown>;
 
   if (typeof r.id !== 'string' && typeof r.id !== 'number') {
-    defaultLogger.warn('Database row missing required id field — skipping', {
+    defaultLogger.warn('Database row missing required id field  -  skipping', {
       keys: Object.keys(r),
     });
     return null;

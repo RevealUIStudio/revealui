@@ -3,11 +3,11 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { decryptApiKey, encryptApiKey, redactApiKey } from '../crypto.js';
 
 // ---------------------------------------------------------------------------
-// Test KEK — 64 hex chars (32 bytes / 256 bits)
+// Test KEK  -  64 hex chars (32 bytes / 256 bits)
 // ---------------------------------------------------------------------------
 const TEST_KEK = randomBytes(32).toString('hex');
 
-describe('crypto — API key encryption', () => {
+describe('crypto  -  API key encryption', () => {
   const originalEnv = process.env.REVEALUI_KEK;
 
   beforeEach(() => {

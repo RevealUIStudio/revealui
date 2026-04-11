@@ -5,10 +5,10 @@
  * Edge-compatible (fetch + jose, no Node.js-only dependencies).
  *
  * Required env vars:
- *   GOOGLE_SERVICE_ACCOUNT_EMAIL — GCP service account email
- *   GOOGLE_PRIVATE_KEY           — RSA private key (PKCS8 PEM)
- *   EMAIL_FROM                   — sender address (e.g. noreply@revealui.com)
- *   EMAIL_REPLY_TO               — default reply-to (e.g. support@revealui.com)
+ *   GOOGLE_SERVICE_ACCOUNT_EMAIL  -  GCP service account email
+ *   GOOGLE_PRIVATE_KEY            -  RSA private key (PKCS8 PEM)
+ *   EMAIL_FROM                    -  sender address (e.g. noreply@revealui.com)
+ *   EMAIL_REPLY_TO                -  default reply-to (e.g. support@revealui.com)
  */
 
 import { importPKCS8, SignJWT } from 'jose';
@@ -143,7 +143,7 @@ async function sendViaGmail(config: GmailConfig, payload: EmailPayload): Promise
 }
 
 // ---------------------------------------------------------------------------
-// Public API — Gmail only
+// Public API  -  Gmail only
 // ---------------------------------------------------------------------------
 
 /**
@@ -164,7 +164,7 @@ export async function sendEmail(
 }
 
 /**
- * Send a batch of emails via Gmail (sent individually — Gmail has no batch endpoint).
+ * Send a batch of emails via Gmail (sent individually  -  Gmail has no batch endpoint).
  */
 export async function sendEmailBatch(
   payloads: EmailPayload[],

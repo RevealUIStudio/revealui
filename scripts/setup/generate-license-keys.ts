@@ -43,7 +43,7 @@ function main(): void {
       return;
     }
   } catch {
-    // .env doesn't exist — that's fine
+    // .env doesn't exist  -  that's fine
   }
 
   log.info('Generating RSA-2048 key pair...');

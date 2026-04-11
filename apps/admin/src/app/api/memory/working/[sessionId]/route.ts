@@ -157,7 +157,7 @@ export async function POST(
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
     } else {
-      // Claim the session — bind it to this user
+      // Claim the session  -  bind it to this user
       await db.insert(aiMemorySessions).values({ id: sessionId, userId: authSession.user.id });
     }
 

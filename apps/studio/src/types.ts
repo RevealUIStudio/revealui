@@ -1,4 +1,4 @@
-// Auto-generated types are in ./generated/ — do not manually edit those files.
+// Auto-generated types are in ./generated/  -  do not manually edit those files.
 // To regenerate: bash apps/studio/scripts/generate-types.sh
 
 // ── Re-exports from generated Rust bindings (ts-rs) ─────────────────────────
@@ -231,7 +231,7 @@ export type DeployStep =
   | 'deploy'
   | 'verify';
 
-/** Health check result (TS-only — Rust command returns u16 directly) */
+/** Health check result (TS-only  -  Rust command returns u16 directly) */
 export interface HealthCheckResult {
   url: string;
   status: number | null;
@@ -239,7 +239,7 @@ export interface HealthCheckResult {
   error?: string;
 }
 
-/** Accumulated wizard data — survives across steps via parent state. */
+/** Accumulated wizard data  -  survives across steps via parent state. */
 export interface WizardData {
   vercelToken: string;
   vercelProjects: { api: string; admin: string; marketing: string };

@@ -11,7 +11,7 @@ import { defineConfig } from 'vitest/config';
 // Fix: turbo concurrency=2 (package.json) + maxWorkers=2 per package.
 // Worst case: 2 packages × 2 forks = 4 processes × 150 MB = 600 MB total.
 //
-// Turbo test caching is disabled (turbo.json cache:false) — tests always
+// Turbo test caching is disabled (turbo.json cache:false)  -  tests always
 // run fresh when explicitly invoked, eliminating stale cache hits.
 // ---------------------------------------------------------------------------
 

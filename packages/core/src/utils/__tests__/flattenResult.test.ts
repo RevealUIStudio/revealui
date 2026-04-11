@@ -65,7 +65,7 @@ describe('flattenResult', () => {
     const doc = { 'a.b.c': 'deep' };
     const result = flattenResult(doc as never);
 
-    // split('.', 2) produces ['a', 'b'] — the '.c' part is discarded
+    // split('.', 2) produces ['a', 'b']  -  the '.c' part is discarded
     expect(result).toEqual({ a: { b: 'deep' } });
   });
 

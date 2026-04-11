@@ -61,7 +61,7 @@ export default function HomePage() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Quick start</h2>
         <ol className="mt-3 space-y-2 text-sm text-gray-700">
           <li>
-            <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">pnpm db:seed</code> — add
+            <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">pnpm db:seed</code> - add
             sample products
           </li>
           <li>
@@ -73,7 +73,7 @@ export default function HomePage() {
             <a href="/admin" className="text-accent hover:text-accent-hover">
               /admin
             </a>{' '}
-            — manage products and orders
+            - manage products and orders
           </li>
         </ol>
       </div>

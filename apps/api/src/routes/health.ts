@@ -98,7 +98,7 @@ const liveAliasRoute = createRoute({
   tags: ['health'],
   summary: 'Liveness probe (alias)',
   description:
-    'Alias for the root liveness probe — used by Playwright smoke tests and some load balancer conventions.',
+    'Alias for the root liveness probe  -  used by Playwright smoke tests and some load balancer conventions.',
   responses: {
     200: {
       content: {
@@ -167,7 +167,7 @@ app.openapi(readyRoute, async (c) => {
   const duration = Date.now() - startTime;
   trackHTTPRequest('GET', '/health/ready', ready ? 200 : 503, duration);
 
-  // Pool metrics are internal — only expose to authenticated metrics endpoints.
+  // Pool metrics are internal  -  only expose to authenticated metrics endpoints.
   // The readiness probe returns status + checks only.
   return c.json(
     {
@@ -193,7 +193,7 @@ const metricsRoute = createRoute({
       description: 'Prometheus-compatible metrics in text/plain format',
     },
     401: {
-      description: 'Unauthorized — missing or invalid metrics secret',
+      description: 'Unauthorized  -  missing or invalid metrics secret',
     },
   },
 });
@@ -214,10 +214,10 @@ const metricsJsonRoute = createRoute({
   tags: ['health'],
   summary: 'Metrics (JSON)',
   description:
-    'Metrics in JSON format — useful for internal dashboards and debugging. Requires METRICS_SECRET or CRON_SECRET authentication.',
+    'Metrics in JSON format  -  useful for internal dashboards and debugging. Requires METRICS_SECRET or CRON_SECRET authentication.',
   responses: {
     401: {
-      description: 'Unauthorized — missing or invalid metrics secret',
+      description: 'Unauthorized  -  missing or invalid metrics secret',
     },
     200: {
       content: {

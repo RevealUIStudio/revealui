@@ -48,7 +48,7 @@ describe('validateMcpClaims', () => {
   it('checks expiration before schema validation', () => {
     const result = validateMcpClaims({
       exp: Math.floor(Date.now() / 1000) - 60,
-      // missing sub and tier — but should fail on expiration first
+      // missing sub and tier  -  but should fail on expiration first
     });
     expect(result.valid).toBe(false);
     expect(result.error).toBe('Token expired');

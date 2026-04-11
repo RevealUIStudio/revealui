@@ -5,7 +5,7 @@ import { createContext, type ReactNode, use, useMemo } from 'react';
 interface ElectricContextValue {
   /**
    * Direct Electric service URL (e.g. the Railway instance).
-   * Stored in context for future use — not consumed by the current proxy-based hooks.
+   * Stored in context for future use  -  not consumed by the current proxy-based hooks.
    * All hooks use proxyBaseUrl + /api/shapes/* instead.
    */
   serviceUrl: string | null;
@@ -28,7 +28,7 @@ const ElectricContext = createContext<ElectricContextValue>({
  * Provides ElectricSQL configuration to child hooks (`useConversations`, `useCollabDocument`).
  *
  * Provides proxyBaseUrl (and optional serviceUrl/debug) to child hooks via context.
- * All hooks use the admin proxy pattern — no direct Electric connection is established here.
+ * All hooks use the admin proxy pattern  -  no direct Electric connection is established here.
  */
 export function ElectricProvider(props: {
   children: ReactNode;

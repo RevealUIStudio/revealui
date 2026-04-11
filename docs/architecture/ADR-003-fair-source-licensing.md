@@ -5,7 +5,7 @@
 
 ## Context
 
-RevealUI has two classes of packages: OSS (core infrastructure) and Pro (AI agents, harnesses). The business model requires Pro packages to be commercially protected while remaining source-visible for trust and auditability. The previous model gitignored Pro packages in the public repo and archived them in a private repo — this created sync friction, confused contributors, and made CI harder.
+RevealUI has two classes of packages: OSS (core infrastructure) and Pro (AI agents, harnesses). The business model requires Pro packages to be commercially protected while remaining source-visible for trust and auditability. The previous model gitignored Pro packages in the public repo and archived them in a private repo  -  this created sync friction, confused contributors, and made CI harder.
 
 ## Decision
 
@@ -32,12 +32,12 @@ FSL-1.1 is used by Sentry, GitButler, and Keygen. It's OSI-approved after the 2-
 
 - **Gitignored Pro packages**: Previous model. Created sync problems, broke contributor experience, required a private archive repo.
 - **BSL (Business Source License)**: MariaDB's license. More restrictive, less well-known in the JS ecosystem. 4-year conversion period.
-- **SSPL**: MongoDB's license. Too restrictive — effectively prevents any cloud hosting.
+- **SSPL**: MongoDB's license. Too restrictive  -  effectively prevents any cloud hosting.
 - **Dual MIT + Commercial**: Requires CLA for contributions. FSL avoids this.
 
 ## Consequences
 
 - Pro source code is publicly readable (good for trust, bad for copy-paste competitors)
-- Runtime enforcement is the real protection — the license is legal backstop
+- Runtime enforcement is the real protection  -  the license is legal backstop
 - The changeset config must be updated to include Pro packages in the normal release flow
 - `LICENSE.FSL` file at repo root describes the Fair Source terms

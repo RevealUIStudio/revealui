@@ -50,7 +50,7 @@ class BasicAdapter extends MCPAdapter {
         throw new Error((request.parameters?.message as string) ?? 'Execution failed');
 
       case 'timeout-action':
-        // Never resolves — simulates a hung request
+        // Never resolves  -  simulates a hung request
         return new Promise(() => {});
 
       default:
@@ -143,7 +143,7 @@ describe('MCP Adapter Lifecycle', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Request Execution — Success
+  // Request Execution  -  Success
   // ---------------------------------------------------------------------------
 
   describe('Successful Execution', () => {
@@ -189,7 +189,7 @@ describe('MCP Adapter Lifecycle', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Request Execution — Errors
+  // Request Execution  -  Errors
   // ---------------------------------------------------------------------------
 
   describe('Error Handling', () => {

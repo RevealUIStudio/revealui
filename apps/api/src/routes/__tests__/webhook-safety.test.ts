@@ -1,19 +1,19 @@
 /**
- * Webhook Safety Tests — Money-critical paths
+ * Webhook Safety Tests  -  Money-critical paths
  *
  * Focused on the safety-critical paths that handle money:
- * 1. resolveTier() — known tiers return correctly, unknown/missing rejects webhook (500) with CRITICAL log
- * 2. Perpetual license failure — when userRow is null inside the transaction, handler throws (not returns silently)
- * 3. Idempotency — same event ID processed twice, second returns { duplicate: true }
- * 4. Missing webhook secret — returns 500
- * 5. Invalid signature — returns 400
- * 6. Webhook email functions — sendLicenseActivatedEmail, sendPaymentFailedEmail, etc. call sendEmail with sanitized headers
+ * 1. resolveTier()  -  known tiers return correctly, unknown/missing rejects webhook (500) with CRITICAL log
+ * 2. Perpetual license failure  -  when userRow is null inside the transaction, handler throws (not returns silently)
+ * 3. Idempotency  -  same event ID processed twice, second returns { duplicate: true }
+ * 4. Missing webhook secret  -  returns 500
+ * 5. Invalid signature  -  returns 400
+ * 6. Webhook email functions  -  sendLicenseActivatedEmail, sendPaymentFailedEmail, etc. call sendEmail with sanitized headers
  */
 
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockConstructEvent = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
@@ -51,7 +51,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
-// ─── DB Mock — fluent chain for select / insert / update / delete ────────────
+// ─── DB Mock  -  fluent chain for select / insert / update / delete ────────────
 
 const mockAuditAppend = vi.fn();
 
@@ -210,7 +210,7 @@ function resetDbChains(): void {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('Webhook Safety — money-critical paths', () => {
+describe('Webhook Safety  -  money-critical paths', () => {
   const savedEnv: Record<string, string | undefined> = {};
 
   beforeEach(() => {
@@ -247,10 +247,10 @@ describe('Webhook Safety — money-critical paths', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 1. resolveTier() — tier resolution safety
+  // 1. resolveTier()  -  tier resolution safety
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('resolveTier() — tier resolution safety', () => {
+  describe('resolveTier()  -  tier resolution safety', () => {
     // Exercise resolveTier through the subscription.updated handler (status='active')
     // which calls resolveTier(subscription.metadata) and writes the resolved tier to the DB.
 
@@ -355,7 +355,7 @@ describe('Webhook Safety — money-critical paths', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      // Webhook should fail so Stripe retries — do NOT default to 'pro'
+      // Webhook should fail so Stripe retries  -  do NOT default to 'pro'
       expect(res.status).toBe(500);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('CRITICAL'),
@@ -384,7 +384,7 @@ describe('Webhook Safety — money-critical paths', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      // Webhook should fail so Stripe retries — do NOT default to 'pro'
+      // Webhook should fail so Stripe retries  -  do NOT default to 'pro'
       expect(res.status).toBe(500);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('CRITICAL'),
@@ -463,10 +463,10 @@ describe('Webhook Safety — money-critical paths', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 2. Perpetual license failure — userRow null throws (not returns silently)
+  // 2. Perpetual license failure  -  userRow null throws (not returns silently)
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('Perpetual license — userRow null throws', () => {
+  describe('Perpetual license  -  userRow null throws', () => {
     function makePerpetualEvent(id: string, overrides: Record<string, unknown> = {}) {
       return {
         id,
@@ -531,7 +531,7 @@ describe('Webhook Safety — money-critical paths', () => {
       const app = createApp();
       await app.request(postStripe(event));
 
-      // Only the idempotency insert should have been called — no license insert
+      // Only the idempotency insert should have been called  -  no license insert
       expect(mockDb.insert).toHaveBeenCalledTimes(1);
     });
 
@@ -568,10 +568,10 @@ describe('Webhook Safety — money-critical paths', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 3. Idempotency — same event ID processed twice
+  // 3. Idempotency  -  same event ID processed twice
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('Idempotency — duplicate event prevention', () => {
+  describe('Idempotency  -  duplicate event prevention', () => {
     it('returns { duplicate: true } when the same event is sent twice (duplicate key message)', async () => {
       const event = {
         id: 'evt_safety_idem_dup',
@@ -591,7 +591,7 @@ describe('Webhook Safety — money-critical paths', () => {
       expect(body1.received).toBe(true);
       expect(body1.duplicate).toBeUndefined();
 
-      // Second request — DB insert fails with unique constraint
+      // Second request  -  DB insert fails with unique constraint
       mockDbInsertChain.values.mockRejectedValueOnce(
         new Error('duplicate key value violates unique constraint "processed_webhook_events_pkey"'),
       );
@@ -692,7 +692,7 @@ describe('Webhook Safety — money-critical paths', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 4. Missing webhook secret — returns 500
+  // 4. Missing webhook secret  -  returns 500
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Missing webhook secret', () => {
@@ -727,7 +727,7 @@ describe('Webhook Safety — money-critical paths', () => {
       };
       await app.request(postStripe(validBody, 't=123,v1=test'));
 
-      // constructEvent should not be called — the error happens before that
+      // constructEvent should not be called  -  the error happens before that
       expect(mockConstructEvent).not.toHaveBeenCalled();
     });
 
@@ -761,7 +761,7 @@ describe('Webhook Safety — money-critical paths', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 5. Invalid signature — returns 400
+  // 5. Invalid signature  -  returns 400
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Invalid signature', () => {
@@ -849,7 +849,7 @@ describe('Webhook Safety — money-critical paths', () => {
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // 6. Webhook email functions — correct sendEmail calls
+  // 6. Webhook email functions  -  correct sendEmail calls
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Webhook email functions', () => {
@@ -1226,7 +1226,7 @@ describe('Webhook Safety — money-critical paths', () => {
         const app = createApp();
         const res = await app.request(postStripe(event));
 
-        // Webhook should still return 200 — email failures are non-blocking
+        // Webhook should still return 200  -  email failures are non-blocking
         expect(res.status).toBe(200);
         const body = (await res.json()) as Record<string, unknown>;
         expect(body.received).toBe(true);

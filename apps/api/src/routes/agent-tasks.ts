@@ -45,7 +45,7 @@ const app = new OpenAPIHono<{ Variables: Variables }>();
 const ErrorSchema = z.object({ success: z.literal(false), error: z.string() });
 
 // =============================================================================
-// POST /api/agent-tasks — natural language → ticket → agent → outcome
+// POST /api/agent-tasks  -  natural language → ticket → agent → outcome
 // =============================================================================
 
 app.openapi(
@@ -108,7 +108,7 @@ app.openapi(
       return c.json({ success: false as const, error: `Board "${boardId}" not found` }, 400);
     }
 
-    // Create the ticket — the agent's work item
+    // Create the ticket  -  the agent's work item
     const ticket = await ticketQueries.createTicket(db, {
       id: crypto.randomUUID(),
       boardId,
@@ -125,7 +125,7 @@ app.openapi(
     // Build the dispatcher with DB-backed ticket mutation client
     const dispatcher = await buildDispatcher(db, tenant?.id);
     if (!dispatcher) {
-      // AI not configured — return the ticket but note it was not dispatched
+      // AI not configured  -  return the ticket but note it was not dispatched
       await ticketQueries.updateTicket(db, ticket.id, { status: 'open' });
       return c.json(
         {
@@ -161,7 +161,7 @@ app.openapi(
 );
 
 // =============================================================================
-// POST /api/agent-tasks/:ticketId/dispatch — dispatch an existing ticket
+// POST /api/agent-tasks/:ticketId/dispatch  -  dispatch an existing ticket
 // =============================================================================
 
 app.openapi(
@@ -254,7 +254,7 @@ app.openapi(
 // Helpers
 // =============================================================================
 
-/** Agent dispatch timeout — configurable via AGENT_TIMEOUT_MS env var */
+/** Agent dispatch timeout  -  configurable via AGENT_TIMEOUT_MS env var */
 const AGENT_TIMEOUT_MS = Number(process.env.AGENT_TIMEOUT_MS) || 120_000;
 
 /**
@@ -346,7 +346,7 @@ async function dispatchWithTimeout(
         siteId: memoryValues.siteId,
       });
     } catch {
-      // Memory persistence is best-effort — don't fail the request
+      // Memory persistence is best-effort  -  don't fail the request
     }
   }
 
@@ -394,7 +394,7 @@ async function buildDispatcher(
     },
   };
 
-  // AdminAPIClient — routes through the admin REST API if configured, otherwise no-ops
+  // AdminAPIClient  -  routes through the admin REST API if configured, otherwise no-ops
   const adminBaseUrl = process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL;
   const apiClient = buildCMSClient(adminBaseUrl);
 

@@ -14,7 +14,7 @@ describe('easing functions', () => {
       const easeIn = resolveEasing('easeIn');
       expect(easeIn(0)).toBe(0);
       expect(easeIn(1)).toBe(1);
-      // cubic easeIn accelerates — midpoint < 0.5
+      // cubic easeIn accelerates  -  midpoint < 0.5
       expect(easeIn(0.5)).toBeLessThan(0.5);
       expect(easeIn(0.5)).toBeCloseTo(0.125, 5); // 0.5^3
     });
@@ -23,7 +23,7 @@ describe('easing functions', () => {
       const easeOut = resolveEasing('easeOut');
       expect(easeOut(0)).toBe(0);
       expect(easeOut(1)).toBe(1);
-      // cubic easeOut decelerates — midpoint > 0.5
+      // cubic easeOut decelerates  -  midpoint > 0.5
       expect(easeOut(0.5)).toBeGreaterThan(0.5);
       expect(easeOut(0.5)).toBeCloseTo(0.875, 5); // 1 - (1-0.5)^3
     });
@@ -42,7 +42,7 @@ describe('easing functions', () => {
       const easeOutBack = resolveEasing('easeOutBack');
       expect(easeOutBack(0)).toBeCloseTo(0, 5);
       expect(easeOutBack(1)).toBeCloseTo(1, 5);
-      // overshoots — some value > 1 during animation
+      // overshoots  -  some value > 1 during animation
       let hasOvershoot = false;
       for (let t = 0; t <= 1; t += 0.01) {
         if (easeOutBack(t) > 1) hasOvershoot = true;
@@ -84,7 +84,7 @@ describe('easing functions', () => {
       const ease = cubicBezier(0.25, 0.1, 0.25, 1.0);
       expect(ease(0)).toBe(0);
       expect(ease(1)).toBe(1);
-      // decelerating curve — midpoint > 0.5
+      // decelerating curve  -  midpoint > 0.5
       expect(ease(0.5)).toBeGreaterThan(0.5);
     });
 

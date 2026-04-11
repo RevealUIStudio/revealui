@@ -1,8 +1,8 @@
 /**
  * Vercel OAuth Provider
  *
- * Uses native fetch — no additional npm dependencies.
- * No scopes required — Vercel uses full access by default.
+ * Uses native fetch  -  no additional npm dependencies.
+ * No scopes required  -  Vercel uses full access by default.
  */
 
 import type { ProviderUser } from '../oauth.js';
@@ -42,10 +42,10 @@ export async function exchangeCode(
       const err = (await response.json()) as { error_description?: string; error?: string };
       detail = err.error_description ?? err.error ?? '';
     } catch {
-      // Response body not JSON — use status only
+      // Response body not JSON  -  use status only
     }
     throw new Error(
-      `Vercel token exchange failed: ${response.status}${detail ? ` — ${detail}` : ''}`,
+      `Vercel token exchange failed: ${response.status}${detail ? `  -  ${detail}` : ''}`,
     );
   }
 
@@ -72,7 +72,9 @@ export async function fetchUser(accessToken: string): Promise<ProviderUser> {
     } catch {
       // Response body not JSON
     }
-    throw new Error(`Vercel user fetch failed: ${response.status}${detail ? ` — ${detail}` : ''}`);
+    throw new Error(
+      `Vercel user fetch failed: ${response.status}${detail ? `  -  ${detail}` : ''}`,
+    );
   }
 
   const data = (await response.json()) as {

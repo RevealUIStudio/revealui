@@ -430,7 +430,7 @@ function anonymizeUser(user: Record<string, unknown>): Record<string, unknown> {
 /**
  * Pseudonymize data (one-way, key-dependent)
  *
- * Uses HMAC-SHA256 — cryptographically bound to the key, resistant to
+ * Uses HMAC-SHA256  -  cryptographically bound to the key, resistant to
  * length-extension attacks and GPU brute-force (unlike plain SHA-256).
  */
 function pseudonymize(value: string, key: string): string {
@@ -592,7 +592,7 @@ export class CookieConsentManager {
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          // Validate shape before assigning — only accept known boolean fields
+          // Validate shape before assigning  -  only accept known boolean fields
           // to prevent malicious scripts from injecting arbitrary config.
           if (typeof parsed === 'object' && parsed !== null) {
             this.config = {
@@ -735,7 +735,7 @@ export class DataBreachManager {
  * Factory functions for GDPR subsystems.
  *
  * `ConsentManager` and `DataDeletionSystem` require a `GDPRStorage` implementation.
- * Use `InMemoryGDPRStorage` only in tests — production MUST use a database-backed store.
+ * Use `InMemoryGDPRStorage` only in tests  -  production MUST use a database-backed store.
  *
  * `DataExportSystem`, `PrivacyPolicyManager`, `CookieConsentManager`, and
  * `DataBreachManager` are stateless or client-side only, so singletons are safe.

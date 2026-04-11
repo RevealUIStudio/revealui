@@ -1,11 +1,11 @@
 /**
- * DiffView — CodeMirror 6 MergeView side-by-side diff panel
+ * DiffView  -  CodeMirror 6 MergeView side-by-side diff panel
  *
  * Renders the original (left) and modified (right) versions of a file using
  * @codemirror/merge, with syntax highlighting, changed-chunk gutter markers,
  * and collapsing of unchanged regions.
  *
- * Both editors are read-only — this component is for reviewing, not editing.
+ * Both editors are read-only  -  this component is for reviewing, not editing.
  * For editing, navigate to the Editor panel.
  */
 

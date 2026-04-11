@@ -12,7 +12,7 @@ import {
 } from '../json-parsing.js';
 
 // ---------------------------------------------------------------------------
-// Tests — parseJsonField
+// Tests  -  parseJsonField
 // ---------------------------------------------------------------------------
 describe('parseJsonField', () => {
   it('returns null as-is', () => {
@@ -50,7 +50,7 @@ describe('parseJsonField', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — deserializeJsonFields
+// Tests  -  deserializeJsonFields
 // ---------------------------------------------------------------------------
 describe('deserializeJsonFields', () => {
   it('ensures id field exists', () => {
@@ -127,7 +127,7 @@ describe('deserializeJsonFields', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — collectJsonFields
+// Tests  -  collectJsonFields
 // ---------------------------------------------------------------------------
 describe('collectJsonFields', () => {
   it('collects specified fields', () => {
@@ -155,7 +155,7 @@ describe('collectJsonFields', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — serializeValueForDatabase
+// Tests  -  serializeValueForDatabase
 // ---------------------------------------------------------------------------
 describe('serializeValueForDatabase', () => {
   it('serializes objects to JSON', () => {

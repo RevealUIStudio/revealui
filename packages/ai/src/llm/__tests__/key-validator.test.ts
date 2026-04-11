@@ -1,5 +1,5 @@
 /**
- * Tests for validateProviderKey — all HTTP calls are mocked.
+ * Tests for validateProviderKey  -  all HTTP calls are mocked.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

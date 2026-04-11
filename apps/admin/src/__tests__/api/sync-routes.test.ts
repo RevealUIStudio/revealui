@@ -1,19 +1,19 @@
 /**
  * Sync Route Tests
  *
- * POST        /api/sync/agent-memories              — create agent memory (AI gate)
- * PATCH/DELETE /api/sync/agent-memories/:id         — update/delete agent memory (AI gate)
- * POST        /api/sync/agent-contexts              — create/upsert agent context (AI gate)
- * PATCH/DELETE /api/sync/agent-contexts/:id         — update/delete agent context (AI gate)
- * POST        /api/sync/conversations               — create conversation (no AI gate)
- * PATCH/DELETE /api/sync/conversations/:id          — update/delete conversation
+ * POST        /api/sync/agent-memories               -  create agent memory (AI gate)
+ * PATCH/DELETE /api/sync/agent-memories/:id          -  update/delete agent memory (AI gate)
+ * POST        /api/sync/agent-contexts               -  create/upsert agent context (AI gate)
+ * PATCH/DELETE /api/sync/agent-contexts/:id          -  update/delete agent context (AI gate)
+ * POST        /api/sync/conversations                -  create conversation (no AI gate)
+ * PATCH/DELETE /api/sync/conversations/:id           -  update/delete conversation
  */
 
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must be defined before route imports
+// Mocks  -  must be defined before route imports
 // ---------------------------------------------------------------------------
 
 const { mockGetSession, mockCheckAIFeatureGate, mockGetClient } = vi.hoisted(() => ({
@@ -29,13 +29,13 @@ vi.mock('@revealui/core/utils/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
 }));
 
-// drizzle-orm operators — identity pass-through
+// drizzle-orm operators  -  identity pass-through
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn((_col: unknown, _val: unknown) => 'eq'),
   and: vi.fn((..._args: unknown[]) => 'and'),
 }));
 
-// schema tables — plain objects used as .delete()/.update() args
+// schema tables  -  plain objects used as .delete()/.update() args
 vi.mock('@revealui/db/schema', () => ({
   agentMemories: {},
   agentContexts: {},
@@ -118,7 +118,7 @@ function makeDbChain(rows: unknown[] = [], selectRows?: unknown[]) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — POST /api/sync/agent-memories
+// Tests  -  POST /api/sync/agent-memories
 // ---------------------------------------------------------------------------
 
 describe('POST /api/sync/agent-memories', () => {
@@ -205,7 +205,7 @@ describe('POST /api/sync/agent-memories', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — PATCH /api/sync/agent-memories/:id
+// Tests  -  PATCH /api/sync/agent-memories/:id
 // ---------------------------------------------------------------------------
 
 describe('PATCH /api/sync/agent-memories/:id', () => {
@@ -246,7 +246,7 @@ describe('PATCH /api/sync/agent-memories/:id', () => {
     const req = makeRequest(
       `http://localhost/api/sync/agent-memories/${VALID_UUID}`,
       'PATCH',
-      {}, // empty body — no update fields
+      {}, // empty body  -  no update fields
     );
     const res = await memoriesPatch(req, { params: Promise.resolve({ id: VALID_UUID }) });
     expect(res.status).toBe(400);
@@ -279,7 +279,7 @@ describe('PATCH /api/sync/agent-memories/:id', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — DELETE /api/sync/agent-memories/:id
+// Tests  -  DELETE /api/sync/agent-memories/:id
 // ---------------------------------------------------------------------------
 
 describe('DELETE /api/sync/agent-memories/:id', () => {
@@ -323,7 +323,7 @@ describe('DELETE /api/sync/agent-memories/:id', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — POST /api/sync/agent-contexts
+// Tests  -  POST /api/sync/agent-contexts
 // ---------------------------------------------------------------------------
 
 describe('POST /api/sync/agent-contexts', () => {
@@ -366,7 +366,7 @@ describe('POST /api/sync/agent-contexts', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — PATCH /api/sync/agent-contexts/:id
+// Tests  -  PATCH /api/sync/agent-contexts/:id
 // ---------------------------------------------------------------------------
 
 describe('PATCH /api/sync/agent-contexts/:id', () => {
@@ -416,7 +416,7 @@ describe('PATCH /api/sync/agent-contexts/:id', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — DELETE /api/sync/agent-contexts/:id
+// Tests  -  DELETE /api/sync/agent-contexts/:id
 // ---------------------------------------------------------------------------
 
 describe('DELETE /api/sync/agent-contexts/:id', () => {
@@ -450,7 +450,7 @@ describe('DELETE /api/sync/agent-contexts/:id', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — POST /api/sync/conversations
+// Tests  -  POST /api/sync/conversations
 // ---------------------------------------------------------------------------
 
 describe('POST /api/sync/conversations', () => {
@@ -489,7 +489,7 @@ describe('POST /api/sync/conversations', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — PATCH /api/sync/conversations/:id
+// Tests  -  PATCH /api/sync/conversations/:id
 // ---------------------------------------------------------------------------
 
 describe('PATCH /api/sync/conversations/:id', () => {
@@ -535,7 +535,7 @@ describe('PATCH /api/sync/conversations/:id', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — DELETE /api/sync/conversations/:id
+// Tests  -  DELETE /api/sync/conversations/:id
 // ---------------------------------------------------------------------------
 
 describe('DELETE /api/sync/conversations/:id', () => {

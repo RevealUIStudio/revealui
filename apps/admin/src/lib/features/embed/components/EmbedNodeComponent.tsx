@@ -24,7 +24,7 @@ function parseEmbedSource(url: string): EmbedSource {
       }
     }
   } catch {
-    // Not a valid URL — fall through to generic
+    // Not a valid URL  -  fall through to generic
   }
 
   return { type: 'generic', url };

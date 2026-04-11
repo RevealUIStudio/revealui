@@ -45,7 +45,7 @@ const DEFAULT_CONFIG: Required<RetryConfig> = {
     return true;
   },
   onRetry: () => {
-    // No-op default — consumers override via config
+    // No-op default  -  consumers override via config
   },
 };
 

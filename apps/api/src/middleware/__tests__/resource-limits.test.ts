@@ -30,7 +30,7 @@ import { enforceSiteLimit, enforceUserLimit } from '../resource-limits.js';
 const mockedGetMaxSites = vi.mocked(getMaxSites);
 const mockedGetMaxUsers = vi.mocked(getMaxUsers);
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
@@ -57,7 +57,7 @@ function createMockDb(countResult: number, { withAccountLookup = false } = {}) {
 const fakeSitesTable = { ownerId: { name: 'owner_id' } };
 const fakeUsersTable = { status: { name: 'status' } };
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono Variables type requires loose typing in tests
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono Variables type requires loose typing in tests
 type TestVariables = { db: any; user: any };
 
 function createSiteLimitApp(db: unknown) {
@@ -67,7 +67,7 @@ function createSiteLimitApp(db: unknown) {
     c.set('user', { id: 'user-1' });
     await next();
   });
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — middleware type is flexible
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  middleware type is flexible
   app.use('*', enforceSiteLimit(() => fakeSitesTable) as any);
   app.post('/sites', (c) => c.json({ created: true }, 201));
   app.onError(errorHandler);
@@ -80,7 +80,7 @@ function createUserLimitApp(db: unknown) {
     c.set('db', db);
     await next();
   });
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — middleware type is flexible
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  middleware type is flexible
   app.use('*', enforceUserLimit(() => fakeUsersTable) as any);
   app.post('/users', (c) => c.json({ created: true }, 201));
   app.onError(errorHandler);

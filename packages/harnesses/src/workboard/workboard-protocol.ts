@@ -1,15 +1,15 @@
 /**
- * WorkboardProtocol — types for the multi-agent coordination workboard (v2).
+ * WorkboardProtocol  -  types for the multi-agent coordination workboard (v2).
  *
  * The workboard (.claude/workboard.md) is the shared coordination primitive
  * that lets multiple AI coding agents work safely in parallel.
  *
  * v2 adds a task board with claiming protocol:
- *   Agents  — who's running (hook-managed)
- *   Tasks   — what needs doing (agent-managed, claimable)
- *   Blocked — waiting on external action
- *   Done    — recently completed
- *   Log     — audit trail
+ *   Agents   -  who's running (hook-managed)
+ *   Tasks    -  what needs doing (agent-managed, claimable)
+ *   Blocked  -  waiting on external action
+ *   Done     -  recently completed
+ *   Log      -  audit trail
  *
  * Status values: available | claimed | partial | blocked | done
  * Priority values: P0 | P1 | P2 | P3
@@ -93,9 +93,9 @@ export interface WorkboardState {
   preamble: string[];
   /** Active agent sessions */
   agents: WorkboardAgent[];
-  /** Task board — claimable work items */
+  /** Task board  -  claimable work items */
   tasks: WorkboardTask[];
-  /** Blocked tasks — waiting on external action */
+  /** Blocked tasks  -  waiting on external action */
   blocked: WorkboardBlockedTask[];
   /** Recently completed tasks */
   done: WorkboardDoneTask[];
@@ -118,7 +118,7 @@ export interface ConflictResult {
 }
 
 // ---------------------------------------------------------------------------
-// Backward compat — re-export old names as aliases
+// Backward compat  -  re-export old names as aliases
 // ---------------------------------------------------------------------------
 
 /** @deprecated Use WorkboardAgent instead */

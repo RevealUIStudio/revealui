@@ -2,7 +2,7 @@
  * Tavily Web Search Provider (P4-3)
  *
  * High-quality BYOK search backend using the Tavily Search API.
- * Tavily is optimised for LLM consumption — returns clean, summarised
+ * Tavily is optimised for LLM consumption  -  returns clean, summarised
  * content rather than raw HTML. Requires a Tavily API key.
  *
  * @see https://docs.tavily.com/docs/tavily-api/rest_api
@@ -31,7 +31,7 @@ function estimateTokens(text: string): number {
 }
 
 /**
- * Tavily search provider — BYOK, requires `TAVILY_API_KEY`.
+ * Tavily search provider  -  BYOK, requires `TAVILY_API_KEY`.
  *
  * Tavily returns high-quality, LLM-optimised results with relevance scoring.
  * Register via `AgentConfig.webSearchProvider` to replace the default

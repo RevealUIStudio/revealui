@@ -2,7 +2,7 @@
  * Audit Store
  *
  * Append-only storage interface for audit entries.
- * No update or delete operations — the log is immutable.
+ * No update or delete operations  -  the log is immutable.
  * Includes an in-memory implementation and a pluggable interface
  * for persistent backends (PostgreSQL, etc.).
  */
@@ -36,7 +36,7 @@ export interface AuditStore {
 
 /**
  * In-memory audit store for development and testing.
- * Entries are stored in a simple array — not suitable for production.
+ * Entries are stored in a simple array  -  not suitable for production.
  */
 export class InMemoryAuditStore implements AuditStore {
   private entries: AuditEntry[] = [];

@@ -1,5 +1,5 @@
 /**
- * CodeEditor — CodeMirror 6 editor panel
+ * CodeEditor  -  CodeMirror 6 editor panel
  *
  * Full-screen code editor with syntax highlighting (JS/TS/Rust/Python/HTML/CSS/JSON/MD),
  * Ctrl+S save, and unsaved-change indicator. Reads/writes files via Tauri IPC.
@@ -85,7 +85,7 @@ export default function CodeEditor({ repoPath, filePath, onClose }: Props) {
   }, [repoPath, filePath]);
 
   // Mount CodeMirror once
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omit `save` — re-mounting resets undo history
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally omit `save`  -  re-mounting resets undo history
   useEffect(() => {
     if (!containerRef.current) return;
 

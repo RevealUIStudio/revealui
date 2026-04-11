@@ -57,7 +57,7 @@ describe('TwoFactorAuth', () => {
     expect(TwoFactorAuth.verifyCode(secret, '000000')).toBe(false);
   });
 
-  // RFC 6238 Appendix B test vectors — SHA-1, 8-digit mode adapted to 6-digit.
+  // RFC 6238 Appendix B test vectors  -  SHA-1, 8-digit mode adapted to 6-digit.
   // The reference secret is the ASCII string "12345678901234567890" (20 bytes),
   // which base32-encodes to "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ".
   it('should produce RFC 6238 compliant codes matching standard authenticator apps', () => {

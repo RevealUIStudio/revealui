@@ -15,7 +15,7 @@ const ApiKeySchema = z.object({
 
 export const dynamic = 'force-dynamic';
 
-/** GET /api/user/api-keys — return { provider, keyHint } for current user (no plaintext key) */
+/** GET /api/user/api-keys  -  return { provider, keyHint } for current user (no plaintext key) */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   return NextResponse.json(metadata);
 }
 
-/** POST /api/user/api-keys — encrypt and upsert an API key */
+/** POST /api/user/api-keys  -  encrypt and upsert an API key */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   return NextResponse.json({ provider, keyHint });
 }
 
-/** DELETE /api/user/api-keys — remove the user's stored key */
+/** DELETE /api/user/api-keys  -  remove the user's stored key */
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   const session = await getSession(request.headers, extractRequestContext(request));
   if (!session) {

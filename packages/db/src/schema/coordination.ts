@@ -1,5 +1,5 @@
 /**
- * Coordination tables — Multi-agent workboard, sessions, events, work items.
+ * Coordination tables  -  Multi-agent workboard, sessions, events, work items.
  *
  * These tables are the server-side counterparts of the PGLite schema in
  * @revealui/harnesses. The daemon syncs local PGLite state to/from

@@ -3,11 +3,11 @@ import { cn } from '../utils/cn.js';
 import { FormLabel } from './FormLabel.js';
 
 export interface FormFieldProps {
-  /** Unique ID linking label to input — must match the input's `id` prop */
+  /** Unique ID linking label to input  -  must match the input's `id` prop */
   id: string;
   /** Label text */
   label: string;
-  /** Error message — when set, field shows error styling */
+  /** Error message  -  when set, field shows error styling */
   error?: string;
   /** Helper text shown below the input */
   description?: string;

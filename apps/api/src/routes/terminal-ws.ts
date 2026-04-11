@@ -1,17 +1,17 @@
 /**
- * Terminal WebSocket Bridge — Layer 3 of the Native Terminal Architecture.
+ * Terminal WebSocket Bridge  -  Layer 3 of the Native Terminal Architecture.
  *
  * REST endpoints for session management + WebSocket for bidirectional PTY streaming.
  * Proxies between browser/remote clients and the harness daemon's PTY sessions.
  *
  * Routes:
- *   GET  /api/terminal/sessions       — list active PTY sessions
- *   POST /api/terminal/sessions       — spawn a new Claude Code session
- *   DELETE /api/terminal/sessions/:id — stop a session
- *   WS   /api/terminal/ws/:id         — bidirectional terminal stream
+ *   GET  /api/terminal/sessions        -  list active PTY sessions
+ *   POST /api/terminal/sessions        -  spawn a new Claude Code session
+ *   DELETE /api/terminal/sessions/:id  -  stop a session
+ *   WS   /api/terminal/ws/:id          -  bidirectional terminal stream
  *
  * Auth: session cookie required (same as other API routes).
- * The daemon runs locally — WebSocket bridge gives remote access.
+ * The daemon runs locally  -  WebSocket bridge gives remote access.
  */
 
 import { createConnection } from 'node:net';
@@ -121,13 +121,13 @@ export function createTerminalRoute(): {
   // ── WebSocket: bidirectional PTY stream ────────────────────────────
   //
   // Client → Server messages:
-  //   { type: 'input', data: '...' }       — keystrokes to PTY
-  //   { type: 'resize', cols: N, rows: N } — resize terminal
+  //   { type: 'input', data: '...' }        -  keystrokes to PTY
+  //   { type: 'resize', cols: N, rows: N }  -  resize terminal
   //
   // Server → Client messages:
-  //   { type: 'output', data: '...' }      — PTY output
-  //   { type: 'exit', code: N }            — session ended
-  //   { type: 'error', message: '...' }    — error
+  //   { type: 'output', data: '...' }       -  PTY output
+  //   { type: 'exit', code: N }             -  session ended
+  //   { type: 'error', message: '...' }     -  error
   //
   app.get(
     '/ws/:id',
@@ -141,7 +141,7 @@ export function createTerminalRoute(): {
       return {
         onOpen(_event, ws) {
           // Subscribe to agent output by polling daemon
-          // The daemon emits 'output' events — we poll via a long-lived connection
+          // The daemon emits 'output' events  -  we poll via a long-lived connection
           // For now, use periodic RPC polling until daemon supports event streaming
           const pollInterval = setInterval(async () => {
             if (closed) {

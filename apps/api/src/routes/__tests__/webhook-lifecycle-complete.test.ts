@@ -26,7 +26,7 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports ─────────────────────────────────────────
+// ─── Mocks  -  declared before imports ─────────────────────────────────────────
 
 const mockConstructEvent = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
@@ -194,7 +194,7 @@ vi.mock('drizzle-orm', () => ({
   ne: vi.fn((_col, _val) => `ne(${String(_col)},${String(_val)})`),
 }));
 
-// Email mocks — track which email functions are called
+// Email mocks  -  track which email functions are called
 const mockSendLicenseActivatedEmail = vi.fn().mockResolvedValue(undefined);
 const mockSendPaymentFailedEmail = vi.fn().mockResolvedValue(undefined);
 const mockSendPaymentRecoveredEmail = vi.fn().mockResolvedValue(undefined);
@@ -366,7 +366,7 @@ describe('Webhook Lifecycle Complete', () => {
       expect(mockAuditAppend).toHaveBeenCalled();
     });
 
-    it('is idempotent — duplicate event returns 200 with duplicate:true', async () => {
+    it('is idempotent  -  duplicate event returns 200 with duplicate:true', async () => {
       const event = makeCheckoutEvent('evt_checkout_idempotent');
       mockConstructEvent.mockReturnValue(event);
 
@@ -377,7 +377,7 @@ describe('Webhook Lifecycle Complete', () => {
       const res1 = await app.request(postStripe(event));
       expect(res1.status).toBe(200);
 
-      // Second delivery — idempotency constraint fires
+      // Second delivery  -  idempotency constraint fires
       mockDbInsertChain.values.mockRejectedValueOnce(
         new Error('duplicate key value violates unique constraint'),
       );
@@ -405,7 +405,7 @@ describe('Webhook Lifecycle Complete', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      // resolveTier() throws when tier metadata is missing — this is correct
+      // resolveTier() throws when tier metadata is missing  -  this is correct
       // behavior to prevent free access leakage from misconfigured products
       expect(res.status).toBe(500);
     });
@@ -845,7 +845,7 @@ describe('Webhook Lifecycle Complete', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      // No license changes — payment_intent failures are informational
+      // No license changes  -  payment_intent failures are informational
       // Stripe will retry via invoice.payment_failed
     });
 

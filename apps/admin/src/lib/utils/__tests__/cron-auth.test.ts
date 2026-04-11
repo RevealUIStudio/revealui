@@ -1,7 +1,7 @@
 /**
  * Cron Authentication Tests
  *
- * Tests for verifyCronAuth() — timing-safe token verification for Vercel cron jobs.
+ * Tests for verifyCronAuth()  -  timing-safe token verification for Vercel cron jobs.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

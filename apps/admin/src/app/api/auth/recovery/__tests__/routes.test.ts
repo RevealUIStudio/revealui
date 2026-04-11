@@ -2,8 +2,8 @@
  * Recovery API Route Tests
  *
  * Tests both recovery routes:
- * - POST /api/auth/recovery/request — magic link generation
- * - POST /api/auth/recovery/verify  — token verification + session creation
+ * - POST /api/auth/recovery/request  -  magic link generation
+ * - POST /api/auth/recovery/verify   -  token verification + session creation
  */
 
 import * as authServer from '@revealui/auth/server';
@@ -101,7 +101,7 @@ describe('POST /api/auth/recovery/request', () => {
   });
 
   it('should return 200 success for unknown email (anti-enumeration)', async () => {
-    // No user found — getUserByEmail returns null (default)
+    // No user found  -  getUserByEmail returns null (default)
 
     const request = createJsonRequest('http://localhost:4000/api/auth/recovery/request', {
       email: 'nobody@example.com',
@@ -179,7 +179,7 @@ describe('POST /api/auth/recovery/verify', () => {
     expect(data.success).toBe(true);
     expect(mockVerifyMagicLink).toHaveBeenCalledWith('valid-magic-link-token');
 
-    // Recovery must invalidate ALL existing sessions before creating a new one —
+    // Recovery must invalidate ALL existing sessions before creating a new one  -
     // if the account is compromised, the attacker's active session must not survive.
     expect(mockDeleteAllUserSessions).toHaveBeenCalledWith('user-456');
     expect(mockCreateSession).toHaveBeenCalledWith(

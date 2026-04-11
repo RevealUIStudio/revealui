@@ -125,16 +125,16 @@ export async function isPriceCircuitBreakerOpen(): Promise<boolean> {
     .orderBy(desc(revealcoinPriceSnapshots.recordedAt))
     .limit(1);
 
-  if (!latest) return true; // No price data — block payments
+  if (!latest) return true; // No price data  -  block payments
 
   const twap = await getTwapPrice();
-  if (twap === null) return true; // Insufficient data — block payments
+  if (twap === null) return true; // Insufficient data  -  block payments
 
   const currentPrice = Number(latest.priceUsd);
   const dropPercent = (twap - currentPrice) / twap;
 
   if (dropPercent >= config.priceCircuitBreakerThreshold) {
-    logger.warn('RVUI price circuit breaker OPEN — price drop exceeds threshold', {
+    logger.warn('RVUI price circuit breaker OPEN  -  price drop exceeds threshold', {
       twap,
       currentPrice,
       dropPercent: `${(dropPercent * 100).toFixed(1)}%`,

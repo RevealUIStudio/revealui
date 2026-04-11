@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Hoisted mocks — vi.mock factories run before any imports, so all mock
+// Hoisted mocks  -  vi.mock factories run before any imports, so all mock
 // variables referenced inside must be created via vi.hoisted().
 // ---------------------------------------------------------------------------
 

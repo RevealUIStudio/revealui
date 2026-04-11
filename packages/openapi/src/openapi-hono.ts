@@ -56,7 +56,7 @@ extendZodWithOpenApi(z);
  */
 export class OpenAPIHono<
   E extends Env = Env,
-  // biome-ignore lint/complexity/noBannedTypes: {} is Hono's internal sentinel for empty Schema — using object breaks type inference
+  // biome-ignore lint/complexity/noBannedTypes: {} is Hono's internal sentinel for empty Schema  -  using object breaks type inference
   S extends Schema = {},
   BasePath extends string = '/',
 > extends Hono<E, S, BasePath> {

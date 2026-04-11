@@ -63,12 +63,12 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: vi.fn((handler: (request: NextRequest) => Promise<Response>) => handler),
 }));
 
-// Mock the email module — avoids real email provider initialization in tests
+// Mock the email module  -  avoids real email provider initialization in tests
 vi.mock('@/lib/email', () => ({
   sendRecoveryEmail: vi.fn().mockResolvedValue({ success: true }),
 }));
 
-// Mock license module — tests run without a license server, so report no limit
+// Mock license module  -  tests run without a license server, so report no limit
 vi.mock('@revealui/core/license', () => ({
   initializeLicense: vi.fn(() => Promise.resolve()),
   getMaxUsers: vi.fn(() => Infinity),
@@ -603,7 +603,7 @@ describe('Flow 4: Passkey sign-in', () => {
     expect(authVerifyData.success).toBe(true);
     expect(authVerifyData.user.email).toBe('passkey-user@example.com');
 
-    // Session cookie was set — NO TOTP prompt
+    // Session cookie was set  -  NO TOTP prompt
     const sessionCookie = authVerifyResponse.cookies.get('revealui-session');
     expect(sessionCookie?.value).toBe('passkey-signin-token');
 

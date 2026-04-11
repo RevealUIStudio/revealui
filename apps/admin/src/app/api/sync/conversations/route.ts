@@ -1,7 +1,7 @@
 /**
  * Conversations Sync Mutation Route
  *
- * POST /api/sync/conversations — Create a new conversation
+ * POST /api/sync/conversations  -  Create a new conversation
  *
  * Authenticated. Conversations are scoped to the current user.
  * ElectricSQL picks up the database change and pushes it to all shape subscribers.

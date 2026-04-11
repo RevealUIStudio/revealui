@@ -1,5 +1,5 @@
 /**
- * RevMarket Task Executor (Phase 5.16-B) — PREVIEW
+ * RevMarket Task Executor (Phase 5.16-B)  -  PREVIEW
  *
  * ⚠️  PREVIEW FEATURE: Task execution runs in-process with timeout enforcement
  * only. There is no process isolation, filesystem sandboxing, or memory limit
@@ -7,11 +7,11 @@
  * Full sandboxed execution (child process isolation) is planned for Phase B.
  *
  * Manages the lifecycle of autonomous agent task execution:
- *   1. Task claiming — atomic claim with priority ordering
- *   2. Timeout enforcement — AbortController with configurable maxExecutionMs
- *   3. Progress reporting — status updates to task_submissions
- *   4. Output validation — schema-checked results
- *   5. Audit trail — append-only audit_log entries
+ *   1. Task claiming  -  atomic claim with priority ordering
+ *   2. Timeout enforcement  -  AbortController with configurable maxExecutionMs
+ *   3. Progress reporting  -  status updates to task_submissions
+ *   4. Output validation  -  schema-checked results
+ *   5. Audit trail  -  append-only audit_log entries
  *
  * Architecture:
  *   - Uses the existing `jobs` table as a task queue bridge
@@ -130,7 +130,7 @@ export interface TaskResult {
 /**
  * Execute a single task with timeout enforcement and resource monitoring.
  *
- * For Phase A, execution is simulated — the agent definition's capabilities
+ * For Phase A, execution is simulated  -  the agent definition's capabilities
  * determine the execution strategy. Full sandboxed execution (child process
  * isolation) is deferred to Phase B infrastructure expansion.
  */
@@ -190,7 +190,7 @@ export async function executeTask(taskId: string): Promise<TaskResult> {
   const timeout = setTimeout(() => controller.abort(), maxExecMs);
 
   try {
-    // Phase A: Execution placeholder — the actual agent invocation
+    // Phase A: Execution placeholder  -  the actual agent invocation
     // will be wired to the harness spawner or A2A handler in Phase B.
     // For now, we validate the pipeline and return a structured response.
     const result = await runAgentTask(task, controller.signal);
@@ -338,7 +338,7 @@ export async function completeTask(taskId: string, result: TaskResult): Promise<
     .returning();
 
   if (!updated) {
-    logger.warn('RevMarket task completion failed — state race', { taskId });
+    logger.warn('RevMarket task completion failed  -  state race', { taskId });
     return false;
   }
 

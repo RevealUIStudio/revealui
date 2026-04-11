@@ -110,7 +110,7 @@ export const PasswordResetTokenContract = createContract({
 // =============================================================================
 
 /**
- * MFA setup initiation — returns TOTP secret and provisioning URI
+ * MFA setup initiation  -  returns TOTP secret and provisioning URI
  */
 export const MFASetupResponseSchema = z.object({
   secret: z.string().min(1),
@@ -121,7 +121,7 @@ export const MFASetupResponseSchema = z.object({
 export type MFASetupResponse = z.infer<typeof MFASetupResponseSchema>;
 
 /**
- * MFA verification — validate a 6-digit TOTP code
+ * MFA verification  -  validate a 6-digit TOTP code
  */
 export const MFAVerifyRequestSchema = z.object({
   code: z
@@ -140,7 +140,7 @@ export const MFAVerifyRequestContract = createContract({
 });
 
 /**
- * MFA disable — requires password or passkey re-authentication
+ * MFA disable  -  requires password or passkey re-authentication
  */
 export const MFADisableRequestSchema = z.discriminatedUnion('method', [
   z.object({
@@ -163,7 +163,7 @@ export const MFADisableRequestContract = createContract({
 });
 
 /**
- * MFA backup code verification — used when TOTP device is unavailable
+ * MFA backup code verification  -  used when TOTP device is unavailable
  */
 export const MFABackupCodeRequestSchema = z.object({
   code: z
@@ -198,7 +198,7 @@ export const PasskeyRegisterOptionsRequestSchema = z.object({
 export type PasskeyRegisterOptionsRequest = z.infer<typeof PasskeyRegisterOptionsRequestSchema>;
 
 /**
- * Passkey registration verification — attestation response from browser
+ * Passkey registration verification  -  attestation response from browser
  */
 export const PasskeyRegisterVerifyRequestSchema = z.object({
   attestationResponse: z.record(z.string(), z.unknown()),
@@ -208,7 +208,7 @@ export const PasskeyRegisterVerifyRequestSchema = z.object({
 export type PasskeyRegisterVerifyRequest = z.infer<typeof PasskeyRegisterVerifyRequestSchema>;
 
 /**
- * Passkey authentication options — no input needed
+ * Passkey authentication options  -  no input needed
  */
 export const PasskeyAuthenticateOptionsRequestSchema = z.object({});
 
@@ -217,7 +217,7 @@ export type PasskeyAuthenticateOptionsRequest = z.infer<
 >;
 
 /**
- * Passkey authentication verification — assertion response from browser
+ * Passkey authentication verification  -  assertion response from browser
  */
 export const PasskeyAuthenticateVerifyRequestSchema = z.object({
   authenticationResponse: z.record(z.string(), z.unknown()),
@@ -259,7 +259,7 @@ export type PasskeyUpdateRequest = z.infer<typeof PasskeyUpdateRequestSchema>;
 // =============================================================================
 
 /**
- * Account recovery request — send magic link email
+ * Account recovery request  -  send magic link email
  */
 export const RecoveryRequestSchema = z.object({
   email: z.string().email(),
@@ -268,7 +268,7 @@ export const RecoveryRequestSchema = z.object({
 export type RecoveryRequest = z.infer<typeof RecoveryRequestSchema>;
 
 /**
- * Account recovery verification — validate magic link token
+ * Account recovery verification  -  validate magic link token
  */
 export const RecoveryVerifyRequestSchema = z.object({
   token: z.string().min(1),

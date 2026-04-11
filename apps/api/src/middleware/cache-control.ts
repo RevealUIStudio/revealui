@@ -5,10 +5,10 @@
  * Applied at the app level to ensure all routes have appropriate headers.
  *
  * Categories:
- * - noStore: auth, billing, webhooks, GDPR — never cache
- * - noCache: health, cron, maintenance — don't cache, allow conditional requests
- * - shortCache: pricing, marketplace, content — short CDN cache with SWR
- * - privateCache: api-keys, license status — private browser-only cache
+ * - noStore: auth, billing, webhooks, GDPR  -  never cache
+ * - noCache: health, cron, maintenance  -  don't cache, allow conditional requests
+ * - shortCache: pricing, marketplace, content  -  short CDN cache with SWR
+ * - privateCache: api-keys, license status  -  private browser-only cache
  */
 
 import type { MiddlewareHandler } from 'hono';

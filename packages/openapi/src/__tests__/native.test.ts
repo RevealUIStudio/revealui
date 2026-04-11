@@ -345,7 +345,7 @@ describe('zodToJsonSchema', () => {
 });
 
 // =============================================================================
-// Document Generator — V3
+// Document Generator  -  V3
 // =============================================================================
 
 describe('NativeOpenApiGeneratorV3', () => {
@@ -837,7 +837,7 @@ describe('NativeOpenApiGeneratorV3', () => {
 });
 
 // =============================================================================
-// Document Generator — V31
+// Document Generator  -  V31
 // =============================================================================
 
 describe('NativeOpenApiGeneratorV31', () => {

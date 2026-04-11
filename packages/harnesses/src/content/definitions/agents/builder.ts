@@ -20,6 +20,6 @@ Run \`pnpm install\` first to establish symlinks in this worktree.
 
 ## Rules
 - Report errors clearly with file paths and line numbers
-- Do NOT modify source code — only build and report
+- Do NOT modify source code  -  only build and report
 - If a build fails, identify the root cause and report it`,
 };

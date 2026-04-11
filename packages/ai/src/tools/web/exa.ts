@@ -31,7 +31,7 @@ function estimateTokens(text: string): number {
 }
 
 /**
- * Exa neural search provider — BYOK, requires `EXA_API_KEY`.
+ * Exa neural search provider  -  BYOK, requires `EXA_API_KEY`.
  *
  * Exa uses embeddings to find semantically relevant results rather than
  * keyword matching. Best for research-oriented queries.

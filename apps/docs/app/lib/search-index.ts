@@ -29,7 +29,7 @@ interface DocEntry {
 }
 
 // ---------------------------------------------------------------------------
-// Module state (singleton — built once per page load)
+// Module state (singleton  -  built once per page load)
 // ---------------------------------------------------------------------------
 
 let index: InstanceType<typeof Document> | null = null;
@@ -97,7 +97,7 @@ function parseIndex(indexContent: string): string[] {
 
 /**
  * Build the search index by fetching INDEX.md and all referenced docs.
- * Safe to call multiple times — subsequent calls return the same promise.
+ * Safe to call multiple times  -  subsequent calls return the same promise.
  */
 export async function buildSearchIndex(): Promise<void> {
   if (buildPromise) {
@@ -166,7 +166,7 @@ export async function buildSearchIndex(): Promise<void> {
         index.add(doc);
       }
     } catch {
-      // Silently fail — search will return empty results
+      // Silently fail  -  search will return empty results
       index = null;
       docs = [];
     }

@@ -8,7 +8,7 @@ audience: maintainer
 # RevealUI CI/CD Deployment Guide
 
 **Last Updated**: March 2026
-**Status**: Deployment Guide (Production — live at admin.revealui.com and api.revealui.com)
+**Status**: Deployment Guide (Production  -  live at admin.revealui.com and api.revealui.com)
 
 ---
 

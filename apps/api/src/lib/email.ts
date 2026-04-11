@@ -2,13 +2,13 @@
  * Edge-compatible email sender for the API service.
  *
  * Uses Gmail REST API with domain-wide delegation.
- * No Node.js-only dependencies — fully edge-compatible (fetch + jose).
+ * No Node.js-only dependencies  -  fully edge-compatible (fetch + jose).
  *
  * Required env vars:
- *   GOOGLE_SERVICE_ACCOUNT_EMAIL — GCP service account email
- *   GOOGLE_PRIVATE_KEY           — RSA private key (PKCS8 PEM)
- *   EMAIL_FROM                   — sender address (e.g. noreply@revealui.com)
- *   EMAIL_REPLY_TO               — default reply-to (e.g. support@revealui.com)
+ *   GOOGLE_SERVICE_ACCOUNT_EMAIL  -  GCP service account email
+ *   GOOGLE_PRIVATE_KEY            -  RSA private key (PKCS8 PEM)
+ *   EMAIL_FROM                    -  sender address (e.g. noreply@revealui.com)
+ *   EMAIL_REPLY_TO                -  default reply-to (e.g. support@revealui.com)
  */
 
 import { logger } from '@revealui/core/observability/logger';
@@ -159,14 +159,14 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
     return;
   }
 
-  // No provider — in production, throw so callers (e.g. OTP flows) can
+  // No provider  -  in production, throw so callers (e.g. OTP flows) can
   // surface the delivery failure instead of silently succeeding.
   if (process.env.NODE_ENV === 'production') {
     throw new Error('No email provider configured');
   }
 
   // Development: log and continue
-  logger.warn('Email not sent — no provider configured', {
+  logger.warn('Email not sent  -  no provider configured', {
     to: options.to,
     subject: options.subject,
   });

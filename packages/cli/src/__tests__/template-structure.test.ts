@@ -5,7 +5,7 @@
  * 1. Scaffolds the expected file structure for each template variant
  * 2. Produces a valid package.json with the project name substituted
  * 3. Includes the required scripts (dev, build, typecheck)
- * 4. Has no TypeScript syntax errors (TS1xxx codes — not resolution errors which
+ * 4. Has no TypeScript syntax errors (TS1xxx codes  -  not resolution errors which
  *    are expected when deps are not installed)
  */
 
@@ -45,7 +45,7 @@ function baseConfig(template: 'basic-blog' | 'e-commerce' | 'portfolio', project
 // Template: file structure per variant
 // ---------------------------------------------------------------------------
 
-describe('Template file structure — shared (all templates)', () => {
+describe('Template file structure  -  shared (all templates)', () => {
   const templates = ['basic-blog', 'e-commerce', 'portfolio'] as const;
 
   let tmpDir: string;
@@ -96,7 +96,7 @@ describe('Template file structure — shared (all templates)', () => {
 // Template-specific file assertions
 // ---------------------------------------------------------------------------
 
-describe('Template file structure — variant-specific content', () => {
+describe('Template file structure  -  variant-specific content', () => {
   let tmpDir: string;
 
   beforeEach(async () => {
@@ -210,10 +210,10 @@ describe('tsconfig.json validity', () => {
 });
 
 // ---------------------------------------------------------------------------
-// TypeScript syntax check — no TS1xxx syntax errors in template source files
+// TypeScript syntax check  -  no TS1xxx syntax errors in template source files
 // ---------------------------------------------------------------------------
 
-describe('TypeScript syntax — template source files', () => {
+describe('TypeScript syntax  -  template source files', () => {
   /**
    * Collect all .ts and .tsx files under a directory recursively.
    */
@@ -260,7 +260,7 @@ describe('TypeScript syntax — template source files', () => {
     } catch (err) {
       output = (err as { stdout?: string; stderr?: string }).stdout ?? '';
     }
-    // Only surface TS1xxx (syntax) errors — TS2xxx are expected without node_modules
+    // Only surface TS1xxx (syntax) errors  -  TS2xxx are expected without node_modules
     return output.split('\n').filter((line) => /error TS1\d{3}/.test(line));
   }
 

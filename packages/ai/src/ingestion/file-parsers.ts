@@ -1,7 +1,7 @@
 /**
  * File Parsers
  *
- * Zero external dependencies — pure Node.js + regex/string manipulation.
+ * Zero external dependencies  -  pure Node.js + regex/string manipulation.
  * PDF extraction uses a hand-rolled parser that reads text streams directly
  * from the binary PDF format (BT/ET blocks, Tj/TJ operators).
  */
@@ -46,9 +46,9 @@ export class MarkdownParser {
       .replace(INLINE_CODE_RE, (m) => m.slice(1, -1))
       // Strip heading markers
       .replace(HEADING_RE, '')
-      // Unwrap bold/italic — keep inner text
+      // Unwrap bold/italic  -  keep inner text
       .replace(EMPHASIS_RE, '$1')
-      // Unwrap links — keep link text
+      // Unwrap links  -  keep link text
       .replace(LINK_RE, '$1')
       // Remove images entirely
       .replace(IMAGE_RE, '')
@@ -142,7 +142,7 @@ function decodePdfLiteral(raw: string): string {
 function extractTextFromBlock(block: string): string {
   const parts: string[] = [];
 
-  // Tj — show string: (text) Tj
+  // Tj  -  show string: (text) Tj
   const tjRe = /\(([^)]*(?:\\.[^)]*)*)\)\s*Tj/g;
   let m: RegExpExecArray | null;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex loop
@@ -150,7 +150,7 @@ function extractTextFromBlock(block: string): string {
     if (m[1] !== undefined) parts.push(decodePdfLiteral(m[1]));
   }
 
-  // TJ — show array: [(t1)(t2) num …] TJ
+  // TJ  -  show array: [(t1)(t2) num …] TJ
   const tjArrayRe = /\[([^\]]*)\]\s*TJ/g;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex loop
   while ((m = tjArrayRe.exec(block)) !== null) {
@@ -242,7 +242,7 @@ export class JsonParser {
       const parsed: unknown = JSON.parse(input);
       return { text: JSON.stringify(parsed, null, 2) };
     } catch {
-      // Not valid JSON — return as-is
+      // Not valid JSON  -  return as-is
       return { text: input.trim() };
     }
   }

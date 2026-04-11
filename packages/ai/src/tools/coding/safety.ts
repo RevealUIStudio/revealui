@@ -10,7 +10,7 @@ import { relative, resolve } from 'node:path';
 // ---------------------------------------------------------------------------
 
 export interface SafetyConfig {
-  /** Project root directory — all file operations are sandboxed here */
+  /** Project root directory  -  all file operations are sandboxed here */
   projectRoot: string;
   /** Additional directories to allow (e.g., /tmp for scratch files) */
   allowedPaths?: string[];

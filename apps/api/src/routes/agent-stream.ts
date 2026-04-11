@@ -6,7 +6,7 @@
  * Streams agent execution events in real-time using Hono's streamSSE helper.
  * Each AgentStreamChunk becomes one "data: {...}\n\n" SSE event.
  *
- * Client-side: use fetch + ReadableStream (not EventSource — it doesn't support POST).
+ * Client-side: use fetch + ReadableStream (not EventSource  -  it doesn't support POST).
  * See packages/ai/src/client/hooks/useAgentStream.ts for the React hook.
  */
 
@@ -17,7 +17,7 @@ import { streamSSE } from 'hono/streaming';
 type Variables = {
   tenant?: { id: string };
   user?: { id: string; role: string };
-  /** Set by requireAIAccess middleware — local = free tier inference */
+  /** Set by requireAIAccess middleware  -  local = free tier inference */
   aiAccessMode?: 'local';
 };
 
@@ -29,7 +29,7 @@ const agentStreamRoute = createRoute({
   tags: ['agent'],
   summary: 'Stream agent execution via SSE',
   description:
-    'Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource — it does not support POST).',
+    'Streams agent execution events in real-time using Server-Sent Events. Client-side: use fetch + ReadableStream (not EventSource  -  it does not support POST).',
   request: {
     body: {
       content: {
@@ -165,7 +165,7 @@ app.openapi(agentStreamRoute, async (c) => {
       cmsTools = cmsToolsMod.createAdminTools({ apiClient });
     }
   } catch {
-    // admin tools unavailable — agent will work without them
+    // admin tools unavailable  -  agent will work without them
   }
 
   // Read-only coding tools allowed for free tier (local inference)
@@ -196,7 +196,7 @@ app.openapi(agentStreamRoute, async (c) => {
         });
       }
     } catch {
-      // Coding tools unavailable — agent will work with admin tools only
+      // Coding tools unavailable  -  agent will work with admin tools only
     }
   }
 

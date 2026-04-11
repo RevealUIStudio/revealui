@@ -1,10 +1,10 @@
 /**
- * `revealui agent` — RevealUI's standalone coding agent
+ * `revealui agent`  -  RevealUI's standalone coding agent
  *
  * Modes:
- *   revealui agent              — Interactive REPL
- *   revealui agent --prompt "…" — Headless single-shot
- *   revealui agent status       — Show model, provider, loaded skills
+ *   revealui agent               -  Interactive REPL
+ *   revealui agent --prompt "…"  -  Headless single-shot
+ *   revealui agent status        -  Show model, provider, loaded skills
  *
  * Uses @revealui/ai (Pro) and @revealui/harnesses (Pro) via lazy imports.
  * Falls back gracefully if Pro packages are not installed.
@@ -214,7 +214,7 @@ interface ProDeps {
 
 async function loadProDeps(): Promise<ProDeps | null> {
   // Dynamic import paths stored in variables so TypeScript doesn't try to
-  // resolve module types at compile time — @revealui/ai is an optional peer.
+  // resolve module types at compile time  -  @revealui/ai is an optional peer.
   const aiRuntimePath = '@revealui/ai/orchestration/streaming-runtime';
   const aiClientPath = '@revealui/ai/llm/client';
   const aiToolsPath = '@revealui/ai/tools/coding';

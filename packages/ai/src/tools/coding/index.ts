@@ -43,7 +43,7 @@ export { testRunnerTool } from './test-runner.js';
  * Configuration for the coding tools factory
  */
 export interface CodingToolsConfig {
-  /** Project root directory — all file operations sandboxed here */
+  /** Project root directory  -  all file operations sandboxed here */
   projectRoot: string;
   /** Additional directories to allow (e.g., /tmp for scratch files) */
   allowedPaths?: string[];

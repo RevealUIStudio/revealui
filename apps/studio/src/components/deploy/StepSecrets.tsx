@@ -48,13 +48,13 @@ export default function StepSecrets({ data, onUpdateData, onNext }: StepSecretsP
           <p className="mb-2 font-medium text-neutral-300">Three secrets will be generated:</p>
           <ul className="list-inside list-disc flex flex-col gap-1">
             <li>
-              <span className="text-neutral-200">REVEALUI_SECRET</span> — session signing key
+              <span className="text-neutral-200">REVEALUI_SECRET</span> - session signing key
             </li>
             <li>
-              <span className="text-neutral-200">REVEALUI_KEK</span> — key encryption key (AES-256)
+              <span className="text-neutral-200">REVEALUI_KEK</span> - key encryption key (AES-256)
             </li>
             <li>
-              <span className="text-neutral-200">REVEALUI_CRON_SECRET</span> — cron job
+              <span className="text-neutral-200">REVEALUI_CRON_SECRET</span> - cron job
               authentication
             </li>
           </ul>

@@ -1,8 +1,8 @@
 /**
  * Conversation Messages API Route
  *
- * GET  /api/conversations/:id/messages — list messages
- * POST /api/conversations/:id/messages — add a message
+ * GET  /api/conversations/:id/messages  -  list messages
+ * POST /api/conversations/:id/messages  -  add a message
  */
 
 import { getSession } from '@revealui/auth/server';

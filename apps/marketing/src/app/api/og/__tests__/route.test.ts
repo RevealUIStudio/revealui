@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { describe, expect, it, vi } from 'vitest';
 
-// Mock next/og — ImageResponse is not available in Node test environment
+// Mock next/og  -  ImageResponse is not available in Node test environment
 vi.mock('next/og', () => ({
   ImageResponse: class MockImageResponse {
     body: unknown;

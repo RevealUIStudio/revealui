@@ -1,7 +1,7 @@
 import type { ComponentType, ReactNode } from 'react';
 
 /**
- * Middleware function — runs before route resolution.
+ * Middleware function  -  runs before route resolution.
  * Return `true` to continue, `false` to abort, or a redirect path string.
  */
 export type RouteMiddleware = (
@@ -36,7 +36,7 @@ export interface Route<TData = unknown, TProps = Record<string, unknown>> {
   meta?: RouteMeta;
   /** Optional middleware that runs before this route's loader */
   middleware?: RouteMiddleware[];
-  /** Nested child routes — children inherit parent's layout and middleware */
+  /** Nested child routes  -  children inherit parent's layout and middleware */
   children?: Route[];
 }
 

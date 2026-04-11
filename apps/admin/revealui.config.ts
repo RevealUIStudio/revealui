@@ -335,7 +335,7 @@ export default buildConfig({
 
         revealui.logger.info(`First admin user created: ${adminEmail}`);
       } catch (error) {
-        // 23505 = unique_violation — user already exists, not a fatal error
+        // 23505 = unique_violation  -  user already exists, not a fatal error
         const pgCode = (error as { code?: string }).code;
         if (pgCode === '23505') {
           revealui.logger.info(`Admin user already exists: ${adminEmail}`);

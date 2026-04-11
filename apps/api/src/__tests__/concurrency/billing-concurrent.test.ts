@@ -112,7 +112,7 @@ function createLicenseStore() {
       const constraintKey = `${params.userId}:${params.subscriptionId}`;
       for (const license of licenses.values()) {
         if (`${license.userId}:${license.subscriptionId}` === constraintKey) {
-          return false; // duplicate — unique constraint violation
+          return false; // duplicate  -  unique constraint violation
         }
       }
 
@@ -382,7 +382,7 @@ describe('Concurrent subscription upgrades', () => {
 
 // ─── Test: Concurrent webhook processing (Stripe retries) ──────────────────
 
-describe('Concurrent webhook processing — idempotency', () => {
+describe('Concurrent webhook processing  -  idempotency', () => {
   /**
    * Models the checkout.session.completed webhook handler from webhooks.ts.
    * Stripe may deliver the same event multiple times (retries, multi-region).
@@ -751,7 +751,7 @@ describe('Checkout + cancel race condition', () => {
     const license = sim.licenseStore.getByCustomerId('cus_1');
     expect(license).toBeDefined();
 
-    // Final state must be one of: active or revoked — never undefined or mixed
+    // Final state must be one of: active or revoked  -  never undefined or mixed
     expect(['active', 'revoked']).toContain(license?.status);
 
     // Hosted state must also be consistent
@@ -770,7 +770,7 @@ describe('Checkout + cancel race condition', () => {
       subscriptionId: 'sub_old',
     });
 
-    // No license exists yet to revoke — cancel is a no-op
+    // No license exists yet to revoke  -  cancel is a no-op
     expect(sim.licenseStore.getByCustomerId('cus_2')).toBeUndefined();
 
     // Now checkout completes with a new subscription
@@ -791,7 +791,7 @@ describe('Checkout + cancel race condition', () => {
   it('concurrent checkout and cancel for different subscriptions should not interfere', async () => {
     const sim = createCheckoutCancelSimulator();
 
-    // User A checks out, User B cancels — at the same time
+    // User A checks out, User B cancels  -  at the same time
     const [, cancelResult] = await Promise.all([
       sim.processCheckout({
         eventId: 'evt_checkout_a',
@@ -822,7 +822,7 @@ describe('Checkout + cancel race condition', () => {
 
 // ─── Test: Concurrent license generation ────────────────────────────────────
 
-describe('Concurrent license generation — unique constraint', () => {
+describe('Concurrent license generation  -  unique constraint', () => {
   /**
    * Scenario: Two webhook events both try to create a license for the same user
    * and subscription. This can happen when checkout.session.completed and
@@ -912,7 +912,7 @@ describe('Concurrent license generation — unique constraint', () => {
     };
   }
 
-  it('checkout + subscription.created both fire — only one license is created', async () => {
+  it('checkout + subscription.created both fire  -  only one license is created', async () => {
     const sim = createDualWebhookSimulator();
 
     const results = await Promise.all([
@@ -951,7 +951,7 @@ describe('Concurrent license generation — unique constraint', () => {
     expect(license?.status).toBe('active');
   });
 
-  it('five webhooks all trying to create the same license — exactly one succeeds', async () => {
+  it('five webhooks all trying to create the same license  -  exactly one succeeds', async () => {
     const sim = createDualWebhookSimulator();
 
     const results = await Promise.all(
@@ -992,7 +992,7 @@ describe('Concurrent license generation — unique constraint', () => {
       ),
     );
 
-    // All should succeed — different users, no constraint conflicts
+    // All should succeed  -  different users, no constraint conflicts
     expect(results.filter((r) => r.licenseCreated)).toHaveLength(5);
     expect(sim.licenseStore.count).toBe(5);
 
@@ -1045,7 +1045,7 @@ describe('Payment recovery during downgrade', () => {
         });
       },
 
-      /** invoice.payment_succeeded handler — re-activates expired license */
+      /** invoice.payment_succeeded handler  -  re-activates expired license */
       async processPaymentRecovery(params: {
         eventId: string;
         customerId: string;
@@ -1079,7 +1079,7 @@ describe('Payment recovery during downgrade', () => {
         return { processed: true, reactivated: true };
       },
 
-      /** customer.subscription.updated with cancel_at_period_end — schedules downgrade */
+      /** customer.subscription.updated with cancel_at_period_end  -  schedules downgrade */
       async processDowngradeScheduled(params: {
         eventId: string;
         customerId: string;
@@ -1093,7 +1093,7 @@ describe('Payment recovery during downgrade', () => {
         }
 
         // Subscription is still active, but cancel_at_period_end is true
-        // License stays active until period end — mirrors webhooks.ts behavior
+        // License stays active until period end  -  mirrors webhooks.ts behavior
         licenseStore.syncHostedState({
           customerId: params.customerId,
           subscriptionId: params.subscriptionId,
@@ -1199,7 +1199,7 @@ describe('Payment recovery during downgrade', () => {
     // Final state: active, last write wins on tier
     const license = sim.licenseStore.getByCustomerId('cus_2');
     expect(license?.status).toBe('active');
-    // The tier should be one of the two — both are valid active states
+    // The tier should be one of the two  -  both are valid active states
     expect(['pro', 'enterprise']).toContain(license?.tier);
 
     const hosted = sim.licenseStore.getHostedByCustomerId('cus_2');
@@ -1266,7 +1266,7 @@ describe('Payment recovery during downgrade', () => {
     expect(staleRecovery.reactivated).toBe(true);
 
     // This demonstrates why event timestamp ordering is important in production.
-    // The simulation shows the code path — in production, the
+    // The simulation shows the code path  -  in production, the
     // customer.subscription.updated handler uses subscription status to decide
     // whether to reactivate, providing a second layer of defense.
     const license = sim.licenseStore.getByCustomerId('cus_4');
@@ -1277,7 +1277,7 @@ describe('Payment recovery during downgrade', () => {
 
 // ─── Test: Mixed concurrent billing operations ──────────────────────────────
 
-describe('Mixed concurrent billing operations — stress test', () => {
+describe('Mixed concurrent billing operations  -  stress test', () => {
   /**
    * Simulates a realistic burst of mixed billing events:
    * - Multiple users checking out

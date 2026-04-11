@@ -13,11 +13,11 @@ import { isLicensed, type LicenseTier } from './license.js';
 
 /** All gated features in RevealUI */
 export interface FeatureFlags {
-  /** Local AI inference via Inference Snaps or Ollama — available at all tiers (no API key needed) */
+  /** Local AI inference via Inference Snaps or Ollama  -  available at all tiers (no API key needed) */
   aiLocal: boolean;
-  /** AI agent system — local + cloud via RevealUI harness (Pro+) */
+  /** AI agent system  -  local + cloud via RevealUI harness (Pro+) */
   ai: boolean;
-  /** AI memory system — working + episodic + vector (Max: basic, Enterprise: full) */
+  /** AI memory system  -  working + episodic + vector (Max: basic, Enterprise: full) */
   aiMemory: boolean;
   /** MCP server integration */
   mcp: boolean;
@@ -25,11 +25,11 @@ export interface FeatureFlags {
   payments: boolean;
   /** Multi-tenant site management */
   multiTenant: boolean;
-  /** White-label admin dashboard (planned — not yet implemented) */
+  /** White-label admin dashboard (planned  -  not yet implemented) */
   whiteLabel: boolean;
-  /** SSO/SAML authentication (planned — not yet implemented) */
+  /** SSO/SAML authentication (planned  -  not yet implemented) */
   sso: boolean;
-  /** Open-model inference configuration — snaps, Ollama, harness (Max+) */
+  /** Open-model inference configuration  -  snaps, Ollama, harness (Max+) */
   aiInference: boolean;
   /** Audit logging and compliance trail */
   auditLog: boolean;
@@ -41,11 +41,11 @@ export interface FeatureFlags {
   customDomain: boolean;
   /** Analytics and conversion tracking */
   analytics: boolean;
-  /** RevVault desktop app — Tauri native AI experience for encrypted secret management (Pro+) */
+  /** RevVault desktop app  -  Tauri native AI experience for encrypted secret management (Pro+) */
   vaultDesktop: boolean;
-  /** RevVault rotation engine — automated credential lifecycle (Pro+) */
+  /** RevVault rotation engine  -  automated credential lifecycle (Pro+) */
   vaultRotation: boolean;
-  /** RevKit environment provisioning — tiered dev profiles (Max+) */
+  /** RevKit environment provisioning  -  tiered dev profiles (Max+) */
   devkitProfiles: boolean;
 }
 
@@ -93,7 +93,7 @@ export function getFeatures(): FeatureFlags {
     flags[feature as keyof FeatureFlags] = isLicensed(requiredTier);
   }
 
-  // Planned but not yet implemented — force false to avoid false advertising
+  // Planned but not yet implemented  -  force false to avoid false advertising
   flags.whiteLabel = false;
   flags.sso = false;
 
@@ -113,7 +113,7 @@ export function getFeatures(): FeatureFlags {
  * ```
  */
 export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
-  // Planned but not yet implemented — always return false
+  // Planned but not yet implemented  -  always return false
   if (feature === 'whiteLabel' || feature === 'sso') return false;
 
   const requiredTier = featureTierMap[feature];
@@ -137,7 +137,7 @@ export function getFeaturesForTier(tier: LicenseTier): FeatureFlags {
     flags[feature as keyof FeatureFlags] = tierRank[tier] >= tierRank[requiredTier];
   }
 
-  // Planned but not yet implemented — force false to avoid false advertising
+  // Planned but not yet implemented  -  force false to avoid false advertising
   flags.whiteLabel = false;
   flags.sso = false;
 

@@ -192,7 +192,7 @@ function ErrorsDashboard() {
                       </span>
                     </td>
                     <td className="px-4 py-2 font-mono text-xs text-gray-300">{row.app}</td>
-                    <td className="px-4 py-2 text-xs text-gray-500">{row.context ?? '—'}</td>
+                    <td className="px-4 py-2 text-xs text-gray-500">{row.context ?? ' - '}</td>
                     <td className="px-4 py-2 text-gray-200">
                       <div className="truncate" title={row.message}>
                         {row.message}
@@ -214,7 +214,7 @@ function ErrorsDashboard() {
                           {row.url}
                         </span>
                       ) : (
-                        '—'
+                        ' - '
                       )}
                     </td>
                   </tr>

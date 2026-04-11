@@ -1,5 +1,5 @@
 /**
- * OAuth Link Initiate Route — GET /api/auth/link/[provider]
+ * OAuth Link Initiate Route  -  GET /api/auth/link/[provider]
  *
  * Initiates an OAuth flow to link a provider to the current user's account.
  * Requires an active session (user must be authenticated).
@@ -31,7 +31,7 @@ export async function GET(
     return NextResponse.json({ error: 'Unknown provider' }, { status: 404 });
   }
 
-  // Require authentication — only logged-in users can link providers
+  // Require authentication  -  only logged-in users can link providers
   const sessionData = await getSession(request.headers, extractRequestContext(request));
   if (!sessionData) {
     return NextResponse.redirect(new URL('/login?error=session_required', baseUrl));

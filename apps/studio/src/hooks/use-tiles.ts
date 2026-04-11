@@ -26,7 +26,7 @@ interface UseTilesReturn {
   runningTileIds: Set<string>;
   /** Current search query */
   query: string;
-  /** Set search query — filters tiles by label */
+  /** Set search query  -  filters tiles by label */
   setQuery: (q: string) => void;
   /** Whether edit mode is active (shows hidden tiles as dimmed) */
   editing: boolean;
@@ -80,7 +80,7 @@ async function detectRunningProcesses(): Promise<Set<string>> {
       }
     }
   } catch {
-    // Process detection is best-effort — don't break the UI
+    // Process detection is best-effort  -  don't break the UI
   }
 
   return running;
@@ -187,7 +187,7 @@ export function useTiles(): UseTilesReturn {
       }
     }
 
-    // Not running or focus failed — launch normally
+    // Not running or focus failed  -  launch normally
     launchTile(tile);
     const next = recordRecentLaunch(prefs, tile.id);
     updatePrefs(next);

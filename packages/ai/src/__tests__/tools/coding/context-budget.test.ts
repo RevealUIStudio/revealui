@@ -180,7 +180,7 @@ describe('context budget', () => {
 
     it('keeps more turns for large models', () => {
       const pruned = pruneHistory(messages, 'large');
-      // large = 20 turns × 3 = 60 messages — more than we have, so keep all
+      // large = 20 turns × 3 = 60 messages  -  more than we have, so keep all
       expect(pruned.length).toBe(messages.length);
     });
 

@@ -122,7 +122,7 @@ function SecuritySettingsContent() {
         setMfaStatus(data);
       }
     } catch {
-      // Silently fail — status will show as loading
+      // Silently fail  -  status will show as loading
     }
   }, []);
 
@@ -149,7 +149,7 @@ function SecuritySettingsContent() {
         setActiveSessions(data.sessions.sort((a, b) => (a.isCurrent ? -1 : b.isCurrent ? 1 : 0)));
       }
     } catch {
-      // Silently fail — non-critical
+      // Silently fail  -  non-critical
     }
   }, []);
 
@@ -499,7 +499,7 @@ function SecuritySettingsContent() {
                   {/* Backup codes */}
                   <div>
                     <p className="text-xs font-medium text-zinc-400">
-                      Backup codes — save these in a secure place
+                      Backup codes - save these in a secure place
                     </p>
                     <div className="mt-1 grid grid-cols-1 gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 p-3 sm:grid-cols-2">
                       {setupData.backupCodes.map((code) => (
@@ -627,7 +627,7 @@ function SecuritySettingsContent() {
                       {regeneratedCodes && (
                         <div>
                           <p className="text-xs font-medium text-zinc-400">
-                            New backup codes — save these in a secure place
+                            New backup codes - save these in a secure place
                           </p>
                           <div className="mt-1 grid grid-cols-1 gap-1.5 rounded-lg border border-zinc-700 bg-zinc-950 p-3 sm:grid-cols-2">
                             {regeneratedCodes.map((code) => (
@@ -794,7 +794,7 @@ function SecuritySettingsContent() {
                   >
                     {mfaStatus?.enabled
                       ? (mfaStatus.backupCodesRemaining ?? 'Unknown')
-                      : 'N/A — 2FA not enabled'}
+                      : 'N/A  -  2FA not enabled'}
                   </span>
                 </div>
                 <div className="flex justify-between">

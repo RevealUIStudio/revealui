@@ -38,7 +38,7 @@ if (pgliteAvailable) {
     beforeEach(async () => {
       // Clear events table from previous tests
       await sharedDb.exec('DELETE FROM _cache_invalidation_events').catch(() => {
-        // Table may not exist yet on first run — init will create it
+        // Table may not exist yet on first run  -  init will create it
       });
 
       // Two cache stores (simulating two server instances)
@@ -87,7 +87,7 @@ if (pgliteAvailable) {
 
       await channelA.publishDelete('my-key');
 
-      // Same instance polls — should skip its own event
+      // Same instance polls  -  should skip its own event
       const applied = await channelA.poll();
       expect(applied).toBe(0);
       // Key was manually deleted before publish, but store still has it
@@ -179,7 +179,7 @@ if (pgliteAvailable) {
       // Re-add the key
       await storeB.set('k', 'v2', 60);
 
-      // Second poll — should NOT delete again (already seen)
+      // Second poll  -  should NOT delete again (already seen)
       const applied = await channelB.poll();
       expect(applied).toBe(0);
       expect(await storeB.get('k')).toBe('v2');
@@ -195,7 +195,7 @@ if (pgliteAvailable) {
         // Advance past event TTL
         vi.advanceTimersByTime(31_000);
 
-        // Poll triggers prune — event should be removed
+        // Poll triggers prune  -  event should be removed
         await channelB.poll();
 
         // Verify table is empty by checking a fresh channel
@@ -217,7 +217,7 @@ if (pgliteAvailable) {
     });
   });
 } else {
-  describe.skip('CacheInvalidationChannel (skipped — @electric-sql/pglite not available)', () => {
+  describe.skip('CacheInvalidationChannel (skipped  -  @electric-sql/pglite not available)', () => {
     it('placeholder', () => {});
   });
 }

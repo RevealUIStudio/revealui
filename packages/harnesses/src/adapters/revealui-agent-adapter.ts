@@ -2,7 +2,7 @@
  * RevealUI Agent Adapter
  *
  * Unlike Claude Code and Cursor adapters which wrap external CLIs,
- * this adapter IS the runtime — it creates an Agent with coding tools,
+ * this adapter IS the runtime  -  it creates an Agent with coding tools,
  * wires the content layer as instructions, and runs StreamingAgentRuntime
  * directly. This is RevealUI's own coding agent.
  */
@@ -18,7 +18,7 @@ import type {
 
 /**
  * Configuration for the RevealUI Agent Adapter.
- * All fields are optional — sensible defaults are applied.
+ * All fields are optional  -  sensible defaults are applied.
  */
 export interface RevealUIAgentConfig {
   /** Project root for coding tools sandbox (default: cwd) */
@@ -46,7 +46,7 @@ const DEFAULT_CONFIG: Required<Omit<RevealUIAgentConfig, 'provider' | 'model' | 
  * RevealUI's standalone coding agent adapter.
  *
  * This adapter enables ALL capabilities: it can generate code, analyze code,
- * apply edits, and run headless prompts — because it IS the agent runtime,
+ * apply edits, and run headless prompts  -  because it IS the agent runtime,
  * not a wrapper around an external tool.
  */
 export class RevealUIAgentAdapter implements HarnessAdapter {
@@ -167,7 +167,8 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
         return {
           success: false,
           command: command.type,
-          message: 'Config sync is not applicable — RevealUI agent uses the content layer directly',
+          message:
+            'Config sync is not applicable  -  RevealUI agent uses the content layer directly',
         };
       }
 
@@ -177,7 +178,7 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
         return {
           success: false,
           command: command.type,
-          message: 'Workboard support not yet wired — use WorkboardManager directly',
+          message: 'Workboard support not yet wired  -  use WorkboardManager directly',
         };
       }
 
@@ -194,14 +195,14 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
   /**
    * Run a headless prompt through the coding agent.
    * Lazy-imports @revealui/ai to avoid hard dependency at module load time.
-   * Types are inferred from the dynamic imports — no compile-time @revealui/ai dependency.
+   * Types are inferred from the dynamic imports  -  no compile-time @revealui/ai dependency.
    */
   private async runHeadlessPrompt(
     prompt: string,
     maxTurns?: number,
     timeoutMs?: number,
   ): Promise<HarnessCommandResult> {
-    // Lazy import — @revealui/ai is an optional peer. Dynamic import()
+    // Lazy import  -  @revealui/ai is an optional peer. Dynamic import()
     // deliberately uses string literals so TS doesn't resolve the types
     // at build time (the harnesses package has no dependency on @revealui/ai).
     const aiRuntimePath = '@revealui/ai/orchestration/streaming-runtime';
@@ -353,7 +354,7 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
         }
       }
     } catch {
-      // No rules directory — proceed with base instructions
+      // No rules directory  -  proceed with base instructions
     }
 
     return lines.join('\n');

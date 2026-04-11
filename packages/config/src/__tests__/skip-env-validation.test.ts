@@ -12,7 +12,7 @@ vi.mock('../loader.js', async (importOriginal) => {
 
 /**
  * Tests that the SKIP_ENV_VALIDATION guard correctly rejects misuse at runtime.
- * The guard is in isBuildTime() — it throws when SKIP_ENV_VALIDATION=true is used
+ * The guard is in isBuildTime()  -  it throws when SKIP_ENV_VALIDATION=true is used
  * outside a recognized Next.js build phase or test environment.
  */
 describe('SKIP_ENV_VALIDATION guard', () => {
@@ -49,7 +49,7 @@ describe('SKIP_ENV_VALIDATION guard', () => {
     process.env.NEXT_PHASE = 'phase-production-build';
     resetConfig();
 
-    // Should not throw the guard error (may throw for missing env vars — that's fine)
+    // Should not throw the guard error (may throw for missing env vars  -  that's fine)
     let caughtMessage: string | undefined;
     try {
       getConfig();
@@ -65,14 +65,14 @@ describe('SKIP_ENV_VALIDATION guard', () => {
     Reflect.deleteProperty(process.env, 'NEXT_PHASE');
     resetConfig();
 
-    // Should not throw the guard error (may throw for missing env vars — that's fine)
+    // Should not throw the guard error (may throw for missing env vars  -  that's fine)
     let caughtMessage: string | undefined;
     try {
       getConfig();
     } catch (err) {
       caughtMessage = err instanceof Error ? err.message : String(err);
     }
-    // If no error was thrown, the guard passed — success
+    // If no error was thrown, the guard passed  -  success
     if (caughtMessage !== undefined) {
       expect(caughtMessage).not.toContain('SKIP_ENV_VALIDATION=true is only valid during');
     }

@@ -21,7 +21,7 @@ export interface MFASetupData {
 }
 
 export interface UseMFASetupResult {
-  /** Initiate MFA setup — returns secret, QR URI, and backup codes */
+  /** Initiate MFA setup  -  returns secret, QR URI, and backup codes */
   setup: () => Promise<MFASetupData | null>;
   /** Verify a TOTP code to confirm setup */
   verifySetup: (code: string) => Promise<boolean>;

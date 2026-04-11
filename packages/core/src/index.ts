@@ -1,5 +1,5 @@
 /**
- * Main RevealUI exports — re-exports core (server) and client functionality.
+ * Main RevealUI exports  -  re-exports core (server) and client functionality.
  *
  * WARNING: Importing from '@revealui/core' pulls in BOTH server-only deps (pg,
  * bcryptjs, PGlite) and client-side React code. For tree-shaking safety, prefer

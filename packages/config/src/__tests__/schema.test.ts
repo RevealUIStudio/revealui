@@ -150,7 +150,7 @@ describe('validateEnvironment', () => {
 // Wizard env vars (Studio installer prerequisite)
 // =========================================================================
 
-describe('envSchema — wizard env vars', () => {
+describe('envSchema  -  wizard env vars', () => {
   describe('REVEALUI_KEK', () => {
     it('accepts a valid 64-char lowercase hex string', () => {
       const result = envSchema.safeParse(makeValidEnv({ REVEALUI_KEK: 'ab'.repeat(32) }));
@@ -221,7 +221,7 @@ describe('envSchema — wizard env vars', () => {
     });
   });
 
-  describe('email provider — Gmail', () => {
+  describe('email provider  -  Gmail', () => {
     it('accepts EMAIL_REPLY_TO', () => {
       const result = envSchema.safeParse(makeValidEnv({ EMAIL_REPLY_TO: 'support@example.com' }));
       expect(result.success).toBe(true);

@@ -9,7 +9,7 @@
  *   - events: append-only event log for audit trail
  *
  * Uses raw SQL (no Drizzle ORM) to keep the daemon dependency-free.
- * PGlite runs in-process — no external database needed.
+ * PGlite runs in-process  -  no external database needed.
  */
 
 /** SQL statements to initialize the daemon database. */

@@ -39,7 +39,7 @@ import {
 } from '../query-cache.js';
 
 // ---------------------------------------------------------------------------
-// Setup — clear cache between tests to avoid cross-contamination
+// Setup  -  clear cache between tests to avoid cross-contamination
 // ---------------------------------------------------------------------------
 
 beforeEach(async () => {
@@ -80,7 +80,7 @@ describe('cacheQuery', () => {
     expect(queryFn).toHaveBeenCalledOnce();
   });
 
-  it('should respect TTL — expired entries are re-fetched', async () => {
+  it('should respect TTL  -  expired entries are re-fetched', async () => {
     vi.useFakeTimers();
 
     const queryFn = vi.fn().mockResolvedValueOnce('first').mockResolvedValueOnce('second');
@@ -327,7 +327,7 @@ describe('cacheList', () => {
 
     // First call with keys in one order
     await cacheList('items', { b: 2, a: 1 }, queryFn);
-    // Second call with keys in different order — should be a cache hit
+    // Second call with keys in different order  -  should be a cache hit
     const result = await cacheList('items', { a: 1, b: 2 }, queryFn);
 
     expect(result).toEqual(['result']);
@@ -754,7 +754,7 @@ describe('cacheSWR', () => {
 
     const queryFn = vi.fn().mockResolvedValueOnce('original').mockResolvedValueOnce('refreshed');
 
-    // First call — caches both fresh (ttl=2s) and stale (staleTime=10s)
+    // First call  -  caches both fresh (ttl=2s) and stale (staleTime=10s)
     await cacheSWR('swr-stale', queryFn, { ttl: 2, staleTime: 10 });
     expect(queryFn).toHaveBeenCalledTimes(1);
 
@@ -798,7 +798,7 @@ describe('cacheSWR', () => {
 
     await cacheSWR('swr-defaults', queryFn);
 
-    // Within 300s TTL — should return from fresh cache
+    // Within 300s TTL  -  should return from fresh cache
     vi.advanceTimersByTime(200_000);
     const result = await cacheSWR('swr-defaults', queryFn);
 

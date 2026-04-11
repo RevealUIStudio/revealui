@@ -107,7 +107,7 @@ describe('useAnimation', () => {
     const { result } = renderHook(() => useAnimation<HTMLDivElement>());
     const [, animate] = result.current;
 
-    // No element set on ref — should not throw
+    // No element set on ref  -  should not throw
     await expect(animate([{ opacity: 0 }, { opacity: 1 }])).resolves.toBeUndefined();
   });
 });

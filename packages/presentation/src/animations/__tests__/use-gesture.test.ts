@@ -3,7 +3,7 @@ import { createRef, type RefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useGesture } from '../hooks/use-gesture.js';
 
-// jsdom doesn't provide PointerEvent — polyfill from MouseEvent
+// jsdom doesn't provide PointerEvent  -  polyfill from MouseEvent
 class MockPointerEvent extends MouseEvent {
   readonly pointerId: number;
   constructor(type: string, init: PointerEventInit & { pointerId?: number } = {}) {
@@ -99,7 +99,7 @@ describe('useGesture', () => {
 
     firePointerEvent('pointerdown', { clientX: 0, clientY: 0 });
 
-    // Move within threshold — not dragging yet
+    // Move within threshold  -  not dragging yet
     firePointerEvent('pointermove', { clientX: 1, clientY: 1 });
     expect(onDragStart).not.toHaveBeenCalled();
 

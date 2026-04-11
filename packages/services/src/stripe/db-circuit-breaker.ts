@@ -4,7 +4,7 @@
  * Stores circuit state in NeonDB so all API instances share the same view.
  *
  * Architecture:
- *   - Local in-memory cache (5s TTL) — fast read path, no DB hit per request
+ *   - Local in-memory cache (5s TTL)  -  fast read path, no DB hit per request
  *   - DB write only on state transitions (open/closed/half-open changes)
  *   - Fail-open on DB errors: if we can't read state, we let the call through
  *     rather than blocking all traffic because the circuit state store is down
@@ -102,7 +102,7 @@ export class DbCircuitBreaker {
           stateChangedAt: Date.now(),
         });
       } else {
-        // Update local cache only — no DB write until threshold is reached
+        // Update local cache only  -  no DB write until threshold is reached
         localCache.set(this.serviceName, {
           ...s,
           successCount: newSuccesses,

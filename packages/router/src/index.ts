@@ -1,5 +1,5 @@
 /**
- * @revealui/router — File-based routing for React apps
+ * @revealui/router  -  File-based routing for React apps
  *
  * Works with Vite, Hono, or any React setup. No framework required.
  *

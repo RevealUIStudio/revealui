@@ -17,7 +17,7 @@ const Products: RevealCollectionConfig<Product> = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'stripeProductID', '_status'],
     preview: (doc: Record<string, unknown>) => {
-      // Use the cookie-based JWT preview route — no secret in the URL
+      // Use the cookie-based JWT preview route  -  no secret in the URL
       // process.env (not import.meta.env) so the value is read at runtime, not inlined at build time
       const serverUrl = process.env.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000';
       return `${serverUrl}/next/preview?path=${encodeURIComponent(`/products/${doc.slug}`)}`;

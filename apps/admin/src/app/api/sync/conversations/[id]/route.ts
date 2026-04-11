@@ -1,8 +1,8 @@
 /**
  * Conversation Sync Mutation Route (by ID)
  *
- * PATCH /api/sync/conversations/:id — Update a conversation
- * DELETE /api/sync/conversations/:id — Delete a conversation
+ * PATCH /api/sync/conversations/:id  -  Update a conversation
+ * DELETE /api/sync/conversations/:id  -  Delete a conversation
  *
  * Authenticated. Only the conversation owner can modify it.
  */

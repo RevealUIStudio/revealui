@@ -2,13 +2,13 @@
  * Marketplace HTTP endpoint tests (R5-L6 pass 9)
  *
  * Tests the actual Hono route handlers via app.request():
- *   GET  /servers              — list active servers
- *   GET  /servers/:id          — single server detail
- *   POST /servers              — publish a new server (auth required)
- *   DELETE /servers/:id        — unpublish own server (auth required)
- *   POST /servers/:id/invoke   — x402 payment gate + proxy
- *   POST /connect/onboard      — Stripe Connect onboarding (auth required)
- *   GET  /connect/return       — Stripe Connect return callback
+ *   GET  /servers               -  list active servers
+ *   GET  /servers/:id           -  single server detail
+ *   POST /servers               -  publish a new server (auth required)
+ *   DELETE /servers/:id         -  unpublish own server (auth required)
+ *   POST /servers/:id/invoke    -  x402 payment gate + proxy
+ *   POST /connect/onboard       -  Stripe Connect onboarding (auth required)
+ *   GET  /connect/return        -  Stripe Connect return callback
  */
 
 import { Hono } from 'hono';
@@ -43,7 +43,7 @@ const {
     mockStripeAccountsCreate: _accountsCreate,
     mockStripeAccountLinksCreate: _accountLinksCreate,
     mockStripeTransfersCreate: _transfersCreate,
-    // Must use function() — arrow functions can't be called with `new`
+    // Must use function()  -  arrow functions can't be called with `new`
     mockStripeConstructor: vi.fn().mockImplementation(function (this: unknown) {
       return {
         accounts: { create: _accountsCreate },
@@ -63,7 +63,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-// Auth middleware — we inject user via a Hono middleware wrapper instead
+// Auth middleware  -  we inject user via a Hono middleware wrapper instead
 vi.mock('../../middleware/auth.js', () => ({
   authMiddleware: vi.fn(
     (_opts?: unknown) => async (_c: unknown, next: () => Promise<void>) => next(),
@@ -82,7 +82,7 @@ vi.mock('stripe', () => ({
 
 // ─── Drizzle mock with per-query result queue ───────────────────────────────
 
-/** Queue of results — each db.select() call shifts the next result from here. */
+/** Queue of results  -  each db.select() call shifts the next result from here. */
 let selectResults: unknown[][] = [];
 let insertResults: unknown[][] = [];
 
@@ -259,7 +259,7 @@ function resetMocks() {
   process.env.STRIPE_SECRET_KEY = 'sk_test_mock_key';
 
   // Re-wire Stripe constructor (clearAllMocks removes mockImplementation)
-  // Must use function() — arrow functions can't be called with `new`
+  // Must use function()  -  arrow functions can't be called with `new`
   mockStripeConstructor.mockImplementation(function (this: unknown) {
     return {
       accounts: { create: mockStripeAccountsCreate },
@@ -296,14 +296,14 @@ function resetMocks() {
   mockVerifyPayment.mockResolvedValue({ valid: true });
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shapes vary per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shapes vary per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe('GET /servers — list active servers', () => {
+describe('GET /servers  -  list active servers', () => {
   beforeEach(resetMocks);
 
   it('returns 200 with servers array', async () => {
@@ -357,7 +357,7 @@ describe('GET /servers — list active servers', () => {
   });
 });
 
-describe('GET /servers/:id — single server detail', () => {
+describe('GET /servers/:id  -  single server detail', () => {
   beforeEach(resetMocks);
 
   it('returns 200 with server detail for active server', async () => {
@@ -396,7 +396,7 @@ describe('GET /servers/:id — single server detail', () => {
   });
 });
 
-describe('POST /servers — publish server (auth required)', () => {
+describe('POST /servers  -  publish server (auth required)', () => {
   beforeEach(resetMocks);
 
   it('returns 401 when no user is set', async () => {
@@ -530,7 +530,7 @@ describe('POST /servers — publish server (auth required)', () => {
   });
 });
 
-describe('DELETE /servers/:id — unpublish server', () => {
+describe('DELETE /servers/:id  -  unpublish server', () => {
   beforeEach(resetMocks);
 
   it('returns 401 when no user is set', async () => {
@@ -587,7 +587,7 @@ describe('DELETE /servers/:id — unpublish server', () => {
   });
 });
 
-describe('POST /servers/:id/invoke — x402 payment gate + proxy', () => {
+describe('POST /servers/:id/invoke  -  x402 payment gate + proxy', () => {
   beforeEach(resetMocks);
 
   it('returns 402 when no X-PAYMENT-PAYLOAD header is provided', async () => {
@@ -693,7 +693,7 @@ describe('POST /servers/:id/invoke — x402 payment gate + proxy', () => {
   });
 });
 
-describe('POST /connect/onboard — Stripe Connect onboarding', () => {
+describe('POST /connect/onboard  -  Stripe Connect onboarding', () => {
   beforeEach(resetMocks);
 
   it('returns 401 when no user is set', async () => {
@@ -732,7 +732,7 @@ describe('POST /connect/onboard — Stripe Connect onboarding', () => {
   });
 });
 
-describe('GET /connect/return — Stripe Connect return', () => {
+describe('GET /connect/return  -  Stripe Connect return', () => {
   beforeEach(resetMocks);
 
   it('returns success message', async () => {

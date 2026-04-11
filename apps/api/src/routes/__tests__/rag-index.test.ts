@@ -17,7 +17,7 @@ vi.mock('@revealui/db/schema/rag', () => ({
   },
 }));
 
-// Mock dynamic AI imports — default to unavailable
+// Mock dynamic AI imports  -  default to unavailable
 vi.mock('@revealui/ai/embeddings', () => {
   throw new Error('not available');
 });
@@ -97,7 +97,7 @@ describe('rag-index routes', () => {
           method: 'POST',
         });
 
-        // Should get past validation — will fail at admin fetch (502)
+        // Should get past validation  -  will fail at admin fetch (502)
         expect(res.status).toBe(502);
       } finally {
         globalThis.fetch = originalFetch;
@@ -430,10 +430,10 @@ describe('rag-index routes', () => {
 });
 
 // ---------------------------------------------------------------------------
-// AI-available path tests — requires fresh module isolation
+// AI-available path tests  -  requires fresh module isolation
 // ---------------------------------------------------------------------------
-describe('rag-index routes — AI available', () => {
-  // biome-ignore lint/suspicious/noExplicitAny: module loaded after vi.resetModules — type unavailable at declaration site
+describe('rag-index routes  -  AI available', () => {
+  // biome-ignore lint/suspicious/noExplicitAny: module loaded after vi.resetModules  -  type unavailable at declaration site
   let freshRagApp: any;
   let freshGetVectorClient: ReturnType<typeof vi.fn>;
   let freshGetRestClient: ReturnType<typeof vi.fn>;
@@ -620,7 +620,7 @@ describe('rag-index routes — AI available', () => {
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.indexed).toBe(1);
-      // Verify ingest was called — the rawContent will be the JSON-stringified doc
+      // Verify ingest was called  -  the rawContent will be the JSON-stringified doc
       expect(mockIngest).toHaveBeenCalledWith(
         expect.objectContaining({
           sourceId: 'doc-1',
@@ -683,7 +683,7 @@ describe('rag-index routes — AI available', () => {
     });
   });
 
-  describe('DELETE /rag/workspaces/:workspaceId/documents/:documentId — AI available', () => {
+  describe('DELETE /rag/workspaces/:workspaceId/documents/:documentId  -  AI available', () => {
     it('returns 200 and deletes the document when AI is available', async () => {
       freshGetVectorClient.mockReturnValue({});
       mockDeleteDocument.mockResolvedValue(undefined);

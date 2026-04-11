@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanupExpiredIdempotencyKeys, recoverStaleSagas } from '../recovery.js';
 
 // ---------------------------------------------------------------------------
-// Mock helpers — chainable Drizzle query builders
+// Mock helpers  -  chainable Drizzle query builders
 // ---------------------------------------------------------------------------
 
 /**
- * recovery.ts uses `db.select().from(jobs).where(...)` — where() is terminal.
+ * recovery.ts uses `db.select().from(jobs).where(...)`  -  where() is terminal.
  * Not the same chain shape as neon-saga which uses .limit().
  */
 function createSelectChain(result: unknown[] = []) {
@@ -43,7 +43,7 @@ function createMockDb() {
 type MockDb = ReturnType<typeof createMockDb>;
 
 // ---------------------------------------------------------------------------
-// Tests — recoverStaleSagas
+// Tests  -  recoverStaleSagas
 // ---------------------------------------------------------------------------
 
 describe('recoverStaleSagas', () => {
@@ -163,7 +163,7 @@ describe('recoverStaleSagas', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — cleanupExpiredIdempotencyKeys
+// Tests  -  cleanupExpiredIdempotencyKeys
 // ---------------------------------------------------------------------------
 
 describe('cleanupExpiredIdempotencyKeys', () => {

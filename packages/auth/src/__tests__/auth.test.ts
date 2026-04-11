@@ -141,7 +141,7 @@ describe('Authentication', () => {
     it('should return error if user already exists', async () => {
       vi.clearAllMocks();
 
-      // First select (users table) returns existing user — OAuth check never reached
+      // First select (users table) returns existing user  -  OAuth check never reached
       mockDb.select.mockReturnValueOnce(mockSelectChain([mockUser]));
 
       const result = await signUp('test@example.com', 'Password123', 'Test User');

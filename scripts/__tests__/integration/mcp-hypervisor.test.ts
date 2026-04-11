@@ -97,7 +97,7 @@ function makeServerDef(overrides: Partial<ServerDefinition> = {}): ServerDefinit
   };
 }
 
-/** Default fast config for tests — avoid 5s shutdown waits */
+/** Default fast config for tests  -  avoid 5s shutdown waits */
 const FAST_CONFIG: HypervisorConfig = { shutdownTimeoutMs: 100 };
 
 // =============================================================================
@@ -917,7 +917,7 @@ describe('MCP Hypervisor', () => {
       await hypervisor.start();
       await hypervisor.spawnServer(makeServerDef());
 
-      // Server is in error state — stopping should not throw
+      // Server is in error state  -  stopping should not throw
       await hypervisor.stopServer('test-server');
       expect(hypervisor.getServer('test-server')).toBeUndefined();
     });

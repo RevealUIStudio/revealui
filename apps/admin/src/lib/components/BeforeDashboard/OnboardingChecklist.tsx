@@ -53,7 +53,7 @@ export default function OnboardingChecklist() {
     try {
       localStorage.setItem(DISMISSED_KEY, '1');
     } catch {
-      // localStorage unavailable — dismiss in-memory only
+      // localStorage unavailable  -  dismiss in-memory only
     }
     setDismissed(true);
   };

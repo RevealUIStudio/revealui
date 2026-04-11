@@ -158,7 +158,7 @@ describe('HealthMonitor', () => {
     });
   });
 
-  describe('alert generation — zombies', () => {
+  describe('alert generation  -  zombies', () => {
     it('should generate no zombie alert when below warning threshold', () => {
       const stats = defaultStats();
       stats.zombies = thresholds.zombies.warning - 1;
@@ -210,7 +210,7 @@ describe('HealthMonitor', () => {
     });
   });
 
-  describe('alert generation — memory', () => {
+  describe('alert generation  -  memory', () => {
     it('should generate no memory alert when below warning', () => {
       // Memory is taken from process.memoryUsage() which we can't easily mock
       // but with default thresholds of 512 MB warning, test env should be below
@@ -224,7 +224,7 @@ describe('HealthMonitor', () => {
     });
   });
 
-  describe('alert generation — active processes', () => {
+  describe('alert generation  -  active processes', () => {
     it('should generate no alert when below warning threshold', () => {
       const stats = defaultStats();
       stats.running = thresholds.processes.active.warning - 1;
@@ -263,7 +263,7 @@ describe('HealthMonitor', () => {
     });
   });
 
-  describe('alert generation — spawn rate', () => {
+  describe('alert generation  -  spawn rate', () => {
     it('should generate no alert when below warning threshold', () => {
       mockedGetSpawnRate.mockReturnValue(thresholds.spawnRate.warning - 1);
 
@@ -295,7 +295,7 @@ describe('HealthMonitor', () => {
     });
   });
 
-  describe('alert generation — database waiting', () => {
+  describe('alert generation  -  database waiting', () => {
     it('should generate no alert when no database pools provided', () => {
       const metrics = getHealthMetrics();
       const dbAlerts = metrics.alerts.filter((a) => a.metric === 'database_waiting');
@@ -365,7 +365,7 @@ describe('HealthMonitor', () => {
     });
   });
 
-  describe('alert generation — multiple alerts', () => {
+  describe('alert generation  -  multiple alerts', () => {
     it('should generate multiple alerts when multiple thresholds are exceeded', () => {
       const stats = defaultStats();
       stats.zombies = thresholds.zombies.critical;

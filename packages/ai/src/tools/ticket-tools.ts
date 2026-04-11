@@ -1,7 +1,7 @@
 /**
  * Ticket Mutation Tools
  *
- * Tools that allow an agent to update ticket state as it works —
+ * Tools that allow an agent to update ticket state as it works  -
  * closing a ticket when done, moving it between columns, and writing
  * its results back as a comment.
  *

@@ -100,7 +100,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
 
     // Session invalidation is now handled inside changePassword itself.
     // The revokeOtherSessions option is kept for backward compatibility but
-    // is effectively always true — password changes always revoke other sessions.
+    // is effectively always true  -  password changes always revoke other sessions.
 
     logger.info('Password changed', {
       userId: sessionData.user.id,

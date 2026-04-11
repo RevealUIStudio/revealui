@@ -160,8 +160,8 @@ pnpm build
 - You need shared Zod schemas and TypeScript types used across API, CMS, and client
 - You're validating data at boundaries (API input, database rows, form submissions)
 - You want dual representation (human/agent) for CMS entities
-- **Not** for database queries — use `@revealui/db` with Drizzle ORM
-- **Not** for runtime config validation — use `@revealui/config`
+- **Not** for database queries  -  use `@revealui/db` with Drizzle ORM
+- **Not** for runtime config validation  -  use `@revealui/config`
 
 ## JOSHUA Alignment
 

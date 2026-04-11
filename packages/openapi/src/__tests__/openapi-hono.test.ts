@@ -201,7 +201,7 @@ describe('OpenAPIHono', () => {
 
     child.get('/plain', (c) => c.json({ ok: true }));
 
-    // Should not throw — Hono sub-app works, just no registry merge
+    // Should not throw  -  Hono sub-app works, just no registry merge
     parent.route('/legacy', child);
 
     expect(parent.openAPIRegistry.definitions).toHaveLength(0);

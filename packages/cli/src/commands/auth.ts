@@ -1,5 +1,5 @@
 /**
- * Auth commands — manage npm tokens and registry authentication
+ * Auth commands  -  manage npm tokens and registry authentication
  *
  * Subcommands:
  *   revealui auth status     Show current npm auth state
@@ -163,7 +163,7 @@ export async function runAuthStatusCommand(options: { json?: boolean }): Promise
   if (npmUser) {
     logger.success(`Authenticated as: ${npmUser}`);
   } else {
-    logger.error('Not authenticated — npm whoami failed');
+    logger.error('Not authenticated  -  npm whoami failed');
   }
 
   write('\n');
@@ -183,7 +183,7 @@ export async function runAuthStatusCommand(options: { json?: boolean }): Promise
 
   if (!projectUsesEnvVar && paths.project) {
     logger.warn(
-      "Project .npmrc does not reference NPM_TOKEN — direnv/RevVault tokens won't be used for publishing",
+      "Project .npmrc does not reference NPM_TOKEN  -  direnv/RevVault tokens won't be used for publishing",
     );
   }
 
@@ -210,13 +210,13 @@ export async function runAuthSetTokenCommand(options: {
     logger.info('Create a Granular Access Token at: https://www.npmjs.com/settings/<user>/tokens');
     logger.info('  Type: Granular Access Token');
     logger.info('  Packages: All packages (read and write)');
-    logger.info('  This bypasses 2FA — no OTP needed for publish');
+    logger.info('  This bypasses 2FA  -  no OTP needed for publish');
     process.exitCode = 1;
     return;
   }
 
   if (!token.startsWith('npm_')) {
-    logger.warn('Token does not start with "npm_" — this may not be a valid npm token');
+    logger.warn('Token does not start with "npm_"  -  this may not be a valid npm token');
   }
 
   // 1. Store in RevVault
@@ -230,7 +230,7 @@ export async function runAuthSetTokenCommand(options: {
         logger.error('Failed to store in RevVault');
       }
     } else {
-      logger.warn('RevVault not installed — skipping vault storage');
+      logger.warn('RevVault not installed  -  skipping vault storage');
     }
   }
 
@@ -267,7 +267,7 @@ export async function runAuthSetTokenCommand(options: {
       logger.success('Removed hardcoded token from ~/.npmrc (now managed via env var)');
     }
   } catch {
-    // ~/.npmrc may not exist — fine
+    // ~/.npmrc may not exist  -  fine
   }
 
   // 4. Verify
@@ -281,7 +281,7 @@ export async function runAuthSetTokenCommand(options: {
     const { stdout } = await execa('npm', ['whoami'], { stdio: 'pipe' });
     logger.success(`Authenticated as: ${stdout.trim()}`);
   } catch {
-    logger.error('npm whoami failed — token may be invalid or expired');
+    logger.error('npm whoami failed  -  token may be invalid or expired');
     process.exitCode = 1;
     return;
   }
@@ -318,7 +318,7 @@ export async function runAuthVerifyCommand(options: { json?: boolean }): Promise
   checks.push({
     name: 'Token source',
     pass: !!envToken,
-    detail: source + (npmrcToken && !envToken ? ' — consider migrating to RevVault' : ''),
+    detail: source + (npmrcToken && !envToken ? '  -  consider migrating to RevVault' : ''),
   });
 
   // 3. RevVault
@@ -339,7 +339,9 @@ export async function runAuthVerifyCommand(options: { json?: boolean }): Promise
     checks.push({
       name: '.npmrc NPM_TOKEN',
       pass: usesEnvVar,
-      detail: usesEnvVar ? 'Project .npmrc uses env var' : "Missing — direnv token won't reach npm",
+      detail: usesEnvVar
+        ? 'Project .npmrc uses env var'
+        : "Missing  -  direnv token won't reach npm",
     });
   }
 
@@ -349,7 +351,7 @@ export async function runAuthVerifyCommand(options: { json?: boolean }): Promise
   checks.push({
     name: '.envrc loads npm',
     pass: loadsNpm,
-    detail: loadsNpm ? 'revealui/env/npm in .envrc' : "Missing — direnv won't export NPM_TOKEN",
+    detail: loadsNpm ? 'revealui/env/npm in .envrc' : "Missing  -  direnv won't export NPM_TOKEN",
   });
 
   // 6. No hardcoded token in ~/.npmrc
@@ -381,7 +383,7 @@ export async function runAuthVerifyCommand(options: { json?: boolean }): Promise
   const allPass = checks.every((c) => c.pass);
   write('\n');
   if (allPass) {
-    logger.success('All checks passed — ready to publish');
+    logger.success('All checks passed  -  ready to publish');
   } else {
     logger.warn('Some checks failed. Run `revealui auth set-token` to fix.');
     process.exitCode = 1;

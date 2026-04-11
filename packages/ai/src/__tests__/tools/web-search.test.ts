@@ -87,7 +87,7 @@ describe('DuckDuckGoProvider', () => {
           AbstractText: '',
           AbstractURL: '',
           RelatedTopics: [
-            { Topics: [{ Text: 'nested', FirstURL: 'https://example.com' }] }, // group — skip
+            { Topics: [{ Text: 'nested', FirstURL: 'https://example.com' }] }, // group  -  skip
             { Text: 'Direct result - with description', FirstURL: 'https://direct.com' },
           ],
         }),

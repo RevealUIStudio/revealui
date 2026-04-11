@@ -4,7 +4,7 @@
  * Tests content creation through the Admin panel by driving the actual UI
  * (click collection → Create New → fill form → Save).
  *
- * The AdminDashboard is a state-machine SPA — URL segments are ignored.
+ * The AdminDashboard is a state-machine SPA  -  URL segments are ignored.
  * Tests must navigate via button clicks, not direct URL jumps.
  *
  * REQUIRES live services:
@@ -13,14 +13,14 @@
  *
  * Auth strategy:
  *   global-setup signs in ONCE and saves the session cookie to e2e/.auth/user.json.
- *   Each test reuses that state via test.use({ storageState }) — no per-test sign-in.
+ *   Each test reuses that state via test.use({ storageState })  -  no per-test sign-in.
  *   This keeps total sign-in requests well within the 5/15min rate limit.
  *
  * Collection choice:
  *   Pages/Posts have required `blocks`/`richText` fields that DocumentForm
  *   cannot render (it only handles text/number/checkbox/select/date).
  *   Save would always fail for those collections via the admin UI.
- *   The `categories` collection has only `title` (text, required) — ideal for
+ *   The `categories` collection has only `title` (text, required)  -  ideal for
  *   verifying the full admin CRUD flow.
  *
  * Run with:
@@ -45,22 +45,22 @@ const AUTH_STATE_FILE = 'e2e/.auth/user.json';
 
 async function goToAdmin(page: Page) {
   await page.goto(`${ADMIN_BASE}/admin`, { waitUntil: 'domcontentloaded' });
-  // Wait for SSR heading — signals HTML is ready
+  // Wait for SSR heading  -  signals HTML is ready
   await page.getByRole('heading', { name: /RevealUI Admin/i }).waitFor({ timeout: 15000 });
   // Wait for JS bundles to load so React can hydrate and attach onClick handlers
   await page.waitForLoadState('load');
 }
 
 // ---------------------------------------------------------------------------
-// Categories collection — simple CRUD (title-only, no complex field types)
+// Categories collection  -  simple CRUD (title-only, no complex field types)
 // ---------------------------------------------------------------------------
 // Uses `categories` instead of `pages`/`posts` because:
-//   - Pages requires `layout` (blocks, required) — DocumentForm cannot fill blocks
-//   - Posts requires `content` (richText, required) — DocumentForm cannot fill richText
-//   - Categories only requires `title` (text) — works with current DocumentForm
+//   - Pages requires `layout` (blocks, required)  -  DocumentForm cannot fill blocks
+//   - Posts requires `content` (richText, required)  -  DocumentForm cannot fill richText
+//   - Categories only requires `title` (text)  -  works with current DocumentForm
 
 test.describe('Content CRUD lifecycle', () => {
-  // Reuse the session cookie saved by global-setup — no per-test sign-in needed.
+  // Reuse the session cookie saved by global-setup  -  no per-test sign-in needed.
   // This avoids the 5/15min sign-in rate limit when retries are enabled.
   test.use({ storageState: AUTH_STATE_FILE });
 
@@ -106,7 +106,7 @@ test.describe('Content CRUD lifecycle', () => {
 
     await goToAdmin(page);
 
-    // Click categories — retry if React hasn't hydrated yet (onClick not attached)
+    // Click categories  -  retry if React hasn't hydrated yet (onClick not attached)
     await expect(async () => {
       await page.getByRole('button', { name: 'categories' }).click();
       await expect(page.getByRole('button', { name: 'Create New' })).toBeVisible({
@@ -163,7 +163,7 @@ test.describe('Content CRUD lifecycle', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Media upload — API-based (bypasses DocumentForm which lacks upload field type)
+// Media upload  -  API-based (bypasses DocumentForm which lacks upload field type)
 // ---------------------------------------------------------------------------
 
 test.describe('Media upload via API', () => {
@@ -209,7 +209,7 @@ test.describe('Media upload via API', () => {
     });
 
     // Accept 201 (created) or 200 (OK). 4xx means the endpoint rejected
-    // the request — still a valid test outcome if auth or storage isn't configured.
+    // the request  -  still a valid test outcome if auth or storage isn't configured.
     if (response.status() === 401 || response.status() === 403) {
       test.skip();
       return;

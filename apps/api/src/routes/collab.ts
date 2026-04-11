@@ -104,7 +104,7 @@ export function createCollabRoute(): OpenAPIHono<{ Variables: Variables }> {
     try {
       updateBytes = new Uint8Array(Buffer.from(update, 'base64'));
     } catch {
-      throw new HTTPException(400, { message: 'Invalid update encoding — expected base64' });
+      throw new HTTPException(400, { message: 'Invalid update encoding  -  expected base64' });
     }
 
     const db = c.get('db');

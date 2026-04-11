@@ -1,5 +1,5 @@
 /**
- * @revealui/harnesses/content — Canonical Content Layer
+ * @revealui/harnesses/content  -  Canonical Content Layer
  *
  * Tool-agnostic definitions for AI guidance content (rules, commands, agents, skills).
  * Generators produce tool-specific output (Claude Code, Cursor, etc.) from canonical definitions.

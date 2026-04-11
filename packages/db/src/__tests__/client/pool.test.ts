@@ -9,7 +9,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ============================================================================
-// Mocks — must be defined before imports (Vitest hoists vi.mock)
+// Mocks  -  must be defined before imports (Vitest hoists vi.mock)
 // ============================================================================
 
 const mockPoolEnd = vi.fn().mockResolvedValue(undefined);
@@ -83,7 +83,7 @@ import {
 // Tests
 // ============================================================================
 
-describe('client/index — pool management', () => {
+describe('client/index  -  pool management', () => {
   const origPostgres = process.env.POSTGRES_URL;
   const origDb = process.env.DATABASE_URL;
 

@@ -119,11 +119,11 @@ function createCustomerManager() {
       // Transaction with re-check (simulates the SQL transaction)
       const existing = db.get(userId);
       if (existing?.stripeCustomerId) {
-        // Another request won the race — return their ID
+        // Another request won the race  -  return their ID
         return existing.stripeCustomerId;
       }
 
-      // We won — write our customer ID
+      // We won  -  write our customer ID
       db.set(userId, { stripeCustomerId: newCustomerId });
 
       // Re-read to handle any remaining race

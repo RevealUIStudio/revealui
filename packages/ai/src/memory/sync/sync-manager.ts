@@ -100,7 +100,7 @@ export class SyncManager {
 
   /**
    * Merges a remote node's full state into local state.
-   * Uses CRDT merge semantics — order doesn't matter, result is deterministic.
+   * Uses CRDT merge semantics  -  order doesn't matter, result is deterministic.
    *
    * @returns WorkingMemory with merged state (caller decides whether to persist)
    */
@@ -111,7 +111,7 @@ export class SyncManager {
     const localData = local.toData();
     const remoteData = remote.toData();
 
-    // Quick equality check — if timestamps match, nothing changed
+    // Quick equality check  -  if timestamps match, nothing changed
     if (
       localData.context.timestamp === remoteData.context.timestamp &&
       localData.sessionState.timestamp === remoteData.sessionState.timestamp

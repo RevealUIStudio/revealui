@@ -2,21 +2,21 @@
  * Billing Coverage Gaps Tests
  *
  * Covers previously untested webhook handlers and IDOR protection:
- * - charge.dispute.created — logs dispute, sends notification email
- * - charge.dispute.closed — won (restores license) vs lost (revokes license)
- * - charge.refunded — full refund revokes license, partial retains
- * - payment_intent.payment_failed — logs failure, audits
- * - customer.subscription.updated with incomplete_expired — revokes license
- * - customer.subscription.updated with incomplete — warns only, no revocation
- * - POST /portal — no account returns error, not another user's portal
- * - GET /subscription — no subscription returns free tier, not another user's data
+ * - charge.dispute.created  -  logs dispute, sends notification email
+ * - charge.dispute.closed  -  won (restores license) vs lost (revokes license)
+ * - charge.refunded  -  full refund revokes license, partial retains
+ * - payment_intent.payment_failed  -  logs failure, audits
+ * - customer.subscription.updated with incomplete_expired  -  revokes license
+ * - customer.subscription.updated with incomplete  -  warns only, no revocation
+ * - POST /portal  -  no account returns error, not another user's portal
+ * - GET /subscription  -  no subscription returns free tier, not another user's data
  */
 
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 // Webhook mocks
 const mockConstructEvent = vi.fn();
@@ -67,7 +67,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
-// ─── DB Mock — fluent chain for select / insert / update / delete ─────────────
+// ─── DB Mock  -  fluent chain for select / insert / update / delete ─────────────
 
 const mockAuditAppend = vi.fn();
 
@@ -489,7 +489,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       expect(mockAuditAppend).toHaveBeenCalledOnce();
       const entry = mockAuditAppend.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(entry.eventType).toBe('license.dispute.opened');
-      // Should NOT revoke — no update to 'revoked' status
+      // Should NOT revoke  -  no update to 'revoked' status
       const updateCalls = mockDbUpdateChain.set.mock.calls;
       for (const call of updateCalls) {
         const setArg = call[0] as Record<string, unknown>;
@@ -712,11 +712,11 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      // Should NOT revoke license — only idempotency insert, no update
+      // Should NOT revoke license  -  only idempotency insert, no update
       expect(mockDb.update).not.toHaveBeenCalled();
       // Should log info about partial refund
       expect(vi.mocked(loggerModule.logger).info).toHaveBeenCalledWith(
-        'Partial refund issued — license retained',
+        'Partial refund issued  -  license retained',
         expect.objectContaining({
           customerId: 'cus_partial_1',
           chargeId: 'ch_partial_1',
@@ -828,7 +828,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
   // Section B: Subscription Status Edge Cases
   // ──────────────────────────────────────────────────────────────────────────
 
-  describe('Webhook: customer.subscription.updated — incomplete_expired', () => {
+  describe('Webhook: customer.subscription.updated  -  incomplete_expired', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       mockDbSelectChain.limit.mockReset();
@@ -876,7 +876,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
     });
   });
 
-  describe('Webhook: customer.subscription.updated — incomplete', () => {
+  describe('Webhook: customer.subscription.updated  -  incomplete', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       mockDbSelectChain.limit.mockReset();
@@ -917,7 +917,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       expect(mockDb.update).not.toHaveBeenCalled();
       // Should log a warning
       expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
-        'Subscription in incomplete state — awaiting payment confirmation',
+        'Subscription in incomplete state  -  awaiting payment confirmation',
         expect.objectContaining({
           customerId: 'cus_incomplete_1',
           subscriptionId: 'sub_incomplete',
@@ -943,8 +943,8 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
     it('returns error when user has no billing account', async () => {
       // resolveHostedStripeCustomerId: no account membership found
       queueSelectResults(
-        [], // accountMemberships lookup — no membership
-        [{ stripeCustomerId: null }], // users lookup — no stripe customer
+        [], // accountMemberships lookup  -  no membership
+        [{ stripeCustomerId: null }], // users lookup  -  no stripe customer
       );
 
       const app = createBillingApp();
@@ -980,8 +980,8 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
     it('returns free tier when user has no subscription', async () => {
       // getHostedSubscriptionSnapshot: no membership
       queueSelectResults(
-        [], // accountMemberships lookup — no membership
-        [], // licenses lookup — no license
+        [], // accountMemberships lookup  -  no membership
+        [], // licenses lookup  -  no license
       );
 
       const app = createBillingApp();
@@ -999,7 +999,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const app = createBillingApp(unauthUser);
       const res = await app.request(get('/subscription'));
 
-      // Subscription route returns free tier for unknown users — it does NOT
+      // Subscription route returns free tier for unknown users  -  it does NOT
       // expose another user's data. This is safe IDOR behavior.
       const body = (await res.json()) as Record<string, unknown>;
       if (res.status === 200) {

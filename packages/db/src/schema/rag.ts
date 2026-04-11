@@ -5,7 +5,7 @@
  * The ragDocuments → ragChunks FK cascade is enforced within Supabase.
  * The workspaceId → sites.id reference is cross-database (type-only, not enforced at runtime).
  *
- * Embedding dimensions: 768 (nomic-embed-text via Ollama — policy default)
+ * Embedding dimensions: 768 (nomic-embed-text via Ollama  -  policy default)
  */
 
 import { customType, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
@@ -28,7 +28,7 @@ const vector = customType<{ data: number[]; driverData: string }>({
 });
 
 // =============================================================================
-// rag_documents — one row per indexed source
+// rag_documents  -  one row per indexed source
 // =============================================================================
 
 export const ragDocuments = pgTable('rag_documents', {
@@ -65,7 +65,7 @@ export const ragDocuments = pgTable('rag_documents', {
 });
 
 // =============================================================================
-// rag_chunks — one row per text chunk, with 768-dim embedding
+// rag_chunks  -  one row per text chunk, with 768-dim embedding
 // =============================================================================
 
 export const ragChunks = pgTable(
@@ -83,7 +83,7 @@ export const ragChunks = pgTable(
     tokenCount: integer('token_count').default(0),
     chunkIndex: integer('chunk_index').notNull().default(0),
 
-    /** Vector embedding — 768 dimensions (nomic-embed-text) */
+    /** Vector embedding  -  768 dimensions (nomic-embed-text) */
     embedding: vector('embedding', { dimensions: 768 }),
     embeddingModel: text('embedding_model'),
 
@@ -99,7 +99,7 @@ export const ragChunks = pgTable(
 );
 
 // =============================================================================
-// rag_workspaces — per-workspace RAG configuration
+// rag_workspaces  -  per-workspace RAG configuration
 // =============================================================================
 
 export const ragWorkspaces = pgTable('rag_workspaces', {

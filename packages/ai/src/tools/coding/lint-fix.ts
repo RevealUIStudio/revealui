@@ -1,5 +1,5 @@
 /**
- * lint_fix — Run linter and optionally auto-fix issues
+ * lint_fix  -  Run linter and optionally auto-fix issues
  *
  * Detects the linter (Biome, ESLint) and runs it with machine-parseable
  * output. Returns structured diagnostic counts and details.

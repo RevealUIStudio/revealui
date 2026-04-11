@@ -1,15 +1,15 @@
 #!/usr/bin/env tsx
 
 /**
- * Types Gate — Native Type System Validation for RevealUI
+ * Types Gate  -  Native Type System Validation for RevealUI
  *
  * Validates that type-critical packages build and typecheck cleanly.
  *
  * Usage:
- *   pnpm gate:types              — run full type system validation
- *   pnpm gate:types --check-only — skip builds, just typecheck
+ *   pnpm gate:types               -  run full type system validation
+ *   pnpm gate:types --check-only  -  skip builds, just typecheck
  *
- * Steps (serial — each depends on the previous):
+ * Steps (serial  -  each depends on the previous):
  *   1. Build @revealui/db
  *   2. Build @revealui/contracts
  *   3. Run contract tests
@@ -131,7 +131,7 @@ async function gate(): Promise<void> {
   if (checkOnly) {
     results.push({ name: 'Build @revealui/db', status: 'skip', durationMs: 0 });
   } else {
-    logger.info('Step 1 — Building @revealui/db');
+    logger.info('Step 1  -  Building @revealui/db');
     const dbBuild = await runStep(
       'Build @revealui/db',
       'pnpm',
@@ -145,7 +145,7 @@ async function gate(): Promise<void> {
   if (checkOnly) {
     results.push({ name: 'Build @revealui/contracts', status: 'skip', durationMs: 0 });
   } else {
-    logger.info('Step 2 — Building @revealui/contracts');
+    logger.info('Step 2  -  Building @revealui/contracts');
     const contractsBuild = await runStep(
       'Build @revealui/contracts',
       'pnpm',
@@ -156,13 +156,13 @@ async function gate(): Promise<void> {
   }
 
   if (hasFailed()) {
-    logger.error('Build failed — aborting\n');
+    logger.error('Build failed  -  aborting\n');
     printSummary(results, performance.now() - totalStart);
     process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
   // Step 3: Contract tests
-  logger.info('Step 3 — Running contract tests');
+  logger.info('Step 3  -  Running contract tests');
   const contractTests = await runStep(
     'Contract tests',
     'pnpm',
@@ -172,7 +172,7 @@ async function gate(): Promise<void> {
   results.push(contractTests);
 
   // Steps 4-5: Typecheck db + contracts (parallel)
-  logger.info('Steps 4-5 — Typechecking @revealui/db and @revealui/contracts');
+  logger.info('Steps 4-5  -  Typechecking @revealui/db and @revealui/contracts');
   const [dbTypecheck, contractsTypecheck] = await Promise.all([
     runStep('Typecheck @revealui/db', 'pnpm', ['--filter', '@revealui/db', 'typecheck'], {
       cwd: projectRoot,
@@ -188,13 +188,13 @@ async function gate(): Promise<void> {
   results.push(dbTypecheck, contractsTypecheck);
 
   if (hasFailed()) {
-    logger.error('Typecheck failed — aborting\n');
+    logger.error('Typecheck failed  -  aborting\n');
     printSummary(results, performance.now() - totalStart);
     process.exit(ErrorCode.EXECUTION_ERROR);
   }
 
   // Step 6: Full workspace typecheck
-  logger.info('Step 6 — Full workspace typecheck');
+  logger.info('Step 6  -  Full workspace typecheck');
   const fullTypecheck = await runStep('Full workspace typecheck', 'pnpm', ['typecheck:all'], {
     cwd: projectRoot,
     timeout: 300000,

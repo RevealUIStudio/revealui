@@ -1,5 +1,5 @@
 /**
- * OAuth Initiate Route — GET /api/auth/[provider]
+ * OAuth Initiate Route  -  GET /api/auth/[provider]
  *
  * Redirects the user to the provider's authorization page.
  * Sets a signed state cookie for CSRF protection.

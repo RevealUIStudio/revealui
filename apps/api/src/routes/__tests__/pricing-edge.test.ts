@@ -1,5 +1,5 @@
 /**
- * Pricing Route — Edge Case Tests
+ * Pricing Route  -  Edge Case Tests
  *
  * Supplements pricing.test.ts with:
  * - unit_amount: 0 treated as falsy → falls back to static price
@@ -14,7 +14,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must come before imports
+// Mocks  -  must come before imports
 // ---------------------------------------------------------------------------
 
 const mockProductsList = vi.fn();
@@ -29,7 +29,7 @@ vi.mock('stripe', () => ({
 
 let circuitBreakerShouldThrow = false;
 
-// NOTE: @revealui/core/error-handling is NOT hoisted here — the vi.doMock in
+// NOTE: @revealui/core/error-handling is NOT hoisted here  -  the vi.doMock in
 // beforeAll (after vi.resetModules) is the sole mock factory. A hoisted vi.mock
 // used a *different* class for throwing vs exporting, causing `instanceof
 // CircuitBreakerOpenError` to fail non-deterministically when Vitest's module
@@ -90,7 +90,7 @@ beforeEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('GET /api/pricing — unit_amount: 0 edge case', () => {
+describe('GET /api/pricing  -  unit_amount: 0 edge case', () => {
   it('treats unit_amount: 0 as falsy and falls back to static price', async () => {
     // Free tiers in Stripe might have unit_amount: 0, which is falsy.
     // The route's `if (!defaultPrice?.unit_amount)` skips them → falls back.
@@ -114,9 +114,9 @@ describe('GET /api/pricing — unit_amount: 0 edge case', () => {
   });
 });
 
-describe('GET /api/pricing — missing metadata fields', () => {
+describe('GET /api/pricing  -  missing metadata fields', () => {
   it('skips product when revealui_tier is missing even if track is set', async () => {
-    // Route: if (!(track && tier)) continue — both must be non-empty
+    // Route: if (!(track && tier)) continue  -  both must be non-empty
     mockProductsList.mockResolvedValue({
       data: [
         {
@@ -277,7 +277,7 @@ describe('GET /api/pricing — missing metadata fields', () => {
   });
 });
 
-describe('GET /api/pricing — logger call verification', () => {
+describe('GET /api/pricing  -  logger call verification', () => {
   it('calls logger.warn when circuit breaker is open', async () => {
     circuitBreakerShouldThrow = true;
 
@@ -315,7 +315,7 @@ describe('GET /api/pricing — logger call verification', () => {
   });
 });
 
-describe('GET /api/pricing — formatPrice edge values', () => {
+describe('GET /api/pricing  -  formatPrice edge values', () => {
   it('formats large unit amounts correctly ($29900 → $299)', async () => {
     mockProductsList.mockResolvedValue({
       data: [
@@ -368,7 +368,7 @@ describe('GET /api/pricing — formatPrice edge values', () => {
     const data = await res.json();
 
     const starter = data.credits.find((b: { name: string }) => b.name === 'Starter');
-    // period is not set on credit bundles — no period field expected
+    // period is not set on credit bundles  -  no period field expected
     expect(starter).not.toHaveProperty('period');
   });
 });

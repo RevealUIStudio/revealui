@@ -144,7 +144,7 @@ test.describe('Signup Page @auth @signup', () => {
     const submitButton = page.locator('button[type="submit"]');
     await expect(submitButton).toBeVisible({ timeout: 10000 });
 
-    // TOS checkbox is unchecked by default — submit should be disabled
+    // TOS checkbox is unchecked by default  -  submit should be disabled
     await expect(submitButton).toBeDisabled();
   });
 
@@ -303,7 +303,7 @@ test.describe('Signup Form Submission @auth @signup', () => {
     // - Shows an error message (e.g., duplicate email)
     await page.waitForLoadState('networkidle');
 
-    // The form should have been processed — we should no longer be on /signup
+    // The form should have been processed  -  we should no longer be on /signup
     // OR an error should be displayed. Both are valid outcomes depending on
     // server state.
     const currentUrl = page.url();
@@ -572,7 +572,7 @@ test.describe('Admin Dashboard Access @auth @admin', () => {
       const heading = page.locator('text=RevealUI Admin');
       await expect(heading).toBeVisible({ timeout: 15000 });
     } else {
-      // Email not verified — sign-in didn't return a session.
+      // Email not verified  -  sign-in didn't return a session.
       // Verify that the login page is shown instead.
       await page.goto(`${CMS_URL}/admin`);
       await page.waitForLoadState('networkidle');
@@ -696,7 +696,7 @@ test.describe('Full Signup to Dashboard Journey @auth @signup @login @admin', ()
     const signupToken = extractCookieValue(signupCookie, 'revealui-session');
 
     if (signupToken) {
-      // First-user path: auto-verified admin — session granted on signup
+      // First-user path: auto-verified admin  -  session granted on signup
       expect(signupData.user.role).toBe('admin');
       expect(signupData.user.emailVerified).toBe(true);
 
@@ -710,7 +710,7 @@ test.describe('Full Signup to Dashboard Journey @auth @signup @login @admin', ()
       expect(sessionData.user).toBeDefined();
       expect(sessionData.user.email).toBe(email);
     } else {
-      // Subsequent user: email not verified — no session on signup.
+      // Subsequent user: email not verified  -  no session on signup.
       // The sign-in endpoint should reject until email is verified.
       expect(signupData.user.emailVerified).toBe(false);
     }
@@ -757,7 +757,7 @@ test.describe('Full Signup to Dashboard Journey @auth @signup @login @admin', ()
     // Step 4: Navigate to login (may already be there if signup redirected)
     const afterSignupUrl = page.url();
     if (afterSignupUrl.includes('/admin')) {
-      // First user was auto-promoted to admin — we're already at the dashboard
+      // First user was auto-promoted to admin  -  we're already at the dashboard
       const adminHeading = page.locator('text=RevealUI Admin');
       await expect(adminHeading).toBeVisible({ timeout: 15000 });
       return; // Journey complete
@@ -788,7 +788,7 @@ test.describe('Full Signup to Dashboard Journey @auth @signup @login @admin', ()
       const adminHeading = page.locator('text=RevealUI Admin');
       await expect(adminHeading).toBeVisible({ timeout: 15000 });
     } else if (errorVisible) {
-      // Error shown (likely EMAIL_NOT_VERIFIED) — this is expected for
+      // Error shown (likely EMAIL_NOT_VERIFIED)  -  this is expected for
       // non-first users until they verify their email. The E2E test
       // validates the flow works; email verification requires SMTP.
       const errorText = await errorBanner.textContent();

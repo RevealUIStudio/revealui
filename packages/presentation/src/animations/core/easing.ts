@@ -93,16 +93,16 @@ export function cubicBezier(x1: number, y1: number, x2: number, y2: number): Eas
 // Named presets (matching tokens.css)
 // ---------------------------------------------------------------------------
 
-/** Default ease — matches --rvui-ease */
+/** Default ease  -  matches --rvui-ease */
 export const rvuiEase = cubicBezier(0.22, 1, 0.36, 1);
 
-/** Spring ease — matches --rvui-ease-spring */
+/** Spring ease  -  matches --rvui-ease-spring */
 export const rvuiSpring = cubicBezier(0.34, 1.56, 0.64, 1);
 
-/** Ease in — matches --rvui-ease-in */
+/** Ease in  -  matches --rvui-ease-in */
 export const rvuiEaseIn = cubicBezier(0.55, 0, 1, 0.45);
 
-/** Ease out — matches --rvui-ease-out */
+/** Ease out  -  matches --rvui-ease-out */
 export const rvuiEaseOut = cubicBezier(0, 0.55, 0.45, 1);
 
 // ---------------------------------------------------------------------------

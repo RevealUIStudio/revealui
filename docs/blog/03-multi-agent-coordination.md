@@ -1,6 +1,6 @@
 # Three AI Agents, One Codebase, No Conflicts
 
-*By Joshua Vaughn — RevealUI Studio*
+*By Joshua Vaughn  -  RevealUI Studio*
 
 ---
 
@@ -12,7 +12,7 @@ The problem: they kept overwriting each other.
 
 Agent A would be mid-way through refactoring `packages/auth/src/server/oauth.ts`. Agent B, working independently, would open the same file to fix an unrelated import, save its version, and clobber everything A had done. Neither agent knew the other existed. There was no shared state, no communication channel, no way for one to know the other was mid-edit.
 
-The simple fix — run one agent at a time — eliminates the parallelism that makes the three-agent setup valuable in the first place. If each agent has to wait for the others to finish, you've got sequential work with extra steps.
+The simple fix  -  run one agent at a time  -  eliminates the parallelism that makes the three-agent setup valuable in the first place. If each agent has to wait for the others to finish, you've got sequential work with extra steps.
 
 What I needed was a coordination protocol. Not a distributed lock system. Not an event bus. Something lightweight, file-based, readable by humans and agents alike.
 
@@ -46,7 +46,7 @@ That's it. No daemon. No network calls. No distributed state. A markdown table.
 
 ## How Agents Register
 
-The registration happens via a Claude Code hook — a shell script that runs on session start:
+The registration happens via a Claude Code hook  -  a shell script that runs on session start:
 
 ```javascript
 // ~/.claude/hooks/session-start.js
@@ -95,7 +95,7 @@ The conflict-prevention mechanism is file claiming. When an agent starts editing
 
 A second agent, before editing `packages/db/src/schema/marketplace.ts`, reads the workboard and sees that `zed-revealui` has claimed that directory. It either waits, picks a different task, or asks the human to resolve the conflict.
 
-The ownership is advisory, not enforced. There's no lock that prevents writes. The protocol relies on agents actually checking before editing — which Claude Code does naturally when given the workboard context. If an agent is going to edit a claimed file, it knows to coordinate first.
+The ownership is advisory, not enforced. There's no lock that prevents writes. The protocol relies on agents actually checking before editing  -  which Claude Code does naturally when given the workboard context. If an agent is going to edit a claimed file, it knows to coordinate first.
 
 This is the right level of enforcement. Hard locks create deadlocks. Advisory ownership surfaces conflicts without blocking work.
 
@@ -149,15 +149,15 @@ Sessions that haven't written to the workboard in four hours are considered dead
 
 ## What This Solves (and Doesn't)
 
-This protocol solves the most common multi-agent problem: two agents editing the same file concurrently without knowing it. It catches this early — before the edit happens — by surfacing the claim in the workboard context.
+This protocol solves the most common multi-agent problem: two agents editing the same file concurrently without knowing it. It catches this early  -  before the edit happens  -  by surfacing the claim in the workboard context.
 
 It doesn't solve everything:
 
-**Race conditions at the second level** — two agents both reading a file, deciding no one else owns it, and both claiming it simultaneously. This is possible but rare in practice. The workboard read-claim-write cycle is fast, and human developers tend to assign tasks to agents sequentially ("now you do X, now you do Y") rather than launching them simultaneously on the same files.
+**Race conditions at the second level**  -  two agents both reading a file, deciding no one else owns it, and both claiming it simultaneously. This is possible but rare in practice. The workboard read-claim-write cycle is fast, and human developers tend to assign tasks to agents sequentially ("now you do X, now you do Y") rather than launching them simultaneously on the same files.
 
-**Semantic conflicts** — two agents editing different files that depend on each other. Agent A changes a function signature; Agent B calls that function in another file. No file-level conflict, but a broken build. The CI gate catches this, which is why the gate runs continuously in the third terminal.
+**Semantic conflicts**  -  two agents editing different files that depend on each other. Agent A changes a function signature; Agent B calls that function in another file. No file-level conflict, but a broken build. The CI gate catches this, which is why the gate runs continuously in the third terminal.
 
-**Correctness of claims** — an agent might claim files it ends up not editing, blocking other agents unnecessarily. In practice this is fine: claims are scoped to the current task, and task scope is usually clear.
+**Correctness of claims**  -  an agent might claim files it ends up not editing, blocking other agents unnecessarily. In practice this is fine: claims are scoped to the current task, and task scope is usually clear.
 
 ---
 
@@ -206,7 +206,7 @@ if (!clean) {
 wb.releaseFiles('my-agent')
 ```
 
-The package also includes adapters for Claude Code, Cursor, and Aider — so you can coordinate across different AI tools on the same codebase.
+The package also includes adapters for Claude Code, Cursor, and Aider  -  so you can coordinate across different AI tools on the same codebase.
 
 ---
 
@@ -216,7 +216,7 @@ The hooks live in `~/.claude/hooks/` and are wired in `~/.claude/settings.json`.
 
 If you're running multiple AI coding agents on the same codebase, the workboard protocol is the lowest-overhead coordination mechanism I've found. It's readable by humans, greppable, diffable, and doesn't require any infrastructure beyond a shared filesystem.
 
-The `@revealui/harnesses` package is part of RevealUI Pro. The protocol itself — the markdown format, the hook scripts, the coordination rules — is documented in full in the [RevealUI repo](https://github.com/RevealUIStudio/revealui/blob/main/docs/PRO.md) and free to implement yourself.
+The `@revealui/harnesses` package is part of RevealUI Pro. The protocol itself  -  the markdown format, the hook scripts, the coordination rules  -  is documented in full in the [RevealUI repo](https://github.com/RevealUIStudio/revealui/blob/main/docs/PRO.md) and free to implement yourself.
 
 ---
 

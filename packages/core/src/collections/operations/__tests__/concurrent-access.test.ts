@@ -1,5 +1,5 @@
 /**
- * Concurrent Access Tests — Database Integrity Under Parallel Operations
+ * Concurrent Access Tests  -  Database Integrity Under Parallel Operations
  *
  * Verifies that concurrent collection operations do not cause data corruption,
  * permission leaks, or inconsistent state. Tests the operations layer (create,
@@ -106,7 +106,7 @@ const postsConfig: RevealCollectionConfig = {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('Concurrent access — database integrity', () => {
+describe('Concurrent access  -  database integrity', () => {
   const mockDb = { query: vi.fn() };
 
   beforeEach(() => {
@@ -114,7 +114,7 @@ describe('Concurrent access — database integrity', () => {
   });
 
   // =========================================================================
-  // 1. Concurrent creates — duplicate key constraint
+  // 1. Concurrent creates  -  duplicate key constraint
   // =========================================================================
 
   describe('concurrent creates do not produce duplicates', () => {
@@ -255,7 +255,7 @@ describe('Concurrent access — database integrity', () => {
   });
 
   // =========================================================================
-  // 2. Concurrent updates — no data loss
+  // 2. Concurrent updates  -  no data loss
   // =========================================================================
 
   describe('concurrent updates do not lose data', () => {
@@ -406,7 +406,7 @@ describe('Concurrent access — database integrity', () => {
     it('concurrent update to nonexistent document fails cleanly for both', async () => {
       mockDb.query.mockImplementation(async (sql: string) => {
         if (sql.includes('SELECT _json')) {
-          // Document does not exist — empty result
+          // Document does not exist  -  empty result
           return { rows: [] } as DatabaseResult;
         }
         return { rows: [] } as DatabaseResult;
@@ -500,7 +500,7 @@ describe('Concurrent access — database integrity', () => {
         expect(deleteResult.value).toEqual({ id: 'doc-1' });
       }
 
-      // Update may succeed or fail depending on timing — both are valid outcomes.
+      // Update may succeed or fail depending on timing  -  both are valid outcomes.
       // The key invariant: no orphaned state, no corruption.
       const updateResult = results[1];
       if (updateResult.status === 'fulfilled') {
@@ -529,7 +529,7 @@ describe('Concurrent access — database integrity', () => {
 
       const results = await Promise.allSettled([deleteA, deleteB]);
 
-      // Both should succeed — DELETE is idempotent
+      // Both should succeed  -  DELETE is idempotent
       expect(results[0].status).toBe('fulfilled');
       expect(results[1].status).toBe('fulfilled');
 
@@ -588,7 +588,7 @@ describe('Concurrent access — database integrity', () => {
       expect(results[1].status).toBe('fulfilled');
 
       if (results[1].status === 'fulfilled') {
-        // The find result should be consistent — either the pre-delete or post-delete state
+        // The find result should be consistent  -  either the pre-delete or post-delete state
         const findResult = results[1].value;
         expect(findResult.docs.length).toBeGreaterThanOrEqual(1);
         expect(findResult.docs.length).toBeLessThanOrEqual(2);
@@ -829,7 +829,7 @@ describe('Concurrent access — database integrity', () => {
 
       const db = createMockDbWithCollectionStorage([{ id: '1', title: 'Doc 1' }]);
 
-      // Fire concurrent requests without req — all should be denied
+      // Fire concurrent requests without req  -  all should be denied
       const results = await Promise.all(
         Array.from({ length: 5 }, () => find(configWithAccess, db as never, {})),
       );
@@ -845,7 +845,7 @@ describe('Concurrent access — database integrity', () => {
   });
 
   // =========================================================================
-  // 5. Mixed concurrent operations — stress test
+  // 5. Mixed concurrent operations  -  stress test
   // =========================================================================
 
   describe('mixed concurrent operations', () => {

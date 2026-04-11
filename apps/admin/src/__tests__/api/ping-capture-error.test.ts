@@ -1,15 +1,15 @@
 /**
  * Ping & Capture-Error Route Tests
  *
- * GET  /api/ping              — minimal diagnostic probe
- * POST /api/capture-error     — client-error proxy (adds X-Internal-Token server-side)
+ * GET  /api/ping               -  minimal diagnostic probe
+ * POST /api/capture-error      -  client-error proxy (adds X-Internal-Token server-side)
  */
 
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must be defined before route imports
+// Mocks  -  must be defined before route imports
 // ---------------------------------------------------------------------------
 
 const mockFetch = vi.fn();
@@ -59,7 +59,7 @@ function mockUpstream(status: number, data: unknown, ok = status < 400): void {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — GET /api/ping
+// Tests  -  GET /api/ping
 // ---------------------------------------------------------------------------
 
 describe('GET /api/ping', () => {
@@ -99,7 +99,7 @@ describe('GET /api/ping', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — POST /api/capture-error
+// Tests  -  POST /api/capture-error
 // ---------------------------------------------------------------------------
 
 describe('POST /api/capture-error', () => {

@@ -52,7 +52,7 @@ afterEach(() => {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('useAgentStream — initial state', () => {
+describe('useAgentStream  -  initial state', () => {
   it('starts with empty text, no chunks, not streaming, no error', () => {
     const { result } = renderHook(() => useAgentStream());
     expect(result.current.text).toBe('');
@@ -62,7 +62,7 @@ describe('useAgentStream — initial state', () => {
   });
 });
 
-describe('useAgentStream — successful streaming', () => {
+describe('useAgentStream  -  successful streaming', () => {
   it('accumulates text chunks and sets isStreaming=true while streaming', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       makeOkResponse(
@@ -138,7 +138,7 @@ describe('useAgentStream — successful streaming', () => {
   });
 });
 
-describe('useAgentStream — error handling', () => {
+describe('useAgentStream  -  error handling', () => {
   it('sets error state on HTTP error response', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       makeErrorResponse(500, 'Internal Server Error'),
@@ -221,12 +221,12 @@ describe('useAgentStream — error handling', () => {
   });
 });
 
-describe('useAgentStream — abort', () => {
+describe('useAgentStream  -  abort', () => {
   it('abort() cancels the fetch and sets isStreaming=false', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation(
       (_url, init) =>
         new Promise((_resolve, _reject) => {
-          // Rejection is driven by the abort signal listener — no manual reject needed
+          // Rejection is driven by the abort signal listener  -  no manual reject needed
           init?.signal?.addEventListener('abort', () => {
             _reject(Object.assign(new Error('aborted'), { name: 'AbortError' }));
           });
@@ -248,7 +248,7 @@ describe('useAgentStream — abort', () => {
   });
 });
 
-describe('useAgentStream — reset', () => {
+describe('useAgentStream  -  reset', () => {
   it('reset() clears all state', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       makeOkResponse(makeSseStream([{ type: 'text', content: 'data' }, { type: 'done' }])),
@@ -294,7 +294,7 @@ describe('useAgentStream — reset', () => {
       await result.current.start({ instruction: 'second' });
     });
 
-    // State resets between calls — only the second call's result is visible
+    // State resets between calls  -  only the second call's result is visible
     expect(callCount).toBe(2);
     await waitFor(() => expect(result.current.isStreaming).toBe(false));
     expect(result.current.error).toBeNull();

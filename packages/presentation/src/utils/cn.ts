@@ -1,6 +1,6 @@
 /**
  * Utility function for conditionally joining classNames together.
- * Drop-in replacement for clsx — supports strings, numbers, booleans,
+ * Drop-in replacement for clsx  -  supports strings, numbers, booleans,
  * objects, and arbitrarily nested arrays.
  */
 type ClassValue =

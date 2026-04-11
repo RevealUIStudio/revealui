@@ -35,7 +35,7 @@ export async function writeGDPRAuditEntry(
       data: entry as unknown as RevealDataObject,
     });
   } catch {
-    // Collection may not exist yet — fall back to structured log so the audit
+    // Collection may not exist yet  -  fall back to structured log so the audit
     // trail is never silently lost.
     process.stdout.write(
       `${JSON.stringify({ level: 'audit', ...entry, _source: 'gdpr-audit-fallback' })}\n`,

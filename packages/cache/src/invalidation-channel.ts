@@ -42,7 +42,7 @@ export interface InvalidationChannelOptions {
   instanceId: string;
   /** Poll interval in milliseconds (default: 5000). */
   pollIntervalMs?: number;
-  /** Event TTL in seconds — events older than this are pruned (default: 60). */
+  /** Event TTL in seconds  -  events older than this are pruned (default: 60). */
   eventTtlSeconds?: number;
 }
 
@@ -195,7 +195,7 @@ export class CacheInvalidationChannel {
 
       const createdAt = Number(row.created_at);
       if (createdAt > this.lastSeenTimestamp) {
-        // Timestamp advanced — clear the old boundary set
+        // Timestamp advanced  -  clear the old boundary set
         this.lastSeenTimestamp = createdAt;
         this.processedAtBoundary.clear();
       }

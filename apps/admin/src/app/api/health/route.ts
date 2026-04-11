@@ -21,7 +21,7 @@ interface HealthCheck {
  * Authenticated (admin/editor): returns full health details with metrics and checks
  */
 export async function GET(request: Request) {
-  // Auth check — unauthenticated requests get minimal status only
+  // Auth check  -  unauthenticated requests get minimal status only
   const session = await getSession(request.headers, extractRequestContext(request));
   const isAuthenticated = session?.user?.role === 'admin';
 
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
     }
   }
 
-  // Check Vercel Blob Storage (if configured) — make a real API call with a 2s timeout
+  // Check Vercel Blob Storage (if configured)  -  make a real API call with a 2s timeout
   if (config.storage.blobToken) {
     try {
       const blobStartTime = Date.now();

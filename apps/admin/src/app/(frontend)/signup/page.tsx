@@ -85,7 +85,7 @@ function SignupContent() {
           credentials: 'include',
           body: JSON.stringify({ type }),
         }).catch(() => {
-          // Best-effort — consent tracking should not block signup
+          // Best-effort  -  consent tracking should not block signup
         });
       }
 

@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
   const post = await getPostBySlug(slug);
 
   if (!post) {
-    return { title: 'Post Not Found — RevealUI' };
+    return { title: 'Post Not Found  -  RevealUI' };
   }
 
   const description = post.excerpt ?? `Read "${post.title}" on the RevealUI blog.`;

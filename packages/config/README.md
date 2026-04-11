@@ -133,13 +133,13 @@ pnpm --filter @revealui/config lint
 - You need type-safe access to environment variables with Zod validation
 - You want automatic `.env` file loading with priority-based overrides
 - You're configuring MCP servers or RevealUI-specific settings
-- **Not** for runtime feature flags — use `@revealui/core/features` instead
-- **Not** for secrets management — use your platform's secret store and let this package validate what's loaded
+- **Not** for runtime feature flags  -  use `@revealui/core/features` instead
+- **Not** for secrets management  -  use your platform's secret store and let this package validate what's loaded
 
 ## JOSHUA Alignment
 
 - **Unified**: One config loader validates and types all environment variables across every app and package
-- **Hermetic**: Validation runs at load time — invalid or missing variables fail fast, never leak into runtime
+- **Hermetic**: Validation runs at load time  -  invalid or missing variables fail fast, never leak into runtime
 
 ## Related Documentation
 

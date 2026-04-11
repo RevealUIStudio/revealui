@@ -112,14 +112,14 @@ function patch(body: unknown) {
   };
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
 
 // ---------------------------------------------------------------------------
 
-describe('GET / — list provenance', () => {
+describe('GET /  -  list provenance', () => {
   it('returns 200 with a data array', async () => {
     mq.getAllProvenance.mockResolvedValue([makeEntry()] as never);
     const app = createApp();
@@ -201,7 +201,7 @@ describe('GET /:id', () => {
   });
 });
 
-describe('POST / — create entry', () => {
+describe('POST /  -  create entry', () => {
   it('creates and returns a new entry with 201', async () => {
     mq.createProvenance.mockResolvedValue(makeEntry() as never);
     const app = createApp();
@@ -244,7 +244,7 @@ describe('POST / — create entry', () => {
   });
 });
 
-describe('PATCH /:id — update entry', () => {
+describe('PATCH /:id  -  update entry', () => {
   it('updates and returns the entry', async () => {
     mq.updateProvenance.mockResolvedValue(makeEntry({ reviewStatus: 'human_reviewed' }) as never);
     const app = createApp();

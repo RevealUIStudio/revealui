@@ -2,8 +2,8 @@
  * Authentication Middleware for Hono API
  *
  * Supports two auth mechanisms:
- * 1. Session cookie (browsers, admin dashboard) — via @revealui/auth
- * 2. Bearer token (Studio desktop, CLI, terminal) — via device token in userDevices
+ * 1. Session cookie (browsers, admin dashboard)  -  via @revealui/auth
+ * 2. Bearer token (Studio desktop, CLI, terminal)  -  via device token in userDevices
  *
  * Bearer tokens are checked first (fast path for API clients).
  * Session cookies are checked second (browser requests).
@@ -60,7 +60,7 @@ async function resolveDeviceToken(
 
   if (!user) return null;
 
-  // Update lastSeen (fire-and-forget — don't block the request)
+  // Update lastSeen (fire-and-forget  -  don't block the request)
   db.update(userDevices)
     .set({ lastSeen: now })
     .where(eq(userDevices.deviceId, device.deviceId))
@@ -86,12 +86,12 @@ export const authMiddleware = (options: AuthOptions = {}): MiddlewareHandler => 
         const user = await resolveDeviceToken(token);
         if (user) {
           c.set('user', user);
-          // No session object for device auth — set a synthetic marker
+          // No session object for device auth  -  set a synthetic marker
           c.set('session', { id: 'device-token', deviceAuth: true });
           await next();
           return;
         }
-        // Token present but invalid — don't fall through to cookie auth
+        // Token present but invalid  -  don't fall through to cookie auth
         if (required) {
           throw new HTTPException(401, { message: 'Invalid or expired device token' });
         }

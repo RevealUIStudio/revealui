@@ -5,7 +5,7 @@
  * Persists warn/error/fatal entries to the `app_logs` NeonDB table.
  *
  * Only writes in production (NODE_ENV=production). All writes are fire-and-forget
- * — the handler never throws or blocks the caller.
+ *  -  the handler never throws or blocks the caller.
  *
  * Usage (call once at app startup):
  *   import { createDbLogHandler } from '@revealui/db/log-transport'
@@ -48,7 +48,7 @@ export function createDbLogHandler(app: string): (entry: LogEntry) => void {
         data: Object.keys(data).length > 0 ? data : null,
       })
       .catch(() => {
-        // Intentionally empty — never throw back to the logger
+        // Intentionally empty  -  never throw back to the logger
       });
   };
 }

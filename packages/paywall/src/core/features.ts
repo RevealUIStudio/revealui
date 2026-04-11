@@ -1,5 +1,5 @@
 /**
- * Feature registry — resolves feature flags based on tier.
+ * Feature registry  -  resolves feature flags based on tier.
  */
 
 import { tierMeetsRequirement } from './tiers.js';

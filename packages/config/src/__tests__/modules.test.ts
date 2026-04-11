@@ -7,7 +7,7 @@ import { getStorageConfig } from '../modules/storage';
 import { getStripeConfig } from '../modules/stripe';
 import type { EnvConfig } from '../schema';
 
-// Minimal valid env for module tests — modules only read specific fields
+// Minimal valid env for module tests  -  modules only read specific fields
 function makeEnv(overrides: Partial<EnvConfig> = {}): EnvConfig {
   return {
     REVEALUI_SECRET: 'test-secret-that-is-long-enough-32chars!',

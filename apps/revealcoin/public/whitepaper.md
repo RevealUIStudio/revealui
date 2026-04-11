@@ -1,15 +1,15 @@
 # RevealCoin (RVC): A Hybrid Utility, Governance, and Reward Token for the RevealUI Ecosystem
 
-**Version 1.0 — March 2026**
+**Version 1.0  -  March 2026**
 **RevealUI Studio | founder@revealui.com**
 
 ---
 
 ## Abstract
 
-RevealCoin (RVC) is a Solana-based digital token built on the Token-2022 (Token Extensions) program, designed to serve as the native economic layer of the RevealUI ecosystem. RevealUI is a complete business infrastructure platform for software companies — providing users, content, products, payments, and AI as composable primitives. RVC unifies three functions within this ecosystem: **utility** (payment for platform services), **governance** (community-driven decision-making), and **rewards** (incentives for contributors and early adopters).
+RevealCoin (RVC) is a Solana-based digital token built on the Token-2022 (Token Extensions) program, designed to serve as the native economic layer of the RevealUI ecosystem. RevealUI is a complete business infrastructure platform for software companies  -  providing users, content, products, payments, and AI as composable primitives. RVC unifies three functions within this ecosystem: **utility** (payment for platform services), **governance** (community-driven decision-making), and **rewards** (incentives for contributors and early adopters).
 
-The total supply of RVC is fixed at **58,906,000,000** tokens — a figure drawn from the amount of US currency in circulation on August 14, 1971, the day before President Nixon ended dollar-gold convertibility. This symbolic anchor ties RVC to a pivotal moment in monetary history: the transition from commodity-backed currency to fiat trust. RVC represents a parallel transition — from centralized platform economics to transparent, community-aligned incentive structures.
+The total supply of RVC is fixed at **58,906,000,000** tokens  -  a figure drawn from the amount of US currency in circulation on August 14, 1971, the day before President Nixon ended dollar-gold convertibility. This symbolic anchor ties RVC to a pivotal moment in monetary history: the transition from commodity-backed currency to fiat trust. RVC represents a parallel transition  -  from centralized platform economics to transparent, community-aligned incentive structures.
 
 This paper presents the token's design, distribution model, governance framework, technical architecture, and integration roadmap within the RevealUI platform.
 
@@ -39,7 +39,7 @@ This paper presents the token's design, distribution model, governance framework
 
 The software-as-a-service economy generates hundreds of billions of dollars annually, yet the relationship between platforms and their users remains fundamentally extractive. Platform operators set prices unilaterally, capture all upside from network effects, and offer no mechanism for users to participate in governance or share in the value they help create.
 
-RevealCoin introduces a token-economic layer to RevealUI — a platform that already provides the complete infrastructure software companies need to build, launch, and scale their products. By embedding RVC into RevealUI's primitives (Users, Content, Products, Payments, AI), the platform transitions from a traditional SaaS model to a stakeholder-aligned economy where:
+RevealCoin introduces a token-economic layer to RevealUI  -  a platform that already provides the complete infrastructure software companies need to build, launch, and scale their products. By embedding RVC into RevealUI's primitives (Users, Content, Products, Payments, AI), the platform transitions from a traditional SaaS model to a stakeholder-aligned economy where:
 
 - **Builders** pay for services with RVC at a discount to fiat pricing
 - **Contributors** earn RVC for improving the ecosystem (code, content, integrations)
@@ -54,11 +54,11 @@ RVC is not a speculative instrument. It is a functional token whose value is der
 
 ### 2.1 The Platform Tax
 
-Modern SaaS platforms charge subscription fees that increase over time while the marginal cost of serving each additional user decreases. Users who contribute to a platform's success — through feedback, community support, content creation, or evangelism — receive no economic benefit from the value they generate.
+Modern SaaS platforms charge subscription fees that increase over time while the marginal cost of serving each additional user decreases. Users who contribute to a platform's success  -  through feedback, community support, content creation, or evangelism  -  receive no economic benefit from the value they generate.
 
 ### 2.2 Governance Deficit
 
-Platform decisions — pricing changes, feature deprecation, API modifications, terms of service updates — are made unilaterally. Users affected by these decisions have no formal mechanism to influence them, despite bearing the switching costs when decisions go against their interests.
+Platform decisions  -  pricing changes, feature deprecation, API modifications, terms of service updates  -  are made unilaterally. Users affected by these decisions have no formal mechanism to influence them, despite bearing the switching costs when decisions go against their interests.
 
 ### 2.3 Fragmented Incentives
 
@@ -90,10 +90,10 @@ These primitives are delivered as a monorepo of composable packages that can be 
 
 | Tier | Target | Pricing |
 |------|--------|---------|
-| **Free** | Individual developers, small projects | $0/month — core primitives, community support |
-| **Pro** | Growing businesses, professional teams | Subscription — advanced features, priority support |
-| **Max** | Scale-ups, high-traffic applications | Subscription — enterprise features, SLA guarantees |
-| **Forge** (Enterprise) | Large organizations, white-label deployments | Custom — multi-tenant, self-hosted, dedicated support |
+| **Free** | Individual developers, small projects | $0/month  -  core primitives, community support |
+| **Pro** | Growing businesses, professional teams | Subscription  -  advanced features, priority support |
+| **Max** | Scale-ups, high-traffic applications | Subscription  -  enterprise features, SLA guarantees |
+| **Forge** (Enterprise) | Large organizations, white-label deployments | Custom  -  multi-tenant, self-hosted, dedicated support |
 
 ### 3.3 Ecosystem Participants
 
@@ -129,7 +129,7 @@ RevealCoin is built on Solana for three reasons:
 
 2. **Finality speed**: Solana achieves ~400ms block times with single-slot finality, enabling real-time token operations within RevealUI's user experience. Users can pay for an AI inference call with RVC and receive results without perceptible delay.
 
-3. **Token Extensions**: Solana's Token-2022 program provides built-in support for metadata, transfer fees, confidential transfers, and other extensions at the protocol level — without requiring custom smart contracts. This reduces attack surface and maintenance burden.
+3. **Token Extensions**: Solana's Token-2022 program provides built-in support for metadata, transfer fees, confidential transfers, and other extensions at the protocol level  -  without requiring custom smart contracts. This reduces attack surface and maintenance burden.
 
 ### 4.3 Why Token-2022
 
@@ -143,7 +143,7 @@ The Token-2022 program (also known as Token Extensions) was chosen over the clas
 
 ### 4.4 Supply Symbolism
 
-The total supply of 58,906,000,000 RVC corresponds to the US currency in circulation on August 14, 1971 — $58.906 billion as recorded by the Federal Reserve (FRED series CURRCIR, August 1971 observation).
+The total supply of 58,906,000,000 RVC corresponds to the US currency in circulation on August 14, 1971  -  $58.906 billion as recorded by the Federal Reserve (FRED series CURRCIR, August 1971 observation).
 
 On August 15, 1971, President Richard Nixon announced the suspension of dollar-gold convertibility, ending the Bretton Woods system and inaugurating the modern fiat era. This moment represents the most significant monetary regime change of the 20th century: a transition from externally-constrained money to trust-based money.
 
@@ -167,7 +167,7 @@ The total supply of 58,906,000,000 RVC is allocated across seven categories, eac
 | **Strategic Partners** | 5% | 2,945,300,000 | 6-month cliff, 2-year linear vest |
 | **Public Distribution** | 5% | 2,945,300,000 | Airdrops, bounties, launch events |
 
-### 5.2 Ecosystem Rewards (30% — 17,671,800,000 RVC)
+### 5.2 Ecosystem Rewards (30%  -  17,671,800,000 RVC)
 
 The largest allocation funds long-term incentives for ecosystem participants. Tokens are distributed over a 5-year emission schedule with front-loaded rewards to incentivize early adoption:
 
@@ -187,7 +187,7 @@ Reward categories include:
 - **Referral incentives**: RVC earned for bringing new builders to the platform
 - **Content creation**: RVC earned for tutorials, guides, and educational content
 
-### 5.3 Protocol Treasury (25% — 14,726,500,000 RVC)
+### 5.3 Protocol Treasury (25%  -  14,726,500,000 RVC)
 
 The protocol treasury funds ongoing ecosystem development, grants, partnerships, and operational costs. Initially managed by RevealUI Studio, control transfers to the DAO once governance is operational (see Section 7).
 
@@ -202,7 +202,7 @@ Treasury spending categories:
 
 Treasury disbursements above 100,000,000 RVC require a governance vote. Quarterly treasury reports are published on-chain with full accounting.
 
-### 5.4 Team & Founders (15% — 8,835,900,000 RVC)
+### 5.4 Team & Founders (15%  -  8,835,900,000 RVC)
 
 Team allocation follows a standard vesting schedule designed to align long-term incentives:
 
@@ -210,17 +210,17 @@ Team allocation follows a standard vesting schedule designed to align long-term 
 - **4-year linear vest**: After the cliff, tokens vest monthly over the remaining 36 months (approximately 245,441,667 RVC per month).
 - **Lock-up extension**: Founders may voluntarily extend their vesting period as a signal of long-term commitment.
 
-### 5.5 Community Governance (10% — 5,890,600,000 RVC)
+### 5.5 Community Governance (10%  -  5,890,600,000 RVC)
 
 This allocation is available immediately for governance participation:
 
-- **Staking**: Lock RVC to earn voting power (vote-escrowed model — longer lock = more weight)
+- **Staking**: Lock RVC to earn voting power (vote-escrowed model  -  longer lock = more weight)
 - **Delegation**: Token holders can delegate voting power to representatives
 - **Proposal bonds**: Submitting governance proposals requires a refundable RVC bond to prevent spam
 
-This pool is not subject to vesting — it must be liquid from day one to bootstrap governance participation.
+This pool is not subject to vesting  -  it must be liquid from day one to bootstrap governance participation.
 
-### 5.6 Liquidity Provision (10% — 5,890,600,000 RVC)
+### 5.6 Liquidity Provision (10%  -  5,890,600,000 RVC)
 
 Dedicated to establishing RVC trading pairs on decentralized exchanges:
 
@@ -229,7 +229,7 @@ Dedicated to establishing RVC trading pairs on decentralized exchanges:
 - **Target pairs**: RVC/SOL, RVC/USDC on Raydium, Orca, or Jupiter
 - **Protocol-owned liquidity**: RevealUI Studio maintains a permanent liquidity position to ensure baseline market depth
 
-### 5.7 Strategic Partners (5% — 2,945,300,000 RVC)
+### 5.7 Strategic Partners (5%  -  2,945,300,000 RVC)
 
 Reserved for strategic partnerships that expand the RevealUI ecosystem:
 
@@ -239,7 +239,7 @@ Reserved for strategic partnerships that expand the RevealUI ecosystem:
 
 Vesting: 6-month cliff, 2-year linear vest. Each partnership requires a signed agreement specifying deliverables and clawback conditions.
 
-### 5.8 Public Distribution (5% — 2,945,300,000 RVC)
+### 5.8 Public Distribution (5%  -  2,945,300,000 RVC)
 
 Distributed directly to the community through:
 
@@ -264,7 +264,7 @@ Any burn mechanism requires a supermajority governance vote (67%) and cannot be 
 
 ## 6. Utility Model
 
-RVC serves as the native medium of exchange within the RevealUI platform. Its utility is designed to be practical and immediate — not speculative.
+RVC serves as the native medium of exchange within the RevealUI platform. Its utility is designed to be practical and immediate  -  not speculative.
 
 ### 6.1 Service Payments
 
@@ -309,7 +309,7 @@ RVC holders who stake tokens receive platform benefits beyond governance voting:
 | **Gold** | 1,000,000 RVC | Dedicated support channel, roadmap input sessions |
 | **Platinum** | 10,000,000 RVC | Custom feature requests, architecture review sessions |
 
-Staking tiers are additive to subscription tiers — a Pro subscriber with Gold staking receives both benefit sets.
+Staking tiers are additive to subscription tiers  -  a Pro subscriber with Gold staking receives both benefit sets.
 
 ---
 
@@ -321,9 +321,9 @@ RevealUI adopts a progressive decentralization model:
 
 | Phase | Governance Model | Timeline |
 |-------|-----------------|----------|
-| **Phase 0: Foundation** | RevealUI Studio makes all decisions | Launch — Month 6 |
-| **Phase 1: Advisory** | Community votes are advisory; Studio retains veto | Month 6 — Month 18 |
-| **Phase 2: Shared** | Community votes are binding for treasury and roadmap; Studio retains technical veto for security | Month 18 — Month 36 |
+| **Phase 0: Foundation** | RevealUI Studio makes all decisions | Launch  -  Month 6 |
+| **Phase 1: Advisory** | Community votes are advisory; Studio retains veto | Month 6  -  Month 18 |
+| **Phase 2: Shared** | Community votes are binding for treasury and roadmap; Studio retains technical veto for security | Month 18  -  Month 36 |
 | **Phase 3: DAO** | Full DAO governance; Studio becomes one voter among many | Month 36+ |
 
 ### 7.2 Voting Mechanism
@@ -704,7 +704,7 @@ The initial price was chosen to balance affordability, credibility, and accessib
 
 - **Founder-affordable**: ~$240 USD in SOL required for the pool's SOL side
 - **Credible micro-cap FDV**: ~$24K signals genuine early-stage, not an abandoned token
-- **Early supporter friendly**: 0.1 SOL (~$13.50) buys ~33M RVC — a meaningful position
+- **Early supporter friendly**: 0.1 SOL (~$13.50) buys ~33M RVC  -  a meaningful position
 - **Room for organic price discovery**: low starting point lets the market find fair value as RevealUI launches
 - **Manageable slippage**: a 0.1 SOL trade moves price ~6%, acceptable for initial liquidity depth
 

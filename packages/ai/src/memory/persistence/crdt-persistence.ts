@@ -321,7 +321,7 @@ export class CRDTPersistence {
    * Deletes operations older than a timestamp (for cleanup after compaction).
    *
    * @param crdtId - CRDT instance identifier
-   * @param before - Unix timestamp (milliseconds) — delete operations older than this
+   * @param before - Unix timestamp (milliseconds)  -  delete operations older than this
    * @returns Number of operations deleted
    */
   async deleteOperationsBefore(crdtId: string, before: number): Promise<number> {

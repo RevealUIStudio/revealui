@@ -91,7 +91,7 @@ export default function TaskDashboardPage() {
               <span className="text-sm text-zinc-300">My Tasks</span>
               <h1 className="mt-1 text-xl font-semibold text-white">Task Dashboard</h1>
               <p className="mt-0.5 text-sm text-zinc-400">
-                Track your submitted tasks — progress, cost, and artifacts
+                Track your submitted tasks - progress, cost, and artifacts
               </p>
             </div>
           </div>

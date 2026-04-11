@@ -1,5 +1,5 @@
 /**
- * Agent Stream — Success Path Tests
+ * Agent Stream  -  Success Path Tests
  *
  * The sibling agent-stream.test.ts mocks all @revealui/ai modules as {}
  * (truthy-but-constructor-less), testing only the 400/403 failure paths.
@@ -19,7 +19,7 @@ import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must be declared before the route import (Vitest hoists vi.mock() calls)
+// Mocks  -  must be declared before the route import (Vitest hoists vi.mock() calls)
 // ---------------------------------------------------------------------------
 
 /** Capture SSE events written by the route handler during each test. */
@@ -31,7 +31,7 @@ vi.mock('hono/streaming', () => ({
   /**
    * Stub streamSSE: runs the callback synchronously with a mock SSEStreamingApi,
    * collects the written events, and returns a 200 text/event-stream Response
-   * whose body contains the SSE frames — so res.text() works in tests.
+   * whose body contains the SSE frames  -  so res.text() works in tests.
    */
   streamSSE: vi.fn().mockImplementation(
     async (
@@ -62,7 +62,7 @@ vi.mock('@revealui/ai', () => ({
 }));
 
 vi.mock('@revealui/ai/llm/client', () => ({
-  // biome-ignore lint/complexity/useArrowFunction: LLMClient is called with `new` — arrow functions cannot be constructors (Vitest 4)
+  // biome-ignore lint/complexity/useArrowFunction: LLMClient is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
   // biome-ignore lint/suspicious/noExplicitAny: mock constructor argument
   LLMClient: vi.fn().mockImplementation(function (cfg: any) {
     return { type: 'mock-client', ...cfg };
@@ -70,7 +70,7 @@ vi.mock('@revealui/ai/llm/client', () => ({
 }));
 
 vi.mock('@revealui/ai/orchestration/streaming-runtime', () => ({
-  // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new` — arrow functions cannot be constructors (Vitest 4)
+  // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
   StreamingAgentRuntime: vi.fn().mockImplementation(function () {
     return {
       streamTask: vi.fn().mockImplementation(async function* () {
@@ -163,14 +163,14 @@ beforeEach(async () => {
   vi.mocked(createLLMClientFromEnv).mockReturnValue({ type: 'env-client' });
 
   const { LLMClient } = await import('@revealui/ai/llm/client');
-  // biome-ignore lint/complexity/useArrowFunction: LLMClient is called with `new` — arrow functions cannot be constructors (Vitest 4)
+  // biome-ignore lint/complexity/useArrowFunction: LLMClient is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
   // biome-ignore lint/suspicious/noExplicitAny: mock constructor argument
   vi.mocked(LLMClient).mockImplementation(function (cfg: any) {
     return { type: 'mock-client', ...cfg };
   });
 
   const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
-  // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new` — arrow functions cannot be constructors (Vitest 4)
+  // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
   vi.mocked(StreamingAgentRuntime).mockImplementation(function () {
     return {
       streamTask: vi.fn().mockImplementation(async function* () {
@@ -204,7 +204,7 @@ beforeEach(async () => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('agent-stream — success path (AI modules working)', () => {
+describe('agent-stream  -  success path (AI modules working)', () => {
   // ── Response shape ────────────────────────────────────────────────────────
 
   it('returns 200 with text/event-stream content-type', async () => {
@@ -217,7 +217,7 @@ describe('agent-stream — success path (AI modules working)', () => {
 
   it('emits one SSE frame per chunk with matching event type', async () => {
     const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
-    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new` — arrow functions cannot be constructors (Vitest 4)
+    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
     vi.mocked(StreamingAgentRuntime).mockImplementation(function () {
       return {
         streamTask: vi.fn().mockImplementation(async function* () {
@@ -241,7 +241,7 @@ describe('agent-stream — success path (AI modules working)', () => {
 
   it('includes the full chunk object in each SSE data field', async () => {
     const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
-    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new` — arrow functions cannot be constructors (Vitest 4)
+    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
     vi.mocked(StreamingAgentRuntime).mockImplementation(function () {
       return {
         streamTask: vi.fn().mockImplementation(async function* () {
@@ -264,7 +264,7 @@ describe('agent-stream — success path (AI modules working)', () => {
 
   it('stops emitting after the first "done" chunk', async () => {
     const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
-    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new` — arrow functions cannot be constructors (Vitest 4)
+    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
     vi.mocked(StreamingAgentRuntime).mockImplementation(function () {
       return {
         streamTask: vi.fn().mockImplementation(async function* () {
@@ -286,7 +286,7 @@ describe('agent-stream — success path (AI modules working)', () => {
 
   it('stops emitting after the first "error" chunk from the generator', async () => {
     const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
-    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new` — arrow functions cannot be constructors (Vitest 4)
+    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
     vi.mocked(StreamingAgentRuntime).mockImplementation(function () {
       return {
         streamTask: vi.fn().mockImplementation(async function* () {
@@ -307,7 +307,7 @@ describe('agent-stream — success path (AI modules working)', () => {
 
   it('emits an error SSE event when streamTask throws', async () => {
     const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
-    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new` — arrow functions cannot be constructors (Vitest 4)
+    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
     vi.mocked(StreamingAgentRuntime).mockImplementation(function () {
       return {
         streamTask: vi.fn().mockImplementation(async function* () {
@@ -331,10 +331,10 @@ describe('agent-stream — success path (AI modules working)', () => {
 
   it('emits "Unknown error" in SSE when a non-Error is thrown', async () => {
     const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
-    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new` — arrow functions cannot be constructors (Vitest 4)
+    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
     vi.mocked(StreamingAgentRuntime).mockImplementation(function () {
       return {
-        // biome-ignore lint/correctness/useYield: intentionally yields nothing — tests the thrown-non-Error catch path
+        // biome-ignore lint/correctness/useYield: intentionally yields nothing  -  tests the thrown-non-Error catch path
         streamTask: vi.fn().mockImplementation(async function* () {
           throw 'string-error'; // not an Error instance
         }),

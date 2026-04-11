@@ -208,7 +208,7 @@ describe('extractTableNameFromCall', () => {
     const errors: ParseError[] = [];
     const tables = findTableExports(sourceFile, '/test.ts', errors);
 
-    // Template expression should be skipped — only sessions table found
+    // Template expression should be skipped  -  only sessions table found
     expect(tables.length).toBe(1);
     expect(tables[0].variableName).toBe('sessions');
     expect(tables[0].tableName).toBe('sessions');

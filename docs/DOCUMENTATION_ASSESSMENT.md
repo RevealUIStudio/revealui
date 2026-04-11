@@ -15,7 +15,7 @@ Brutally honest audit of what RevealUI documentation claims versus what the code
 
 ## Executive Summary
 
-RevealUI's core framework is **real and production-grade** — auth, billing, runtime engine, 58 UI components, 80+ table database, 13,700+ tests. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
+RevealUI's core framework is **real and production-grade**  -  auth, billing, runtime engine, 57 UI components, 81-table database, 20,000+ tests. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
 
 ---
 
@@ -27,8 +27,8 @@ RevealUI's core framework is **real and production-grade** — auth, billing, ru
 |-------|-------|--------|-----|
 | TypeScript 5.9 | README badge | **6.0.2** | Update badge |
 | 68 database tables | README, CLAUDE.md, QUICK_START | **76 pgTable declarations** | Update all references |
-| ~~6 apps~~ | ~~README~~ | ~~**7** (revealcoin app undocumented)~~ | ✅ Fixed — revealcoin listed as experimental |
-| Node.js 24.0 | README/badges | **24.13.0** (.node-version) | Minor — acceptable |
+| ~~6 apps~~ | ~~README~~ | ~~**7** (revealcoin app undocumented)~~ | ✅ Fixed  -  revealcoin listed as experimental |
+| Node.js 24.0 | README/badges | **24.13.0** (.node-version) | Minor  -  acceptable |
 
 ### Broken Internal References (CONTRIBUTING.md)
 
@@ -54,8 +54,8 @@ RevealUI's core framework is **real and production-grade** — auth, billing, ru
 | Stripe checkout/subscriptions/webhooks | 1,100-line webhook handler, 12 event types |
 | Drizzle ORM dual-DB (NeonDB + Supabase) | Schema + queries + boundary enforcement |
 | Biome 2 linting | Pre-commit hooks, CI hard-fail |
-| 13,700+ tests | Vitest + Playwright, passing in CI |
-| MCP servers | 12 server files in packages/mcp/src/servers/ |
+| 20,000+ tests | Vitest + Playwright, passing in CI |
+| MCP servers | 11 server files in packages/mcp/src/servers/ |
 | Content layer | 29 canonical definitions, byte-identical generation |
 
 ### Understated in Documentation (better than claimed)
@@ -92,7 +92,7 @@ RevealUI's core framework is **real and production-grade** — auth, billing, ru
 | `examples/portfolio/` | README only | **No working code** |
 | `examples/server/` | 1 TypeScript file | Minimal |
 
-Note: `npx create-revealui` scaffolds a working basic-blog from npm templates — the `examples/` directory versions are stale stubs.
+Note: `npx create-revealui` scaffolds a working basic-blog from npm templates  -  the `examples/` directory versions are stale stubs.
 
 ---
 
@@ -116,14 +116,14 @@ Note: `npx create-revealui` scaffolds a working basic-blog from npm templates �
 | `infrastructure/opencode-server/` | Pre-RevealUI project, not referenced anywhere | ✅ Deleted |
 | `examples/basic-blog/`, `e-commerce/`, `portfolio/` | README-only stubs | ✅ Deleted |
 | `.env.template` + `.env.example` | Two overlapping env example files | ✅ Merged into `.env.template` |
-| `e2e/` (root) vs `packages/test/src/e2e/` | E2E tests in two locations | ✅ Kept — different purposes (production vs package reference) |
+| `e2e/` (root) vs `packages/test/src/e2e/` | E2E tests in two locations | ✅ Kept  -  different purposes (production vs package reference) |
 
 ### Config files to evaluate
 
 | File | Issue |
 |------|-------|
 | `.size-limit.json` | size-limit not in any CI pipeline or script |
-| `docker-compose.forge.yml` | Forge self-hosting deferred — premature? |
+| `docker-compose.forge.yml` | Forge self-hosting deferred  -  premature? |
 | `CHANGELOG.md` | Only covers v0.1.0 (Mar 3). Changesets should auto-generate. |
 
 ---
@@ -166,7 +166,7 @@ Overall Pro tier: **~80% complete** (not 50% as a surface scan might suggest).
 
 5. ~~**Merge `.env.template` + `.env.example`**~~: ✅ Merged into single `.env.template`
 6. ~~**Delete dead code**~~: ✅ `cmd/`, `bin/revealui`, `infrastructure/opencode-server/` deleted
-7. ~~**Consolidate E2E tests**~~: ✅ Kept separate — root `e2e/` (production full-stack) vs `packages/test/src/e2e/` (package reference tests) serve different purposes
+7. ~~**Consolidate E2E tests**~~: ✅ Kept separate  -  root `e2e/` (production full-stack) vs `packages/test/src/e2e/` (package reference tests) serve different purposes
 8. ~~**Remove stale generated files**~~: ✅ Removed
 
 ### Nice to Have
@@ -192,7 +192,7 @@ _Updated: 2026-03-28 | Commit: e1858051_
 | Pro tier purchasable | ✅ MET | Stripe flow verified (test mode) |
 | All 5 apps deployed | ✅ MET | revealui.com, admin, api, docs all return 200 |
 | CI gate passes | ✅ MET | `pnpm gate:quick` PASS |
-| 13,700+ tests | ✅ MET | 13,700+ tests across 811 test files |
+| 20,000+ tests | ✅ MET | 20,000+ tests across 1,300+ test files |
 | Zero avoidable `any` types | ✅ MET | `pnpm audit:any` = 0 avoidable |
 | Zero production console stmts | ✅ MET | `pnpm audit:console` = 0 |
 | Security audit complete | ✅ MET | Session 133 (2026-03-28) |
@@ -203,8 +203,8 @@ _Updated: 2026-03-28 | Commit: e1858051_
 
 | Criterion | Status | Notes |
 |-----------|--------|-------|
-| 1+ paying Pro customer | ❌ NOT MET | Stripe in test mode (#87 — key rotation needed) |
-| 10+ waitlist members tried quick-start | ❌ NOT MET | #88 — needs external testers |
+| 1+ paying Pro customer | ❌ NOT MET | Stripe in test mode (#87  -  key rotation needed) |
+| 10+ waitlist members tried quick-start | ❌ NOT MET | #88  -  needs external testers |
 | Discourse forum live | ✅ MET | revnation.discourse.group (redirects from community.revealui.com) |
 | Fresh-browser billing flow works | ⚠️ PARTIAL | Flow works in test mode; live mode blocked on #87 |
 
@@ -212,12 +212,12 @@ _Updated: 2026-03-28 | Commit: e1858051_
 
 | Issue | Priority | Type | Blocker? |
 |-------|----------|------|----------|
-| #87 Rotate expired Stripe test key | P0 | Owner action | **Yes** — blocks billing verification |
-| #88 External quick-start validation | P1 | Owner action | **Yes** — exit criterion |
-| #86 Turbo remote cache secrets | P1 | Owner action | No — CI works without it |
-| #89 Publish launch blog post | P2 | Content | No — marketing blog links to docs |
-| #90 Agency outreach | P2 | Business | No — post-launch activity |
-| #92 Stripe Billing Meter | P1 | Code + owner | No — overage billing is enhancement |
+| #87 Rotate expired Stripe test key | P0 | Owner action | **Yes**  -  blocks billing verification |
+| #88 External quick-start validation | P1 | Owner action | **Yes**  -  exit criterion |
+| #86 Turbo remote cache secrets | P1 | Owner action | No  -  CI works without it |
+| #89 Publish launch blog post | P2 | Content | No  -  marketing blog links to docs |
+| #90 Agency outreach | P2 | Business | No  -  post-launch activity |
+| #92 Stripe Billing Meter | P1 | Code + owner | No  -  overage billing is enhancement |
 
 ### Deferred (Not Phase 3)
 
@@ -233,7 +233,7 @@ _Updated: 2026-03-28 | Commit: e1858051_
 **Phase 3 technical criteria: ALL MET.** The codebase, CI, npm packages, and deployments are ready to deploy.
 
 **Phase 3 customer criteria: NOT MET.** Two owner-action items block the exit:
-1. Stripe test key rotation (#87) — unblocks billing verification
-2. External quick-start validation (#88) — needs 3 developers to test
+1. Stripe test key rotation (#87)  -  unblocks billing verification
+2. External quick-start validation (#88)  -  needs 3 developers to test
 
-**Recommendation:** Complete #87 (Stripe key rotation) first — it unblocks both billing verification and the external validation flow. Then recruit 3 testers for #88. Discourse forum is live at revnation.discourse.group with redirects from community.revealui.com.
+**Recommendation:** Complete #87 (Stripe key rotation) first  -  it unblocks both billing verification and the external validation flow. Then recruit 3 testers for #88. Discourse forum is live at revnation.discourse.group with redirects from community.revealui.com.

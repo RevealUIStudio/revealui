@@ -19,7 +19,7 @@ export async function promptProjectConfig(
   templateArg?: string,
   nonInteractive = false,
 ): Promise<ProjectConfig> {
-  // Resolve project name — use CLI arg or prompt
+  // Resolve project name  -  use CLI arg or prompt
   let projectName: string;
   if (defaultName) {
     projectName = defaultName;
@@ -56,7 +56,7 @@ export async function promptProjectConfig(
     projectName = name;
   }
 
-  // Resolve template — use CLI arg or prompt
+  // Resolve template  -  use CLI arg or prompt
   let template: ProjectConfig['template'];
   if (templateArg && VALID_TEMPLATES.includes(templateArg as ProjectConfig['template'])) {
     template = templateArg as ProjectConfig['template'];

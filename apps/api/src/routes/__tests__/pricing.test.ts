@@ -67,10 +67,10 @@ function makeStripeProduct(
 // Stripe active tests run FIRST so that cachedStripe is a live MockStripe
 // instance before the fallback suite runs. The fallback suite's beforeEach
 // then stubs mockProductsList to return [] so no products match and all
-// tiers fall back to static prices — regardless of the cached client.
+// tiers fall back to static prices  -  regardless of the cached client.
 // ---------------------------------------------------------------------------
 
-describe('GET /api/pricing — Stripe active path', () => {
+describe('GET /api/pricing  -  Stripe active path', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
@@ -282,10 +282,10 @@ describe('GET /api/pricing', () => {
 // the route creates its own Stripe instance internally.
 // ---------------------------------------------------------------------------
 
-describe('GET /api/pricing — Stripe integration', () => {
+describe('GET /api/pricing  -  Stripe integration', () => {
   // biome-ignore lint/suspicious/noExplicitAny: dynamic module re-import requires any
   let freshApp: any;
-  // Shared mock fn — set during beforeAll, reused across all instances of MockStripe
+  // Shared mock fn  -  set during beforeAll, reused across all instances of MockStripe
   const sharedMockList = vi.fn();
 
   beforeAll(async () => {
@@ -435,19 +435,19 @@ describe('GET /api/pricing — Stripe integration', () => {
   it('skips products missing required metadata fields', async () => {
     sharedMockList.mockResolvedValue({
       data: [
-        // Missing revealui_tier — should be skipped
+        // Missing revealui_tier  -  should be skipped
         {
           name: 'Mystery Product',
           metadata: { revealui_track: 'subscription' },
           default_price: { unit_amount: 9900, recurring: { interval: 'month' } },
         },
-        // Missing revealui_track — should be skipped
+        // Missing revealui_track  -  should be skipped
         {
           name: 'Another Product',
           metadata: { revealui_tier: 'pro' },
           default_price: { unit_amount: 4900, recurring: { interval: 'month' } },
         },
-        // No metadata at all — should be skipped
+        // No metadata at all  -  should be skipped
         {
           name: 'No Meta',
           metadata: {},
@@ -468,13 +468,13 @@ describe('GET /api/pricing — Stripe integration', () => {
   it('skips products with zero or missing unit_amount', async () => {
     sharedMockList.mockResolvedValue({
       data: [
-        // unit_amount is 0 — falsy, should be skipped
+        // unit_amount is 0  -  falsy, should be skipped
         {
           name: 'Free Tier',
           metadata: { revealui_track: 'subscription', revealui_tier: 'pro' },
           default_price: { unit_amount: 0 },
         },
-        // default_price is null — should be skipped
+        // default_price is null  -  should be skipped
         {
           name: 'No Price',
           metadata: { revealui_track: 'subscription', revealui_tier: 'max' },
@@ -533,7 +533,7 @@ describe('GET /api/pricing — Stripe integration', () => {
 // freshApp/mockList state above.
 // ---------------------------------------------------------------------------
 
-describe('GET /api/pricing — circuit breaker open', () => {
+describe('GET /api/pricing  -  circuit breaker open', () => {
   // biome-ignore lint/suspicious/noExplicitAny: dynamic module re-import requires any
   let cbApp: any;
 
@@ -593,7 +593,7 @@ describe('GET /api/pricing — circuit breaker open', () => {
 // Metadata defaults, unknown tracks, and formatting edge cases
 // ---------------------------------------------------------------------------
 
-describe('GET /api/pricing — metadata defaults and edge cases', () => {
+describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
@@ -644,7 +644,7 @@ describe('GET /api/pricing — metadata defaults and edge cases', () => {
     expect(res.status).toBe(200);
     const data = await res.json();
 
-    // Unknown track is skipped — all tiers use fallback
+    // Unknown track is skipped  -  all tiers use fallback
     const pro = data.subscriptions.find((t: { id: string }) => t.id === 'pro');
     expect(pro.price).toBe('$49');
   });
@@ -686,7 +686,7 @@ describe('GET /api/pricing — metadata defaults and edge cases', () => {
     const res = await app.request('/');
     const data = await res.json();
 
-    // Map.set overwrites — second entry wins
+    // Map.set overwrites  -  second entry wins
     const pro = data.subscriptions.find((t: { id: string }) => t.id === 'pro');
     expect(pro.price).toBe('$59');
   });
@@ -790,7 +790,7 @@ describe('GET /api/pricing — metadata defaults and edge cases', () => {
   });
 
   it('mixes Stripe enrichment with fallback across tracks', async () => {
-    // Only subscription from Stripe — credits and perpetual fall back
+    // Only subscription from Stripe  -  credits and perpetual fall back
     mockProductsList.mockResolvedValue({
       data: [makeStripeProduct('Pro', 'subscription', 'pro', 3900, 'month')],
     });

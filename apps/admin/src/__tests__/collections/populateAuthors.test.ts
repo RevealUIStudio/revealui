@@ -117,7 +117,7 @@ describe('populateAuthors', () => {
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>;
     };
-    // Only author-1 is returned by find — author-missing is not in results
+    // Only author-1 is returned by find  -  author-missing is not in results
     expect(populated.populatedAuthors).toHaveLength(1);
     expect(populated.populatedAuthors[0]?.id).toBe('author-1');
   });
@@ -184,7 +184,7 @@ describe('populateAuthors', () => {
     const populated = result as typeof doc & {
       populatedAuthors: Array<{ id: string; name: string }>;
     };
-    // When find throws, authorDocs stays empty — populatedAuthors is set to []
+    // When find throws, authorDocs stays empty  -  populatedAuthors is set to []
     expect(populated.populatedAuthors).toEqual([]);
   });
 });

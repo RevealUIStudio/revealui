@@ -344,7 +344,7 @@ export const aiMemorySessions = pgTable('ai_memory_sessions', {
   // sessionId from the client (client-generated UUID)
   id: text('id').primaryKey(),
 
-  // User who owns this session — enforced on read/write
+  // User who owns this session  -  enforced on read/write
   userId: text('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
@@ -378,7 +378,7 @@ export const registeredAgents = pgTable(
 // =============================================================================
 
 // =============================================================================
-// Agent Task Usage Table (Track B — metered billing)
+// Agent Task Usage Table (Track B  -  metered billing)
 // =============================================================================
 
 /**
@@ -414,13 +414,13 @@ export type AgentTaskUsage = typeof agentTaskUsage.$inferSelect;
 export type NewAgentTaskUsage = typeof agentTaskUsage.$inferInsert;
 
 // =============================================================================
-// Agent Credit Balance (Track B — prepaid credit bundles)
+// Agent Credit Balance (Track B  -  prepaid credit bundles)
 // =============================================================================
 
 /**
  * Tracks prepaid agent task credits purchased via credit bundles.
  * Credits never expire and stack with the monthly tier allowance.
- * One row per user — balance is decremented after tier quota is exhausted.
+ * One row per user  -  balance is decremented after tier quota is exhausted.
  */
 export const agentCreditBalance = pgTable(
   'agent_credit_balance',

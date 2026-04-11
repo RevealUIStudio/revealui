@@ -1,12 +1,12 @@
 /**
  * User CRUD routes (admin-facing)
  *
- * GET    /users      — List users with pagination (admin-only)
- * GET    /users/:id  — Get user by ID (admin or self)
- * PATCH  /users/:id  — Update user (admin or self, restricted fields)
- * DELETE /users/:id  — Soft-delete user (admin-only)
+ * GET    /users       -  List users with pagination (admin-only)
+ * GET    /users/:id   -  Get user by ID (admin or self)
+ * PATCH  /users/:id   -  Update user (admin or self, restricted fields)
+ * DELETE /users/:id   -  Soft-delete user (admin-only)
  *
- * No POST — users are created via auth signup flows.
+ * No POST  -  users are created via auth signup flows.
  *
  * Returns the paginated envelope format expected by the admin dashboard panel:
  *   { docs, totalDocs, totalPages, page, limit, ... }
@@ -117,7 +117,7 @@ function serializeUser(
 // Routes
 // =============================================================================
 
-// GET /users — paginated list (admin-only)
+// GET /users  -  paginated list (admin-only)
 app.openapi(
   createRoute({
     method: 'get',
@@ -172,7 +172,7 @@ app.openapi(
   },
 );
 
-// GET /users/:id — get single user (admin or self)
+// GET /users/:id  -  get single user (admin or self)
 app.openapi(
   createRoute({
     method: 'get',
@@ -209,7 +209,7 @@ app.openapi(
   },
 );
 
-// PATCH /users/:id — update user (admin or self, restricted fields)
+// PATCH /users/:id  -  update user (admin or self, restricted fields)
 app.openapi(
   createRoute({
     method: 'patch',
@@ -277,7 +277,7 @@ app.openapi(
   },
 );
 
-// DELETE /users/:id — soft-delete (admin-only)
+// DELETE /users/:id  -  soft-delete (admin-only)
 app.openapi(
   createRoute({
     method: 'delete',

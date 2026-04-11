@@ -1,11 +1,11 @@
 /**
  * Product CRUD routes
  *
- * GET /products         — List products (public: published only; admin: all)
- * POST /products        — Create a product (admin-only)
- * GET /products/:id     — Get product by ID (public: published only)
- * PATCH /products/:id   — Update a product (admin-only)
- * DELETE /products/:id  — Delete a product (admin-only)
+ * GET /products          -  List products (public: published only; admin: all)
+ * POST /products         -  Create a product (admin-only)
+ * GET /products/:id      -  Get product by ID (public: published only)
+ * PATCH /products/:id    -  Update a product (admin-only)
+ * DELETE /products/:id   -  Delete a product (admin-only)
  */
 
 import * as productQueries from '@revealui/db/queries/products';

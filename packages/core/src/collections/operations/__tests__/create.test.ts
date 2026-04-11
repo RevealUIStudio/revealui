@@ -173,7 +173,7 @@ describe('create operation', () => {
       ],
     };
 
-    // Submit data without a slug — the hook should generate it before the required check fires
+    // Submit data without a slug  -  the hook should generate it before the required check fires
     const options: RevealCreateOptions = {
       data: { title: 'Hello World' },
     };

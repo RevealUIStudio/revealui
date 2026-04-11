@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_FEATURES, DEFAULT_LIMITS, DEFAULT_TIERS } from '../defaults.js';
 import { createPaywall } from '../paywall.js';
 
-describe('createPaywall — zero-config (defaults)', () => {
+describe('createPaywall  -  zero-config (defaults)', () => {
   const paywall = createPaywall();
 
   it('uses default tiers', () => {
@@ -174,7 +174,7 @@ describe('createPaywall — zero-config (defaults)', () => {
   });
 });
 
-describe('createPaywall — custom config', () => {
+describe('createPaywall  -  custom config', () => {
   const paywall = createPaywall({
     tiers: ['starter', 'growth', 'scale'] as const,
     features: {
@@ -216,7 +216,7 @@ describe('createPaywall — custom config', () => {
   });
 });
 
-describe('createPaywall — partial override', () => {
+describe('createPaywall  -  partial override', () => {
   it('overrides only the specified parts, keeps rest as defaults', () => {
     const paywall = createPaywall({
       limits: {

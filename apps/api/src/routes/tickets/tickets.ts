@@ -303,7 +303,7 @@ app.openapi(
   },
 );
 
-// POST /tickets/:id/move — kanban drag-and-drop
+// POST /tickets/:id/move  -  kanban drag-and-drop
 app.openapi(
   createRoute({
     method: 'post',

@@ -3,13 +3,13 @@
  *
  * Tests for sign-in, sign-up, and resend-verification route handlers.
  * Focuses on validation, error handling, rate limiting config,
- * and response structure — not the auth engine itself (tested in auth package).
+ * and response structure  -  not the auth engine itself (tested in auth package).
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must be before route imports
+// Mocks  -  must be before route imports
 // ---------------------------------------------------------------------------
 
 vi.mock('@revealui/contracts', () => ({

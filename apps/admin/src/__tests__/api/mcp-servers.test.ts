@@ -1,7 +1,7 @@
 /**
  * MCP Servers Route Tests
  *
- * GET /api/mcp/servers — returns static MCP server registry (admin only)
+ * GET /api/mcp/servers  -  returns static MCP server registry (admin only)
  */
 
 import { NextRequest } from 'next/server';

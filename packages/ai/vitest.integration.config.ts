@@ -5,7 +5,7 @@
  *   pnpm --filter @revealui/ai test:integration          # uses Ollama if running locally
  *   GROQ_API_KEY=gsk_... pnpm --filter @revealui/ai test:integration
  *
- * OpenAI is intentionally excluded — not authorized until business has paying customers.
+ * OpenAI is intentionally excluded  -  not authorized until business has paying customers.
  */
 
 import path from 'node:path';

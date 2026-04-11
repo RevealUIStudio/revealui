@@ -3,7 +3,7 @@
  *
  * PostgreSQL-compatible cache store backed by PGlite (in-memory or file-based).
  * Provides the same CacheStore interface as InMemoryCacheStore but uses SQL
- * for persistence and querying — enabling distributed invalidation via
+ * for persistence and querying  -  enabling distributed invalidation via
  * ElectricSQL shape subscriptions in Phase 5.10C.
  *
  * Table schema is auto-created on first use (no external migrations needed).
@@ -11,7 +11,7 @@
 
 import type { CacheStore } from './types.js';
 
-/** Minimal PGlite interface — avoids importing the full @electric-sql/pglite package. */
+/** Minimal PGlite interface  -  avoids importing the full @electric-sql/pglite package. */
 interface PGliteInstance {
   exec(query: string): Promise<unknown>;
   query<T = Record<string, unknown>>(query: string, params?: unknown[]): Promise<{ rows: T[] }>;
@@ -104,7 +104,7 @@ export class PGliteCacheStore implements CacheStore {
 
   async deleteByPrefix(prefix: string): Promise<number> {
     await this.ready;
-    // Escape LIKE metacharacters — backslash first, then % and _
+    // Escape LIKE metacharacters  -  backslash first, then % and _
     const escaped = prefix.replaceAll('\\', '\\\\').replaceAll('%', '\\%').replaceAll('_', '\\_');
 
     const result = await this.db.query<{ count: string }>(

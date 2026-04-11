@@ -181,7 +181,7 @@ function makeBreachRow(
 }
 
 // ---------------------------------------------------------------------------
-// DrizzleGDPRStorage — Consent Records
+// DrizzleGDPRStorage  -  Consent Records
 // ---------------------------------------------------------------------------
 
 describe('DrizzleGDPRStorage', () => {
@@ -1004,7 +1004,7 @@ describe('DrizzleBreachStorage', () => {
   // GDPR compliance: breach records
   // -------------------------------------------------------------------------
 
-  describe('GDPR compliance — breach records', () => {
+  describe('GDPR compliance  -  breach records', () => {
     it('breach status can be updated through full lifecycle', async () => {
       // First: insert as detected
       setupInsertChain();

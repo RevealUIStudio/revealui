@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must come before route import
+// Mocks  -  must come before route import
 // ---------------------------------------------------------------------------
 
 vi.mock('@revealui/db', () => ({
@@ -63,7 +63,7 @@ const defaultResult = {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('POST /cleanup-orphans — auth', () => {
+describe('POST /cleanup-orphans  -  auth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -95,7 +95,7 @@ describe('POST /cleanup-orphans — auth', () => {
     const app = createApp();
     const res = await app.request(makeRequest('short'));
     expect(res.status).toBe(403);
-    // Must NOT call cleanup — auth must fail before any DB work
+    // Must NOT call cleanup  -  auth must fail before any DB work
     expect(mockedCleanup).not.toHaveBeenCalled();
   });
 
@@ -107,7 +107,7 @@ describe('POST /cleanup-orphans — auth', () => {
   });
 });
 
-describe('POST /cleanup-orphans — valid request', () => {
+describe('POST /cleanup-orphans  -  valid request', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -166,7 +166,7 @@ describe('POST /cleanup-orphans — valid request', () => {
   });
 });
 
-describe('POST /cleanup-orphans — error handling', () => {
+describe('POST /cleanup-orphans  -  error handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -199,7 +199,7 @@ describe('POST /cleanup-orphans — error handling', () => {
   });
 });
 
-describe('POST /cleanup-orphans — logging', () => {
+describe('POST /cleanup-orphans  -  logging', () => {
   const mockLoggerInfo = vi.fn();
   const mockLoggerError = vi.fn();
 
@@ -246,7 +246,7 @@ describe('POST /cleanup-orphans — logging', () => {
 // Vector client failure
 // ---------------------------------------------------------------------------
 
-describe('POST /cleanup-orphans — vector client failure', () => {
+describe('POST /cleanup-orphans  -  vector client failure', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -287,7 +287,7 @@ describe('POST /cleanup-orphans — vector client failure', () => {
 // Logger verification
 // ---------------------------------------------------------------------------
 
-describe('POST /cleanup-orphans — logger verification', () => {
+describe('POST /cleanup-orphans  -  logger verification', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -344,7 +344,7 @@ describe('POST /cleanup-orphans — logger verification', () => {
 // Method and path edge cases
 // ---------------------------------------------------------------------------
 
-describe('POST /cleanup-orphans — method and path edge cases', () => {
+describe('POST /cleanup-orphans  -  method and path edge cases', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;

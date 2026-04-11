@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { escapeHtml, renderHTMLShell, renderPage } from '../renderPage.js';
 
 // ---------------------------------------------------------------------------
-// Tests — escapeHtml
+// Tests  -  escapeHtml
 // ---------------------------------------------------------------------------
 describe('escapeHtml', () => {
   it('escapes ampersand', () => {
@@ -57,7 +57,7 @@ describe('escapeHtml', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — renderHTMLShell
+// Tests  -  renderHTMLShell
 // ---------------------------------------------------------------------------
 describe('renderHTMLShell', () => {
   it('renders minimal HTML with defaults', () => {
@@ -141,7 +141,7 @@ describe('renderHTMLShell', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — renderPage
+// Tests  -  renderPage
 // ---------------------------------------------------------------------------
 describe('renderPage', () => {
   const context = { url: '/test', locale: 'en' };

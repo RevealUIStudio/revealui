@@ -97,7 +97,7 @@ export function WslRow({ setup }: SetupStepsProps) {
       label="WSL"
       done={setup.status?.wsl_running ?? false}
       doneText="Ubuntu running"
-      pendingText="WSL not detected — install WSL from the Microsoft Store"
+      pendingText="WSL not detected  -  install WSL from the Microsoft Store"
     />
   );
 }
@@ -193,7 +193,7 @@ export function VaultRow() {
         {vaultInitialized === true
           ? 'Passage-store ready at ~/.revealui/passage-store/'
           : vaultInitialized === false
-            ? 'Vault not found — initialize to start managing secrets'
+            ? 'Vault not found  -  initialize to start managing secrets'
             : 'Checking vault...'}
       </p>
       <ErrorAlert message={vaultError} />
@@ -209,7 +209,7 @@ export function TailscaleRow() {
       label="Tailscale"
       done={tunnelStatus?.running ?? false}
       doneText={`Connected — ${tunnelStatus?.ip ?? 'no IP'} (${tunnelStatus?.hostname ?? 'unknown'})`}
-      pendingText="Tailscale not running — start it to enable VPN tunnel to your tailnet"
+      pendingText="Tailscale not running  -  start it to enable VPN tunnel to your tailnet"
     />
   );
 }

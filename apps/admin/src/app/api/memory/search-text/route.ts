@@ -87,7 +87,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Dynamic import — @revealui/ai is an optional Pro dependency
+    // Dynamic import  -  @revealui/ai is an optional Pro dependency
     const embeddingsMod = await import('@revealui/ai/embeddings').catch(() => null);
     const vectorMod = await import('@revealui/ai/memory/vector').catch(() => null);
     if (!(embeddingsMod && vectorMod)) {
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate embedding from query text
     const embedding = await embeddingsMod.generateEmbedding(query);
 
-    // Perform vector search — enforce userId so non-admins can only search their own memories
+    // Perform vector search  -  enforce userId so non-admins can only search their own memories
     // Strip siteId from options for non-admins to prevent cross-tenant data access
     const service = new vectorMod.VectorMemoryService();
     const isAdmin = authSession.user.role === 'admin';

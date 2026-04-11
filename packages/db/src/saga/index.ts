@@ -1,5 +1,5 @@
 /**
- * @revealui/db/saga — NeonDB-safe saga executor
+ * @revealui/db/saga  -  NeonDB-safe saga executor
  *
  * Provides transaction-like guarantees over NeonDB's stateless HTTP driver
  * using compensating actions, idempotency keys, and the jobs table as outbox.

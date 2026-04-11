@@ -3,7 +3,7 @@
  *
  * Verifies the full agent orchestration chain works against a real LLM.
  * Uses Ollama (localhost:11434) when available, falls back to GROQ.
- * OpenAI is intentionally NOT used — no OpenAI spend until the business has
+ * OpenAI is intentionally NOT used  -  no OpenAI spend until the business has
  * paying customers.
  *
  * Run:
@@ -53,8 +53,8 @@ async function buildLLMClient(): Promise<LLMClient | null> {
     });
   }
 
-  // No OpenAI — not authorized until business has paying customers.
-  // No Anthropic — reserved for Claude Code sessions, not runtime cost.
+  // No OpenAI  -  not authorized until business has paying customers.
+  // No Anthropic  -  reserved for Claude Code sessions, not runtime cost.
   return null;
 }
 

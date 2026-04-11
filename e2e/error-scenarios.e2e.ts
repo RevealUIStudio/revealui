@@ -455,7 +455,7 @@ test.describe('Error Scenarios', () => {
         // If navigation succeeded, the page should still be functional
         await expect(page.locator('body')).toBeVisible();
       } catch (error) {
-        // Navigation may timeout or fail — that is acceptable for an extremely long URL
+        // Navigation may timeout or fail  -  that is acceptable for an extremely long URL
         expect(error).toBeDefined();
       }
     });

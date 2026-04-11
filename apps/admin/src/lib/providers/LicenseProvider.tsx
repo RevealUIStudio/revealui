@@ -17,7 +17,7 @@ export interface LicenseContextValue {
 }
 
 async function resolveTier(): Promise<string> {
-  // Skip if API URL is not configured — prevents CORS errors in local dev
+  // Skip if API URL is not configured  -  prevents CORS errors in local dev
   // and avoids calling the production API from self-hosted instances.
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
   if (!apiUrl) return 'free';
@@ -31,7 +31,7 @@ async function resolveTier(): Promise<string> {
       return data.tier;
     }
   } catch {
-    // Subscription check failed (CORS, network, 401) — stay on free tier
+    // Subscription check failed (CORS, network, 401)  -  stay on free tier
   }
 
   return 'free';

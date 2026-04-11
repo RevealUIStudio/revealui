@@ -51,7 +51,7 @@ describe('StepEmail', () => {
     expect(
       screen.getByPlaceholderText('revealui-email@project.iam.gserviceaccount.com'),
     ).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('-----BEGIN PRIVATE KEY-----')).toBeInTheDocument(); // gitleaks:allow — placeholder text, not a real key
+    expect(screen.getByPlaceholderText('-----BEGIN PRIVATE KEY-----')).toBeInTheDocument(); // gitleaks:allow  -  placeholder text, not a real key
     expect(screen.getByPlaceholderText('noreply@yourdomain.com')).toBeInTheDocument();
   });
 
@@ -109,7 +109,7 @@ describe('StepEmail', () => {
     fireEvent.click(screen.getByText('Send Test Email'));
 
     await waitFor(() => {
-      expect(screen.getByText('Test email sent — check your inbox.')).toBeInTheDocument();
+      expect(screen.getByText('Test email sent  -  check your inbox.')).toBeInTheDocument();
     });
 
     expect(screen.getByText('Next')).not.toBeDisabled();
@@ -152,7 +152,7 @@ describe('StepEmail', () => {
     fireEvent.click(screen.getByText('Send Test Email'));
 
     await waitFor(() => {
-      expect(screen.getByText('Test email sent — check your inbox.')).toBeInTheDocument();
+      expect(screen.getByText('Test email sent  -  check your inbox.')).toBeInTheDocument();
     });
 
     expect(onUpdateData).toHaveBeenCalledWith(

@@ -4,7 +4,7 @@ export const parameterizationRule: Rule = {
   id: 'parameterization',
   tier: 'oss',
   name: 'Parameterization Conventions',
-  description: 'Never hardcode config values — extract, type, default, and make overridable',
+  description: 'Never hardcode config values  -  extract, type, default, and make overridable',
   scope: 'project',
   preambleTier: 2,
   tags: ['config', 'patterns'],
@@ -45,7 +45,7 @@ export function configureModule(overrides: Partial<ModuleConfig>): void {
 
 - Tests need fast TTLs and small limits
 - Deployments may need different thresholds than development
-- \`Math.random()\` is not cryptographically secure — use \`crypto.randomInt()\` for security-sensitive values (OTPs, tokens, nonces)
+- \`Math.random()\` is not cryptographically secure  -  use \`crypto.randomInt()\` for security-sensitive values (OTPs, tokens, nonces)
 
 ## Applies To
 

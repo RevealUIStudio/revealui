@@ -10,8 +10,8 @@
  *   WATCHDOG_TIMEOUT=15 pnpm dev:watched api   # 15 minute timeout
  *
  * Environment:
- *   WATCHDOG_TIMEOUT  — idle timeout in minutes (default: 30)
- *   WATCHDOG_DIRS     — comma-separated dirs to watch (default: src)
+ *   WATCHDOG_TIMEOUT   -  idle timeout in minutes (default: 30)
+ *   WATCHDOG_DIRS      -  comma-separated dirs to watch (default: src)
  */
 
 import { type ChildProcess, spawn } from 'node:child_process';

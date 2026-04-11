@@ -215,7 +215,7 @@ describe('SyncManager', () => {
           crdtType: 'lww_register' as const,
           operationType: 'set' as const,
           payload: { value: 'own-op' },
-          nodeId: 'node-a', // own node — should be skipped
+          nodeId: 'node-a', // own node  -  should be skipped
           timestamp: 101,
         },
       ],

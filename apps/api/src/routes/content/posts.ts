@@ -203,7 +203,7 @@ app.openapi(
         return c.json({ success: false as const, errors: validation.errors }, 400);
       }
     }
-    // Force authorId to session user — never trust client-supplied authorId
+    // Force authorId to session user  -  never trust client-supplied authorId
     const post = await postQueries.createPost(db, {
       id: crypto.randomUUID(),
       ...body,

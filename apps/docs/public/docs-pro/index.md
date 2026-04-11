@@ -1,6 +1,6 @@
 # RevealUI Pro
 
-RevealUI Pro adds AI agents, MCP servers, and editor integrations on top of the open-source foundation. All AI runs on open models — no proprietary cloud APIs.
+RevealUI Pro adds AI agents, MCP servers, and editor integrations on top of the open-source foundation. All AI runs on open models  -  no proprietary cloud APIs.
 
 ## What's included
 

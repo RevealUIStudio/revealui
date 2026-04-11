@@ -5,7 +5,7 @@
  * foreign keys, unique constraints, NOT NULL, cascade deletes, defaults,
  * and composite unique indexes.
  *
- * Uses PGlite (in-memory PostgreSQL) — no external connection required.
+ * Uses PGlite (in-memory PostgreSQL)  -  no external connection required.
  */
 
 import { PGlite } from '@electric-sql/pglite';
@@ -14,13 +14,13 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 let db: PGlite;
 
 // ---------------------------------------------------------------------------
-// Setup — create production-equivalent tables
+// Setup  -  create production-equivalent tables
 // ---------------------------------------------------------------------------
 
 beforeAll(async () => {
   db = new PGlite();
 
-  // Users table (base table — most others reference this)
+  // Users table (base table  -  most others reference this)
   await db.query(`
     CREATE TABLE users (
       id                TEXT PRIMARY KEY,
@@ -203,7 +203,7 @@ async function insertUser(id = 'u1', email = 'alice@test.com', name = 'Alice') {
 // Users Table
 // =============================================================================
 
-describe('Users — constraints', () => {
+describe('Users  -  constraints', () => {
   it('inserts a user with defaults', async () => {
     await insertUser();
     const result = await db.query<{
@@ -282,7 +282,7 @@ describe('Users — constraints', () => {
 // Sessions Table
 // =============================================================================
 
-describe('Sessions — constraints', () => {
+describe('Sessions  -  constraints', () => {
   it('requires a valid user_id (FK)', async () => {
     await expect(
       db.query(
@@ -337,7 +337,7 @@ describe('Sessions — constraints', () => {
 // Licenses Table
 // =============================================================================
 
-describe('Licenses — constraints', () => {
+describe('Licenses  -  constraints', () => {
   it('requires user_id FK', async () => {
     await expect(
       db.query(
@@ -431,7 +431,7 @@ describe('Licenses — constraints', () => {
 // OAuth Accounts Table
 // =============================================================================
 
-describe('OAuth Accounts — constraints', () => {
+describe('OAuth Accounts  -  constraints', () => {
   it('enforces unique (provider, provider_user_id)', async () => {
     await insertUser();
     await insertUser('u2', 'bob@test.com', 'Bob');
@@ -508,7 +508,7 @@ describe('OAuth Accounts — constraints', () => {
 // User API Keys Table
 // =============================================================================
 
-describe('User API Keys — constraints', () => {
+describe('User API Keys  -  constraints', () => {
   it('requires user_id FK', async () => {
     await expect(
       db.query(
@@ -564,7 +564,7 @@ describe('User API Keys — constraints', () => {
 // Tenant Provider Configs Table
 // =============================================================================
 
-describe('Tenant Provider Configs — constraints', () => {
+describe('Tenant Provider Configs  -  constraints', () => {
   it('cascades delete when user is deleted', async () => {
     await insertUser();
     await db.query(
@@ -591,7 +591,7 @@ describe('Tenant Provider Configs — constraints', () => {
 // Password Reset Tokens Table
 // =============================================================================
 
-describe('Password Reset Tokens — constraints', () => {
+describe('Password Reset Tokens  -  constraints', () => {
   it('requires user_id FK', async () => {
     await expect(
       db.query(
@@ -658,7 +658,7 @@ describe('Password Reset Tokens — constraints', () => {
 // Processed Webhook Events Table
 // =============================================================================
 
-describe('Processed Webhook Events — constraints', () => {
+describe('Processed Webhook Events  -  constraints', () => {
   it('uses event ID as primary key (idempotency)', async () => {
     await db.query(
       "INSERT INTO processed_webhook_events (id, event_type) VALUES ('evt_123', 'checkout.session.completed')",
@@ -706,7 +706,7 @@ describe('Processed Webhook Events — constraints', () => {
 // Rate Limits Table
 // =============================================================================
 
-describe('Rate Limits — constraints', () => {
+describe('Rate Limits  -  constraints', () => {
   it('uses key as primary key', async () => {
     await db.query(
       "INSERT INTO rate_limits (key, value, reset_at) VALUES ('ip:1.2.3.4', '{\"count\":1}', NOW() + INTERVAL '1 minute')",
@@ -750,7 +750,7 @@ describe('Rate Limits — constraints', () => {
 // Failed Attempts Table
 // =============================================================================
 
-describe('Failed Attempts — constraints', () => {
+describe('Failed Attempts  -  constraints', () => {
   it('uses email as primary key', async () => {
     await db.query(
       "INSERT INTO failed_attempts (email, window_start) VALUES ('alice@test.com', NOW())",
@@ -797,7 +797,7 @@ describe('Failed Attempts — constraints', () => {
 });
 
 // =============================================================================
-// Cross-Table — Cascade Deletes
+// Cross-Table  -  Cascade Deletes
 // =============================================================================
 
 describe('Cross-table cascade deletes', () => {

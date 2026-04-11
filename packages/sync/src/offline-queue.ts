@@ -1,5 +1,5 @@
 /**
- * Offline mutation queue — stores pending mutations in localStorage
+ * Offline mutation queue  -  stores pending mutations in localStorage
  * so they survive page reloads and can be flushed when connectivity returns.
  */
 
@@ -72,7 +72,7 @@ function writeQueue(queue: OfflineMutation[]): void {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
   } catch {
-    // Quota exceeded or private browsing — drop silently.
+    // Quota exceeded or private browsing  -  drop silently.
   }
 }
 
@@ -140,7 +140,7 @@ export class OfflineMutationQueue {
     try {
       window.localStorage.removeItem(STORAGE_KEY);
     } catch {
-      // Ignore — same guard as writeQueue.
+      // Ignore  -  same guard as writeQueue.
     }
   }
 }

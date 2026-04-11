@@ -115,11 +115,11 @@ export class AgentOrchestrator {
    * Find the best agent for a task.
    *
    * Routing priority:
-   * 1. Capability intersection — agent whose AgentConfig.capabilities overlaps
+   * 1. Capability intersection  -  agent whose AgentConfig.capabilities overlaps
    *    with task.requiredCapabilities (highest-overlap agent wins)
-   * 2. Tool-name substring match — agent has a tool whose name includes the
+   * 2. Tool-name substring match  -  agent has a tool whose name includes the
    *    task type string (legacy fallback)
-   * 3. First registered agent — last-resort fallback
+   * 3. First registered agent  -  last-resort fallback
    */
   private findBestAgent(task: Task): Agent | undefined {
     // 1. Capability-based routing

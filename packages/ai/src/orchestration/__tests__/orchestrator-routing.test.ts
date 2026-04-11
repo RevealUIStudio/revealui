@@ -38,7 +38,7 @@ function makeTask(type: string, requiredCapabilities?: string[]): Task {
   return { id: `t-${type}`, type, description: type, requiredCapabilities };
 }
 
-describe('AgentOrchestrator.findBestAgent — capability routing', () => {
+describe('AgentOrchestrator.findBestAgent  -  capability routing', () => {
   it('selects the agent with the highest capability overlap', async () => {
     const orchestrator = new AgentOrchestrator();
     const mockClient = {
@@ -51,7 +51,7 @@ describe('AgentOrchestrator.findBestAgent — capability routing', () => {
     orchestrator.registerAgent(ticket);
     orchestrator.setLLMClient(mockClient);
 
-    // task requires ['admin', 'content'] — admin-agent has both, ticket-agent has only 'admin'
+    // task requires ['admin', 'content']  -  admin-agent has both, ticket-agent has only 'admin'
     const task = makeTask('content', ['admin', 'content']);
     await orchestrator.delegateTask(task);
 
@@ -89,7 +89,7 @@ describe('AgentOrchestrator.findBestAgent — capability routing', () => {
     orchestrator.registerAgent(onlyAgent);
     orchestrator.setLLMClient(mockClient);
 
-    // No match for 'pdf' task — should still delegate to the only registered agent
+    // No match for 'pdf' task  -  should still delegate to the only registered agent
     const task = makeTask('pdf', ['pdf']);
     await orchestrator.delegateTask(task);
     expect(mockClient.chat).toHaveBeenCalled();

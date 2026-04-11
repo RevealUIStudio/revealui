@@ -80,7 +80,7 @@ export interface Agent {
   tools: Tool[];
 
   /**
-   * Memory system (optional — agents without memory skip episodic recall)
+   * Memory system (optional  -  agents without memory skip episodic recall)
    */
   memory?: EpisodicMemory;
 

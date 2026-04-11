@@ -13,7 +13,7 @@ export function Audiences() {
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-500">
             Whether you&apos;re starting from scratch or retrofitting a product you already ship,
-            RevealUI gives you the business layer — without the years it takes to build it.
+            RevealUI gives you the business layer - without the years it takes to build it.
           </p>
         </div>
 
@@ -41,7 +41,7 @@ export function Audiences() {
             </h3>
             <p className="mt-4 text-base leading-7 text-gray-500">
               Already shipping but missing the business layer? RevealUI&apos;s packages are modular
-              — drop in what you need without rebuilding what you have.
+              - drop in what you need without rebuilding what you have.
             </p>
             <ul className="mt-6 space-y-3 text-sm leading-6 text-gray-500">
               {[

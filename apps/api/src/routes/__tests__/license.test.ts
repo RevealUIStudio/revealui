@@ -54,7 +54,7 @@ function createApp() {
   return app;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
@@ -292,10 +292,10 @@ describe('POST /generate', () => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /verify — DB revocation check (JWT is valid at JWT level, DB overrides)
+// POST /verify  -  DB revocation check (JWT is valid at JWT level, DB overrides)
 // ---------------------------------------------------------------------------
 
-describe('POST /verify — DB revocation override', () => {
+describe('POST /verify  -  DB revocation override', () => {
   const VALID_PAYLOAD = {
     tier: 'pro' as const,
     customerId: 'cus_123',
@@ -390,7 +390,7 @@ describe('POST /verify — DB revocation override', () => {
 
   it('returns reason:invalid when JWT is invalid and not found in DB', async () => {
     mockedValidate.mockResolvedValue(null as never);
-    // default mock returns [] — no row found
+    // default mock returns []  -  no row found
 
     const app = createApp();
     const res = await app.request('/verify', post('/verify', { licenseKey: 'unknown.token' }));

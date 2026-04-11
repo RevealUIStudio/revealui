@@ -19,7 +19,7 @@ import type { Agent, AgentResult, Task } from './agent.js';
 
 /**
  * Controls how much of the model's token budget is allocated to internal reasoning.
- * Applies to Anthropic Claude only — ignored by other providers.
+ * Applies to Anthropic Claude only  -  ignored by other providers.
  *
  * | Level   | Budget (tokens) | Use case                          |
  * |---------|-----------------|-----------------------------------|
@@ -287,7 +287,7 @@ export class AgentRuntime {
 
             if (needsApproval) {
               if (!this.config.approvalCallback) {
-                // No approval callback — deny by default
+                // No approval callback  -  deny by default
                 const denied: ToolResult = {
                   success: false,
                   error: `Tool "${tool.label ?? tool.name}" requires human approval but no approval handler is configured.`,

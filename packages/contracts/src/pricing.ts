@@ -14,7 +14,7 @@
 export type LicenseTierId = 'free' | 'pro' | 'max' | 'enterprise';
 
 // =============================================================================
-// Feature Flag Key (mirrors @revealui/core/features — defined here to avoid
+// Feature Flag Key (mirrors @revealui/core/features  -  defined here to avoid
 // circular dependency since core depends on contracts, not the reverse)
 // =============================================================================
 
@@ -354,7 +354,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     description: 'Pro features, forever. No subscription required.',
     features: [
       'All Pro tier features',
-      'License key — never expires',
+      'License key  -  never expires',
       '1 year priority support included',
       'All Pro updates released during support period',
       'Private GitHub repo access',
@@ -368,7 +368,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     description: 'Deploy for multiple clients without per-site subscriptions.',
     features: [
       'All Max tier features',
-      'License key — never expires',
+      'License key  -  never expires',
       'Up to 10 client deployments',
       '1 year priority support included',
       'All Max updates released during support period',
@@ -383,7 +383,7 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     description: 'Full self-hosted Forge with unlimited deployments.',
     features: [
       'All Forge tier features',
-      'License key — never expires',
+      'License key  -  never expires',
       'Unlimited self-hosted deployments',
       '1 year priority support included',
       'All Forge updates released during support period',

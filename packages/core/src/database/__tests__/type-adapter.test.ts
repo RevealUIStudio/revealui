@@ -16,7 +16,7 @@ import {
 } from '../type-adapter.js';
 
 // ---------------------------------------------------------------------------
-// Test interfaces — realistic shapes that mirror actual DB rows / documents
+// Test interfaces  -  realistic shapes that mirror actual DB rows / documents
 // ---------------------------------------------------------------------------
 
 interface UserDbRow {
@@ -160,7 +160,7 @@ describe('dbRowToRevealUIDoc', () => {
     const rowWithExtras = { ...userRow, internal_flag: true, _version: 7 };
     const doc = dbRowToRevealUIDoc<UserDocument, typeof rowWithExtras>(rowWithExtras);
 
-    // The cast does not strip properties — extras remain at runtime
+    // The cast does not strip properties  -  extras remain at runtime
     expect((doc as Record<string, unknown>).internal_flag).toBe(true);
     expect((doc as Record<string, unknown>)._version).toBe(7);
   });
@@ -169,7 +169,7 @@ describe('dbRowToRevealUIDoc', () => {
     const rowWithDate = { ...postRow, created_at: new Date('2025-03-10T08:00:00.000Z') };
     const doc = dbRowToRevealUIDoc<PostDocument, typeof rowWithDate>({ ...rowWithDate });
 
-    // The cast preserves the actual runtime type — a Date object, not a string
+    // The cast preserves the actual runtime type  -  a Date object, not a string
     expect(doc.created_at).toBeInstanceOf(Date);
   });
 
@@ -324,7 +324,7 @@ describe('createTableAdapter', () => {
     it('toContract returns the row unchanged', () => {
       const result = adapter.toContract(userRow);
 
-      expect(result).toBe(userRow); // Same reference — no cloning
+      expect(result).toBe(userRow); // Same reference  -  no cloning
       expect(result.id).toBe('usr_abc123');
     });
 
@@ -437,7 +437,7 @@ describe('date handling', () => {
     const row = { ...postRow, created_at: dateObj };
     const doc = dbRowToRevealUIDoc<PostDocument, typeof row>(row);
 
-    // The cast does not convert — the runtime value is still a Date
+    // The cast does not convert  -  the runtime value is still a Date
     expect(doc.created_at).toBeInstanceOf(Date);
   });
 });

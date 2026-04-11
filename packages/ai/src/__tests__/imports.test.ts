@@ -2,7 +2,7 @@
  * Import Verification Tests for @revealui/ai
  *
  * These tests verify that all export paths work correctly after build.
- * Skipped when dist/ is absent (Pro package — dist-only in public repo).
+ * Skipped when dist/ is absent (Pro package  -  dist-only in public repo).
  *
  * Fixed: VectorMemoryService now uses lazy database initialization (getter pattern),
  * so imports no longer trigger immediate database connections.

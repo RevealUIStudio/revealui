@@ -97,7 +97,7 @@ const ReviewSchema = z
 // Provenance Routes
 // =============================================================================
 
-// GET / — list all with filters
+// GET /  -  list all with filters
 app.openapi(
   createRoute({
     method: 'get',
@@ -133,7 +133,7 @@ app.openapi(
   },
 );
 
-// GET /stats — aggregate statistics
+// GET /stats  -  aggregate statistics
 app.openapi(
   createRoute({
     method: 'get',
@@ -176,7 +176,7 @@ app.openapi(
   },
 );
 
-// GET /file/:filePath — provenance for a specific file
+// GET /file/:filePath  -  provenance for a specific file
 app.openapi(
   createRoute({
     method: 'get',
@@ -204,7 +204,7 @@ app.openapi(
   },
 );
 
-// GET /:id — single entry
+// GET /:id  -  single entry
 app.openapi(
   createRoute({
     method: 'get',
@@ -234,7 +234,7 @@ app.openapi(
   },
 );
 
-// POST / — create entry
+// POST /  -  create entry
 app.openapi(
   createRoute({
     method: 'post',
@@ -291,7 +291,7 @@ app.openapi(
   },
 );
 
-// PATCH /:id — update entry
+// PATCH /:id  -  update entry
 app.openapi(
   createRoute({
     method: 'patch',
@@ -349,7 +349,7 @@ app.openapi(
   },
 );
 
-// DELETE /:id — delete entry
+// DELETE /:id  -  delete entry
 app.openapi(
   createRoute({
     method: 'delete',
@@ -371,7 +371,7 @@ app.openapi(
   async (c) => {
     const db = c.get('db');
     const { id } = c.req.valid('param');
-    // Provenance records have no userId — restrict deletion to admin role only
+    // Provenance records have no userId  -  restrict deletion to admin role only
     const user = c.get('user');
     if (user?.role !== 'admin') {
       throw new HTTPException(403, { message: 'Admin role required to delete provenance entries' });
@@ -385,7 +385,7 @@ app.openapi(
 // Review Routes
 // =============================================================================
 
-// POST /:id/review — add review (append-only)
+// POST /:id/review  -  add review (append-only)
 app.openapi(
   createRoute({
     method: 'post',
@@ -466,7 +466,7 @@ app.openapi(
   },
 );
 
-// GET /:id/reviews — list reviews for entry
+// GET /:id/reviews  -  list reviews for entry
 app.openapi(
   createRoute({
     method: 'get',

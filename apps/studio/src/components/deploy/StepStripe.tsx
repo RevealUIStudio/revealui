@@ -65,7 +65,7 @@ export default function StepStripe({
           };
         }
       } catch {
-        // Seed output may not be JSON — leave empty (user enters manually)
+        // Seed output may not be JSON  -  leave empty (user enters manually)
       }
 
       setPhase('done');

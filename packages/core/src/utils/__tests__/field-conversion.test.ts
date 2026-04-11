@@ -7,7 +7,7 @@ import {
 } from '../field-conversion.js';
 
 // ---------------------------------------------------------------------------
-// Tests — convertToRevealUIField
+// Tests  -  convertToRevealUIField
 // ---------------------------------------------------------------------------
 describe('convertToRevealUIField', () => {
   it('converts a basic text field', () => {
@@ -67,10 +67,10 @@ describe('convertToRevealUIField', () => {
       type: 'text',
       maxLength: 10,
       minLength: 2,
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal field shape
     } as any);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  accessing type-specific props
     const typed = result as any;
     expect(typed.maxLength).toBe(10);
     expect(typed.minLength).toBe(2);
@@ -81,10 +81,10 @@ describe('convertToRevealUIField', () => {
       name: 'items',
       type: 'array',
       fields: [{ name: 'label', type: 'text' }],
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal field shape
     } as any);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  accessing type-specific props
     const typed = result as any;
     expect(typed.fields).toHaveLength(1);
     expect(typed.fields[0].name).toBe('label');
@@ -98,10 +98,10 @@ describe('convertToRevealUIField', () => {
       fields: [],
       minRows: 1,
       maxRows: 5,
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal field shape
     } as any);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  accessing type-specific props
     const typed = result as any;
     expect(typed.minRows).toBe(1);
     expect(typed.maxRows).toBe(5);
@@ -112,10 +112,10 @@ describe('convertToRevealUIField', () => {
       name: 'active',
       type: 'checkbox',
       defaultValue: true,
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal field shape
     } as any);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  accessing type-specific props
     const typed = result as any;
     expect(typed.defaultValue).toBe(true);
   });
@@ -126,10 +126,10 @@ describe('convertToRevealUIField', () => {
       name: 'content',
       type: 'richText',
       editor,
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal field shape
     } as any);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  accessing type-specific props
     const typed = result as any;
     expect(typed.editor).toBe(editor);
   });
@@ -143,7 +143,7 @@ describe('convertToRevealUIField', () => {
     });
 
     expect(result.validate).toBeTypeOf('function');
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — calling validate with mock args
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  calling validate with mock args
     const validateResult = result.validate!('value', {} as any);
     expect(validate).toHaveBeenCalledWith('value', expect.anything());
     expect(validateResult).toBe(true);
@@ -157,13 +157,13 @@ describe('convertToRevealUIField', () => {
       validate,
     });
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — calling validate with mock args
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  calling validate with mock args
     expect(result.validate!('value', {} as any)).toBe('Error message');
   });
 });
 
 // ---------------------------------------------------------------------------
-// Tests — convertFromRevealUIField
+// Tests  -  convertFromRevealUIField
 // ---------------------------------------------------------------------------
 describe('convertFromRevealUIField', () => {
   it('converts a RevealUI field back to standard field', () => {
@@ -181,11 +181,11 @@ describe('convertFromRevealUIField', () => {
       type: 'text',
       maxLength: 10,
       minLength: 2,
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal field shape
     } as any);
     const result = convertFromRevealUIField(revealUIField);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  accessing type-specific props
     const typed = result as any;
     expect(typed.maxLength).toBe(10);
     expect(typed.minLength).toBe(2);
@@ -196,11 +196,11 @@ describe('convertFromRevealUIField', () => {
       name: 'items',
       type: 'array',
       fields: [{ name: 'label', type: 'text' }],
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal field shape
     } as any);
     const result = convertFromRevealUIField(revealUIField);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  accessing type-specific props
     const typed = result as any;
     expect(typed.fields).toHaveLength(1);
     expect(typed.fields[0].name).toBe('label');
@@ -213,11 +213,11 @@ describe('convertFromRevealUIField', () => {
       name: 'active',
       type: 'checkbox',
       defaultValue: false,
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal field shape
     } as any);
     const result = convertFromRevealUIField(revealUIField);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  accessing type-specific props
     expect((result as any).defaultValue).toBe(false);
   });
 
@@ -227,11 +227,11 @@ describe('convertFromRevealUIField', () => {
       name: 'content',
       type: 'richText',
       editor,
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal field shape
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal field shape
     } as any);
     const result = convertFromRevealUIField(revealUIField);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — accessing type-specific props
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  accessing type-specific props
     expect((result as any).editor).toBe(editor);
   });
 
@@ -240,13 +240,13 @@ describe('convertFromRevealUIField', () => {
     const revealUIField = { name: 'x', type: 'text', validate } as never;
     const result = convertFromRevealUIField(revealUIField);
 
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — calling validate with mock args
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  calling validate with mock args
     expect(result.validate!('val', {} as any)).toBe('Invalid');
   });
 });
 
 // ---------------------------------------------------------------------------
-// Tests — enhanceFieldWithRevealUI
+// Tests  -  enhanceFieldWithRevealUI
 // ---------------------------------------------------------------------------
 describe('enhanceFieldWithRevealUI', () => {
   it('converts and adds revealUI options', () => {
@@ -279,7 +279,7 @@ describe('enhanceFieldWithRevealUI', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — validateRevealUIField
+// Tests  -  validateRevealUIField
 // ---------------------------------------------------------------------------
 describe('validateRevealUIField', () => {
   const baseContext = {

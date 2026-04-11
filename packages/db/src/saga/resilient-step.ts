@@ -65,7 +65,7 @@ async function retryWithBackoff<T>(
  * Wrap a saga step with retry logic.
  *
  * The execute function is retried on transient failures (network errors,
- * 5xx status codes). The compensate function is NOT retried — compensations
+ * 5xx status codes). The compensate function is NOT retried  -  compensations
  * should be idempotent and infallible by design.
  *
  * @param step - The saga step to wrap
@@ -87,7 +87,7 @@ export function resilientStep<TOutput = unknown>(
       return retryWithBackoff(() => step.execute(ctx), maxRetries, baseDelay, maxDelay);
     },
 
-    // Compensations are not retried — they must be idempotent
+    // Compensations are not retried  -  they must be idempotent
     compensate: step.compensate,
   };
 }

@@ -25,7 +25,7 @@ type EmbeddingMetadata = {
   vector?: unknown;
 };
 
-// Only check POSTGRES_URL explicitly — DATABASE_URL is the app's production connection
+// Only check POSTGRES_URL explicitly  -  DATABASE_URL is the app's production connection
 // string and may point to a DB that is unreachable in local dev.
 const POSTGRES_URL = process.env.POSTGRES_URL;
 
@@ -57,7 +57,7 @@ describe.skipIf(!POSTGRES_URL)('Automated CRDT Validation', () => {
     } catch (err) {
       // DB may lack the required CRDT schema (e.g. production DB without node_id_mappings).
       // Mark as failed so tests skip cleanly instead of throwing.
-      console.warn('⚠️  CRDT integration test setup failed — skipping suite:', err);
+      console.warn('⚠️  CRDT integration test setup failed  -  skipping suite:', err);
       setupFailed = true;
     }
   }, 30000); // 30 second timeout for database operations

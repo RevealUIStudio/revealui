@@ -1,5 +1,5 @@
 /**
- * file_grep — Regex content search across files
+ * file_grep  -  Regex content search across files
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';

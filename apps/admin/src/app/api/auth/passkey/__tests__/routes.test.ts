@@ -52,7 +52,7 @@ vi.mock('@/lib/middleware/rate-limit', () => ({
   withRateLimit: vi.fn((handler: (request: NextRequest) => Promise<Response>) => handler),
 }));
 
-// Mock license module — tests run without a license server, so report no limit
+// Mock license module  -  tests run without a license server, so report no limit
 vi.mock('@revealui/core/license', () => ({
   initializeLicense: vi.fn(() => Promise.resolve()),
   getMaxUsers: vi.fn(() => Infinity),

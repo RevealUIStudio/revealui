@@ -1,9 +1,9 @@
 # @revealui/services
 
-> **Commercial package** — requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
+> **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
 
 
-External service integrations for RevealUI — Stripe, Supabase, and Vercel.
+External service integrations for RevealUI  -  Stripe, Supabase, and Vercel.
 
 ## Features
 
@@ -174,4 +174,4 @@ pnpm --filter @revealui/services test:coverage
 
 ## License
 
-Commercial — see [LICENSE.commercial](../../LICENSE.commercial)
+Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)

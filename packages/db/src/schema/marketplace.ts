@@ -7,7 +7,7 @@
  *
  * Payment batching: individual USDC micropayments accumulate in
  * marketplace_transactions. Stripe Connect transfers are batched
- * (daily/weekly) rather than immediate — Stripe's minimum transfer is $0.50
+ * (daily/weekly) rather than immediate  -  Stripe's minimum transfer is $0.50
  * which exceeds typical per-call amounts.
  */
 
@@ -34,7 +34,7 @@ export const marketplaceServers = pgTable('marketplace_servers', {
 
   /**
    * Canonical MCP server endpoint (HTTPS required in production).
-   * Kept internal — callers invoke via /api/marketplace/servers/:id/invoke.
+   * Kept internal  -  callers invoke via /api/marketplace/servers/:id/invoke.
    */
   url: text('url').notNull(),
 
@@ -104,7 +104,7 @@ export const marketplaceTransactions = pgTable(
 
     /**
      * User who made the call, if authenticated.
-     * Nullable — x402 payments can come from anonymous agents.
+     * Nullable  -  x402 payments can come from anonymous agents.
      */
     callerId: text('caller_id'),
 
@@ -130,7 +130,7 @@ export const marketplaceTransactions = pgTable(
      * Transaction status:
      * - pending:   payment verified, server call in-flight
      * - completed: server responded successfully
-     * - failed:    server call failed (payment still taken — refund flow TBD)
+     * - failed:    server call failed (payment still taken  -  refund flow TBD)
      */
     status: text('status').notNull().default('pending'),
 

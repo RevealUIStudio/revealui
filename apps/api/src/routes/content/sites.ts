@@ -287,11 +287,11 @@ app.openapi(
       const { getVectorClient } = await import('@revealui/db');
       const vectorDb = getVectorClient();
       cleanupVectorDataForSite(vectorDb, id).catch(() => {
-        // Swallowed — vector cleanup is best-effort.
+        // Swallowed  -  vector cleanup is best-effort.
         // The batch cleanup cron handles missed deletions.
       });
     } catch {
-      // Vector DB not configured — skip cleanup
+      // Vector DB not configured  -  skip cleanup
     }
 
     return c.json({ success: true as const, message: 'Site deleted' }, 200);

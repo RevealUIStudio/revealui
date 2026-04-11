@@ -1,5 +1,5 @@
 /**
- * OAuth Core — State Management + User Upsert
+ * OAuth Core  -  State Management + User Upsert
  *
  * CSRF state: signed cookie using HMAC-SHA256 over a base64url payload.
  * Provider dispatch: routes to Google / GitHub / Vercel provider modules.
@@ -32,7 +32,7 @@ export interface ProviderUser {
  * Generate a signed OAuth state token.
  *
  * State encodes provider + redirectTo + nonce as base64url JSON.
- * Cookie value is `<state>.<hmac>` — the HMAC is over the state string
+ * Cookie value is `<state>.<hmac>`  -  the HMAC is over the state string
  * using REVEALUI_SECRET, providing CSRF protection without a DB table.
  */
 export function generateOAuthState(
@@ -41,7 +41,7 @@ export function generateOAuthState(
   options?: { linkConsent?: boolean },
 ): { state: string; cookieValue: string; codeChallenge: string } {
   const nonce = crypto.randomBytes(16).toString('hex');
-  // PKCE: generate a code_verifier (RFC 7636 §4.1 — 32 random bytes → 43 base64url chars)
+  // PKCE: generate a code_verifier (RFC 7636 §4.1  -  32 random bytes → 43 base64url chars)
   const codeVerifier = crypto.randomBytes(32).toString('base64url');
   const codeChallenge = crypto.createHash('sha256').update(codeVerifier).digest('base64url');
   const payload = JSON.stringify({
@@ -97,7 +97,7 @@ export function verifyOAuthState(
   }
   const expectedHmac = crypto.createHmac('sha256', secret).update(state).digest('hex');
 
-  // Both are hex-encoded SHA-256 HMACs — must be exactly 64 hex characters.
+  // Both are hex-encoded SHA-256 HMACs  -  must be exactly 64 hex characters.
   // Reject wrong-length inputs immediately; do NOT pad (padding enables forged matches
   // where a short storedHmac is zero-padded to collide with the expected hash).
   if (storedHmac.length !== 64 || expectedHmac.length !== 64) return null;
@@ -277,7 +277,7 @@ export async function upsertOAuthUser(
 
     if (existingUser) {
       if (options?.linkConsent) {
-        // User explicitly consented to link — use the existing account
+        // User explicitly consented to link  -  use the existing account
         userId = existingUser.id;
         isNewUser = false;
         logger.info(`Linking ${provider} account to existing user ${userId} (consent-based)`);
@@ -358,7 +358,7 @@ export async function linkOAuthAccount(
 
   if (existingLink) {
     if (existingLink.userId === userId) {
-      // Already linked to this user — refresh metadata and return
+      // Already linked to this user  -  refresh metadata and return
       await db
         .update(oauthAccounts)
         .set({
@@ -373,7 +373,7 @@ export async function linkOAuthAccount(
       if (!user) throw new Error('Authenticated user not found in database');
       return user as User;
     }
-    // Linked to a different user — cannot steal the identity
+    // Linked to a different user  -  cannot steal the identity
     throw new Error(
       'This provider account is already linked to another user. Unlink it from the other account first.',
     );

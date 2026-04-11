@@ -4,7 +4,7 @@ export interface NestedDocsPluginConfig {
   collections?: string[];
   parentFieldSlug?: string;
   breadcrumbsFieldSlug?: string;
-  /** Drizzle DB client getter — if not provided, breadcrumbs will be empty */
+  /** Drizzle DB client getter  -  if not provided, breadcrumbs will be empty */
   getDb?: () => unknown;
   /** Label field to use for breadcrumb labels (defaults to 'title') */
   labelField?: string;
@@ -44,7 +44,7 @@ async function buildBreadcrumbs(
 
   while (currentId && depth < maxDepth) {
     try {
-      // Use parameterized query — $1 is the only user-controlled value
+      // Use parameterized query  -  $1 is the only user-controlled value
       const result = await (
         db as { execute: (sql: unknown) => Promise<{ rows: Record<string, unknown>[] }> }
       ).execute({

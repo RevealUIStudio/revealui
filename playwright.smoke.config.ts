@@ -34,8 +34,8 @@ export default defineConfig({
     },
   ],
 
-  // No globalSetup — smoke tests must work without DB/auth setup
-  // No webServer — caller is responsible for starting services
+  // No globalSetup  -  smoke tests must work without DB/auth setup
+  // No webServer  -  caller is responsible for starting services
   outputDir: 'test-results/smoke',
   timeout: 20000,
   expect: { timeout: 5000 },

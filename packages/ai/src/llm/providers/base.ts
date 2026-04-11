@@ -5,7 +5,7 @@
  */
 
 /**
- * A plain text content part — used in multipart messages.
+ * A plain text content part  -  used in multipart messages.
  */
 export interface TextPart {
   type: 'text';
@@ -13,7 +13,7 @@ export interface TextPart {
 }
 
 /**
- * An image content part — base64 data URL or HTTPS URL.
+ * An image content part  -  base64 data URL or HTTPS URL.
  * Supported by OpenAI-compatible providers (inference-snaps, Ollama vision, GPT-4o).
  *
  * @example

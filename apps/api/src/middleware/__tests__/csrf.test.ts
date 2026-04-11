@@ -284,7 +284,7 @@ describe('csrfMiddleware', () => {
     app.use('*', csrfMiddleware({ cookieName: 'my-session' }));
     app.post('/test', (c) => c.json({ ok: true }));
 
-    // Correct custom cookie name — triggers CSRF check, token is missing → 403
+    // Correct custom cookie name  -  triggers CSRF check, token is missing → 403
     const res = await app.request('/test', {
       method: 'POST',
       headers: { Cookie: 'my-session=sess-123' },

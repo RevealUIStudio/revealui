@@ -5,7 +5,7 @@
  * 1. All expected Stripe price env vars are set
  * 2. REVEALUI_LICENSE_PRIVATE_KEY is present (for license JWT generation)
  * 3. Billing catalog DB rows exist for all tiers
- * 4. Email provider configured (warning only — Gmail or Resend)
+ * 4. Email provider configured (warning only  -  Gmail or Resend)
  *
  * Sends an alert email to REVEALUI_ALERT_EMAIL on any failure.
  * Runs daily at 06:00 UTC (configured in vercel.json).
@@ -123,7 +123,7 @@ app.post('/billing-readiness', async (c) => {
     });
   }
 
-  // 4. Check email provider configuration (warning only — billing works without
+  // 4. Check email provider configuration (warning only  -  billing works without
   //    email, but transactional emails will silently fail)
   const hasGmail =
     Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) && Boolean(process.env.GOOGLE_PRIVATE_KEY);
@@ -131,7 +131,7 @@ app.post('/billing-readiness', async (c) => {
     warnings.push({
       check: 'email:provider',
       detail:
-        'No email provider configured — transactional emails (license activation, payment receipts, failure notices) will silently fail',
+        'No email provider configured  -  transactional emails (license activation, payment receipts, failure notices) will silently fail',
     });
   }
 
@@ -167,7 +167,7 @@ app.post('/billing-readiness', async (c) => {
 <pre>${failureList}</pre>
 ${warnings.length > 0 ? `<h3>Warnings</h3><pre>${warnings.map((w) => `• ${w.check}: ${w.detail}`).join('\n')}</pre>` : ''}
 <p>Run <code>pnpm stripe:sync-env</code> and <code>pnpm billing:catalog:sync</code> to resolve.</p>
-<p style="color:#666;font-size:12px;">Automated check from api.revealui.com — ${new Date().toISOString()}</p>`,
+<p style="color:#666;font-size:12px;">Automated check from api.revealui.com  -  ${new Date().toISOString()}</p>`,
         text: `Billing Readiness Check Failed\n\n${failures.length} issue(s):\n${failureList}${warningList}\n\nRun: pnpm stripe:sync-env && pnpm billing:catalog:sync`,
       });
     } catch (emailErr) {

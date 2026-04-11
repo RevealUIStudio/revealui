@@ -38,7 +38,7 @@ function extractResourceType(path: string): string {
 
 /**
  * Audit middleware that logs all API requests to the AuditSystem.
- * Logging is fire-and-forget — errors never crash the request.
+ * Logging is fire-and-forget  -  errors never crash the request.
  */
 export const auditMiddleware = (audit: AuditSystem): MiddlewareHandler => {
   return async (c, next) => {

@@ -18,9 +18,9 @@ interface LicenseGateProps {
  * otherwise shows an UpgradePrompt. Shows a spinner while the license is loading.
  *
  * `mode='dialog'`: renders children behind a blurred overlay with the upgrade
- * prompt on top — lets users preview the locked feature.
+ * prompt on top  -  lets users preview the locked feature.
  *
- * Note: this is a UX layer only — API-level enforcement happens in the API middleware.
+ * Note: this is a UX layer only  -  API-level enforcement happens in the API middleware.
  */
 export function LicenseGate({ feature, children, mode = 'inline' }: LicenseGateProps) {
   const { features, isLoading } = useLicense();

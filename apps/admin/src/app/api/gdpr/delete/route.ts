@@ -15,12 +15,12 @@ import { extractRequestContext } from '@/lib/utils/request-context';
 
 export const dynamic = 'force-dynamic';
 
-/** Collections that hold data linked to a user — deleted in cascade order. */
+/** Collections that hold data linked to a user  -  deleted in cascade order. */
 const CASCADED_COLLECTIONS = ['conversations', 'orders', 'subscriptions', 'events'] as const;
 
 /**
  * Delete all documents in a collection belonging to a user.
- * Fetches page 1 repeatedly until no more matching docs remain — deleted records
+ * Fetches page 1 repeatedly until no more matching docs remain  -  deleted records
  * drop out of the result set so the next fetch naturally advances the window.
  */
 async function deleteAllUserDocs(
@@ -49,7 +49,7 @@ async function deleteAllUserDocs(
  *
  * Deletes the authenticated user's record **and** all personally-identifiable
  * data held in related collections (cascade delete).
- * Requires session auth — users can only delete their own data.
+ * Requires session auth  -  users can only delete their own data.
  * Writes an audit entry on completion.
  */
 async function gdprDeleteHandler(request: NextRequest) {
@@ -68,7 +68,7 @@ async function gdprDeleteHandler(request: NextRequest) {
     // -------------------------------------------------------------------------
     // Cascade delete: remove related records before removing the user row so
     // foreign-key constraints are satisfied and no orphaned PII remains.
-    // Paginated: loops until no more matching records exist — handles users
+    // Paginated: loops until no more matching records exist  -  handles users
     // with more than 100 records in any collection (no 1000-record cap).
     // -------------------------------------------------------------------------
     const cascadeResults = await Promise.allSettled(
@@ -87,7 +87,7 @@ async function gdprDeleteHandler(request: NextRequest) {
           },
     );
 
-    // Abort if any cascade failed — orphaned PII is worse than a retry
+    // Abort if any cascade failed  -  orphaned PII is worse than a retry
     const failedCascades = cascadeResults.filter((r) => r.status === 'rejected');
     if (failedCascades.length > 0) {
       await writeGDPRAuditEntry(revealui, {
@@ -103,7 +103,7 @@ async function gdprDeleteHandler(request: NextRequest) {
         {
           success: false,
           error:
-            'Cascade deletion partially failed — user record preserved to prevent orphaned data',
+            'Cascade deletion partially failed  -  user record preserved to prevent orphaned data',
           cascadeSummary,
         },
         { status: 500 },

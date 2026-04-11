@@ -4,17 +4,17 @@
  * Implements the Google A2A specification over HTTP/JSON-RPC 2.0.
  *
  * Well-known discovery:
- *   GET /.well-known/agent.json          — platform-level agent card
- *   GET /.well-known/agents/:id/agent.json — per-agent card
+ *   GET /.well-known/agent.json           -  platform-level agent card
+ *   GET /.well-known/agents/:id/agent.json  -  per-agent card
  *
  * A2A task API:
- *   POST /a2a                            — JSON-RPC dispatcher (tasks/send, tasks/get, tasks/cancel)
- *   GET  /a2a/agents                     — list all registered agents as A2A cards
- *   GET  /a2a/agents/:id                 — single agent card
- *   GET  /a2a/stream/:taskId             — SSE stream for a running task
+ *   POST /a2a                             -  JSON-RPC dispatcher (tasks/send, tasks/get, tasks/cancel)
+ *   GET  /a2a/agents                      -  list all registered agents as A2A cards
+ *   GET  /a2a/agents/:id                  -  single agent card
+ *   GET  /a2a/stream/:taskId              -  SSE stream for a running task
  *
  * Task execution (tasks/send, tasks/sendSubscribe) is gated behind the 'ai' feature flag.
- * Discovery endpoints (agent.json, /a2a/agents) are public — no auth required.
+ * Discovery endpoints (agent.json, /a2a/agents) are public  -  no auth required.
  */
 
 import type { A2AJsonRpcRequest } from '@revealui/contracts';
@@ -29,10 +29,10 @@ import { requireFeature } from '../middleware/license.js';
 import { requireTaskQuota } from '../middleware/task-quota.js';
 import { buildPaymentMethods } from '../middleware/x402.js';
 
-// JSON-RPC error codes (inlined — avoids static import of @revealui/ai)
+// JSON-RPC error codes (inlined  -  avoids static import of @revealui/ai)
 const RPC_INVALID_REQUEST = -32600;
 
-// Lazy-loaded @revealui/ai module — cached after first successful import
+// Lazy-loaded @revealui/ai module  -  cached after first successful import
 let aiModulePromise: Promise<typeof import('@revealui/ai') | null> | null = null;
 
 function getAiModule(): Promise<typeof import('@revealui/ai') | null> {
@@ -72,7 +72,7 @@ function isValidAgentId(id: string): boolean {
 }
 
 // LLM client is resolved from environment configuration (open models only).
-// No per-request API key injection — all inference uses server-configured providers.
+// No per-request API key injection  -  all inference uses server-configured providers.
 
 // =============================================================================
 // Well-known discovery endpoints (public, no auth)
@@ -225,7 +225,7 @@ app.openapi(
   async (c) => {
     const baseUrl = getBaseUrl(c.req.raw);
 
-    // Fetch active server summaries (name, category, price only — not internal URLs)
+    // Fetch active server summaries (name, category, price only  -  not internal URLs)
     let servers: Array<{
       id: string;
       name: string;
@@ -253,7 +253,7 @@ app.openapi(
         invokeUrl: `${baseUrl}/api/marketplace/servers/${row.id}/invoke`,
       }));
     } catch {
-      // DB unavailable — return metadata without server list
+      // DB unavailable  -  return metadata without server list
     }
 
     return c.json(
@@ -311,23 +311,23 @@ app.openapi(
 );
 
 // =============================================================================
-// A2A task API — /a2a/*
+// A2A task API  -  /a2a/*
 // =============================================================================
 
 const a2a = new OpenAPIHono<{ Variables: { user: UserContext | undefined } }>();
 
-// Soft auth — populates user context when a session cookie is present.
-// Not required — anonymous A2A requests are allowed; stored keys are used when authenticated.
+// Soft auth  -  populates user context when a session cookie is present.
+// Not required  -  anonymous A2A requests are allowed; stored keys are used when authenticated.
 a2a.use('*', authMiddleware({ required: false }));
 
 // =============================================================================
-// Registry hydration — load custom agents from DB on first request
+// Registry hydration  -  load custom agents from DB on first request
 // =============================================================================
 
 // Built-in agents are always pre-seeded in-memory; never persisted to DB.
 const BUILTIN_AGENT_IDS = new Set(['revealui-creator', 'revealui-ticket-agent']);
 
-// Promise singleton — ensures hydration runs exactly once per server instance.
+// Promise singleton  -  ensures hydration runs exactly once per server instance.
 let hydrationPromise: Promise<void> | null = null;
 
 async function ensureRegistryHydrated(): Promise<void> {
@@ -335,7 +335,7 @@ async function ensureRegistryHydrated(): Promise<void> {
   hydrationPromise = (async () => {
     try {
       const aiMod = await getAiModule();
-      if (!aiMod) return; // @revealui/ai not installed — skip hydration
+      if (!aiMod) return; // @revealui/ai not installed  -  skip hydration
       const db = getClient();
       const rows = await db.select().from(registeredAgents);
       for (const row of rows) {
@@ -345,7 +345,7 @@ async function ensureRegistryHydrated(): Promise<void> {
         }
       }
     } catch {
-      // DB unavailable — registry remains in-memory only for this instance.
+      // DB unavailable  -  registry remains in-memory only for this instance.
       // Reset so the next request retries hydration.
       hydrationPromise = null;
     }
@@ -448,7 +448,7 @@ a2a.openapi(
   },
 );
 
-/** Full agent definition — admin only, requires 'ai' feature */
+/** Full agent definition  -  admin only, requires 'ai' feature */
 a2a.openapi(
   createRoute({
     method: 'get',
@@ -506,7 +506,7 @@ a2a.openapi(
   },
 );
 
-/** Task history for an agent — last 20 actions, requires auth + 'ai' feature */
+/** Task history for an agent  -  last 20 actions, requires auth + 'ai' feature */
 a2a.openapi(
   createRoute({
     method: 'get',
@@ -558,7 +558,7 @@ a2a.openapi(
   },
 );
 
-/** Update an agent's mutable fields — requires auth + 'ai' feature */
+/** Update an agent's mutable fields  -  requires auth + 'ai' feature */
 a2a.openapi(
   createRoute({
     method: 'put',
@@ -665,7 +665,7 @@ a2a.openapi(
             .where(eq(registeredAgents.id, agentId));
         }
       } catch (err) {
-        // Non-fatal — update is applied in-memory.
+        // Non-fatal  -  update is applied in-memory.
         logger.warn('Agent registry DB update failed (update applied in-memory only)', {
           agentId,
           error: err instanceof Error ? err.message : 'unknown',
@@ -679,7 +679,7 @@ a2a.openapi(
   },
 );
 
-/** Retire (unregister) an agent — requires auth; built-in platform agents are protected */
+/** Retire (unregister) an agent  -  requires auth; built-in platform agents are protected */
 a2a.openapi(
   createRoute({
     method: 'delete',
@@ -747,7 +747,7 @@ a2a.openapi(
       const db = getClient();
       await db.delete(registeredAgents).where(eq(registeredAgents.id, agentId));
     } catch (err) {
-      // Non-fatal — agent is unregistered from in-memory registry.
+      // Non-fatal  -  agent is unregistered from in-memory registry.
       logger.warn('Agent registry DB delete failed (agent removed from in-memory only)', {
         agentId,
         error: err instanceof Error ? err.message : 'unknown',
@@ -835,7 +835,7 @@ a2a.openapi(
         definition: def,
       });
     } catch (err) {
-      // Non-fatal — agent is registered in-memory for this server instance.
+      // Non-fatal  -  agent is registered in-memory for this server instance.
       // Log so operators can detect persistent DB write failures on cold starts/redeploys.
       logger.warn('Agent registry DB persist failed (agent registered in-memory only)', {
         agentId: def.id,
@@ -853,7 +853,7 @@ a2a.openapi(
  * SSE stream endpoint for tasks/sendSubscribe.
  * The client subscribes here after receiving a taskId from tasks/send.
  *
- * This is a simplified polling-based SSE — for a full streaming implementation
+ * This is a simplified polling-based SSE  -  for a full streaming implementation
  * the AgentRuntime emits events that are forwarded here.
  */
 a2a.openapi(
@@ -976,7 +976,7 @@ a2a.openapi(
       },
     },
   }),
-  // @ts-expect-error — JSON-RPC dispatcher returns heterogeneous shapes + raw Response from quota middleware
+  // @ts-expect-error  -  JSON-RPC dispatcher returns heterogeneous shapes + raw Response from quota middleware
   async (c) => {
     const aiMod = await getAiModule();
     if (!aiMod) {
@@ -1052,7 +1052,7 @@ a2a.openapi(
         llmClient = aiMod2.createLLMClientFromEnv();
       }
     } catch {
-      // No AI module available — llmClient stays undefined, handler returns stub
+      // No AI module available  -  llmClient stays undefined, handler returns stub
     }
 
     const startedAt = Date.now();
@@ -1085,7 +1085,7 @@ a2a.openapi(
             durationMs: completedAt - startedAt,
           });
         } catch {
-          // Non-fatal — in-memory task store remains authoritative for active tasks
+          // Non-fatal  -  in-memory task store remains authoritative for active tasks
         }
       })();
     }

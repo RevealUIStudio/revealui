@@ -1,5 +1,5 @@
 /**
- * file_read — Read file contents with line numbers
+ * file_read  -  Read file contents with line numbers
  */
 
 import { readFileSync, statSync } from 'node:fs';

@@ -49,7 +49,7 @@ async function sendRequest(
             socket.off('data', handler);
             resolve(response);
           } catch {
-            // incomplete — wait for more
+            // incomplete  -  wait for more
           }
         }
       }

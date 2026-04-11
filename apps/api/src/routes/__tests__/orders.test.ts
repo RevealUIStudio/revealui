@@ -2,10 +2,10 @@
  * Orders API Route Tests
  *
  * Covers Order CRUD endpoints:
- *   GET /orders         — List orders (admin: all; authenticated: own orders)
- *   POST /orders        — Create an order (authenticated)
- *   GET /orders/:id     — Get order by ID (admin or owner)
- *   PATCH /orders/:id   — Update order status (admin-only)
+ *   GET /orders          -  List orders (admin: all; authenticated: own orders)
+ *   POST /orders         -  Create an order (authenticated)
+ *   GET /orders/:id      -  Get order by ID (admin or owner)
+ *   PATCH /orders/:id    -  Update order status (admin-only)
  *
  * Critical focus: authentication enforcement and IDOR prevention
  * (non-admin users must not access other users' orders).
@@ -103,7 +103,7 @@ function makeOrder(overrides: Partial<Record<string, unknown>> = {}) {
 
 // ─── GET /orders ──────────────────────────────────────────────────────────────
 
-describe('GET /orders — list orders', () => {
+describe('GET /orders  -  list orders', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockOrderQueries.getAllOrders.mockResolvedValue([]);
@@ -152,7 +152,7 @@ describe('GET /orders — list orders', () => {
 
 // ─── POST /orders ─────────────────────────────────────────────────────────────
 
-describe('POST /orders — create order', () => {
+describe('POST /orders  -  create order', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('creates an order with valid items and computes total correctly', async () => {
@@ -230,7 +230,7 @@ describe('POST /orders — create order', () => {
 
 // ─── GET /orders/:id ──────────────────────────────────────────────────────────
 
-describe('GET /orders/:id — get order by ID', () => {
+describe('GET /orders/:id  -  get order by ID', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('admin can view any order', async () => {
@@ -256,7 +256,7 @@ describe('GET /orders/:id — get order by ID', () => {
     expect(body.data.id).toBe('order-1');
   });
 
-  it("user cannot view another user's order (IDOR prevention — 403)", async () => {
+  it("user cannot view another user's order (IDOR prevention  -  403)", async () => {
     const order = makeOrder({ customerId: USER_A.id });
     mockOrderQueries.getOrderById.mockResolvedValue(order);
 
@@ -280,7 +280,7 @@ describe('GET /orders/:id — get order by ID', () => {
 
 // ─── PATCH /orders/:id ───────────────────────────────────────────────────────
 
-describe('PATCH /orders/:id — update order status', () => {
+describe('PATCH /orders/:id  -  update order status', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('admin can update order status', async () => {

@@ -216,7 +216,7 @@ describe('SQL injection via sort fields', () => {
     // validation), escapeIdentifier doubles it to prevent breakout.
     const escaped = escapeIdentifier('title"injection');
     expect(escaped).toBe('title""injection');
-    // When wrapped: "title""injection" — PostgreSQL treats "" as a literal quote
+    // When wrapped: "title""injection"  -  PostgreSQL treats "" as a literal quote
   });
 });
 
@@ -225,7 +225,7 @@ describe('SQL injection via sort fields', () => {
 // ============================================
 
 describe('SQL injection via where clauses', () => {
-  it('parameterizes equals values — never inlines user input', () => {
+  it('parameterizes equals values  -  never inlines user input', () => {
     const params: unknown[] = [];
     const clause = buildWhereClause({ title: { equals: "'; DROP TABLE users; --" } }, params);
 
@@ -250,7 +250,7 @@ describe('SQL injection via where clauses', () => {
     expect(clause).not.toContain('UNION');
   });
 
-  it('parameterizes IN values — each array element gets a placeholder', () => {
+  it('parameterizes IN values  -  each array element gets a placeholder', () => {
     const params: unknown[] = [];
     const clause = buildWhereClause(
       { status: { in: ["active'; DROP TABLE users; --", 'normal'] } },
@@ -481,7 +481,7 @@ describe('XSS via collection data', () => {
 // 6. PARAMETER POLLUTION (extra/unexpected fields)
 // ============================================
 
-describe('parameter pollution — extra fields in data', () => {
+describe('parameter pollution  -  extra fields in data', () => {
   it('rejects extra fields with invalid column names via validateColumnName', async () => {
     const db = mockDb();
     const strictConfig: RevealCollectionConfig = {
@@ -493,7 +493,7 @@ describe('parameter pollution — extra fields in data', () => {
     };
 
     // Extra field 'isAdmin' has uppercase letter which fails PostgreSQL
-    // identifier validation — the column name allowlist blocks it.
+    // identifier validation  -  the column name allowlist blocks it.
     await expect(
       create(strictConfig, db as never, {
         data: {
@@ -544,7 +544,7 @@ describe('parameter pollution — extra fields in data', () => {
   it('validateColumnName rejects prototype pollution field names', () => {
     expect(() => validateColumnName('__proto__')).not.toThrow();
     // __proto__ is alphanumeric + underscores, so it passes column validation.
-    // However, it would be stored as a normal column — the dangerous behavior
+    // However, it would be stored as a normal column  -  the dangerous behavior
     // (prototype pollution) only occurs in object merges, not in SQL queries.
     // The parameterized query prevents any SQL injection regardless.
   });

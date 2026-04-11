@@ -127,7 +127,7 @@ export class LocalStorageEventStorage implements EventStorage {
       return filtered;
     } catch (error) {
       // Return empty array on error - graceful degradation
-      void (error instanceof Error ? error.message : String(error)); // Query failed — graceful degradation
+      void (error instanceof Error ? error.message : String(error)); // Query failed  -  graceful degradation
       return [];
     }
   }

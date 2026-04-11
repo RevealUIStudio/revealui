@@ -20,7 +20,7 @@ import { DatabaseError, TokenError } from './errors.js';
 export interface SessionBindingConfig {
   /** Invalidate session when user-agent changes (default: true) */
   enforceUserAgent: boolean;
-  /** Invalidate session when IP address changes (default: false — users roam) */
+  /** Invalidate session when IP address changes (default: false  -  users roam) */
   enforceIp: boolean;
   /** Log a warning when IP changes but don't invalidate (default: true) */
   warnOnIpChange: boolean;
@@ -100,7 +100,7 @@ export interface SessionData {
 /**
  * Check if a session is a recovery session (created via magic link recovery).
  *
- * Recovery sessions are restricted — they should only be used for:
+ * Recovery sessions are restricted  -  they should only be used for:
  * - Changing the password (`/api/auth/change-password`)
  * - Signing out (`/api/auth/sign-out`)
  * - Viewing current session (`/api/auth/me`, `/api/auth/session`)
@@ -182,7 +182,7 @@ export async function getSession(
     if (requestContext) {
       const bindingError = validateSessionBinding(session, requestContext);
       if (bindingError) {
-        logger.warn('Session binding violation — invalidating session', {
+        logger.warn('Session binding violation  -  invalidating session', {
           sessionId: session.id,
           reason: bindingError,
         });

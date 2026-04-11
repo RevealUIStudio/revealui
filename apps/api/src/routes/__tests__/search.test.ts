@@ -39,7 +39,7 @@ function createApp() {
   return app;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
@@ -83,7 +83,7 @@ beforeEach(() => {
 
 // ── Input validation ──────────────────────────────────────────────────────────
 
-describe('GET /search — input validation', () => {
+describe('GET /search  -  input validation', () => {
   it('returns 400 when q is missing', async () => {
     const res = await createApp().request('/search');
     expect(res.status).toBe(400);
@@ -151,7 +151,7 @@ describe('GET /search — input validation', () => {
 
 // ── type=posts ────────────────────────────────────────────────────────────────
 
-describe('GET /search — type=posts', () => {
+describe('GET /search  -  type=posts', () => {
   it('returns results tagged as post', async () => {
     setupChain(makeRows(2));
     const res = await createApp().request('/search?q=hello&type=posts');
@@ -172,7 +172,7 @@ describe('GET /search — type=posts', () => {
 
 // ── type=pages ────────────────────────────────────────────────────────────────
 
-describe('GET /search — type=pages', () => {
+describe('GET /search  -  type=pages', () => {
   it('returns results tagged as page', async () => {
     setupChain(makeRows(3));
     const res = await createApp().request('/search?q=hello&type=pages');
@@ -193,7 +193,7 @@ describe('GET /search — type=pages', () => {
 
 // ── type=all ──────────────────────────────────────────────────────────────────
 
-describe('GET /search — type=all', () => {
+describe('GET /search  -  type=all', () => {
   function setupDualChain(postRows: SearchRow[], pageRows: SearchRow[]) {
     mockSelectChain.from.mockReturnValue(mockSelectChain);
     mockSelectChain.where.mockReturnValue(mockSelectChain);
@@ -250,7 +250,7 @@ describe('GET /search — type=all', () => {
 
 // ── Limit / offset ────────────────────────────────────────────────────────────
 
-describe('GET /search — limit and offset', () => {
+describe('GET /search  -  limit and offset', () => {
   it('defaults limit to 20 and offset to 0', async () => {
     setupChain([]);
     await createApp().request('/search?q=hello&type=posts');
@@ -288,7 +288,7 @@ describe('GET /search — limit and offset', () => {
 
 // ── Response shape ────────────────────────────────────────────────────────────
 
-describe('GET /search — response shape', () => {
+describe('GET /search  -  response shape', () => {
   it('includes all required fields', async () => {
     setupChain(makeRows(1));
     const res = await createApp().request('/search?q=test&type=posts');
@@ -359,7 +359,7 @@ describe('GET /search — response shape', () => {
 
 // ── Boundary values ───────────────────────────────────────────────────────────
 
-describe('GET /search — boundary values', () => {
+describe('GET /search  -  boundary values', () => {
   it('accepts q at exactly 2 characters (min boundary)', async () => {
     setupChain([]);
     const res = await createApp().request('/search?q=ab&type=posts');
@@ -385,7 +385,7 @@ describe('GET /search — boundary values', () => {
 
 // ── Error handling ────────────────────────────────────────────────────────────
 
-describe('GET /search — DB error propagation', () => {
+describe('GET /search  -  DB error propagation', () => {
   it('propagates as 500 when the posts query rejects', async () => {
     mockSelectChain.from.mockReturnValue(mockSelectChain);
     mockSelectChain.where.mockReturnValue(mockSelectChain);

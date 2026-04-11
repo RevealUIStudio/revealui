@@ -2,7 +2,7 @@
  * MCP Auth Bridge
  *
  * JWT claims validation and tool-level authorization for MCP server launchers.
- * Does NOT verify JWT signatures — that is the transport layer's responsibility.
+ * Does NOT verify JWT signatures  -  that is the transport layer's responsibility.
  * This module validates the claims structure, expiration, and tier-based ACL.
  */
 
@@ -30,7 +30,7 @@ export type McpAuthClaims = z.infer<typeof McpAuthClaimsSchema>;
 
 /**
  * Validate and decode MCP auth claims from a JWT payload.
- * Does NOT verify signature — that should be done by the transport layer.
+ * Does NOT verify signature  -  that should be done by the transport layer.
  * This validates the claims structure and expiration.
  */
 export function validateMcpClaims(payload: unknown): {

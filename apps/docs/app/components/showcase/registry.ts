@@ -1,6 +1,6 @@
 import type { ShowcaseEntry } from './types.js';
 
-/** All showcase entries — add new stories here */
+/** All showcase entries  -  add new stories here */
 export const showcaseEntries: ShowcaseEntry[] = [
   {
     slug: 'accordion',

@@ -34,8 +34,8 @@ export interface TieredRateLimitOptions {
  * Extract the client IP from request headers.
  *
  * Priority:
- * 1. X-Real-IP — set by the edge proxy (Vercel/Cloudflare) to the true client IP
- * 2. X-Forwarded-For — first (leftmost) entry is the originating client IP
+ * 1. X-Real-IP  -  set by the edge proxy (Vercel/Cloudflare) to the true client IP
+ * 2. X-Forwarded-For  -  first (leftmost) entry is the originating client IP
  * 3. Falls back to 'unknown' when no IP headers are present
  */
 function extractTrustedIp(c: { req: { header: (name: string) => string | undefined } }): string {
@@ -74,7 +74,7 @@ export const rateLimitMiddleware = (options: RateLimitOptions): MiddlewareHandle
     } catch (error) {
       if (error instanceof HTTPException) throw error;
       if (options.failOpen) {
-        // Storage unreachable — allow request through without rate limit headers
+        // Storage unreachable  -  allow request through without rate limit headers
         await next();
         return;
       }
