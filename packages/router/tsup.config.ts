@@ -8,7 +8,7 @@ export default defineConfig({
   format: ['esm'],
   dts: true,
   splitting: false,
-  sourcemap: true,
+  sourcemap: false,
   clean: true,
   external: ['react', 'react-dom', 'hono', '@hono/node-server', /^@revealui\//],
   esbuildOptions(options) {
