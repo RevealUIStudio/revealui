@@ -22,7 +22,6 @@
   <!-- Architecture -->
   <url><loc>https://docs.revealui.com/docs/ARCHITECTURE</loc><priority>0.7</priority></url>
   <url><loc>https://docs.revealui.com/docs/PERFORMANCE</loc><priority>0.6</priority></url>
-  <url><loc>https://docs.revealui.com/docs/STANDARDS</loc><priority>0.6</priority></url>
   <url><loc>https://docs.revealui.com/docs/CORE_STABILITY</loc><priority>0.6</priority></url>
   <url><loc>https://docs.revealui.com/docs/JOSHUA</loc><priority>0.7</priority></url>
   <!-- Reference -->
