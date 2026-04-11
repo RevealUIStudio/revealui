@@ -91,7 +91,7 @@ describe('useAgentContext', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('Failed to load agent context');
+      expect(result.current.error?.message).toContain('load agent context failed');
     });
 
     it('should handle network error', async () => {

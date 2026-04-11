@@ -107,7 +107,7 @@ describe('useEpisodicMemory', () => {
       });
 
       expect(result.current.error).toBeInstanceOf(Error);
-      expect(result.current.error?.message).toContain('Failed to load episodic memory');
+      expect(result.current.error?.message).toContain('load episodic memory failed');
       expect(result.current.memories).toEqual([]);
     });
   });
