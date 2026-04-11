@@ -1,6 +1,6 @@
 # RevealUI Marketing Site
 
-Marketing site for RevealUI — the agentic business runtime. Users, content, products, payments, and AI, pre-wired and open source.
+Marketing site for RevealUI — agentic business runtime. Users, content, products, payments, and AI, pre-wired and open source.
 
 **Tagline:** "Build your business, not your boilerplate."
 

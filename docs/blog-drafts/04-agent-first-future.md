@@ -295,6 +295,6 @@ The user interface for the future has yet to reveal itself. But we know one thin
 
 ---
 
-*RevealUI is the open-source agentic business runtime. Users, content, products, payments, and AI -- pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is an open-source agentic business runtime. Users, content, products, payments, and AI -- pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*
 
 *Follow the project on [GitHub](https://github.com/RevealUIStudio/revealui).*

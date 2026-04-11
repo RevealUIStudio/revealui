@@ -1,6 +1,12 @@
 # @revealui/core
 
-The core runtime engine for RevealUI — collections, admin UI, rich text, security, observability, and plugins.
+[![npm version](https://img.shields.io/npm/v/@revealui/core)](https://www.npmjs.com/package/@revealui/core)
+[![npm downloads](https://img.shields.io/npm/dw/@revealui/core)](https://www.npmjs.com/package/@revealui/core)
+[![license](https://img.shields.io/npm/l/@revealui/core)](https://github.com/RevealUIStudio/revealui/blob/main/LICENSE)
+
+The core runtime engine for [RevealUI](https://revealui.com) — collections, admin UI, rich text, security, observability, and plugins.
+
+Part of the [RevealUI monorepo](https://github.com/RevealUIStudio/revealui) — open-source agentic business runtime.
 
 ## Features
 
