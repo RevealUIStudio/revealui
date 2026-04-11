@@ -9,11 +9,11 @@ export function Audiences() {
             Who it&apos;s for
           </p>
           <p className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-            Built for builders at every stage
+            Built for builders and their agents
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-500">
             Whether you&apos;re starting from scratch or retrofitting a product you already ship,
-            RevealUI gives you the business layer - without the years it takes to build it.
+            RevealUI gives you the business layer, and makes it agent-accessible from day one.
           </p>
         </div>
 
@@ -40,15 +40,15 @@ export function Audiences() {
               Retrofit your existing product
             </h3>
             <p className="mt-4 text-base leading-7 text-gray-500">
-              Already shipping but missing the business layer? RevealUI&apos;s packages are modular
-              - drop in what you need without rebuilding what you have.
+              Already shipping but missing the business layer? RevealUI&apos;s packages are modular.
+              Drop in what you need without rebuilding what you have.
             </p>
             <ul className="mt-6 space-y-3 text-sm leading-6 text-gray-500">
               {[
                 'Add billing and subscriptions without touching your core app',
                 'Layer proper auth, RBAC, and sessions on top of what you ship',
                 'Plug in a content engine so your team publishes without you',
-                'Add AI agents your product can run as background workflows',
+                'Make every feature agent-accessible through MCP automatically',
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3">
                   <svg
@@ -100,8 +100,8 @@ export function Audiences() {
             <div className="mt-4">
               <p className="text-base leading-7 text-gray-500">
                 One CLI command gives you a complete business stack: auth, content, billing, admin
-                dashboard, REST API, and deployment config. Skip the months of infrastructure work
-                and ship your product on day one.
+                dashboard, REST API, and MCP servers. You get a running business. Your agents get a
+                runtime they can operate on immediately.
               </p>
             </div>
 
@@ -110,14 +110,14 @@ export function Audiences() {
                 <span className="select-none text-gray-400">$</span>
                 <span className="text-emerald-400">npx</span>
                 <span className="text-white">create-revealui</span>
-                <span className="text-blue-300">my-saas</span>
+                <span className="text-blue-300">my-app</span>
               </div>
               <div className="mt-2 text-gray-400 text-xs leading-5">
                 <div>&#x2713; Auth + sessions + RBAC</div>
                 <div>&#x2713; Stripe billing + webhooks</div>
                 <div>&#x2713; Content collections + REST API</div>
-                <div>&#x2713; Admin dashboard</div>
-                <div>&#x2713; Ready to deploy</div>
+                <div>&#x2713; Admin dashboard + MCP servers</div>
+                <div>&#x2713; Agent-ready from first deploy</div>
               </div>
             </div>
 

@@ -51,16 +51,16 @@ export function HeroSection() {
             Auth. Billing. Content. AI. Already wired together.
           </p>
           <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
-            <span className="block">Ship Your Product,</span>
-            <span className="block">Not Your</span>
-            <span className="block">Infrastructure</span>
+            <span className="block">Build for Humans.</span>
+            <span className="block">Ready for</span>
+            <span className="block">Agents.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-xl font-semibold leading-8 text-gray-700">
-            Build your business, not your boilerplate.
+            One runtime for you and your AI agents.
           </p>
           <p className="mx-auto mt-3 max-w-2xl text-lg leading-8 text-gray-500">
-            RevealUI is an open-source business runtime. Users, content, products, payments, and AI
-            - five primitives, pre-wired into one deployable stack.
+            RevealUI is an open-source business runtime. Five primitives: users, content, products,
+            payments, and intelligence, pre-wired for human builders and AI agents alike.
           </p>
 
           {/* Five primitives */}
@@ -116,7 +116,7 @@ export function HeroSection() {
           </div>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500">
-            {['MIT Licensed', 'Self-Hostable', 'No Vendor Lock-in', 'AI Built In'].map((item) => (
+            {['MIT Licensed', 'Self-Hostable', 'No Vendor Lock-in', 'Agent-Native'].map((item) => (
               <div key={item} className="flex items-center gap-2">
                 <svg className="h-4 w-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
                   <title>Check</title>

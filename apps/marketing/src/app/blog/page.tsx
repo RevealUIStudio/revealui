@@ -7,10 +7,10 @@ import { getPosts } from '@/lib/blog';
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: 'Blog  -  RevealUI',
+  title: 'Blog | RevealUI',
   description: 'Updates, guides, and insights from the RevealUI team.',
   openGraph: {
-    title: 'Blog  -  RevealUI',
+    title: 'Blog | RevealUI',
     description: 'Updates, guides, and insights from the RevealUI team.',
     type: 'website',
   },

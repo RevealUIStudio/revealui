@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 const navLinks = [
+  { label: 'Products', href: '/products' },
+  { label: 'Services', href: '/services' },
+  { label: 'Marketplace', href: '/marketplace' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'Docs', href: 'https://docs.revealui.com' },
   { label: 'Blog', href: '/blog' },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Contact', href: '/contact' },
 ];
 
 export function NavBar() {

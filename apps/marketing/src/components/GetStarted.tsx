@@ -10,7 +10,7 @@ export function GetStarted() {
             Ready to build?
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-400">
-            Users, content, products, payments, and AI - pre-wired and ready to deploy. Start
+            Users, content, products, payments, and AI, pre-wired and ready to deploy. Start
             building your business in minutes.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">

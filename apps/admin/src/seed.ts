@@ -83,17 +83,17 @@ const pages = [
           {
             size: 'full',
             richText: richTextDoc(
-              heading('Build Your Business, Not Your Boilerplate'),
+              heading('Build for Humans. Ready for Agents.'),
               paragraph(
-                'RevealUI is an agentic business runtime. Users, content, products, payments, and intelligence  -  five primitives, pre-wired into one deployable stack. Ship in days what used to take months.',
+                'RevealUI is an agentic business runtime. Users, content, products, payments, and intelligence: five primitives for you and your AI agents, pre-wired into one deployable stack.',
               ),
               heading('Why RevealUI?', 'h3'),
               paragraph(
-                'Customers expect adaptive, intelligent products  -  not static dashboards with manual workflows. RevealUI gives you the runtime to build what comes next: products that learn, adapt, and act on behalf of your users.',
+                'You define your business data once. The admin UI, REST API, and MCP tools all appear simultaneously. Humans manage through the dashboard. Agents operate through the same API. Same permissions, same audit trail.',
               ),
               heading('Get Started', 'h3'),
               paragraph(
-                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. Everything works out of the box.',
+                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. Your agents can discover and use everything you build from day one.',
               ),
             ),
           },
@@ -114,14 +114,14 @@ const pages = [
             richText: richTextDoc(
               heading('About RevealUI'),
               paragraph(
-                'RevealUI is an agentic business runtime. Instead of bolting together auth, payments, admin, and AI from different vendors, RevealUI ships them as one coherent stack  -  pre-wired, tested, and ready to deploy.',
+                'RevealUI is an agentic business runtime. Instead of bolting together auth, payments, admin, and AI from different vendors, RevealUI ships them as one coherent stack, pre-wired for human builders and AI agents alike.',
               ),
               paragraph(
-                'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Designed for product teams who ship fast and founders who build alone.',
+                'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Every feature works for you and is accessible to your agents. One runtime, one set of permissions, one audit trail.',
               ),
               heading('Open Source + Pro', 'h3'),
               paragraph(
-                'The core runtime is MIT-licensed. AI agents and harnesses are Fair Source (FSL-1.1-MIT)  -  free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
+                'The core runtime is MIT-licensed. AI agents and harnesses are Fair Source (FSL-1.1-MIT), free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
               ),
             ),
           },
@@ -167,12 +167,12 @@ const sampleContent = {
     {
       name: 'The Adaptive Runtime Playbook',
       description:
-        'Static dashboards and manual workflows are finished. What replaces them are adaptive runtimes  -  products that ship with intelligence built in, not bolted on. RevealUI is the runtime for that transition.',
+        'Static dashboards and manual workflows are finished. What replaces them are adaptive runtimes: products where humans and agents work on the same data, the same permissions, and the same business logic. RevealUI is the runtime for that transition.',
     },
     {
       name: 'Five Primitives, One Stack',
       description:
-        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them into a single deployable stack  -  authenticated, tested, and production-ready from day one.',
+        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them for humans and agents alike. Define once, both layers operate immediately.',
     },
   ],
   cards: [
@@ -201,7 +201,7 @@ const sampleContent = {
   heros: [
     {
       href: 'https://revealui.com',
-      altText: 'RevealUI  -  agentic business runtime',
+      altText: 'RevealUI, agentic business runtime',
       video: 'https://revealui.com',
     },
   ],
@@ -217,16 +217,16 @@ const sampleContent = {
       title: 'VISION',
       name: 'Agentic Business Runtime',
       description:
-        'Subscription software taught us recurring revenue. The next era teaches us adaptive intelligence. RevealUI ships with AI agents that learn from your data, automate your workflows, and act on behalf of your users  -  all running on open-source models.',
+        'You build the product. Agents extend it. Neither is locked to any vendor. RevealUI ships with AI agents that operate on your business data through the same API humans use, all running on open-source models.',
       alt: 'RevealUI agentic vision',
     },
   ],
   banners: [
     {
-      heading: 'Build Your Business, Not Your Boilerplate',
+      heading: 'Build for Humans. Ready for Agents.',
       subheading: 'Agentic Business Runtime',
       description:
-        'Users, content, products, payments, and intelligence  -  five primitives, one runtime. Ship in days what used to take months.',
+        'Five primitives for you and your AI agents: users, content, products, payments, and intelligence. One runtime, one deployment.',
       cta: 'Get Started',
       highlight: 'Open Source',
       punctuation: '.',
@@ -298,7 +298,7 @@ async function getOrCreateDefaultSite(
     .limit(1);
   const [anyUser] = adminUser ? [null] : await db.select({ id: users.id }).from(users).limit(1);
   const adminId = adminUser?.id ?? anyUser?.id;
-  if (!adminId) throw new Error('Admin user not found  -  run user seed first');
+  if (!adminId) throw new Error('Admin user not found, run user seed first');
 
   // Create a default site
   const siteId = `site_${Date.now()}_default`;

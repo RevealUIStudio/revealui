@@ -11,7 +11,7 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="text-2xl font-bold tracking-tight text-white mb-4">RevealUI</div>
             <p className="text-gray-400 text-sm leading-6 max-w-sm">
-              Agentic business runtime. Users, content, products, payments, and AI - pre-wired, open
+              Agentic business runtime. Users, content, products, payments, and AI, pre-wired, open
               source, and ready to deploy.
             </p>
             <div className="mt-6">
@@ -66,8 +66,18 @@ export function Footer() {
             </h3>
             <ul className="space-y-3 text-sm text-gray-400">
               <li>
-                <Link href="/#value-proposition" className="hover:text-white transition-colors">
-                  Features
+                <Link href="/products" className="hover:text-white transition-colors">
+                  Products
+                </Link>
+              </li>
+              <li>
+                <Link href="/services" className="hover:text-white transition-colors">
+                  Services
+                </Link>
+              </li>
+              <li>
+                <Link href="/marketplace" className="hover:text-white transition-colors">
+                  Marketplace
                 </Link>
               </li>
               <li>
@@ -84,14 +94,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link
-                  href="https://docs.revealui.com/docs/REFERENCE"
-                  className="hover:text-white transition-colors"
-                >
-                  API Reference
-                </Link>
-              </li>
-              <li>
                 <Link href="/blog" className="hover:text-white transition-colors">
                   Blog
                 </Link>
@@ -99,11 +101,6 @@ export function Footer() {
               <li>
                 <Link href="/coming-soon" className="hover:text-white transition-colors">
                   Roadmap
-                </Link>
-              </li>
-              <li>
-                <Link href="/#ecosystem" className="hover:text-white transition-colors">
-                  Ecosystem
                 </Link>
               </li>
             </ul>
