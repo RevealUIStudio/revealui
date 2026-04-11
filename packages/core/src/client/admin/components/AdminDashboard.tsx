@@ -494,6 +494,49 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
     }
   };
 
+  const handleBulkDelete = async (ids: string[]) => {
+    if (!state.view.collection) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${ids.length} ${String(state.view.collection.slug)}? This action cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    try {
+      dispatch({ type: 'SET_ERROR', error: null });
+      await apiClient.batchDelete({
+        collection: String(state.view.collection.slug),
+        ids,
+      });
+      if (state.view.collection) {
+        await fetchCollection(state.view.collection, state.page);
+      }
+      dispatch({ type: 'SET_SUCCESS', message: `${ids.length} documents deleted` });
+    } catch (err: unknown) {
+      const msg = extractErrorMessage(err, 'Bulk delete failed. Please try again.');
+      logApiError(err, 'Bulk delete failed');
+      dispatch({ type: 'SET_ERROR', error: msg });
+    }
+  };
+
+  const handleBulkPublish = async (ids: string[]) => {
+    if (!state.view.collection) return;
+    try {
+      dispatch({ type: 'SET_ERROR', error: null });
+      await apiClient.batchUpdate({
+        collection: String(state.view.collection.slug),
+        items: ids.map((id) => ({ id, status: 'published' })),
+      });
+      if (state.view.collection) {
+        await fetchCollection(state.view.collection, state.page);
+      }
+      dispatch({ type: 'SET_SUCCESS', message: `${ids.length} documents published` });
+    } catch (err: unknown) {
+      const msg = extractErrorMessage(err, 'Bulk publish failed. Please try again.');
+      logApiError(err, 'Bulk publish failed');
+      dispatch({ type: 'SET_ERROR', error: msg });
+    }
+  };
+
   const handleDelete = async (document: RevealDocument) => {
     if (!(state.view.collection && document.id)) return;
 
@@ -627,6 +670,8 @@ export function AdminDashboard({ config }: AdminDashboardProps) {
               if (collection) void fetchCollection(collection, nextPage);
             }}
             deleting={state.deleting}
+            onBulkDelete={(ids) => void handleBulkDelete(ids)}
+            onBulkPublish={(ids) => void handleBulkPublish(ids)}
           />
         </main>
       </div>

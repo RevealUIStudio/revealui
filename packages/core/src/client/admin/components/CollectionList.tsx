@@ -1,5 +1,6 @@
 'use client';
 import type React from 'react';
+import { useState } from 'react';
 import type {
   RevealCollectionConfig,
   RevealDocument,
@@ -51,6 +52,8 @@ interface CollectionListProps {
   onDelete: (doc: RevealDocument) => void;
   onPageChange: (page: number) => void;
   deleting?: string | null;
+  onBulkDelete?: (ids: string[]) => void;
+  onBulkPublish?: (ids: string[]) => void;
 }
 
 export function CollectionList({
@@ -64,13 +67,57 @@ export function CollectionList({
   onDelete,
   onPageChange,
   deleting,
+  onBulkDelete,
+  onBulkPublish,
 }: CollectionListProps) {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  const hasBulk = Boolean(onBulkDelete || onBulkPublish);
+  const allSelected = documents.length > 0 && selectedIds.size === documents.length;
+  const someSelected = selectedIds.size > 0 && !allSelected;
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(documents.map((d) => String(d.id))));
+    }
+  };
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleBulkAction = async (action: 'delete' | 'publish') => {
+    const ids = [...selectedIds];
+    if (ids.length === 0) return;
+    setBulkLoading(true);
+    try {
+      if (action === 'delete' && onBulkDelete) await onBulkDelete(ids);
+      if (action === 'publish' && onBulkPublish) await onBulkPublish(ids);
+      setSelectedIds(new Set());
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   // Filter to only include fields with names (exclude layout fields) that are visible
   const displayFields = collection.fields
     .filter((field: RevealUIField) => {
       return field.name && field.admin?.position !== 'sidebar' && !field.admin?.hidden;
     })
     .slice(0, 5); // Show first 5 visible fields
+
+  const colCount = displayFields.length + 1 + (hasBulk ? 1 : 0);
 
   return (
     <div className="bg-white shadow overflow-hidden sm:rounded-md">
@@ -104,10 +151,58 @@ export function CollectionList({
         </button>
       </div>
 
+      {/* Bulk action toolbar */}
+      {hasBulk && selectedIds.size > 0 && (
+        <div className="bg-indigo-50 border-y border-indigo-100 px-4 py-2 flex items-center gap-3">
+          <span className="text-sm font-medium text-indigo-700">{selectedIds.size} selected</span>
+          {onBulkDelete && (
+            <button
+              type="button"
+              onClick={() => void handleBulkAction('delete')}
+              disabled={bulkLoading}
+              className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 disabled:opacity-50"
+            >
+              Delete
+            </button>
+          )}
+          {onBulkPublish && (
+            <button
+              type="button"
+              onClick={() => void handleBulkAction('publish')}
+              disabled={bulkLoading}
+              className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 disabled:opacity-50"
+            >
+              Publish
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setSelectedIds(new Set())}
+            className="ml-auto text-xs text-gray-500 hover:text-gray-700"
+          >
+            Clear selection
+          </button>
+        </div>
+      )}
+
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              {hasBulk && (
+                <th scope="col" className="w-10 px-3 py-3">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = someSelected;
+                    }}
+                    onChange={toggleAll}
+                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    aria-label="Select all"
+                  />
+                </th>
+              )}
               {displayFields.map((field: RevealUIField) => (
                 <th
                   key={field.name}
@@ -125,10 +220,7 @@ export function CollectionList({
           <tbody className="bg-white divide-y divide-gray-200">
             {documents.length === 0 ? (
               <tr>
-                <td
-                  colSpan={displayFields.length + 1}
-                  className="px-6 py-4 text-center text-sm text-gray-500"
-                >
+                <td colSpan={colCount} className="px-6 py-4 text-center text-sm text-gray-500">
                   No documents found.{' '}
                   <button
                     type="button"
@@ -141,36 +233,53 @@ export function CollectionList({
                 </td>
               </tr>
             ) : (
-              documents.map((doc) => (
-                <tr key={doc.id} className="hover:bg-gray-50">
-                  {displayFields.map((field: RevealUIField) => (
-                    <td
-                      key={field.name}
-                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
-                    >
-                      {renderFieldValue(field.name ? doc[field.name] : undefined, field)}
+              documents.map((doc) => {
+                const docId = String(doc.id);
+                return (
+                  <tr
+                    key={docId}
+                    className={`hover:bg-gray-50 ${selectedIds.has(docId) ? 'bg-indigo-50' : ''}`}
+                  >
+                    {hasBulk && (
+                      <td className="w-10 px-3 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(docId)}
+                          onChange={() => toggleOne(docId)}
+                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                          aria-label={`Select ${docId}`}
+                        />
+                      </td>
+                    )}
+                    {displayFields.map((field: RevealUIField) => (
+                      <td
+                        key={field.name}
+                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                      >
+                        {renderFieldValue(field.name ? doc[field.name] : undefined, field)}
+                      </td>
+                    ))}
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => onEdit(doc)}
+                        className="text-indigo-600 hover:text-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={deleting !== null}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(doc)}
+                        className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={deleting !== null}
+                      >
+                        {deleting === docId ? 'Deleting...' : 'Delete'}
+                      </button>
                     </td>
-                  ))}
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(doc)}
-                      className="text-indigo-600 hover:text-indigo-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={deleting !== null}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDelete(doc)}
-                      className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={deleting !== null}
-                    >
-                      {deleting === doc.id ? 'Deleting...' : 'Delete'}
-                    </button>
-                  </td>
-                </tr>
-              ))
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
