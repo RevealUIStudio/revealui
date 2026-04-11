@@ -20,6 +20,7 @@ const DEBUG = /\b(docs-copy|\*)\b/.test(process.env.DEBUG ?? '');
  */
 // Files in docs/ that must never be served publicly.
 // These are internal planning, governance, and tooling docs.
+// IMPORTANT: Keep in sync with INTERNAL_FILES in scripts/copy-docs.sh
 const INTERNAL_DOC_FILES = new Set([
   'MASTER_PLAN.md',
   'GOVERNANCE.md',
@@ -29,6 +30,7 @@ const INTERNAL_DOC_FILES = new Set([
   'PRICE_COLLECTION.md',
   'PRODUCT_COLLECTION.md',
   'SECRETS-MANAGEMENT.md',
+  'STANDARDS.md',
 ]);
 
 function docsCopyPlugin() {
@@ -320,7 +322,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
   },
   publicDir: 'public',
   define: {
