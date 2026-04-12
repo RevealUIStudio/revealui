@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { gmailSendTest } from '../../lib/deploy';
 import type { StudioConfig, WizardData } from '../../types';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -43,7 +44,12 @@ export default function StepEmail({
         return;
       }
 
-      // TODO: Wire up Gmail test send via Studio API
+      await gmailSendTest(
+        serviceAccountEmail.trim(),
+        privateKey.trim(),
+        emailFrom.trim(),
+        testEmail.trim(),
+      );
       setTestSent(true);
 
       onUpdateData({

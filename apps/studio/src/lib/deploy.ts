@@ -99,6 +99,21 @@ export async function stripeCatalogSync(repoPath: string): Promise<string> {
 
 // ── Email ──────────────────────────────────────────────────────────────────
 
+export async function gmailSendTest(
+  serviceAccountEmail: string,
+  privateKey: string,
+  fromEmail: string,
+  toEmail: string,
+): Promise<boolean> {
+  if (!isTauri()) return true;
+  return tauriInvoke<boolean>('gmail_send_test', {
+    serviceAccountEmail,
+    privateKey,
+    fromEmail,
+    toEmail,
+  });
+}
+
 export async function resendSendTest(apiKey: string, toEmail: string): Promise<boolean> {
   if (!isTauri()) return true;
   return tauriInvoke<boolean>('resend_send_test', { apiKey, toEmail });
