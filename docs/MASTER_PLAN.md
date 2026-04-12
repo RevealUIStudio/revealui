@@ -734,6 +734,40 @@ Holster: "Here is the shared state where coordination happens"
 
 ---
 
+## §4.18: Legacy and Deprecation Sweep (Pending)
+
+**Goal:** Zero legacy or deprecated code paths in the codebase. Every public API surface ships only current implementations. When a pattern changes, ship a codemod so users can migrate automatically.
+
+**Principle:** Users should never encounter deprecated APIs, backwards-compat shims, or dead code paths. If we change a public interface, we provide a codemod (via `@revealui/cli` or a standalone jscodeshift transform) that rewrites their code to the new pattern. No "legacy" mode, no "compat" wrappers, no soft deprecation.
+
+### Phase A: Exhaustive Codebase Audit
+
+- [ ] Automated scan for deprecated markers: `@deprecated` JSDoc, `legacy` in identifiers/filenames, `compat` shims, re-exports of removed APIs, `_old`/`_v1`/`_prev` suffixes
+- [ ] Audit all barrel exports (`index.ts`) for re-exported symbols that no longer have a primary consumer
+- [ ] Audit CLI for duplicate/alias commands (e.g. `shell` alias for `dev shell`) and decide: remove or keep with clear redirect messaging
+- [ ] Audit config formats for backwards-compat fields that can be dropped
+- [ ] Audit hook scripts for patterns that pre-date the current architecture
+- [ ] Audit test files for mocks of removed or renamed interfaces
+- [ ] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate)
+
+### Phase B: Codemod Infrastructure
+
+- [ ] Add `revealui migrate` CLI command that runs codemods against a user's project
+- [ ] Scaffold codemod runner: discover available transforms, detect applicable version range, apply in order, report results
+- [ ] Establish codemod authoring pattern: each transform is a standalone file in `packages/cli/src/codemods/` with a `name`, `fromVersion`, `toVersion`, and `transform(source, api)` function
+- [ ] Add `revealui migrate --dry-run` to preview changes without writing
+- [ ] Add `revealui migrate --list` to show available codemods for the user's current version
+
+### Phase C: Execute
+
+- [ ] Write codemods for every breaking change identified in Phase A
+- [ ] Remove all legacy code paths, compat wrappers, and deprecated re-exports
+- [ ] Update CHANGELOG entries to reference the codemod that handles the migration
+- [ ] Validate: run codemods against the `create-revealui` templates to ensure clean output
+- [ ] Validate: `pnpm gate` passes with zero legacy references
+
+---
+
 ## Review Schedule
 
 - **Weekly:** Check Phase 0 progress, update checkboxes
