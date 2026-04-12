@@ -6,4 +6,5 @@ export default defineConfig({
   dts: true,
   sourcemap: false,
   clean: true,
+  external: ['react', '@electric-sql/pglite'],
 });

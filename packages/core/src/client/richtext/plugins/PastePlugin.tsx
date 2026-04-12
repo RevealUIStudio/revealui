@@ -16,24 +16,31 @@ import { useEffect } from 'react';
  * Sanitize a parsed DOM document by removing dangerous elements and attributes.
  * This prevents XSS from pasted HTML content.
  */
+const DANGEROUS_URL_SCHEMES = /^\s*(javascript|vbscript|data|blob):/i;
+
 function sanitizeDom(doc: Document): void {
-  // Remove script, style, iframe, object, embed, form, and event-handler elements
+  // Remove dangerous elements
   const dangerous = doc.querySelectorAll(
-    'script, style, iframe, object, embed, form, link[rel="import"], base',
+    'script, style, iframe, object, embed, form, noscript, link[rel="import"], base',
   );
   for (const el of dangerous) {
     el.remove();
   }
 
   // Remove dangerous attributes from all remaining elements
-  const allElements = doc.querySelectorAll('*');
-  for (const el of allElements) {
-    const attrs = [...el.attributes];
-    for (const attr of attrs) {
+  for (const el of doc.querySelectorAll('*')) {
+    for (const attr of [...el.attributes]) {
       const name = attr.name.toLowerCase();
-      // Remove event handlers (onclick, onerror, etc.) and javascript: URLs
-      if (name.startsWith('on') || attr.value.trim().toLowerCase().startsWith('javascript:')) {
+      // Remove event handlers (onclick, onerror, etc.)
+      if (name.startsWith('on')) {
         el.removeAttribute(attr.name);
+        continue;
+      }
+      // Remove dangerous URL schemes from href, src, action, formaction, xlink:href
+      if (['href', 'src', 'action', 'formaction', 'xlink:href'].includes(name)) {
+        if (DANGEROUS_URL_SCHEMES.test(attr.value)) {
+          el.removeAttribute(attr.name);
+        }
       }
     }
   }

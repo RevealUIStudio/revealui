@@ -9,12 +9,20 @@ use crate::state::AppState;
 pub fn setup_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let menu = build_menu(app)?;
 
-    TrayIconBuilder::new()
+    let mut builder = TrayIconBuilder::new()
         .icon(app.default_window_icon().unwrap().clone())
         .tooltip("RevealUI Studio")
         .menu(&menu)
         // Right-click opens menu; left-click focuses the window.
-        .show_menu_on_left_click(false)
+        .show_menu_on_left_click(false);
+
+    // macOS: use template icon so it adapts to dark/light menu bar
+    #[cfg(target_os = "macos")]
+    {
+        builder = builder.icon_as_template(true);
+    }
+
+    builder
         .on_menu_event(|app, event| handle_menu_event(app, event))
         .on_tray_icon_event(|tray, event| {
             if let TrayIconEvent::Click {
@@ -59,16 +67,25 @@ fn build_menu<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         Some("CmdOrCtrl+Shift+L"),
     )?;
     let sep1 = PredefinedMenuItem::separator(app)?;
-    let mount = MenuItem::with_id(app, "mount", "Mount Studio Drive", true, None::<&str>)?;
-    let unmount =
-        MenuItem::with_id(app, "unmount", "Unmount Studio Drive", true, None::<&str>)?;
-    let sep2 = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, "quit", "Quit RevealUI Studio", true, None::<&str>)?;
 
-    Menu::with_items(
-        app,
-        &[&show, &launcher, &sep1, &mount, &unmount, &sep2, &quit],
-    )
+    // Mount/Unmount only available on Windows (WSL drive operations)
+    #[cfg(target_os = "windows")]
+    {
+        let mount = MenuItem::with_id(app, "mount", "Mount Studio Drive", true, None::<&str>)?;
+        let unmount =
+            MenuItem::with_id(app, "unmount", "Unmount Studio Drive", true, None::<&str>)?;
+        let sep2 = PredefinedMenuItem::separator(app)?;
+        Menu::with_items(
+            app,
+            &[&show, &launcher, &sep1, &mount, &unmount, &sep2, &quit],
+        )
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        Menu::with_items(app, &[&show, &launcher, &sep1, &quit])
+    }
 }
 
 fn handle_menu_event<R: Runtime>(app: &AppHandle<R>, event: tauri::menu::MenuEvent) {
