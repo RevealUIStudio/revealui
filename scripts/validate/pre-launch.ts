@@ -53,14 +53,14 @@ async function checkTypeScript() {
   }
 }
 
-async function checkPackageScripts() {
-  logger.info('2. Validating package.json scripts...');
-  const result = await execCommand('pnpm', ['validate:package-scripts'], {
+async function checkStructure() {
+  logger.info('2. Validating workspace structure...');
+  const result = await execCommand('pnpm', ['validate:structure'], {
     silent: true,
   });
-  recordResult('Package scripts validation', result.success);
+  recordResult('Workspace structure validation', result.success);
   if (!result.success) {
-    logger.info('   Run: pnpm validate:package-scripts');
+    logger.info('   Run: pnpm validate:structure');
   }
 }
 
@@ -75,12 +75,13 @@ async function checkLinting() {
 
 async function checkTests() {
   logger.info('4. Running tests...');
-  const result = await execCommand('pnpm', ['--filter', 'admin', 'test'], {
+  const result = await execCommand('pnpm', ['test'], {
     silent: true,
+    timeout: 300_000,
   });
   recordResult('Tests', result.success);
   if (!result.success) {
-    logger.info('   Run: pnpm --filter admin test');
+    logger.info('   Run: pnpm test');
   }
 }
 
@@ -357,7 +358,7 @@ async function runValidation() {
   logger.info('');
 
   await checkTypeScript();
-  await checkPackageScripts();
+  await checkStructure();
   await checkLinting();
   await checkTests();
   await checkBuild();

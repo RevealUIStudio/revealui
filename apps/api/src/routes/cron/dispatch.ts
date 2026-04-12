@@ -21,6 +21,7 @@ import cleanupApp from './cleanup.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
+import uptimeCheckApp from './uptime-check.js';
 
 const app = new Hono();
 
@@ -37,6 +38,7 @@ const JOBS = [
   { name: 'sweep-grace-periods', app: sweepGracePeriodsApp, path: '/sweep-grace-periods' },
   { name: 'marketplace-payouts', app: marketplacePayoutsApp, path: '/marketplace-payouts' },
   { name: 'cleanup', app: cleanupApp, path: '/cleanup' },
+  { name: 'uptime-check', app: uptimeCheckApp, path: '/uptime-check' },
 ];
 
 app.post('/dispatch', async (c) => {

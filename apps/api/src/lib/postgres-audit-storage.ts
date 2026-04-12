@@ -14,19 +14,91 @@
  *   (everything else)    → audit_log.payload  (JSONB)
  */
 
+import { createHmac, timingSafeEqual } from 'node:crypto';
 import type { AuditEvent, AuditQuery, AuditStorage } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
 import { auditLog } from '@revealui/db/schema';
 import { and, count, desc, eq, gte, lte, sql } from 'drizzle-orm';
 
+// ─── Hash-chain signing ──────────────────────────────────────────────────────
+
+/** Cache the last signature for hash-chaining (per-instance, resets on restart). */
+let lastSignature: string | null = null;
+
+function getAuditSecret(): string {
+  return process.env.REVEALUI_AUDIT_HMAC_SECRET ?? process.env.REVEALUI_SECRET ?? '';
+}
+
+/**
+ * Compute an HMAC-SHA256 signature for an audit entry, chained to the previous entry.
+ * The chain means tampering with any entry invalidates all subsequent signatures.
+ */
+function computeSignature(
+  entry: {
+    timestamp: string;
+    eventType: string;
+    severity: string;
+    agentId: string;
+    payload: unknown;
+  },
+  previousSig: string | null,
+): string {
+  const secret = getAuditSecret();
+  if (!secret) return '';
+  const canonical = JSON.stringify({
+    timestamp: entry.timestamp,
+    eventType: entry.eventType,
+    severity: entry.severity,
+    agentId: entry.agentId,
+    payload: entry.payload,
+    previousSignature: previousSig ?? '',
+  });
+  return createHmac('sha256', secret).update(canonical).digest('hex');
+}
+
+/**
+ * Verify an audit entry's signature against its fields and the previous signature.
+ */
+export function verifyAuditSignature(
+  entry: {
+    timestamp: string;
+    eventType: string;
+    severity: string;
+    agentId: string;
+    payload: unknown;
+  },
+  signature: string,
+  previousSig: string | null,
+): boolean {
+  const expected = computeSignature(entry, previousSig);
+  if (!expected || expected.length !== signature.length) return false;
+  return timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}
+
+// ─── Storage ─────────────────────────────────────────────────────────────────
+
 export class PostgresAuditStorage implements AuditStorage {
   async write(event: AuditEvent): Promise<void> {
     const db = getClient();
+    const ts = event.timestamp;
+    const entry = {
+      timestamp: ts,
+      eventType: event.type,
+      severity: event.severity,
+      agentId: event.actor.id,
+      payload: event as unknown,
+    };
+    const previousSig = lastSignature;
+    const signature = computeSignature(entry, previousSig);
+    if (signature) {
+      lastSignature = signature;
+    }
+
     await db
       .insert(auditLog)
       .values({
         id: event.id,
-        timestamp: new Date(event.timestamp),
+        timestamp: new Date(ts),
         eventType: event.type,
         severity: event.severity,
         agentId: event.actor.id,
@@ -34,6 +106,8 @@ export class PostgresAuditStorage implements AuditStorage {
         sessionId: null,
         payload: event as unknown as Record<string, unknown>,
         policyViolations: [],
+        signature: signature || null,
+        previousSignature: previousSig,
       })
       .onConflictDoNothing();
   }
