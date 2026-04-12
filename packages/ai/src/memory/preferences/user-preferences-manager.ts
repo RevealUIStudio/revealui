@@ -164,9 +164,9 @@ export class UserPreferencesManager {
     const parentKeys = keys.slice(0, -1);
 
     // Guard against prototype pollution
-    const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+    const ForbiddenKeys = new Set(['__proto__', 'constructor', 'prototype']);
     for (const k of keys) {
-      if (FORBIDDEN_KEYS.has(k)) {
+      if (ForbiddenKeys.has(k)) {
         throw new ValidationError(`Forbidden preference key segment: "${k}"`);
       }
     }
