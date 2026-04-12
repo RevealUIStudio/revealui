@@ -11,6 +11,7 @@ import { getSafetyConfig } from './safety.js';
 /** Simple glob matcher supporting *, **, and ? */
 function matchGlob(pattern: string, filePath: string): boolean {
   const regex = pattern
+    .replace(/\\/g, '\\\\')
     .replace(/\./g, '\\.')
     .replace(/\*\*/g, '⟨GLOBSTAR⟩')
     .replace(/\*/g, '[^/]*')
