@@ -76,7 +76,7 @@ function parseTable(lines: string[]): { columns: string[]; rows: Record<string, 
     for (let j = 0; j < columns.length; j++) {
       const col = columns[j]!;
       const raw = (cells[j] || '').trim();
-      row[col] = raw === ' - ' ? '' : raw;
+      row[col] = raw === '-' ? '' : raw;
     }
     rows.push(row);
   }
