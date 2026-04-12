@@ -1,4 +1,4 @@
-import { createContext, use, useCallback, useEffect, useState } from 'react';
+import { createContext, use, useCallback, useEffect, useRef, useState } from 'react';
 
 const STATUS_POLL_INTERVAL_MS = 30_000;
 
@@ -31,13 +31,16 @@ export function useStatus() {
     loading: true,
     error: null,
   });
+  const mountedRef = useRef(true);
 
   const refresh = useCallback(async () => {
     setState((prev) => ({ ...prev, loading: true, error: null }));
     try {
       const [system, mount] = await Promise.all([getSystemStatus(), getMountStatus()]);
+      if (!mountedRef.current) return;
       setState({ system, mount, loading: false, error: null });
     } catch (err) {
+      if (!mountedRef.current) return;
       setState((prev) => ({
         ...prev,
         loading: false,
@@ -47,9 +50,13 @@ export function useStatus() {
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     refresh();
     const interval = setInterval(refresh, STATUS_POLL_INTERVAL_MS);
-    return () => clearInterval(interval);
+    return () => {
+      mountedRef.current = false;
+      clearInterval(interval);
+    };
   }, [refresh]);
 
   return { ...state, refresh };

@@ -20,12 +20,15 @@ export function useTunnel() {
   });
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mountedRef = useRef(true);
 
   const fetchStatus = useCallback(async () => {
     try {
       const status = await getTailscaleStatus();
+      if (!mountedRef.current) return;
       setState((prev) => ({ ...prev, status, loading: false, error: null }));
     } catch (err) {
+      if (!mountedRef.current) return;
       setState((prev) => ({
         ...prev,
         loading: false,
@@ -36,9 +39,11 @@ export function useTunnel() {
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     fetchStatus();
     intervalRef.current = setInterval(fetchStatus, POLL_INTERVAL_MS);
     return () => {
+      mountedRef.current = false;
       if (intervalRef.current !== null) {
         clearInterval(intervalRef.current);
       }

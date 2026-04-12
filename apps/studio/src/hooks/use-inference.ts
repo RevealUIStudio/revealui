@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   inferenceOllamaDelete,
   inferenceOllamaModels,
@@ -20,6 +20,7 @@ export function useInference() {
   const [error, setError] = useState<string | null>(null);
   const [pulling, setPulling] = useState(false);
   const [installingSnap, setInstallingSnap] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
   async function refresh(): Promise<void> {
     try {
@@ -27,11 +28,13 @@ export function useInference() {
         inferenceOllamaStatus(),
         inferenceSnapList(),
       ]);
+      if (!mountedRef.current) return;
       setOllama(ollamaResult);
       setSnaps(snapList);
 
       if (ollamaResult.running) {
         const modelList = await inferenceOllamaModels();
+        if (!mountedRef.current) return;
         setModels(modelList);
       } else {
         setModels([]);
@@ -39,6 +42,7 @@ export function useInference() {
 
       setLoading(false);
     } catch (err) {
+      if (!mountedRef.current) return;
       setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
     }
@@ -46,11 +50,15 @@ export function useInference() {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: refresh is stable, run on mount only
   useEffect(() => {
+    mountedRef.current = true;
     refresh();
     const id = setInterval(() => {
       if (!document.hidden) refresh();
     }, 30_000);
-    return () => clearInterval(id);
+    return () => {
+      mountedRef.current = false;
+      clearInterval(id);
+    };
   }, []);
 
   async function startOllama(): Promise<void> {

@@ -40,6 +40,7 @@ export function useRvuiBalance(): RvuiBalanceState {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mountedRef = useRef(true);
 
   const walletAddress = settings.solanaWalletAddress;
   const network = settings.solanaNetwork;
@@ -71,6 +72,8 @@ export function useRvuiBalance(): RvuiBalanceState {
         )
         .send();
 
+      if (!mountedRef.current) return;
+
       if (response.value.length === 0) {
         setBalance('0');
         setUiAmount(0);
@@ -91,15 +94,18 @@ export function useRvuiBalance(): RvuiBalanceState {
         );
       }
     } catch (err) {
+      if (!mountedRef.current) return;
       const msg = err instanceof Error ? err.message : 'Failed to fetch RVUI balance';
       setError(msg);
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }, [walletAddress, network]);
 
   // Initial fetch + polling
   useEffect(() => {
+    mountedRef.current = true;
+
     if (!configured) {
       setBalance(null);
       setUiAmount(0);
@@ -114,6 +120,7 @@ export function useRvuiBalance(): RvuiBalanceState {
     }, POLL_INTERVAL_MS);
 
     return () => {
+      mountedRef.current = false;
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [configured, fetchBalance]);
