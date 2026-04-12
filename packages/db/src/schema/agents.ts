@@ -38,8 +38,7 @@ const vector = customType<{ data: number[]; driverData: string }>({
   },
   fromDriver(value: string): number[] {
     // Parse PostgreSQL vector format: [1,2,3]
-    const parsed = JSON.parse(value.replace(/^\[/, '[').replace(/\]$/, ']')) as number[];
-    return parsed;
+    return JSON.parse(value) as number[];
   },
 });
 

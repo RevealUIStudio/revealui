@@ -86,15 +86,17 @@ const INTERNAL_SOURCE_PATTERNS: SourcePattern[] = [
     check: (content) => {
       // Check for RevealUIStudio/ not preceded by a valid GitHub URL
       const needle = 'RevealUIStudio/';
+      // Allowlisted exact host suffixes (anchored with protocol or dot to prevent spoofing)
+      const ALLOWED_PREFIXES = [
+        '://github.com/',
+        '://raw.githubusercontent.com/',
+        '://githubusercontent.com/',
+      ];
       let idx = content.indexOf(needle);
       while (idx !== -1) {
-        const prefix = content.substring(Math.max(0, idx - 50), idx);
-        // Use endsWith to anchor at the domain boundary, preventing spoofing
-        // (e.g. evil-github.com/ would not match)
-        const isGitHub = prefix.endsWith('//github.com/') || prefix.endsWith('.github.com/');
-        const isGHContent =
-          prefix.endsWith('//githubusercontent.com/') || prefix.endsWith('.githubusercontent.com/');
-        if (!(isGitHub || isGHContent)) {
+        const prefix = content.substring(Math.max(0, idx - 80), idx);
+        const isAllowed = ALLOWED_PREFIXES.some((ap) => prefix.includes(ap));
+        if (!isAllowed) {
           return true;
         }
         idx = content.indexOf(needle, idx + 1);

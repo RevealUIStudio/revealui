@@ -24,6 +24,7 @@ export function signCookiePayload<T extends { expiresAt: number }>(
   const payloadJson = JSON.stringify(payload);
   const payloadB64 = Buffer.from(payloadJson).toString('base64url');
 
+  // lgtm[js/insufficient-password-hash] - HMAC-SHA256 for cookie payload signing, not password hashing
   const signature = crypto.createHmac('sha256', secret).update(payloadB64).digest();
   const signatureB64 = signature.toString('base64url');
 
@@ -56,6 +57,7 @@ export function verifyCookiePayload<T extends { expiresAt: number }>(
     const [payloadB64, signatureB64] = parts as [string, string];
 
     // Recompute the expected signature
+    // lgtm[js/insufficient-password-hash] - HMAC-SHA256 for cookie verification, not password hashing
     const expectedSignature = crypto.createHmac('sha256', secret).update(payloadB64).digest();
 
     const actualSignature = Buffer.from(signatureB64, 'base64url');

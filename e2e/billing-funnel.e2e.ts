@@ -290,7 +290,7 @@ test.describe('Billing page — checkout redirect', () => {
     expect(res.ok()).toBe(true);
     const body = (await res.json()) as { url?: string };
     expect(body.url).toBeTruthy();
-    expect(body.url).toMatch(/checkout\.stripe\.com/);
+    expect(body.url).toMatch(/^https:\/\/checkout\.stripe\.com\//);
   });
 
   test('?upgrade=pro triggers auto-redirect to Stripe when free tier', async ({ page }) => {
