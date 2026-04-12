@@ -21,4 +21,15 @@ describe('deriveSessionId', () => {
     // Should not throw; malformed ids are ignored.
     expect(deriveSessionId('zed', ['zed-x', 'zed-1'])).toBe('zed-2');
   });
+
+  // VAUGHN Phase 2a: new session types
+  it('supports claude session type', () => {
+    expect(deriveSessionId('claude', [])).toBe('claude-1');
+    expect(deriveSessionId('claude', ['claude-1'])).toBe('claude-2');
+  });
+
+  it('supports codex session type', () => {
+    expect(deriveSessionId('codex', [])).toBe('codex-1');
+    expect(deriveSessionId('codex', ['codex-1', 'codex-2'])).toBe('codex-3');
+  });
 });
