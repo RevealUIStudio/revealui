@@ -53,18 +53,23 @@ export function parseConnectionString(connectionString: string): {
 export function detectDatabaseProvider(
   connectionString: string,
 ): 'neon' | 'supabase' | 'postgres' | 'unknown' {
-  const lowerUrl = connectionString.toLowerCase();
+  try {
+    const parsed = new URL(connectionString);
+    const hostname = parsed.hostname.toLowerCase();
 
-  if (lowerUrl.includes('.neon.tech') || lowerUrl.includes('neon.')) {
-    return 'neon';
-  }
+    if (hostname.endsWith('.neon.tech') || hostname === 'neon.tech') {
+      return 'neon';
+    }
 
-  if (lowerUrl.includes('.supabase.co') || lowerUrl.includes('pooler.supabase.com')) {
-    return 'supabase';
-  }
+    if (hostname.endsWith('.supabase.co') || hostname === 'pooler.supabase.com') {
+      return 'supabase';
+    }
 
-  if (lowerUrl.startsWith('postgresql://') || lowerUrl.startsWith('postgres://')) {
-    return 'postgres';
+    if (parsed.protocol === 'postgresql:' || parsed.protocol === 'postgres:') {
+      return 'postgres';
+    }
+  } catch {
+    // Not a valid URL, fall through to unknown
   }
 
   return 'unknown';

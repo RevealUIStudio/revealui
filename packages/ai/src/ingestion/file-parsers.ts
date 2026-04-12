@@ -41,7 +41,16 @@ export class MarkdownParser {
       // Strip frontmatter
       .replace(FRONTMATTER_RE, '')
       // Strip code fences (preserve content inside)
-      .replace(CODE_FENCE_RE, (m) => m.replace(/```\w*\n?/g, '').replace(/```/g, ''))
+      .replace(CODE_FENCE_RE, (m) => {
+        // Iteratively strip backtick sequences to handle nested/reconstructed cases
+        let result = m;
+        let prev: string;
+        do {
+          prev = result;
+          result = result.replace(/```\w*\n?/g, '');
+        } while (result !== prev);
+        return result;
+      })
       // Strip inline code backticks but keep content
       .replace(INLINE_CODE_RE, (m) => m.slice(1, -1))
       // Strip heading markers

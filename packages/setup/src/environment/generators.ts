@@ -32,10 +32,16 @@ export function generateSecret(length = 32): string {
  */
 export function generatePassword(length = 16): string {
   const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+  // Use rejection sampling to avoid modulo bias
+  const maxValid = 256 - (256 % chars.length); // Largest multiple of chars.length <= 256
   let password = '';
-  const randomValues = randomBytes(length);
-  for (let i = 0; i < length; i++) {
-    password += chars[randomValues[i] % chars.length];
+  while (password.length < length) {
+    const buf = randomBytes(length - password.length + 16); // Over-request to reduce loops
+    for (let i = 0; i < buf.length && password.length < length; i++) {
+      if (buf[i] < maxValid) {
+        password += chars[buf[i] % chars.length];
+      }
+    }
   }
   return password;
 }

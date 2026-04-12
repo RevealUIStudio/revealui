@@ -321,7 +321,15 @@ app.openapi(
       throw new HTTPException(403, { message: 'Forbidden' });
     }
     // Delete from Vercel Blob storage (best-effort  -  DB record takes priority)
-    if (existing.url?.includes('.blob.vercel-storage.com')) {
+    const isVercelBlob = (() => {
+      try {
+        const parsed = new URL(existing.url ?? '');
+        return parsed.hostname.endsWith('.blob.vercel-storage.com');
+      } catch {
+        return false;
+      }
+    })();
+    if (isVercelBlob) {
       del(existing.url).catch((blobErr) => {
         logger.warn('Failed to delete media from Vercel Blob  -  orphaned blob', {
           mediaId: id,

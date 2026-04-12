@@ -56,7 +56,13 @@ async function commandExists(cmd: string): Promise<boolean> {
   }
 }
 
+/** Allowlist of commands that run() may execute */
+const ALLOWED_COMMANDS = new Set(['ollama', 'snap', 'pkill', 'which']);
+
 async function run(cmd: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
+  if (!ALLOWED_COMMANDS.has(cmd)) {
+    throw new Error(`Command not allowed: ${cmd}`);
+  }
   return execFileAsync(cmd, args, { timeout: 30_000 });
 }
 

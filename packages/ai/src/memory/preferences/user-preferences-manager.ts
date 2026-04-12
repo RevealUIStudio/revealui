@@ -135,7 +135,9 @@ export class UserPreferencesManager {
     let value: unknown = prefs;
 
     for (const k of keys) {
-      if (value && typeof value === 'object' && k in value) {
+      // Guard against prototype pollution reads
+      if (k === '__proto__' || k === 'constructor' || k === 'prototype') return undefined;
+      if (value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, k)) {
         value = (value as Record<string, unknown>)[k];
       } else {
         return undefined;
@@ -160,6 +162,14 @@ export class UserPreferencesManager {
       throw new ValidationError(`Invalid preference key: "${key}"`);
     }
     const parentKeys = keys.slice(0, -1);
+
+    // Guard against prototype pollution
+    const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+    for (const k of keys) {
+      if (FORBIDDEN_KEYS.has(k)) {
+        throw new ValidationError(`Forbidden preference key segment: "${k}"`);
+      }
+    }
 
     // Navigate to parent object in cloned structure
     let parent: Record<string, unknown> = prefs as Record<string, unknown>;

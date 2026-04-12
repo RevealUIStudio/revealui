@@ -109,6 +109,8 @@ export interface GitHubLoadOptions {
  */
 export async function loadFromGitHub(source: string, options: GitHubLoadOptions): Promise<Skill> {
   const parsed = parseGitHubSource(source);
+  validateGitArg(parsed.owner, 'owner');
+  validateGitArg(parsed.repo, 'repo');
   const repoUrl = `https://github.com/${parsed.owner}/${parsed.repo}.git`;
 
   // Determine skill name from path or repo name
