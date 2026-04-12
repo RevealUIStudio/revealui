@@ -116,6 +116,37 @@ export {
 } from './workboard/index.js';
 // Types  -  session identity
 export type { SessionType } from './workboard/session-identity.js';
+// VAUGHN Protocol (Phase 2a: Type Foundation)
+export type {
+  DegradationStrategy,
+  GeneratedFiles,
+  HookGranularity,
+  McpServerConfig,
+  MemoryBackend,
+  SandboxMode,
+  VaughnAdapter,
+  VaughnAdapterInfo,
+  VaughnCapabilities,
+  VaughnCommand,
+  VaughnCommandResult,
+  VaughnConfig,
+  VaughnError,
+  VaughnErrorCode,
+  VaughnEvent,
+  VaughnEventEnvelope,
+  VaughnRule,
+  VaughnSkill,
+} from './vaughn/index.js';
+export {
+  createDefaultCapabilities,
+  createEventEnvelope,
+  getDegradationStrategy,
+  TOOL_PROFILES,
+  VAUGHN_EVENTS,
+  vaughnEventEnvelopeSchema,
+  vaughnEventSchema,
+  VAUGHN_VERSION,
+} from './vaughn/index.js';
 // Types  -  workboard protocol
 export type {
   ConflictResult,
