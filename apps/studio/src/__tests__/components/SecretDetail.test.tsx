@@ -70,8 +70,7 @@ describe('SecretDetail', () => {
 
   it('shows dash when value is null and not loading', () => {
     render(<SecretDetail path="stripe/secret_key" value={null} loading={false} />);
-    // The dash character U+2014
-    const preEl = screen.getByText(/\u2014/);
+    const preEl = screen.getByText('-');
     expect(preEl).toBeInTheDocument();
   });
 });

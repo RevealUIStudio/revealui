@@ -83,7 +83,7 @@ describe('StepBlob', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Invalid blob token  -  check the token has read+write permissions.'),
+        screen.getByText('Invalid blob token - check the token has read+write permissions.'),
       ).toBeInTheDocument();
     });
 
@@ -141,7 +141,7 @@ describe('StepBlob', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('Invalid blob token  -  check the token has read+write permissions.'),
+        screen.getByText('Invalid blob token - check the token has read+write permissions.'),
       ).toBeInTheDocument();
     });
 
@@ -152,7 +152,7 @@ describe('StepBlob', () => {
     });
 
     expect(
-      screen.queryByText('Invalid blob token  -  check the token has read+write permissions.'),
+      screen.queryByText('Invalid blob token - check the token has read+write permissions.'),
     ).not.toBeInTheDocument();
   });
 });
