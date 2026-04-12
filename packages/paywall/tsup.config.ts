@@ -11,7 +11,7 @@ export default defineConfig({
   ],
   format: ['esm'],
   dts: true,
-  sourcemap: true,
+  sourcemap: false,
   clean: true,
   external: ['react', 'react/jsx-runtime', 'hono', 'stripe'],
 });

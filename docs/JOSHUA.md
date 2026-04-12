@@ -36,7 +36,7 @@ Every default earns its place. No magic, no hidden complexity, no decisions you 
 Clean separation of concerns. Each package has a single responsibility. No circular dependencies. Use what you need, replace what you don't.
 
 **Evidence:**
-- 23 packages, zero circular deps — enforced by Turborepo dependency graph
+- 22 packages, zero circular deps — enforced by Turborepo dependency graph
 - `@revealui/auth` knows nothing about billing; `@revealui/db` knows nothing about HTTP
 - `@revealui/contracts` is the only package that every other package may depend on (types + schemas)
 - `@revealui/presentation` has zero external UI dependencies (only clsx + CVA)

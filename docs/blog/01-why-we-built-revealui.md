@@ -224,10 +224,10 @@ This is the part that's genuinely hard to replicate by stitching services togeth
 
 Some numbers on what's actually shipped:
 
-- **28 packages** across the monorepo (7 apps, 16 OSS libraries, and 5 Pro packages)
-- **71 database tables** via Drizzle ORM
-- **58 UI components** in the presentation layer (zero external UI dependencies — just Tailwind v4, clsx, and CVA)
-- **13,700+ tests** across all packages
+- **22 packages** across the monorepo (6 apps, 16 OSS libraries, and 5 Pro packages)
+- **81 database tables** via Drizzle ORM
+- **57 UI components** in the presentation layer (zero external UI dependencies — just Tailwind v4, clsx, and CVA)
+- **20,000+ tests** across all packages
 - **Full OpenAPI spec** with Swagger UI at `/docs`
 - **Session auth** with bcrypt, rate limiting, brute force protection, and OAuth
 

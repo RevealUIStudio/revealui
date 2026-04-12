@@ -24,6 +24,12 @@ vi.mock('../../lib/billing-api', () => ({
   }),
 }));
 
+// Mock @solana/kit to prevent window reference errors during jsdom teardown
+vi.mock('@solana/kit', () => ({
+  address: vi.fn((s: string) => s),
+  createSolanaRpc: vi.fn(() => ({ getTokenAccountsByOwner: vi.fn() })),
+}));
+
 const mockRefresh = vi.fn().mockResolvedValue(undefined);
 
 const defaultSettings = {

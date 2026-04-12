@@ -35,7 +35,7 @@ You have:
 - **Content management** — define collections in TypeScript, get a full REST API and admin UI instantly
 - **Billing** — Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard** — manage users, content, billing, and settings out of the box
-- **58 UI components** — built with Tailwind CSS v4, zero external UI dependencies
+- **57 UI components** — built with Tailwind CSS v4, zero external UI dependencies
 - **Type-safe throughout** — Zod schemas shared between client, server, and database
 
 No assembly required. No consulting 12 different documentation sites. No decisions about which auth library to use.
@@ -57,7 +57,7 @@ Six principles that give you a tested starting point for every architectural dec
 | Principle | What it means |
 | --- | --- |
 | **Justifiable** | Every default earns its place. No magic, no hidden complexity, no decisions you can't explain to your team. |
-| **Orthogonal** | Clean separation of concerns across 23 packages. Use what you need, replace what you don't. Zero circular dependencies. |
+| **Orthogonal** | Clean separation of concerns across 22 packages. Use what you need, replace what you don't. Zero circular dependencies. |
 | **Sovereign** | Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No vendor holds your business hostage. |
 | **Hermetic** | Auth doesn't leak into billing. Content doesn't tangle with payments. Sealed boundaries, clean contracts between every layer. |
 | **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |
@@ -146,9 +146,9 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/core`](packages/core)                       | Runtime engine, REST API, auth, rich text, plugins |
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
-| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (80+ tables), dual-DB client   |
+| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (81 tables), dual-DB client     |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
-| [`@revealui/presentation`](packages/presentation)       | 58 UI components (Tailwind v4, zero ext deps)     |
+| [`@revealui/presentation`](packages/presentation)       | 57 UI components (Tailwind v4, zero ext deps)     |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |
 | [`@revealui/router`](packages/router)                   | Lightweight file-based router with SSR            |
 | [`@revealui/config`](packages/config)                   | Type-safe environment configuration               |
