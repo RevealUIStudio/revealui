@@ -83,7 +83,9 @@ async function getBrowserCache(): Promise<CacheStore | null> {
 function releaseBrowserCache(): void {
   cacheRefCount--;
   if (cacheRefCount === 0 && browserCache) {
-    browserCache.close().catch(() => {});
+    browserCache.close().catch(() => {
+      /* fire-and-forget cleanup */
+    });
     browserCache = null;
     cacheInitPromise = null;
   }
@@ -172,6 +174,10 @@ export function useOfflineCache<T>(options: UseOfflineCacheOptions): UseOfflineC
   const mounted = useRef(true);
   const cacheKeyRef = useRef(cacheKey);
   cacheKeyRef.current = cacheKey;
+  const ttlSecondsRef = useRef(ttlSeconds);
+  ttlSecondsRef.current = ttlSeconds;
+  const tagsRef = useRef(tags);
+  tagsRef.current = tags;
 
   // Initialize PGlite browser cache
   useEffect(() => {
@@ -183,10 +189,10 @@ export function useOfflineCache<T>(options: UseOfflineCacheOptions): UseOfflineC
         if (!mounted.current) return null;
         if (c) {
           setCache(c);
-          return c.get<T[]>(cacheKey);
+          return c.get<T[]>(cacheKeyRef.current);
         }
         // PGlite unavailable; fall back to localStorage
-        const lsData = readLocalStorageCache<T>(cacheKey, ttlSeconds);
+        const lsData = readLocalStorageCache<T>(cacheKeyRef.current, ttlSecondsRef.current);
         if (lsData && mounted.current) setCachedData(lsData);
         return null;
       })
@@ -198,7 +204,7 @@ export function useOfflineCache<T>(options: UseOfflineCacheOptions): UseOfflineC
       .catch(() => {
         if (mounted.current) {
           // Fall back to localStorage
-          const lsData = readLocalStorageCache<T>(cacheKey, ttlSeconds);
+          const lsData = readLocalStorageCache<T>(cacheKeyRef.current, ttlSecondsRef.current);
           if (lsData) setCachedData(lsData);
         }
       });
@@ -216,10 +222,10 @@ export function useOfflineCache<T>(options: UseOfflineCacheOptions): UseOfflineC
     if (!Array.isArray(shapeData) || shapeData.length === 0) return;
 
     const typed = toRecords<T>(shapeData);
-    const allTags = [OFFLINE_CACHE_TAG, ...(tags ?? [])];
+    const allTags = [OFFLINE_CACHE_TAG, ...(tagsRef.current ?? [])];
 
     if (cache) {
-      cache.set(cacheKeyRef.current, typed, ttlSeconds, allTags).catch(() => {
+      cache.set(cacheKeyRef.current, typed, ttlSecondsRef.current, allTags).catch(() => {
         // PGlite write failed; fall back to localStorage
         writeLocalStorageCache(cacheKeyRef.current, typed);
       });
@@ -231,7 +237,7 @@ export function useOfflineCache<T>(options: UseOfflineCacheOptions): UseOfflineC
       setCachedData(typed);
       setLastSyncedAt(new Date());
     }
-  }, [shapeData, isOnline, cache, ttlSeconds]); // tags excluded: unstable reference
+  }, [shapeData, isOnline, cache]);
 
   // Manual invalidation
   const invalidate = useCallback(async () => {

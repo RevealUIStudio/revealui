@@ -21,6 +21,17 @@ export {
   useCollaboration,
 } from './collab/index.js';
 export type {
+  ConflictInfo,
+  ConflictStrategy,
+  OfflineMutation,
+  ReplayResult,
+} from './conflict-resolution.js';
+export {
+  coalesceMutations,
+  replayMutations,
+  resolveConflict,
+} from './conflict-resolution.js';
+export type {
   AgentContextRecord,
   CreateAgentContextInput,
   UpdateAgentContextInput,
@@ -55,21 +66,10 @@ export type {
   UseCoordinationWorkItemsResult,
 } from './hooks/useCoordinationWorkItems.js';
 export { useCoordinationWorkItems } from './hooks/useCoordinationWorkItems.js';
+export { useOfflineCache } from './hooks/useOfflineCache.js';
+export type { OnlineStatusResult } from './hooks/useOnlineStatus.js';
+export { useOnlineStatus } from './hooks/useOnlineStatus.js';
+export type { InvalidationAction } from './hooks/useShapeCacheInvalidation.js';
+export { useShapeCacheInvalidation } from './hooks/useShapeCacheInvalidation.js';
 export type { MutationResult } from './mutations.js';
 export { ElectricProvider, useElectricConfig } from './provider/index.js';
-export { useOfflineCache } from './hooks/useOfflineCache.js';
-export { useOnlineStatus } from './hooks/useOnlineStatus.js';
-export type { OnlineStatusResult } from './hooks/useOnlineStatus.js';
-export { useShapeCacheInvalidation } from './hooks/useShapeCacheInvalidation.js';
-export type { InvalidationAction } from './hooks/useShapeCacheInvalidation.js';
-export type {
-  ConflictStrategy,
-  OfflineMutation,
-  ConflictInfo,
-  ReplayResult,
-} from './conflict-resolution.js';
-export {
-  resolveConflict,
-  replayMutations,
-  coalesceMutations,
-} from './conflict-resolution.js';

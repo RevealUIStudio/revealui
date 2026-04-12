@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  type ConflictInfo,
   coalesceMutations,
+  type OfflineMutation,
   replayMutations,
   resolveConflict,
-  type ConflictInfo,
-  type OfflineMutation,
 } from '../conflict-resolution.js';
 
 function makeMutation(overrides: Partial<OfflineMutation> = {}): OfflineMutation {
