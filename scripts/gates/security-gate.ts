@@ -33,6 +33,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { findApiSecurityIssues } from '@revealui/scripts/analyzers/api-security-analyzer.js';
 import { findAuthSecurityIssues } from '@revealui/scripts/analyzers/auth-security-analyzer.js';
+import { findCodePatternIssues } from '@revealui/scripts/analyzers/code-pattern-analyzer.js';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { execCommand } from '@revealui/scripts/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
@@ -406,6 +407,63 @@ async function checkApiSecurity(projectRoot: string): Promise<CheckResult> {
   return { name: 'API security', status: 'pass', durationMs };
 }
 
+/**
+ * Check 7: Dangerous code patterns (warn-only)
+ * AST-based detection of execSync with string interpolation, TOCTOU races,
+ * and catastrophic backtracking regex patterns.
+ */
+async function checkCodePatterns(projectRoot: string): Promise<CheckResult> {
+  const start = performance.now();
+  const findings = findCodePatternIssues(projectRoot);
+  const durationMs = performance.now() - start;
+
+  const byKind = {
+    execSync: findings.filter((f) => f.kind === 'exec-sync-string'),
+    toctou: findings.filter((f) => f.kind === 'toctou-stat-read'),
+    redos: findings.filter((f) => f.kind === 'redos-regex'),
+  };
+
+  const parts: string[] = [];
+
+  if (byKind.execSync.length > 0) {
+    parts.push(
+      `execSync with string interpolation (${byKind.execSync.length}): ${byKind.execSync
+        .slice(0, 3)
+        .map((f) => `${f.file}:${f.line}`)
+        .join(', ')}`,
+    );
+  }
+
+  if (byKind.toctou.length > 0) {
+    parts.push(
+      `TOCTOU stat-then-read (${byKind.toctou.length}): ${byKind.toctou
+        .slice(0, 3)
+        .map((f) => `${f.file}:${f.line}`)
+        .join(', ')}`,
+    );
+  }
+
+  if (byKind.redos.length > 0) {
+    parts.push(
+      `ReDoS-candidate regex (${byKind.redos.length}): ${byKind.redos
+        .slice(0, 3)
+        .map((f) => `${f.file}:${f.line}`)
+        .join(', ')}`,
+    );
+  }
+
+  if (parts.length > 0) {
+    return {
+      name: 'Code patterns',
+      status: 'warn',
+      durationMs,
+      detail: parts.join('; '),
+    };
+  }
+
+  return { name: 'Code patterns', status: 'pass', durationMs };
+}
+
 async function checkLocalPathLeaks(projectRoot: string): Promise<CheckResult> {
   const start = performance.now();
   const violations: string[] = [];
@@ -519,6 +577,7 @@ async function gate(): Promise<void> {
     checkLocalPathLeaks(projectRoot),
     checkAuthPatterns(projectRoot),
     checkApiSecurity(projectRoot),
+    checkCodePatterns(projectRoot),
   ]);
 
   const totalMs = performance.now() - totalStart;

@@ -7,7 +7,7 @@
  */
 
 import { execSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from '../base.js';
@@ -41,8 +41,7 @@ function detectFramework(projectRoot: string): TestFramework {
   if (!existsSync(pkgPath)) return 'unknown';
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pkg = JSON.parse(execSync(`cat "${pkgPath}"`, { encoding: 'utf8', timeout: 5000 }));
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
     const deps = {
       ...pkg.dependencies,
       ...pkg.devDependencies,
@@ -56,13 +55,20 @@ function detectFramework(projectRoot: string): TestFramework {
   return 'unknown';
 }
 
+/** Validate that an argument is safe for shell use (no metacharacters) */
+function isSafeShellArg(arg: string): boolean {
+  return /^[\w./@-]+$/.test(arg);
+}
+
 function buildCommand(framework: TestFramework, file?: string, grep?: string): string {
-  const fileArg = file ? ` ${file}` : '';
-  const grepArg = grep ? ` -t "${grep}"` : '';
+  const safeFile = file && isSafeShellArg(file) ? file : undefined;
+  const fileArg = safeFile ? ` ${safeFile}` : '';
+  const safeGrep = grep && isSafeShellArg(grep) ? grep : undefined;
+  const grepArg = safeGrep ? ` -t "${safeGrep}"` : '';
 
   switch (framework) {
     case 'vitest':
-      return `npx vitest run${fileArg}${grep ? ` --reporter=verbose` : ''} --no-color`;
+      return `npx vitest run${fileArg}${safeGrep ? ` --reporter=verbose` : ''} --no-color`;
     case 'jest':
       return `npx jest${fileArg}${grepArg} --no-color --forceExit`;
     case 'mocha':

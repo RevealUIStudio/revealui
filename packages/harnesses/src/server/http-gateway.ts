@@ -332,10 +332,14 @@ export class HttpGateway {
 
 /** Generate a 6-digit numeric pairing code */
 function generatePairingCode(): string {
-  // Use crypto for uniform distribution
-  const bytes = randomBytes(4);
-  const num = bytes.readUInt32BE(0) % 1_000_000;
-  return num.toString().padStart(6, '0');
+  // Rejection sampling to avoid modulo bias from crypto random
+  const max = Math.floor(0x100000000 / 1_000_000) * 1_000_000;
+  let num: number;
+  do {
+    const bytes = randomBytes(4);
+    num = bytes.readUInt32BE(0);
+  } while (num >= max);
+  return (num % 1_000_000).toString().padStart(6, '0');
 }
 
 /** Helper to send a JSON response */

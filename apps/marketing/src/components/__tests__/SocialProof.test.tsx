@@ -26,9 +26,9 @@ describe('SocialProof', () => {
     const html = JSON.stringify(result);
     expect(html).toContain('5');
     expect(html).toContain('problems solved');
-    expect(html).toContain('21');
+    expect(html).toContain('22');
     expect(html).toContain('npm packages');
-    expect(html).toContain('12');
+    expect(html).toContain('11');
     expect(html).toContain('MCP servers');
     expect(html).toContain('MIT');
     expect(html).toContain('licensed');

@@ -1,6 +1,7 @@
 {
   "name": "revealcoin",
   "version": "0.1.0",
+  "description": "RevealCoin — agent-native micropayment network for the RevealUI ecosystem",
   "private": true,
   "dependencies": {
     "@revealui/contracts": "workspace:*",

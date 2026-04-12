@@ -11,7 +11,7 @@ Reference guide to testing in the RevealUI monorepo.
 
 ## Overview
 
-RevealUI has **~13,700 test cases across 811 test files**.
+RevealUI has **~20,000 test cases across 1,300+ test files**.
 
 ### Testing Stack
 

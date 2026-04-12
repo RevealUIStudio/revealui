@@ -185,9 +185,9 @@ export class AuthorizationSystem {
     if (pattern === '*') return true;
     if (pattern === resource) return true;
 
-    // Convert glob pattern to regex
+    // Convert glob pattern to regex (escape backslashes first)
     const regex = new RegExp(
-      `^${pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
+      `^${pattern.replace(/\\/g, '\\\\').replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
     );
 
     return regex.test(resource);
@@ -200,9 +200,9 @@ export class AuthorizationSystem {
     if (pattern === '*') return true;
     if (pattern === action) return true;
 
-    // Support wildcards like "read:*"
+    // Support wildcards like "read:*" (escape backslashes first)
     const regex = new RegExp(
-      `^${pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
+      `^${pattern.replace(/\\/g, '\\\\').replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
     );
 
     return regex.test(action);

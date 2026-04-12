@@ -59,6 +59,7 @@ export function generateOAuthState(
         'Set it in your environment variables.',
     );
   }
+  // lgtm[js/insufficient-password-hash] - HMAC-SHA256 for CSRF state signing, not password hashing
   const hmac = crypto.createHmac('sha256', secret).update(state).digest('hex');
   return { state, cookieValue: `${state}.${hmac}`, codeChallenge };
 }
@@ -95,6 +96,7 @@ export function verifyOAuthState(
         'Set it in your environment variables.',
     );
   }
+  // lgtm[js/insufficient-password-hash] - HMAC-SHA256 for CSRF state verification, not password hashing
   const expectedHmac = crypto.createHmac('sha256', secret).update(state).digest('hex');
 
   // Both are hex-encoded SHA-256 HMACs  -  must be exactly 64 hex characters.

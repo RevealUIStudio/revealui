@@ -6,7 +6,7 @@
  */
 
 import { execSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from '../base.js';
@@ -47,7 +47,7 @@ function detectLinter(projectRoot: string): Linter {
   const pkgPath = join(projectRoot, 'package.json');
   if (existsSync(pkgPath)) {
     try {
-      const pkg = JSON.parse(execSync(`cat "${pkgPath}"`, { encoding: 'utf8', timeout: 5000 }));
+      const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
       const deps = {
         ...pkg.dependencies,
         ...pkg.devDependencies,
@@ -62,8 +62,13 @@ function detectLinter(projectRoot: string): Linter {
   return 'unknown';
 }
 
+/** Validate that a file argument is safe for shell use (no metacharacters) */
+function isSafeShellArg(arg: string): boolean {
+  return /^[\w./@-]+$/.test(arg);
+}
+
 function buildCommand(linter: Linter, file?: string, fix?: boolean): string {
-  const target = file ?? '.';
+  const target = file && isSafeShellArg(file) ? file : '.';
 
   switch (linter) {
     case 'biome':

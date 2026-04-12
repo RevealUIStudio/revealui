@@ -456,7 +456,7 @@ export default async function PricingPage() {
                 </div>
                 <h3 className="text-base font-semibold text-white">MCP Servers</h3>
                 <p className="mt-2 text-sm text-gray-400">
-                  12 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
+                  11 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
                   Next.js DevTools, content management, and email. Marketplace discovery coming
                   soon.
                 </p>

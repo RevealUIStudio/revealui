@@ -207,7 +207,7 @@ export class OpenAPIHono<
     // biome-ignore lint/suspicious/noExplicitAny: Hono's .on() requires flexible typing for dynamic route registration
     (this as any).on(
       [route.method],
-      [route.path.replaceAll(/\/{(.+?)}/g, '/:$1')],
+      [route.path.replaceAll(/\/{([^}]+)}/g, '/:$1')],
       ...middleware,
       ...validators,
       handler,

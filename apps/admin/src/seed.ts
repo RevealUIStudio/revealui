@@ -210,7 +210,7 @@ const sampleContent = {
       title: 'LAUNCH',
       name: 'RevealUI is Open Source',
       description:
-        'The core runtime is MIT-licensed and available on npm. 23 packages, 13,700+ tests, zero avoidable type errors. Run npx create-revealui to start building.',
+        'The core runtime is MIT-licensed and available on npm. 22 packages, 20,000+ tests, zero avoidable type errors. Run npx create-revealui to start building.',
       alt: 'RevealUI open source launch',
     },
     {
@@ -233,8 +233,8 @@ const sampleContent = {
       alt: 'RevealUI banner',
       link: { href: '/getting-started', text: 'Start Building' },
       stats: [
-        { label: 'Packages', value: '23' },
-        { label: 'Tests', value: '13,700+' },
+        { label: 'Packages', value: '22' },
+        { label: 'Tests', value: '20,000+' },
         { label: 'License', value: 'MIT' },
         { label: 'AI Agents', value: 'Pro' },
       ],

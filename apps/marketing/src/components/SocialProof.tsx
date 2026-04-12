@@ -3,8 +3,8 @@ import { Badge } from '@revealui/presentation';
 export function SocialProof() {
   const stats = [
     { value: '5', label: 'problems solved' },
-    { value: '21', label: 'npm packages' },
-    { value: '12', label: 'MCP servers' },
+    { value: '22', label: 'npm packages' },
+    { value: '11', label: 'MCP servers' },
     { value: 'MIT', label: 'licensed' },
   ];
 

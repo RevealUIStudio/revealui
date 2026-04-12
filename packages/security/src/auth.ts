@@ -264,7 +264,10 @@ function base32Encode(buffer: Uint8Array): string {
  */
 function base32Decode(encoded: string): Uint8Array {
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  const stripped = encoded.replace(/=+$/, '').toUpperCase();
+  let stripped = encoded.toUpperCase();
+  let end = stripped.length;
+  while (end > 0 && stripped[end - 1] === '=') end--;
+  stripped = stripped.slice(0, end);
   const bytes: number[] = [];
   let bits = 0;
   let value = 0;

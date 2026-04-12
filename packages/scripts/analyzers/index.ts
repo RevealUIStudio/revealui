@@ -19,6 +19,11 @@ export {
   findAuthSecurityIssues,
 } from './auth-security-analyzer.js';
 export {
+  type CodePatternIssue,
+  type CodePatternIssueKind,
+  findCodePatternIssues,
+} from './code-pattern-analyzer.js';
+export {
   type AnalysisMode,
   analyzeFile,
   analyzeFileAST,

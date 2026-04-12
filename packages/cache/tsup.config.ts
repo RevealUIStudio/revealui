@@ -4,6 +4,6 @@ export default defineConfig({
   entry: ['src/index.ts', 'src/adapters/index.ts'],
   format: ['esm'],
   dts: true,
-  sourcemap: true,
+  sourcemap: false,
   clean: true,
 });

@@ -108,7 +108,7 @@ export function estimateComplexity(instruction: string): number {
   if (words > 100) score += 1;
 
   // Path/file references suggest multi-file work
-  const pathRefs = instruction.match(/[\w/.-]+\.\w{1,5}/g) ?? [];
+  const pathRefs = instruction.match(/[\w/]+(?:[.-][\w/]+)*\.\w{1,5}/g) ?? [];
   if (pathRefs.length > 1) score += pathRefs.length * 0.5;
 
   return Math.min(10, score);

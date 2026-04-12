@@ -158,7 +158,7 @@ tsx scripts/seed-products.ts
 
 ## 4. Add a pricing page
 
-RevealUI ships 58 UI components. Use them to build a pricing page in your frontend app.
+RevealUI ships 57 UI components. Use them to build a pricing page in your frontend app.
 
 In `apps/mainframe/src/pages/pricing.tsx`:
 

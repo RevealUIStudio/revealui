@@ -168,7 +168,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
     expect(response.ok()).toBe(true);
     const body = (await response.json()) as { url?: string };
     expect(body.url).toBeTruthy();
-    expect(body.url).toMatch(/checkout\.stripe\.com/);
+    expect(body.url).toMatch(/^https:\/\/checkout\.stripe\.com\//);
   });
 
   test('Perpetual license checkout returns Stripe URL', async ({ page }) => {
@@ -189,7 +189,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
     if (response.status() === 200) {
       const body = (await response.json()) as { url?: string };
       expect(body.url).toBeTruthy();
-      expect(body.url).toMatch(/checkout\.stripe\.com/);
+      expect(body.url).toMatch(/^https:\/\/checkout\.stripe\.com\//);
     }
   });
 
@@ -209,7 +209,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
     expect(response.ok()).toBe(true);
     const body = (await response.json()) as { url?: string };
     expect(body.url).toBeTruthy();
-    expect(body.url).toMatch(/checkout\.stripe\.com/);
+    expect(body.url).toMatch(/^https:\/\/checkout\.stripe\.com\//);
   });
 
   test('Billing portal returns Stripe URL', async ({ page }) => {

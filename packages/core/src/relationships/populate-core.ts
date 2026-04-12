@@ -109,6 +109,11 @@ export function updateDocumentWithPopulatedValue(args: {
   const { dataReference, field, relationshipValue, location } = args;
   const { index, key } = location;
 
+  // Prevent prototype pollution via crafted field names
+  if (field.name === '__proto__' || field.name === 'constructor' || field.name === 'prototype') {
+    return;
+  }
+
   // Case 1: Localized array field (has both index and key)
   if (typeof index === 'number' && typeof key === 'string') {
     const fieldRecord = dataReference[field.name] as Record<string, unknown>;

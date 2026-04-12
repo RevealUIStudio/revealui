@@ -26,12 +26,16 @@ export const SignUpRequestSchema = z.object({
     .string()
     .min(1, 'Name is required')
     .max(100, 'Name must be less than 100 characters')
-    .transform((name) =>
-      name
-        .replace(/<[^>]*>/g, '')
-        .trim()
-        .replace(/\s+/g, ' '),
-    ),
+    .transform((name) => {
+      // Strip HTML tags iteratively to handle nested/malformed markup like <scr<script>ipt>
+      let clean = name;
+      let prev: string;
+      do {
+        prev = clean;
+        clean = clean.replace(/<[^>]*>/g, '');
+      } while (clean !== prev);
+      return clean.trim().replace(/\s+/g, ' ');
+    }),
   tosAccepted: z.literal(true, {
     error: 'You must accept the Terms of Service to create an account.',
   }),
