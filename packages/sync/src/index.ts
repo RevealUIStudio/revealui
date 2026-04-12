@@ -57,3 +57,19 @@ export type {
 export { useCoordinationWorkItems } from './hooks/useCoordinationWorkItems.js';
 export type { MutationResult } from './mutations.js';
 export { ElectricProvider, useElectricConfig } from './provider/index.js';
+export { useOfflineCache } from './hooks/useOfflineCache.js';
+export { useOnlineStatus } from './hooks/useOnlineStatus.js';
+export type { OnlineStatusResult } from './hooks/useOnlineStatus.js';
+export { useShapeCacheInvalidation } from './hooks/useShapeCacheInvalidation.js';
+export type { InvalidationAction } from './hooks/useShapeCacheInvalidation.js';
+export type {
+  ConflictStrategy,
+  OfflineMutation,
+  ConflictInfo,
+  ReplayResult,
+} from './conflict-resolution.js';
+export {
+  resolveConflict,
+  replayMutations,
+  coalesceMutations,
+} from './conflict-resolution.js';

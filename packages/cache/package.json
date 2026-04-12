@@ -29,7 +29,7 @@
   ],
   "main": "./dist/index.js",
   "peerDependencies": {
-    "next": "^14.0.0 || ^15.0.0 || ^16.1.7"
+    "next": "^14.0.0 || ^15.5.10 || ^16.2.3"
   },
   "peerDependenciesMeta": {
     "next": {

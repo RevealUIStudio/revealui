@@ -1,5 +1,12 @@
 # Test fixtures with fake/test Stripe keys and mock API key patterns
 # These are NOT real secrets — they are test doubles (sk_test_, fake JWTs, mock PEM keys)
+# .env.test contains dummy test values (msk_test_, mwhsec_test_, mpk_test_ prefixes)
+.env.test:stripe-access-token:2
+.env.test:stripe-access-token:3
+.env.test:stripe-access-token:4
+# Migration patch with test Stripe key references
+.claude/clack-migration.patch:stripe-access-token:228
+.claude/clack-migration.patch:stripe-access-token:285
 apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:178
 apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:288
 apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:331

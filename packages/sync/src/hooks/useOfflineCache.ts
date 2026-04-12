@@ -1,33 +1,30 @@
 'use client';
 
 import { useShape } from '@electric-sql/react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchWithTimeout } from '../fetch-with-timeout.js';
 import { toRecords } from '../shape-utils.js';
 import { useOnlineStatus } from './useOnlineStatus.js';
 
-/** Prefix for all offline-cache localStorage keys. */
-const CACHE_PREFIX = 'revealui:cache:';
-
 /** Default time-to-live for cached data (seconds). */
 const DEFAULT_TTL_SECONDS = 3600;
 
-interface CachedPayload<T> {
-  data: T[];
-  cachedAt: string;
-}
+/** Tag prefix applied to all offline cache entries for bulk invalidation. */
+const OFFLINE_CACHE_TAG = 'offline-cache';
 
 interface UseOfflineCacheOptions {
   /** ElectricSQL shape subscription URL. */
   shapeUrl: string;
-  /** Unique key for the localStorage cache entry. */
+  /** Unique key for the cache entry. */
   cacheKey: string;
   /** How long cached data is considered fresh (seconds). Defaults to 3600. */
   ttlSeconds?: number;
+  /** Additional cache tags for targeted invalidation. */
+  tags?: string[];
 }
 
 interface UseOfflineCacheResult<T> {
-  /** The current data  -  live from the shape when online, cached when offline. */
+  /** The current data: live from the shape when online, cached when offline. */
   data: T[];
   /** Whether the browser has network connectivity. */
   isOnline: boolean;
@@ -37,112 +34,224 @@ interface UseOfflineCacheResult<T> {
   lastSyncedAt: Date | null;
   /** Shape subscription or cache-read error, if any. */
   error: Error | null;
+  /** Manually invalidate the cache for this key. */
+  invalidate: () => Promise<void>;
 }
 
-/**
- * Check whether `localStorage` is usable.
- */
-function hasLocalStorage(): boolean {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-  try {
-    const testKey = '__revealui_oc_test__';
-    window.localStorage.setItem(testKey, '1');
-    window.localStorage.removeItem(testKey);
-    return true;
-  } catch {
-    return false;
-  }
+// ─── PGlite browser cache singleton ──────────────────────────────────────────
+
+interface CacheStore {
+  get<T = unknown>(key: string): Promise<T | null>;
+  set<T = unknown>(key: string, value: T, ttlSeconds: number, tags?: string[]): Promise<void>;
+  delete(...keys: string[]): Promise<number>;
+  close(): Promise<void>;
 }
 
-/**
- * Read cached data from localStorage. Returns `null` when the entry is
- * missing, expired, or unreadable.
- */
-function readCache<T>(cacheKey: string, ttlSeconds: number): CachedPayload<T> | null {
-  if (!hasLocalStorage()) {
-    return null;
-  }
-  try {
-    const raw = window.localStorage.getItem(CACHE_PREFIX + cacheKey);
-    if (raw === null) {
+let browserCache: CacheStore | null = null;
+let cacheInitPromise: Promise<CacheStore | null> | null = null;
+let cacheRefCount = 0;
+
+function isBrowserWithIndexedDB(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof indexedDB !== 'undefined' &&
+    typeof navigator !== 'undefined' &&
+    // Exclude jsdom/test environments where PGlite WASM cannot run
+    navigator.userAgent.indexOf('jsdom') === -1
+  );
+}
+
+async function getBrowserCache(): Promise<CacheStore | null> {
+  if (browserCache) return browserCache;
+  if (cacheInitPromise) return cacheInitPromise;
+  if (!isBrowserWithIndexedDB()) return null;
+
+  cacheInitPromise = (async () => {
+    try {
+      const { createOfflineCache } = await import('./browser-cache-factory.js');
+      const cache = await createOfflineCache();
+      browserCache = cache;
+      return cache;
+    } catch {
       return null;
     }
+  })();
+
+  return cacheInitPromise;
+}
+
+function releaseBrowserCache(): void {
+  cacheRefCount--;
+  if (cacheRefCount === 0 && browserCache) {
+    browserCache.close().catch(() => {});
+    browserCache = null;
+    cacheInitPromise = null;
+  }
+}
+
+/** Reset singleton state between tests. @internal */
+export function _resetCacheState(): void {
+  browserCache = null;
+  cacheInitPromise = null;
+  cacheRefCount = 0;
+}
+
+// ─── localStorage fallback (private browsing, PGlite unavailable) ────────────
+
+interface CachedPayload<T> {
+  data: T[];
+  cachedAt: string;
+}
+
+const LS_PREFIX = 'revealui:cache:';
+
+function readLocalStorageCache<T>(key: string, ttlSeconds: number): T[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(LS_PREFIX + key);
+    if (raw === null) return null;
     const parsed = JSON.parse(raw) as CachedPayload<T>;
-    if (!Array.isArray(parsed.data)) {
-      return null;
-    }
-    // Check TTL.
+    if (!Array.isArray(parsed.data)) return null;
     const cachedTime = new Date(parsed.cachedAt).getTime();
-    if (Number.isNaN(cachedTime)) {
-      return null;
-    }
-    const ageSeconds = (Date.now() - cachedTime) / 1_000;
-    if (ageSeconds > ttlSeconds) {
-      return null;
-    }
-    return parsed;
+    if (Number.isNaN(cachedTime)) return null;
+    if ((Date.now() - cachedTime) / 1_000 > ttlSeconds) return null;
+    return parsed.data;
   } catch {
     return null;
   }
 }
 
-/**
- * Write data to the localStorage cache. Silently ignores failures.
- */
-function writeCache<T>(cacheKey: string, data: T[]): void {
-  if (!hasLocalStorage()) {
-    return;
-  }
+function writeLocalStorageCache<T>(key: string, data: T[]): void {
+  if (typeof window === 'undefined') return;
   try {
-    const payload: CachedPayload<T> = {
-      data,
-      cachedAt: new Date().toISOString(),
-    };
-    window.localStorage.setItem(CACHE_PREFIX + cacheKey, JSON.stringify(payload));
+    const payload: CachedPayload<T> = { data, cachedAt: new Date().toISOString() };
+    window.localStorage.setItem(LS_PREFIX + key, JSON.stringify(payload));
   } catch {
-    // Quota exceeded or private browsing  -  drop silently.
+    // Quota exceeded or private browsing.
   }
 }
+
+// ─── Hook ────────────────────────────────────────────────────────────────────
 
 /**
  * Wrap an ElectricSQL `useShape` subscription with offline-first caching.
  *
- * When online the hook delegates to `useShape` and mirrors results into
- * `localStorage`. When offline (or during initial load) it returns the
- * most recent cached snapshot if one exists within the TTL window.
+ * When online the hook delegates to `useShape` and mirrors results into a
+ * PGlite browser cache (IndexedDB). When offline (or during initial load) it
+ * returns the most recent cached snapshot if one exists within the TTL window.
+ *
+ * Falls back to localStorage when PGlite is unavailable (e.g. private browsing
+ * or environments without WASM support).
  *
  * @typeParam T - Row type returned by the shape subscription.
  */
 export function useOfflineCache<T>(options: UseOfflineCacheOptions): UseOfflineCacheResult<T> {
-  const { shapeUrl, cacheKey, ttlSeconds = DEFAULT_TTL_SECONDS } = options;
+  const { shapeUrl, cacheKey, ttlSeconds = DEFAULT_TTL_SECONDS, tags } = options;
   const { isOnline } = useOnlineStatus();
 
-  // Shape subscription  -  runs continuously; ElectricSQL handles reconnection.
   const shape = useShape({ url: shapeUrl, fetchClient: fetchWithTimeout });
 
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
-
-  // Keep a ref to avoid stale closures in the sync effect.
+  // Read localStorage synchronously on first render for instant offline data
+  const [cache, setCache] = useState<CacheStore | null>(browserCache);
+  const [cachedData, setCachedData] = useState<T[] | null>(() =>
+    readLocalStorageCache<T>(cacheKey, ttlSeconds),
+  );
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(() => {
+    // Recover lastSyncedAt from localStorage cache timestamp
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = window.localStorage.getItem(LS_PREFIX + cacheKey);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as CachedPayload<T>;
+      const time = new Date(parsed.cachedAt).getTime();
+      return Number.isNaN(time) ? null : new Date(parsed.cachedAt);
+    } catch {
+      return null;
+    }
+  });
+  const mounted = useRef(true);
   const cacheKeyRef = useRef(cacheKey);
   cacheKeyRef.current = cacheKey;
 
-  // Persist live data to cache whenever the shape delivers fresh rows.
+  // Initialize PGlite browser cache
+  useEffect(() => {
+    mounted.current = true;
+    cacheRefCount++;
+
+    getBrowserCache()
+      .then((c) => {
+        if (!mounted.current) return null;
+        if (c) {
+          setCache(c);
+          return c.get<T[]>(cacheKey);
+        }
+        // PGlite unavailable; fall back to localStorage
+        const lsData = readLocalStorageCache<T>(cacheKey, ttlSeconds);
+        if (lsData && mounted.current) setCachedData(lsData);
+        return null;
+      })
+      .then((data) => {
+        if (mounted.current && data) {
+          setCachedData(data);
+        }
+      })
+      .catch(() => {
+        if (mounted.current) {
+          // Fall back to localStorage
+          const lsData = readLocalStorageCache<T>(cacheKey, ttlSeconds);
+          if (lsData) setCachedData(lsData);
+        }
+      });
+
+    return () => {
+      mounted.current = false;
+      releaseBrowserCache();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist live data to PGlite (or localStorage fallback) when shape delivers fresh rows
   const shapeData = shape.data;
   useEffect(() => {
-    if (!isOnline) {
-      return;
-    }
-    if (!Array.isArray(shapeData) || shapeData.length === 0) {
-      return;
-    }
-    const typed = toRecords<T>(shapeData);
-    writeCache(cacheKeyRef.current, typed);
-    setLastSyncedAt(new Date());
-  }, [shapeData, isOnline]);
+    if (!isOnline) return;
+    if (!Array.isArray(shapeData) || shapeData.length === 0) return;
 
-  // Determine what to return.
+    const typed = toRecords<T>(shapeData);
+    const allTags = [OFFLINE_CACHE_TAG, ...(tags ?? [])];
+
+    if (cache) {
+      cache.set(cacheKeyRef.current, typed, ttlSeconds, allTags).catch(() => {
+        // PGlite write failed; fall back to localStorage
+        writeLocalStorageCache(cacheKeyRef.current, typed);
+      });
+    } else {
+      writeLocalStorageCache(cacheKeyRef.current, typed);
+    }
+
+    if (mounted.current) {
+      setCachedData(typed);
+      setLastSyncedAt(new Date());
+    }
+  }, [shapeData, isOnline, cache, ttlSeconds]); // tags excluded: unstable reference
+
+  // Manual invalidation
+  const invalidate = useCallback(async () => {
+    if (cache) {
+      await cache.delete(cacheKeyRef.current);
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem(LS_PREFIX + cacheKeyRef.current);
+      } catch {
+        // Ignore
+      }
+    }
+    if (mounted.current) {
+      setCachedData(null);
+      setLastSyncedAt(null);
+    }
+  }, [cache]);
+
+  // Determine what to return
   if (isOnline && Array.isArray(shapeData) && shapeData.length > 0) {
     return {
       data: toRecords<T>(shapeData),
@@ -150,18 +259,17 @@ export function useOfflineCache<T>(options: UseOfflineCacheOptions): UseOfflineC
       isSyncing: shape.isLoading,
       lastSyncedAt,
       error: shape.error || null,
+      invalidate,
     };
   }
 
-  // Offline or shape has not loaded yet  -  try the cache.
-  const cached = readCache<T>(cacheKey, ttlSeconds);
-  const cachedSyncDate = cached !== null ? new Date(cached.cachedAt) : null;
-
+  // Offline or shape has not loaded yet: use cached data
   return {
-    data: cached?.data ?? [],
+    data: cachedData ?? [],
     isOnline,
     isSyncing: isOnline && shape.isLoading,
-    lastSyncedAt: lastSyncedAt ?? cachedSyncDate,
+    lastSyncedAt,
     error: shape.error || null,
+    invalidate,
   };
 }
