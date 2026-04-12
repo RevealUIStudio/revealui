@@ -39,18 +39,19 @@ app.get('/', async (c) => {
   // Record to audit log for SLA tracking
   try {
     const { audit } = await import('@revealui/core/security');
-    await audit.logSecurityEvent(
-      'monitoring',
-      health.status === 'healthy' ? 'low' : 'high',
-      'system:uptime-cron',
-      `Health check: ${health.status} (${duration}ms)`,
-      {
+    await audit.log({
+      type: 'security.alert',
+      severity: health.status === 'healthy' ? 'low' : 'high',
+      actor: { id: 'system:uptime-cron', type: 'system' },
+      action: 'uptime_check',
+      result: health.status === 'healthy' ? 'success' : 'failure',
+      metadata: {
         healthStatus: health.status,
         responseTimeMs: duration,
         checks: health.checks,
         uptimeSeconds: health.uptime,
       },
-    );
+    });
   } catch {
     // Audit system unavailable; health check data still logged to stdout
   }
