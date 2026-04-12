@@ -12,7 +12,6 @@
     "admin",
     "docs",
     "marketing",
-    "@revealui/studio",
     "test",
     "revealcoin",
     "@revealui/scripts",
