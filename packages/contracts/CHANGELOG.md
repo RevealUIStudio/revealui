@@ -1,5 +1,13 @@
 # @revealui/contracts
 
+## 1.3.7
+
+### Patch Changes
+
+- Security hardening across packages: expanded dangerous URL scheme check, CodeQL alert resolution, Dependabot vulnerability fixes, security rule schemas with AST-typed ReDoS detection, and RBAC/ABAC enforcement tests.
+- Updated dependencies
+  - @revealui/db@0.3.7
+
 ## 1.3.6
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@revealui/openapi",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Type-safe OpenAPI 3.x integration for Hono — route definitions, Zod validation middleware, and automatic spec generation with Swagger UI support",
   "keywords": [
     "api",

@@ -1,5 +1,11 @@
 # @revealui/paywall
 
+## 0.1.2
+
+### Patch Changes
+
+- Charge-readiness phases A-D: billing integration, media library, bulk operations, pagination, sidebar nav, and deploy hardening.
+
 ## 0.1.1
 
 ### Patch Changes
