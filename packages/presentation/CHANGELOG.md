@@ -1,5 +1,11 @@
 # @revealui/presentation
 
+## 0.3.6
+
+### Patch Changes
+
+- Charge-readiness phases A-D: billing integration, media library, bulk operations, pagination, sidebar nav, and deploy hardening.
+
 ## 0.3.5
 
 ### Patch Changes

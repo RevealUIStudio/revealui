@@ -120,7 +120,11 @@ export async function runDbStatusCommand(): Promise<void> {
   const env = buildDbEnv(root);
   const pgdata = getPgDataOrThrow(env);
 
-  await requireCommand('pg_ctl');
+  if (!(await commandExists('pg_ctl'))) {
+    logger.warn('pg_ctl is not available in PATH. Install PostgreSQL or enter the Nix devshell.');
+    logger.info('Run `revealui doctor` for a full environment check.');
+    return;
+  }
   try {
     await execa('pg_ctl', ['status', '-D', pgdata], {
       env,
