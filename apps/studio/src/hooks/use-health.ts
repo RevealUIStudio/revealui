@@ -5,7 +5,7 @@
  * along with individual check results. Polls on the settings interval.
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HealthResponse } from '../lib/health-api';
 import { fetchHealth } from '../lib/health-api';
 import { useSettingsContext } from './use-settings';
@@ -23,9 +23,11 @@ export function useHealth(): HealthState {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [reachable, setReachable] = useState(true);
   const [loading, setLoading] = useState(true);
+  const mountedRef = useRef(true);
 
-  async function poll() {
+  const poll = useCallback(async () => {
     const result = await fetchHealth(settings.apiUrl);
+    if (!mountedRef.current) return;
     if (result) {
       setHealth(result);
       setReachable(true);
@@ -33,20 +35,23 @@ export function useHealth(): HealthState {
       setReachable(false);
     }
     setLoading(false);
-  }
+  }, [settings.apiUrl]);
 
-  function refresh() {
+  const refresh = useCallback(() => {
     setLoading(true);
     poll();
-  }
+  }, [poll]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: re-poll when apiUrl or interval changes
   useEffect(() => {
+    mountedRef.current = true;
     poll();
 
     const interval = setInterval(poll, settings.pollingIntervalMs);
-    return () => clearInterval(interval);
-  }, [settings.apiUrl, settings.pollingIntervalMs]);
+    return () => {
+      mountedRef.current = false;
+      clearInterval(interval);
+    };
+  }, [poll, settings.pollingIntervalMs]);
 
   return { health, reachable, loading, refresh };
 }

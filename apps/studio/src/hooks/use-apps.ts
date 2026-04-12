@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { listApps, startApp, stopApp } from '../lib/invoke';
 import type { AppStatus } from '../types';
 
@@ -25,24 +25,31 @@ export function useApps() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [operating, setOperating] = useState<Record<string, boolean>>({});
+  const mountedRef = useRef(true);
 
   const refresh = useCallback(async () => {
     try {
       const result = await listApps();
+      if (!mountedRef.current) return;
       setApps(result);
       setLoading(false);
     } catch (err) {
+      if (!mountedRef.current) return;
       setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     refresh();
     const id = setInterval(() => {
       if (!document.hidden) refresh();
     }, 5_000);
-    return () => clearInterval(id);
+    return () => {
+      mountedRef.current = false;
+      clearInterval(id);
+    };
   }, [refresh]);
 
   const start = useCallback(async (name: string) => {

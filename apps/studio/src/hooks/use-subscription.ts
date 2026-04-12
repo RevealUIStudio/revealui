@@ -28,6 +28,7 @@ export function useSubscription(): SubscriptionState {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const refreshRef = useRef(0);
+  const mountedRef = useRef(true);
 
   function refresh() {
     refreshRef.current += 1;
@@ -48,26 +49,32 @@ export function useSubscription(): SubscriptionState {
         fetchSubscription(settings.apiUrl, token),
         fetchUsage(settings.apiUrl, token),
       ]);
+      if (!mountedRef.current) return;
       setSubscription(sub);
       setUsage(usg);
       setError(null);
     } catch (err) {
+      if (!mountedRef.current) return;
       setError(err instanceof Error ? err.message : 'Failed to fetch billing data');
     } finally {
-      setLoading(false);
+      if (mountedRef.current) setLoading(false);
     }
   }
 
   // Fetch on mount and on interval
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-fetch when auth step or apiUrl changes
   useEffect(() => {
+    mountedRef.current = true;
     if (step !== 'authenticated') return;
 
     setLoading(true);
     fetchAll();
 
     const interval = setInterval(fetchAll, settings.pollingIntervalMs);
-    return () => clearInterval(interval);
+    return () => {
+      mountedRef.current = false;
+      clearInterval(interval);
+    };
   }, [step, settings.apiUrl, settings.pollingIntervalMs]);
 
   return { subscription, usage, loading, error, refresh };
