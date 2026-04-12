@@ -1,5 +1,13 @@
 # @revealui/harnesses
 
+## 0.1.9
+
+### Patch Changes
+
+- VAUGHN Phase 2 protocol implementation: type foundation (adapter interface, capabilities, event envelope, degradation strategies), runtime wiring (event normalizer, config normalizer, capability-aware dispatch, RPC methods), and RevealUI Agent adapter upgrade with VAUGHN bridge.
+- Updated dependencies
+  - @revealui/core@0.5.6
+
 ## 0.1.8
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@revealui/db",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Drizzle ORM schema and dual-database client (NeonDB + Supabase) for RevealUI",
   "license": "MIT",
   "dependencies": {

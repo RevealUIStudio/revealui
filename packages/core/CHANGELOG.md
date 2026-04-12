@@ -1,5 +1,19 @@
 # @revealui/core
 
+## 0.5.6
+
+### Patch Changes
+
+- Security hardening across packages: expanded dangerous URL scheme check, CodeQL alert resolution, Dependabot vulnerability fixes, security rule schemas with AST-typed ReDoS detection, and RBAC/ABAC enforcement tests.
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies
+  - @revealui/cache@0.1.4
+  - @revealui/utils@0.3.4
+  - @revealui/resilience@0.2.4
+  - @revealui/security@0.2.7
+  - @revealui/contracts@1.3.7
+
 ## 0.5.5
 
 ### Patch Changes

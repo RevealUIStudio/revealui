@@ -1,5 +1,11 @@
 # @revealui/openapi
 
+## 0.2.3
+
+### Patch Changes
+
+- OpenAPI Phase B with native Zod-to-OpenAPI scaffold. Pipeline gap fixes, pre-push tests, code-pattern scanner. Dependency updates and SDLC hardening.
+
 ## 0.2.2
 
 ### Patch Changes
