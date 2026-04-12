@@ -3,6 +3,7 @@ import {
   generateKek,
   generateRsaKeypair,
   generateSecret,
+  gmailSendTest,
   healthCheck,
   neonTestConnection,
   resendSendTest,
@@ -92,6 +93,17 @@ describe('deploy bridge (browser mocks)', () => {
   });
 
   // ── Email ─────────────────────────────────────────────────────────────────
+
+  it('gmailSendTest returns true', async () => {
+    expect(
+      await gmailSendTest(
+        'sa@project.iam.gserviceaccount.com',
+        'key',
+        'noreply@example.com',
+        'test@example.com',
+      ),
+    ).toBe(true);
+  });
 
   it('resendSendTest returns true', async () => {
     expect(await resendSendTest('key', 'test@example.com')).toBe(true);
