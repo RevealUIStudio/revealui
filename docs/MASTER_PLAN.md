@@ -557,13 +557,13 @@ Phase D  -  Agent publisher tools (agent):
 
 **Remaining work:**
 
-#### 6.1 Policy & Documentation (owner: human)
+#### 6.1 Policy & Documentation (owner: human) ✅ COMPLETE (2026-04-12)
 - [x] Information Security Policy (scope, roles, acceptable use) - 2026-04-12 (docs/security/INFORMATION_SECURITY_POLICY.md)
 - [x] Incident Response Plan + documented runbook - 2026-04-12 (docs/security/INCIDENT_RESPONSE.md, 6 runbooks)
-- [ ] Quarterly access review cadence (first review documented)
-- [ ] Employee security training program + completion records
-- [ ] Vendor risk assessments: Neon, Supabase, Vercel, Stripe
-- [ ] Change Management Policy (code review, deploy approvals, rollback)
+- [x] Quarterly access review cadence (first review documented) - 2026-04-12 (docs/security/ACCESS_REVIEW_POLICY.md)
+- [x] Employee security training program + completion records - 2026-04-12 (docs/security/SECURITY_TRAINING.md)
+- [x] Vendor risk assessments: Neon, Supabase, Vercel, Stripe, GitHub - 2026-04-12 (docs/security/VENDOR_RISK_ASSESSMENTS.md)
+- [x] Change Management Policy (code review, deploy approvals, rollback) - 2026-04-12 (docs/security/CHANGE_MANAGEMENT_POLICY.md)
 
 #### 6.2 Technical Controls (owner: agent) ✅ COMPLETE (2026-04-12)
 - [x] Tamper-evident audit log: HMAC-SHA256 hash-chain signing in PostgresAuditStorage, previousSignature column for tamper-evident sequencing  -  2026-04-12
