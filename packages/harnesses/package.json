@@ -46,6 +46,10 @@
     "./storage": {
       "types": "./dist/storage/index.d.ts",
       "import": "./dist/storage/index.js"
+    },
+    "./vaughn": {
+      "types": "./dist/vaughn/index.d.ts",
+      "import": "./dist/vaughn/index.js"
     }
   },
   "files": [
