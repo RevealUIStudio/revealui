@@ -5,9 +5,9 @@ import {
   getDegradationStrategy,
   TOOL_PROFILES,
   VAUGHN_EVENTS,
+  VAUGHN_VERSION,
   vaughnEventEnvelopeSchema,
   vaughnEventSchema,
-  VAUGHN_VERSION,
 } from '../vaughn/index.js';
 
 describe('VAUGHN capabilities', () => {

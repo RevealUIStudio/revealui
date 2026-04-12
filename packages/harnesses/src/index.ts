@@ -102,20 +102,6 @@ export type {
   HarnessProcessInfo,
   HealthCheckResult,
 } from './types/core.js';
-// Workboard
-export {
-  acquireLock,
-  atomicWriteSync,
-  deriveSessionId,
-  detectSessionType,
-  lockPathFor,
-  releaseLock,
-  WorkboardManager,
-  withLock,
-  withLockAsync,
-} from './workboard/index.js';
-// Types  -  session identity
-export type { SessionType } from './workboard/session-identity.js';
 // VAUGHN Protocol (Phase 2a: Type Foundation)
 export type {
   DegradationStrategy,
@@ -143,10 +129,24 @@ export {
   getDegradationStrategy,
   TOOL_PROFILES,
   VAUGHN_EVENTS,
+  VAUGHN_VERSION,
   vaughnEventEnvelopeSchema,
   vaughnEventSchema,
-  VAUGHN_VERSION,
 } from './vaughn/index.js';
+// Workboard
+export {
+  acquireLock,
+  atomicWriteSync,
+  deriveSessionId,
+  detectSessionType,
+  lockPathFor,
+  releaseLock,
+  WorkboardManager,
+  withLock,
+  withLockAsync,
+} from './workboard/index.js';
+// Types  -  session identity
+export type { SessionType } from './workboard/session-identity.js';
 // Types  -  workboard protocol
 export type {
   ConflictResult,
