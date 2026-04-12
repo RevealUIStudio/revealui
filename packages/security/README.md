@@ -85,12 +85,12 @@ Dependencies: `@revealui/contracts`, `@revealui/utils`
 
 ## JOSHUA Alignment
 
-- **Hermetic**: Security boundaries are sealed — auth checks happen at middleware, never inside business logic
+- **Hermetic**: Security boundaries are sealed  -  auth checks happen at middleware, never inside business logic
 - **Sovereign**: All security infrastructure runs in your deployment, no external auth service required
 - **Justifiable**: Every security header and policy has a documented reason (CSP prevents XSS, HSTS forces HTTPS, etc.)
 
 ## Related Packages
 
-- `@revealui/auth` — Session-based authentication (login, password reset, OAuth)
-- `@revealui/core` — Applies security middleware to CMS routes
-- `@revealui/contracts` — Shared types for roles, permissions, consent records
+- `@revealui/auth`  -  Session-based authentication (login, password reset, OAuth)
+- `@revealui/core`  -  Applies security middleware to CMS routes
+- `@revealui/contracts`  -  Shared types for roles, permissions, consent records

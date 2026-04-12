@@ -102,10 +102,10 @@ describe('ProceduralMemory', () => {
   });
 
   // -------------------------------------------------------------------------
-  // execute — sequential
+  // execute  -  sequential
   // -------------------------------------------------------------------------
 
-  describe('execute — sequential steps', () => {
+  describe('execute  -  sequential steps', () => {
     it('throws when the workflow is not registered', async () => {
       await expect(mem.execute('unknown')).rejects.toThrow('Workflow "unknown" is not registered');
     });
@@ -191,7 +191,7 @@ describe('ProceduralMemory', () => {
 
       expect(result.success).toBe(false);
       expect(result.steps[1]).toEqual({ id: 's2', status: 'error', error: 'boom' });
-      // s3 still runs — errors don't abort
+      // s3 still runs  -  errors don't abort
       expect(result.steps[2].status).toBe('ok');
     });
 
@@ -204,10 +204,10 @@ describe('ProceduralMemory', () => {
   });
 
   // -------------------------------------------------------------------------
-  // execute — parallel steps
+  // execute  -  parallel steps
   // -------------------------------------------------------------------------
 
-  describe('execute — parallel steps', () => {
+  describe('execute  -  parallel steps', () => {
     it('executes steps with parallel:true concurrently', async () => {
       const startTimes: number[] = [];
 
@@ -224,7 +224,7 @@ describe('ProceduralMemory', () => {
 
       const steps: WorkflowStep[] = [
         makeParallelStep('p1'),
-        // p2 is the last in the batch (parallel: false) — it flushes the batch
+        // p2 is the last in the batch (parallel: false)  -  it flushes the batch
         {
           id: 'p2',
           label: 'p2',

@@ -1,5 +1,5 @@
 /**
- * @revealui/test — Test utilities, fixtures, and mocks
+ * @revealui/test  -  Test utilities, fixtures, and mocks
  *
  * Public API surface for the test package. Consumers can also use
  * subpath imports for integration helpers:
@@ -7,8 +7,8 @@
  *   - `test/integration/test-database`
  */
 
-// Fixtures — test data factories (users, payments)
+// Fixtures  -  test data factories (users, payments)
 export * from './fixtures/index.js';
 
-// Utilities — shared test helpers and mock utilities
+// Utilities  -  shared test helpers and mock utilities
 export * from './utils/index.js';

@@ -168,7 +168,7 @@ function makeSite(overrides: Partial<Record<string, unknown>> = {}) {
 
 // ─── Post Tests ───────────────────────────────────────────────────────────────
 
-describe('GET /posts — list posts', () => {
+describe('GET /posts  -  list posts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPostQueries.getAllPosts.mockResolvedValue([]);
@@ -235,7 +235,7 @@ describe('GET /posts — list posts', () => {
   });
 });
 
-describe('POST /posts — create post', () => {
+describe('POST /posts  -  create post', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 401 without authentication', async () => {
@@ -284,7 +284,7 @@ describe('POST /posts — create post', () => {
   });
 });
 
-describe('GET /posts/:id — get post by ID (IDOR)', () => {
+describe('GET /posts/:id  -  get post by ID (IDOR)', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 404 for non-published post without authentication (public read)', async () => {
@@ -334,7 +334,7 @@ describe('GET /posts/:id — get post by ID (IDOR)', () => {
   });
 });
 
-describe('GET /posts/slug/:slug — get post by slug (IDOR)', () => {
+describe('GET /posts/slug/:slug  -  get post by slug (IDOR)', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 404 for non-published post without authentication (public read)', async () => {
@@ -375,7 +375,7 @@ describe('GET /posts/slug/:slug — get post by slug (IDOR)', () => {
   });
 });
 
-describe('PATCH /posts/:id — update post (IDOR)', () => {
+describe('PATCH /posts/:id  -  update post (IDOR)', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 401 without authentication', async () => {
@@ -497,7 +497,7 @@ describe('DELETE /posts/:id (IDOR)', () => {
 
 // ─── Media Tests ──────────────────────────────────────────────────────────────
 
-describe('GET /media — list media', () => {
+describe('GET /media  -  list media', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMediaQueries.getAllMedia.mockResolvedValue([]);
@@ -519,7 +519,7 @@ describe('GET /media — list media', () => {
   });
 });
 
-describe('GET /media/:id — get media by ID (IDOR)', () => {
+describe('GET /media/:id  -  get media by ID (IDOR)', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns 403 when non-admin accesses another user's media (IDOR)", async () => {
@@ -551,7 +551,7 @@ describe('GET /media/:id — get media by ID (IDOR)', () => {
   });
 });
 
-describe('PATCH /media/:id — update media metadata (IDOR)', () => {
+describe('PATCH /media/:id  -  update media metadata (IDOR)', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns 403 when non-admin updates another user's media (IDOR)", async () => {
@@ -623,7 +623,7 @@ describe('DELETE /media/:id (IDOR)', () => {
 
 // ─── Site Tests ───────────────────────────────────────────────────────────────
 
-describe('GET /sites — list sites', () => {
+describe('GET /sites  -  list sites', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSiteQueries.getAllSites.mockResolvedValue([]);
@@ -655,7 +655,7 @@ describe('GET /sites — list sites', () => {
   });
 });
 
-describe('POST /sites — create site', () => {
+describe('POST /sites  -  create site', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 401 without authentication', async () => {
@@ -857,7 +857,7 @@ describe('DELETE /sites/:id (IDOR)', () => {
 
 // ─── Page Tests ──────────────────────────────────────────────────────────────
 
-describe('GET /sites/:siteId/pages — list pages', () => {
+describe('GET /sites/:siteId/pages  -  list pages', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPageQueries.getPagesBySite.mockResolvedValue([]);
@@ -926,7 +926,7 @@ describe('GET /sites/:siteId/pages — list pages', () => {
   });
 });
 
-describe('POST /sites/:siteId/pages — create page', () => {
+describe('POST /sites/:siteId/pages  -  create page', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('returns 401 without authentication', async () => {

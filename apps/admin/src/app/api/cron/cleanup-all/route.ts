@@ -2,7 +2,7 @@
  * Consolidated Cron: All cleanup tasks in a single endpoint
  *
  * GET /api/cron/cleanup-all
- * Schedule: daily (Vercel Hobby-friendly — single cron job)
+ * Schedule: daily (Vercel Hobby-friendly  -  single cron job)
  *
  * Handles:
  * - Expired/revoked sessions

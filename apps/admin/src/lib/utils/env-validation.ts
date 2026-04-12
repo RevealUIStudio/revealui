@@ -96,7 +96,7 @@ export function validateRequiredEnvVars(
       missing.push('SESSION_COOKIE_DOMAIN');
     }
 
-    // Stripe price IDs are required in production — without them, billing buttons
+    // Stripe price IDs are required in production  -  without them, billing buttons
     // silently send priceId:'' which the API rejects with a 400, showing
     // "Failed to start checkout" to paying customers with no actionable error.
     const stripePriceVars = [

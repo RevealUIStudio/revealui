@@ -325,10 +325,10 @@ describe('PricingResponse', () => {
 });
 
 // =============================================================================
-// Perpetual tiers — comingSoon status
+// Perpetual tiers  -  comingSoon status
 // =============================================================================
 
-describe('PERPETUAL_TIERS — comingSoon status', () => {
+describe('PERPETUAL_TIERS  -  comingSoon status', () => {
   it('all 3 perpetual tiers have comingSoon set to false', () => {
     for (const tier of PERPETUAL_TIERS) {
       expect(tier.comingSoon).toBe(false);

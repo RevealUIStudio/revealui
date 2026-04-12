@@ -1,5 +1,5 @@
 /**
- * Billing Route Tests — Comprehensive Coverage
+ * Billing Route Tests  -  Comprehensive Coverage
  *
  * Covers routes NOT tested in billing.test.ts:
  * - POST /downgrade
@@ -16,7 +16,7 @@ import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockCustomersCreate = vi.fn();
 const mockCheckoutSessionsCreate = vi.fn();
@@ -297,7 +297,7 @@ function cronPost(path: string) {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, () => {
+describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, () => {
   describe('POST /downgrade', () => {
     beforeEach(() => {
       vi.clearAllMocks();
@@ -804,7 +804,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('skips licenses without supportExpiresAt (filtered by SQL WHERE)', async () => {
-      // WHERE clause (gte/lte) filters these out at DB level — mock returns empty
+      // WHERE clause (gte/lte) filters these out at DB level  -  mock returns empty
       _selectResult = [];
 
       const res = await billingApp.request(cronPost('/support-renewal-check'));
@@ -815,7 +815,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('skips licenses that already expired (filtered by SQL WHERE)', async () => {
-      // WHERE clause (gte) excludes expired licenses — mock returns empty
+      // WHERE clause (gte) excludes expired licenses  -  mock returns empty
       _selectResult = [];
 
       const res = await billingApp.request(cronPost('/support-renewal-check'));
@@ -825,7 +825,7 @@ describe('Billing Route Tests — Comprehensive Coverage', { timeout: 60_000 }, 
     });
 
     it('skips licenses expiring more than 30 days out (filtered by SQL WHERE)', async () => {
-      // WHERE clause (lte) excludes far-future licenses — mock returns empty
+      // WHERE clause (lte) excludes far-future licenses  -  mock returns empty
       _selectResult = [];
 
       const res = await billingApp.request(cronPost('/support-renewal-check'));

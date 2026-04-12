@@ -23,8 +23,16 @@ if [ -d "$TARGET_DOCS" ]; then
 fi
 
 # Internal-only files that must never be served publicly
+# IMPORTANT: Keep in sync with INTERNAL_DOC_FILES in vite.config.ts
 INTERNAL_FILES=(
+  "MASTER_PLAN.md"
+  "GOVERNANCE.md"
+  "AI-AGENT-RULES.md"
   "AUTOMATION.md"
+  "CI_ENVIRONMENT.md"
+  "PRICE_COLLECTION.md"
+  "PRODUCT_COLLECTION.md"
+  "SECRETS-MANAGEMENT.md"
   "STANDARDS.md"
 )
 

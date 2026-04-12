@@ -36,9 +36,9 @@ export interface PasskeyConfig {
   maxPasskeysPerUser: number;
   /** Challenge TTL in ms (default: 5 minutes) */
   challengeTtlMs: number;
-  /** Relying Party ID — domain name (default: 'localhost') */
+  /** Relying Party ID  -  domain name (default: 'localhost') */
   rpId: string;
-  /** Relying Party name — user-visible (default: 'RevealUI') */
+  /** Relying Party name  -  user-visible (default: 'RevealUI') */
   rpName: string;
   /** Expected origin(s) for verification (default: 'http://localhost:4000') */
   origin: string | string[];
@@ -302,7 +302,7 @@ export async function verifyAuthentication(
 // =============================================================================
 
 /**
- * List all passkeys for a user (safe for client — excludes publicKey and counter).
+ * List all passkeys for a user (safe for client  -  excludes publicKey and counter).
  */
 export async function listPasskeys(userId: string): Promise<
   {

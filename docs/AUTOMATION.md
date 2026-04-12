@@ -51,10 +51,10 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 
 **Project Overview**
 
-- **Framework**: RevealUI — Full-stack React 19 + Next.js 16 Admin Framework
+- **Framework**: RevealUI  -  Full-stack React 19 + Next.js 16 Admin Framework
 - **Package Count**: 22 packages (17 OSS + 5 Pro)
-- **Test Status**: 811 test files, all packages build and typecheck ✅
-- **Build Status**: All 24 workspaces build successfully ✅
+- **Test Status**: 1,300+ test files, all packages build and typecheck ✅
+- **Build Status**: All 30 workspaces build successfully ✅
 
 ### Commercial Direction
 
@@ -71,9 +71,9 @@ From 2026 onward, automation features should align with:
 packages/
 ├── core/           # Runtime engine (includes types/ and generated/)
 ├── contracts/      # Zod schemas & TypeScript types
-├── db/             # Database (Drizzle ORM, 80+ tables)
+├── db/             # Database (Drizzle ORM, 81 tables)
 ├── auth/           # Authentication system
-├── presentation/   # 58 UI components (Tailwind v4)
+├── presentation/   # 57 UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
 ├── config/         # Type-safe env config (Zod)
 ├── utils/          # Logger, DB helpers, validation
@@ -124,7 +124,7 @@ packages/
 **Database Operations**
 
 1. [Database Guide](./DATABASE.md) - Schema, migrations, queries
-2. Schemas in `packages/db/src/schema/` — Drizzle ORM
+2. Schemas in `packages/db/src/schema/`  -  Drizzle ORM
 
 **Authentication**
 

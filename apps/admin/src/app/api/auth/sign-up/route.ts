@@ -71,7 +71,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     }
 
     // Enforce user limit based on license tier (free: 3, pro: 25, enterprise: unlimited)
-    // Also track whether this is the first user — they get admin role automatically.
+    // Also track whether this is the first user  -  they get admin role automatically.
     let isFirstUser = false;
     try {
       await initializeLicense();
@@ -98,7 +98,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
             }
           });
         } catch (txError) {
-          // Neon HTTP driver doesn't support transactions — fall back to simple count.
+          // Neon HTTP driver doesn't support transactions  -  fall back to simple count.
           // Safe for single-instance admin; concurrent sign-ups have a small TOCTOU window.
           logger.warn('Transaction not supported, falling back to non-atomic user count', {
             error: txError instanceof Error ? txError.message : String(txError),
@@ -114,7 +114,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
           return createApplicationErrorResponse(limitMsg, 'USER_LIMIT_REACHED', 403);
         }
       } else {
-        // No per-tier limit — still need to know if this is the first user
+        // No per-tier limit  -  still need to know if this is the first user
         const activeCount = await countActiveUsers(db);
         isFirstUser = activeCount === 0;
       }
@@ -169,7 +169,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
           };
         }
       } catch (upgradeError) {
-        // Non-fatal — user was created, couldn't promote to admin
+        // Non-fatal  -  user was created, couldn't promote to admin
         logger.warn('Failed to promote first user to admin', {
           userId: result.user.id,
           error: upgradeError instanceof Error ? upgradeError.message : String(upgradeError),
@@ -177,7 +177,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    // Send verification email (fire-and-forget — don't block signup)
+    // Send verification email (fire-and-forget  -  don't block signup)
     if (!isFirstUser && resolvedUser?.email && resolvedUser?.emailVerificationToken) {
       sendVerificationEmail(resolvedUser.email, resolvedUser.emailVerificationToken).catch(
         (emailError) => {
@@ -234,7 +234,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
             ? (() => {
                 if (!process.env.SESSION_COOKIE_DOMAIN) {
                   logger.error(
-                    'SESSION_COOKIE_DOMAIN env var is required in production — session cookie will not be set cross-subdomain',
+                    'SESSION_COOKIE_DOMAIN env var is required in production  -  session cookie will not be set cross-subdomain',
                   );
                 }
                 return process.env.SESSION_COOKIE_DOMAIN || undefined;

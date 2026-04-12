@@ -7,7 +7,7 @@
  * Run:
  *   pnpm exec playwright test e2e/accessibility.e2e.ts --project=chromium
  *
- * Note: Tests may fail on actual a11y violations — that is expected and correct.
+ * Note: Tests may fail on actual a11y violations  -  that is expected and correct.
  * Fix violations in the source code rather than suppressing rules.
  */
 
@@ -20,7 +20,7 @@ import {
 } from './utils/a11y-helper';
 
 // ---------------------------------------------------------------------------
-// Admin Pages (apps/admin — port 4000)
+// Admin Pages (apps/admin  -  port 4000)
 // ---------------------------------------------------------------------------
 
 test.describe('Accessibility', () => {
@@ -51,7 +51,7 @@ test.describe('Accessibility', () => {
   test.describe('Dashboard / Admin panel', () => {
     test('admin page meets WCAG 2.1 AA standards', async ({ page }) => {
       await page.goto(`${AdminBase}/admin`, { waitUntil: 'domcontentloaded' });
-      // Dashboard may redirect to login if unauthenticated — scan whatever renders
+      // Dashboard may redirect to login if unauthenticated  -  scan whatever renders
       await checkAccessibility(page);
     });
 
@@ -79,7 +79,7 @@ test.describe('Accessibility', () => {
   test.describe('Content editor', () => {
     test('content list page meets WCAG 2.1 AA standards', async ({ page }) => {
       await page.goto(`${AdminBase}/admin/collections/posts`, { waitUntil: 'domcontentloaded' });
-      // May redirect to login — scan whatever renders
+      // May redirect to login  -  scan whatever renders
       await checkAccessibility(page);
     });
 
@@ -94,7 +94,7 @@ test.describe('Accessibility', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Marketing Pages (apps/marketing — port 3002)
+  // Marketing Pages (apps/marketing  -  port 3002)
   // ---------------------------------------------------------------------------
 
   test.describe('Marketing pages', () => {
@@ -118,7 +118,7 @@ test.describe('Accessibility', () => {
   test.describe('Cross-cutting', () => {
     test('no critical violations across admin root', async ({ page }) => {
       await page.goto(AdminBase, { waitUntil: 'domcontentloaded' });
-      // Admin root may redirect to /login — wait for navigation to settle
+      // Admin root may redirect to /login  -  wait for navigation to settle
       await page.waitForLoadState('networkidle');
       const allViolations = await checkAccessibilityCritical(page);
 

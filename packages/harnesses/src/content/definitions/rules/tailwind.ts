@@ -25,7 +25,7 @@ The shared config in \`packages/dev/src/tailwind/\` uses a **v3 compatibility pa
 /* CORRECT (v4) */
 @import "tailwindcss";
 
-/* WRONG (v3 — deprecated) */
+/* WRONG (v3  -  deprecated) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,19 +49,19 @@ The shared config in \`packages/dev/src/tailwind/\` uses a **v3 compatibility pa
 
 ### CSS Variable Syntax
 \`\`\`html
-<!-- CORRECT (v4) — parentheses -->
+<!-- CORRECT (v4)  -  parentheses -->
 <div class="bg-(--brand-color)">
 
-<!-- WRONG (v3) — square brackets -->
+<!-- WRONG (v3)  -  square brackets -->
 <div class="bg-[--brand-color]">
 \`\`\`
 
 ### Important Modifier
 \`\`\`html
-<!-- CORRECT (v4) — at the end -->
+<!-- CORRECT (v4)  -  at the end -->
 <div class="bg-red-500!">
 
-<!-- WRONG (v3) — at the start -->
+<!-- WRONG (v3)  -  at the start -->
 <div class="bg-!red-500">
 \`\`\`
 
@@ -70,7 +70,7 @@ The shared config in \`packages/dev/src/tailwind/\` uses a **v3 compatibility pa
 - **Ring width**: default is \`1px\` (was \`3px\` in v3)
 - **\`hover:\`**: only applies on devices that support hover (no-touch)
 - **Stacked variants**: apply left-to-right (reversed from v3)
-- **\`space-*\` / \`divide-*\`**: selectors changed — prefer \`gap\` with flex/grid
+- **\`space-*\` / \`divide-*\`**: selectors changed  -  prefer \`gap\` with flex/grid
 
 ### Transform Utilities
 \`\`\`html
@@ -93,10 +93,10 @@ Use \`@reference\` to access theme variables in CSS modules or component \`<styl
 
 ### PostCSS Plugin
 \`\`\`js
-// v4 — new package name
+// v4  -  new package name
 { plugins: { '@tailwindcss/postcss': {} } }
 
-// v3 — old (still works but deprecated)
+// v3  -  old (still works but deprecated)
 { plugins: { tailwindcss: {} } }
 \`\`\`
 
@@ -130,7 +130,7 @@ In v4, theme tokens go in CSS, not JS:
 | \`packages/dev/src/tailwind/postcss.config.ts\` | PostCSS config with \`@tailwindcss/postcss\` |
 | \`packages/dev/src/tailwind/styles.css\` | Base CSS (\`@import "tailwindcss"\`) |
 
-### Consumer Pattern (current — v3 compat)
+### Consumer Pattern (current  -  v3 compat)
 \`\`\`ts
 // apps/admin/tailwind.config.ts
 import { createTailwindConfig } from '@revealui/dev/tailwind/create-config'
@@ -142,12 +142,12 @@ export default createTailwindConfig({
 
 ## Rules for New Code
 
-1. **Never use \`@tailwind\` directives** — use \`@import "tailwindcss"\` instead
-2. **Never use \`@layer utilities\` or \`@layer components\`** for custom utilities — use \`@utility\`
+1. **Never use \`@tailwind\` directives**  -  use \`@import "tailwindcss"\` instead
+2. **Never use \`@layer utilities\` or \`@layer components\`** for custom utilities  -  use \`@utility\`
 3. **Use \`bg-(--var)\` syntax** for CSS variables, not \`bg-[--var]\`
 4. **Important goes at the end**: \`bg-red-500!\` not \`!bg-red-500\`
 5. **Prefer \`gap\`** over \`space-*\` / \`divide-*\` for spacing in flex/grid
-6. **No \`transform-none\`** — use \`scale-none\`, \`rotate-none\`, \`translate-none\`
-7. **Don't add new v3 JS plugins** — if a v4 CSS equivalent exists, use that
-8. **Content paths are auto-detected** in v4 — only add manual paths for edge cases`,
+6. **No \`transform-none\`**  -  use \`scale-none\`, \`rotate-none\`, \`translate-none\`
+7. **Don't add new v3 JS plugins**  -  if a v4 CSS equivalent exists, use that
+8. **Content paths are auto-detected** in v4  -  only add manual paths for edge cases`,
 };

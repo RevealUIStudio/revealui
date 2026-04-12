@@ -236,5 +236,5 @@ describe.skipIf(!hasTestKey)('Stripe Integration', () => {
 });
 
 describe.skipIf(hasTestKey)('Stripe Integration (skipped)', () => {
-  it.skip('STRIPE_SECRET_KEY not configured — set sk_test_* key to enable');
+  it.skip('STRIPE_SECRET_KEY not configured  -  set sk_test_* key to enable');
 });

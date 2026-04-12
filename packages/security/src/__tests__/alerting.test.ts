@@ -77,11 +77,11 @@ describe('SecurityAlertService', () => {
   });
 
   it('groups failed logins by actor', async () => {
-    // 10 events for user A — should alert
+    // 10 events for user A  -  should alert
     for (let i = 0; i < 10; i++) {
       await service.evaluateEvent(makeEvent({ actor: { id: 'a@test.com', type: 'user' } }));
     }
-    // 5 events for user B — should NOT alert
+    // 5 events for user B  -  should NOT alert
     for (let i = 0; i < 5; i++) {
       await service.evaluateEvent(makeEvent({ actor: { id: 'b@test.com', type: 'user' } }));
     }

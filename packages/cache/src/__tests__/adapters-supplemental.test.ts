@@ -7,10 +7,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { InMemoryCacheStore } from '../adapters/memory.js';
 
 // ---------------------------------------------------------------------------
-// InMemoryCacheStore — additional edge cases
+// InMemoryCacheStore  -  additional edge cases
 // ---------------------------------------------------------------------------
 
-describe('InMemoryCacheStore — tag operations', () => {
+describe('InMemoryCacheStore  -  tag operations', () => {
   it('deleteByTags returns 0 when no tags are given', async () => {
     const store = new InMemoryCacheStore();
     await store.set('k', 'v', 60, ['alpha']);
@@ -34,7 +34,7 @@ describe('InMemoryCacheStore — tag operations', () => {
   });
 
   it('deleteByPrefix with empty prefix matches nothing', async () => {
-    // startsWith('') is always true — this verifies the semantics
+    // startsWith('') is always true  -  this verifies the semantics
     const store = new InMemoryCacheStore();
     await store.set('abc', '1', 60);
     await store.set('xyz', '2', 60);
@@ -44,7 +44,7 @@ describe('InMemoryCacheStore — tag operations', () => {
   });
 });
 
-describe('InMemoryCacheStore — prune removes only expired entries', () => {
+describe('InMemoryCacheStore  -  prune removes only expired entries', () => {
   it('prune does not remove live entries', async () => {
     vi.useFakeTimers();
     try {
@@ -64,7 +64,7 @@ describe('InMemoryCacheStore — prune removes only expired entries', () => {
   });
 });
 
-describe('InMemoryCacheStore — capacity eviction preserves newest entries', () => {
+describe('InMemoryCacheStore  -  capacity eviction preserves newest entries', () => {
   it('second-oldest entry is preserved when first is evicted at capacity', async () => {
     const store = new InMemoryCacheStore({ maxEntries: 3 });
     await store.set('a', 1, 60);
@@ -92,7 +92,7 @@ describe('InMemoryCacheStore — capacity eviction preserves newest entries', ()
 });
 
 // ---------------------------------------------------------------------------
-// PGliteCacheStore — closeOnDestroy branch
+// PGliteCacheStore  -  closeOnDestroy branch
 // ---------------------------------------------------------------------------
 
 let pgliteAvailable = false;
@@ -107,7 +107,7 @@ if (pgliteAvailable) {
   const { PGlite } = await import('@electric-sql/pglite');
   const { PGliteCacheStore } = await import('../adapters/pglite.js');
 
-  describe('PGliteCacheStore — closeOnDestroy:true', () => {
+  describe('PGliteCacheStore  -  closeOnDestroy:true', () => {
     it('calls db.close() when closeOnDestroy is true', async () => {
       const db = new PGlite();
       const closeSpy = vi.spyOn(db, 'close');
@@ -130,7 +130,7 @@ if (pgliteAvailable) {
     });
   });
 
-  describe('PGliteCacheStore — delete with zero keys', () => {
+  describe('PGliteCacheStore  -  delete with zero keys', () => {
     it('returns 0 without hitting the database when called with no keys', async () => {
       const db = new PGlite();
       const store = new PGliteCacheStore({ db, closeOnDestroy: true });
@@ -149,7 +149,7 @@ if (pgliteAvailable) {
     });
   });
 } else {
-  describe.skip('PGliteCacheStore supplemental (skipped — @electric-sql/pglite not available)', () => {
+  describe.skip('PGliteCacheStore supplemental (skipped  -  @electric-sql/pglite not available)', () => {
     it('placeholder', () => {});
   });
 }

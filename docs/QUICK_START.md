@@ -63,7 +63,7 @@ NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
 ```
 
-These are optional for local development — you can skip them and add them later:
+These are optional for local development  -  you can skip them and add them later:
 
 ```env
 # Optional: Vercel Blob (needed for media uploads)
@@ -78,17 +78,17 @@ STRIPE_WEBHOOK_SECRET=whsec_XXXXX
 
 ### Getting your credentials
 
-**REVEALUI_SECRET** — generate locally:
+**REVEALUI_SECRET**  -  generate locally:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-**POSTGRES_URL** — [console.neon.tech](https://console.neon.tech) → New project → Connection string (include `?sslmode=require`)
+**POSTGRES_URL**  -  [console.neon.tech](https://console.neon.tech) → New project → Connection string (include `?sslmode=require`)
 
-**BLOB_READ_WRITE_TOKEN** (optional) — [vercel.com/dashboard](https://vercel.com/dashboard) → Storage → Blob → Create store → Create token
+**BLOB_READ_WRITE_TOKEN** (optional)  -  [vercel.com/dashboard](https://vercel.com/dashboard) → Storage → Blob → Create store → Create token
 
-**Stripe keys** (optional) — [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys (use test mode keys)
+**Stripe keys** (optional)  -  [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys (use test mode keys)
 
 See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for the full reference.
 
@@ -102,7 +102,7 @@ Before starting the dev server, initialize the database schema:
 pnpm db:migrate
 ```
 
-This creates all 80+ tables. If you see a connection error, double-check your `POSTGRES_URL` — it must include `?sslmode=require` for NeonDB.
+This creates all 81 tables. If you see a connection error, double-check your `POSTGRES_URL`  -  it must include `?sslmode=require` for NeonDB.
 
 ---
 
@@ -132,11 +132,11 @@ This starts two services:
 
 ## Step 6: Verify It Works
 
-**Database** — go to **Posts** or **Pages** in the admin, create a record, save it. If it persists on reload, the database connection is working.
+**Database**  -  go to **Posts** or **Pages** in the admin, create a record, save it. If it persists on reload, the database connection is working.
 
-**Media** (requires `BLOB_READ_WRITE_TOKEN`) — go to **Media**, upload an image. Skip this step if you haven't set up Vercel Blob yet.
+**Media** (requires `BLOB_READ_WRITE_TOKEN`)  -  go to **Media**, upload an image. Skip this step if you haven't set up Vercel Blob yet.
 
-**Billing** (requires Stripe keys) — go to **Account → Billing**. The page loads without Stripe keys but checkout won't function until keys are set. For local webhook testing, run `stripe listen --forward-to localhost:4000/api/webhooks/stripe` to get a local `STRIPE_WEBHOOK_SECRET`.
+**Billing** (requires Stripe keys)  -  go to **Account → Billing**. The page loads without Stripe keys but checkout won't function until keys are set. For local webhook testing, run `stripe listen --forward-to localhost:4000/api/webhooks/stripe` to get a local `STRIPE_WEBHOOK_SECRET`.
 
 RevealUI is moving toward account-level subscriptions plus metered agent and commerce usage. Local setup still exposes legacy license-oriented pieces in some areas, but the intended hosted model is account or workspace entitlements first.
 
@@ -144,24 +144,24 @@ RevealUI is moving toward account-level subscriptions plus metered agent and com
 
 ## Troubleshooting
 
-**`relation "users" does not exist`** — you skipped `pnpm db:migrate`. Run it now.
+**`relation "users" does not exist`**  -  you skipped `pnpm db:migrate`. Run it now.
 
-**`ConfigValidationError: REVEALUI_SECRET`** — your secret is missing or under 32 characters. Regenerate it:
+**`ConfigValidationError: REVEALUI_SECRET`**  -  your secret is missing or under 32 characters. Regenerate it:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-**`Connection refused` on POSTGRES_URL** — check the connection string includes `?sslmode=require` and that your NeonDB project is active (free tier projects pause after inactivity).
+**`Connection refused` on POSTGRES_URL**  -  check the connection string includes `?sslmode=require` and that your NeonDB project is active (free tier projects pause after inactivity).
 
-**Port already in use** — something else is on 4000 or 3004. Find and stop it:
+**Port already in use**  -  something else is on 4000 or 3004. Find and stop it:
 
 ```bash
 lsof -i :4000
 lsof -i :3004
 ```
 
-**Dev server shows errors after changing `.env`** — restart it; environment variables are not hot-reloaded.
+**Dev server shows errors after changing `.env`**  -  restart it; environment variables are not hot-reloaded.
 
 For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 
@@ -170,10 +170,10 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 ## Next Steps
 
 - [Full documentation](./INDEX.md)
-- [Component catalog](./COMPONENT_CATALOG.md) — 52 native UI components
-- [Example projects](./EXAMPLES.md) — blog, SaaS starter, storefront
-- [Deployment guide](./CI_CD_GUIDE.md) — Vercel, environment variables, production checklist
-- [AI agents](./AI.md) — agent orchestration, open-model inference, MCP framework (Pro)
+- [Component catalog](./COMPONENT_CATALOG.md)  -  57 native UI components
+- [Example projects](./EXAMPLES.md)  -  blog, subscription starter, storefront
+- [Deployment guide](./CI_CD_GUIDE.md)  -  Vercel, environment variables, production checklist
+- [AI agents](./AI.md)  -  agent orchestration, open-model inference, MCP framework (Pro)
 
 ---
 

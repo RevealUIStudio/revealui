@@ -87,11 +87,11 @@ async function loadMigrations(dir: string): Promise<string[]> {
 /**
  * Create an in-memory PGlite database with all RevealUI schemas applied.
  *
- * Each call creates a fresh, isolated database — no shared state between tests.
+ * Each call creates a fresh, isolated database  -  no shared state between tests.
  * The returned `drizzle` client is fully typed against `@revealui/db/schema`.
  */
 export async function createTestDb(options?: CreateTestDbOptions): Promise<TestDb> {
-  // Dynamic imports — PGlite and drizzle-orm/pglite are devDependencies
+  // Dynamic imports  -  PGlite and drizzle-orm/pglite are devDependencies
   const { PGlite } = await import('@electric-sql/pglite');
   const { drizzle } = await import('drizzle-orm/pglite');
   const dbSchema = await import('@revealui/db/schema');
@@ -103,7 +103,7 @@ export async function createTestDb(options?: CreateTestDbOptions): Promise<TestD
   const migrationsDir = options?.migrationsDir ?? findMigrationsDir();
   const statements = await loadMigrations(migrationsDir);
 
-  // Tables that use vector columns — PGlite doesn't support pgvector
+  // Tables that use vector columns  -  PGlite doesn't support pgvector
   const vectorTables = new Set<string>();
 
   for (const stmt of statements) {
@@ -137,7 +137,7 @@ export async function createTestDb(options?: CreateTestDbOptions): Promise<TestD
       if (msg.includes('"vector"') || msg.includes('type "vector"')) continue;
       if (msg.includes('does not exist')) continue;
       if (msg.includes('already exists')) continue;
-      // CONCURRENTLY — retry without it
+      // CONCURRENTLY  -  retry without it
       if (msg.includes('CONCURRENTLY')) {
         const fixed = stmt.replace(/\bCONCURRENTLY\b/gi, '');
         try {

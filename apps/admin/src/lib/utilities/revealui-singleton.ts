@@ -9,7 +9,7 @@
  *   import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton'
  *   const revealui = await getRevealUIInstance()
  *
- * Note: Do NOT use this in tests — import getRevealUI directly and pass a
+ * Note: Do NOT use this in tests  -  import getRevealUI directly and pass a
  * test config so each test suite gets an isolated instance.
  */
 

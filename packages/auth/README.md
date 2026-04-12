@@ -1,17 +1,17 @@
 # @revealui/auth
 
-Session-based authentication for RevealUI — database-backed sessions, rate limiting, brute force protection, and password reset.
+Session-based authentication for RevealUI  -  database-backed sessions, rate limiting, brute force protection, and password reset.
 
 ## Features
 
-- **Database Sessions** — PostgreSQL/NeonDB-backed sessions with SHA-256 token hashing
-- **Secure Cookies** — HTTP-only, SameSite, secure flag, cross-subdomain support
-- **Rate Limiting** — Configurable per-endpoint rate limits stored in database
-- **Brute Force Protection** — Progressive lockout on failed sign-in attempts
-- **Password Reset** — Token-based password reset flow with email integration
-- **Password Validation** — Strength requirements and common password checks
-- **React Hooks** — Client-side session management (`useSession`, `useSignIn`, `useSignOut`)
-- **Framework Agnostic** — Works with Next.js, Hono, and other Node.js frameworks
+- **Database Sessions**  -  PostgreSQL/NeonDB-backed sessions with SHA-256 token hashing
+- **Secure Cookies**  -  HTTP-only, SameSite, secure flag, cross-subdomain support
+- **Rate Limiting**  -  Configurable per-endpoint rate limits stored in database
+- **Brute Force Protection**  -  Progressive lockout on failed sign-in attempts
+- **Password Reset**  -  Token-based password reset flow with email integration
+- **Password Validation**  -  Strength requirements and common password checks
+- **React Hooks**  -  Client-side session management (`useSession`, `useSignIn`, `useSignOut`)
+- **Framework Agnostic**  -  Works with Next.js, Hono, and other Node.js frameworks
 
 ## Installation
 
@@ -95,8 +95,8 @@ pnpm test
 - You need session-based auth with database-backed sessions for a RevealUI app
 - You want built-in brute force protection and rate limiting without external services
 - You need React hooks for client-side session management (`useSession`, `useSignIn`, `useSignOut`)
-- **Not** for OAuth-only flows — use a dedicated OAuth provider and wire tokens through this package
-- **Not** for stateless JWT auth — this package uses database sessions by design
+- **Not** for OAuth-only flows  -  use a dedicated OAuth provider and wire tokens through this package
+- **Not** for stateless JWT auth  -  this package uses database sessions by design
 
 ## JOSHUA Alignment
 
@@ -106,9 +106,9 @@ pnpm test
 
 ## Related
 
-- [Core Package](../core/README.md) — Runtime engine (uses auth for access control)
-- [DB Package](../db/README.md) — Database schema (sessions, users, rate_limits tables)
-- [Auth Guide](../../docs/AUTH.md) — Architecture, usage patterns, and security design
+- [Core Package](../core/README.md)  -  Runtime engine (uses auth for access control)
+- [DB Package](../db/README.md)  -  Database schema (sessions, users, rate_limits tables)
+- [Auth Guide](../../docs/AUTH.md)  -  Architecture, usage patterns, and security design
 
 ## License
 

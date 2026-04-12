@@ -8,7 +8,7 @@ Standards for TypeScript, git, and configuration in the RevealUI monorepo.
 - Use ES Modules (`import`/`export`), never CommonJS (`require`)
 - Prefer `interface` over `type` for object shapes (unless union/intersection needed)
 - Use explicit return types on exported functions
-- Avoid `any` — use `unknown` and narrow with type guards
+- Avoid `any`  -  use `unknown` and narrow with type guards
 - Use `as const` for literal objects and arrays when appropriate
 - Prefer `satisfies` over `as` for type assertions when possible
 - Use optional chaining (`?.`) and nullish coalescing (`??`) over manual checks
@@ -68,7 +68,7 @@ export function configureModule(overrides: Partial<ModuleConfig>): void {
 
 - Tests need fast TTLs and small limits
 - Deployments may need different thresholds than development
-- `Math.random()` is not cryptographically secure — use `crypto.randomInt()` for security-sensitive values (OTPs, tokens, nonces)
+- `Math.random()` is not cryptographically secure  -  use `crypto.randomInt()` for security-sensitive values (OTPs, tokens, nonces)
 
 ### Applies To
 

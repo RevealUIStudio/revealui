@@ -1,7 +1,7 @@
 /**
  * Agent Memories Sync Mutation Route
  *
- * POST /api/sync/agent-memories — Create a new agent memory
+ * POST /api/sync/agent-memories  -  Create a new agent memory
  *
  * Authenticated. Memories are scoped by agent_id.
  * ElectricSQL picks up the database change and pushes it to all shape subscribers.
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const db = getClient();
 
-    // Validate site ownership — non-admins can only create memories for their own sites
+    // Validate site ownership  -  non-admins can only create memories for their own sites
     if (session.user.role !== 'admin') {
       const [site] = await db
         .select({ ownerId: sites.ownerId })

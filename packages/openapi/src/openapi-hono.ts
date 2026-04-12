@@ -56,7 +56,7 @@ extendZodWithOpenApi(z);
  */
 export class OpenAPIHono<
   E extends Env = Env,
-  // biome-ignore lint/complexity/noBannedTypes: {} is Hono's internal sentinel for empty Schema — using object breaks type inference
+  // biome-ignore lint/complexity/noBannedTypes: {} is Hono's internal sentinel for empty Schema  -  using object breaks type inference
   S extends Schema = {},
   BasePath extends string = '/',
 > extends Hono<E, S, BasePath> {
@@ -207,7 +207,7 @@ export class OpenAPIHono<
     // biome-ignore lint/suspicious/noExplicitAny: Hono's .on() requires flexible typing for dynamic route registration
     (this as any).on(
       [route.method],
-      [route.path.replaceAll(/\/{(.+?)}/g, '/:$1')],
+      [route.path.replaceAll(/\/{([^}]+)}/g, '/:$1')],
       ...middleware,
       ...validators,
       handler,

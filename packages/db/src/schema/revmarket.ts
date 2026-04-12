@@ -1,5 +1,5 @@
 /**
- * RevMarket — Autonomous Agent Marketplace Tables (Phase 5.16)
+ * RevMarket  -  Autonomous Agent Marketplace Tables (Phase 5.16)
  *
  * Extends the MCP Marketplace (Phase 5.5) with autonomous agent task execution.
  * Agents register with skills and pricing, users submit tasks, the system
@@ -10,7 +10,7 @@ import { index, integer, jsonb, pgTable, real, text, timestamp } from 'drizzle-o
 import { users } from './users.js';
 
 // =============================================================================
-// Marketplace Agents — publishable autonomous agent definitions
+// Marketplace Agents  -  publishable autonomous agent definitions
 // =============================================================================
 
 export const marketplaceAgents = pgTable(
@@ -22,7 +22,7 @@ export const marketplaceAgents = pgTable(
     /** Human-readable agent name */
     name: text('name').notNull(),
 
-    /** What this agent does — shown in browse/search */
+    /** What this agent does  -  shown in browse/search */
     description: text('description').notNull(),
 
     /** Publisher (developer who listed this agent) */
@@ -86,7 +86,7 @@ export const marketplaceAgents = pgTable(
 );
 
 // =============================================================================
-// Agent Skills — capabilities each agent advertises
+// Agent Skills  -  capabilities each agent advertises
 // =============================================================================
 
 export const agentSkills = pgTable(
@@ -123,7 +123,7 @@ export const agentSkills = pgTable(
 );
 
 // =============================================================================
-// Agent Reviews — user ratings and feedback
+// Agent Reviews  -  user ratings and feedback
 // =============================================================================
 
 export const agentReviews = pgTable(
@@ -162,7 +162,7 @@ export const agentReviews = pgTable(
 );
 
 // =============================================================================
-// Task Submissions — user requests for agent work
+// Task Submissions  -  user requests for agent work
 // =============================================================================
 
 export const taskSubmissions = pgTable(

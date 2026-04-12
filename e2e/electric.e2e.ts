@@ -2,15 +2,15 @@
  * ElectricSQL Integration E2E Tests
  *
  * Tests the admin → ElectricSQL proxy shape endpoints:
- *   GET /api/shapes/conversations    — row-level filtered by user_id
- *   GET /api/shapes/agent-contexts   — row-level filtered by session_id
- *   GET /api/shapes/agent-memories   — row-level filtered by agent_id
+ *   GET /api/shapes/conversations     -  row-level filtered by user_id
+ *   GET /api/shapes/agent-contexts    -  row-level filtered by session_id
+ *   GET /api/shapes/agent-memories    -  row-level filtered by agent_id
  *
  * Architecture:
  *   Admin (Next.js) → shape route → Electric (Railway) → NeonDB (logical replication)
  *
  * Test strategy:
- *   - Unauthenticated tests verify auth enforcement — no credentials required.
+ *   - Unauthenticated tests verify auth enforcement  -  no credentials required.
  *   - Authenticated tests sign up a fresh test user via API and verify 200 responses.
  *     Gracefully skip if rate-limited (5 sign-up/sign-in attempts per 15 minutes).
  *
@@ -24,7 +24,7 @@
  *     playwright test e2e/electric.e2e.ts --project=chromium
  *
  * NOTE: Authenticated tests create a new test user on each run. These accumulate
- * in the database — acceptable for now, pending a test-cleanup mechanism.
+ * in the database  -  acceptable for now, pending a test-cleanup mechanism.
  */
 
 import { expect, test } from '@playwright/test';
@@ -44,7 +44,7 @@ test.beforeAll(async ({ request }) => {
 });
 
 // ---------------------------------------------------------------------------
-// Unauthenticated access — no credentials required
+// Unauthenticated access  -  no credentials required
 // Verifies that auth enforcement is working correctly
 // ---------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ test.describe('Shape endpoints enforce authentication', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Authenticated access — sign up a fresh test user via API
+// Authenticated access  -  sign up a fresh test user via API
 // Skip gracefully if rate-limited
 // ---------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ test.describe('Shape endpoints proxy Electric when authenticated', () => {
       .catch(() => null);
 
     if (!probe || probe.status() === 429) {
-      // Rate-limited — all authenticated tests will skip
+      // Rate-limited  -  all authenticated tests will skip
       return;
     }
 

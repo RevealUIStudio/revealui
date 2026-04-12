@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Roadmap — RevealUI',
+  title: 'Roadmap | RevealUI',
   description: 'What we have shipped and what is coming next. See the RevealUI product roadmap.',
   openGraph: {
-    title: 'Roadmap — RevealUI',
+    title: 'Roadmap | RevealUI',
     description: 'What we have shipped and what is coming next. See the RevealUI product roadmap.',
     type: 'website',
   },
@@ -22,7 +22,7 @@ const shipped: Feature[] = [
   {
     name: 'Dashboard Agent Chat',
     description:
-      'Interact with an AI agent directly from the admin dashboard. Create content, query data, manage collections, and automate workflows through natural language — with streaming responses, tool visibility, and conversation history.',
+      'Interact with an AI agent directly from the admin dashboard. Create content, query data, manage collections, and automate workflows through natural language, with streaming responses, tool visibility, and conversation history.',
     status: 'Shipped',
     category: 'AI',
   },
@@ -46,14 +46,14 @@ const upcoming: Feature[] = [
   {
     name: 'RevealCoin + x402 Agent Payments',
     description:
-      'Native cryptocurrency micropayments powered by RevealCoin on the Solana blockchain. Agents discover, authenticate, and pay per task via the HTTP 402 payment protocol — no accounts, no subscriptions.',
+      'Native cryptocurrency micropayments powered by RevealCoin on the Solana blockchain. Agents discover, authenticate, and pay per task via the HTTP 402 payment protocol. No accounts, no subscriptions.',
     status: 'In development',
     category: 'Payments',
   },
   {
     name: 'Perpetual Licenses (Track C)',
     description:
-      'One-time purchase for lifetime access to Pro, Agency, or Forge tier features. No subscription required. Includes 1 year of priority support and updates.',
+      'One-time purchase for lifetime access to Pro, Max, or Forge tier features. No subscription required. Includes 1 year of priority support and updates.',
     status: 'Coming soon',
     category: 'Billing',
   },
@@ -61,28 +61,28 @@ const upcoming: Feature[] = [
     name: 'MCP Marketplace',
     description:
       'A registry where developers publish and discover MCP servers and AI agent capabilities. 80% revenue share for developers. Discoverable via Smithery, mcpt, and the RevealUI marketplace.',
-    status: 'Planned — Q3 2026',
+    status: 'Planned: Q3 2026',
     category: 'AI',
   },
   {
     name: 'Self-Hosted Docker Images (Forge)',
     description:
       'Official Docker images published to GitHub Container Registry for fully self-hosted deployment. Domain-locked licensing, air-gap capable.',
-    status: 'Planned — Q3 2026',
+    status: 'Planned: Q3 2026',
     category: 'Infrastructure',
   },
   {
     name: 'Visual Builder (Foundry)',
     description:
       'A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.',
-    status: 'Planned — Q4 2026+',
+    status: 'Planned: Q4 2026+',
     category: 'Product',
   },
   {
     name: 'Enterprise SSO / SAML',
     description:
       'Single sign-on via SAML for enterprise customers. Advanced audit logging, custom RBAC policy editor, and multi-region deployment support.',
-    status: 'Planned — Q3 2026',
+    status: 'Planned: Q3 2026',
     category: 'Enterprise',
   },
 ];

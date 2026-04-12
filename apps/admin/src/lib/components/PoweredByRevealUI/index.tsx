@@ -1,5 +1,5 @@
 /**
- * PoweredByRevealUI — shown in the admin dashboard footer.
+ * PoweredByRevealUI  -  shown in the admin dashboard footer.
  *
  * Hidden when:
  *   - REVEALUI_SHOW_POWERED_BY=false (explicit Enterprise white-label opt-out)
@@ -12,7 +12,7 @@ function shouldShowBadge(): boolean {
   // Explicit env var opt-out (Enterprise white-label)
   if (process.env.REVEALUI_SHOW_POWERED_BY === 'false') return false;
 
-  // License JWT check — Enterprise tier or explicit whiteLabel feature
+  // License JWT check  -  Enterprise tier or explicit whiteLabel feature
   const key = process.env.REVEALUI_LICENSE_KEY;
   if (key) {
     try {
@@ -25,7 +25,7 @@ function shouldShowBadge(): boolean {
         if (payload.tier === 'enterprise' || payload.features?.whiteLabel === true) return false;
       }
     } catch {
-      // Malformed JWT — fall through to show badge
+      // Malformed JWT  -  fall through to show badge
     }
   }
 

@@ -61,7 +61,7 @@ export function JoshuaStack() {
             The JOSHUA Stack
           </p>
           <p className="mt-4 text-base leading-7 text-gray-500">
-            Not the only way to build software — but a proven way. Six principles that give you a
+            Not the only way to build software, but a proven way. Six principles that give you a
             defensible starting point. Evolve them as your product grows.
           </p>
         </div>

@@ -81,7 +81,7 @@ export interface LLMClientConfig {
   provider: LLMProviderType;
   apiKey: string;
   /**
-   * Dynamic API key resolver — called before every LLM request.
+   * Dynamic API key resolver  -  called before every LLM request.
    * When set, the resolved key replaces `apiKey` on each call.
    * Use this for OAuth tokens or any credential that expires between requests.
    */
@@ -111,7 +111,7 @@ export interface LLMClientConfig {
   enableSemanticCache?: boolean;
   /** Semantic cache options */
   semanticCacheOptions?: SemanticCacheOptions;
-  /** Optional health monitor — records latency + error rate per provider */
+  /** Optional health monitor  -  records latency + error rate per provider */
   healthMonitor?: ProviderHealthMonitor;
 }
 

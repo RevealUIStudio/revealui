@@ -164,7 +164,7 @@ describe('page queries', () => {
 
       expect(result).toEqual(data);
       expect(chain.values).toHaveBeenCalledWith(data);
-      // pageCount is maintained by DB trigger — no app-level update expected
+      // pageCount is maintained by DB trigger  -  no app-level update expected
       expect(db.update).not.toHaveBeenCalled();
     });
 
@@ -209,7 +209,7 @@ describe('page queries', () => {
       // getPageById needs a select chain that resolves to the page
       const selectChain = createSelectChain([{ id: 'p1', siteId: 's1' }]);
       db.select.mockReturnValue(selectChain);
-      // pageCount is maintained by DB trigger — only the soft-delete update
+      // pageCount is maintained by DB trigger  -  only the soft-delete update
       const softDeleteChain = createSoftDeleteChain();
       db.update.mockReturnValue(softDeleteChain);
 

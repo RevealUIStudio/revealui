@@ -1,5 +1,5 @@
 /**
- * License module tests — validates key generation, JWT verification,
+ * License module tests  -  validates key generation, JWT verification,
  * tier checking, limits enforcement, perpetual licenses, and expiration.
  *
  * Uses real RSA key pair (generated in beforeAll) for authentic JWT operations.
@@ -175,7 +175,7 @@ describe('validateLicenseKey', () => {
     const otherPrivPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(otherPrivDer).toString('base64')}\n-----END PRIVATE KEY-----`;
 
     const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_wrong' }, otherPrivPem);
-    // Verify with the original public key — should fail
+    // Verify with the original public key  -  should fail
     const result = await validateLicenseKey(jwt, publicKeyPem);
     expect(result).toBeNull();
   });
@@ -224,7 +224,7 @@ describe('initializeLicense', () => {
 });
 
 // =============================================================================
-// isLicensed — tier comparison + expiration
+// isLicensed  -  tier comparison + expiration
 // =============================================================================
 
 describe('isLicensed', () => {

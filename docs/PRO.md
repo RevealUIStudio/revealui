@@ -1,6 +1,6 @@
 ---
 title: "Pro Guide"
-description: "RevealUI Pro tier — AI agents, MCP servers, editor integrations, and licensing"
+description: "RevealUI Pro tier  -  AI agents, MCP servers, editor integrations, and licensing"
 category: guide
 audience: developer
 ---
@@ -69,7 +69,7 @@ This is the model the product and billing architecture should converge on from 2
 
 RevealUI Pro currently groups commercial capabilities such as:
 
-- Studio desktop app (Tauri) — agent coordination hub, local inference management, visual agent dashboard
+- Studio desktop app (Tauri)  -  agent coordination hub, local inference management, visual agent dashboard
 - MCP servers and developer tooling
 - Open-model inference configuration per deployment
 - editor integrations and harness coordination
@@ -952,7 +952,7 @@ LLM_PROVIDER=ollama
 - Master key rotation re-encrypts all user data keys
 - Keys are never returned in full via the API
 - Rate limiting applies to key verification endpoints
-- Admin-level access cannot read user keys — only re-wrap them during rotation
+- Admin-level access cannot read user keys  -  only re-wrap them during rotation
 
 ## Tenant-level keys
 
@@ -976,10 +976,10 @@ Editor config generation and sync for VS Code, Zed, Cursor, and Antigravity. Ens
 
 `@revealui/editors` generates and synchronizes editor configuration files:
 
-- **VS Code** — recommended extensions list and workspace settings
-- **Zed** — editor settings generation
-- **Cursor** — AI rules and settings
-- **Antigravity** — agent configuration
+- **VS Code**  -  recommended extensions list and workspace settings
+- **Zed**  -  editor settings generation
+- **Cursor**  -  AI rules and settings
+- **Antigravity**  -  agent configuration
 
 ## Installation
 
@@ -1026,7 +1026,7 @@ AI harness adapters, workboard coordination, and JSON-RPC server. Integrates Cla
 
 ## Overview
 
-`@revealui/harnesses` connects AI coding tools to each other and to your project's shared workboard. Multiple AI sessions — across editors, terminals, and CI — register themselves and claim file ownership to prevent conflicts.
+`@revealui/harnesses` connects AI coding tools to each other and to your project's shared workboard. Multiple AI sessions  -  across editors, terminals, and CI  -  register themselves and claim file ownership to prevent conflicts.
 
 **Requires a Pro or Forge license.**
 
@@ -1106,7 +1106,7 @@ await server.start();
 
 | Method                | Params                     | Returns                |
 | --------------------- | -------------------------- | ---------------------- |
-| `harness.list`        | —                          | `HarnessInfo[]`        |
+| `harness.list`        |  -                           | `HarnessInfo[]`        |
 | `harness.info`        | `{ harnessId }`            | `HarnessInfo`          |
 | `harness.execute`     | `{ harnessId, command }`   | `HarnessCommandResult` |
 | `harness.listRunning` | `{ harnessId }`            | `HarnessProcessInfo[]` |
@@ -1200,13 +1200,13 @@ app.post("/portal", createPortalLink);
 app.post("/webhooks/stripe", webhooks);
 ```
 
-**`createCheckoutSession`** — Creates a Stripe Checkout session. Expects `{ priceId, userId, successUrl, cancelUrl }` in the request body.
+**`createCheckoutSession`**  -  Creates a Stripe Checkout session. Expects `{ priceId, userId, successUrl, cancelUrl }` in the request body.
 
-**`createPortalLink`** — Returns a Stripe Customer Portal URL for subscription management. Expects `{ customerId, returnUrl }`.
+**`createPortalLink`**  -  Returns a Stripe Customer Portal URL for subscription management. Expects `{ customerId, returnUrl }`.
 
-**`webhooks`** — Handles `checkout.session.completed`, `customer.subscription.deleted`, and `customer.subscription.updated`. Verifies the Stripe webhook signature and updates the license record in the database.
+**`webhooks`**  -  Handles `checkout.session.completed`, `customer.subscription.deleted`, and `customer.subscription.updated`. Verifies the Stripe webhook signature and updates the license record in the database.
 
-**`createPaymentIntent`** — Creates a PaymentIntent for one-time charges.
+**`createPaymentIntent`**  -  Creates a PaymentIntent for one-time charges.
 
 ### Webhook environment
 
@@ -1290,7 +1290,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 # x402 Micropayments
 
-RevealUI Pro includes native support for the [x402 protocol](https://x402.org) — HTTP-402-based micropayments in USDC on Base. Agents and callers pay per-task without subscriptions or API keys.
+RevealUI Pro includes native support for the [x402 protocol](https://x402.org)  -  HTTP-402-based micropayments in USDC on Base. Agents and callers pay per-task without subscriptions or API keys.
 
 ## Overview
 
@@ -1356,12 +1356,12 @@ The SDK handles the full 402 → payment → retry cycle automatically.
 
 - Payment is verified by the [x402.org](https://x402.org) facilitator before any task is executed
 - Each `X-PAYMENT-PAYLOAD` is validated on-chain; replays are rejected
-- The receiving address is set server-side — callers cannot redirect payments
+- The receiving address is set server-side  -  callers cannot redirect payments
 
 ## Related
 
-- [MCP Marketplace](./MARKETPLACE.md) — per-server x402 pricing for community MCP servers
-- [AI agents](./AI.md) — A2A task dispatch with payment gating
+- [MCP Marketplace](./MARKETPLACE.md)  -  per-server x402 pricing for community MCP servers
+- [AI agents](./AI.md)  -  A2A task dispatch with payment gating
 - [Coinbase x402 SDK](https://github.com/coinbase/x402)
 
 ---
@@ -1375,7 +1375,7 @@ RevealUI offers four professional service engagements for teams that need hands-
 | **Architecture Review** | Codebase, schema, deployment, and security review (up to 50K LOC) | Written report within 5 business days |
 | **Migration Assist** | Migrate existing admin, database, or billing to RevealUI | Working migration with verified data integrity |
 | **Launch Package** | Zero to production in one week (setup, billing, deploy, onboarding) | Production-ready deployment within 5 business days |
-| **Consulting Hour** | One-on-one video call — pair programming, architecture, debugging | Session recording and written follow-up notes |
+| **Consulting Hour** | One-on-one video call  -  pair programming, architecture, debugging | Session recording and written follow-up notes |
 
 Contact: [services@revealui.com](mailto:services@revealui.com)
 
@@ -1383,7 +1383,7 @@ Contact: [services@revealui.com](mailto:services@revealui.com)
 
 # Perpetual Licenses
 
-All perpetual tiers are available for purchase. The full checkout flow is wired — webhook handler extends `supportExpiresAt` by one year on renewal.
+All perpetual tiers are available for purchase. The full checkout flow is wired  -  webhook handler extends `supportExpiresAt` by one year on renewal.
 
 RevealUI Pro is available as a **perpetual license** in addition to monthly/annual subscriptions. Buy once, use forever on a single production domain.
 
@@ -1432,7 +1432,7 @@ Forge licenses follow the same perpetual model but are scoped to self-hosted dep
 
 # MCP Marketplace
 
-The MCP Marketplace lets developers publish Model Context Protocol servers with per-call USDC pricing. RevealUI takes 20%; you earn 80%. Callers pay via x402 — no subscriptions, no API keys.
+The MCP Marketplace lets developers publish Model Context Protocol servers with per-call USDC pricing. RevealUI takes 20%; you earn 80%. Callers pay via x402  -  no subscriptions, no API keys.
 
 This is a full reference guide for both publishers and callers.
 
@@ -1466,7 +1466,7 @@ GET /.well-known/marketplace.json
 
 ---
 
-# Forge — Self-Hosted Deployment
+# Forge  -  Self-Hosted Deployment
 
 Forge is the enterprise tier of RevealUI. Deploy the entire stack on your own infrastructure with domain lock and unlimited users.
 

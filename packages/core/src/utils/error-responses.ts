@@ -54,7 +54,7 @@ export function createErrorResponseData(
     };
   }
 
-  // Unknown error — never expose raw error messages to clients
+  // Unknown error  -  never expose raw error messages to clients
   return {
     error: 'INTERNAL_ERROR',
     message: 'An unexpected error occurred',

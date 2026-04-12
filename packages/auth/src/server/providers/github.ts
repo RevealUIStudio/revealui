@@ -1,7 +1,7 @@
 /**
  * GitHub OAuth Provider
  *
- * Uses native fetch — no additional npm dependencies.
+ * Uses native fetch  -  no additional npm dependencies.
  * Scopes: read:user user:email
  *
  * Note: GitHub may return null email if user has set it private.
@@ -57,10 +57,10 @@ export async function exchangeCode(
       const err = (await response.json()) as { error_description?: string; error?: string };
       detail = err.error_description ?? err.error ?? '';
     } catch {
-      // Response body not JSON — use status only
+      // Response body not JSON  -  use status only
     }
     throw new Error(
-      `GitHub token exchange failed: ${response.status}${detail ? ` — ${detail}` : ''}`,
+      `GitHub token exchange failed: ${response.status}${detail ? `  -  ${detail}` : ''}`,
     );
   }
 
@@ -90,7 +90,7 @@ export async function fetchUser(accessToken: string): Promise<ProviderUser> {
       // Response body not JSON
     }
     throw new Error(
-      `GitHub user fetch failed: ${userResponse.status}${detail ? ` — ${detail}` : ''}`,
+      `GitHub user fetch failed: ${userResponse.status}${detail ? `  -  ${detail}` : ''}`,
     );
   }
 

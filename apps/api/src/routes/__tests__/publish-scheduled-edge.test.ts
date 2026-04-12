@@ -1,5 +1,5 @@
 /**
- * Publish Scheduled — Edge Case Tests
+ * Publish Scheduled  -  Edge Case Tests
  *
  * Supplements publish-scheduled.test.ts with:
  * - Partial failure behavior (no DB transactions → pages before failure stay published)
@@ -13,7 +13,7 @@ import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must come before route import
+// Mocks  -  must come before route import
 // ---------------------------------------------------------------------------
 
 vi.mock('@revealui/db/client', () => ({
@@ -82,8 +82,8 @@ beforeEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('POST /publish-scheduled — partial failure behavior (no DB transactions)', () => {
-  it('updates pages before the failing one (no rollback — loop is sequential)', async () => {
+describe('POST /publish-scheduled  -  partial failure behavior (no DB transactions)', () => {
+  it('updates pages before the failing one (no rollback  -  loop is sequential)', async () => {
     // The route publishes pages one-by-one in a loop with no transaction.
     // If update fails on page N, pages 1…N-1 are already persisted.
     const db = makeDb([
@@ -131,19 +131,19 @@ describe('POST /publish-scheduled — partial failure behavior (no DB transactio
     ]);
     db._updateChain.where
       .mockResolvedValueOnce(undefined) // page-1 succeeds
-      .mockRejectedValueOnce(new Error('DB error')); // page-2 fails — page-3 never reached
+      .mockRejectedValueOnce(new Error('DB error')); // page-2 fails  -  page-3 never reached
     mockedGetClient.mockReturnValue(db as never);
 
     const app = createApp();
     await app.request(makeRequest());
 
     // Only 2 update calls: page-1 + page-2 (which threw). page-3 was never attempted.
-    // This is intentional — the route does not retry or skip failed pages.
+    // This is intentional  -  the route does not retry or skip failed pages.
     expect(db.update).toHaveBeenCalledTimes(2);
   });
 });
 
-describe('POST /publish-scheduled — timestamp consistency', () => {
+describe('POST /publish-scheduled  -  timestamp consistency', () => {
   it('all pages in a batch share the same publishedAt timestamp', async () => {
     const scheduled = [
       { id: 'page-1', title: 'First' },
@@ -159,7 +159,7 @@ describe('POST /publish-scheduled — timestamp consistency', () => {
     const setCalls = db._updateChain.set.mock.calls;
     expect(setCalls).toHaveLength(3);
 
-    // All updates should use the same `now` Date object — route creates it once before the loop
+    // All updates should use the same `now` Date object  -  route creates it once before the loop
     const [first, second, third] = setCalls;
     const t0 = (first![0] as Record<string, unknown>).publishedAt as Date;
     const t1 = (second![0] as Record<string, unknown>).publishedAt as Date;
@@ -181,7 +181,7 @@ describe('POST /publish-scheduled — timestamp consistency', () => {
   });
 });
 
-describe('POST /publish-scheduled — db.update call correctness', () => {
+describe('POST /publish-scheduled  -  db.update call correctness', () => {
   it('calls db.update with pages table for every scheduled page', async () => {
     const db = makeDb([
       { id: 'page-a', title: 'Alpha' },
@@ -218,11 +218,11 @@ describe('POST /publish-scheduled — db.update call correctness', () => {
   });
 });
 
-describe('POST /publish-scheduled — auth edge cases', () => {
+describe('POST /publish-scheduled  -  auth edge cases', () => {
   it('returns 401 when REVEALUI_CRON_SECRET is an empty string', async () => {
     process.env.REVEALUI_CRON_SECRET = '';
     const app = createApp();
-    // Both provided and cronSecret are falsy — early auth check fails
+    // Both provided and cronSecret are falsy  -  early auth check fails
     const res = await app.request(makeRequest(''));
     expect(res.status).toBe(401);
   });
@@ -235,7 +235,7 @@ describe('POST /publish-scheduled — auth edge cases', () => {
   });
 
   it('returns 200 when both X-Cron-Secret variants match the same valid secret', async () => {
-    // HTTP headers are case-insensitive — X-Cron-Secret and x-cron-secret are
+    // HTTP headers are case-insensitive  -  X-Cron-Secret and x-cron-secret are
     // the same header. Sending both with the same value is a no-op; one wins.
     const db = makeDb([]);
     mockedGetClient.mockReturnValue(db as never);
@@ -244,7 +244,7 @@ describe('POST /publish-scheduled — auth edge cases', () => {
     const res = await app.request(
       new Request('http://localhost/publish-scheduled', {
         method: 'POST',
-        // Only one value possible — case-insensitive headers normalise to the same key
+        // Only one value possible  -  case-insensitive headers normalise to the same key
         headers: { 'X-Cron-Secret': VALID_SECRET },
       }),
     );

@@ -185,9 +185,9 @@ export class AuthorizationSystem {
     if (pattern === '*') return true;
     if (pattern === resource) return true;
 
-    // Convert glob pattern to regex
+    // Convert glob pattern to regex (escape backslashes first)
     const regex = new RegExp(
-      `^${pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
+      `^${pattern.replace(/\\/g, '\\\\').replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
     );
 
     return regex.test(resource);
@@ -200,9 +200,9 @@ export class AuthorizationSystem {
     if (pattern === '*') return true;
     if (pattern === action) return true;
 
-    // Support wildcards like "read:*"
+    // Support wildcards like "read:*" (escape backslashes first)
     const regex = new RegExp(
-      `^${pattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
+      `^${pattern.replace(/\\/g, '\\\\').replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.')}$`,
     );
 
     return regex.test(action);
@@ -300,7 +300,7 @@ export class AuthorizationSystem {
 export const authorization = new AuthorizationSystem();
 
 /**
- * Common roles — aligned with DB schema (`users.role` column)
+ * Common roles  -  aligned with DB schema (`users.role` column)
  * and `UserRoleSchema` in @revealui/contracts.
  *
  * Values: owner | admin | editor | viewer | agent | contributor
@@ -309,7 +309,7 @@ export const CommonRoles: Record<string, Role> = {
   owner: {
     id: 'owner',
     name: 'Owner',
-    description: 'Full control — inherits admin',
+    description: 'Full control  -  inherits admin',
     permissions: [{ resource: '*', action: '*' }],
     inherits: ['admin'],
   },
@@ -359,7 +359,7 @@ export const CommonRoles: Record<string, Role> = {
   contributor: {
     id: 'contributor',
     name: 'Contributor',
-    description: 'Can suggest changes — create drafts but not publish or delete',
+    description: 'Can suggest changes  -  create drafts but not publish or delete',
     permissions: [
       { resource: 'content', action: 'read' },
       { resource: 'content', action: 'create' },

@@ -35,7 +35,7 @@ import { DEFAULT_EMBEDDING_MODEL } from '@revealui/contracts/representation';
 import type { Database } from '@revealui/db/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Shared in-memory store for VectorMemoryService mock — must be hoisted so it's available
+// Shared in-memory store for VectorMemoryService mock  -  must be hoisted so it's available
 // when the vi.mock() factory runs (vi.mock is hoisted before module body).
 const { mockVectorStore } = vi.hoisted(() => ({
   mockVectorStore: new Map<string, AgentMemory>(),
@@ -185,7 +185,7 @@ function createMockDb(): Database {
     update: vi.fn(() => ({
       set: vi.fn((data: unknown) => ({
         where: vi.fn(() => {
-          // Update any context that matches — called by saveCompositeState on second save
+          // Update any context that matches  -  called by saveCompositeState on second save
           if (data && typeof data === 'object') {
             for (const key of Object.keys(contexts)) {
               contexts[key] = { ...contexts[key], ...(data as Record<string, unknown>) };

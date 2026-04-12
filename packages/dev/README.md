@@ -138,14 +138,14 @@ This package is named `dev` (unscoped) in the monorepo workspace. Use `dev/...` 
 - You're adding a new app or package to the monorepo and need shared Biome, TypeScript, or Tailwind config
 - You want consistent formatting and linting rules across all workspaces
 - You need a base Vite config with common aliases and build settings
-- **Not** for runtime configuration — use `@revealui/config` for environment variables
-- **Not** for editor-specific settings — use `@revealui/editors` for VS Code, Zed, and Cursor configs
+- **Not** for runtime configuration  -  use `@revealui/config` for environment variables
+- **Not** for editor-specific settings  -  use `@revealui/editors` for VS Code, Zed, and Cursor configs
 
 ## JOSHUA Alignment
 
 - **Unified**: One package defines formatting, linting, and TypeScript rules for every workspace in the monorepo
-- **Orthogonal**: Biome, Tailwind, Vite, and TypeScript configs are independent subpath exports — change one without affecting the others
-- **Justifiable**: Each config exists because the monorepo needs consistent defaults — no opinion without a reason
+- **Orthogonal**: Biome, Tailwind, Vite, and TypeScript configs are independent subpath exports  -  change one without affecting the others
+- **Justifiable**: Each config exists because the monorepo needs consistent defaults  -  no opinion without a reason
 
 ## Notes
 

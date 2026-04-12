@@ -1,6 +1,6 @@
 # @revealui/ai
 
-> **Commercial package** — requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
+> **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
 
 
 AI system for RevealUI - memory, LLM, orchestration, and tools.
@@ -309,7 +309,7 @@ Potential optimizations (not yet implemented):
 
 ## License
 
-Commercial — see [LICENSE.commercial](../../LICENSE.commercial)
+Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)
 
 ---
 

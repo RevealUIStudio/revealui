@@ -5,7 +5,7 @@
 
 import '@testing-library/jest-dom';
 
-// jsdom does not implement navigator.clipboard — install a global stub
+// jsdom does not implement navigator.clipboard  -  install a global stub
 // so components that call navigator.clipboard.writeText don't throw
 if (typeof navigator !== 'undefined') {
   Object.defineProperty(navigator, 'clipboard', {

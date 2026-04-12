@@ -50,7 +50,7 @@ export class EncryptionSystem {
         name: this.config.algorithm,
         length: this.config.keySize,
       },
-      this.config.extractable ?? false, // non-extractable by default — prevents key exfiltration
+      this.config.extractable ?? false, // non-extractable by default  -  prevents key exfiltration
       ['encrypt', 'decrypt'],
     );
 
@@ -77,7 +77,7 @@ export class EncryptionSystem {
         name: this.config.algorithm,
         length: this.config.keySize,
       },
-      this.config.extractable ?? false, // non-extractable by default — prevents key exfiltration
+      this.config.extractable ?? false, // non-extractable by default  -  prevents key exfiltration
       ['encrypt', 'decrypt'],
     );
 

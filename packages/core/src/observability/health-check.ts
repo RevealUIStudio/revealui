@@ -157,7 +157,7 @@ export function createDatabaseHealthCheck(queryFn: () => Promise<void>): HealthC
           },
         };
       } catch (error) {
-        // Surface the root cause — Drizzle wraps Neon errors with "Failed query: ..."
+        // Surface the root cause  -  Drizzle wraps Neon errors with "Failed query: ..."
         // but the actual HTTP/connection error is in .cause
         let message = error instanceof Error ? error.message : 'Database connection failed';
         if (error instanceof Error && error.cause instanceof Error) {

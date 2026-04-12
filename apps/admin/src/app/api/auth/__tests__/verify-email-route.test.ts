@@ -96,7 +96,7 @@ describe('GET /api/auth/verify-email', () => {
     expect((res as { url: string }).url).toContain('error=too_many_attempts');
   });
 
-  it('fails closed — redirects with error when rate limit check throws', async () => {
+  it('fails closed  -  redirects with error when rate limit check throws', async () => {
     mockCheckRateLimit.mockRejectedValue(new Error('Redis unavailable'));
 
     const GET = await loadRoute();

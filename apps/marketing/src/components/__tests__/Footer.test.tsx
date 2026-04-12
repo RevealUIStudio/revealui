@@ -45,11 +45,16 @@ describe('Footer', () => {
     const result = Footer();
     const html = JSON.stringify(result);
     expect(html).toContain('Product');
-    expect(html).toContain('Features');
+    expect(html).toContain('Products');
+    expect(html).toContain('/products');
+    expect(html).toContain('Services');
+    expect(html).toContain('/services');
+    expect(html).toContain('Marketplace');
+    expect(html).toContain('/marketplace');
     expect(html).toContain('/pricing');
     expect(html).toContain('Documentation');
-    expect(html).toContain('API Reference');
     expect(html).toContain('Blog');
+    expect(html).toContain('Roadmap');
   });
 
   it('contains Community section links', () => {

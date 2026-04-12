@@ -141,7 +141,7 @@ export function useSsh(options: UseSshOptions = {}) {
       const id = sessionIdRef.current;
       if (id) {
         sshDisconnect(id).catch(() => {
-          // Best-effort cleanup on unmount — nothing to handle
+          // Best-effort cleanup on unmount  -  nothing to handle
         });
       }
       unlistenOutputRef.current?.();

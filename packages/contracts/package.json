@@ -97,6 +97,10 @@
     "./content-validation": {
       "types": "./dist/content-validation.d.ts",
       "import": "./dist/content-validation.js"
+    },
+    "./security": {
+      "types": "./dist/security/index.d.ts",
+      "import": "./dist/security/index.js"
     }
   },
   "files": [
@@ -137,5 +141,10 @@
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/contracts"
+  },
+  "homepage": "https://revealui.com",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
   }
 }

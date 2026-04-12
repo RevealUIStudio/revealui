@@ -31,7 +31,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // Build the ElectricSQL URL with row-level filtering
-    // Filter by session_id — agent_contexts are scoped to the auth session
+    // Filter by session_id  -  agent_contexts are scoped to the auth session
     const originUrl = prepareElectricUrl(request.url);
     originUrl.searchParams.set('table', 'agent_contexts');
     // Validate session ID format before inlining

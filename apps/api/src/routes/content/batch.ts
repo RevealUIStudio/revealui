@@ -1,9 +1,9 @@
 /**
  * Batch operations for content collections.
  *
- * POST /api/content/batch/create — Create multiple items in one request
- * POST /api/content/batch/update — Update multiple items
- * POST /api/content/batch/delete — Delete multiple items
+ * POST /api/content/batch/create  -  Create multiple items in one request
+ * POST /api/content/batch/update  -  Update multiple items
+ * POST /api/content/batch/delete  -  Delete multiple items
  *
  * All operations are admin-only and rate-limited.
  * Max 100 items per batch request.

@@ -23,10 +23,10 @@ Run each command and confirm clean output:
 # 1. Biome lint + format
 pnpm lint
 
-# 2. TypeScript — all packages
+# 2. TypeScript  -  all packages
 pnpm typecheck:all
 
-# 3. Tests — affected packages
+# 3. Tests  -  affected packages
 pnpm --filter <package> test
 
 # 4. Quick gate (lint + typecheck + structure)
@@ -45,7 +45,7 @@ pnpm gate:quick
 - [ ] No \`console.*\` in production code (use \`@revealui/utils\` logger)
 - [ ] No hardcoded config values (use parameterization pattern)
 - [ ] No unused variables/imports (follow decision tree if flagged)
-- [ ] Single responsibility — each file does one thing
+- [ ] Single responsibility  -  each file does one thing
 
 ### Architecture
 - [ ] No Supabase imports outside permitted paths

@@ -21,7 +21,7 @@
  *   pnpm manage:docs reset
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import {
   existsSync,
   lstatSync,
@@ -54,7 +54,7 @@ async function validateDocs(): Promise<boolean> {
     }
 
     // Run comprehensive validator
-    const result = execSync(`tsx ${validatorPath}`, {
+    const result = execFileSync('tsx', [validatorPath], {
       encoding: 'utf8',
       stdio: 'pipe',
     });
@@ -167,7 +167,7 @@ async function organizeDocs(): Promise<void> {
         writeFileSync(gitkeep, '# This file keeps the directory in git\n', { flag: 'wx' });
         logger.info(`Created .gitkeep in ${folder}`);
       } catch {
-        // Already exists — ignore
+        // Already exists  -  ignore
       }
     }
   }
@@ -440,7 +440,7 @@ async function implementDocs(topic: string): Promise<void> {
     logger.info(`Archiving plan: ${archivePlan}`);
     renameSync(planFile, archivePlan);
   } catch {
-    // Plan file doesn't exist — nothing to archive
+    // Plan file doesn't exist  -  nothing to archive
   }
 
   logger.success(`Documentation implemented: ${targetFile}`);

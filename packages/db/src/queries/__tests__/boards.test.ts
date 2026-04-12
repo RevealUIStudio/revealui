@@ -14,7 +14,7 @@ import {
 } from '../boards.js';
 
 // ---------------------------------------------------------------------------
-// Mock helpers — chainable Drizzle query builders
+// Mock helpers  -  chainable Drizzle query builders
 // ---------------------------------------------------------------------------
 
 function createSelectChain(result: unknown[] = []) {

@@ -20,7 +20,7 @@ import { afterRead } from '../index.js';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-// biome-ignore lint/suspicious/noExplicitAny: test helper — minimal config shape
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal config shape
 function createCollectionConfig(fields: any[] = []) {
   return {
     slug: 'posts',

@@ -30,12 +30,12 @@ const licensePayloadSchema = z.object({
   /**
    * True for one-time perpetual purchases.
    * When set, the exp claim is omitted from the JWT and isLicensed() skips
-   * expiry checks — the license is valid as long as it hasn't been revoked.
+   * expiry checks  -  the license is valid as long as it hasn't been revoked.
    */
   perpetual: z.boolean().optional(),
   /** License issued-at timestamp */
   iat: z.number().optional(),
-  /** License expiration timestamp — absent for perpetual licenses */
+  /** License expiration timestamp  -  absent for perpetual licenses */
   exp: z.number().optional(),
 });
 
@@ -47,7 +47,7 @@ export interface LicenseCacheConfig {
   ttlMs: number;
 }
 
-const DEFAULT_TTL_MS = 15_000; // 15 seconds — revoked licenses lose access quickly
+const DEFAULT_TTL_MS = 15_000; // 15 seconds  -  revoked licenses lose access quickly
 
 const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
   ttlMs: (() => {
@@ -91,7 +91,7 @@ let cachedState: LicenseState = {
  */
 function getPublicKey(): string | null {
   const raw = process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? null;
-  // Docker/env files store PEM as single-line with literal \n — restore real newlines
+  // Docker/env files store PEM as single-line with literal \n  -  restore real newlines
   return raw ? raw.replace(/\\n/g, '\n') : null;
 }
 
@@ -234,7 +234,7 @@ export function isLicensed(requiredTier: LicenseTier): boolean {
   // Free tier is always available
   if (requiredTier === 'free') return true;
 
-  // Perpetual licenses never expire — skip the exp check entirely
+  // Perpetual licenses never expire  -  skip the exp check entirely
   if (!cachedState.payload?.perpetual && cachedState.payload?.exp) {
     const nowSeconds = Math.floor(Date.now() / 1000);
     if (cachedState.payload.exp < nowSeconds) {
@@ -281,7 +281,7 @@ export function getMaxAgentTasks(): number {
 
 /**
  * Generates a signed license key JWT.
- * This is a server-only function — requires the private key.
+ * This is a server-only function  -  requires the private key.
  *
  * @param payload - License payload (tier, customerId, limits, perpetual flag)
  * @param privateKey - RS256 private key (PEM format)

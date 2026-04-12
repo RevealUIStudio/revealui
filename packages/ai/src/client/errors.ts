@@ -1,7 +1,7 @@
 /**
  * Client-safe AI error classes.
  *
- * Lightweight errors for React hooks — no server-side dependencies.
+ * Lightweight errors for React hooks  -  no server-side dependencies.
  * Consumers can programmatically handle specific error types (retry on 429, redirect on 401).
  */
 

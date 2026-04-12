@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
  * GDPR Data Export Endpoint
  *
  * Returns all personally-identifiable data held for the authenticated user.
- * Requires session auth — users can only export their own data (admins can export any).
+ * Requires session auth  -  users can only export their own data (admins can export any).
  * Writes an audit entry on every successful export.
  */
 async function gdprExportHandler(request: NextRequest) {
@@ -31,7 +31,7 @@ async function gdprExportHandler(request: NextRequest) {
     const userIdStr = session.user.id;
 
     // -------------------------------------------------------------------------
-    // Fetch related records in parallel — partial failures are non-fatal; we
+    // Fetch related records in parallel  -  partial failures are non-fatal; we
     // include what we can and note any collection errors in the export.
     // -------------------------------------------------------------------------
     const [conversationsResult, ordersResult, subscriptionsResult] = await Promise.allSettled([

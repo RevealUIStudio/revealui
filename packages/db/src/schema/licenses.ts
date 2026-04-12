@@ -52,7 +52,7 @@ export const licenses = pgTable(
     /** When the license expires (null = never for perpetual licenses) */
     expiresAt: timestamp('expires_at', { withTimezone: true }),
 
-    /** True for one-time perpetual purchases — license never expires */
+    /** True for one-time perpetual purchases  -  license never expires */
     perpetual: boolean('perpetual').notNull().default(false),
 
     /** When annual support contract expires (perpetual only) */
@@ -64,7 +64,7 @@ export const licenses = pgTable(
     /** npm username for @revealui Pro package access provisioning */
     npmUsername: text('npm_username'),
 
-    /** Soft-delete — license records must never be hard-deleted for audit trail */
+    /** Soft-delete  -  license records must never be hard-deleted for audit trail */
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [

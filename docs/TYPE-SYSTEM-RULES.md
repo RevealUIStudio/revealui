@@ -10,7 +10,7 @@
 
 **ALL types MUST come from the `@revealui/contracts` system. Inline types and ad-hoc type definitions are prohibited.**
 
-This is not a guideline—it's a hard requirement enforced through code review and automated tooling.
+This is not a guideline - it's a hard requirement enforced through code review and automated tooling.
 
 ---
 

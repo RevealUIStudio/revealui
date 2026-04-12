@@ -57,7 +57,7 @@ export interface DecomposerConfig {
   maxSteps: number;
   /** Model name for tier classification */
   modelName: string;
-  /** Min complexity threshold — skip decomposition for simple tasks (default: 1) */
+  /** Min complexity threshold  -  skip decomposition for simple tasks (default: 1) */
   minComplexityForDecomposition: number;
 }
 
@@ -108,7 +108,7 @@ export function estimateComplexity(instruction: string): number {
   if (words > 100) score += 1;
 
   // Path/file references suggest multi-file work
-  const pathRefs = instruction.match(/[\w/.-]+\.\w{1,5}/g) ?? [];
+  const pathRefs = instruction.match(/[\w/]+(?:[.-][\w/]+)*\.\w{1,5}/g) ?? [];
   if (pathRefs.length > 1) score += pathRefs.length * 0.5;
 
   return Math.min(10, score);
@@ -176,7 +176,7 @@ export async function decomposeTask(
   }
 
   try {
-    // Use a focused planning prompt — keep it small for small models
+    // Use a focused planning prompt  -  keep it small for small models
     const planningInstruction = `${PLANNING_PROMPT}${instruction}`;
     const budget = getContextBudget(tier);
 
@@ -208,7 +208,7 @@ export async function decomposeTask(
       metadata: { planningTime: Date.now() - startTime, modelTier: tier },
     };
   } catch {
-    // Decomposition failed — fall back to single-step
+    // Decomposition failed  -  fall back to single-step
     return {
       decomposed: false,
       original: instruction,

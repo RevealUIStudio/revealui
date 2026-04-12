@@ -130,6 +130,6 @@ function backupIfExists(filePath: string): void {
       copyFileSync(filePath, `${filePath}.bak`);
     }
   } catch {
-    // Backup is best-effort — don't block the sync
+    // Backup is best-effort  -  don't block the sync
   }
 }

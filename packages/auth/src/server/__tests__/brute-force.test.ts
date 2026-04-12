@@ -333,7 +333,7 @@ describe('brute-force', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // Window expired — isAccountLocked properly handles window expiry:
+      // Window expired  -  isAccountLocked properly handles window expiry:
       const status = await isAccountLocked('user@test.com', config);
       expect(status.locked).toBe(false);
       expect(status.attemptsRemaining).toBe(5);

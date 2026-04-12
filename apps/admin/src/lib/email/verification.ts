@@ -58,7 +58,7 @@ If you didn't create this account, you can safely ignore this email.
 
   return sendEmail({
     to: email,
-    subject: 'Verify your email — RevealUI',
+    subject: 'Verify your email  -  RevealUI',
     html,
     text,
   });

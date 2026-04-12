@@ -85,7 +85,7 @@ const VALIDATION_RULES: ValidationRule[] = [
     required: false,
   },
 
-  // Documentation structure (flat — docs served at /docs/<FILE>.md by apps/docs)
+  // Documentation structure (flat  -  docs served at /docs/<FILE>.md by apps/docs)
   {
     path: 'docs',
     type: 'directory',
@@ -504,8 +504,8 @@ class StructureValidator {
     // Check package structure consistency
     console.log('\n🔍 Checking package structure consistency...');
     const packagesDir = 'packages';
-    // Packages exempt from src/ and __tests__ checks — thin wrappers or delegation-only packages
-    // scripts: flat layout (no src/) — moved from scripts/lib, predates src/ convention
+    // Packages exempt from src/ and __tests__ checks  -  thin wrappers or delegation-only packages
+    // scripts: flat layout (no src/)  -  moved from scripts/lib, predates src/ convention
     const srcExempt = new Set(['create-revealui', 'PACKAGE-CONVENTIONS.md', 'scripts']);
     if (existsSync(packagesDir)) {
       const packages = readdirSync(packagesDir).filter((item) =>
@@ -516,7 +516,7 @@ class StructureValidator {
         const pkgPath = join(packagesDir, pkg);
         const hasPackageJson = existsSync(join(pkgPath, 'package.json'));
 
-        // Skip directories without package.json — these are not packages
+        // Skip directories without package.json  -  these are not packages
         // (e.g. build artifacts from gitignored Pro packages before Fair Source migration)
         if (!hasPackageJson) continue;
 
@@ -574,13 +574,13 @@ class StructureValidator {
       // Use grep to find all TypeScript files with actual import statements for @supabase/supabase-js.
       // Match only import/from declarations (Biome enforces single quotes), not string literals
       // that merely mention the package name as documentation or test assertions.
-      // Exclude .claude/worktrees/ — those are agent sandbox directories, not production source.
+      // Exclude .claude/worktrees/  -  those are agent sandbox directories, not production source.
       output = execSync(
         `grep -r --include="*.ts" --include="*.tsx" --exclude-dir=".next" --exclude-dir="dist" --exclude-dir="node_modules" --exclude-dir=".turbo" --exclude-dir="worktrees" -l "from '@supabase/supabase-js" . 2>/dev/null || true`,
         { encoding: 'utf8', cwd: process.cwd() },
       );
     } catch {
-      // grep exits non-zero if no matches — that's fine
+      // grep exits non-zero if no matches  -  that's fine
       output = '';
     }
 
@@ -590,7 +590,7 @@ class StructureValidator {
       .filter(Boolean)
       // Normalize: strip leading ./
       .map((f) => f.replace(/^\.\//, ''))
-      // Only consider source code in packages/ and apps/ — exclude scripts (they contain
+      // Only consider source code in packages/ and apps/  -  exclude scripts (they contain
       // the pattern as string literals), dist, node_modules, and agent worktrees.
       .filter(
         (f) =>

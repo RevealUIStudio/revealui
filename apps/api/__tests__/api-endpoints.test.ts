@@ -297,7 +297,7 @@ describe('API Endpoints', () => {
   // =========================================================================
 
   describe('Boards API', () => {
-    it('GET /api/tickets/boards — list boards', async () => {
+    it('GET /api/tickets/boards  -  list boards', async () => {
       const res = await app.request('/api/tickets/boards');
       expect(res.status).toBe(200);
       const body = await res.json();
@@ -305,7 +305,7 @@ describe('API Endpoints', () => {
       expect(Array.isArray(body.data)).toBe(true);
     });
 
-    it('POST /api/tickets/boards — create board', async () => {
+    it('POST /api/tickets/boards  -  create board', async () => {
       const res = await app.request('/api/tickets/boards', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -316,14 +316,14 @@ describe('API Endpoints', () => {
       expect(body.success).toBe(true);
     });
 
-    it('GET /api/tickets/boards/:id — get board', async () => {
+    it('GET /api/tickets/boards/:id  -  get board', async () => {
       const res = await app.request('/api/tickets/boards/board-1');
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
     });
 
-    it('GET /api/tickets/boards/:id — 404 for missing board', async () => {
+    it('GET /api/tickets/boards/:id  -  404 for missing board', async () => {
       const res = await app.request('/api/tickets/boards/nonexistent');
       expect(res.status).toBe(404);
       const body = await res.json();
@@ -336,7 +336,7 @@ describe('API Endpoints', () => {
   // =========================================================================
 
   describe('Tickets API', () => {
-    it('GET /api/tickets/boards/:boardId/tickets — list tickets', async () => {
+    it('GET /api/tickets/boards/:boardId/tickets  -  list tickets', async () => {
       const res = await app.request('/api/tickets/boards/board-1/tickets');
       expect(res.status).toBe(200);
       const body = await res.json();
@@ -344,7 +344,7 @@ describe('API Endpoints', () => {
       expect(Array.isArray(body.data)).toBe(true);
     });
 
-    it('POST /api/tickets/boards/:boardId/tickets — create ticket', async () => {
+    it('POST /api/tickets/boards/:boardId/tickets  -  create ticket', async () => {
       const res = await app.request('/api/tickets/boards/board-1/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -355,21 +355,21 @@ describe('API Endpoints', () => {
       expect(body.success).toBe(true);
     });
 
-    it('GET /api/tickets/tickets/:id — get ticket', async () => {
+    it('GET /api/tickets/tickets/:id  -  get ticket', async () => {
       const res = await app.request('/api/tickets/tickets/ticket-1');
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
     });
 
-    it('GET /api/tickets/tickets/:id — 404 for missing ticket', async () => {
+    it('GET /api/tickets/tickets/:id  -  404 for missing ticket', async () => {
       const res = await app.request('/api/tickets/tickets/nonexistent');
       expect(res.status).toBe(404);
       const body = await res.json();
       expect(body.success).toBe(false);
     });
 
-    it('POST /api/tickets/tickets/:id/move — move ticket', async () => {
+    it('POST /api/tickets/tickets/:id/move  -  move ticket', async () => {
       const res = await app.request('/api/tickets/tickets/ticket-1/move', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -386,7 +386,7 @@ describe('API Endpoints', () => {
   // =========================================================================
 
   describe('Comments API', () => {
-    it('GET /api/tickets/tickets/:id/comments — list comments', async () => {
+    it('GET /api/tickets/tickets/:id/comments  -  list comments', async () => {
       const res = await app.request('/api/tickets/tickets/ticket-1/comments');
       expect(res.status).toBe(200);
       const body = await res.json();
@@ -394,7 +394,7 @@ describe('API Endpoints', () => {
       expect(Array.isArray(body.data)).toBe(true);
     });
 
-    it('POST /api/tickets/tickets/:id/comments — add comment', async () => {
+    it('POST /api/tickets/tickets/:id/comments  -  add comment', async () => {
       const res = await app.request('/api/tickets/tickets/ticket-1/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -411,7 +411,7 @@ describe('API Endpoints', () => {
   // =========================================================================
 
   describe('Labels API', () => {
-    it('GET /api/tickets/labels — list labels', async () => {
+    it('GET /api/tickets/labels  -  list labels', async () => {
       const res = await app.request('/api/tickets/labels');
       expect(res.status).toBe(200);
       const body = await res.json();
@@ -419,7 +419,7 @@ describe('API Endpoints', () => {
       expect(Array.isArray(body.data)).toBe(true);
     });
 
-    it('POST /api/tickets/labels — create label', async () => {
+    it('POST /api/tickets/labels  -  create label', async () => {
       const res = await app.request('/api/tickets/labels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -436,7 +436,7 @@ describe('API Endpoints', () => {
   // =========================================================================
 
   describe('Provenance API', () => {
-    it('GET /api/provenance — list provenance entries', async () => {
+    it('GET /api/provenance  -  list provenance entries', async () => {
       const res = await app.request('/api/provenance');
       expect(res.status).toBe(200);
       const body = await res.json();
@@ -444,14 +444,14 @@ describe('API Endpoints', () => {
       expect(Array.isArray(body.data)).toBe(true);
     });
 
-    it('GET /api/provenance?authorType=ai_generated — filter by author type', async () => {
+    it('GET /api/provenance?authorType=ai_generated  -  filter by author type', async () => {
       const res = await app.request('/api/provenance?authorType=ai_generated');
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
     });
 
-    it('POST /api/provenance — create provenance entry', async () => {
+    it('POST /api/provenance  -  create provenance entry', async () => {
       const res = await app.request('/api/provenance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -468,21 +468,21 @@ describe('API Endpoints', () => {
       expect(body.success).toBe(true);
     });
 
-    it('GET /api/provenance/:id — get provenance entry', async () => {
+    it('GET /api/provenance/:id  -  get provenance entry', async () => {
       const res = await app.request('/api/provenance/prov-1');
       expect(res.status).toBe(200);
       const body = await res.json();
       expect(body.success).toBe(true);
     });
 
-    it('GET /api/provenance/:id — 404 for missing entry', async () => {
+    it('GET /api/provenance/:id  -  404 for missing entry', async () => {
       const res = await app.request('/api/provenance/nonexistent');
       expect(res.status).toBe(404);
       const body = await res.json();
       expect(body.success).toBe(false);
     });
 
-    it('PATCH /api/provenance/:id — update provenance entry', async () => {
+    it('PATCH /api/provenance/:id  -  update provenance entry', async () => {
       const res = await app.request('/api/provenance/prov-1', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -493,7 +493,7 @@ describe('API Endpoints', () => {
       expect(body.success).toBe(true);
     });
 
-    it('DELETE /api/provenance/:id — delete provenance entry', async () => {
+    it('DELETE /api/provenance/:id  -  delete provenance entry', async () => {
       const res = await app.request('/api/provenance/prov-1', {
         method: 'DELETE',
       });
@@ -502,7 +502,7 @@ describe('API Endpoints', () => {
       expect(body.success).toBe(true);
     });
 
-    it('GET /api/provenance/stats — get aggregate statistics', async () => {
+    it('GET /api/provenance/stats  -  get aggregate statistics', async () => {
       const res = await app.request('/api/provenance/stats');
       expect(res.status).toBe(200);
       const body = await res.json();
@@ -511,7 +511,7 @@ describe('API Endpoints', () => {
       expect(body.data).toHaveProperty('byReviewStatus');
     });
 
-    it('POST /api/provenance/:id/review — add review', async () => {
+    it('POST /api/provenance/:id/review  -  add review', async () => {
       const res = await app.request('/api/provenance/prov-1/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -526,7 +526,7 @@ describe('API Endpoints', () => {
       expect(body.success).toBe(true);
     });
 
-    it('GET /api/provenance/:id/reviews — list reviews', async () => {
+    it('GET /api/provenance/:id/reviews  -  list reviews', async () => {
       const res = await app.request('/api/provenance/prov-1/reviews');
       expect(res.status).toBe(200);
       const body = await res.json();

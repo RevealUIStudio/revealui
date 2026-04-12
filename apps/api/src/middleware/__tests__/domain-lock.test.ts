@@ -25,7 +25,7 @@ async function importFresh() {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — domainLockMiddleware
+// Tests  -  domainLockMiddleware
 // ---------------------------------------------------------------------------
 describe('domainLockMiddleware', () => {
   const originalEnv = { ...process.env };
@@ -40,7 +40,7 @@ describe('domainLockMiddleware', () => {
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
-      // biome-ignore lint/suspicious/noExplicitAny: test helper — middleware type
+      // biome-ignore lint/suspicious/noExplicitAny: test helper  -  middleware type
       app.use('*', domainLockMiddleware() as any);
       app.get('/test', (c) => c.json({ ok: true }));
 
@@ -218,7 +218,7 @@ describe('domainLockMiddleware', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — validateForgeConfig
+// Tests  -  validateForgeConfig
 // ---------------------------------------------------------------------------
 describe('validateForgeConfig', () => {
   const originalEnv = { ...process.env };
@@ -264,7 +264,7 @@ describe('validateForgeConfig', () => {
     process.env.FORGE_LICENSE_KEY = 'key-123';
 
     const { validateForgeConfig } = await importFresh();
-    // '   '.trim() = '' — nullish coalescing (??) treats '' as valid (not null/undefined),
+    // '   '.trim() = ''  -  nullish coalescing (??) treats '' as valid (not null/undefined),
     // so isForgeMode = Boolean('') = false, and the function returns early.
     expect(() => validateForgeConfig()).not.toThrow();
   });

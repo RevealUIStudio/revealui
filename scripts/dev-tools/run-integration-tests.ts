@@ -15,7 +15,7 @@
  * - Environment: DATABASE_URL or POSTGRES_URL (test database connection)
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ErrorCode } from '@revealui/scripts/errors.js';
@@ -67,7 +67,7 @@ async function runIntegrationTests() {
     for (const packageName of testPackages) {
       logger.info(`Running tests for ${packageName}...`);
       try {
-        execSync(`pnpm --filter ${packageName} test`, {
+        execFileSync('pnpm', ['--filter', packageName, 'test'], {
           stdio: 'inherit',
           cwd: resolve(__dirname, '../..'),
           env: {

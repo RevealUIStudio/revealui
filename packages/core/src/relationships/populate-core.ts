@@ -1,5 +1,5 @@
 /**
- * Population Core — Pure Types & Utilities
+ * Population Core  -  Pure Types & Utilities
  *
  * This module contains types and pure utility functions for relationship
  * population that have NO imports from the afterRead chain, breaking the
@@ -108,6 +108,11 @@ export function updateDocumentWithPopulatedValue(args: {
 }): void {
   const { dataReference, field, relationshipValue, location } = args;
   const { index, key } = location;
+
+  // Prevent prototype pollution via crafted field names
+  if (field.name === '__proto__' || field.name === 'constructor' || field.name === 'prototype') {
+    return;
+  }
 
   // Case 1: Localized array field (has both index and key)
   if (typeof index === 'number' && typeof key === 'string') {

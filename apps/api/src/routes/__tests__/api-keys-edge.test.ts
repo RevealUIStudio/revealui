@@ -94,7 +94,7 @@ function createApp(user?: MockUser) {
   return app;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono generics vary per test
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono generics vary per test
 function jsonPost(app: Hono<any>, path: string, body: unknown) {
   return app.request(path, {
     method: 'POST',
@@ -140,7 +140,7 @@ describe('api-keys edge cases', () => {
     mockedGetClient.mockReturnValue(mockDb);
   });
 
-  describe('POST /api-keys — key validation', () => {
+  describe('POST /api-keys  -  key validation', () => {
     it('returns 400 with validation error when provider rejects the key', async () => {
       mockValidateProviderKey.mockResolvedValueOnce({
         valid: false,
@@ -159,7 +159,7 @@ describe('api-keys edge cases', () => {
     });
   });
 
-  describe('POST /api-keys — setAsDefault model field', () => {
+  describe('POST /api-keys  -  setAsDefault model field', () => {
     it('stores model in new provider config when setAsDefault is true', async () => {
       // mockSelectFrom returns empty → INSERT path (no existing config)
       const app = createApp(testUser);
@@ -196,7 +196,7 @@ describe('api-keys edge cases', () => {
     });
   });
 
-  describe('POST /api-keys — clear-previous-defaults sequence', () => {
+  describe('POST /api-keys  -  clear-previous-defaults sequence', () => {
     it('clears existing default (isDefault: false) before setting new default (isDefault: true)', async () => {
       // Return existing config so the UPDATE path is taken (not INSERT)
       mockSelectFrom.mockReturnValue({
@@ -226,7 +226,7 @@ describe('api-keys edge cases', () => {
     });
   });
 
-  describe('POST /api-keys — validateProviderKey network failure', () => {
+  describe('POST /api-keys  -  validateProviderKey network failure', () => {
     it('returns 500 when validateProviderKey throws (best-effort validation gap)', async () => {
       // Current behavior: the catch in the dynamic import only handles module-not-found,
       // not runtime throws from validateProviderKey itself. A network error bubbles as 500.
@@ -242,7 +242,7 @@ describe('api-keys edge cases', () => {
     });
   });
 
-  describe('POST /api-keys — label length boundary', () => {
+  describe('POST /api-keys  -  label length boundary', () => {
     it('accepts label of exactly 80 characters', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
@@ -264,7 +264,7 @@ describe('api-keys edge cases', () => {
     });
   });
 
-  describe('POST /api-keys — missing required fields', () => {
+  describe('POST /api-keys  -  missing required fields', () => {
     it('returns 400 when provider is missing', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
@@ -288,7 +288,7 @@ describe('api-keys edge cases', () => {
     });
   });
 
-  describe('POST /api-keys/:id/rotate — edge cases', () => {
+  describe('POST /api-keys/:id/rotate  -  edge cases', () => {
     it('returns 400 when apiKey is missing from rotate body', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys/key_abc/rotate', {});
@@ -304,7 +304,7 @@ describe('api-keys edge cases', () => {
     });
   });
 
-  describe('POST /api-keys — apiKey at exactly 8 characters (boundary at min)', () => {
+  describe('POST /api-keys  -  apiKey at exactly 8 characters (boundary at min)', () => {
     it('accepts apiKey of exactly 8 characters', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {
@@ -315,7 +315,7 @@ describe('api-keys edge cases', () => {
     });
   });
 
-  describe('POST /api-keys — label as empty string', () => {
+  describe('POST /api-keys  -  label as empty string', () => {
     it('accepts empty string label (optional field)', async () => {
       const app = createApp(testUser);
       const res = await jsonPost(app, '/api-keys', {

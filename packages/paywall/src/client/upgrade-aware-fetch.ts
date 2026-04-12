@@ -37,7 +37,7 @@ export function dispatchUpgradeEvent(detail: UpgradeEventDetail): void {
  * Fetch wrapper that intercepts 402 and 503 responses and dispatches
  * a `revealui:upgrade-required` custom event.
  *
- * The response is still returned to the caller — this wrapper only
+ * The response is still returned to the caller  -  this wrapper only
  * adds the side effect of notifying the upgrade dialog.
  *
  * Reads the feature name from the `x-paywall-feature` or

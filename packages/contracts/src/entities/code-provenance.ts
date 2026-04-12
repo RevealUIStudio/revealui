@@ -4,7 +4,7 @@
  * Tracks authorship (AI-generated, human-written, AI-assisted, mixed) and
  * review status of code at file/function granularity.
  *
- * Design: Value functions — pure functions that take data in and return
+ * Design: Value functions  -  pure functions that take data in and return
  * computed results. No side effects, easy to test, composable.
  *
  * Business Rules:
@@ -52,7 +52,7 @@ export const PROVENANCE_LIMITS = {
 } as const;
 
 // =============================================================================
-// Zod Schemas — Provenance
+// Zod Schemas  -  Provenance
 // =============================================================================
 
 export const ProvenanceObjectSchema = z.object({
@@ -91,7 +91,7 @@ export const ProvenanceInsertSchema = ProvenanceObjectSchema.omit({
 export type ProvenanceInsert = z.infer<typeof ProvenanceInsertSchema>;
 
 // =============================================================================
-// Zod Schemas — Code Review
+// Zod Schemas  -  Code Review
 // =============================================================================
 
 export const CodeReviewObjectSchema = z.object({
@@ -117,7 +117,7 @@ export const CodeReviewInsertSchema = CodeReviewObjectSchema.omit({
 export type CodeReviewInsert = z.infer<typeof CodeReviewInsertSchema>;
 
 // =============================================================================
-// Value Functions — Author Type Predicates
+// Value Functions  -  Author Type Predicates
 // =============================================================================
 
 export function isAiGenerated(entry: Provenance): boolean {
@@ -151,7 +151,7 @@ export function getAuthorTypeLabel(type: AuthorType): string {
 }
 
 // =============================================================================
-// Value Functions — Review Status Predicates
+// Value Functions  -  Review Status Predicates
 // =============================================================================
 
 export function isUnreviewed(entry: Provenance): boolean {
@@ -189,7 +189,7 @@ export function getReviewStatusLabel(status: ReviewStatus): string {
 }
 
 // =============================================================================
-// Value Functions — Confidence & Quality
+// Value Functions  -  Confidence & Quality
 // =============================================================================
 
 export function isHighConfidence(entry: Provenance): boolean {
@@ -207,7 +207,7 @@ export function getConfidenceLabel(entry: Provenance): string {
 }
 
 // =============================================================================
-// Value Functions — Time-based
+// Value Functions  -  Time-based
 // =============================================================================
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -238,7 +238,7 @@ export function isRecentlyReviewed(entry: Provenance): boolean {
 }
 
 // =============================================================================
-// Value Functions — Scope
+// Value Functions  -  Scope
 // =============================================================================
 
 export function isFileLevel(entry: Provenance): boolean {
@@ -267,7 +267,7 @@ export function hasAiModel(entry: Provenance): boolean {
 }
 
 // =============================================================================
-// Value Functions — Aggregation (operate on arrays)
+// Value Functions  -  Aggregation (operate on arrays)
 // =============================================================================
 
 export function calculateAiPercentage(entries: Provenance[]): number {

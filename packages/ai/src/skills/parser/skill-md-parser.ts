@@ -7,7 +7,7 @@
 import { type SkillMetadata, SkillMetadataSchema } from '../types.js';
 
 // ---------------------------------------------------------------------------
-// Minimal YAML parser/stringifier — replaces the `yaml` package.
+// Minimal YAML parser/stringifier  -  replaces the `yaml` package.
 // Handles the flat key-value + block-sequence subset used in SKILL.md files.
 // ---------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ function yamlParse(input: string): Record<string, unknown> {
       // Inline array: key: [a, b]  OR  block sequence (items follow indented with `- `)
       const peek = lines[i]?.trim() ?? '';
       if (peek.startsWith('[')) {
-        // inline — handled below on next iteration; should not happen in this branch
+        // inline  -  handled below on next iteration; should not happen in this branch
       }
       const items: string[] = [];
       while (i < lines.length) {

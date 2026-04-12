@@ -1,8 +1,8 @@
 /**
- * git_ops — Git operations wrapper (status, diff, log, blame)
+ * git_ops  -  Git operations wrapper (status, diff, log, blame)
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from '../base.js';
 import { getSafetyConfig } from './safety.js';
@@ -14,8 +14,7 @@ type GitOperation = (typeof GIT_OPERATIONS)[number];
 const MAX_OUTPUT = 50_000;
 
 function runGit(args: string[], cwd: string): string {
-  const cmd = `git ${args.join(' ')}`;
-  return execSync(cmd, {
+  return execFileSync('git', args, {
     cwd,
     timeout: 15_000,
     maxBuffer: MAX_OUTPUT,
@@ -23,7 +22,6 @@ function runGit(args: string[], cwd: string): string {
     env: {
       ...process.env,
       GIT_TERMINAL_PROMPT: '0',
-      // Prevent pager from blocking
       GIT_PAGER: 'cat',
     },
   }).trim();
@@ -33,7 +31,7 @@ export const gitOpsTool: Tool = {
   name: 'git_ops',
   label: 'Git Operations',
   description:
-    'Run read-only git operations: status, diff (summary), diff_full (full patch), log, blame, show, branch. Safe operations only — no push, commit, reset, or checkout.',
+    'Run read-only git operations: status, diff (summary), diff_full (full patch), log, blame, show, branch. Safe operations only  -  no push, commit, reset, or checkout.',
   parameters: z.object({
     operation: z.enum(GIT_OPERATIONS).describe('Git operation to perform'),
     args: z
@@ -74,7 +72,7 @@ export const gitOpsTool: Tool = {
           break;
 
         case 'diff_full':
-          // Full patch content for code review — hunks per file
+          // Full patch content for code review  -  hunks per file
           output = runGit(['diff', '--no-color', '-U3', ...args], config.projectRoot);
           break;
 

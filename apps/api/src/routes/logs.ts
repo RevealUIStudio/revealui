@@ -1,10 +1,10 @@
 /**
- * Log Ingestion Route — POST /api/logs
+ * Log Ingestion Route  -  POST /api/logs
  *
  * Accepts structured log entries from admin and other Next.js apps that cannot
  * import @revealui/db directly (Edge bundle constraints). Writes to app_logs table.
  *
- * No authentication required — internal-use endpoint, rate-limited.
+ * No authentication required  -  internal-use endpoint, rate-limited.
  * Only persists warn/error/fatal levels. Debug/info entries are dropped.
  */
 
@@ -14,7 +14,7 @@ import { createRoute, OpenAPIHono } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { z } from 'zod/v4';
 
-// Minimal stderr fallback — avoids importing the full logger bundle in this hot path
+// Minimal stderr fallback  -  avoids importing the full logger bundle in this hot path
 function logTransportError(err: unknown): void {
   process.stderr.write(
     `[log-ingest] failed to persist log entry: ${err instanceof Error ? err.message : String(err)}\n`,
@@ -61,13 +61,13 @@ const logRoute = createRoute({
     },
     403: {
       content: { 'application/json': { schema: ErrorSchema } },
-      description: 'Forbidden — missing or invalid X-Internal-Token',
+      description: 'Forbidden  -  missing or invalid X-Internal-Token',
     },
   },
 });
 
 app.openapi(logRoute, async (c) => {
-  // Verify shared secret — rejects requests not originating from trusted RevealUI apps
+  // Verify shared secret  -  rejects requests not originating from trusted RevealUI apps
   const { timingSafeEqual } = await import('node:crypto');
   const token = c.req.header('X-Internal-Token');
   const secret = process.env.REVEALUI_SECRET;
@@ -94,7 +94,7 @@ app.openapi(logRoute, async (c) => {
       data: payload.data ?? null,
     });
   })().catch((err: unknown) => {
-    // Fire-and-forget — never propagate log transport errors to callers,
+    // Fire-and-forget  -  never propagate log transport errors to callers,
     // but do record the failure so it surfaces in process monitoring.
     logTransportError(err);
   });

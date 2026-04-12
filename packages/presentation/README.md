@@ -1,16 +1,16 @@
 # @revealui/presentation
 
-50+ native UI components for RevealUI — built with React 19, Tailwind CSS v4, and CVA. Zero external UI library dependencies (only clsx + class-variance-authority).
+57 native UI components for RevealUI  -  built with React 19, Tailwind CSS v4, and CVA. Zero external UI library dependencies (only clsx + class-variance-authority).
 
 ## Features
 
-- **48 Components** — Forms, data display, feedback, navigation, media, and layout
-- **6 Primitives** — Low-level building blocks (Box, Flex, Grid, Heading, Text, Slot)
-- **14 Hooks** — Focus trap, click outside, popover, roving tabindex, scroll lock, and more
-- **Headless + Styled** — Many components ship both unstyled (headless) and styled (CVA) variants
-- **Accessible** — WCAG 2.1 patterns with proper ARIA attributes
-- **React 19** — Server components, hooks, and modern patterns
-- **Tailwind CSS v4** — Native v4 utility classes, no v3 compat layer
+- **57 Components**  -  Forms, data display, feedback, navigation, media, and layout
+- **6 Primitives**  -  Low-level building blocks (Box, Flex, Grid, Heading, Text, Slot)
+- **14 Hooks**  -  Focus trap, click outside, popover, roving tabindex, scroll lock, and more
+- **Headless + Styled**  -  Many components ship both unstyled (headless) and styled (CVA) variants
+- **Accessible**  -  WCAG 2.1 patterns with proper ARIA attributes
+- **React 19**  -  Server components, hooks, and modern patterns
+- **Tailwind CSS v4**  -  Native v4 utility classes, no v3 compat layer
 
 ## Installation
 
@@ -26,7 +26,7 @@ import { Box, Flex } from '@revealui/presentation/primitives'
 import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 ```
 
-## Components (48)
+## Components (57)
 
 ### Layout
 | Component | Description |
@@ -164,18 +164,18 @@ pnpm dev
 - You need accessible, styled UI components (buttons, forms, cards, dialogs) for a RevealUI app
 - You want headless + styled variants so you can choose between full control and quick defaults
 - You need React hooks for common UI patterns (focus trap, click outside, popover positioning)
-- **Not** for CMS admin UI — `@revealui/core/admin` provides the admin dashboard
-- **Not** for rich text editing — use `@revealui/core/richtext/client` (Lexical-based)
+- **Not** for CMS admin UI  -  `@revealui/core/admin` provides the admin dashboard
+- **Not** for rich text editing  -  use `@revealui/core/richtext/client` (Lexical-based)
 
 ## JOSHUA Alignment
 
-- **Sovereign**: Zero external UI library dependencies — only clsx and CVA, so you own every component
+- **Sovereign**: Zero external UI library dependencies  -  only clsx and CVA, so you own every component
 - **Orthogonal**: Components, primitives, and hooks are independent subpath exports with no cross-cutting entanglement
 - **Justifiable**: Every component ships headless and styled variants because different contexts need different levels of control
 
 ## Related
 
-- [Core Package](../core/README.md) — Runtime engine (uses presentation components)
+- [Core Package](../core/README.md)  -  Runtime engine (uses presentation components)
 - [Architecture Guide](../../docs/ARCHITECTURE.md)
 
 ## License

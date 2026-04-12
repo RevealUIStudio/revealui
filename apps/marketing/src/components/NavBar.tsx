@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 const navLinks = [
+  { label: 'Products', href: '/products' },
+  { label: 'Services', href: '/services' },
+  { label: 'Marketplace', href: '/marketplace' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'Docs', href: 'https://docs.revealui.com' },
   { label: 'Blog', href: '/blog' },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Contact', href: '/contact' },
 ];
 
 export function NavBar() {
@@ -57,7 +59,7 @@ export function NavBar() {
             <a href="https://admin.revealui.com/signup">Get Started</a>
           </ButtonCVA>
 
-          {/* Hamburger — mobile only */}
+          {/* Hamburger  -  mobile only */}
           <button
             type="button"
             className="sm:hidden -mr-1 flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 transition-colors"

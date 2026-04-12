@@ -98,7 +98,7 @@ export function requireMfa(
   return (request: MfaRequest): MfaCheckResult => {
     const session = request.session;
     if (!session) {
-      // No session — nothing to enforce (auth middleware handles this)
+      // No session  -  nothing to enforce (auth middleware handles this)
       return { allowed: true };
     }
 

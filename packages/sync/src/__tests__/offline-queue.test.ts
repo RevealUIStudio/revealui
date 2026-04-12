@@ -208,7 +208,7 @@ describe('OfflineMutationQueue', () => {
         throw new DOMException('QuotaExceededError');
       });
 
-      // Should not throw — silently drops the write.
+      // Should not throw  -  silently drops the write.
       expect(() => queue.enqueue(makeMutation())).not.toThrow();
     });
 

@@ -1,5 +1,5 @@
 /**
- * Circuit Breaker State Store — Pluggable backends for circuit breaker persistence.
+ * Circuit Breaker State Store  -  Pluggable backends for circuit breaker persistence.
  *
  * - InMemoryCircuitBreakerStore: Map-backed, single-instance (default)
  * - PGliteCircuitBreakerStore: SQL-backed via PGlite, persistent across restarts
@@ -79,7 +79,7 @@ export class InMemoryCircuitBreakerStore implements CircuitBreakerStore {
 // PGlite store (SQL-backed)
 // =============================================================================
 
-/** Minimal PGlite interface — avoids importing the full @electric-sql/pglite package. */
+/** Minimal PGlite interface  -  avoids importing the full @electric-sql/pglite package. */
 interface PGliteInstance {
   exec(query: string): Promise<unknown>;
   query<T = Record<string, unknown>>(query: string, params?: unknown[]): Promise<{ rows: T[] }>;

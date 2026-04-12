@@ -6,13 +6,13 @@
  * RevealUI takes 20%; developer earns 80% (paid out via Stripe Connect batch).
  *
  * Routes:
- *   GET  /api/marketplace/servers              — list active servers (public)
- *   GET  /api/marketplace/servers/:id          — single server detail (public)
- *   POST /api/marketplace/servers              — publish a server (auth required)
- *   DELETE /api/marketplace/servers/:id        — unpublish own server (auth required)
- *   POST /api/marketplace/servers/:id/invoke   — call through marketplace (x402 payment)
- *   POST /api/marketplace/connect/onboard      — start Stripe Connect (auth required)
- *   GET  /api/marketplace/connect/return       — Stripe Connect callback landing page
+ *   GET  /api/marketplace/servers               -  list active servers (public)
+ *   GET  /api/marketplace/servers/:id           -  single server detail (public)
+ *   POST /api/marketplace/servers               -  publish a server (auth required)
+ *   DELETE /api/marketplace/servers/:id         -  unpublish own server (auth required)
+ *   POST /api/marketplace/servers/:id/invoke    -  call through marketplace (x402 payment)
+ *   POST /api/marketplace/connect/onboard       -  start Stripe Connect (auth required)
+ *   GET  /api/marketplace/connect/return        -  Stripe Connect callback landing page
  */
 
 import { logger } from '@revealui/core/observability/logger';
@@ -173,7 +173,7 @@ const PublishServerSchema = z.object({
 // Public discovery endpoints
 // =============================================================================
 
-/** GET /api/marketplace/servers — list all active servers */
+/** GET /api/marketplace/servers  -  list all active servers */
 app.openapi(
   createRoute({
     method: 'get',
@@ -239,7 +239,7 @@ app.openapi(
   },
 );
 
-/** GET /api/marketplace/servers/:id — single server detail */
+/** GET /api/marketplace/servers/:id  -  single server detail */
 app.openapi(
   createRoute({
     method: 'get',
@@ -308,10 +308,10 @@ app.openapi(
 );
 
 // =============================================================================
-// Publish / manage — auth required
+// Publish / manage  -  auth required
 // =============================================================================
 
-/** POST /api/marketplace/servers — publish a new MCP server */
+/** POST /api/marketplace/servers  -  publish a new MCP server */
 app.openapi(
   createRoute({
     method: 'post',
@@ -369,7 +369,7 @@ app.openapi(
 
     const data = c.req.valid('json');
 
-    // SSRF guard — validate developer-supplied URL before storing
+    // SSRF guard  -  validate developer-supplied URL before storing
     try {
       assertUrlSafe(data.url);
     } catch (err) {
@@ -419,7 +419,7 @@ app.openapi(
   },
 );
 
-/** DELETE /api/marketplace/servers/:id — unpublish own server */
+/** DELETE /api/marketplace/servers/:id  -  unpublish own server */
 app.openapi(
   createRoute({
     method: 'delete',
@@ -507,7 +507,7 @@ app.openapi(
 );
 
 // =============================================================================
-// Invoke — x402 payment gate + HTTP proxy
+// Invoke  -  x402 payment gate + HTTP proxy
 // =============================================================================
 
 /**
@@ -605,7 +605,7 @@ app.openapi(
     const paymentHeader = c.req.header('X-PAYMENT-PAYLOAD');
 
     if (!paymentHeader) {
-      // No payment — return 402 with server-specific price requirements
+      // No payment  -  return 402 with server-specific price requirements
       const paymentRequired = buildPaymentRequired(resource, server.pricePerCallUsdc);
       const encoded = encodePaymentRequired(paymentRequired);
       return c.json(
@@ -677,7 +677,7 @@ app.openapi(
         signal: AbortSignal.timeout(30_000),
       });
     } catch (err) {
-      // Server unreachable or timed out — mark transaction failed (awaited, not fire-and-forget)
+      // Server unreachable or timed out  -  mark transaction failed (awaited, not fire-and-forget)
       try {
         await db
           .update(marketplaceTransactions)
@@ -728,13 +728,13 @@ app.openapi(
       }
     } catch (err) {
       logger.error(
-        'Marketplace post-call DB update failed — ledger may be inconsistent',
+        'Marketplace post-call DB update failed  -  ledger may be inconsistent',
         err instanceof Error ? err : undefined,
         { txId, serverId: id },
       );
     }
 
-    // Stripe transfer is best-effort — failures are logged at error level for admin review
+    // Stripe transfer is best-effort  -  failures are logged at error level for admin review
     try {
       if (callSucceeded && server.stripeAccountId) {
         const developerCents = Math.round(Number.parseFloat(split.developerAmount) * 100);
@@ -757,7 +757,7 @@ app.openapi(
       }
     } catch (err) {
       logger.error(
-        'Marketplace Stripe transfer failed — manual payout required',
+        'Marketplace Stripe transfer failed  -  manual payout required',
         err instanceof Error ? err : undefined,
         { txId, serverId: id, stripeAccountId: server.stripeAccountId },
       );
@@ -768,7 +768,7 @@ app.openapi(
 );
 
 // =============================================================================
-// Stripe Connect — developer onboarding
+// Stripe Connect  -  developer onboarding
 // =============================================================================
 
 /**

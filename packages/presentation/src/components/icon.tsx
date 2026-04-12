@@ -14,7 +14,7 @@ const sizeClasses: Record<IconSize, string> = {
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
   /** Icon size preset */
   size?: IconSize;
-  /** Accessible label — if omitted, icon is decorative (aria-hidden) */
+  /** Accessible label  -  if omitted, icon is decorative (aria-hidden) */
   label?: string;
 }
 

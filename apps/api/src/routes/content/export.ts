@@ -1,7 +1,7 @@
 /**
  * Data Export API
  *
- * GET /api/content/export/:collection — Export collection data as JSON or CSV
+ * GET /api/content/export/:collection  -  Export collection data as JSON or CSV
  *
  * Supported collections: posts, pages, users, sites, media
  * Query params:

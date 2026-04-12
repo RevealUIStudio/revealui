@@ -91,7 +91,7 @@ app.openapi(
       createdAt: Date | null;
     }> = [];
 
-    // plainto_tsquery is safe against injection — it treats input as plain text
+    // plainto_tsquery is safe against injection  -  it treats input as plain text
     const tsquery = sql`plainto_tsquery('english', ${q})`;
     let totalDocs = 0;
 

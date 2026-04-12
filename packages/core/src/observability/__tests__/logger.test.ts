@@ -75,7 +75,7 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-// sanitizeLogData — security-critical PII removal
+// sanitizeLogData  -  security-critical PII removal
 // ---------------------------------------------------------------------------
 describe('sanitizeLogData', () => {
   it('redacts password fields', () => {

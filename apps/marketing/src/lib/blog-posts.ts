@@ -42,7 +42,7 @@ const POST_METADATA: PostMeta[] = [
     slug: 'getting-started',
     title: 'From Zero to Production in 10 Minutes',
     excerpt:
-      'Build a complete business application with auth, content, and payments — faster than you can order lunch.',
+      'Build a complete business application with auth, content, and payments, faster than you can order lunch.',
     publishedAt: '2026-03-27T12:00:00.000Z',
     author: 'RevealUI Studio',
     file: '08-getting-started.md',
@@ -69,7 +69,7 @@ const POST_METADATA: PostMeta[] = [
     slug: 'five-primitives',
     title: 'The Five Primitives of Business Software',
     excerpt:
-      'A deep technical walkthrough of Users, Content, Products, Payments, and Intelligence — the building blocks every software company needs.',
+      'A deep technical walkthrough of Users, Content, Products, Payments, and Intelligence: the building blocks every software company needs.',
     publishedAt: '2026-03-24T12:00:00.000Z',
     author: 'RevealUI Studio',
     file: '05-five-primitives.md',
@@ -104,7 +104,7 @@ const POST_METADATA: PostMeta[] = [
   {
     slug: 'why-we-built-revealui',
     title: 'Why We Built RevealUI',
-    excerpt: 'The origin story — why another business runtime, and what makes RevealUI different.',
+    excerpt: 'The origin story: why another business runtime, and what makes RevealUI different.',
     publishedAt: '2026-03-20T12:00:00.000Z',
     author: 'RevealUI Studio',
     file: '01-why-we-built-revealui.md',

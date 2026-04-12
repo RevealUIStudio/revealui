@@ -621,7 +621,7 @@ describe('Access Control Tests', () => {
     it('should treat invalid tokens as unauthenticated (session-based auth)', async () => {
       const revealui = await getTestRevealUI();
 
-      // With session-based auth, invalid tokens in headers are ignored —
+      // With session-based auth, invalid tokens in headers are ignored  -
       // the request is treated as unauthenticated and returns public data.
       // JWT auth was removed in session 86.
       const result = await revealui.find({

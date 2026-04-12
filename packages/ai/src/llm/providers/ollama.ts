@@ -23,9 +23,9 @@ export interface OllamaProviderConfig extends Omit<LLMProviderConfig, 'apiKey'> 
   apiKey?: string;
   /** Defaults to http://localhost:11434/v1 */
   baseURL?: string;
-  /** Chat model. Defaults to gemma4:e2b — run `ollama pull gemma4:e2b` first */
+  /** Chat model. Defaults to gemma4:e2b  -  run `ollama pull gemma4:e2b` first */
   model?: string;
-  /** Embedding model. Defaults to nomic-embed-text — run `ollama pull nomic-embed-text` first */
+  /** Embedding model. Defaults to nomic-embed-text  -  run `ollama pull nomic-embed-text` first */
   embedModel?: string;
 }
 

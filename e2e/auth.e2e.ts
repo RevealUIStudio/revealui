@@ -17,9 +17,9 @@
  *     playwright test e2e/auth.e2e.ts --project=chromium
  *
  * Admin auth routes:
- *   /login          — sign in page (button: "Sign in")
- *   /signup         — create account (button: "Create account")
- *   /reset-password — request reset link (no ?token) or set new password (?token=...)
+ *   /login           -  sign in page (button: "Sign in")
+ *   /signup          -  create account (button: "Create account")
+ *   /reset-password  -  request reset link (no ?token) or set new password (?token=...)
  *
  * NOTE: The rate-limiting test at the bottom makes 6 failed login attempts which
  * triggers IP-based rate limiting for ~15 min. If you need to re-run sign-in tests
@@ -80,7 +80,7 @@ test.describe('Sign-up and sign-in flow', () => {
         timeout: 10000,
       });
     } catch {
-      // Signup failed — skip if rate-limited, otherwise re-throw
+      // Signup failed  -  skip if rate-limited, otherwise re-throw
       const rateLimited = await page
         .getByText(/too many|rate limit/i)
         .isVisible({ timeout: 500 })
@@ -89,7 +89,7 @@ test.describe('Sign-up and sign-in flow', () => {
         test.skip();
         return;
       }
-      throw new Error('Signup did not navigate away from /signup — check page for errors');
+      throw new Error('Signup did not navigate away from /signup  -  check page for errors');
     }
     expect(page.url()).not.toContain('/signup');
   });
@@ -172,7 +172,7 @@ test.describe('Sign-up and sign-in flow', () => {
     // Sign out via API endpoint (admin frontend has no sign-out button for viewer role)
     await page.request.post(`${ADMIN_BASE}/api/auth/sign-out`);
 
-    // Session should be cleared — /api/auth/me should return 401
+    // Session should be cleared  -  /api/auth/me should return 401
     const meRes = await page.request.get(`${ADMIN_BASE}/api/auth/me`);
     expect([401, 403]).toContain(meRes.status());
   });
@@ -234,7 +234,7 @@ test.describe('Password reset flow', () => {
         test.skip();
         return;
       }
-      throw new Error('Password reset form did not show success heading — check page for errors');
+      throw new Error('Password reset form did not show success heading  -  check page for errors');
     }
   });
 });

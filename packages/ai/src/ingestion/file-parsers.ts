@@ -1,7 +1,7 @@
 /**
  * File Parsers
  *
- * Zero external dependencies — pure Node.js + regex/string manipulation.
+ * Zero external dependencies  -  pure Node.js + regex/string manipulation.
  * PDF extraction uses a hand-rolled parser that reads text streams directly
  * from the binary PDF format (BT/ET blocks, Tj/TJ operators).
  */
@@ -41,14 +41,23 @@ export class MarkdownParser {
       // Strip frontmatter
       .replace(FRONTMATTER_RE, '')
       // Strip code fences (preserve content inside)
-      .replace(CODE_FENCE_RE, (m) => m.replace(/```\w*\n?/g, '').replace(/```/g, ''))
+      .replace(CODE_FENCE_RE, (m) => {
+        // Iteratively strip backtick sequences to handle nested/reconstructed cases
+        let result = m;
+        let prev: string;
+        do {
+          prev = result;
+          result = result.replace(/```\w*\n?/g, '');
+        } while (result !== prev);
+        return result;
+      })
       // Strip inline code backticks but keep content
       .replace(INLINE_CODE_RE, (m) => m.slice(1, -1))
       // Strip heading markers
       .replace(HEADING_RE, '')
-      // Unwrap bold/italic — keep inner text
+      // Unwrap bold/italic  -  keep inner text
       .replace(EMPHASIS_RE, '$1')
-      // Unwrap links — keep link text
+      // Unwrap links  -  keep link text
       .replace(LINK_RE, '$1')
       // Remove images entirely
       .replace(IMAGE_RE, '')
@@ -71,8 +80,8 @@ export class MarkdownParser {
 // HTML
 // =============================================================================
 
-const SCRIPT_STYLE_RE = /<(script|style)[^>]*>[\s\S]*?<\/\1>/gi;
-const HTML_COMMENT_RE = /<!--[\s\S]*?-->/g;
+const SCRIPT_STYLE_RE = /<(script|style)\b[^>]*>(?:[^<]|<(?!\/\1))*<\/\1>/gi;
+const HTML_COMMENT_RE = /<!--(?:[^-]|-(?!->))*-->/g;
 const HTML_ALL_TAGS_RE = /<[^>]+>/g;
 const HTML_ENTITIES: Record<string, string> = {
   '&amp;': '&',
@@ -92,10 +101,20 @@ function decodeEntities(text: string): string {
 
 export class HtmlParser {
   parse(input: string): ParseResult {
+    // Strip script/style tags iteratively to handle nested/malformed cases
+    let stripped = input;
+    let prev: string;
+    do {
+      prev = stripped;
+      stripped = stripped.replace(SCRIPT_STYLE_RE, '');
+    } while (stripped !== prev);
+    // Strip HTML comments iteratively
+    do {
+      prev = stripped;
+      stripped = stripped.replace(HTML_COMMENT_RE, '');
+    } while (stripped !== prev);
     const text = decodeEntities(
-      input
-        .replace(SCRIPT_STYLE_RE, '')
-        .replace(HTML_COMMENT_RE, '')
+      stripped
         .replace(HTML_ALL_TAGS_RE, ' ')
         .replace(/\r\n/g, '\n')
         .replace(/\r/g, '\n')
@@ -142,20 +161,20 @@ function decodePdfLiteral(raw: string): string {
 function extractTextFromBlock(block: string): string {
   const parts: string[] = [];
 
-  // Tj — show string: (text) Tj
-  const tjRe = /\(([^)]*(?:\\.[^)]*)*)\)\s*Tj/g;
+  // Tj  -  show string: (text) Tj
+  const tjRe = /\(((?:[^)\\]|\\.)*)\)\s*Tj/g;
   let m: RegExpExecArray | null;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex loop
   while ((m = tjRe.exec(block)) !== null) {
     if (m[1] !== undefined) parts.push(decodePdfLiteral(m[1]));
   }
 
-  // TJ — show array: [(t1)(t2) num …] TJ
+  // TJ  -  show array: [(t1)(t2) num …] TJ
   const tjArrayRe = /\[([^\]]*)\]\s*TJ/g;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex loop
   while ((m = tjArrayRe.exec(block)) !== null) {
     const inner = m[1] ?? '';
-    const strRe = /\(([^)]*(?:\\.[^)]*)*)\)/g;
+    const strRe = /\(((?:[^)\\]|\\.)*)\)/g;
     // biome-ignore lint/suspicious/noAssignInExpressions: standard regex loop
     while ((m = strRe.exec(inner)) !== null) {
       if (m[1] !== undefined) parts.push(decodePdfLiteral(m[1]));
@@ -163,7 +182,7 @@ function extractTextFromBlock(block: string): string {
   }
 
   // ' and " operators (move-to-next-line-then-show)
-  const quoteRe = /\(([^)]*(?:\\.[^)]*)*)\)\s*['"]/g;
+  const quoteRe = /\(((?:[^)\\]|\\.)*)\)\s*['"]/g;
   // biome-ignore lint/suspicious/noAssignInExpressions: standard regex loop
   while ((m = quoteRe.exec(block)) !== null) {
     if (m[1] !== undefined) parts.push(decodePdfLiteral(m[1]));
@@ -197,7 +216,7 @@ export class PdfParser {
     const src = input.toString('binary');
 
     // Extract all BT…ET text blocks
-    const btEtRe = /BT\s([\s\S]*?)\sET/g;
+    const btEtRe = /BT\s((?:[^E]|E(?!T\b))*)\sET/g;
     const blocks: string[] = [];
     let m: RegExpExecArray | null;
     // biome-ignore lint/suspicious/noAssignInExpressions: standard regex loop
@@ -217,7 +236,7 @@ export class PdfParser {
 
     // Document title from /Title (string) or /Title <hex>
     let title: string | undefined;
-    const titleMatch = /\/Title\s*\(([^)]*(?:\\.[^)]*)*)\)/.exec(src);
+    const titleMatch = /\/Title\s*\(((?:[^)\\]|\\.)*)\)/.exec(src);
     if (titleMatch) {
       title = decodePdfLiteral(titleMatch[1] ?? '').trim() || undefined;
     }
@@ -242,7 +261,7 @@ export class JsonParser {
       const parsed: unknown = JSON.parse(input);
       return { text: JSON.stringify(parsed, null, 2) };
     } catch {
-      // Not valid JSON — return as-is
+      // Not valid JSON  -  return as-is
       return { text: input.trim() };
     }
   }

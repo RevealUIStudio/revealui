@@ -14,7 +14,7 @@ import { type A2AAgentCard, agentDefinitionToCard } from '@revealui/contracts';
 // Built-in agent definitions
 // =============================================================================
 
-/** RevealUI platform meta-agent — "The Creator" */
+/** RevealUI platform meta-agent  -  "The Creator" */
 const THE_CREATOR_DEF: AgentDefinition = {
   id: 'revealui-creator',
   version: 1,
@@ -190,7 +190,7 @@ class AgentCardRegistry {
   }
 }
 
-/** Singleton registry — import and use directly */
+/** Singleton registry  -  import and use directly */
 export const agentCardRegistry = new AgentCardRegistry();
 
 export type { AgentDefinition };

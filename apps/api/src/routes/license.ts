@@ -115,7 +115,7 @@ const ErrorSchema = z.object({
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
-// POST /api/license/verify — Verify a license key and return tier + features
+// POST /api/license/verify  -  Verify a license key and return tier + features
 const verifyRoute = createRoute({
   method: 'post',
   path: '/verify',
@@ -208,7 +208,7 @@ app.openapi(verifyRoute, async (c) => {
     );
   }
 
-  // JWT is structurally valid — also check DB status to catch explicit revocations
+  // JWT is structurally valid  -  also check DB status to catch explicit revocations
   // (e.g., chargeback, refund, manual revoke) that may have occurred after the JWT
   // was issued but before its exp timestamp.
   let dbStatus: string | null = null;
@@ -229,7 +229,7 @@ app.openapi(verifyRoute, async (c) => {
       supportExpiresAt = row.supportExpiresAt;
     }
   } catch (err) {
-    logger.warn('Failed to check DB revocation status during verify — trusting JWT', {
+    logger.warn('Failed to check DB revocation status during verify  -  trusting JWT', {
       error: err instanceof Error ? err.message : 'unknown',
     });
   }
@@ -295,7 +295,7 @@ app.openapi(verifyRoute, async (c) => {
   );
 });
 
-// POST /api/license/generate — Admin-only: generate a new license key
+// POST /api/license/generate  -  Admin-only: generate a new license key
 const generateRoute = createRoute({
   method: 'post',
   path: '/generate',
@@ -327,7 +327,7 @@ const generateRoute = createRoute({
           schema: ErrorSchema,
         },
       },
-      description: 'Unauthorized — missing or invalid admin API key',
+      description: 'Unauthorized  -  missing or invalid admin API key',
     },
     500: {
       content: {
@@ -335,7 +335,7 @@ const generateRoute = createRoute({
           schema: ErrorSchema,
         },
       },
-      description: 'Server error — missing private key configuration',
+      description: 'Server error  -  missing private key configuration',
     },
   },
 });
@@ -350,7 +350,7 @@ app.openapi(generateRoute, async (c) => {
   }
   const a = Buffer.from(apiKey, 'utf-8');
   const b = Buffer.from(expectedKey, 'utf-8');
-  // Reject on length mismatch — admin API key length is not a secret
+  // Reject on length mismatch  -  admin API key length is not a secret
   if (a.length !== b.length) {
     throw new HTTPException(401, { message: 'Unauthorized' });
   }
@@ -390,7 +390,7 @@ app.openapi(generateRoute, async (c) => {
   );
 });
 
-// GET /api/license/features — Public: list features per tier
+// GET /api/license/features  -  Public: list features per tier
 const featuresRoute = createRoute({
   method: 'get',
   path: '/features',

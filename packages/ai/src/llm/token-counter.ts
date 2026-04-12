@@ -23,7 +23,7 @@ export interface CostEstimate {
   direction: 'input' | 'output';
 }
 
-// Cost per 1M tokens (USD) — input/output pricing
+// Cost per 1M tokens (USD)  -  input/output pricing
 const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   // Anthropic
   'claude-opus-4-6': { input: 15.0, output: 75.0 },
@@ -32,9 +32,9 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   // OpenAI
   'gpt-4o': { input: 5.0, output: 15.0 },
   'gpt-4o-mini': { input: 0.15, output: 0.6 },
-  // Groq (Qwen — Apache 2.0)
+  // Groq (Qwen  -  Apache 2.0)
   'qwen/qwen3-32b': { input: 0.59, output: 0.79 },
-  // Ollama (self-hosted — no cost)
+  // Ollama (self-hosted  -  no cost)
   'gemma4:e2b': { input: 0, output: 0 },
   'gemma4:e4b': { input: 0, output: 0 },
   'gemma4:26b': { input: 0, output: 0 },

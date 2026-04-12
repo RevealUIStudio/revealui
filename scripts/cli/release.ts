@@ -169,7 +169,7 @@ class ReleaseCLI extends ExecutingCLI {
   }
 
   /**
-   * Show changeset status — what would be released on next publish.
+   * Show changeset status  -  what would be released on next publish.
    * Replaces: pnpm changeset status (surfaced as a release subcommand)
    */
   private async showStatus(_args: ParsedArgs) {
@@ -185,7 +185,7 @@ class ReleaseCLI extends ExecutingCLI {
   }
 
   /**
-   * Full OSS release flow — replaces GitHub Actions release.yml + changesets/action.
+   * Full OSS release flow  -  replaces GitHub Actions release.yml + changesets/action.
    *
    * Steps:
    *   1. Confirm changesets exist
@@ -201,7 +201,7 @@ class ReleaseCLI extends ExecutingCLI {
     const isDryRun = Boolean(args['dry-run']);
 
     if (isDryRun) {
-      console.log('\n[dry-run] OSS release — steps 4–6 will be skipped\n');
+      console.log('\n[dry-run] OSS release  -  steps 4–6 will be skipped\n');
     }
 
     // Step 1: Confirm pending changesets
@@ -234,12 +234,12 @@ class ReleaseCLI extends ExecutingCLI {
       timeout: 900000,
     });
     if (!buildResult.success) {
-      return fail('Build failed — fix errors before publishing', ErrorCode.EXECUTION_ERROR);
+      return fail('Build failed  -  fix errors before publishing', ErrorCode.EXECUTION_ERROR);
     }
 
     if (isDryRun) {
       console.log('\n[dry-run] Skipping publish, GitHub releases, and git push.');
-      return ok({ message: 'Dry run complete — no packages published', dryRun: true });
+      return ok({ message: 'Dry run complete  -  no packages published', dryRun: true });
     }
 
     // Step 4: Publish to npm, capture published packages from output
@@ -296,7 +296,7 @@ class ReleaseCLI extends ExecutingCLI {
    * Publish Pro packages to npmjs.org (public, open-core model).
    *
    * Pro packages are source-available and publicly installable.
-   * A license key is required for production use — enforced at runtime.
+   * A license key is required for production use  -  enforced at runtime.
    *
    * Prerequisites:
    *   1. Remove "private": true from the 5 Pro package.json files
@@ -311,7 +311,7 @@ class ReleaseCLI extends ExecutingCLI {
     const { join } = await import('node:path');
 
     if (isDryRun) {
-      console.log('\n[dry-run] Pro release — publish commands will include --dry-run\n');
+      console.log('\n[dry-run] Pro release  -  publish commands will include --dry-run\n');
     }
 
     // Prerequisite check: verify "private": true has been removed
@@ -373,7 +373,7 @@ class ReleaseCLI extends ExecutingCLI {
 
     return ok({
       message: isDryRun
-        ? 'Pro dry-run complete — no packages published'
+        ? 'Pro dry-run complete  -  no packages published'
         : 'Pro packages published to npm (open-core, runtime-licensed)',
       packages: ProPackages.map((p) => `@revealui/${p}`),
       dryRun: isDryRun,

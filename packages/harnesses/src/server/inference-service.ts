@@ -39,10 +39,10 @@ export interface SnapModel {
 // ── Configuration ───────────────────────────────────────────────────
 
 const KNOWN_SNAPS: Array<[string, string]> = [
-  ['nemotron-3-nano', 'General (reasoning + non-reasoning) — free tier default'],
-  ['gemma3', 'General + vision — image understanding, multimodal'],
-  ['deepseek-r1', 'Reasoning — complex analysis, chain-of-thought'],
-  ['qwen-vl', 'Vision-language — document parsing, visual Q&A'],
+  ['nemotron-3-nano', 'General (reasoning + non-reasoning)  -  free tier default'],
+  ['gemma3', 'General + vision  -  image understanding, multimodal'],
+  ['deepseek-r1', 'Reasoning  -  complex analysis, chain-of-thought'],
+  ['qwen-vl', 'Vision-language  -  document parsing, visual Q&A'],
 ];
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -56,7 +56,13 @@ async function commandExists(cmd: string): Promise<boolean> {
   }
 }
 
+/** Allowlist of commands that run() may execute */
+const ALLOWED_COMMANDS = new Set(['ollama', 'snap', 'pkill', 'which']);
+
 async function run(cmd: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
+  if (!ALLOWED_COMMANDS.has(cmd)) {
+    throw new Error(`Command not allowed: ${cmd}`);
+  }
   return execFileAsync(cmd, args, { timeout: 30_000 });
 }
 
@@ -78,7 +84,7 @@ export class InferenceService {
       const { stdout } = await run('ollama', ['--version']);
       version = stdout.trim() || null;
     } catch {
-      // version check failed — binary may exist but be broken
+      // version check failed  -  binary may exist but be broken
     }
 
     let running = false;
@@ -114,6 +120,10 @@ export class InferenceService {
   }
 
   async ollamaPull(modelName: string): Promise<ModelPullResult> {
+    // Validate model name format (alphanumeric, colons, slashes, dots, hyphens)
+    if (!/^[\w./:@-]+$/.test(modelName)) {
+      return { success: false, message: `Invalid model name: ${modelName}` };
+    }
     try {
       const { stdout, stderr } = await execFileAsync('ollama', ['pull', modelName], {
         timeout: 600_000, // 10 min for large models
@@ -125,6 +135,9 @@ export class InferenceService {
   }
 
   async ollamaDelete(modelName: string): Promise<void> {
+    if (!/^[\w./:@-]+$/.test(modelName)) {
+      throw new Error(`Invalid model name: ${modelName}`);
+    }
     await run('ollama', ['rm', modelName]);
   }
 
@@ -142,7 +155,7 @@ export class InferenceService {
     try {
       await run('pkill', ['-f', 'ollama serve']);
     } catch {
-      // pkill exit 1 = no processes matched — that's fine
+      // pkill exit 1 = no processes matched  -  that's fine
     }
   }
 
@@ -164,6 +177,10 @@ export class InferenceService {
   }
 
   async snapStatus(snapName: string): Promise<SnapStatus> {
+    // Validate snap name against allowlist to prevent arbitrary command execution
+    const known = KNOWN_SNAPS.some(([name]) => name === snapName);
+    if (!known) throw new Error(`Unknown inference snap: ${snapName}`);
+
     let installed = false;
     let version: string | null = null;
 

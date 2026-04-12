@@ -1,6 +1,6 @@
 /**
  * Supplemental invalidation-channel tests covering start/stop lifecycle and
- * applyEvent error handling — branches not exercised by the primary suite.
+ * applyEvent error handling  -  branches not exercised by the primary suite.
  *
  * Uses PGlite in-memory mode; skipped when @electric-sql/pglite is absent.
  */
@@ -28,7 +28,7 @@ if (pgliteAvailable) {
 
   // ─── start / stop lifecycle ─────────────────────────────────────────────
 
-  describe('CacheInvalidationChannel — start/stop lifecycle', () => {
+  describe('CacheInvalidationChannel  -  start/stop lifecycle', () => {
     let store: InMemoryCacheStore;
     let channel: CacheInvalidationChannel;
 
@@ -109,7 +109,7 @@ if (pgliteAvailable) {
 
   // ─── applyEvent error handling ──────────────────────────────────────────
 
-  describe('CacheInvalidationChannel — applyEvent errors are logged', () => {
+  describe('CacheInvalidationChannel  -  applyEvent errors are logged', () => {
     let storeA: InMemoryCacheStore;
     let storeB: InMemoryCacheStore;
     let channelA: CacheInvalidationChannel;
@@ -161,7 +161,7 @@ if (pgliteAvailable) {
     });
   });
 } else {
-  describe.skip('CacheInvalidationChannel supplemental (skipped — @electric-sql/pglite not available)', () => {
+  describe.skip('CacheInvalidationChannel supplemental (skipped  -  @electric-sql/pglite not available)', () => {
     it('placeholder', () => {});
   });
 }

@@ -2,13 +2,13 @@
  * MCP Marketplace route tests (Phase 5.5)
  *
  * Comprehensive Hono endpoint tests covering:
- *   GET  /servers              — list active servers (public, no auth)
- *   GET  /servers/:id          — single server detail (public)
- *   POST /servers              — publish a new server (auth required)
- *   DELETE /servers/:id        — unpublish own server (auth required)
- *   POST /servers/:id/invoke   — x402 payment gate + proxy
- *   POST /connect/onboard      — Stripe Connect onboarding (auth required)
- *   GET  /connect/return       — Stripe Connect return callback
+ *   GET  /servers               -  list active servers (public, no auth)
+ *   GET  /servers/:id           -  single server detail (public)
+ *   POST /servers               -  publish a new server (auth required)
+ *   DELETE /servers/:id         -  unpublish own server (auth required)
+ *   POST /servers/:id/invoke    -  x402 payment gate + proxy
+ *   POST /connect/onboard       -  Stripe Connect onboarding (auth required)
+ *   GET  /connect/return        -  Stripe Connect return callback
  *
  * All external dependencies are fully mocked. Tests exercise the actual
  * Hono route handlers via app.request().
@@ -49,7 +49,7 @@ const {
     mockStripeAccountsCreate: _accountsCreate,
     mockStripeAccountLinksCreate: _accountLinksCreate,
     mockStripeTransfersCreate: _transfersCreate,
-    // Must use function() — arrow functions cannot be called with `new`
+    // Must use function()  -  arrow functions cannot be called with `new`
     mockStripeConstructor: vi.fn().mockImplementation(function (this: unknown) {
       return {
         accounts: { create: _accountsCreate },
@@ -309,7 +309,7 @@ function resetMocks() {
   mockVerifyPayment.mockResolvedValue({ valid: true });
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shapes vary per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shapes vary per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }

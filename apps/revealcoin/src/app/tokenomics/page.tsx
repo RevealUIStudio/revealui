@@ -6,7 +6,7 @@ import { TokenomicsChart } from '@/components/TokenomicsChart';
 import { VestingTracker } from '@/components/VestingTracker';
 
 export const metadata: Metadata = {
-  title: 'Tokenomics — RevealCoin',
+  title: 'Tokenomics  -  RevealCoin',
   description:
     'Distribution, vesting schedules, emission rates, and discount structure for RevealCoin (RVC).',
 };
@@ -24,7 +24,7 @@ export default function TokenomicsPage() {
               Distribution & Economics
             </h1>
             <p className="mt-4 text-lg leading-8 text-gray-600">
-              58,906,000,000 RVC — fixed supply, no inflation, transparent allocation.
+              58,906,000,000 RVC - fixed supply, no inflation, transparent allocation.
             </p>
           </div>
 

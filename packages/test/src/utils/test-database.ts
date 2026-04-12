@@ -48,7 +48,7 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
       return base.query(converted, values);
     },
     async transaction(callback: (syncQuery?: unknown) => void | Promise<void>) {
-      // Basic transaction wrapper — begin/commit/rollback
+      // Basic transaction wrapper  -  begin/commit/rollback
       await base.query('BEGIN', []);
       try {
         await callback();

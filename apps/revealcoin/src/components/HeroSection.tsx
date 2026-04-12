@@ -55,14 +55,14 @@ export function HeroSection() {
           The native token of the RevealUI ecosystem.
         </p>
         <p className="mx-auto mt-3 max-w-2xl text-lg leading-8 text-gray-500">
-          Utility payments, governance voting, and ecosystem rewards &mdash; built on Solana
-          Token-2022 with {TOTAL_SUPPLY_DISPLAY} fixed supply.
+          Utility payments, governance voting, and ecosystem rewards - built on Solana Token-2022
+          with {TOTAL_SUPPLY_DISPLAY} fixed supply.
         </p>
 
         {/* Supply symbolism */}
         <div className="mt-6 inline-flex items-center gap-3 rounded-xl bg-gray-950 px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-white/10">
           <span className="text-violet-400">58,906,000,000</span>
-          <span className="text-gray-500">&mdash;</span>
+          <span className="text-gray-500"> - </span>
           <span className="text-gray-300">US currency in circulation, August 14, 1971</span>
         </div>
 

@@ -27,7 +27,7 @@ interface UseOfflineCacheOptions {
 }
 
 interface UseOfflineCacheResult<T> {
-  /** The current data — live from the shape when online, cached when offline. */
+  /** The current data  -  live from the shape when online, cached when offline. */
   data: T[];
   /** Whether the browser has network connectivity. */
   isOnline: boolean;
@@ -102,7 +102,7 @@ function writeCache<T>(cacheKey: string, data: T[]): void {
     };
     window.localStorage.setItem(CACHE_PREFIX + cacheKey, JSON.stringify(payload));
   } catch {
-    // Quota exceeded or private browsing — drop silently.
+    // Quota exceeded or private browsing  -  drop silently.
   }
 }
 
@@ -119,7 +119,7 @@ export function useOfflineCache<T>(options: UseOfflineCacheOptions): UseOfflineC
   const { shapeUrl, cacheKey, ttlSeconds = DEFAULT_TTL_SECONDS } = options;
   const { isOnline } = useOnlineStatus();
 
-  // Shape subscription — runs continuously; ElectricSQL handles reconnection.
+  // Shape subscription  -  runs continuously; ElectricSQL handles reconnection.
   const shape = useShape({ url: shapeUrl, fetchClient: fetchWithTimeout });
 
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
@@ -153,7 +153,7 @@ export function useOfflineCache<T>(options: UseOfflineCacheOptions): UseOfflineC
     };
   }
 
-  // Offline or shape has not loaded yet — try the cache.
+  // Offline or shape has not loaded yet  -  try the cache.
   const cached = readCache<T>(cacheKey, ttlSeconds);
   const cachedSyncDate = cached !== null ? new Date(cached.cachedAt) : null;
 

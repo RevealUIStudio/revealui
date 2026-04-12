@@ -56,7 +56,7 @@ describe('Brute force concurrent recording', () => {
     // Record 8 failures concurrently
     await Promise.all(Array.from({ length: 8 }, () => recordFailedAttempt(email, config)));
 
-    // Check lock status — should have 8 attempts recorded
+    // Check lock status  -  should have 8 attempts recorded
     const status = await isAccountLocked(email, config);
     expect(status.locked).toBe(false);
     // All 8 attempts should have been counted (atomicUpdate ensures this)
@@ -148,7 +148,7 @@ describe('Rate limit concurrent checks', () => {
     const key = 'api:race';
     const config = { maxAttempts: 5, windowMs: 60_000 };
 
-    // Fire 5 concurrent checks — checkRateLimit now uses atomicUpdate,
+    // Fire 5 concurrent checks  -  checkRateLimit now uses atomicUpdate,
     // so all 5 increments are counted without lost updates.
     const results = await Promise.all(Array.from({ length: 5 }, () => checkRateLimit(key, config)));
 
@@ -156,7 +156,7 @@ describe('Rate limit concurrent checks', () => {
     const allowed = results.filter((r) => r.allowed).length;
     expect(allowed).toBe(5);
 
-    // The 6th should be denied — all 5 previous requests were counted
+    // The 6th should be denied  -  all 5 previous requests were counted
     const overflow = await checkRateLimit(key, config);
     expect(overflow.allowed).toBe(false);
     expect(overflow.remaining).toBe(0);
@@ -257,7 +257,7 @@ describe('InMemoryStorage atomicUpdate concurrency', () => {
 
     const results = await Promise.all(increments);
 
-    // All 10 increments should be counted — each returns a unique value 1..10
+    // All 10 increments should be counted  -  each returns a unique value 1..10
     const sorted = [...results].sort((a, b) => a - b);
     expect(sorted).toEqual(Array.from({ length: 10 }, (_, i) => i + 1));
 

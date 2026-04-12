@@ -15,11 +15,11 @@ import { eq } from 'drizzle-orm';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 const [embeddingsModule, persistenceModule, storesModule] = await Promise.all([
-  // @ts-expect-error — Pro package, types only available in private repo
+  // @ts-expect-error  -  Pro package, types only available in private repo
   import('@revealui/ai/embeddings').catch(() => null),
-  // @ts-expect-error — Pro package, types only available in private repo
+  // @ts-expect-error  -  Pro package, types only available in private repo
   import('@revealui/ai/memory/persistence').catch(() => null),
-  // @ts-expect-error — Pro package, types only available in private repo
+  // @ts-expect-error  -  Pro package, types only available in private repo
   import('@revealui/ai/memory/stores').catch(() => null),
 ]);
 const describeIfPro =

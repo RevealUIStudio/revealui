@@ -1,7 +1,7 @@
 {
   "name": "@revealui/paywall",
   "version": "0.1.1",
-  "description": "Runtime license enforcement, feature gating, and upgrade UI for SaaS applications",
+  "description": "Runtime license enforcement, feature gating, and upgrade UI for software products",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -81,5 +81,18 @@
     "typecheck": "tsc --noEmit"
   },
   "type": "module",
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "homepage": "https://revealui.com",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
+  },
+  "keywords": [
+    "revealui",
+    "paywall",
+    "billing",
+    "stripe",
+    "subscriptions",
+    "licensing"
+  ]
 }

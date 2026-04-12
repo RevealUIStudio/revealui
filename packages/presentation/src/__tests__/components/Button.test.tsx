@@ -6,7 +6,7 @@
  *
  * The component is built with CVA (class-variance-authority) + Tailwind.
  * Tests verify rendered HTML structure, variant/size classes, accessibility,
- * and event handling — all against the real implementation.
+ * and event handling  -  all against the real implementation.
  */
 
 import { render, screen } from '@testing-library/react';
@@ -80,7 +80,7 @@ describe('Button', () => {
 
     it('has disabled styles via CSS (pointer-events-none when disabled)', () => {
       render(<Button>Base</Button>);
-      // disabled:pointer-events-none is applied via Tailwind — verify the class exists
+      // disabled:pointer-events-none is applied via Tailwind  -  verify the class exists
       // on the element (Tailwind generates it as a modifier, not a plain class)
       const btn = screen.getByRole('button');
       // The button should have rounded and text-sm from the base CVA string
@@ -133,7 +133,7 @@ describe('Button', () => {
       // Ghost has hover:bg-card but no background by default
       // The class string contains the hover variant
       const btn = screen.getByRole('button');
-      // No explicit bg class — bg-primary should NOT be present
+      // No explicit bg class  -  bg-primary should NOT be present
       expect(btn).not.toHaveClass('bg-primary');
       expect(btn).not.toHaveClass('bg-secondary');
     });
@@ -183,7 +183,7 @@ describe('Button', () => {
 
     it('applies "clear" size (no padding classes)', () => {
       render(<Button size="clear">Clear</Button>);
-      // clear: '' (empty string — no size classes added)
+      // clear: '' (empty string  -  no size classes added)
       // Should NOT have h-10 or h-9
       const btn = screen.getByRole('button');
       expect(btn).not.toHaveClass('h-10');

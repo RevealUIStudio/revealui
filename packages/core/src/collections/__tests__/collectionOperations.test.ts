@@ -122,7 +122,7 @@ function createTestConfig(slug = 'posts'): RevealCollectionConfig {
       { name: 'body', type: 'textarea' },
       { name: 'status', type: 'select', options: ['draft', 'published'] },
     ],
-    // biome-ignore lint/suspicious/noExplicitAny: test helper — minimal config subset
+    // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal config subset
   } as any;
 }
 
@@ -209,7 +209,7 @@ describe('RevealUICollection', () => {
     const db = createInMemoryDb();
     const collection = new RevealUICollection(createTestConfig(), db);
 
-    // Should not throw — 'title' is a defined field
+    // Should not throw  -  'title' is a defined field
     const result = await collection.find({ sort: { title: '1' } });
     expect(result).toBeDefined();
   });

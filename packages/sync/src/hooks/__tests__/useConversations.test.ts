@@ -88,7 +88,7 @@ describe('useConversations', () => {
 
     renderHook(() => useConversations(userId));
 
-    // proxyBaseUrl defaults to '' so the URL stays relative — backward-compatible.
+    // proxyBaseUrl defaults to '' so the URL stays relative  -  backward-compatible.
     // The proxy at /api/shapes/conversations enforces row-level filtering
     // by reading the session cookie server-side. No client params needed.
     expect(mockUseShape).toHaveBeenCalledWith({

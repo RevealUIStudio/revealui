@@ -325,7 +325,7 @@ describe('AlertingSystem', () => {
       // fire + resolve = 2 sends total
       expect(sentAlerts).toHaveLength(2);
 
-      // Try to fire again within cooldown — should be blocked by lastFired
+      // Try to fire again within cooldown  -  should be blocked by lastFired
       shouldFire = true;
       await system.evaluateRules();
       expect(firingCount()).toBe(1); // still 1, cooldown blocked re-fire

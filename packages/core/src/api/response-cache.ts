@@ -147,7 +147,9 @@ export function invalidateCacheKey(key: string): void {
  */
 export function invalidateCachePattern(pattern: string): number {
   let count = 0;
-  const regex = new RegExp(pattern.replace('*', '.*'));
+  // Escape all regex special characters, then convert glob wildcards (*) to .*
+  const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`^${escaped.replaceAll('\\*', '.*')}$`);
 
   for (const key of cacheStore.keys()) {
     if (regex.test(key)) {

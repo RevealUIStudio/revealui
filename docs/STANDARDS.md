@@ -661,7 +661,7 @@ In a monorepo with Next.js 16 and Turbopack, there's a fundamental tension betwe
 
 **Why:**
 - Source files provide better type information and error messages
-- TypeScript doesn't care about runtime resolution—it just needs types
+- TypeScript doesn't care about runtime resolution - it just needs types
 - Allows type checking without requiring a full build
 
 #### 3. TranspilePackages (Bridge Between Source and Runtime)

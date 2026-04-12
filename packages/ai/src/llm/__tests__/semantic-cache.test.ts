@@ -39,7 +39,7 @@ describe('SemanticCache', () => {
       ttl: 60 * 60 * 1000, // 1 hour
       enableStats: true,
     });
-    // biome-ignore lint/suspicious/noExplicitAny: accessing private internal property in test — no public API available
+    // biome-ignore lint/suspicious/noExplicitAny: accessing private internal property in test  -  no public API available
     mockVectorService = (cache as any).vectorService;
   });
 
@@ -125,7 +125,7 @@ describe('SemanticCache', () => {
       const lowSimilarityCache = new SemanticCache({
         similarityThreshold: 0.99, // Very high threshold
       });
-      // biome-ignore lint/suspicious/noExplicitAny: accessing private internal property in test — no public API available
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private internal property in test  -  no public API available
       const mockService = (lowSimilarityCache as any).vectorService;
 
       // Mock: No results above threshold
@@ -521,7 +521,7 @@ describe('SemanticCache', () => {
         userId: 'user-123',
         siteId: 'site-456',
       });
-      // biome-ignore lint/suspicious/noExplicitAny: accessing private internal property in test — no public API available
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private internal property in test  -  no public API available
       const mockService = (userCache as any).vectorService;
       const searchSpy = vi.spyOn(mockService, 'searchSimilar').mockResolvedValue([]);
 

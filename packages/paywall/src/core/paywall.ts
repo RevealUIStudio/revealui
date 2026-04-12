@@ -1,5 +1,5 @@
 /**
- * Paywall factory — `createPaywall()`.
+ * Paywall factory  -  `createPaywall()`.
  *
  * Creates a configured paywall instance with all enforcement functions
  * bound to your tier hierarchy, feature definitions, and limits.

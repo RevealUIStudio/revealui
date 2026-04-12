@@ -154,7 +154,7 @@ describe('Logger', () => {
       const { logger } = makeLogger();
       logger.setContext({ userId: 'parent' });
       const child = logger.child({ requestId: 'req1' });
-      // Child uses its own onLog — attach same collector
+      // Child uses its own onLog  -  attach same collector
       const childEntries: LogEntry[] = [];
       child.addLogHandler((e) => childEntries.push(e));
       child.info('from child');

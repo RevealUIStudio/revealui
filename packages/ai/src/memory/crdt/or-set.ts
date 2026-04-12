@@ -230,7 +230,7 @@ export class ORSet<T> {
   }
 
   /**
-   * Removes tombstones — entries in `added` whose tag appears in `removed`.
+   * Removes tombstones  -  entries in `added` whose tag appears in `removed`.
    * Reduces memory usage and serialization size. Safe to call after all peers
    * have merged the corresponding remove operations.
    *
@@ -244,7 +244,7 @@ export class ORSet<T> {
         count++;
       }
     }
-    // Clear the removed set — all tombstones have been applied
+    // Clear the removed set  -  all tombstones have been applied
     if (count > 0) {
       this.removed.clear();
     }

@@ -109,7 +109,7 @@ describe('McpRateLimiter', () => {
         await limiter.check('tenant-1', 'free');
       }
       expect((await limiter.check('tenant-1', 'free')).allowed).toBe(false);
-      // Same tenant, different tier — separate window
+      // Same tenant, different tier  -  separate window
       expect((await limiter.check('tenant-1', 'pro')).allowed).toBe(true);
     });
   });

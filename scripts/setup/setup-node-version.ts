@@ -54,6 +54,12 @@ async function setupNodeVersion() {
         const nvmrcVersion = fs.readFileSync(nvmrcPath, 'utf8').trim();
         logger.info(`✅ .nvmrc found: ${nvmrcVersion}`);
 
+        // Validate version format before passing to shell (prevent injection via crafted .nvmrc)
+        if (!/^v?\d+(\.\d+)*$/.test(nvmrcVersion)) {
+          logger.warn(`Invalid .nvmrc version format: ${nvmrcVersion}`);
+          return;
+        }
+
         // Try to use the version specified in .nvmrc
         try {
           execSync(`nvm use ${nvmrcVersion}`, { stdio: 'inherit' });

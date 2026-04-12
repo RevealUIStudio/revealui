@@ -48,5 +48,19 @@
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/security"
-  }
+  },
+  "homepage": "https://revealui.com",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
+  },
+  "keywords": [
+    "revealui",
+    "security",
+    "cors",
+    "csp",
+    "rbac",
+    "encryption",
+    "gdpr"
+  ]
 }

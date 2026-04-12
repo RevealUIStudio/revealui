@@ -10,7 +10,7 @@ import type {
  * Contract every AI harness adapter must satisfy.
  * Mirrors EditorAdapter from packages/editors.
  *
- * AI tools are external executables — never linked libraries.
+ * AI tools are external executables  -  never linked libraries.
  * Communication is data-only: commands in, results out.
  */
 export interface HarnessAdapter {
@@ -20,7 +20,7 @@ export interface HarnessAdapter {
   readonly name: string;
   /** Returns the static capability set for this harness */
   getCapabilities(): HarnessCapabilities;
-  /** Returns live info (version, etc.) — may shell out */
+  /** Returns live info (version, etc.)  -  may shell out */
   getInfo(): Promise<HarnessInfo>;
   /** True if the harness executable is on PATH and accessible */
   isAvailable(): Promise<boolean>;

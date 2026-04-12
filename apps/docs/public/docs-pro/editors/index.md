@@ -6,9 +6,9 @@ Editor configuration generators for VS Code, Zed, and Antigravity. Keeps your ed
 
 `@revealui/editors` generates and syncs editor configuration files:
 
-- **VS Code** — `.vscode/settings.json` + `.vscode/extensions.json` (recommended extensions)
-- **Zed** — `.zed/settings.json` (theme, keybindings, extensions)
-- **Antigravity** — `.agents/rules/revealui.md` (agent rules)
+- **VS Code**  -  `.vscode/settings.json` + `.vscode/extensions.json` (recommended extensions)
+- **Zed**  -  `.zed/settings.json` (theme, keybindings, extensions)
+- **Antigravity**  -  `.agents/rules/revealui.md` (agent rules)
 
 ## Installation
 

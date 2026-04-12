@@ -1,5 +1,5 @@
 /**
- * shell_exec — Sandboxed shell command execution
+ * shell_exec  -  Sandboxed shell command execution
  */
 
 import { execSync } from 'node:child_process';

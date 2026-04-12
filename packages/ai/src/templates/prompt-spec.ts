@@ -105,7 +105,7 @@ export const PromptSpecSchema = z.object({
   /** Security constraints */
   security: PromptSecuritySchema,
 
-  /** Examples — at least one required for documentation and testing */
+  /** Examples  -  at least one required for documentation and testing */
   examples: z.array(PromptExampleSchema).min(1, 'At least one example is required'),
 
   /** Who created this prompt */

@@ -25,14 +25,14 @@ import { requireDomain } from '../license.js';
 
 const mockedGetLicensePayload = vi.mocked(getLicensePayload);
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
 
 function createApp() {
   const app = new Hono();
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — middleware type is flexible
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  middleware type is flexible
   app.use('*', requireDomain() as any);
   app.get('/resource', (c) => c.json({ ok: true }));
   app.onError(errorHandler);

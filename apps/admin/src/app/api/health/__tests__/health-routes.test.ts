@@ -1,10 +1,10 @@
 /**
  * Tests for health and diagnostic routes:
- * - GET /api/health (enhanced health check — minimal for unauth, full for admin)
+ * - GET /api/health (enhanced health check  -  minimal for unauth, full for admin)
  * - HEAD /api/health (liveness probe)
  * - GET /api/health/live (liveness probe)
  * - GET /api/health/ready (readiness probe)
- * - GET /api/ping (minimal diagnostic — zero external imports)
+ * - GET /api/ping (minimal diagnostic  -  zero external imports)
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';

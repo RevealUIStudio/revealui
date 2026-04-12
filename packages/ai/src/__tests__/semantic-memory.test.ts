@@ -99,7 +99,7 @@ describe('SemanticMemory', () => {
     });
 
     it('returns ranked results by cosine similarity', async () => {
-      // dim-4 basis vectors — each is perfectly orthogonal to the others
+      // dim-4 basis vectors  -  each is perfectly orthogonal to the others
       await memory.store('match', 'exact match', basisVec(4, 0));
       await memory.store('partial', 'partial', basisVec(4, 1));
       await memory.store('other', 'unrelated', basisVec(4, 2));
@@ -225,7 +225,7 @@ describe('SemanticMemory', () => {
       const mem = new SemanticMemory({ maxEntries: 2 });
       await mem.store('a', 'first');
       await mem.store('b', 'second');
-      // Overwrite 'a' — should not evict 'b'
+      // Overwrite 'a'  -  should not evict 'b'
       await mem.store('a', 'updated');
       expect(mem.size).toBe(2);
       expect(await mem.get('b')).not.toBeNull();

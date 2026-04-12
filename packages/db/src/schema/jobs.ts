@@ -3,7 +3,7 @@
  *
  * PostgreSQL-backed job queue for async task processing.
  * Used for: email delivery, webhook processing, RAG indexing, billing crons.
- * No external dependencies (no Redis, no pg-boss) — pure Drizzle ORM.
+ * No external dependencies (no Redis, no pg-boss)  -  pure Drizzle ORM.
  */
 
 import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';

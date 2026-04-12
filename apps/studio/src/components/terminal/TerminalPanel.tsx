@@ -137,7 +137,7 @@ export default function TerminalPanel() {
 function SessionTimer({ startTime }: { startTime: number }) {
   const [elapsed, setElapsed] = useState('');
 
-  // Update every 30s — session duration doesn't need high precision
+  // Update every 30s  -  session duration doesn't need high precision
   useEffect(() => {
     const update = () => {
       const seconds = Math.floor((Date.now() - startTime) / 1000);
@@ -173,7 +173,7 @@ function HostKeyBanner({ event, onDismiss }: { event: SshHostKeyEvent; onDismiss
         <div>
           <p className="font-medium">
             {isMismatch
-              ? 'HOST KEY MISMATCH — connection rejected'
+              ? 'HOST KEY MISMATCH  -  connection rejected'
               : 'New host added to known_hosts'}
           </p>
           <p className="mt-1 font-mono text-xs opacity-80">

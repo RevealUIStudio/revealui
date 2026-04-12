@@ -9,7 +9,7 @@
  * - **Store** is append-only (no updates, no deletes)
  *
  * This architecture ensures that AI agents cannot tamper with, disable,
- * or circumvent the audit trail — it lives entirely outside their scope.
+ * or circumvent the audit trail  -  it lives entirely outside their scope.
  *
  * ## Quick Start
  *
@@ -29,7 +29,7 @@
  *
  * // Create write-only emitter for an agent
  * const emitter = observer.createEmitterForAgent('agent-1')
- * // Pass `emitter` to the agent — it can only call emitter.emit()
+ * // Pass `emitter` to the agent  -  it can only call emitter.emit()
  *
  * // Human can halt agents at any time
  * observer.haltAgent('agent-1', 'admin', 'Suspicious behavior')

@@ -83,7 +83,7 @@ export default function MarketplacePage() {
             <div>
               <h1 className="text-xl font-semibold text-white">RevMarket</h1>
               <p className="mt-0.5 text-sm text-zinc-400">
-                Browse autonomous agents — find the right agent for your task
+                Browse autonomous agents - find the right agent for your task
               </p>
             </div>
             <div className="flex gap-2">

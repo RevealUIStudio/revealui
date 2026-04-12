@@ -35,7 +35,7 @@ const { mockDispatch, mockCreateLLMClient } = vi.hoisted(() => ({
 
 vi.mock('@revealui/ai', () => ({
   LLMClient: vi.fn(),
-  // createLLMClientFromEnv must be mocked — without it buildDispatcher() catches
+  // createLLMClientFromEnv must be mocked  -  without it buildDispatcher() catches
   // the "not a function" TypeError and returns null, causing 503 on all success paths.
   createLLMClientFromEnv: mockCreateLLMClient,
   TicketAgentDispatcher: vi.fn().mockImplementation(
@@ -54,7 +54,7 @@ const mb = vi.mocked(boardQueries);
 const mt = vi.mocked(ticketQueries);
 
 // ---------------------------------------------------------------------------
-// Env setup — provide a fake API key so buildDispatcher returns a dispatcher
+// Env setup  -  provide a fake API key so buildDispatcher returns a dispatcher
 // ---------------------------------------------------------------------------
 
 beforeEach(() => {
@@ -122,7 +122,7 @@ function makeTicket(overrides = {}) {
 // App factory
 // ---------------------------------------------------------------------------
 
-// Shared insert spy — reset in beforeEach so individual tests can assert on it
+// Shared insert spy  -  reset in beforeEach so individual tests can assert on it
 const mockDbInsert = vi.fn().mockReturnValue({
   values: vi.fn().mockResolvedValue(undefined),
 });
@@ -156,16 +156,16 @@ function dispatchRequest(ticketId: string) {
   return new Request(`http://localhost/${ticketId}/dispatch`, { method: 'POST' });
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
 
 // ---------------------------------------------------------------------------
-// POST / — submit natural language task
+// POST /  -  submit natural language task
 // ---------------------------------------------------------------------------
 
-describe('POST / — submit agent task', () => {
+describe('POST /  -  submit agent task', () => {
   it('returns 400 when instruction is missing', async () => {
     const app = createApp();
     const res = await app.request('/', post({ boardId: 'board-1' }));
@@ -297,10 +297,10 @@ describe('POST / — submit agent task', () => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /:ticketId/dispatch — dispatch agent for existing ticket
+// POST /:ticketId/dispatch  -  dispatch agent for existing ticket
 // ---------------------------------------------------------------------------
 
-describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
+describe('POST /:ticketId/dispatch  -  dispatch existing ticket', () => {
   it('returns 404 when ticket does not exist', async () => {
     mt.getTicketById.mockResolvedValue(null as never);
     const app = createApp();
@@ -344,7 +344,7 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
     // Ticket found, but the board it belongs to has a different tenantId
     mt.getTicketById.mockResolvedValue(makeTicket({ boardId: 'board-1' }) as never);
     mb.getBoardById.mockResolvedValue(makeBoard({ tenantId: 'other-tenant' }) as never);
-    // Caller's tenant is 'my-tenant' — does NOT match board's 'other-tenant'
+    // Caller's tenant is 'my-tenant'  -  does NOT match board's 'other-tenant'
     const app = createApp({ id: 'my-tenant' });
     const res = await app.fetch(dispatchRequest('ticket-1'));
     expect(res.status).toBe(404);
@@ -379,7 +379,7 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
 
   it('returns 403 with error message when dispatch throws (agent failure)', async () => {
     // dispatchWithTimeout returns { success: false, error } when the dispatcher
-    // throws — not when it returns { success: false }.  Simulate a throw.
+    // throws  -  not when it returns { success: false }.  Simulate a throw.
     mockDispatch.mockRejectedValueOnce(new Error('Agent internal error'));
     mt.getTicketById.mockResolvedValueOnce(makeTicket() as never);
     mt.updateTicket.mockResolvedValue(makeTicket({ status: 'blocked' }) as never);
@@ -393,8 +393,8 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
 
   it('falls back to result.success for status when final ticket fetch returns null', async () => {
     mt.getTicketById
-      .mockResolvedValueOnce(makeTicket() as never) // initial fetch — ticket exists
-      .mockResolvedValueOnce(null as never); // final fetch — ticket vanished
+      .mockResolvedValueOnce(makeTicket() as never) // initial fetch  -  ticket exists
+      .mockResolvedValueOnce(null as never); // final fetch  -  ticket vanished
     mt.updateTicket.mockResolvedValue(makeTicket({ status: 'in_progress' }) as never);
     const app = createApp();
     const res = await app.fetch(dispatchRequest('ticket-1'));
@@ -409,7 +409,7 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
     mockDispatch.mockResolvedValueOnce({ success: false, output: 'Could not complete.' });
     mt.getTicketById
       .mockResolvedValueOnce(makeTicket() as never) // initial fetch
-      .mockResolvedValueOnce(null as never); // final fetch — null
+      .mockResolvedValueOnce(null as never); // final fetch  -  null
     mt.updateTicket.mockResolvedValue(makeTicket({ status: 'blocked' }) as never);
     const app = createApp();
     const res = await app.fetch(dispatchRequest('ticket-1'));
@@ -432,10 +432,10 @@ describe('POST /:ticketId/dispatch — dispatch existing ticket', () => {
 });
 
 // ---------------------------------------------------------------------------
-// dispatchWithTimeout — timeout sentinel vs general error distinction
+// dispatchWithTimeout  -  timeout sentinel vs general error distinction
 // ---------------------------------------------------------------------------
 
-describe('dispatchWithTimeout — timeout sentinel vs general error', () => {
+describe('dispatchWithTimeout  -  timeout sentinel vs general error', () => {
   it('returns timeout-specific message when dispatch rejects with timeout sentinel', async () => {
     // Simulate the timeout promise firing first by rejecting with the sentinel message
     mockDispatch.mockRejectedValueOnce(new Error('Agent dispatch timed out'));
@@ -450,7 +450,7 @@ describe('dispatchWithTimeout — timeout sentinel vs general error', () => {
   });
 
   it('returns generic error when dispatch rejects with a non-Error value', async () => {
-    // Reject with a plain string — dispatchErr instanceof Error is false → isTimeout is false
+    // Reject with a plain string  -  dispatchErr instanceof Error is false → isTimeout is false
     mockDispatch.mockRejectedValueOnce('network connection refused');
     mt.getTicketById.mockResolvedValueOnce(makeTicket() as never);
     mt.updateTicket.mockResolvedValue(makeTicket({ status: 'blocked' }) as never);
@@ -475,10 +475,10 @@ describe('dispatchWithTimeout — timeout sentinel vs general error', () => {
 });
 
 // ---------------------------------------------------------------------------
-// POST / — instruction length boundary + priority propagation
+// POST /  -  instruction length boundary + priority propagation
 // ---------------------------------------------------------------------------
 
-describe('POST / — instruction length and priority', () => {
+describe('POST /  -  instruction length and priority', () => {
   it('returns 400 when instruction exceeds 2000 characters', async () => {
     const app = createApp();
     const res = await app.request('/', post({ instruction: 'a'.repeat(2001), boardId: 'board-1' }));

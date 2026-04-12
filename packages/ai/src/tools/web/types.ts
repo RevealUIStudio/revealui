@@ -3,8 +3,8 @@
  *
  * Shared types for web search tools and provider interface.
  * The WebSearchProvider interface enables swappable backends:
- * - DuckDuckGo (default, zero-config) — P3-1
- * - Tavily, Exa (BYOK) — P4-3
+ * - DuckDuckGo (default, zero-config)  -  P3-1
+ * - Tavily, Exa (BYOK)  -  P4-3
  */
 
 export interface WebSearchResult {

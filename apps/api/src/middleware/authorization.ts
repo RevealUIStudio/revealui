@@ -14,7 +14,7 @@ import {
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
-/** Shared authorization instance — bootstrapped with CommonRoles at import time */
+/** Shared authorization instance  -  bootstrapped with CommonRoles at import time */
 const authz = new AuthorizationSystem();
 const cache = new PermissionCache(5 * 60_000); // 5-minute TTL
 

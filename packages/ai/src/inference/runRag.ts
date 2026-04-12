@@ -1,5 +1,5 @@
 /**
- * RAG Query — Retrieval-Augmented Generation
+ * RAG Query  -  Retrieval-Augmented Generation
  *
  * Generates an embedding for the query, searches the rag_chunks table via
  * pgvector cosine distance, assembles ranked context with recency weighting,
@@ -20,7 +20,7 @@ export interface RAGOptions {
   limit?: number;
   /** Minimum cosine similarity threshold 0–1 (default 0.6) */
   threshold?: number;
-  /** Custom embedding function — defaults to generateEmbedding() */
+  /** Custom embedding function  -  defaults to generateEmbedding() */
   embeddingFn?: (text: string) => Promise<number[]>;
   /** search mode: 'speed' (vector-only) | 'accuracy' (BM25 hybrid + optional rerank) */
   mode?: 'speed' | 'accuracy';

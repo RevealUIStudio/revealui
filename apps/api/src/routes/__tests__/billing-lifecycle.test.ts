@@ -12,7 +12,7 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockConstructEvent = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
@@ -68,7 +68,7 @@ vi.mock('../../middleware/license.js', () => ({
   resetDbStatusCache: vi.fn(),
 }));
 
-// ─── DB Mock — fluent chain for select / insert / update / delete ────────────
+// ─── DB Mock  -  fluent chain for select / insert / update / delete ────────────
 
 const mockAuditAppend = vi.fn();
 
@@ -206,7 +206,7 @@ const STRIPE_EVENT_DEFAULTS = {
 
 function postStripe(eventJson: unknown, sig = 'valid-sig'): Request {
   // Merge defaults so test payloads pass the Stripe event envelope schema validation.
-  // The handler ignores the parsed body — it uses stripe.webhooks.constructEventAsync() instead.
+  // The handler ignores the parsed body  -  it uses stripe.webhooks.constructEventAsync() instead.
   const body =
     eventJson && typeof eventJson === 'object'
       ? { ...STRIPE_EVENT_DEFAULTS, ...eventJson }
@@ -267,8 +267,8 @@ describe('Billing lifecycle integration', () => {
     savedEnv.STRIPE_WEBHOOK_SECRET_LIVE = process.env.STRIPE_WEBHOOK_SECRET_LIVE;
     savedEnv.REVEALUI_LICENSE_PRIVATE_KEY = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
 
-    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder'; // gitleaks:allow — test fixture, not a real key
-    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_lifecycle'; // gitleaks:allow — test fixture
+    process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder'; // gitleaks:allow  -  test fixture, not a real key
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_lifecycle'; // gitleaks:allow  -  test fixture
     process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key';
     delete process.env.STRIPE_WEBHOOK_SECRET_LIVE;
   });
@@ -573,7 +573,7 @@ describe('Billing lifecycle integration', () => {
 
       expect(res.status).toBe(200);
 
-      // syncHostedSubscriptionState is called — it issues DB selects to resolve the account
+      // syncHostedSubscriptionState is called  -  it issues DB selects to resolve the account
       expect(mockDb.select).toHaveBeenCalled();
     });
 

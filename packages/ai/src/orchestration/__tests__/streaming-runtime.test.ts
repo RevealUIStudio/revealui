@@ -74,7 +74,7 @@ async function collect(gen: AsyncGenerator<AgentStreamChunk>): Promise<AgentStre
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('StreamingAgentRuntime.streamTask — text output', () => {
+describe('StreamingAgentRuntime.streamTask  -  text output', () => {
   it('yields text chunks and a done event when LLM returns text', async () => {
     const llm = makeLLMClient([
       { content: 'Hello', done: false },
@@ -104,7 +104,7 @@ describe('StreamingAgentRuntime.streamTask — text output', () => {
   });
 });
 
-describe('StreamingAgentRuntime.streamTask — tool calls', () => {
+describe('StreamingAgentRuntime.streamTask  -  tool calls', () => {
   it('yields tool_call_start and tool_call_result, then completes on second LLM turn', async () => {
     const toolResult: ToolResult = { success: true, data: { answer: 42 } };
     const tool = makeTool('calculator', toolResult);
@@ -248,7 +248,7 @@ describe('StreamingAgentRuntime.streamTask — tool calls', () => {
   });
 });
 
-describe('StreamingAgentRuntime.streamTask — abort & timeout', () => {
+describe('StreamingAgentRuntime.streamTask  -  abort & timeout', () => {
   it('yields error:interrupted when AbortSignal is already aborted on entry', async () => {
     const controller = new AbortController();
     controller.abort();
@@ -345,7 +345,7 @@ describe('StreamingAgentRuntime.streamTask — abort & timeout', () => {
   });
 });
 
-describe('StreamingAgentRuntime.streamTask — stream errors', () => {
+describe('StreamingAgentRuntime.streamTask  -  stream errors', () => {
   it('yields error chunk when LLM stream throws', async () => {
     async function* throwingStream(): AsyncIterable<LLMChunk> {
       yield { content: 'start', done: false };

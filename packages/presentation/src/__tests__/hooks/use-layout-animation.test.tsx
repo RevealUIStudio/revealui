@@ -77,7 +77,7 @@ describe('LayoutIndicator', () => {
       </LayoutGroup>,
     );
 
-    // Rerender — same position, so no animation expected beyond first mount
+    // Rerender  -  same position, so no animation expected beyond first mount
     rerender(
       <LayoutGroup>
         <div>

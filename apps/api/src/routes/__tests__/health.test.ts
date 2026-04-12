@@ -26,14 +26,14 @@ function createApp() {
   return app;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
 
 // ---------------------------------------------------------------------------
 
-describe('GET / — liveness probe', () => {
+describe('GET /  -  liveness probe', () => {
   it('returns 200 with status:ok', async () => {
     const app = createApp();
     const res = await app.request('/');
@@ -65,7 +65,7 @@ describe('GET / — liveness probe', () => {
   });
 });
 
-describe('GET /ready — readiness probe', () => {
+describe('GET /ready  -  readiness probe', () => {
   beforeEach(() => {
     // Provide required env vars
     process.env.POSTGRES_URL = 'postgres://localhost/test';
@@ -81,7 +81,7 @@ describe('GET /ready — readiness probe', () => {
     expect(res.status).toBe(200);
     const body = await parseBody(res);
     // Status may be 'healthy' or 'degraded' depending on test-time memory pressure.
-    // The readiness probe returns 200 for both — only 'unhealthy' triggers 503.
+    // The readiness probe returns 200 for both  -  only 'unhealthy' triggers 503.
     expect(['healthy', 'degraded']).toContain(body.status);
   });
 
@@ -155,7 +155,7 @@ describe('GET /ready — readiness probe', () => {
     const app = createApp();
     const res = await app.request('/ready');
     const body = await parseBody(res);
-    // Pool metrics are internal — only exposed via authenticated /metrics endpoints
+    // Pool metrics are internal  -  only exposed via authenticated /metrics endpoints
     expect(body.pools).toBeUndefined();
   });
 
@@ -183,7 +183,7 @@ describe('GET /ready — readiness probe', () => {
   });
 });
 
-describe('GET /live — liveness alias', () => {
+describe('GET /live  -  liveness alias', () => {
   it('returns 200 with status:ok', async () => {
     const app = createApp();
     const res = await app.request('/live');
@@ -203,7 +203,7 @@ describe('GET /live — liveness alias', () => {
   });
 });
 
-describe('GET /metrics — Prometheus text format', () => {
+describe('GET /metrics  -  Prometheus text format', () => {
   const metricsSecret = 'test-metrics-secret-for-health-tests';
 
   beforeAll(() => {
@@ -262,7 +262,7 @@ describe('GET /metrics — Prometheus text format', () => {
   });
 });
 
-describe('GET /metrics/json — JSON metrics', () => {
+describe('GET /metrics/json  -  JSON metrics', () => {
   const metricsSecret = 'test-metrics-secret-for-health-tests';
 
   beforeAll(() => {

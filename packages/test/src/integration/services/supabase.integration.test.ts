@@ -95,5 +95,5 @@ describe.skipIf(!hasCredentials)('Supabase Integration', () => {
 });
 
 describe.skipIf(hasCredentials)('Supabase Integration (skipped)', () => {
-  it.skip('SUPABASE_URL and SUPABASE_KEY not configured — set credentials to enable');
+  it.skip('SUPABASE_URL and SUPABASE_KEY not configured  -  set credentials to enable');
 });

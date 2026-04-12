@@ -1,5 +1,5 @@
 /**
- * OAuth Accounts table — linked provider identities per user
+ * OAuth Accounts table  -  linked provider identities per user
  *
  * Stores the mapping between local users and their OAuth provider accounts.
  * Supports multiple providers per user (Google, GitHub, Vercel, etc.).

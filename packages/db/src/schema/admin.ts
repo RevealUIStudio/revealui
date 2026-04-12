@@ -20,7 +20,7 @@ export const posts = pgTable(
     // Schema versioning for migrations
     schemaVersion: text('schema_version').notNull().default('1'),
 
-    // Optimistic locking — incremented on each update, checked to detect concurrent edits
+    // Optimistic locking  -  incremented on each update, checked to detect concurrent edits
     version: integer('version').notNull().default(1),
 
     // Basic info
@@ -31,7 +31,7 @@ export const posts = pgTable(
     // Content (Lexical editor state as JSON)
     content: jsonb('content'),
 
-    // Featured image reference (FK to media — set null on delete)
+    // Featured image reference (FK to media  -  set null on delete)
     featuredImageId: text('featured_image_id').references(() => media.id, {
       onDelete: 'set null',
     }),
@@ -80,7 +80,7 @@ export const media = pgTable('media', {
   // Schema versioning
   schemaVersion: text('schema_version').notNull().default('1'),
 
-  // Optimistic locking — incremented on each update, checked to detect concurrent edits
+  // Optimistic locking  -  incremented on each update, checked to detect concurrent edits
   version: integer('version').notNull().default(1),
 
   // File info

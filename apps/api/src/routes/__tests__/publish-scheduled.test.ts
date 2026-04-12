@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must come before route import
+// Mocks  -  must come before route import
 // ---------------------------------------------------------------------------
 
 vi.mock('@revealui/db/client', () => ({
@@ -67,7 +67,7 @@ function makeDb(scheduledPages: Array<{ id: string; title: string }> = []) {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('POST /publish-scheduled — auth', () => {
+describe('POST /publish-scheduled  -  auth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -107,7 +107,7 @@ describe('POST /publish-scheduled — auth', () => {
   });
 });
 
-describe('POST /publish-scheduled — valid request, no pages due', () => {
+describe('POST /publish-scheduled  -  valid request, no pages due', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -135,7 +135,7 @@ describe('POST /publish-scheduled — valid request, no pages due', () => {
   });
 });
 
-describe('POST /publish-scheduled — valid request, pages due', () => {
+describe('POST /publish-scheduled  -  valid request, pages due', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -183,7 +183,7 @@ describe('POST /publish-scheduled — valid request, pages due', () => {
   });
 });
 
-describe('POST /publish-scheduled — error handling', () => {
+describe('POST /publish-scheduled  -  error handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -239,7 +239,7 @@ describe('POST /publish-scheduled — error handling', () => {
   });
 });
 
-describe('POST /publish-scheduled — update field verification', () => {
+describe('POST /publish-scheduled  -  update field verification', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;

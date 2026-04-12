@@ -1,4 +1,4 @@
-// @ts-nocheck — plain JavaScript service worker (not processed by TypeScript)
+// @ts-nocheck  -  plain JavaScript service worker (not processed by TypeScript)
 
 var CACHE_NAME = 'revealui-admin-v1';
 
@@ -66,7 +66,7 @@ function isNavigationRequest(request) {
 self.addEventListener('fetch', (event) => {
   var request = event.request;
 
-  // Only handle GET requests — mutations go straight to the network.
+  // Only handle GET requests  -  mutations go straight to the network.
   if (request.method !== 'GET') {
     return;
   }

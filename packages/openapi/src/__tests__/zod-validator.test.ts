@@ -121,7 +121,7 @@ describe('zValidator', () => {
       '/test',
       zValidator('json', schema, (result, _c) => {
         if (result.success) {
-          // Hook does nothing on success — falls through to handler
+          // Hook does nothing on success  -  falls through to handler
         }
       }),
       (c) => {

@@ -25,7 +25,7 @@ describe('ValueProposition', () => {
     const result = ValueProposition();
     const html = JSON.stringify(result);
     expect(html).toContain('Why RevealUI');
-    expect(html).toContain('Stop stitching tools together');
+    expect(html).toContain('One foundation for humans and agents');
   });
 
   it('contains all three value proposition cards', () => {
@@ -39,9 +39,9 @@ describe('ValueProposition', () => {
   it('contains feature descriptions', () => {
     const result = ValueProposition();
     const html = JSON.stringify(result);
-    expect(html).toContain('Session auth, Stripe subscriptions');
-    expect(html).toContain('Schema-first collections');
-    expect(html).toContain('MCP servers, agent coordination');
+    expect(html).toContain('Session auth, Stripe subscriptions, usage metering');
+    expect(html).toContain('Define collections in TypeScript');
+    expect(html).toContain('11 MCP servers, agent coordination');
   });
 
   it('contains links to documentation', () => {

@@ -55,7 +55,7 @@ export async function generatePasswordResetToken(email: string): Promise<Passwor
   try {
     const db = getClient();
 
-    // Find user by email — intentionally does NOT check user.password.
+    // Find user by email  -  intentionally does NOT check user.password.
     // OAuth-only users (password: null) can use this flow to set a password,
     // giving them a fallback login method independent of their OAuth provider.
     // This is safe because the reset link is sent to their verified email.
@@ -339,7 +339,7 @@ export async function changePassword(
         .delete(sessions)
         .where(and(eq(sessions.userId, userId), ne(sessions.id, currentSessionId)));
     } else {
-      // No current session ID provided — delete all sessions as a safe default
+      // No current session ID provided  -  delete all sessions as a safe default
       await db.delete(sessions).where(eq(sessions.userId, userId));
     }
 

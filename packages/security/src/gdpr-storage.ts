@@ -89,7 +89,7 @@ export interface BreachStorage {
  * In-memory implementation of `BreachStorage`.
  *
  * WARNING: All data is lost on process restart or serverless cold start.
- * GDPR requires breach records be retained — use database-backed storage in production.
+ * GDPR requires breach records be retained  -  use database-backed storage in production.
  */
 export class InMemoryBreachStorage implements BreachStorage {
   private breaches: Map<string, DataBreach> = new Map();

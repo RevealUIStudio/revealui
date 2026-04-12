@@ -1,5 +1,5 @@
 /**
- * @revealui/resilience — Resilience infrastructure for RevealUI applications.
+ * @revealui/resilience  -  Resilience infrastructure for RevealUI applications.
  *
  * - circuit-breaker: Circuit breaker pattern, bulkhead, adaptive thresholds
  * - retry: Exponential backoff, retry policies, batch retry, fallback

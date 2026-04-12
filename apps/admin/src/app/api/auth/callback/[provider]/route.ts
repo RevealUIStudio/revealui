@@ -1,5 +1,5 @@
 /**
- * OAuth Callback Route — GET /api/auth/callback/[provider]
+ * OAuth Callback Route  -  GET /api/auth/callback/[provider]
  *
  * Handles the redirect from the OAuth provider. Verifies state, exchanges
  * the code for an access token, upserts the user, and creates a session.
@@ -66,7 +66,7 @@ export async function GET(
     );
     const providerUser = await fetchProviderUser(provider, accessToken);
 
-    // Allowlist check — leave OAUTH_ADMIN_EMAILS empty to allow any authenticated user
+    // Allowlist check  -  leave OAUTH_ADMIN_EMAILS empty to allow any authenticated user
     const allowedEmails = (process.env.OAUTH_ADMIN_EMAILS ?? '')
       .split(',')
       .map((e) => e.trim())
@@ -86,7 +86,7 @@ export async function GET(
         const existingOAuth = await getOAuthAccountByProviderUser(db, provider, providerUser.id);
 
         if (!existingOAuth) {
-          // New user via OAuth — check limit
+          // New user via OAuth  -  check limit
           const activeCount = await countActiveUsers(db);
           if (activeCount >= maxUsers) {
             return loginUrl('user_limit_reached');
@@ -94,14 +94,14 @@ export async function GET(
         }
       }
     } catch (limitError) {
-      // Log but don't block — allow OAuth login to proceed
+      // Log but don't block  -  allow OAuth login to proceed
       logger.warn('User limit check failed during OAuth callback', {
         provider,
         error: limitError instanceof Error ? limitError.message : String(limitError),
       });
     }
 
-    // Pass linkConsent from the signed state — when true, the user has
+    // Pass linkConsent from the signed state  -  when true, the user has
     // explicitly consented to link their OAuth account to the existing
     // local account with the same email.
     const user = await upsertOAuthUser(provider, providerUser, {
@@ -117,7 +117,7 @@ export async function GET(
     const { token } = await rotateSession(user.id, { userAgent, ipAddress, persistent: true });
 
     // Resolve redirectTo: reject cross-origin URLs to prevent open redirect.
-    // startsWith('/') is insufficient — paths like /..//..//attacker.com pass.
+    // startsWith('/') is insufficient  -  paths like /..//..//attacker.com pass.
     let redirectTo = '/admin';
     try {
       const resolved = new URL(verified.redirectTo, baseUrl);
@@ -126,7 +126,7 @@ export async function GET(
         redirectTo = resolved.pathname + resolved.search;
       }
     } catch {
-      // Invalid URL — fall back to /admin
+      // Invalid URL  -  fall back to /admin
     }
 
     const response = NextResponse.redirect(new URL(redirectTo, baseUrl));
@@ -159,7 +159,7 @@ export async function GET(
           ? (() => {
               if (!process.env.SESSION_COOKIE_DOMAIN) {
                 logger.error(
-                  'SESSION_COOKIE_DOMAIN env var is required in production — session cookie will not be set cross-subdomain',
+                  'SESSION_COOKIE_DOMAIN env var is required in production  -  session cookie will not be set cross-subdomain',
                 );
               }
               return process.env.SESSION_COOKIE_DOMAIN || undefined;

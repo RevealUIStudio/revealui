@@ -86,13 +86,13 @@ pnpm dev
 - You're starting a new RevealUI project from scratch and want a guided setup
 - You need database, storage, and payment providers configured in one step
 - You want Dev Container or Devbox configuration generated automatically
-- **Not** for adding RevealUI to an existing project — install individual packages instead
+- **Not** for adding RevealUI to an existing project  -  install individual packages instead
 
 ## JOSHUA Alignment
 
-- **Justifiable**: Every prompt earns its place — template, database, storage, and payment choices all map to real config decisions
+- **Justifiable**: Every prompt earns its place  -  template, database, storage, and payment choices all map to real config decisions
 - **Adaptive**: Multiple templates (blog, e-commerce, portfolio) and environment options (DevContainer, Devbox) adapt to your workflow
-- **Sovereign**: Scaffolds a self-contained project you fully own — no hosted dependency or account required
+- **Sovereign**: Scaffolds a self-contained project you fully own  -  no hosted dependency or account required
 
 ## License
 

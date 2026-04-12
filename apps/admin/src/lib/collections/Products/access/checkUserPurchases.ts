@@ -25,7 +25,7 @@ interface UserWithPurchases extends RevealUser {
 function asUserWithPurchases(user: RevealUser | undefined): UserWithPurchases | null {
   if (!user) return null;
   if (!('purchases' in user && Array.isArray((user as UserWithPurchases).purchases))) {
-    return null; // hook didn't populate it — deny access
+    return null; // hook didn't populate it  -  deny access
   }
   return user as UserWithPurchases;
 }

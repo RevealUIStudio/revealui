@@ -34,7 +34,7 @@ When something breaks, follow this process. Do not skip steps.
 
 - Design a test or check that confirms/refutes your hypothesis
 - Run it
-- If refuted, form a new hypothesis — do not stack unrelated fixes
+- If refuted, form a new hypothesis  -  do not stack unrelated fixes
 
 ### 4. Fix Narrowly
 
@@ -67,8 +67,8 @@ When something breaks, follow this process. Do not skip steps.
 | Symptom | First Check |
 |---------|------------|
 | Import error | Package built? \`pnpm --filter <pkg> build\` |
-| Type error across packages | \`pnpm typecheck:all\` — check \`workspace:*\` versions |
-| Test passes alone, fails in gate | Concurrency pressure — see \`$revealui-testing\` |
-| Supabase error in unexpected path | Import boundary violation — see \`$revealui-db\` |
+| Type error across packages | \`pnpm typecheck:all\`  -  check \`workspace:*\` versions |
+| Test passes alone, fails in gate | Concurrency pressure  -  see \`$revealui-testing\` |
+| Supabase error in unexpected path | Import boundary violation  -  see \`$revealui-db\` |
 | Biome error after edit | Run \`npx biome check --write <file>\` |`,
 };

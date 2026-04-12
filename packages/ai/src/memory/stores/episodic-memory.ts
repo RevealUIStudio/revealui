@@ -322,9 +322,9 @@ export class EpisodicMemory {
       return results.map((r) => r.memory);
     } catch (error) {
       // Embedding generation failed (e.g. embedding service unavailable).
-      // Return empty results — do NOT fall back to getAll(), which would dump the
+      // Return empty results  -  do NOT fall back to getAll(), which would dump the
       // entire memory store into agent context regardless of relevance.
-      void (error instanceof Error ? error.message : String(error)); // Semantic search failed — return empty results
+      void (error instanceof Error ? error.message : String(error)); // Semantic search failed  -  return empty results
       return [];
     }
   }

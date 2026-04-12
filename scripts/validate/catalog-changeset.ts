@@ -6,7 +6,7 @@
  * Detects when pnpm catalog entries used as runtime dependencies in published
  * packages have changed, but no changeset exists for the affected packages.
  *
- * Only checks `dependencies` and `peerDependencies` — devDependencies don't
+ * Only checks `dependencies` and `peerDependencies`  -  devDependencies don't
  * ship in published packages and don't need changesets.
  *
  * Usage:
@@ -93,9 +93,12 @@ function findPublishedPackagesWithCatalogDeps(): PackageInfo[] {
 
   for (const entry of readdirSync(pkgDir)) {
     const pkgJsonPath = join(pkgDir, entry, 'package.json');
-    if (!statSync(pkgJsonPath, { throwIfNoEntry: false })?.isFile()) continue;
-
-    const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8')) as Record<string, unknown>;
+    let pkg: Record<string, unknown>;
+    try {
+      pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8')) as Record<string, unknown>;
+    } catch {
+      continue;
+    }
     if (pkg.private === true) continue;
 
     const name = pkg.name as string;

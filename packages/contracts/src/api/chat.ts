@@ -13,7 +13,7 @@ const TextPartSchema = z.object({
   text: z.string().min(1),
 });
 
-/** Image content part — base64 data URL or HTTPS URL.
+/** Image content part  -  base64 data URL or HTTPS URL.
  *  Used with vision-capable models (inference-snaps gemma3/qwen-vl, GPT-4o, etc.) */
 const ImagePartSchema = z.object({
   type: z.literal('image_url'),

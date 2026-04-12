@@ -5,7 +5,7 @@
  * Verifies actual DB state transitions for Stripe webhook events.
  *
  * Stripe signature verification and emails are mocked.
- * Everything else — DB queries, idempotency, saga execution — is real.
+ * Everything else  -  DB queries, idempotency, saga execution  -  is real.
  */
 
 import { eq } from 'drizzle-orm';
@@ -166,7 +166,7 @@ afterEach(async () => {
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe('webhook integration — idempotency', () => {
+describe('webhook integration  -  idempotency', () => {
   it('marks event as processed in DB', async () => {
     await seedTestUser(testDb.drizzle, {
       id: 'user-idem',
@@ -219,11 +219,11 @@ describe('webhook integration — idempotency', () => {
       metadata: { tier: 'pro', revealui_user_id: 'user-dup' },
     });
 
-    // First delivery — should succeed
+    // First delivery  -  should succeed
     const res1 = await postWebhook(event);
     expect(res1.status).toBe(200);
 
-    // Second delivery (same event ID) — should be detected as duplicate
+    // Second delivery (same event ID)  -  should be detected as duplicate
     const res2 = await postWebhook(event);
     expect(res2.status).toBe(200);
 
@@ -232,7 +232,7 @@ describe('webhook integration — idempotency', () => {
   });
 });
 
-describe('webhook integration — checkout.session.completed (subscription)', () => {
+describe('webhook integration  -  checkout.session.completed (subscription)', () => {
   it('creates license on subscription checkout', async () => {
     await seedTestUser(testDb.drizzle, {
       id: 'user-sub-1',
@@ -270,7 +270,7 @@ describe('webhook integration — checkout.session.completed (subscription)', ()
   });
 });
 
-describe('webhook integration — checkout.session.completed (perpetual)', () => {
+describe('webhook integration  -  checkout.session.completed (perpetual)', () => {
   it('creates perpetual license on one-time payment', async () => {
     await seedTestUser(testDb.drizzle, {
       id: 'user-perp-1',
@@ -306,7 +306,7 @@ describe('webhook integration — checkout.session.completed (perpetual)', () =>
   });
 });
 
-describe('webhook integration — customer.subscription.deleted', () => {
+describe('webhook integration  -  customer.subscription.deleted', () => {
   it('revokes license when subscription is cancelled', async () => {
     // Seed user + license
     await seedTestUser(testDb.drizzle, {
@@ -350,7 +350,7 @@ describe('webhook integration — customer.subscription.deleted', () => {
   });
 });
 
-describe('webhook integration — irrelevant events', () => {
+describe('webhook integration  -  irrelevant events', () => {
   it('returns 200 without processing for unknown event types', async () => {
     const event = makeStripeEvent('invoice.created', {
       id: 'inv_test_1',

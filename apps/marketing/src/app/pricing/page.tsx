@@ -10,11 +10,11 @@ import { Footer } from '@/components/Footer';
 import { NewsletterSignup } from '@/components/NewsletterSignup';
 
 export const metadata: Metadata = {
-  title: 'Pricing — RevealUI',
+  title: 'Pricing | RevealUI',
   description:
-    'Start free. Subscribe, pay per agent task, buy a one-time license, or book expert services. Four ways to use RevealUI — pick what fits your business.',
+    'Start free. Subscribe, pay per agent task, buy a one-time license, or book expert services. Four ways to use RevealUI. Pick what fits your business.',
   openGraph: {
-    title: 'Pricing — RevealUI',
+    title: 'Pricing | RevealUI',
     description:
       'Start free. Subscribe, pay per agent task, buy a one-time license, or book expert services. Four ways to use RevealUI.',
     type: 'website',
@@ -57,27 +57,27 @@ const faqs = [
   {
     question: 'What are agent credits?',
     answer:
-      'Every paid subscription includes a monthly task allowance (Pro: 10K, Max: 50K, Forge: unlimited). The first 1,000 tasks/month are free on any tier. If you need more, buy credit bundles — they never expire and stack with your monthly allowance.',
+      'Every paid subscription includes a monthly task allowance (Pro: 10K, Max: 50K, Forge: unlimited). The first 1,000 tasks/month are free on any tier. If you need more, buy credit bundles. They never expire and stack with your monthly allowance.',
   },
   {
     question: 'What are perpetual licenses?',
     answer:
-      'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier — forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have.',
+      'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have.',
   },
   {
     question: 'Can I upgrade or downgrade my plan?',
     answer:
-      "Yes, you can upgrade your plan at any time — you'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact support@revealui.com.",
+      "Yes, you can upgrade your plan at any time. You'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact support@revealui.com.",
   },
   {
     question: 'How does AI inference work?',
     answer:
-      'RevealUI runs AI on open models only (Apache 2.0) — no proprietary cloud APIs, no vendor lock-in, no API bills. The recommended path is Ubuntu Inference Snaps from Canonical: run "sudo snap install gemma3 --beta" for instant local inference. Also supported: Ollama (local, any GGUF model), and cloud-hosted open models via the RevealUI harness (Pro+). Studio manages snap lifecycle, model switching, and multi-agent coordination.',
+      'RevealUI runs AI on open models only (Apache 2.0). No proprietary cloud APIs, no vendor lock-in, no API bills. The recommended path is Ubuntu Inference Snaps from Canonical: run "sudo snap install gemma3 --beta" for instant local inference. Also supported: Ollama (local, any GGUF model), and cloud-hosted open models via the RevealUI harness (Pro+). Studio manages snap lifecycle, model switching, and multi-agent coordination.',
   },
   {
     question: 'What is Studio?',
     answer:
-      'Studio is the native AI experience — a Tauri desktop app that orchestrates agents, manages Ubuntu Inference Snaps and local models, and provides a visual dashboard for multi-agent coordination. Available on Pro tier and above.',
+      'Studio is the native AI experience: a Tauri desktop app that orchestrates agents, manages Ubuntu Inference Snaps and local models, and provides a visual dashboard for multi-agent coordination. Available on Pro tier and above.',
   },
   {
     question: 'What does "full source code access" mean?',
@@ -92,7 +92,7 @@ const faqs = [
   {
     question: 'What is the RevealUI ecosystem?',
     answer:
-      'RevealUI is part of a four-project ecosystem. RevVault provides age-encrypted secret management (CLI free, desktop app Pro). RevKit provides portable dev environment provisioning (agent coordination protocol free, full provisioning Max). RevealCoin enables agent-native micropayments via the x402 protocol (Forge). Each project works independently — together they cover building, securing, and monetizing agentic software.',
+      'RevealUI is part of a four-project ecosystem. RevVault provides age-encrypted secret management (CLI free, desktop app Pro). RevKit provides portable dev environment provisioning (agent coordination protocol free, full provisioning Max). RevealCoin enables agent-native micropayments via the x402 protocol (Forge). Each project works independently. Together they cover building, securing, and monetizing agentic software.',
   },
 ];
 
@@ -124,7 +124,7 @@ export default async function PricingPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
             Subscribe monthly, pay per agent task, buy a perpetual license, or book expert services.
-            Start free — upgrade when you need to.
+            Start free. Upgrade when you need to.
           </p>
           {/* Three-track badge row */}
           <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-medium">
@@ -132,31 +132,31 @@ export default async function PricingPage() {
               href="#track-a"
               className="rounded-full bg-blue-100 px-4 py-1.5 text-blue-700 hover:bg-blue-200 transition-colors"
             >
-              Track A — Subscriptions
+              Track A: Subscriptions
             </a>
             <a
               href="#track-b"
               className="rounded-full bg-purple-100 px-4 py-1.5 text-purple-700 hover:bg-purple-200 transition-colors"
             >
-              Track B — Agent Credits
+              Track B: Agent Credits
             </a>
             <a
               href="#track-c"
               className="rounded-full bg-emerald-100 px-4 py-1.5 text-emerald-700 hover:bg-emerald-200 transition-colors"
             >
-              Track C — Perpetual Licenses
+              Track C: Perpetual Licenses
             </a>
             <a
               href="#track-d"
               className="rounded-full bg-amber-100 px-4 py-1.5 text-amber-700 hover:bg-amber-200 transition-colors"
             >
-              Track D — Services
+              Track D: Services
             </a>
           </div>
         </div>
       </section>
 
-      {/* Track A — Subscription tiers */}
+      {/* Track A: Subscription tiers */}
       <section id="track-a" className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -230,7 +230,7 @@ export default async function PricingPage() {
         </div>
       </section>
 
-      {/* Track B — Agent Credits */}
+      {/* Track B: Agent Credits */}
       <section id="track-b" className="bg-purple-50 py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -265,7 +265,7 @@ export default async function PricingPage() {
                 <h3 className="text-lg font-bold text-gray-900">{bundle.name}</h3>
                 <p className="mt-1 text-sm text-gray-500">{bundle.description}</p>
                 <p className="mt-4 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold text-gray-900">{bundle.price ?? '—'}</span>
+                  <span className="text-4xl font-bold text-gray-900">{bundle.price ?? ' - '}</span>
                   <span className="text-sm text-gray-500">{bundle.priceNote ?? ''}</span>
                 </p>
                 <p className="mt-1 text-xl font-semibold text-purple-600">{bundle.tasks} tasks</p>
@@ -284,13 +284,13 @@ export default async function PricingPage() {
             ))}
           </div>
           <p className="mt-8 text-center text-sm text-gray-500">
-            Credits are available to Pro, Max, and Forge subscribers. Overage billing via Stripe —
+            Credits are available to Pro, Max, and Forge subscribers. Overage billing via Stripe -
             no surprises.
           </p>
         </div>
       </section>
 
-      {/* Track C — Perpetual Licenses */}
+      {/* Track C: Perpetual Licenses */}
       <section id="track-c" className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
@@ -320,10 +320,10 @@ export default async function PricingPage() {
                 <h3 className="text-lg font-bold text-gray-900">{tier.name}</h3>
                 <p className="mt-1 text-sm text-gray-500">{tier.description}</p>
                 <p className="mt-4 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold text-gray-900">{tier.price ?? '—'}</span>
+                  <span className="text-4xl font-bold text-gray-900">{tier.price ?? ' - '}</span>
                   <span className="text-sm text-gray-500">{tier.priceNote ?? ''}</span>
                 </p>
-                <p className="mt-1 text-xs text-gray-500">{tier.renewal ?? '—'}</p>
+                <p className="mt-1 text-xs text-gray-500">{tier.renewal ?? ' - '}</p>
                 <ul className="mt-6 mb-8 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
@@ -429,7 +429,7 @@ export default async function PricingPage() {
                 <h3 className="text-base font-semibold text-white">x402 Per-Call Payments</h3>
                 <p className="mt-2 text-sm text-gray-400">
                   Agents pay per task with RevealCoin on Solana via the HTTP 402 payment protocol.
-                  No accounts, no subscriptions — pay exactly for what you use.
+                  No accounts, no subscriptions. Pay exactly for what you use.
                 </p>
                 <p className="mt-3 text-xs text-gray-400">
                   $0.001 per agent task · First 1,000/month free · Powered by RevealCoin
@@ -456,7 +456,7 @@ export default async function PricingPage() {
                 </div>
                 <h3 className="text-base font-semibold text-white">MCP Servers</h3>
                 <p className="mt-2 text-sm text-gray-400">
-                  12 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
+                  11 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
                   Next.js DevTools, content management, and email. Marketplace discovery coming
                   soon.
                 </p>
@@ -503,7 +503,7 @@ export default async function PricingPage() {
         </div>
       </section>
 
-      {/* Track D — Professional Services */}
+      {/* Track D: Professional Services */}
       <section id="track-d" className="bg-amber-50/50 py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">

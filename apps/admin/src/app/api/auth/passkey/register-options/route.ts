@@ -35,7 +35,7 @@ export const runtime = 'nodejs';
 
 async function registerOptionsHandler(request: NextRequest): Promise<NextResponse> {
   try {
-    // Check for session cookie — if present, this is "add passkey" flow
+    // Check for session cookie  -  if present, this is "add passkey" flow
     const session = await getSession(request.headers, extractRequestContext(request));
 
     let userId: string;

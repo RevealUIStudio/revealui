@@ -1,16 +1,16 @@
 # RevealUI CMS
 
-Admin dashboard with content management, account billing, and system monitoring — powered by Next.js 16.
+Admin dashboard with content management, account billing, and system monitoring  -  powered by Next.js 16.
 
 ## Features
 
-- **Content Management** — Collection-based CRUD with field hooks, access control, and rich text (Lexical)
-- **Admin Dashboard** — System monitoring, error tracking, structured logging
-- **Authentication** — Session-based auth with password reset, rate limiting, brute force protection
-- **Billing** — Stripe checkout, account subscription management, optional license flows, and tier-gated features
-- **AI Agents** — A2A agent cards, MCP server registry, open-model inference configuration
-- **Real-Time Sync** — ElectricSQL shape-based sync for conversations, agent contexts, and memories
-- **GDPR Compliance** — Data export and deletion endpoints
+- **Content Management**  -  Collection-based CRUD with field hooks, access control, and rich text (Lexical)
+- **Admin Dashboard**  -  System monitoring, error tracking, structured logging
+- **Authentication**  -  Session-based auth with password reset, rate limiting, brute force protection
+- **Billing**  -  Stripe checkout, account subscription management, optional license flows, and tier-gated features
+- **AI Agents**  -  A2A agent cards, MCP server registry, open-model inference configuration
+- **Real-Time Sync**  -  ElectricSQL shape-based sync for conversations, agent contexts, and memories
+- **GDPR Compliance**  -  Data export and deletion endpoints
 
 ## Stack
 
@@ -18,7 +18,7 @@ Admin dashboard with content management, account billing, and system monitoring 
 - **Styling**: Tailwind CSS v4
 - **Database**: Drizzle ORM (NeonDB)
 - **Auth**: `@revealui/auth` (bcrypt, sessions, rate limiting)
-- **UI Components**: `@revealui/presentation` (56 native components)
+- **UI Components**: `@revealui/presentation` (57 native components)
 - **Rich Text**: Lexical editor
 - **Payments**: Stripe (checkout, billing portal, webhooks)
 - **Monitoring**: Sentry

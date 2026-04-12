@@ -317,14 +317,14 @@ export default function LicensePage() {
           <CardHeader>
             <CardTitle>Perpetual License</CardTitle>
             <CardDescription>
-              Own your license forever. One-time payment — no subscription required. Includes 1 year
+              Own your license forever. One-time payment - no subscription required. Includes 1 year
               of support with optional annual renewals.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3 rounded-lg border p-3 dark:border-zinc-800">
               <p className="text-xs font-medium text-zinc-600 uppercase tracking-wide">
-                Optional — for package access
+                Optional - for package access
               </p>
               <div className="space-y-2">
                 <label className="flex flex-col gap-1">
@@ -398,7 +398,7 @@ export default function LicensePage() {
               onClick={() => void handleSupportRenewal()}
               className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
             >
-              {renewalLoading ? 'Redirecting…' : 'Renew Support — 1 Year'}
+              {renewalLoading ? 'Redirecting…' : 'Renew Support  -  1 Year'}
             </button>
           </CardContent>
         </Card>

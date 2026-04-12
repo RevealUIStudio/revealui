@@ -13,7 +13,7 @@ export interface APIErrorResponse {
   requestId?: string;
 }
 
-/** Fire-and-forget — persist to error_events without blocking the response. */
+/** Fire-and-forget  -  persist to error_events without blocking the response. */
 function persistError(
   level: 'warn' | 'error' | 'fatal',
   message: string,
@@ -52,7 +52,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
 
   // Handle HTTP exceptions
   if (err instanceof HTTPException) {
-    // Only persist 5xx server errors — 4xx are client mistakes, not bugs
+    // Only persist 5xx server errors  -  4xx are client mistakes, not bugs
     if (err.status >= 500) {
       Sentry.captureException(err, { extra: { requestId, url } });
       persistError('error', err.message, err.stack, requestId, url);
@@ -68,7 +68,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
     );
   }
 
-  // Handle validation errors — client mistake, no persist
+  // Handle validation errors  -  client mistake, no persist
   if (err.name === 'ZodError') {
     // Strip field-level details in production to avoid leaking schema information
     let details: unknown;
@@ -91,7 +91,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
     );
   }
 
-  // Unhandled server error — persist and report to Sentry
+  // Unhandled server error  -  persist and report to Sentry
   Sentry.captureException(error, { extra: { requestId, url } });
   persistError('error', error.message, error.stack, requestId, url);
 

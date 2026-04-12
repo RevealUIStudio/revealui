@@ -10,7 +10,7 @@ import type { RateLimitStore } from '../rate-limit-store.js';
 import { InMemoryRateLimitStore } from '../rate-limit-store.js';
 
 // =============================================================================
-// Shared test suite — runs against any RateLimitStore implementation
+// Shared test suite  -  runs against any RateLimitStore implementation
 // =============================================================================
 
 function rateLimitStoreSuite(name: string, createStore: () => Promise<RateLimitStore>) {
@@ -132,7 +132,7 @@ try {
   await import('@electric-sql/pglite');
   pgliteAvailable = true;
 } catch {
-  // PGlite not installed — skip
+  // PGlite not installed  -  skip
 }
 
 if (pgliteAvailable) {
@@ -153,7 +153,7 @@ if (pgliteAvailable) {
     return store;
   });
 
-  describe('PGliteRateLimitStore — SQL-specific', () => {
+  describe('PGliteRateLimitStore  -  SQL-specific', () => {
     it('handles special characters in keys', async () => {
       const store = new PGliteRateLimitStore({ db: sharedDb, closeOnDestroy: false });
       await store.set('key\'with"quotes', { count: 1, windowStart: 1000 });
@@ -175,7 +175,7 @@ if (pgliteAvailable) {
     });
   });
 } else {
-  describe.skip('PGliteRateLimitStore (skipped — @electric-sql/pglite not available)', () => {
+  describe.skip('PGliteRateLimitStore (skipped  -  @electric-sql/pglite not available)', () => {
     it('placeholder', () => {});
   });
 }

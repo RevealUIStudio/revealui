@@ -170,7 +170,7 @@ export const beforeProductChange: RevealBeforeChangeHook<Product> = async ({ req
     skipSync: false, // Reset to false so changes continue to sync
   };
 
-  // Dynamic import — @revealui/services is an optional Pro dependency
+  // Dynamic import  -  @revealui/services is an optional Pro dependency
   const services = await import('@revealui/services').catch(() => null);
   if (!services) {
     // Allow drafts without Stripe, but block published products

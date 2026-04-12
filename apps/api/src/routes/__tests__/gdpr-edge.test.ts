@@ -1,5 +1,5 @@
 /**
- * GDPR Route — Edge Case Tests
+ * GDPR Route  -  Edge Case Tests
  *
  * Supplements gdpr.test.ts with:
  * - Consent grant: expiresIn:0 fails positive() → 400
@@ -17,7 +17,7 @@ import { HTTPException } from 'hono/http-exception';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must come before imports
+// Mocks  -  must come before imports
 // ---------------------------------------------------------------------------
 
 const {
@@ -154,7 +154,7 @@ beforeEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('POST /gdpr/consent/grant — expiresIn boundary', () => {
+describe('POST /gdpr/consent/grant  -  expiresIn boundary', () => {
   it('returns 400 when expiresIn is 0 (positive() requires > 0)', async () => {
     const app = createApp(testUser);
     const res = await jsonPost(app, '/gdpr/consent/grant', { type: 'analytics', expiresIn: 0 });
@@ -179,7 +179,7 @@ describe('POST /gdpr/consent/grant — expiresIn boundary', () => {
   });
 });
 
-describe('GET /gdpr/consent/check/:type — hasConsent result', () => {
+describe('GET /gdpr/consent/check/:type  -  hasConsent result', () => {
   it('returns granted:false when hasConsent returns false', async () => {
     mockHasConsent.mockResolvedValue(false);
     const app = createApp(testUser);
@@ -200,7 +200,7 @@ describe('GET /gdpr/consent/check/:type — hasConsent result', () => {
   });
 });
 
-describe('POST /gdpr/deletion — boundary and category validation', () => {
+describe('POST /gdpr/deletion  -  boundary and category validation', () => {
   it('returns 201 when reason is exactly 1000 characters (max boundary)', async () => {
     const app = createApp(testUser);
     const res = await jsonPost(app, '/gdpr/deletion', { reason: 'x'.repeat(1000) });
@@ -209,7 +209,7 @@ describe('POST /gdpr/deletion — boundary and category validation', () => {
 
   it('passes empty categories array as-is to requestDeletion (no ?? override for [])', async () => {
     // The route uses: body.categories ?? ['personal']
-    // An empty array [] is not null/undefined — it IS a value — so it is passed as-is.
+    // An empty array [] is not null/undefined  -  it IS a value  -  so it is passed as-is.
     const app = createApp(testUser);
     const res = await jsonPost(app, '/gdpr/deletion', { categories: [] });
     expect(res.status).toBe(201);
@@ -220,20 +220,20 @@ describe('POST /gdpr/deletion — boundary and category validation', () => {
     const app = createApp(testUser);
     const res = await jsonPost(app, '/gdpr/deletion', {
       categories: ['personal', 'sensitive', 'financial', 'health', 'behavioral'],
-      reason: 'Account closure — all data',
+      reason: 'Account closure  -  all data',
     });
     expect(res.status).toBe(201);
     expect(mockRequestDeletion).toHaveBeenCalledWith(
       'user-1',
       ['personal', 'sensitive', 'financial', 'health', 'behavioral'],
-      'Account closure — all data',
+      'Account closure  -  all data',
     );
   });
 });
 
-describe('GET /gdpr/admin/stats — auth', () => {
+describe('GET /gdpr/admin/stats  -  auth', () => {
   it('returns 403 when no user context is set (unauthenticated)', async () => {
-    // createApp() with no user — user context is undefined
+    // createApp() with no user  -  user context is undefined
     const app = createApp();
     const res = await app.request('/gdpr/admin/stats');
     expect(res.status).toBe(403);

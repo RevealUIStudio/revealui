@@ -1,19 +1,25 @@
 # @revealui/core
 
-The core runtime engine for RevealUI — collections, admin UI, rich text, security, observability, and plugins.
+[![npm version](https://img.shields.io/npm/v/@revealui/core)](https://www.npmjs.com/package/@revealui/core)
+[![npm downloads](https://img.shields.io/npm/dw/@revealui/core)](https://www.npmjs.com/package/@revealui/core)
+[![license](https://img.shields.io/npm/l/@revealui/core)](https://github.com/RevealUIStudio/revealui/blob/main/LICENSE)
+
+The core runtime engine for [RevealUI](https://revealui.com)  -  collections, admin UI, rich text, security, observability, and plugins.
+
+Part of the [RevealUI monorepo](https://github.com/RevealUIStudio/revealui)  -  open-source agentic business runtime.
 
 ## Features
 
-- **Collections & CRUD** — Define content types with field hooks, access control, and validation
-- **Admin Dashboard** — Ready-to-use React admin UI (collection browser, document editor, global forms)
-- **Rich Text Fields** — Lexical-powered content fields in the admin editor (bold, headings, lists, links, images, blocks)
-- **Security** — CORS, CSP, HSTS, RBAC/ABAC policy engine, encryption (AES-256-GCM), audit logging
-- **GDPR Compliance** — Consent management, data export, deletion, anonymization, breach reporting
-- **Observability** — Structured logging, process health monitoring, alert system, graceful shutdown
-- **Plugins** — Extensible plugin system (form builder, nested docs, redirects)
-- **Feature Gating** — Tier-based licensing (free, pro, max, enterprise/Forge) with JWT license keys
-- **Database** — PostgreSQL adapters (NeonDB + PGlite for testing), connection pooling, SSL/TLS
-- **Storage** — Pluggable storage interface (Vercel Blob adapter included)
+- **Collections & CRUD**  -  Define content types with field hooks, access control, and validation
+- **Admin Dashboard**  -  Ready-to-use React admin UI (collection browser, document editor, global forms)
+- **Rich Text Fields**  -  Lexical-powered content fields in the admin editor (bold, headings, lists, links, images, blocks)
+- **Security**  -  CORS, CSP, HSTS, RBAC/ABAC policy engine, encryption (AES-256-GCM), audit logging
+- **GDPR Compliance**  -  Consent management, data export, deletion, anonymization, breach reporting
+- **Observability**  -  Structured logging, process health monitoring, alert system, graceful shutdown
+- **Plugins**  -  Extensible plugin system (form builder, nested docs, redirects)
+- **Feature Gating**  -  Tier-based licensing (free, pro, max, enterprise/Forge) with JWT license keys
+- **Database**  -  PostgreSQL adapters (NeonDB + PGlite for testing), connection pooling, SSL/TLS
+- **Storage**  -  Pluggable storage interface (Vercel Blob adapter included)
 
 ## Installation
 
@@ -81,7 +87,7 @@ function App() {
 ### Rich Text Fields
 
 Rich text editing is available as a field type in the admin dashboard.
-Define a `richText` field in your collection schema — the admin UI renders
+Define a `richText` field in your collection schema  -  the admin UI renders
 a Lexical editor automatically. Not a standalone component.
 
 ```typescript
@@ -150,20 +156,20 @@ pnpm dev
 - You're building a content-driven app and need collections, admin UI, and CRUD out of the box
 - You need RBAC/ABAC access control, GDPR compliance, or feature gating by license tier
 - You want a rich text editor (Lexical) integrated with your CMS
-- **Not** for standalone UI components — use `@revealui/presentation`
-- **Not** for raw database queries — use `@revealui/db` directly
+- **Not** for standalone UI components  -  use `@revealui/presentation`
+- **Not** for raw database queries  -  use `@revealui/db` directly
 
 ## JOSHUA Alignment
 
-- **Sovereign**: Self-hosted runtime engine — no SaaS dependency for content management, auth, or storage
+- **Sovereign**: Self-hosted runtime engine  -  no vendor dependency for content management, auth, or storage
 - **Unified**: One `buildConfig()` call wires collections, globals, plugins, security, and feature gates into a single configuration
 - **Adaptive**: Plugin system and tier-based feature gating let the platform evolve without breaking existing deployments
 
 ## Related
 
-- [Contracts Package](../contracts/README.md) — Zod schemas and TypeScript types
-- [DB Package](../db/README.md) — Drizzle ORM schema
-- [Auth Package](../auth/README.md) — Authentication system
+- [Contracts Package](../contracts/README.md)  -  Zod schemas and TypeScript types
+- [DB Package](../db/README.md)  -  Drizzle ORM schema
+- [Auth Package](../auth/README.md)  -  Authentication system
 - [Architecture Guide](../../docs/ARCHITECTURE.md)
 
 ## License

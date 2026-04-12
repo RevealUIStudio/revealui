@@ -1,5 +1,5 @@
 /**
- * Stripe Webhook Handler — Comprehensive Handler Tests
+ * Stripe Webhook Handler  -  Comprehensive Handler Tests
  *
  * Supplements webhooks.test.ts and webhooks-expansion.test.ts with coverage for:
  * - Perpetual (one-time payment) checkout flow
@@ -19,7 +19,7 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockConstructEvent = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
@@ -171,7 +171,7 @@ function resetDbChains() {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('POST /stripe webhook — handler tests', () => {
+describe('POST /stripe webhook  -  handler tests', () => {
   const savedEnv: Record<string, string | undefined> = {};
 
   beforeEach(() => {
@@ -339,7 +339,7 @@ describe('POST /stripe webhook — handler tests', () => {
   // PERPETUAL CHECKOUT
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('checkout.session.completed — perpetual', () => {
+  describe('checkout.session.completed  -  perpetual', () => {
     function makePerpetualEvent(id: string, overrides: Record<string, unknown> = {}) {
       return {
         id,
@@ -474,7 +474,7 @@ describe('POST /stripe webhook — handler tests', () => {
   // SCHEDULED CANCELLATION
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('subscription.updated — scheduled cancellation', () => {
+  describe('subscription.updated  -  scheduled cancellation', () => {
     it('stamps expiresAt from cancel_at when cancel_at_period_end is true', async () => {
       const cancelAt = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
       const event = {
@@ -612,7 +612,7 @@ describe('POST /stripe webhook — handler tests', () => {
   // MISSING PRIVATE KEY FOR ACTIVE SYNC
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('subscription.updated — missing private key', () => {
+  describe('subscription.updated  -  missing private key', () => {
     it('returns 500 when key missing and subscription is active', async () => {
       delete process.env.REVEALUI_LICENSE_PRIVATE_KEY;
 

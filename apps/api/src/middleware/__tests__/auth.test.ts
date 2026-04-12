@@ -30,7 +30,7 @@ const mockedGetSession = vi.mocked(getSession);
 
 function mockSession(
   overrides?: Partial<{ user: Record<string, unknown>; session: Record<string, unknown> }>,
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — mock session data with partial fields
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  mock session data with partial fields
 ): any {
   return {
     user: { id: 'user-1', role: 'admin', email: 'a@b.com', ...overrides?.user },
@@ -42,11 +42,11 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono Variables type requires loose typing in tests
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono Variables type requires loose typing in tests
 type TestVariables = { user: any; session: any };
 
 // ---------------------------------------------------------------------------
-// Tests — authMiddleware
+// Tests  -  authMiddleware
 // ---------------------------------------------------------------------------
 describe('authMiddleware', () => {
   describe('required: true (default)', () => {
@@ -167,7 +167,7 @@ describe('authMiddleware', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — requireRole
+// Tests  -  requireRole
 // ---------------------------------------------------------------------------
 describe('requireRole', () => {
   function createApp(...roles: string[]) {
@@ -198,7 +198,7 @@ describe('requireRole', () => {
 
   it('returns 401 when no user is set', async () => {
     const app = new Hono<{ Variables: TestVariables }>();
-    // Skip auth middleware — no user set
+    // Skip auth middleware  -  no user set
     app.use('*', requireRole('admin'));
     app.get('/test', (c) => c.json({ ok: true }));
 

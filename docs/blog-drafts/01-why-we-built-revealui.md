@@ -30,7 +30,7 @@ Five primitives:
 
 4. **Payments** -- Stripe end-to-end: checkout, portal, subscriptions, usage metering, webhook idempotency, circuit breaker protection. Chargebacks auto-revoke licenses. Failed payments trigger grace periods. Every webhook is deduplicated at the database level.
 
-5. **Intelligence** -- AI agent orchestration with streaming, CRDT-based memory, open-model inference (Ubuntu Inference Snaps, Ollama), MCP servers for tool access, and A2A protocol for inter-agent communication. Pro tier only, because running AI costs real money. Free tier ships with `sudo snap install nemotron-3-nano` — on-device inference, zero API bills.
+5. **Intelligence** -- AI agent orchestration with streaming, CRDT-based memory, open-model inference (Ubuntu Inference Snaps, Ollama), MCP servers for tool access, and A2A protocol for inter-agent communication. Pro tier only, because running AI costs real money. Free tier ships with `sudo snap install nemotron-3-nano`  -  on-device inference, zero API bills.
 
 These five are not independent features bolted together. They form a directed graph of dependencies: Users author Content. Users purchase Products. Products gate Content and Intelligence. Payments generate Products. Intelligence creates Content and bills through Payments. Every edge in that graph is integration code you do not have to write.
 
@@ -70,11 +70,11 @@ Every framework is a set of opinions. Here are ours:
 
 RevealUI launched with:
 
-- **18 npm packages** published to the public registry
-- **80+ database tables** via Drizzle ORM (NeonDB + Supabase)
-- **58 UI components** with zero external dependencies
-- **7 MCP servers** for AI tool access (all MIT)
-- **13,700+ tests** across all packages
+- **22 npm packages** published to the public registry
+- **81 database tables** via Drizzle ORM (NeonDB + Supabase)
+- **57 UI components** with zero external dependencies
+- **11 MCP servers** for AI tool access (all MIT)
+- **20,000+ tests** across all packages
 - **4 GitHub template repos** for different starting points
 
 You can start right now:

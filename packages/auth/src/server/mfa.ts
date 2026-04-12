@@ -1,5 +1,5 @@
 /**
- * MFA/2FA — TOTP-based Multi-Factor Authentication
+ * MFA/2FA  -  TOTP-based Multi-Factor Authentication
  *
  * Uses the timing-safe TOTP implementation from @revealui/core/security/auth.
  * Backup codes are bcrypt-hashed for storage (one-time use, consumed on verify).
@@ -384,7 +384,7 @@ export async function disableMFA(
       return { success: false, error: 'Invalid password' };
     }
   }
-  // For passkey proof, the API route has already performed the WebAuthn assertion —
+  // For passkey proof, the API route has already performed the WebAuthn assertion  -
   // the `verified: true` flag is trusted as a server-side signal.
 
   // Clear all MFA data

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mock @revealui/ai — all dynamic imports return null by default
+// Mock @revealui/ai  -  all dynamic imports return null by default
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/ai', () => ({}));
 vi.mock('@revealui/ai/llm/client', () => ({}));
@@ -81,7 +81,7 @@ describe('agent-stream route', () => {
       instruction: '',
     });
 
-    // Schema accepts empty string — handler proceeds but AI module not available
+    // Schema accepts empty string  -  handler proceeds but AI module not available
     expect(res.status).toBe(403);
   });
 });
@@ -89,7 +89,7 @@ describe('agent-stream route', () => {
 // ---------------------------------------------------------------------------
 // Mode parameter validation
 // ---------------------------------------------------------------------------
-describe('agent-stream route — mode parameter', () => {
+describe('agent-stream route  -  mode parameter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

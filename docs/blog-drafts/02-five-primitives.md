@@ -412,10 +412,10 @@ The `@revealui/ai` package is loaded dynamically. If the license is free, the im
 
 ### Open-Model Inference
 
-RevealUI runs AI on open models only — no proprietary cloud APIs, no vendor lock-in, no API bills. The inference path is auto-detected from environment variables:
+RevealUI runs AI on open models only  -  no proprietary cloud APIs, no vendor lock-in, no API bills. The inference path is auto-detected from environment variables:
 
-1. **Ubuntu Inference Snaps** (recommended) — Canonical snap runtime (Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano)
-2. **Ollama** (fallback) — Any open source GGUF model (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)
+1. **Ubuntu Inference Snaps** (recommended)  -  Canonical snap runtime (Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano)
+2. **Ollama** (fallback)  -  Any open source GGUF model (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)
 
 ### CRDT-based memory system
 

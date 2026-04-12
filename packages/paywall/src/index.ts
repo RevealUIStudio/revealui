@@ -1,7 +1,7 @@
 /**
  * @revealui/paywall
  *
- * Runtime license enforcement, feature gating, and upgrade UI for SaaS applications.
+ * Runtime license enforcement, feature gating, and upgrade UI for software products.
  *
  * Zero-config defaults for the common case; fully configurable for custom tiers and features.
  *
@@ -36,11 +36,11 @@
  * ```
  *
  * Subpath exports:
- * - `@revealui/paywall/server/hono` — Hono middleware
- * - `@revealui/paywall/server/next` — Next.js route handler gates
- * - `@revealui/paywall/client` — React components (LicenseGate, UpgradePrompt)
- * - `@revealui/paywall/stripe` — Stripe webhook/checkout helpers
- * - `@revealui/paywall/x402` — HTTP 402 agent payment negotiation
+ * - `@revealui/paywall/server/hono`  -  Hono middleware
+ * - `@revealui/paywall/server/next`  -  Next.js route handler gates
+ * - `@revealui/paywall/client`  -  React components (LicenseGate, UpgradePrompt)
+ * - `@revealui/paywall/stripe`  -  Stripe webhook/checkout helpers
+ * - `@revealui/paywall/x402`  -  HTTP 402 agent payment negotiation
  *
  * @packageDocumentation
  */

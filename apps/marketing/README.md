@@ -1,13 +1,13 @@
 # RevealUI Marketing Site
 
-Marketing site for RevealUI — the agentic business runtime. Users, content, products, payments, and AI, pre-wired and open source.
+Marketing site for RevealUI  -  agentic business runtime. Users, content, products, payments, and AI, pre-wired and open source.
 
 **Tagline:** "Build your business, not your boilerplate."
 
 ## What's here
 
 - Hero: "Build your business, not your boilerplate." + five primitives subtitle
-- ValueProposition: "Stop stitching tools together" — Own Your Stack, AI Agents Built In, Production Stack Included
+- ValueProposition: "Stop stitching tools together"  -  Own Your Stack, AI Agents Built In, Production Stack Included
 - SocialProof: six capability cards
 - LeadCapture: waitlist form with DB-backed storage and Resend email notifications
 - ProductMockup: illustrated browser chrome of the CMS admin UI
@@ -34,16 +34,16 @@ DATABASE_URL=            # NeonDB connection string (waitlist storage)
 
 ## API
 
-- `POST /api/waitlist` — Add email to waitlist (DB-backed, rate-limited, Resend notification)
-- `GET /api/waitlist` — 410 Gone (removed for GDPR)
+- `POST /api/waitlist`  -  Add email to waitlist (DB-backed, rate-limited, Resend notification)
+- `GET /api/waitlist`  -  410 Gone (removed for GDPR)
 
 ## Routes
 
-- `/` — Landing page
-- `/pricing` — Pro/Forge pricing and commercial packaging
-- `/sponsor` — Sponsorship tiers
-- `/privacy` — Privacy policy
-- `/terms` — Terms of service
+- `/`  -  Landing page
+- `/pricing`  -  Pro/Forge pricing and commercial packaging
+- `/sponsor`  -  Sponsorship tiers
+- `/privacy`  -  Privacy policy
+- `/terms`  -  Terms of service
 
 ## Commercial framing
 
@@ -56,9 +56,9 @@ The marketing site should present RevealUI as:
 
 ## Key Components
 
-- `src/components/HeroSection.tsx` — Headline + CTA + ProductMockup
-- `src/components/ProductMockup.tsx` — Illustrated CMS admin UI (browser chrome)
-- `src/components/ValueProposition.tsx` — Three-column feature section
-- `src/components/SocialProof.tsx` — Six capability cards
-- `src/components/LeadCapture.tsx` — Waitlist form
-- `src/components/Footer.tsx` — Footer with nav links
+- `src/components/HeroSection.tsx`  -  Headline + CTA + ProductMockup
+- `src/components/ProductMockup.tsx`  -  Illustrated CMS admin UI (browser chrome)
+- `src/components/ValueProposition.tsx`  -  Three-column feature section
+- `src/components/SocialProof.tsx`  -  Six capability cards
+- `src/components/LeadCapture.tsx`  -  Waitlist form
+- `src/components/Footer.tsx`  -  Footer with nav links

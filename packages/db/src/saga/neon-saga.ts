@@ -1,5 +1,5 @@
 /**
- * NeonSaga — Saga Executor for NeonDB HTTP Driver
+ * NeonSaga  -  Saga Executor for NeonDB HTTP Driver
  *
  * Provides transaction-like guarantees over NeonDB's stateless HTTP driver
  * by modeling multi-step writes as a saga with compensating actions.
@@ -50,7 +50,7 @@ import type {
 const DEFAULT_IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Execute a saga — a sequence of individually-atomic steps with compensating
+ * Execute a saga  -  a sequence of individually-atomic steps with compensating
  * actions for rollback.
  *
  * @param db - Database client (works with both NeonDB HTTP and pg Pool)
@@ -71,7 +71,7 @@ export async function executeSaga<T = unknown>(
   const sagaId = `saga-${sagaName}-${sagaKey}-${Date.now()}`;
 
   // -------------------------------------------------------------------------
-  // 1. Idempotency check — skip if already processed
+  // 1. Idempotency check  -  skip if already processed
   // -------------------------------------------------------------------------
   const alreadyProcessed = await checkIdempotency(db, idempotencyKey);
   if (alreadyProcessed) {
@@ -84,7 +84,7 @@ export async function executeSaga<T = unknown>(
   }
 
   // -------------------------------------------------------------------------
-  // 2. Create job record (outbox entry) — records intent before mutations
+  // 2. Create job record (outbox entry)  -  records intent before mutations
   // -------------------------------------------------------------------------
   const checkpointData: SagaCheckpointData = {
     sagaName,
@@ -145,7 +145,7 @@ export async function executeSaga<T = unknown>(
     }
 
     // -----------------------------------------------------------------------
-    // 4. All steps succeeded — mark completed and record idempotency key
+    // 4. All steps succeeded  -  mark completed and record idempotency key
     // -----------------------------------------------------------------------
     await db
       .update(jobs)
@@ -168,7 +168,7 @@ export async function executeSaga<T = unknown>(
     };
   } catch (executeError) {
     // -----------------------------------------------------------------------
-    // 5. Step failed — compensate completed steps in reverse order
+    // 5. Step failed  -  compensate completed steps in reverse order
     // -----------------------------------------------------------------------
     const errorMessage =
       executeError instanceof Error ? executeError.message : String(executeError);
@@ -185,7 +185,7 @@ export async function executeSaga<T = unknown>(
       try {
         await step.compensate(ctx, completed.output);
       } catch (compensateError) {
-        // Log but don't throw — compensations are best-effort
+        // Log but don't throw  -  compensations are best-effort
         const msg =
           compensateError instanceof Error ? compensateError.message : String(compensateError);
         compensationErrors.push(`${completed.name}: ${msg}`);
@@ -241,7 +241,7 @@ async function checkIdempotency(
 
     const expiresAt = rows[0]?.expiresAt;
     if (expiresAt && expiresAt < new Date()) {
-      // Expired — delete and treat as not processed
+      // Expired  -  delete and treat as not processed
       await db.delete(idempotencyKeys).where(eq(idempotencyKeys.key, key));
       return false;
     }
@@ -275,7 +275,7 @@ async function recordIdempotency(
       })
       .onConflictDoNothing();
   } catch {
-    // Best-effort — if this fails, the saga still completed successfully.
+    // Best-effort  -  if this fails, the saga still completed successfully.
     // The next execution will just re-run (which is fine since steps are idempotent).
   }
 }

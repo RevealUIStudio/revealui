@@ -4,7 +4,7 @@
  * POST /api/auth/passkey/authenticate-options
  *
  * Generates WebAuthn authentication options for the browser.
- * No authentication required — this is the first step of passkey sign-in.
+ * No authentication required  -  this is the first step of passkey sign-in.
  */
 
 import { generateAuthenticationChallenge, signCookiePayload } from '@revealui/auth/server';
@@ -19,7 +19,7 @@ export const runtime = 'nodejs';
 
 async function authenticateOptionsHandler(_request: NextRequest): Promise<NextResponse> {
   try {
-    // Generate authentication options (no allowCredentials — discoverable credentials)
+    // Generate authentication options (no allowCredentials  -  discoverable credentials)
     const options = await generateAuthenticationChallenge();
 
     // Sign challenge into cookie

@@ -466,7 +466,7 @@ function SubmitTaskPanel({
             >
               {skills.map((skill) => (
                 <option key={skill.id} value={skill.name}>
-                  {skill.name} — {skill.description}
+                  {skill.name} - {skill.description}
                 </option>
               ))}
             </select>

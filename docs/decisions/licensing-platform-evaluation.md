@@ -1,7 +1,7 @@
 # Decision: Licensing Platform Evaluation
 
 **Date:** 2026-03-31
-**Status:** Decided — keep current implementation
+**Status:** Decided  -  keep current implementation
 **Phase:** 5 (Agent-First Infrastructure)
 
 ## Context
@@ -29,12 +29,12 @@ RevealUI's licensing is a dual-model system:
    - DB-backed idempotency for webhook processing
 
 ### Key Components
-- `packages/core/src/license.ts` — JWT generation/validation, tier caching
-- `packages/core/src/features.ts` — Feature flag resolution per tier
-- `packages/db/src/schema/accounts.ts` — `licenses`, `account_entitlements` tables
-- `apps/api/src/routes/license.ts` — Verify + generate endpoints
-- `apps/api/src/middleware/license.ts` — Route guards (requireLicense, requireFeature)
-- `apps/api/src/middleware/entitlements.ts` — Account-level entitlement context
+- `packages/core/src/license.ts`  -  JWT generation/validation, tier caching
+- `packages/core/src/features.ts`  -  Feature flag resolution per tier
+- `packages/db/src/schema/accounts.ts`  -  `licenses`, `account_entitlements` tables
+- `apps/api/src/routes/license.ts`  -  Verify + generate endpoints
+- `apps/api/src/middleware/license.ts`  -  Route guards (requireLicense, requireFeature)
+- `apps/api/src/middleware/entitlements.ts`  -  Account-level entitlement context
 
 ## Options Evaluated
 
@@ -62,7 +62,7 @@ RevealUI's licensing is a dual-model system:
 
 ## Rationale
 
-1. **The system works.** JWT signing, Stripe webhook license generation, DB-backed revocation, 5-minute cache — all pre-wired and tested.
+1. **The system works.** JWT signing, Stripe webhook license generation, DB-backed revocation, 5-minute cache  -  all pre-wired and tested.
 
 2. **No revenue yet.** Adding $299/mo (Keygen) or $19-99/mo (Anystack) before the first paying customer is wrong. The current system has zero marginal cost.
 
@@ -72,7 +72,7 @@ RevealUI's licensing is a dual-model system:
 
 5. **Machine fingerprinting is unnecessary.** RevealUI is a web application runtime, not desktop software. License enforcement is server-side. There's no "machine" to fingerprint.
 
-6. **Migration cost exceeds benefit.** Changing the license format would break all existing keys. Per the project's no-backwards-compatibility philosophy, this means cutting over all customers at once — high risk for zero proven need.
+6. **Migration cost exceeds benefit.** Changing the license format would break all existing keys. Per the project's no-backwards-compatibility philosophy, this means cutting over all customers at once  -  high risk for zero proven need.
 
 ## When to Reconsider
 
@@ -83,7 +83,7 @@ RevealUI's licensing is a dual-model system:
 
 ## Action Items
 
-None — current system is retained as-is. Focus licensing work on:
+None  -  current system is retained as-is. Focus licensing work on:
 - Completing account-level metered billing (usage meters → Stripe Billing Meter)
 - Adding `kid` claim rotation support for key rollover
 - Monitoring for license abuse post-launch

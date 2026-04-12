@@ -192,7 +192,7 @@ describe('useOfflineCache', () => {
     });
 
     it('should use default TTL when not specified', () => {
-      // Cache from 30 minutes ago — should be fresh with default 3600s TTL.
+      // Cache from 30 minutes ago  -  should be fresh with default 3600s TTL.
       const cached = {
         data: [{ id: '1', title: 'Recent' }],
         cachedAt: new Date(Date.now() - 1800 * 1_000).toISOString(),
@@ -208,7 +208,7 @@ describe('useOfflineCache', () => {
         useOfflineCache<TestRow>({
           shapeUrl: '/api/shapes/test',
           cacheKey: 'my-key',
-          // ttlSeconds omitted — defaults to 3600
+          // ttlSeconds omitted  -  defaults to 3600
         }),
       );
 

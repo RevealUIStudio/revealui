@@ -1,5 +1,5 @@
 /**
- * Waitlist API Test — Redirect Verification
+ * Waitlist API Test  -  Redirect Verification
  *
  * Waitlist is closed. The endpoint now:
  * - GET: 301 redirects to signup

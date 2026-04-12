@@ -101,7 +101,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // Catch fatal errors that escape all middleware
 process.on('uncaughtException', (error: Error) => {
-  logger.error('Uncaught exception — process will exit', error);
+  logger.error('Uncaught exception  -  process will exit', error);
   setTimeout(() => process.exit(1), 1000);
 });
 
@@ -110,7 +110,7 @@ process.on('unhandledRejection', (reason: unknown) => {
   logger.error('Unhandled promise rejection', error);
 });
 
-// Graceful shutdown — close database connection pools and stop background tasks
+// Graceful shutdown  -  close database connection pools and stop background tasks
 async function gracefulShutdown(signal: string): Promise<void> {
   logger.info(`${signal} received — shutting down`);
 
@@ -126,7 +126,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
       (mod.stopPriceOracle as () => void)();
     }
   } catch {
-    // @revealui/services not available — ignore
+    // @revealui/services not available  -  ignore
   }
 
   // Close database pools
@@ -145,7 +145,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
 process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Validate Forge config at startup — exits if FORGE_* env vars are inconsistent
+// Validate Forge config at startup  -  exits if FORGE_* env vars are inconsistent
 validateForgeConfig();
 
 /**
@@ -157,7 +157,7 @@ validateForgeConfig();
  */
 import { setCorsConfigMissing } from './lib/startup-state.js';
 
-/** Known production origins — hardcoded fallback if CORS_ORIGIN env var is missing or unreadable */
+/** Known production origins  -  hardcoded fallback if CORS_ORIGIN env var is missing or unreadable */
 const PRODUCTION_ORIGINS = [
   'https://admin.revealui.com',
   'https://revealui.com',
@@ -189,7 +189,7 @@ export function getCorsOrigins(): string[] {
   // Falling back to hardcoded origins risks accepting unintended cross-origin
   // requests if the env var is misconfigured. Fail loudly instead.
   const message =
-    'CORS_ORIGIN env var missing or empty in production — refusing to start with implicit origins. ' +
+    'CORS_ORIGIN env var missing or empty in production  -  refusing to start with implicit origins. ' +
     'Set CORS_ORIGIN to a comma-separated list of allowed origins.';
   logger.error(message, undefined, {
     nodeEnv: process.env.NODE_ENV,
@@ -197,7 +197,7 @@ export function getCorsOrigins(): string[] {
   });
   setCorsConfigMissing(true);
 
-  // In serverless environments (Vercel), process.exit is unreliable —
+  // In serverless environments (Vercel), process.exit is unreliable  -
   // log the error and fall back to the known production origins so the
   // deployment isn't bricked, but surface the misconfiguration loudly.
   if (process.env.VERCEL) {
@@ -267,7 +267,7 @@ function isTestSubdomainOrigin(origin: string): boolean {
   return validSuffixes.some((suffix) => host === `dev.${suffix}` || host === `test.${suffix}`);
 }
 
-// Manual CORS middleware — Hono's cors() middleware was not reliably setting
+// Manual CORS middleware  -  Hono's cors() middleware was not reliably setting
 // Access-Control-Allow-Origin headers in the Vercel serverless runtime.
 app.use('*', async (c, next) => {
   const origin = c.req.header('origin') || c.req.header('Origin') || '';
@@ -313,12 +313,12 @@ app.use('*', async (c, next) => {
   }
 });
 app.use('*', dbMiddleware());
-// Audit logging — fire-and-forget, never crashes the request
+// Audit logging  -  fire-and-forget, never crashes the request
 app.use('/api/*', auditMiddleware(audit));
 app.use('/api/v1/*', auditMiddleware(audit));
 
 // ---------------------------------------------------------------------------
-// Rate limit configuration — all tunables in one place
+// Rate limit configuration  -  all tunables in one place
 // Override per-route limits via configureRateLimits() in tests or deployment
 // ---------------------------------------------------------------------------
 
@@ -424,7 +424,7 @@ function routeLimit(key: string, opts?: { failOpen?: boolean }) {
   return rateLimitMiddleware({ ...cfg, keyPrefix: key, ...opts });
 }
 
-// Rate limiting — tiered global + per-route overrides
+// Rate limiting  -  tiered global + per-route overrides
 // Applied to both /api/* and /api/v1/* for versioned route support
 const tieredRateLimit = tieredRateLimitMiddleware({
   tiers: rateLimitsConfig.tiers,
@@ -436,7 +436,7 @@ app.use('/api/v1/*', tieredRateLimit);
 app.use('/api/license/generate', routeLimit('license-gen'));
 app.use('/api/v1/license/generate', routeLimit('license-gen'));
 
-// A2A discovery endpoints are public per the A2A spec — fail-open so discovery
+// A2A discovery endpoints are public per the A2A spec  -  fail-open so discovery
 // works even when the rate-limit DB is temporarily unreachable.
 app.use('/.well-known/*', routeLimit('a2a-discovery', { failOpen: true }));
 app.use('/a2a/agents', routeLimit('a2a-discovery', { failOpen: true }));
@@ -457,11 +457,11 @@ app.use('/api/v1/errors', routeLimit('error-capture'));
 app.use('/api/logs', routeLimit('log-ingest'));
 app.use('/api/v1/logs', routeLimit('log-ingest'));
 
-// API keys manage long-lived credentials — tight limits to slow enumeration/abuse
+// API keys manage long-lived credentials  -  tight limits to slow enumeration/abuse
 app.use('/api/api-keys/*', routeLimit('api-keys'));
 app.use('/api/v1/api-keys/*', routeLimit('api-keys'));
 
-// Billing endpoints create Stripe objects — tighter limits to prevent abuse
+// Billing endpoints create Stripe objects  -  tighter limits to prevent abuse
 app.use('/api/billing/checkout', routeLimit('billing-checkout'));
 app.use('/api/v1/billing/checkout', routeLimit('billing-checkout'));
 app.use('/api/billing/upgrade', routeLimit('billing-upgrade'));
@@ -495,21 +495,21 @@ app.use('/api/v1/billing/resume', routeLimit('billing-resume'));
 app.use('/api/billing/metrics', routeLimit('billing-metrics'));
 app.use('/api/v1/billing/metrics', routeLimit('billing-metrics'));
 
-// Content batch/export — limit heavy operations
+// Content batch/export  -  limit heavy operations
 app.use('/api/content/batch/*', routeLimit('content-batch'));
 app.use('/api/v1/content/batch/*', routeLimit('content-batch'));
 app.use('/api/content/export/*', routeLimit('content-export'));
 app.use('/api/v1/content/export/*', routeLimit('content-export'));
 
-// Marketplace publish — prevent server spam
+// Marketplace publish  -  prevent server spam
 app.use('/api/marketplace/servers', routeLimit('marketplace-publish'));
 app.use('/api/v1/marketplace/servers', routeLimit('marketplace-publish'));
 
-// Marketplace invoke — payment is the primary gate; still rate-limit to prevent probe abuse
+// Marketplace invoke  -  payment is the primary gate; still rate-limit to prevent probe abuse
 app.use('/api/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'));
 app.use('/api/v1/marketplace/servers/*/invoke', routeLimit('marketplace-invoke'));
 
-// RevMarket — agent marketplace rate limits
+// RevMarket  -  agent marketplace rate limits
 app.use('/api/revmarket/agents', routeLimit('revmarket-agents'));
 app.use('/api/v1/revmarket/agents', routeLimit('revmarket-agents'));
 app.use('/api/revmarket/tasks', routeLimit('revmarket-tasks'));
@@ -517,24 +517,24 @@ app.use('/api/v1/revmarket/tasks', routeLimit('revmarket-tasks'));
 app.use('/api/revmarket/agents/*/reviews', routeLimit('revmarket-reviews'));
 app.use('/api/v1/revmarket/agents/*/reviews', routeLimit('revmarket-reviews'));
 
-// Pricing endpoint — public, heavily cached (ISR clients need at most 1 req/hour).
+// Pricing endpoint  -  public, heavily cached (ISR clients need at most 1 req/hour).
 // Fail-open: pricing fetches from Stripe with server-side fallback, no DB needed.
 app.use('/api/pricing', routeLimit('pricing', { failOpen: true }));
 app.use('/api/v1/pricing', routeLimit('pricing', { failOpen: true }));
 
-// Maintenance cron — 1 req/min (cron-secret protected, limit prevents accidental hammering)
+// Maintenance cron  -  1 req/min (cron-secret protected, limit prevents accidental hammering)
 app.use('/api/maintenance/*', routeLimit('maintenance'));
 app.use('/api/v1/maintenance/*', routeLimit('maintenance'));
 
-// Content scheduling cron — same limits as maintenance
+// Content scheduling cron  -  same limits as maintenance
 app.use('/api/cron/*', routeLimit('maintenance'));
 app.use('/api/v1/cron/*', routeLimit('maintenance'));
 
-// Admin observability — read-only dashboards, moderate limit
+// Admin observability  -  read-only dashboards, moderate limit
 app.use('/api/admin/*', routeLimit('admin-observability'));
 app.use('/api/v1/admin/*', routeLimit('admin-observability'));
 
-// GDPR consent endpoints — moderate limits, deletion requests tighter
+// GDPR consent endpoints  -  moderate limits, deletion requests tighter
 const gdprConsentLimit = rateLimitMiddleware({
   maxRequests: 30,
   windowMs: 60_000,
@@ -551,7 +551,7 @@ const gdprDeletionLimit = rateLimitMiddleware({
 app.use('/api/gdpr/deletion', gdprDeletionLimit);
 app.use('/api/v1/gdpr/deletion', gdprDeletionLimit);
 
-// Stripe Connect onboarding — tight limit (creates external Stripe objects)
+// Stripe Connect onboarding  -  tight limit (creates external Stripe objects)
 const marketplaceConnectLimit = rateLimitMiddleware({
   maxRequests: 5,
   windowMs: 15 * 60_000,
@@ -560,11 +560,11 @@ const marketplaceConnectLimit = rateLimitMiddleware({
 app.use('/api/marketplace/connect/*', marketplaceConnectLimit);
 app.use('/api/v1/marketplace/connect/*', marketplaceConnectLimit);
 
-// Populate session if present (non-blocking — sets user context for all API routes)
+// Populate session if present (non-blocking  -  sets user context for all API routes)
 const optionalAuth = authMiddleware({ required: false });
 app.use('/api/*', optionalAuth);
 app.use('/api/v1/*', optionalAuth);
-// Multi-tenant context (optional by default — routes that require it use requireTenant())
+// Multi-tenant context (optional by default  -  routes that require it use requireTenant())
 const optionalTenant = tenantMiddleware({ required: false });
 app.use('/api/*', optionalTenant);
 app.use('/api/v1/*', optionalTenant);
@@ -572,19 +572,19 @@ app.use('/api/v1/*', optionalTenant);
 app.use('/api/*', entitlementMiddleware());
 app.use('/api/v1/*', entitlementMiddleware());
 
-// CSRF protection — defense-in-depth on top of sameSite:lax cookies
+// CSRF protection  -  defense-in-depth on top of sameSite:lax cookies
 // Skips: safe methods, non-cookie clients, webhooks, cron routes
 app.use('/api/*', csrfMiddleware());
 app.use('/api/v1/*', csrfMiddleware());
 
-// License status enforcement — catches revoked/expired licenses (5-minute DB cache)
+// License status enforcement  -  catches revoked/expired licenses (5-minute DB cache)
 const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
   return queryBillingStatusByCustomerId(getClient(), customerId);
 });
 app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
 
-// Perpetual license support expiry enforcement — downgrades premium features to free
+// Perpetual license support expiry enforcement  -  downgrades premium features to free
 // when the annual support contract has expired. Basic admin access remains perpetual.
 // Sets X-Support-Expires header so clients can show renewal prompts.
 const supportExpiryCheck = checkSupportExpiry(async (customerId) => {
@@ -600,7 +600,7 @@ app.use('/a2a/*', entitlementMiddleware());
 app.use('/a2a/*', licenseStatusCheck);
 app.use('/a2a/*', supportExpiryCheck);
 
-// License enforcement — gate premium routes by feature
+// License enforcement  -  gate premium routes by feature
 // Agent stream + tasks: free tier allowed with local inference, Pro+ for cloud providers
 app.use('/api/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
 app.use('/api/v1/agent-tasks/*', requireAIAccess({ mode: 'entitlements' }));
@@ -613,10 +613,10 @@ app.use('/api/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/v1/collab/agent/*', requireFeature('ai', { mode: 'entitlements' }));
 app.use('/api/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
 app.use('/api/v1/provenance/*', requireFeature('dashboard', { mode: 'entitlements' }));
-// Billing mutation endpoints — checkout is open to all authenticated users (it's the
+// Billing mutation endpoints  -  checkout is open to all authenticated users (it's the
 // entry point to becoming a subscriber). Upgrade/downgrade/portal require an existing
 // subscription, so they stay gated behind the 'payments' feature (Pro+).
-// Read-only metrics and webhook routes are excluded — they serve all tiers.
+// Read-only metrics and webhook routes are excluded  -  they serve all tiers.
 app.post('/api/billing/upgrade', requireFeature('payments', { mode: 'entitlements' }));
 app.post('/api/v1/billing/upgrade', requireFeature('payments', { mode: 'entitlements' }));
 app.post('/api/billing/downgrade', requireFeature('payments', { mode: 'entitlements' }));
@@ -625,7 +625,7 @@ app.post('/api/billing/portal', requireFeature('payments', { mode: 'entitlements
 app.post('/api/v1/billing/portal', requireFeature('payments', { mode: 'entitlements' }));
 
 // ---------------------------------------------------------------------------
-// Role-based access control (RBAC) — uses core AuthorizationSystem with CommonRoles.
+// Role-based access control (RBAC)  -  uses core AuthorizationSystem with CommonRoles.
 // Runs AFTER auth middleware, so user context is guaranteed for protected routes.
 // Permissions are defined in packages/core/src/security/authorization.ts (CommonRoles).
 // ---------------------------------------------------------------------------
@@ -663,7 +663,7 @@ app.use('/api/v1/collab/snapshot/*', requireFeature('advancedSync', { mode: 'ent
 app.use('/api/collab/update', requireFeature('advancedSync', { mode: 'entitlements' }));
 app.use('/api/v1/collab/update', requireFeature('advancedSync', { mode: 'entitlements' }));
 
-// Write-protect mutation endpoints — these require authentication
+// Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
 // Block recovery sessions (magic link) from mutating routes.
@@ -687,7 +687,7 @@ app.post('/api/collab/*', writeProtected);
 app.post('/api/v1/collab/*', writeProtected);
 app.post('/api/collab/agent/*', writeProtected);
 app.post('/api/v1/collab/agent/*', writeProtected);
-// Ticket routes: all methods require auth — boards/tickets are private workspace data
+// Ticket routes: all methods require auth  -  boards/tickets are private workspace data
 app.get('/api/tickets/*', writeProtected);
 app.get('/api/v1/tickets/*', writeProtected);
 app.post('/api/tickets/*', writeProtected);
@@ -718,7 +718,7 @@ app.get('/api/admin/*', writeProtected);
 app.get('/api/v1/admin/*', writeProtected);
 app.get('/api/billing/metrics', writeProtected);
 app.get('/api/v1/billing/metrics', writeProtected);
-// Billing POST auth — skip cron routes (they use X-Cron-Secret, not session auth)
+// Billing POST auth  -  skip cron routes (they use X-Cron-Secret, not session auth)
 const BILLING_CRON_SUFFIXES = [
   '/support-renewal-check',
   '/report-agent-overage',
@@ -751,19 +751,19 @@ app.patch('/api/v1/content/*', rejectRecovery);
 app.delete('/api/content/*', rejectRecovery);
 app.delete('/api/v1/content/*', rejectRecovery);
 
-// Resource limits — enforce tier-based caps on site creation
+// Resource limits  -  enforce tier-based caps on site creation
 const siteLimit = enforceSiteLimit(() => sites);
 app.post('/api/content/sites', siteLimit);
 app.post('/api/v1/content/sites', siteLimit);
 
-// Resource limits — enforce tier-based caps on user signup
+// Resource limits  -  enforce tier-based caps on user signup
 app.use('/api/auth/signup', routeLimit('auth-signup'));
 app.use('/api/v1/auth/signup', routeLimit('auth-signup'));
 const userLimit = enforceUserLimit(() => users);
 app.post('/api/auth/signup', userLimit);
 app.post('/api/v1/auth/signup', userLimit);
 
-// Task quota metering (Track B) — runs after auth + feature gate so user context is set.
+// Task quota metering (Track B)  -  runs after auth + feature gate so user context is set.
 // Applied to all AI task endpoints: agent-tasks, agent-stream, and A2A (a2a.ts wires its own).
 app.post('/api/agent-tasks/*', requireTaskQuota);
 app.post('/api/v1/agent-tasks/*', requireTaskQuota);
@@ -786,12 +786,12 @@ app.doc('/openapi.json', {
   ],
 });
 
-// Swagger UI — interactive API explorer (auto-generated from OpenAPI spec)
+// Swagger UI  -  interactive API explorer (auto-generated from OpenAPI spec)
 app.get('/', swaggerUI({ url: '/openapi.json' }));
 app.get('/docs', swaggerUI({ url: '/openapi.json' }));
 
 // ---------------------------------------------------------------------------
-// Cache-Control headers — ensure all routes have appropriate caching directives
+// Cache-Control headers  -  ensure all routes have appropriate caching directives
 // ---------------------------------------------------------------------------
 
 // Health/monitoring: no-cache (always fresh, but not sensitive)
@@ -872,7 +872,7 @@ app.use('/api/terminal-auth/*', routeLimit('terminal-auth'));
 app.use('/api/v1/terminal-auth/*', routeLimit('terminal-auth'));
 app.route('/api/terminal-auth', terminalAuthRoute);
 
-// Terminal WebSocket bridge — daemon PTY sessions for remote access
+// Terminal WebSocket bridge  -  daemon PTY sessions for remote access
 // Auth required: terminal sessions give PTY access to the server
 app.use('/api/terminal/*', writeProtected);
 app.use('/api/terminal/*', routeLimit('terminal-sessions'));
@@ -882,7 +882,7 @@ app.route('/api/terminal', terminalWs.app);
 app.route('', createCollabRoute());
 app.route('', createAgentCollabRoute());
 
-// Versioned routes (/api/v1/*) — mirrors of /api/* for forward compatibility.
+// Versioned routes (/api/v1/*)  -  mirrors of /api/* for forward compatibility.
 // Non-API routes (/.well-known, /a2a, /health) are not versioned.
 app.route('/api/v1/errors', errorsRoute);
 app.route('/api/v1/gdpr', gdprRoute);
@@ -955,7 +955,7 @@ function validateStartup(): void {
   }
 }
 
-// Alerting — register channels and rules, start periodic evaluation.
+// Alerting  -  register channels and rules, start periodic evaluation.
 // Runs in both dev and prod. Console channel always active.
 let monitoringInterval: NodeJS.Timeout | undefined;
 
@@ -985,7 +985,7 @@ function initAlerting(): void {
   logger.info('Alerting system started (60s interval)');
 }
 
-// RVUI price oracle — start polling when Jupiter API key is configured.
+// RVUI price oracle  -  start polling when Jupiter API key is configured.
 // Runs in both dev and prod. Safe no-op if JUPITER_API_KEY is unset.
 // Uses dynamic import to avoid hard dependency on @revealui/services build.
 function initPriceOracle(): void {

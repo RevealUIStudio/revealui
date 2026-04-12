@@ -50,6 +50,6 @@ try {
     cwd: new URL('../../', import.meta.url).pathname,
   });
 } catch {
-  // turbo killed by signal (Ctrl+C) — exit cleanly
+  // turbo killed by signal (Ctrl+C)  -  exit cleanly
   process.exit(0);
 }

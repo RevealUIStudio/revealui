@@ -7,7 +7,7 @@
  * 1. Copying .env.template to .env.development.local (if not exists)
  * 2. Auto-generating all secrets (REVEALUI_SECRET, draft secret, revalidation key, admin password)
  * 3. Applying safe localhost defaults for all URL/flag variables
- * 4. Prompting for external credentials (POSTGRES_URL, Stripe, Blob) — skippable
+ * 4. Prompting for external credentials (POSTGRES_URL, Stripe, Blob)  -  skippable
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode enum for exit codes
@@ -81,7 +81,7 @@ const DEV_DEFAULTS: Record<string, string> = {
   NODE_ENV: 'development',
 };
 
-// External credentials that require a real account — skippable during setup
+// External credentials that require a real account  -  skippable during setup
 const PROMPT_VARS: Array<{ name: string; description: string; hint: string }> = [
   {
     name: 'POSTGRES_URL',
@@ -245,7 +245,7 @@ async function setupEnvironment() {
     for (const variable of PROMPT_VARS) {
       const current = refreshedEnv[variable.name] ?? '';
       if (!isPlaceholder(current)) {
-        // Already set to a real value — don't overwrite
+        // Already set to a real value  -  don't overwrite
         continue;
       }
 

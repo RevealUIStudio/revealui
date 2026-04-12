@@ -1,5 +1,5 @@
 /**
- * file_grep — Regex content search across files
+ * file_grep  -  Regex content search across files
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -17,6 +17,7 @@ interface GrepMatch {
 /** Simple glob test for file filtering */
 function matchesGlob(filePath: string, glob: string): boolean {
   const regex = glob
+    .replace(/\\/g, '\\\\')
     .replace(/\./g, '\\.')
     .replace(/\*\*/g, '⟨GLOBSTAR⟩')
     .replace(/\*/g, '[^/]*')

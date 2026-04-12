@@ -3,7 +3,7 @@
  *
  * Tests the full OAuth user upsert and session creation flow
  * against a real in-memory PostgreSQL database. Provider API calls
- * (token exchange, user fetch) are mocked — DB operations are real.
+ * (token exchange, user fetch) are mocked  -  DB operations are real.
  *
  * Covers:
  * - New user creation via OAuth
@@ -79,7 +79,7 @@ function mockProviderUser(overrides?: Partial<ProviderUser>): ProviderUser {
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe('upsertOAuthUser — PGlite', () => {
+describe('upsertOAuthUser  -  PGlite', () => {
   it('creates a new user and oauth_accounts link', async () => {
     const providerUser = mockProviderUser({ email: 'new-oauth@example.com' });
 
@@ -175,7 +175,7 @@ describe('upsertOAuthUser — PGlite', () => {
   });
 });
 
-describe('session management — PGlite', () => {
+describe('session management  -  PGlite', () => {
   it('createSession inserts a session row with hashed token', async () => {
     await seedTestUser(testDb.drizzle, { id: 'sess-user-1' });
 
@@ -219,7 +219,7 @@ describe('session management — PGlite', () => {
       .where(eq(sessions.userId, 'rotate-user'));
     expect(before).toHaveLength(2);
 
-    // Rotate — should delete all old sessions and create one new
+    // Rotate  -  should delete all old sessions and create one new
     const rotated = await rotateSession('rotate-user', { persistent: true });
 
     const after = await testDb.drizzle
@@ -235,7 +235,7 @@ describe('session management — PGlite', () => {
   });
 });
 
-describe('account linking — PGlite', () => {
+describe('account linking  -  PGlite', () => {
   it('links multiple providers to same user', async () => {
     await seedTestUser(testDb.drizzle, { id: 'multi-link-user', email: 'multi@example.com' });
 

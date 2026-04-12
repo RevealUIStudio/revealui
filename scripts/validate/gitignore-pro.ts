@@ -4,7 +4,7 @@
  * Pro Package License Validation
  *
  * Verifies that Pro packages (ai, harnesses) have valid FSL-1.1-MIT
- * license files. Pro packages are Fair Source — source visible in the
+ * license files. Pro packages are Fair Source  -  source visible in the
  * public repo, commercially licensed, converting to MIT after 2 years.
  *
  * Previously this script validated gitignore entries (Issue #100).
@@ -12,8 +12,8 @@
  * and this script validates license compliance instead.
  *
  * Exit codes:
- *   0 — all license files present and valid
- *   1 — one or more license files missing
+ *   0  -  all license files present and valid
+ *   1  -  one or more license files missing
  */
 
 import { existsSync, readFileSync } from 'node:fs';

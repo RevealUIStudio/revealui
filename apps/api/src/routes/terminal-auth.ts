@@ -5,9 +5,9 @@
  * `ssh terminal.revealui.com` payment TUI.
  *
  * Endpoints:
- * - POST /api/terminal-auth/link   — link SSH fingerprint to account (sends OTP)
- * - POST /api/terminal-auth/verify — verify email OTP and confirm link
- * - GET  /api/terminal-auth/lookup — lookup user by SSH fingerprint
+ * - POST /api/terminal-auth/link    -  link SSH fingerprint to account (sends OTP)
+ * - POST /api/terminal-auth/verify  -  verify email OTP and confirm link
+ * - GET  /api/terminal-auth/lookup  -  lookup user by SSH fingerprint
  */
 
 import { randomInt, timingSafeEqual } from 'node:crypto';
@@ -49,7 +49,7 @@ export function configureTerminalAuth(overrides: Partial<TerminalAuthConfig>): v
 }
 
 // =============================================================================
-// OTP Store — backed by @revealui/auth Storage interface
+// OTP Store  -  backed by @revealui/auth Storage interface
 //
 // Uses DatabaseStorage in production (multi-instance safe) and
 // InMemoryStorage in development. TTL is handled by the storage layer.
@@ -94,7 +94,7 @@ async function deleteOtp(email: string): Promise<void> {
 
 /** Clear OTP store (for testing) */
 export function clearOtpStore(): void {
-  // For testing with InMemoryStorage — no-op for DB storage (TTL handles cleanup)
+  // For testing with InMemoryStorage  -  no-op for DB storage (TTL handles cleanup)
 }
 
 // =============================================================================
@@ -156,7 +156,7 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
   try {
     await sendEmail({
       to: email,
-      subject: 'RevealUI Terminal — Verification Code',
+      subject: 'RevealUI Terminal  -  Verification Code',
       html: `
         <h2>Terminal Verification</h2>
         <p>Your verification code for <code>ssh terminal.revealui.com</code>:</p>
@@ -188,13 +188,13 @@ terminalAuth.post('/link', zValidator('json', linkSchema), async (c) => {
 terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
   const { email, code } = c.req.valid('json');
 
-  // Validate OTP (expiry is handled by storage TTL — if it's gone, it expired)
+  // Validate OTP (expiry is handled by storage TTL  -  if it's gone, it expired)
   const pending = await getOtp(email);
   if (!pending) {
     return c.json({ success: false, error: 'No pending verification or code has expired' }, 400);
   }
 
-  // Enforce attempt limit — invalidate OTP after too many failed attempts
+  // Enforce attempt limit  -  invalidate OTP after too many failed attempts
   if (pending.attempts >= config.maxOtpAttempts) {
     await deleteOtp(email);
     return c.json(
@@ -213,7 +213,7 @@ terminalAuth.post('/verify', zValidator('json', verifySchema), async (c) => {
     return c.json({ success: false, error: 'Invalid verification code' }, 400);
   }
 
-  // OTP valid — consume it
+  // OTP valid  -  consume it
   await deleteOtp(email);
 
   // Link fingerprint to user

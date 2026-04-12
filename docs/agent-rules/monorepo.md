@@ -1,9 +1,9 @@
 # Monorepo Conventions
 
 ## Structure
-- Apps live in `apps/` — deployable services (Next.js, Hono, Vite)
-- Packages live in `packages/` — shared libraries consumed by apps
-- Scripts live in `scripts/` — CLI tools, automation, CI gates
+- Apps live in `apps/`  -  deployable services (Next.js, Hono, Vite)
+- Packages live in `packages/`  -  shared libraries consumed by apps
+- Scripts live in `scripts/`  -  CLI tools, automation, CI gates
 
 ## Package Manager
 - pnpm 10 with workspace protocol

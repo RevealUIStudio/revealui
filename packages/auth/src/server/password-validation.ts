@@ -76,6 +76,7 @@ export function meetsMinimumPasswordRequirements(password: string): boolean {
  */
 export async function checkPasswordBreach(password: string): Promise<number> {
   const { createHash } = await import('node:crypto');
+  // lgtm[js/insufficient-password-hash] - SHA-1 required by HIBP k-anonymity API, not used for password storage
   const sha1 = createHash('sha1').update(password).digest('hex').toUpperCase();
   const prefix = sha1.slice(0, 5);
   const suffix = sha1.slice(5);
@@ -97,7 +98,7 @@ export async function checkPasswordBreach(password: string): Promise<number> {
     }
     return 0;
   } catch {
-    // Network error, timeout, or API issue — don't block the user
+    // Network error, timeout, or API issue  -  don't block the user
     return -1;
   }
 }

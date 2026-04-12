@@ -1,7 +1,7 @@
 /**
  * Google OAuth 2.0 Provider
  *
- * Uses native fetch — no additional npm dependencies.
+ * Uses native fetch  -  no additional npm dependencies.
  * Scopes: openid email profile
  */
 
@@ -54,10 +54,10 @@ export async function exchangeCode(
       const err = (await response.json()) as { error_description?: string; error?: string };
       detail = err.error_description ?? err.error ?? '';
     } catch {
-      // Response body not JSON — use status only
+      // Response body not JSON  -  use status only
     }
     throw new Error(
-      `Google token exchange failed: ${response.status}${detail ? ` — ${detail}` : ''}`,
+      `Google token exchange failed: ${response.status}${detail ? `  -  ${detail}` : ''}`,
     );
   }
 
@@ -82,7 +82,7 @@ export async function fetchUser(accessToken: string): Promise<ProviderUser> {
       // Response body not JSON
     }
     throw new Error(
-      `Google userinfo fetch failed: ${response.status}${detail ? ` — ${detail}` : ''}`,
+      `Google userinfo fetch failed: ${response.status}${detail ? `  -  ${detail}` : ''}`,
     );
   }
 

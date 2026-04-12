@@ -1,5 +1,5 @@
 /**
- * Agent Collab Route — Edge Case Tests
+ * Agent Collab Route  -  Edge Case Tests
  *
  * Supplements agent-collab.test.ts with:
  * - Edit schema: length: 0 fails positive(), index: -1 fails nonnegative()
@@ -20,7 +20,7 @@ import type { RoomManager } from '../../collab/room-manager.js';
 import { createAgentCollabRoute } from '../agent-collab.js';
 
 // ---------------------------------------------------------------------------
-// Mocks — must come before imports
+// Mocks  -  must come before imports
 // ---------------------------------------------------------------------------
 
 vi.mock('../../collab/shared-room-manager.js', () => ({
@@ -82,7 +82,7 @@ function jsonRequest(body: unknown): RequestInit {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('POST /api/collab/agent/edit — schema boundary validation', () => {
+describe('POST /api/collab/agent/edit  -  schema boundary validation', () => {
   it('returns 400 when length is 0 (positive() constraint requires > 0)', async () => {
     const app = createApp();
 
@@ -115,7 +115,7 @@ describe('POST /api/collab/agent/edit — schema boundary validation', () => {
     expect(json.success).toBe(false);
   });
 
-  it('returns 200 when index is 0 (nonnegative boundary — zero is valid)', async () => {
+  it('returns 200 when index is 0 (nonnegative boundary  -  zero is valid)', async () => {
     const mockDoc = new Y.Doc();
     mockDoc.getText('content').insert(0, 'Hello');
 
@@ -139,7 +139,7 @@ describe('POST /api/collab/agent/edit — schema boundary validation', () => {
   });
 });
 
-describe('POST /api/collab/agent/edit — post-edit handler failure', () => {
+describe('POST /api/collab/agent/edit  -  post-edit handler failure', () => {
   it('returns 500 when getOrLoadDocument throws after applyServerEdit succeeds', async () => {
     // applyServerEdit resolves, but reading back the document fails.
     // The catch block in the edit handler wraps this as a 500.
@@ -164,12 +164,12 @@ describe('POST /api/collab/agent/edit — post-edit handler failure', () => {
   });
 });
 
-describe('GET /api/collab/agent/snapshot/:documentId — size boundary', () => {
+describe('GET /api/collab/agent/snapshot/:documentId  -  size boundary', () => {
   it('returns 200 when snapshot is exactly 10 MB (boundary is >, not >=)', async () => {
     const MaxSnapshotBytes = 10 * 1024 * 1024;
     const atLimitSnapshot = new Uint8Array(1);
     Object.defineProperty(atLimitSnapshot, 'byteLength', {
-      value: MaxSnapshotBytes, // exactly at limit — should pass
+      value: MaxSnapshotBytes, // exactly at limit  -  should pass
       writable: false,
     });
 
@@ -179,12 +179,12 @@ describe('GET /api/collab/agent/snapshot/:documentId — size boundary', () => {
     const validSnapshot = Y.encodeStateAsUpdate(doc);
     doc.destroy();
 
-    // We must pass the byteLength check — create a snapshot that appears to be at-limit.
+    // We must pass the byteLength check  -  create a snapshot that appears to be at-limit.
     // The handler checks byteLength BEFORE calling Y.applyUpdate, so we can use a real
     // snapshot with an overridden byteLength to test this path.
     const atBoundarySnapshot = new Uint8Array(validSnapshot);
     Object.defineProperty(atBoundarySnapshot, 'byteLength', {
-      value: MaxSnapshotBytes, // exactly 10MB — NOT exceeding
+      value: MaxSnapshotBytes, // exactly 10MB  -  NOT exceeding
       writable: false,
       configurable: true,
     });
@@ -203,7 +203,7 @@ describe('GET /api/collab/agent/snapshot/:documentId — size boundary', () => {
   });
 
   it('returns 200 with textLength: 0 and content: "" for an empty document', async () => {
-    // Y.Doc with no text written — getText('content').toString() returns ''
+    // Y.Doc with no text written  -  getText('content').toString() returns ''
     const emptyDoc = new Y.Doc();
     const emptySnapshot = Y.encodeStateAsUpdate(emptyDoc);
     emptyDoc.destroy();
@@ -264,7 +264,7 @@ describe('GET /api/collab/agent/snapshot/:documentId — size boundary', () => {
   });
 });
 
-describe('POST /api/collab/agent/connect — wsUrl construction', () => {
+describe('POST /api/collab/agent/connect  -  wsUrl construction', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
   });
@@ -272,7 +272,7 @@ describe('POST /api/collab/agent/connect — wsUrl construction', () => {
   it('defaults wsBaseUrl to ws://localhost:3004 when WS_BASE_URL is not set', async () => {
     vi.stubEnv('WS_BASE_URL', undefined as unknown as string);
 
-    // Create app AFTER clearing env — wsBaseUrl is read at construction time
+    // Create app AFTER clearing env  -  wsBaseUrl is read at construction time
     const app = createApp();
 
     const res = await app.request(

@@ -46,15 +46,19 @@ describe('NavBar', () => {
     expect(html).toContain('RevealUI');
   });
 
-  it('contains navigation links for Docs, Pricing, and Contact', () => {
+  it('contains navigation links for Products, Services, Marketplace, Pricing, Docs, and Blog', () => {
     const result = NavBar();
     const html = JSON.stringify(result);
-    expect(html).toContain('Docs');
-    expect(html).toContain('https://docs.revealui.com');
+    expect(html).toContain('Products');
+    expect(html).toContain('/products');
+    expect(html).toContain('Services');
+    expect(html).toContain('/services');
+    expect(html).toContain('Marketplace');
+    expect(html).toContain('/marketplace');
     expect(html).toContain('Pricing');
     expect(html).toContain('/pricing');
-    expect(html).toContain('Contact');
-    expect(html).toContain('/contact');
+    expect(html).toContain('Docs');
+    expect(html).toContain('https://docs.revealui.com');
   });
 
   it('contains the GitHub link', () => {

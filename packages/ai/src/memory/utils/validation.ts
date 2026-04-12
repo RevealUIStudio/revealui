@@ -138,7 +138,7 @@ export function estimateObjectSize(obj: unknown): number {
   const type = typeof obj;
   if (type === 'string') {
     // UTF-16 char units × 2 bytes each. This over-estimates multi-byte UTF-8 code
-    // points but is intentionally conservative — the limit stays tighter than the
+    // points but is intentionally conservative  -  the limit stays tighter than the
     // real in-process memory cost, which is what we want for a safety bound.
     return (obj as string).length * 2 + 8;
   }

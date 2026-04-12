@@ -5,7 +5,7 @@
  * Each yielded AgentStreamChunk maps to one SSE event.
  *
  * AnythingLLM lesson: SSE is the correct approach for unidirectional LLM output.
- * EventSource is not used client-side because it doesn't support POST — use fetch + ReadableStream.
+ * EventSource is not used client-side because it doesn't support POST  -  use fetch + ReadableStream.
  */
 
 import { z } from 'zod/v4';
@@ -36,7 +36,7 @@ export class StreamingAgentRuntime extends AgentRuntime {
 
   /**
    * Stream a task execution, yielding typed events as they occur.
-   * Accepts an AbortSignal — on abort, emits an error event and stops.
+   * Accepts an AbortSignal  -  on abort, emits an error event and stops.
    */
   async *streamTask(
     agent: Agent,

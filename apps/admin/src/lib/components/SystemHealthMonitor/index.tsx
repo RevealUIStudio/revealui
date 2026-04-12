@@ -88,7 +88,7 @@ export function SystemHealthMonitor({
     return () => clearInterval(interval);
   }, [pollInterval, showProcessList, selectedSource, selectedStatus]);
 
-  // Staleness ticker — updates every second
+  // Staleness ticker  -  updates every second
   useEffect(() => {
     if (!lastUpdated) return;
     const tick = setInterval(() => {

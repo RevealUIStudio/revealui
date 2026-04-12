@@ -2,7 +2,7 @@
  * Runtime type guards for admin document narrowing.
  *
  * Replaces `as unknown as T` double casts with runtime validation.
- * All RevealUI collections use text('id').primaryKey() — IDs are always
+ * All RevealUI collections use text('id').primaryKey()  -  IDs are always
  * strings or numbers.
  */
 

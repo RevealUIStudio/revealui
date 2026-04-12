@@ -8,13 +8,13 @@
  * to customer, subscription, and payment intent data in RevealUI's Stripe account.
  *
  * Environment:
- *   STRIPE_SECRET_KEY — Stripe secret key (sk_live_... or sk_test_...)
+ *   STRIPE_SECRET_KEY  -  Stripe secret key (sk_live_... or sk_test_...)
  *
  * Tools:
- *   stripe_create_payment_intent  — Create a one-time payment intent
- *   stripe_list_customers         — List customers, with optional email filter
- *   stripe_get_customer           — Fetch a customer and their active subscription
- *   stripe_list_subscriptions     — List subscriptions (all or by customer/status)
+ *   stripe_create_payment_intent   -  Create a one-time payment intent
+ *   stripe_list_customers          -  List customers, with optional email filter
+ *   stripe_get_customer            -  Fetch a customer and their active subscription
+ *   stripe_list_subscriptions      -  List subscriptions (all or by customer/status)
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';

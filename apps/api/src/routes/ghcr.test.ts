@@ -190,7 +190,7 @@ describe('GHCR License-Gated Access', () => {
   describe('GET /status', () => {
     it('returns 401 without auth', async () => {
       const res = await app.request('/status', { method: 'GET' });
-      // Auth middleware will block — returns 401
+      // Auth middleware will block  -  returns 401
       expect(res.status).toBe(401);
     });
   });

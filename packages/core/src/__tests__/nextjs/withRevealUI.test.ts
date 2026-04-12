@@ -1,5 +1,5 @@
 /**
- * withRevealUI tests — validates Next.js config wrapper including
+ * withRevealUI tests  -  validates Next.js config wrapper including
  * config merging, webpack alias setup, turbopack aliases, headers,
  * environment variables, and config file resolution.
  */
@@ -74,7 +74,7 @@ afterEach(() => {
 // Default options
 // =============================================================================
 
-describe('withRevealUI — default options', () => {
+describe('withRevealUI  -  default options', () => {
   it('returns a Next.js config object', () => {
     const result = withRevealUI();
     expect(result).toBeDefined();
@@ -120,7 +120,7 @@ describe('withRevealUI — default options', () => {
 // Custom options
 // =============================================================================
 
-describe('withRevealUI — custom options', () => {
+describe('withRevealUI  -  custom options', () => {
   it('accepts custom configPath', () => {
     const result = withRevealUI({}, { configPath: './my-config.ts' });
     expect(result.env?.REVEALUI_CONFIG_PATH).toBe('./my-config.ts');
@@ -146,7 +146,7 @@ describe('withRevealUI — custom options', () => {
 // Config merging
 // =============================================================================
 
-describe('withRevealUI — config merging', () => {
+describe('withRevealUI  -  config merging', () => {
   it('spreads existing nextConfig properties', () => {
     const result = withRevealUI({
       reactStrictMode: true,
@@ -172,7 +172,7 @@ describe('withRevealUI — config merging', () => {
 // Webpack configuration
 // =============================================================================
 
-describe('withRevealUI — webpack', () => {
+describe('withRevealUI  -  webpack', () => {
   it('sets @revealui/config alias to resolved config path', () => {
     const result = withRevealUI();
     const webpackResult = callWebpack(result);
@@ -243,7 +243,7 @@ describe('withRevealUI — webpack', () => {
 // Config file resolution
 // =============================================================================
 
-describe('withRevealUI — config file resolution', () => {
+describe('withRevealUI  -  config file resolution', () => {
   it('uses exact path when file exists', () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
 
@@ -330,7 +330,7 @@ describe('withRevealUI — config file resolution', () => {
 // Turbopack configuration
 // =============================================================================
 
-describe('withRevealUI — turbopack', () => {
+describe('withRevealUI  -  turbopack', () => {
   it('sets turbopack resolveAlias for @revealui/config', () => {
     const result = withRevealUI();
     expect(result.turbopack?.resolveAlias?.['@revealui/config']).toBeDefined();
@@ -368,7 +368,7 @@ describe('withRevealUI — turbopack', () => {
 // Headers
 // =============================================================================
 
-describe('withRevealUI — headers', () => {
+describe('withRevealUI  -  headers', () => {
   it('returns admin headers when admin is enabled', async () => {
     const result = withRevealUI();
     const headers = await result.headers!();
@@ -425,7 +425,7 @@ describe('withRevealUI — headers', () => {
 // Images
 // =============================================================================
 
-describe('withRevealUI — images', () => {
+describe('withRevealUI  -  images', () => {
   it('preserves existing image settings', () => {
     const result = withRevealUI({
       images: {

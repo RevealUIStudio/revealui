@@ -20,7 +20,7 @@ function asArchiveBlock(block: {
 
   // Runtime validation: block has blockType 'archive' and is structurally an ArchiveBlockProps.
   // The index-signature parameter type doesn't overlap with ArchiveBlockProps, so we narrow
-  // through unknown — the blockType check above provides the runtime safety.
+  // through unknown  -  the blockType check above provides the runtime safety.
   return block as unknown as ArchiveBlockWithDocs;
 }
 

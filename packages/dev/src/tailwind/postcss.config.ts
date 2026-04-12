@@ -5,7 +5,7 @@
  * Used by apps and packages that need Tailwind CSS compilation.
  *
  * Tailwind CSS v4 handles imports and auto-prefixing natively via
- * @tailwindcss/postcss — no need for postcss-import or autoprefixer.
+ * @tailwindcss/postcss  -  no need for postcss-import or autoprefixer.
  */
 
 import type postcssConfig from '@revealui/dev/postcss';

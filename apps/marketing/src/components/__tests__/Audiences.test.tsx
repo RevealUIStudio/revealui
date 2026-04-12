@@ -25,17 +25,17 @@ describe('Audiences', () => {
     const result = Audiences();
     const html = JSON.stringify(result);
     expect(html).toContain("Who it's for");
-    expect(html).toContain('Built for builders at every stage');
+    expect(html).toContain('Built for builders and their agents');
   });
 
   it('contains the retrofit card', () => {
     const result = Audiences();
     const html = JSON.stringify(result);
     expect(html).toContain('Retrofit your existing product');
-    expect(html).toContain('Add billing and subscriptions');
-    expect(html).toContain('Layer proper auth, RBAC, and sessions');
-    expect(html).toContain('Plug in a content engine');
-    expect(html).toContain('Add AI agents');
+    expect(html).toContain('Add billing and subscriptions without touching your core app');
+    expect(html).toContain('Layer proper auth, RBAC, and sessions on top of what you ship');
+    expect(html).toContain('Plug in a content engine so your team publishes without you');
+    expect(html).toContain('Make every feature agent-accessible through MCP automatically');
   });
 
   it('contains the start fresh card', () => {
@@ -44,7 +44,7 @@ describe('Audiences', () => {
     expect(html).toContain('Start fresh with everything');
     expect(html).toContain('One CLI command');
     expect(html).toContain('create-revealui');
-    expect(html).toContain('my-saas');
+    expect(html).toContain('my-app');
   });
 
   it('contains CLI output items in start fresh card', () => {
@@ -53,8 +53,8 @@ describe('Audiences', () => {
     expect(html).toContain('Auth + sessions + RBAC');
     expect(html).toContain('Stripe billing + webhooks');
     expect(html).toContain('Content collections + REST API');
-    expect(html).toContain('Admin dashboard');
-    expect(html).toContain('Ready to deploy');
+    expect(html).toContain('Admin dashboard + MCP servers');
+    expect(html).toContain('Agent-ready from first deploy');
   });
 
   it('contains links to documentation', () => {

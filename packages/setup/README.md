@@ -306,14 +306,14 @@ pnpm test:coverage
 - You're building setup scripts or CLI tools that need environment variable management
 - You need cryptographically secure secret generation for JWT keys or database passwords
 - You want consistent, colored logging with progress bars for setup flows
-- **Not** for runtime config access — use `@revealui/config` after setup is complete
-- **Not** for end-user-facing logging — use `@revealui/utils/logger` in application code
+- **Not** for runtime config access  -  use `@revealui/config` after setup is complete
+- **Not** for end-user-facing logging  -  use `@revealui/utils/logger` in application code
 
 ## JOSHUA Alignment
 
-- **Justifiable**: Every utility exists because `@revealui/cli` and setup scripts need it — no speculative abstractions
+- **Justifiable**: Every utility exists because `@revealui/cli` and setup scripts need it  -  no speculative abstractions
 - **Hermetic**: Validation catches missing or malformed variables before they propagate into runtime
-- **Sovereign**: Generates secrets locally with `crypto.randomBytes` — no external service required
+- **Sovereign**: Generates secrets locally with `crypto.randomBytes`  -  no external service required
 
 ## License
 

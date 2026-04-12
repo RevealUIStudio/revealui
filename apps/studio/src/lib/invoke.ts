@@ -169,7 +169,7 @@ const MOCK_DATA: Record<string, unknown> = {
     {
       sha: 'def5678901234567890abcdef12345678abc1234',
       short_sha: 'def5678',
-      message: 'feat(studio): git panel MVP — status, diff, stage, commit',
+      message: 'feat(studio): git panel MVP  -  status, diff, stage, commit',
       author: 'RevealUI Studio',
       timestamp: Math.floor(Date.now() / 1000) - MOCK_COMMIT_OLDER_S,
     },
@@ -202,22 +202,22 @@ const MOCK_DATA: Record<string, unknown> = {
   inference_snap_list: [
     {
       name: 'nemotron-3-nano',
-      description: 'General (reasoning + non-reasoning) — free tier default',
+      description: 'General (reasoning + non-reasoning)  -  free tier default',
       installed: false,
     },
     {
       name: 'gemma3',
-      description: 'General + vision — image understanding, multimodal',
+      description: 'General + vision  -  image understanding, multimodal',
       installed: false,
     },
     {
       name: 'deepseek-r1',
-      description: 'Reasoning — complex analysis, chain-of-thought',
+      description: 'Reasoning  -  complex analysis, chain-of-thought',
       installed: false,
     },
     {
       name: 'qwen-vl',
-      description: 'Vision-language — document parsing, visual Q&A',
+      description: 'Vision-language  -  document parsing, visual Q&A',
       installed: false,
     },
   ] satisfies SnapModel[],
@@ -232,7 +232,7 @@ const MOCK_DATA: Record<string, unknown> = {
     '| id | env | started | task | files | updated |',
     '|----|-----|---------|------|-------|---------|',
     '| conductor | wsl | 2026-03-18T16:31Z | Building agent session panel | apps/studio/src/components/agent/AgentPanel.tsx | 2026-03-18T20:25Z |',
-    '| zed-extension | zed | 2026-03-18T15:00Z | idle | — | 2026-03-18T18:00Z |',
+    '| zed-extension | zed | 2026-03-18T15:00Z | idle |  -  | 2026-03-18T18:00Z |',
     '',
     '## Recent',
     '',
@@ -315,7 +315,7 @@ const MOCK_DATA: Record<string, unknown> = {
       agent_id: 'agent-ext-1',
       reserved_at: new Date(Date.now() - 900_000).toISOString(),
       expires_at: new Date(Date.now() + 2700_000).toISOString(),
-      reason: 'Active editing — harness UI',
+      reason: 'Active editing  -  harness UI',
     },
   ] satisfies HarnessReservation[],
   harness_reserve_file: { success: true } satisfies HarnessReserveResult,
@@ -444,7 +444,7 @@ async function httpRpc<T>(method: string, params: Record<string, unknown>): Prom
   });
 
   if (res.status === 401 || res.status === 403) {
-    throw new Error('Authentication required — pair with daemon first');
+    throw new Error('Authentication required  -  pair with daemon first');
   }
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
@@ -455,14 +455,14 @@ async function httpRpc<T>(method: string, params: Record<string, unknown>): Prom
   return body.result as T;
 }
 
-/** Guarded invoke — returns mock data in browser, real IPC in Tauri */
+/** Guarded invoke  -  returns mock data in browser, real IPC in Tauri */
 function invoke<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
-  // Tauri native mode — use IPC
+  // Tauri native mode  -  use IPC
   if (isTauri()) {
     return tauriInvoke<T>(cmd, args);
   }
 
-  // Browser mode with remote daemon — route harness commands over HTTP
+  // Browser mode with remote daemon  -  route harness commands over HTTP
   const rpcMethod = HARNESS_RPC_MAP[cmd];
   if (rpcMethod && getDaemonUrl()) {
     const params = toRpcParams(cmd, args);

@@ -1,9 +1,9 @@
 const projects = [
   {
     name: 'RevealUI',
-    tagline: 'The agentic business runtime',
+    tagline: 'Agentic business runtime',
     description:
-      'Users, content, products, payments, and AI agents — five business primitives, pre-wired into one deployable stack. 21 packages on npm, MIT licensed.',
+      'Five business primitives for humans and agents alike. You build the product. Agents operate on it. 22 packages on npm, MIT licensed.',
     license: 'MIT + Fair Source (Pro)',
     icon: 'M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z',
     iconColor: 'text-emerald-400',
@@ -13,7 +13,7 @@ const projects = [
     name: 'RevVault',
     tagline: 'Your secrets, locally encrypted',
     description:
-      'Age-encrypted secret vault in Rust. Passage-compatible CLI, automated rotation engine, and Tauri desktop app. Credentials never leave your machine.',
+      'Age-encrypted secret vault in Rust. Humans manage credentials through the desktop app. Agents access secrets through scoped policies. Credentials never leave your machine.',
     license: 'MIT CLI + Pro desktop',
     icon: 'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z',
     iconColor: 'text-amber-400',
@@ -23,7 +23,7 @@ const projects = [
     name: 'RevKit',
     tagline: 'One command, full environment',
     description:
-      'Portable dev environment toolkit. Tiered WSL profiles, Docker orchestration, and the agent coordination protocol that Studio orchestrates.',
+      'Portable dev environment toolkit. You configure your environment once. Agents provision and coordinate through the same profiles. Studio orchestrates both.',
     license: 'MIT coordination + Max provisioning',
     icon: 'M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z',
     iconColor: 'text-cyan-400',
@@ -33,11 +33,21 @@ const projects = [
     name: 'RevealCoin',
     tagline: 'Agent-native micropayments (coming soon)',
     description:
-      'Solana token for agent-native micropayments. Agents discover capabilities, authenticate, and pay per task — no accounts, no subscriptions. Powered by the x402 payment protocol.',
-    license: 'Coming Soon',
+      'Solana token for agent-native micropayments. Humans monetize through Stripe. Agents transact through x402. One currency bridges both payment rails.',
+    license: 'In Development',
     icon: 'M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
     iconColor: 'text-violet-400',
-    href: undefined,
+    href: 'https://github.com/RevealUIStudio/revealcoin',
+  },
+  {
+    name: 'Forge',
+    tagline: 'Self-host the full stack',
+    description:
+      'Deploy RevealUI on your own infrastructure. Full data sovereignty for your business and your agents. Docker stack, license enforcement, air-gap capable.',
+    license: 'Forge Tier',
+    icon: 'M5.25 14.25h13.5m-13.5 0a3 3 0 0 1-3-3m3 3a3 3 0 1 0 0 6h13.5a3 3 0 1 0 0-6m-16.5-3a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3m-19.5 0a4.5 4.5 0 0 1 .9-2.7L5.737 5.1a3.375 3.375 0 0 1 2.7-1.35h7.126c1.062 0 2.062.5 2.7 1.35l2.587 3.45a4.5 4.5 0 0 1 .9 2.7m0 0a3 3 0 0 1-3 3m0 3h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Zm-3 6h.008v.008h-.008v-.008Zm0-6h.008v.008h-.008v-.008Z',
+    iconColor: 'text-orange-400',
+    href: 'https://github.com/RevealUIStudio/forge',
   },
 ];
 
@@ -53,8 +63,8 @@ export function EcosystemSection() {
             One runtime, growing ecosystem
           </p>
           <p className="mt-4 text-base leading-7 text-gray-400">
-            RevealUI is the foundation. Each companion project extends the stack for security,
-            development, and monetization.
+            RevealUI is the business runtime. Each companion project extends the stack, for you and
+            for the agents operating alongside you.
           </p>
         </div>
 

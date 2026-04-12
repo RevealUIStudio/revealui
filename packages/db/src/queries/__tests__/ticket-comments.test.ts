@@ -216,7 +216,7 @@ describe('ticket-comment queries', () => {
     });
 
     it('does not decrement when comment is not found', async () => {
-      // Select returns empty — comment already gone
+      // Select returns empty  -  comment already gone
       const selectChain = createSelectChain([]);
       db.select.mockReturnValue(selectChain);
 

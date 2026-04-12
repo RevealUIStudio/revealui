@@ -6,7 +6,7 @@
  * DELETE /api/rag/workspaces/:workspaceId/documents/:documentId
  * GET  /api/rag/workspaces/:workspaceId/status             → workspace RAG stats
  *
- * Requires requireFeature('ai', { mode: 'entitlements' }) — applied in apps/api/src/index.ts.
+ * Requires requireFeature('ai', { mode: 'entitlements' })  -  applied in apps/api/src/index.ts.
  */
 
 import type { DatabaseClient } from '@revealui/db/client';
@@ -107,7 +107,7 @@ app.openapi(
       return c.json({ success: false, error: 'Invalid collection name' }, 400);
     }
 
-    // Admin API client — requires NEXT_PUBLIC_ADMIN_URL or ADMIN_URL
+    // Admin API client  -  requires NEXT_PUBLIC_ADMIN_URL or ADMIN_URL
     const adminBaseUrl =
       process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL ?? 'http://localhost:4000';
 

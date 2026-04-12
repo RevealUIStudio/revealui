@@ -385,16 +385,16 @@ export class LoggingErrorReporter implements ErrorReporter {
   }
 
   setUser(_user: UserContext | null): void {
-    // No-op — logging reporter only captures errors and messages
+    // No-op  -  logging reporter only captures errors and messages
   }
   setContext(_context: Partial<ErrorContext>): void {
-    // No-op — logging reporter only captures errors and messages
+    // No-op  -  logging reporter only captures errors and messages
   }
   setTag(_key: string, _value: string): void {
-    // No-op — logging reporter only captures errors and messages
+    // No-op  -  logging reporter only captures errors and messages
   }
   addBreadcrumb(_breadcrumb: Breadcrumb): void {
-    // No-op — logging reporter only captures errors and messages
+    // No-op  -  logging reporter only captures errors and messages
   }
 }
 

@@ -1,7 +1,7 @@
 /**
  * GDPR Storage Tests
  *
- * Tests for InMemoryGDPRStorage — the default storage backend
+ * Tests for InMemoryGDPRStorage  -  the default storage backend
  * for GDPR consent records and deletion requests.
  */
 
@@ -86,7 +86,7 @@ describe('InMemoryGDPRStorage', () => {
       for (const type of types) {
         await storage.setConsent('user-1', type, makeConsent({ userId: 'user-1', type }));
       }
-      // Different user — should not appear
+      // Different user  -  should not appear
       await storage.setConsent(
         'user-2',
         'analytics',

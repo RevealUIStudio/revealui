@@ -4,7 +4,7 @@
  * Proves that collection-level access.read functions are evaluated and
  * their return values are respected by find() and findByID().
  *
- * This is the most critical test file in the admin core — it proves that
+ * This is the most critical test file in the admin core  -  it proves that
  * non-admin users cannot read data they shouldn't see.
  */
 
@@ -210,12 +210,12 @@ describe('access control enforcement', () => {
       };
       const db = createMockDbWithCollectionStorage(testDocs);
 
-      // No req — should deny access
+      // No req  -  should deny access
       const result = await find(config, db as never, {});
 
       expect(result.docs).toEqual([]);
       expect(result.totalDocs).toBe(0);
-      // access.read should NOT be called — denied before evaluation
+      // access.read should NOT be called  -  denied before evaluation
       expect(accessReadSpy).not.toHaveBeenCalled();
       expect(db.collectionStorage.find).not.toHaveBeenCalled();
     });
@@ -248,14 +248,14 @@ describe('access control enforcement', () => {
       };
       const db = createMockDbWithCollectionStorage(testDocs);
 
-      // Editor user — should be denied
+      // Editor user  -  should be denied
       const editorReq = mockRequest({
         user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] },
       });
       const editorResult = await find(config, db as never, { req: editorReq });
       expect(editorResult.docs).toEqual([]);
 
-      // Admin user — should be allowed
+      // Admin user  -  should be allowed
       const adminReq = mockRequest({
         user: { id: 'u2', email: 'admin@test.com', roles: ['admin'] },
       });
@@ -334,7 +334,7 @@ describe('access control enforcement', () => {
       };
       const db = createMockDbWithCollectionStorage(testDocs);
 
-      // No req — should deny access
+      // No req  -  should deny access
       const result = await findByID(config, db as never, { id: '1' });
 
       expect(result).toBeNull();
@@ -357,7 +357,7 @@ describe('access control enforcement', () => {
     });
 
     it('allows access when access.read returns a WhereClause (constraint-based)', async () => {
-      // For findByID, a Where clause means "allowed with constraints" —
+      // For findByID, a Where clause means "allowed with constraints"  -
       // the access function evaluated the user's permission for this specific ID
       const accessReadSpy = vi.fn().mockReturnValue({ author: { equals: 'user-1' } });
       const config: RevealCollectionConfig = {
@@ -386,14 +386,14 @@ describe('access control enforcement', () => {
       };
       const db = createMockDbWithCollectionStorage(testDocs);
 
-      // Editor user — should be denied
+      // Editor user  -  should be denied
       const editorReq = mockRequest({
         user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] },
       });
       const editorResult = await findByID(config, db as never, { id: '1', req: editorReq });
       expect(editorResult).toBeNull();
 
-      // Admin user — should be allowed
+      // Admin user  -  should be allowed
       const adminReq = mockRequest({
         user: { id: 'u2', email: 'admin@test.com', roles: ['admin'] },
       });
@@ -555,7 +555,7 @@ describe('access control enforcement', () => {
         access: { delete: accessDeleteSpy },
       };
 
-      // No req — should deny access
+      // No req  -  should deny access
       await expect(deleteDocument(config, mockDeleteDb as never, { id: '1' })).rejects.toThrow(
         'Access denied',
       );
@@ -590,7 +590,7 @@ describe('access control enforcement', () => {
         access: { delete: accessDeleteSpy },
       };
 
-      // Editor user — should be denied
+      // Editor user  -  should be denied
       const editorReq = mockRequest({
         user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] },
       });
@@ -598,7 +598,7 @@ describe('access control enforcement', () => {
         deleteDocument(config, mockDeleteDb as never, { id: '1', req: editorReq }),
       ).rejects.toThrow('Access denied');
 
-      // Admin user — should be allowed
+      // Admin user  -  should be allowed
       const adminReq = mockRequest({
         user: { id: 'u2', email: 'admin@test.com', roles: ['admin'] },
       });
@@ -611,7 +611,7 @@ describe('access control enforcement', () => {
   });
 
   // =========================================================================
-  // update() tests — access control enforcement only
+  // update() tests  -  access control enforcement only
   // =========================================================================
 
   describe('update() access control', () => {
@@ -642,7 +642,7 @@ describe('access control enforcement', () => {
       const req = mockRequest();
 
       // With overrideAccess, the function should proceed past access control.
-      // It may fail on DB operations (null db) — that's expected; the point is
+      // It may fail on DB operations (null db)  -  that's expected; the point is
       // it doesn't throw the access denied error.
       const result = await update(config, null, {
         id: '1',
@@ -706,7 +706,7 @@ describe('access control enforcement', () => {
         access: { update: accessUpdateSpy },
       };
 
-      // Editor user — should be denied
+      // Editor user  -  should be denied
       const editorReq = mockRequest({
         user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] },
       });
@@ -714,7 +714,7 @@ describe('access control enforcement', () => {
         update(config, null, { id: '1', data: { title: 'New' }, req: editorReq }),
       ).rejects.toThrow('Access denied');
 
-      // Admin user — should be allowed (null db = returns { ...data, id })
+      // Admin user  -  should be allowed (null db = returns { ...data, id })
       const adminReq = mockRequest({
         user: { id: 'u2', email: 'admin@test.com', roles: ['admin'] },
       });
@@ -739,12 +739,12 @@ describe('access control enforcement', () => {
       };
       const req = mockRequest({ user: { id: 'u1', email: 'editor@test.com', roles: ['editor'] } });
 
-      // Publishing — denied by content-based rule
+      // Publishing  -  denied by content-based rule
       await expect(
         update(config, null, { id: '1', data: { status: 'published' }, req }),
       ).rejects.toThrow('Access denied');
 
-      // Drafting — allowed by content-based rule
+      // Drafting  -  allowed by content-based rule
       const result = await update(config, null, {
         id: '1',
         data: { status: 'draft' },

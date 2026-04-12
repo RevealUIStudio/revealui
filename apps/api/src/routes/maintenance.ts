@@ -1,5 +1,5 @@
 /**
- * Maintenance Routes — Cross-DB orphan cleanup cron endpoint
+ * Maintenance Routes  -  Cross-DB orphan cleanup cron endpoint
  *
  * Removes orphaned vector data (Supabase) for sites that have been
  * soft-deleted in NeonDB. Called by a Vercel cron job or external scheduler.
@@ -37,7 +37,7 @@ const ErrorSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// POST /cleanup-orphans — Cross-DB orphan cleanup (internal cron)
+// POST /cleanup-orphans  -  Cross-DB orphan cleanup (internal cron)
 // ---------------------------------------------------------------------------
 
 const cleanupOrphansRoute = createRoute({

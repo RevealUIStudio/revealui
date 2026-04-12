@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { agentList, agentRemove, agentSpawn, agentStop } from '../lib/invoke';
 import type { AgentBackend, AgentExitEvent, AgentOutputEvent, AgentSessionInfo } from '../types';
 
-/** Per-session output log — maps session ID to array of output lines */
+/** Per-session output log  -  maps session ID to array of output lines */
 export type AgentOutputMap = Record<string, string[]>;
 
 export function useSpawner() {

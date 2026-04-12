@@ -2,7 +2,7 @@
  * RAG Vector Service
  *
  * Semantic similarity search over rag_chunks using pgvector cosine distance.
- * Modeled after VectorMemoryService — same Drizzle cosine-distance pattern.
+ * Modeled after VectorMemoryService  -  same Drizzle cosine-distance pattern.
  */
 
 import { getVectorClient } from '@revealui/db/client';

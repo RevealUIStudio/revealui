@@ -13,7 +13,7 @@ function createMockAuditSystem() {
   };
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono Variables type requires loose typing in tests
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono Variables type requires loose typing in tests
 type TestVariables = { user: any; requestId: string };
 
 function createApp(audit: ReturnType<typeof createMockAuditSystem>, user?: { id: string }) {
@@ -30,7 +30,7 @@ function createApp(audit: ReturnType<typeof createMockAuditSystem>, user?: { id:
       await next();
     });
   }
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — AuditSystem mock shape is partial
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  AuditSystem mock shape is partial
   app.use('*', auditMiddleware(audit as any));
   app.get('/api/tickets', (c) => c.json({ items: [] }));
   app.post('/api/tickets', (c) => c.json({ created: true }, 201));

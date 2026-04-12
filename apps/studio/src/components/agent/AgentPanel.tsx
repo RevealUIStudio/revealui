@@ -1,5 +1,5 @@
 /**
- * AgentPanel — workboard-aware change review (Pro)
+ * AgentPanel  -  workboard-aware change review (Pro)
  *
  * Left pane:  active Claude Code sessions, parsed from a configurable workboard.md
  * Right pane: pending git changes with per-file stage / discard and bulk actions
@@ -176,7 +176,7 @@ function ChangeRow({ entry, staged, onStage, onUnstage, onDiscard }: ChangeRowPr
 
 function SessionCard({ session }: { session: AgentSession }) {
   const isIdle = session.task === '(starting)' || session.task === 'idle';
-  const hasFiles = session.files !== '—' && session.files.trim() !== '';
+  const hasFiles = session.files !== ' - ' && session.files.trim() !== '';
 
   return (
     <div className="rounded-lg border border-neutral-800 bg-neutral-900/60 p-2.5">
@@ -527,7 +527,7 @@ export default function AgentPanel() {
 
       {/* ── Right pane: tabbed (Changes / Chat) ── */}
       <div className="flex min-w-0 flex-1 flex-col bg-neutral-950">
-        {/* Tab bar — horizontally scrollable on mobile */}
+        {/* Tab bar  -  horizontally scrollable on mobile */}
         <div className="flex items-center overflow-x-auto border-b border-neutral-800">
           <button
             type="button"
@@ -694,7 +694,7 @@ export default function AgentPanel() {
               ) : null}
               {gitState && totalChanges === 0 ? (
                 <p className="py-8 text-center text-xs text-neutral-600">
-                  Nothing to review — working tree clean
+                  Nothing to review - working tree clean
                 </p>
               ) : null}
 

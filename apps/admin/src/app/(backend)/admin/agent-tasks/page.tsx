@@ -351,13 +351,13 @@ function TaskRow({
             {/* Input */}
             <div>
               <h4 className="mb-1 text-xs font-medium text-zinc-500">Input</h4>
-              <p className="whitespace-pre-wrap text-zinc-300">{inputText ?? '—'}</p>
+              <p className="whitespace-pre-wrap text-zinc-300">{inputText ?? ' - '}</p>
             </div>
 
             {/* Output */}
             <div>
               <h4 className="mb-1 text-xs font-medium text-zinc-500">Output</h4>
-              <p className="whitespace-pre-wrap text-zinc-300">{outputText ?? '—'}</p>
+              <p className="whitespace-pre-wrap text-zinc-300">{outputText ?? ' - '}</p>
             </div>
 
             {/* Metadata row */}
@@ -367,11 +367,11 @@ function TaskRow({
               <MetaField label="Started" value={ts} />
               <MetaField
                 label="Completed"
-                value={task.completedAt ? new Date(task.completedAt).toLocaleString() : '—'}
+                value={task.completedAt ? new Date(task.completedAt).toLocaleString() : ' - '}
               />
               <MetaField
                 label="Duration"
-                value={task.durationMs != null ? `${task.durationMs}ms` : '—'}
+                value={task.durationMs != null ? `${task.durationMs}ms` : ' - '}
               />
               {task.confidence != null && (
                 <MetaField label="Confidence" value={`${Math.round(task.confidence * 100)}%`} />

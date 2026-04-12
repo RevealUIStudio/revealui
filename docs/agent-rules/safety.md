@@ -2,16 +2,16 @@
 
 Rules for protecting sensitive files, credentials, and system paths in the RevealUI monorepo.
 
-## Protected Files — Never Edit Without Explicit Ask
+## Protected Files  -  Never Edit Without Explicit Ask
 
 - `.env*` files (`.env`, `.env.local`, `.env.production`, etc.)
 - Lock files: `pnpm-lock.yaml`, `package-lock.json`, `yarn.lock`, `bun.lockb`, etc.
 - Database schema files in `packages/db/src/schema/` (changes require migration planning)
 
-## Protected Paths — Never Edit
+## Protected Paths  -  Never Edit
 
-- `/mnt/c/` — Windows C: drive (read-only mirror)
-- `/mnt/e/` — LTS backup drive (read-only)
+- `/mnt/c/`  -  Windows C: drive (read-only mirror)
+- `/mnt/e/`  -  LTS backup drive (read-only)
 - System directories: `/etc/`, `/usr/`, `/var/`
 - Credential directories: `~/.ssh/`, `~/.gnupg/`, `~/.aws/`
 
@@ -30,8 +30,8 @@ Use environment variables via `@revealui/config` instead.
 
 ## Code Quality Guards
 
-- Never use `any` — use `unknown` + type guards
-- Never add `console.*` in production code — use `@revealui/utils` logger
+- Never use `any`  -  use `unknown` + type guards
+- Never add `console.*` in production code  -  use `@revealui/utils` logger
 - After editing files, run `npx biome check --write <file>` to auto-format
 
 ## Verification Before Completion

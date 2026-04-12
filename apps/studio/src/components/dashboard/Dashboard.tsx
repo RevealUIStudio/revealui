@@ -38,7 +38,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-3">
           <TierBadge tier={system.tier} />
           <span className="text-sm text-neutral-400">
-            {system.distribution} &mdash; systemd: {system.systemd_status}
+            {system.distribution} - systemd: {system.systemd_status}
           </span>
         </div>
       ) : null}

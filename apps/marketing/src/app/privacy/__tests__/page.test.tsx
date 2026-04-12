@@ -79,7 +79,7 @@ describe('PrivacyPolicyPage', () => {
   });
 
   it('exports correct metadata', () => {
-    expect(metadata.title).toBe('Privacy Policy \u2014 RevealUI');
+    expect(metadata.title).toBe('Privacy Policy | RevealUI');
     expect(metadata.description).toContain('Privacy policy');
   });
 });

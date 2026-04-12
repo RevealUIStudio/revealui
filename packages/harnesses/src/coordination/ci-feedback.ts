@@ -1,5 +1,5 @@
 /**
- * CIFeedback — Layer 4 of the Autonomous Agent Architecture.
+ * CIFeedback  -  Layer 4 of the Autonomous Agent Architecture.
  *
  * Receives CI results (posted by GitHub Actions via the daemon's HTTP gateway),
  * and routes them back to agents:
@@ -75,7 +75,7 @@ export class CIFeedback {
   }
 
   // ---------------------------------------------------------------------------
-  // Private — success path
+  // Private  -  success path
   // ---------------------------------------------------------------------------
 
   private async handleSuccess(mr: MergeRequest): Promise<CIFeedbackResult> {
@@ -94,7 +94,7 @@ export class CIFeedback {
     await this.store.sendMessage({
       fromAgent: 'ci-feedback',
       toAgent: mr.agent_id,
-      subject: 'CI passed — PR ready to merge',
+      subject: 'CI passed  -  PR ready to merge',
       body: `PR ${mr.pr_url ?? `#${mr.pr_number}`} passed CI. Merge request ${mr.id} is complete.`,
     });
 
@@ -110,7 +110,7 @@ export class CIFeedback {
   }
 
   // ---------------------------------------------------------------------------
-  // Private — failure path
+  // Private  -  failure path
   // ---------------------------------------------------------------------------
 
   private async handleFailure(mr: MergeRequest, params: CIReportParams): Promise<CIFeedbackResult> {
@@ -207,7 +207,7 @@ export class CIFeedback {
   }
 
   // ---------------------------------------------------------------------------
-  // Private — helpers
+  // Private  -  helpers
   // ---------------------------------------------------------------------------
 
   /** Find the merge request associated with this CI run. */

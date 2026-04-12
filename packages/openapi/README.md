@@ -1,6 +1,6 @@
 # @revealui/openapi
 
-Type-safe OpenAPI 3.x integration for Hono. Define routes with Zod schemas, get automatic spec generation, request validation, and Swagger UI — zero manual spec writing.
+Type-safe OpenAPI 3.x integration for Hono. Define routes with Zod schemas, get automatic spec generation, request validation, and Swagger UI  -  zero manual spec writing.
 
 ## When to Use This
 
@@ -60,7 +60,7 @@ app.openapi(route, (c) => c.json({ id: '1', name: 'test' }, 201));
 ## JOSHUA Alignment
 
 - **Unified**: Single schema definition drives validation, types, and OpenAPI spec
-- **Orthogonal**: Decoupled from business logic — validates at the boundary, not inside handlers
+- **Orthogonal**: Decoupled from business logic  -  validates at the boundary, not inside handlers
 - **Hermetic**: Request validation happens before handler execution, preventing invalid data from leaking through
 
 ## Related

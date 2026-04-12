@@ -109,14 +109,14 @@ export async function safeVectorInsert<T>(
   try {
     return await insert();
   } catch (error) {
-    // Re-validate references — if entity was deleted, throw descriptive error
+    // Re-validate references  -  if entity was deleted, throw descriptive error
     const refsValid = await assertCrossDbRefs(restDb, refs)
       .then(() => true)
       .catch(() => false);
     if (!refsValid) {
       throw new CrossDbReferenceError('vector_table', 'refs', JSON.stringify(refs));
     }
-    // References still valid — rethrow original error
+    // References still valid  -  rethrow original error
     throw error;
   }
 }
@@ -125,7 +125,7 @@ export async function safeVectorInsert<T>(
  * Finds orphaned records in Supabase that reference non-existent NeonDB entities.
  * Returns IDs of orphaned records grouped by table.
  *
- * This is a diagnostic/cleanup utility — run periodically or on-demand.
+ * This is a diagnostic/cleanup utility  -  run periodically or on-demand.
  * Requires both REST and Vector database clients.
  */
 export async function findOrphanedMemories(

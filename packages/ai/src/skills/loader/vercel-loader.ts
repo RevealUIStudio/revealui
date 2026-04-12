@@ -252,6 +252,8 @@ function extractInstallPath(output: string, baseDir: string, source: string): st
  * @returns Installation path
  */
 async function fallbackGitClone(source: VercelSource, targetPath: string): Promise<string> {
+  validateGitArg(source.owner, 'owner');
+  validateGitArg(source.repo, 'repo');
   const repoUrl = `https://github.com/${source.owner}/${source.repo}.git`;
 
   if (source.path) {

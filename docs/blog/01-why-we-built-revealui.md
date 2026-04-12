@@ -1,24 +1,24 @@
 # Why I Built RevealUI (and Open-Sourced It)
 
-*By Joshua Vaughn — RevealUI Studio*
+*By Joshua Vaughn  -  RevealUI Studio*
 
 ---
 
-I've started three software companies. Each time, I spent the first three to six months building the same thing: user authentication, a content management system, billing integration, an admin dashboard, role-based access control. The actual product — the thing that made the company worth existing — didn't get serious development time until month four at the earliest.
+I've started three software companies. Each time, I spent the first three to six months building the same thing: user authentication, a content management system, billing integration, an admin dashboard, role-based access control. The actual product  -  the thing that made the company worth existing  -  didn't get serious development time until month four at the earliest.
 
 That's not a skills problem. That's an infrastructure problem. And after the third time, I decided to solve it.
 
-RevealUI is an agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
+RevealUI is an agentic business runtime. Users, content, products, payments, and AI  -  pre-wired, open source, and ready to deploy. One codebase. One deployment. Zero months wasted on plumbing.
 
 ## The problem nobody talks about
 
 Every software company needs the same five things on day one:
 
-1. **Users** — sign up, sign in, sessions, roles, permissions
-2. **Content** — pages, posts, media, rich text, an API to serve it
-3. **Products** — a catalog, pricing tiers, license keys
-4. **Payments** — checkout, subscriptions, invoices, a billing portal
-5. **Intelligence** — AI that actually knows your business context
+1. **Users**  -  sign up, sign in, sessions, roles, permissions
+2. **Content**  -  pages, posts, media, rich text, an API to serve it
+3. **Products**  -  a catalog, pricing tiers, license keys
+4. **Payments**  -  checkout, subscriptions, invoices, a billing portal
+5. **Intelligence**  -  AI that actually knows your business context
 
 None of these are your product. All of them are required before your product can exist.
 
@@ -32,7 +32,7 @@ I've watched teams burn entire quarters just getting Clerk sessions to propagate
 
 Let me be specific about what's out there and why none of it solved my problem.
 
-**Headless admin platforms** (Payload, Strapi, Contentful) are excellent at content. Payload in particular is beautifully designed — I have genuine respect for the team. But an admin solves one of the five primitives. You still need auth (yes, Payload has auth, but try integrating it with Stripe tier-gated access control). You still need billing. You still need a product catalog. You still need feature gating that ties your license tier to what content and features a user can access.
+**Headless admin platforms** (Payload, Strapi, Contentful) are excellent at content. Payload in particular is beautifully designed  -  I have genuine respect for the team. But an admin solves one of the five primitives. You still need auth (yes, Payload has auth, but try integrating it with Stripe tier-gated access control). You still need billing. You still need a product catalog. You still need feature gating that ties your license tier to what content and features a user can access.
 
 **Auth services** (Clerk, Auth0, NextAuth) solve identity. But identity without authorization is half the story. Can this user access this content? Are they on the Pro tier? Has their subscription lapsed? Did they exceed their API rate limit? These questions require auth to know about billing, and billing to know about features. A standalone auth service can't answer them.
 
@@ -44,9 +44,9 @@ The fundamental issue is that these tools were designed in isolation. They don't
 
 ## The RevealUI approach
 
-RevealUI treats those five primitives as a single, cohesive system. The architecture follows what I call the **JOSHUA Stack** — six engineering principles that govern every decision: **Justifiable** (every default earns its place), **Orthogonal** (clean separation between packages), **Sovereign** (you own everything, deploy anywhere), **Hermetic** (sealed boundaries between concerns), **Unified** (one schema, zero drift), and **Adaptive** (AI and extensibility built into the foundation, not bolted on).
+RevealUI treats those five primitives as a single, cohesive system. The architecture follows what I call the **JOSHUA Stack**  -  six engineering principles that govern every decision: **Justifiable** (every default earns its place), **Orthogonal** (clean separation between packages), **Sovereign** (you own everything, deploy anywhere), **Hermetic** (sealed boundaries between concerns), **Unified** (one schema, zero drift), and **Adaptive** (AI and extensibility built into the foundation, not bolted on).
 
-I want to be clear about something: I'm not claiming this is the only way to build software. I'm saying it's *a* way — one that I've tested across three companies and thousands of decisions. If you're staring at a blank repo wondering which ORM, which auth strategy, which deployment model, the JOSHUA Stack gives you a defensible answer for each one. Start here. Evolve from here. The principles are starting coordinates, not a cage.
+I want to be clear about something: I'm not claiming this is the only way to build software. I'm saying it's *a* way  -  one that I've tested across three companies and thousands of decisions. If you're staring at a blank repo wondering which ORM, which auth strategy, which deployment model, the JOSHUA Stack gives you a defensible answer for each one. Start here. Evolve from here. The principles are starting coordinates, not a cage.
 
 Here's what that looks like in practice.
 
@@ -60,7 +60,7 @@ The CLI walks you through database setup, payment configuration, and dev environ
 
 ### Defining content
 
-Content in RevealUI is defined through collections — typed, access-controlled, hookable data structures:
+Content in RevealUI is defined through collections  -  typed, access-controlled, hookable data structures:
 
 ```typescript
 import type { CollectionConfig } from '@revealui/contracts/admin';
@@ -96,7 +96,7 @@ const Posts: CollectionConfig = {
 };
 ```
 
-That's the full definition. Access control, hooks, field validation, relationship resolution — it's all declared in one place. The REST API, admin UI, and TypeScript types are derived from this definition automatically.
+That's the full definition. Access control, hooks, field validation, relationship resolution  -  it's all declared in one place. The REST API, admin UI, and TypeScript types are derived from this definition automatically.
 
 ### Feature gating that actually works
 
@@ -121,7 +121,7 @@ if (isFeatureEnabled('aiMemory')) {
 }
 ```
 
-The feature system knows the tier hierarchy. The tier hierarchy knows about Stripe. Stripe webhooks update the license in real time. When a user upgrades from Free to Pro, their feature flags update immediately — no manual reconciliation, no cache invalidation dance, no "please refresh the page."
+The feature system knows the tier hierarchy. The tier hierarchy knows about Stripe. Stripe webhooks update the license in real time. When a user upgrades from Free to Pro, their feature flags update immediately  -  no manual reconciliation, no cache invalidation dance, no "please refresh the page."
 
 Here's the tier map, straight from the source:
 
@@ -200,7 +200,7 @@ RevealUI uses session-based auth. No JWTs. No token rotation. No "your refresh t
 
 Sessions are stored server-side. The cookie is `httpOnly`, `secure`, `sameSite=lax`, scoped to `.revealui.com` for cross-subdomain access. Password hashing uses bcrypt with 12 rounds. Rate limiting and brute force protection are built in. OAuth works with GitHub, Google, and Vercel out of the box.
 
-I made this choice deliberately. JWTs are appropriate for distributed microservice architectures where services can't share a session store. RevealUI is a monolithic deployment — the admin, API, and auth layer all run in the same process or share the same database. Sessions are simpler, more secure (instant revocation), and eliminate an entire class of bugs around token expiry and refresh races.
+I made this choice deliberately. JWTs are appropriate for distributed microservice architectures where services can't share a session store. RevealUI is a monolithic deployment  -  the admin, API, and auth layer all run in the same process or share the same database. Sessions are simpler, more secure (instant revocation), and eliminate an entire class of bugs around token expiry and refresh races.
 
 ## Why open source
 
@@ -208,26 +208,26 @@ MIT. Non-negotiable.
 
 I've been on the other side of this equation. I've built production systems on commercial platforms that raised their prices 3x, changed their API without warning, or got acquired and sunset. Every time, I wished I had the source code.
 
-RevealUI's business primitives — auth, content, collections, the REST API, the admin dashboard, the CLI, the component library — are MIT licensed. You can inspect every line. You can fork it. You can self-host it on your own infrastructure. You can rip out the parts you don't need and keep the parts you do.
+RevealUI's business primitives  -  auth, content, collections, the REST API, the admin dashboard, the CLI, the component library  -  are MIT licensed. You can inspect every line. You can fork it. You can self-host it on your own infrastructure. You can rip out the parts you don't need and keep the parts you do.
 
-The business model is straightforward: the Pro tier (AI agents, memory system, open-model inference) funds ongoing development. The things that make RevealUI useful for 90% of use cases are free forever. The things that make it powerful for teams that need AI capabilities are commercially licensed but source-available — you can read every line of the Pro code too.
+The business model is straightforward: the Pro tier (AI agents, memory system, open-model inference) funds ongoing development. The things that make RevealUI useful for 90% of use cases are free forever. The things that make it powerful for teams that need AI capabilities are commercially licensed but source-available  -  you can read every line of the Pro code too.
 
 I also open-sourced the MCP framework (hypervisor, adapter base classes, and database adapter). It was originally Pro-only, but the ecosystem benefits more from it being open. AI tooling should be open infrastructure, not a profit center.
 
 ## What makes RevealUI different
 
-RevealUI is not an admin with plugins bolted on. It's not a boilerplate you clone and hack. It's a cohesive system designed from the ground up so that every primitive knows about every other primitive. This is the JOSHUA Stack's **Unified** and **Hermetic** principles in practice — one schema shared across every layer, but with sealed boundaries between concerns so auth never leaks into billing and content never tangles with payments.
+RevealUI is not an admin with plugins bolted on. It's not a boilerplate you clone and hack. It's a cohesive system designed from the ground up so that every primitive knows about every other primitive. This is the JOSHUA Stack's **Unified** and **Hermetic** principles in practice  -  one schema shared across every layer, but with sealed boundaries between concerns so auth never leaks into billing and content never tangles with payments.
 
-When a user signs up, the auth system creates their session, assigns their default role, and checks their license tier. When they access content, the collection's `access.read` function can reference their tier, their role, or any custom claim. When they upgrade via Stripe, the webhook handler updates their license, which updates their feature flags, which unlocks gated content and capabilities — all in the same request cycle.
+When a user signs up, the auth system creates their session, assigns their default role, and checks their license tier. When they access content, the collection's `access.read` function can reference their tier, their role, or any custom claim. When they upgrade via Stripe, the webhook handler updates their license, which updates their feature flags, which unlocks gated content and capabilities  -  all in the same request cycle.
 
 This is the part that's genuinely hard to replicate by stitching services together. The integration isn't in the glue code between separate tools. The integration is in the data model. Users, content, products, payments, and features share a schema. They share a database. They share a session. The relationships are first-class, not afterthoughts.
 
 Some numbers on what's actually shipped:
 
-- **28 packages** across the monorepo (7 apps, 16 OSS libraries, and 5 Pro packages)
-- **71 database tables** via Drizzle ORM
-- **58 UI components** in the presentation layer (zero external UI dependencies — just Tailwind v4, clsx, and CVA)
-- **13,700+ tests** across all packages
+- **22 packages** across the monorepo (6 apps, 16 OSS libraries, and 5 Pro packages)
+- **81 database tables** via Drizzle ORM
+- **57 UI components** in the presentation layer (zero external UI dependencies  -  just Tailwind v4, clsx, and CVA)
+- **20,000+ tests** across all packages
 - **Full OpenAPI spec** with Swagger UI at `/docs`
 - **Session auth** with bcrypt, rate limiting, brute force protection, and OAuth
 
@@ -235,21 +235,21 @@ Some numbers on what's actually shipped:
 
 I want to be honest about where RevealUI is and isn't the right choice.
 
-**It's opinionated.** That's the **Justifiable** principle — every choice has a reason you can explain in one sentence. React 19, Next.js 16, Hono, Drizzle ORM, NeonDB, Tailwind v4. If you need Vue or Svelte on the frontend, RevealUI isn't for you today. The API layer (Hono) is framework-agnostic and serves standard REST, so you could consume it from any frontend — but the admin dashboard and admin are React. The point isn't that these are the *right* choices for every team — it's that they're a coherent set of choices that work well together. If you're not sure what to pick, this is a slam dunk starting point. When your needs outgrow a specific tool, swap it — the **Orthogonal** architecture means nothing is welded shut.
+**It's opinionated.** That's the **Justifiable** principle  -  every choice has a reason you can explain in one sentence. React 19, Next.js 16, Hono, Drizzle ORM, NeonDB, Tailwind v4. If you need Vue or Svelte on the frontend, RevealUI isn't for you today. The API layer (Hono) is framework-agnostic and serves standard REST, so you could consume it from any frontend  -  but the admin dashboard and admin are React. The point isn't that these are the *right* choices for every team  -  it's that they're a coherent set of choices that work well together. If you're not sure what to pick, this is a slam dunk starting point. When your needs outgrow a specific tool, swap it  -  the **Orthogonal** architecture means nothing is welded shut.
 
 **It's early.** This is a v0 launch. The core is stable (5,500+ tests, full TypeScript strict mode, comprehensive security hardening), but the ecosystem is young. There's no plugin marketplace yet. The template library is small. The community is just getting started.
 
 **It's a solo project.** I'm one developer at RevealUI Studio. The upside is that decisions are fast and the vision is coherent. The downside is that there's one person triaging issues and reviewing PRs. I'm building in public precisely because I need the community to grow with the project.
 
-**It's not serverless-native.** RevealUI assumes a database. It assumes persistent sessions. It works great on Vercel (that's the primary deployment target), but it's not a collection of edge functions with no state. The architecture is a traditional web application deployed to modern infrastructure — and I think that's the right trade-off for a system that needs ACID transactions across auth, billing, and content.
+**It's not serverless-native.** RevealUI assumes a database. It assumes persistent sessions. It works great on Vercel (that's the primary deployment target), but it's not a collection of edge functions with no state. The architecture is a traditional web application deployed to modern infrastructure  -  and I think that's the right trade-off for a system that needs ACID transactions across auth, billing, and content.
 
 ## What's next
 
 The repository is public on GitHub. The docs site is live at [docs.revealui.com](https://docs.revealui.com). The `create-revealui` CLI is on npm. You can stand up a full RevealUI instance today.
 
-Studio (Tauri + React) is the native AI experience — agent coordination hub, local inference management, and visual dashboard. The terminal client (Go + Bubble Tea) gives you a TUI for API access, QR checkout, and SSH fingerprint lookup.
+Studio (Tauri + React) is the native AI experience  -  agent coordination hub, local inference management, and visual dashboard. The terminal client (Go + Bubble Tea) gives you a TUI for API access, QR checkout, and SSH fingerprint lookup.
 
-The near-term roadmap includes MCP server registry listings, A2A agent discovery for RevealUI-to-RevealUI communication, a broader template library, and the template marketplace where developers can publish and sell project starters. The community forum is at [revnation.discourse.group](https://revnation.discourse.group) — join early and help shape what gets built next.
+The near-term roadmap includes MCP server registry listings, A2A agent discovery for RevealUI-to-RevealUI communication, a broader template library, and the template marketplace where developers can publish and sell project starters. The community forum is at [revnation.discourse.group](https://revnation.discourse.group)  -  join early and help shape what gets built next.
 
 But the core thesis won't change: **every software company needs users, content, products, payments, and intelligence. You shouldn't have to build them from scratch.**
 

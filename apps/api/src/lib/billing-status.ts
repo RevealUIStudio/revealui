@@ -6,7 +6,7 @@ import { and, desc, eq, sql } from 'drizzle-orm';
  * Query billing status with grace period enforcement.
  *
  * When a subscription is past_due/canceled/revoked but graceUntil is in the future,
- * returns 'grace_period' — the customer retains access until grace expires.
+ * returns 'grace_period'  -  the customer retains access until grace expires.
  */
 export async function queryBillingStatusByCustomerId(
   db: Database,
@@ -16,7 +16,7 @@ export async function queryBillingStatusByCustomerId(
     .select({ status: licenses.status, expiresAt: licenses.expiresAt })
     .from(licenses)
     .where(eq(licenses.customerId, customerId))
-    // Prefer active/support_expired licenses over expired/revoked — a customer may have
+    // Prefer active/support_expired licenses over expired/revoked  -  a customer may have
     // both a perpetual (active or support_expired) and a subscription (revoked) license.
     .orderBy(
       sql`CASE WHEN ${licenses.status} = 'active' THEN 0 WHEN ${licenses.status} = 'support_expired' THEN 0 ELSE 1 END`,

@@ -5,10 +5,10 @@
  * Integrates with AgentRuntime and AgentOrchestrator from @revealui/ai/orchestration.
  *
  * Supported methods:
- *   tasks/send          — synchronous task execution
- *   tasks/get           — retrieve task by ID
- *   tasks/cancel        — cancel a running task
- *   tasks/sendSubscribe — (handled at route level via SSE; returns taskId here)
+ *   tasks/send           -  synchronous task execution
+ *   tasks/get            -  retrieve task by ID
+ *   tasks/cancel         -  cancel a running task
+ *   tasks/sendSubscribe  -  (handled at route level via SSE; returns taskId here)
  */
 
 import type {
@@ -96,7 +96,7 @@ async function handleTasksSend(
     // Transition to working
     updateTaskState(task.id, 'working');
 
-    // Execute via orchestration — for now, produce a direct text response.
+    // Execute via orchestration  -  for now, produce a direct text response.
     // Full AgentRuntime integration wires in when an LLM provider is configured.
     const agentDef = agentId
       ? agentCardRegistry.getDef(agentId)

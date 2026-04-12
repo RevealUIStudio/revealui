@@ -226,7 +226,7 @@ describe('ticket queries', () => {
         | Record<string, unknown>
         | undefined;
       expect(insertedValues?.ticketNumber).toBeDefined();
-      // No separate SELECT call — ticket number is computed atomically in INSERT
+      // No separate SELECT call  -  ticket number is computed atomically in INSERT
       expect(db.select).not.toHaveBeenCalled();
     });
 

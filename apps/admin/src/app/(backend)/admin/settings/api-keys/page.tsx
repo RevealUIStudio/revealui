@@ -61,7 +61,7 @@ export default function ApiKeysPage() {
         }
       })
       .catch(() => {
-        // Swallow fetch errors — API key metadata is non-critical
+        // Swallow fetch errors  -  API key metadata is non-critical
       });
   }, []);
 
@@ -116,7 +116,7 @@ export default function ApiKeysPage() {
             <div className="mb-6 flex items-center gap-2 rounded-lg border border-emerald-800/50 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
               {PROVIDERS.find((p) => p.id === currentProvider)?.label ?? currentProvider} key
-              configured{currentKeyHint ? ` (${currentKeyHint})` : ''} — tasks will use your key
+              configured{currentKeyHint ? ` (${currentKeyHint})` : ''} - tasks will use your key
             </div>
           )}
 

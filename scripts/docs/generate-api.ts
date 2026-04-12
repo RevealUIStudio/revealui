@@ -155,7 +155,7 @@ function generateMarkdown(spec: OpenAPISpec): string {
         lines.push(`| Name | Type | Required | Default | Description |`);
         lines.push(`|------|------|:--------:|---------|-------------|`);
         for (const p of queryParams) {
-          const def = p.schema?.default != null ? `\`${p.schema.default}\`` : '—';
+          const def = p.schema?.default != null ? `\`${p.schema.default}\`` : ' - ';
           lines.push(
             `| \`${p.name}\` | \`${p.schema?.type ?? 'string'}\` | ${p.required ? '✓' : '—'} | ${def} | ${p.description ?? ''} |`,
           );

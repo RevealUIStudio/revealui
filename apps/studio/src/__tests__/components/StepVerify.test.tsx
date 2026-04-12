@@ -193,7 +193,7 @@ describe('StepVerify', () => {
     expect(screen.getByText('Signup flow works end-to-end')).toBeInTheDocument();
   });
 
-  // -- Health check flow — all pass ---------------------------------------
+  // -- Health check flow  -  all pass ---------------------------------------
 
   it('sets env vars and runs health checks on Run Checks click', async () => {
     renderStep();
@@ -322,7 +322,7 @@ describe('StepVerify', () => {
     expect(screen.getByLabelText('Admin Password')).toBeDisabled();
   });
 
-  // -- Email delivery — Gmail provider ------------------------------------
+  // -- Email delivery  -  Gmail provider ------------------------------------
 
   it('marks email as validated in email step when no Gmail credentials', async () => {
     renderStep({
@@ -342,7 +342,7 @@ describe('StepVerify', () => {
     });
   });
 
-  // -- Health check flow — failures --------------------------------------
+  // -- Health check flow  -  failures --------------------------------------
 
   it('marks individual checks as failed for non-2xx/3xx status', async () => {
     mockHealthCheck

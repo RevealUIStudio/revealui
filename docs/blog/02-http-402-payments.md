@@ -1,12 +1,12 @@
 # Paying for AI API Calls with HTTP 402 and USDC
 
-_By Joshua Vaughn — RevealUI Studio_
+_By Joshua Vaughn  -  RevealUI Studio_
 
 ---
 
 HTTP 402 is the status code that was never used.
 
-It's been in the spec since 1996. The RFC says it's "reserved for future use" and the intended use was always some form of payment. For 30 years, practically nobody sent it. The web settled on subscription models and API keys — you authenticate with a token, and billing happens out-of-band via Stripe.
+It's been in the spec since 1996. The RFC says it's "reserved for future use" and the intended use was always some form of payment. For 30 years, practically nobody sent it. The web settled on subscription models and API keys  -  you authenticate with a token, and billing happens out-of-band via Stripe.
 
 That model works fine for most APIs. But it breaks down for AI agent systems, where:
 
@@ -15,7 +15,7 @@ That model works fine for most APIs. But it breaks down for AI agent systems, wh
 - You want granular per-call pricing, not flat subscriptions
 - Payment is better handled at the protocol level than the application level
 
-The [x402 protocol](https://x402.org) — developed by Coinbase — finally gives 402 a real use. Here's how we implemented it in RevealUI, and why it's the right model for AI-native APIs.
+The [x402 protocol](https://x402.org)  -  developed by Coinbase  -  finally gives 402 a real use. Here's how we implemented it in RevealUI, and why it's the right model for AI-native APIs.
 
 ---
 
@@ -42,7 +42,7 @@ Content-Type: application/json
 }
 ```
 
-The `maxAmountRequired` is in the asset's smallest unit — for USDC (6 decimals), `10000` = $0.01. The `asset` address is USDC on Base. The `payTo` is your receiving address.
+The `maxAmountRequired` is in the asset's smallest unit  -  for USDC (6 decimals), `10000` = $0.01. The `asset` address is USDC on Base. The `payTo` is your receiving address.
 
 The caller pays the required amount on-chain, then retries the request with a signed payment proof in the header:
 
@@ -54,7 +54,7 @@ X-PAYMENT-PAYLOAD: <base64-encoded signed payment proof>
 { ... }
 ```
 
-The server verifies the proof against the x402 facilitator at `https://x402.org/facilitator`, and if valid, processes the request. The whole cycle takes a few seconds — fast enough to be invisible inside an agent loop.
+The server verifies the proof against the x402 facilitator at `https://x402.org/facilitator`, and if valid, processes the request. The whole cycle takes a few seconds  -  fast enough to be invisible inside an agent loop.
 
 ---
 
@@ -170,7 +170,7 @@ One line of setup. The SDK intercepts 402 responses, pays on-chain, retries. The
 
 The cleaner application of x402 in RevealUI is the MCP Marketplace.
 
-Developers publish Model Context Protocol servers to the marketplace with a per-call USDC price. Callers invoke them through RevealUI's proxy — which handles payment verification and SSRF protection — and the developer earns 80% of each call.
+Developers publish Model Context Protocol servers to the marketplace with a per-call USDC price. Callers invoke them through RevealUI's proxy  -  which handles payment verification and SSRF protection  -  and the developer earns 80% of each call.
 
 ```http
 POST /api/marketplace/servers
@@ -185,7 +185,7 @@ Authorization: Bearer <your-token>
 }
 ```
 
-Each invocation goes through x402 automatically. The developer's actual server URL is never exposed — callers invoke via the RevealUI proxy, which verifies payment before forwarding. Revenue accumulates in the `marketplace_transactions` table and flows to the developer via Stripe Connect.
+Each invocation goes through x402 automatically. The developer's actual server URL is never exposed  -  callers invoke via the RevealUI proxy, which verifies payment before forwarding. Revenue accumulates in the `marketplace_transactions` table and flows to the developer via Stripe Connect.
 
 The price-setting logic matters. For a `pricePerCallUsdc` of `"0.005"`:
 
@@ -208,9 +208,9 @@ The subscription model has a fundamental mismatch with AI agents: agents make au
 
 With x402, the wallet is the identity. An agent running inside a customer's infrastructure pays directly from the customer's wallet for each call it makes. There's no shared API key to manage. No rate limits to distribute across tenants. No billing reconciliation at the end of the month.
 
-It also solves the "cold start" problem for API monetization. Traditionally, if you want to charge for an API, you need Stripe, a billing portal, subscription management, and an API key system — weeks of work before you can accept your first dollar. With x402, you add one middleware function and set a receiving address. That's it.
+It also solves the "cold start" problem for API monetization. Traditionally, if you want to charge for an API, you need Stripe, a billing portal, subscription management, and an API key system  -  weeks of work before you can accept your first dollar. With x402, you add one middleware function and set a receiving address. That's it.
 
-This is early. The tooling is still rough. Not every developer wants to deal with on-chain payments. But for AI-native infrastructure — where calls are autonomous, granular, and high-volume — it's a better model than what we've had.
+This is early. The tooling is still rough. Not every developer wants to deal with on-chain payments. But for AI-native infrastructure  -  where calls are autonomous, granular, and high-volume  -  it's a better model than what we've had.
 
 ---
 

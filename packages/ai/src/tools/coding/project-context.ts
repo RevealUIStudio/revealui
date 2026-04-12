@@ -1,8 +1,8 @@
 /**
- * project_context — Query the harness content layer for relevant project rules and skills
+ * project_context  -  Query the harness content layer for relevant project rules and skills
  */
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from '../base.js';
@@ -41,25 +41,27 @@ function searchContent(projectRoot: string, query: string, scope?: string): Cont
 
     for (const entry of entries) {
       const fullPath = join(dir, entry);
-      try {
-        const stat = statSync(fullPath);
-        if (stat.isDirectory()) {
-          // Check for skill directories with SKILL.md
-          const skillPath = join(fullPath, 'SKILL.md');
-          try {
-            const content = readFileSync(skillPath, 'utf8');
-            if (matchesQuery(content, queryTerms)) {
-              results.push({
-                id: entry,
-                type: 'skill',
-                path: skillPath.replace(`${projectRoot}/`, ''),
-                content,
-              });
-            }
-          } catch {
-            // Not a skill directory, skip
+      // Try reading as skill directory first, then as markdown file
+      // (avoids TOCTOU race between stat and read)
+      if (!entry.includes('.')) {
+        // Likely a directory, check for SKILL.md
+        const skillPath = join(fullPath, 'SKILL.md');
+        try {
+          const content = readFileSync(skillPath, 'utf8');
+          if (matchesQuery(content, queryTerms)) {
+            results.push({
+              id: entry,
+              type: 'skill',
+              path: skillPath.replace(`${projectRoot}/`, ''),
+              content,
+            });
           }
-        } else if (entry.endsWith('.md')) {
+        } catch {
+          // Not a skill directory or not readable, skip
+        }
+      }
+      if (entry.endsWith('.md')) {
+        try {
           const content = readFileSync(fullPath, 'utf8');
           if (matchesQuery(content, queryTerms)) {
             results.push({
@@ -69,9 +71,9 @@ function searchContent(projectRoot: string, query: string, scope?: string): Cont
               content,
             });
           }
+        } catch {
+          // Not readable, skip
         }
-      } catch {
-        // Directory not readable or does not exist — skip silently
       }
     }
   }

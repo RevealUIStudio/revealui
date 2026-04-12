@@ -113,7 +113,7 @@ app.openapi(
     const ext = file.name.split('.').pop() ?? 'bin';
     const filename = `${crypto.randomUUID()}.${ext}`;
 
-    // Upload to Vercel Blob storage — returns a public CDN URL
+    // Upload to Vercel Blob storage  -  returns a public CDN URL
     let url: string;
     try {
       const blob = await put(`media/${filename}`, file, {
@@ -320,10 +320,18 @@ app.openapi(
     if (user.role !== 'admin' && existing.uploadedBy !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
-    // Delete from Vercel Blob storage (best-effort — DB record takes priority)
-    if (existing.url?.includes('.blob.vercel-storage.com')) {
+    // Delete from Vercel Blob storage (best-effort  -  DB record takes priority)
+    const isVercelBlob = (() => {
+      try {
+        const parsed = new URL(existing.url ?? '');
+        return parsed.hostname.endsWith('.blob.vercel-storage.com');
+      } catch {
+        return false;
+      }
+    })();
+    if (isVercelBlob) {
       del(existing.url).catch((blobErr) => {
-        logger.warn('Failed to delete media from Vercel Blob — orphaned blob', {
+        logger.warn('Failed to delete media from Vercel Blob  -  orphaned blob', {
           mediaId: id,
           url: existing.url,
           error: blobErr instanceof Error ? blobErr.message : 'unknown',

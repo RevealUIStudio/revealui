@@ -11,8 +11,8 @@
  *   pnpm setup:credentials
  *
  * What it writes:
- *   ~/.npmrc  — NPM_TOKEN  (npm.org publish auth)
- *   ~/.npmrc  — NPM_TOKEN  (npm.org publish auth for Pro packages)
+ *   ~/.npmrc   -  NPM_TOKEN  (npm.org publish auth)
+ *   ~/.npmrc   -  NPM_TOKEN  (npm.org publish auth for Pro packages)
  *
  * Sources tried in order:
  *   1. Revvault: revealui/env/reveal-saas-dev-secrets
@@ -20,10 +20,10 @@
  *   3. Environment variables already in process.env
  *
  * @dependencies
- *   node:child_process  — spawnSync (runs revvault CLI)
- *   node:fs/promises    — read .env fallback
- *   node:os             — home dir for ~/.npmrc
- *   node:path           — path joins
+ *   node:child_process   -  spawnSync (runs revvault CLI)
+ *   node:fs/promises     -  read .env fallback
+ *   node:os              -  home dir for ~/.npmrc
+ *   node:path            -  path joins
  */
 
 import { spawnSync } from 'node:child_process';
@@ -32,7 +32,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 // ---------------------------------------------------------------------------
-// Logger (inline — avoids pulling in @revealui/core/monitoring via scripts/lib)
+// Logger (inline  -  avoids pulling in @revealui/core/monitoring via scripts/lib)
 // ---------------------------------------------------------------------------
 
 const log = {
@@ -208,13 +208,13 @@ async function main(): Promise<void> {
     log.success(`NPM_TOKEN → ~/.npmrc (//registry.npmjs.org/:_authToken)`);
     wrote++;
   } else {
-    log.warn('NPM_TOKEN not found — npm publish will require `npm login`');
+    log.warn('NPM_TOKEN not found  -  npm publish will require `npm login`');
     log.info('  Add it to Revvault: revvault set revealui/env/reveal-saas-dev-secrets');
     missing++;
   }
 
   // Note: Pro packages are now on public npm (source-available open-core).
-  // No GitHub Packages token needed — all @revealui packages install from registry.npmjs.org.
+  // No GitHub Packages token needed  -  all @revealui packages install from registry.npmjs.org.
 
   log.divider();
 

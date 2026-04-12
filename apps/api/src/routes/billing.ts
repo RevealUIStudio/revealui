@@ -1,5 +1,5 @@
 /**
- * Billing Routes — Stripe checkout, portal, and subscription status
+ * Billing Routes  -  Stripe checkout, portal, and subscription status
  *
  * Uses RevealUI session auth (not Supabase). Bridges the NeonDB users table
  * with Stripe customer records via the `stripe_customer_id` column.
@@ -39,7 +39,7 @@ const SUPPORT_RENEWAL_WINDOW_MS =
 
 /**
  * Canonical monthly tier prices in USD (whole dollars).
- * Single source of truth — used for RVUI payment recording and MRR fallbacks.
+ * Single source of truth  -  used for RVUI payment recording and MRR fallbacks.
  * Must match the marketing site and Stripe product catalog.
  */
 const CANONICAL_TIER_PRICES: Record<string, number> = {
@@ -53,7 +53,7 @@ const CANONICAL_TIER_PRICES: Record<string, number> = {
  *
  * Stripe Billing Meters require event timestamps to fall within the billing period
  * they are associated with. Since we report overage for the *previous* calendar month,
- * the timestamp must be within that month — not in the current month when the cron runs.
+ * the timestamp must be within that month  -  not in the current month when the cron runs.
  *
  * We take the cycle start (1st of the previous month at 00:00 UTC), add ~30 days
  * (one calendar-month approximation), then subtract 1 second to land on the last
@@ -94,7 +94,7 @@ interface BillingEnv {
 
 const app = new OpenAPIHono<BillingEnv>();
 
-// Circuit breaker for Stripe API — fails fast when Stripe is unreachable
+// Circuit breaker for Stripe API  -  fails fast when Stripe is unreachable
 const stripeBreaker = new CircuitBreaker({
   failureThreshold: 5,
   resetTimeout: 30_000,
@@ -257,7 +257,7 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
   }
 
   // Create Stripe customer with idempotency key (safe to retry).
-  // NeonDB HTTP driver is stateless — db.transaction() is not supported.
+  // NeonDB HTTP driver is stateless  -  db.transaction() is not supported.
   // Instead we use a conditional UPDATE (WHERE stripe_customer_id IS NULL)
   // so concurrent requests can't overwrite the winner.
   const stripe = getStripeClient();
@@ -423,7 +423,7 @@ function resolveUsageQuota(c: { get: (key: string) => unknown }): number {
 
 // ─── Early Adopter Coupon ─────────────────────────────────────────────────────
 
-/** Early adopter coupon config — set via env vars, not hardcoded */
+/** Early adopter coupon config  -  set via env vars, not hardcoded */
 interface EarlyAdopterConfig {
   endDate: Date | null;
   coupons: Record<string, string | undefined>;
@@ -443,7 +443,7 @@ function getEarlyAdopterConfig(): EarlyAdopterConfig {
 
 /**
  * Returns either a `discounts` array (early adopter coupon) or `allow_promotion_codes: true`.
- * Stripe's `discounts` and `allow_promotion_codes` are mutually exclusive — when the early
+ * Stripe's `discounts` and `allow_promotion_codes` are mutually exclusive  -  when the early
  * adopter coupon is active, manual promotion codes are disabled.
  */
 function getEarlyAdopterDiscount(
@@ -466,7 +466,7 @@ export { getEarlyAdopterConfig, getEarlyAdopterDiscount };
 
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
-// POST /api/billing/checkout — Create a Stripe checkout session
+// POST /api/billing/checkout  -  Create a Stripe checkout session
 const checkoutRoute = createRoute({
   method: 'post',
   path: '/checkout',
@@ -508,7 +508,7 @@ app.openapi(checkoutRoute, async (c) => {
   }
   const customerId = await ensureStripeCustomer(user.id, user.email);
 
-  // Prevent duplicate subscriptions — a user with an active, trialing, or incomplete subscription
+  // Prevent duplicate subscriptions  -  a user with an active, trialing, or incomplete subscription
   // must use upgrade instead. Checking only 'active' previously allowed duplicates when the first
   // subscription was still trialing or had an incomplete initial payment.
   const existingSubs = await withStripe((stripe) =>
@@ -559,7 +559,7 @@ app.openapi(checkoutRoute, async (c) => {
   return c.json({ url: session.url }, 200);
 });
 
-// POST /api/billing/portal — Create a Stripe billing portal session
+// POST /api/billing/portal  -  Create a Stripe billing portal session
 const portalRoute = createRoute({
   method: 'post',
   path: '/portal',
@@ -604,7 +604,7 @@ app.openapi(portalRoute, async (c) => {
   return c.json({ url: session.url }, 200);
 });
 
-// GET /api/billing/subscription — Get current user's subscription/license status
+// GET /api/billing/subscription  -  Get current user's subscription/license status
 const subscriptionRoute = createRoute({
   method: 'get',
   path: '/subscription',
@@ -696,7 +696,7 @@ app.openapi(subscriptionRoute, async (c) => {
   );
 });
 
-// GET /api/billing/invoices — List invoices for the current user
+// GET /api/billing/invoices  -  List invoices for the current user
 const invoicesRoute = createRoute({
   method: 'get',
   path: '/invoices',
@@ -775,7 +775,7 @@ app.openapi(invoicesRoute, async (c) => {
 /** Tier rank ordering for upgrade/downgrade direction validation */
 const TIER_ORDER: Record<string, number> = { free: 0, pro: 1, max: 2, enterprise: 3 };
 
-// POST /api/billing/upgrade — Upgrade an active subscription to a higher tier
+// POST /api/billing/upgrade  -  Upgrade an active subscription to a higher tier
 const upgradeRoute = createRoute({
   method: 'post',
   path: '/upgrade',
@@ -793,7 +793,7 @@ const upgradeRoute = createRoute({
   responses: {
     200: {
       content: { 'application/json': { schema: UpgradeResponseSchema } },
-      description: 'Subscription upgraded — Stripe will fire customer.subscription.updated',
+      description: 'Subscription upgraded  -  Stripe will fire customer.subscription.updated',
     },
     400: {
       content: { 'application/json': { schema: ErrorSchema } },
@@ -816,7 +816,7 @@ app.openapi(upgradeRoute, async (c) => {
   const resolvedPriceId = await resolveCatalogPriceId(targetTier, 'subscription', priceId);
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
 
-  // Validate upgrade direction — reject downgrades via upgrade route
+  // Validate upgrade direction  -  reject downgrades via upgrade route
   const currentTier = (requestEntitlements?.tier as string) ?? 'free';
   const currentRank = TIER_ORDER[currentTier] ?? 0;
   const targetRank = TIER_ORDER[targetTier] ?? 0;
@@ -906,7 +906,7 @@ app.openapi(upgradeRoute, async (c) => {
   return c.json({ success: true, subscriptionId: subscription.id }, 200);
 });
 
-// POST /api/billing/downgrade — Downgrade to free tier (cancel subscription)
+// POST /api/billing/downgrade  -  Downgrade to free tier (cancel subscription)
 const DowngradeResponseSchema = z.object({
   success: z.boolean(),
   effectiveAt: z.string().openapi({ description: 'When the downgrade takes effect (ISO 8601)' }),
@@ -1002,7 +1002,7 @@ app.openapi(downgradeRoute, async (c) => {
     : new Date().toISOString();
 
   // Stamp the license expiry so the sweep cron and on-demand checks know when to
-  // transition the status — without this, the DB record stays 'active' indefinitely
+  // transition the status  -  without this, the DB record stays 'active' indefinitely
   // until the subscription.deleted webhook fires at period end.
   if (cancelAt) {
     const db = getClient();
@@ -1042,7 +1042,7 @@ app.openapi(downgradeRoute, async (c) => {
   return c.json({ success: true, effectiveAt: effectiveDate }, 200);
 });
 
-// POST /api/billing/pause — Pause an active subscription
+// POST /api/billing/pause  -  Pause an active subscription
 const PauseResponseSchema = z.object({
   success: z.boolean(),
   resumesAt: z.string().nullable().openapi({ description: 'When billing resumes (ISO 8601)' }),
@@ -1103,7 +1103,7 @@ app.openapi(pauseRoute, async (c) => {
   return c.json({ success: true, resumesAt }, 200);
 });
 
-// POST /api/billing/resume — Resume a paused subscription
+// POST /api/billing/resume  -  Resume a paused subscription
 const ResumeResponseSchema = z.object({
   success: z.boolean(),
 });
@@ -1158,7 +1158,7 @@ app.openapi(resumeRoute, async (c) => {
   return c.json({ success: true }, 200);
 });
 
-// POST /api/billing/checkout-perpetual — One-time perpetual license purchase
+// POST /api/billing/checkout-perpetual  -  One-time perpetual license purchase
 const PerpetualCheckoutRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the perpetual license product',
@@ -1280,7 +1280,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   return c.json({ url: session.url }, 200);
 });
 
-// POST /api/billing/checkout-support-renewal — Renew expired/expiring support on a perpetual license
+// POST /api/billing/checkout-support-renewal  -  Renew expired/expiring support on a perpetual license
 const SupportRenewalCheckoutRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the support renewal product',
@@ -1403,7 +1403,7 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
   return c.json({ url: session.url }, 200);
 });
 
-// POST /api/billing/checkout-credits — One-time credit bundle purchase
+// POST /api/billing/checkout-credits  -  One-time credit bundle purchase
 const CreditCheckoutRequestSchema = z.object({
   priceId: z.string().min(1).optional().openapi({
     description: 'Stripe price ID for the credit bundle product',
@@ -1532,7 +1532,7 @@ app.openapi(creditCheckoutRoute, async (c) => {
   return c.json({ url: session.url }, 200);
 });
 
-// GET /api/billing/credits — Current credit balance
+// GET /api/billing/credits  -  Current credit balance
 const CreditBalanceResponseSchema = z.object({
   balance: z.number().openapi({ description: 'Remaining prepaid credits' }),
   totalPurchased: z.number().openapi({ description: 'Lifetime credits purchased' }),
@@ -1575,7 +1575,7 @@ app.openapi(creditBalanceRoute, async (c) => {
   return c.json({ balance: row?.balance ?? 0, totalPurchased: row?.totalPurchased ?? 0 }, 200);
 });
 
-// GET /api/billing/usage — Agent task usage for the current billing cycle
+// GET /api/billing/usage  -  Agent task usage for the current billing cycle
 const UsageResponseSchema = z.object({
   used: z.number().openapi({ description: 'Tasks executed this billing cycle' }),
   quota: z.number().openapi({ description: 'Maximum tasks for this tier (-1 = unlimited)' }),
@@ -1635,7 +1635,7 @@ app.openapi(usageRoute, async (c) => {
   );
 });
 
-// POST /api/billing/support-renewal-check — Internal cron: send 30-day support renewal reminders
+// POST /api/billing/support-renewal-check  -  Internal cron: send 30-day support renewal reminders
 // Called by a Vercel cron job (vercel.json crons) or an external scheduler.
 // Protected by X-Cron-Secret header (REVEALUI_CRON_SECRET env var).
 const SupportRenewalResponseSchema = z.object({
@@ -1732,7 +1732,7 @@ app.openapi(supportRenewalRoute, async (c) => {
   return c.json({ reminded }, 200);
 });
 
-// POST /api/billing/report-agent-overage — Internal cron: report agent task overage to Stripe Billing Meters.
+// POST /api/billing/report-agent-overage  -  Internal cron: report agent task overage to Stripe Billing Meters.
 // Reads the previous billing cycle's overage from agent_task_usage and emits Stripe meter events.
 // Protected by X-Cron-Secret header. Defaults to "agent_task_overage" if STRIPE_AGENT_METER_EVENT_NAME is not set.
 const reportOverageRoute = createRoute({
@@ -1771,7 +1771,7 @@ app.openapi(reportOverageRoute, async (c) => {
 
   const meterEventName = process.env.STRIPE_AGENT_METER_EVENT_NAME ?? 'agent_task_overage';
   if (!process.env.STRIPE_AGENT_METER_EVENT_NAME) {
-    logger.warn('STRIPE_AGENT_METER_EVENT_NAME not set — using default "agent_task_overage"');
+    logger.warn('STRIPE_AGENT_METER_EVENT_NAME not set  -  using default "agent_task_overage"');
   }
 
   const db = getClient();
@@ -1828,7 +1828,7 @@ app.openapi(reportOverageRoute, async (c) => {
   return c.json({ reported, skipped }, 200);
 });
 
-// POST /api/billing/sweep-expired-licenses — Internal cron: mark expired licenses as 'expired'
+// POST /api/billing/sweep-expired-licenses  -  Internal cron: mark expired licenses as 'expired'
 // Finds non-perpetual licenses where expiresAt < now() and status = 'active', updates them to
 // status = 'expired'. Also finds perpetual licenses where supportExpiresAt < now() and marks
 // them as 'support_expired' (license remains valid, premium features downgrade to free).
@@ -1878,7 +1878,7 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
   const now = new Date();
 
   // ── Phase 1: Expire non-perpetual licenses with past expiresAt ──────────
-  // Fetch matching IDs before updating — Neon HTTP driver does not support
+  // Fetch matching IDs before updating  -  Neon HTTP driver does not support
   // columnar .returning() on UPDATE, so we count from a SELECT instead.
   const expiring = await db
     .select({ id: licenses.id })
@@ -1954,7 +1954,7 @@ app.openapi(sweepExpiredLicensesRoute, async (c) => {
   return c.json({ expired: expiredCount, supportExpired: supportExpiredCount }, 200);
 });
 
-// POST /api/billing/refund — Issue a refund (admin-only)
+// POST /api/billing/refund  -  Issue a refund (admin-only)
 const refundRoute = createRoute({
   method: 'post',
   path: '/refund',
@@ -2041,7 +2041,7 @@ app.openapi(refundRoute, async (c) => {
 });
 
 // =============================================================================
-// RVUI Payment — RevealCoin subscription payment with on-chain verification
+// RVUI Payment  -  RevealCoin subscription payment with on-chain verification
 // =============================================================================
 
 const rvuiPaymentRoute = createRoute({

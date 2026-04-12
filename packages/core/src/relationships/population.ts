@@ -14,7 +14,7 @@ import {
   shouldPopulateRelationship,
   updateDocumentWithPopulatedValue,
 } from './populate-core.js';
-// Helpers that depend on afterRead (static import — safe because populate-core
+// Helpers that depend on afterRead (static import  -  safe because populate-core
 // broke the cycle: population no longer imports from populate-helpers for the
 // functions that afterRead/promise.ts needs)
 import { applyNestedPopulation, loadRelatedDocument } from './populate-helpers.js';

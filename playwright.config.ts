@@ -51,7 +51,7 @@ export default defineConfig({
   },
 
   // Configure projects for major browsers
-  // CI only installs Chromium — limit to chromium-based projects there
+  // CI only installs Chromium  -  limit to chromium-based projects there
   projects: process.env.CI
     ? [
         { name: 'chromium', use: { ...devices['Desktop Chrome'] } },

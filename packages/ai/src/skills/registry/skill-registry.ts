@@ -166,7 +166,7 @@ export class SkillRegistry {
           this.nameToPath.set(metadata.name, skillDirPath);
         }
       } catch {
-        // Skip directories with missing or invalid skill.json — registry remains partial
+        // Skip directories with missing or invalid skill.json  -  registry remains partial
       }
     }
   }

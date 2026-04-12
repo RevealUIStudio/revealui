@@ -18,7 +18,7 @@
 import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — vi.hoisted() ensures these are available inside vi.mock factories ─
+// ─── Mocks  -  vi.hoisted() ensures these are available inside vi.mock factories ─
 
 const {
   mockGetCard,
@@ -79,7 +79,7 @@ vi.mock('@revealui/core/license', () => ({
   initializeLicense: vi.fn(),
 }));
 
-// Mock auth middleware — passes through by default (auth enforced in integration tests)
+// Mock auth middleware  -  passes through by default (auth enforced in integration tests)
 vi.mock('../../middleware/auth.js', () => ({
   authMiddleware: vi.fn(
     (_options?: unknown) => async (_c: unknown, next: () => Promise<void>) => next(),
@@ -91,7 +91,7 @@ vi.mock('../../middleware/auth.js', () => ({
   ),
 }));
 
-// Mock license middleware — requireFeature delegates to mockIsFeatureEnabled at request time
+// Mock license middleware  -  requireFeature delegates to mockIsFeatureEnabled at request time
 vi.mock('../../middleware/license.js', () => ({
   requireFeature: vi.fn(
     (feature: string) =>
@@ -111,7 +111,7 @@ vi.mock('../../middleware/license.js', () => ({
   checkLicenseStatus: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
 }));
 
-// Contracts — real Zod schemas replaced with pass-through mocks
+// Contracts  -  real Zod schemas replaced with pass-through mocks
 vi.mock('@revealui/contracts', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@revealui/contracts')>();
   return {
@@ -125,7 +125,7 @@ vi.mock('@revealui/contracts', async (importOriginal) => {
   };
 });
 
-// DB mock — fluent Drizzle chain
+// DB mock  -  fluent Drizzle chain
 let _dbResult: unknown[] = [];
 
 const mockDbChain = {
@@ -616,7 +616,7 @@ describe('POST /a2a (JSON-RPC dispatcher)', () => {
 
   it('calls dispatcher with the parsed RPC request and optional agent ID', async () => {
     const app = makeA2AApp();
-    // Send request without X-Agent-ID — dispatcher should receive (req, undefined)
+    // Send request without X-Agent-ID  -  dispatcher should receive (req, undefined)
     const res = await app.request(
       post('/', { jsonrpc: '2.0', id: 99, method: 'tasks/cancel', params: { id: 'task-1' } }),
     );
@@ -710,9 +710,9 @@ describe('Agent ID format validation', () => {
   });
 });
 
-// ─── POST /agents — DB persistence ──────────────────────────────────────────
+// ─── POST /agents  -  DB persistence ──────────────────────────────────────────
 
-describe('POST /agents — DB persistence', () => {
+describe('POST /agents  -  DB persistence', () => {
   beforeEach(resetMocks);
 
   it('persists new agent to DB after registration', async () => {

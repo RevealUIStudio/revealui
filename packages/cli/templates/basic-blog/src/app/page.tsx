@@ -36,7 +36,7 @@ export default function HomePage() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">Quick start</h2>
         <ol className="mt-3 space-y-2 text-sm text-gray-700">
           <li>
-            <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">pnpm db:seed</code> — add
+            <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">pnpm db:seed</code> - add
             sample blog posts
           </li>
           <li>
@@ -44,11 +44,11 @@ export default function HomePage() {
             <a href="/admin" className="text-accent hover:text-accent-hover">
               /admin
             </a>{' '}
-            — manage your content
+            - manage your content
           </li>
           <li>
             Edit <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">src/app/page.tsx</code>{' '}
-            — customize this page
+            - customize this page
           </li>
         </ol>
       </div>

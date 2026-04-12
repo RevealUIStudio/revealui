@@ -1,5 +1,5 @@
 /**
- * RAG Site Cleanup — Cascade delete for a single site
+ * RAG Site Cleanup  -  Cascade delete for a single site
  *
  * When a site is deleted from NeonDB, the cross-database FK cascades to
  * Supabase are NOT enforced at the DB level. This function immediately
@@ -11,7 +11,7 @@
  * 3. rag_workspaces  (id = sites.id)
  *
  * Designed to be called fire-and-forget from the site DELETE route.
- * Errors are caught and logged — they never block the site deletion response.
+ * Errors are caught and logged  -  they never block the site deletion response.
  */
 
 import { eq } from 'drizzle-orm';

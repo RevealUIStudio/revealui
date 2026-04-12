@@ -1,5 +1,5 @@
 /**
- * Rate Limit Store — Pluggable backends for rate limiter state.
+ * Rate Limit Store  -  Pluggable backends for rate limiter state.
  *
  * - InMemoryRateLimitStore: Map-backed, zero-dep, single-instance (default)
  * - PGliteRateLimitStore: PostgreSQL-backed via PGlite, supports per-instance
@@ -104,7 +104,7 @@ export class InMemoryRateLimitStore implements RateLimitStore {
 // PGlite store (SQL-backed)
 // =============================================================================
 
-/** Minimal PGlite interface — avoids importing the full @electric-sql/pglite package. */
+/** Minimal PGlite interface  -  avoids importing the full @electric-sql/pglite package. */
 interface PGliteInstance {
   exec(query: string): Promise<unknown>;
   query<T = Record<string, unknown>>(query: string, params?: unknown[]): Promise<{ rows: T[] }>;
@@ -186,7 +186,7 @@ export class PGliteRateLimitStore implements RateLimitStore {
     );
     const row = result.rows[0];
     if (row) return { count: row.count, incremented: true };
-    // No rows updated — either key missing or limit reached
+    // No rows updated  -  either key missing or limit reached
     const current = await this.get(key);
     return { count: current?.count ?? 0, incremented: false };
   }

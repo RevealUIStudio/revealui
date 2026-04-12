@@ -116,7 +116,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Perform search — enforce userId so non-admins can only search their own memories
+    // Perform search  -  enforce userId so non-admins can only search their own memories
     const mod = await import('@revealui/ai/memory/vector').catch(() => null);
     if (!mod) {
       return NextResponse.json(
