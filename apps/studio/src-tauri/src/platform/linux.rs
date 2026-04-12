@@ -1,8 +1,8 @@
 use std::process::Command;
 
 use super::trait_defs::{
-    AppStatus, MountStatus, PlatformOps, SetupStatus, SyncResult, SystemStatus, TailscalePeer,
-    TailscaleStatus,
+    AppInfo, AppStatus, MountStatus, PlatformOps, SetupStatus, SyncResult, SystemStatus,
+    TailscalePeer, TailscaleStatus,
 };
 
 /// Linux implementation — WSL-specific features unsupported; Tailscale and git run natively.
@@ -59,15 +59,55 @@ impl PlatformOps for LinuxPlatform {
     }
 
     fn list_apps(&self) -> Result<Vec<AppStatus>, String> {
-        Ok(vec![])
+        let output = Command::new("ps")
+            .args(["-eo", "comm"])
+            .output()
+            .map_err(|e| format!("ps failed: {e}"))?;
+
+        let text = String::from_utf8_lossy(&output.stdout);
+        let processes: Vec<&str> = text.lines().collect();
+
+        let known_apps: &[(&str, &str, &str)] = &[
+            ("zed", "zed", "Zed"),
+            ("google-chrome", "chrome", "Chrome"),
+            ("chromium", "chromium", "Chromium"),
+            ("cursor", "cursor", "Cursor"),
+            ("claude", "claude", "Claude Code"),
+            ("gnome-terminal", "gnome-terminal", "GNOME Terminal"),
+            ("alacritty", "alacritty", "Alacritty"),
+            ("kitty", "kitty", "Kitty"),
+            ("tmux", "tmux", "tmux"),
+            ("code", "code", "VS Code"),
+        ];
+
+        let mut apps = vec![];
+        for (proc_name, name, display_name) in known_apps {
+            let running = processes.iter().any(|p| p.contains(proc_name));
+            if running {
+                apps.push(AppStatus {
+                    app: AppInfo {
+                        name: name.to_string(),
+                        display_name: display_name.to_string(),
+                        port: 0,
+                        url: String::new(),
+                    },
+                    running: true,
+                });
+            }
+        }
+
+        Ok(apps)
     }
 
-    fn start_app(&self, _name: &str) -> Result<String, String> {
-        Err("App launcher requires Windows/WSL".to_string())
+    fn start_app(&self, name: &str) -> Result<String, String> {
+        Command::new(name)
+            .spawn()
+            .map_err(|e| format!("{name}: {e}"))?;
+        Ok(format!("Launched {name}"))
     }
 
     fn stop_app(&self, _name: &str) -> Result<String, String> {
-        Err("App launcher requires Windows/WSL".to_string())
+        Err("App stop not supported on Linux (use the app's quit menu)".to_string())
     }
 
     fn check_setup(&self) -> Result<SetupStatus, String> {
