@@ -558,8 +558,8 @@ Phase D  -  Agent publisher tools (agent):
 **Remaining work:**
 
 #### 6.1 Policy & Documentation (owner: human)
-- [ ] Information Security Policy (scope, roles, acceptable use)
-- [ ] Incident Response Plan + documented runbook
+- [x] Information Security Policy (scope, roles, acceptable use) - 2026-04-12 (docs/security/INFORMATION_SECURITY_POLICY.md)
+- [x] Incident Response Plan + documented runbook - 2026-04-12 (docs/security/INCIDENT_RESPONSE.md, 6 runbooks)
 - [ ] Quarterly access review cadence (first review documented)
 - [ ] Employee security training program + completion records
 - [ ] Vendor risk assessments: Neon, Supabase, Vercel, Stripe
