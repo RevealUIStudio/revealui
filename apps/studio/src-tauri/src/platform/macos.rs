@@ -1,8 +1,8 @@
 use std::process::Command;
 
 use super::trait_defs::{
-    AppStatus, MountStatus, PlatformOps, SetupStatus, SyncResult, SystemStatus, TailscalePeer,
-    TailscaleStatus,
+    AppInfo, AppStatus, MountStatus, PlatformOps, SetupStatus, SyncResult, SystemStatus,
+    TailscalePeer, TailscaleStatus,
 };
 
 /// macOS implementation — WSL-specific features unsupported; Tailscale and git run natively.
@@ -53,15 +53,55 @@ impl PlatformOps for MacPlatform {
     }
 
     fn list_apps(&self) -> Result<Vec<AppStatus>, String> {
-        Ok(vec![])
+        // Detect running apps via ps for tile "running" indicators
+        let output = Command::new("ps")
+            .args(["-eo", "comm"])
+            .output()
+            .map_err(|e| format!("ps failed: {e}"))?;
+
+        let text = String::from_utf8_lossy(&output.stdout);
+        let processes: Vec<&str> = text.lines().collect();
+
+        let known_apps: &[(&str, &str, &str)] = &[
+            ("zed", "zed", "Zed"),
+            ("Google Chrome", "chrome", "Chrome"),
+            ("Cursor", "cursor", "Cursor"),
+            ("claude", "claude", "Claude Code"),
+            ("Claude", "claude-desktop", "Claude Desktop"),
+            ("Terminal", "terminal", "Terminal"),
+            ("iTerm2", "iterm2", "iTerm2"),
+            ("tmux", "tmux", "tmux"),
+        ];
+
+        let mut apps = vec![];
+        for (proc_name, name, display_name) in known_apps {
+            let running = processes.iter().any(|p| p.contains(proc_name));
+            if running {
+                apps.push(AppStatus {
+                    app: AppInfo {
+                        name: name.to_string(),
+                        display_name: display_name.to_string(),
+                        port: 0,
+                        url: String::new(),
+                    },
+                    running: true,
+                });
+            }
+        }
+
+        Ok(apps)
     }
 
-    fn start_app(&self, _name: &str) -> Result<String, String> {
-        Err("App launcher requires Windows/WSL".to_string())
+    fn start_app(&self, name: &str) -> Result<String, String> {
+        Command::new("open")
+            .args(["-a", name])
+            .output()
+            .map_err(|e| format!("open -a {name} failed: {e}"))?;
+        Ok(format!("Launched {name}"))
     }
 
     fn stop_app(&self, _name: &str) -> Result<String, String> {
-        Err("App launcher requires Windows/WSL".to_string())
+        Err("App stop not supported on macOS (use the app's quit menu)".to_string())
     }
 
     fn check_setup(&self) -> Result<SetupStatus, String> {
