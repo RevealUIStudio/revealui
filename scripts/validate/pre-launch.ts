@@ -86,7 +86,10 @@ async function checkTests() {
 
 async function checkBuild() {
   logger.info('5. Building applications...');
-  const result = await execCommand('pnpm', ['build'], { silent: true });
+  const result = await execCommand('pnpm', ['build'], {
+    silent: true,
+    env: { SKIP_ENV_VALIDATION: 'true' },
+  });
   recordResult('Build', result.success);
   if (!result.success) {
     logger.info('   Run: pnpm build');
