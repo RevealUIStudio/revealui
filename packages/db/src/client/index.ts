@@ -114,12 +114,25 @@ export interface DatabaseConfig {
  * Localhost connections are used for testing and development.
  */
 function isSupabaseConnection(connectionString: string): boolean {
-  return (
-    connectionString.includes('.supabase.co') ||
-    connectionString.includes('pooler.supabase.com') ||
-    connectionString.includes('localhost') ||
-    connectionString.includes('127.0.0.1')
-  );
+  try {
+    const host = new URL(connectionString).hostname;
+    return (
+      host.endsWith('.supabase.co') ||
+      host === 'supabase.co' ||
+      host.endsWith('.supabase.com') ||
+      host === 'supabase.com' ||
+      host === 'localhost' ||
+      host === '127.0.0.1'
+    );
+  } catch {
+    // Fallback for non-URL connection strings (e.g., plain host:port format)
+    return (
+      connectionString.includes('.supabase.co') ||
+      connectionString.includes('pooler.supabase.com') ||
+      connectionString.includes('localhost') ||
+      connectionString.includes('127.0.0.1')
+    );
+  }
 }
 
 /**

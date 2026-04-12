@@ -44,10 +44,11 @@ export function acquireLock(lockPath: string, timeoutMs = DEFAULT_TIMEOUT_MS): b
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).code !== 'EEXIST') return false;
       // Lock exists — check if holder is alive
+      // Note: inherent TOCTOU between read and unlink, acceptable for advisory file locks
       try {
         const holderPid = Number.parseInt(readFileSync(lockPath, 'utf8').trim(), 10);
         if (!(Number.isNaN(holderPid) || isPidAlive(holderPid))) {
-          // Holder crashed — steal the lock
+          // Holder crashed — steal the lock (re-acquisition via O_EXCL is atomic)
           unlinkSync(lockPath);
           continue;
         }

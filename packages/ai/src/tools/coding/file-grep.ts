@@ -17,6 +17,7 @@ interface GrepMatch {
 /** Simple glob test for file filtering */
 function matchesGlob(filePath: string, glob: string): boolean {
   const regex = glob
+    .replace(/\\/g, '\\\\')
     .replace(/\./g, '\\.')
     .replace(/\*\*/g, '⟨GLOBSTAR⟩')
     .replace(/\*/g, '[^/]*')

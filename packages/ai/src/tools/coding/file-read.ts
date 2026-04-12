@@ -2,7 +2,7 @@
  * file_read — Read file contents with line numbers
  */
 
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from '../base.js';
 import { getSafetyConfig, resolveSafePath, validatePath } from './safety.js';
@@ -31,15 +31,19 @@ export const fileReadTool: Tool = {
     const startLine = (offset ?? 1) - 1; // Convert to 0-based
 
     try {
-      const stat = statSync(resolvedPath);
-      if (stat.isDirectory()) {
-        return {
-          success: false,
-          error: `${path} is a directory, not a file. Use file_glob to list directory contents.`,
-        };
+      // Read first, then check if directory (avoids TOCTOU race between stat and read)
+      let raw: string;
+      try {
+        raw = readFileSync(resolvedPath, 'utf8');
+      } catch (readErr) {
+        if ((readErr as NodeJS.ErrnoException).code === 'EISDIR') {
+          return {
+            success: false,
+            error: `${path} is a directory, not a file. Use file_glob to list directory contents.`,
+          };
+        }
+        throw readErr;
       }
-
-      const raw = readFileSync(resolvedPath, 'utf8');
       const allLines = raw.split('\n');
       const totalLines = allLines.length;
       const sliced = allLines.slice(startLine, startLine + maxLines);
