@@ -233,7 +233,7 @@ export class MCPHypervisor {
           const msg = JSON.parse(trimmed) as JsonRpcResponse;
           this.handleResponse(msg);
         } catch {
-          // Non-JSON output from server — ignore
+          // Non-JSON output from server  -  ignore
         }
       }
     });
@@ -360,7 +360,7 @@ export class MCPHypervisor {
   // ---------------------------------------------------------------------------
 
   /**
-   * Ping a server — checks process liveness and sends a JSON-RPC `ping`.
+   * Ping a server  -  checks process liveness and sends a JSON-RPC `ping`.
    * Updates `entry.healthy`.
    */
   async pingServer(name: string): Promise<boolean> {
@@ -380,7 +380,7 @@ export class MCPHypervisor {
       entry.healthy = true;
       return true;
     } catch {
-      // ping not supported by all servers — still healthy if process is alive
+      // ping not supported by all servers  -  still healthy if process is alive
       entry.healthy = entry.process.exitCode === null;
       return entry.healthy;
     }
@@ -698,7 +698,7 @@ export class MCPHypervisor {
 
   /**
    * Get all tools available to a tenant, filtered by tier.
-   * Checks both server-level and tool-level requiredTier — the effective
+   * Checks both server-level and tool-level requiredTier  -  the effective
    * requirement is the higher of the two.
    */
   getToolsForTenant(ctx: MCPTenantContext): NamespacedTool[] {

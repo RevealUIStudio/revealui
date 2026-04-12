@@ -32,7 +32,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   }
 
   // Setup redirect: when no users exist, redirect unauthenticated requests to /setup.
-  // Uses a lightweight cookie probe — the setup page itself calls GET /api/setup to confirm.
+  // Uses a lightweight cookie probe  -  the setup page itself calls GET /api/setup to confirm.
   // Once setup completes and a session cookie exists, this path is never taken again.
   if (pathname === '/' || pathname === '/login' || pathname === '/admin') {
     const session = request.cookies.get('revealui-session')?.value;
@@ -58,7 +58,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     }
   }
 
-  // Auth gate: protect /admin routes — require session + admin role
+  // Auth gate: protect /admin routes  -  require session + admin role
   // The role cookie is a defense-in-depth UI hint (set at login).
   // Real enforcement is at the API level via collection access.read checks.
   if (pathname.startsWith('/admin')) {
@@ -72,14 +72,14 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
 
     const role = request.cookies.get('revealui-role')?.value;
     if (role !== 'admin') {
-      // User is authenticated but not admin — redirect to home (not login)
+      // User is authenticated but not admin  -  redirect to home (not login)
       const homeUrl = request.nextUrl.clone();
       homeUrl.pathname = '/';
       return NextResponse.redirect(homeUrl);
     }
   }
 
-  // Strip overrideAccess from external API requests — only server-side code may use it.
+  // Strip overrideAccess from external API requests  -  only server-side code may use it.
   // This prevents clients from bypassing collection access control via query parameter.
   if (pathname.startsWith('/api') && request.nextUrl.searchParams.has('overrideAccess')) {
     const url = request.nextUrl.clone();
@@ -92,7 +92,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     const response = NextResponse.next();
     const origin = request.headers.get('origin');
 
-    // CORS headers — only set when origin is in the allowed list
+    // CORS headers  -  only set when origin is in the allowed list
     if (allowedOrigins.includes(String(origin))) {
       response.headers.set('Access-Control-Allow-Origin', String(origin));
       response.headers.set(
@@ -109,7 +109,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
-    // HSTS — enforce HTTPS in production
+    // HSTS  -  enforce HTTPS in production
     if (process.env.NODE_ENV !== 'development') {
       response.headers.set(
         'Strict-Transport-Security',

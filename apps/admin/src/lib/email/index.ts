@@ -5,10 +5,10 @@
  * Edge-compatible (fetch + jose, no Node.js-only dependencies).
  *
  * Required env vars:
- *   GOOGLE_SERVICE_ACCOUNT_EMAIL — GCP service account email
- *   GOOGLE_PRIVATE_KEY           — RSA private key (PKCS8 PEM)
- *   EMAIL_FROM                   — sender address (e.g. noreply@revealui.com)
- *   EMAIL_REPLY_TO               — default reply-to (e.g. support@revealui.com)
+ *   GOOGLE_SERVICE_ACCOUNT_EMAIL  -  GCP service account email
+ *   GOOGLE_PRIVATE_KEY            -  RSA private key (PKCS8 PEM)
+ *   EMAIL_FROM                    -  sender address (e.g. noreply@revealui.com)
+ *   EMAIL_REPLY_TO                -  default reply-to (e.g. support@revealui.com)
  */
 
 import config from '@revealui/config';
@@ -178,13 +178,13 @@ class MockEmailProvider implements EmailProvider {
 // ---------------------------------------------------------------------------
 
 function getEmailProvider(): EmailProvider {
-  // Gmail REST API (production — edge-compatible, free with Workspace)
+  // Gmail REST API (production  -  edge-compatible, free with Workspace)
   if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
     return new GmailProvider();
   }
 
   // No provider configured
-  logger.warn('No email provider configured — emails will not be sent.');
+  logger.warn('No email provider configured  -  emails will not be sent.');
   if (process.env.NODE_ENV === 'development') {
     return new MockEmailProvider();
   }
@@ -305,7 +305,7 @@ This link will expire in 15 minutes. If you didn't request account recovery, you
 
   return sendEmail({
     to: email,
-    subject: 'Account Recovery — RevealUI',
+    subject: 'Account Recovery  -  RevealUI',
     html,
     text,
   });

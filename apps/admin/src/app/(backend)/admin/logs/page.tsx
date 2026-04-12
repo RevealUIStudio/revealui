@@ -275,7 +275,7 @@ function LogsDashboard() {
                       {row.app}
                     </td>
                     <td className="px-4 py-2 font-mono text-xs text-gray-600">
-                      {row.requestId ? row.requestId.slice(0, 8) : '—'}
+                      {row.requestId ? row.requestId.slice(0, 8) : ' - '}
                     </td>
                     <td className="px-4 py-2 text-gray-200">
                       <div className="truncate" title={row.message}>

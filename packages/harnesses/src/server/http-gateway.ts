@@ -9,12 +9,12 @@ import type { AgentExitEvent, AgentOutputEvent, SpawnerService } from './spawner
  * HTTP gateway that exposes the harness daemon over TCP.
  *
  * Routes:
- *   POST /rpc              — JSON-RPC 2.0 proxy (same protocol as Unix socket)
- *   GET  /api/pair          — Returns pairing status (requires valid token or no token set)
- *   POST /api/pair          — Submit pairing code to get a session token
- *   GET  /api/stream/:id     — SSE stream of agent output (real-time)
- *   GET  /                  — Serves Studio static frontend (index.html)
- *   GET  /assets/*          — Serves static assets
+ *   POST /rpc               -  JSON-RPC 2.0 proxy (same protocol as Unix socket)
+ *   GET  /api/pair           -  Returns pairing status (requires valid token or no token set)
+ *   POST /api/pair           -  Submit pairing code to get a session token
+ *   GET  /api/stream/:id      -  SSE stream of agent output (real-time)
+ *   GET  /                   -  Serves Studio static frontend (index.html)
+ *   GET  /assets/*           -  Serves static assets
  *
  * Auth:
  *   All /rpc and /api/* requests (except POST /api/pair) require:
@@ -27,7 +27,7 @@ export interface HttpGatewayConfig {
   port: number;
   /** Bind address (default: '0.0.0.0' for Tailscale access) */
   host: string;
-  /** Path to Studio static build directory (optional — disables static serving if absent) */
+  /** Path to Studio static build directory (optional  -  disables static serving if absent) */
   staticDir?: string;
   /** Reference to the Unix-socket RPC server for dispatching */
   rpcDispatch: RpcServer;
@@ -106,7 +106,7 @@ export class HttpGateway {
       return;
     }
 
-    // Pairing endpoint — no auth required
+    // Pairing endpoint  -  no auth required
     if (path === '/api/pair' && req.method === 'POST') {
       this.handlePair(req, res);
       return;
@@ -169,7 +169,7 @@ export class HttpGateway {
     return true;
   }
 
-  /** POST /api/pair — submit pairing code, receive session token */
+  /** POST /api/pair  -  submit pairing code, receive session token */
   private handlePair(req: IncomingMessage, res: ServerResponse): void {
     let body = '';
     req.on('data', (chunk: Buffer) => {
@@ -203,7 +203,7 @@ export class HttpGateway {
     });
   }
 
-  /** GET /api/pair — check pairing status */
+  /** GET /api/pair  -  check pairing status */
   private handlePairStatus(res: ServerResponse): void {
     jsonResponse(res, 200, {
       paired: this.paired,
@@ -211,7 +211,7 @@ export class HttpGateway {
     });
   }
 
-  /** GET /api/status — daemon status summary */
+  /** GET /api/status  -  daemon status summary */
   private handleStatus(res: ServerResponse): void {
     jsonResponse(res, 200, {
       daemon: 'revdev-harness',
@@ -222,7 +222,7 @@ export class HttpGateway {
     });
   }
 
-  /** POST /rpc — proxy JSON-RPC to the daemon's dispatch */
+  /** POST /rpc  -  proxy JSON-RPC to the daemon's dispatch */
   private handleRpc(req: IncomingMessage, res: ServerResponse): void {
     let body = '';
     req.on('data', (chunk: Buffer) => {
@@ -243,7 +243,7 @@ export class HttpGateway {
     });
   }
 
-  /** GET /api/stream[/:sessionId] — SSE for agent output and exit events */
+  /** GET /api/stream[/:sessionId]  -  SSE for agent output and exit events */
   private handleStream(
     req: IncomingMessage,
     res: ServerResponse,

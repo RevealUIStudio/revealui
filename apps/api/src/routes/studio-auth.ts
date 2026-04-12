@@ -1,15 +1,15 @@
 /**
- * Studio Auth Routes — Device-Based Authentication
+ * Studio Auth Routes  -  Device-Based Authentication
  *
  * Enables RevealUI Studio (desktop), CLI, and terminal clients
  * to authenticate with the API using bearer tokens tied to registered devices.
  *
  * Flow:
- * 1. POST /api/studio-auth/link     — send OTP to email, register device intent
- * 2. POST /api/studio-auth/verify   — verify OTP, create device + bearer token
- * 3. POST /api/studio-auth/refresh  — rotate bearer token (requires valid token)
- * 4. DELETE /api/studio-auth/revoke — revoke device token (requires valid token)
- * 5. GET /api/studio-auth/status    — check current auth status (requires valid token)
+ * 1. POST /api/studio-auth/link      -  send OTP to email, register device intent
+ * 2. POST /api/studio-auth/verify    -  verify OTP, create device + bearer token
+ * 3. POST /api/studio-auth/refresh   -  rotate bearer token (requires valid token)
+ * 4. DELETE /api/studio-auth/revoke  -  revoke device token (requires valid token)
+ * 5. GET /api/studio-auth/status     -  check current auth status (requires valid token)
  *
  * Token format: rvui_dev_<64-hex-chars> (SHA-256 hash stored in DB)
  * Token lifetime: 30 days (configurable)
@@ -156,7 +156,7 @@ app.post('/link', zValidator('json', linkSchema), async (c) => {
     .limit(1);
 
   if (!user) {
-    // Don't reveal whether the email exists — generic message, but still 200
+    // Don't reveal whether the email exists  -  generic message, but still 200
     // to prevent email enumeration
     return c.json({ success: true, message: `If an account exists, a code was sent to ${email}` });
   }
@@ -169,7 +169,7 @@ app.post('/link', zValidator('json', linkSchema), async (c) => {
   try {
     await sendEmail({
       to: email,
-      subject: 'RevealUI Studio — Device Verification',
+      subject: 'RevealUI Studio  -  Device Verification',
       html: `
         <h2>Studio Device Verification</h2>
         <p>A new device is requesting access to your RevealUI account:</p>
@@ -230,7 +230,7 @@ app.post('/verify', zValidator('json', verifySchema), async (c) => {
     return c.json({ success: false, error: 'Invalid verification code' }, 400);
   }
 
-  // OTP valid — consume it
+  // OTP valid  -  consume it
   await deleteOtp(deviceId);
 
   const db = getClient();
@@ -252,7 +252,7 @@ app.post('/verify', zValidator('json', verifySchema), async (c) => {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + config.tokenLifetimeMs);
 
-  // Upsert device — if deviceId already exists, update token
+  // Upsert device  -  if deviceId already exists, update token
   const [existing] = await db
     .select({ id: userDevices.id })
     .from(userDevices)

@@ -17,7 +17,7 @@ async function captureErrorHandler(request: Request): Promise<NextResponse> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
 
   if (!secret) {
-    // No secret configured — silently accept to avoid breaking the error UI
+    // No secret configured  -  silently accept to avoid breaking the error UI
     return NextResponse.json({ success: true }, { status: 202 });
   }
 
@@ -41,7 +41,7 @@ async function captureErrorHandler(request: Request): Promise<NextResponse> {
     const data = (await upstream.json()) as Record<string, unknown>;
     return NextResponse.json(data, { status: upstream.status });
   } catch {
-    // Upstream unreachable — accept silently so the error UI is not affected
+    // Upstream unreachable  -  accept silently so the error UI is not affected
     return NextResponse.json({ success: true }, { status: 202 });
   }
 }

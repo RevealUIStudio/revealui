@@ -31,13 +31,13 @@ function createMockDb(rows: Record<string, unknown>[] = []) {
   };
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — minimal config shape
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal config shape
 function createConfig(slug: string, fields: unknown[] = []): any {
   return { slug, fields };
 }
 
 // ---------------------------------------------------------------------------
-// Tests — find()
+// Tests  -  find()
 // ---------------------------------------------------------------------------
 describe('RevealUIGlobal', () => {
   describe('find()', () => {
@@ -219,9 +219,9 @@ describe('RevealUIGlobal', () => {
     it('throws when document not found after update', async () => {
       const db = createMockDb();
       db.query
-        .mockResolvedValueOnce({ rows: [{ id: 'global_settings' }] }) // find() — exists
+        .mockResolvedValueOnce({ rows: [{ id: 'global_settings' }] }) // find()  -  exists
         .mockResolvedValueOnce({ rows: [] }) // UPDATE
-        .mockResolvedValueOnce({ rows: [] }); // find() — gone?!
+        .mockResolvedValueOnce({ rows: [] }); // find()  -  gone?!
 
       const global = new RevealUIGlobal(createConfig('settings'), db);
 

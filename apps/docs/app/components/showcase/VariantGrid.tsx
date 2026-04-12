@@ -16,7 +16,7 @@ export function VariantGrid({ story, values }: VariantGridProps) {
 
   const axes = Object.entries(story.variantGrid);
 
-  // Single axis — flat grid
+  // Single axis  -  flat grid
   if (axes.length === 1) {
     const [propName, propValues] = axes[0] as [string, string[]];
     return (
@@ -43,7 +43,7 @@ export function VariantGrid({ story, values }: VariantGridProps) {
     );
   }
 
-  // Two axes — table grid (rows x columns)
+  // Two axes  -  table grid (rows x columns)
   const [rowProp, rowValues] = axes[0] as [string, string[]];
   const [colProp, colValues] = axes[1] as [string, string[]];
 

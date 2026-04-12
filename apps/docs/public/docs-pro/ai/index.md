@@ -6,11 +6,11 @@ AI agents, open-model inference, CRDT memory, and the A2A protocol for RevealUI 
 
 `@revealui/ai` provides a complete AI layer for your RevealUI application:
 
-- **Agents** — long-running task agents with persistent state
-- **Memory** — four-store cognitive memory (episodic, working, semantic, procedural)
-- **Open-model inference** — Ubuntu snaps, Ollama, and open source models via the harness
-- **Orchestration** — multi-agent coordination with the A2A protocol
-- **MCP integration** — tool use via Model Context Protocol
+- **Agents**  -  long-running task agents with persistent state
+- **Memory**  -  four-store cognitive memory (episodic, working, semantic, procedural)
+- **Open-model inference**  -  Ubuntu snaps, Ollama, and open source models via the harness
+- **Orchestration**  -  multi-agent coordination with the A2A protocol
+- **MCP integration**  -  tool use via Model Context Protocol
 
 ## Installation
 
@@ -69,7 +69,7 @@ const memory = {
 
 | Path | Chat | Embeddings | Notes |
 |------|------|-----------|-------|
-| **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime — hardware-aware, single command install |
+| **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install |
 | Ollama | Yes | Yes | Any open source GGUF model (Gemma 4, Qwen, Mistral) |
 | HuggingFace | Yes | Yes | Open models via HuggingFace Inference API |
 | Vultr | Yes | Depends on model | Open models on Vultr serverless GPU inference |
@@ -91,7 +91,7 @@ const task = await client.sendTask({ message: 'Process this document.' })
 
 ## Open-Model Inference
 
-All inference runs on open source models — no proprietary cloud APIs. The recommended backend is **Ubuntu Inference Snaps** from Canonical — one command install, hardware-optimized, OpenAI-compatible.
+All inference runs on open source models  -  no proprietary cloud APIs. The recommended backend is **Ubuntu Inference Snaps** from Canonical  -  one command install, hardware-optimized, OpenAI-compatible.
 
 ```bash
 sudo snap install nemotron-3-nano   # free tier default

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 
-/** Eye icon (open) — password is visible */
+/** Eye icon (open)  -  password is visible */
 function EyeIcon() {
   return (
     <svg
@@ -21,7 +21,7 @@ function EyeIcon() {
   );
 }
 
-/** Eye-off icon — password is hidden */
+/** Eye-off icon  -  password is hidden */
 function EyeOffIcon() {
   return (
     <svg

@@ -16,9 +16,9 @@ packages/<name>/src/
 ```
 
 **Exceptions:**
-- Schema-only packages (`contracts`) — organized by domain, no core/client split
-- Tooling packages (`dev`, `test`) — no core/client split
-- Client-only packages (`presentation`) — all client code, exports via `./client`
+- Schema-only packages (`contracts`)  -  organized by domain, no core/client split
+- Tooling packages (`dev`, `test`)  -  no core/client split
+- Client-only packages (`presentation`)  -  all client code, exports via `./client`
 
 ## Package.json Exports
 

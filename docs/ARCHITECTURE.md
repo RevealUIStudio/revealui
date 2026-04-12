@@ -1,6 +1,6 @@
 ---
 title: "System Architecture"
-description: "RevealUI system architecture reference — apps, packages, data flow, and deployment"
+description: "RevealUI system architecture reference  -  apps, packages, data flow, and deployment"
 category: architecture
 audience: developer
 ---
@@ -65,7 +65,7 @@ audience: developer
 
 ## Executive Summary
 
-RevealUI implements a hybrid multi-database architecture with comprehensive type safety, integrating multiple specialized systems for optimal performance and scalability. Every architectural decision is guided by the **[JOSHUA Stack](./JOSHUA.md)** principles — Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
+RevealUI implements a hybrid multi-database architecture with comprehensive type safety, integrating multiple specialized systems for optimal performance and scalability. Every architectural decision is guided by the **[JOSHUA Stack](./JOSHUA.md)** principles  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
 
 ### Core Systems
 
@@ -1250,10 +1250,10 @@ Optional per-user licenses can still exist for personal or perpetual products, b
 
 Four revenue tracks, all implemented:
 
-- **Track A — Subscriptions**: predictable recurring software fee (Free / Pro / Max / Forge)
-- **Track B — Agent credits**: usage billing for digital labor and automation (prepaid task bundles)
-- **Track C — Perpetual licenses**: one-time purchase with annual support renewals (checkout + webhook handler wired)
-- **Track D — Professional services**: per-engagement consulting, migration, architecture review, launch packages
+- **Track A  -  Subscriptions**: predictable recurring software fee (Free / Pro / Max / Forge)
+- **Track B  -  Agent credits**: usage billing for digital labor and automation (prepaid task bundles)
+- **Track C  -  Perpetual licenses**: one-time purchase with annual support renewals (checkout + webhook handler wired)
+- **Track D  -  Professional services**: per-engagement consulting, migration, architecture review, launch packages
 
 ### Preferred Metering Units
 

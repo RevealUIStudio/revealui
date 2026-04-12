@@ -1,5 +1,5 @@
 /**
- * Feature gating system tests — validates tier-based feature flags,
+ * Feature gating system tests  -  validates tier-based feature flags,
  * individual feature checks, tier progression, and edge cases.
  *
  * Mocks the license module to control the tier returned by isLicensed()
@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LicenseTier } from '../license.js';
 
 // ---------------------------------------------------------------------------
-// Mock the license module — controls what isLicensed() and getCurrentTier()
+// Mock the license module  -  controls what isLicensed() and getCurrentTier()
 // return, allowing us to test features.ts in isolation.
 // ---------------------------------------------------------------------------
 
@@ -215,7 +215,7 @@ describe('getFeatures', () => {
 // =============================================================================
 
 describe('isFeatureEnabled', () => {
-  describe('free tier — only aiLocal enabled', () => {
+  describe('free tier  -  only aiLocal enabled', () => {
     beforeEach(() => simulateTier('free'));
 
     it.each(FREE_FEATURES)('returns true for %s (free-tier feature)', (feature) => {
@@ -231,7 +231,7 @@ describe('isFeatureEnabled', () => {
     });
   });
 
-  describe('pro tier — pro features enabled, max/enterprise blocked', () => {
+  describe('pro tier  -  pro features enabled, max/enterprise blocked', () => {
     beforeEach(() => simulateTier('pro'));
 
     it.each(PRO_FEATURES)('returns true for %s', (feature) => {
@@ -243,7 +243,7 @@ describe('isFeatureEnabled', () => {
     });
   });
 
-  describe('max tier — pro + max features enabled, enterprise blocked', () => {
+  describe('max tier  -  pro + max features enabled, enterprise blocked', () => {
     beforeEach(() => simulateTier('max'));
 
     it.each([...PRO_FEATURES, ...MAX_FEATURES])('returns true for %s', (feature) => {
@@ -255,7 +255,7 @@ describe('isFeatureEnabled', () => {
     });
   });
 
-  describe('enterprise tier — all enableable features enabled', () => {
+  describe('enterprise tier  -  all enableable features enabled', () => {
     beforeEach(() => simulateTier('enterprise'));
 
     it.each(ENABLEABLE_FEATURES)('returns true for %s', (feature) => {
@@ -287,7 +287,7 @@ describe('isFeatureEnabled', () => {
 });
 
 // =============================================================================
-// getFeaturesForTier() — pure function, no license state dependency
+// getFeaturesForTier()  -  pure function, no license state dependency
 // =============================================================================
 
 describe('getFeaturesForTier', () => {
@@ -437,7 +437,7 @@ describe('getRequiredTier', () => {
 });
 
 // =============================================================================
-// Tier progression — cumulative unlocking
+// Tier progression  -  cumulative unlocking
 // =============================================================================
 
 describe('tier progression', () => {
@@ -476,10 +476,10 @@ describe('tier progression', () => {
 });
 
 // =============================================================================
-// Feature blocking — free tier cannot access premium features
+// Feature blocking  -  free tier cannot access premium features
 // =============================================================================
 
-describe('feature blocking — free tier restrictions', () => {
+describe('feature blocking  -  free tier restrictions', () => {
   beforeEach(() => simulateTier('free'));
 
   it('allows local AI inference (Ollama/Snaps)', () => {
@@ -616,7 +616,7 @@ describe('edge cases', () => {
     }
   });
 
-  it('only aiLocal requires free tier — all others are gated', () => {
+  it('only aiLocal requires free tier  -  all others are gated', () => {
     const freeTierFeatures: (keyof FeatureFlags)[] = ['aiLocal'];
     for (const feature of ALL_FEATURES) {
       if (freeTierFeatures.includes(feature)) {

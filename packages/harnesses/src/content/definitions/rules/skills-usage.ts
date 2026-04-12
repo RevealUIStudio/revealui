@@ -14,27 +14,27 @@ When the Skill tool is available, proactively invoke the following skills in the
 
 ## Always invoke automatically (no user prompt needed)
 
-- \`/vercel-react-best-practices\` — before completing any PR that touches React components or hooks
-- \`/stripe-best-practices\` — any time you write or modify billing, payment, webhook, or Stripe code
-- \`/next-best-practices\` — when implementing features in apps/admin or apps/marketing
-- \`/next-cache-components\` — when adding 'use cache', cache profiles, or PPR to a Next.js route
-- \`/vercel-composition-patterns\` — when adding new components to @revealui/presentation
-- \`/web-design-guidelines\` — when asked to review a UI, page, or component for quality
-- \`/review\` — when the user asks for a code review, asks to "check" or "look at" code
-- \`/add-tests\` — when the user asks to write tests or add coverage for a specific file
-- \`/audit\` — before any release or after a large refactor touching multiple packages
-- \`/turborepo\` — when modifying turbo.json, pipeline configuration, or monorepo task dependencies
+- \`/vercel-react-best-practices\`  -  before completing any PR that touches React components or hooks
+- \`/stripe-best-practices\`  -  any time you write or modify billing, payment, webhook, or Stripe code
+- \`/next-best-practices\`  -  when implementing features in apps/admin or apps/marketing
+- \`/next-cache-components\`  -  when adding 'use cache', cache profiles, or PPR to a Next.js route
+- \`/vercel-composition-patterns\`  -  when adding new components to @revealui/presentation
+- \`/web-design-guidelines\`  -  when asked to review a UI, page, or component for quality
+- \`/review\`  -  when the user asks for a code review, asks to "check" or "look at" code
+- \`/add-tests\`  -  when the user asks to write tests or add coverage for a specific file
+- \`/audit\`  -  before any release or after a large refactor touching multiple packages
+- \`/turborepo\`  -  when modifying turbo.json, pipeline configuration, or monorepo task dependencies
 
 ## Only invoke on explicit user request (disable-model-invocation: true)
 
-- \`/gate\` — user must explicitly ask to run the gate
-- \`/sync-lts\` — user must explicitly ask to sync or backup
-- \`/new-package\` — user must explicitly ask to scaffold a package
-- \`/new-professional-project\` — user must explicitly ask to create a project
-- \`/vercel-deploy\` — user must explicitly ask to deploy
-- \`/deploy-check\` — user must explicitly ask for pre-deploy check
-- \`/db-migrate\` — user must explicitly ask to create or apply database migrations
-- \`/preflight\` — user must explicitly ask to run the preflight checklist
+- \`/gate\`  -  user must explicitly ask to run the gate
+- \`/sync-lts\`  -  user must explicitly ask to sync or backup
+- \`/new-package\`  -  user must explicitly ask to scaffold a package
+- \`/new-professional-project\`  -  user must explicitly ask to create a project
+- \`/vercel-deploy\`  -  user must explicitly ask to deploy
+- \`/deploy-check\`  -  user must explicitly ask for pre-deploy check
+- \`/db-migrate\`  -  user must explicitly ask to create or apply database migrations
+- \`/preflight\`  -  user must explicitly ask to run the preflight checklist
 
 ## When in doubt
 

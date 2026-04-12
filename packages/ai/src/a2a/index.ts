@@ -1,5 +1,5 @@
 /**
- * @revealui/ai — A2A Protocol Implementation
+ * @revealui/ai  -  A2A Protocol Implementation
  *
  * Agent-to-Agent (A2A) protocol support for RevealUI.
  * Exports the agent card registry, task store, and JSON-RPC handler.

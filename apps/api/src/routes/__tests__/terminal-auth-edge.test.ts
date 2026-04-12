@@ -58,7 +58,7 @@ import terminalAuth, { clearOtpStore, configureTerminalAuth } from '../terminal-
 // ---------------------------------------------------------------------------
 type TestUser = { id: string };
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — loose Variables type
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  loose Variables type
 function createApp(dbMock?: any, user?: TestUser) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
   const app = new Hono<{ Variables: { db?: any; user?: TestUser } }>();
@@ -71,7 +71,7 @@ function createApp(dbMock?: any, user?: TestUser) {
   return app;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono generics vary per test
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono generics vary per test
 function jsonPost(app: Hono<any>, path: string, body: unknown) {
   return app.request(path, {
     method: 'POST',
@@ -101,7 +101,7 @@ describe('terminal-auth edge cases', () => {
     clearOtpStore();
   });
 
-  describe('POST /terminal-auth/link — OTP overwrite', () => {
+  describe('POST /terminal-auth/link  -  OTP overwrite', () => {
     it('second link for same email replaces first OTP; verify stores second fingerprint', async () => {
       const mockUpdateSet = vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),
@@ -124,14 +124,14 @@ describe('terminal-auth edge cases', () => {
 
       const app = createApp(mockDb);
 
-      // First link — fingerprint:first
+      // First link  -  fingerprint:first
       await jsonPost(app, '/terminal-auth/link', {
         fingerprint: 'SHA256:first-key',
         email: 'overwrite@example.com',
       });
       expect(mockSendEmail).toHaveBeenCalledTimes(1);
 
-      // Second link — fingerprint:second (overwrites stored OTP)
+      // Second link  -  fingerprint:second (overwrites stored OTP)
       await jsonPost(app, '/terminal-auth/link', {
         fingerprint: 'SHA256:second-key',
         email: 'overwrite@example.com',
@@ -143,7 +143,7 @@ describe('terminal-auth edge cases', () => {
       const code = secondEmailCall.text.match(/code: (\d{6})/)?.[1];
       expect(code).toBeDefined();
 
-      // Verify using the second code — should succeed
+      // Verify using the second code  -  should succeed
       const res = await jsonPost(app, '/terminal-auth/verify', {
         email: 'overwrite@example.com',
         code,
@@ -160,7 +160,7 @@ describe('terminal-auth edge cases', () => {
     });
   });
 
-  describe('GET /terminal-auth/lookup — full user fields', () => {
+  describe('GET /terminal-auth/lookup  -  full user fields', () => {
     it('returns id, name, and role alongside email', async () => {
       const mockDb = {
         select: vi.fn().mockReturnValue({
@@ -192,14 +192,14 @@ describe('terminal-auth edge cases', () => {
     });
   });
 
-  describe('POST /terminal-auth/verify — max attempt lockout', () => {
+  describe('POST /terminal-auth/verify  -  max attempt lockout', () => {
     beforeEach(() => {
-      // Reduce limit to 1 for lockout tests — 1 failed attempt triggers the gate
+      // Reduce limit to 1 for lockout tests  -  1 failed attempt triggers the gate
       configureTerminalAuth({ otpTtlMs: 5 * 60 * 1000, otpLength: 6, maxOtpAttempts: 1 });
     });
 
     it('returns 429 after maxOtpAttempts failed attempts', async () => {
-      // No db — link skips fingerprint check, OTP is still sent
+      // No db  -  link skips fingerprint check, OTP is still sent
       const app = createApp();
 
       await jsonPost(app, '/terminal-auth/link', {
@@ -207,13 +207,13 @@ describe('terminal-auth edge cases', () => {
         email: 'lockout@example.com',
       });
 
-      // First bad attempt — attempts goes 0 → 1 (< maxOtpAttempts=1 at check time, so 400)
+      // First bad attempt  -  attempts goes 0 → 1 (< maxOtpAttempts=1 at check time, so 400)
       await jsonPost(app, '/terminal-auth/verify', {
         email: 'lockout@example.com',
-        code: '000000', // never valid — OTP range is 100000-999999
+        code: '000000', // never valid  -  OTP range is 100000-999999
       });
 
-      // Second attempt — attempts=1 >= maxOtpAttempts=1 → 429
+      // Second attempt  -  attempts=1 >= maxOtpAttempts=1 → 429
       const res = await jsonPost(app, '/terminal-auth/verify', {
         email: 'lockout@example.com',
         code: '000000',
@@ -245,7 +245,7 @@ describe('terminal-auth edge cases', () => {
         code: '000000',
       });
 
-      // OTP is gone — any further attempt should get 400 "no pending"
+      // OTP is gone  -  any further attempt should get 400 "no pending"
       const res = await jsonPost(app, '/terminal-auth/verify', {
         email: 'consumed@example.com',
         code: '000000',
@@ -257,7 +257,7 @@ describe('terminal-auth edge cases', () => {
     });
   });
 
-  describe('POST /terminal-auth/link — validation edge cases', () => {
+  describe('POST /terminal-auth/link  -  validation edge cases', () => {
     it('returns 400 when fingerprint is empty string', async () => {
       const app = createApp();
       const res = await jsonPost(app, '/terminal-auth/link', {
@@ -286,7 +286,7 @@ describe('terminal-auth edge cases', () => {
     });
   });
 
-  describe('POST /terminal-auth/verify — validation edge cases', () => {
+  describe('POST /terminal-auth/verify  -  validation edge cases', () => {
     it('returns 400 when code is too long (7 digits)', async () => {
       const app = createApp();
       const res = await jsonPost(app, '/terminal-auth/verify', {
@@ -313,11 +313,11 @@ describe('terminal-auth edge cases', () => {
     });
   });
 
-  describe('GET /terminal-auth/lookup — edge cases', () => {
+  describe('GET /terminal-auth/lookup  -  edge cases', () => {
     it('returns 400 when fingerprint is empty string query param', async () => {
       const app = createApp(undefined, { id: 'caller-1' });
       const res = await app.request('/terminal-auth/lookup?fingerprint=');
-      // Empty string is falsy — route should return 400
+      // Empty string is falsy  -  route should return 400
       expect(res.status).toBe(400);
       const body = await parseBody(res);
       expect(body.error).toContain('fingerprint');

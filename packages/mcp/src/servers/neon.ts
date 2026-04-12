@@ -24,7 +24,7 @@ const RESTART_DELAYS_MS = [2000, 4000, 8000];
 
 async function spawnNeon(neonApiKey: string): Promise<number | null> {
   return new Promise((resolve) => {
-    // Pass credentials via environment only — never as CLI arguments (visible in ps aux).
+    // Pass credentials via environment only  -  never as CLI arguments (visible in ps aux).
     // mcp-server-neon reads NEON_API_KEY from the environment.
     // Using pnpm exec instead of dlx so pnpm overrides apply to dependencies.
     const child = spawn('pnpm', ['exec', 'mcp-server-neon', 'start'], {

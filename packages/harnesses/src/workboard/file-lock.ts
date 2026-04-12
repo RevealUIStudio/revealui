@@ -13,7 +13,7 @@ const RETRY_MS = 50;
 
 /**
  * Check whether a process is still running.
- * Uses signal 0 which doesn't actually send a signal — just checks existence.
+ * Uses signal 0 which doesn't actually send a signal  -  just checks existence.
  */
 function isPidAlive(pid: number): boolean {
   try {
@@ -43,17 +43,17 @@ export function acquireLock(lockPath: string, timeoutMs = DEFAULT_TIMEOUT_MS): b
       return true;
     } catch (err: unknown) {
       if ((err as NodeJS.ErrnoException).code !== 'EEXIST') return false;
-      // Lock exists — check if holder is alive
+      // Lock exists  -  check if holder is alive
       // Note: inherent TOCTOU between read and unlink, acceptable for advisory file locks
       try {
         const holderPid = Number.parseInt(readFileSync(lockPath, 'utf8').trim(), 10);
         if (!(Number.isNaN(holderPid) || isPidAlive(holderPid))) {
-          // Holder crashed — steal the lock (re-acquisition via O_EXCL is atomic)
+          // Holder crashed  -  steal the lock (re-acquisition via O_EXCL is atomic)
           unlinkSync(lockPath);
           continue;
         }
       } catch {
-        // Lock file disappeared between checks — retry immediately
+        // Lock file disappeared between checks  -  retry immediately
         continue;
       }
       // Busy-wait
@@ -73,7 +73,7 @@ export function releaseLock(lockPath: string): void {
   try {
     unlinkSync(lockPath);
   } catch {
-    // Already released or never acquired — non-fatal
+    // Already released or never acquired  -  non-fatal
   }
 }
 

@@ -80,7 +80,7 @@ function makeUser(overrides: Partial<Record<string, unknown>> = {}) {
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('GET /users — list (admin-only)', () => {
+describe('GET /users  -  list (admin-only)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -125,7 +125,7 @@ describe('GET /users — list (admin-only)', () => {
   });
 });
 
-describe('GET /users/:id — get single user', () => {
+describe('GET /users/:id  -  get single user', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -180,7 +180,7 @@ describe('GET /users/:id — get single user', () => {
   });
 });
 
-describe('PATCH /users/:id — role escalation prevention', () => {
+describe('PATCH /users/:id  -  role escalation prevention', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUserQueries.getUserById.mockResolvedValue(makeUser({ id: 'user-a' }));
@@ -300,7 +300,7 @@ describe('PATCH /users/:id — role escalation prevention', () => {
   });
 });
 
-describe('DELETE /users/:id — self-deletion prevention', () => {
+describe('DELETE /users/:id  -  self-deletion prevention', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUserQueries.getUserById.mockResolvedValue(makeUser({ id: 'user-a' }));

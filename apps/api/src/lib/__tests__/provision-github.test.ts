@@ -1,5 +1,5 @@
 /**
- * provisionGitHubAccess — unit tests (GAP-011)
+ * provisionGitHubAccess  -  unit tests (GAP-011)
  *
  * Covers: successful provisioning, pending state, unexpected state warning,
  * retry on transient failure, permanent failure with app_logs write.
@@ -7,7 +7,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — hoisted before imports ──────────────────────────────────────────
+// ─── Mocks  -  hoisted before imports ──────────────────────────────────────────
 
 const { mockFetchWithRetry } = vi.hoisted(() => ({
   mockFetchWithRetry: vi.fn(),

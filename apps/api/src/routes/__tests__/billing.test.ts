@@ -9,7 +9,7 @@ import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockCustomersCreate = vi.fn();
 const mockCheckoutSessionsCreate = vi.fn();
@@ -26,7 +26,7 @@ const mockLogger = vi.hoisted(() => ({
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
-    // Must use class — billing.ts calls `new Stripe(key)`
+    // Must use class  -  billing.ts calls `new Stripe(key)`
     class {
       customers = { create: mockCustomersCreate };
       checkout = { sessions: { create: mockCheckoutSessionsCreate } };
@@ -105,7 +105,7 @@ vi.mock('drizzle-orm', () => ({
   ),
 }));
 
-// ─── DB Mock — thenable fluent chain ─────────────────────────────────────────
+// ─── DB Mock  -  thenable fluent chain ─────────────────────────────────────────
 //
 // Drizzle's query builder is thenable at any chain depth.
 // We need the mock to support both:
@@ -123,7 +123,7 @@ const mockDbSelectChain = {
   where: vi.fn(),
   orderBy: vi.fn(),
   limit: vi.fn(),
-  // Thenable — direct `await` on chain resolves to _selectResult
+  // Thenable  -  direct `await` on chain resolves to _selectResult
   then(
     onFulfilled?: (value: unknown[]) => unknown,
     onRejected?: (reason: unknown) => unknown,
@@ -230,7 +230,7 @@ function resetChains() {
   mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) =>
     cb(mockDb),
   );
-  // Default subscription list — empty (no active subscription)
+  // Default subscription list  -  empty (no active subscription)
   mockSubscriptionsList.mockResolvedValue({ data: [] });
   mockSubscriptionsUpdate.mockResolvedValue({});
 }
@@ -265,7 +265,7 @@ describe('POST /checkout', () => {
   });
 
   it('returns 401 when not authenticated', async () => {
-    // billingApp.request() directly — no user ever set in context
+    // billingApp.request() directly  -  no user ever set in context
     const res = await billingApp.request(post('/checkout', { priceId: 'price_abc' }));
     expect(res.status).toBe(401);
   });
@@ -869,7 +869,7 @@ describe('POST /report-agent-overage', () => {
     const res = await billingApp.request(cronPost('/report-agent-overage'));
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
-    // No overage rows in mock — reported/skipped both 0, but endpoint no longer skips entirely
+    // No overage rows in mock  -  reported/skipped both 0, but endpoint no longer skips entirely
     expect(body.reported).toBe(0);
     expect(body.skipped).toBe(0);
     expect(mockMeterEventsCreate).not.toHaveBeenCalled();
@@ -944,7 +944,7 @@ describe('getEarlyAdopterDiscount', () => {
 
     const result = getEarlyAdopterDiscount('pro');
     expect(result).toEqual({ discounts: [{ coupon: 'coupon_pro_40off' }] });
-    // Must NOT have allow_promotion_codes — Stripe rejects both together
+    // Must NOT have allow_promotion_codes  -  Stripe rejects both together
     expect('allow_promotion_codes' in result).toBe(false);
   });
 
@@ -992,7 +992,7 @@ describe('getEarlyAdopterDiscount', () => {
   });
 });
 
-describe('POST /checkout — early adopter integration', () => {
+describe('POST /checkout  -  early adopter integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetChains();

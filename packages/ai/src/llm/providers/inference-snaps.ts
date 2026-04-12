@@ -5,10 +5,10 @@
  * No API key required. Zero cost, fully offline, hardware-optimized.
  *
  * Supported models (snaps):
- *   gemma3         — general LLM + vision (text/image in, text out)
- *   deepseek-r1    — reasoning LLM
- *   qwen-vl        — vision-language model (image + text)
- *   nemotron-nano  — general LLM (reasoning + non-reasoning)
+ *   gemma3          -  general LLM + vision (text/image in, text out)
+ *   deepseek-r1     -  reasoning LLM
+ *   qwen-vl         -  vision-language model (image + text)
+ *   nemotron-nano   -  general LLM (reasoning + non-reasoning)
  *
  * Install a model:
  *   sudo snap install gemma3
@@ -40,7 +40,7 @@ export interface InferenceSnapsProviderConfig extends Omit<LLMProviderConfig, 'a
   apiKey?: string;
   /** Base URL of the inference-snaps service, e.g. http://localhost:9090/v1 */
   baseURL: string;
-  /** Chat/vision model name — must match the snap's model ID (e.g. 'gemma3', 'deepseek-r1') */
+  /** Chat/vision model name  -  must match the snap's model ID (e.g. 'gemma3', 'deepseek-r1') */
   model?: string;
   /** Embedding model name. Defaults to the chat model when omitted. */
   embedModel?: string;

@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
 /**
- * Billing Catalog Validation Script (Phase 2.7 — Stripe Go-Live Readiness)
+ * Billing Catalog Validation Script (Phase 2.7  -  Stripe Go-Live Readiness)
  *
  * Validates that the billing_catalog table rows are consistent with:
  * 1. The contracts/pricing.ts tier definitions (single source of truth)
@@ -166,14 +166,14 @@ function validateEnvVars() {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (stripeKey) {
     if (stripeKey.startsWith('sk_test_')) {
-      warn('stripe-key', 'STRIPE_SECRET_KEY is a test key — switch to live before go-live');
+      warn('stripe-key', 'STRIPE_SECRET_KEY is a test key  -  switch to live before go-live');
     } else if (stripeKey.startsWith('sk_live_')) {
       pass('stripe-key', 'STRIPE_SECRET_KEY is a live key');
     } else {
       warn('stripe-key', 'STRIPE_SECRET_KEY has unrecognized prefix');
     }
   } else {
-    warn('stripe-key', 'STRIPE_SECRET_KEY not set — Stripe validation skipped');
+    warn('stripe-key', 'STRIPE_SECRET_KEY not set  -  Stripe validation skipped');
   }
 
   // 2b. Check price ID env vars for each plan
@@ -214,7 +214,7 @@ function validateEnvVars() {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Database validation (optional — requires POSTGRES_URL)
+// 3. Database validation (optional  -  requires POSTGRES_URL)
 // ---------------------------------------------------------------------------
 
 async function validateDatabase() {
@@ -252,7 +252,7 @@ async function validateDatabase() {
   } catch (err) {
     const pgCode = (err as { cause?: { code?: string } })?.cause?.code;
     if (pgCode === '42P01') {
-      fail('db-table', 'billing_catalog table does not exist — run migrations first');
+      fail('db-table', 'billing_catalog table does not exist  -  run migrations first');
       return;
     }
     fail(
@@ -411,7 +411,7 @@ async function main() {
 
   if (warns > 0) {
     logger.warning('BILLING CATALOG VALIDATION PASSED WITH WARNINGS');
-    logger.info('Review warnings above — some may need attention before go-live.');
+    logger.info('Review warnings above  -  some may need attention before go-live.');
     process.exit(0);
   }
 

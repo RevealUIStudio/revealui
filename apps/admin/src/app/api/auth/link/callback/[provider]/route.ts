@@ -1,5 +1,5 @@
 /**
- * OAuth Link Callback Route — GET /api/auth/link/callback/[provider]
+ * OAuth Link Callback Route  -  GET /api/auth/link/callback/[provider]
  *
  * Handles the redirect from the OAuth provider during account linking.
  * Verifies the user's session, exchanges the code, and links the provider
@@ -43,7 +43,7 @@ export async function GET(
     return settingsUrl('unknown_provider');
   }
 
-  // Require active session — linking is only valid for authenticated users
+  // Require active session  -  linking is only valid for authenticated users
   const sessionData = await getSession(request.headers, extractRequestContext(request));
   if (!sessionData) {
     return NextResponse.redirect(new URL('/login?error=session_expired', baseUrl));
@@ -82,7 +82,7 @@ export async function GET(
         redirectTo = resolved.pathname + resolved.search;
       }
     } catch {
-      // Invalid URL — fall back to settings
+      // Invalid URL  -  fall back to settings
     }
 
     const successUrl = new URL(redirectTo, baseUrl);

@@ -111,7 +111,7 @@ Complete API documentation for RevealUI.
 
 ## REST API
 
-- [REST API Reference](./rest-api) — all endpoints, request/response schemas, authentication
+- [REST API Reference](./rest-api)  -  all endpoints, request/response schemas, authentication
 
 Start the API server (\`pnpm dev:api\`) and open [http://localhost:3004](http://localhost:3004) for the interactive Swagger UI with a request builder.
 

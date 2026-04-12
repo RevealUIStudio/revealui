@@ -5,7 +5,7 @@ export const revealuiConventionsSkill: Skill = {
   tier: 'oss',
   name: 'RevealUI Conventions',
   description:
-    'RevealUI coding conventions for any code task — writing, editing, reviewing, creating,\nfixing, refactoring, changing, adding, or updating TypeScript, React, CSS, or config files.\nCovers TypeScript strict mode, ES Modules, Biome formatting, Tailwind v4 syntax,\nconventional commits, monorepo workspace protocol, feature gating, parameterization,\nand unused declaration policy.',
+    'RevealUI coding conventions for any code task  -  writing, editing, reviewing, creating,\nfixing, refactoring, changing, adding, or updating TypeScript, React, CSS, or config files.\nCovers TypeScript strict mode, ES Modules, Biome formatting, Tailwind v4 syntax,\nconventional commits, monorepo workspace protocol, feature gating, parameterization,\nand unused declaration policy.',
   disableModelInvocation: false,
   skipFrontmatter: false,
   filePatterns: [],
@@ -21,7 +21,7 @@ Follow these conventions for ALL code in the RevealUI monorepo.
 - Use ES Modules (\`import\`/\`export\`), never CommonJS (\`require\`)
 - Prefer \`interface\` over \`type\` for object shapes (unless union/intersection needed)
 - Use explicit return types on exported functions
-- Avoid \`any\` — use \`unknown\` and narrow with type guards
+- Avoid \`any\`  -  use \`unknown\` and narrow with type guards
 - Use \`as const\` for literal objects and arrays when appropriate
 - Prefer \`satisfies\` over \`as\` for type assertions when possible
 - Use optional chaining (\`?.\`) and nullish coalescing (\`??\`) over manual checks
@@ -47,9 +47,9 @@ Follow these conventions for ALL code in the RevealUI monorepo.
 ## Monorepo
 
 ### Structure
-- Apps live in \`apps/\` — deployable services (Next.js, Hono, Vite)
-- Packages live in \`packages/\` — shared libraries consumed by apps
-- Scripts live in \`scripts/\` — CLI tools, automation, CI gates
+- Apps live in \`apps/\`  -  deployable services (Next.js, Hono, Vite)
+- Packages live in \`packages/\`  -  shared libraries consumed by apps
+- Scripts live in \`scripts/\`  -  CLI tools, automation, CI gates
 
 ### Package Manager
 - pnpm 10 with workspace protocol
@@ -102,9 +102,9 @@ Follow these conventions for ALL code in the RevealUI monorepo.
 Biome 2 is the sole linter and formatter for this monorepo.
 
 ### Commands
-- \`pnpm lint\` — check all files (\`biome check .\`)
-- \`pnpm format\` — format all files (\`biome format --write .\`)
-- \`pnpm lint:fix\` — auto-fix (\`biome check --write .\`)
+- \`pnpm lint\`  -  check all files (\`biome check .\`)
+- \`pnpm format\`  -  format all files (\`biome format --write .\`)
+- \`pnpm lint:fix\`  -  auto-fix (\`biome check --write .\`)
 
 ### Key Rules
 - No unused variables or imports (auto-removed on format)
@@ -118,7 +118,7 @@ Biome 2 is the sole linter and formatter for this monorepo.
 
 ### Suppressing Rules
 - Use \`// biome-ignore <rule>: <reason>\` for specific lines
-- Avoid blanket suppressions — prefer fixing the code
+- Avoid blanket suppressions  -  prefer fixing the code
 - Document why a suppression is needed
 
 ## Tailwind v4
@@ -146,28 +146,28 @@ RevealUI uses **Tailwind CSS v4** (\`^4.1.18\`). Key syntax changes from v3:
 \`\`\`
 
 \`\`\`html
-<!-- CORRECT (v4) — parentheses for CSS vars -->
+<!-- CORRECT (v4)  -  parentheses for CSS vars -->
 <div class="bg-(--brand-color)">
 
-<!-- WRONG (v3) — square brackets -->
+<!-- WRONG (v3)  -  square brackets -->
 <div class="bg-[--brand-color]">
 \`\`\`
 
 \`\`\`html
-<!-- CORRECT (v4) — important at the end -->
+<!-- CORRECT (v4)  -  important at the end -->
 <div class="bg-red-500!">
 
-<!-- WRONG (v3) — important at the start -->
+<!-- WRONG (v3)  -  important at the start -->
 <div class="bg-!red-500">
 \`\`\`
 
 ### Rules for New Code
-1. Never use \`@tailwind\` directives — use \`@import "tailwindcss"\`
-2. Never use \`@layer utilities\` or \`@layer components\` — use \`@utility\`
+1. Never use \`@tailwind\` directives  -  use \`@import "tailwindcss"\`
+2. Never use \`@layer utilities\` or \`@layer components\`  -  use \`@utility\`
 3. Use \`bg-(--var)\` syntax for CSS variables, not \`bg-[--var]\`
 4. Important goes at the end: \`bg-red-500!\` not \`!bg-red-500\`
 5. Prefer \`gap\` over \`space-*\` / \`divide-*\` for spacing in flex/grid
-6. No \`transform-none\` — use \`scale-none\`, \`rotate-none\`, \`translate-none\`
+6. No \`transform-none\`  -  use \`scale-none\`, \`rotate-none\`, \`translate-none\`
 
 ## Parameterization
 

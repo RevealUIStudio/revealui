@@ -46,7 +46,7 @@ const RevealUIAdminBar = (props: RevealUIAdminBarProps) => {
       })
       .catch((err: unknown) => {
         if (err instanceof Error && err.name === 'AbortError') return;
-        // Auth check failed — user likely not logged in; hide admin bar
+        // Auth check failed  -  user likely not logged in; hide admin bar
         if (onAuthChange) onAuthChange({});
       });
     return () => controller.abort();

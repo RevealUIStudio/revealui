@@ -52,7 +52,7 @@ export default function SecretDetail({ path, value, loading }: SecretDetailProps
                 revealed ? '' : 'select-none blur-sm'
               }`}
             >
-              {value ?? '—'}
+              {value ?? '-'}
             </pre>
           </div>
         )}

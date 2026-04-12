@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://revealcoin.revealui.com'),
-  title: 'RevealCoin (RVC) — Utility, Governance & Reward Token',
+  title: 'RevealCoin (RVC)  -  Utility, Governance & Reward Token',
   description:
     'The native token of the RevealUI ecosystem. 58.9B fixed supply on Solana Token-2022. Utility payments, governance voting, and ecosystem rewards.',
   keywords: [
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'RevealUI Studio' }],
   openGraph: {
-    title: 'RevealCoin (RVC) — The Native Token of RevealUI',
+    title: 'RevealCoin (RVC)  -  The Native Token of RevealUI',
     description:
       '58.9B fixed supply. Utility payments, governance voting, and ecosystem rewards. Built on Solana Token-2022.',
     type: 'website',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'RevealCoin (RVC) — The Native Token of RevealUI',
+    title: 'RevealCoin (RVC)  -  The Native Token of RevealUI',
     description: '58.9B fixed supply. Utility payments, governance voting, and ecosystem rewards.',
     images: ['https://arweave.net/p6DmWVkFTfo9AcENidr7gmzgQSq_LCbZ-wrbM6hx8gY'],
   },

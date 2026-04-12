@@ -1,5 +1,5 @@
 /**
- * REST API handler tests — validates routing, CRUD operations,
+ * REST API handler tests  -  validates routing, CRUD operations,
  * query parameter parsing, CORS, error handling, and response formats.
  */
 

@@ -59,5 +59,18 @@
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/utils"
-  }
+  },
+  "homepage": "https://revealui.com",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
+  },
+  "keywords": [
+    "revealui",
+    "utils",
+    "logger",
+    "helpers",
+    "validation",
+    "database"
+  ]
 }

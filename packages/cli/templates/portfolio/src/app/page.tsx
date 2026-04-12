@@ -17,7 +17,7 @@ export default function HomePage() {
         >
           RevealUI
         </a>{' '}
-        — edit your projects from the admin panel, no code changes needed.
+        - edit your projects from the admin panel, no code changes needed.
       </p>
 
       <div className="mt-8 flex gap-3">
@@ -43,7 +43,7 @@ export default function HomePage() {
             above with your name
           </li>
           <li>
-            <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">pnpm db:seed</code> — add
+            <code className="rounded bg-gray-200 px-1.5 py-0.5 text-xs">pnpm db:seed</code> - add
             sample projects
           </li>
           <li>
@@ -51,7 +51,7 @@ export default function HomePage() {
             <a href="/admin" className="text-accent hover:text-accent-hover">
               /admin
             </a>{' '}
-            — add your own projects, links, and tags
+            - add your own projects, links, and tags
           </li>
         </ol>
       </div>

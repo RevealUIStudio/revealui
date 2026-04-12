@@ -36,7 +36,7 @@ function blockedResult() {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — rateLimitMiddleware
+// Tests  -  rateLimitMiddleware
 // ---------------------------------------------------------------------------
 describe('rateLimitMiddleware', () => {
   it('allows requests when under the limit', async () => {
@@ -210,7 +210,7 @@ describe('rateLimitMiddleware', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — tieredRateLimitMiddleware
+// Tests  -  tieredRateLimitMiddleware
 // ---------------------------------------------------------------------------
 describe('tieredRateLimitMiddleware', () => {
   const tierConfig = {
@@ -255,7 +255,7 @@ describe('tieredRateLimitMiddleware', () => {
   });
 
   it('falls back to free tier when tier is not in config', async () => {
-    // biome-ignore lint/suspicious/noExplicitAny: test — simulating unknown tier value
+    // biome-ignore lint/suspicious/noExplicitAny: test  -  simulating unknown tier value
     mockedGetCurrentTier.mockReturnValue('unknown-tier' as any);
     mockedCheckRateLimit.mockResolvedValue(allowedResult());
 

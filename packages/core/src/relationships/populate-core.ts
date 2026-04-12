@@ -1,5 +1,5 @@
 /**
- * Population Core — Pure Types & Utilities
+ * Population Core  -  Pure Types & Utilities
  *
  * This module contains types and pure utility functions for relationship
  * population that have NO imports from the afterRead chain, breaking the

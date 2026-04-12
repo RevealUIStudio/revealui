@@ -103,7 +103,7 @@ export function csrfMiddleware(options?: CsrfMiddlewareOptions): MiddlewareHandl
     const session = c.get('session') as { id?: string } | undefined;
     const sessionId = session?.id;
     if (!sessionId) {
-      // No authenticated session — skip CSRF (auth middleware will handle)
+      // No authenticated session  -  skip CSRF (auth middleware will handle)
       return next();
     }
 

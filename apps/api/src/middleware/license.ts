@@ -2,7 +2,7 @@
  * License Enforcement Middleware for Hono API
  *
  * Gates routes by license tier or feature flag.
- * Uses the cached license state from @revealui/core — no DB call per request.
+ * Uses the cached license state from @revealui/core  -  no DB call per request.
  */
 
 import { type FeatureFlags, getRequiredTier, isFeatureEnabled } from '@revealui/core/features';
@@ -191,7 +191,7 @@ export const requireDomain = (): MiddlewareHandler => {
   return async (c, next) => {
     const payload = getLicensePayload();
 
-    // No domain restrictions — pass through
+    // No domain restrictions  -  pass through
     if (!payload?.domains || payload.domains.length === 0) {
       await next();
       return;
@@ -259,7 +259,7 @@ export const checkLicenseStatus = (
 
     const payload = getLicensePayload();
 
-    // No license — free tier, no DB check needed
+    // No license  -  free tier, no DB check needed
     if (!payload) {
       await next();
       return;
@@ -293,7 +293,7 @@ export const checkLicenseStatus = (
 };
 
 /**
- * Require AI access — local inference (Ollama/Snaps) on free tier, full harness on Pro+.
+ * Require AI access  -  local inference (Ollama/Snaps) on free tier, full harness on Pro+.
  *
  * When OLLAMA_BASE_URL or INFERENCE_SNAPS_BASE_URL is set, free-tier users can use local inference.
  * Cloud-hosted open models via the RevealUI harness require a Pro+ license.
@@ -328,7 +328,7 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
       return;
     }
 
-    // No local inference, no Pro license — block
+    // No local inference, no Pro license  -  block
     const requiredTier = getRequiredTier('ai');
     const x402 = getX402Config();
 
@@ -381,7 +381,7 @@ const supportExpiryCache = new Map<
 /**
  * Enforce support contract expiry on perpetual licenses.
  *
- * Perpetual licenses never expire — the holder keeps basic admin access forever.
+ * Perpetual licenses never expire  -  the holder keeps basic admin access forever.
  * However, the annual support contract (supportExpiresAt) gates premium features:
  * AI, dashboard, advanced sync, analytics, etc.
  *
@@ -436,7 +436,7 @@ export const checkSupportExpiry = (
 
     // Check if support has expired
     if (effective.supportExpiresAt && effective.supportExpiresAt.getTime() < now) {
-      // Support expired — downgrade entitlements to free tier.
+      // Support expired  -  downgrade entitlements to free tier.
       // The perpetual license itself remains valid (basic admin access),
       // but premium features (AI, dashboard, sync, analytics) require active support.
       const requestEntitlements = getRequestEntitlements(c);

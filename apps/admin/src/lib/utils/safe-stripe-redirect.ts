@@ -11,7 +11,7 @@ export function safeStripeRedirect(url: string): void {
       return;
     }
   } catch {
-    // invalid URL — fall through to error
+    // invalid URL  -  fall through to error
   }
   throw new Error(`Refused to redirect to untrusted URL: ${url}`);
 }

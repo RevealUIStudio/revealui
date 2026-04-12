@@ -1,10 +1,10 @@
 /**
- * Saga Recovery — Sweep and Recover Stuck Sagas
+ * Saga Recovery  -  Sweep and Recover Stuck Sagas
  *
  * Finds saga jobs stuck in 'active' state (indicating the process crashed
  * mid-execution) and marks them as failed. Compensation is not attempted
  * automatically because the step functions are in code, not serialized
- * in the job data — recovery requires re-invoking the saga definition.
+ * in the job data  -  recovery requires re-invoking the saga definition.
  *
  * Designed to run as a periodic cron job or be called manually.
  *

@@ -1,5 +1,5 @@
 /**
- * Startup state flags — shared between index.ts and health routes.
+ * Startup state flags  -  shared between index.ts and health routes.
  * Extracted to avoid circular imports (health.ts ↔ index.ts).
  */
 

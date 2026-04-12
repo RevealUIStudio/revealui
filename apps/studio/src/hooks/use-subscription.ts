@@ -1,5 +1,5 @@
 /**
- * useSubscription — Fetches and caches subscription + usage data from the API.
+ * useSubscription  -  Fetches and caches subscription + usage data from the API.
  *
  * Polls on an interval (from settings.pollingIntervalMs) so the Dashboard
  * always reflects the current billing state without manual refresh.

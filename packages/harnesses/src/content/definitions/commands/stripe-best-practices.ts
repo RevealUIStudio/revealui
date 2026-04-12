@@ -16,18 +16,18 @@ export const stripeBestPracticesCommand: Command = {
 - Handle all relevant events: \`checkout.session.completed\`, \`customer.subscription.deleted\`, \`customer.subscription.updated\`, \`invoice.payment_failed\`
 
 ## Subscription Management
-- Store \`customer.id\`, \`subscription.id\`, and \`subscription.status\` in your DB — not just price/product IDs
+- Store \`customer.id\`, \`subscription.id\`, and \`subscription.status\` in your DB  -  not just price/product IDs
 - Use \`subscription.status\` to gate access: only \`active\` and \`trialing\` grant access
-- Handle \`past_due\` gracefully — show dunning UI, don't immediately revoke access
+- Handle \`past_due\` gracefully  -  show dunning UI, don't immediately revoke access
 - Use \`cancel_at_period_end: true\` for user-initiated cancellations (preserves access until period end)
 
 ## Checkout & Billing Portal
 - Use \`metadata\` on checkout sessions to pass internal IDs (userId, planId) through to webhooks
 - Always set \`client_reference_id\` to your internal user ID
-- Use Stripe Billing Portal for plan changes and cancellations — don't build your own
+- Use Stripe Billing Portal for plan changes and cancellations  -  don't build your own
 
 ## Security
-- Never log full Stripe objects — they may contain PII
+- Never log full Stripe objects  -  they may contain PII
 - Never expose secret keys client-side; all Stripe API calls must be server-side
 - Use restricted API keys scoped to minimum permissions for each service
 - Validate that webhook events reference resources owned by your users before acting
@@ -41,5 +41,5 @@ export const stripeBestPracticesCommand: Command = {
 - Webhook endpoint: \`apps/admin\` at \`/api/webhooks/stripe\` (NOT the API endpoint)
 - Stripe service: \`packages/services/src/stripe/\`
 - Billing routes: \`apps/api/src/routes/billing.ts\`
-- Price IDs are managed via \`pnpm stripe:seed\` — see \`scripts/setup/seed-stripe.ts\``,
+- Price IDs are managed via \`pnpm stripe:seed\`  -  see \`scripts/setup/seed-stripe.ts\``,
 };

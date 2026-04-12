@@ -319,7 +319,7 @@ export class CORSManager {
   getCORSHeaders(origin: string): Record<string, string> {
     const headers: Record<string, string> = {};
 
-    // Vary: Origin — always set when origin is not '*' so caches
+    // Vary: Origin  -  always set when origin is not '*' so caches
     // don't serve a response allowed for origin A to origin B.
     if (this.config.origin !== '*') {
       headers.Vary = 'Origin';
@@ -334,7 +334,7 @@ export class CORSManager {
     // Access-Control-Allow-Origin
     headers['Access-Control-Allow-Origin'] = this.config.origin === '*' ? '*' : origin;
 
-    // Access-Control-Allow-Credentials — incompatible with origin: '*' per Fetch spec
+    // Access-Control-Allow-Credentials  -  incompatible with origin: '*' per Fetch spec
     if (this.config.credentials && this.config.origin !== '*') {
       headers['Access-Control-Allow-Credentials'] = 'true';
     }
@@ -518,13 +518,13 @@ export const CORSPresets = {
   }),
 
   /**
-   * Permissive CORS (all origins) — development only.
+   * Permissive CORS (all origins)  -  development only.
    * Logs a warning if used when NODE_ENV === 'production'.
    */
   permissive: (): CORSConfig => {
     if (process.env.NODE_ENV === 'production') {
       getSecurityLogger().warn(
-        '[SecurityPresets] CORS permissive preset used in production — this allows all origins. Use moderate() with explicit origins instead.',
+        '[SecurityPresets] CORS permissive preset used in production  -  this allows all origins. Use moderate() with explicit origins instead.',
       );
     }
     return {
@@ -537,7 +537,7 @@ export const CORSPresets = {
   },
 
   /**
-   * API CORS (public read-only APIs) — credentials disabled.
+   * API CORS (public read-only APIs)  -  credentials disabled.
    * Logs a warning if used when NODE_ENV === 'production'.
    */
   api: (): CORSConfig => {

@@ -28,7 +28,7 @@ export interface AgentCard {
 // ── Client ──────────────────────────────────────────────────────────────────
 
 /**
- * Fetch all registered A2A agent cards. Public endpoint — no auth needed.
+ * Fetch all registered A2A agent cards. Public endpoint  -  no auth needed.
  * Returns empty array if unreachable or no agents registered.
  */
 export async function fetchAgentCards(apiUrl: string): Promise<AgentCard[]> {

@@ -664,7 +664,7 @@ export class AuditReportGenerator {
 }
 
 // =============================================================================
-// Audit Log Integrity — HMAC-SHA256 Signing
+// Audit Log Integrity  -  HMAC-SHA256 Signing
 // =============================================================================
 
 /** Fields included in the HMAC signature for tamper detection. */
@@ -680,7 +680,7 @@ interface SignableFields {
  * Compute an HMAC-SHA256 signature over the canonical fields of an audit entry.
  *
  * The signature covers `timestamp`, `eventType`, `severity`, `agentId`, and
- * `payload` — the immutable core of every audit record. Changing any of
+ * `payload`  -  the immutable core of every audit record. Changing any of
  * these fields after signing will cause verification to fail.
  *
  * @param entry - The audit entry fields to sign

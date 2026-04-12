@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must come before route import
+// Mocks  -  must come before route import
 // ---------------------------------------------------------------------------
 
 const mockTransaction = vi.fn();
@@ -88,7 +88,7 @@ function makeRequest(secret?: string): Request {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('POST /sweep-grace-periods — auth', () => {
+describe('POST /sweep-grace-periods  -  auth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -147,7 +147,7 @@ describe('POST /sweep-grace-periods — auth', () => {
   });
 });
 
-describe('POST /sweep-grace-periods — no expired entitlements', () => {
+describe('POST /sweep-grace-periods  -  no expired entitlements', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -176,7 +176,7 @@ describe('POST /sweep-grace-periods — no expired entitlements', () => {
   });
 });
 
-describe('POST /sweep-grace-periods — expired entitlements', () => {
+describe('POST /sweep-grace-periods  -  expired entitlements', () => {
   const expiredAccounts = [
     { accountId: 'acc-1', graceUntil: new Date('2025-01-01') },
     { accountId: 'acc-2', graceUntil: new Date('2025-02-01') },
@@ -240,7 +240,7 @@ describe('POST /sweep-grace-periods — expired entitlements', () => {
   });
 });
 
-describe('POST /sweep-grace-periods — transaction with stripeCustomerId', () => {
+describe('POST /sweep-grace-periods  -  transaction with stripeCustomerId', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -295,7 +295,7 @@ describe('POST /sweep-grace-periods — transaction with stripeCustomerId', () =
   });
 });
 
-describe('POST /sweep-grace-periods — error handling', () => {
+describe('POST /sweep-grace-periods  -  error handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
@@ -349,7 +349,7 @@ describe('POST /sweep-grace-periods — error handling', () => {
   });
 });
 
-describe('POST /sweep-grace-periods — method and content-type', () => {
+describe('POST /sweep-grace-periods  -  method and content-type', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;

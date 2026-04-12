@@ -27,7 +27,7 @@ interface CircuitBreakerState {
 }
 
 // ---------------------------------------------------------------------------
-// Configuration — mirrors Stripe circuit breaker config for consistency
+// Configuration  -  mirrors Stripe circuit breaker config for consistency
 // ---------------------------------------------------------------------------
 
 const CIRCUIT_BREAKER_CONFIG = {

@@ -87,9 +87,9 @@ function makeProduct(overrides: Partial<Record<string, unknown>> = {}) {
   };
 }
 
-// ─── GET /products — list products ───────────────────────────────────────────
+// ─── GET /products  -  list products ───────────────────────────────────────────
 
-describe('GET /products — list products', () => {
+describe('GET /products  -  list products', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockProductQueries.getAllProducts.mockResolvedValue([]);
@@ -139,9 +139,9 @@ describe('GET /products — list products', () => {
   });
 });
 
-// ─── POST /products — create product ────────────────────────────────────────
+// ─── POST /products  -  create product ────────────────────────────────────────
 
-describe('POST /products — create product', () => {
+describe('POST /products  -  create product', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('admin can create a product and gets 201', async () => {
@@ -185,9 +185,9 @@ describe('POST /products — create product', () => {
   });
 });
 
-// ─── GET /products/:id — get product by ID ──────────────────────────────────
+// ─── GET /products/:id  -  get product by ID ──────────────────────────────────
 
-describe('GET /products/:id — get product by ID', () => {
+describe('GET /products/:id  -  get product by ID', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('public can see a published product', async () => {
@@ -231,9 +231,9 @@ describe('GET /products/:id — get product by ID', () => {
   });
 });
 
-// ─── PATCH /products/:id — update product ───────────────────────────────────
+// ─── PATCH /products/:id  -  update product ───────────────────────────────────
 
-describe('PATCH /products/:id — update product', () => {
+describe('PATCH /products/:id  -  update product', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('admin can update a product', async () => {
@@ -275,9 +275,9 @@ describe('PATCH /products/:id — update product', () => {
   });
 });
 
-// ─── DELETE /products/:id — delete product ──────────────────────────────────
+// ─── DELETE /products/:id  -  delete product ──────────────────────────────────
 
-describe('DELETE /products/:id — delete product', () => {
+describe('DELETE /products/:id  -  delete product', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('admin can delete a product', async () => {

@@ -236,7 +236,7 @@ describe('POST /api/auth/resend-verification', () => {
     const POST = await loadRoute();
     const res = await POST(makeRequest());
     expect((res as { status: number }).status).toBe(400);
-    // Status code alone verifies behavior — code field is an implementation detail
+    // Status code alone verifies behavior  -  code field is an implementation detail
   });
 
   it('returns 400 when user has no email', async () => {

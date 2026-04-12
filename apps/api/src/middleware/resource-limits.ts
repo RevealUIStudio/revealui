@@ -5,7 +5,7 @@
  * Uses getMaxSites() / getMaxUsers() from @revealui/core/license
  * to determine limits based on the current license tier.
  *
- * R5-C3: Site limits are account-aware — if a user belongs to an account,
+ * R5-C3: Site limits are account-aware  -  if a user belongs to an account,
  * sites are counted at the account level (all members' sites), not per-user.
  */
 
@@ -29,7 +29,7 @@ async function getAccountMemberIds(db: DatabaseClient, userId: string): Promise<
     .limit(1);
 
   if (membership.length === 0) {
-    // No account — self-hosted or solo user, count per-user
+    // No account  -  self-hosted or solo user, count per-user
     return [userId];
   }
 

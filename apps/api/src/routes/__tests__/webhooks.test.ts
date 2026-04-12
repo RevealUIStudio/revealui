@@ -8,7 +8,7 @@
 import { Hono } from 'hono';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockConstructEvent = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
@@ -17,7 +17,7 @@ const mockSubscriptionsList = vi.fn();
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
-    // Must use a class — webhooks.ts calls `new Stripe(key)`
+    // Must use a class  -  webhooks.ts calls `new Stripe(key)`
     class {
       webhooks = { constructEventAsync: mockConstructEvent };
       subscriptions = {
@@ -43,7 +43,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }));
 
-// ─── DB Mock — fluent chain for select / insert / update ─────────────────────
+// ─── DB Mock  -  fluent chain for select / insert / update ─────────────────────
 
 const mockAuditAppend = vi.fn();
 
@@ -62,7 +62,7 @@ const mockDb = {
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
-  // Must use a class — auditLicenseEvent calls `new DrizzleAuditStore(db)`
+  // Must use a class  -  auditLicenseEvent calls `new DrizzleAuditStore(db)`
   DrizzleAuditStore: vi.fn().mockImplementation(
     class {
       append = mockAuditAppend;
@@ -190,7 +190,7 @@ const STRIPE_EVENT_DEFAULTS = {
 
 function postStripe(eventJson: unknown, sig = 'valid-sig') {
   // Merge defaults so test payloads pass the Stripe event envelope schema validation.
-  // The handler ignores the parsed body — it uses stripe.webhooks.constructEventAsync() instead.
+  // The handler ignores the parsed body  -  it uses stripe.webhooks.constructEventAsync() instead.
   const body =
     eventJson && typeof eventJson === 'object'
       ? { ...STRIPE_EVENT_DEFAULTS, ...eventJson }
@@ -306,13 +306,13 @@ describe('POST /stripe webhook', () => {
 
       const app = createApp();
 
-      // First request — processes normally (idempotency insert succeeds)
+      // First request  -  processes normally (idempotency insert succeeds)
       const res1 = await app.request(postStripe(event));
       expect(res1.status).toBe(200);
       const body1 = (await res1.json()) as Record<string, unknown>;
       expect(body1.duplicate).toBeUndefined();
 
-      // Second request with same event ID — idempotency insert throws unique constraint
+      // Second request with same event ID  -  idempotency insert throws unique constraint
       mockDbInsertChain.values.mockRejectedValueOnce(
         new Error('duplicate key value violates unique constraint "processed_webhook_events_pkey"'),
       );
@@ -448,7 +448,7 @@ describe('POST /stripe webhook', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
       expect(res.status).toBe(200);
-      // Only the idempotency insert fires — no license insert for non-subscription checkout
+      // Only the idempotency insert fires  -  no license insert for non-subscription checkout
       expect(mockDb.insert).toHaveBeenCalledTimes(1);
     });
 
@@ -535,7 +535,7 @@ describe('POST /stripe webhook', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      // Should return 500 so Stripe retries — we cannot determine trialing vs active
+      // Should return 500 so Stripe retries  -  we cannot determine trialing vs active
       // without the subscription object
       expect(res.status).toBe(500);
     });
@@ -593,7 +593,7 @@ describe('POST /stripe webhook', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      // Missing tier now rejects so Stripe retries — no license created
+      // Missing tier now rejects so Stripe retries  -  no license created
       expect(res.status).toBe(500);
       // CRITICAL logger.error was called
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
@@ -601,7 +601,7 @@ describe('POST /stripe webhook', () => {
         undefined,
         expect.objectContaining({ tier: null }),
       );
-      // Alert email was sent (fire-and-forget via dynamic import — use waitFor)
+      // Alert email was sent (fire-and-forget via dynamic import  -  use waitFor)
       await vi.waitFor(
         () => {
           expect(mockSendEmail).toHaveBeenCalledWith(
@@ -636,7 +636,7 @@ describe('POST /stripe webhook', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      // Unrecognized tier now rejects so Stripe retries — no license created
+      // Unrecognized tier now rejects so Stripe retries  -  no license created
       expect(res.status).toBe(500);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
         expect.stringContaining('CRITICAL'),
@@ -1026,7 +1026,7 @@ describe('POST /stripe webhook', () => {
 
       const { logger: mockLogger } = loggerModule;
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Payment failed 3+ times — suspending subscription',
+        'Payment failed 3+ times  -  suspending subscription',
         undefined,
         expect.objectContaining({ customerId: 'cus_fail', attemptCount: 3 }),
       );

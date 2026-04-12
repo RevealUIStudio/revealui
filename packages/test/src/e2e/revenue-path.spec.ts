@@ -1,5 +1,5 @@
 /**
- * Revenue Path E2E Tests — OV-2
+ * Revenue Path E2E Tests  -  OV-2
  *
  * Tests the 3 critical user journeys that generate revenue:
  * 1. Free onboarding: sign up → dashboard → verify free tier
@@ -7,7 +7,7 @@
  * 3. Subscription management: authenticate → billing status → portal access
  *
  * These tests verify the complete revenue lifecycle works end-to-end.
- * Stripe checkout completion is out of scope (external domain) — we verify
+ * Stripe checkout completion is out of scope (external domain)  -  we verify
  * the handoff to Stripe is correct and the return path works.
  */
 
@@ -70,7 +70,7 @@ test.describe('OV-2.1: Free Onboarding', () => {
     });
 
     // Free users get 200 with free tier data; 401 if cross-origin session cookie
-    // doesn't carry across origins in test. Both are structurally valid — the
+    // doesn't carry across origins in test. Both are structurally valid  -  the
     // endpoint must not return anything outside these two codes.
     expect([200, 401]).toContain(response.status());
   });
@@ -126,7 +126,7 @@ test.describe('OV-2.2: Pro Upgrade Flow', () => {
     const response = await request.post(`${CMS_URL}/api/auth/sign-up`, {
       data: { email, password, name, tosAccepted: true },
     });
-    // May fail if user already exists from previous run — that's ok
+    // May fail if user already exists from previous run  -  that's ok
     if (response.status() !== 200) {
       // Try signing in instead
       const signIn = await request.post(`${CMS_URL}/api/auth/sign-in`, {
@@ -151,7 +151,7 @@ test.describe('OV-2.2: Pro Upgrade Flow', () => {
       expect(data.url).toBeDefined();
       expect(data.url).toContain('checkout.stripe.com');
     } else {
-      // Cross-origin cookie may not pass in E2E — only 401 is acceptable
+      // Cross-origin cookie may not pass in E2E  -  only 401 is acceptable
       expect(response.status()).toBe(401);
     }
   });
@@ -209,14 +209,14 @@ test.describe('OV-2.2: Pro Upgrade Flow', () => {
     const response = await page.goto(`${CMS_URL}/account/billing`);
     expect(response).toBeTruthy();
     // Authenticated users get 200; unauthenticated redirects to login (307/302).
-    // Both are valid — what matters is the page renders without a server error.
+    // Both are valid  -  what matters is the page renders without a server error.
     expect([200, 302, 307]).toContain(response!.status());
   });
 });
 
 test.describe('OV-2.3: Subscription Management', () => {
   test('subscription status endpoint returns structured response', async ({ request }) => {
-    // Unauthenticated — should get 401, not 500
+    // Unauthenticated  -  should get 401, not 500
     const response = await request.get(`${API_URL}/api/billing/subscription`);
     expect(response.status()).toBe(401);
 

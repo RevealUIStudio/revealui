@@ -13,12 +13,12 @@ AI agents, LLM providers, CRDT memory, and the A2A protocol for RevealUI Pro.
 
 `@revealui/ai` provides a complete AI layer for your RevealUI application:
 
-- **Agents** — long-running task agents with persistent state
-- **Memory** — four-store cognitive memory (episodic, working, semantic, procedural)
-- **Open-model inference** — Ubuntu snaps, Ollama, and open source models via the harness
-- **Streaming** — SSE-based token streaming via `StreamingAgentRuntime` and `useAgentStream`
-- **Orchestration** — multi-agent coordination with the A2A protocol
-- **MCP integration** — tool use via Model Context Protocol
+- **Agents**  -  long-running task agents with persistent state
+- **Memory**  -  four-store cognitive memory (episodic, working, semantic, procedural)
+- **Open-model inference**  -  Ubuntu snaps, Ollama, and open source models via the harness
+- **Streaming**  -  SSE-based token streaming via `StreamingAgentRuntime` and `useAgentStream`
+- **Orchestration**  -  multi-agent coordination with the A2A protocol
+- **MCP integration**  -  tool use via Model Context Protocol
 
 ## Installation
 
@@ -90,14 +90,14 @@ const memory = {
 
 | Path | Chat | Embeddings | Notes |
 | ---- | ---- | ---------- | ----- |
-| **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime — hardware-aware, single command install, OpenAI-compatible API |
+| **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install, OpenAI-compatible API |
 | Ollama | Yes | Yes | Any open source GGUF model, local inference. Default chat: `gemma4:e2b`, embed: `nomic-embed-text` |
 
 ### Inference Snaps Models
 
 | Snap | Type | Use Case |
 | ---- | ---- | -------- |
-| `nemotron-3-nano` | General (reasoning + non-reasoning) | **Free tier default** — lightweight, fast |
+| `nemotron-3-nano` | General (reasoning + non-reasoning) | **Free tier default**  -  lightweight, fast |
 | `gemma3` | General + vision | Image understanding, multimodal tasks |
 | `deepseek-r1` | Reasoning | Complex analysis, chain-of-thought |
 | `qwen-vl` | Vision-language | Document parsing, visual Q&A |
@@ -121,9 +121,9 @@ const task = await client.sendTask({ message: "Process this document." });
 
 ## Open-Model Inference
 
-All inference runs on open source models — no proprietary cloud APIs, no vendor lock-in.
+All inference runs on open source models  -  no proprietary cloud APIs, no vendor lock-in.
 
-The recommended setup is **Ubuntu Inference Snaps** — Canonical's snap-packaged model serving with hardware-aware engine selection, signed packages, and zero configuration:
+The recommended setup is **Ubuntu Inference Snaps**  -  Canonical's snap-packaged model serving with hardware-aware engine selection, signed packages, and zero configuration:
 
 ```bash
 # Install your first model (free tier default)
@@ -186,7 +186,7 @@ const gen = runtime.streamTask(agent, task, llmClient, controller.signal);
 cancelButton.onclick = () => controller.abort();
 ```
 
-**Deduplication:** identical tool calls within a single task run are automatically deduplicated — the second call returns the cached result without re-executing.
+**Deduplication:** identical tool calls within a single task run are automatically deduplicated  -  the second call returns the cached result without re-executing.
 
 ### `/api/agent-stream` SSE endpoint
 
@@ -274,7 +274,7 @@ Use both together for maximum savings: semantic cache catches similar queries (6
 
 **100% cost savings on duplicate requests** for any inference path.
 
-Response caching stores complete LLM responses keyed by a SHA-256 hash of the input (messages, temperature, max tokens, tools, model). Identical requests within the TTL return the cached response instantly — no inference call.
+Response caching stores complete LLM responses keyed by a SHA-256 hash of the input (messages, temperature, max tokens, tools, model). Identical requests within the TTL return the cached response instantly  -  no inference call.
 
 ### Enable
 
@@ -413,7 +413,7 @@ const client = new LLMClient({
 | **0.99** | Low (~30%) | Nearly identical queries only |
 | **0.95** | Medium (~65%) | Recommended default |
 | **0.90** | High (~80%) | More flexible matching |
-| **0.85** | Very high (~90%) | Risky — may match unrelated queries |
+| **0.85** | Very high (~90%) | Risky  -  may match unrelated queries |
 
 ### Embedding Generation
 
@@ -457,7 +457,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 ### Response Cache
 
-- Enable for development and testing — massive savings on repeated prompts
+- Enable for development and testing  -  massive savings on repeated prompts
 - Enable for FAQ-style applications where exact duplicates are common
 - Adjust TTL based on content freshness needs (5 minutes default)
 - Monitor hit rates and adjust cache size if evictions are too frequent
@@ -467,7 +467,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 - Start with threshold 0.95 and adjust based on your use case
 - Use multi-tenant filtering (`userId`/`siteId`) for SaaS applications
 - Warm the cache on startup with common queries for immediate hits
-- Do not set threshold below 0.90 — risks returning wrong responses
+- Do not set threshold below 0.90  -  risks returning wrong responses
 
 ### Both Together
 

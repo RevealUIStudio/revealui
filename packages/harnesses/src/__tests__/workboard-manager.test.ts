@@ -20,24 +20,24 @@ const V2_FIXTURE = `# Workboard
 
 | id | task | pri | status | owner | gh | updated | notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| T-001 | External quick-start validation | P1 | available | — | #88 | 2026-03-30 | need cold-start devs |
-| T-005 | Dependency version bumps | P2 | claimed | agent-system | — | 2026-03-30 | russh CVE |
-| T-009 | Workboard v2 hooks + harnesses | P1 | claimed | agent-edit | — | 2026-03-30 | parser written |
-| T-006 | admin clsx cleanup | P3 | partial | — | — | 2026-03-30 | 15 of 25 components done |
+| T-001 | External quick-start validation | P1 | available |  -  | #88 | 2026-03-30 | need cold-start devs |
+| T-005 | Dependency version bumps | P2 | claimed | agent-system |  -  | 2026-03-30 | russh CVE |
+| T-009 | Workboard v2 hooks + harnesses | P1 | claimed | agent-edit |  -  | 2026-03-30 | parser written |
+| T-006 | admin clsx cleanup | P3 | partial |  -  |  -  | 2026-03-30 | 15 of 25 components done |
 
 ## Blocked
 
 | id | task | blocker | gh | notes |
 | --- | --- | --- | --- | --- |
-| T-020 | Stripe live mode | UX verification needed | — | test to live keys |
-| T-022 | Turbo remote cache | needs TURBO_TOKEN | #86 | — |
+| T-020 | Stripe live mode | UX verification needed |  -  | test to live keys |
+| T-022 | Turbo remote cache | needs TURBO_TOKEN | #86 |  -  |
 
 ## Done
 
 | id | task | owner | completed | gh | notes |
 | --- | --- | --- | --- | --- | --- |
-| T-100 | Branch simplification | agent-edit | 2026-03-30 | — | done |
-| T-101 | Stripe credit bundles | agent-edit | 2026-03-30 | — | done |
+| T-100 | Branch simplification | agent-edit | 2026-03-30 |  -  | done |
+| T-101 | Stripe credit bundles | agent-edit | 2026-03-30 |  -  | done |
 
 ## Log
 
@@ -45,7 +45,7 @@ const V2_FIXTURE = `# Workboard
 - [2026-03-30 00:40] agent-edit: Session 136 started
 `;
 
-// v1 fixture (backward compat — old section names)
+// v1 fixture (backward compat  -  old section names)
 const V1_FIXTURE = `# Workboard
 
 ## Sessions

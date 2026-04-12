@@ -147,7 +147,7 @@ curl -X POST https://api.example.com/a2a \
   }'
 ```
 
-Agents use the host's configured inference path. The `createLLMClientFromEnv()` factory auto-detects the available backend (Ubuntu Inference Snaps or Ollama) — no API keys required, no vendor lock-in.
+Agents use the host's configured inference path. The `createLLMClientFromEnv()` factory auto-detects the available backend (Ubuntu Inference Snaps or Ollama)  -  no API keys required, no vendor lock-in.
 
 ### MCP: How agents use tools
 
@@ -295,6 +295,6 @@ The user interface for the future has yet to reveal itself. But we know one thin
 
 ---
 
-*RevealUI is the open-source agentic business runtime. Users, content, products, payments, and AI -- pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is an open-source agentic business runtime. Users, content, products, payments, and AI -- pre-wired and ready to deploy. Learn more at [revealui.com](https://revealui.com).*
 
 *Follow the project on [GitHub](https://github.com/RevealUIStudio/revealui).*

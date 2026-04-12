@@ -1,5 +1,5 @@
 /**
- * LoginScreen — Device Authentication Flow
+ * LoginScreen  -  Device Authentication Flow
  *
  * Two-step flow:
  * 1. Enter email → OTP sent to inbox

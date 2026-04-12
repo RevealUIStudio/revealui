@@ -1,17 +1,17 @@
 # @revealui/router
 
-Lightweight file-based router for React apps with SSR, data loaders, middleware, and nested layouts. No framework required — works with Vite, Hono, or any React setup.
+Lightweight file-based router for React apps with SSR, data loaders, middleware, and nested layouts. No framework required  -  works with Vite, Hono, or any React setup.
 
 ## Features
 
-- **File-based routing** — named params (`:id`), wildcards (`*path`), optional segments
-- **Nested routes** — composable layouts that stack automatically
-- **Data loaders** — async per-route data loading with typed access via `useData()`
-- **Middleware** — global + per-route, supports blocking and redirects
-- **SSR + streaming** — Hono integration with `renderToReadableStream`
-- **Client-side navigation** — History API, link interception, back/forward
-- **Type-safe** — full TypeScript support, generic route data types
-- **React 18/19** — uses `useSyncExternalStore` for stable rendering
+- **File-based routing**  -  named params (`:id`), wildcards (`*path`), optional segments
+- **Nested routes**  -  composable layouts that stack automatically
+- **Data loaders**  -  async per-route data loading with typed access via `useData()`
+- **Middleware**  -  global + per-route, supports blocking and redirects
+- **SSR + streaming**  -  Hono integration with `renderToReadableStream`
+- **Client-side navigation**  -  History API, link interception, back/forward
+- **Type-safe**  -  full TypeScript support, generic route data types
+- **React 18/19**  -  uses `useSyncExternalStore` for stable rendering
 
 ## Installation
 
@@ -349,14 +349,14 @@ const route: Route = {
 - You need a lightweight, type-safe router with built-in SSR for a Hono + React app
 - You want file-based routing conventions with data loaders and layouts
 - You need a ~5KB router that avoids the bundle size of React Router or TanStack Router
-- **Not** for Next.js apps — Next.js has its own App Router
-- **Not** for API-only services — use Hono's native routing directly
+- **Not** for Next.js apps  -  Next.js has its own App Router
+- **Not** for API-only services  -  use Hono's native routing directly
 
 ## JOSHUA Alignment
 
-- **Orthogonal**: Routing, data loading, and SSR are cleanly separated — loaders run independently of components
+- **Orthogonal**: Routing, data loading, and SSR are cleanly separated  -  loaders run independently of components
 - **Hermetic**: SSR hydration uses a sealed data channel (`__REVEALUI_DATA__`) with no implicit global state
-- **Sovereign**: No framework lock-in — works with any Hono server and standard React
+- **Sovereign**: No framework lock-in  -  works with any Hono server and standard React
 
 ## License
 

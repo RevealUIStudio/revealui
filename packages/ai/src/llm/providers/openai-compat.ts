@@ -3,7 +3,7 @@
  *
  * Base implementation for any LLM API that follows the OpenAI chat/completions
  * format. Used by: Ollama, Groq, Inference Snaps, Vultr.
- * NOT for direct OpenAI usage — RevealUI uses open-source models only.
+ * NOT for direct OpenAI usage  -  RevealUI uses open-source models only.
  */
 
 import type {
@@ -81,7 +81,7 @@ export class OpenAICompatProvider implements LLMProvider {
     this.config = config;
     if (!config.baseURL) {
       throw new Error(
-        'OpenAICompatProvider requires a baseURL — use a specific provider (InferenceSnapsProvider, OllamaProvider, etc.)',
+        'OpenAICompatProvider requires a baseURL  -  use a specific provider (InferenceSnapsProvider, OllamaProvider, etc.)',
       );
     }
     this.baseURL = config.baseURL;
@@ -177,7 +177,7 @@ export class OpenAICompatProvider implements LLMProvider {
         'Content-Type': 'application/json',
         [authorizationHeader]: `Bearer ${this.config.apiKey}`,
       },
-      // lgtm[js/file-access-to-http] — embedding providers must send text to their API by design
+      // lgtm[js/file-access-to-http]  -  embedding providers must send text to their API by design
       body: JSON.stringify({
         model,
         input: texts,
@@ -299,7 +299,7 @@ export class OpenAICompatProvider implements LLMProvider {
     return messages.map((msg) => {
       const formatted: Record<string, unknown> = {
         role: msg.role,
-        // Pass array content through as-is — OpenAI-compatible APIs (including
+        // Pass array content through as-is  -  OpenAI-compatible APIs (including
         // inference-snaps vision models) accept the same multipart format natively.
         content: msg.content,
       };

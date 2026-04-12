@@ -1,10 +1,10 @@
 /**
- * API Key Routes — Encrypted credential storage for inference endpoints
+ * API Key Routes  -  Encrypted credential storage for inference endpoints
  *
- * POST   /api/api-keys          — Store a new API key (encrypted at rest)
- * GET    /api/api-keys          — List the authenticated user's keys (hints only)
- * DELETE /api/api-keys/:id      — Delete a stored key
- * POST   /api/api-keys/:id/rotate — Replace the plaintext for an existing key slot
+ * POST   /api/api-keys           -  Store a new API key (encrypted at rest)
+ * GET    /api/api-keys           -  List the authenticated user's keys (hints only)
+ * DELETE /api/api-keys/:id       -  Delete a stored key
+ * POST   /api/api-keys/:id/rotate  -  Replace the plaintext for an existing key slot
  *
  * Requires: authenticated user session (authMiddleware)
  */
@@ -119,7 +119,7 @@ app.openapi(postRoute, async (c) => {
       throw new HTTPException(400, { message: validation.error });
     }
   }
-  // If @revealui/ai is not installed, skip validation — key will be stored without provider check
+  // If @revealui/ai is not installed, skip validation  -  key will be stored without provider check
 
   const db = getClient();
   const id = generateId();

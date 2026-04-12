@@ -10,7 +10,7 @@ import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mock setup — must be before any route imports
+// Mock setup  -  must be before any route imports
 // ---------------------------------------------------------------------------
 
 const mockGetSession = vi.fn();

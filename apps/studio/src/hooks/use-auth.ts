@@ -35,11 +35,11 @@ export interface AuthContextValue {
   loading: boolean;
   /** Error message from the last operation */
   error: string | null;
-  /** Start the login flow — sends OTP to email */
+  /** Start the login flow  -  sends OTP to email */
   sendOtp: (apiUrl: string, email: string) => Promise<boolean>;
-  /** Submit OTP code — returns true on success */
+  /** Submit OTP code  -  returns true on success */
   submitOtp: (apiUrl: string, email: string, code: string) => Promise<boolean>;
-  /** Sign out — revokes token and clears state */
+  /** Sign out  -  revokes token and clears state */
   signOut: (apiUrl: string) => Promise<void>;
   /** Re-check auth status against the API */
   recheck: (apiUrl: string) => Promise<void>;
@@ -56,7 +56,7 @@ async function loadToken(): Promise<string | null> {
   try {
     return await vaultGet(VAULT_TOKEN_PATH);
   } catch {
-    // Vault unavailable (browser mode) — fall back to localStorage
+    // Vault unavailable (browser mode)  -  fall back to localStorage
     return localStorage.getItem(LS_TOKEN_KEY);
   }
 }
@@ -125,7 +125,7 @@ export function useAuth(apiUrl: string): AuthContextValue {
           setStep('email');
         }
       } catch {
-        // API unreachable — allow offline access if token exists
+        // API unreachable  -  allow offline access if token exists
         if (tokenRef.current) {
           setStep('authenticated');
         } else {
@@ -149,7 +149,7 @@ export function useAuth(apiUrl: string): AuthContextValue {
     const delay = refreshAt - Date.now();
 
     if (delay <= 0) {
-      // Already within refresh window — refresh now
+      // Already within refresh window  -  refresh now
       refreshToken(apiUrl, tokenRef.current)
         .then(async (res) => {
           if (res.success && res.token) {
@@ -257,7 +257,7 @@ export function useAuth(apiUrl: string): AuthContextValue {
         setStep('email');
       }
     } catch {
-      // API unreachable — keep current state
+      // API unreachable  -  keep current state
     }
   }
 

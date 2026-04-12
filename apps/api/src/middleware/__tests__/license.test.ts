@@ -43,7 +43,7 @@ const mockedIsFeatureEnabled = vi.mocked(isFeatureEnabled);
 const mockedGetX402Config = vi.mocked(getX402Config);
 const mockedVerifyPayment = vi.mocked(verifyPayment);
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per endpoint
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per endpoint
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
@@ -59,7 +59,7 @@ function createApp(
       await next();
     });
   }
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — middleware type is flexible
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  middleware type is flexible
   app.use('/protected/*', middleware as any);
   app.get('/protected/resource', (c) => c.json({ ok: true }));
   app.onError(errorHandler);
@@ -145,9 +145,9 @@ describe('requireLicense', () => {
 });
 
 // ---------------------------------------------------------------------------
-// requireLicense — x402 enabled
+// requireLicense  -  x402 enabled
 // ---------------------------------------------------------------------------
-describe('requireLicense — x402', () => {
+describe('requireLicense  -  x402', () => {
   beforeEach(() => {
     mockedGetX402Config.mockReturnValue({
       enabled: true,
@@ -311,9 +311,9 @@ describe('requireFeature', () => {
 });
 
 // ---------------------------------------------------------------------------
-// requireFeature — x402 enabled
+// requireFeature  -  x402 enabled
 // ---------------------------------------------------------------------------
-describe('requireFeature — x402', () => {
+describe('requireFeature  -  x402', () => {
   beforeEach(() => {
     mockedGetX402Config.mockReturnValue({
       enabled: true,

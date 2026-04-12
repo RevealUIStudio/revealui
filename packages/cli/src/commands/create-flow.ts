@@ -25,7 +25,7 @@ async function checkProLicense(): Promise<boolean> {
       const parsed = JSON.parse(readFileSync(licenseFile, 'utf8')) as { key?: string };
       key = parsed.key;
     } catch {
-      // No license file — free tier
+      // No license file  -  free tier
     }
   }
 
@@ -62,7 +62,7 @@ async function checkProLicense(): Promise<boolean> {
 
 function printBanner(): void {
   logger.divider();
-  logger.info('  RevealUI — Agentic Business Runtime');
+  logger.info('  RevealUI  -  Agentic Business Runtime');
   logger.info('  Build your business, not your boilerplate.');
   logger.divider();
   logger.info('');
@@ -83,8 +83,8 @@ function printPostCreateSummary(projectName: string): void {
   logger.info(`    ./${projectName}/README.md  — getting started guide`);
   logger.info('');
   logger.info('  RevealUI ecosystem:');
-  logger.info('    Studio:   Native AI experience — agent hub, local inference, dev environment');
-  logger.info('    Terminal: TUI client — run `revealui terminal install`');
+  logger.info('    Studio:   Native AI experience  -  agent hub, local inference, dev environment');
+  logger.info('    Terminal: TUI client  -  run `revealui terminal install`');
   logger.info('    admin:      Admin dashboard at your-domain.com/admin');
   logger.info('');
   logger.info('  Helpful links:');
@@ -123,9 +123,9 @@ function formatCreateError(err: unknown): void {
 
   logger.info('');
   logger.info('  Troubleshooting:');
-  logger.info('    revealui doctor       — diagnose your environment');
+  logger.info('    revealui doctor        -  diagnose your environment');
   logger.info('    https://docs.revealui.com/docs/TROUBLESHOOTING');
-  logger.info('    support@revealui.com  — we are here to help');
+  logger.info('    support@revealui.com   -  we are here to help');
   logger.divider();
 }
 

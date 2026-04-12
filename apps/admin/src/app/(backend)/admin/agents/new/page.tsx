@@ -241,7 +241,7 @@ export default function NewAgentPage() {
 
         <div className="mx-auto max-w-2xl p-6">
           <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-            {/* Step 1 — Template */}
+            {/* Step 1  -  Template */}
             <section>
               <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-zinc-500">
                 1. Choose a template
@@ -283,7 +283,7 @@ export default function NewAgentPage() {
               </div>
             </section>
 
-            {/* Step 2 — Details (shown after template selection) */}
+            {/* Step 2  -  Details (shown after template selection) */}
             {selectedTemplate && (
               <section className="flex flex-col gap-4">
                 <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-500">

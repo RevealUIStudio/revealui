@@ -1,5 +1,5 @@
 /**
- * TranslationLayer — Layer 5 of the Autonomous Agent Architecture.
+ * TranslationLayer  -  Layer 5 of the Autonomous Agent Architecture.
  *
  * Normalizes operations into a common interface so that RevealUI's native
  * agents can perform file, git, test, and inference operations through a
@@ -53,7 +53,7 @@ const LLM_TIMEOUT = 120_000;
 const DEFAULT_INFERENCE_ENDPOINT = 'http://localhost:9090';
 
 /**
- * Native agent implementation — uses Node.js APIs and local inference.
+ * Native agent implementation  -  uses Node.js APIs and local inference.
  *
  * Code generation uses an OpenAI-compatible endpoint (Snap, Ollama, or
  * any compatible server) rather than vendor-specific CLI tools.

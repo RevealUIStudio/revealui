@@ -1,5 +1,5 @@
 /**
- * Tests for relationships/population.ts — relationshipPopulationPromise
+ * Tests for relationships/population.ts  -  relationshipPopulationPromise
  *
  * The populate() inner function dynamically imports populate-helpers.js.
  * We mock the helpers and verify the orchestration logic at the function level.

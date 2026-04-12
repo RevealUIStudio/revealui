@@ -4,7 +4,7 @@
  * POST /api/auth/passkey/authenticate-verify
  *
  * Verifies a WebAuthn authentication response and creates a session.
- * Passkeys are inherently MFA — no TOTP check required.
+ * Passkeys are inherently MFA  -  no TOTP check required.
  */
 
 import { rotateSession, verifyAuthentication, verifyCookiePayload } from '@revealui/auth/server';
@@ -120,7 +120,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
       );
     }
 
-    // Passkeys are inherently MFA — create session directly (no TOTP check)
+    // Passkeys are inherently MFA  -  create session directly (no TOTP check)
     const userAgent = request.headers.get('user-agent') ?? undefined;
     const ipAddress =
       request.headers.get('x-real-ip') ||
@@ -155,7 +155,7 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
           ? (() => {
               if (!process.env.SESSION_COOKIE_DOMAIN) {
                 logger.error(
-                  'SESSION_COOKIE_DOMAIN env var is required in production — session cookie will not be set cross-subdomain',
+                  'SESSION_COOKIE_DOMAIN env var is required in production  -  session cookie will not be set cross-subdomain',
                 );
               }
               return process.env.SESSION_COOKIE_DOMAIN ?? undefined;

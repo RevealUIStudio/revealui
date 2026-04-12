@@ -2,19 +2,19 @@
  * Billing Metrics & RVUI Payment Tests
  *
  * Covers:
- * - GET /metrics — admin-only revenue metrics endpoint
+ * - GET /metrics  -  admin-only revenue metrics endpoint
  *   - Auth/access control (401, 403)
  *   - Date range validation (invalid, future, reversed, >365d)
  *   - Response shape (subscription counts, tier breakdown, MRR, events)
  *   - MRR fallback pricing when catalog is empty
- * - POST /rvui-payment — disabled endpoint (501)
+ * - POST /rvui-payment  -  disabled endpoint (501)
  */
 
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockCustomersCreate = vi.fn();
 const mockCheckoutSessionsCreate = vi.fn();
@@ -337,10 +337,10 @@ function queueSelectResults(...results: unknown[][]) {
 
 /**
  * Queue the 4 DB results that GET /metrics expects:
- *  1. [{ activeCount, uniqueCustomers }] — subscription stats
- *  2. [{ tier, tierCount }] — tier breakdown rows
- *  3. [{ tier, metadata }] — catalog prices
- *  4. [{ eventType, processedAt }] — recent events (via .limit())
+ *  1. [{ activeCount, uniqueCustomers }]  -  subscription stats
+ *  2. [{ tier, tierCount }]  -  tier breakdown rows
+ *  3. [{ tier, metadata }]  -  catalog prices
+ *  4. [{ eventType, processedAt }]  -  recent events (via .limit())
  */
 function queueMetricsResults(opts: {
   subStats?: { activeCount: number; uniqueCustomers: number };
@@ -362,10 +362,10 @@ function queueMetricsResults(opts: {
 
 describe('Billing Metrics & RVUI Payment', { timeout: 60_000 }, () => {
   // ──────────────────────────────────────────────────────────────────────────
-  // Section A: GET /metrics — Auth & Access Control
+  // Section A: GET /metrics  -  Auth & Access Control
   // ──────────────────────────────────────────────────────────────────────────
 
-  describe('GET /metrics — Auth & Access Control', () => {
+  describe('GET /metrics  -  Auth & Access Control', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       resetChains();
@@ -407,10 +407,10 @@ describe('Billing Metrics & RVUI Payment', { timeout: 60_000 }, () => {
   });
 
   // ──────────────────────────────────────────────────────────────────────────
-  // Section B: GET /metrics — Date Range Validation
+  // Section B: GET /metrics  -  Date Range Validation
   // ──────────────────────────────────────────────────────────────────────────
 
-  describe('GET /metrics — Date Range Validation', () => {
+  describe('GET /metrics  -  Date Range Validation', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       resetChains();
@@ -484,10 +484,10 @@ describe('Billing Metrics & RVUI Payment', { timeout: 60_000 }, () => {
   });
 
   // ──────────────────────────────────────────────────────────────────────────
-  // Section C: GET /metrics — Response Data
+  // Section C: GET /metrics  -  Response Data
   // ──────────────────────────────────────────────────────────────────────────
 
-  describe('GET /metrics — Response Data', () => {
+  describe('GET /metrics  -  Response Data', () => {
     beforeEach(() => {
       vi.clearAllMocks();
       resetChains();
@@ -618,7 +618,7 @@ describe('Billing Metrics & RVUI Payment', { timeout: 60_000 }, () => {
         ],
         catalogRows: [
           { tier: 'pro', metadata: { unitAmountCents: 3900 } }, // custom price
-          // enterprise not in catalog — falls back to 29900
+          // enterprise not in catalog  -  falls back to 29900
         ],
       });
 
@@ -670,7 +670,7 @@ describe('Billing Metrics & RVUI Payment', { timeout: 60_000 }, () => {
   });
 
   // ──────────────────────────────────────────────────────────────────────────
-  // Section D: POST /rvui-payment — Disabled Endpoint
+  // Section D: POST /rvui-payment  -  Disabled Endpoint
   // ──────────────────────────────────────────────────────────────────────────
 
   describe('POST /rvui-payment', () => {

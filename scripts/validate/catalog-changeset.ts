@@ -6,7 +6,7 @@
  * Detects when pnpm catalog entries used as runtime dependencies in published
  * packages have changed, but no changeset exists for the affected packages.
  *
- * Only checks `dependencies` and `peerDependencies` — devDependencies don't
+ * Only checks `dependencies` and `peerDependencies`  -  devDependencies don't
  * ship in published packages and don't need changesets.
  *
  * Usage:

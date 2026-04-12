@@ -1,9 +1,9 @@
 /**
  * Proxy Route Tests
  *
- * GET/POST  /api/globals/[slug]                — fetch proxy to API globals
- * GET/POST  /api/collections/[collection]       — fetch proxy with 503 on error
- * GET/PATCH/DELETE /api/collections/[collection]/[id] — fetch proxy with raw text error
+ * GET/POST  /api/globals/[slug]                 -  fetch proxy to API globals
+ * GET/POST  /api/collections/[collection]        -  fetch proxy with 503 on error
+ * GET/PATCH/DELETE /api/collections/[collection]/[id]  -  fetch proxy with raw text error
  */
 
 import { NextRequest } from 'next/server';
@@ -16,7 +16,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
-// Mock auth — proxy routes now require a valid session
+// Mock auth  -  proxy routes now require a valid session
 vi.mock('@revealui/auth/server', () => ({
   getSession: vi.fn().mockResolvedValue({ userId: 'test-user', token: 'tok' }),
 }));
@@ -67,7 +67,7 @@ function makeUpstreamError(status: number, text = 'upstream error') {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — GET /api/globals/[slug]
+// Tests  -  GET /api/globals/[slug]
 // ---------------------------------------------------------------------------
 
 describe('GET /api/globals/[slug]', () => {
@@ -111,7 +111,7 @@ describe('GET /api/globals/[slug]', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — POST /api/globals/[slug]
+// Tests  -  POST /api/globals/[slug]
 // ---------------------------------------------------------------------------
 
 describe('POST /api/globals/[slug]', () => {
@@ -145,7 +145,7 @@ describe('POST /api/globals/[slug]', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — GET /api/collections/[collection]
+// Tests  -  GET /api/collections/[collection]
 // ---------------------------------------------------------------------------
 
 describe('GET /api/collections/[collection]', () => {
@@ -184,7 +184,7 @@ describe('GET /api/collections/[collection]', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — POST /api/collections/[collection]
+// Tests  -  POST /api/collections/[collection]
 // ---------------------------------------------------------------------------
 
 describe('POST /api/collections/[collection]', () => {
@@ -218,7 +218,7 @@ describe('POST /api/collections/[collection]', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — GET /api/collections/[collection]/[id]
+// Tests  -  GET /api/collections/[collection]/[id]
 // ---------------------------------------------------------------------------
 
 describe('GET /api/collections/[collection]/[id]', () => {
@@ -248,7 +248,7 @@ describe('GET /api/collections/[collection]/[id]', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — PATCH /api/collections/[collection]/[id]
+// Tests  -  PATCH /api/collections/[collection]/[id]
 // ---------------------------------------------------------------------------
 
 describe('PATCH /api/collections/[collection]/[id]', () => {
@@ -282,7 +282,7 @@ describe('PATCH /api/collections/[collection]/[id]', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — DELETE /api/collections/[collection]/[id]
+// Tests  -  DELETE /api/collections/[collection]/[id]
 // ---------------------------------------------------------------------------
 
 describe('DELETE /api/collections/[collection]/[id]', () => {

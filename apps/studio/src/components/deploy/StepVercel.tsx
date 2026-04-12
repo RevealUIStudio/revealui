@@ -134,7 +134,7 @@ export default function StepVercel({
 
           {validated && (
             <span className="text-sm text-green-400">
-              Connected — {Object.keys(linkedProjects).length} project
+              Connected - {Object.keys(linkedProjects).length} project
               {Object.keys(linkedProjects).length !== 1 ? 's' : ''} linked
             </span>
           )}

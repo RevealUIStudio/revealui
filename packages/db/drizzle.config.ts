@@ -4,7 +4,7 @@ import { defineConfig } from 'drizzle-kit';
 // POSTGRES_URL or DATABASE_URL should be set by the calling script
 const dbUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL ?? '';
 
-// Only warn at configure time — generate works without a live connection.
+// Only warn at configure time  -  generate works without a live connection.
 // Avoid console.* (banned by pre-commit hook); use process.stderr directly.
 if (!dbUrl && process.env.DRIZZLE_REQUIRE_URL !== 'false') {
   process.stderr.write(

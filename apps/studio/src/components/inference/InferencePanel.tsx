@@ -1,5 +1,5 @@
 /**
- * InferencePanel — local AI inference management
+ * InferencePanel  -  local AI inference management
  *
  * Two engines: Ubuntu Inference Snaps (recommended), Ollama (fallback).
  * Shows installed status, available models, install/pull/delete, server start/stop.
@@ -43,7 +43,7 @@ export default function InferencePanel() {
         <div>
           <h1 className="text-base font-semibold text-neutral-200">Local Inference</h1>
           <p className="mt-0.5 text-xs text-neutral-500">
-            Manage local AI models — no cloud, no API keys, fully sovereign
+            Manage local AI models - no cloud, no API keys, fully sovereign
           </p>
         </div>
         <button
@@ -77,7 +77,7 @@ export default function InferencePanel() {
             </span>
           </div>
           <p className="mt-1 text-[11px] text-neutral-500">
-            Ubuntu Inference Snaps — one command install
+            Ubuntu Inference Snaps - one command install
           </p>
           <div className="mt-3">
             {snaps.some((s) => s.installed) ? (
@@ -110,7 +110,7 @@ export default function InferencePanel() {
             ) : null}
           </div>
           <p className="mt-1 text-[11px] text-neutral-500">
-            Run open models — Gemma, Qwen, Mistral
+            Run open models - Gemma, Qwen, Mistral
           </p>
           <div className="mt-3 flex items-center gap-2">
             {ollama?.installed ? (
@@ -252,7 +252,7 @@ export default function InferencePanel() {
         ) : (
           <p className="py-6 text-center text-xs text-neutral-600">
             {ollama?.running
-              ? 'No models downloaded yet — pull one above'
+              ? 'No models downloaded yet  -  pull one above'
               : ollama?.installed
                 ? 'Start the Ollama server to manage models'
                 : 'Install Ollama to download and run models locally'}

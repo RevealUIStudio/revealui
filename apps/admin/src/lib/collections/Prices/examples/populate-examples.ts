@@ -64,12 +64,12 @@ export async function lazyPopulatePrices(revealui: RevealUIInstance) {
     depth: 0, // No population
   });
 
-  // Example only — log removed for production
+  // Example only  -  log removed for production
 
   // Step 2: Populate relationships when needed (e.g., user clicks "Show details")
   const firstPrice = result.docs[0];
   if (firstPrice) {
-    // Fully hydrate the price — use the result in your application code
+    // Fully hydrate the price  -  use the result in your application code
     await revealui.populate('prices', firstPrice, {
       depth: 1,
     });

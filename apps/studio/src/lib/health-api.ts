@@ -25,7 +25,7 @@ export interface HealthResponse {
 // ── Client ──────────────────────────────────────────────────────────────────
 
 /**
- * Fetch the readiness probe from the API. Public endpoint — no auth needed.
+ * Fetch the readiness probe from the API. Public endpoint  -  no auth needed.
  * Returns null if the API is unreachable (network error).
  */
 export async function fetchHealth(apiUrl: string): Promise<HealthResponse | null> {

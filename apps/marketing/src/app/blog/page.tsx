@@ -7,10 +7,10 @@ import { getPosts } from '@/lib/blog';
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: 'Blog — RevealUI',
+  title: 'Blog | RevealUI',
   description: 'Updates, guides, and insights from the RevealUI team.',
   openGraph: {
-    title: 'Blog — RevealUI',
+    title: 'Blog | RevealUI',
     description: 'Updates, guides, and insights from the RevealUI team.',
     type: 'website',
   },
@@ -28,7 +28,7 @@ function getExcerpt(content: unknown): string {
   if (typeof content === 'string') {
     return content.length > 160 ? `${content.slice(0, 160)}...` : content;
   }
-  // Lexical JSON — extract text from root.children paragraphs
+  // Lexical JSON  -  extract text from root.children paragraphs
   if (content && typeof content === 'object' && 'root' in content) {
     const root = (
       content as { root: { children?: Array<{ children?: Array<{ text?: string }> }> } }

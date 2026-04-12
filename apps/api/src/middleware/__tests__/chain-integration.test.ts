@@ -64,7 +64,7 @@ import { rateLimitMiddleware } from '../rate-limit.js';
 const mockedGetSession = vi.mocked(getSession);
 const mockedCheckRateLimit = vi.mocked(checkRateLimit);
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — mock session data
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  mock session data
 function mockSession(overrides?: Record<string, unknown>): any {
   return {
     user: {
@@ -87,7 +87,7 @@ beforeEach(() => {
   });
 });
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono Variables type requires loose typing
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono Variables type requires loose typing
 type Vars = { user: any; session: any };
 
 // ─── Full Chain: rate-limit → auth → role ─────────────────────────────────

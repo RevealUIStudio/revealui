@@ -157,7 +157,7 @@ export class DrizzleGDPRStorage implements GDPRStorage {
  * Database-backed BreachStorage implementation using Drizzle ORM.
  *
  * Persists data breach records to PostgreSQL via the gdpr_breaches table.
- * Required for GDPR compliance — breach records must survive restarts.
+ * Required for GDPR compliance  -  breach records must survive restarts.
  */
 export class DrizzleBreachStorage implements BreachStorage {
   private get db() {

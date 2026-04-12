@@ -1,5 +1,5 @@
 /**
- * @revealui/cache — Caching infrastructure for RevealUI applications.
+ * @revealui/cache  -  Caching infrastructure for RevealUI applications.
  *
  * - cdn-config: Cache-Control headers, CDN purge, Vercel/Cloudflare config
  * - edge-cache: Next.js ISR presets, revalidation, edge middleware helpers

@@ -7,7 +7,7 @@
  * Only initialised when first accessed so the module can be imported at the
  * top of any collection config without causing issues at build time.
  *
- * @revealui/ai is an optional Pro dependency — getIndexer() returns null
+ * @revealui/ai is an optional Pro dependency  -  getIndexer() returns null
  * when the package is not installed.
  */
 

@@ -35,7 +35,7 @@ import type { MCPHypervisor, MCPTenantContext } from './hypervisor.js';
 export interface PipelineStep {
   /** Namespaced tool name (e.g., @@mcp_stripe_create_payment_intent) */
   tool: string;
-  /** Parameters — can reference previous step outputs via $ref syntax */
+  /** Parameters  -  can reference previous step outputs via $ref syntax */
   params: Record<string, unknown>;
   /** Optional: only run if condition is met */
   when?: (previousResults: Map<string, unknown>) => boolean;
@@ -220,7 +220,7 @@ function extractResponseData(response: unknown): unknown {
       try {
         return JSON.parse((first as { text: string }).text);
       } catch {
-        // Not JSON — return raw text
+        // Not JSON  -  return raw text
         return (first as { text: string }).text;
       }
     }

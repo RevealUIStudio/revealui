@@ -15,14 +15,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://revealui.com'),
-  title: 'RevealUI — Agentic Business Runtime',
+  title: 'RevealUI | Agentic Business Runtime',
   description:
-    'Agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and part of a four-project ecosystem for building, securing, and monetizing agentic software.',
+    'Agentic business runtime. Users, content, products, payments, and AI, pre-wired, open source, and part of a four-project ecosystem for building, securing, and monetizing agentic software.',
   keywords: [
     'open source',
     'agentic business runtime',
     'JOSHUA Stack',
-    'SaaS',
+    'software product',
     'auth',
     'billing',
     'AI agents',
@@ -36,24 +36,24 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'RevealUI Studio' }],
   openGraph: {
-    title: 'RevealUI — Agentic Business Runtime. Build your business, not your boilerplate.',
+    title: 'RevealUI | Agentic Business Runtime. Build your business, not your boilerplate.',
     description:
-      'Agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
+      'Agentic business runtime. Users, content, products, payments, and AI, pre-wired, open source, and ready to deploy.',
     type: 'website',
     images: [
       {
         url: '/api/og?title=RevealUI&description=Agentic business runtime. Build your business, not your boilerplate.',
         width: 1200,
         height: 630,
-        alt: 'RevealUI — Agentic Business Runtime',
+        alt: 'RevealUI | Agentic Business Runtime',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RevealUI — Agentic Business Runtime. Build your business, not your boilerplate.',
+    title: 'RevealUI | Agentic Business Runtime. Build your business, not your boilerplate.',
     description:
-      'Agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.',
+      'Agentic business runtime. Users, content, products, payments, and AI, pre-wired, open source, and ready to deploy.',
     images: [
       '/api/og?title=RevealUI&description=Agentic business runtime. Build your business, not your boilerplate.',
     ],

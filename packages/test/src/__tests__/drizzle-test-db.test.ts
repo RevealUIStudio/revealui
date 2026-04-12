@@ -155,7 +155,7 @@ describe('createTestDb isolation', () => {
     const db2Rows = await db2.drizzle.select().from(users).where(eq(users.id, 'iso-1'));
 
     expect(db1Rows).toHaveLength(1);
-    expect(db2Rows).toHaveLength(0); // isolated — no data leakage
+    expect(db2Rows).toHaveLength(0); // isolated  -  no data leakage
 
     await db1.close();
     await db2.close();

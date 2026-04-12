@@ -24,7 +24,7 @@ RevealUI has **~20,000 test cases across 1,300+ test files**.
 
 ### Test Infrastructure Package
 
-`@revealui/test` — shared fixtures, mocks, and test utilities used across the monorepo.
+`@revealui/test`  -  shared fixtures, mocks, and test utilities used across the monorepo.
 
 ## Running Tests
 
@@ -69,7 +69,7 @@ Standard Vitest tests. Each package has its own test suite. Run with `pnpm --fil
 **Key conventions:**
 - Use `vi.mock()` for module mocking (Vitest 4 requires `class` syntax in mock factories)
 - Use `@revealui/test` fixtures instead of creating ad-hoc test data
-- Database tests use PGlite (in-memory PostgreSQL) — no real DB needed
+- Database tests use PGlite (in-memory PostgreSQL)  -  no real DB needed
 - Test files must not import from `@revealui/ai` or `@revealui/harnesses` statically
 
 ### Integration Tests
@@ -102,9 +102,9 @@ pnpm test:e2e -- --ui
 ```
 
 **E2E test phases in CI (main branch only):**
-1. **Smoke tests** — basic page loads and API responses
-2. **Accessibility** — WCAG compliance checks
-3. **Visual regression** — screenshot comparison against committed baselines
+1. **Smoke tests**  -  basic page loads and API responses
+2. **Accessibility**  -  WCAG compliance checks
+3. **Visual regression**  -  screenshot comparison against committed baselines
 
 ### Visual Regression
 
@@ -118,7 +118,7 @@ git add e2e/__snapshots__/
 
 ## Database Tests
 
-Database tests use **PGlite** — an in-memory PostgreSQL implementation that requires no running database. This means:
+Database tests use **PGlite**  -  an in-memory PostgreSQL implementation that requires no running database. This means:
 
 - Tests are fast (no network round-trips)
 - Tests are isolated (fresh database per test or describe block)
@@ -162,13 +162,13 @@ Feature branches run quality-only gates (lint + typecheck) via the pre-push hook
 
 ### New Package
 
-Every new package must have at least one test file. The CI coverage gate enforces this — packages with >100 LOC and zero test files are flagged.
+Every new package must have at least one test file. The CI coverage gate enforces this  -  packages with >100 LOC and zero test files are flagged.
 
 ### Conventions
 
 1. **Test file naming:** `*.test.ts` (unit) or `*.integration.test.ts` (integration)
 2. **Describe blocks:** Match the module or function being tested
-3. **Test isolation:** Each test should be independent — no shared mutable state
+3. **Test isolation:** Each test should be independent  -  no shared mutable state
 4. **No `any` in tests:** Use typed mocks via `@revealui/test` fixtures
 5. **PGlite for DB:** Never require a running database for unit tests
-6. **Conditional E2E skips:** E2E tests that require credentials use `test.skip()` with a condition — not unconditional skips
+6. **Conditional E2E skips:** E2E tests that require credentials use `test.skip()` with a condition  -  not unconditional skips

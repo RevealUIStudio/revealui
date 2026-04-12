@@ -8,7 +8,7 @@
  */
 
 export async function register() {
-  // Only run in the Node.js runtime — Edge loads this file during build analysis.
+  // Only run in the Node.js runtime  -  Edge loads this file during build analysis.
   if ('EdgeRuntime' in globalThis) {
     return;
   }
@@ -23,16 +23,16 @@ export async function register() {
 
     // Initialize license cache so feature gates work immediately on cold start.
     // Without this, isFeatureEnabled() defaults to 'free' until a sign-in route
-    // triggers initializeLicense() lazily — causing Pro users to be denied on
+    // triggers initializeLicense() lazily  -  causing Pro users to be denied on
     // the first request to AI routes after a cold deploy.
     try {
       const { initializeLicense } = await import('@revealui/core/license');
       await initializeLicense();
     } catch {
-      // Non-fatal — license defaults to free tier if initialization fails
+      // Non-fatal  -  license defaults to free tier if initialization fails
     }
 
-    // Never throw from instrumentation — it kills the entire runtime
+    // Never throw from instrumentation  -  it kills the entire runtime
     // Log errors but allow the app to start regardless
     try {
       const result = validateRequiredEnvVars({
@@ -59,7 +59,7 @@ export async function register() {
         version: process.env.npm_package_version,
       });
 
-      // Wire log transport — POST warn+ entries to API (avoids Edge bundling issues).
+      // Wire log transport  -  POST warn+ entries to API (avoids Edge bundling issues).
       // Next.js statically traces ALL imports in instrumentation.ts (even dynamic ones),
       // so we use fetch() instead of importing @revealui/db directly.
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com';
@@ -76,7 +76,7 @@ export async function register() {
 
         const data: Record<string, unknown> = {};
         if (entry.context && Object.keys(entry.context).length > 0) {
-          // Copy only safe keys — never forward credentials or prototype-poisoning keys
+          // Copy only safe keys  -  never forward credentials or prototype-poisoning keys
           const BlockedKeys = new Set([
             'password',
             'secret',

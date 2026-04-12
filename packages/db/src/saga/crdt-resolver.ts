@@ -1,5 +1,5 @@
 /**
- * CRDT Resolver — Conflict Resolution Bridge
+ * CRDT Resolver  -  Conflict Resolution Bridge
  *
  * Bridges the existing CRDT classes from @revealui/ai/memory/crdt with
  * Drizzle ORM operations for conflict-free concurrent writes over NeonDB.
@@ -8,7 +8,7 @@
  * 1. PNCounter for commutative balance updates (agent credits, usage metrics)
  * 2. LWWRegister for last-writer-wins value updates with optimistic concurrency
  *
- * These patterns handle concurrent writes without coordination — the CRDT
+ * These patterns handle concurrent writes without coordination  -  the CRDT
  * merge function resolves conflicts deterministically.
  *
  * @example
@@ -50,7 +50,7 @@ export interface CRDTSetResult<T> {
 }
 
 // =============================================================================
-// PNCounter Pattern — Commutative Increments/Decrements
+// PNCounter Pattern  -  Commutative Increments/Decrements
 // =============================================================================
 
 /**
@@ -58,7 +58,7 @@ export interface CRDTSetResult<T> {
  *
  * This is naturally idempotent-safe when combined with an idempotency key.
  * Under the hood it uses `SET column = column + delta` which is atomic in
- * a single SQL statement — no CRDT serialization needed for simple counters.
+ * a single SQL statement  -  no CRDT serialization needed for simple counters.
  *
  * For distributed multi-node scenarios where each node tracks its own
  * counter state, use the full PNCounter class from @revealui/ai/memory/crdt.
@@ -98,7 +98,7 @@ export async function crdtIncrement(
 }
 
 // =============================================================================
-// LWW Register Pattern — Last-Writer-Wins with Optimistic Concurrency
+// LWW Register Pattern  -  Last-Writer-Wins with Optimistic Concurrency
 // =============================================================================
 
 /**
@@ -119,7 +119,7 @@ function supportsTransactions(db: Database): db is TransactionalDatabase {
  * SELECT FOR UPDATE inside a real transaction for true atomic check-and-set.
  *
  * When running on NeonDB HTTP (no transaction support), falls back to a
- * best-effort single-statement UPDATE — still safe for single-row writes
+ * best-effort single-statement UPDATE  -  still safe for single-row writes
  * but without the isolation guarantee of FOR UPDATE.
  *
  * @param db - Database client (pg Pool for true locking, NeonDB HTTP for best-effort)
@@ -136,12 +136,12 @@ export async function crdtSetWithOptimisticLock(
   updates: Record<string, unknown>,
   timestampColumn: string = 'updatedAt',
 ): Promise<{ retries: number; success: boolean }> {
-  // pg Pool path — true transactional SELECT FOR UPDATE
+  // pg Pool path  -  true transactional SELECT FOR UPDATE
   if (supportsTransactions(db)) {
     return crdtSetTransactional(db, table, whereClause, updates, timestampColumn);
   }
 
-  // NeonDB HTTP fallback — best-effort single-statement update
+  // NeonDB HTTP fallback  -  best-effort single-statement update
   return crdtSetBestEffort(db, table, whereClause, updates, timestampColumn);
 }
 
@@ -161,7 +161,7 @@ async function crdtSetTransactional(
   while (retries < MAX_RETRIES) {
     try {
       const success = await db.transaction(async (tx) => {
-        // Lock the row — blocks concurrent writers until this tx commits
+        // Lock the row  -  blocks concurrent writers until this tx commits
         const rows = await tx.select().from(table).where(whereClause).for('update').limit(1);
 
         if (rows.length === 0) {
@@ -207,7 +207,7 @@ async function crdtSetTransactional(
 
 /**
  * Best-effort single-statement UPDATE for NeonDB HTTP.
- * No true isolation — relies on the write being a single atomic statement.
+ * No true isolation  -  relies on the write being a single atomic statement.
  */
 async function crdtSetBestEffort(
   db: Database,

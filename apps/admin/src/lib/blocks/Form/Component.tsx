@@ -185,7 +185,7 @@ export const FormBlock = memo(({ enableIntro, form, introContent }: Props) => {
                 }
                 router.push(parsed.pathname + parsed.search);
               } catch {
-                // Relative path — safe to push directly
+                // Relative path  -  safe to push directly
                 router.push(url);
               }
             }

@@ -5,7 +5,7 @@ import { Footer } from '@/components/Footer';
 import { WhitepaperRenderer } from '@/components/WhitepaperRenderer';
 
 export const metadata: Metadata = {
-  title: 'Whitepaper — RevealCoin',
+  title: 'Whitepaper  -  RevealCoin',
   description:
     'RevealCoin (RVC): A Hybrid Utility, Governance, and Reward Token for the RevealUI Ecosystem.',
 };

@@ -1,5 +1,5 @@
 /**
- * AgentTerminalPane — embedded terminal for daemon-managed agent sessions.
+ * AgentTerminalPane  -  embedded terminal for daemon-managed agent sessions.
  *
  * Left sidebar: list of active sessions + "New Agent" button.
  * Main area: xterm.js terminal connected to the selected session via
@@ -79,7 +79,7 @@ export default function AgentTerminalPane() {
     }
 
     // Browser fallback: no streaming, just show status
-    terminal.writeln('\x1b[90m(Browser mode — PTY streaming requires Tauri desktop)\x1b[0m');
+    terminal.writeln('\x1b[90m(Browser mode  -  PTY streaming requires Tauri desktop)\x1b[0m');
     return undefined;
   }, [activeSession]);
 
@@ -145,7 +145,7 @@ export default function AgentTerminalPane() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden md:flex-row">
-      {/* Sidebar — session list */}
+      {/* Sidebar  -  session list */}
       <div className="flex w-full flex-col border-b border-neutral-800 md:w-56 md:border-r md:border-b-0">
         <div className="flex items-center justify-between border-b border-neutral-800 px-3 py-2">
           <span className="text-sm font-medium text-neutral-300">
@@ -198,7 +198,7 @@ export default function AgentTerminalPane() {
         </div>
       </div>
 
-      {/* Main area — terminal */}
+      {/* Main area  -  terminal */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {activeSession ? (
           <TerminalView onData={handleData} onResize={handleResize} terminalRef={terminalRef} />

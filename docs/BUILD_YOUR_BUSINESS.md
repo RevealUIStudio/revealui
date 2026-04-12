@@ -1,13 +1,13 @@
 ---
 title: "Build Your First Business"
-description: "Step-by-step tutorial for building a SaaS product with RevealUI"
+description: "Step-by-step tutorial for building a software product with RevealUI"
 category: tutorial
 audience: developer
 ---
 
 # Build Your First Business with RevealUI
 
-This tutorial walks you from zero to a deployed SaaS product in under an hour. You'll build a simple product catalog with user accounts, billing, and an admin dashboard — the same foundation you'd use for any software business.
+This tutorial walks you from zero to a deployed product in under an hour. You'll build a simple product catalog with user accounts, billing, and an admin dashboard  -  the same foundation you'd use for any software business.
 
 **What you'll build:** A product catalog where users can sign up, browse products, and purchase a Pro subscription.
 
@@ -114,7 +114,7 @@ Register it in your admin config (`apps/admin/src/collections/index.ts`):
 export { Products } from "./products.js";
 ```
 
-Now visit [http://localhost:4000/admin/products](http://localhost:4000/admin/products). You have a full CRUD interface for products — no additional code needed.
+Now visit [http://localhost:4000/admin/products](http://localhost:4000/admin/products). You have a full CRUD interface for products  -  no additional code needed.
 
 The REST API is live at:
 
@@ -351,23 +351,23 @@ curl https://your-api.vercel.app/health
 
 ## What you built
 
-In ~45 minutes you went from nothing to a deployed SaaS application with:
+In ~45 minutes you went from nothing to a deployed application with:
 
-- **User accounts** — sign up, sign in, sessions, password reset, RBAC
-- **Product catalog** — defined in TypeScript, with a full REST API and admin UI
-- **Stripe billing** — checkout, subscriptions, webhooks, license tracking
-- **Feature gating** — routes and components that check subscription tier
-- **Admin dashboard** — manage products, users, and billing from a browser
+- **User accounts**  -  sign up, sign in, sessions, password reset, RBAC
+- **Product catalog**  -  defined in TypeScript, with a full REST API and admin UI
+- **Stripe billing**  -  checkout, subscriptions, webhooks, license tracking
+- **Feature gating**  -  routes and components that check subscription tier
+- **Admin dashboard**  -  manage products, users, and billing from a browser
 
-This is the foundation. The five primitives — Users, Content, Products, Payments, Intelligence — are all here. Build your business logic on top.
+This is the foundation. The five primitives  -  Users, Content, Products, Payments, Intelligence  -  are all here. Build your business logic on top.
 
 ---
 
 ## Next steps
 
-- **Add more collections** — orders, reviews, blog posts, anything your business needs
-- **Customize the UI** — `packages/presentation` has 58 components to build with
-- **Add AI** — Pro tier adds AI agents; see the [AI guide](./AI.md)
-- **Invite your team** — role-based access control is already wired in
+- **Add more collections**  -  orders, reviews, blog posts, anything your business needs
+- **Customize the UI**  -  `packages/presentation` has 58 components to build with
+- **Add AI**  -  Pro tier adds AI agents; see the [AI guide](./AI.md)
+- **Invite your team**  -  role-based access control is already wired in
 
 Need help? [GitHub Discussions](https://github.com/RevealUIStudio/revealui/discussions) · [Open an issue](https://github.com/RevealUIStudio/revealui/issues)

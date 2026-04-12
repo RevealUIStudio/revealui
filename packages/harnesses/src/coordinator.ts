@@ -30,7 +30,7 @@ export interface CoordinatorOptions {
 }
 
 /**
- * HarnessCoordinator — single entry point for harness-to-harness coordination.
+ * HarnessCoordinator  -  single entry point for harness-to-harness coordination.
  *
  * On start:
  *   1. Auto-detects installed AI harnesses and registers them

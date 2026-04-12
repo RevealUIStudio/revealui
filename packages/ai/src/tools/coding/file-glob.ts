@@ -1,5 +1,5 @@
 /**
- * file_glob — Fast file pattern matching with picomatch-style globs
+ * file_glob  -  Fast file pattern matching with picomatch-style globs
  */
 
 import { readdirSync, statSync } from 'node:fs';

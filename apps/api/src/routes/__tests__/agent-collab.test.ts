@@ -471,7 +471,7 @@ describe('agent-collab route', () => {
     });
   });
 
-  describe('POST /api/collab/agent/edit — additional edge cases', () => {
+  describe('POST /api/collab/agent/edit  -  additional edge cases', () => {
     it('returns 500 with "Unknown error" when applyServerEdit rejects with a non-Error', async () => {
       const mockDoc = new Y.Doc();
 
@@ -525,7 +525,7 @@ describe('agent-collab route', () => {
     });
   });
 
-  describe('POST /api/collab/agent/connect — boundary values', () => {
+  describe('POST /api/collab/agent/connect  -  boundary values', () => {
     it('returns 400 when documentId is an empty string', async () => {
       const app = createApp();
 
@@ -607,7 +607,7 @@ describe('agent-collab route', () => {
     });
   });
 
-  describe('POST /api/collab/agent/edit — documentId validation', () => {
+  describe('POST /api/collab/agent/edit  -  documentId validation', () => {
     it('returns 400 when documentId is an empty string', async () => {
       const app = createApp();
 
@@ -623,14 +623,14 @@ describe('agent-collab route', () => {
     });
   });
 
-  describe('POST /api/collab/agent/connect — WS_BASE_URL env override', () => {
+  describe('POST /api/collab/agent/connect  -  WS_BASE_URL env override', () => {
     afterEach(() => {
       vi.unstubAllEnvs();
     });
 
     it('uses WS_BASE_URL env var in the returned wsUrl', async () => {
       vi.stubEnv('WS_BASE_URL', 'wss://collab.example.com');
-      // Must create app AFTER stubbing env — wsBaseUrl is read at construction time
+      // Must create app AFTER stubbing env  -  wsBaseUrl is read at construction time
       const app = createApp();
 
       const res = await app.request(

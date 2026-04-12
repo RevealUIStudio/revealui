@@ -29,10 +29,10 @@ import {
 } from '../edge-cache.js';
 
 // ---------------------------------------------------------------------------
-// createCachedFunction — edge cases
+// createCachedFunction  -  edge cases
 // ---------------------------------------------------------------------------
 
-describe('createCachedFunction — complex argument keys', () => {
+describe('createCachedFunction  -  complex argument keys', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -114,10 +114,10 @@ describe('createCachedFunction — complex argument keys', () => {
 });
 
 // ---------------------------------------------------------------------------
-// getABTestVariant — empty variants throws
+// getABTestVariant  -  empty variants throws
 // ---------------------------------------------------------------------------
 
-describe('getABTestVariant — error path', () => {
+describe('getABTestVariant  -  error path', () => {
   it('throws when the variants array is empty', () => {
     const request = {
       headers: { get: (_name: string) => '1.2.3.4' },
@@ -129,10 +129,10 @@ describe('getABTestVariant — error path', () => {
 });
 
 // ---------------------------------------------------------------------------
-// revalidatePaths / revalidateTags — rejected (non-Error) promise in allSettled
+// revalidatePaths / revalidateTags  -  rejected (non-Error) promise in allSettled
 // ---------------------------------------------------------------------------
 
-describe('revalidatePaths — error normalization', () => {
+describe('revalidatePaths  -  error normalization', () => {
   const savedEnv = process.env.NEXT_PUBLIC_URL;
 
   beforeEach(() => {
@@ -193,7 +193,7 @@ describe('revalidatePaths — error normalization', () => {
   });
 });
 
-describe('revalidateTags — error normalization', () => {
+describe('revalidateTags  -  error normalization', () => {
   const savedEnv = process.env.NEXT_PUBLIC_URL;
 
   beforeEach(() => {
@@ -255,10 +255,10 @@ describe('revalidateTags — error normalization', () => {
 });
 
 // ---------------------------------------------------------------------------
-// warmISRCache — non-Error rejection reason
+// warmISRCache  -  non-Error rejection reason
 // ---------------------------------------------------------------------------
 
-describe('warmISRCache — non-Error rejection', () => {
+describe('warmISRCache  -  non-Error rejection', () => {
   beforeEach(() => {
     mockFetch.mockReset();
   });

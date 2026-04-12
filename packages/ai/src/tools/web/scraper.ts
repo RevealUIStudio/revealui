@@ -107,7 +107,7 @@ export const webScraperTool: Tool = {
       if (content.length > maxChars) {
         content =
           content.slice(0, maxChars) +
-          ' [content truncated — use document_summarize for full content]';
+          ' [content truncated  -  use document_summarize for full content]';
         truncated = true;
       }
 

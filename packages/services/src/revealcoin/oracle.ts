@@ -134,7 +134,7 @@ export async function fetchRvuiPrice(): Promise<{
     const entry = data[mintAddress];
 
     if (!entry) {
-      // Token has no recent trades — no price available
+      // Token has no recent trades  -  no price available
       logger.debug('No Jupiter price data for RVUI', { mint: mintAddress });
       return null;
     }
@@ -227,7 +227,7 @@ export function startPriceOracle(): void {
   const config = getPriceOracleConfig();
 
   if (!config.apiKey) {
-    logger.info('Jupiter API key not configured — price oracle disabled');
+    logger.info('Jupiter API key not configured  -  price oracle disabled');
     return;
   }
 
@@ -252,7 +252,7 @@ async function tick(config: PriceOracleConfig): Promise<void> {
   if (price === null) {
     consecutiveFailures++;
     if (consecutiveFailures >= config.maxConsecutiveFailures) {
-      logger.error('Price oracle stopped — too many consecutive failures', undefined, {
+      logger.error('Price oracle stopped  -  too many consecutive failures', undefined, {
         failures: consecutiveFailures,
       });
       stopPriceOracle();

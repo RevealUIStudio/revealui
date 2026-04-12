@@ -74,7 +74,7 @@ app.post('/sweep-grace-periods', async (c) => {
             ),
           );
 
-        if (!updated.rowCount) return; // Status already changed — skip this account
+        if (!updated.rowCount) return; // Status already changed  -  skip this account
 
         await tx
           .update(accountSubscriptions)

@@ -553,7 +553,7 @@ export async function withTransaction<T>(
 // =============================================================================
 
 /**
- * Execute a saga — a NeonDB-safe alternative to withTransaction.
+ * Execute a saga  -  a NeonDB-safe alternative to withTransaction.
  *
  * Unlike withTransaction (which requires a pg Pool driver), withSaga works
  * with the NeonDB HTTP driver by modeling multi-step writes as individually

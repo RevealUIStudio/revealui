@@ -958,7 +958,7 @@ describe('universalPostgresAdapter', () => {
 
       await adapter.connect();
 
-      // The Pool mock stores _opts — check that ssl was passed
+      // The Pool mock stores _opts  -  check that ssl was passed
       expect((mockPool as Record<string, unknown>)._opts).toBeDefined();
       const opts = (mockPool as Record<string, unknown>)._opts as Record<string, unknown>;
       expect(opts.ssl).toEqual({ rejectUnauthorized: true });

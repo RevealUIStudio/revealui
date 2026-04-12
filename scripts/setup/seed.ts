@@ -1,11 +1,11 @@
 #!/usr/bin/env tsx
 
 /**
- * Seed Script — Seeds all initial CMS content
+ * Seed Script  -  Seeds all initial CMS content
  *
  * Creates pages, sample content, cards, heros, events, and banners.
  * Pages are seeded first because the frontend root URL (/) queries for
- * slug='home' — without it, new users see a 404 after signup.
+ * slug='home'  -  without it, new users see a 404 after signup.
  *
  * All seed operations are idempotent (checks for existing entries before creating).
  *
@@ -78,11 +78,11 @@ const pages = [
             richText: richTextDoc(
               heading('Build Your Business, Not Your Boilerplate'),
               paragraph(
-                'RevealUI is an agentic business runtime. Users, content, products, payments, and intelligence — five primitives, pre-wired into one deployable stack. Ship in days what used to take months.',
+                'RevealUI is an agentic business runtime. Users, content, products, payments, and intelligence  -  five primitives, pre-wired into one deployable stack. Ship in days what used to take months.',
               ),
               heading('Why RevealUI?', 'h3'),
               paragraph(
-                'Traditional SaaS is dying. Customers expect adaptive, intelligent products — not static dashboards with manual workflows. RevealUI gives you the runtime to build what comes next: products that learn, adapt, and act on behalf of your users.',
+                'Customers expect adaptive, intelligent products  -  not static dashboards with manual workflows. RevealUI gives you the runtime to build what comes next: products that learn, adapt, and act on behalf of your users.',
               ),
               heading('Get Started', 'h3'),
               paragraph(
@@ -107,14 +107,14 @@ const pages = [
             richText: richTextDoc(
               heading('About RevealUI'),
               paragraph(
-                'RevealUI is an agentic business runtime for the post-SaaS era. Instead of bolting together auth, payments, CMS, and AI from different vendors, RevealUI ships them as one coherent stack — pre-wired, tested, and ready to deploy.',
+                'RevealUI is an agentic business runtime. Instead of bolting together auth, payments, CMS, and AI from different vendors, RevealUI ships them as one coherent stack  -  pre-wired, tested, and ready to deploy.',
               ),
               paragraph(
                 'Built on React 19, Next.js 16, TypeScript, and Tailwind CSS v4. Designed for product teams who ship fast and founders who build alone.',
               ),
               heading('Open Source + Pro', 'h3'),
               paragraph(
-                'The core runtime is MIT-licensed. AI agents and harnesses are Fair Source (FSL-1.1-MIT) — free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
+                'The core runtime is MIT-licensed. AI agents and harnesses are Fair Source (FSL-1.1-MIT)  -  free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
               ),
             ),
           },
@@ -158,14 +158,14 @@ const pages = [
 const sampleContent = {
   contents: [
     {
-      name: 'The Post-SaaS Playbook',
+      name: 'The Adaptive Runtime Playbook',
       description:
-        'Everyone says SaaS is dead. They are half right. Static dashboards and manual workflows are dead. What replaces them are adaptive runtimes — products that ship with intelligence built in, not bolted on. RevealUI is the runtime for that transition.',
+        'Static dashboards and manual workflows are finished. What replaces them are adaptive runtimes  -  products that ship with intelligence built in, not bolted on. RevealUI is the runtime for that transition.',
     },
     {
       name: 'Five Primitives, One Stack',
       description:
-        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them into a single deployable stack — authenticated, tested, and production-ready from day one.',
+        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them into a single deployable stack  -  authenticated, tested, and production-ready from day one.',
     },
   ],
   cards: [
@@ -194,7 +194,7 @@ const sampleContent = {
   heros: [
     {
       href: 'https://revealui.com',
-      altText: 'RevealUI — agentic business runtime',
+      altText: 'RevealUI  -  agentic business runtime',
       video: 'https://revealui.com',
     },
   ],
@@ -208,9 +208,9 @@ const sampleContent = {
     },
     {
       title: 'VISION',
-      name: 'The Agentic Business Runtime',
+      name: 'Agentic Business Runtime',
       description:
-        'SaaS taught us subscription pricing. The next era teaches us adaptive intelligence. RevealUI ships with AI agents that learn from your data, automate your workflows, and act on behalf of your users — all running on open-source models.',
+        'Subscription software taught us recurring revenue. The next era teaches us adaptive intelligence. RevealUI ships with AI agents that learn from your data, automate your workflows, and act on behalf of your users  -  all running on open-source models.',
       alt: 'RevealUI agentic vision',
     },
   ],
@@ -219,7 +219,7 @@ const sampleContent = {
       heading: 'Build Your Business, Not Your Boilerplate',
       subheading: 'Agentic Business Runtime',
       description:
-        'Users, content, products, payments, and intelligence — five primitives, one runtime. Ship in days what used to take months. The post-SaaS era starts here.',
+        'Users, content, products, payments, and intelligence  -  five primitives, one runtime. Ship in days what used to take months.',
       cta: 'Get Started',
       highlight: 'Open Source',
       punctuation: '.',

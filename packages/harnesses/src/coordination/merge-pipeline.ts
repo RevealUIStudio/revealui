@@ -1,5 +1,5 @@
 /**
- * MergePipeline — Layer 3 of the Autonomous Agent Architecture.
+ * MergePipeline  -  Layer 3 of the Autonomous Agent Architecture.
  *
  * Watches task completions, diffs agent worktree branches, attempts
  * fast-forward merges into a staging branch, and creates PRs to `test`.

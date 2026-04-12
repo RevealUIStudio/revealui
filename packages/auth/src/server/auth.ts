@@ -160,7 +160,7 @@ export async function signIn(
       }
     }
 
-    // Check if MFA is enabled — if so, return early and require TOTP verification
+    // Check if MFA is enabled  -  if so, return early and require TOTP verification
     if (user.mfaEnabled) {
       return {
         success: true,

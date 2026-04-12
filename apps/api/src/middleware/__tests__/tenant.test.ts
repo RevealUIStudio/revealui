@@ -42,7 +42,7 @@ function createApp(options?: { required?: boolean; headerName?: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — tenantMiddleware
+// Tests  -  tenantMiddleware
 // ---------------------------------------------------------------------------
 describe('tenantMiddleware', () => {
   describe('with required: true (default)', () => {
@@ -275,12 +275,12 @@ describe('tenantMiddleware', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — getTenantFromContext
+// Tests  -  getTenantFromContext
 // ---------------------------------------------------------------------------
 describe('getTenantFromContext', () => {
   it('returns null when no tenant is set in context', async () => {
     const app = new Hono();
-    // No tenant middleware — context has no 'tenant' key
+    // No tenant middleware  -  context has no 'tenant' key
     app.get('/test', (c) => c.json({ tenant: getTenantFromContext(c) }));
 
     const res = await app.request('/test');
@@ -304,12 +304,12 @@ describe('getTenantFromContext', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — requireTenant
+// Tests  -  requireTenant
 // ---------------------------------------------------------------------------
 describe('requireTenant', () => {
   it('throws HTTPException 403 when no tenant is set', async () => {
     const app = new Hono();
-    // No tenant middleware — requireTenant should throw
+    // No tenant middleware  -  requireTenant should throw
     app.get('/require-tenant', (c) => {
       const tenant = requireTenant(c);
       return c.json({ tenant });

@@ -17,12 +17,12 @@ Follow this cycle for every code change. No exceptions.
 
 ## The Cycle
 
-1. **Write a failing test** — describe the expected behavior
-2. **Run it** — confirm it fails for the right reason
-3. **Write minimal implementation** — just enough to pass
-4. **Run it** — confirm it passes
-5. **Refactor** — clean up, then run tests again
-6. **Commit** — one commit per cycle
+1. **Write a failing test**  -  describe the expected behavior
+2. **Run it**  -  confirm it fails for the right reason
+3. **Write minimal implementation**  -  just enough to pass
+4. **Run it**  -  confirm it passes
+5. **Refactor**  -  clean up, then run tests again
+6. **Commit**  -  one commit per cycle
 
 ## Commands
 

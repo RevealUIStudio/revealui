@@ -1,5 +1,5 @@
 /**
- * Pricing Route — serves tier/pricing data from Stripe with server-side fallback
+ * Pricing Route  -  serves tier/pricing data from Stripe with server-side fallback
  *
  * Public endpoint (no auth). Prices come from Stripe Products API when configured,
  * otherwise from private server-side defaults.
@@ -20,7 +20,7 @@ import Stripe from 'stripe';
 const app = new OpenAPIHono();
 
 // ---------------------------------------------------------------------------
-// Stripe client (self-contained — does not share with billing.ts)
+// Stripe client (self-contained  -  does not share with billing.ts)
 // ---------------------------------------------------------------------------
 
 const pricingBreaker = new CircuitBreaker({
@@ -42,7 +42,7 @@ function getStripeClient(): Stripe | null {
 }
 
 // ---------------------------------------------------------------------------
-// Server-side fallback prices (private — never exported or in contracts)
+// Server-side fallback prices (private  -  never exported or in contracts)
 //
 // These are used when Stripe is unreachable (circuit breaker open, key missing).
 // Override via FALLBACK_PRICING_JSON env var to keep prices in sync without redeploying.
@@ -101,12 +101,12 @@ function loadFallbackPrices(): {
         perpetual: parsed.perpetual ?? HARDCODED_PERPETUAL_PRICES,
       };
     } catch {
-      logger.error('Failed to parse FALLBACK_PRICING_JSON — using hardcoded defaults');
+      logger.error('Failed to parse FALLBACK_PRICING_JSON  -  using hardcoded defaults');
     }
   }
   if (process.env.NODE_ENV === 'production' && !envJson) {
     logger.warn(
-      'FALLBACK_PRICING_JSON not set — fallback prices use hardcoded defaults which may become stale',
+      'FALLBACK_PRICING_JSON not set  -  fallback prices use hardcoded defaults which may become stale',
     );
   }
   return {

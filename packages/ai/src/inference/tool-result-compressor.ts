@@ -4,7 +4,7 @@
  * Deterministic, per-tool-type compression of tool results based on model tier.
  * Small models get aggressively truncated output; large models get full output.
  *
- * No LLM-based summarization — all compression is structural (head/tail,
+ * No LLM-based summarization  -  all compression is structural (head/tail,
  * match limits, line limits) so it's fast and predictable.
  */
 

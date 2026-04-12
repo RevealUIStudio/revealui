@@ -5,7 +5,7 @@
  *
  * Authenticated proxy for ElectricSQL yjs_documents shape.
  * Access control: authenticated session + valid document UUID.
- * yjs_documents has no user_id column — documents are collaborative (shared by UUID).
+ * yjs_documents has no user_id column  -  documents are collaborative (shared by UUID).
  */
 
 import { getSession } from '@revealui/auth/server';
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const originUrl = prepareElectricUrl(request.url);
     originUrl.searchParams.set('table', 'yjs_documents');
-    // Inline the validated UUID in the where clause (safe — UUID format verified above)
+    // Inline the validated UUID in the where clause (safe  -  UUID format verified above)
     originUrl.searchParams.set('where', `id = '${documentId}'`);
 
     return proxyElectricRequest(originUrl);

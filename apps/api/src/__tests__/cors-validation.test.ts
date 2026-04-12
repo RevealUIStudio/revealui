@@ -154,7 +154,7 @@ describe('Critical Fix #2: CORS Validation', () => {
       process.env.CORS_ORIGIN = 'https://admin.revealui.com';
       process.env.VERCEL_ENV = 'production';
 
-      // getCorsOrigins only returns the static list — preview matching
+      // getCorsOrigins only returns the static list  -  preview matching
       // happens in the CORS middleware origin callback, not here
       const origins = getCorsOrigins();
       expect(origins).toEqual(['https://admin.revealui.com']);
@@ -174,7 +174,7 @@ describe('Critical Fix #2: CORS Validation', () => {
       expect(() => getCorsOrigins()).toThrow('CORS_ORIGIN');
     });
 
-    it('does not throw on Vercel — returns fallback origins for serverless cold-starts', () => {
+    it('does not throw on Vercel  -  returns fallback origins for serverless cold-starts', () => {
       process.env.VERCEL = '1';
       vi.spyOn(logger, 'error').mockImplementation(() => {});
       expect(() => getCorsOrigins()).not.toThrow();

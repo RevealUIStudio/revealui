@@ -46,7 +46,7 @@ describe('frame loop', () => {
 
     onFrame(cb);
 
-    // Advance by 200ms — should cap dt at 64ms
+    // Advance by 200ms  -  should cap dt at 64ms
     vi.advanceTimersByTime(200);
 
     expect(cb).toHaveBeenCalled();

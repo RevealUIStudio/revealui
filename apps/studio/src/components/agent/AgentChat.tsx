@@ -1,5 +1,5 @@
 /**
- * AgentChat — inline coding agent chat for Studio
+ * AgentChat  -  inline coding agent chat for Studio
  *
  * Streams responses from the agent-stream API endpoint. Supports admin and coding
  * modes with model selection. Renders tool call badges inline with text output.
@@ -137,7 +137,7 @@ function useAgentStream() {
               if (chunk.type === 'error') setError(chunk.error ?? 'Unknown error');
               if (chunk.type === 'done' || chunk.type === 'error') setIsStreaming(false);
             } catch {
-              // Malformed SSE data — skip
+              // Malformed SSE data  -  skip
             }
           }
         }
@@ -217,7 +217,7 @@ export default function AgentChat() {
   // Track streaming response
   useEffect(() => {
     if (!stream.isStreaming && stream.text) {
-      // Streaming finished — finalize assistant message
+      // Streaming finished  -  finalize assistant message
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === 'assistant') {

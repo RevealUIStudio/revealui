@@ -155,7 +155,7 @@ export class McpTelemetry {
 // OTel tracer interface (minimal, avoids hard dependency)
 // =============================================================================
 
-/** Minimal OTel tracer shape — avoids requiring @opentelemetry/api as a dependency. */
+/** Minimal OTel tracer shape  -  avoids requiring @opentelemetry/api as a dependency. */
 interface OtelTracerLike {
   startSpan(name: string): {
     end(): void;

@@ -8,7 +8,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Tests — sanitizeEmailHeader
+// Tests  -  sanitizeEmailHeader
 // ---------------------------------------------------------------------------
 describe('sanitizeEmailHeader', () => {
   beforeEach(() => {
@@ -87,7 +87,7 @@ describe('sanitizeEmailHeader', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — sendEmail
+// Tests  -  sendEmail
 // ---------------------------------------------------------------------------
 describe('sendEmail', () => {
   const originalEnv = { ...process.env };

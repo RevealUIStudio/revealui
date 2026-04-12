@@ -1,5 +1,5 @@
 /**
- * Stripe Webhook — Signature Timing & Replay Protection Tests
+ * Stripe Webhook  -  Signature Timing & Replay Protection Tests
  *
  * Supplements webhooks.test.ts with focused coverage for:
  * - Valid signature acceptance
@@ -17,7 +17,7 @@
 import { Hono } from 'hono';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-// ─── Mocks — declared before imports so vi.mock hoisting takes effect ─────────
+// ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
 const mockConstructEvent = vi.fn();
 const mockSubscriptionsUpdate = vi.fn();
@@ -64,7 +64,7 @@ vi.mock('../../lib/webhook-emails.js', () => ({
   provisionGitHubAccess: vi.fn().mockResolvedValue(undefined),
 }));
 
-// ─── DB Mock — fluent chain for select / insert / update ─────────────────────
+// ─── DB Mock  -  fluent chain for select / insert / update ─────────────────────
 
 const mockAuditAppend = vi.fn();
 
@@ -185,7 +185,7 @@ const VALID_BODY = JSON.stringify({
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('POST /stripe webhook — signature timing & replay protection', () => {
+describe('POST /stripe webhook  -  signature timing & replay protection', () => {
   const savedEnv: Record<string, string | undefined> = {};
 
   beforeEach(() => {
@@ -523,13 +523,13 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
 
       const app = createApp();
 
-      // First request — succeeds normally
+      // First request  -  succeeds normally
       const res1 = await app.request(postStripe(JSON.stringify(event), 't=123,v1=first'));
       expect(res1.status).toBe(200);
       const body1 = (await res1.json()) as Record<string, unknown>;
       expect(body1.duplicate).toBeUndefined();
 
-      // Second request — DB insert throws unique constraint violation
+      // Second request  -  DB insert throws unique constraint violation
       mockDbInsertChain.values.mockRejectedValueOnce(
         new Error('duplicate key value violates unique constraint "processed_webhook_events_pkey"'),
       );
@@ -629,7 +629,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const app = createApp();
       const res = await app.request(postStripe(JSON.stringify(updatedEvent), 't=100,v1=updated'));
 
-      // Handler should process successfully — it updates licenses by customer ID
+      // Handler should process successfully  -  it updates licenses by customer ID
       // regardless of whether subscription.created was seen first
       expect(res.status).toBe(200);
       const body = (await res.json()) as Record<string, unknown>;
@@ -649,7 +649,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       const app = createApp();
       const res = await app.request(postStripe(JSON.stringify(deletedEvent), 't=200,v1=deleted'));
 
-      // Handler should still attempt revocation — update sets status=revoked
+      // Handler should still attempt revocation  -  update sets status=revoked
       // for all licenses matching the customer, which is a no-op if none exist
       expect(res.status).toBe(200);
       expect(mockDb.update).toHaveBeenCalledOnce();
@@ -676,13 +676,13 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
       mockSubscriptionsList.mockResolvedValueOnce({
         data: [{ id: 'sub_early', metadata: { tier: 'pro' } }],
       });
-      // No existing license found — that's expected for out-of-order
+      // No existing license found  -  that's expected for out-of-order
       mockDbSelectChain.limit.mockResolvedValueOnce([]);
 
       const app = createApp();
       const res = await app.request(postStripe(JSON.stringify(paymentEvent), 't=50,v1=early'));
 
-      // Should complete without error — skips re-activation when no license exists
+      // Should complete without error  -  skips re-activation when no license exists
       expect(res.status).toBe(200);
     });
   });
@@ -827,7 +827,7 @@ describe('POST /stripe webhook — signature timing & replay protection', () => 
 
     it('uses cached Stripe client even when STRIPE_SECRET_KEY is removed (module-level cache)', async () => {
       // The Stripe client is cached at module level (let cachedStripe) after first use.
-      // Deleting the env var after the client is cached does not cause a 500 —
+      // Deleting the env var after the client is cached does not cause a 500  -
       // the cached instance continues to work. This test verifies the caching behavior.
       delete process.env.STRIPE_SECRET_KEY;
 

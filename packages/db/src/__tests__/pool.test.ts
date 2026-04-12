@@ -8,7 +8,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ============================================================================
-// Mocks — must be defined before imports (Vitest hoists vi.mock)
+// Mocks  -  must be defined before imports (Vitest hoists vi.mock)
 // ============================================================================
 
 const mockPoolInstance = {
@@ -307,7 +307,7 @@ describe('pool module', () => {
       vi.resetModules();
 
       // Pool creation is lazy (deferred to first access via getPool()),
-      // so importing alone doesn't throw — accessing a pool property does.
+      // so importing alone doesn't throw  -  accessing a pool property does.
       const { pool: lazyPool } = await import('../pool.js');
       expect(() => lazyPool.totalCount).toThrow(
         'DATABASE_HOST (or DATABASE_URL / POSTGRES_URL) must be set in production',
@@ -355,7 +355,7 @@ describe('pool module', () => {
     it('registers error, connect, acquire, and remove event handlers', async () => {
       const { pool: lazyPool } = await import('../pool.js');
 
-      // Pool creation is lazy — force initialization by accessing a property
+      // Pool creation is lazy  -  force initialization by accessing a property
       void lazyPool.totalCount;
 
       const eventNames = mockPoolInstance.on.mock.calls.map((call: [string, unknown]) => call[0]);

@@ -11,7 +11,7 @@
 // Types
 // =============================================================================
 
-/** Minimal database executor — accepts raw SQL strings */
+/** Minimal database executor  -  accepts raw SQL strings */
 export interface DatabaseExecutor {
   execute(query: string, params?: unknown[]): Promise<{ rows: Record<string, unknown>[] }>;
 }

@@ -43,7 +43,7 @@ export function FieldProvider({ children, disabled = false }: FieldProviderProps
 
 /**
  * Returns ARIA props for a form control that participates in a Field.
- * Safe to call outside a Field — returns empty object if no context.
+ * Safe to call outside a Field  -  returns empty object if no context.
  */
 export function useFieldControlProps(): Record<string, string | undefined> {
   const ctx = useFieldContext();

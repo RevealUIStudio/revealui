@@ -8,7 +8,7 @@ Resilience infrastructure for RevealUI applications. Implements circuit breaker,
 - You want automatic retry with backoff for transient failures
 - You need circuit breakers to prevent cascading failures across services
 
-If your code only talks to the local database via Drizzle, you don't need this — Drizzle handles connection pooling internally.
+If your code only talks to the local database via Drizzle, you don't need this  -  Drizzle handles connection pooling internally.
 
 ## Installation
 
@@ -77,11 +77,11 @@ const data = await breaker.execute(() => callExternalAPI());
 
 ## JOSHUA Alignment
 
-- **Hermetic**: Isolates failure domains — one service's outage doesn't cascade to others
+- **Hermetic**: Isolates failure domains  -  one service's outage doesn't cascade to others
 - **Adaptive**: Self-tuning circuit breakers adjust thresholds based on observed error rates
 - **Orthogonal**: Resilience patterns are composable and independent of business logic
 
 ## Related Packages
 
-- `@revealui/core` — Uses resilience patterns for CMS API calls
-- `apps/api` — Applies circuit breakers to external service routes
+- `@revealui/core`  -  Uses resilience patterns for CMS API calls
+- `apps/api`  -  Applies circuit breakers to external service routes

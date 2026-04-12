@@ -209,8 +209,8 @@ describe('useHealth', () => {
 
   it('recovers reachable state after a failure', async () => {
     vi.mocked(fetchHealth)
-      .mockResolvedValueOnce(null) // first poll — unreachable
-      .mockResolvedValueOnce(MOCK_HEALTH); // second poll — recovers
+      .mockResolvedValueOnce(null) // first poll  -  unreachable
+      .mockResolvedValueOnce(MOCK_HEALTH); // second poll  -  recovers
 
     const { result } = renderHook(() => useHealth(), {
       wrapper: createWrapper(),

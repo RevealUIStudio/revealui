@@ -2,7 +2,7 @@
  * Export API Route Tests
  *
  * Covers:
- *   GET /export/:collection — Export collection data as JSON or CSV
+ *   GET /export/:collection  -  Export collection data as JSON or CSV
  *
  * Critical focus: auth enforcement, sensitive field stripping, format handling
  */

@@ -76,7 +76,7 @@ function parseTable(lines: string[]): { columns: string[]; rows: Record<string, 
     for (let j = 0; j < columns.length; j++) {
       const col = columns[j]!;
       const raw = (cells[j] || '').trim();
-      row[col] = raw === '—' ? '' : raw;
+      row[col] = raw === '-' ? '' : raw;
     }
     rows.push(row);
   }
@@ -143,7 +143,7 @@ function parseWorkboard(content: string): WorkboardState {
 // ---------------------------------------------------------------------------
 
 function padCell(value: string | undefined, width: number): string {
-  const str = String(value || '—');
+  const str = String(value || ' - ');
   return str.length >= width ? str : str + ' '.repeat(width - str.length);
 }
 
@@ -151,7 +151,7 @@ function serializeTable(headers: string[], rows: Record<string, string>[]): stri
   if (headers.length === 0) return '(none)';
 
   const widths = headers.map((h) => {
-    const dataMax = rows.reduce((max, row) => Math.max(max, String(row[h] || '—').length), 0);
+    const dataMax = rows.reduce((max, row) => Math.max(max, String(row[h] || ' - ').length), 0);
     return Math.max(h.length, dataMax, 3);
   });
 
@@ -236,7 +236,7 @@ function serializeWorkboard(state: WorkboardState): string {
 // ---------------------------------------------------------------------------
 
 /**
- * WorkboardManager — reads, parses, and writes .claude/workboard.md (v2).
+ * WorkboardManager  -  reads, parses, and writes .claude/workboard.md (v2).
  *
  * Supports both v1 (Sessions/Recent) and v2 (Agents/Tasks/Blocked/Done/Log)
  * formats for backward compatibility. Always serializes to v2.

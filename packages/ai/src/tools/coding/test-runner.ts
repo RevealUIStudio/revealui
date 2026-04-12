@@ -1,5 +1,5 @@
 /**
- * test_runner — Run tests and return structured results
+ * test_runner  -  Run tests and return structured results
  *
  * Detects the test framework (Vitest, Jest, Mocha) and runs tests with
  * machine-parseable output. Returns structured pass/fail/skip counts

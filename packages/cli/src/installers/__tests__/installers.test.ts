@@ -59,7 +59,7 @@ describe('initializeDatabase', () => {
 
   it('does not throw when db:init fails', async () => {
     mockExeca.mockRejectedValueOnce(new Error('db:init failed'));
-    // Should not throw — database setup is optional
+    // Should not throw  -  database setup is optional
     await expect(initializeDatabase('/my/project')).resolves.toBeUndefined();
   });
 

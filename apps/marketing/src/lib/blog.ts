@@ -58,7 +58,7 @@ export async function getPosts(page = 1, limit = 12): Promise<PaginatedResult> {
       cmsPosts = json.data ?? [];
     }
   } catch {
-    // admin unreachable — static posts still render.
+    // admin unreachable  -  static posts still render.
   }
 
   // Merge: admin posts take priority when slugs overlap.
@@ -94,7 +94,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
       if (json.data) return json.data;
     }
   } catch {
-    // admin unreachable — fall through to static lookup.
+    // admin unreachable  -  fall through to static lookup.
   }
 
   const staticPost = getStaticPost(slug);

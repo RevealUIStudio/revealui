@@ -47,7 +47,7 @@ export function createDocumentSummarizerTool(_db: Database, llmClient: LLMClient
         const fullContent = chunks.map((c) => c.content).join('\n\n');
         const estimatedTokens = Math.ceil(fullContent.length / CHARS_PER_TOKEN);
 
-        // Short document — return directly without LLM call
+        // Short document  -  return directly without LLM call
         if (estimatedTokens <= SHORT_DOCUMENT_TOKENS) {
           return {
             success: true,
@@ -61,7 +61,7 @@ export function createDocumentSummarizerTool(_db: Database, llmClient: LLMClient
           };
         }
 
-        // Long document — summarize with LLM
+        // Long document  -  summarize with LLM
         const focusInstruction = focusQuestion
           ? `Focus especially on answering: "${focusQuestion}"`
           : '';

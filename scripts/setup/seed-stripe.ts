@@ -8,7 +8,7 @@
  *   - Webhook endpoint (with canonical event list)
  *   - Billing portal configuration (plan switching, cancellation, invoice history)
  *
- * Idempotent — safe to run multiple times. Uses metadata keys for deduplication.
+ * Idempotent  -  safe to run multiple times. Uses metadata keys for deduplication.
  *
  * Usage:
  *   pnpm stripe:seed                         # sync all (products + webhook + portal)
@@ -30,7 +30,7 @@ import type Stripe from 'stripe';
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
 
-// Stripe is installed in packages/services — resolve from there
+// Stripe is installed in packages/services  -  resolve from there
 const require = createRequire(resolve(import.meta.dirname, '../../packages/services/'));
 const StripeConstructor = require('stripe').default as typeof import('stripe').default;
 const rootDir = resolve(import.meta.dirname, '../..');
@@ -206,7 +206,7 @@ const CATALOG: ProductDefinition[] = [
       },
     ],
   },
-  // ── Support Renewal (Track C — annual renewal for perpetual licenses) ─────
+  // ── Support Renewal (Track C  -  annual renewal for perpetual licenses) ─────
   {
     key: 'revealui_renewal_pro',
     name: 'Pro Support Renewal',
@@ -315,7 +315,7 @@ const CATALOG: ProductDefinition[] = [
   },
 ];
 
-// Canonical webhook events — must mirror `relevantEvents` in apps/api/src/routes/webhooks.ts
+// Canonical webhook events  -  must mirror `relevantEvents` in apps/api/src/routes/webhooks.ts
 const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
   'checkout.session.completed',
   'customer.subscription.created',
@@ -619,10 +619,10 @@ async function setupWebhookEndpoint(
     }
     // Secret is only returned on creation; use existing env var if already set
     if (process.env.STRIPE_WEBHOOK_SECRET) {
-      log.info('  STRIPE_WEBHOOK_SECRET already set in env — skipping output');
+      log.info('  STRIPE_WEBHOOK_SECRET already set in env  -  skipping output');
     } else {
       log.warn(
-        '  Webhook endpoint exists but STRIPE_WEBHOOK_SECRET not in env — retrieve it from the Stripe dashboard',
+        '  Webhook endpoint exists but STRIPE_WEBHOOK_SECRET not in env  -  retrieve it from the Stripe dashboard',
       );
     }
     return null;
@@ -720,7 +720,7 @@ async function syncToVercel(envVars: Record<string, string>): Promise<void> {
 
   const projectId = process.env.VERCEL_PROJECT_ID;
   if (!projectId) {
-    log.warn('VERCEL_PROJECT_ID not set — run `vercel link` first or set it manually');
+    log.warn('VERCEL_PROJECT_ID not set  -  run `vercel link` first or set it manually');
     log.warn('Skipping Vercel sync');
     return;
   }
@@ -742,7 +742,7 @@ async function syncToVercel(envVars: Record<string, string>): Promise<void> {
       }
     }
   } catch {
-    log.warn('Could not fetch existing Vercel env vars — will attempt to set all');
+    log.warn('Could not fetch existing Vercel env vars  -  will attempt to set all');
     existingEnv = {};
   }
 
@@ -841,13 +841,13 @@ async function main(): Promise<void> {
   }
 
   if (secretKey.startsWith('sk_live_')) {
-    log.warn('Using LIVE Stripe key — resources will be created in production!');
+    log.warn('Using LIVE Stripe key  -  resources will be created in production!');
     log.info('Press Ctrl+C within 5 seconds to abort...');
     await new Promise((r) => setTimeout(r, 5000));
   }
 
   if (dryRun) {
-    log.info('DRY RUN — no changes will be made to Stripe');
+    log.info('DRY RUN  -  no changes will be made to Stripe');
   }
 
   const stripe = new StripeConstructor(secretKey, { apiVersion: '2026-01-28.clover' });
@@ -873,7 +873,7 @@ async function main(): Promise<void> {
     const webhookUrl = apiUrl ? `${apiUrl.replace(/\/$/, '')}/api/webhooks/stripe` : undefined;
 
     if (!webhookUrl) {
-      log.warn('No webhook URL — set API_URL in .env or pass --webhook-url URL');
+      log.warn('No webhook URL  -  set API_URL in .env or pass --webhook-url URL');
       log.warn('Skipping webhook endpoint setup');
     } else if (!dryRun && isLocalWebhookUrl(webhookUrl)) {
       log.warn('Skipping webhook endpoint setup for local-only URL');
@@ -894,7 +894,7 @@ async function main(): Promise<void> {
 
   // ── Output env vars
   if (Object.keys(envVars).length > 0) {
-    log.header('Env Vars — Add to .env');
+    log.header('Env Vars  -  Add to .env');
     for (const [key, value] of Object.entries(envVars)) {
       log.env(key, value);
     }

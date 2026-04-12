@@ -11,8 +11,8 @@ export const auditCommand: Command = {
 
 Execute these audit commands in sequence:
 
-1. \`pnpm audit:any\` — Find avoidable \`any\` types across the codebase
-2. \`pnpm audit:console\` — Find production \`console.*\` statements that should use the logger
+1. \`pnpm audit:any\`  -  Find avoidable \`any\` types across the codebase
+2. \`pnpm audit:console\`  -  Find production \`console.*\` statements that should use the logger
 
 Report findings as a summary table with package name and count. If issues are found, suggest fixes.
 

@@ -117,7 +117,7 @@ const SUGGESTED_PROMPTS_CODING = [
   'Show recent git changes',
 ];
 
-// ─── Streaming Hook (inline — avoids Pro package import boundary) ───────────
+// ─── Streaming Hook (inline  -  avoids Pro package import boundary) ───────────
 
 function useAgentStream() {
   const [text, setText] = useState('');
@@ -172,13 +172,13 @@ function useAgentStream() {
           setIsStreaming(false);
           const status = response.status;
           if (status === 401) {
-            setError('Session expired — please sign in again');
+            setError('Session expired  -  please sign in again');
           } else if (status === 403) {
             setError('AI features require a Pro subscription');
           } else if (status === 429) {
-            setError('Rate limit exceeded — please wait a moment');
+            setError('Rate limit exceeded  -  please wait a moment');
           } else if (status === 503) {
-            setError('AI service unavailable — check your inference configuration');
+            setError('AI service unavailable  -  check your inference configuration');
           } else {
             setError(`Request failed (${status})`);
           }
@@ -214,7 +214,7 @@ function useAgentStream() {
               if (chunk.type === 'error') setError(chunk.error ?? 'Unknown error');
               if (chunk.type === 'done' || chunk.type === 'error') setIsStreaming(false);
             } catch {
-              // Malformed SSE data — skip
+              // Malformed SSE data  -  skip
             }
           }
         }
@@ -539,7 +539,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
           body: JSON.stringify({ role, content }),
         });
       } catch {
-        // Fire-and-forget — don't block the UI
+        // Fire-and-forget  -  don't block the UI
       }
     },
     [activeConversationId],
@@ -569,7 +569,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
     [activeConversationId, onConversationCreated],
   );
 
-  // Auto-scroll on new content — deps are intentionally broad to trigger on any update
+  // Auto-scroll on new content  -  deps are intentionally broad to trigger on any update
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll must fire on every message/chunk change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -19,7 +19,7 @@ import type { AuditEventType, AuditSeverity } from './types.js';
  */
 export interface AuditEmitter {
   /**
-   * Emit an audit event. This is a fire-and-forget operation —
+   * Emit an audit event. This is a fire-and-forget operation  -
    * the agent does not receive confirmation or any data back.
    */
   emit(eventType: AuditEventType, payload: Record<string, unknown>, severity?: AuditSeverity): void;
@@ -52,11 +52,11 @@ export function createAuditEmitter(agentId: string, handler: AuditEmitHandler): 
       payload: Record<string, unknown>,
       severity: AuditSeverity = 'info',
     ): void {
-      // Fire-and-forget — agents don't get feedback from the audit system
+      // Fire-and-forget  -  agents don't get feedback from the audit system
       try {
         handler(agentId, eventType, payload, severity);
       } catch {
-        // Silently swallow errors — audit failures must never affect agent execution
+        // Silently swallow errors  -  audit failures must never affect agent execution
       }
     },
   };

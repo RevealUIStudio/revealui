@@ -47,7 +47,7 @@ export function useOnlineStatus(): OnlineStatusResult {
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // No-op during SSR — the effect only runs in the browser.
+    // No-op during SSR  -  the effect only runs in the browser.
     if (!isBrowser()) {
       return;
     }

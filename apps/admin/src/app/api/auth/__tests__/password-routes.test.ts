@@ -273,7 +273,7 @@ describe('POST /api/auth/password-reset', () => {
     const POST = await loadRoute();
     const res = await POST(makeRequest({ email: 'ghost@example.com' }));
 
-    // Should still return 200 — never reveal whether email exists
+    // Should still return 200  -  never reveal whether email exists
     expect((res as { status: number }).status).toBe(200);
   });
 });

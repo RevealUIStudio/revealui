@@ -1,5 +1,5 @@
 /**
- * Inference utilities — context budget, compression, and task decomposition.
+ * Inference utilities  -  context budget, compression, and task decomposition.
  */
 
 export {

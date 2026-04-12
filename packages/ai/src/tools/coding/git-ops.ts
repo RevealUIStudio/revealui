@@ -1,5 +1,5 @@
 /**
- * git_ops — Git operations wrapper (status, diff, log, blame)
+ * git_ops  -  Git operations wrapper (status, diff, log, blame)
  */
 
 import { execFileSync } from 'node:child_process';
@@ -31,7 +31,7 @@ export const gitOpsTool: Tool = {
   name: 'git_ops',
   label: 'Git Operations',
   description:
-    'Run read-only git operations: status, diff (summary), diff_full (full patch), log, blame, show, branch. Safe operations only — no push, commit, reset, or checkout.',
+    'Run read-only git operations: status, diff (summary), diff_full (full patch), log, blame, show, branch. Safe operations only  -  no push, commit, reset, or checkout.',
   parameters: z.object({
     operation: z.enum(GIT_OPERATIONS).describe('Git operation to perform'),
     args: z
@@ -72,7 +72,7 @@ export const gitOpsTool: Tool = {
           break;
 
         case 'diff_full':
-          // Full patch content for code review — hunks per file
+          // Full patch content for code review  -  hunks per file
           output = runGit(['diff', '--no-color', '-U3', ...args], config.projectRoot);
           break;
 

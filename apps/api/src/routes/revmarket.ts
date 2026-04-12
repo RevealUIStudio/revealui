@@ -1,5 +1,5 @@
 /**
- * RevMarket — Autonomous Agent Marketplace Routes (Phase 5.16) — PREVIEW
+ * RevMarket  -  Autonomous Agent Marketplace Routes (Phase 5.16)  -  PREVIEW
  *
  * ⚠️  PREVIEW: Agent task execution runs in-process without sandbox isolation.
  * x402 crypto payments are disabled by default (X402_ENABLED=false).
@@ -11,17 +11,17 @@
  * matches tasks to capable agents, and results are delivered with billing.
  *
  * Routes:
- *   GET    /api/revmarket/agents              — browse published agents (public)
- *   GET    /api/revmarket/agents/:id          — agent detail + skills (public)
- *   POST   /api/revmarket/agents              — publish an agent (auth required)
- *   PATCH  /api/revmarket/agents/:id          — update own agent (auth required)
- *   DELETE /api/revmarket/agents/:id          — unpublish own agent (auth required)
- *   POST   /api/revmarket/agents/:id/skills   — add a skill to agent (auth required)
- *   POST   /api/revmarket/tasks               — submit a task (auth required)
- *   GET    /api/revmarket/tasks/:id           — get task status/result (auth required)
- *   POST   /api/revmarket/tasks/:id/cancel    — cancel a pending task (auth required)
- *   POST   /api/revmarket/agents/:id/reviews  — leave a review (auth required)
- *   GET    /api/revmarket/agents/:id/reviews  — list reviews for an agent (public)
+ *   GET    /api/revmarket/agents               -  browse published agents (public)
+ *   GET    /api/revmarket/agents/:id           -  agent detail + skills (public)
+ *   POST   /api/revmarket/agents               -  publish an agent (auth required)
+ *   PATCH  /api/revmarket/agents/:id           -  update own agent (auth required)
+ *   DELETE /api/revmarket/agents/:id           -  unpublish own agent (auth required)
+ *   POST   /api/revmarket/agents/:id/skills    -  add a skill to agent (auth required)
+ *   POST   /api/revmarket/tasks                -  submit a task (auth required)
+ *   GET    /api/revmarket/tasks/:id            -  get task status/result (auth required)
+ *   POST   /api/revmarket/tasks/:id/cancel     -  cancel a pending task (auth required)
+ *   POST   /api/revmarket/agents/:id/reviews   -  leave a review (auth required)
+ *   GET    /api/revmarket/agents/:id/reviews   -  list reviews for an agent (public)
  */
 
 import { logger } from '@revealui/core/observability/logger';
@@ -84,7 +84,7 @@ const VALID_STATUSES = ['draft', 'published', 'suspended', 'deprecated'] as cons
 // Agent Browse & Discovery (public)
 // =============================================================================
 
-/** GET /agents — browse published agents */
+/** GET /agents  -  browse published agents */
 app.openapi(
   createRoute({
     method: 'get',
@@ -172,7 +172,7 @@ app.openapi(
   },
 );
 
-/** GET /agents/:id — agent detail with skills */
+/** GET /agents/:id  -  agent detail with skills */
 app.openapi(
   createRoute({
     method: 'get',
@@ -241,7 +241,7 @@ const PublishAgentSchema = z.object({
     .default({ maxMemoryMb: 512, maxCpuPercent: 50 }),
 });
 
-/** POST /agents — publish a new agent */
+/** POST /agents  -  publish a new agent */
 app.openapi(
   createRoute({
     method: 'post',
@@ -319,7 +319,7 @@ const UpdateAgentSchema = z.object({
   status: z.enum(VALID_STATUSES).optional(),
 });
 
-/** PATCH /agents/:id — update own agent */
+/** PATCH /agents/:id  -  update own agent */
 app.openapi(
   createRoute({
     method: 'patch',
@@ -394,7 +394,7 @@ app.openapi(
   },
 );
 
-/** DELETE /agents/:id — unpublish own agent */
+/** DELETE /agents/:id  -  unpublish own agent */
 app.openapi(
   createRoute({
     method: 'delete',
@@ -479,7 +479,7 @@ const AddSkillSchema = z.object({
     .default([]),
 });
 
-/** POST /agents/:id/skills — add a skill to an agent */
+/** POST /agents/:id/skills  -  add a skill to an agent */
 app.openapi(
   createRoute({
     method: 'post',
@@ -574,7 +574,7 @@ const SubmitTaskSchema = z.object({
   paymentMethod: z.string().optional(),
 });
 
-/** POST /tasks — submit a task */
+/** POST /tasks  -  submit a task */
 app.openapi(
   createRoute({
     method: 'post',
@@ -687,7 +687,7 @@ app.openapi(
   },
 );
 
-/** GET /tasks/:id — get task status and result */
+/** GET /tasks/:id  -  get task status and result */
 app.openapi(
   createRoute({
     method: 'get',
@@ -750,7 +750,7 @@ app.openapi(
   },
 );
 
-/** POST /tasks/:id/cancel — cancel a pending/queued task */
+/** POST /tasks/:id/cancel  -  cancel a pending/queued task */
 app.openapi(
   createRoute({
     method: 'post',
@@ -842,7 +842,7 @@ const SubmitReviewSchema = z.object({
   comment: z.string().max(500).optional(),
 });
 
-/** POST /agents/:id/reviews — leave a review */
+/** POST /agents/:id/reviews  -  leave a review */
 app.openapi(
   createRoute({
     method: 'post',
@@ -957,7 +957,7 @@ app.openapi(
   },
 );
 
-/** GET /agents/:id/reviews — list reviews for an agent */
+/** GET /agents/:id/reviews  -  list reviews for an agent */
 app.openapi(
   createRoute({
     method: 'get',
@@ -1019,7 +1019,7 @@ app.openapi(
 // Task Progress (polling endpoint)
 // =============================================================================
 
-/** GET /tasks/:id/progress — poll task execution progress */
+/** GET /tasks/:id/progress  -  poll task execution progress */
 app.openapi(
   createRoute({
     method: 'get',
@@ -1077,7 +1077,7 @@ app.openapi(
 // Executor Health
 // =============================================================================
 
-/** GET /executor/status — executor health check (admin only) */
+/** GET /executor/status  -  executor health check (admin only) */
 app.openapi(
   createRoute({
     method: 'get',

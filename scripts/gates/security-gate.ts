@@ -1,17 +1,17 @@
 #!/usr/bin/env tsx
 
 /**
- * Security Gate — Native Security Audit for RevealUI
+ * Security Gate  -  Native Security Audit for RevealUI
  *
  * Replaces GitHub Actions security-audit.yml workflow.
  * Runs 5 security checks in parallel with the same logic as the workflow.
  *
  * Usage:
- *   pnpm gate:security           — run all checks
- *   pnpm gate:security --json    — output JSON summary to stdout
+ *   pnpm gate:security            -  run all checks
+ *   pnpm gate:security --json     -  output JSON summary to stdout
  *
  * Checks:
- *   1. Dependency vulnerabilities (pnpm audit — fail on critical/high)
+ *   1. Dependency vulnerabilities (pnpm audit  -  fail on critical/high)
  *   2. Hardcoded secrets/credentials (git grep patterns)
  *   3. Committed .env files (git ls-files)
  *   4. Auth & authorization patterns (warn only)
@@ -141,7 +141,7 @@ async function checkDependencyAudit(projectRoot: string): Promise<CheckResult> {
     low = v.low ?? 0;
     advisories = Object.values(parsed.advisories ?? {});
   } catch {
-    // pnpm audit may exit non-zero even when JSON is valid — tolerate parse errors
+    // pnpm audit may exit non-zero even when JSON is valid  -  tolerate parse errors
   }
 
   // Save report for CI artifacts
@@ -390,7 +390,7 @@ async function checkApiSecurity(projectRoot: string): Promise<CheckResult> {
     { capture: true, cwd: projectRoot },
   );
   if (!(rateLimitResult.stdout ?? '').trim()) {
-    issues.push('No rate limiting detected in apps/ — consider adding to prevent abuse');
+    issues.push('No rate limiting detected in apps/  -  consider adding to prevent abuse');
   }
 
   const durationMs = performance.now() - start;

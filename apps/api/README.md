@@ -1,21 +1,21 @@
 # RevealUI API
 
-Centralized backend API server for RevealUI — built with Hono.
+Centralized backend API server for RevealUI  -  built with Hono.
 
 **Live at:** https://api.revealui.com
 
 ## Features
 
-- **Hono Framework** — Fast, lightweight, edge-ready
-- **OpenAPI + Swagger** — Auto-generated API docs via `@hono/zod-openapi` + `@hono/swagger-ui`
-- **Type-Safe Validation** — Zod schemas for all request/response payloads
-- **A2A Protocol** — Google Agent-to-Agent protocol with JSON-RPC 2.0 dispatcher
-- **API Key Storage** — Encrypted credential storage (AES-256-GCM) for model endpoints
-- **Billing** — Stripe checkout, account billing, subscription management, metered commercial flows, webhooks
-- **Entitlements** — Subscription-backed access control, optional license validation for perpetual products
-- **Real-Time Collab** — Yjs CRDT sync over WebSocket
-- **Observability** — Structured log ingestion, error reporting endpoints
-- **CORS** — Configured for cross-subdomain requests (`.revealui.com`)
+- **Hono Framework**  -  Fast, lightweight, edge-ready
+- **OpenAPI + Swagger**  -  Auto-generated API docs via `@hono/zod-openapi` + `@hono/swagger-ui`
+- **Type-Safe Validation**  -  Zod schemas for all request/response payloads
+- **A2A Protocol**  -  Google Agent-to-Agent protocol with JSON-RPC 2.0 dispatcher
+- **API Key Storage**  -  Encrypted credential storage (AES-256-GCM) for model endpoints
+- **Billing**  -  Stripe checkout, account billing, subscription management, metered commercial flows, webhooks
+- **Entitlements**  -  Subscription-backed access control, optional license validation for perpetual products
+- **Real-Time Collab**  -  Yjs CRDT sync over WebSocket
+- **Observability**  -  Structured log ingestion, error reporting endpoints
+- **CORS**  -  Configured for cross-subdomain requests (`.revealui.com`)
 
 ## Stack
 

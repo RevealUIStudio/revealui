@@ -2,19 +2,19 @@
  * RevMarket route tests (Phase 5.16)
  *
  * Tests covering:
- *   GET  /agents              — browse published agents (public)
- *   GET  /agents/:id          — agent detail + skills (public)
- *   POST /agents              — publish an agent (auth required)
- *   PATCH /agents/:id         — update own agent (auth required)
- *   DELETE /agents/:id        — unpublish own agent (auth required)
- *   POST /agents/:id/skills   — add a skill (auth required)
- *   POST /tasks               — submit a task (auth required)
- *   GET  /tasks/:id           — get task status (auth required)
- *   POST /tasks/:id/cancel    — cancel a task (auth required)
- *   POST /agents/:id/reviews  — leave a review (auth required)
- *   GET  /agents/:id/reviews  — list reviews (public)
- *   GET  /tasks/:id/progress  — poll progress (auth required)
- *   GET  /executor/status     — executor health (admin)
+ *   GET  /agents               -  browse published agents (public)
+ *   GET  /agents/:id           -  agent detail + skills (public)
+ *   POST /agents               -  publish an agent (auth required)
+ *   PATCH /agents/:id          -  update own agent (auth required)
+ *   DELETE /agents/:id         -  unpublish own agent (auth required)
+ *   POST /agents/:id/skills    -  add a skill (auth required)
+ *   POST /tasks                -  submit a task (auth required)
+ *   GET  /tasks/:id            -  get task status (auth required)
+ *   POST /tasks/:id/cancel     -  cancel a task (auth required)
+ *   POST /agents/:id/reviews   -  leave a review (auth required)
+ *   GET  /agents/:id/reviews   -  list reviews (public)
+ *   GET  /tasks/:id/progress   -  poll progress (auth required)
+ *   GET  /executor/status      -  executor health (admin)
  */
 
 import { Hono } from 'hono';

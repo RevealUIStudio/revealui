@@ -44,7 +44,7 @@ describe('Embeddings integration', async () => {
   describe.skipIf(!ollamaAvailable)('with Ollama nomic-embed-text', () => {
     beforeAll(() => {
       // Point createLLMClientFromEnv() at the local Ollama instance.
-      // OLLAMA_BASE_URL must include /v1 — OllamaProvider uses it as-is as baseURL.
+      // OLLAMA_BASE_URL must include /v1  -  OllamaProvider uses it as-is as baseURL.
       vi.stubEnv('LLM_PROVIDER', 'ollama');
       vi.stubEnv('OLLAMA_BASE_URL', `${OLLAMA_BASE}/v1`);
     });

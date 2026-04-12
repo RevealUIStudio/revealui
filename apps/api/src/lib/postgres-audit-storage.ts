@@ -76,7 +76,7 @@ export class PostgresAuditStorage implements AuditStorage {
 
     return rows
       .map((row) => {
-        // Full AuditEvent stored in payload JSONB — reconstruct it
+        // Full AuditEvent stored in payload JSONB  -  reconstruct it
         const stored = row.payload as Record<string, unknown> | null;
         if (stored && typeof stored === 'object' && 'type' in stored) {
           return stored as unknown as AuditEvent;

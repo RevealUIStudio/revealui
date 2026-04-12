@@ -1,4 +1,4 @@
-// Minimal diagnostic route — zero external imports
+// Minimal diagnostic route  -  zero external imports
 // If this 500s, the issue is in Next.js server setup, not in RevealUI packages
 export function GET() {
   return Response.json({

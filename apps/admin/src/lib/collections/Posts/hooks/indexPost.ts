@@ -6,7 +6,7 @@ import { asRecord } from '@/lib/utils/type-guards';
 export const indexPost: RevealAfterChangeHook<Post> = ({ doc, operation }) => {
   const op = operation as 'create' | 'update' | 'delete';
 
-  // Fire-and-forget — do not block the response
+  // Fire-and-forget  -  do not block the response
   getIndexer()
     .then((indexer) => {
       if (!indexer) return;

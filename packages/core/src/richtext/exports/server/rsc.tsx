@@ -66,7 +66,7 @@ export function isSafeUrl(url: string, context: 'link' | 'image' = 'link'): bool
     return true;
   }
 
-  // Unknown protocol — block it
+  // Unknown protocol  -  block it
   return false;
 }
 

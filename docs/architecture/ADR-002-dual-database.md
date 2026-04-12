@@ -11,9 +11,9 @@ RevealUI needs both transactional SQL (users, content, billing, auth) and vector
 
 Two PostgreSQL databases, each with a distinct role:
 
-1. **NeonDB** (primary) — All transactional data: users, content, billing, sessions, auth, marketplace. Accessed via Drizzle ORM over HTTP (serverless-compatible). 81 tables. Schema managed by drizzle-kit migrations.
+1. **NeonDB** (primary)  -  All transactional data: users, content, billing, sessions, auth, marketplace. Accessed via Drizzle ORM over HTTP (serverless-compatible). 81 tables. Schema managed by drizzle-kit migrations.
 
-2. **Supabase** (vectors/auth) — Vector embeddings for AI memory, semantic search, and agent context. Accessed via the Supabase JS client. Also hosts Supabase Auth for social OAuth flows (GitHub, Google, Vercel) which redirect tokens back to RevealUI's session-based auth.
+2. **Supabase** (vectors/auth)  -  Vector embeddings for AI memory, semantic search, and agent context. Accessed via the Supabase JS client. Also hosts Supabase Auth for social OAuth flows (GitHub, Google, Vercel) which redirect tokens back to RevealUI's session-based auth.
 
 ### Boundary enforcement
 

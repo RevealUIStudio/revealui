@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
-// Mock @revealui/presentation — Badge and ButtonCVA are used
+// Mock @revealui/presentation  -  Badge and ButtonCVA are used
 vi.mock('@revealui/presentation', () => ({
   Badge: ({ children, ...props }: Record<string, unknown>) =>
     createElement('span', { 'data-testid': 'badge', ...props }, children as string),
@@ -42,10 +42,10 @@ describe('HeroSection', () => {
   it('contains the brand tagline', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    // Hero H1 splits "Ship Your SaaS, / Not Your / Infrastructure" across span blocks
-    expect(html).toContain('Ship Your SaaS,');
-    expect(html).toContain('Infrastructure');
-    expect(html).toContain('Build your business, not your boilerplate.');
+    // Hero H1 splits "Build for Humans. / Ready for / Agents." across span blocks
+    expect(html).toContain('Build for Humans.');
+    expect(html).toContain('Agents.');
+    expect(html).toContain('One runtime for you and your AI agents.');
   });
 
   it('contains all five primitives', () => {
@@ -79,7 +79,7 @@ describe('HeroSection', () => {
     expect(html).toContain('MIT Licensed');
     expect(html).toContain('Self-Hostable');
     expect(html).toContain('No Vendor Lock-in');
-    expect(html).toContain('AI Built In');
+    expect(html).toContain('Agent-Native');
   });
 
   it('renders the Open Source badge', () => {

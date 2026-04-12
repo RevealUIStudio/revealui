@@ -53,7 +53,7 @@ function createMockRequest(
   } as never;
 }
 
-// Patch the NextResponse import used by api-wrapper — must be inside factory to avoid hoisting issues
+// Patch the NextResponse import used by api-wrapper  -  must be inside factory to avoid hoisting issues
 vi.mock('next/server', () => {
   class NextResponseMock {
     status: number;
@@ -74,7 +74,7 @@ vi.mock('next/server', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — withRequestContext
+// Tests  -  withRequestContext
 // ---------------------------------------------------------------------------
 describe('withRequestContext', () => {
   it('calls handler and returns response', async () => {
@@ -184,7 +184,7 @@ describe('withRequestContext', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — withServerActionContext
+// Tests  -  withServerActionContext
 // ---------------------------------------------------------------------------
 describe('withServerActionContext', () => {
   it('calls action with arguments and returns result', async () => {

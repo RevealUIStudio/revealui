@@ -9,7 +9,7 @@ import type { RelationshipMetadata } from '../../types/query.js';
 import { getRelationshipFields, validateRelationshipMetadata } from '../analyzer.js';
 
 // ---------------------------------------------------------------------------
-// getRelationshipFields — edge cases not covered by existing tests
+// getRelationshipFields  -  edge cases not covered by existing tests
 // ---------------------------------------------------------------------------
 
 describe('getRelationshipFields', () => {

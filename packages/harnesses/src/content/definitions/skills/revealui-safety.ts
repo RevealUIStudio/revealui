@@ -5,7 +5,7 @@ export const revealuiSafetySkill: Skill = {
   tier: 'oss',
   name: 'RevealUI Safety',
   description:
-    'RevealUI safety guardrails for any code task — editing, writing, creating, fixing,\nrefactoring, changing, adding, updating, or removing files. Protects credentials,\nenforces import boundaries, ensures code quality, and verifies work before completion.',
+    'RevealUI safety guardrails for any code task  -  editing, writing, creating, fixing,\nrefactoring, changing, adding, updating, or removing files. Protects credentials,\nenforces import boundaries, ensures code quality, and verifies work before completion.',
   disableModelInvocation: false,
   skipFrontmatter: false,
   filePatterns: [],
@@ -15,15 +15,15 @@ export const revealuiSafetySkill: Skill = {
 
 Follow these rules for ALL code changes in the RevealUI monorepo.
 
-## Protected Files — Ask Before Editing
+## Protected Files  -  Ask Before Editing
 
 - \`.env*\` files (\`.env\`, \`.env.local\`, \`.env.production\`, etc.)
 - Lock files: \`pnpm-lock.yaml\`, \`package-lock.json\`, \`yarn.lock\`
-- Database schema files in \`packages/db/src/schema/\` — changes require migration planning
+- Database schema files in \`packages/db/src/schema/\`  -  changes require migration planning
 
-## Protected Paths — Never Edit
+## Protected Paths  -  Never Edit
 
-- \`/mnt/c/\`, \`/mnt/e/\` — Windows mounts (read-only)
+- \`/mnt/c/\`, \`/mnt/e/\`  -  Windows mounts (read-only)
 - System/credential directories: \`/etc/\`, \`~/.ssh/\`, \`~/.gnupg/\`, \`~/.aws/\`
 
 ## Import Boundaries
@@ -39,8 +39,8 @@ FORBIDDEN in: \`packages/core/\`, \`packages/contracts/\`, \`packages/config/\`,
 
 ## Code Quality
 
-- Never use \`any\` — use \`unknown\` + type guards
-- Never add \`console.*\` in production code — use \`@revealui/utils\` logger
+- Never use \`any\`  -  use \`unknown\` + type guards
+- Never add \`console.*\` in production code  -  use \`@revealui/utils\` logger
 - Never hardcode API keys, tokens, passwords, or secrets
 - Use \`crypto.randomInt()\` for security-sensitive values, not \`Math.random()\`
 

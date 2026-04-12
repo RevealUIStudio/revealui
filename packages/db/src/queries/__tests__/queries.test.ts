@@ -281,7 +281,7 @@ describe('pages queries', () => {
     const result = await createPage(mock.db, data as never);
 
     expect(result).toEqual(data);
-    // pageCount is maintained by DB trigger — no app-level update expected
+    // pageCount is maintained by DB trigger  -  no app-level update expected
     expect(mock.db.update).not.toHaveBeenCalled();
   });
 

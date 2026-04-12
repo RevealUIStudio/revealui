@@ -11,7 +11,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ============================================================================
-// Mock State — shared between mock factory and tests
+// Mock State  -  shared between mock factory and tests
 // ============================================================================
 
 interface MockPoolState {
@@ -37,7 +37,7 @@ const mockPoolState: MockPoolState = {
 };
 
 // ============================================================================
-// Mocks — must be defined before imports (Vitest hoists vi.mock)
+// Mocks  -  must be defined before imports (Vitest hoists vi.mock)
 // ============================================================================
 
 vi.mock('pg', () => {
@@ -290,7 +290,7 @@ describe('database connection failures', () => {
     it('emits pool error event on unexpected connection termination', async () => {
       const { pool: lazyPool } = await import('../../pool.js');
 
-      // Pool creation is lazy — force initialization by accessing a property
+      // Pool creation is lazy  -  force initialization by accessing a property
       void lazyPool.totalCount;
 
       const errorHandlers = mockPoolState.eventHandlers.get('error') ?? [];
@@ -299,7 +299,7 @@ describe('database connection failures', () => {
       // Verify the error handler is registered and callable
       const connectionError = createSystemError('Connection terminated unexpectedly', 'ECONNRESET');
 
-      // Should not throw — error handler logs but does not propagate
+      // Should not throw  -  error handler logs but does not propagate
       expect(() => {
         for (const handler of errorHandlers) {
           handler(connectionError);
@@ -558,7 +558,7 @@ describe('database connection failures', () => {
         connectionString: 'postgresql://test:test@localhost:5432/testdb',
       });
 
-      // Should not throw — errors are caught during shutdown
+      // Should not throw  -  errors are caught during shutdown
       await expect(closeAllPools()).resolves.toBeUndefined();
     });
 
@@ -592,7 +592,7 @@ describe('database connection failures', () => {
     it('registers an error event handler on pool creation', async () => {
       const { pool: lazyPool } = await import('../../pool.js');
 
-      // Pool creation is lazy — force initialization by accessing a property
+      // Pool creation is lazy  -  force initialization by accessing a property
       void lazyPool.totalCount;
 
       const errorHandlers = mockPoolState.eventHandlers.get('error');
@@ -603,7 +603,7 @@ describe('database connection failures', () => {
     it('error handler does not crash on non-Error objects', async () => {
       const { pool: lazyPool } = await import('../../pool.js');
 
-      // Pool creation is lazy — force initialization by accessing a property
+      // Pool creation is lazy  -  force initialization by accessing a property
       void lazyPool.totalCount;
 
       const errorHandlers = mockPoolState.eventHandlers.get('error') ?? [];

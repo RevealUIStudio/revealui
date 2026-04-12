@@ -10,7 +10,7 @@
  *   3. Authenticated user session (ADMIN_EMAIL + ADMIN_PASSWORD)
  *
  * ─── REQUIRED ENV VARS ──────────────────────────────────────────────────────────
- *   STRIPE_SECRET_KEY        sk_test_... (Stripe test key — never charged)
+ *   STRIPE_SECRET_KEY        sk_test_... (Stripe test key  -  never charged)
  *   ADMIN_EMAIL          admin@example.com
  *   ADMIN_PASSWORD       <your-admin-password>
  *
@@ -106,7 +106,7 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
       }
     }
   } catch {
-    // Auth state file missing or invalid — fall through
+    // Auth state file missing or invalid  -  fall through
   }
 
   // Fresh sign-in (at most once per run)
@@ -155,7 +155,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   test('Subscription checkout (pro) returns Stripe URL', async ({ page }) => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
-    test.skip(!sessionCookie, 'No valid session — authentication failed');
+    test.skip(!sessionCookie, 'No valid session  -  authentication failed');
 
     const response = await page.request.post(`${ApiBase}/api/billing/checkout`, {
       data: { tier: 'pro' },
@@ -174,7 +174,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   test('Perpetual license checkout returns Stripe URL', async ({ page }) => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
-    test.skip(!sessionCookie, 'No valid session — authentication failed');
+    test.skip(!sessionCookie, 'No valid session  -  authentication failed');
 
     const response = await page.request.post(`${ApiBase}/api/billing/checkout-perpetual`, {
       data: { tier: 'pro' },
@@ -196,7 +196,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   test('Credits checkout returns Stripe URL', async ({ page }) => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
-    test.skip(!sessionCookie, 'No valid session — authentication failed');
+    test.skip(!sessionCookie, 'No valid session  -  authentication failed');
 
     const response = await page.request.post(`${ApiBase}/api/billing/checkout-credits`, {
       data: { bundle: 'starter' },
@@ -215,7 +215,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   test('Billing portal returns Stripe URL', async ({ page }) => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
-    test.skip(!sessionCookie, 'No valid session — authentication failed');
+    test.skip(!sessionCookie, 'No valid session  -  authentication failed');
 
     const response = await page.request.post(`${ApiBase}/api/billing/portal`, {
       headers: {
@@ -224,7 +224,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
       },
     });
 
-    // Portal requires an active Stripe customer — may return 400 for free-tier users
+    // Portal requires an active Stripe customer  -  may return 400 for free-tier users
     // with no Stripe customer record. Both 200 and 400 are valid outcomes.
     expect([200, 400]).toContain(response.status());
     if (response.status() === 200) {
@@ -237,7 +237,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
   test('RVUI payment returns 501 (disabled)', async ({ page }) => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
     const sessionCookie = await getSessionCookie(page);
-    test.skip(!sessionCookie, 'No valid session — authentication failed');
+    test.skip(!sessionCookie, 'No valid session  -  authentication failed');
 
     const response = await page.request.post(`${ApiBase}/api/billing/rvui-payment`, {
       data: {
@@ -267,7 +267,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
       'Requires Admin credentials and STRIPE_SECRET_KEY=sk_test_...',
     );
     const sessionCookie = await getSessionCookie(page);
-    test.skip(!sessionCookie, 'No valid session — authentication failed');
+    test.skip(!sessionCookie, 'No valid session  -  authentication failed');
 
     // 1. Create checkout session via API
     const checkoutRes = await page.request.post(`${ApiBase}/api/billing/checkout`, {
@@ -292,7 +292,7 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
       if (!currentValue) await emailInput.fill('smoke-test@example.com');
     }
 
-    // 4. Fill card details — Stripe renders card fields in iframes
+    // 4. Fill card details  -  Stripe renders card fields in iframes
     const cardInputSelector =
       'input[name="number"], input[data-field="cardNumber"], input[placeholder*="1234"]';
 
@@ -311,8 +311,8 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
         .catch(() => false);
     }
 
-    // Stripe UI changed or test environment can't reach Stripe — skip gracefully
-    test.skip(!hasCardFrame, 'Stripe card iframe not found — UI may have changed');
+    // Stripe UI changed or test environment can't reach Stripe  -  skip gracefully
+    test.skip(!hasCardFrame, 'Stripe card iframe not found  -  UI may have changed');
 
     // Card number
     const cardNumber = cardFrameLocator.locator(cardInputSelector);

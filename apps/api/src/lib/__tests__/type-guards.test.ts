@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { asNonEmptyTuple, getStripeField } from '../type-guards.js';
 
 // ---------------------------------------------------------------------------
-// Tests — asNonEmptyTuple
+// Tests  -  asNonEmptyTuple
 // ---------------------------------------------------------------------------
 describe('asNonEmptyTuple', () => {
   it('returns a tuple from a single-element array', () => {
@@ -44,7 +44,7 @@ describe('asNonEmptyTuple', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — getStripeField
+// Tests  -  getStripeField
 // ---------------------------------------------------------------------------
 describe('getStripeField', () => {
   describe('with valid inputs', () => {
@@ -140,7 +140,7 @@ describe('getStripeField', () => {
     it('handles objects with symbol keys gracefully', () => {
       const sym = Symbol('test');
       const obj = { [sym]: 'value', name: 'hello' };
-      // getStripeField uses string keys — symbol key is not accessible
+      // getStripeField uses string keys  -  symbol key is not accessible
       expect(getStripeField<string>(obj, 'name')).toBe('hello');
     });
 

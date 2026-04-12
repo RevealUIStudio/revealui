@@ -61,5 +61,5 @@ export class WorkspaceProviderRegistry {
   }
 }
 
-/** Singleton registry — use this in API route handlers */
+/** Singleton registry  -  use this in API route handlers */
 export const workspaceProviderRegistry = new WorkspaceProviderRegistry();

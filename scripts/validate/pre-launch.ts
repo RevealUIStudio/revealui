@@ -201,7 +201,7 @@ async function checkCredentialRotation() {
       recordResult('All required env vars documented in template', true);
     }
   } else {
-    recordWarning('No .env.template found — create one before launch');
+    recordWarning('No .env.template found  -  create one before launch');
   }
 
   // Check for any .env files that shouldn't be committed
@@ -289,7 +289,7 @@ async function checkVercelDeployments() {
   // Check if vercel CLI is available
   const vercelResult = await execCommand('which', ['vercel'], { silent: true });
   if (!vercelResult.success) {
-    recordWarning('Vercel CLI not installed — install with: npm i -g vercel');
+    recordWarning('Vercel CLI not installed  -  install with: npm i -g vercel');
     return;
   }
 

@@ -42,7 +42,7 @@ vi.mock('../../lib/email.js', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// DB mock — chainable Drizzle-style select/insert/update
+// DB mock  -  chainable Drizzle-style select/insert/update
 // ---------------------------------------------------------------------------
 let mockSelectResults: Record<string, unknown>[][] = [];
 let insertSpy: ReturnType<typeof vi.fn>;
@@ -62,7 +62,7 @@ function createMockDb() {
       from: vi.fn().mockImplementation(() => ({
         where: vi.fn().mockReturnValue({
           limit: vi.fn().mockImplementation(() => {
-            // Return results in FIFO order — tests push in the order queries execute
+            // Return results in FIFO order  -  tests push in the order queries execute
             return Promise.resolve(mockSelectResults.shift() ?? []);
           }),
         }),
@@ -121,7 +121,7 @@ function createApp() {
   return app;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono generics vary per test
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono generics vary per test
 function jsonPost(app: Hono<any>, path: string, body: unknown) {
   return app.request(path, {
     method: 'POST',

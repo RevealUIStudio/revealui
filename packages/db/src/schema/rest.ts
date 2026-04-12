@@ -9,7 +9,7 @@
  * - Agent contexts, conversations, actions (but NOT agent_memories)
  */
 
-// Export agent schemas — agentMemories lives in NeonDB (same as all other tables)
+// Export agent schemas  -  agentMemories lives in NeonDB (same as all other tables)
 // despite having a vector column, because its FK constraints reference NeonDB tables.
 export * from './accounts.js';
 // Export all REST schemas

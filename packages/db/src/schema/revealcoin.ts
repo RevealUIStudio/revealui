@@ -18,7 +18,7 @@ export const revealcoinPayments = pgTable(
     /** Unique payment ID (UUID). */
     id: text('id').primaryKey(),
 
-    /** Solana transaction signature (base58). Unique — prevents replay. */
+    /** Solana transaction signature (base58). Unique  -  prevents replay. */
     txSignature: text('tx_signature').notNull(),
 
     /** Payer's Solana wallet address (base58 public key). */

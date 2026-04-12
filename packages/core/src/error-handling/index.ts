@@ -4,8 +4,8 @@
  * Comprehensive error handling infrastructure for production applications
  */
 
-// Circuit breakers — re-exported from @revealui/resilience
-// Retry logic — re-exported from @revealui/resilience
+// Circuit breakers  -  re-exported from @revealui/resilience
+// Retry logic  -  re-exported from @revealui/resilience
 export type {
   CircuitBreakerConfig,
   CircuitBreakerStats,

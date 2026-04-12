@@ -509,7 +509,7 @@ describe('MCP Integration', () => {
 
       adapter.dispose();
 
-      // Cache is cleared on dispose — executing again should still work
+      // Cache is cleared on dispose  -  executing again should still work
       // (adapter is stateless except for cache and cleanup interval)
       const response2 = await adapter.execute({ action: 'list_payments' });
       expect(response2.success).toBe(true);

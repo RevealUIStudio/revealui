@@ -354,7 +354,7 @@ describe('signAuditEntry / verifyAuditEntry', () => {
     expect(valid).toBe(false);
   });
 
-  it('is deterministic — same inputs produce same signature', async () => {
+  it('is deterministic  -  same inputs produce same signature', async () => {
     const sig1 = await signAuditEntry(entry, 'secret');
     const sig2 = await signAuditEntry(entry, 'secret');
     expect(sig1).toBe(sig2);

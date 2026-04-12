@@ -86,7 +86,7 @@ export function usePresence(show: boolean, exitDuration = 200): PresenceState {
         };
       }
 
-      // No node — just unmount after duration
+      // No node  -  just unmount after duration
       timerRef.current = setTimeout(() => setMounted(false), exitDuration);
       return () => {
         if (timerRef.current) clearTimeout(timerRef.current);

@@ -27,7 +27,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.redirect(`${baseUrl}/login?error=missing_token`);
   }
 
-  // Rate limit by IP — 10 attempts per 15 minutes
+  // Rate limit by IP  -  10 attempts per 15 minutes
   const ip =
     request.headers.get('x-real-ip') ||
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.redirect(`${baseUrl}/login?error=too_many_attempts`);
     }
   } catch (rateLimitError) {
-    // Fail closed — reject if rate limit store is unavailable
+    // Fail closed  -  reject if rate limit store is unavailable
     logger.error('Rate limit check failed for verify-email', {
       error: rateLimitError instanceof Error ? rateLimitError.message : String(rateLimitError),
     });

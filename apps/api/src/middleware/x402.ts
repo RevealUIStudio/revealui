@@ -5,8 +5,8 @@
  * https://x402.org
  *
  * Supports two payment methods:
- *   1. USDC on Base (EVM) — verified via Coinbase facilitator
- *   2. RVUI on Solana — verified on-chain via Token-2022 transfer inspection
+ *   1. USDC on Base (EVM)  -  verified via Coinbase facilitator
+ *   2. RVUI on Solana  -  verified on-chain via Token-2022 transfer inspection
  *
  * Payment flow:
  *   1. Agent request arrives → quota exhausted
@@ -110,7 +110,7 @@ export interface X402Config {
   rvuiAsset: string;
 }
 
-/** Read x402 configuration from environment variables (lazy — never throws on missing). */
+/** Read x402 configuration from environment variables (lazy  -  never throws on missing). */
 export function getX402Config(): X402Config {
   const network = process.env.X402_NETWORK ?? 'evm:base';
   const solanaNetwork = (process.env.SOLANA_NETWORK as SolanaNetwork) ?? 'devnet';
@@ -281,7 +281,7 @@ async function verifySolanaPayment(
     return { valid: false, error: 'Missing amount in payment payload' };
   }
 
-  // Dynamic import: @revealui/services is a Pro package — only load when RVUI payments are active
+  // Dynamic import: @revealui/services is a Pro package  -  only load when RVUI payments are active
   const { verifyRvuiPayment } = await import('@revealui/services/revealcoin');
   return verifyRvuiPayment(txSignature, BigInt(expectedAmount), config.rvuiReceivingAddress);
 }

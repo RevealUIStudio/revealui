@@ -1,12 +1,12 @@
 /**
- * Next.js utilities tests — validates getRevealUI singleton caching,
+ * Next.js utilities tests  -  validates getRevealUI singleton caching,
  * development HMR refresh behavior, and config change detection.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must be defined before imports
+// Mocks  -  must be defined before imports
 // ---------------------------------------------------------------------------
 
 const mockGetRevealUICore = vi.fn();
@@ -68,10 +68,10 @@ afterEach(() => {
 });
 
 // =============================================================================
-// getRevealUI — basic behavior
+// getRevealUI  -  basic behavior
 // =============================================================================
 
-describe('getRevealUI — basic behavior', () => {
+describe('getRevealUI  -  basic behavior', () => {
   it('returns a RevealUI instance', async () => {
     const mockInstance = createMockInstance();
     mockGetRevealUICore.mockResolvedValue(mockInstance);
@@ -96,10 +96,10 @@ describe('getRevealUI — basic behavior', () => {
 });
 
 // =============================================================================
-// getRevealUI — caching
+// getRevealUI  -  caching
 // =============================================================================
 
-describe('getRevealUI — caching', () => {
+describe('getRevealUI  -  caching', () => {
   it('returns cached instance for same config reference', async () => {
     const mockInstance = createMockInstance();
     mockGetRevealUICore.mockResolvedValue(mockInstance);
@@ -150,10 +150,10 @@ describe('getRevealUI — caching', () => {
 });
 
 // =============================================================================
-// getRevealUI — development HMR behavior
+// getRevealUI  -  development HMR behavior
 // =============================================================================
 
-describe('getRevealUI — development mode', () => {
+describe('getRevealUI  -  development mode', () => {
   it('always creates a new instance in development', async () => {
     const instance1 = createMockInstance('instance-1');
     const instance2 = createMockInstance('instance-2');
@@ -187,7 +187,7 @@ describe('getRevealUI — development mode', () => {
     const { getRevealUI } = await loadUtilities();
     const config = createMockConfig();
 
-    // First call in production — caches
+    // First call in production  -  caches
     const originalEnv = process.env.NODE_ENV;
     process.env.NODE_ENV = 'production';
 
@@ -195,7 +195,7 @@ describe('getRevealUI — development mode', () => {
       await getRevealUI({ config });
       expect(mockGetRevealUICore).toHaveBeenCalledTimes(1);
 
-      // Switch to development — should clear cache
+      // Switch to development  -  should clear cache
       process.env.NODE_ENV = 'development';
       const result = await getRevealUI({ config });
 
@@ -208,10 +208,10 @@ describe('getRevealUI — development mode', () => {
 });
 
 // =============================================================================
-// getRevealUI — error propagation
+// getRevealUI  -  error propagation
 // =============================================================================
 
-describe('getRevealUI — error handling', () => {
+describe('getRevealUI  -  error handling', () => {
   it('propagates errors from core getRevealUI', async () => {
     mockGetRevealUICore.mockRejectedValue(new Error('Config validation failed'));
 
@@ -241,10 +241,10 @@ describe('getRevealUI — error handling', () => {
 });
 
 // =============================================================================
-// getRevealUI — config identity check
+// getRevealUI  -  config identity check
 // =============================================================================
 
-describe('getRevealUI — config identity', () => {
+describe('getRevealUI  -  config identity', () => {
   it('uses reference equality for config comparison', async () => {
     const instance1 = createMockInstance('instance-1');
     mockGetRevealUICore.mockResolvedValue(instance1);

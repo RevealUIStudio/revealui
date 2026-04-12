@@ -1,10 +1,10 @@
 /**
- * MCP Servers Registry — GET /api/mcp/servers
+ * MCP Servers Registry  -  GET /api/mcp/servers
  *
  * Returns static metadata for the 6 built-in MCP servers.
  * This is the data source for the MCP UI tab in /admin/agents.
  *
- * Tool lists are static (no process spawning) — they reflect the
+ * Tool lists are static (no process spawning)  -  they reflect the
  * built-in MCP capabilities surfaced through the RevealUI MCP setup flow.
  */
 

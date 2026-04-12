@@ -33,7 +33,7 @@ Before creating a migration:
    grep -r "export const.*pgTable" packages/db/src/schema/
    \`\`\`
 
-3. **Verify contracts alignment** — new tables/columns should have corresponding Zod schemas:
+3. **Verify contracts alignment**  -  new tables/columns should have corresponding Zod schemas:
    \`\`\`bash
    ls packages/contracts/src/
    \`\`\`
@@ -56,7 +56,7 @@ cd packages/db
 pnpm drizzle-kit generate
 \`\`\`
 
-Review the generated SQL in \`packages/db/drizzle/\` — check for:
+Review the generated SQL in \`packages/db/drizzle/\`  -  check for:
 - Destructive changes (DROP TABLE, DROP COLUMN)
 - Data loss risks (column type changes without USING clause)
 - Missing indexes on foreign keys
@@ -64,11 +64,11 @@ Review the generated SQL in \`packages/db/drizzle/\` — check for:
 ### Step 3: Apply Migration (Development Only)
 
 \`\`\`bash
-# Development database ONLY — never production
+# Development database ONLY  -  never production
 pnpm db:migrate
 \`\`\`
 
-**NEVER run \`drizzle-kit push\`** — always use \`drizzle-kit migrate\` (the PreToolUse hook blocks \`push\`).
+**NEVER run \`drizzle-kit push\`**  -  always use \`drizzle-kit migrate\` (the PreToolUse hook blocks \`push\`).
 
 ### Step 4: Verify
 

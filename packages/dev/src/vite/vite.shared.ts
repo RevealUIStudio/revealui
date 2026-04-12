@@ -26,7 +26,7 @@ const __dirname = path.dirname(__filename);
 const packagesRoot = path.resolve(__dirname, '../../..'); // packages/
 const projectRoot = path.resolve(__dirname, '../../../..'); // RevealUI/
 
-// Vite 7 adds oxc + rolldownOptions properties not yet in @types — cast to UserConfig
+// Vite 7 adds oxc + rolldownOptions properties not yet in @types  -  cast to UserConfig
 const sharedViteConfig = {
   oxc: {
     sourcemap: true,

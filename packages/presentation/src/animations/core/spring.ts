@@ -57,7 +57,7 @@ export const SPRING_PRESETS = {
   stiff: { stiffness: 300, damping: 20, mass: 1, restSpeed: 0.01, restDelta: 0.01 },
   /** Slow and elastic */
   slow: { stiffness: 50, damping: 8, mass: 1, restSpeed: 0.01, restDelta: 0.01 },
-  /** Molasses — heavy and slow */
+  /** Molasses  -  heavy and slow */
   molasses: { stiffness: 40, damping: 15, mass: 2, restSpeed: 0.01, restDelta: 0.01 },
 } as const satisfies Record<string, SpringConfig>;
 

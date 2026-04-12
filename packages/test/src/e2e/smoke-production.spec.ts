@@ -108,7 +108,7 @@ test.describe('Production Smoke Tests', () => {
     expect(bodyText).not.toContain('Internal Server Error');
   });
 
-  test('performance budget — homepage and pricing load under 5s @smoke', async ({ page }) => {
+  test('performance budget  -  homepage and pricing load under 5s @smoke', async ({ page }) => {
     // Homepage performance
     await page.goto('https://revealui.com');
     const homepageLoadTime = await page.evaluate(
@@ -166,7 +166,7 @@ test.describe('Production Smoke Tests', () => {
         }
       }
 
-      // Also check buttons — they don't have hrefs but should at least exist if rendered
+      // Also check buttons  -  they don't have hrefs but should at least exist if rendered
       const buttons = page.locator(`button:has-text("${provider}")`);
       const buttonCount = await buttons.count();
 
@@ -192,7 +192,7 @@ test.describe('Production Smoke Tests', () => {
     expect(Object.keys(spec.paths).length).toBeGreaterThan(0);
   });
 
-  test('visual regression — homepage and pricing @smoke', async ({ page }) => {
+  test('visual regression  -  homepage and pricing @smoke', async ({ page }) => {
     // Note: On first run, Playwright creates baseline screenshots automatically.
     // Subsequent runs compare against these baselines. Update baselines with:
     //   pnpm exec playwright test --update-snapshots

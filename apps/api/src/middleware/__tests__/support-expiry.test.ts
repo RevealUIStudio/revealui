@@ -56,7 +56,7 @@ function createApp(
     }
     await next();
   });
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — middleware type is flexible
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  middleware type is flexible
   app.use('*', checkSupportExpiry(queryFn) as any);
   app.get('/resource', (c) => c.json({ ok: true }));
   return app;
@@ -138,7 +138,7 @@ describe('checkSupportExpiry', () => {
     });
     const res = await app.request('/resource');
 
-    expect(res.status).toBe(200); // Still passes — basic admin access remains
+    expect(res.status).toBe(200); // Still passes  -  basic admin access remains
     expect(res.headers.get('X-Support-Expires')).toBe(pastDate.toISOString());
     expect(res.headers.get('X-Support-Status')).toBe('expired');
   });
@@ -200,7 +200,7 @@ describe('checkSupportExpiry', () => {
     const app = createApp(queryFn);
     const res = await app.request('/resource');
 
-    // Should pass through — DB says not perpetual, so no enforcement
+    // Should pass through  -  DB says not perpetual, so no enforcement
     expect(res.status).toBe(200);
     expect(res.headers.get('X-Support-Status')).toBeNull();
   });
@@ -217,7 +217,7 @@ describe('checkSupportExpiry', () => {
       perpetual: true,
     });
 
-    // No entitlements set — middleware still marks headers
+    // No entitlements set  -  middleware still marks headers
     const app = createApp(queryFn);
     const res = await app.request('/resource');
 

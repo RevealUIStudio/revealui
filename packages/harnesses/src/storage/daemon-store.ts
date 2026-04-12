@@ -1,5 +1,5 @@
 /**
- * DaemonStore — persistent state for the RevDev Harness daemon.
+ * DaemonStore  -  persistent state for the RevDev Harness daemon.
  *
  * Backed by PGlite (in-process PostgreSQL). The database file lives at
  * ~/.local/share/revealui/harness.db and survives daemon restarts.
@@ -50,7 +50,7 @@ export class DaemonStore {
   }
 
   private getDb(): PGlite {
-    if (!this.db) throw new Error('DaemonStore not initialized — call init() first');
+    if (!this.db) throw new Error('DaemonStore not initialized  -  call init() first');
     return this.db;
   }
 
@@ -242,7 +242,7 @@ export class DaemonStore {
       return { success: true };
     }
 
-    // Someone else holds it — who?
+    // Someone else holds it  -  who?
     const existing = await db.query<FileReservation>(
       'SELECT agent_id FROM file_reservations WHERE file_path = $1',
       [reservation.filePath],
@@ -309,7 +309,7 @@ export class DaemonStore {
     if (result.rows.length > 0) {
       return { success: true };
     }
-    // Someone else owns it — who?
+    // Someone else owns it  -  who?
     const existing = await db.query<AgentTask>('SELECT owner FROM tasks WHERE id = $1', [taskId]);
     if (existing.rows.length === 0) {
       return { success: false, owner: undefined };

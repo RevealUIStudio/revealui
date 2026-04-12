@@ -14,7 +14,7 @@ const SetupSchema = z.object({
 });
 
 /**
- * POST /api/setup — Bootstrap a fresh RevealUI instance.
+ * POST /api/setup  -  Bootstrap a fresh RevealUI instance.
  *
  * Creates the first admin user and seeds minimal content.
  * Self-disabling: returns 403 once any user exists.
@@ -57,7 +57,7 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
 }
 
 /**
- * GET /api/setup — Check if setup is needed.
+ * GET /api/setup  -  Check if setup is needed.
  *
  * Returns { needed: true } if no users exist, { needed: false } otherwise.
  */

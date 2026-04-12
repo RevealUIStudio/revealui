@@ -26,7 +26,7 @@ beforeEach(() => {
   mockInsert.mockReturnValue({ values: vi.fn().mockResolvedValue(undefined) });
 });
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — response shape varies per test
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  response shape varies per test
 async function parseBody(res: Response): Promise<any> {
   return res.json();
 }
@@ -39,7 +39,7 @@ function createApp(handler: (c: { req: { url: string } }) => never) {
     c.set('requestId', 'req-test-123');
     await next();
   });
-  // biome-ignore lint/suspicious/noExplicitAny: test helper — handler signature is flexible
+  // biome-ignore lint/suspicious/noExplicitAny: test helper  -  handler signature is flexible
   app.get('/test', handler as any);
   app.onError(errorHandler);
   return app;

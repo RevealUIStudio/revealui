@@ -160,7 +160,7 @@ export async function sendTrialEndingEmail(
       'Trial Ending',
       `<h1 style="color: #2563eb;">Your Trial Ends ${endDate}</h1>
 <p>Your RevealUI ${escapeHtml(label)} free trial is ending ${endDate}. After the trial, your subscription will automatically continue.</p>
-<p>If you'd like to continue with ${escapeHtml(label)} features, no action is needed — your subscription will start automatically.</p>
+<p>If you'd like to continue with ${escapeHtml(label)} features, no action is needed  -  your subscription will start automatically.</p>
 <p>If you'd like to cancel or change your plan, you can do so from your billing page:</p>
 ${ctaButton(portal, 'Manage Subscription')}
 ${supportFooter('Questions? Contact')}`,
@@ -242,7 +242,7 @@ export async function sendSupportRenewalConfirmationEmail(
       `<h1 style="color: #2563eb;">Support Contract Renewed</h1>
 <p>Thank you for renewing your RevealUI <strong>${escapeHtml(label)}</strong> support contract.</p>
 <p>Your new support period runs until <strong>${newExpiry}</strong>. You'll continue to receive priority support, updates, and private GitHub repo access.</p>
-<p>Your perpetual license itself never expires — only the support contract requires annual renewal.</p>
+<p>Your perpetual license itself never expires  -  only the support contract requires annual renewal.</p>
 ${ctaButton(licenseUrl, 'View Your License')}
 ${supportFooter('Questions? Reply to this email or contact')}`,
     ),
@@ -405,7 +405,7 @@ ${supportFooter('If you did not request this refund, contact')}`,
         'Partial Refund',
         `<h1 style="color: #333;">Partial Refund Processed</h1>
 <p>A partial refund of <strong>${amountStr} ${escapeHtml(currencyUpper)}</strong> has been issued to your payment method.</p>
-<p>Your subscription and access remain active — no action is needed on your part.</p>
+<p>Your subscription and access remain active  -  no action is needed on your part.</p>
 ${ctaButton(portal, 'View Billing')}
 ${supportFooter()}`,
       ),
@@ -500,7 +500,7 @@ export async function sendTierFallbackAlert(
 ): Promise<void> {
   await sendEmail({
     to: email,
-    subject: '[CRITICAL] RevealUI: Stripe tier metadata missing — defaulted to pro',
+    subject: '[CRITICAL] RevealUI: Stripe tier metadata missing  -  defaulted to pro',
     html: emailShell(
       'Tier Metadata Alert',
       `<h1 style="color: #dc2626;">Stripe Tier Metadata Missing</h1>
@@ -541,7 +541,7 @@ ${context.customerId ? `<p><strong>Customer ID:</strong> <code>${escapeHtml(cont
 }
 
 // =============================================================================
-// GitHub team provisioning — side-effect triggered by webhook events
+// GitHub team provisioning  -  side-effect triggered by webhook events
 // =============================================================================
 
 interface GitHubMembershipResponse {
@@ -561,7 +561,7 @@ interface GitHubMembershipResponse {
 export async function provisionGitHubAccess(githubUsername: string, db?: Database): Promise<void> {
   const token = process.env.REVEALUI_GITHUB_TOKEN;
   if (!token) {
-    logger.warn('REVEALUI_GITHUB_TOKEN not configured — skipping GitHub team provisioning', {
+    logger.warn('REVEALUI_GITHUB_TOKEN not configured  -  skipping GitHub team provisioning', {
       githubUsername,
     });
     return;

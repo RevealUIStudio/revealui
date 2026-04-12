@@ -2,7 +2,7 @@
  * Cache Store Adapter Tests
  *
  * Tests the CacheStore interface against both InMemoryCacheStore and PGliteCacheStore.
- * PGlite tests use in-memory mode — no external database required.
+ * PGlite tests use in-memory mode  -  no external database required.
  */
 
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,7 +10,7 @@ import { InMemoryCacheStore } from '../adapters/memory.js';
 import type { CacheStore } from '../adapters/types.js';
 
 // =============================================================================
-// Shared test suite — runs against any CacheStore implementation
+// Shared test suite  -  runs against any CacheStore implementation
 // =============================================================================
 
 function cacheStoreSuite(name: string, createStore: () => Promise<CacheStore>) {
@@ -183,7 +183,7 @@ cacheStoreSuite('InMemoryCacheStore', async () => new InMemoryCacheStore());
 // InMemory-specific tests
 // =============================================================================
 
-describe('InMemoryCacheStore — capacity eviction', () => {
+describe('InMemoryCacheStore  -  capacity eviction', () => {
   it('evicts oldest entry when at maxEntries', async () => {
     const store = new InMemoryCacheStore({ maxEntries: 2 });
     await store.set('a', 1, 60);
@@ -205,7 +205,7 @@ try {
   await import('@electric-sql/pglite');
   pgliteAvailable = true;
 } catch {
-  // PGlite not installed — skip
+  // PGlite not installed  -  skip
 }
 
 if (pgliteAvailable) {
@@ -226,7 +226,7 @@ if (pgliteAvailable) {
     return store;
   });
 
-  describe('PGliteCacheStore — SQL-specific', () => {
+  describe('PGliteCacheStore  -  SQL-specific', () => {
     it('handles special characters in keys', async () => {
       const store = new PGliteCacheStore({ db: sharedDb, closeOnDestroy: false });
       await store.set('key\'with"quotes', 'val', 60);
@@ -259,7 +259,7 @@ if (pgliteAvailable) {
     });
   });
 } else {
-  describe.skip('PGliteCacheStore (skipped — @electric-sql/pglite not available)', () => {
+  describe.skip('PGliteCacheStore (skipped  -  @electric-sql/pglite not available)', () => {
     it('placeholder', () => {});
   });
 }

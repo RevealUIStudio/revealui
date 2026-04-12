@@ -2,7 +2,7 @@
  * admin Indexer
  *
  * Handles automatic re-indexing of admin documents when they change.
- * Wire into admin collection afterChange hooks — no admin API calls from here,
+ * Wire into admin collection afterChange hooks  -  no admin API calls from here,
  * the event payload carries the document content directly.
  *
  * Usage (in apps/admin/src/lib/ai/indexer.ts):

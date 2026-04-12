@@ -101,7 +101,7 @@ export function extractTableNameFromCall(
       errors.push({
         file: sourceFile.fileName,
         message:
-          'Template expressions in table names are not supported — use a static string literal',
+          'Template expressions in table names are not supported  -  use a static string literal',
         position: { line: pos.line + 1, column: pos.character + 1 },
         node: ts.SyntaxKind[firstArg.kind],
       });

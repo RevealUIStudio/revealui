@@ -23,7 +23,7 @@ import { EventEmitter } from 'node:events';
 /** Server lifecycle states */
 export type ServerState = 'init' | 'ready' | 'executing' | 'error' | 'stopped';
 
-/** Server definition — describes how to spawn a server */
+/** Server definition  -  describes how to spawn a server */
 export interface ServerDefinition {
   /** Unique server identifier */
   id: string;

@@ -171,7 +171,7 @@ describe('DatabaseStorage', () => {
     });
   });
 
-  describe('atomicUpdate — transaction path', () => {
+  describe('atomicUpdate  -  transaction path', () => {
     it('executes updater within transaction', async () => {
       const updater = vi.fn().mockReturnValue({ value: 'new', ttlSeconds: 60 });
 
@@ -238,7 +238,7 @@ describe('DatabaseStorage', () => {
     });
   });
 
-  describe('atomicUpdate — transaction fallback', () => {
+  describe('atomicUpdate  -  transaction fallback', () => {
     it('falls back to get+set when transaction is not supported', async () => {
       mockTransaction.mockRejectedValue(new Error('transaction is not supported'));
       mockFindFirst.mockResolvedValue(null);
@@ -298,7 +298,7 @@ describe('DatabaseStorage', () => {
     });
   });
 
-  describe('atomicUpdate — updater return value', () => {
+  describe('atomicUpdate  -  updater return value', () => {
     it('writes the value returned by the updater to the database', async () => {
       let insertedValue: string | undefined;
 

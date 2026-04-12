@@ -1,13 +1,13 @@
 /**
  * Cron Route Tests
  *
- * GET /api/cron/cleanup-all              — consolidated cleanup (admin + verifyCronAuth)
- * GET /api/cron/cleanup-sessions         — expired/revoked sessions
- * GET /api/cron/cleanup-rate-limits      — expired rate limit records
- * GET /api/cron/cleanup-magic-links      — expired magic links
- * GET /api/cron/cleanup-password-reset-tokens — expired password reset tokens
+ * GET /api/cron/cleanup-all               -  consolidated cleanup (admin + verifyCronAuth)
+ * GET /api/cron/cleanup-sessions          -  expired/revoked sessions
+ * GET /api/cron/cleanup-rate-limits       -  expired rate limit records
+ * GET /api/cron/cleanup-magic-links       -  expired magic links
+ * GET /api/cron/cleanup-password-reset-tokens  -  expired password reset tokens
  *
- * All routes delegate to @revealui/db cleanupStaleTokens() — only cleanup-all
+ * All routes delegate to @revealui/db cleanupStaleTokens()  -  only cleanup-all
  * runs all tables; the individual routes scope via the `tables` option.
  */
 
@@ -15,7 +15,7 @@ import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must be defined before route imports
+// Mocks  -  must be defined before route imports
 // ---------------------------------------------------------------------------
 
 const { mockVerifyCronAuth, mockCleanupStaleTokens } = vi.hoisted(() => ({
@@ -61,7 +61,7 @@ function makeResult(overrides: Partial<Record<string, number>> = {}) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests — GET /api/cron/cleanup-all
+// Tests  -  GET /api/cron/cleanup-all
 // ---------------------------------------------------------------------------
 
 describe('GET /api/cron/cleanup-all', () => {
@@ -105,7 +105,7 @@ describe('GET /api/cron/cleanup-all', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — GET /api/cron/cleanup-sessions
+// Tests  -  GET /api/cron/cleanup-sessions
 // ---------------------------------------------------------------------------
 
 describe('GET /api/cron/cleanup-sessions', () => {
@@ -138,7 +138,7 @@ describe('GET /api/cron/cleanup-sessions', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — GET /api/cron/cleanup-rate-limits
+// Tests  -  GET /api/cron/cleanup-rate-limits
 // ---------------------------------------------------------------------------
 
 describe('GET /api/cron/cleanup-rate-limits', () => {
@@ -169,7 +169,7 @@ describe('GET /api/cron/cleanup-rate-limits', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — GET /api/cron/cleanup-magic-links
+// Tests  -  GET /api/cron/cleanup-magic-links
 // ---------------------------------------------------------------------------
 
 describe('GET /api/cron/cleanup-magic-links', () => {
@@ -200,7 +200,7 @@ describe('GET /api/cron/cleanup-magic-links', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests — GET /api/cron/cleanup-password-reset-tokens
+// Tests  -  GET /api/cron/cleanup-password-reset-tokens
 // ---------------------------------------------------------------------------
 
 describe('GET /api/cron/cleanup-password-reset-tokens', () => {

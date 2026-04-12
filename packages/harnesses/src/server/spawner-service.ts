@@ -178,7 +178,8 @@ export class SpawnerService extends EventEmitter {
   remove(sessionId: string): void {
     const proc = this.sessions.get(sessionId);
     if (!proc) throw new Error(`No agent session: ${sessionId}`);
-    if (proc.status === 'running') throw new Error('Cannot remove a running agent — stop it first');
+    if (proc.status === 'running')
+      throw new Error('Cannot remove a running agent  -  stop it first');
     this.sessions.delete(sessionId);
   }
 

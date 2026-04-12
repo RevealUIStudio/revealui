@@ -1,5 +1,5 @@
 /**
- * Content API — XSS/Injection Prevention Tests
+ * Content API  -  XSS/Injection Prevention Tests
  *
  * Validates that the slug regex pattern and Zod schemas reject malicious input
  * at the validation layer before it reaches any database query.
@@ -217,7 +217,7 @@ function makeSite(overrides: Partial<Record<string, unknown>> = {}) {
 
 // ─── POST /posts slug rejection ──────────────────────────────────────────────
 
-describe('POST /posts — slug XSS/injection rejection', () => {
+describe('POST /posts  -  slug XSS/injection rejection', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it.each([
@@ -236,7 +236,7 @@ describe('POST /posts — slug XSS/injection rejection', () => {
     });
     expect(res.status).toBeGreaterThanOrEqual(400);
     expect(res.status).toBeLessThan(500);
-    // Ensure the DB was never called — validation should block before query
+    // Ensure the DB was never called  -  validation should block before query
     expect(mockPostQueries.createPost).not.toHaveBeenCalled();
   });
 
@@ -256,7 +256,7 @@ describe('POST /posts — slug XSS/injection rejection', () => {
 
 // ─── PATCH /posts/:id slug rejection ─────────────────────────────────────────
 
-describe('PATCH /posts/:id — slug XSS/injection rejection', () => {
+describe('PATCH /posts/:id  -  slug XSS/injection rejection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockPostQueries.getPostById.mockResolvedValue(makePost({ authorId: USER_A.id }));
@@ -289,7 +289,7 @@ describe('PATCH /posts/:id — slug XSS/injection rejection', () => {
 
 // ─── POST /sites slug rejection ──────────────────────────────────────────────
 
-describe('POST /sites — slug XSS/injection rejection', () => {
+describe('POST /sites  -  slug XSS/injection rejection', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it.each([
@@ -323,7 +323,7 @@ describe('POST /sites — slug XSS/injection rejection', () => {
 
 // ─── PATCH /sites/:id slug rejection ─────────────────────────────────────────
 
-describe('PATCH /sites/:id — slug XSS/injection rejection', () => {
+describe('PATCH /sites/:id  -  slug XSS/injection rejection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
@@ -344,7 +344,7 @@ describe('PATCH /sites/:id — slug XSS/injection rejection', () => {
 
 // ─── POST /sites/:siteId/pages slug rejection ────────────────────────────────
 
-describe('POST /sites/:siteId/pages — slug XSS/injection rejection', () => {
+describe('POST /sites/:siteId/pages  -  slug XSS/injection rejection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSiteQueries.getSiteById.mockResolvedValue(makeSite({ ownerId: USER_A.id }));
@@ -396,7 +396,7 @@ describe('POST /sites/:siteId/pages — slug XSS/injection rejection', () => {
 
 // ─── Content field safety ────────────────────────────────────────────────────
 
-describe('Content field handling — stores arbitrary JSON safely', () => {
+describe('Content field handling  -  stores arbitrary JSON safely', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('accepts content with HTML/script tags without crashing (stored as JSON)', async () => {
@@ -414,7 +414,7 @@ describe('Content field handling — stores arbitrary JSON safely', () => {
     });
     expect(res.status).toBe(201);
     const body = await res.json();
-    // Content is stored as-is in JSON — no server-side execution
+    // Content is stored as-is in JSON  -  no server-side execution
     expect(body.data.content).toEqual(xssContent);
   });
 

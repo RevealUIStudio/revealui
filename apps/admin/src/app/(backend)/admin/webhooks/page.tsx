@@ -151,7 +151,7 @@ function WebhooksDashboard() {
         <div>
           <h1 className="text-xl font-semibold text-white">Webhook Events</h1>
           <p className="mt-0.5 text-sm text-gray-400">
-            Processed Stripe webhook events — deduplication log
+            Processed Stripe webhook events - deduplication log
           </p>
         </div>
 

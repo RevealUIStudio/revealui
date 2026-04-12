@@ -44,7 +44,7 @@ export function zValidator<
   return validator(target, async (value: unknown, c: Context) => {
     let validatorValue = value;
 
-    // Header keys are case-insensitive — map them to schema's expected casing
+    // Header keys are case-insensitive  -  map them to schema's expected casing
     if (target === 'header' && isZodObject(schema)) {
       const schemaKeys = getSchemaKeys(schema);
       const caseInsensitiveKeymap = Object.fromEntries(

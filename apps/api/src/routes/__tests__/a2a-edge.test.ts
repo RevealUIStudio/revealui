@@ -2,11 +2,11 @@
  * A2A edge-case tests (pass 14)
  *
  * Covers untested branches in a2a.ts not reached by a2a.test.ts:
- *   GET  /.well-known/marketplace.json   — happy path + DB-unavailable fallback
- *   GET  /.well-known/payment-methods.json — enabled (200) and disabled (404)
- *   GET  /a2a/agents/:id/tasks           — 401, 400, rows from DB, empty on DB error
- *   GET  /a2a/stream/:taskId             — task not found (SSE error), terminal task (SSE close)
- *   POST /a2a (JSON-RPC)                 — quota exceeded returns quota Response
+ *   GET  /.well-known/marketplace.json    -  happy path + DB-unavailable fallback
+ *   GET  /.well-known/payment-methods.json  -  enabled (200) and disabled (404)
+ *   GET  /a2a/agents/:id/tasks            -  401, 400, rows from DB, empty on DB error
+ *   GET  /a2a/stream/:taskId              -  task not found (SSE error), terminal task (SSE close)
+ *   POST /a2a (JSON-RPC)                  -  quota exceeded returns quota Response
  */
 
 import { Hono } from 'hono';
@@ -182,7 +182,7 @@ function post(path: string, body: unknown, headers?: Record<string, string>) {
 }
 
 /** Build a fluent Drizzle-like select chain that resolves to `rows` via `.limit()`. */
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Drizzle chain typing
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Drizzle chain typing
 function makeSelectChain(rows: unknown[], opts?: { throws?: boolean }): any {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
   const chain: any = {};
@@ -293,7 +293,7 @@ describe('GET /.well-known/marketplace.json', () => {
     const app = makeWellKnownApp();
     const res = await app.request(get('/marketplace.json'));
 
-    // Still 200 — DB failure is caught and swallowed
+    // Still 200  -  DB failure is caught and swallowed
     expect(res.status).toBe(200);
     const body = (await res.json()) as { servers: unknown[] };
     expect(body.servers).toHaveLength(0);
@@ -384,14 +384,14 @@ describe('GET /a2a/agents/:id/tasks', () => {
     const app = makeA2AApp({ id: 'user-1' });
     const res = await app.request(get('/agents/test-agent/tasks'));
 
-    // DB failure is caught — returns empty array instead of 500
+    // DB failure is caught  -  returns empty array instead of 500
     expect(res.status).toBe(200);
     const body = (await res.json()) as { tasks: unknown[] };
     expect(body.tasks).toHaveLength(0);
   });
 });
 
-describe('GET /a2a/stream/:taskId — SSE stream', () => {
+describe('GET /a2a/stream/:taskId  -  SSE stream', () => {
   beforeEach(resetMocks);
 
   it('sends error event and closes when task is not found', async () => {
@@ -436,7 +436,7 @@ describe('GET /a2a/stream/:taskId — SSE stream', () => {
   });
 });
 
-describe('POST /a2a — quota enforcement', () => {
+describe('POST /a2a  -  quota enforcement', () => {
   beforeEach(resetMocks);
 
   it('returns quota Response directly when task quota is exceeded', async () => {
@@ -458,14 +458,14 @@ describe('POST /a2a — quota enforcement', () => {
     );
 
     expect(res.status).toBe(429);
-    // Dispatcher must NOT have been called — quota response short-circuits execution
+    // Dispatcher must NOT have been called  -  quota response short-circuits execution
     expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
   });
 });
 
-// ─── Pass 15 — edge case expansion ──────────────────────────────────────────
+// ─── Pass 15  -  edge case expansion ──────────────────────────────────────────
 
-describe('POST /a2a — JSON-RPC validation edge cases', () => {
+describe('POST /a2a  -  JSON-RPC validation edge cases', () => {
   beforeEach(() => {
     resetMocks();
     // resetMocks clears all mocks; restore safeParse passthroughs
@@ -587,7 +587,7 @@ describe('POST /a2a — JSON-RPC validation edge cases', () => {
   });
 });
 
-describe('POST /a2a/agents — registration edge cases', () => {
+describe('POST /a2a/agents  -  registration edge cases', () => {
   beforeEach(() => {
     resetMocks();
     mockA2AJsonRpcSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));
@@ -627,7 +627,7 @@ describe('POST /a2a/agents — registration edge cases', () => {
   });
 });
 
-describe('DELETE /a2a/agents/:id — edge cases', () => {
+describe('DELETE /a2a/agents/:id  -  edge cases', () => {
   beforeEach(() => {
     resetMocks();
     mockA2AJsonRpcSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));

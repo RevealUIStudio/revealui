@@ -113,7 +113,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
       // Sign-up flow: create user, store passkey, create session
       const db = getClient();
 
-      // Enforce user limit based on license tier (R5-H11 fix — was missing from passkey flow)
+      // Enforce user limit based on license tier (R5-H11 fix  -  was missing from passkey flow)
       try {
         await initializeLicense();
         const maxUsers = getMaxUsers();
@@ -154,7 +154,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
         return createApplicationErrorResponse('Unable to create account', 'SIGNUP_FAILED', 400);
       }
 
-      // Create user (no password — passkey-only account)
+      // Create user (no password  -  passkey-only account)
       const newUserId = crypto.randomUUID();
       const newUser = await createUser(db, {
         id: newUserId,
@@ -168,7 +168,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
         return createApplicationErrorResponse('Failed to create user', 'SIGNUP_FAILED', 500);
       }
 
-      // Store passkey — registrationInfo is guaranteed non-null after verified === true
+      // Store passkey  -  registrationInfo is guaranteed non-null after verified === true
       const registrationInfo = verification.registrationInfo;
       if (!registrationInfo) {
         return createApplicationErrorResponse(
@@ -236,7 +236,7 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
             ? (() => {
                 if (!process.env.SESSION_COOKIE_DOMAIN) {
                   logger.error(
-                    'SESSION_COOKIE_DOMAIN env var is required in production — session cookie will not be set cross-subdomain',
+                    'SESSION_COOKIE_DOMAIN env var is required in production  -  session cookie will not be set cross-subdomain',
                   );
                 }
                 return process.env.SESSION_COOKIE_DOMAIN ?? undefined;

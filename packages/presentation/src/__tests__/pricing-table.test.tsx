@@ -46,7 +46,7 @@ const mockTiers: PricingTier[] = [
 // Full Layout (default)
 // =============================================================================
 
-describe('PricingTable — full layout', () => {
+describe('PricingTable  -  full layout', () => {
   it('renders all tiers', () => {
     render(<PricingTable tiers={mockTiers} />);
     expect(screen.getByText('Free')).toBeInTheDocument();
@@ -125,7 +125,7 @@ describe('PricingTable — full layout', () => {
 // Compact Layout
 // =============================================================================
 
-describe('PricingTable — compact layout', () => {
+describe('PricingTable  -  compact layout', () => {
   it('renders all tiers in compact mode', () => {
     render(<PricingTable tiers={mockTiers} compact />);
     expect(screen.getByText('Free')).toBeInTheDocument();
@@ -173,7 +173,7 @@ describe('PricingTable — compact layout', () => {
 // Edge Cases
 // =============================================================================
 
-describe('PricingTable — edge cases', () => {
+describe('PricingTable  -  edge cases', () => {
   it('renders with empty tiers array', () => {
     const { container } = render(<PricingTable tiers={[]} />);
     expect(container.firstChild).toBeInTheDocument();
@@ -189,7 +189,7 @@ describe('PricingTable — edge cases', () => {
     expect(container.firstChild).toHaveClass('lg:grid-cols-2');
   });
 
-  it('renders "—" when price is undefined', () => {
+  it('renders "-" when price is undefined', () => {
     const tiersWithoutPrice = [
       {
         id: 'free',
@@ -202,6 +202,6 @@ describe('PricingTable — edge cases', () => {
       },
     ];
     render(<PricingTable tiers={tiersWithoutPrice} />);
-    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.getByText('-')).toBeInTheDocument();
   });
 });

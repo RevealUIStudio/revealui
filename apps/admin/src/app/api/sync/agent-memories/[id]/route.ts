@@ -1,8 +1,8 @@
 /**
  * Agent Memory Sync Mutation Route (by ID)
  *
- * PATCH /api/sync/agent-memories/:id — Update an agent memory
- * DELETE /api/sync/agent-memories/:id — Delete an agent memory
+ * PATCH /api/sync/agent-memories/:id  -  Update an agent memory
+ * DELETE /api/sync/agent-memories/:id  -  Delete an agent memory
  *
  * Authenticated. ID must be a valid UUID.
  */

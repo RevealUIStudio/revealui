@@ -5,9 +5,9 @@
  * Called by `revealui db cleanup` via `pnpm --filter @revealui/db db:cleanup`.
  *
  * Environment:
- *   POSTGRES_URL or DATABASE_URL — target database
- *   DRY_RUN=true                 — count rows without deleting
- *   TABLES=sessions,rateLimits   — comma-separated subset (optional)
+ *   POSTGRES_URL or DATABASE_URL  -  target database
+ *   DRY_RUN=true                  -  count rows without deleting
+ *   TABLES=sessions,rateLimits    -  comma-separated subset (optional)
  */
 
 import { type CleanupTable, cleanupStaleTokens } from '../cleanup/stale-tokens.js';
@@ -48,7 +48,7 @@ try {
 } catch (error) {
   console.error('Cleanup failed:', error instanceof Error ? error.message : String(error));
   await closeAllPools().catch((_e) => {
-    // best-effort — already in error path
+    // best-effort  -  already in error path
   });
   process.exit(1);
 }

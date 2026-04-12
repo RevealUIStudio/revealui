@@ -164,7 +164,7 @@ export function calculateVestingState(
     return calculateFrontLoaded(schedule, now);
   }
 
-  // Before cliff/lockup — nothing vested
+  // Before cliff/lockup  -  nothing vested
   if (cliff && nowMs < cliff) {
     return {
       schedule,

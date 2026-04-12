@@ -10,7 +10,7 @@ Caching infrastructure for RevealUI applications. Provides CDN cache configurati
 - You want edge-level rate limiting or A/B test variant assignment
 - You need cache warming for static paths
 
-If you're caching in-memory data within a single request, use standard `Map` or LRU — this package is for HTTP-layer and CDN caching.
+If you're caching in-memory data within a single request, use standard `Map` or LRU  -  this package is for HTTP-layer and CDN caching.
 
 ## Installation
 
@@ -18,7 +18,7 @@ If you're caching in-memory data within a single request, use standard `Map` or 
 pnpm add @revealui/cache
 ```
 
-Optional peer dependency: `next` (>=14.0.0) — required for ISR helpers.
+Optional peer dependency: `next` (>=14.0.0)  -  required for ISR helpers.
 
 ## API Reference
 
@@ -78,11 +78,11 @@ Optional peer dependency: `next` (>=14.0.0) — required for ISR helpers.
 ## JOSHUA Alignment
 
 - **Adaptive**: ISR presets scale from real-time (10s) to immutable (1y) based on content volatility
-- **Unified**: Cache tags follow the same taxonomy as CMS collections — invalidation is automatic
-- **Orthogonal**: Caching is a separate concern from content serving — swap CDN providers without changing business logic
+- **Unified**: Cache tags follow the same taxonomy as CMS collections  -  invalidation is automatic
+- **Orthogonal**: Caching is a separate concern from content serving  -  swap CDN providers without changing business logic
 
 ## Related Packages
 
-- `apps/api` — Applies cache headers to REST responses
-- `apps/marketing` — Uses ISR presets for marketing pages
-- `@revealui/core` — Triggers cache invalidation on content changes
+- `apps/api`  -  Applies cache headers to REST responses
+- `apps/marketing`  -  Uses ISR presets for marketing pages
+- `@revealui/core`  -  Triggers cache invalidation on content changes

@@ -39,10 +39,10 @@ export interface SnapModel {
 // ── Configuration ───────────────────────────────────────────────────
 
 const KNOWN_SNAPS: Array<[string, string]> = [
-  ['nemotron-3-nano', 'General (reasoning + non-reasoning) — free tier default'],
-  ['gemma3', 'General + vision — image understanding, multimodal'],
-  ['deepseek-r1', 'Reasoning — complex analysis, chain-of-thought'],
-  ['qwen-vl', 'Vision-language — document parsing, visual Q&A'],
+  ['nemotron-3-nano', 'General (reasoning + non-reasoning)  -  free tier default'],
+  ['gemma3', 'General + vision  -  image understanding, multimodal'],
+  ['deepseek-r1', 'Reasoning  -  complex analysis, chain-of-thought'],
+  ['qwen-vl', 'Vision-language  -  document parsing, visual Q&A'],
 ];
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -78,7 +78,7 @@ export class InferenceService {
       const { stdout } = await run('ollama', ['--version']);
       version = stdout.trim() || null;
     } catch {
-      // version check failed — binary may exist but be broken
+      // version check failed  -  binary may exist but be broken
     }
 
     let running = false;
@@ -149,7 +149,7 @@ export class InferenceService {
     try {
       await run('pkill', ['-f', 'ollama serve']);
     } catch {
-      // pkill exit 1 = no processes matched — that's fine
+      // pkill exit 1 = no processes matched  -  that's fine
     }
   }
 

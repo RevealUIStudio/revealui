@@ -1,5 +1,5 @@
 /**
- * @revealui/db/crypto — AES-256-GCM envelope encryption for stored API keys
+ * @revealui/db/crypto  -  AES-256-GCM envelope encryption for stored API keys
  *
  * Uses a Key Encryption Key (KEK) sourced from the REVEALUI_KEK environment
  * variable (64 hex chars = 32 bytes). Each key is encrypted with a random
@@ -13,7 +13,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 
 const ALGORITHM = 'aes-256-gcm';
-const IV_LENGTH = 12; // 96-bit IV — recommended for AES-GCM
+const IV_LENGTH = 12; // 96-bit IV  -  recommended for AES-GCM
 
 function getKek(): Buffer {
   const kekHex = process.env.REVEALUI_KEK;
@@ -51,7 +51,7 @@ export function decryptApiKey(encrypted: string): string {
   const kek = getKek();
   const parts = encrypted.split('.');
   if (parts.length !== 3) {
-    throw new Error('Invalid encrypted key format — expected <iv>.<authTag>.<ciphertext>');
+    throw new Error('Invalid encrypted key format  -  expected <iv>.<authTag>.<ciphertext>');
   }
   const [ivB64, authTagB64, ciphertextB64] = parts as [string, string, string];
   const iv = Buffer.from(ivB64, 'base64url');

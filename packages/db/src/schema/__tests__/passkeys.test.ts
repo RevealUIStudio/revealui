@@ -35,7 +35,7 @@ describe('passkeys schema', () => {
   });
 
   it('exports Passkey and NewPasskey types', () => {
-    // Type-level check — if this compiles, the types are exported correctly
+    // Type-level check  -  if this compiles, the types are exported correctly
     const _select: Passkey | undefined = undefined;
     const _insert: NewPasskey | undefined = undefined;
     expect(_select).toBeUndefined();

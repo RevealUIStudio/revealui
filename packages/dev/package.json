@@ -73,5 +73,10 @@
     "typecheck": "tsc --noEmit",
     "verify:imports": "tsx ../../scripts/validation/verify-dev-package-imports.ts"
   },
-  "type": "module"
+  "type": "module",
+  "homepage": "https://revealui.com",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
+  }
 }

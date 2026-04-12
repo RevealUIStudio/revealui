@@ -620,7 +620,7 @@ export default function GitPanel({ onOpenEditor }: GitPanelProps) {
   const totalFiles =
     (status?.staged.length ?? 0) + (status?.unstaged.length ?? 0) + (status?.untracked.length ?? 0);
 
-  const currentBranch = status?.branch ?? '—';
+  const currentBranch = status?.branch ?? ' - ';
 
   return (
     <div className="flex h-full overflow-hidden">

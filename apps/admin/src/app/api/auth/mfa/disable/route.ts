@@ -80,7 +80,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (data.method === 'password') {
       proof = { method: 'password' as const, password: data.password };
     } else {
-      // Passkey proof — verify the WebAuthn assertion server-side.
+      // Passkey proof  -  verify the WebAuthn assertion server-side.
       // The client must have called /api/auth/passkey/authenticate-options first
       // to obtain a challenge stored in a signed httpOnly cookie.
       const challengeCookie = request.cookies.get('passkey-challenge')?.value;

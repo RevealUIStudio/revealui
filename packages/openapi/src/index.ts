@@ -1,5 +1,5 @@
 /**
- * @revealui/openapi — OpenAPI integration for Hono with Zod validation.
+ * @revealui/openapi  -  OpenAPI integration for Hono with Zod validation.
  *
  * Generates OpenAPI 3.x specs from typed route definitions and provides
  * request validation middleware. Powers the Swagger UI at `/docs`.
@@ -7,7 +7,7 @@
  * @packageDocumentation
  */
 
-/** Zod re-export — consumers can import from either `zod` or this package. */
+/** Zod re-export  -  consumers can import from either `zod` or this package. */
 export { z } from 'zod';
 /** Define a typed route with request/response schemas for OpenAPI generation. */
 export { createRoute } from './create-route.js';

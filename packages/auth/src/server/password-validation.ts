@@ -98,7 +98,7 @@ export async function checkPasswordBreach(password: string): Promise<number> {
     }
     return 0;
   } catch {
-    // Network error, timeout, or API issue — don't block the user
+    // Network error, timeout, or API issue  -  don't block the user
     return -1;
   }
 }

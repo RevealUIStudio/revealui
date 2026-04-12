@@ -455,7 +455,7 @@ describe('KeyRotationManager', () => {
     const newKey = await enc.generateKey();
     await mgr.rotate('key-v2', newKey);
 
-    // Use a past date — nothing should be removed
+    // Use a past date  -  nothing should be removed
     const past = new Date(Date.now() - 60_000);
     mgr.cleanupOldKeys(past);
 

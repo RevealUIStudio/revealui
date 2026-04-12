@@ -1,5 +1,5 @@
 /**
- * HealthCard — Shows production API health status from /health/ready.
+ * HealthCard  -  Shows production API health status from /health/ready.
  *
  * Displays overall status (healthy/degraded/unhealthy/unreachable)
  * and individual check results (database, memory, etc.).

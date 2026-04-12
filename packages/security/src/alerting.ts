@@ -41,7 +41,7 @@ export interface ThresholdRule {
   windowMs: number;
   /** Severity assigned to alerts from this rule. */
   severity: AuditSeverity;
-  /** Human-readable message template — `{count}` is replaced at runtime. */
+  /** Human-readable message template  -  `{count}` is replaced at runtime. */
   messageTemplate: string;
 }
 

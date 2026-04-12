@@ -1,5 +1,5 @@
 /**
- * @revealui/harnesses — AI Harness Integration System (Server-side)
+ * @revealui/harnesses  -  AI Harness Integration System (Server-side)
  *
  * Adapters, registry, workboard coordination, and JSON-RPC server for
  * integrating native AI agents into the RevealUI development workflow.
@@ -89,7 +89,7 @@ export type {
 } from './storage/schema.js';
 export { SCHEMA_SQL } from './storage/schema.js';
 export type { HarnessAdapter } from './types/adapter.js';
-// Types — harness core
+// Types  -  harness core
 export type {
   ConfigDiffEntry,
   ConfigSyncDirection,
@@ -114,9 +114,9 @@ export {
   withLock,
   withLockAsync,
 } from './workboard/index.js';
-// Types — session identity
+// Types  -  session identity
 export type { SessionType } from './workboard/session-identity.js';
-// Types — workboard protocol
+// Types  -  workboard protocol
 export type {
   ConflictResult,
   WorkboardEntry,

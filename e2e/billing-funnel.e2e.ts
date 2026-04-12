@@ -13,7 +13,7 @@
  *   ADMIN_PASSWORD    <your-admin-password>
  *
  * ─── REQUIRED FOR STRIPE CHECKOUT TESTS ─────────────────────────────────────
- *   STRIPE_SECRET_KEY     sk_test_...  (Stripe test key — not charged)
+ *   STRIPE_SECRET_KEY     sk_test_...  (Stripe test key  -  not charged)
  *
  * ─── REQUIRED FOR PRICE ID TESTS ────────────────────────────────────────────
  *   STRIPE_PRO_PRICE_ID       price_... (your Stripe test Pro price ID)
@@ -31,7 +31,7 @@
  *   node_modules/.bin/playwright test e2e/billing-funnel.e2e.ts \
  *     --project=chromium --retries=0 --reporter=line
  *
- * Run (auth + UI only — no Stripe key required):
+ * Run (auth + UI only  -  no Stripe key required):
  *   PLAYWRIGHT_BASE_URL=https://admin.revealui.com \
  *   ADMIN_EMAIL=admin@example.com \
  *   ADMIN_PASSWORD='<your-admin-password>' \
@@ -43,7 +43,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { expect, type Page, test } from '@playwright/test';
 
-// Absolute path to the auth state file — works regardless of CWD
+// Absolute path to the auth state file  -  works regardless of CWD
 const AUTH_STATE_PATH = join(import.meta.dirname, '.auth', 'user.json');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ interface SessionCache {
  * Strategy (in priority order):
  *  1. Return cached session from this run (zero network calls for subsequent tests)
  *  2. Try saved cookies from global-setup's e2e/.auth/user.json
- *     — validate against the billing API; use if valid
+ *      -  validate against the billing API; use if valid
  *  3. Fall back to a fresh API sign-in (done at most ONCE per run)
  *
  * This means the rate-limit endpoint is hit at most once per `playwright test`
@@ -98,9 +98,9 @@ let _session: SessionCache | null | undefined; // undefined = not yet resolved
  * Establish a session for the given page.
  *
  * Priority:
- *  1. Module-level cache — zero network calls for subsequent tests
+ *  1. Module-level cache  -  zero network calls for subsequent tests
  *  2. Saved auth state from global-setup (e2e/.auth/user.json)
- *  3. Fresh API sign-in — last resort (rate-limited in production)
+ *  3. Fresh API sign-in  -  last resort (rate-limited in production)
  *
  * Cookie domain is forced to admin.revealui.com regardless of what the saved
  * state says. This prevents Playwright from automatically sending the cookie
@@ -147,10 +147,10 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
         _session = { cookieHeader, cookie, tier };
         return _session;
       }
-      // Saved cookies are stale — fall through to fresh sign-in
+      // Saved cookies are stale  -  fall through to fresh sign-in
     }
   } catch {
-    // Auth state file missing or invalid — fall through to fresh sign-in
+    // Auth state file missing or invalid  -  fall through to fresh sign-in
   }
 
   // ── 2. Fresh sign-in (at most once per run) ────────────────────────────────
@@ -189,7 +189,7 @@ async function ensureSession(page: Page): Promise<SessionCache | null> {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Authenticate the page. Uses cached session — no sign-in if already done this run. */
+/** Authenticate the page. Uses cached session  -  no sign-in if already done this run. */
 async function signIn(page: Page): Promise<void> {
   const session = await ensureSession(page);
   if (!session) throw new Error('signIn: authentication failed (rate-limited or no valid session)');
@@ -197,7 +197,7 @@ async function signIn(page: Page): Promise<void> {
 
 /**
  * Authenticate and return (sessionCookie, tier) for direct API calls.
- * Uses cached session — at most one sign-in attempt per test run.
+ * Uses cached session  -  at most one sign-in attempt per test run.
  */
 async function signInViaApi(
   page: Page,
@@ -209,10 +209,10 @@ async function signInViaApi(
 
 // ─── Auth gate ────────────────────────────────────────────────────────────────
 
-test.describe('Billing page — auth gate', () => {
+test.describe('Billing page  -  auth gate', () => {
   test('redirects to /login when not authenticated', async ({ page }) => {
     await page.goto(`${ADMIN_BASE}/account/billing`, { waitUntil: 'domcontentloaded' });
-    // Next.js client redirect — wait for URL to change
+    // Next.js client redirect  -  wait for URL to change
     await page.waitForURL(/\/login/, { timeout: 8_000 });
     expect(page.url()).toContain('/login');
   });
@@ -220,7 +220,7 @@ test.describe('Billing page — auth gate', () => {
 
 // ─── Free tier UI ─────────────────────────────────────────────────────────────
 
-test.describe('Billing page — free tier', () => {
+test.describe('Billing page  -  free tier', () => {
   test.beforeEach(async () => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
   });
@@ -270,7 +270,7 @@ test.describe('Billing page — free tier', () => {
 
 // ─── Checkout redirect ─────────────────────────────────────────────────────────
 
-test.describe('Billing page — checkout redirect', () => {
+test.describe('Billing page  -  checkout redirect', () => {
   test.beforeEach(async () => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
   });
@@ -306,14 +306,14 @@ test.describe('Billing page — checkout redirect', () => {
 
 // ─── Success banner (no Stripe key needed) ────────────────────────────────────
 
-test.describe('Billing page — success banner', () => {
+test.describe('Billing page  -  success banner', () => {
   test.beforeEach(async () => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
   test('billing page shows activation success banner after checkout', async ({ page }) => {
     // Verifies the ?success=true query param produces the correct UI.
-    // Does not require a Stripe key — just navigates to the billing page with the param.
+    // Does not require a Stripe key  -  just navigates to the billing page with the param.
     await signIn(page);
     await page.goto(`${ADMIN_BASE}/account/billing?success=true`, {
       waitUntil: 'domcontentloaded',
@@ -326,7 +326,7 @@ test.describe('Billing page — success banner', () => {
 
 // ─── Stripe checkout (test-mode only) ─────────────────────────────────────────
 
-test.describe('Stripe checkout — test mode', () => {
+test.describe('Stripe checkout  -  test mode', () => {
   // These tests navigate to Stripe's hosted checkout page and fill in a test card.
   // They only run when STRIPE_SECRET_KEY=sk_test_... is configured AND the account
   // is on the free tier (so a checkout URL can be obtained).
@@ -366,7 +366,7 @@ test.describe('Stripe checkout — test mode', () => {
       if (!currentValue) await emailInput.fill(ADMIN_EMAIL);
     }
 
-    // ── Card details — Stripe Payment Element (iframe) ──
+    // ── Card details  -  Stripe Payment Element (iframe) ──
     // Stripe renders card fields inside an iframe on their own checkout page.
     // Try the Stripe elements iframe selector; fall back to the private frame name.
     const cardInputSelector =
@@ -387,8 +387,8 @@ test.describe('Stripe checkout — test mode', () => {
         .catch(() => false);
     }
 
-    // Stripe UI changed or test environment can't reach Stripe — skip gracefully
-    test.skip(!hasCardFrame, 'Stripe card iframe not found — UI may have changed');
+    // Stripe UI changed or test environment can't reach Stripe  -  skip gracefully
+    test.skip(!hasCardFrame, 'Stripe card iframe not found  -  UI may have changed');
 
     const cardNumber = cardFrameLocator.locator(cardInputSelector);
     await cardNumber.fill('4242424242424242');
@@ -399,7 +399,7 @@ test.describe('Stripe checkout — test mode', () => {
       .locator('input[name="cvc"], input[data-field="cardCvc"], input[placeholder*="CVC"]')
       .fill('123');
 
-    // ── Billing address (required — billing_address_collection: 'required') ──
+    // ── Billing address (required  -  billing_address_collection: 'required') ──
     // Stripe auto-fills name/address from customer record in some cases.
     const nameInput = page.locator('input[name="name"], input[autocomplete="name"]').first();
     if (await nameInput.isVisible({ timeout: 2_000 }).catch(() => false)) {
@@ -479,7 +479,7 @@ test.describe('License verification', () => {
 
     await page.goto(`${ADMIN_BASE}/admin/monitoring`, { waitUntil: 'domcontentloaded' });
 
-    // Should NOT show the UpgradePrompt — should show actual monitoring content
+    // Should NOT show the UpgradePrompt  -  should show actual monitoring content
     await expect(page.getByText(/upgrade|requires pro/i)).not.toBeVisible({ timeout: 5_000 });
   });
 });
@@ -556,7 +556,7 @@ test.describe('Billing portal', () => {
   });
 
   test('Manage Billing button opens Stripe billing portal', async ({ page }) => {
-    // beforeEach skip is unreliable in Playwright v1.58 async beforeEach — guard here too
+    // beforeEach skip is unreliable in Playwright v1.58 async beforeEach  -  guard here too
     test.skip(!hasStripeKey, 'Requires STRIPE_SECRET_KEY=sk_test_...');
     const { tier } = await signInViaApi(page);
     test.skip(!tier || tier === 'free', 'Skipped: free tier has no billing portal');

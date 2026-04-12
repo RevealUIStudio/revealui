@@ -52,7 +52,7 @@ function AllVariantsDemo() {
           },
           { variant: 'error', label: 'Error', title: 'Error', desc: 'Something went wrong' },
           { variant: 'warning', label: 'Warning', title: 'Warning', desc: 'Check your input' },
-          { variant: 'info', label: 'Info', title: 'Info', desc: 'FYI — new version available' },
+          { variant: 'info', label: 'Info', title: 'Info', desc: 'FYI  -  new version available' },
         ] as const
       ).map((item) => (
         <Button

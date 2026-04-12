@@ -42,10 +42,10 @@ export interface TicketAgentConfig {
   /** LLM client (Anthropic, OpenAI, etc.) */
   llmClient: LLMClient;
 
-  /** admin API client — used to inject into admin tools */
+  /** admin API client  -  used to inject into admin tools */
   apiClient: AdminAPIClient;
 
-  /** Ticket mutation client — used to update status and add comments */
+  /** Ticket mutation client  -  used to update status and add comments */
   ticketClient: TicketMutationClient;
 
   /** Available admin collections (optional, improves tool descriptions) */
@@ -56,13 +56,13 @@ export interface TicketAgentConfig {
 
   /**
    * Memory instance to share across dispatches (optional).
-   * If omitted, each dispatch uses a no-op stub — the runtime does not
+   * If omitted, each dispatch uses a no-op stub  -  the runtime does not
    * call agent.memory directly, so this is safe for stateless dispatch.
    */
   memory?: EpisodicMemory;
 
   /**
-   * Database client — enables the document_summarize tool.
+   * Database client  -  enables the document_summarize tool.
    * If omitted, the summarizer tool is not included in the agent's toolset.
    */
   db?: Database;
@@ -163,7 +163,7 @@ export class TicketAgentDispatcher {
       : [webScraperTool];
     const tools = [...cmsTools, ...ticketTools, ...extraTools];
 
-    // The runtime does not call agent.memory — satisfy the interface with a stub when no
+    // The runtime does not call agent.memory  -  satisfy the interface with a stub when no
     // shared memory instance is provided. Cast is safe: only runtime touches this field.
     const memory = (sharedMemory ?? {}) as EpisodicMemory;
 

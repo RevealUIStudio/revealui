@@ -55,7 +55,7 @@ export function useLicenseKey(): UseLicenseKeyResult {
         setIsValid(false);
       }
     } catch {
-      // Network error — keep the stored key but mark as invalid until next check
+      // Network error  -  keep the stored key but mark as invalid until next check
       setKey(storedKey);
       setTier(null);
       setIsValid(false);

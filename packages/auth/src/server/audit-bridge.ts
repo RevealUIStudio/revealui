@@ -1,5 +1,5 @@
 /**
- * Security Event Bridge — Connects auth events to the audit trail.
+ * Security Event Bridge  -  Connects auth events to the audit trail.
  *
  * Each function wraps an auth operation with structured audit logging
  * via the AuditSystem from @revealui/security. Uses lazy import to
@@ -25,7 +25,7 @@ async function getAudit(): Promise<AuditSystem | null> {
 }
 
 /**
- * Internal helper — logs an audit event, silently skipping if the
+ * Internal helper  -  logs an audit event, silently skipping if the
  * audit system is unavailable.
  */
 async function logAuditEvent(event: AuditEventInput): Promise<void> {

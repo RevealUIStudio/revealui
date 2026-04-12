@@ -36,7 +36,7 @@ async function resendHandler(request: NextRequest): Promise<NextResponse> {
       return createApplicationErrorResponse('No email address on account', 'NO_EMAIL', 400);
     }
 
-    // Generate a new token — store the SHA-256 hash, send the raw token via email
+    // Generate a new token  -  store the SHA-256 hash, send the raw token via email
     const newToken = crypto.randomUUID();
     const tokenHash = createHash('sha256').update(newToken).digest('hex');
     const db = getClient();

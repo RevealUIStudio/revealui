@@ -8,7 +8,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-// Use real validatePasswordStrength (not mocked) — ensures test coverage
+// Use real validatePasswordStrength (not mocked)  -  ensures test coverage
 // catches regressions in password strength rules.
 // Mock checkPasswordBreach to avoid real HIBP network calls.
 vi.mock('../password-validation.js', async (importOriginal) => {
@@ -404,7 +404,7 @@ describe('password-reset', () => {
 
       await invalidatePasswordResetToken('token-id', 'wrong-token');
 
-      // update() should not be called — hash mismatch
+      // update() should not be called  -  hash mismatch
       expect(mockUpdate).not.toHaveBeenCalled();
     });
 

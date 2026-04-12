@@ -8,7 +8,7 @@
  *   3. Browser UI (`/setup` page)
  *
  * Self-disabling: refuses to run if any users already exist.
- * The RevealUI instance is injected — this module has no direct
+ * The RevealUI instance is injected  -  this module has no direct
  * dependency on @revealui/core or @revealui/db, keeping the
  * setup package lightweight.
  */
@@ -38,7 +38,7 @@ export interface BootstrapAdminConfig {
 }
 
 export interface BootstrapOptions {
-  /** RevealUI admin instance (injected — keeps setup package lightweight). */
+  /** RevealUI admin instance (injected  -  keeps setup package lightweight). */
   revealui: RevealUILike;
   /** First admin user credentials. */
   admin: BootstrapAdminConfig;
@@ -55,7 +55,7 @@ export interface BootstrapResult {
 }
 
 // ---------------------------------------------------------------------------
-// Seed data (minimal — just enough to make the app functional)
+// Seed data (minimal  -  just enough to make the app functional)
 // ---------------------------------------------------------------------------
 
 function richTextDoc(...nodes: unknown[]) {
@@ -221,7 +221,7 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
       }
       seeded = true;
     } catch {
-      // Non-fatal — user was created, seed can be retried via pnpm db:seed
+      // Non-fatal  -  user was created, seed can be retried via pnpm db:seed
     }
   }
 

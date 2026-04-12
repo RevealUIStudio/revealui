@@ -47,7 +47,7 @@ export function LicenseGate({ children }: LicenseGateProps) {
     return (
       <div>
         <div className="mb-4 flex items-center justify-between rounded-lg border border-current/10 bg-current/5 px-4 py-2 text-sm">
-          <span>RevealUI Pro{tier === 'enterprise' ? ' Enterprise' : ''} — licensed</span>
+          <span>RevealUI Pro{tier === 'enterprise' ? ' Enterprise' : ''} - licensed</span>
           <button
             type="button"
             onClick={clear}

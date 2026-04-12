@@ -1,16 +1,16 @@
 /**
  * Sessions & Change-Password Route Tests
  *
- * GET    /api/auth/sessions              — list active sessions, mark current
- * DELETE /api/auth/sessions/[sessionId]  — revoke a session (own sessions only)
- * POST   /api/auth/change-password       — change user password with validation
+ * GET    /api/auth/sessions               -  list active sessions, mark current
+ * DELETE /api/auth/sessions/[sessionId]   -  revoke a session (own sessions only)
+ * POST   /api/auth/change-password        -  change user password with validation
  */
 
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
-// Mocks — must be declared before route imports
+// Mocks  -  must be declared before route imports
 // ---------------------------------------------------------------------------
 
 vi.mock('@revealui/auth/server', () => ({
@@ -33,7 +33,7 @@ vi.mock('@/lib/utils/request-context', () => ({
   extractRequestContext: vi.fn(() => ({ userAgent: 'test', ipAddress: '127.0.0.1' })),
 }));
 
-// Drizzle ORM helpers — used for query predicates; return value is irrelevant
+// Drizzle ORM helpers  -  used for query predicates; return value is irrelevant
 vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => ({ _op: 'and', args })),
   eq: vi.fn((col: unknown, val: unknown) => ({ _op: 'eq', col, val })),

@@ -89,7 +89,7 @@ function createApp(user?: MockUser) {
   return app;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: test helper — Hono generics vary per test
+// biome-ignore lint/suspicious/noExplicitAny: test helper  -  Hono generics vary per test
 function jsonPost(app: Hono<any>, path: string, body: unknown) {
   return app.request(path, {
     method: 'POST',
@@ -403,7 +403,7 @@ describe('api-keys routes', () => {
     });
   });
 
-  describe('POST /api-keys — encryption and redaction', () => {
+  describe('POST /api-keys  -  encryption and redaction', () => {
     it('calls encryptApiKey before storing', async () => {
       const { encryptApiKey } = await import('@revealui/db/crypto');
       const app = createApp(testUser);
@@ -446,7 +446,7 @@ describe('api-keys routes', () => {
     });
   });
 
-  describe('POST /api-keys — setAsDefault flow', () => {
+  describe('POST /api-keys  -  setAsDefault flow', () => {
     it('creates provider config when setAsDefault is true and no existing config', async () => {
       const app = createApp(testUser);
 
@@ -500,7 +500,7 @@ describe('api-keys routes', () => {
   });
 
   describe('tenant isolation (IDOR)', () => {
-    it("DELETE — user cannot delete another user's key (scoped by userId)", async () => {
+    it("DELETE  -  user cannot delete another user's key (scoped by userId)", async () => {
       // Key belongs to testUser, but otherUser tries to delete it.
       // The select query scopes by userId, so it returns [] for the wrong user.
       mockedGetClient.mockReturnValue({
@@ -518,7 +518,7 @@ describe('api-keys routes', () => {
       expect(res.status).toBe(404);
     });
 
-    it("ROTATE — user cannot rotate another user's key (scoped by userId)", async () => {
+    it("ROTATE  -  user cannot rotate another user's key (scoped by userId)", async () => {
       mockedGetClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
@@ -536,7 +536,7 @@ describe('api-keys routes', () => {
       expect(res.status).toBe(404);
     });
 
-    it('GET — list is scoped to authenticated user only', async () => {
+    it('GET  -  list is scoped to authenticated user only', async () => {
       const mockSelect = vi.fn().mockReturnValue({
         from: vi.fn().mockReturnValue({
           where: vi.fn().mockResolvedValue([]),
@@ -557,7 +557,7 @@ describe('api-keys routes', () => {
     });
   });
 
-  describe('POST /api-keys/:id/rotate — encryption', () => {
+  describe('POST /api-keys/:id/rotate  -  encryption', () => {
     it('encrypts the new key and generates new hint', async () => {
       const { encryptApiKey, redactApiKey } = await import('@revealui/db/crypto');
 

@@ -35,5 +35,5 @@ These files describe RevealUI's coding conventions, safety rules, and architectu
 When a convention changes:
 1. Update the canonical file here
 2. Update the corresponding Codex skill in `.agents/skills/revealui-*/SKILL.md`
-3. Claude rules in `.claude/rules/` are independent — update if needed
+3. Claude rules in `.claude/rules/` are independent  -  update if needed
 4. Run 2-3 test prompts from `test-prompts.md` to verify both tools pick up the change

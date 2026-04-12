@@ -178,7 +178,7 @@ describe('CollabProvider', () => {
     const provider = new CollabProvider('ws://localhost:3004', 'doc1', doc);
 
     const awareness = provider.awareness;
-    // y-protocols Awareness constructor calls setLocalState({}) — initial state is {}
+    // y-protocols Awareness constructor calls setLocalState({})  -  initial state is {}
     expect(awareness.getLocalState()).toEqual({});
 
     awareness.setLocalState({ name: 'Test' });

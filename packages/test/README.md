@@ -239,14 +239,14 @@ pnpm --filter test test:coverage
 - You need shared test fixtures, mocks, or utilities across multiple RevealUI packages
 - You're writing E2E tests with Playwright page objects for RevealUI apps
 - You want load testing scripts (k6) for auth, API, or payment flows
-- **Not** for unit tests in a single package — co-locate tests with the package using Vitest directly
-- **Not** for testing non-RevealUI projects — the fixtures and mocks are RevealUI-specific
+- **Not** for unit tests in a single package  -  co-locate tests with the package using Vitest directly
+- **Not** for testing non-RevealUI projects  -  the fixtures and mocks are RevealUI-specific
 
 ## JOSHUA Alignment
 
 - **Unified**: One test infrastructure package provides fixtures, mocks, E2E page objects, and load tests for the entire monorepo
 - **Orthogonal**: Unit, integration, E2E, and load tests are cleanly separated directories with independent tooling
-- **Justifiable**: Shared mocks (Stripe, Supabase, database, storage) exist because multiple packages need them — no duplication
+- **Justifiable**: Shared mocks (Stripe, Supabase, database, storage) exist because multiple packages need them  -  no duplication
 
 ## Contributing
 

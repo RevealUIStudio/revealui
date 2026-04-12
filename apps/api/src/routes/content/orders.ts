@@ -1,10 +1,10 @@
 /**
  * Order CRUD routes
  *
- * GET /orders         — List orders (admin: all; authenticated: own orders)
- * POST /orders        — Create an order (authenticated)
- * GET /orders/:id     — Get order by ID (admin or owner)
- * PATCH /orders/:id   — Update order status (admin-only)
+ * GET /orders          -  List orders (admin: all; authenticated: own orders)
+ * POST /orders         -  Create an order (authenticated)
+ * GET /orders/:id      -  Get order by ID (admin or owner)
+ * PATCH /orders/:id    -  Update order status (admin-only)
  */
 
 import * as orderQueries from '@revealui/db/queries/orders';

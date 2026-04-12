@@ -29,7 +29,7 @@ export const errorEvents = pgTable(
     /** Error message */
     message: text('message').notNull(),
 
-    /** Stack trace (optional — not available for client-side errors without source maps) */
+    /** Stack trace (optional  -  not available for client-side errors without source maps) */
     stack: text('stack'),
 
     /** Which app generated the error */
@@ -44,7 +44,7 @@ export const errorEvents = pgTable(
     /** URL where the error occurred */
     url: text('url'),
 
-    /** User ID if authenticated (plain text — no FK, errors outlive users) */
+    /** User ID if authenticated (plain text  -  no FK, errors outlive users) */
     userId: text('user_id'),
 
     /** Request ID for cross-service correlation */

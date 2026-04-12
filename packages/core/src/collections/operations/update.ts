@@ -273,7 +273,7 @@ export async function update(
       const query = updateByIdWithVersionQuery(tableName, updateKeys);
       const result = await db.query(query, [...updateValues, clientVersion, idString]);
       if (result.rowCount === 0) {
-        // Document exists but version mismatch — concurrent edit detected
+        // Document exists but version mismatch  -  concurrent edit detected
         const err = new Error('Document was modified by another user. Refresh and try again.');
         (err as Error & { statusCode: number }).statusCode = 409;
         throw err;

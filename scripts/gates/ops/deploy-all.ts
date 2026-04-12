@@ -1,18 +1,18 @@
 #!/usr/bin/env tsx
 
 /**
- * Deploy All — Multi-App Vercel Deployment for RevealUI
+ * Deploy All  -  Multi-App Vercel Deployment for RevealUI
  *
  * Orchestrates Vercel deployment for all 7 apps, replacing the
  * deploy.yml GitHub Actions workflow. Runs concurrent deployments
  * with optional smoke testing.
  *
  * Usage:
- *   pnpm deploy:all                    — deploy all apps to production
- *   pnpm deploy:all --env=preview      — deploy as preview
- *   pnpm deploy:all --app=cms          — deploy single app
- *   pnpm deploy:all --skip-build       — skip build step
- *   pnpm deploy:all --skip-smoke       — skip smoke tests
+ *   pnpm deploy:all                     -  deploy all apps to production
+ *   pnpm deploy:all --env=preview       -  deploy as preview
+ *   pnpm deploy:all --app=cms           -  deploy single app
+ *   pnpm deploy:all --skip-build        -  skip build step
+ *   pnpm deploy:all --skip-smoke        -  skip smoke tests
  *
  * @dependencies
  * - scripts/lib/exec.ts - execCommand for running commands

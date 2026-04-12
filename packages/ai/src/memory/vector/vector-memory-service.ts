@@ -62,7 +62,7 @@ export class VectorMemoryService {
   /**
    * Search for similar memories using vector similarity.
    *
-   * @param queryEmbedding - Query embedding vector (768 dimensions — Ollama nomic-embed-text)
+   * @param queryEmbedding - Query embedding vector (768 dimensions  -  Ollama nomic-embed-text)
    * @param options - Search options (filtering, limits, etc.)
    * @returns Array of memories with similarity scores, sorted by similarity (highest first)
    *

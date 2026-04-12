@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
 
 const TEST_SECRET = 'whsec_test_real_signature_verification_secret';
 
-describe('Stripe webhook — real signature verification', () => {
+describe('Stripe webhook  -  real signature verification', () => {
   const stripe = new Stripe('sk_test_dummy', { apiVersion: '2025-03-31.basil' });
 
   it('verifies a correctly signed payload', () => {
@@ -97,7 +97,7 @@ describe('Stripe webhook — real signature verification', () => {
       data: { object: {} },
     });
 
-    // 60 seconds ago — within the 300s tolerance
+    // 60 seconds ago  -  within the 300s tolerance
     const header = stripe.webhooks.generateTestHeaderString({
       payload,
       secret: TEST_SECRET,

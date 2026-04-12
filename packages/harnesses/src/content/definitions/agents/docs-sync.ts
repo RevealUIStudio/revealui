@@ -11,7 +11,7 @@ export const docsSyncAgent: Agent = {
 
 ## Purpose
 
-Detect documentation drift — places where code has changed but docs haven't been updated.
+Detect documentation drift  -  places where code has changed but docs haven't been updated.
 
 ## Checks
 
@@ -54,7 +54,7 @@ Report findings as a table:
 | MEDIUM | Package exports | \`createSession\` exported but undocumented | packages/auth/src/index.ts |
 
 ## Rules
-- Do NOT modify any files — report only
+- Do NOT modify any files  -  report only
 - Focus on high-priority drift (new features, changed APIs)
 - Ignore internal/private APIs not intended for external docs
 - Check git log for recently changed files to prioritise review`,

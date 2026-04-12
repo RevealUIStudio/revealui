@@ -2,7 +2,7 @@
  * BYOK Provider Key Validator
  *
  * Validates API keys against their provider before storage.
- * Uses the cheapest available endpoint for each provider — typically a
+ * Uses the cheapest available endpoint for each provider  -  typically a
  * models list (read-only, no token cost). Falls back gracefully when the
  * provider is unreachable so that network failures don't block key storage.
  */
@@ -43,7 +43,7 @@ export async function validateProviderKey(
         });
         if (res.ok) return { valid: true };
         if (res.status === 401) return { valid: false, error: 'Invalid Groq API key' };
-        // Any other non-OK status (429, 500 etc.) — treat as reachable but unknown
+        // Any other non-OK status (429, 500 etc.)  -  treat as reachable but unknown
         return { valid: false, error: `Groq validation failed: HTTP ${res.status}` };
       }
 
@@ -57,7 +57,7 @@ export async function validateProviderKey(
       }
 
       case 'openai': {
-        // Validate by format — keys start with "sk-"
+        // Validate by format  -  keys start with "sk-"
         // (Per LLM policy, OpenAI API calls are blocked until we have revenue.)
         if (!apiKey.startsWith('sk-')) {
           return { valid: false, error: 'OpenAI API key must start with "sk-"' };
@@ -87,22 +87,22 @@ export async function validateProviderKey(
       }
 
       case 'ollama': {
-        // Ollama is local — we cannot reliably probe it from the server.
+        // Ollama is local  -  we cannot reliably probe it from the server.
         // Accept the key as-is (Ollama doesn't use API keys anyway).
         return { valid: true };
       }
 
       default:
-        // Unknown provider — skip validation
+        // Unknown provider  -  skip validation
         return { valid: true };
     }
   } catch (err) {
-    // Network error (AbortError, DNS failure, etc.) — don't block storage
+    // Network error (AbortError, DNS failure, etc.)  -  don't block storage
     if (err instanceof Error && err.name === 'AbortError') {
-      // Timeout — provider unreachable, proceed with storage
+      // Timeout  -  provider unreachable, proceed with storage
       return { valid: true };
     }
-    // Other network errors (ECONNREFUSED, etc.) — proceed with storage
+    // Other network errors (ECONNREFUSED, etc.)  -  proceed with storage
     return { valid: true };
   }
 }

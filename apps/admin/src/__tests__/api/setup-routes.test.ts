@@ -1,8 +1,8 @@
 /**
  * Setup Route Tests
  *
- * POST /api/setup — Bootstrap a fresh RevealUI instance
- * GET  /api/setup — Check if setup is needed
+ * POST /api/setup  -  Bootstrap a fresh RevealUI instance
+ * GET  /api/setup  -  Check if setup is needed
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';

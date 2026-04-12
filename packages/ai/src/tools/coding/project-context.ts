@@ -1,5 +1,5 @@
 /**
- * project_context — Query the harness content layer for relevant project rules and skills
+ * project_context  -  Query the harness content layer for relevant project rules and skills
  */
 
 import { readdirSync, readFileSync } from 'node:fs';

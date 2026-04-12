@@ -230,7 +230,7 @@ describe('code-provenance queries', () => {
       // biome-ignore lint/suspicious/noExplicitAny: mock db
       await getAllProvenance(db as any, { limit: 1000 });
 
-      // The chain mock captures limit calls — we verify the function doesn't throw
+      // The chain mock captures limit calls  -  we verify the function doesn't throw
       expect(db.select).toHaveBeenCalled();
     });
 

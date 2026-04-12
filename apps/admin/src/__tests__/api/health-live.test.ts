@@ -1,7 +1,7 @@
 /**
  * Health Live Route Tests
  *
- * Tests for GET /api/health/live — liveness probe endpoint.
+ * Tests for GET /api/health/live  -  liveness probe endpoint.
  * Simple check that always returns 200 with status and timestamp.
  */
 
