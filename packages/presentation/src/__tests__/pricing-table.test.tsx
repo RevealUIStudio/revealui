@@ -189,7 +189,7 @@ describe('PricingTable  -  edge cases', () => {
     expect(container.firstChild).toHaveClass('lg:grid-cols-2');
   });
 
-  it('renders " - " when price is undefined', () => {
+  it('renders "-" when price is undefined', () => {
     const tiersWithoutPrice = [
       {
         id: 'free',
@@ -202,6 +202,6 @@ describe('PricingTable  -  edge cases', () => {
       },
     ];
     render(<PricingTable tiers={tiersWithoutPrice} />);
-    expect(screen.getByText(' - ')).toBeInTheDocument();
+    expect(screen.getByText('-')).toBeInTheDocument();
   });
 });
