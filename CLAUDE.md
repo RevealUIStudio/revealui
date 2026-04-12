@@ -171,16 +171,14 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 - Database tests use PGlite (in-memory PostgreSQL)
 
 ## Build & Security Status
-- 30 workspaces build and typecheck clean
-- 20,000+ tests across 1,300+ test files
+- 31 workspaces build and typecheck clean
+- 20,000+ tests across 938 test files
 - 36 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
+- 0 GitHub CodeQL alerts, 0 Dependabot alerts (as of 2026-04-12)
+- AST-based code-pattern analyzer: execSync injection, TOCTOU, ReDoS (ret parser + contracts schemas)
+- Pre-push gate runs affected tests on protected branches
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
-
-### Known npm Vulnerabilities (Accepted Risk)
-| Severity | Module | Via | Issue | Fixable? |
-|----------|--------|-----|-------|----------|
-| low | @tootallnate/once | vercel CLI | Incorrect Control Flow Scoping | Upgrade to >=3.0.1 when vercel updates |
 
 ## CI Gate Architecture
 The `pnpm gate` script runs 3 phases:
