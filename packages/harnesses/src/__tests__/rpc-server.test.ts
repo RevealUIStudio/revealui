@@ -181,4 +181,107 @@ describe('RpcServer (harnesses)', () => {
     })) as { result: { identical: boolean } };
     expect(res.result?.identical).toBe(true);
   });
+
+  // -----------------------------------------------------------------------
+  // VAUGHN Protocol methods
+  // -----------------------------------------------------------------------
+  it('vaughn.capabilities returns empty array when no adapters registered', async () => {
+    const res = (await sendRequest(socket, 'vaughn.capabilities')) as {
+      result: unknown[];
+    };
+    expect(Array.isArray(res.result)).toBe(true);
+    expect(res.result).toHaveLength(0);
+  });
+
+  it('vaughn.dispatch returns error when dispatch not configured', async () => {
+    const res = (await sendRequest(socket, 'vaughn.dispatch', {
+      description: 'test task',
+    })) as { error: { code: number } };
+    expect(res.error?.code).toBe(-32603);
+  });
+
+  it('vaughn.dispatch returns error when description missing', async () => {
+    server.setVaughnDispatch(() => null);
+    const res = (await sendRequest(socket, 'vaughn.dispatch', {})) as {
+      error: { code: number };
+    };
+    expect(res.error?.code).toBe(-32602);
+  });
+
+  it('vaughn.dispatch returns adapterId when configured', async () => {
+    server.setVaughnDispatch((_req, _desc) => 'claude-code');
+    const res = (await sendRequest(socket, 'vaughn.dispatch', {
+      description: 'run tests',
+      requirements: { headless: true },
+    })) as { result: { adapterId: string } };
+    expect(res.result?.adapterId).toBe('claude-code');
+  });
+
+  it('vaughn.events returns empty array initially', async () => {
+    const res = (await sendRequest(socket, 'vaughn.events')) as {
+      result: unknown[];
+    };
+    expect(Array.isArray(res.result)).toBe(true);
+    expect(res.result).toHaveLength(0);
+  });
+
+  it('vaughn.events returns pushed events', async () => {
+    server.pushVaughnEvent({
+      version: '0.1.0',
+      event: 'session.start',
+      timestamp: new Date().toISOString(),
+      agentId: 'test-agent',
+      toolName: 'claude-code',
+      sessionId: 'sess-1',
+      payload: {},
+    });
+    const res = (await sendRequest(socket, 'vaughn.events')) as {
+      result: Array<{ event: string }>;
+    };
+    expect(res.result).toHaveLength(1);
+    expect(res.result[0].event).toBe('session.start');
+  });
+
+  it('vaughn.events respects limit parameter', async () => {
+    for (let i = 0; i < 5; i++) {
+      server.pushVaughnEvent({
+        version: '0.1.0',
+        event: 'agent.heartbeat',
+        timestamp: new Date().toISOString(),
+        agentId: 'test-agent',
+        toolName: 'claude-code',
+        sessionId: 'sess-1',
+        payload: { index: i },
+      });
+    }
+    const res = (await sendRequest(socket, 'vaughn.events', { limit: 2 })) as {
+      result: unknown[];
+    };
+    expect(res.result.length).toBeLessThanOrEqual(2);
+  });
+
+  it('vaughn.config.sync returns error when config missing', async () => {
+    const res = (await sendRequest(socket, 'vaughn.config.sync', {})) as {
+      error: { code: number };
+    };
+    expect(res.error?.code).toBe(-32602);
+  });
+
+  it('vaughn.config.sync generates all config files', async () => {
+    const config = {
+      identity: { name: 'Test', email: 'test@test.com' },
+      permissions: { autoApprove: [], deny: [] },
+      environment: { variables: {}, mcpServers: [] },
+      rules: [],
+      skills: [],
+      commands: [],
+    };
+    const res = (await sendRequest(socket, 'vaughn.config.sync', { config })) as {
+      result: { files: Record<string, string> };
+    };
+    expect(res.result?.files).toBeDefined();
+    expect(res.result.files['.claude/settings.json']).toBeDefined();
+    expect(res.result.files['.cursorrules']).toBeDefined();
+    expect(res.result.files['AGENTS.md']).toBeDefined();
+  });
 });

@@ -36,6 +36,15 @@ vi.mock('@electric-sql/pglite', () => ({
 }));
 
 import { HarnessCoordinator } from '../coordinator.js';
+import type { HarnessAdapter } from '../types/adapter.js';
+import type {
+  HarnessCapabilities,
+  HarnessCommand,
+  HarnessCommandResult,
+  HarnessEvent,
+  HarnessInfo,
+} from '../types/core.js';
+import { TOOL_PROFILES } from '../vaughn/capabilities.js';
 import { WorkboardManager } from '../workboard/workboard-manager.js';
 
 describe('HarnessCoordinator', () => {
@@ -141,5 +150,110 @@ describe('HarnessCoordinator', () => {
       expect(h.available).toBe(false);
     }
     await coord.stop();
+  });
+
+  describe('dispatchTask', () => {
+    function createMockAdapter(id: string): HarnessAdapter {
+      return {
+        id,
+        name: `Mock ${id}`,
+        getCapabilities(): HarnessCapabilities {
+          return {
+            generateCode: false,
+            analyzeCode: false,
+            applyEdit: false,
+            applyConfig: false,
+            readWorkboard: false,
+            writeWorkboard: false,
+          };
+        },
+        getInfo(): Promise<HarnessInfo> {
+          return Promise.resolve({
+            id,
+            name: `Mock ${id}`,
+            version: '0.0.1',
+            capabilities: this.getCapabilities(),
+          });
+        },
+        isAvailable(): Promise<boolean> {
+          return Promise.resolve(false);
+        },
+        execute(_cmd: HarnessCommand): Promise<HarnessCommandResult> {
+          return Promise.resolve({ success: true, command: 'get-status' });
+        },
+        onEvent(_handler: (event: HarnessEvent) => void): () => void {
+          return () => {};
+        },
+        dispose(): Promise<void> {
+          return Promise.resolve();
+        },
+      };
+    }
+
+    it('returns null when no adapters are registered', () => {
+      const coord = new HarnessCoordinator({ projectRoot, socketPath });
+      const result = coord.dispatchTask({ headless: true }, 'test task');
+      expect(result).toBeNull();
+    });
+
+    it('matches adapter by TOOL_PROFILES lookup', () => {
+      const coord = new HarnessCoordinator({ projectRoot, socketPath });
+      coord.registerAdapter(createMockAdapter('claude-code'));
+      const result = coord.dispatchTask({ headless: true }, 'run headless');
+      expect(result).toBe('claude-code');
+    });
+
+    it('rejects adapter that does not meet requirements', () => {
+      const coord = new HarnessCoordinator({ projectRoot, socketPath });
+      coord.registerAdapter(createMockAdapter('cursor'));
+      // cursor is not headless
+      const result = coord.dispatchTask({ headless: true }, 'need headless');
+      expect(result).toBeNull();
+    });
+
+    it('prefers adapter with hooks.canBlock for safety', () => {
+      const coord = new HarnessCoordinator({ projectRoot, socketPath });
+      coord.registerAdapter(createMockAdapter('codex'));
+      coord.registerAdapter(createMockAdapter('claude-code'));
+      // Both match headless, but claude-code has hooks.canBlock
+      const result = coord.dispatchTask({ headless: true }, 'safety-critical');
+      // codex also has canBlock, so first match with canBlock wins
+      expect(result).not.toBeNull();
+      const caps = TOOL_PROFILES[result!];
+      expect(caps.hooks.canBlock).toBe(true);
+    });
+
+    it('matches dispatch capabilities', () => {
+      const coord = new HarnessCoordinator({ projectRoot, socketPath });
+      coord.registerAdapter(createMockAdapter('claude-code'));
+      coord.registerAdapter(createMockAdapter('revealui-agent'));
+      // Only revealui-agent has dispatch.generateCode
+      const result = coord.dispatchTask(
+        {
+          dispatch: {
+            generateCode: true,
+            analyzeCode: false,
+            applyEdit: false,
+            executeCommand: false,
+          },
+        },
+        'generate code',
+      );
+      expect(result).toBe('revealui-agent');
+    });
+
+    it('uses explicit VAUGHN capabilities over TOOL_PROFILES', () => {
+      const coord = new HarnessCoordinator({ projectRoot, socketPath });
+      coord.registerAdapter(createMockAdapter('custom-agent'));
+      // custom-agent is not in TOOL_PROFILES, so dispatch returns null
+      expect(coord.dispatchTask({ headless: true }, 'test')).toBeNull();
+
+      // Register explicit capabilities
+      coord.registerVaughnCapabilities('custom-agent', {
+        ...TOOL_PROFILES['revealui-agent'],
+        headless: true,
+      });
+      expect(coord.dispatchTask({ headless: true }, 'test')).toBe('custom-agent');
+    });
   });
 });

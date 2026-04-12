@@ -706,13 +706,13 @@ Holster: "Here is the shared state where coordination happens"
 
 ### VAUGHN Implementation Roadmap
 
-**Phase 2  -  VAUGHN Core:**
-- [ ] Define `VaughnAdapter` interface in `@revealui/harnesses`
-- [ ] Implement native `VaughnAdapter` (replaces removed vendor adapters)
-- [ ] Event normalization layer (tool events → VAUGHN events)
-- [ ] Capability-aware task dispatch in coordinator
-- [ ] Config normalization (JSON ↔ TOML ↔ Markdown)
-- [ ] VAUGHN identity cascade (7-tier, extending Holster's 6-tier)
+**Phase 2  -  VAUGHN Core (complete):**
+- [x] Define `VaughnAdapter` interface in `@revealui/harnesses`
+- [x] Implement native `VaughnAdapter` (replaces removed vendor adapters)
+- [x] Event normalization layer (tool events → VAUGHN events)
+- [x] Capability-aware task dispatch in coordinator
+- [x] Config normalization (JSON ↔ TOML ↔ Markdown)
+- [x] VAUGHN identity cascade (7-tier, extending Holster's 6-tier)
 
 **Phase 3  -  Interop:**
 - [ ] MCP tool reservation (prevent concurrent conflicting calls)
