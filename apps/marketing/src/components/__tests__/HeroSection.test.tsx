@@ -42,10 +42,10 @@ describe('HeroSection', () => {
   it('contains the brand tagline', () => {
     const result = HeroSection();
     const html = JSON.stringify(result);
-    // Hero H1 splits "Ship Your Product, / Not Your / Infrastructure" across span blocks
-    expect(html).toContain('Ship Your Product,');
-    expect(html).toContain('Infrastructure');
-    expect(html).toContain('Build your business, not your boilerplate.');
+    // Hero H1 splits "Build for Humans. / Ready for / Agents." across span blocks
+    expect(html).toContain('Build for Humans.');
+    expect(html).toContain('Agents.');
+    expect(html).toContain('One runtime for you and your AI agents.');
   });
 
   it('contains all five primitives', () => {
@@ -79,7 +79,7 @@ describe('HeroSection', () => {
     expect(html).toContain('MIT Licensed');
     expect(html).toContain('Self-Hostable');
     expect(html).toContain('No Vendor Lock-in');
-    expect(html).toContain('AI Built In');
+    expect(html).toContain('Agent-Native');
   });
 
   it('renders the Open Source badge', () => {

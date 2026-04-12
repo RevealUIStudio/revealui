@@ -92,7 +92,7 @@ describe('TermsOfServicePage', () => {
   });
 
   it('exports correct metadata', () => {
-    expect(metadata.title).toBe('Terms of Service \u2014 RevealUI');
+    expect(metadata.title).toBe('Terms of Service | RevealUI');
     expect(metadata.description).toContain('Terms of service');
   });
 });
