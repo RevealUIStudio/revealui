@@ -22,6 +22,7 @@ export {
   type CodePatternIssue,
   type CodePatternIssueKind,
   findCodePatternIssues,
+  toSecurityFinding,
 } from './code-pattern-analyzer.js';
 export {
   type AnalysisMode,

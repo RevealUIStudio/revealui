@@ -4,7 +4,9 @@
   "private": true,
   "description": "Shared utilities for RevealUI scripts",
   "dependencies": {
-    "@revealui/core": "workspace:*"
+    "@revealui/contracts": "workspace:*",
+    "@revealui/core": "workspace:*",
+    "ret": "^0.5.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.3"

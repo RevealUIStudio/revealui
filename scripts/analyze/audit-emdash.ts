@@ -252,7 +252,7 @@ function scanFile(filePath: string): EmDashFinding[] {
       // Check double-spaced first (superset of single)
       col = line.indexOf('  -  ');
       while (col !== -1) {
-        if (!isInsideInlineCode(line, col) && !isCodeContext(line, col)) {
+        if (!(isInsideInlineCode(line, col) || isCodeContext(line, col))) {
           findings.push({
             file: relPath,
             line: i + 1,
@@ -273,7 +273,7 @@ function scanFile(filePath: string): EmDashFinding[] {
           (col + 3 < line.length &&
             line[col + 3] === ' ' &&
             line.substring(col, col + 5) === ' -  ');
-        if (!isDouble && !isInsideInlineCode(line, col) && !isCodeContext(line, col)) {
+        if (!(isDouble || isInsideInlineCode(line, col) || isCodeContext(line, col))) {
           findings.push({
             file: relPath,
             line: i + 1,
