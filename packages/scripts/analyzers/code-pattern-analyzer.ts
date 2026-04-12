@@ -6,15 +6,35 @@
  * - stat-then-read sequences (TOCTOU race conditions)
  * - Catastrophic backtracking regex patterns (ReDoS)
  *
+ * Uses typed schemas from @revealui/contracts/security for regex AST analysis
+ * and rule definitions. Detection logic produces SecurityFinding objects that
+ * pair a typed rule with a source location.
+ *
  * Runs as part of the security gate (warn-only).
- * False positives are expected; the goal is to flag code for human review.
  */
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
+import type {
+  RetGroup,
+  RetRoot,
+  RetToken,
+  SecurityFinding,
+  SecurityRuleId,
+} from '@revealui/contracts/security';
+import { RetNodeType, SECURITY_RULES } from '@revealui/contracts/security';
+// ret parser (runtime only, not in contracts)
+import * as retModule from 'ret';
 import * as ts from 'typescript';
 
-export type CodePatternIssueKind = 'exec-sync-string' | 'toctou-stat-read' | 'redos-regex';
+// ret exports a callable function via CJS default; cast through unknown for ESM compat
+const retParse = (retModule as unknown as { default: (p: string) => unknown }).default ?? retModule;
+
+// =============================================================================
+// Types (derived from contracts)
+// =============================================================================
+
+export type CodePatternIssueKind = SecurityRuleId;
 
 export interface CodePatternIssue {
   kind: CodePatternIssueKind;
@@ -23,6 +43,23 @@ export interface CodePatternIssue {
   column: number;
   snippet: string;
 }
+
+/** Convert a CodePatternIssue to a typed SecurityFinding from contracts. */
+export function toSecurityFinding(issue: CodePatternIssue): SecurityFinding {
+  return {
+    rule: SECURITY_RULES[issue.kind],
+    location: {
+      file: issue.file,
+      line: issue.line,
+      column: issue.column,
+      snippet: issue.snippet,
+    },
+  };
+}
+
+// =============================================================================
+// File Collection
+// =============================================================================
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.mjs']);
 
@@ -94,15 +131,9 @@ function createIssue(
 // Check 1: execSync with string concatenation/template (command injection)
 // =============================================================================
 
-/**
- * Detects calls to execSync (or spawnSync with shell:true) where the command
- * argument is built via template literal or string concatenation rather than
- * using execFileSync with an args array.
- */
 function isExecSyncWithStringArg(node: ts.CallExpression): boolean {
   const callee = node.expression;
 
-  // Match execSync(...) or child_process.execSync(...)
   let name: string | null = null;
   if (ts.isIdentifier(callee)) {
     name = callee.text;
@@ -115,10 +146,7 @@ function isExecSyncWithStringArg(node: ts.CallExpression): boolean {
   const firstArg = node.arguments[0];
   if (!firstArg) return false;
 
-  // Flag template literals with expressions (interpolation)
   if (ts.isTemplateExpression(firstArg)) return true;
-
-  // Flag string concatenation: "git " + variable
   if (ts.isBinaryExpression(firstArg) && firstArg.operatorToken.kind === ts.SyntaxKind.PlusToken) {
     return true;
   }
@@ -130,16 +158,10 @@ function isExecSyncWithStringArg(node: ts.CallExpression): boolean {
 // Check 2: stat then read on same path (TOCTOU)
 // =============================================================================
 
-/**
- * Detects the pattern: statSync(path) followed by readFileSync(path)
- * in the same function scope. This is a TOCTOU race: the file can change
- * or disappear between stat and read.
- */
 function findToctouPatterns(sourceFile: ts.SourceFile, repoRoot: string): CodePatternIssue[] {
   const issues: CodePatternIssue[] = [];
 
   function visitBlock(block: ts.Node): void {
-    // Collect all stat/read calls in this block
     const statCalls: { path: string; node: ts.Node }[] = [];
     const readCalls: { path: string; node: ts.Node }[] = [];
 
@@ -159,7 +181,6 @@ function findToctouPatterns(sourceFile: ts.SourceFile, repoRoot: string): CodePa
       ts.forEachChild(node, visit);
     });
 
-    // Check if any stat call has a matching read call on the same path expression
     for (const stat of statCalls) {
       for (const read of readCalls) {
         if (stat.path === read.path) {
@@ -170,7 +191,6 @@ function findToctouPatterns(sourceFile: ts.SourceFile, repoRoot: string): CodePa
     }
   }
 
-  // Walk function bodies
   function walk(node: ts.Node): void {
     if (
       ts.isFunctionDeclaration(node) ||
@@ -198,58 +218,158 @@ function getCallName(node: ts.CallExpression): string | null {
 
 // =============================================================================
 // Check 3: Catastrophic backtracking regex (ReDoS)
+//
+// Uses `ret` to parse regex patterns into a typed AST (RetRoot/RetToken from
+// @revealui/contracts/security), then checks for nested quantifiers whose
+// outer body has overlapping tail/start character sets.
 // =============================================================================
 
-/**
- * Detects regex patterns with common ReDoS shapes:
- * - Nested quantifiers: (a+)+ or (a*)*
- * - Overlapping alternation with quantifiers: (a|a)+
- *
- * This is a heuristic check, not a full NFA analysis. It catches the most
- * common patterns that cause exponential backtracking.
- */
-function hasNestedQuantifier(pattern: string): boolean {
-  // Look for quantified group containing a quantifier: (...)+ where ... contains +, *, {n,}
-  // Simplified: find groups with inner quantifiers followed by outer quantifiers
-  let depth = 0;
-  let hasInnerQuantifier = false;
+type CharSet = Set<number> | 'any';
 
-  for (let i = 0; i < pattern.length; i++) {
-    const ch = pattern[i];
+/** Collect character codes a node can match as its first character. */
+function firstChars(node: RetToken | RetRoot): CharSet {
+  switch (node.type) {
+    case RetNodeType.CHAR:
+      return new Set([node.value]);
 
-    // Skip escaped characters
-    if (ch === '\\') {
-      i++;
-      continue;
+    case RetNodeType.RANGE: {
+      if (node.to - node.from > 256) return 'any';
+      const s = new Set<number>();
+      for (let c = node.from; c <= node.to; c++) s.add(c);
+      return s;
     }
 
-    // Skip character classes
-    if (ch === '[') {
-      while (i < pattern.length && pattern[i] !== ']') {
-        if (pattern[i] === '\\') i++;
-        i++;
+    case RetNodeType.SET: {
+      if (node.not) return 'any';
+      const s = new Set<number>();
+      for (const member of node.set) {
+        const mc = firstChars(member as RetToken);
+        if (mc === 'any') return 'any';
+        for (const c of mc) s.add(c);
       }
-      continue;
+      return s;
     }
 
-    if (ch === '(') {
-      depth++;
-      hasInnerQuantifier = false;
-    } else if (ch === ')') {
-      depth--;
-      // Check if this closing paren is followed by a quantifier
-      const next = pattern[i + 1];
-      if (hasInnerQuantifier && (next === '+' || next === '*' || next === '{')) {
-        return true;
+    case RetNodeType.GROUP: {
+      if (node.options) {
+        const s = new Set<number>();
+        for (const branch of node.options) {
+          if (branch.length > 0) {
+            const bc = firstChars(branch[0]!);
+            if (bc === 'any') return 'any';
+            for (const c of bc) s.add(c);
+          }
+        }
+        return s;
       }
-      hasInnerQuantifier = false;
-    } else if (depth > 0 && (ch === '+' || ch === '*')) {
-      hasInnerQuantifier = true;
-    } else if (depth > 0 && ch === '{') {
-      // Check for {n,} or {n,m} quantifier
-      const rest = pattern.slice(i);
-      if (/^\{\d+,\d*\}/.test(rest)) {
-        hasInnerQuantifier = true;
+      if (node.stack && node.stack.length > 0) {
+        return firstChars(node.stack[0]!);
+      }
+      return new Set();
+    }
+
+    case RetNodeType.REPETITION:
+      return firstChars(node.value);
+
+    case RetNodeType.ROOT: {
+      if (node.stack && node.stack.length > 0) return firstChars(node.stack[0]!);
+      if (node.options) {
+        const s = new Set<number>();
+        for (const branch of node.options) {
+          if (branch.length > 0) {
+            const bc = firstChars(branch[0]!);
+            if (bc === 'any') return 'any';
+            for (const c of bc) s.add(c);
+          }
+        }
+        return s;
+      }
+      return new Set();
+    }
+
+    default:
+      return 'any';
+  }
+}
+
+/** Collect the last matchable characters from a node. */
+function lastChars(node: RetToken | RetRoot): CharSet {
+  switch (node.type) {
+    case RetNodeType.CHAR:
+      return new Set([node.value]);
+
+    case RetNodeType.RANGE: {
+      if (node.to - node.from > 256) return 'any';
+      const s = new Set<number>();
+      for (let c = node.from; c <= node.to; c++) s.add(c);
+      return s;
+    }
+
+    case RetNodeType.SET: {
+      if (node.not) return 'any';
+      const s = new Set<number>();
+      for (const member of node.set) {
+        const mc = lastChars(member as RetToken);
+        if (mc === 'any') return 'any';
+        for (const c of mc) s.add(c);
+      }
+      return s;
+    }
+
+    case RetNodeType.GROUP:
+    case RetNodeType.ROOT: {
+      if (node.options) {
+        const s = new Set<number>();
+        for (const branch of node.options) {
+          if (branch.length > 0) {
+            const bc = lastChars(branch[branch.length - 1]!);
+            if (bc === 'any') return 'any';
+            for (const c of bc) s.add(c);
+          }
+        }
+        return s;
+      }
+      if (node.stack && node.stack.length > 0) {
+        return lastChars(node.stack[node.stack.length - 1]!);
+      }
+      return new Set();
+    }
+
+    case RetNodeType.REPETITION:
+      return lastChars(node.value);
+
+    default:
+      return 'any';
+  }
+}
+
+function setsOverlap(a: CharSet, b: CharSet): boolean {
+  if (a === 'any' || b === 'any') return true;
+  for (const c of a) {
+    if (b.has(c)) return true;
+  }
+  return false;
+}
+
+/** Check if a subtree contains any unbounded repetition. */
+function containsRepetition(node: RetToken | RetRoot): boolean {
+  if (node.type === RetNodeType.REPETITION) {
+    if (node.max > 1) return true;
+    return containsRepetition(node.value);
+  }
+
+  const children = (node as RetGroup | RetRoot).stack;
+  if (children) {
+    for (const child of children) {
+      if (containsRepetition(child)) return true;
+    }
+  }
+
+  const branches = (node as RetGroup | RetRoot).options;
+  if (branches) {
+    for (const branch of branches) {
+      for (const child of branch) {
+        if (containsRepetition(child)) return true;
       }
     }
   }
@@ -258,28 +378,62 @@ function hasNestedQuantifier(pattern: string): boolean {
 }
 
 /**
- * Detect [\s\S]*? or similar dot-star patterns inside groups followed by
- * a quantifier. These are common ReDoS vectors when the lazy quantifier
- * can be forced into exponential backtracking.
+ * Walk the regex AST looking for nested quantifiers with overlapping character
+ * sets. For `(body)*` to cause exponential backtracking, TWO conditions must hold:
+ * 1. The body contains another unbounded repetition (star-height > 1)
+ * 2. The OUTER body's tail overlaps with its start, allowing the engine to
+ *    split the same input between iterations multiple ways
  */
-function hasDotStarInQuantifiedGroup(pattern: string): boolean {
-  // Pattern: group with [\s\S]* or .* inside, followed by +, *, or {n,}
-  // This catches things like ([\s\S]*?)+ but not standalone [\s\S]*?
-  return /\([^)]*(?:\.\*|\[\^?\]?[^\]]*\]\*)[^)]*\)[+*{]/.test(pattern);
+function hasVulnerableNesting(node: RetToken | RetRoot): boolean {
+  if (node.type === RetNodeType.REPETITION) {
+    const body = node.value;
+    const isUnbounded = node.max > 1;
+
+    if (isUnbounded && containsRepetition(body)) {
+      const tail = lastChars(body);
+      const start = firstChars(body);
+      if (setsOverlap(tail, start)) {
+        return true;
+      }
+    }
+
+    return hasVulnerableNesting(body);
+  }
+
+  const children = (node as RetGroup | RetRoot).stack;
+  if (children) {
+    for (const child of children) {
+      if (hasVulnerableNesting(child)) return true;
+    }
+  }
+
+  const branches = (node as RetGroup | RetRoot).options;
+  if (branches) {
+    for (const branch of branches) {
+      for (const child of branch) {
+        if (hasVulnerableNesting(child)) return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 function isRedosCandidate(pattern: string): boolean {
-  return hasNestedQuantifier(pattern) || hasDotStarInQuantifiedGroup(pattern);
+  try {
+    const ast = retParse(pattern) as RetRoot;
+    return hasVulnerableNesting(ast);
+  } catch {
+    return false;
+  }
 }
 
 function findRedosRegex(sourceFile: ts.SourceFile, repoRoot: string): CodePatternIssue[] {
   const issues: CodePatternIssue[] = [];
 
   function visit(node: ts.Node): void {
-    // Check regex literals: /pattern/flags
     if (ts.isRegularExpressionLiteral(node)) {
       const text = node.text;
-      // Extract pattern between first and last /
       const lastSlash = text.lastIndexOf('/');
       if (lastSlash > 0) {
         const pattern = text.slice(1, lastSlash);
@@ -289,7 +443,6 @@ function findRedosRegex(sourceFile: ts.SourceFile, repoRoot: string): CodePatter
       }
     }
 
-    // Check new RegExp("pattern") calls
     if (ts.isNewExpression(node) && ts.isIdentifier(node.expression)) {
       if (node.expression.text === 'RegExp' && node.arguments && node.arguments.length > 0) {
         const arg = node.arguments[0];

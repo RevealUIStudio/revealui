@@ -97,6 +97,10 @@
     "./content-validation": {
       "types": "./dist/content-validation.d.ts",
       "import": "./dist/content-validation.js"
+    },
+    "./security": {
+      "types": "./dist/security/index.d.ts",
+      "import": "./dist/security/index.js"
     }
   },
   "files": [

@@ -21,7 +21,7 @@
  *   pnpm manage:docs reset
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import {
   existsSync,
   lstatSync,
@@ -54,7 +54,7 @@ async function validateDocs(): Promise<boolean> {
     }
 
     // Run comprehensive validator
-    const result = execSync(`tsx ${validatorPath}`, {
+    const result = execFileSync('tsx', [validatorPath], {
       encoding: 'utf8',
       stdio: 'pipe',
     });

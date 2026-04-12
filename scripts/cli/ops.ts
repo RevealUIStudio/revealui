@@ -37,7 +37,7 @@
  * - Scripts: Individual command scripts in commandMap (dispatched at runtime)
  */
 
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { ParsedArgs } from '@revealui/scripts/args.js';
@@ -301,7 +301,7 @@ class OpsCLI extends DispatcherCLI {
     }
 
     const script = deep ? 'clean:install' : 'clean';
-    execSync(`pnpm ${script}`, { cwd: repoRoot, stdio: 'inherit' });
+    execFileSync('pnpm', [script], { cwd: repoRoot, stdio: 'inherit' });
 
     return {
       success: true,

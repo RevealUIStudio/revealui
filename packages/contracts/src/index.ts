@@ -23,6 +23,7 @@
  * - `@revealui/contracts/agents` - Agent memory/context contracts
  * - `@revealui/contracts/database` - DB ↔ Contract bridges
  * - `@revealui/contracts/actions` - Action validation
+ * - `@revealui/contracts/security` - Code-pattern security rules and regex AST types
  * - `@revealui/contracts/utilities` - Shared utilities
  *
  * @packageDocumentation
@@ -569,3 +570,52 @@ export {
   type ActionValidationSuccess,
   validateAction,
 } from './actions/index.js';
+
+// =============================================================================
+// Security
+// =============================================================================
+
+export {
+  // Built-in rules
+  EXEC_SYNC_STRING_RULE,
+  // Rule system
+  type IssueLocation,
+  IssueLocationSchema,
+  REDOS_REGEX_RULE,
+  // Ret AST types
+  type RetChar,
+  RetCharSchema,
+  type RetGroup,
+  RetGroupSchema,
+  type RetNode,
+  RetNodeType,
+  type RetNodeTypeValue,
+  type RetPosition,
+  RetPositionSchema,
+  type RetRange,
+  RetRangeSchema,
+  type RetReference,
+  RetReferenceSchema,
+  type RetRepetition,
+  RetRepetitionSchema,
+  type RetRoot,
+  RetRootSchema,
+  type RetSet,
+  type RetSetMember,
+  RetSetSchema,
+  type RetToken,
+  RetTokenSchema,
+  SECURITY_RULES,
+  type SecurityCategory,
+  SecurityCategorySchema,
+  type SecurityFinding,
+  SecurityFindingContract,
+  SecurityFindingSchema,
+  type SecurityRule,
+  SecurityRuleContract,
+  type SecurityRuleId,
+  SecurityRuleSchema,
+  type SecuritySeverity,
+  SecuritySeveritySchema,
+  TOCTOU_STAT_READ_RULE,
+} from './security/index.js';
