@@ -3,7 +3,7 @@ export function deepMerge<T extends object>(target: Partial<T>, source: T): T {
   for (const key of Object.keys(source) as (keyof T)[]) {
     // Guard against prototype pollution via __proto__, constructor, or prototype keys
     if (key === '__proto__' || key === 'constructor' || key === 'prototype') continue;
-    if (!Object.prototype.hasOwnProperty.call(source, key)) continue;
+    if (!Object.hasOwn(source, key)) continue;
     const s = source[key];
     const t = (target as T)[key];
     if (Array.isArray(s)) {

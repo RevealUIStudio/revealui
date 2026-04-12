@@ -137,7 +137,7 @@ export class UserPreferencesManager {
     for (const k of keys) {
       // Guard against prototype pollution reads
       if (k === '__proto__' || k === 'constructor' || k === 'prototype') return undefined;
-      if (value && typeof value === 'object' && Object.prototype.hasOwnProperty.call(value, k)) {
+      if (value && typeof value === 'object' && Object.hasOwn(value, k)) {
         value = (value as Record<string, unknown>)[k];
       } else {
         return undefined;
