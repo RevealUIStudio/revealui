@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { createCli } from '@revealui/cli';
+import { createLegacyCreateCli } from '@revealui/cli';
 
-const program = createCli();
+const program = createLegacyCreateCli();
 await program.parseAsync(process.argv);
