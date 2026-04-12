@@ -114,6 +114,10 @@ export class InferenceService {
   }
 
   async ollamaPull(modelName: string): Promise<ModelPullResult> {
+    // Validate model name format (alphanumeric, colons, slashes, dots, hyphens)
+    if (!/^[\w./:@-]+$/.test(modelName)) {
+      return { success: false, message: `Invalid model name: ${modelName}` };
+    }
     try {
       const { stdout, stderr } = await execFileAsync('ollama', ['pull', modelName], {
         timeout: 600_000, // 10 min for large models
@@ -125,6 +129,9 @@ export class InferenceService {
   }
 
   async ollamaDelete(modelName: string): Promise<void> {
+    if (!/^[\w./:@-]+$/.test(modelName)) {
+      throw new Error(`Invalid model name: ${modelName}`);
+    }
     await run('ollama', ['rm', modelName]);
   }
 
@@ -164,6 +171,10 @@ export class InferenceService {
   }
 
   async snapStatus(snapName: string): Promise<SnapStatus> {
+    // Validate snap name against allowlist to prevent arbitrary command execution
+    const known = KNOWN_SNAPS.some(([name]) => name === snapName);
+    if (!known) throw new Error(`Unknown inference snap: ${snapName}`);
+
     let installed = false;
     let version: string | null = null;
 
