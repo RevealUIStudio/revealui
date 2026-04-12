@@ -230,8 +230,8 @@ Phase C  -  Smart features:
 - [x] Browser profile detection  -  auto-discovers Chrome/Edge profiles from Windows AppData  -  2026-03-31
 
 Phase D  -  Cross-platform:
-- [ ] macOS: menu bar icon + native tray integration
-- [ ] Linux: system tray (AppIndicator/StatusNotifier)
+- [x] macOS: template icon for menu bar, process detection (ps), app launcher (open -a) - 2026-04-12
+- [x] Linux: process detection (ps), app launcher (spawn), platform-conditional tray menu - 2026-04-12
 - [x] Tile launch commands per-platform  -  macOS (open -a, tmux) + Linux (google-chrome, gnome-terminal) + platform detection  -  2026-04-07
 
 #### 5.6.3 CI/DX Fixes
