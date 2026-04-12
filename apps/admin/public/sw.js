@@ -214,6 +214,7 @@ async function flushMutations() {
 
 // Flush queued mutations when the browser comes back online
 self.addEventListener('message', (event) => {
+  if (event.origin !== self.location.origin) return;
   if (event.data && event.data.type === 'FLUSH_MUTATIONS') {
     flushMutations();
   }

@@ -7,6 +7,11 @@ import { findHarnessProcesses } from '../detection/process-detector.js';
 import type { HarnessRegistry } from '../registry/harness-registry.js';
 import type { DaemonStore } from '../storage/daemon-store.js';
 import type { ConfigSyncDirection } from '../types/core.js';
+import type { VaughnConfig } from '../vaughn/adapter.js';
+import type { VaughnCapabilities } from '../vaughn/capabilities.js';
+import { TOOL_PROFILES } from '../vaughn/capabilities.js';
+import { generateAllConfigs } from '../vaughn/config-normalizer.js';
+import type { VaughnEventEnvelope } from '../vaughn/event-envelope.js';
 import type { InferenceService } from './inference-service.js';
 import type { SpawnerService } from './spawner-service.js';
 
@@ -83,6 +88,10 @@ const ERR_INTERNAL = -32603;
  *   merge.resolve             → MergeResult
  *   merge.list                → MergeRequest[]
  *   ci.report                 → CIFeedbackResult
+ *   vaughn.capabilities       → VaughnAdapterCapability[]
+ *   vaughn.dispatch           → { adapterId: string | null }
+ *   vaughn.events             → VaughnEventEnvelope[]
+ *   vaughn.config.sync        → { files: Record<string, string> }
  */
 export class RpcServer {
   private server = createServer();
@@ -91,6 +100,11 @@ export class RpcServer {
   private inference: InferenceService | null = null;
   private mergePipeline: MergePipeline | null = null;
   private ciFeedback: CIFeedback | null = null;
+  private vaughnDispatchFn:
+    | ((requirements: Partial<VaughnCapabilities>, description: string) => string | null)
+    | null = null;
+  private readonly vaughnEventQueue: VaughnEventEnvelope[] = [];
+  private static readonly MAX_VAUGHN_EVENTS = 100;
 
   constructor(
     private readonly registry: HarnessRegistry,
@@ -723,6 +737,44 @@ export class RpcServer {
         return { jsonrpc: '2.0', id, result };
       }
 
+      // -----------------------------------------------------------------------
+      // VAUGHN Protocol
+      // -----------------------------------------------------------------------
+      case 'vaughn.capabilities': {
+        const result: Array<{ id: string; capabilities: VaughnCapabilities }> = [];
+        for (const adapterId of this.registry.listAll()) {
+          const caps = TOOL_PROFILES[adapterId];
+          if (caps) result.push({ id: adapterId, capabilities: caps });
+        }
+        return { jsonrpc: '2.0', id, result };
+      }
+
+      case 'vaughn.dispatch': {
+        if (!this.vaughnDispatchFn) return this.noService(id, 'vaughn-dispatch');
+        const description = p.description as string | undefined;
+        if (!description) return this.missingParam(id, 'description');
+        const requirements = (p.requirements ?? {}) as Partial<VaughnCapabilities>;
+        const adapterId = this.vaughnDispatchFn(requirements, description);
+        return { jsonrpc: '2.0', id, result: { adapterId } };
+      }
+
+      case 'vaughn.events': {
+        const limit = (p.limit as number | undefined) ?? 50;
+        const events = this.vaughnEventQueue.slice(-limit);
+        return { jsonrpc: '2.0', id, result: events };
+      }
+
+      case 'vaughn.config.sync': {
+        const config = p.config as VaughnConfig | undefined;
+        if (!config) return this.missingParam(id, 'config');
+        const generated = generateAllConfigs(config);
+        const files: Record<string, string> = {};
+        for (const [path, content] of generated.files) {
+          files[path] = content;
+        }
+        return { jsonrpc: '2.0', id, result: { files } };
+      }
+
       default:
         return {
           jsonrpc: '2.0',
@@ -790,6 +842,21 @@ export class RpcServer {
   /** Attach the CI feedback handler (called by coordinator after construction). */
   setCIFeedback(feedback: CIFeedback): void {
     this.ciFeedback = feedback;
+  }
+
+  /** Attach the VAUGHN dispatch function (called by coordinator after construction). */
+  setVaughnDispatch(
+    fn: (requirements: Partial<VaughnCapabilities>, description: string) => string | null,
+  ): void {
+    this.vaughnDispatchFn = fn;
+  }
+
+  /** Push a VAUGHN event into the recent event queue (capped at 100). */
+  pushVaughnEvent(event: VaughnEventEnvelope): void {
+    this.vaughnEventQueue.push(event);
+    if (this.vaughnEventQueue.length > RpcServer.MAX_VAUGHN_EVENTS) {
+      this.vaughnEventQueue.shift();
+    }
   }
 
   /** Get the spawner service (used by HTTP gateway for SSE). */

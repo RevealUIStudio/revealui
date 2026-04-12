@@ -1,5 +1,16 @@
 # @revealui/cli
 
+## 0.6.4
+
+### Patch Changes
+
+- OpenAPI Phase B with native Zod-to-OpenAPI scaffold. Pipeline gap fixes, pre-push tests, code-pattern scanner. Dependency updates and SDLC hardening.
+- Updated dependencies
+- Updated dependencies
+  - @revealui/ai@0.2.9
+  - @revealui/config@0.3.4
+  - @revealui/setup@0.3.5
+
 ## 0.6.3
 
 ### Patch Changes

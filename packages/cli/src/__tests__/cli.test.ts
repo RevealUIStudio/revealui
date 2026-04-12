@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createCli, createLegacyCreateCli } from '../cli.js';
+import { createCli } from '../cli.js';
 
 describe('cli', () => {
   it('registers the operational revealui command groups', () => {
@@ -11,10 +11,5 @@ describe('cli', () => {
     expect(commandNames).toContain('db');
     expect(commandNames).toContain('dev');
     expect(commandNames).toContain('shell');
-  });
-
-  it('preserves create-revealui compatibility', () => {
-    const cli = createLegacyCreateCli();
-    expect(cli.name()).toBe('create-revealui');
   });
 });
