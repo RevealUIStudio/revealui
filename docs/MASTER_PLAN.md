@@ -616,11 +616,11 @@ Phase D  -  Agent publisher tools (agent):
 **Deliverables:**
 - [x] `sanitizeTerminalLine` — SGR-only ANSI pass-through (shipped in `@revealui/security` 2026-04-13)
 - [ ] `sanitizeHtml` — tag + attr allow-list for Lexical render / admin-facing markdown
-- [ ] `escapeShellArg` — POSIX + Windows variants for forge install scripts / RevDev local-shell banner composition
+- [x] `escapeShellArg` — POSIX + cmd.exe + PowerShell variants, NUL-byte rejection, corpus-backed tests (2026-04-13)
 - [ ] `escapeSqlIdentifier` — for the rare dynamic-identifier path Drizzle can't cover
 - [ ] `redactLogField` — PII + secret redaction helper feeding `@revealui/utils` logger
-- [ ] `sanitizeUrl` — extension of the existing Lexical `isSafeUrl()` with unified scheme allow-list
-- [ ] Shared test corpus: `packages/security/src/__tests__/sanitize-corpus/` with categorised attack vectors (ANSI, XSS, command injection, SQLi, log injection, scheme confusion)
+- [x] `sanitizeUrl` / `isSafeUrl` — scheme allow-list, owned by `@revealui/security`; `packages/core/.../rsc.tsx` now re-exports from there as the single source of truth (2026-04-13)
+- [x] Shared test corpus scaffolded: `packages/security/src/__tests__/sanitize-corpus/` seeded with ANSI, scheme-confusion, shell-injection vectors; grows per new sink (2026-04-13)
 - [ ] ESLint/Biome rule or CI grep: flag direct concatenation into sinks (`terminal.writeln(userInput)`, `exec(\`cmd \${arg}\`)`, etc.) and require one of these helpers
 
 **Cross-repo consumption:**

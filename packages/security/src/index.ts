@@ -136,4 +136,11 @@ export {
 export type { SecurityLogger } from './logger.js';
 export { configureSecurityLogger } from './logger.js';
 // Input sanitization
-export { sanitizeTerminalLine } from './sanitize.js';
+export {
+  escapeShellArg,
+  isSafeUrl,
+  sanitizeTerminalLine,
+  sanitizeUrl,
+  type ShellDialect,
+  type UrlContext,
+} from './sanitize.js';
