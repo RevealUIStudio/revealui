@@ -144,6 +144,8 @@ export {
   redactLogContext,
   redactLogField,
   redactSecretsInString,
+  sanitizeHtml,
+  type SanitizeHtmlOptions,
   sanitizeTerminalLine,
   sanitizeUrl,
   type ShellDialect,

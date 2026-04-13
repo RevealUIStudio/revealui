@@ -190,6 +190,266 @@ export function sanitizeUrl(url: string, context: UrlContext = 'link'): string {
   return isSafeUrl(url, context) ? url.trim() : '#';
 }
 
+// ─── HTML sanitization (tag + attr allow-list) ───────────────────────────
+//
+// Untrusted HTML rendered into the DOM is the classic XSS sink. This
+// helper parses the input with parse5 (WHATWG-spec tokenizer, same one
+// jsdom/cheerio use) and walks the resulting tree against a strict
+// tag + attribute allow-list. The parser is the security boundary —
+// we never hand-roll tokenization.
+//
+// Allow-list, not deny-list: unknown tags are unwrapped (children kept,
+// element dropped). Known-dangerous containers (script, style, iframe,
+// object, embed, form, frame, math, svg, template, noscript) are
+// dropped with their children — their contents are attacker-controlled
+// script/CSS/markup that must never render.
+//
+// URL attrs (href, src, cite, action, formaction) go through `isSafeUrl`
+// with context 'link' or 'image'. Event-handler attrs (onX) are blocked
+// categorically regardless of allow-list membership. `style` is blocked
+// by default (CSS `expression()`, `behavior:`, and data-uri background
+// tricks are not worth the per-attr parser).
+//
+// Output is serialized back by parse5, so entity encoding, attribute
+// quoting, and void-element handling all match the HTML5 spec.
+
+import { type DefaultTreeAdapterMap, parseFragment, serialize, defaultTreeAdapter } from 'parse5';
+
+type Parse5ChildNode = DefaultTreeAdapterMap['childNode'];
+type Parse5Element = DefaultTreeAdapterMap['element'];
+type Parse5ParentNode = DefaultTreeAdapterMap['parentNode'];
+
+// Tags safe to render with their contents, baseline rich-text set.
+const DEFAULT_ALLOWED_TAGS: ReadonlySet<string> = new Set([
+  'a',
+  'b',
+  'blockquote',
+  'br',
+  'code',
+  'div',
+  'em',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'hr',
+  'i',
+  'img',
+  'li',
+  'ol',
+  'p',
+  'pre',
+  's',
+  'span',
+  'strong',
+  'sub',
+  'sup',
+  'table',
+  'tbody',
+  'td',
+  'tfoot',
+  'th',
+  'thead',
+  'tr',
+  'u',
+  'ul',
+]);
+
+// Tags whose *contents* are also dropped. Unknown tags outside this set
+// are unwrapped instead — their children remain, only the element tag
+// is removed. These carry executable or heavyweight semantics where the
+// children are part of the attack surface.
+const DANGEROUS_CONTAINER_TAGS: ReadonlySet<string> = new Set([
+  'applet',
+  'base',
+  'body',
+  'embed',
+  'form',
+  'frame',
+  'frameset',
+  'head',
+  'html',
+  'iframe',
+  'input',
+  'link',
+  'math',
+  'meta',
+  'noembed',
+  'noframes',
+  'noscript',
+  'object',
+  'script',
+  'select',
+  'style',
+  'svg',
+  'template',
+  'textarea',
+  'title',
+  'xml',
+]);
+
+// Attributes allowed on every allowed tag.
+const GLOBAL_ATTRS: ReadonlySet<string> = new Set(['class', 'id', 'title', 'lang', 'dir']);
+
+// Per-tag extra attributes. Missing entry = only global attrs allowed.
+const PER_TAG_ATTRS: Readonly<Record<string, ReadonlySet<string>>> = {
+  a: new Set(['href', 'target', 'rel', 'name']),
+  img: new Set(['src', 'alt', 'width', 'height', 'loading']),
+  td: new Set(['colspan', 'rowspan', 'align', 'valign']),
+  th: new Set(['colspan', 'rowspan', 'align', 'valign', 'scope']),
+  ol: new Set(['start', 'reversed', 'type']),
+  li: new Set(['value']),
+  code: new Set(['data-language']),
+  pre: new Set(['data-language']),
+  blockquote: new Set(['cite']),
+};
+
+// URL-bearing attrs — value must pass isSafeUrl for the given context.
+const URL_ATTRS: Readonly<Record<string, UrlContext>> = {
+  href: 'link',
+  src: 'image',
+  cite: 'link',
+};
+
+export interface SanitizeHtmlOptions {
+  /** Additional tag names allowed on top of the default set. Lower-case. */
+  readonly extraTags?: readonly string[];
+  /** Additional per-tag attributes, keyed by lower-case tag name. */
+  readonly extraAttrs?: Readonly<Record<string, readonly string[]>>;
+}
+
+/**
+ * Sanitize an untrusted HTML string against a tag + attribute allow-list.
+ *
+ * Safe to render the result via `dangerouslySetInnerHTML` or direct
+ * `innerHTML=`. Known-dangerous containers (script, style, iframe, etc.)
+ * are dropped with their contents; unknown tags are unwrapped; every
+ * `on*` event-handler attribute is stripped; URL attributes (`href`,
+ * `src`, `cite`) are filtered through `isSafeUrl`.
+ *
+ * For Lexical / markdown render paths — sanitize at the sink.
+ */
+export function sanitizeHtml(input: string, options?: SanitizeHtmlOptions): string {
+  const allowedTags = new Set(DEFAULT_ALLOWED_TAGS);
+  if (options?.extraTags) {
+    for (const t of options.extraTags) allowedTags.add(t.toLowerCase());
+  }
+  const extraAttrs = options?.extraAttrs ?? {};
+
+  const fragment = parseFragment(input);
+  filterChildren(fragment, allowedTags, extraAttrs);
+  return serialize(fragment);
+}
+
+function filterChildren(
+  parent: Parse5ParentNode,
+  allowedTags: ReadonlySet<string>,
+  extraAttrs: Readonly<Record<string, readonly string[]>>,
+): void {
+  const kept: Parse5ChildNode[] = [];
+  for (const node of parent.childNodes) {
+    const next = filterNode(node, allowedTags, extraAttrs);
+    for (const n of next) {
+      n.parentNode = parent;
+      kept.push(n);
+    }
+  }
+  parent.childNodes = kept;
+}
+
+function filterNode(
+  node: Parse5ChildNode,
+  allowedTags: ReadonlySet<string>,
+  extraAttrs: Readonly<Record<string, readonly string[]>>,
+): Parse5ChildNode[] {
+  if (defaultTreeAdapter.isElementNode(node)) {
+    const tag = node.tagName.toLowerCase();
+
+    if (DANGEROUS_CONTAINER_TAGS.has(tag)) {
+      // Drop element and all descendants.
+      return [];
+    }
+
+    // Recurse into children first so unwrap preserves a filtered subtree.
+    filterChildren(node, allowedTags, extraAttrs);
+
+    if (!allowedTags.has(tag)) {
+      // Unwrap: keep filtered children, drop the element itself.
+      return node.childNodes.slice();
+    }
+
+    node.attrs = filterAttrs(tag, node.attrs, extraAttrs);
+    hardenAnchor(tag, node);
+    return [node];
+  }
+
+  if (defaultTreeAdapter.isTextNode(node)) {
+    return [node];
+  }
+
+  // Comments, doctypes, document fragments: drop.
+  return [];
+}
+
+function filterAttrs(
+  tag: string,
+  attrs: Parse5Element['attrs'],
+  extraAttrs: Readonly<Record<string, readonly string[]>>,
+): Parse5Element['attrs'] {
+  const tagAttrs = PER_TAG_ATTRS[tag];
+  const extraForTag = extraAttrs[tag];
+  const out: Parse5Element['attrs'] = [];
+
+  for (const attr of attrs) {
+    const name = attr.name.toLowerCase();
+
+    // Categorical blocks, regardless of allow-list.
+    if (name.startsWith('on')) continue;
+    if (name === 'style') continue;
+    if (name === 'srcdoc') continue;
+    if (name === 'xmlns' || name.startsWith('xmlns:')) continue;
+    // parse5 may emit namespaced attrs from SVG-ish inputs; reject colons.
+    if (name.includes(':')) continue;
+
+    const allowed =
+      GLOBAL_ATTRS.has(name) ||
+      tagAttrs?.has(name) ||
+      extraForTag?.includes(name) ||
+      name.startsWith('data-') ||
+      name.startsWith('aria-');
+    if (!allowed) continue;
+
+    if (name in URL_ATTRS) {
+      const context = URL_ATTRS[name];
+      if (context === undefined || !isSafeUrl(attr.value, context)) continue;
+      out.push({ ...attr, name, value: attr.value.trim() });
+      continue;
+    }
+
+    out.push({ ...attr, name });
+  }
+
+  return out;
+}
+
+function hardenAnchor(tag: string, node: Parse5Element): void {
+  if (tag !== 'a') return;
+  const target = node.attrs.find((a) => a.name === 'target');
+  if (!target || target.value !== '_blank') return;
+  const rel = node.attrs.find((a) => a.name === 'rel');
+  const tokens = new Set((rel?.value ?? '').split(/\s+/).filter(Boolean));
+  tokens.add('noopener');
+  tokens.add('noreferrer');
+  const merged = Array.from(tokens).join(' ');
+  if (rel) {
+    rel.value = merged;
+  } else {
+    node.attrs.push({ name: 'rel', value: merged });
+  }
+}
+
 // ─── Log redaction ───────────────────────────────────────────────────────
 //
 // Logs are the easiest way to leak secrets: a passing request payload gets

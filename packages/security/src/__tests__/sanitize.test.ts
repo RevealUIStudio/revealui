@@ -8,10 +8,12 @@ import {
   redactLogContext,
   redactLogField,
   redactSecretsInString,
+  sanitizeHtml,
   sanitizeTerminalLine,
   sanitizeUrl,
 } from '../sanitize.js';
 import { ANSI_INJECTION_VECTORS } from './sanitize-corpus/ansi-injection.js';
+import { DANGEROUS_HTML_VECTORS, SAFE_HTML_VECTORS } from './sanitize-corpus/html-injection.js';
 import {
   SAFE_KEY_VECTORS,
   SECRET_VALUE_VECTORS,
@@ -318,5 +320,150 @@ describe('redactLogContext', () => {
     expect(redactLogContext(42)).toBe(42);
     expect(redactLogContext(null)).toBe(null);
     expect(redactLogContext(undefined)).toBe(undefined);
+  });
+});
+
+describe('sanitizeHtml', () => {
+  it('passes plain text through', () => {
+    expect(sanitizeHtml('hello world')).toBe('hello world');
+  });
+
+  it('preserves the baseline allow-list', () => {
+    const out = sanitizeHtml('<p>hi <strong>there</strong></p>');
+    expect(out).toBe('<p>hi <strong>there</strong></p>');
+  });
+
+  it('drops <script> with its contents', () => {
+    const out = sanitizeHtml('<p>before<script>alert(1)</script>after</p>');
+    expect(out).not.toContain('script');
+    expect(out).not.toContain('alert');
+    expect(out).toContain('before');
+    expect(out).toContain('after');
+  });
+
+  it('unwraps unknown tags, keeping their children', () => {
+    const out = sanitizeHtml('<custom>kept <em>also kept</em></custom>');
+    expect(out).not.toContain('<custom');
+    expect(out).toContain('kept');
+    expect(out).toContain('<em>also kept</em>');
+  });
+
+  it('strips on* event handlers regardless of tag', () => {
+    const out = sanitizeHtml('<p onclick="alert(1)">x</p>');
+    expect(out).not.toMatch(/onclick/i);
+    expect(out).not.toContain('alert');
+    expect(out).toContain('<p>x</p>');
+  });
+
+  it('strips style attribute categorically', () => {
+    const out = sanitizeHtml('<p style="color:red">x</p>');
+    expect(out).not.toContain('style=');
+    expect(out).toContain('<p>x</p>');
+  });
+
+  it('filters href through isSafeUrl', () => {
+    const bad = sanitizeHtml('<a href="javascript:alert(1)">x</a>');
+    expect(bad).not.toContain('javascript:');
+    expect(bad).not.toContain('alert');
+
+    const good = sanitizeHtml('<a href="https://example.com">x</a>');
+    expect(good).toContain('href="https://example.com"');
+  });
+
+  it('filters img src through isSafeUrl with image context', () => {
+    const bad = sanitizeHtml('<img src="javascript:alert(1)">');
+    expect(bad).not.toContain('javascript:');
+
+    const ok = sanitizeHtml('<img src="data:image/png;base64,AAA" alt="x">');
+    expect(ok).toContain('data:image/png');
+  });
+
+  it('auto-adds rel="noopener noreferrer" on target=_blank', () => {
+    const out = sanitizeHtml('<a href="https://x.example" target="_blank">x</a>');
+    expect(out).toContain('rel="');
+    expect(out).toMatch(/rel="[^"]*noopener/);
+    expect(out).toMatch(/rel="[^"]*noreferrer/);
+  });
+
+  it('preserves existing rel tokens and merges noopener/noreferrer', () => {
+    const out = sanitizeHtml('<a href="https://x.example" target="_blank" rel="nofollow">x</a>');
+    expect(out).toMatch(/rel="[^"]*nofollow/);
+    expect(out).toMatch(/rel="[^"]*noopener/);
+    expect(out).toMatch(/rel="[^"]*noreferrer/);
+  });
+
+  it('does not add rel when target is not _blank', () => {
+    const out = sanitizeHtml('<a href="https://x.example">x</a>');
+    expect(out).not.toContain('rel=');
+  });
+
+  it('allows aria-* and data-* attributes', () => {
+    const out = sanitizeHtml('<p aria-label="lbl" data-test="1">x</p>');
+    expect(out).toContain('aria-label="lbl"');
+    expect(out).toContain('data-test="1"');
+  });
+
+  it('drops namespaced attributes', () => {
+    const out = sanitizeHtml('<p xlink:href="https://x.example">x</p>');
+    expect(out).not.toContain('xlink');
+  });
+
+  it('drops srcdoc attribute on any tag', () => {
+    const out = sanitizeHtml('<img src="/x.png" srcdoc="<script>alert(1)</script>">');
+    expect(out).not.toContain('srcdoc');
+    expect(out).not.toContain('script');
+  });
+
+  it('drops HTML comments', () => {
+    const out = sanitizeHtml('before<!-- <script>alert(1)</script> -->after');
+    expect(out).not.toContain('<!--');
+    expect(out).not.toContain('script');
+    expect(out).toBe('beforeafter');
+  });
+
+  it('drops <svg> and contents', () => {
+    const out = sanitizeHtml('<p>kept</p><svg onload=alert(1)><circle/></svg>');
+    expect(out).not.toContain('svg');
+    expect(out).not.toContain('circle');
+    expect(out).not.toContain('onload');
+    expect(out).toContain('kept');
+  });
+
+  it('drops <iframe> entirely', () => {
+    const out = sanitizeHtml('ok<iframe src="https://evil.example">hidden</iframe>');
+    expect(out).not.toContain('iframe');
+    expect(out).not.toContain('hidden');
+    expect(out).toContain('ok');
+  });
+
+  it('supports extraTags to widen the allow-list', () => {
+    const out = sanitizeHtml('<figure>pic</figure>', { extraTags: ['figure'] });
+    expect(out).toBe('<figure>pic</figure>');
+  });
+
+  it('supports extraAttrs to widen per-tag attrs', () => {
+    const out = sanitizeHtml('<img src="/x.png" sizes="100vw">', {
+      extraAttrs: { img: ['sizes'] },
+    });
+    expect(out).toContain('sizes="100vw"');
+  });
+
+  it.each(DANGEROUS_HTML_VECTORS)('corpus (dangerous): $rationale', ({ input, mustNotContain }) => {
+    const out = sanitizeHtml(input);
+    for (const needle of mustNotContain) {
+      expect(out).not.toContain(needle);
+    }
+    // Blanket asserts — no event handler or script tag ever leaks.
+    expect(out).not.toMatch(/<script/i);
+    expect(out).not.toMatch(/\son[a-z]+\s*=/i);
+    expect(out).not.toMatch(/javascript:/i);
+    expect(out).not.toMatch(/vbscript:/i);
+  });
+
+  it.each(SAFE_HTML_VECTORS)('corpus (safe): $rationale', ({ input, mustContain }) => {
+    const out = sanitizeHtml(input);
+    for (const needle of mustContain) {
+      expect(out).toContain(needle);
+    }
   });
 });
