@@ -133,6 +133,62 @@ export function escapeShellArg(arg: string, shell: ShellDialect = 'posix'): stri
   }
 }
 
+// ─── SQL identifier escaping (Postgres) ──────────────────────────────────
+//
+// Drizzle + `sql.identifier()` cover every query path where the column
+// or table name is a compile-time string. This helper exists for the
+// rare dynamic-identifier case — table-per-tenant patterns, CRDT
+// resolver paths that take a column name as a parameter, admin tooling
+// that reflects on user-authored collection slugs — where the caller
+// needs to interpolate an identifier into raw SQL.
+//
+// Always emits a double-quoted identifier (`"name"`), never unquoted —
+// quoted form preserves case, accepts reserved words, and forces the
+// Postgres parser to treat the whole token as an identifier. Embedded
+// `"` are doubled per the SQL spec.
+//
+// Rejects with a thrown error on:
+//  - Empty string (no identifier at all)
+//  - NUL byte (Postgres cannot store it, and it's a common driver
+//    truncation bug)
+//  - Length > 63 bytes (NAMEDATALEN − 1 — Postgres silently truncates
+//    longer names, which is a footgun when two distinct inputs map to
+//    the same identifier)
+//
+// Allow-list, not deny-list. If it's not a well-formed Postgres
+// identifier, the caller gets an error — never a mangled query.
+
+const MAX_PG_IDENTIFIER_BYTES = 63;
+
+/**
+ * Quote + escape a Postgres identifier for safe interpolation into raw
+ * SQL. Returns `"name"`, with embedded double-quotes doubled.
+ *
+ * Throws on empty input, NUL bytes, or anything over 63 bytes — the
+ * three failure modes where silent acceptance would produce a
+ * syntactically valid but semantically wrong query.
+ *
+ * Prefer Drizzle's `sql.identifier()` for compile-time-known names;
+ * reach for this only when the identifier truly has to flow through
+ * user input or runtime configuration.
+ */
+export function escapeSqlIdentifier(identifier: string): string {
+  if (identifier === '') {
+    throw new Error('escapeSqlIdentifier: identifier must not be empty');
+  }
+  if (identifier.includes('\0')) {
+    throw new Error('escapeSqlIdentifier: identifier contains NUL byte');
+  }
+  const byteLength = Buffer.byteLength(identifier, 'utf8');
+  if (byteLength > MAX_PG_IDENTIFIER_BYTES) {
+    throw new Error(
+      `escapeSqlIdentifier: identifier exceeds ${MAX_PG_IDENTIFIER_BYTES}-byte limit ` +
+        `(got ${byteLength} bytes) — Postgres silently truncates longer names`,
+    );
+  }
+  return `"${identifier.split('"').join('""')}"`;
+}
+
 // ─── URL scheme allow-list ───────────────────────────────────────────────
 //
 // Scheme confusion is the bug behind `javascript:`, `vbscript:`, and

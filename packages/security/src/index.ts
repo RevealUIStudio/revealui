@@ -138,6 +138,7 @@ export { configureSecurityLogger } from './logger.js';
 // Input sanitization
 export {
   escapeShellArg,
+  escapeSqlIdentifier,
   isSafeUrl,
   isSensitiveLogKey,
   REDACTED,

@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import {
   escapeShellArg,
+  escapeSqlIdentifier,
   isSafeUrl,
   isSensitiveLogKey,
   REDACTED,
@@ -13,6 +14,10 @@ import {
   sanitizeUrl,
 } from '../sanitize.js';
 import { ANSI_INJECTION_VECTORS } from './sanitize-corpus/ansi-injection.js';
+import {
+  DANGEROUS_IDENTIFIER_VECTORS,
+  SAFE_IDENTIFIER_VECTORS,
+} from './sanitize-corpus/sql-injection.js';
 import { DANGEROUS_HTML_VECTORS, SAFE_HTML_VECTORS } from './sanitize-corpus/html-injection.js';
 import {
   SAFE_KEY_VECTORS,
@@ -465,5 +470,88 @@ describe('sanitizeHtml', () => {
     for (const needle of mustContain) {
       expect(out).toContain(needle);
     }
+  });
+});
+
+describe('escapeSqlIdentifier', () => {
+  it('wraps a simple identifier in double quotes', () => {
+    expect(escapeSqlIdentifier('users')).toBe('"users"');
+  });
+
+  it('preserves case (quoted identifiers are case-sensitive in Postgres)', () => {
+    expect(escapeSqlIdentifier('UserProfiles')).toBe('"UserProfiles"');
+  });
+
+  it('doubles embedded double-quotes', () => {
+    expect(escapeSqlIdentifier('a"b')).toBe('"a""b"');
+  });
+
+  it('doubles every embedded double-quote', () => {
+    expect(escapeSqlIdentifier('a"b"c')).toBe('"a""b""c"');
+  });
+
+  it('allows reserved words (the point of quoting)', () => {
+    expect(escapeSqlIdentifier('select')).toBe('"select"');
+    expect(escapeSqlIdentifier('from')).toBe('"from"');
+  });
+
+  it('allows non-ASCII identifiers', () => {
+    expect(escapeSqlIdentifier('café')).toBe('"café"');
+    expect(escapeSqlIdentifier('日本')).toBe('"日本"');
+  });
+
+  it('allows exactly 63 bytes', () => {
+    const sixtyThree = 'a'.repeat(63);
+    expect(escapeSqlIdentifier(sixtyThree)).toBe(`"${sixtyThree}"`);
+  });
+
+  it('allows single-quotes, semicolons, and comments inside the identifier', () => {
+    // All inert when wrapped in double-quotes.
+    expect(escapeSqlIdentifier("name';")).toBe(`"name';"`);
+    expect(escapeSqlIdentifier('name--c')).toBe('"name--c"');
+    expect(escapeSqlIdentifier('name/*c*/')).toBe('"name/*c*/"');
+  });
+
+  it('throws on empty string', () => {
+    expect(() => escapeSqlIdentifier('')).toThrow(/must not be empty/);
+  });
+
+  it('throws on NUL byte', () => {
+    expect(() => escapeSqlIdentifier('a\x00b')).toThrow(/NUL byte/);
+    expect(() => escapeSqlIdentifier('\x00')).toThrow(/NUL byte/);
+  });
+
+  it('throws on identifiers longer than 63 bytes', () => {
+    expect(() => escapeSqlIdentifier('a'.repeat(64))).toThrow(/63-byte limit/);
+  });
+
+  it('throws when UTF-8 byte length exceeds 63 even if character count does not', () => {
+    // 22 × 3-byte UTF-8 = 66 bytes.
+    expect(() => escapeSqlIdentifier('日'.repeat(22))).toThrow(/63-byte limit/);
+  });
+
+  it('allows 63-byte UTF-8 identifier (21 × 3-byte chars)', () => {
+    const input = '日'.repeat(21);
+    expect(escapeSqlIdentifier(input)).toBe(`"${input}"`);
+  });
+
+  it.each(DANGEROUS_IDENTIFIER_VECTORS)('corpus: $rationale', ({ input, mode }) => {
+    if (mode === 'throws') {
+      expect(() => escapeSqlIdentifier(input)).toThrow();
+      return;
+    }
+    const out = escapeSqlIdentifier(input);
+    expect(out.startsWith('"')).toBe(true);
+    expect(out.endsWith('"')).toBe(true);
+    // Every embedded `"` must appear as `""` in the output — the body
+    // between the outer quotes must contain no lone quotes.
+    const body = out.slice(1, -1);
+    const lone = body.replace(/""/g, '');
+    expect(lone).not.toContain('"');
+  });
+
+  it.each(SAFE_IDENTIFIER_VECTORS)('safe corpus: %s', (input) => {
+    const out = escapeSqlIdentifier(input);
+    expect(out).toBe(`"${input.split('"').join('""')}"`);
   });
 });
