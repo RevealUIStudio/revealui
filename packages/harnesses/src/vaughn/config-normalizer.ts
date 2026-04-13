@@ -14,6 +14,42 @@ export interface ConfigGenerationResult {
   files: Map<string, string>;
 }
 
+// -- Key-safety barrier ---------------------------------------------------------
+
+/**
+ * MCP server names are used as object keys in the emitted Claude Code
+ * settings.json. To prevent prototype-pollution vectors and satisfy the
+ * CodeQL `js/remote-property-injection` sink, names must:
+ *   1. match a strict allowlist pattern (leading alphanumeric + up to 63 more
+ *      ASCII letters/digits/underscores/hyphens), and
+ *   2. not collide with any `Object.prototype` member name (`constructor`,
+ *      `prototype`, `toString`, …).
+ * The regex alone rejects `__proto__` and non-identifier characters; the
+ * denylist closes the gap on plain-word property collisions like
+ * `constructor`.
+ */
+const MCP_SERVER_NAME_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/;
+
+const FORBIDDEN_MCP_SERVER_NAMES: ReadonlySet<string> = new Set([
+  '__proto__',
+  'constructor',
+  'prototype',
+  'hasOwnProperty',
+  'isPrototypeOf',
+  'propertyIsEnumerable',
+  'toLocaleString',
+  'toString',
+  'valueOf',
+]);
+
+export function isSafeMcpServerName(name: unknown): name is string {
+  return (
+    typeof name === 'string' &&
+    MCP_SERVER_NAME_PATTERN.test(name) &&
+    !FORBIDDEN_MCP_SERVER_NAMES.has(name)
+  );
+}
+
 // -- Claude Code settings.json <-> VaughnConfig ---------------------------------
 
 /** Subset of Claude Code settings.json we read/write. */
@@ -45,17 +81,19 @@ export function vaughnConfigToClaudeSettings(config: VaughnConfig): ClaudeCodeSe
   }
 
   if (config.environment.mcpServers.length > 0) {
-    const servers = new Map<string, NonNullable<ClaudeCodeSettings['mcpServers']>[string]>();
+    const servers: NonNullable<ClaudeCodeSettings['mcpServers']> = {};
     for (const server of config.environment.mcpServers) {
-      servers.set(server.name, {
+      // Allowlist-validated name; regex barrier excludes __proto__, constructor, etc.
+      if (!isSafeMcpServerName(server.name)) continue;
+      servers[server.name] = {
         command: server.command,
         ...(server.args && { args: server.args }),
         ...(server.env && { env: server.env }),
-      });
+      };
     }
-    settings.mcpServers = Object.fromEntries(servers) as NonNullable<
-      ClaudeCodeSettings['mcpServers']
-    >;
+    if (Object.keys(servers).length > 0) {
+      settings.mcpServers = servers;
+    }
   }
 
   return settings;
@@ -72,13 +110,17 @@ export function claudeSettingsToVaughnConfig(settings: ClaudeCodeSettings): Part
     };
   }
 
+  // External settings.json is untrusted input — drop entries whose keys don't
+  // match our allowlist so malicious names can't round-trip through the adapter.
   const mcpServers = settings.mcpServers
-    ? Object.entries(settings.mcpServers).map(([name, server]) => ({
-        name,
-        command: server.command,
-        ...(server.args && { args: server.args }),
-        ...(server.env && { env: server.env }),
-      }))
+    ? Object.entries(settings.mcpServers)
+        .filter(([name]) => isSafeMcpServerName(name))
+        .map(([name, server]) => ({
+          name,
+          command: server.command,
+          ...(server.args && { args: server.args }),
+          ...(server.env && { env: server.env }),
+        }))
     : [];
 
   config.environment = {

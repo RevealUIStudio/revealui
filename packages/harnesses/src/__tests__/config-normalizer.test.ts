@@ -85,6 +85,38 @@ describe('vaughnConfigToClaudeSettings', () => {
     expect(settings.env).toBeUndefined();
     expect(settings.mcpServers).toBeUndefined();
   });
+
+  it('drops MCP servers with unsafe names (prototype-pollution vectors)', () => {
+    const config = createTestConfig({
+      environment: {
+        variables: {},
+        mcpServers: [
+          { name: '__proto__', command: 'npx' },
+          { name: 'constructor', command: 'npx' },
+          { name: 'prototype', command: 'npx' },
+          { name: '', command: 'npx' },
+          { name: '../escape', command: 'npx' },
+          { name: 'has spaces', command: 'npx' },
+          { name: 'github', command: 'npx' }, // safe — should survive
+        ],
+      },
+    });
+    const settings = vaughnConfigToClaudeSettings(config);
+    expect(Object.keys(settings.mcpServers ?? {})).toEqual(['github']);
+    // Confirm no prototype pollution: Object.prototype remains untouched
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
+  it('omits mcpServers entirely when all names are unsafe', () => {
+    const config = createTestConfig({
+      environment: {
+        variables: {},
+        mcpServers: [{ name: '__proto__', command: 'npx' }],
+      },
+    });
+    const settings = vaughnConfigToClaudeSettings(config);
+    expect(settings.mcpServers).toBeUndefined();
+  });
 });
 
 describe('claudeSettingsToVaughnConfig', () => {
@@ -113,6 +145,19 @@ describe('claudeSettingsToVaughnConfig', () => {
     const config = claudeSettingsToVaughnConfig({});
     expect(config.environment?.variables).toEqual({});
     expect(config.environment?.mcpServers).toEqual([]);
+  });
+
+  it('filters out MCP server entries with unsafe keys from external JSON', () => {
+    const settings = {
+      mcpServers: {
+        __proto__: { command: 'evil' },
+        constructor: { command: 'evil' },
+        github: { command: 'npx' },
+      } as Record<string, { command: string }>,
+    };
+    const config = claudeSettingsToVaughnConfig(settings);
+    expect(config.environment?.mcpServers).toHaveLength(1);
+    expect(config.environment?.mcpServers[0].name).toBe('github');
   });
 
   it('round-trips permissions through Claude settings', () => {
