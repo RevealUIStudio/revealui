@@ -87,7 +87,7 @@ function makeUser(overrides: Record<string, unknown> = {}) {
     name: 'Test User',
     email: 'test@example.com',
     password: '$2a$12$hashedpassword',
-    role: 'user',
+    role: 'viewer',
     status: 'active',
     avatarUrl: null,
     schemaVersion: '1',

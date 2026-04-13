@@ -124,6 +124,11 @@ jobs:
           VERCEL_PROJECT_ID: prj_zk6EQijYXwd9L7BccuBssi436ktM # api
 
       - name: Run migrations
+        # Runs drizzle-kit migrate (non-interactive, applies pending SQL
+        # files from packages/db/migrations/ against the __drizzle_migrations
+        # meta table). Do NOT invoke root `pnpm db:migrate` here — that
+        # forwards to drizzle-kit migrate via the @revealui/db filter too,
+        # but keeping the explicit --filter form makes the CI contract obvious.
         run: |
           set -a
           # shellcheck disable=SC1091
@@ -133,7 +138,7 @@ jobs:
             echo "::error::POSTGRES_URL not found in pulled Vercel env"
             exit 1
           fi
-          pnpm db:migrate
+          pnpm --filter @revealui/db db:migrate
 
   # ---------------------------------------------------------------------------
   # Detect which apps were affected by the merge
@@ -272,14 +277,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Stub gitignored Pro packages (directory only — no package.json)
-        run: |
-          for pkg in ai harnesses; do
-            if [ ! -d "packages/$pkg" ]; then
-              mkdir -p "packages/$pkg"
-            fi
-          done
 
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"

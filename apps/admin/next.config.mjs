@@ -5,7 +5,10 @@ import { fileURLToPath } from 'node:url'
 import sentryModule from '@sentry/nextjs'
 
 // RevealUI Next.js integration
-import { withRevealUI } from '@revealui/core/nextjs'
+// Import directly from the withRevealUI subpath, not '@revealui/core/nextjs'.
+// The runtime barrel intentionally omits it so `node:fs` doesn't get traced
+// into route bundles via NFT.
+import { withRevealUI } from '@revealui/core/nextjs/withRevealUI'
 import ContentSecurityPolicy from './csp.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
