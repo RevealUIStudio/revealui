@@ -9,6 +9,7 @@ Security infrastructure for RevealUI. Provides HTTP security headers, CORS manag
 - You need audit logging for compliance (SOC2, HIPAA)
 - You need GDPR tooling: consent management, data export, breach reporting, anonymization
 - You need field-level encryption or key rotation
+- You need to sanitize untrusted input before rendering (terminal streams, shell args, SQL identifiers)
 
 If you only need session auth (login/logout/password reset), use `@revealui/auth` instead.
 
@@ -82,6 +83,14 @@ Dependencies: `@revealui/contracts`, `@revealui/utils`
 | `PrivacyPolicyManager` | Class | Version and publish privacy policies |
 | `InMemoryGDPRStorage` | Class | In-memory GDPR storage for testing |
 | `InMemoryBreachStorage` | Class | In-memory breach storage for testing |
+
+### Input Sanitization
+
+| Export | Type | Purpose |
+|--------|------|---------|
+| `sanitizeTerminalLine` | Function | Strip ANSI escape sequences from untrusted terminal output; preserves SGR color codes, removes CSI/OSC/DCS sequences and C0/C1 control chars |
+
+Used by RevDev Studio's terminal view to neutralize malicious output (e.g. cursor hijacking, title injection) before rendering. Consumers must treat all subprocess stdout/stderr as untrusted.
 
 ## JOSHUA Alignment
 
