@@ -56,10 +56,7 @@
   },
   "backups": {
     "path": "~/.revealui/system-tune/backups/{timestamp}/",
-    "files": [
-      "/mnt/c/Users/{user}/.wslconfig",
-      "/etc/default/earlyoom"
-    ]
+    "files": ["/mnt/c/Users/{user}/.wslconfig", "/etc/default/earlyoom"]
   },
   "origin": {
     "incidentDate": "2026-04-13",
