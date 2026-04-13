@@ -95,10 +95,11 @@ export {
   validateLicenseKey,
 } from './license.js';
 // Next.js integration
-export {
-  getRevealUI as getRevealUINext,
-  withRevealUI,
-} from './nextjs/index.js';
+// Note: `withRevealUI` is intentionally NOT re-exported here — it pulls in
+// `node:fs` at module load, which causes Next's NFT tracer to pull the whole
+// project into every route that transitively imports from '@revealui/core'.
+// Import it directly from '@revealui/core/nextjs/withRevealUI' in next.config.mjs.
+export { getRevealUI as getRevealUINext } from './nextjs/index.js';
 // Plugins
 export { formBuilderPlugin } from './plugins/form-builder.js';
 export { nestedDocsPlugin } from './plugins/nested-docs.js';
