@@ -104,13 +104,36 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
       - name: Build DB package
         run: pnpm turbo build --filter=@revealui/db
 
-      - name: Run migrations
-        run: pnpm db:migrate
+      - name: Pull POSTGRES_URL from Vercel (API project is DB owner)
+        # Single source of truth: Vercel project env. Avoids maintaining
+        # POSTGRES_URL as a separate GitHub secret that can drift on rotation.
+        run: |
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          if [ ! -f .vercel/.env.production.local ]; then
+            echo "::error::vercel pull produced no .env.production.local"
+            exit 1
+          fi
         env:
-          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: prj_zk6EQijYXwd9L7BccuBssi436ktM # api
+
+      - name: Run migrations
+        run: |
+          set -a
+          # shellcheck disable=SC1091
+          . .vercel/.env.production.local
+          set +a
+          if [ -z "${POSTGRES_URL:-}" ]; then
+            echo "::error::POSTGRES_URL not found in pulled Vercel env"
+            exit 1
+          fi
+          pnpm db:migrate
 
   # ---------------------------------------------------------------------------
   # Detect which apps were affected by the merge
