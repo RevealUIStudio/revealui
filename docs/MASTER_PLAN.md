@@ -599,6 +599,58 @@ Phase D  -  Agent publisher tools (agent):
 
 ---
 
+#### 5.18 Universal Sanitization (Suite-wide, lives in `@revealui/security`)
+
+**Goal:** One audited, reusable sanitization surface for every untrusted-string sink across the Suite — terminal banners, HTML rendering, shell-argument construction, SQL identifier interpolation, log redaction, URL normalisation. No per-app one-offs. No re-implementations.
+
+**Why:** Control-sequence injection is the same class of bug in every language and every sink. Founder's direction: "a perfected sanitization process that we can apply everywhere it is useful" for "any data type implementation that could potentially be an attack surface." Today the studio's `TerminalView.welcome` is the first caller (shipped in revdev PR #4). Tomorrow it's admin rich-text render, api request logging, forge install scripts, and beyond.
+
+**Home:** `@revealui/security` (existing package). Adding a standalone `@revealui/sanitize` was considered and rejected — sanitization *is* security infrastructure and belongs co-located with headers, auth, encryption, audit, and GDPR. One package, one audit scope, one publish pipeline. Cross-repo consumers (revdev, forge, revcoin) pull it in as the published npm dep — **never** via git submodule.
+
+**Design principles:**
+- **Sink-specific helpers**, not one god-function. `sanitizeTerminalLine`, `sanitizeHtml`, `escapeShellArg`, `escapeSqlIdentifier`, `redactLogField`, `sanitizeUrl` — each with a threat model scoped to its sink.
+- **Sanitize at the sink**, not at ingress. Threat model is concrete at the output; premature sanitization loses fidelity and still leaves other sinks exposed.
+- **Allow-list over deny-list.** Every helper starts strict (e.g. SGR-only for terminal, tag-whitelist for HTML) and loosens only when a concrete need appears.
+- **Behavioural tests matter more than the regex.** Every helper ships with a corpus of attack strings from the real-world bug class it prevents.
+
+**Deliverables:**
+- [x] `sanitizeTerminalLine` — SGR-only ANSI pass-through (shipped in `@revealui/security` 2026-04-13)
+- [ ] `sanitizeHtml` — tag + attr allow-list for Lexical render / admin-facing markdown
+- [ ] `escapeShellArg` — POSIX + Windows variants for forge install scripts / RevDev local-shell banner composition
+- [ ] `escapeSqlIdentifier` — for the rare dynamic-identifier path Drizzle can't cover
+- [ ] `redactLogField` — PII + secret redaction helper feeding `@revealui/utils` logger
+- [ ] `sanitizeUrl` — extension of the existing Lexical `isSafeUrl()` with unified scheme allow-list
+- [ ] Shared test corpus: `packages/security/src/__tests__/sanitize-corpus/` with categorised attack vectors (ANSI, XSS, command injection, SQLi, log injection, scheme confusion)
+- [ ] ESLint/Biome rule or CI grep: flag direct concatenation into sinks (`terminal.writeln(userInput)`, `exec(\`cmd \${arg}\`)`, etc.) and require one of these helpers
+
+**Cross-repo consumption:**
+- revdev (studio terminal) migrates its local `apps/studio/src/lib/terminal-sanitize.ts` to `@revealui/security` once a version with `sanitizeTerminalLine` is published to npm. Local module stays as a thin re-export during the transition, then deletes.
+- forge install scripts depend on `@revealui/security` for `escapeShellArg`.
+- No `.gitmodules`. No filesystem symlinks across repos. Only published-dep consumption.
+
+**Exit criteria:** Every untrusted-string sink in the Suite (studio banners, admin HTML render, api log output, forge shell builder, revcoin UI) goes through a named `@revealui/security` sanitizer. CI enforces no ad-hoc per-app sanitizers. Attack corpus grows with every new sink added.
+
+---
+
+#### 5.19 Suite-Wide Submodule Audit (one-off + recurring CI check)
+
+**Goal:** Confirm zero git submodules exist across any Suite repo, and add a CI guard that fails any PR introducing one.
+
+**Why:** Founder has a permanent "no git submodules, ever" policy (cross-repo deps publish to npm / workspace). An exhaustive sweep catches anything that may have been created accidentally by tooling, a template, or an imported project. Guard prevents future drift.
+
+**Scope of the sweep:** every repo under `~/suite/` and every in-active repo under `~/projects/`, plus `RevealUIStudio/*` on GitHub — not just root `.gitmodules`, but also stale `.git/modules/` directories, `git config --list | grep submodule`, and tree-object gitlinks (mode 160000) from past history.
+
+**Deliverables:**
+- [x] Initial sweep completed 2026-04-13 — no `.gitmodules` found anywhere in `~/suite/`
+- [ ] Scripted audit: `scripts/audit-no-submodules.sh` — runs the four checks (root file, `.git/modules/`, `git config`, tree gitlinks) and exits non-zero on any hit
+- [ ] GitHub Actions workflow `no-submodules.yml` — runs the script on every PR and on a weekly cron (GitHub Actions cron, not Vercel; free-plan Vercel is capped at 1 cron/day and reserved for app jobs) across all RevealUIStudio repos via matrix
+- [ ] Document in repo templates: no submodules; use workspace `workspace:*` or published npm dep instead
+- [ ] Remediation runbook: if a submodule is ever found, convert it to a published dep or a vendored copy with clear provenance — never leave the submodule link in place
+
+**Exit criteria:** CI blocks any `.gitmodules` addition org-wide; weekly cron proves zero drift; a new contributor can't accidentally add one without the PR failing.
+
+---
+
 ### Phase 6: SOC2 Type II Compliance (post-Phase 5, enterprise prerequisite)
 
 **Goal:** Achieve SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required to close enterprise (Forge) deals.
