@@ -1,16 +1,13 @@
 {
   "name": "@revealui/dev",
   "version": "0.1.0",
-  "description": "Zero-config dev environment for RevealUI — Biome, TypeScript, Tailwind, Vite, PostCSS, editor integration, and terminal themes",
+  "private": true,
+  "description": "Internal dev environment for the RevealUI monorepo — Biome, TypeScript, Tailwind, Vite, PostCSS config. Not published to npm; editor configs for external users live in RevealUIStudio/editor-configs (RevCon).",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/dev"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
   },
   "keywords": [
     "biome",
