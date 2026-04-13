@@ -26,7 +26,7 @@ const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 // =============================================================================
 
 /** Roles that grant admin-level access to user management */
-const ADMIN_ROLES = new Set(['admin', 'super-admin', 'admin', 'super-admin']);
+const ADMIN_ROLES = new Set(['admin', 'super-admin']);
 
 function isAdminRole(role: string): boolean {
   return ADMIN_ROLES.has(role);
@@ -263,6 +263,19 @@ app.openapi(
     // Non-admins cannot change role or status
     if (!isAdmin && (body.role !== undefined || body.status !== undefined)) {
       throw new HTTPException(403, { message: 'Only admins can change role or status' });
+    }
+
+    // Owner soft-cap: gate promotions *into* the 'owner' role (not demotions
+    // or no-op writes). See userQueries.OWNER_SOFT_CAP for rationale.
+    if (body.role === 'owner' && existing.role !== 'owner') {
+      try {
+        await userQueries.assertOwnerSlotAvailable(db);
+      } catch (err) {
+        if (err instanceof userQueries.OwnerSlotError) {
+          throw new HTTPException(409, { message: err.message });
+        }
+        throw err;
+      }
     }
 
     // Strip any sensitive fields that might sneak through
