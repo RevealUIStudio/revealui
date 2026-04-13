@@ -12,7 +12,9 @@ import { beforeEach, describe, expect, it, type MockInstance, vi } from 'vitest'
  *   - logCache
  *   - logUserAction
  *   - logSystemEvent
- *   - sanitizeLogData
+ *
+ * Log redaction (formerly sanitizeLogData) now lives in @revealui/security;
+ * those tests moved to packages/security/src/__tests__/sanitize.test.ts.
  */
 
 // Use vi.hoisted so these variables are available inside the hoisted vi.mock factory.
@@ -58,7 +60,6 @@ import {
   logPerformance,
   logSystemEvent,
   logUserAction,
-  sanitizeLogData,
 } from '../logger.js';
 
 beforeEach(() => {
@@ -72,176 +73,6 @@ beforeEach(() => {
     fatal: vi.fn(),
   };
   mockChild.mockReturnValue(childInstance);
-});
-
-// ---------------------------------------------------------------------------
-// sanitizeLogData  -  security-critical PII removal
-// ---------------------------------------------------------------------------
-describe('sanitizeLogData', () => {
-  it('redacts password fields', () => {
-    const result = sanitizeLogData({ password: 'hunter2', name: 'alice' });
-    expect(result.password).toBe('[REDACTED]');
-    expect(result.name).toBe('alice');
-  });
-
-  it('redacts token fields', () => {
-    const result = sanitizeLogData({ token: 'abc123' });
-    expect(result.token).toBe('[REDACTED]');
-  });
-
-  it('redacts secret fields', () => {
-    const result = sanitizeLogData({ secret: 's3cret', clientSecret: 'x' });
-    expect(result.secret).toBe('[REDACTED]');
-    expect(result.clientSecret).toBe('[REDACTED]');
-  });
-
-  it('redacts apiKey and creditCard fields in all case variants', () => {
-    const result = sanitizeLogData({
-      apiKey: 'sk-test-123',
-      apikey: 'sk-lower',
-      creditCard: '4111111111111111',
-      creditcard: '4111-lower',
-    });
-    expect(result.apiKey).toBe('[REDACTED]');
-    expect(result.apikey).toBe('[REDACTED]');
-    expect(result.creditCard).toBe('[REDACTED]');
-    expect(result.creditcard).toBe('[REDACTED]');
-  });
-
-  it('accessToken/refreshToken are redacted because "token" substring matches', () => {
-    // These work because lowerKey "accesstoken"/"refreshtoken" contains "token"
-    const result = sanitizeLogData({
-      accessToken: 'at-xxx',
-      refreshToken: 'rt-xxx',
-    });
-    expect(result.accessToken).toBe('[REDACTED]');
-    expect(result.refreshToken).toBe('[REDACTED]');
-  });
-
-  it('redacts ssn fields', () => {
-    const result = sanitizeLogData({ ssn: '123-45-6789' });
-    expect(result.ssn).toBe('[REDACTED]');
-  });
-
-  it('is case-insensitive for input key (lowercases it before matching)', () => {
-    // Only the all-lowercase sensitive keys work: password, token, secret, ssn
-    const result = sanitizeLogData({
-      PASSWORD: 'x',
-      TOKEN: 'y',
-      SECRET: 'z',
-      SSN: '999',
-    });
-    expect(result.PASSWORD).toBe('[REDACTED]');
-    expect(result.TOKEN).toBe('[REDACTED]');
-    expect(result.SECRET).toBe('[REDACTED]');
-    expect(result.SSN).toBe('[REDACTED]');
-  });
-
-  it('redacts camelCase sensitive keys (ApiKey, ACCESSTOKEN)', () => {
-    const result = sanitizeLogData({
-      ApiKey: 'y',
-      ACCESSTOKEN: 'z',
-    });
-    expect(result.ApiKey).toBe('[REDACTED]');
-    expect(result.ACCESSTOKEN).toBe('[REDACTED]');
-  });
-
-  it('matches keys that contain sensitive substrings regardless of case', () => {
-    const result = sanitizeLogData({
-      userPassword: 'x',
-      myToken: 'y',
-      dbSecret: 'w',
-    });
-    expect(result.userPassword).toBe('[REDACTED]');
-    expect(result.myToken).toBe('[REDACTED]');
-    expect(result.dbSecret).toBe('[REDACTED]');
-  });
-
-  it('redacts compound camelCase keys like myApiKey and oldAccessToken', () => {
-    const result = sanitizeLogData({
-      myApiKey: 'y',
-      oldAccessToken: 'z',
-      userCreditCard: 'w',
-    });
-    expect(result.myApiKey).toBe('[REDACTED]');
-    expect(result.oldAccessToken).toBe('[REDACTED]');
-    expect(result.userCreditCard).toBe('[REDACTED]');
-  });
-
-  it('recursively sanitizes nested objects', () => {
-    const result = sanitizeLogData({
-      user: {
-        name: 'alice',
-        password: 'hunter2',
-        nested: {
-          token: 'abc',
-          safe: 'value',
-        },
-      },
-    });
-
-    const user = result.user as Record<string, unknown>;
-    expect(user.name).toBe('alice');
-    expect(user.password).toBe('[REDACTED]');
-
-    const nested = user.nested as Record<string, unknown>;
-    expect(nested.token).toBe('[REDACTED]');
-    expect(nested.safe).toBe('value');
-  });
-
-  it('preserves non-sensitive values of all types', () => {
-    const result = sanitizeLogData({
-      count: 42,
-      active: true,
-      tags: ['a', 'b'],
-      empty: null,
-      undef: undefined,
-    });
-    expect(result.count).toBe(42);
-    expect(result.active).toBe(true);
-    expect(result.tags).toEqual(['a', 'b']);
-    expect(result.empty).toBeNull();
-    expect(result.undef).toBeUndefined();
-  });
-
-  it('does not recurse into arrays', () => {
-    const result = sanitizeLogData({
-      items: [{ password: 'x' }],
-    });
-    // Arrays are passed through as-is (not recursed)
-    expect(result.items).toEqual([{ password: 'x' }]);
-  });
-
-  it('handles empty objects', () => {
-    const result = sanitizeLogData({});
-    expect(result).toEqual({});
-  });
-
-  it('handles deeply nested sensitive fields (lowercase keys)', () => {
-    const result = sanitizeLogData({
-      level1: {
-        level2: {
-          level3: {
-            password: 'deep-secret',
-            token: 'deep-token',
-            safe: 'ok',
-          },
-        },
-      },
-    });
-    const l3 = ((result.level1 as Record<string, unknown>).level2 as Record<string, unknown>)
-      .level3 as Record<string, unknown>;
-    expect(l3.password).toBe('[REDACTED]');
-    expect(l3.token).toBe('[REDACTED]');
-    expect(l3.safe).toBe('ok');
-  });
-
-  it('does not modify the original object', () => {
-    const original = { password: 'secret', name: 'bob' };
-    sanitizeLogData(original);
-    expect(original.password).toBe('secret');
-    expect(original.name).toBe('bob');
-  });
 });
 
 // ---------------------------------------------------------------------------
