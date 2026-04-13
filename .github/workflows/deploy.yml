@@ -124,6 +124,10 @@ jobs:
           VERCEL_PROJECT_ID: prj_zk6EQijYXwd9L7BccuBssi436ktM # api
 
       - name: Run migrations
+        # Invokes drizzle-kit migrate inside packages/db (non-interactive,
+        # applies pending migration SQL files against the migrations table).
+        # Do NOT use root `pnpm db:migrate` — that script runs drizzle-kit
+        # generate + push interactively and is a dev-only one-shot script.
         run: |
           set -a
           # shellcheck disable=SC1091
@@ -133,7 +137,7 @@ jobs:
             echo "::error::POSTGRES_URL not found in pulled Vercel env"
             exit 1
           fi
-          pnpm db:migrate
+          pnpm --filter @revealui/db db:migrate
 
   # ---------------------------------------------------------------------------
   # Detect which apps were affected by the merge
