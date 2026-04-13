@@ -139,6 +139,11 @@ export { configureSecurityLogger } from './logger.js';
 export {
   escapeShellArg,
   isSafeUrl,
+  isSensitiveLogKey,
+  REDACTED,
+  redactLogContext,
+  redactLogField,
+  redactSecretsInString,
   sanitizeTerminalLine,
   sanitizeUrl,
   type ShellDialect,

@@ -1,7 +1,22 @@
 import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
-import { escapeShellArg, isSafeUrl, sanitizeTerminalLine, sanitizeUrl } from '../sanitize.js';
+import {
+  escapeShellArg,
+  isSafeUrl,
+  isSensitiveLogKey,
+  REDACTED,
+  redactLogContext,
+  redactLogField,
+  redactSecretsInString,
+  sanitizeTerminalLine,
+  sanitizeUrl,
+} from '../sanitize.js';
 import { ANSI_INJECTION_VECTORS } from './sanitize-corpus/ansi-injection.js';
+import {
+  SAFE_KEY_VECTORS,
+  SECRET_VALUE_VECTORS,
+  SENSITIVE_KEY_VECTORS,
+} from './sanitize-corpus/log-redaction.js';
 import {
   DANGEROUS_URL_VECTORS,
   SAFE_IMAGE_DATA_VECTORS,
@@ -148,5 +163,160 @@ describe('sanitizeUrl', () => {
   it('returns "#" when unsafe', () => {
     expect(sanitizeUrl('javascript:alert(1)')).toBe('#');
     expect(sanitizeUrl(' javascript:alert(1)')).toBe('#');
+  });
+});
+
+describe('isSensitiveLogKey', () => {
+  it.each(SENSITIVE_KEY_VECTORS)('flags as sensitive: $key ($rationale)', ({ key }) => {
+    expect(isSensitiveLogKey(key)).toBe(true);
+  });
+
+  it.each(SAFE_KEY_VECTORS)('leaves benign key unflagged: $key ($rationale)', ({ key }) => {
+    expect(isSensitiveLogKey(key)).toBe(false);
+  });
+
+  it('matches case-insensitively', () => {
+    expect(isSensitiveLogKey('API_KEY')).toBe(true);
+    expect(isSensitiveLogKey('X-API-Key')).toBe(true);
+    expect(isSensitiveLogKey('PASSWORD')).toBe(true);
+  });
+
+  it('matches as substring so composites like userApiKey redact', () => {
+    expect(isSensitiveLogKey('userApiKey')).toBe(true);
+    expect(isSensitiveLogKey('rawSessionId')).toBe(true);
+    expect(isSensitiveLogKey('newPassword')).toBe(true);
+  });
+});
+
+describe('redactSecretsInString', () => {
+  it.each(SECRET_VALUE_VECTORS)('scrubs inline secret: $rationale', ({ input }) => {
+    expect(redactSecretsInString(input)).toContain(REDACTED);
+  });
+
+  it('leaves strings without secret patterns unchanged', () => {
+    expect(redactSecretsInString('user 123 updated profile')).toBe('user 123 updated profile');
+    expect(redactSecretsInString('')).toBe('');
+  });
+
+  it('scrubs multiple secrets in one string', () => {
+    const input = 'hit sk_live_51H7abcDEFghiJKLmnoPQRstuVWXyz0123 and AKIAIOSFODNN7EXAMPLE';
+    const out = redactSecretsInString(input);
+    expect(out).not.toContain('sk_live_');
+    expect(out).not.toContain('AKIA');
+    // Both replaced, not just one.
+    expect(out.match(new RegExp(REDACTED.replace(/[[\]]/g, '\\$&'), 'g'))?.length).toBe(2);
+  });
+
+  it('does not over-match short opaque ids that look like Stripe/AWS keys', () => {
+    // AWS key must be exactly AKIA + 16 uppercase alnum; shorter variants stay.
+    expect(redactSecretsInString('AKIA123')).toBe('AKIA123');
+    // sk- prefix requires 20+ chars after; short debug strings stay.
+    expect(redactSecretsInString('sk-test')).toBe('sk-test');
+  });
+});
+
+describe('redactLogField', () => {
+  it('returns REDACTED for sensitive keys, regardless of value type', () => {
+    expect(redactLogField('password', 'hunter2')).toBe(REDACTED);
+    expect(redactLogField('apiKey', 12345)).toBe(REDACTED);
+    expect(redactLogField('token', null)).toBe(REDACTED);
+    expect(redactLogField('Authorization', { raw: 'x' })).toBe(REDACTED);
+  });
+
+  it('scrubs secret patterns inside benign-keyed string values', () => {
+    const out = redactLogField(
+      'message',
+      'got Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc123def456ghi789',
+    );
+    expect(out).toContain(REDACTED);
+    expect(out).not.toContain('eyJhbGc');
+  });
+
+  it('returns non-string benign values unchanged', () => {
+    expect(redactLogField('userId', 42)).toBe(42);
+    expect(redactLogField('ok', true)).toBe(true);
+    expect(redactLogField('items', [1, 2, 3])).toEqual([1, 2, 3]);
+  });
+});
+
+describe('redactLogContext', () => {
+  it('redacts sensitive fields at the top level', () => {
+    expect(redactLogContext({ userId: 'u1', password: 'p' })).toEqual({
+      userId: 'u1',
+      password: REDACTED,
+    });
+  });
+
+  it('recurses into nested plain objects', () => {
+    expect(
+      redactLogContext({
+        user: { id: 'u1', apiKey: 'sk-live-abc' },
+        requestId: 'r1',
+      }),
+    ).toEqual({
+      user: { id: 'u1', apiKey: REDACTED },
+      requestId: 'r1',
+    });
+  });
+
+  it('recurses into arrays of objects', () => {
+    expect(
+      redactLogContext({
+        events: [
+          { name: 'login', sessionId: 'abc' },
+          { name: 'logout', sessionId: 'def' },
+        ],
+      }),
+    ).toEqual({
+      events: [
+        { name: 'login', sessionId: REDACTED },
+        { name: 'logout', sessionId: REDACTED },
+      ],
+    });
+  });
+
+  it('scrubs secret patterns inside benign-keyed strings during the walk', () => {
+    const out = redactLogContext({
+      message: 'pushed to ghp_abcdefghijklmnopqrstuvwxyz0123456789AB',
+      userId: 'u1',
+    }) as { message: string; userId: string };
+    expect(out.message).toContain(REDACTED);
+    expect(out.message).not.toContain('ghp_');
+    expect(out.userId).toBe('u1');
+  });
+
+  it('leaves Errors, Dates, and Maps untouched — not plain objects', () => {
+    const err = new Error('boom');
+    const date = new Date('2025-01-01');
+    const map = new Map([['k', 'v']]);
+    const out = redactLogContext({ err, date, map }) as Record<string, unknown>;
+    expect(out.err).toBe(err);
+    expect(out.date).toBe(date);
+    expect(out.map).toBe(map);
+  });
+
+  it('caps recursion depth and redacts beyond the cap', () => {
+    // 10-level deep nested object exceeds the cap of 8.
+    let nested: Record<string, unknown> = { leaf: 'value' };
+    for (let i = 0; i < 10; i++) {
+      nested = { next: nested };
+    }
+    // Should not throw, should not recurse forever.
+    const out = redactLogContext(nested);
+    expect(out).toBeDefined();
+  });
+
+  it('does not mutate the original input', () => {
+    const input = { password: 'p', user: { apiKey: 'k' } };
+    redactLogContext(input);
+    expect(input.password).toBe('p');
+    expect(input.user.apiKey).toBe('k');
+  });
+
+  it('returns primitives and non-plain values as-is at the top level', () => {
+    expect(redactLogContext('plain string')).toBe('plain string');
+    expect(redactLogContext(42)).toBe(42);
+    expect(redactLogContext(null)).toBe(null);
+    expect(redactLogContext(undefined)).toBe(undefined);
   });
 });

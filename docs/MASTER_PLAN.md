@@ -618,9 +618,9 @@ Phase D  -  Agent publisher tools (agent):
 - [ ] `sanitizeHtml` — tag + attr allow-list for Lexical render / admin-facing markdown
 - [x] `escapeShellArg` — POSIX + cmd.exe + PowerShell variants, NUL-byte rejection, corpus-backed tests (2026-04-13)
 - [ ] `escapeSqlIdentifier` — for the rare dynamic-identifier path Drizzle can't cover
-- [ ] `redactLogField` — PII + secret redaction helper feeding `@revealui/utils` logger
+- [x] `redactLogField` — PII + secret redaction helper feeding `@revealui/utils` logger (2026-04-13). Ships primitive + `redactLogContext` recursive walker + `redactSecretsInString` for inline message scrubbing. Key match is case-insensitive on alnum-normalised form (covers `api_key`, `X-API-Key`, `userApiKey`). Value patterns cover JWT, Bearer, Stripe sk/rk/whsec, OpenAI sk-, AWS AKIA, GitHub ghp_/github_pat_. Depth-capped at 8. Legacy duplicates at `packages/core/src/observability/logger.ts:sanitizeLogData` and `packages/ai/src/llm/client.ts:redactSensitiveFields` still present — migration is a follow-up (not this session).
 - [x] `sanitizeUrl` / `isSafeUrl` — scheme allow-list, owned by `@revealui/security`; `packages/core/.../rsc.tsx` now re-exports from there as the single source of truth (2026-04-13)
-- [x] Shared test corpus scaffolded: `packages/security/src/__tests__/sanitize-corpus/` seeded with ANSI, scheme-confusion, shell-injection vectors; grows per new sink (2026-04-13)
+- [x] Shared test corpus scaffolded: `packages/security/src/__tests__/sanitize-corpus/` seeded with ANSI, scheme-confusion, shell-injection, log-redaction vectors; grows per new sink (2026-04-13)
 - [ ] ESLint/Biome rule or CI grep: flag direct concatenation into sinks (`terminal.writeln(userInput)`, `exec(\`cmd \${arg}\`)`, etc.) and require one of these helpers
 
 **Cross-repo consumption:**

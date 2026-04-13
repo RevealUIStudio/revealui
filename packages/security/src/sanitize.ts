@@ -189,3 +189,165 @@ export function isSafeUrl(url: string, context: UrlContext = 'link'): boolean {
 export function sanitizeUrl(url: string, context: UrlContext = 'link'): string {
   return isSafeUrl(url, context) ? url.trim() : '#';
 }
+
+// ─── Log redaction ───────────────────────────────────────────────────────
+//
+// Logs are the easiest way to leak secrets: a passing request payload gets
+// dumped into a structured log, a header value lands in an error message,
+// a stack trace carries an Authorization token. This helper is the single
+// audited chokepoint between arbitrary structured data and the log sink.
+//
+// Two layers, applied in order:
+//
+//   1. Key-based: if the field name indicates a sensitive class (password,
+//      token, apiKey, Authorization, cookie, session, cvv, ssn, …) the
+//      value is replaced wholesale with `REDACTED`. Match is
+//      case-insensitive substring so `userApiKey`, `X-API-KEY`, and
+//      `apikey` all resolve to the same class.
+//
+//   2. Value-based: even when the key is benign, string values are scanned
+//      for known secret shapes (JWT, Bearer header, Stripe / OpenAI / AWS /
+//      GitHub keys) and each match is replaced with `REDACTED` inline.
+//      This catches the `message: "got 401 for Bearer eyJ…"` footgun.
+//
+// Key-based redaction is strict-by-default (deny-list of substrings grown
+// as new leak classes appear). Value-based scrubbing is pragmatic — the
+// patterns are chosen to minimise false positives on opaque IDs.
+
+export const REDACTED = '[REDACTED]' as const;
+
+// Case-insensitive substring match on an alnum-normalised form of the key,
+// so `apiKey` / `api_key` / `API-KEY` / `x-api-key` all resolve to the same
+// substring class. Ordering does not matter — any hit triggers full-value
+// redaction for that field.
+const SENSITIVE_KEY_SUBSTRINGS: readonly string[] = [
+  'password',
+  'passwd',
+  'pwd',
+  'secret',
+  'token',
+  'apikey',
+  'authorization',
+  'cookie',
+  'session',
+  'privatekey',
+  'encryptedkey',
+  'creditcard',
+  'cardnumber',
+  'cvv',
+  'cvc',
+  'ssn',
+];
+
+const NON_ALNUM = /[^a-z0-9]/g;
+
+// Inline secret shapes found in prose / error messages. Each is matched
+// globally and replaced with REDACTED. Anchored with word boundaries or
+// explicit prefixes to avoid clobbering opaque IDs of similar length.
+const SECRET_VALUE_PATTERNS: readonly RegExp[] = [
+  // JWT (header.payload.signature) — base64url segments, min lengths keep
+  // this from matching arbitrary dotted identifiers.
+  /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g,
+  // Bearer <token> in header-style strings.
+  /\b[Bb]earer\s+[A-Za-z0-9._~+/-]{16,}=*/g,
+  // OpenAI: sk-…, sk-proj-…, sk-svcacct-…
+  /\bsk-(?:proj-|svcacct-)?[A-Za-z0-9_-]{20,}/g,
+  // Stripe secret + restricted keys.
+  /\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]{20,}/g,
+  // Stripe webhook signing secret.
+  /\bwhsec_[A-Za-z0-9]{20,}/g,
+  // AWS access key id.
+  /\bAKIA[0-9A-Z]{16}\b/g,
+  // GitHub classic PAT (36+ char suffix) and fine-grained token.
+  /\bghp_[A-Za-z0-9]{20,}/g,
+  /\bgithub_pat_[A-Za-z0-9_]{20,}/g,
+];
+
+/**
+ * `true` if `key` names a class of value that must never reach a log.
+ * Match is case-insensitive substring so variants like `userApiKey`,
+ * `X-API-KEY`, `apikey`, `sessionId` all resolve to the same class.
+ */
+export function isSensitiveLogKey(key: string): boolean {
+  const normalised = key.toLowerCase().replace(NON_ALNUM, '');
+  for (const needle of SENSITIVE_KEY_SUBSTRINGS) {
+    if (normalised.includes(needle)) return true;
+  }
+  return false;
+}
+
+/**
+ * Scrub inline secret shapes (JWT, Bearer headers, provider API keys)
+ * from an arbitrary string — for log messages, error messages, and
+ * anything else that may have been concatenated from untrusted sources.
+ * Returns the original string if nothing matched.
+ */
+export function redactSecretsInString(input: string): string {
+  let out = input;
+  for (const pattern of SECRET_VALUE_PATTERNS) {
+    out = out.replace(pattern, REDACTED);
+  }
+  return out;
+}
+
+/**
+ * Decide the safe form of a single log field.
+ *
+ * - If `key` is sensitive: returns `REDACTED` regardless of value shape.
+ * - If `value` is a string: returns it with inline secret shapes scrubbed.
+ * - Otherwise: returns `value` unchanged. Nested objects/arrays are the
+ *   caller's responsibility — use `redactLogContext` to walk a tree.
+ */
+export function redactLogField(key: string, value: unknown): unknown {
+  if (isSensitiveLogKey(key)) {
+    return REDACTED;
+  }
+  if (typeof value === 'string') {
+    return redactSecretsInString(value);
+  }
+  return value;
+}
+
+const MAX_REDACT_DEPTH = 8;
+
+/**
+ * Recursively redact a log context object. Walks plain objects and
+ * arrays; leaves Dates, Errors, Maps, Sets, typed arrays, and other
+ * non-plain objects untouched (stringifying them is the logger's job).
+ *
+ * Depth is capped at 8 to avoid pathological payloads — deeper levels
+ * are replaced with `REDACTED` rather than recursed into.
+ */
+export function redactLogContext<T>(obj: T): T {
+  return walk(obj, 0) as T;
+}
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  if (v === null || typeof v !== 'object') return false;
+  const proto = Object.getPrototypeOf(v);
+  return proto === Object.prototype || proto === null;
+}
+
+function walk(value: unknown, depth: number): unknown {
+  if (depth >= MAX_REDACT_DEPTH) {
+    return isPlainObject(value) || Array.isArray(value) ? REDACTED : value;
+  }
+  if (typeof value === 'string') {
+    return redactSecretsInString(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) => walk(item, depth + 1));
+  }
+  if (isPlainObject(value)) {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (isSensitiveLogKey(k)) {
+        out[k] = REDACTED;
+      } else {
+        out[k] = walk(v, depth + 1);
+      }
+    }
+    return out;
+  }
+  return value;
+}
