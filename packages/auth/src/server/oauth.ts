@@ -216,7 +216,7 @@ export interface UpsertOAuthOptions {
  * 1. Look up oauth_accounts by (provider, providerUserId) → get userId
  * 2. If found: refresh metadata + return user
  * 3. If not found: check users by email → link if match (with consent) or throw
- * 4. If no match: create new user (role: 'user', no password)
+ * 4. If no match: create new user (role: 'viewer', no password)
  * 5. Insert oauth_accounts row
  */
 export async function upsertOAuthUser(
@@ -303,7 +303,7 @@ export async function upsertOAuthUser(
       email: providerUser.email,
       avatarUrl: providerUser.avatarUrl,
       password: null,
-      role: 'user',
+      role: 'viewer',
       status: 'active',
     });
   }

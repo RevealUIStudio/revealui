@@ -121,7 +121,7 @@ function makeUser(overrides: Record<string, unknown> = {}) {
     name: 'Test User',
     email: 'test@example.com',
     password: '$2a$12$hashedpassword',
-    role: 'user',
+    role: 'viewer',
     status: 'active',
     avatarUrl: null,
     schemaVersion: '1',
@@ -465,8 +465,8 @@ describe('oauth', () => {
       expect(mockInsert).toHaveBeenCalled();
     });
 
-    it('creates user with role "user" for new OAuth signups', async () => {
-      const newUser = makeUser({ role: 'user' });
+    it('creates user with role "viewer" for new OAuth signups', async () => {
+      const newUser = makeUser({ role: 'viewer' });
       mockLimit
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
@@ -476,7 +476,7 @@ describe('oauth', () => {
 
       // Find the users insert call (first insert is for users, second for oauthAccounts)
       const firstInsertValues = mockInsertValues.mock.calls[0][0];
-      expect(firstInsertValues.role).toBe('user');
+      expect(firstInsertValues.role).toBe('viewer');
       expect(firstInsertValues.password).toBeNull();
     });
 
