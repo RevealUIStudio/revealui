@@ -87,7 +87,7 @@ describe('upsertOAuthUser  -  PGlite', () => {
 
     expect(user.email).toBe('new-oauth@example.com');
     expect(user.name).toBe('Test User');
-    expect(user.role).toBe('user');
+    expect(user.role).toBe('viewer');
     expect(user.status).toBe('active');
     expect(user.password).toBeNull();
 

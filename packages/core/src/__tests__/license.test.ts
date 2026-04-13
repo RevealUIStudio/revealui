@@ -381,14 +381,14 @@ describe('getMaxAgentTasks', () => {
 // =============================================================================
 
 describe('computeKeyId', () => {
-  it('returns an 8-character hex string', () => {
-    const kid = computeKeyId(publicKeyPem);
+  it('returns an 8-character hex string', async () => {
+    const kid = await computeKeyId(publicKeyPem);
     expect(kid).toMatch(/^[0-9a-f]{8}$/);
   });
 
-  it('returns consistent results for the same key', () => {
-    const kid1 = computeKeyId(publicKeyPem);
-    const kid2 = computeKeyId(publicKeyPem);
+  it('returns consistent results for the same key', async () => {
+    const kid1 = await computeKeyId(publicKeyPem);
+    const kid2 = await computeKeyId(publicKeyPem);
     expect(kid1).toBe(kid2);
   });
 
@@ -406,7 +406,7 @@ describe('computeKeyId', () => {
     const otherPubDer = await crypto.subtle.exportKey('spki', otherKeyPair.publicKey);
     const otherPubPem = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(otherPubDer).toString('base64')}\n-----END PUBLIC KEY-----`;
 
-    expect(computeKeyId(publicKeyPem)).not.toBe(computeKeyId(otherPubPem));
+    expect(await computeKeyId(publicKeyPem)).not.toBe(await computeKeyId(otherPubPem));
   });
 });
 
@@ -423,7 +423,7 @@ describe('JWT kid header claim', () => {
       publicKeyPem,
     );
     const header = await decodeProtectedHeader(jwt);
-    expect(header.kid).toBe(computeKeyId(publicKeyPem));
+    expect(header.kid).toBe(await computeKeyId(publicKeyPem));
   });
 
   it('omits kid when publicKey is not provided', async () => {

@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1773373064328,
-      "tag": "0000_luxuriant_mystique",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1773913508365,
-      "tag": "0001_wet_grandmaster",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1773918889589,
-      "tag": "0002_strong_adam_destine",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1774487816593,
-      "tag": "0003_dry_wolfsbane",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1774555926510,
-      "tag": "0004_white_stick",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1774921923636,
-      "tag": "0005_daily_hardball",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1774926441223,
-      "tag": "0006_pink_unicorn",
+      "when": 1776048529577,
+      "tag": "0000_init",
       "breakpoints": true
     }
   ]
