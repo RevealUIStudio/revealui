@@ -5,7 +5,7 @@ set -e
 pnpm secrets:scan
 
 # Gitleaks — scan staged changes for leaked secrets
-if command -v gitleaks &>/dev/null; then
+if command -v gitleaks >/dev/null 2>&1; then
   gitleaks protect --staged --no-banner
 fi
 

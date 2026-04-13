@@ -45,14 +45,17 @@ export function vaughnConfigToClaudeSettings(config: VaughnConfig): ClaudeCodeSe
   }
 
   if (config.environment.mcpServers.length > 0) {
-    settings.mcpServers = {};
+    const servers = new Map<string, NonNullable<ClaudeCodeSettings['mcpServers']>[string]>();
     for (const server of config.environment.mcpServers) {
-      settings.mcpServers[server.name] = {
+      servers.set(server.name, {
         command: server.command,
         ...(server.args && { args: server.args }),
         ...(server.env && { env: server.env }),
-      };
+      });
     }
+    settings.mcpServers = Object.fromEntries(servers) as NonNullable<
+      ClaudeCodeSettings['mcpServers']
+    >;
   }
 
   return settings;
