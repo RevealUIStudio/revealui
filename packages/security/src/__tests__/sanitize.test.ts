@@ -14,10 +14,6 @@ import {
   sanitizeUrl,
 } from '../sanitize.js';
 import { ANSI_INJECTION_VECTORS } from './sanitize-corpus/ansi-injection.js';
-import {
-  DANGEROUS_IDENTIFIER_VECTORS,
-  SAFE_IDENTIFIER_VECTORS,
-} from './sanitize-corpus/sql-injection.js';
 import { DANGEROUS_HTML_VECTORS, SAFE_HTML_VECTORS } from './sanitize-corpus/html-injection.js';
 import {
   SAFE_KEY_VECTORS,
@@ -30,6 +26,10 @@ import {
   SAFE_URL_VECTORS,
 } from './sanitize-corpus/scheme-confusion.js';
 import { SHELL_INJECTION_VECTORS } from './sanitize-corpus/shell-injection.js';
+import {
+  DANGEROUS_IDENTIFIER_VECTORS,
+  SAFE_IDENTIFIER_VECTORS,
+} from './sanitize-corpus/sql-injection.js';
 
 describe('sanitizeTerminalLine', () => {
   it('passes printable ASCII through unchanged', () => {

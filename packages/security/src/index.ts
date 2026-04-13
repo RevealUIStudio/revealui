@@ -145,10 +145,10 @@ export {
   redactLogContext,
   redactLogField,
   redactSecretsInString,
-  sanitizeHtml,
   type SanitizeHtmlOptions,
+  type ShellDialect,
+  sanitizeHtml,
   sanitizeTerminalLine,
   sanitizeUrl,
-  type ShellDialect,
   type UrlContext,
 } from './sanitize.js';

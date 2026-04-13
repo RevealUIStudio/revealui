@@ -269,7 +269,7 @@ export function sanitizeUrl(url: string, context: UrlContext = 'link'): string {
 // Output is serialized back by parse5, so entity encoding, attribute
 // quoting, and void-element handling all match the HTML5 spec.
 
-import { type DefaultTreeAdapterMap, parseFragment, serialize, defaultTreeAdapter } from 'parse5';
+import { type DefaultTreeAdapterMap, defaultTreeAdapter, parseFragment, serialize } from 'parse5';
 
 type Parse5ChildNode = DefaultTreeAdapterMap['childNode'];
 type Parse5Element = DefaultTreeAdapterMap['element'];
