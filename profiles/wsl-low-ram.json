@@ -1,0 +1,68 @@
+{
+  "$schema": "../docs/system-tune/profile.schema.json",
+  "id": "wsl-low-ram",
+  "version": 1,
+  "name": "WSL2 on low-RAM Windows host",
+  "description": "Tuned for Windows hosts with <=8 GB RAM running WSL2. Leaves enough memory for the host to avoid host-side memory reclaim, which was causing VM crash loops. Seeded from the 2026-04-13 crash post-mortem.",
+  "match": {
+    "platform": "wsl2",
+    "hostRamGb": { "max": 8 }
+  },
+  "apply": {
+    "wslconfig": {
+      "memory": "4GB",
+      "processors": 6,
+      "swap": "6GB",
+      "vmIdleTimeout": -1,
+      "kernelCommandLine": "systemd.firstboot=0",
+      "autoMemoryReclaim": null,
+      "networkingMode": "nat"
+    },
+    "earlyoom": {
+      "mem": "15,8",
+      "swap": "15,8",
+      "prefer": "(turbo|biome|vitest|tsc|esbuild)",
+      "report": 10
+    },
+    "docker": {
+      "autostart": false,
+      "onDemand": true
+    },
+    "node": {
+      "maxOldSpaceSizeMb": 3072
+    },
+    "pnpm": {
+      "childConcurrency": 2
+    },
+    "turbo": {
+      "concurrency": 2
+    },
+    "vitest": {
+      "poolOptions": {
+        "threads": {
+          "maxThreads": 2
+        }
+      }
+    }
+  },
+  "rationale": {
+    "memory": "Host has ~7.3 GB; WSL claiming >=5 GB starves Windows and triggers host-side memory reclaim, which kills the VM. 4 GB leaves ~3 GB headroom.",
+    "vmIdleTimeout": "Idle auto-pause produced 'time jumped backwards' clock skew that correlated 1:1 with mid-session crashes on 2026-04-13. Disabling removes the trigger.",
+    "autoMemoryReclaim": "Experimental 'dropcache' was aggressively dropping VM cache under host pressure, stalling the VM. Removed 2026-04-13.",
+    "networkingMode": "Reverted from 'mirrored' to default 'nat' 2026-03-22 — mirrored mode caused 0x80072746 WinSock crashes.",
+    "earlyoomPrefer": "Kills runaway dev tools (turbo/biome/vitest/tsc/esbuild) before system processes when memory pressure hits 15% / swap 8%.",
+    "dockerAutostart": "Docker Desktop on <8 GB hosts doubles memory pressure even when idle. On-demand start via `sudo systemctl start docker` keeps the cost opt-in.",
+    "concurrency": "Two-worker pools keep parallel vitest/turbo/pnpm runs under the 4 GB cap with headroom for node_modules resolution."
+  },
+  "backups": {
+    "path": "~/.revealui/system-tune/backups/{timestamp}/",
+    "files": [
+      "/mnt/c/Users/{user}/.wslconfig",
+      "/etc/default/earlyoom"
+    ]
+  },
+  "origin": {
+    "incidentDate": "2026-04-13",
+    "postmortem": "docs/system-tune/CRASH-POSTMORTEMS.md#2026-04-13-wsl-73-gb-host-crash-loop"
+  }
+}
