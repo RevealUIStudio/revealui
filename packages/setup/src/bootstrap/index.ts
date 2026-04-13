@@ -174,7 +174,12 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
     };
   }
 
-  // Create the first admin user
+  // Create the first admin user.
+  // Dual-role write: the DB `role` column uses the Drizzle enum
+  // (owner/admin/editor/viewer/agent/contributor, enforced by CHECK constraint)
+  // while the Payload `roles` array uses the application taxonomy
+  // (super-admin/admin). Both layers consume different fields;
+  // first user is 'owner' at the DB layer and 'super-admin' at the app layer.
   try {
     await revealui.create({
       collection: 'users',
@@ -182,8 +187,8 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
         name: admin.name ?? 'Admin',
         email: admin.email,
         password: admin.password,
-        role: 'user-super-admin',
-        roles: ['user-super-admin'],
+        role: 'owner',
+        roles: ['super-admin'],
       },
     });
   } catch (err) {
@@ -228,7 +233,7 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
   return {
     status: 'created',
     message: `Admin user created${seeded ? ' and content seeded' : ''}. Sign in at /admin.`,
-    user: { email: admin.email, role: 'user-super-admin' },
+    user: { email: admin.email, role: 'owner' },
     seeded,
   };
 }

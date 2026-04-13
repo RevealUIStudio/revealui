@@ -75,7 +75,7 @@ export async function getTestRevealUI(): Promise<RevealUIInstance> {
 export async function createTestUser(
   email: string,
   password: string,
-  roles: string[] = ['user-admin'],
+  roles: string[] = ['admin'],
   tenantId?: number | string,
   tenantRoles?: string[],
   options: CreateTestUserOptions = {},

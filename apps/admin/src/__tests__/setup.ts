@@ -104,14 +104,14 @@ vi.mock('next/headers', () => ({
 export const mockUser = {
   id: 1,
   email: 'test@example.com',
-  roles: ['user-admin'],
+  roles: ['admin'],
   lastLoggedInTenant: 1,
 };
 
 export const mockSuperAdmin = {
   id: 2,
   email: 'superadmin@example.com',
-  roles: ['user-super-admin'],
+  roles: ['super-admin'],
 };
 
 export const mockTenant = {

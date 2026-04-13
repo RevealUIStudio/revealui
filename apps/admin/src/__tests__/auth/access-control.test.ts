@@ -87,7 +87,7 @@ describe('Access Control Tests', () => {
       const { user, token } = await createTestUser(
         testUsers.superAdmin.email,
         testUsers.superAdmin.password,
-        ['user-super-admin'],
+        ['super-admin'],
       );
 
       const revealui = await getTestRevealUI();
@@ -111,7 +111,7 @@ describe('Access Control Tests', () => {
       const { user, token } = await createTestUser(
         testUsers.admin.email,
         testUsers.admin.password,
-        ['user-admin'],
+        ['admin'],
       );
 
       const revealui = await getTestRevealUI();
@@ -135,7 +135,7 @@ describe('Access Control Tests', () => {
       const { user, token } = await createTestUser(
         testUsers.tenantSuperAdmin.email,
         testUsers.tenantSuperAdmin.password,
-        ['user-admin'],
+        ['admin'],
         tenant1?.id,
         ['tenant-super-admin'],
       );
@@ -150,7 +150,7 @@ describe('Access Control Tests', () => {
       const { user, token } = await createTestUser(
         testUsers.tenantAdmin.email,
         testUsers.tenantAdmin.password,
-        ['user-admin'],
+        ['admin'],
         tenant1?.id,
         ['tenant-admin'],
       );
@@ -165,7 +165,7 @@ describe('Access Control Tests', () => {
       const { user } = await createTestUser(
         testUsers.regularUser.email,
         testUsers.regularUser.password,
-        ['user-admin'], // Regular admin, not super admin
+        ['admin'], // Regular admin, not super admin
         undefined,
         undefined,
         { login: false },
@@ -185,7 +185,7 @@ describe('Access Control Tests', () => {
       const user1 = await createTestUser(
         'tenant1-user@example.com',
         'TestPass123',
-        ['user-admin'],
+        ['admin'],
         tenant1?.id,
         ['tenant-admin'],
         { login: false },
@@ -194,7 +194,7 @@ describe('Access Control Tests', () => {
       const user2 = await createTestUser(
         'tenant2-user@example.com',
         'TestPass123',
-        ['user-admin'],
+        ['admin'],
         tenant2?.id,
         ['tenant-admin'],
         { login: false },
@@ -210,7 +210,7 @@ describe('Access Control Tests', () => {
       const { user } = await createTestUser(
         generateUniqueTestEmail('tenant-filter'),
         'TestPass123',
-        ['user-admin'],
+        ['admin'],
         tenant1?.id,
         ['tenant-admin'],
         { login: false },
@@ -228,7 +228,7 @@ describe('Access Control Tests', () => {
       const user1 = await createTestUser(
         generateUniqueTestEmail('cross-tenant-user1'),
         'TestPass123',
-        ['user-admin'],
+        ['admin'],
         tenant1?.id,
         ['tenant-admin'],
         { login: false },
@@ -237,7 +237,7 @@ describe('Access Control Tests', () => {
       const user2 = await createTestUser(
         generateUniqueTestEmail('cross-tenant-user2'),
         'TestPass123',
-        ['user-admin'],
+        ['admin'],
         tenant2?.id,
         ['tenant-admin'],
         { login: false },
@@ -251,7 +251,7 @@ describe('Access Control Tests', () => {
       const { user } = await createTestUser(
         generateUniqueTestEmail('tenant-isolation'),
         'TestPass123',
-        ['user-admin'],
+        ['admin'],
         tenant1?.id,
         ['tenant-admin'],
         { login: false },
@@ -272,7 +272,7 @@ describe('Access Control Tests', () => {
         const { user, token } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ['user-admin'],
+          ['admin'],
         );
 
         const revealui = await getTestRevealUI();
@@ -284,7 +284,7 @@ describe('Access Control Tests', () => {
           data: {
             email: newUserEmail,
             password: 'TestPass123',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
           req: createRequest(user, token),
         });
@@ -311,7 +311,7 @@ describe('Access Control Tests', () => {
         const { user } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ['user-admin'],
+          ['admin'],
           undefined,
           undefined,
           { login: false },
@@ -335,7 +335,7 @@ describe('Access Control Tests', () => {
         const userToDelete = await createTestUser(
           'user-to-delete@example.com',
           'TestPass123',
-          ['user-admin'],
+          ['admin'],
           undefined,
           undefined,
           { login: false },
@@ -344,7 +344,7 @@ describe('Access Control Tests', () => {
         const { user: adminUser, token } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ['user-admin'],
+          ['admin'],
         );
 
         const revealui = await getTestRevealUI();
@@ -410,7 +410,7 @@ describe('Access Control Tests', () => {
         const { user, token } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ['user-admin'],
+          ['admin'],
         );
 
         const revealui = await getTestRevealUI();
@@ -480,7 +480,7 @@ describe('Access Control Tests', () => {
         const { user, token } = await createTestUser(
           testUsers.admin.email,
           testUsers.admin.password,
-          ['user-admin'],
+          ['admin'],
         );
 
         const revealui = await getTestRevealUI();
@@ -522,7 +522,7 @@ describe('Access Control Tests', () => {
       const { user: adminUser } = await createTestUser(
         testUsers.admin.email,
         testUsers.admin.password,
-        ['user-admin'],
+        ['admin'],
         undefined,
         undefined,
         { login: false },
@@ -531,7 +531,7 @@ describe('Access Control Tests', () => {
       const { user: superAdminUser } = await createTestUser(
         testUsers.superAdmin.email,
         testUsers.superAdmin.password,
-        ['user-super-admin'],
+        ['super-admin'],
         undefined,
         undefined,
         { login: false },
@@ -554,7 +554,7 @@ describe('Access Control Tests', () => {
       const { user } = await createTestUser(
         testUsers.tenantAdmin.email,
         testUsers.tenantAdmin.password,
-        ['user-admin'],
+        ['admin'],
         tenant1?.id,
         ['tenant-admin'],
         { login: false },
@@ -569,7 +569,7 @@ describe('Access Control Tests', () => {
       const { user } = await createTestUser(
         testUsers.regularUser.email,
         testUsers.regularUser.password,
-        ['user-admin'],
+        ['admin'],
         undefined,
         undefined,
         { login: false },
@@ -594,7 +594,7 @@ describe('Access Control Tests', () => {
           data: {
             email: generateUniqueTestEmail('protected-endpoint'),
             password: 'TestPass123',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
           // Provide a request with invalid token to trigger JWT validation
           req: createRequest(undefined, 'invalid-token-should-fail'),
@@ -604,7 +604,7 @@ describe('Access Control Tests', () => {
 
     it('should validate JWT tokens on each request', async () => {
       const { token } = await createTestUser(testUsers.admin.email, testUsers.admin.password, [
-        'user-admin',
+        'admin',
       ]);
 
       const revealui = await getTestRevealUI();
@@ -636,7 +636,7 @@ describe('Access Control Tests', () => {
       const { user } = await createTestUser(
         testUsers.regularUser.email,
         testUsers.regularUser.password,
-        ['user-admin'],
+        ['admin'],
         undefined,
         undefined,
         { login: false },

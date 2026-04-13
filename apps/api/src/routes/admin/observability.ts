@@ -2,7 +2,7 @@
  * Admin Observability Routes
  *
  * Read-only endpoints for the admin dashboard dashboard observability pages.
- * All endpoints require admin role (admin, super-admin, user-admin, user-super-admin).
+ * All endpoints require admin role (admin, super-admin, admin, super-admin).
  *
  * GET /admin/logs       -  paginated app logs, filterable by app and level
  * GET /admin/errors     -  paginated error events
@@ -28,7 +28,7 @@ type AdminVariables = {
 // Shared
 // =============================================================================
 
-const ADMIN_ROLES = new Set(['admin', 'super-admin', 'user-admin', 'user-super-admin']);
+const ADMIN_ROLES = new Set(['admin', 'super-admin', 'admin', 'super-admin']);
 
 function requireAdmin(user: { id: string; role: string } | undefined): void {
   if (!user) throw new HTTPException(401, { message: 'Authentication required' });

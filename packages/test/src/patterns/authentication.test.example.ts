@@ -31,7 +31,7 @@ describe('Authentication Testing Patterns', () => {
         data: {
           email: testEmail,
           password: testPassword,
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 

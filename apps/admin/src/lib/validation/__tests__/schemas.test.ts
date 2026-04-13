@@ -194,7 +194,7 @@ describe('tenantIdSchema', () => {
 
 describe('userRoleSchema', () => {
   it('accepts all valid roles', () => {
-    for (const role of ['user-super-admin', 'user-admin', 'tenant-super-admin', 'tenant-admin']) {
+    for (const role of ['super-admin', 'admin', 'tenant-super-admin', 'tenant-admin']) {
       expect(userRoleSchema.parse(role)).toBe(role);
     }
   });

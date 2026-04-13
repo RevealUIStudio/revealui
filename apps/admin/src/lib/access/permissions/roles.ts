@@ -3,8 +3,8 @@ import type { Permission } from '@revealui/core';
 export enum Role {
   TenantSuperAdmin = 'tenant-super-admin',
   TenantAdmin = 'tenant-admin',
-  UserAdmin = 'user-admin',
-  UserSuperAdmin = 'user-super-admin',
+  UserAdmin = 'admin',
+  UserSuperAdmin = 'super-admin',
   SupportAgent = 'support-agent',
   BillingManager = 'billing-manager',
   ComplianceOfficer = 'compliance-officer',

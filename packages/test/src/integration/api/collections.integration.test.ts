@@ -24,7 +24,7 @@ describe('Collections Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -42,7 +42,7 @@ describe('Collections Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -76,7 +76,7 @@ describe('Collections Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -102,7 +102,7 @@ describe('Collections Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -129,7 +129,7 @@ describe('Collections Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -201,7 +201,7 @@ describe('Collections Integration', () => {
           data: {
             email: 'invalid-email',
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         }),
       ).rejects.toThrow();
@@ -219,7 +219,7 @@ describe('Collections Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 

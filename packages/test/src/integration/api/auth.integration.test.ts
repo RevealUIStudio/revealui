@@ -37,7 +37,7 @@ describe('Authentication Integration', () => {
       data: {
         email: testEmail,
         password: hashedPassword,
-        roles: ['user-admin'],
+        roles: ['admin'],
       },
     });
     testUserId = user.id;
@@ -70,7 +70,7 @@ describe('Authentication Integration', () => {
       }
 
       expect(user.email).toBe(testEmail);
-      expect(user.roles).toContain('user-admin');
+      expect(user.roles).toContain('admin');
     });
 
     it('should login with valid credentials and receive JWT', async () => {
@@ -191,11 +191,11 @@ describe('Authentication Integration', () => {
         data: {
           email: tenantEmail,
           password: hashedPassword,
-          roles: ['user-admin'],
+          roles: ['admin'],
           tenants: [
             {
               tenant: 1,
-              roles: ['user-admin'],
+              roles: ['admin'],
             },
           ],
         },

@@ -61,7 +61,7 @@ describe('typedCollectionStorage', () => {
             createdAt: new Date('2026-03-12T00:00:00Z'),
             updatedAt: new Date('2026-03-12T00:00:00Z'),
             _json: {
-              roles: ['user-admin'],
+              roles: ['admin'],
             },
           }),
         },
@@ -82,7 +82,7 @@ describe('typedCollectionStorage', () => {
       email: 'ada@example.com',
       firstName: 'Ada',
       lastName: 'Lovelace',
-      roles: ['user-admin'],
+      roles: ['admin'],
     });
   });
 
@@ -124,7 +124,7 @@ describe('typedCollectionStorage', () => {
         createdAt: new Date('2026-03-12T00:00:00Z'),
         updatedAt: new Date('2026-03-12T00:00:00Z'),
         _json: {
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       },
     ]);

@@ -37,7 +37,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -46,7 +46,7 @@ describe('Persistence Regression Tests', () => {
       // Verify document was created with expected fields
       expect(created.id).toBeDefined();
       expect(created.email).toBe(testEmail);
-      expect(created.roles).toContain('user-admin');
+      expect(created.roles).toContain('admin');
 
       // Immediately query the document by ID to verify persistence
       const retrieved = await revealui.findByID({
@@ -58,7 +58,7 @@ describe('Persistence Regression Tests', () => {
       expect(retrieved).not.toBeNull();
       expect(retrieved?.id).toBe(created.id);
       expect(retrieved?.email).toBe(testEmail);
-      expect(retrieved?.roles).toContain('user-admin');
+      expect(retrieved?.roles).toContain('admin');
     });
 
     it('should query document immediately after creation', async () => {
@@ -70,7 +70,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -101,7 +101,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin', 'user-super-admin'], // Array field
+          roles: ['admin', 'super-admin'], // Array field
           tenants: [
             {
               tenant: 1,
@@ -116,8 +116,8 @@ describe('Persistence Regression Tests', () => {
       // Verify JSON fields are stored correctly
       expect(created.roles).toBeDefined();
       expect(Array.isArray(created.roles)).toBe(true);
-      expect(created.roles).toContain('user-admin');
-      expect(created.roles).toContain('user-super-admin');
+      expect(created.roles).toContain('admin');
+      expect(created.roles).toContain('super-admin');
 
       // Query document and verify JSON fields persist
       const retrieved = await revealui.findByID({
@@ -128,8 +128,8 @@ describe('Persistence Regression Tests', () => {
       expect(retrieved).not.toBeNull();
       expect(retrieved?.roles).toBeDefined();
       expect(Array.isArray(retrieved?.roles)).toBe(true);
-      expect(retrieved?.roles).toContain('user-admin');
-      expect(retrieved?.roles).toContain('user-super-admin');
+      expect(retrieved?.roles).toContain('admin');
+      expect(retrieved?.roles).toContain('super-admin');
     });
 
     it('should update document and verify changes persist', async () => {
@@ -141,7 +141,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
           firstName: 'John',
         },
       });
@@ -189,7 +189,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -209,7 +209,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'], // JSON field (hasMany select)
+          roles: ['admin'], // JSON field (hasMany select)
           tenants: [
             {
               tenant: 1,
@@ -255,7 +255,7 @@ describe('Persistence Regression Tests', () => {
           data: {
             email,
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         });
 
@@ -305,7 +305,7 @@ describe('Persistence Regression Tests', () => {
           data: {
             email,
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         }),
       );
@@ -359,7 +359,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin', 'user-super-admin'], // JSON field (hasMany select)
+          roles: ['admin', 'super-admin'], // JSON field (hasMany select)
           tenants: [
             {
               tenant: 1,
@@ -378,7 +378,7 @@ describe('Persistence Regression Tests', () => {
       // Verify JSON fields are stored and retrieved correctly
       expect(user.roles).toBeDefined();
       expect(Array.isArray(user.roles)).toBe(true);
-      expect(user.roles).toContain('user-admin');
+      expect(user.roles).toContain('admin');
 
       // Query and verify JSON fields persist
       const retrieved = await revealui.findByID({
@@ -402,7 +402,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail1,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -411,7 +411,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail2,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -508,7 +508,7 @@ describe('Persistence Regression Tests', () => {
           email: testEmail,
           password: 'TestPassword123!',
           firstName: specialFirstName,
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -528,7 +528,7 @@ describe('Persistence Regression Tests', () => {
       const nullJsonData = {
         email: testEmail,
         password: 'TestPassword123!',
-        roles: ['user-admin'],
+        roles: ['admin'],
         tenants: null, // JSON field with null
       };
 
@@ -580,7 +580,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
           tenants: [
             {
               tenant: 1,

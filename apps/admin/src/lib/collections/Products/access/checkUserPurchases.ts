@@ -44,7 +44,7 @@ export const checkUserPurchases: FieldAccess = async ({ req, data: doc }) => {
     return false;
   }
 
-  // Ensure the user has a valid UserRole and check for "user-super-admin" or "user-admin" role
+  // Ensure the user has a valid UserRole and check for "super-admin" or "admin" role
   if (hasRole(userWithPurchases, [Role.UserSuperAdmin, Role.UserAdmin])) {
     return true;
   }
