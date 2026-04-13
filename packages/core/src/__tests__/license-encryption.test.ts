@@ -25,105 +25,105 @@ describe('license-encryption', () => {
   });
 
   describe('round-trip', () => {
-    it('encrypts then decrypts to original plaintext', () => {
+    it('encrypts then decrypts to original plaintext', async () => {
       const plaintext = 'lic_pro_abc123_test';
-      const encrypted = encryptLicenseKey(plaintext);
+      const encrypted = await encryptLicenseKey(plaintext);
       expect(encrypted).not.toBe(plaintext);
       expect(encrypted.startsWith('enc:')).toBe(true);
-      expect(decryptLicenseKey(encrypted)).toBe(plaintext);
+      expect(await decryptLicenseKey(encrypted)).toBe(plaintext);
     });
 
-    it('handles long license keys', () => {
+    it('handles long license keys', async () => {
       const plaintext = 'x'.repeat(1024);
-      const encrypted = encryptLicenseKey(plaintext);
-      expect(decryptLicenseKey(encrypted)).toBe(plaintext);
+      const encrypted = await encryptLicenseKey(plaintext);
+      expect(await decryptLicenseKey(encrypted)).toBe(plaintext);
     });
 
-    it('handles unicode characters', () => {
+    it('handles unicode characters', async () => {
       const plaintext = 'license_日本語_émojis_🔑';
-      const encrypted = encryptLicenseKey(plaintext);
-      expect(decryptLicenseKey(encrypted)).toBe(plaintext);
+      const encrypted = await encryptLicenseKey(plaintext);
+      expect(await decryptLicenseKey(encrypted)).toBe(plaintext);
     });
   });
 
   describe('IV uniqueness', () => {
-    it('produces different ciphertext for the same plaintext', () => {
+    it('produces different ciphertext for the same plaintext', async () => {
       const plaintext = 'same-key-same-plaintext';
-      const a = encryptLicenseKey(plaintext);
-      const b = encryptLicenseKey(plaintext);
+      const a = await encryptLicenseKey(plaintext);
+      const b = await encryptLicenseKey(plaintext);
       expect(a).not.toBe(b);
-      expect(decryptLicenseKey(a)).toBe(plaintext);
-      expect(decryptLicenseKey(b)).toBe(plaintext);
+      expect(await decryptLicenseKey(a)).toBe(plaintext);
+      expect(await decryptLicenseKey(b)).toBe(plaintext);
     });
   });
 
   describe('wrong key', () => {
-    it('throws when decrypting with a different key', () => {
-      const encrypted = encryptLicenseKey('secret-license');
+    it('throws when decrypting with a different key', async () => {
+      const encrypted = await encryptLicenseKey('secret-license');
       process.env.REVEALUI_LICENSE_ENCRYPTION_KEY = 'b'.repeat(64);
-      expect(() => decryptLicenseKey(encrypted)).toThrow();
+      await expect(decryptLicenseKey(encrypted)).rejects.toThrow();
     });
   });
 
   describe('corrupted ciphertext', () => {
-    it('throws on tampered ciphertext', () => {
-      const encrypted = encryptLicenseKey('test-license');
+    it('throws on tampered ciphertext', async () => {
+      const encrypted = await encryptLicenseKey('test-license');
       const parts = encrypted.split(':');
       const hex = parts[2]!;
       const flipped = hex[0] === 'a' ? `b${hex.slice(1)}` : `a${hex.slice(1)}`;
       parts[2] = flipped;
       const tampered = parts.join(':');
-      expect(() => decryptLicenseKey(tampered)).toThrow();
+      await expect(decryptLicenseKey(tampered)).rejects.toThrow();
     });
 
-    it('throws on corrupted auth tag', () => {
-      const encrypted = encryptLicenseKey('test-license');
+    it('throws on corrupted auth tag', async () => {
+      const encrypted = await encryptLicenseKey('test-license');
       const parts = encrypted.split(':');
       const tag = parts[3]!;
       const flipped = tag[0] === 'a' ? `b${tag.slice(1)}` : `a${tag.slice(1)}`;
       parts[3] = flipped;
       const tampered = parts.join(':');
-      expect(() => decryptLicenseKey(tampered)).toThrow();
+      await expect(decryptLicenseKey(tampered)).rejects.toThrow();
     });
 
-    it('throws on malformed format (wrong number of parts)', () => {
-      expect(() => decryptLicenseKey('enc:only-one-part')).toThrow('Malformed');
+    it('throws on malformed format (wrong number of parts)', async () => {
+      await expect(decryptLicenseKey('enc:only-one-part')).rejects.toThrow('Malformed');
     });
 
-    it('throws on invalid IV length', () => {
-      expect(() => decryptLicenseKey('enc:aabb:ccdd:eeff')).toThrow('Invalid IV length');
+    it('throws on invalid IV length', async () => {
+      await expect(decryptLicenseKey('enc:aabb:ccdd:eeff')).rejects.toThrow('Invalid IV length');
     });
   });
 
   describe('no key fallback', () => {
-    it('returns plaintext when no encryption key is set', () => {
+    it('returns plaintext when no encryption key is set', async () => {
       delete process.env.REVEALUI_LICENSE_ENCRYPTION_KEY;
-      const result = encryptLicenseKey('plaintext-license');
+      const result = await encryptLicenseKey('plaintext-license');
       expect(result).toBe('plaintext-license');
     });
 
-    it('throws when decrypting encrypted value without key', () => {
-      const encrypted = encryptLicenseKey('test');
+    it('throws when decrypting encrypted value without key', async () => {
+      const encrypted = await encryptLicenseKey('test');
       delete process.env.REVEALUI_LICENSE_ENCRYPTION_KEY;
-      expect(() => decryptLicenseKey(encrypted)).toThrow(
+      await expect(decryptLicenseKey(encrypted)).rejects.toThrow(
         'REVEALUI_LICENSE_ENCRYPTION_KEY is not set',
       );
     });
   });
 
   describe('backward compatibility', () => {
-    it('returns plaintext as-is when not encrypted', () => {
-      expect(decryptLicenseKey('plain-license-key')).toBe('plain-license-key');
+    it('returns plaintext as-is when not encrypted', async () => {
+      expect(await decryptLicenseKey('plain-license-key')).toBe('plain-license-key');
     });
 
-    it('returns empty string as-is', () => {
-      expect(decryptLicenseKey('')).toBe('');
+    it('returns empty string as-is', async () => {
+      expect(await decryptLicenseKey('')).toBe('');
     });
   });
 
   describe('isEncryptedLicenseKey', () => {
-    it('returns true for encrypted values', () => {
-      const encrypted = encryptLicenseKey('test');
+    it('returns true for encrypted values', async () => {
+      const encrypted = await encryptLicenseKey('test');
       expect(isEncryptedLicenseKey(encrypted)).toBe(true);
     });
 
@@ -137,37 +137,37 @@ describe('license-encryption', () => {
   });
 
   describe('key formats', () => {
-    it('works with a 64-char hex key', () => {
+    it('works with a 64-char hex key', async () => {
       process.env.REVEALUI_LICENSE_ENCRYPTION_KEY = TEST_KEY_HEX;
-      const encrypted = encryptLicenseKey('hex-key-test');
-      expect(decryptLicenseKey(encrypted)).toBe('hex-key-test');
+      const encrypted = await encryptLicenseKey('hex-key-test');
+      expect(await decryptLicenseKey(encrypted)).toBe('hex-key-test');
     });
 
-    it('works with a passphrase key', () => {
+    it('works with a passphrase key', async () => {
       process.env.REVEALUI_LICENSE_ENCRYPTION_KEY = TEST_KEY_PASSPHRASE;
-      const encrypted = encryptLicenseKey('passphrase-test');
-      expect(decryptLicenseKey(encrypted)).toBe('passphrase-test');
+      const encrypted = await encryptLicenseKey('passphrase-test');
+      expect(await decryptLicenseKey(encrypted)).toBe('passphrase-test');
     });
 
-    it('hex key and passphrase produce different ciphertext', () => {
+    it('hex key and passphrase produce different ciphertext', async () => {
       process.env.REVEALUI_LICENSE_ENCRYPTION_KEY = TEST_KEY_HEX;
-      const encA = encryptLicenseKey('cross-key');
+      const encA = await encryptLicenseKey('cross-key');
 
       process.env.REVEALUI_LICENSE_ENCRYPTION_KEY = TEST_KEY_PASSPHRASE;
-      expect(() => decryptLicenseKey(encA)).toThrow();
+      await expect(decryptLicenseKey(encA)).rejects.toThrow();
     });
   });
 
   describe('empty string handling', () => {
-    it('encrypts and decrypts empty string', () => {
-      const encrypted = encryptLicenseKey('');
+    it('encrypts and decrypts empty string', async () => {
+      const encrypted = await encryptLicenseKey('');
       expect(encrypted.startsWith('enc:')).toBe(true);
-      expect(decryptLicenseKey(encrypted)).toBe('');
+      expect(await decryptLicenseKey(encrypted)).toBe('');
     });
 
-    it('returns empty string as-is without key', () => {
+    it('returns empty string as-is without key', async () => {
       delete process.env.REVEALUI_LICENSE_ENCRYPTION_KEY;
-      expect(encryptLicenseKey('')).toBe('');
+      expect(await encryptLicenseKey('')).toBe('');
     });
   });
 });

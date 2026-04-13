@@ -1,12 +1,15 @@
 /**
  * License validation for RevealUI Pro/Enterprise tiers.
  *
+ * Edge-compatible: uses the Web Crypto API (`crypto.subtle`) and `jose`
+ * exclusively. Safe to import from any runtime (Node, Edge, browser,
+ * Workers). No `node:crypto` or filesystem dependencies.
+ *
  * @dependencies
- * - jose - JWT token verification (Web Crypto API)
+ * - jose - JWT signing/verification (Web Crypto API)
  * - zod - Schema validation for license payloads
  */
 
-import { createHash } from 'node:crypto';
 import { decodeProtectedHeader, importPKCS8, importSPKI, jwtVerify, SignJWT } from 'jose';
 import { z } from 'zod';
 import { decryptLicenseKey } from './license-encryption.js';
@@ -43,7 +46,7 @@ export type LicensePayload = z.infer<typeof licensePayloadSchema>;
 
 /** License cache TTL configuration */
 export interface LicenseCacheConfig {
-  /** Cache TTL in milliseconds (default: 24 hours) */
+  /** Cache TTL in milliseconds (default: 15 seconds) */
   ttlMs: number;
 }
 
@@ -99,7 +102,7 @@ function getPublicKey(): string | null {
  * Reads the license key from environment.
  * Supports encrypted keys (enc:iv:ciphertext:tag format) via REVEALUI_LICENSE_ENCRYPTION_KEY.
  */
-function getLicenseKey(): string | null {
+async function getLicenseKey(): Promise<string | null> {
   const raw = process.env.REVEALUI_LICENSE_KEY ?? null;
   if (!raw) return null;
   return decryptLicenseKey(raw);
@@ -108,9 +111,17 @@ function getLicenseKey(): string | null {
 /**
  * Computes a deterministic Key ID (kid) from a public key PEM string.
  * Returns the first 8 characters of the SHA-256 hex digest of the PEM.
+ *
+ * Async because it uses `crypto.subtle.digest` for full edge compatibility.
  */
-export function computeKeyId(publicKeyPem: string): string {
-  return createHash('sha256').update(publicKeyPem).digest('hex').slice(0, 8);
+export async function computeKeyId(publicKeyPem: string): Promise<string> {
+  const encoded = new TextEncoder().encode(publicKeyPem);
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', encoded));
+  let hex = '';
+  for (let i = 0; i < 4; i++) {
+    hex += (digest[i] as number).toString(16).padStart(2, '0');
+  }
+  return hex;
 }
 
 /**
@@ -124,7 +135,7 @@ export async function validateLicenseKey(
   try {
     // Extract kid from JWT header for forward-compatible key rotation
     const header = decodeProtectedHeader(licenseKey);
-    const expectedKid = computeKeyId(publicKey);
+    const expectedKid = await computeKeyId(publicKey);
     if (header.kid && header.kid !== expectedKid) {
       logger.warn(
         `JWT kid mismatch: token has "${header.kid}", current key is "${expectedKid}". ` +
@@ -155,7 +166,7 @@ export async function validateLicenseKey(
  * @returns The resolved license tier
  */
 export async function initializeLicense(): Promise<LicenseTier> {
-  const licenseKey = getLicenseKey();
+  const licenseKey = await getLicenseKey();
   const publicKey = getPublicKey();
 
   if (!(licenseKey && publicKey)) {
@@ -281,7 +292,8 @@ export function getMaxAgentTasks(): number {
 
 /**
  * Generates a signed license key JWT.
- * This is a server-only function  -  requires the private key.
+ * Server-only in practice (requires the private key) but edge-compatible —
+ * `jose.importPKCS8` and `SignJWT` both run on Web Crypto.
  *
  * @param payload - License payload (tier, customerId, limits, perpetual flag)
  * @param privateKey - RS256 private key (PEM format)
@@ -298,7 +310,7 @@ export async function generateLicenseKey(
   publicKey?: string,
 ): Promise<string> {
   const key = await importPKCS8(privateKey, 'RS256');
-  const kid = publicKey ? computeKeyId(publicKey) : undefined;
+  const kid = publicKey ? await computeKeyId(publicKey) : undefined;
   const header: { alg: string; kid?: string } = { alg: 'RS256' };
   if (kid) {
     header.kid = kid;
