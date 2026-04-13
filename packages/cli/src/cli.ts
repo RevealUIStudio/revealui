@@ -48,7 +48,7 @@ export interface CliOptions {
   yes?: boolean;
 }
 
-function configureCreateCommand(command: Command, legacyName?: string): Command {
+function configureCreateCommand(command: Command): Command {
   command
     .description('Create a new RevealUI project')
     .argument('[project-name]', 'Name of the project')
@@ -57,7 +57,7 @@ function configureCreateCommand(command: Command, legacyName?: string): Command 
     .option('--skip-install', 'Skip dependency installation', false)
     .option('-y, --yes', 'Skip all prompts and use defaults', false)
     .action(async (projectName: string | undefined, options: CliOptions) => {
-      logger.header(legacyName ? 'Create RevealUI Project' : 'RevealUI Create');
+      logger.header('RevealUI Create');
       await runCreateFlow(projectName, options);
     });
 
@@ -69,7 +69,7 @@ export function createCli(): Command {
 
   program.name('revealui').description('RevealUI operational CLI').version(CLI_VERSION);
 
-  configureCreateCommand(program.command('create'), undefined);
+  configureCreateCommand(program.command('create'));
 
   program
     .command('doctor')
@@ -340,15 +340,6 @@ export function createCli(): Command {
         inside: options.inside,
       });
     });
-
-  return program;
-}
-
-export function createLegacyCreateCli(): Command {
-  const program = new Command();
-
-  program.name('create-revealui').version(CLI_VERSION);
-  configureCreateCommand(program, 'create-revealui');
 
   return program;
 }

@@ -102,6 +102,46 @@ export type {
   HarnessProcessInfo,
   HealthCheckResult,
 } from './types/core.js';
+// VAUGHN Protocol (Phase 2a: Type Foundation + Phase 2b: Runtime Wiring)
+export type {
+  ClaudeCodeSettings,
+  ConfigGenerationResult,
+  DegradationStrategy,
+  GeneratedFiles,
+  HookGranularity,
+  McpServerConfig,
+  MemoryBackend,
+  NormalizedEvent,
+  SandboxMode,
+  VaughnAdapter,
+  VaughnAdapterInfo,
+  VaughnCapabilities,
+  VaughnCommand,
+  VaughnCommandResult,
+  VaughnConfig,
+  VaughnError,
+  VaughnErrorCode,
+  VaughnEvent,
+  VaughnEventEnvelope,
+  VaughnRule,
+  VaughnSkill,
+} from './vaughn/index.js';
+export {
+  claudeSettingsToVaughnConfig,
+  createDefaultCapabilities,
+  createEventEnvelope,
+  generateAllConfigs,
+  getDegradationStrategy,
+  TOOL_PROFILES,
+  VAUGHN_EVENTS,
+  VAUGHN_VERSION,
+  VaughnEventNormalizer,
+  vaughnConfigToAgentsMd,
+  vaughnConfigToClaudeSettings,
+  vaughnConfigToCursorrules,
+  vaughnEventEnvelopeSchema,
+  vaughnEventSchema,
+} from './vaughn/index.js';
 // Workboard
 export {
   acquireLock,

@@ -44,6 +44,9 @@ export const auditLog = pgTable(
 
     /** HMAC-SHA256 signature for tamper detection (nullable for backwards compat) */
     signature: text('signature'),
+
+    /** Signature of the previous entry in the hash chain (for tamper-evident sequencing) */
+    previousSignature: text('previous_signature'),
   },
   (table) => [
     index('audit_log_event_type_idx').on(table.eventType),

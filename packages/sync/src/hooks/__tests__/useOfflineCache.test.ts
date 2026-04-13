@@ -10,8 +10,14 @@ vi.mock('../useOnlineStatus.js', () => ({
   useOnlineStatus: vi.fn(),
 }));
 
+// Mock the browser cache factory to return null (PGlite WASM unavailable in jsdom).
+// This forces the hook to fall back to localStorage.
+vi.mock('../browser-cache-factory.js', () => ({
+  createOfflineCache: vi.fn().mockResolvedValue(null),
+}));
+
 import { useShape } from '@electric-sql/react';
-import { useOfflineCache } from '../useOfflineCache.js';
+import { _resetCacheState, useOfflineCache } from '../useOfflineCache.js';
 import { useOnlineStatus } from '../useOnlineStatus.js';
 
 const mockUseShape = useShape as ReturnType<typeof vi.fn>;
@@ -35,6 +41,7 @@ function defaultOptions() {
 describe('useOfflineCache', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _resetCacheState();
     window.localStorage.clear();
 
     // Default: online and shape returns empty.

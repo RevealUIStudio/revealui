@@ -15,6 +15,11 @@ import type {
   HarnessEvent,
   HarnessInfo,
 } from '../types/core.js';
+import type { GeneratedFiles, VaughnConfig } from '../vaughn/adapter.js';
+import type { VaughnCapabilities } from '../vaughn/capabilities.js';
+import { TOOL_PROFILES } from '../vaughn/capabilities.js';
+import type { VaughnEventEnvelope } from '../vaughn/event-envelope.js';
+import { VaughnEventNormalizer } from '../vaughn/event-normalizer.js';
 
 /**
  * Configuration for the RevealUI Agent Adapter.
@@ -55,6 +60,8 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
 
   private readonly config: RevealUIAgentConfig;
   private readonly eventHandlers = new Set<(event: HarnessEvent) => void>();
+  private readonly vaughnEventHandlers = new Set<(event: VaughnEventEnvelope) => void>();
+  private vaughnNormalizer: VaughnEventNormalizer | null = null;
 
   constructor(config?: RevealUIAgentConfig) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -80,6 +87,37 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
       version: '0.1.0',
       capabilities: this.getCapabilities(),
     };
+  }
+
+  /** Get the VAUGHN capability profile for this adapter. */
+  getVaughnCapabilities(): VaughnCapabilities {
+    // revealui-agent is always defined in TOOL_PROFILES
+    return TOOL_PROFILES['revealui-agent'] as VaughnCapabilities;
+  }
+
+  /** Subscribe to VAUGHN-normalized events. */
+  onVaughnEvent(handler: (event: VaughnEventEnvelope) => void): () => void {
+    this.vaughnEventHandlers.add(handler);
+    if (!this.vaughnNormalizer) {
+      this.vaughnNormalizer = new VaughnEventNormalizer(
+        'revealui-agent',
+        this.id,
+        `session-${Date.now()}`,
+      );
+    }
+    return () => this.vaughnEventHandlers.delete(handler);
+  }
+
+  /** Generate tool-native config files from canonical VAUGHN config (stub). */
+  async generateConfig(_config: VaughnConfig): Promise<GeneratedFiles> {
+    // RevealUI agent uses the content layer directly, not settings files.
+    return { files: new Map() };
+  }
+
+  /** Read tool-native config into canonical form (stub). */
+  async readConfig(): Promise<Partial<VaughnConfig>> {
+    // RevealUI agent gets config from content layer, not a settings file.
+    return {};
   }
 
   /**
@@ -367,6 +405,8 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
 
   async dispose(): Promise<void> {
     this.eventHandlers.clear();
+    this.vaughnEventHandlers.clear();
+    this.vaughnNormalizer = null;
   }
 
   private emit(event: HarnessEvent): void {
@@ -375,6 +415,20 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
         handler(event);
       } catch {
         // Swallow subscriber errors
+      }
+    }
+
+    // Emit VAUGHN-normalized event if subscribers exist
+    if (this.vaughnNormalizer && this.vaughnEventHandlers.size > 0) {
+      const envelope = this.vaughnNormalizer.normalizeToEnvelope(event);
+      if (envelope) {
+        for (const handler of this.vaughnEventHandlers) {
+          try {
+            handler(envelope);
+          } catch {
+            // Swallow subscriber errors
+          }
+        }
       }
     }
   }

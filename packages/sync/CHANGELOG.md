@@ -1,5 +1,17 @@
 # @revealui/sync
 
+## 0.3.7
+
+### Patch Changes
+
+- Browser PGlite cache with offline mutation queue (Cache Phase E), SOC2 6.2 controls, and preflight fixes.
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies
+  - @revealui/cache@0.1.4
+  - @revealui/db@0.3.7
+  - @revealui/contracts@1.3.7
+
 ## 0.3.6
 
 ### Patch Changes

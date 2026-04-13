@@ -1,5 +1,16 @@
 # @revealui/ai
 
+## 0.2.9
+
+### Patch Changes
+
+- Complete CRDT implementation with sync, replay, and GC. MCP default reply-to from env var. Autonomous agent architecture phases 2-3.
+- Updated dependencies
+- Updated dependencies
+  - @revealui/db@0.3.7
+  - @revealui/core@0.5.6
+  - @revealui/contracts@1.3.7
+
 ## 0.2.8
 
 ### Patch Changes

@@ -36,15 +36,14 @@ feature/* ──PR──▶ test ──PR──▶ main
 
 ## Package Map
 
-### Apps (6)
+### Apps (5)
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | api | 3004 | Hono | REST API (OpenAPI + Swagger) |
 | admin | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |
-| studio |  -  | Tauri 2 + React 19 | Native AI experience: agent coordination hub, local inference management, visual agent dashboard |
-| terminal |  -  | Go (Bubble Tea) | TUI client: API integration, QR checkout, SSH fingerprint lookup |
+| revealcoin | 3005 | Vite/React | RevealCoin token dashboard |
 
 ### OSS Packages (MIT)
 | Package | Purpose |

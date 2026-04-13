@@ -1,5 +1,18 @@
 # @revealui/services
 
+## 0.3.5
+
+### Patch Changes
+
+- Charge-readiness phases A-D: billing integration, media library, bulk operations, pagination, sidebar nav, and deploy hardening.
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies
+  - @revealui/db@0.3.7
+  - @revealui/config@0.3.4
+  - @revealui/core@0.5.6
+  - @revealui/contracts@1.3.7
+
 ## 0.3.4
 
 ### Patch Changes
