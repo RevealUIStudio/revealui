@@ -1,2 +1,0 @@
-ALTER TABLE "posts" ADD CONSTRAINT "posts_featured_image_id_media_id_fk" FOREIGN KEY ("featured_image_id") REFERENCES "public"."media"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
-CREATE INDEX "posts_featured_image_id_idx" ON "posts" USING btree ("featured_image_id");
