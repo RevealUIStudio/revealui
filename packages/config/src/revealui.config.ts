@@ -31,12 +31,27 @@
 
 /**
  * Require an env var in production. Falls back to a dev default otherwise.
- * Respects SKIP_ENV_VALIDATION for build-time imports.
+ *
+ * Validation is intentionally skipped during the following non-runtime phases:
+ *   - `NEXT_PHASE === 'phase-production-build'` — Next.js production build
+ *     (page-data collection imports route modules with `NODE_ENV=production`
+ *     set by the build tool, even though no real request is being served).
+ *   - `SKIP_ENV_VALIDATION === 'true'` — explicit opt-out for ad-hoc builds
+ *     and tooling that doesn't have access to runtime secrets.
+ *
+ * This means a fresh clone can run `pnpm build` successfully without any env
+ * vars configured, while still failing loudly at request time in production
+ * if a required var is missing.
  */
 function requireInProduction(name: string, devFallback: string): string {
   const value = process.env[name];
   if (value) return value;
-  if (process.env.NODE_ENV === 'production' && process.env.SKIP_ENV_VALIDATION !== 'true') {
+
+  const isBuildPhase =
+    process.env.NEXT_PHASE === 'phase-production-build' ||
+    process.env.SKIP_ENV_VALIDATION === 'true';
+
+  if (process.env.NODE_ENV === 'production' && !isBuildPhase) {
     throw new Error(
       `${name} is required in production. Set it in your environment or Vercel project settings.`,
     );
