@@ -126,7 +126,7 @@
     "changeset:publish": "changeset publish",
     "changeset:status": "changeset status",
     "changeset:version": "changeset version && pnpm install --no-frozen-lockfile && git add pnpm-lock.yaml",
-    "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist packages/*/.next apps/*/.next packages/*/.turbo apps/*/.turbo .next .turbo",
+    "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist packages/*/.next apps/*/.next packages/*/.turbo apps/*/.turbo packages/*/tsconfig.tsbuildinfo apps/*/tsconfig.tsbuildinfo .next .turbo",
     "clean:install": "pnpm clean && pnpm install:clean",
     "coverage:check": "tsx scripts/gates/test-coverage-gate.ts",
     "db:generate-types": "tsx scripts/dev-tools/post-migration-types.ts",
