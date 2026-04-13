@@ -60,7 +60,7 @@ try {
   if (pubUser.rows.length === 0) {
     await client.query(
       'INSERT INTO users (id, name, email, role, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      [userId, name, email, 'user-super-admin', 'active', now, now],
+      [userId, name, email, 'super-admin', 'active', now, now],
     )
     console.log('public.users created')
   } else {

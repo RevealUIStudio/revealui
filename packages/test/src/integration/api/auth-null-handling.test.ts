@@ -87,7 +87,7 @@ describe('Authentication Null Handling', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -112,7 +112,7 @@ describe('Authentication Null Handling', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -136,7 +136,7 @@ describe('Authentication Null Handling', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -162,7 +162,7 @@ describe('Authentication Null Handling', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 

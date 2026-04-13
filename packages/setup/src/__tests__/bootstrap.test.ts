@@ -33,16 +33,19 @@ describe('bootstrap', () => {
 
     expect(result.status).toBe('created');
     expect(result.user?.email).toBe('admin@test.com');
-    expect(result.user?.role).toBe('user-super-admin');
+    expect(result.user?.role).toBe('owner');
     expect(result.seeded).toBe(true);
 
-    // Verify user was created with correct role
+    // Verify user was created with both the DB role and Payload roles array.
+    // DB `role` column uses the Drizzle enum (CHECK-constrained); Payload
+    // `roles` array uses the application taxonomy. These are different layers.
     expect(mockRevealUI.create).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: 'users',
         data: expect.objectContaining({
           email: 'admin@test.com',
-          role: 'user-super-admin',
+          role: 'owner',
+          roles: ['super-admin'],
         }),
       }),
     );

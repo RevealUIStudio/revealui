@@ -185,7 +185,7 @@ describe('Database Queries Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -210,7 +210,7 @@ describe('Database Queries Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -237,7 +237,7 @@ describe('Database Queries Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -268,7 +268,7 @@ describe('Database Queries Integration', () => {
         data: {
           email: testEmail1,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -277,7 +277,7 @@ describe('Database Queries Integration', () => {
         data: {
           email: testEmail2,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -303,7 +303,7 @@ describe('Database Queries Integration', () => {
         data: {
           email: testEmail1,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -312,7 +312,7 @@ describe('Database Queries Integration', () => {
         data: {
           email: testEmail2,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -339,7 +339,7 @@ describe('Database Queries Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 

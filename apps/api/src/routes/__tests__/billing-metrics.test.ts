@@ -224,7 +224,7 @@ interface UserContext {
 }
 
 const ADMIN_USER: UserContext = {
-  id: 'user-admin',
+  id: 'admin',
   email: 'admin@example.com',
   name: 'Admin User',
   role: 'admin',

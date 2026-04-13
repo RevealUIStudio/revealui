@@ -29,7 +29,7 @@ describe('Email Validation', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -45,7 +45,7 @@ describe('Email Validation', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -61,7 +61,7 @@ describe('Email Validation', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -77,7 +77,7 @@ describe('Email Validation', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -94,7 +94,7 @@ describe('Email Validation', () => {
           data: {
             email: 'invalidemail.com',
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         }),
       ).rejects.toThrow(/must be a valid email address/);
@@ -107,7 +107,7 @@ describe('Email Validation', () => {
           data: {
             email: 'user@',
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         }),
       ).rejects.toThrow(/must be a valid email address/);
@@ -120,7 +120,7 @@ describe('Email Validation', () => {
           data: {
             email: 'user@example',
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         }),
       ).rejects.toThrow(/must be a valid email address/);
@@ -133,7 +133,7 @@ describe('Email Validation', () => {
           data: {
             email: 'user name@example.com',
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         }),
       ).rejects.toThrow(/must be a valid email address/);
@@ -146,7 +146,7 @@ describe('Email Validation', () => {
           data: {
             email: 'user@@example.com',
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         }),
       ).rejects.toThrow(/must be a valid email address/);
@@ -161,7 +161,7 @@ describe('Email Validation', () => {
       const invalidData: RevealDataObject = {
         email: null,
         password: 'TestPassword123!',
-        roles: ['user-admin'],
+        roles: ['admin'],
       };
       await expect(
         revealui.create({
@@ -175,7 +175,7 @@ describe('Email Validation', () => {
       // Email is required, so undefined should fail
       const invalidData: RevealDataObject = {
         password: 'TestPassword123!',
-        roles: ['user-admin'],
+        roles: ['admin'],
       };
       await expect(
         revealui.create({
@@ -193,7 +193,7 @@ describe('Email Validation', () => {
           data: {
             email: '',
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         }),
       ).rejects.toThrow(/must be a valid email address/);
@@ -203,7 +203,7 @@ describe('Email Validation', () => {
       const invalidData: RevealDataObject = {
         email: 123,
         password: 'TestPassword123!',
-        roles: ['user-admin'],
+        roles: ['admin'],
       };
       await expect(
         revealui.create({
@@ -223,7 +223,7 @@ describe('Email Validation', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -250,7 +250,7 @@ describe('Email Validation', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -282,7 +282,7 @@ describe('Email Validation', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 

@@ -26,7 +26,7 @@ const app = new OpenAPIHono<{ Variables: ContentVariables }>();
 // =============================================================================
 
 /** Roles that grant admin-level access to user management */
-const ADMIN_ROLES = new Set(['admin', 'super-admin', 'user-admin', 'user-super-admin']);
+const ADMIN_ROLES = new Set(['admin', 'super-admin', 'admin', 'super-admin']);
 
 function isAdminRole(role: string): boolean {
   return ADMIN_ROLES.has(role);

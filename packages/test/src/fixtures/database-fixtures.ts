@@ -31,7 +31,7 @@ export async function createUserFixture(
   } = {
     email: overrides?.email || `user-${testId}@example.com`,
     password: overrides?.password || 'TestPassword123!',
-    roles: overrides?.roles || ['user-admin'],
+    roles: overrides?.roles || ['admin'],
   };
 
   if (overrides?.tenantId && overrides?.tenantRoles) {
@@ -180,7 +180,7 @@ export async function createMultiTenantFixtures(
     for (let j = 0; j < options.usersPerTenant; j++) {
       const user = await createUserFixture(revealui, {
         tenantId: tenant.id,
-        tenantRoles: ['user-admin'],
+        tenantRoles: ['admin'],
       });
       users.push({
         id: user.id,

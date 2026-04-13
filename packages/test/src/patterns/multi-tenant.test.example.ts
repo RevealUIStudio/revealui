@@ -48,8 +48,8 @@ describe('Multi-Tenant Testing Patterns', () => {
         data: {
           email: tenant1Email,
           password: testPassword,
-          roles: ['user-admin'],
-          tenants: [{ tenant: 1, roles: ['user-admin'] }],
+          roles: ['admin'],
+          tenants: [{ tenant: 1, roles: ['admin'] }],
         },
       });
 
@@ -61,8 +61,8 @@ describe('Multi-Tenant Testing Patterns', () => {
         data: {
           email: tenant2Email,
           password: testPassword,
-          roles: ['user-admin'],
-          tenants: [{ tenant: 2, roles: ['user-admin'] }],
+          roles: ['admin'],
+          tenants: [{ tenant: 2, roles: ['admin'] }],
         },
       });
 
@@ -80,8 +80,8 @@ describe('Multi-Tenant Testing Patterns', () => {
         data: {
           email: `tenant1-access-${Date.now()}@example.com`,
           password: testPassword,
-          roles: ['user-admin'],
-          tenants: [{ tenant: 1, roles: ['user-admin'] }],
+          roles: ['admin'],
+          tenants: [{ tenant: 1, roles: ['admin'] }],
         },
       });
 
@@ -113,8 +113,8 @@ describe('Multi-Tenant Testing Patterns', () => {
         data: {
           email: tenantEmail,
           password: testPassword,
-          roles: ['user-admin'],
-          tenants: [{ tenant: tenantId, roles: ['user-admin'] }],
+          roles: ['admin'],
+          tenants: [{ tenant: tenantId, roles: ['admin'] }],
         },
       });
 
@@ -148,8 +148,8 @@ describe('Multi-Tenant Testing Patterns', () => {
         data: {
           email: `tenant1-data-${Date.now()}@example.com`,
           password: testPassword,
-          roles: ['user-admin'],
-          tenants: [{ tenant: 1, roles: ['user-admin'] }],
+          roles: ['admin'],
+          tenants: [{ tenant: 1, roles: ['admin'] }],
         },
       });
 
