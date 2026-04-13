@@ -278,14 +278,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Stub gitignored Pro packages (directory only — no package.json)
-        run: |
-          for pkg in ai harnesses; do
-            if [ ! -d "packages/$pkg" ]; then
-              mkdir -p "packages/$pkg"
-            fi
-          done
-
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
         env:
