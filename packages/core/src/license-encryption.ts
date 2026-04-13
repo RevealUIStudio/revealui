@@ -21,8 +21,7 @@ const TAG_BYTES = 16;
 /** Hex-encode a Uint8Array. */
 function toHex(bytes: Uint8Array): string {
   let out = '';
-  for (let i = 0; i < bytes.length; i++) {
-    const b = bytes[i] as number;
+  for (const b of bytes) {
     out += b.toString(16).padStart(2, '0');
   }
   return out;

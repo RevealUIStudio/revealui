@@ -118,8 +118,9 @@ export async function computeKeyId(publicKeyPem: string): Promise<string> {
   const encoded = new TextEncoder().encode(publicKeyPem);
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', encoded));
   let hex = '';
-  for (let i = 0; i < 4; i++) {
-    hex += (digest[i] as number).toString(16).padStart(2, '0');
+  // Only the first 4 bytes (8 hex chars) — enough to identify rotated keys.
+  for (const b of digest.subarray(0, 4)) {
+    hex += b.toString(16).padStart(2, '0');
   }
   return hex;
 }

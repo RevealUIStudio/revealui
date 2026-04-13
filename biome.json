@@ -42,7 +42,8 @@
       "!playwright-report",
       "!test-results",
       "!e2e/.auth",
-      "!opensrc"
+      "!opensrc",
+      "!packages/db/migrations/meta"
     ],
     "ignoreUnknown": true
   },
