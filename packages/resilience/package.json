@@ -4,7 +4,7 @@
   "description": "Resilience infrastructure for RevealUI - circuit breaker, retry, bulkhead patterns",
   "license": "MIT",
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.3",
+    "@electric-sql/pglite": "^0.4.4",
     "@types/node": "catalog:",
     "@revealui/dev": "workspace:*",
     "tsup": "catalog:",
