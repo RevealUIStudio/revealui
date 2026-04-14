@@ -27,7 +27,7 @@ Restore drills are conducted quarterly. Each drill validates at least one data s
 | **npm packages** | Published to npm registry | Every release | Indefinite (immutable once published) | npm registry | RevealUI Studio |
 | **Vercel deployments** | Immutable deployment artifacts | Every deploy | 30 days (preview), indefinite (production) | Vercel cloud | Vercel (managed) |
 | **CI/CD configuration** | Git-tracked (`.github/workflows/`) | Every push | Indefinite (full history) | GitHub | RevealUI Studio |
-| **LTS drive mirror** | rsync from WSL | Weekly (manual, `pnpm sync-lts`) | 3 most recent snapshots | External drive (E: / /mnt/e) | RevealUI Studio |
+| **LTS drive mirror** | rsync from WSL | Weekly (manual, `pnpm sync-lts`) | 3 most recent snapshots | External drive mounted at `$LTS_ROOT` | RevealUI Studio |
 
 ### 2.2 What Is Not Backed Up
 
@@ -55,6 +55,8 @@ These items are excluded by design, with justification:
 ## 4. Quarterly Restore Drill Procedure
 
 Each quarter, test at least one data store from the rotation schedule below. Over four quarters, all stores must be tested at least once.
+
+**Path conventions used below:** `$LTS_ROOT` is the operator's LTS mirror mount (set in your environment; the reference operator uses `/mnt/e`). Substitute your own mount point throughout.
 
 ### 4.1 Rotation Schedule
 
@@ -233,7 +235,7 @@ Each quarter, test at least one data store from the rotation schedule below. Ove
 
 1. Copy the RevVault backup from LTS to a temporary location:
    ```bash
-   cp -r /mnt/e/professional/RevealUI/.revvault /tmp/revvault-drill/
+   cp -r $LTS_ROOT/professional/RevealUI/.revvault /tmp/revvault-drill/
    ```
 
 2. List available secrets (without decrypting):
@@ -296,17 +298,17 @@ Each quarter, test at least one data store from the rotation schedule below. Ove
 
 1. Verify the LTS drive is mounted and accessible:
    ```bash
-   ls /mnt/e/professional/RevealUI/
+   ls $LTS_ROOT/professional/RevealUI/
    ```
 
 2. Check the sync timestamp:
    ```bash
-   stat /mnt/e/professional/RevealUI/.git/FETCH_HEAD
+   stat $LTS_ROOT/professional/RevealUI/.git/FETCH_HEAD
    ```
 
 3. Clone from the LTS mirror to a temporary directory:
    ```bash
-   git clone /mnt/e/professional/RevealUI /tmp/lts-restore-drill
+   git clone $LTS_ROOT/professional/RevealUI /tmp/lts-restore-drill
    cd /tmp/lts-restore-drill
    ```
 
