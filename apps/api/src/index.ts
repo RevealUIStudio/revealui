@@ -816,7 +816,7 @@ const swaggerInitJs = `window.addEventListener('load', function () {
   window.ui = SwaggerUIBundle({
     url: '/openapi.json',
     dom_id: '#swagger-ui',
-    presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset.slice],
+    presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
     layout: 'BaseLayout',
     deepLinking: true,
   });
