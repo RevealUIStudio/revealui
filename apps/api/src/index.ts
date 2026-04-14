@@ -20,7 +20,6 @@ if (process.env.SENTRY_DSN) {
 }
 
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { serve } from '@hono/node-server';
 import { initializeLicense } from '@revealui/core/license';
 import {
@@ -801,15 +800,16 @@ app.doc('/openapi.json', {
   ],
 });
 
-// Self-hosted Swagger UI (no CDN, CSP-strict compatible)
-const apiRequire = createRequire(import.meta.url);
-const swaggerCss = readFileSync(apiRequire.resolve('swagger-ui-dist/swagger-ui.css'), 'utf-8');
+// Self-hosted Swagger UI (no CDN, CSP-strict compatible).
+// `require` here is the CJS-style require injected by tsup's banner
+// (see apps/api/tsup.config.ts) so we don't import createRequire a second time.
+const swaggerCss = readFileSync(require.resolve('swagger-ui-dist/swagger-ui.css'), 'utf-8');
 const swaggerBundleJs = readFileSync(
-  apiRequire.resolve('swagger-ui-dist/swagger-ui-bundle.js'),
+  require.resolve('swagger-ui-dist/swagger-ui-bundle.js'),
   'utf-8',
 );
 const swaggerPresetJs = readFileSync(
-  apiRequire.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js'),
+  require.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js'),
   'utf-8',
 );
 const swaggerInitJs = `window.addEventListener('load', function () {
