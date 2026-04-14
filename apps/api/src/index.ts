@@ -19,8 +19,8 @@ if (process.env.SENTRY_DSN) {
   });
 }
 
+import { readFileSync } from 'node:fs';
 import { serve } from '@hono/node-server';
-import { swaggerUI } from '@hono/swagger-ui';
 import { initializeLicense } from '@revealui/core/license';
 import {
   alerting,
@@ -800,9 +800,147 @@ app.doc('/openapi.json', {
   ],
 });
 
-// Swagger UI  -  interactive API explorer (auto-generated from OpenAPI spec)
-app.get('/', swaggerUI({ url: '/openapi.json' }));
-app.get('/docs', swaggerUI({ url: '/openapi.json' }));
+// Self-hosted Swagger UI (no CDN, CSP-strict compatible).
+// `require` here is the CJS-style require injected by tsup's banner
+// (see apps/api/tsup.config.ts) so we don't import createRequire a second time.
+const swaggerCss = readFileSync(require.resolve('swagger-ui-dist/swagger-ui.css'), 'utf-8');
+const swaggerBundleJs = readFileSync(
+  require.resolve('swagger-ui-dist/swagger-ui-bundle.js'),
+  'utf-8',
+);
+const swaggerPresetJs = readFileSync(
+  require.resolve('swagger-ui-dist/swagger-ui-standalone-preset.js'),
+  'utf-8',
+);
+const swaggerInitJs = `window.addEventListener('load', function () {
+  window.ui = SwaggerUIBundle({
+    url: '/openapi.json',
+    dom_id: '#swagger-ui',
+    presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset.slice],
+    layout: 'BaseLayout',
+    deepLinking: true,
+  });
+});`;
+
+const IMMUTABLE_ASSET = 'public, max-age=31536000, immutable';
+
+app.get('/docs/swagger-ui.css', (c) =>
+  c.body(swaggerCss, 200, {
+    'content-type': 'text/css; charset=utf-8',
+    'cache-control': IMMUTABLE_ASSET,
+  }),
+);
+app.get('/docs/swagger-ui-bundle.js', (c) =>
+  c.body(swaggerBundleJs, 200, {
+    'content-type': 'application/javascript; charset=utf-8',
+    'cache-control': IMMUTABLE_ASSET,
+  }),
+);
+app.get('/docs/swagger-ui-standalone-preset.js', (c) =>
+  c.body(swaggerPresetJs, 200, {
+    'content-type': 'application/javascript; charset=utf-8',
+    'cache-control': IMMUTABLE_ASSET,
+  }),
+);
+app.get('/docs/swagger-init.js', (c) =>
+  c.body(swaggerInitJs, 200, {
+    'content-type': 'application/javascript; charset=utf-8',
+    'cache-control': IMMUTABLE_ASSET,
+  }),
+);
+
+const SWAGGER_HTML = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RevealUI API · Reference</title>
+    <link rel="stylesheet" href="/docs/swagger-ui.css" />
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="/docs/swagger-ui-bundle.js"></script>
+    <script src="/docs/swagger-ui-standalone-preset.js"></script>
+    <script src="/docs/swagger-init.js"></script>
+  </body>
+</html>`;
+
+app.get('/docs', (c) =>
+  c.html(SWAGGER_HTML, 200, { 'cache-control': 'public, max-age=300, must-revalidate' }),
+);
+
+const LANDING_HTML = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RevealUI API</title>
+    <meta name="description" content="RevealUI API — the backend for RevealUI Studio and the RevealUI platform." />
+    <style>
+      :root { color-scheme: light dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background: #0b0b0f;
+        color: #e6e6ea;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 2rem;
+      }
+      .card {
+        max-width: 560px;
+        width: 100%;
+        background: #14141b;
+        border: 1px solid #23232e;
+        border-radius: 16px;
+        padding: 2.5rem;
+        box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5);
+      }
+      h1 { margin: 0 0 0.25rem; font-size: 1.75rem; letter-spacing: -0.01em; }
+      .status { display: inline-flex; align-items: center; gap: 0.5rem; color: #7ee787; font-size: 0.875rem; margin-bottom: 1.5rem; }
+      .status::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #7ee787; box-shadow: 0 0 12px #7ee787; }
+      p { color: #a0a0ae; line-height: 1.6; margin: 0 0 1.5rem; }
+      ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+      a {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.875rem 1rem;
+        background: #1c1c26;
+        border: 1px solid #2a2a38;
+        border-radius: 10px;
+        color: #e6e6ea;
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      a:hover { background: #23232e; border-color: #3a3a4a; }
+      a span.label { font-weight: 500; }
+      a span.path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125rem; color: #8a8a98; }
+      footer { margin-top: 2rem; font-size: 0.8125rem; color: #6a6a78; text-align: center; }
+      footer a { display: inline; background: none; border: none; padding: 0; color: #8a8a98; }
+      footer a:hover { color: #e6e6ea; background: none; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>RevealUI API</h1>
+      <div class="status">Operational</div>
+      <p>The backend for RevealUI Studio and the RevealUI platform. Not a user-facing site — use the links below for documentation and health checks.</p>
+      <ul>
+        <li><a href="/docs"><span class="label">Interactive API Reference</span><span class="path">/docs</span></a></li>
+        <li><a href="/openapi.json"><span class="label">OpenAPI Specification</span><span class="path">/openapi.json</span></a></li>
+        <li><a href="/health"><span class="label">Service Health</span><span class="path">/health</span></a></li>
+      </ul>
+      <footer>
+        <a href="https://revealui.com">revealui.com</a> · <a href="https://github.com/RevealUIStudio/revealui">GitHub</a>
+      </footer>
+    </main>
+  </body>
+</html>`;
+
+app.get('/', (c) =>
+  c.html(LANDING_HTML, 200, { 'cache-control': 'public, max-age=300, must-revalidate' }),
+);
 
 // ---------------------------------------------------------------------------
 // Cache-Control headers  -  ensure all routes have appropriate caching directives
