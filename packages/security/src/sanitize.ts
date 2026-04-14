@@ -100,6 +100,10 @@ function escapeCmd(arg: string): string {
 
 // PowerShell: single quotes are literal (no interpolation); embedded
 // single quotes are doubled. Safe in Core and Desktop editions.
+// CodeQL (js/shell-command-constructed-from-input) flags this concat as
+// tainted shell construction — but this IS the sanitiser: the return value
+// is a single-quoted PowerShell literal with every embedded `'` doubled,
+// which is the documented-safe representation. No shell is invoked here.
 function escapePowerShell(arg: string): string {
   return `'${arg.replace(/'/g, `''`)}'`;
 }

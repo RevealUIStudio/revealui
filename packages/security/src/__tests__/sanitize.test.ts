@@ -210,8 +210,12 @@ describe('redactSecretsInString', () => {
     const out = redactSecretsInString(input);
     expect(out).not.toContain('sk_live_');
     expect(out).not.toContain('AKIA');
-    // Both replaced, not just one.
-    expect(out.match(new RegExp(REDACTED.replace(/[[\]]/g, '\\$&'), 'g'))?.length).toBe(2);
+    // Both replaced, not just one. REDACTED is a compile-time constant
+    // (`[REDACTED]`) containing only the two regex metacharacters we escape;
+    // CodeQL's js/incomplete-sanitization flags the partial escape but there
+    // is no user input here and no other metacharacters in the sentinel.
+    const sentinelRe = new RegExp(REDACTED.replace(/[[\]]/g, '\\$&'), 'g');
+    expect(out.match(sentinelRe)?.length).toBe(2);
   });
 
   it('does not over-match short opaque ids that look like Stripe/AWS keys', () => {
