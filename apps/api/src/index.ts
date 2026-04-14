@@ -213,9 +213,26 @@ const corsOrigins = getCorsOrigins();
 logger.info('CORS origins loaded', { origins: corsOrigins, count: corsOrigins.length });
 
 // Security headers (environment-appropriate preset)
+// Vercel Live (preview/prod Toolbar) needs vercel.live in CSP for feedback widget.
+const strict = SecurityPresets.strict();
+const strictCsp = strict.contentSecurityPolicy;
+const strictWithVercelLive =
+  strictCsp && typeof strictCsp === 'object'
+    ? {
+        ...strict,
+        contentSecurityPolicy: {
+          ...strictCsp,
+          scriptSrc: [...(strictCsp.scriptSrc ?? []), 'https://vercel.live'],
+          styleSrc: [...(strictCsp.styleSrc ?? []), 'https://vercel.live'],
+          imgSrc: [...(strictCsp.imgSrc ?? []), 'https://vercel.live'],
+          connectSrc: [...(strictCsp.connectSrc ?? []), 'https://vercel.live', 'wss://vercel.live'],
+          frameSrc: ['https://vercel.live'],
+        },
+      }
+    : strict;
 const securityPreset =
   process.env.NODE_ENV?.trim() === 'production'
-    ? SecurityPresets.strict()
+    ? strictWithVercelLive
     : SecurityPresets.development();
 const securityHeaders = new SecurityHeaders(securityPreset);
 
