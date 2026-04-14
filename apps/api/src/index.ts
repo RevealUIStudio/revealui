@@ -254,6 +254,19 @@ function isVercelPreviewOrigin(origin: string): boolean {
   return origin.endsWith('-revealuistudios-projects.vercel.app');
 }
 
+/**
+ * Check if origin is a trusted desktop-app client (RevealUI Studio).
+ *
+ * Tauri webviews issue requests from `tauri://localhost` (Linux/Windows) or
+ * `https://tauri.localhost` (macOS/Windows HTTPS mode). The Studio app ships
+ * signed binaries and talks to the public API on behalf of authenticated
+ * users, so its origin is allow-listed here rather than via CORS_ORIGIN env
+ * (which is reserved for HTTPS web clients).
+ */
+function isDesktopClientOrigin(origin: string): boolean {
+  return origin === 'tauri://localhost' || origin === 'https://tauri.localhost';
+}
+
 /** Check if origin matches test/dev subdomain: https://(dev|test).(admin.|api.|docs.)?revealui.com */
 function isTestSubdomainOrigin(origin: string): boolean {
   if (!origin.startsWith('https://')) return false;
@@ -278,7 +291,8 @@ app.use('*', async (c, next) => {
     process.env.VERCEL_ENV === 'preview' &&
     (isVercelPreviewOrigin(origin) || isTestSubdomainOrigin(origin));
 
-  const isAllowed = corsOrigins.includes(origin) || isPreviewAllowed;
+  const isAllowed =
+    corsOrigins.includes(origin) || isPreviewAllowed || isDesktopClientOrigin(origin);
 
   if (isAllowed) {
     c.header('Access-Control-Allow-Origin', origin);
