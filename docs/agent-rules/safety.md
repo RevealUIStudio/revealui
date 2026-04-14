@@ -10,8 +10,8 @@ Rules for protecting sensitive files, credentials, and system paths in the Revea
 
 ## Protected Paths  -  Never Edit
 
-- `/mnt/c/`  -  Windows C: drive (read-only mirror)
-- `/mnt/e/`  -  LTS backup drive (read-only)
+- Windows host mounts (typically `/mnt/c/`)  -  read-only mirror
+- LTS backup drive (typically `/mnt/e/`, configurable via `$LTS_ROOT`)  -  read-only
 - System directories: `/etc/`, `/usr/`, `/var/`
 - Credential directories: `~/.ssh/`, `~/.gnupg/`, `~/.aws/`
 

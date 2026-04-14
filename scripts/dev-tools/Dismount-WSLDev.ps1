@@ -1,19 +1,23 @@
 <#
 .SYNOPSIS
-    Safely ejects the WSL dev drive (Forge — ext4 USB SSD at /mnt/forge).
+    Safely ejects a WSL dev drive (portable ext4 USB SSD, e.g. Forge).
 
 .DESCRIPTION
-    Stops services that use /mnt/forge, verifies no open file handles,
+    Stops services that use the mount point, verifies no open file handles,
     flushes the filesystem, unmounts inside WSL, then unmounts the physical
     disk from Windows so it is safe to physically disconnect.
 
 .PARAMETER DiskNumber
-    Windows disk number of the Forge drive. If omitted, the script attempts
+    Windows disk number of the dev drive. If omitted, the script attempts
     to auto-detect by matching the disk serial / mount point.
+
+.PARAMETER MountPoint
+    WSL mount point for the dev drive. Defaults to `/mnt/forge`.
 
 .EXAMPLE
     .\Dismount-WSLDev.ps1
     .\Dismount-WSLDev.ps1 -DiskNumber 2
+    .\Dismount-WSLDev.ps1 -MountPoint /mnt/devdrive
 
 .NOTES
     To add to RevealUI.DevEnv module:
@@ -32,7 +36,10 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter()]
-    [int] $DiskNumber = -1
+    [int] $DiskNumber = -1,
+
+    [Parameter()]
+    [string] $MountPoint = '/mnt/forge'
 )
 
 Set-StrictMode -Version Latest
@@ -67,13 +74,13 @@ function Invoke-Wsl {
 }
 
 # ---------------------------------------------------------------------------
-# Step 1: Stop services using /mnt/forge
+# Step 1: Stop services using the dev mount
 # ---------------------------------------------------------------------------
 
-Write-Host "`nDismount-WSLDev: Safe Forge drive eject" -ForegroundColor White
+Write-Host "`nDismount-WSLDev: Safe dev-drive eject ($MountPoint)" -ForegroundColor White
 Write-Host "----------------------------------------" -ForegroundColor DarkGray
 
-Write-Step "Stopping services on /mnt/forge..."
+Write-Step "Stopping services on $MountPoint..."
 
 $services = @(
     @{ name = 'postgres'; cmd = @('sudo', 'systemctl', 'stop', 'postgresql') },
@@ -95,9 +102,9 @@ foreach ($svc in $services) {
 # Step 2: Check for open file handles
 # ---------------------------------------------------------------------------
 
-Write-Step "Checking for open file handles on /mnt/forge..."
+Write-Step "Checking for open file handles on $MountPoint..."
 
-$openFiles = Invoke-Wsl @('lsof', '+D', '/mnt/forge', '-t') 2>$null
+$openFiles = Invoke-Wsl @('lsof', '+D', $MountPoint, '-t') 2>$null
 if ($openFiles -and $openFiles.Trim()) {
     $pids = ($openFiles.Trim() -split "`n") | Where-Object { $_ -match '^\d+$' }
     Write-Warn "$($pids.Count) process(es) still have open handles:"
@@ -113,7 +120,7 @@ if ($openFiles -and $openFiles.Trim()) {
     }
 }
 else {
-    Write-Success "No open file handles on /mnt/forge"
+    Write-Success "No open file handles on $MountPoint"
 }
 
 # ---------------------------------------------------------------------------
@@ -128,10 +135,10 @@ Write-Success "Filesystem synced"
 # Step 4: Unmount inside WSL
 # ---------------------------------------------------------------------------
 
-Write-Step "Unmounting /mnt/forge inside WSL..."
+Write-Step "Unmounting $MountPoint inside WSL..."
 try {
-    Invoke-Wsl @('sudo', 'umount', '/mnt/forge') | Out-Null
-    Write-Success "/mnt/forge unmounted"
+    Invoke-Wsl @('sudo', 'umount', $MountPoint) | Out-Null
+    Write-Success "$MountPoint unmounted"
 }
 catch {
     Write-Warn "umount reported an error (drive may already be unmounted): $_"
