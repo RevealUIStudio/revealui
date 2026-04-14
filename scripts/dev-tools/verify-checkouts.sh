@@ -30,7 +30,10 @@ SKIP=0
 check() {
   local name="$1" method="$2" path="$3" body="${4:-}" expected="${5:-200}"
 
-  local args=(-s -o /tmp/vc-response.json -w "%{http_code}" \
+  local response_file
+  response_file=$(mktemp /tmp/vc-response-XXXXXXXXXX.json)
+  chmod 600 "$response_file"
+  local args=(-s -o "$response_file" -w "%{http_code}" \
     -H "Content-Type: application/json" \
     -H "Cookie: revealui-session=$COOKIE")
 
@@ -54,9 +57,10 @@ check() {
     PASS=$((PASS + 1))
   else
     echo -e "  ${RED}FAIL${NC}  $name — expected $expected, got $status"
-    cat /tmp/vc-response.json 2>/dev/null | head -3
+    head -3 "$response_file" 2>/dev/null
     FAIL=$((FAIL + 1))
   fi
+  rm -f "$response_file"
 }
 
 echo ""

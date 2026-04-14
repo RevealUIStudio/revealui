@@ -150,7 +150,8 @@ save_and_clean() {
     return 0
   fi
 
-  STASH_DIR="/tmp/revealui-push-stash-$$"
+  STASH_DIR=$(mktemp -d /tmp/revealui-push-stash-XXXXXXXXXX)
+  chmod 700 "$STASH_DIR"
   mkdir -p "$STASH_DIR/files"
   : > "$STASH_DIR/manifest"
 

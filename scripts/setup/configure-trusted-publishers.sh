@@ -38,12 +38,12 @@ WORKFLOW="release.yml"
 ENVIRONMENT="npm-publish"
 
 # Use npx npm@latest if local npm is too old
-NPM_CMD="npm"
-NPM_VERSION=$($NPM_CMD --version 2>/dev/null | cut -d. -f1,2)
+NPM_CMD=(npm)
+NPM_VERSION=$("${NPM_CMD[@]}" --version 2>/dev/null | cut -d. -f1,2)
 REQUIRED="11.10"
 if [[ "$(printf '%s\n' "$REQUIRED" "$NPM_VERSION" | sort -V | head -n1)" != "$REQUIRED" ]]; then
   echo "Local npm $NPM_VERSION < $REQUIRED — using npx npm@latest"
-  NPM_CMD="npx npm@latest"
+  NPM_CMD=(npx npm@latest)
 fi
 
 echo "Configuring trusted publishing for ${#PACKAGES[@]} packages..."
@@ -57,7 +57,7 @@ FAILED=0
 
 for pkg in "${PACKAGES[@]}"; do
   echo "→ $pkg"
-  if $NPM_CMD trust github "$pkg" \
+  if "${NPM_CMD[@]}" trust github "$pkg" \
     --repo "$REPO" \
     --file "$WORKFLOW" \
     --env "$ENVIRONMENT" \
@@ -78,5 +78,5 @@ echo ""
 echo "Verifying..."
 for pkg in "${PACKAGES[@]}"; do
   echo "=== $pkg ==="
-  $NPM_CMD trust list "$pkg" 2>&1 || echo "  (no trusted publishers)"
+  "${NPM_CMD[@]}" trust list "$pkg" 2>&1 || echo "  (no trusted publishers)"
 done
