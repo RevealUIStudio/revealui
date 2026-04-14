@@ -66,6 +66,7 @@ jobs:
         with:
           languages: javascript-typescript
           queries: security-and-quality
+          config-file: ./.github/codeql/codeql-config.yml
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
           version: ${{ env.PNPM_VERSION }}

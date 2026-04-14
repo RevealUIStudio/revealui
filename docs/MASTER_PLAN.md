@@ -615,12 +615,12 @@ Phase D  -  Agent publisher tools (agent):
 
 **Deliverables:**
 - [x] `sanitizeTerminalLine` — SGR-only ANSI pass-through (shipped in `@revealui/security` 2026-04-13)
-- [ ] `sanitizeHtml` — tag + attr allow-list for Lexical render / admin-facing markdown
-- [ ] `escapeShellArg` — POSIX + Windows variants for forge install scripts / RevDev local-shell banner composition
-- [ ] `escapeSqlIdentifier` — for the rare dynamic-identifier path Drizzle can't cover
-- [ ] `redactLogField` — PII + secret redaction helper feeding `@revealui/utils` logger
-- [ ] `sanitizeUrl` — extension of the existing Lexical `isSafeUrl()` with unified scheme allow-list
-- [ ] Shared test corpus: `packages/security/src/__tests__/sanitize-corpus/` with categorised attack vectors (ANSI, XSS, command injection, SQLi, log injection, scheme confusion)
+- [x] `sanitizeHtml` — tag + attr allow-list for Lexical render / admin-facing markdown (2026-04-13). Backed by parse5 WHATWG tokenizer; baseline allow-list covers rich-text tags (p/h1–h6/ul/ol/li/table/a/img/strong/em/code/pre/blockquote/etc.), global attrs (class/id/title/lang/dir/aria-*/data-*), URL attrs filtered through `isSafeUrl`, `target=_blank` auto-hardened with `rel="noopener noreferrer"`. Dangerous containers (script/style/iframe/object/embed/form/svg/math/template/noscript/base/noembed/etc.) are dropped with contents; unknown tags are unwrapped. Every `on*`, `style`, `srcdoc`, and namespaced (`xlink:…`) attr categorically stripped. 28-vector XSS corpus + 13 safe vectors in `sanitize-corpus/html-injection.ts`.
+- [x] `escapeShellArg` — POSIX + cmd.exe + PowerShell variants, NUL-byte rejection, corpus-backed tests (2026-04-13)
+- [x] `escapeSqlIdentifier` — for the rare dynamic-identifier path Drizzle can't cover (2026-04-13). Emits `"..."` with `"` doubled per SQL spec. Throws on empty string, NUL byte, or >63 bytes (Postgres NAMEDATALEN-1 — silent-truncation footgun). 14-vector injection corpus + 12-entry safe corpus. Existing `escapeIdentifier` in `packages/core/src/collections/operations/sqlAdapter.ts` predates this helper (doubles quotes only, caller must wrap separately) — migration is a follow-up, low urgency since its callers combine it correctly with `"${...}"` wrapping today.
+- [x] `redactLogField` — PII + secret redaction helper feeding `@revealui/utils` logger (2026-04-13). Ships primitive + `redactLogContext` recursive walker + `redactSecretsInString` for inline message scrubbing. Key match is case-insensitive on alnum-normalised form (covers `api_key`, `X-API-Key`, `userApiKey`). Value patterns cover JWT, Bearer, Stripe sk/rk/whsec, OpenAI sk-, AWS AKIA, GitHub ghp_/github_pat_. Depth-capped at 8. Legacy duplicates at `packages/core/src/observability/logger.ts:sanitizeLogData` and `packages/ai/src/llm/client.ts:redactSensitiveFields` removed 2026-04-13 (major bump on core + ai via `.changeset/remove-legacy-redactors.md`); docs (`LOGGING.md`, `STANDARDS.md`) point at `redactLogContext` from `@revealui/security`.
+- [x] `sanitizeUrl` / `isSafeUrl` — scheme allow-list, owned by `@revealui/security`; `packages/core/.../rsc.tsx` now re-exports from there as the single source of truth (2026-04-13)
+- [x] Shared test corpus scaffolded: `packages/security/src/__tests__/sanitize-corpus/` seeded with ANSI, scheme-confusion, shell-injection, log-redaction vectors; grows per new sink (2026-04-13)
 - [ ] ESLint/Biome rule or CI grep: flag direct concatenation into sinks (`terminal.writeln(userInput)`, `exec(\`cmd \${arg}\`)`, etc.) and require one of these helpers
 
 **Cross-repo consumption:**

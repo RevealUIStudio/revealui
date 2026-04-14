@@ -176,34 +176,5 @@ export function logSystemEvent(event: string, context?: Record<string, unknown>)
   });
 }
 
-/**
- * Sanitize sensitive data from logs
- */
-export function sanitizeLogData(data: Record<string, unknown>): Record<string, unknown> {
-  const sensitiveKeys = [
-    'password',
-    'token',
-    'secret',
-    'apiKey',
-    'accessToken',
-    'refreshToken',
-    'creditCard',
-    'ssn',
-  ];
-
-  const sanitized: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(data)) {
-    const lowerKey = key.toLowerCase();
-
-    if (sensitiveKeys.some((sensitive) => lowerKey.includes(sensitive.toLowerCase()))) {
-      sanitized[key] = '[REDACTED]';
-    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      sanitized[key] = sanitizeLogData(value as Record<string, unknown>);
-    } else {
-      sanitized[key] = value;
-    }
-  }
-
-  return sanitized;
-}
+// Log redaction lives in @revealui/security — import `redactLogContext`
+// (recursive walker) or `redactLogField` (single key/value) from there.

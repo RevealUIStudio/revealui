@@ -1323,6 +1323,9 @@ importers:
       '@revealui/utils':
         specifier: workspace:*
         version: link:../utils
+      parse5:
+        specifier: ^8.0.0
+        version: 8.0.0
     devDependencies:
       '@revealui/dev':
         specifier: workspace:*

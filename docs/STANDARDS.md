@@ -2216,7 +2216,7 @@ const customLogger = new Logger({
 ### Sensitive Data Sanitization
 
 ```typescript
-import { sanitizeLogData } from '@revealui/core/observability/logger'
+import { redactLogContext } from '@revealui/security'
 
 const userData = {
   email: 'user@example.com',
@@ -2225,7 +2225,7 @@ const userData = {
   name: 'John Doe'
 }
 
-const safe = sanitizeLogData(userData)
+const safe = redactLogContext(userData)
 // { email: 'user@example.com', password: '[REDACTED]', token: '[REDACTED]', name: 'John Doe' }
 ```
 
