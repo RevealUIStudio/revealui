@@ -134,6 +134,10 @@ export function escapeShellArg(arg: string, shell: ShellDialect = 'posix'): stri
       return escapeCmd(arg);
     case 'powershell':
       return escapePowerShell(arg);
+    default: {
+      const _exhaustive: never = shell;
+      throw new Error(`escapeShellArg: unknown shell dialect ${String(_exhaustive)}`);
+    }
   }
 }
 
