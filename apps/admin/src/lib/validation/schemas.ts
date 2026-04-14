@@ -77,8 +77,8 @@ export const tenantIdSchema = z.string().min(1, 'Tenant ID is required');
 
 // User role validation
 export const userRoleSchema = z.enum([
-  'user-super-admin',
-  'user-admin',
+  'super-admin',
+  'admin',
   'tenant-super-admin',
   'tenant-admin',
 ]);

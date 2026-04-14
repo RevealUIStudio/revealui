@@ -135,3 +135,5 @@ export {
 // Logger configuration
 export type { SecurityLogger } from './logger.js';
 export { configureSecurityLogger } from './logger.js';
+// Input sanitization
+export { sanitizeTerminalLine } from './sanitize.js';

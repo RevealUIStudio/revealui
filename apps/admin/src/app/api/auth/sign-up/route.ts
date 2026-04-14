@@ -208,9 +208,7 @@ async function signUpHandler(request: NextRequest): Promise<NextResponse> {
     if (result.sessionToken && isVerified) {
       // Set role hint cookie for proxy.ts admin gate (defense-in-depth).
       const userRole = resolvedUser?.role ?? 'user';
-      const isAdminRole = ['admin', 'super-admin', 'user-admin', 'user-super-admin'].includes(
-        userRole,
-      );
+      const isAdminRole = ['admin', 'super-admin', 'admin', 'super-admin'].includes(userRole);
       response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

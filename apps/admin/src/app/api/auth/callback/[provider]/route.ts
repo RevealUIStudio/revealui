@@ -133,9 +133,7 @@ export async function GET(
 
     // Set role hint cookie for proxy.ts admin gate (defense-in-depth).
     const userRole = (user as { role?: string }).role ?? 'user';
-    const isAdminRole = ['admin', 'super-admin', 'user-admin', 'user-super-admin'].includes(
-      userRole,
-    );
+    const isAdminRole = ['admin', 'super-admin', 'admin', 'super-admin'].includes(userRole);
     response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

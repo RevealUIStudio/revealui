@@ -384,7 +384,7 @@ describe('cross-cutting security assertions', () => {
   it('hasRole returns false for fabricated role strings', () => {
     const attacker: UserWithRoles = {
       id: 'evil',
-      roles: ['user-super-admin '], // trailing space
+      roles: ['super-admin '], // trailing space
     };
     expect(hasRole(attacker, [Role.UserSuperAdmin])).toBe(false);
   });

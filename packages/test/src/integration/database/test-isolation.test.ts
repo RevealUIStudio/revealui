@@ -38,7 +38,7 @@ describe('Test Isolation Verification', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -81,7 +81,7 @@ describe('Test Isolation Verification', () => {
           data: {
             email,
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         });
 
@@ -150,7 +150,7 @@ describe('Test Isolation Verification', () => {
           data: {
             email,
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         }),
       );
@@ -181,7 +181,7 @@ describe('Test Isolation Verification', () => {
           data: {
             email,
             password: 'TestPassword123!',
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         });
 
@@ -208,7 +208,7 @@ describe('Test Isolation Verification', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -232,7 +232,7 @@ describe('Test Isolation Verification', () => {
         data: {
           email: newEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 

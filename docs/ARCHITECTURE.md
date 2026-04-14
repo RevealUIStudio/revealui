@@ -602,7 +602,7 @@ Users can be associated with multiple tenants, each with different roles:
 User {
   id: number
   email: string
-  roles: ["user-super-admin" | "user-admin"]  // System-level roles
+  roles: ["super-admin" | "admin"]  // System-level roles
   tenants: [
     {
       tenant: Tenant (relationship)
@@ -619,13 +619,13 @@ User {
 
 ### System-Level Roles
 
-1. **User Super Admin** (`user-super-admin`)
+1. **User Super Admin** (`super-admin`)
    - Full system access across all tenants
    - Can manage all users and tenants
    - Can assign roles to other users
    - Highest privilege level
 
-2. **User Admin** (`user-admin`)
+2. **User Admin** (`admin`)
    - System administration capabilities
    - Can manage users within assigned scope
    - Cannot modify super admin roles
@@ -666,8 +666,8 @@ All collections implement tenant-aware access control:
 
 Located in `apps/admin/src/lib/access/`:
 
-- `isAdmin.ts` - Checks for user-admin or user-super-admin
-- `isSuperAdmin.ts` - Checks for user-super-admin only
+- `isAdmin.ts` - Checks for admin or super-admin
+- `isSuperAdmin.ts` - Checks for super-admin only
 - `isTenantAdminOrSuperAdmin.ts` - Checks tenant-level admin roles
 - `checkTenantAccess.ts` - Verifies user has access to specific tenant
 - `lastLoggedInTenant.ts` - Returns user's most recent tenant context

@@ -32,7 +32,7 @@ describe('Users Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -40,7 +40,7 @@ describe('Users Integration', () => {
 
       expect(user.id).toBeDefined();
       expect(user.email).toBe(testEmail);
-      expect(user.roles).toContain('user-admin');
+      expect(user.roles).toContain('admin');
     });
 
     it('should create user with additional fields', async () => {
@@ -51,7 +51,7 @@ describe('Users Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
           firstName: 'John',
           lastName: 'Doe',
         },
@@ -73,7 +73,7 @@ describe('Users Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -181,7 +181,7 @@ describe('Users Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -191,11 +191,11 @@ describe('Users Integration', () => {
         collection: 'users',
         id: created.id,
         data: {
-          roles: ['user-admin', 'editor'],
+          roles: ['admin', 'editor'],
         },
       });
 
-      expect(updated.roles).toContain('user-admin');
+      expect(updated.roles).toContain('admin');
       expect(updated.roles).toContain('editor');
     });
   });
@@ -209,7 +209,7 @@ describe('Users Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -236,7 +236,7 @@ describe('Users Integration', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -283,7 +283,7 @@ describe('Users Integration', () => {
           collection: 'users',
           where: {
             roles: {
-              contains: 'user-admin',
+              contains: 'admin',
             },
           },
           limit: 10,

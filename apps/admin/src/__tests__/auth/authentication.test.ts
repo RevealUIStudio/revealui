@@ -94,7 +94,7 @@ describe('Authentication Tests', () => {
 
   describe('Token Management', () => {
     it('should issue valid token on login', async () => {
-      const { user, token } = await createTestUser(testEmail, testPassword, ['user-admin']);
+      const { user, token } = await createTestUser(testEmail, testPassword, ['admin']);
 
       expect(token).toBeDefined();
       expect(typeof token).toBe('string');

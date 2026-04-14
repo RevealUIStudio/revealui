@@ -540,6 +540,115 @@ Phase D  -  Agent publisher tools (agent):
 
 **Exit criteria:** Users can browse agents by skill, submit tasks, and receive results without writing code. Agent publishers can list, price, and monitor their agents. Billing works via both Stripe metering and x402 RevealCoin. Task execution is sandboxed with audit trail.
 
+#### 5.17 Hardware-Aware Auto-Config (cross-platform, Suite-wide)
+
+**Origin:** 2026-04-13. WSL repeatedly crashed on a 7.3 GB host because default `.wslconfig` let the VM claim ~6 GB, starving Windows. The fix (memory=4GB, vmIdleTimeout=-1, autoMemoryReclaim off, tuned earlyoom, docker off-by-default) was hand-authored from a crash post-mortem. No new user should have to debug that.
+
+**What it is:** A Suite-wide abstraction that, on first install **and** on demand, scans the host's hardware + platform and applies a tuned, safe-by-default dev configuration. Invoked by the Studio first-run wizard, by the CLI (`revealui system tune`), and by Forge during self-hosted provisioning.
+
+**Detect:**
+- OS / distro / kernel, architecture (x64 / arm64), platform class (native Linux, macOS, Windows, WSL2, Docker, cloud VM)
+- Total RAM, free RAM, CPU core count (physical + logical), swap size, disk size + free space, GPU vendor + VRAM (optional)
+- Existing configs already present (`.wslconfig`, `earlyoom`, Docker autostart, `NODE_OPTIONS`, `PNPM_*`, `TURBO_*`, tmux, shell rc files)
+- Known-bad combinations (e.g. WSL memory ≥ 80% of host RAM, `autoMemoryReclaim=dropcache` on host-pressure systems, Docker autostart on <8 GB host)
+
+**Tune:**
+- **WSL:** `.wslconfig` memory/processors/swap/vmIdleTimeout, networkingMode, kernelCommandLine
+- **Linux host:** `earlyoom` thresholds + `--prefer` list (dev-tool-aware: turbo, biome, vitest, tsc, esbuild), `vm.swappiness`
+- **Container runtimes:** docker + containerd autostart policy (off-by-default on low-RAM hosts; on-demand via `sudo systemctl start docker`)
+- **Node/pnpm/turbo:** `NODE_OPTIONS=--max-old-space-size`, pnpm `child-concurrency`, turbo `--concurrency`, Vitest `poolOptions.threads.maxThreads`
+- **macOS:** file descriptor limits (`launchctl limit maxfiles`), Spotlight exclusions for repo paths
+- **Windows native:** Defender exclusions for repo paths, long-path support
+
+**Surface:**
+- Studio first-run wizard screen: "Tune this machine for RevealUI?" → diff preview → confirm → apply
+- CLI: `revealui system scan` (read-only report), `revealui system tune` (apply with `--dry-run` / `--plan` / `--yes`), `revealui system revert` (restore from timestamped backup)
+- JSON output (`--json`) for agents and for Forge provisioning
+
+**Safety:**
+- Always write a timestamped backup of every file we mutate under `~/.revealui/system-tune/backups/<ts>/`
+- Dry-run default when a config already exists; require `--force` to overwrite user-authored values
+- Never touch shared system services the user didn't opt into; gate privileged changes (e.g. `/etc/default/earlyoom`, `.wslconfig`) behind explicit confirmation
+- Every applied profile carries a version + hostname + hardware-hash header, so reruns know whether they'd be a no-op
+- Ship a machine-readable post-mortem log (`~/.revealui/system-tune/history.jsonl`) so agents can diagnose regressions
+
+**Deliverables (code):**
+- New package `@revealui/system-tune` (or inside `@revealui/setup`) — pure detection + plan generation, no I/O
+- Platform adapters: `adapters/wsl.ts`, `adapters/linux.ts`, `adapters/macos.ts`, `adapters/windows.ts`
+- CLI surface in `@revealui/cli`: `system scan` / `system tune` / `system revert`
+- Studio wizard integration (Tauri): first-run screen + settings-panel entry
+- Forge integration: invoked by self-hosted install script before app boot
+- Tests: snapshot-based detection fixtures (mocked `/proc/meminfo`, `systemctl`, `.wslconfig`, macOS `sysctl`, Windows WMI) + plan-generation unit tests + dry-run integration tests on real WSL / macOS / Linux runners in CI
+
+**Deliverables (docs):**
+- `docs/system-tune/PROFILES.md` — the canonical tuning matrix (host RAM bucket × platform → applied values), with rationale for each value
+- `docs/system-tune/CRASH-POSTMORTEMS.md` — seed entries: WSL 7.3 GB host crash (2026-04-13), host-pressure autoMemoryReclaim, idle-pause clock skew
+
+**When to start:** After Phase 5 ships. Seed profile = the exact 2026-04-13 WSL fix, captured as the "low-RAM WSL2" preset — so the first working baseline is the author's own machine.
+
+- [ ] Extract current WSL fix into a declarative profile (`profiles/wsl-low-ram.json`)
+- [ ] Build detection layer + platform adapters
+- [ ] Build plan generator (pure function: detected state → desired state → diff)
+- [ ] Build CLI (`revealui system scan` / `tune` / `revert`) with dry-run default
+- [ ] Wire into Studio first-run wizard
+- [ ] Wire into Forge self-hosted install script
+- [ ] CI: run `revealui system scan --json` on Ubuntu / macOS / Windows runners and snapshot the detection output
+- [ ] Crash-postmortem doc seeded with the 2026-04-13 incident
+
+**Exit criteria:** A user running `curl | sh` on a brand-new machine — Windows + WSL, bare Linux, macOS M-series, or low-RAM laptop — reaches a working RevealUI dev environment without hand-editing any system config file, and the setup is reproducible + reversible.
+
+---
+
+#### 5.18 Universal Sanitization (Suite-wide, lives in `@revealui/security`)
+
+**Goal:** One audited, reusable sanitization surface for every untrusted-string sink across the Suite — terminal banners, HTML rendering, shell-argument construction, SQL identifier interpolation, log redaction, URL normalisation. No per-app one-offs. No re-implementations.
+
+**Why:** Control-sequence injection is the same class of bug in every language and every sink. Founder's direction: "a perfected sanitization process that we can apply everywhere it is useful" for "any data type implementation that could potentially be an attack surface." Today the studio's `TerminalView.welcome` is the first caller (shipped in revdev PR #4). Tomorrow it's admin rich-text render, api request logging, forge install scripts, and beyond.
+
+**Home:** `@revealui/security` (existing package). Adding a standalone `@revealui/sanitize` was considered and rejected — sanitization *is* security infrastructure and belongs co-located with headers, auth, encryption, audit, and GDPR. One package, one audit scope, one publish pipeline. Cross-repo consumers (revdev, forge, revcoin) pull it in as the published npm dep — **never** via git submodule.
+
+**Design principles:**
+- **Sink-specific helpers**, not one god-function. `sanitizeTerminalLine`, `sanitizeHtml`, `escapeShellArg`, `escapeSqlIdentifier`, `redactLogField`, `sanitizeUrl` — each with a threat model scoped to its sink.
+- **Sanitize at the sink**, not at ingress. Threat model is concrete at the output; premature sanitization loses fidelity and still leaves other sinks exposed.
+- **Allow-list over deny-list.** Every helper starts strict (e.g. SGR-only for terminal, tag-whitelist for HTML) and loosens only when a concrete need appears.
+- **Behavioural tests matter more than the regex.** Every helper ships with a corpus of attack strings from the real-world bug class it prevents.
+
+**Deliverables:**
+- [x] `sanitizeTerminalLine` — SGR-only ANSI pass-through (shipped in `@revealui/security` 2026-04-13)
+- [ ] `sanitizeHtml` — tag + attr allow-list for Lexical render / admin-facing markdown
+- [ ] `escapeShellArg` — POSIX + Windows variants for forge install scripts / RevDev local-shell banner composition
+- [ ] `escapeSqlIdentifier` — for the rare dynamic-identifier path Drizzle can't cover
+- [ ] `redactLogField` — PII + secret redaction helper feeding `@revealui/utils` logger
+- [ ] `sanitizeUrl` — extension of the existing Lexical `isSafeUrl()` with unified scheme allow-list
+- [ ] Shared test corpus: `packages/security/src/__tests__/sanitize-corpus/` with categorised attack vectors (ANSI, XSS, command injection, SQLi, log injection, scheme confusion)
+- [ ] ESLint/Biome rule or CI grep: flag direct concatenation into sinks (`terminal.writeln(userInput)`, `exec(\`cmd \${arg}\`)`, etc.) and require one of these helpers
+
+**Cross-repo consumption:**
+- revdev (studio terminal) migrates its local `apps/studio/src/lib/terminal-sanitize.ts` to `@revealui/security` once a version with `sanitizeTerminalLine` is published to npm. Local module stays as a thin re-export during the transition, then deletes.
+- forge install scripts depend on `@revealui/security` for `escapeShellArg`.
+- No `.gitmodules`. No filesystem symlinks across repos. Only published-dep consumption.
+
+**Exit criteria:** Every untrusted-string sink in the Suite (studio banners, admin HTML render, api log output, forge shell builder, revcoin UI) goes through a named `@revealui/security` sanitizer. CI enforces no ad-hoc per-app sanitizers. Attack corpus grows with every new sink added.
+
+---
+
+#### 5.19 Suite-Wide Submodule Audit (one-off + recurring CI check)
+
+**Goal:** Confirm zero git submodules exist across any Suite repo, and add a CI guard that fails any PR introducing one.
+
+**Why:** Founder has a permanent "no git submodules, ever" policy (cross-repo deps publish to npm / workspace). An exhaustive sweep catches anything that may have been created accidentally by tooling, a template, or an imported project. Guard prevents future drift.
+
+**Scope of the sweep:** every repo under `~/suite/` and every in-active repo under `~/projects/`, plus `RevealUIStudio/*` on GitHub — not just root `.gitmodules`, but also stale `.git/modules/` directories, `git config --list | grep submodule`, and tree-object gitlinks (mode 160000) from past history.
+
+**Deliverables:**
+- [x] Initial sweep completed 2026-04-13 — no `.gitmodules` found anywhere in `~/suite/`
+- [ ] Scripted audit: `scripts/audit-no-submodules.sh` — runs the four checks (root file, `.git/modules/`, `git config`, tree gitlinks) and exits non-zero on any hit
+- [ ] GitHub Actions workflow `no-submodules.yml` — runs the script on every PR and on a weekly cron (GitHub Actions cron, not Vercel; free-plan Vercel is capped at 1 cron/day and reserved for app jobs) across all RevealUIStudio repos via matrix
+- [ ] Document in repo templates: no submodules; use workspace `workspace:*` or published npm dep instead
+- [ ] Remediation runbook: if a submodule is ever found, convert it to a published dep or a vendored copy with clear provenance — never leave the submodule link in place
+
+**Exit criteria:** CI blocks any `.gitmodules` addition org-wide; weekly cron proves zero drift; a new contributor can't accidentally add one without the PR failing.
+
 ---
 
 ### Phase 6: SOC2 Type II Compliance (post-Phase 5, enterprise prerequisite)

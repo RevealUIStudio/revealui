@@ -196,8 +196,8 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
         type: 'select',
         hasMany: true,
         options: [
-          { label: 'Super Admin', value: 'user-super-admin' },
-          { label: 'Admin', value: 'user-admin' },
+          { label: 'Super Admin', value: 'super-admin' },
+          { label: 'Admin', value: 'admin' },
         ],
       },
       {

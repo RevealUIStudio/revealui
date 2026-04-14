@@ -328,8 +328,8 @@ export default buildConfig({
             name: 'Admin User',
             email: adminEmail,
             password: adminPassword,
-            role: 'user-super-admin',
-            roles: ['user-super-admin'],
+            role: 'super-admin',
+            roles: ['super-admin'],
           },
         });
 

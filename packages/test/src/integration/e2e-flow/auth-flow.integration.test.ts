@@ -35,7 +35,7 @@ describe('E2E Authentication Flow Integration', () => {
         data: {
           email: testEmail,
           password: hashedPassword,
-          roles: ['user-admin'],
+          roles: ['admin'],
         },
       });
 
@@ -92,7 +92,7 @@ describe('E2E Authentication Flow Integration', () => {
           data: {
             email: testEmail,
             password: hashedPassword,
-            roles: ['user-admin'],
+            roles: ['admin'],
           },
         });
         trackTestData('users', String(existingUser.id));
@@ -148,11 +148,11 @@ describe('E2E Authentication Flow Integration', () => {
         data: {
           email: tenantEmail,
           password: hashedPassword,
-          roles: ['user-admin'],
+          roles: ['admin'],
           tenants: [
             {
               tenant: 1,
-              roles: ['user-admin'],
+              roles: ['admin'],
             },
           ],
         },

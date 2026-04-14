@@ -124,7 +124,7 @@ export interface User {
   id: number
   firstName?: string | null
   lastName?: string | null
-  roles: ('user-super-admin' | 'user-admin')[]
+  roles: ('super-admin' | 'admin')[]
   tenants?:
     | {
         tenant: number | Tenant
@@ -160,8 +160,8 @@ export interface Tenant {
   roles: (
     | 'tenant-super-admin'
     | 'tenant-admin'
-    | 'user-admin'
-    | 'user-super-admin'
+    | 'admin'
+    | 'super-admin'
     | 'support-agent'
     | 'billing-manager'
     | 'compliance-officer'

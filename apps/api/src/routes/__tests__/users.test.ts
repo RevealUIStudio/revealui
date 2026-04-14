@@ -350,7 +350,7 @@ describe('admin role variations', () => {
     mockUserQueries.countUsers.mockResolvedValue(0);
   });
 
-  const adminRoles = ['admin', 'super-admin', 'user-admin', 'user-super-admin'];
+  const adminRoles = ['admin', 'super-admin', 'admin', 'super-admin'];
 
   for (const role of adminRoles) {
     it(`grants admin access for role: ${role}`, async () => {

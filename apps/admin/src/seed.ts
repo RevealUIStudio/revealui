@@ -294,7 +294,7 @@ async function getOrCreateDefaultSite(
   const [adminUser] = await db
     .select({ id: users.id })
     .from(users)
-    .where(eq(users.role, 'user-super-admin'))
+    .where(eq(users.role, 'super-admin'))
     .limit(1);
   const [anyUser] = adminUser ? [null] : await db.select({ id: users.id }).from(users).limit(1);
   const adminId = adminUser?.id ?? anyUser?.id;
