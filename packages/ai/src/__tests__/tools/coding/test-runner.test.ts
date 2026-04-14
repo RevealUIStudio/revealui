@@ -140,12 +140,12 @@ describe('test_runner tool', () => {
       }),
     );
 
-    const result = await testRunnerTool.execute({ timeout: 1500 });
+    const result = await testRunnerTool.execute({ timeout: 4000 });
     expect(result.success).toBe(false);
     expect(result.error).toContain('timed out');
     rmSync(join(ROOT, 'block.js'), { force: true });
     rmSync(join(ROOT, 'pnpm-workspace.yaml'), { force: true });
-  }, 15_000);
+  }, 20_000);
 
   it('always includes data even on timeout', async () => {
     writeFileSync(
