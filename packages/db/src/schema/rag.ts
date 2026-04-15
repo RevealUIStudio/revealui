@@ -49,13 +49,13 @@ export const ragDocuments = pgTable(
     /** Which workspace (site) this document belongs to */
     workspaceId: text('workspace_id').references(() => sites.id, { onDelete: 'cascade' }),
 
-    /** Source type: cms_collection, url, file, text */
+    /** Source type: admin_collection, url, file, text */
     sourceType: text('source_type').notNull(),
 
     /** Source-specific identifier (e.g. admin document ID, URL, file path) */
     sourceId: text('source_id'),
 
-    /** admin collection name when sourceType = 'cms_collection' */
+    /** admin collection name when sourceType = 'admin_collection' */
     sourceCollection: text('source_collection'),
 
     title: text('title'),
@@ -78,7 +78,7 @@ export const ragDocuments = pgTable(
   () => [
     check(
       'rag_documents_source_type_check',
-      sql`source_type IN ('cms_collection', 'url', 'file', 'text')`,
+      sql`source_type IN ('admin_collection', 'url', 'file', 'text')`,
     ),
     check(
       'rag_documents_status_check',

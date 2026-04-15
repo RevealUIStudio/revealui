@@ -185,7 +185,7 @@ app.openapi(
 
       const result = await pipeline.ingest({
         workspaceId,
-        sourceType: 'cms_collection',
+        sourceType: 'admin_collection',
         sourceCollection: collection,
         sourceId: String(doc.id),
         title: doc.title ?? `${collection}/${doc.id}`,

@@ -14,7 +14,7 @@ import { RecursiveCharacterSplitter } from './text-splitter.js';
 
 export interface IngestRequest {
   workspaceId: string;
-  sourceType: 'cms_collection' | 'url' | 'file' | 'text';
+  sourceType: 'admin_collection' | 'url' | 'file' | 'text';
   sourceId?: string;
   sourceCollection?: string;
   title?: string;
