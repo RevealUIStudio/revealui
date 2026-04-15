@@ -6,7 +6,8 @@
  * Supplemented by Axiom log drain for full log search.
  */
 
-import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Error Events Table
@@ -57,6 +58,12 @@ export const errorEvents = pgTable(
     index('error_events_timestamp_idx').on(table.timestamp),
     index('error_events_app_env_idx').on(table.app, table.environment),
     index('error_events_level_idx').on(table.level),
+    check('error_events_level_check', sql`level IN ('error', 'fatal', 'warn')`),
+    check('error_events_app_check', sql`app IN ('admin', 'api', 'marketing')`),
+    check(
+      'error_events_context_check',
+      sql`context IS NULL OR context IN ('server', 'client', 'edge')`,
+    ),
   ],
 );
 

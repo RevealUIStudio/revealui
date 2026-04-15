@@ -5,7 +5,8 @@
  * safeguards (TWAP pricing, rate limiting, duplicate tx rejection, discount caps).
  */
 
-import { index, numeric, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, index, numeric, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -80,7 +81,13 @@ export const revealcoinPriceSnapshots = pgTable(
     /** When this price was recorded. */
     recordedAt: timestamp('recorded_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [index('revealcoin_price_snapshots_recorded_at_idx').on(table.recordedAt)],
+  (table) => [
+    index('revealcoin_price_snapshots_recorded_at_idx').on(table.recordedAt),
+    check(
+      'revealcoin_price_snapshots_source_check',
+      sql`source IN ('jupiter', 'raydium', 'manual')`,
+    ),
+  ],
 );
 
 /** Row type for select queries. */

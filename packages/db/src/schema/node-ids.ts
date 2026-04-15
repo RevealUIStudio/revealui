@@ -9,28 +9,33 @@
  * - Fallback: Database lookup for collision resolution and manual management
  */
 
-import { pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
-export const nodeIdMappings = pgTable('node_id_mappings', {
-  // SHA-256 hash of entityId (primary key for fast lookup)
-  id: text('id').primaryKey(),
+export const nodeIdMappings = pgTable(
+  'node_id_mappings',
+  {
+    // SHA-256 hash of entityId (primary key for fast lookup)
+    id: text('id').primaryKey(),
 
-  // Entity type: 'session' or 'user'
-  entityType: text('entity_type').notNull(),
+    // Entity type: 'session' or 'user'
+    entityType: text('entity_type').notNull(),
 
-  // Original entity ID (sessionId or userId)
-  entityId: text('entity_id').notNull(),
+    // Original entity ID (sessionId or userId)
+    entityId: text('entity_id').notNull(),
 
-  // Actual node ID (UUID) used in CRDT operations
-  nodeId: text('node_id').notNull().unique(),
+    // Actual node ID (UUID) used in CRDT operations
+    nodeId: text('node_id').notNull().unique(),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .$onUpdateFn(() => new Date())
-    .defaultNow()
-    .notNull(),
-});
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [check('node_id_mappings_entity_type_check', sql`entity_type IN ('session', 'user')`)],
+);
 
 // =============================================================================
 // Type Exports
