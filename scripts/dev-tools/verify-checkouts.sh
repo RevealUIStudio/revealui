@@ -31,7 +31,7 @@ check() {
   local name="$1" method="$2" path="$3" body="${4:-}" expected="${5:-200}"
 
   local response_file
-  response_file=$(mktemp /tmp/vc-response-XXXXXXXXXX.json)
+  response_file=$(mktemp)
   chmod 600 "$response_file"
   local args=(-s -o "$response_file" -w "%{http_code}" \
     -H "Content-Type: application/json" \

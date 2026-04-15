@@ -33,6 +33,7 @@ for arg in "$@"; do
     --dry-run)      DRY_RUN=true ;;
     --vault-only)   SKIP_VERCEL=true ;;
     --vercel-only)  SKIP_VAULT=true ;;
+    *)              echo "ERROR: Unknown argument: $arg" >&2; echo "Usage: $0 [--dry-run] [--vault-only] [--vercel-only]" >&2; exit 1 ;;
   esac
 done
 

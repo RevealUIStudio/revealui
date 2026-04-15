@@ -37,10 +37,8 @@ cleanup_orphans() {
 
   # Remove stale lock files (holder dead or timed out)
   if [ -f "$LOCK_FILE" ]; then
-    local holder_pid
-    holder_pid=$(cat "$LOCK_FILE" 2>/dev/null || echo "")
-    if [ -n "$holder_pid" ] && ! kill -0 "$holder_pid" 2>/dev/null; then
-      rm -f "$LOCK_FILE"
+    if ! { read -r holder_pid < "$LOCK_FILE" 2>/dev/null && [ -n "$holder_pid" ] && kill -0 "$holder_pid" 2>/dev/null; }; then
+      rm -f "$LOCK_FILE" 2>/dev/null
     fi
   fi
 
@@ -88,8 +86,8 @@ restore_and_unlock() {
 
   # Release lock
   if [ -f "$LOCK_FILE" ]; then
-    local lock_pid
-    lock_pid=$(cat "$LOCK_FILE" 2>/dev/null || echo "")
+    local lock_pid=""
+    read -r lock_pid < "$LOCK_FILE" 2>/dev/null || lock_pid=""
     if [ "$lock_pid" = "$$" ]; then
       rm -f "$LOCK_FILE"
     fi
@@ -109,11 +107,11 @@ acquire_lock() {
       return 0
     fi
 
-    local holder_pid
-    holder_pid=$(cat "$LOCK_FILE" 2>/dev/null || echo "")
+    local holder_pid=""
+    read -r holder_pid < "$LOCK_FILE" 2>/dev/null || holder_pid=""
     if [ -n "$holder_pid" ] && ! kill -0 "$holder_pid" 2>/dev/null; then
       echo "  Stale lock (PID $holder_pid dead) — removing"
-      rm -f "$LOCK_FILE"
+      rm -f "$LOCK_FILE" 2>/dev/null
       continue
     fi
 
