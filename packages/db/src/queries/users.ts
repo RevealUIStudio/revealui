@@ -9,6 +9,54 @@ import { users } from '../schema/users.js';
 /** Condition that excludes soft-deleted users */
 const notDeleted = isNull(users.deletedAt);
 
+/**
+ * Soft cap on the number of users with `role: 'owner'`. App-layer only — not a
+ * DB constraint — so the cap can be lifted without a migration. Sized for a
+ * small founding team: primary + break-glass + one successor/co-founder slot.
+ */
+export const OWNER_SOFT_CAP = 3;
+
+/** Error thrown when the owner soft cap would be exceeded. */
+export class OwnerSlotError extends Error {
+  readonly code = 'OWNER_SLOT_EXHAUSTED';
+  readonly currentCount: number;
+  readonly max: number;
+  constructor(currentCount: number, max: number) {
+    super(
+      `Owner soft cap reached: ${currentCount}/${max} owners exist. ` +
+        `Demote an existing owner before promoting another.`,
+    );
+    this.name = 'OwnerSlotError';
+    this.currentCount = currentCount;
+    this.max = max;
+  }
+}
+
+/** Count non-deleted users with `role: 'owner'`. */
+export async function countOwners(db: Database): Promise<number> {
+  const result = await db
+    .select({ total: count() })
+    .from(users)
+    .where(and(eq(users.role, 'owner'), notDeleted));
+  return result[0]?.total ?? 0;
+}
+
+/**
+ * Throws `OwnerSlotError` if promoting another user to `owner` would exceed
+ * the soft cap. Call *before* writing `role: 'owner'` on an update. Safe to
+ * skip during bootstrap: bootstrap only runs when no users exist, so the
+ * count is always zero there.
+ */
+export async function assertOwnerSlotAvailable(
+  db: Database,
+  max: number = OWNER_SOFT_CAP,
+): Promise<void> {
+  const current = await countOwners(db);
+  if (current >= max) {
+    throw new OwnerSlotError(current, max);
+  }
+}
+
 export interface ListUsersOptions {
   status?: string;
   role?: string;

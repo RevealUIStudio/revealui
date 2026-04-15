@@ -17,7 +17,7 @@
     "jose": "^6.2.2"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.3",
+    "@electric-sql/pglite": "^0.4.4",
     "pg": "catalog:",
     "typescript": "catalog:",
     "vitest": "^4.1.3"
