@@ -3,7 +3,7 @@
     "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "dom", "dom.iterable"],
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "strict": true,

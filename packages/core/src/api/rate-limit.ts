@@ -4,15 +4,14 @@
  * Implements rate limiting to prevent API abuse
  */
 
-import { type NextRequest, NextResponse } from 'next/server';
 import { logger } from '../observability/logger.js';
 
 interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
   maxRequests: number; // Maximum requests per window
-  keyGenerator?: (request: NextRequest) => string; // Custom key generator
-  skip?: (request: NextRequest) => boolean; // Skip rate limiting
-  handler?: (request: NextRequest) => NextResponse; // Custom handler for rate limit exceeded
+  keyGenerator?: (request: Request) => string; // Custom key generator
+  skip?: (request: Request) => boolean; // Skip rate limiting
+  handler?: (request: Request) => Response; // Custom handler for rate limit exceeded
 }
 
 interface RateLimitEntry {
@@ -29,7 +28,7 @@ const rateLimitStore = new Map<string, RateLimitEntry>();
 /**
  * Default key generator (by IP address)
  */
-function defaultKeyGenerator(request: NextRequest): string {
+function defaultKeyGenerator(request: Request): string {
   // Try to get real IP from headers
   const forwarded = request.headers.get('x-forwarded-for');
   const realIp = request.headers.get('x-real-ip');
@@ -43,7 +42,7 @@ function defaultKeyGenerator(request: NextRequest): string {
     return realIp;
   }
 
-  // Fallback to unknown (NextRequest doesn't have ip property)
+  // Fallback to unknown (Request doesn't have ip property)
   return 'unknown';
 }
 
@@ -51,7 +50,7 @@ function defaultKeyGenerator(request: NextRequest): string {
  * Check if rate limit exceeded
  */
 export function checkRateLimit(
-  request: NextRequest,
+  request: Request,
   config: RateLimitConfig,
 ): {
   allowed: boolean;
@@ -106,7 +105,7 @@ export function checkRateLimit(
  * Create rate limit middleware
  */
 export function createRateLimitMiddleware(config: RateLimitConfig) {
-  return async (request: NextRequest, next: () => Promise<NextResponse>) => {
+  return async (request: Request, next: () => Promise<Response>) => {
     const result = checkRateLimit(request, config);
 
     // Set rate limit headers
@@ -132,10 +131,10 @@ function createRateLimitResponse(result: {
   limit: number;
   remaining: number;
   resetTime: number;
-}): NextResponse {
+}): Response {
   const retryAfter = Math.ceil((result.resetTime - Date.now()) / 1000);
 
-  return NextResponse.json(
+  return Response.json(
     {
       error: 'Too Many Requests',
       message: 'Rate limit exceeded. Please try again later.',
@@ -389,7 +388,7 @@ interface SlidingWindowEntry {
 const slidingWindowStore = new Map<string, SlidingWindowEntry>();
 
 export function checkSlidingWindowRateLimit(
-  request: NextRequest,
+  request: Request,
   config: RateLimitConfig,
 ): {
   allowed: boolean;
@@ -436,7 +435,7 @@ interface TokenBucketEntry {
 const tokenBucketStore = new Map<string, TokenBucketEntry>();
 
 export function checkTokenBucketRateLimit(
-  request: NextRequest,
+  request: Request,
   config: RateLimitConfig & { refillRate: number },
 ): {
   allowed: boolean;

@@ -3,53 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // ---------------------------------------------------------------------------
 // Mock dependencies
 // ---------------------------------------------------------------------------
-vi.mock('next/server', () => {
-  class MockNextRequest {
-    url: string;
-    method: string;
-    headers: Headers;
-
-    constructor(url: string, init?: { method?: string; headers?: Record<string, string> }) {
-      this.url = url;
-      this.method = init?.method ?? 'GET';
-      this.headers = new Headers(init?.headers);
-    }
-  }
-
-  class MockNextResponse {
-    body: string | null;
-    status: number;
-    statusText: string;
-    headers: Headers;
-
-    constructor(
-      body?: string | null,
-      init?: { status?: number; statusText?: string; headers?: Record<string, string> },
-    ) {
-      this.body = body ?? null;
-      this.status = init?.status ?? 200;
-      this.statusText = init?.statusText ?? 'OK';
-      this.headers = new Headers(init?.headers);
-    }
-
-    static json(data: unknown, init?: { status?: number; headers?: Record<string, string> }) {
-      const res = new MockNextResponse(JSON.stringify(data), init);
-      res.headers.set('content-type', 'application/json');
-      return res;
-    }
-  }
-
-  return {
-    NextRequest: MockNextRequest,
-    NextResponse: MockNextResponse,
-  };
-});
-
 vi.mock('../../observability/logger.js', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-import { NextRequest } from 'next/server';
 import {
   checkRateLimit,
   checkSlidingWindowRateLimit,
@@ -70,7 +27,7 @@ function createRequest(
   headers?: Record<string, string>,
   method = 'GET',
 ) {
-  return new NextRequest(url, { method, headers });
+  return new Request(url, { method, headers });
 }
 
 // ---------------------------------------------------------------------------
