@@ -194,7 +194,7 @@ describe('@revealui/engines', () => {
       expect(typeof content.anyone).toBe('function');
       expect(typeof content.authenticated).toBe('function');
 
-      expect(content.anyone()).toBe(true);
+      expect(content.anyone({ req: {} as never })).toBe(true);
     });
 
     it('exports database adapter', async () => {
