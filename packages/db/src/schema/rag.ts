@@ -8,7 +8,17 @@
  * Embedding dimensions: 768 (nomic-embed-text via Ollama  -  policy default)
  */
 
-import { customType, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import {
+  check,
+  customType,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { sites } from './sites.js';
 
 // =============================================================================
@@ -31,38 +41,51 @@ const vector = customType<{ data: number[]; driverData: string }>({
 // rag_documents  -  one row per indexed source
 // =============================================================================
 
-export const ragDocuments = pgTable('rag_documents', {
-  id: text('id').primaryKey(),
+export const ragDocuments = pgTable(
+  'rag_documents',
+  {
+    id: text('id').primaryKey(),
 
-  /** Which workspace (site) this document belongs to */
-  workspaceId: text('workspace_id').references(() => sites.id, { onDelete: 'cascade' }),
+    /** Which workspace (site) this document belongs to */
+    workspaceId: text('workspace_id').references(() => sites.id, { onDelete: 'cascade' }),
 
-  /** Source type: cms_collection, url, file, text */
-  sourceType: text('source_type').notNull(),
+    /** Source type: admin_collection, url, file, text */
+    sourceType: text('source_type').notNull(),
 
-  /** Source-specific identifier (e.g. admin document ID, URL, file path) */
-  sourceId: text('source_id'),
+    /** Source-specific identifier (e.g. admin document ID, URL, file path) */
+    sourceId: text('source_id'),
 
-  /** admin collection name when sourceType = 'cms_collection' */
-  sourceCollection: text('source_collection'),
+    /** admin collection name when sourceType = 'admin_collection' */
+    sourceCollection: text('source_collection'),
 
-  title: text('title'),
-  mimeType: text('mime_type').default('text/plain'),
-  rawContent: text('raw_content'),
-  wordCount: integer('word_count').default(0),
-  tokenEstimate: integer('token_estimate').default(0),
+    title: text('title'),
+    mimeType: text('mime_type').default('text/plain'),
+    rawContent: text('raw_content'),
+    wordCount: integer('word_count').default(0),
+    tokenEstimate: integer('token_estimate').default(0),
 
-  /** pending | processing | indexed | failed */
-  status: text('status').notNull().default('pending'),
-  errorMessage: text('error_message'),
-  indexedAt: timestamp('indexed_at', { withTimezone: true }),
+    /** pending | processing | indexed | failed */
+    status: text('status').notNull().default('pending'),
+    errorMessage: text('error_message'),
+    indexedAt: timestamp('indexed_at', { withTimezone: true }),
 
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .$onUpdateFn(() => new Date())
-    .defaultNow()
-    .notNull(),
-});
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
+  },
+  () => [
+    check(
+      'rag_documents_source_type_check',
+      sql`source_type IN ('admin_collection', 'url', 'file', 'text')`,
+    ),
+    check(
+      'rag_documents_status_check',
+      sql`status IN ('pending', 'processing', 'indexed', 'failed')`,
+    ),
+  ],
+);
 
 // =============================================================================
 // rag_chunks  -  one row per text chunk, with 768-dim embedding

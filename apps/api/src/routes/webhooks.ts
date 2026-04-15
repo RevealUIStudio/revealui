@@ -28,6 +28,7 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import Stripe from 'stripe';
+import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
 import {
   provisionGitHubAccess,
   sendCancellationConfirmationEmail,
@@ -517,6 +518,21 @@ async function syncHostedSubscriptionState(
       accountId,
       ...entitlementValues,
     });
+  }
+
+  // GAP-105 M-03: Proactive resource capping on downgrade
+  const oldTier = (existingEntitlement?.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? 'free';
+  if (isDowngrade(oldTier, resolvedTier)) {
+    const capResult = await capResourcesOnDowngrade(db, accountId, oldTier, resolvedTier);
+    if (capResult.capped) {
+      logger.info('Downgrade resource capping applied', {
+        accountId,
+        oldTier,
+        newTier: resolvedTier,
+        sitesArchived: capResult.sitesArchived,
+        membershipsRevoked: capResult.membershipsRevoked,
+      });
+    }
   }
 }
 

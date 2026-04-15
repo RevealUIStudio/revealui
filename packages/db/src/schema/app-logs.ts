@@ -1,4 +1,5 @@
-import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 /**
  * Structured application logs  -  warn and above, all apps.
@@ -25,5 +26,7 @@ export const appLogs = pgTable(
   (table) => [
     index('app_logs_timestamp_idx').on(table.timestamp),
     index('app_logs_app_level_idx').on(table.app, table.level),
+    check('app_logs_level_check', sql`level IN ('warn', 'error', 'fatal')`),
+    check('app_logs_app_check', sql`app IN ('admin', 'api', 'marketing', 'mainframe')`),
   ],
 );

@@ -4,7 +4,6 @@
  * Implements HTTP caching for API responses
  */
 
-import { type NextRequest, NextResponse } from 'next/server';
 import { logger } from '../observability/logger.js';
 
 interface CacheOptions {
@@ -34,7 +33,7 @@ const cacheStore = new Map<string, CacheEntry>();
 /**
  * Generate cache key from request
  */
-export function generateCacheKey(request: NextRequest): string {
+export function generateCacheKey(request: Request): string {
   const url = new URL(request.url);
   const method = request.method;
   const path = url.pathname;
@@ -50,7 +49,7 @@ export function generateCacheKey(request: NextRequest): string {
 /**
  * Check if response is cacheable
  */
-function isCacheable(request: NextRequest, response: NextResponse): boolean {
+function isCacheable(request: Request, response: Response): boolean {
   // Only cache GET and HEAD requests
   if (!['GET', 'HEAD'].includes(request.method)) {
     return false;
@@ -73,7 +72,7 @@ function isCacheable(request: NextRequest, response: NextResponse): boolean {
 /**
  * Get cached response
  */
-export async function getCachedResponse(request: NextRequest): Promise<NextResponse | null> {
+export async function getCachedResponse(request: Request): Promise<Response | null> {
   const key = generateCacheKey(request);
   const entry = cacheStore.get(key);
 
@@ -94,7 +93,7 @@ export async function getCachedResponse(request: NextRequest): Promise<NextRespo
   headers.set('X-Cache', 'HIT');
   headers.set('Age', age.toString());
 
-  return new NextResponse(entry.response.body, {
+  return new Response(entry.response.body, {
     status: entry.response.status,
     statusText: entry.response.statusText,
     headers,
@@ -105,8 +104,8 @@ export async function getCachedResponse(request: NextRequest): Promise<NextRespo
  * Set cached response
  */
 export async function setCachedResponse(
-  request: NextRequest,
-  response: NextResponse,
+  request: Request,
+  response: Response,
   options: CacheOptions = {},
 ): Promise<void> {
   const key = generateCacheKey(request);
@@ -187,7 +186,7 @@ export function clearCache(): void {
 /**
  * Set Cache-Control headers
  */
-export function setCacheHeaders(response: NextResponse, options: CacheOptions): NextResponse {
+export function setCacheHeaders(response: Response, options: CacheOptions): Response {
   const { ttl = 300, staleWhileRevalidate, private: isPrivate, noStore } = options;
 
   if (noStore) {
@@ -222,7 +221,7 @@ export function setCacheHeaders(response: NextResponse, options: CacheOptions): 
  * Create caching middleware
  */
 export function createCacheMiddleware(options: CacheOptions = {}) {
-  return async (request: NextRequest, next: () => Promise<NextResponse>) => {
+  return async (request: Request, next: () => Promise<Response>) => {
     // Try to get from cache
     const cached = await getCachedResponse(request);
     if (cached) {
@@ -310,7 +309,7 @@ export function startCacheCleanup(intervalMs: number = 60000): NodeJS.Timeout {
 /**
  * Cache response with ETag
  */
-export function withETag(response: NextResponse, content: string): NextResponse {
+export function withETag(response: Response, content: string): Response {
   // Generate ETag from content hash
   const hash = btoa(content).substring(0, 16);
   const etag = `"${hash}"`;
@@ -323,7 +322,7 @@ export function withETag(response: NextResponse, content: string): NextResponse 
 /**
  * Check if request has matching ETag
  */
-export function checkETag(request: NextRequest, etag: string): boolean {
+export function checkETag(request: Request, etag: string): boolean {
   const ifNoneMatch = request.headers.get('if-none-match');
   return ifNoneMatch === etag;
 }
@@ -331,8 +330,8 @@ export function checkETag(request: NextRequest, etag: string): boolean {
 /**
  * Create 304 Not Modified response
  */
-export function createNotModifiedResponse(): NextResponse {
-  return new NextResponse(null, {
+export function createNotModifiedResponse(): Response {
+  return new Response(null, {
     status: 304,
     statusText: 'Not Modified',
   });
