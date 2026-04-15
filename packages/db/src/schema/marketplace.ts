@@ -85,7 +85,7 @@ export const marketplaceServers = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [
+  () => [
     check('marketplace_servers_status_check', sql`status IN ('pending', 'active', 'suspended')`),
   ],
 );

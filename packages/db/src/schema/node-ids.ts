@@ -34,7 +34,7 @@ export const nodeIdMappings = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [check('node_id_mappings_entity_type_check', sql`entity_type IN ('session', 'user')`)],
+  () => [check('node_id_mappings_entity_type_check', sql`entity_type IN ('session', 'user')`)],
 );
 
 // =============================================================================

@@ -72,7 +72,7 @@ export const codeProvenance = pgTable(
       .defaultNow()
       .$onUpdateFn(() => new Date()),
   },
-  (table) => [
+  () => [
     check(
       'code_provenance_author_type_check',
       sql`author_type IN ('ai_generated', 'human_written', 'ai_assisted', 'mixed')`,
@@ -118,7 +118,7 @@ export const codeReviews = pgTable(
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
+  () => [
     check(
       'code_reviews_review_type_check',
       sql`review_type IN ('human_review', 'ai_review', 'human_approval', 'ai_suggestion')`,

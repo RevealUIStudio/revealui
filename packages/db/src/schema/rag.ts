@@ -75,7 +75,7 @@ export const ragDocuments = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [
+  () => [
     check(
       'rag_documents_source_type_check',
       sql`source_type IN ('cms_collection', 'url', 'file', 'text')`,

@@ -257,7 +257,7 @@ export const userDevices = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [
+  () => [
     check(
       'user_devices_device_type_check',
       sql`device_type IS NULL OR device_type IN ('desktop', 'mobile', 'tablet', 'cli')`,
