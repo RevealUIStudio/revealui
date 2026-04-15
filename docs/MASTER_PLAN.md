@@ -585,14 +585,14 @@ Phase D  -  Agent publisher tools (agent):
 
 **When to start:** After Phase 5 ships. Seed profile = the exact 2026-04-13 WSL fix, captured as the "low-RAM WSL2" preset — so the first working baseline is the author's own machine.
 
-- [ ] Extract current WSL fix into a declarative profile (`profiles/wsl-low-ram.json`)
-- [ ] Build detection layer + platform adapters
-- [ ] Build plan generator (pure function: detected state → desired state → diff)
-- [ ] Build CLI (`revealui system scan` / `tune` / `revert`) with dry-run default
+- [x] Extract current WSL fix into a declarative profile (`profiles/wsl-low-ram.json`) (2026-04-15)
+- [x] Build detection layer + platform adapters (2026-04-15)
+- [x] Build plan generator (pure function: detected state → desired state → diff) (2026-04-15)
+- [x] Build CLI (`revealui system scan` / `tune` / `revert`) with dry-run default (2026-04-15)
 - [ ] Wire into Studio first-run wizard
 - [ ] Wire into Forge self-hosted install script
 - [ ] CI: run `revealui system scan --json` on Ubuntu / macOS / Windows runners and snapshot the detection output
-- [ ] Crash-postmortem doc seeded with the 2026-04-13 incident
+- [x] Crash-postmortem doc seeded with the 2026-04-13 incident (2026-04-15)
 
 **Exit criteria:** A user running `curl | sh` on a brand-new machine — Windows + WSL, bare Linux, macOS M-series, or low-RAM laptop — reaches a working RevealUI dev environment without hand-editing any system config file, and the setup is reproducible + reversible.
 
