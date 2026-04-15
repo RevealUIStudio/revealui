@@ -1,6 +1,14 @@
 import { randomBytes } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { decryptApiKey, encryptApiKey, redactApiKey } from '../crypto.js';
+import {
+  decryptApiKey,
+  decryptField,
+  decryptFieldOrPassthrough,
+  encryptApiKey,
+  encryptField,
+  isEncryptedField,
+  redactApiKey,
+} from '../crypto.js';
 
 // ---------------------------------------------------------------------------
 // Test KEK  -  64 hex chars (32 bytes / 256 bits)
@@ -238,6 +246,75 @@ describe('crypto  -  API key encryption', () => {
       const authTagB64 = encrypted.split('.')[1]!;
       const authTagBuffer = Buffer.from(authTagB64, 'base64url');
       expect(authTagBuffer).toHaveLength(16);
+    });
+  });
+
+  describe('encryptField / decryptField (generic)', () => {
+    it('roundtrips a TOTP secret', () => {
+      const secret = 'JBSWY3DPEHPK3PXP';
+      const encrypted = encryptField(secret);
+      const decrypted = decryptField(encrypted);
+      expect(decrypted).toBe(secret);
+    });
+
+    it('produces 3-part dot-separated output', () => {
+      const encrypted = encryptField('any-secret');
+      expect(encrypted.split('.')).toHaveLength(3);
+    });
+
+    it('produces different ciphertext per call (random IV)', () => {
+      const a = encryptField('same');
+      const b = encryptField('same');
+      expect(a).not.toBe(b);
+    });
+
+    it('throws on tampered ciphertext', () => {
+      const encrypted = encryptField('secret');
+      const parts = encrypted.split('.');
+      const tampered = [parts[0], parts[1], 'AAAA'].join('.');
+      expect(() => decryptField(tampered)).toThrow();
+    });
+  });
+
+  describe('isEncryptedField', () => {
+    it('returns true for encrypted envelope format', () => {
+      const encrypted = encryptField('test');
+      expect(isEncryptedField(encrypted)).toBe(true);
+    });
+
+    it('returns false for plaintext Base32 TOTP secret', () => {
+      expect(isEncryptedField('JBSWY3DPEHPK3PXP')).toBe(false);
+    });
+
+    it('returns false for empty string', () => {
+      expect(isEncryptedField('')).toBe(false);
+    });
+
+    it('returns false for single-part string', () => {
+      expect(isEncryptedField('just-a-string')).toBe(false);
+    });
+
+    it('returns false for two-part string', () => {
+      expect(isEncryptedField('part1.part2')).toBe(false);
+    });
+
+    it('returns false for four-part string', () => {
+      expect(isEncryptedField('a.b.c.d')).toBe(false);
+    });
+  });
+
+  describe('decryptFieldOrPassthrough', () => {
+    it('decrypts encrypted values', () => {
+      const encrypted = encryptField('TOTP_SECRET');
+      expect(decryptFieldOrPassthrough(encrypted)).toBe('TOTP_SECRET');
+    });
+
+    it('passes through plaintext Base32 secrets', () => {
+      expect(decryptFieldOrPassthrough('JBSWY3DPEHPK3PXP')).toBe('JBSWY3DPEHPK3PXP');
+    });
+
+    it('passes through simple strings', () => {
+      expect(decryptFieldOrPassthrough('hello')).toBe('hello');
     });
   });
 

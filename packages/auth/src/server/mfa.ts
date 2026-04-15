@@ -8,6 +8,7 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { TwoFactorAuth } from '@revealui/core/security';
 import { getClient } from '@revealui/db/client';
+import { decryptFieldOrPassthrough, encryptField } from '@revealui/db/crypto';
 import { users } from '@revealui/db/schema';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
@@ -153,11 +154,14 @@ export async function initiateMFASetup(userId: string, email: string): Promise<M
   const { plaintext, hashed } = await generateBackupCodes();
   const uri = buildProvisioningUri(secret, email);
 
-  // Store secret and backup codes (MFA stays disabled until verified)
+  // Encrypt TOTP secret before storage (AES-256-GCM, KEK from REVEALUI_KEK)
+  const encryptedSecret = encryptField(secret);
+
+  // Store encrypted secret and backup codes (MFA stays disabled until verified)
   await db
     .update(users)
     .set({
-      mfaSecret: secret,
+      mfaSecret: encryptedSecret,
       mfaBackupCodes: hashed,
       updatedAt: new Date(),
     })
@@ -199,8 +203,11 @@ export async function verifyMFASetup(
     return { success: false, error: 'MFA setup not initiated' };
   }
 
-  // Verify the TOTP code against the stored secret
-  const valid = TwoFactorAuth.verifyCode(user.mfaSecret, code);
+  // Decrypt TOTP secret (supports legacy plaintext for rolling migration)
+  const plainSecret = decryptFieldOrPassthrough(user.mfaSecret);
+
+  // Verify the TOTP code against the decrypted secret
+  const valid = TwoFactorAuth.verifyCode(plainSecret, code);
   if (!valid) {
     return { success: false, error: 'Invalid verification code' };
   }
@@ -244,7 +251,10 @@ export async function verifyMFACode(
     return { success: false, error: 'MFA not enabled' };
   }
 
-  const matchedCounter = verifyCodeWithCounter(user.mfaSecret, code);
+  // Decrypt TOTP secret (supports legacy plaintext for rolling migration)
+  const plainSecret = decryptFieldOrPassthrough(user.mfaSecret);
+
+  const matchedCounter = verifyCodeWithCounter(plainSecret, code);
   if (matchedCounter === null) {
     return { success: false, error: 'Invalid code' };
   }
