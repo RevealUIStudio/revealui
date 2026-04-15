@@ -45,6 +45,18 @@ export const REDOS_REGEX_RULE: SecurityRule = {
     'Restructure the regex to avoid nested quantifiers with overlapping character sets, or use a linear-time regex engine.',
 };
 
+export const AD_HOC_SANITIZER_RULE: SecurityRule = {
+  id: 'ad-hoc-sanitizer',
+  title: 'Ad-hoc sanitizer bypasses @revealui/security',
+  description:
+    'Detects sanitization or escaping logic implemented outside @revealui/security. All untrusted-string sinks must use the canonical helpers.',
+  severity: 'warning',
+  category: 'sanitization',
+  cwe: 'CWE-116',
+  remediation:
+    'Use the appropriate helper from @revealui/security: sanitizeHtml, sanitizeTerminalLine, escapeShellArg, escapeSqlIdentifier, redactLogField, or sanitizeUrl.',
+};
+
 // =============================================================================
 // Registry
 // =============================================================================
@@ -53,6 +65,7 @@ export const SECURITY_RULES = {
   'exec-sync-string': EXEC_SYNC_STRING_RULE,
   'toctou-stat-read': TOCTOU_STAT_READ_RULE,
   'redos-regex': REDOS_REGEX_RULE,
+  'ad-hoc-sanitizer': AD_HOC_SANITIZER_RULE,
 } as const satisfies Record<string, SecurityRule>;
 
 export type SecurityRuleId = keyof typeof SECURITY_RULES;
