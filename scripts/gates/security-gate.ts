@@ -34,6 +34,7 @@ import { join } from 'node:path';
 import { findApiSecurityIssues } from '@revealui/scripts/analyzers/api-security-analyzer.js';
 import { findAuthSecurityIssues } from '@revealui/scripts/analyzers/auth-security-analyzer.js';
 import { findCodePatternIssues } from '@revealui/scripts/analyzers/code-pattern-analyzer.js';
+import { findSanitizerUsageIssues } from '@revealui/scripts/analyzers/sanitizer-usage-analyzer.js';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { execCommand } from '@revealui/scripts/exec.js';
 import { createLogger, getProjectRoot } from '../utils/base.js';
@@ -464,6 +465,31 @@ async function checkCodePatterns(projectRoot: string): Promise<CheckResult> {
   return { name: 'Code patterns', status: 'pass', durationMs };
 }
 
+/**
+ * Check 8: Ad-hoc sanitizer detection (warn-only)
+ * Flags sanitization logic outside @revealui/security and direct unsafe sink usage.
+ */
+async function checkSanitizerUsage(projectRoot: string): Promise<CheckResult> {
+  const start = performance.now();
+  const findings = findSanitizerUsageIssues(projectRoot);
+  const durationMs = performance.now() - start;
+
+  if (findings.length > 0) {
+    const preview = findings
+      .slice(0, 5)
+      .map((f) => `${f.file}:${f.line}`)
+      .join(', ');
+    return {
+      name: 'Sanitizer usage',
+      status: 'warn',
+      durationMs,
+      detail: `Ad-hoc sanitizers detected (${findings.length}): ${preview}. Use @revealui/security helpers.`,
+    };
+  }
+
+  return { name: 'Sanitizer usage', status: 'pass', durationMs };
+}
+
 async function checkLocalPathLeaks(projectRoot: string): Promise<CheckResult> {
   const start = performance.now();
   const violations: string[] = [];
@@ -578,6 +604,7 @@ async function gate(): Promise<void> {
     checkAuthPatterns(projectRoot),
     checkApiSecurity(projectRoot),
     checkCodePatterns(projectRoot),
+    checkSanitizerUsage(projectRoot),
   ]);
 
   const totalMs = performance.now() - totalStart;

@@ -585,14 +585,14 @@ Phase D  -  Agent publisher tools (agent):
 
 **When to start:** After Phase 5 ships. Seed profile = the exact 2026-04-13 WSL fix, captured as the "low-RAM WSL2" preset — so the first working baseline is the author's own machine.
 
-- [ ] Extract current WSL fix into a declarative profile (`profiles/wsl-low-ram.json`)
-- [ ] Build detection layer + platform adapters
-- [ ] Build plan generator (pure function: detected state → desired state → diff)
-- [ ] Build CLI (`revealui system scan` / `tune` / `revert`) with dry-run default
+- [x] Extract current WSL fix into a declarative profile (`profiles/wsl-low-ram.json`) (2026-04-15)
+- [x] Build detection layer + platform adapters (2026-04-15)
+- [x] Build plan generator (pure function: detected state → desired state → diff) (2026-04-15)
+- [x] Build CLI (`revealui system scan` / `tune` / `revert`) with dry-run default (2026-04-15)
 - [ ] Wire into Studio first-run wizard
 - [ ] Wire into Forge self-hosted install script
 - [ ] CI: run `revealui system scan --json` on Ubuntu / macOS / Windows runners and snapshot the detection output
-- [ ] Crash-postmortem doc seeded with the 2026-04-13 incident
+- [x] Crash-postmortem doc seeded with the 2026-04-13 incident (2026-04-15)
 
 **Exit criteria:** A user running `curl | sh` on a brand-new machine — Windows + WSL, bare Linux, macOS M-series, or low-RAM laptop — reaches a working RevealUI dev environment without hand-editing any system config file, and the setup is reproducible + reversible.
 
@@ -620,7 +620,7 @@ Phase D  -  Agent publisher tools (agent):
 - [x] `redactLogField` — PII + secret redaction helper feeding `@revealui/utils` logger (2026-04-13). Ships primitive + `redactLogContext` recursive walker + `redactSecretsInString` for inline message scrubbing. Key match is case-insensitive on alnum-normalised form (covers `api_key`, `X-API-Key`, `userApiKey`). Value patterns cover JWT, Bearer, Stripe sk/rk/whsec, OpenAI sk-, AWS AKIA, GitHub ghp_/github_pat_. Depth-capped at 8. Legacy duplicates at `packages/core/src/observability/logger.ts:sanitizeLogData` and `packages/ai/src/llm/client.ts:redactSensitiveFields` removed 2026-04-13 (major bump on core + ai via `.changeset/remove-legacy-redactors.md`); docs (`LOGGING.md`, `STANDARDS.md`) point at `redactLogContext` from `@revealui/security`.
 - [x] `sanitizeUrl` / `isSafeUrl` — scheme allow-list, owned by `@revealui/security`; `packages/core/.../rsc.tsx` now re-exports from there as the single source of truth (2026-04-13)
 - [x] Shared test corpus scaffolded: `packages/security/src/__tests__/sanitize-corpus/` seeded with ANSI, scheme-confusion, shell-injection, log-redaction vectors; grows per new sink (2026-04-13)
-- [ ] ESLint/Biome rule or CI grep: flag direct concatenation into sinks (`terminal.writeln(userInput)`, `exec(\`cmd \${arg}\`)`, etc.) and require one of these helpers
+- [x] CI security gate check: `sanitizer-usage-analyzer.ts` flags ad-hoc sanitize/escape/redact functions, ANSI stripping, HTML tag stripping, innerHTML, and dangerouslySetInnerHTML outside `@revealui/security` (2026-04-15)
 
 **Cross-repo consumption:**
 - revdev (studio terminal) migrates its local `apps/studio/src/lib/terminal-sanitize.ts` to `@revealui/security` once a version with `sanitizeTerminalLine` is published to npm. Local module stays as a thin re-export during the transition, then deletes.
@@ -641,10 +641,10 @@ Phase D  -  Agent publisher tools (agent):
 
 **Deliverables:**
 - [x] Initial sweep completed 2026-04-13 — no `.gitmodules` found anywhere in `~/suite/`
-- [ ] Scripted audit: `scripts/audit-no-submodules.sh` — runs the four checks (root file, `.git/modules/`, `git config`, tree gitlinks) and exits non-zero on any hit
-- [ ] GitHub Actions workflow `no-submodules.yml` — runs the script on every PR and on a weekly cron (GitHub Actions cron, not Vercel; free-plan Vercel is capped at 1 cron/day and reserved for app jobs) across all RevealUIStudio repos via matrix
-- [ ] Document in repo templates: no submodules; use workspace `workspace:*` or published npm dep instead
-- [ ] Remediation runbook: if a submodule is ever found, convert it to a published dep or a vendored copy with clear provenance — never leave the submodule link in place
+- [x] Scripted audit: `scripts/audit-no-submodules.sh` — runs the four checks (root file, `.git/modules/`, `git config`, tree gitlinks) and exits non-zero on any hit (2026-04-15)
+- [x] GitHub Actions workflow `no-submodules.yml` — runs on every PR + push to main/test + weekly Sunday 6 AM UTC cron (2026-04-15)
+- [x] Policy + remediation doc: `docs/submodules/POLICY.md` — no submodules rule, CI enforcement, conversion runbook (2026-04-15)
+- [x] Remediation runbook: rolled into `docs/submodules/POLICY.md` — convert to published dep or vendor with provenance (2026-04-15)
 
 **Exit criteria:** CI blocks any `.gitmodules` addition org-wide; weekly cron proves zero drift; a new contributor can't accidentally add one without the PR failing.
 

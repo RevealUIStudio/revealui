@@ -34,6 +34,11 @@ import {
   runDevUpCommand,
 } from './commands/dev.js';
 import { runDoctorCommand } from './commands/doctor.js';
+import {
+  runSystemRevertCommand,
+  runSystemScanCommand,
+  runSystemTuneCommand,
+} from './commands/system.js';
 import { runTerminalInstallCommand, runTerminalListCommand } from './commands/terminal.js';
 
 const cliRequire = createRequire(import.meta.url);
@@ -325,6 +330,35 @@ export function createCli(): Command {
     .option('--json', 'Output machine-readable JSON', false)
     .action(async (options: { json?: boolean }) => {
       await runTerminalListCommand(options);
+    });
+
+  const system = program
+    .command('system')
+    .description('Hardware-aware system tuning for RevealUI development');
+
+  system
+    .command('scan')
+    .description('Read-only scan of host hardware and platform')
+    .option('--json', 'Output machine-readable JSON', false)
+    .action(async (options: { json?: boolean }) => {
+      await runSystemScanCommand(options);
+    });
+
+  system
+    .command('tune')
+    .description('Generate and apply a tuning plan for this machine')
+    .option('--json', 'Output machine-readable JSON plan', false)
+    .option('--dry-run', 'Show the plan without applying changes', false)
+    .option('-y, --yes', 'Apply without confirmation', false)
+    .action(async (options: { json?: boolean; dryRun?: boolean; yes?: boolean }) => {
+      await runSystemTuneCommand(options);
+    });
+
+  system
+    .command('revert')
+    .description('Revert a previously applied tuning plan from backup')
+    .action(async () => {
+      await runSystemRevertCommand();
     });
 
   program

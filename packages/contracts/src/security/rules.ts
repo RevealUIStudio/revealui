@@ -22,6 +22,7 @@ export const SecurityCategorySchema = z.enum([
   'denial-of-service',
   'auth',
   'api',
+  'sanitization',
 ]);
 export type SecurityCategory = z.infer<typeof SecurityCategorySchema>;
 
