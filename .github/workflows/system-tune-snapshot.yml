@@ -1,0 +1,107 @@
+name: System Tune Snapshots
+
+# Runs `revealui system scan --json` on Ubuntu, macOS, and Windows runners.
+# Stores detection output as artifacts for cross-platform regression tracking.
+#
+# Triggered on:
+#   - PRs that touch setup/system-tune or cli/commands/system
+#   - Weekly Sunday 7 AM UTC (alongside submodule audit)
+#   - Manual dispatch
+
+on:
+  pull_request:
+    paths:
+      - "packages/setup/src/system-tune/**"
+      - "packages/cli/src/commands/system.ts"
+      - ".github/workflows/system-tune-snapshot.yml"
+  schedule:
+    - cron: "0 7 * * 0" # Sunday 7 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+
+jobs:
+  snapshot:
+    name: Scan (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build setup + cli packages
+        run: pnpm --filter @revealui/setup --filter @revealui/cli build
+
+      - name: Run system scan (JSON)
+        run: node packages/cli/dist/cli.js system scan --json > scan-output.json
+
+      - name: Show scan output
+        run: cat scan-output.json
+        shell: bash
+
+      - name: Validate scan output structure
+        shell: bash
+        run: |
+          node -e "
+            const fs = require('fs');
+            const scan = JSON.parse(fs.readFileSync('scan-output.json', 'utf8'));
+
+            // Required top-level fields
+            const required = ['os', 'memory', 'cpu', 'disk', 'platformClass', 'existingConfigs'];
+            const missing = required.filter(k => !(k in scan));
+            if (missing.length > 0) {
+              console.error('Missing required fields:', missing.join(', '));
+              process.exit(1);
+            }
+
+            // Validate types
+            if (typeof scan.memory.totalBytes !== 'number' || scan.memory.totalBytes <= 0) {
+              console.error('Invalid memory.totalBytes:', scan.memory.totalBytes);
+              process.exit(1);
+            }
+            if (typeof scan.cpu.logicalCores !== 'number' || scan.cpu.logicalCores <= 0) {
+              console.error('Invalid cpu.logicalCores:', scan.cpu.logicalCores);
+              process.exit(1);
+            }
+
+            // Platform class must be one of the known values
+            const validPlatforms = ['native-linux', 'macos', 'windows', 'wsl2', 'docker', 'cloud-vm'];
+            if (!validPlatforms.includes(scan.platformClass)) {
+              console.error('Unknown platformClass:', scan.platformClass);
+              process.exit(1);
+            }
+
+            console.log('✓ Scan output valid');
+            console.log('  Platform:', scan.platformClass);
+            console.log('  RAM:', (scan.memory.totalBytes / 1024 / 1024 / 1024).toFixed(1), 'GB');
+            console.log('  CPU:', scan.cpu.logicalCores, 'cores');
+          "
+
+      - name: Upload scan snapshot
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: system-scan-${{ matrix.os }}
+          path: scan-output.json
+          retention-days: 90
