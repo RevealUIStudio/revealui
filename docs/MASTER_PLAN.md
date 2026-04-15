@@ -22,7 +22,7 @@
 - **History:** 2,360+ commits (Dec 30, 2025 – Apr 2026), solo developer
 - **Apps:** 7 (api, admin, docs, marketing, revealcoin, studio, terminal)
 - **Packages:** 24 packages + 7 apps = 31 workspaces
-- **Tests:** 938 test files, 20,000+ tests passing, all workspaces build and typecheck
+- **Tests:** 1,676 test files, 20,000+ tests passing, all workspaces build and typecheck
 - **Database:** 81 tables (Drizzle ORM, dual NeonDB + Supabase)
 - **UI Components:** 57 native components (Tailwind v4, zero external UI deps)
 - **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks

@@ -70,10 +70,10 @@ Every framework is a set of opinions. Here are ours:
 
 RevealUI launched with:
 
-- **22 npm packages** published to the public registry
+- **21 npm packages** published to the public registry
 - **81 database tables** via Drizzle ORM (NeonDB + Supabase)
 - **57 UI components** with zero external dependencies
-- **11 MCP servers** for AI tool access (all MIT)
+- **10 MCP servers** for AI tool access (all MIT)
 - **20,000+ tests** across all packages
 - **4 GitHub template repos** for different starting points
 
