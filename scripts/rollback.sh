@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -36,10 +36,10 @@ show_deployment_history() {
     echo "========================================="
 
     echo -e "\n${YELLOW}Admin Deployment History:${NC}"
-    kubectl rollout history deployment/revealui-admin -n ${NAMESPACE}
+    kubectl rollout history deployment/revealui-admin -n "${NAMESPACE}"
 
     echo -e "\n${YELLOW}Dashboard Deployment History:${NC}"
-    kubectl rollout history deployment/revealui-dashboard -n ${NAMESPACE}
+    kubectl rollout history deployment/revealui-dashboard -n "${NAMESPACE}"
 
     echo "========================================="
 }
@@ -51,14 +51,14 @@ rollback_admin() {
 
     if [ -z "$REVISION" ]; then
         # Rollback to previous revision
-        kubectl rollout undo deployment/revealui-admin -n ${NAMESPACE}
+        kubectl rollout undo deployment/revealui-admin -n "${NAMESPACE}"
     else
         # Rollback to specific revision
-        kubectl rollout undo deployment/revealui-admin --to-revision=${REVISION} -n ${NAMESPACE}
+        kubectl rollout undo deployment/revealui-admin --to-revision="${REVISION}" -n "${NAMESPACE}"
     fi
 
     echo "Waiting for Admin rollback to complete..."
-    kubectl rollout status deployment/revealui-admin -n ${NAMESPACE} --timeout=300s
+    kubectl rollout status deployment/revealui-admin -n "${NAMESPACE}" --timeout=300s
 
     echo -e "${GREEN}✓ Admin rolled back successfully${NC}"
 }
@@ -70,14 +70,14 @@ rollback_dashboard() {
 
     if [ -z "$REVISION" ]; then
         # Rollback to previous revision
-        kubectl rollout undo deployment/revealui-dashboard -n ${NAMESPACE}
+        kubectl rollout undo deployment/revealui-dashboard -n "${NAMESPACE}"
     else
         # Rollback to specific revision
-        kubectl rollout undo deployment/revealui-dashboard --to-revision=${REVISION} -n ${NAMESPACE}
+        kubectl rollout undo deployment/revealui-dashboard --to-revision="${REVISION}" -n "${NAMESPACE}"
     fi
 
     echo "Waiting for Dashboard rollback to complete..."
-    kubectl rollout status deployment/revealui-dashboard -n ${NAMESPACE} --timeout=300s
+    kubectl rollout status deployment/revealui-dashboard -n "${NAMESPACE}" --timeout=300s
 
     echo -e "${GREEN}✓ Dashboard rolled back successfully${NC}"
 }
@@ -94,7 +94,7 @@ rollback_migration() {
     fi
 
     # Get current Admin pod
-    ADMIN_POD=$(kubectl get pods -n ${NAMESPACE} -l app=revealui-admin -o jsonpath='{.items[0].metadata.name}')
+    ADMIN_POD=$(kubectl get pods -n "${NAMESPACE}" -l app=revealui-admin -o jsonpath='{.items[0].metadata.name}')
 
     if [ -z "$ADMIN_POD" ]; then
         echo -e "${RED}Error: No Admin pod found${NC}"
@@ -102,7 +102,7 @@ rollback_migration() {
     fi
 
     echo "Rolling back migration in pod: $ADMIN_POD"
-    kubectl exec -n ${NAMESPACE} $ADMIN_POD -- pnpm db:migrate:down
+    kubectl exec -n "${NAMESPACE}" "$ADMIN_POD" -- pnpm db:migrate:down
 
     echo -e "${GREEN}✓ Database migration rolled back${NC}"
 }
@@ -112,14 +112,14 @@ run_health_checks() {
     echo -e "\n${YELLOW}Running health checks...${NC}"
 
     # Wait for pods to be ready
-    kubectl wait --for=condition=ready pod -l app=revealui-admin -n ${NAMESPACE} --timeout=60s || true
-    kubectl wait --for=condition=ready pod -l app=revealui-dashboard -n ${NAMESPACE} --timeout=60s || true
+    kubectl wait --for=condition=ready pod -l app=revealui-admin -n "${NAMESPACE}" --timeout=60s || true
+    kubectl wait --for=condition=ready pod -l app=revealui-dashboard -n "${NAMESPACE}" --timeout=60s || true
 
     # Get service URLs
-    ADMIN_URL=$(kubectl get ingress revealui-ingress -n ${NAMESPACE} -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || echo "")
-    DASHBOARD_URL=$(kubectl get ingress revealui-ingress -n ${NAMESPACE} -o jsonpath='{.spec.rules[2].host}' 2>/dev/null || echo "")
+    ADMIN_URL=$(kubectl get ingress revealui-ingress -n "${NAMESPACE}" -o jsonpath='{.spec.rules[0].host}' 2>/dev/null || echo "")
+    DASHBOARD_URL=$(kubectl get ingress revealui-ingress -n "${NAMESPACE}" -o jsonpath='{.spec.rules[2].host}' 2>/dev/null || echo "")
 
-    if [ ! -z "$ADMIN_URL" ]; then
+    if [ -n "$ADMIN_URL" ]; then
         echo "Testing Admin: https://${ADMIN_URL}/api/health"
         if curl -f -s "https://${ADMIN_URL}/api/health" > /dev/null 2>&1; then
             echo -e "${GREEN}✓ Admin health check passed${NC}"
@@ -128,7 +128,7 @@ run_health_checks() {
         fi
     fi
 
-    if [ ! -z "$DASHBOARD_URL" ]; then
+    if [ -n "$DASHBOARD_URL" ]; then
         echo "Testing Dashboard: https://${DASHBOARD_URL}/api/health"
         if curl -f -s "https://${DASHBOARD_URL}/api/health" > /dev/null 2>&1; then
             echo -e "${GREEN}✓ Dashboard health check passed${NC}"
@@ -143,9 +143,9 @@ show_status() {
     echo -e "\n${YELLOW}Current Status:${NC}"
     echo "========================================="
 
-    kubectl get pods -n ${NAMESPACE}
+    kubectl get pods -n "${NAMESPACE}"
     echo ""
-    kubectl get deployments -n ${NAMESPACE}
+    kubectl get deployments -n "${NAMESPACE}"
 
     echo -e "\n${GREEN}Rollback completed!${NC}"
 }
@@ -154,8 +154,8 @@ show_status() {
 pause_deployment() {
     echo -e "\n${YELLOW}Pausing deployments...${NC}"
 
-    kubectl scale deployment/revealui-admin --replicas=0 -n ${NAMESPACE}
-    kubectl scale deployment/revealui-dashboard --replicas=0 -n ${NAMESPACE}
+    kubectl scale deployment/revealui-admin --replicas=0 -n "${NAMESPACE}"
+    kubectl scale deployment/revealui-dashboard --replicas=0 -n "${NAMESPACE}"
 
     echo -e "${GREEN}✓ Deployments paused (scaled to 0)${NC}"
 }
@@ -164,12 +164,12 @@ pause_deployment() {
 resume_deployment() {
     echo -e "\n${YELLOW}Resuming deployments...${NC}"
 
-    kubectl scale deployment/revealui-admin --replicas=3 -n ${NAMESPACE}
-    kubectl scale deployment/revealui-dashboard --replicas=2 -n ${NAMESPACE}
+    kubectl scale deployment/revealui-admin --replicas=3 -n "${NAMESPACE}"
+    kubectl scale deployment/revealui-dashboard --replicas=2 -n "${NAMESPACE}"
 
     echo "Waiting for pods to be ready..."
-    kubectl wait --for=condition=ready pod -l app=revealui-admin -n ${NAMESPACE} --timeout=300s
-    kubectl wait --for=condition=ready pod -l app=revealui-dashboard -n ${NAMESPACE} --timeout=300s
+    kubectl wait --for=condition=ready pod -l app=revealui-admin -n "${NAMESPACE}" --timeout=300s
+    kubectl wait --for=condition=ready pod -l app=revealui-dashboard -n "${NAMESPACE}" --timeout=300s
 
     echo -e "${GREEN}✓ Deployments resumed${NC}"
 }
@@ -226,9 +226,15 @@ main() {
     check_prerequisites
 
     COMMAND=${1:-"help"}
-    REVISION=$2
+    REVISION=${2:-""}
 
-    case $COMMAND in
+    # Validate REVISION is numeric if provided
+    if [[ -n "$REVISION" && ! "$REVISION" =~ ^[0-9]+$ ]]; then
+        echo -e "${RED}Error: REVISION must be a positive integer, got '$REVISION'${NC}" >&2
+        exit 1
+    fi
+
+    case "$COMMAND" in
         history)
             show_deployment_history
             ;;

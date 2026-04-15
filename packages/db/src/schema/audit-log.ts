@@ -6,7 +6,8 @@
  * ever be performed on this table.
  */
 
-import { index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Audit Log Table
@@ -53,6 +54,7 @@ export const auditLog = pgTable(
     index('audit_log_agent_id_idx').on(table.agentId),
     index('audit_log_timestamp_idx').on(table.timestamp),
     index('audit_log_severity_idx').on(table.severity),
+    check('audit_log_severity_check', sql`severity IN ('info', 'warn', 'critical')`),
   ],
 );
 

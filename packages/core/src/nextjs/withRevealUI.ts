@@ -1,7 +1,25 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { NextConfig } from 'next';
+
+/**
+ * Subset of Next.js config shape used by withRevealUI.
+ * Defined locally to avoid requiring `next` as a dependency of @revealui/core.
+ * Consumers pass their full NextConfig through; we only access these fields.
+ */
+interface NextConfig {
+  env?: Record<string, string | undefined>;
+  webpack?: (
+    config: Record<string, unknown>,
+    context: { isServer: boolean; dev: boolean; dir: string; [key: string]: unknown },
+  ) => Record<string, unknown>;
+  turbopack?: { resolveAlias?: Record<string, string> };
+  headers?: () => Promise<
+    Array<{ source: string; headers: Array<{ key: string; value: string }> }>
+  >;
+  images?: { remotePatterns?: Array<Record<string, unknown>> };
+  [key: string]: unknown;
+}
 
 // Get __dirname equivalent for ESM
 // Since package.json has "type": "module", we're in ESM context

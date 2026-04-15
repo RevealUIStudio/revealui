@@ -9,7 +9,8 @@
  * Read path: local 5-second cache; DB only on cache miss.
  */
 
-import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const circuitBreakerState = pgTable(
   'circuit_breaker_state',
@@ -38,7 +39,10 @@ export const circuitBreakerState = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [index('circuit_breaker_state_at_idx').on(table.stateChangedAt)],
+  (table) => [
+    index('circuit_breaker_state_at_idx').on(table.stateChangedAt),
+    check('circuit_breaker_state_check', sql`state IN ('closed', 'open', 'half-open')`),
+  ],
 );
 
 export type CircuitBreakerStateRow = typeof circuitBreakerState.$inferSelect;

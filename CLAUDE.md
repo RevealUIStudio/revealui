@@ -3,7 +3,7 @@
 Agentic business runtime. Users, content, products, payments, and AI  -  pre-wired, open source, and ready to deploy.
 
 ## Current Phase
-**Phase 3  -  Launch Preparation** (docs, OSS prep, marketing, Pro distribution).
+**Phase 5  -  Agent-First Infrastructure** (post-Phase 4). See `docs/MASTER_PLAN.md` for the active 5.x tracks.
 
 ## Stack
 - React 19, Next.js 16, Node 24, TypeScript 6

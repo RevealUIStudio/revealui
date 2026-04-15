@@ -3,54 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // ---------------------------------------------------------------------------
 // Mock dependencies
 // ---------------------------------------------------------------------------
-vi.mock('next/server', () => {
-  class MockNextRequest {
-    url: string;
-    method: string;
-    headers: Headers;
-
-    constructor(url: string, init?: { method?: string; headers?: Record<string, string> }) {
-      this.url = url;
-      this.method = init?.method ?? 'GET';
-      this.headers = new Headers(init?.headers);
-    }
-  }
-
-  class MockNextResponse {
-    _body: string | null;
-    status: number;
-    statusText: string;
-    headers: Headers;
-
-    constructor(
-      body?: unknown,
-      init?: { status?: number; statusText?: string; headers?: Headers | Record<string, string> },
-    ) {
-      this._body = typeof body === 'string' ? body : null;
-      this.status = init?.status ?? 200;
-      this.statusText = init?.statusText ?? 'OK';
-      this.headers =
-        init?.headers instanceof Headers
-          ? init.headers
-          : new Headers(init?.headers as Record<string, string>);
-    }
-
-    async text() {
-      return this._body ?? '';
-    }
-  }
-
-  return {
-    NextRequest: MockNextRequest,
-    NextResponse: MockNextResponse,
-  };
-});
-
 vi.mock('../../observability/logger.js', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-import { NextRequest } from 'next/server';
 import {
   COMPRESSION_PRESETS,
   getCompressionRatio,
@@ -62,9 +18,7 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 function createRequest(headers?: Record<string, string>) {
-  return new NextRequest('http://localhost/api/test', { headers }) as unknown as InstanceType<
-    typeof NextRequest
-  >;
+  return new Request('http://localhost/api/test', { headers });
 }
 
 // ---------------------------------------------------------------------------

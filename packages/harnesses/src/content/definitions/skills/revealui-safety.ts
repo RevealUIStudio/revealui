@@ -23,7 +23,7 @@ Follow these rules for ALL code changes in the RevealUI monorepo.
 
 ## Protected Paths  -  Never Edit
 
-- \`/mnt/c/\`, \`/mnt/e/\`  -  Windows mounts (read-only)
+- Windows host mounts (typically \`/mnt/c/\`) and the LTS backup mount (\`$LTS_ROOT\`, typically \`/mnt/e/\`)  -  read-only
 - System/credential directories: \`/etc/\`, \`~/.ssh/\`, \`~/.gnupg/\`, \`~/.aws/\`
 
 ## Import Boundaries

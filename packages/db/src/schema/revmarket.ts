@@ -6,7 +6,8 @@
  * matches tasks to capable agents, and results are delivered with billing.
  */
 
-import { index, integer, jsonb, pgTable, real, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, index, integer, jsonb, pgTable, real, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -82,6 +83,18 @@ export const marketplaceAgents = pgTable(
     index('marketplace_agents_status_idx').on(table.status),
     index('marketplace_agents_category_idx').on(table.category),
     index('marketplace_agents_rating_idx').on(table.rating),
+    check(
+      'marketplace_agents_pricing_model_check',
+      sql`pricing_model IN ('per-task', 'per-minute', 'flat')`,
+    ),
+    check(
+      'marketplace_agents_status_check',
+      sql`status IN ('draft', 'published', 'suspended', 'deprecated')`,
+    ),
+    check(
+      'marketplace_agents_category_check',
+      sql`category IN ('coding', 'writing', 'data', 'design', 'other')`,
+    ),
   ],
 );
 
@@ -236,6 +249,10 @@ export const taskSubmissions = pgTable(
     index('task_submissions_status_idx').on(table.status),
     index('task_submissions_skill_name_idx').on(table.skillName),
     index('task_submissions_created_at_idx').on(table.createdAt),
+    check(
+      'task_submissions_status_check',
+      sql`status IN ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled')`,
+    ),
   ],
 );
 

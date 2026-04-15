@@ -5,78 +5,17 @@
  * Converts Lexical JSON state to React elements without requiring a browser.
  */
 
+import { isSafeUrl, sanitizeUrl } from '@revealui/security';
 import type { SerializedEditorState, SerializedLexicalNode } from 'lexical';
 import { Fragment, type JSX } from 'react';
 
 // Re-export SerializedEditorState for convenience
 export type { SerializedEditorState };
 
-// ============================================
-// URL SANITIZATION
-// ============================================
-
-/**
- * Protocols that are safe to render in href/src attributes.
- * Anything not matching these will be replaced with '#'.
- */
-const SAFE_LINK_PROTOCOLS = /^(?:https?:|mailto:|tel:|#|\/)/i;
-
-/**
- * Data URIs that are safe for image src attributes (base64 images only).
- * data:text/html and similar are blocked.
- */
-const SAFE_IMAGE_DATA_URI = /^data:image\//i;
-
-/**
- * Check whether a URL is safe to render in an href attribute.
- *
- * Blocks javascript:, vbscript:, data: (except data:image/ for images),
- * and other dangerous protocols. Handles case-insensitive matching and
- * leading whitespace tricks.
- *
- * @param url - The URL to validate
- * @param context - Whether this URL is for a link href or image src
- * @returns true if the URL is safe to render
- */
-export function isSafeUrl(url: string, context: 'link' | 'image' = 'link'): boolean {
-  // Trim whitespace (catches " javascript:" trick)
-  const trimmed = url.trim();
-
-  if (trimmed === '' || trimmed === '#') {
-    return true;
-  }
-
-  // For image context, allow data:image/ URIs (base64 images)
-  if (context === 'image' && SAFE_IMAGE_DATA_URI.test(trimmed)) {
-    return true;
-  }
-
-  // Block all data: URIs for links (and non-image data: for images)
-  if (/^data:/i.test(trimmed)) {
-    return false;
-  }
-
-  // Block javascript: and vbscript: protocols (case-insensitive)
-  if (/^(?:javascript|vbscript):/i.test(trimmed)) {
-    return false;
-  }
-
-  // Relative paths, anchors, and safe protocols are allowed
-  if (SAFE_LINK_PROTOCOLS.test(trimmed) || !trimmed.includes(':')) {
-    return true;
-  }
-
-  // Unknown protocol  -  block it
-  return false;
-}
-
-/**
- * Sanitize a URL for use in an href or src attribute.
- * Returns '#' if the URL is not safe.
- */
-export function sanitizeUrl(url: string, context: 'link' | 'image' = 'link'): string {
-  return isSafeUrl(url, context) ? url.trim() : '#';
-}
+// URL sanitization is owned by @revealui/security (single source of truth
+// for every untrusted-string sink across the Suite). Re-exported here so
+// existing consumers keep working.
+export { isSafeUrl, sanitizeUrl };
 
 // ============================================
 // TEXT FORMAT CONSTANTS

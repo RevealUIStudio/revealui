@@ -4,7 +4,6 @@
  * Implements gzip and brotli compression for API responses
  */
 
-import { type NextRequest, NextResponse } from 'next/server';
 import { logger } from '../observability/logger.js';
 
 interface CompressionOptions {
@@ -33,7 +32,7 @@ const DEFAULT_OPTIONS: CompressionOptions = {
 /**
  * Check if response should be compressed
  */
-function shouldCompress(response: NextResponse, options: CompressionOptions): boolean {
+function shouldCompress(response: Response, options: CompressionOptions): boolean {
   const contentType = response.headers.get('content-type') || '';
   const contentLength = parseInt(response.headers.get('content-length') || '0', 10);
 
@@ -58,7 +57,7 @@ function shouldCompress(response: NextResponse, options: CompressionOptions): bo
 /**
  * Get best compression encoding from Accept-Encoding header
  */
-function getBestEncoding(request: NextRequest, preferBrotli: boolean): string | null {
+function getBestEncoding(request: Request, preferBrotli: boolean): string | null {
   const acceptEncoding = request.headers.get('accept-encoding') || '';
 
   const supportsBrotli = acceptEncoding.includes('br');
@@ -124,10 +123,10 @@ async function compressBody(
  * Compress API response
  */
 export async function compressResponse(
-  request: NextRequest,
-  response: NextResponse,
+  request: Request,
+  response: Response,
   options: CompressionOptions = {},
-): Promise<NextResponse> {
+): Promise<Response> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
   // Check if should compress
@@ -149,7 +148,7 @@ export async function compressResponse(
     const compressed = await compressBody(body, encoding, opts.level || 6);
 
     // Create new response with compressed body
-    const newResponse = new NextResponse(compressed as BodyInit, {
+    const newResponse = new Response(compressed as BodyInit, {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
@@ -172,7 +171,7 @@ export async function compressResponse(
  * Create compression middleware
  */
 export function createCompressionMiddleware(options: CompressionOptions = {}) {
-  return async (request: NextRequest, next: () => Promise<NextResponse>) => {
+  return async (request: Request, next: () => Promise<Response>) => {
     const response = await next();
     return compressResponse(request, response, options);
   };
@@ -305,7 +304,7 @@ export async function decompressBody(body: Uint8Array, encoding: string): Promis
 /**
  * Check if compression is supported
  */
-export function isCompressionSupported(request: NextRequest): {
+export function isCompressionSupported(request: Request): {
   gzip: boolean;
   brotli: boolean;
 } {

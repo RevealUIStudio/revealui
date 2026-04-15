@@ -39,6 +39,7 @@ export const accounts = pgTable(
     uniqueIndex('accounts_slug_idx').on(table.slug),
     index('accounts_status_idx').on(table.status),
     index('accounts_status_created_at_idx').on(table.status, table.createdAt),
+    check('accounts_status_check', sql`status IN ('active', 'suspended', 'closed')`),
   ],
 );
 
@@ -65,6 +66,8 @@ export const accountMemberships = pgTable(
     index('account_memberships_user_id_idx').on(table.userId),
     index('account_memberships_account_id_idx').on(table.accountId),
     index('account_memberships_status_idx').on(table.status),
+    check('account_memberships_role_check', sql`role IN ('owner', 'admin', 'member')`),
+    check('account_memberships_status_check', sql`status IN ('active', 'invited', 'revoked')`),
   ],
 );
 
@@ -135,6 +138,10 @@ export const accountEntitlements = pgTable(
       'account_entitlements_status_check',
       sql`status IN ('active', 'past_due', 'canceled', 'expired', 'revoked')`,
     ),
+    check(
+      'account_entitlements_metering_status_check',
+      sql`metering_status IN ('active', 'paused', 'exceeded')`,
+    ),
   ],
 );
 
@@ -189,6 +196,7 @@ export const usageMeters = pgTable(
     index('usage_meters_meter_name_idx').on(table.meterName),
     index('usage_meters_period_start_idx').on(table.periodStart),
     index('usage_meters_account_period_idx').on(table.accountId, table.periodStart),
+    check('usage_meters_source_check', sql`source IN ('system', 'user', 'agent', 'api')`),
   ],
 );
 

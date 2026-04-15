@@ -3,68 +3,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // ---------------------------------------------------------------------------
 // Mock dependencies
 // ---------------------------------------------------------------------------
-vi.mock('next/server', () => {
-  class MockNextRequest {
-    url: string;
-    method: string;
-    headers: Headers;
-
-    constructor(url: string, init?: { method?: string; headers?: Record<string, string> }) {
-      this.url = url;
-      this.method = init?.method ?? 'GET';
-      this.headers = new Headers(init?.headers);
-    }
-  }
-
-  class MockNextResponse {
-    _body: string | null;
-    status: number;
-    statusText: string;
-    headers: Headers;
-
-    constructor(
-      body?: string | null,
-      init?: { status?: number; statusText?: string; headers?: Headers | Record<string, string> },
-    ) {
-      this._body = body ?? null;
-      this.status = init?.status ?? 200;
-      this.statusText = init?.statusText ?? 'OK';
-      this.headers =
-        init?.headers instanceof Headers
-          ? init.headers
-          : new Headers(init?.headers as Record<string, string>);
-    }
-
-    async text() {
-      return this._body ?? '';
-    }
-
-    clone() {
-      return new MockNextResponse(this._body, {
-        status: this.status,
-        statusText: this.statusText,
-        headers: new Headers(this.headers),
-      });
-    }
-
-    static json(data: unknown, init?: { status?: number; headers?: Record<string, string> }) {
-      const res = new MockNextResponse(JSON.stringify(data), init);
-      res.headers.set('content-type', 'application/json');
-      return res;
-    }
-  }
-
-  return {
-    NextRequest: MockNextRequest,
-    NextResponse: MockNextResponse,
-  };
-});
-
 vi.mock('../../observability/logger.js', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-import { NextRequest, NextResponse } from 'next/server';
 import {
   CACHE_PRESETS,
   cacheAPIResponse,
@@ -90,13 +32,11 @@ function createRequest(
   headers?: Record<string, string>,
   method = 'GET',
 ) {
-  return new NextRequest(url, { method, headers }) as unknown as InstanceType<typeof NextRequest>;
+  return new Request(url, { method, headers });
 }
 
 function createResponse(body = '{"ok":true}', status = 200, headers?: Record<string, string>) {
-  return new NextResponse(body, { status, headers }) as unknown as InstanceType<
-    typeof NextResponse
-  >;
+  return new Response(body, { status, headers });
 }
 
 // ---------------------------------------------------------------------------
