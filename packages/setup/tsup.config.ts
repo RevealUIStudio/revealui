@@ -7,6 +7,7 @@ export default defineConfig({
     'utils/index': 'src/utils/index.ts',
     'validators/index': 'src/validators/index.ts',
     'bootstrap/index': 'src/bootstrap/index.ts',
+    'system-tune/index': 'src/system-tune/index.ts',
   },
   format: ['esm'],
   dts: true,

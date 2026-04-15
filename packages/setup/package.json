@@ -54,6 +54,10 @@
     "./bootstrap": {
       "types": "./dist/bootstrap/index.d.ts",
       "import": "./dist/bootstrap/index.js"
+    },
+    "./system-tune": {
+      "types": "./dist/system-tune/index.d.ts",
+      "import": "./dist/system-tune/index.js"
     }
   },
   "files": [
