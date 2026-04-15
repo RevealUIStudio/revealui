@@ -43,7 +43,9 @@
       "@revealui/setup": ["./packages/setup/src/index.ts"],
       "@revealui/setup/*": ["./packages/setup/src/*"],
       "@revealui/cli": ["./packages/cli/src/index.ts"],
-      "@revealui/cli/*": ["./packages/cli/src/*"]
+      "@revealui/cli/*": ["./packages/cli/src/*"],
+      "@revealui/engines": ["./packages/engines/src/index.ts"],
+      "@revealui/engines/*": ["./packages/engines/src/*/index.ts"]
     }
   },
   "include": ["scripts/**/*", "packages/**/*", "apps/**/*"],

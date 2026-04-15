@@ -6,7 +6,16 @@
  */
 
 import { sql } from 'drizzle-orm';
-import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  check,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -68,6 +77,7 @@ export const sites = pgTable(
     index('sites_active_owner_id_idx').on(table.ownerId).where(sql`deleted_at IS NULL`),
     index('sites_active_status_idx').on(table.status).where(sql`deleted_at IS NULL`),
     index('sites_owner_id_idx').on(table.ownerId),
+    check('sites_status_check', sql`status IN ('draft', 'published', 'archived')`),
   ],
 );
 
@@ -91,7 +101,10 @@ export const siteCollaborators = pgTable(
     }),
     addedAt: timestamp('added_at', { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [uniqueIndex('site_collaborators_site_user_unique').on(table.siteId, table.userId)],
+  (table) => [
+    uniqueIndex('site_collaborators_site_user_unique').on(table.siteId, table.userId),
+    check('site_collaborators_role_check', sql`role IN ('owner', 'admin', 'editor', 'viewer')`),
+  ],
 );
 
 // =============================================================================

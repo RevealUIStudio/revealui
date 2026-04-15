@@ -84,7 +84,7 @@ export class AdminIndexer {
 
     await this.pipeline.ingest({
       workspaceId,
-      sourceType: 'cms_collection',
+      sourceType: 'admin_collection',
       sourceCollection,
       sourceId,
       title,

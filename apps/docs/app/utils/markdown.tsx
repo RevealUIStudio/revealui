@@ -178,7 +178,7 @@ function highlightScriptLine(line: string): Token[] {
   const commentPart = commentIndex >= 0 ? line.slice(commentIndex) : '';
   const tokens: Token[] = [];
   const pattern =
-    /"[^"\\]*(?:\\.[^"\\]*)*"|'[^'\\]*(?:\\.[^'\\]*)*'|`[^`\\]*(?:\\.[^`\\]*)*`|\b\d+(?:\.\d+)?\b|\b[A-Za-z_$][\w$]*\b/g;
+    /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`|\b\d+(?:\.\d+)?\b|\b[A-Za-z_$][\w$]*\b/g;
   let lastIndex = 0;
 
   for (const match of activePart.matchAll(pattern)) {

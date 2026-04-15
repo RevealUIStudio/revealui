@@ -5,7 +5,7 @@
 # Sets up pre-commit hook for code validation
 #
 
-set -e
+set -euo pipefail
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 HOOKS_DIR="$REPO_ROOT/.git/hooks"
@@ -16,18 +16,13 @@ echo "🔧 Installing Git hooks..."
 # Ensure hooks directory exists
 mkdir -p "$HOOKS_DIR"
 
-# Create symlink to pre-commit hook
-if [ -L "$HOOKS_DIR/pre-commit" ]; then
-  echo "  ℹ️  Pre-commit hook already installed (symlink exists)"
-elif [ -f "$HOOKS_DIR/pre-commit" ]; then
-  echo "  ⚠️  Pre-commit hook file exists, backing up..."
+# Create symlink to pre-commit hook (atomic via ln -sfn)
+if [ -f "$HOOKS_DIR/pre-commit" ] && [ ! -L "$HOOKS_DIR/pre-commit" ]; then
+  echo "  Pre-commit hook file exists, backing up..."
   mv "$HOOKS_DIR/pre-commit" "$HOOKS_DIR/pre-commit.backup"
-  ln -sf "$HOOK_SCRIPT" "$HOOKS_DIR/pre-commit"
-  echo "  ✓ Pre-commit hook installed (old hook backed up)"
-else
-  ln -sf "$HOOK_SCRIPT" "$HOOKS_DIR/pre-commit"
-  echo "  ✓ Pre-commit hook installed"
 fi
+ln -sfn "$HOOK_SCRIPT" "$HOOKS_DIR/pre-commit"
+echo "  Pre-commit hook installed"
 
 # Make hook executable
 chmod +x "$HOOK_SCRIPT"

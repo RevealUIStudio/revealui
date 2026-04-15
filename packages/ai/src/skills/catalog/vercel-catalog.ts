@@ -86,20 +86,25 @@ export async function fetchVercelCatalog(config: CatalogConfig = {}): Promise<Ve
  * Load catalog from cache if valid.
  */
 function loadFromCache(cachePath: string, ttl: number): VercelCatalog | null {
-  // Read first to avoid TOCTOU between stat and read (file could disappear between calls)
-  let content: string;
+  let fd: number;
   try {
-    content = fs.readFileSync(cachePath, 'utf-8');
+    fd = fs.openSync(cachePath, 'r');
   } catch {
     return null;
   }
 
-  const age = Date.now() - fs.statSync(cachePath).mtimeMs;
-  if (age > ttl) {
-    return null;
-  }
+  try {
+    const stat = fs.fstatSync(fd);
+    const age = Date.now() - stat.mtimeMs;
+    if (age > ttl) {
+      return null;
+    }
 
-  return JSON.parse(content) as VercelCatalog;
+    const content = fs.readFileSync(fd, 'utf-8');
+    return JSON.parse(content) as VercelCatalog;
+  } finally {
+    fs.closeSync(fd);
+  }
 }
 
 /**

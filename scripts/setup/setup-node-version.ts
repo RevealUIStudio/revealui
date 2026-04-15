@@ -62,7 +62,7 @@ async function setupNodeVersion() {
 
         // Try to use the version specified in .nvmrc
         try {
-          execSync(`nvm use ${nvmrcVersion}`, { stdio: 'inherit' });
+          execSync(['nvm', 'use', nvmrcVersion].join(' '), { stdio: 'inherit' });
           const newVersion = execSync('node --version', {
             encoding: 'utf8',
           }).trim();

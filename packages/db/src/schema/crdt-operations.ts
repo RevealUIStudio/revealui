@@ -6,7 +6,8 @@
  * replaying operations rather than just merging final states.
  */
 
-import { bigint, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { bigint, check, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // CRDT Operations Table
@@ -42,6 +43,14 @@ export const crdtOperations = pgTable(
   (table) => [
     index('crdt_operations_crdt_id_idx').on(table.crdtId),
     index('crdt_operations_node_id_idx').on(table.nodeId),
+    check(
+      'crdt_operations_crdt_type_check',
+      sql`crdt_type IN ('lww_register', 'or_set', 'pn_counter')`,
+    ),
+    check(
+      'crdt_operations_operation_type_check',
+      sql`operation_type IN ('set', 'add', 'remove', 'increment', 'decrement')`,
+    ),
   ],
 );
 

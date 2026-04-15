@@ -30,7 +30,6 @@ vi.mock('../request-context.js', () => ({
 }));
 
 // Must import AFTER mocks
-import { NextResponse } from 'next/server';
 import { withRequestContext, withServerActionContext } from '../api-wrapper.js';
 import { logger } from '../logger.js';
 
@@ -42,43 +41,15 @@ function createMockRequest(
   method = 'GET',
   headers: Record<string, string> = {},
 ) {
-  const headerMap = new Map(Object.entries(headers));
-  return {
-    method,
-    headers: {
-      entries: () => headerMap.entries(),
-      get: (key: string) => headerMap.get(key) ?? null,
-    },
-    nextUrl: { pathname: path },
-  } as never;
+  return new Request(`http://localhost${path}`, { method, headers });
 }
-
-// Patch the NextResponse import used by api-wrapper  -  must be inside factory to avoid hoisting issues
-vi.mock('next/server', () => {
-  class NextResponseMock {
-    status: number;
-    _body: unknown;
-    headers: Map<string, string>;
-
-    constructor(body: unknown, init?: { status?: number }) {
-      this._body = body;
-      this.status = init?.status ?? 200;
-      this.headers = new Map();
-    }
-
-    static json(body: unknown, init?: { status?: number }) {
-      return new NextResponseMock(body, init);
-    }
-  }
-  return { NextResponse: NextResponseMock };
-});
 
 // ---------------------------------------------------------------------------
 // Tests  -  withRequestContext
 // ---------------------------------------------------------------------------
 describe('withRequestContext', () => {
   it('calls handler and returns response', async () => {
-    const response = new NextResponse({ ok: true });
+    const response = Response.json({ ok: true });
     const handler = vi.fn().mockResolvedValue(response);
     const wrapped = withRequestContext(handler);
 
@@ -89,7 +60,7 @@ describe('withRequestContext', () => {
   });
 
   it('logs incoming request', async () => {
-    const handler = vi.fn().mockResolvedValue(new NextResponse({}));
+    const handler = vi.fn().mockResolvedValue(Response.json({}));
     const wrapped = withRequestContext(handler);
 
     await wrapped(createMockRequest('/api/posts', 'POST'));
@@ -104,7 +75,7 @@ describe('withRequestContext', () => {
   });
 
   it('logs successful response', async () => {
-    const handler = vi.fn().mockResolvedValue(new NextResponse({}, { status: 201 }));
+    const handler = vi.fn().mockResolvedValue(Response.json({}, { status: 201 }));
     const wrapped = withRequestContext(handler);
 
     await wrapped(createMockRequest());
@@ -118,12 +89,12 @@ describe('withRequestContext', () => {
     );
   });
 
-  it('sets request ID and duration headers on NextResponse', async () => {
-    const response = NextResponse.json({ ok: true });
+  it('sets request ID and duration headers on response', async () => {
+    const response = Response.json({ ok: true });
     const handler = vi.fn().mockResolvedValue(response);
     const wrapped = withRequestContext(handler);
 
-    const result = (await wrapped(createMockRequest())) as NextResponse;
+    const result = (await wrapped(createMockRequest())) as Response;
 
     expect(result.headers.get('x-request-id')).toBe('req-123');
     expect(result.headers.get('x-request-duration')).toBe('42');
@@ -133,7 +104,7 @@ describe('withRequestContext', () => {
     const handler = vi.fn().mockRejectedValue(new Error('DB timeout'));
     const wrapped = withRequestContext(handler);
 
-    const result = (await wrapped(createMockRequest('/api/fail', 'DELETE'))) as NextResponse;
+    const result = (await wrapped(createMockRequest('/api/fail', 'DELETE'))) as Response;
 
     expect(result.status).toBe(500);
     expect(logger.error).toHaveBeenCalledWith(
@@ -148,13 +119,13 @@ describe('withRequestContext', () => {
     const handler = vi.fn().mockRejectedValue(new Error('fail'));
     const wrapped = withRequestContext(handler);
 
-    const result = (await wrapped(createMockRequest())) as NextResponse;
+    const result = (await wrapped(createMockRequest())) as Response;
 
     expect(result.headers.get('x-request-id')).toBe('req-123');
   });
 
   it('extracts IP from x-forwarded-for header', async () => {
-    const handler = vi.fn().mockResolvedValue(new NextResponse({}));
+    const handler = vi.fn().mockResolvedValue(Response.json({}));
     const wrapped = withRequestContext(handler);
 
     await wrapped(createMockRequest('/api', 'GET', { 'x-forwarded-for': '1.2.3.4' }));
@@ -171,7 +142,7 @@ describe('withRequestContext', () => {
     const handler = vi.fn().mockRejectedValue('string error');
     const wrapped = withRequestContext(handler);
 
-    const result = (await wrapped(createMockRequest())) as NextResponse;
+    const result = (await wrapped(createMockRequest())) as Response;
 
     expect(result.status).toBe(500);
     expect(logger.error).toHaveBeenCalledWith(
