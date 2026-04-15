@@ -19,6 +19,7 @@ vi.mock('@revealui/core/security', () => ({
   TwoFactorAuth: {
     generateSecret: vi.fn(() => 'MOCK_SECRET_BASE32'),
     verifyCode: vi.fn(() => true),
+    generateCode: vi.fn(() => '123456'),
   },
 }));
 
@@ -49,11 +50,21 @@ vi.mock('@revealui/db/schema', () => ({
   },
 }));
 
+// Mock @revealui/db/crypto (TOTP secret encryption)
+const mockEncryptField = vi.fn((v: string) => `encrypted:${v}`);
+const mockDecryptFieldOrPassthrough = vi.fn((v: string) =>
+  v.startsWith('encrypted:') ? v.slice('encrypted:'.length) : v,
+);
+vi.mock('@revealui/db/crypto', () => ({
+  encryptField: (...args: unknown[]) => mockEncryptField(...args),
+  decryptFieldOrPassthrough: (...args: unknown[]) => mockDecryptFieldOrPassthrough(...args),
+}));
+
 vi.mock('drizzle-orm', () => ({
   eq: vi.fn((col: string, val: string) => ({ col, val })),
 }));
 
-import { disableMFA } from '../mfa.js';
+import { disableMFA, initiateMFASetup, verifyMFACode, verifyMFASetup } from '../mfa.js';
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -131,6 +142,72 @@ describe('mfa', () => {
       });
 
       expect(result).toEqual({ success: false, error: 'User not found' });
+    });
+  });
+
+  describe('initiateMFASetup', () => {
+    it('encrypts the TOTP secret before storing', async () => {
+      mockLimit.mockResolvedValueOnce([{ mfaEnabled: false }]);
+      mockBcryptHash.mockImplementation(async (code: string) => `hashed:${code}`);
+
+      const result = await initiateMFASetup('user-1', 'test@example.com');
+
+      expect(result.success).toBe(true);
+      expect(result.secret).toBe('MOCK_SECRET_BASE32');
+      expect(mockEncryptField).toHaveBeenCalledWith('MOCK_SECRET_BASE32');
+      // Verify the encrypted value was passed to the DB, not the plaintext
+      const setArg = mockSet.mock.calls[0]?.[0] as Record<string, unknown> | undefined;
+      expect(setArg?.mfaSecret).toBe('encrypted:MOCK_SECRET_BASE32');
+    });
+  });
+
+  describe('verifyMFASetup', () => {
+    it('decrypts the TOTP secret before verification', async () => {
+      mockLimit.mockResolvedValueOnce([
+        {
+          mfaEnabled: false,
+          mfaSecret: 'encrypted:MOCK_SECRET_BASE32',
+        },
+      ]);
+      // TwoFactorAuth.verifyCode is already mocked to return true
+
+      const result = await verifyMFASetup('user-1', '123456');
+
+      expect(result.success).toBe(true);
+      expect(mockDecryptFieldOrPassthrough).toHaveBeenCalledWith('encrypted:MOCK_SECRET_BASE32');
+    });
+  });
+
+  describe('verifyMFACode', () => {
+    it('decrypts the TOTP secret before verification', async () => {
+      mockLimit.mockResolvedValueOnce([
+        {
+          mfaEnabled: true,
+          mfaSecret: 'encrypted:MOCK_SECRET_BASE32',
+          mfaLastUsedCounter: null,
+        },
+      ]);
+
+      const result = await verifyMFACode('user-1', '123456');
+
+      expect(result.success).toBe(true);
+      expect(mockDecryptFieldOrPassthrough).toHaveBeenCalledWith('encrypted:MOCK_SECRET_BASE32');
+    });
+
+    it('handles legacy plaintext secrets (rolling migration)', async () => {
+      mockLimit.mockResolvedValueOnce([
+        {
+          mfaEnabled: true,
+          mfaSecret: 'PLAINTEXT_BASE32',
+          mfaLastUsedCounter: null,
+        },
+      ]);
+
+      const result = await verifyMFACode('user-1', '123456');
+
+      expect(result.success).toBe(true);
+      // decryptFieldOrPassthrough passes through non-encrypted values
+      expect(mockDecryptFieldOrPassthrough).toHaveBeenCalledWith('PLAINTEXT_BASE32');
     });
   });
 

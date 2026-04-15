@@ -4,44 +4,8 @@
  * Single interface for all LLM providers with fallback and rate limiting
  */
 
-// =============================================================================
-// Log redaction
-// =============================================================================
-
-const SENSITIVE_KEYS = new Set([
-  'apiKey',
-  'api_key',
-  'authorization',
-  'Authorization',
-  'x-ai-api-key',
-  'X-AI-Api-Key',
-  'token',
-  'secret',
-  'password',
-  'encryptedKey',
-  'encrypted_key',
-]);
-
-/**
- * Redact sensitive fields before passing an object to a logger.
- * Replaces API keys, tokens, and authorization headers with `[REDACTED]`.
- * Recurses into nested plain objects; leaves arrays and primitives as-is.
- */
-export function redactSensitiveFields(obj: Record<string, unknown>): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (SENSITIVE_KEYS.has(key)) {
-      result[key] = '[REDACTED]';
-    } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      result[key] = redactSensitiveFields(value as Record<string, unknown>);
-    } else {
-      result[key] = value;
-    }
-  }
-  return result;
-}
-
-// =============================================================================
+// Log redaction lives in @revealui/security — import `redactLogContext`
+// (recursive walker) or `redactLogField` (single key/value).
 
 import type { Database } from '@revealui/db/client';
 import { decryptApiKey } from '@revealui/db/crypto';

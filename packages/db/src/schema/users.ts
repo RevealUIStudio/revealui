@@ -69,7 +69,7 @@ export const users = pgTable(
 
     // MFA/2FA (TOTP-based)
     mfaEnabled: boolean('mfa_enabled').default(false).notNull(),
-    mfaSecret: text('mfa_secret'), // Base32-encoded TOTP secret (encrypted at rest via DB-level encryption)
+    mfaSecret: text('mfa_secret'), // AES-256-GCM encrypted TOTP secret (app-level encryption via REVEALUI_KEK)
     mfaBackupCodes: jsonb('mfa_backup_codes').$type<string[]>(), // Bcrypt-hashed one-time recovery codes
     mfaVerifiedAt: timestamp('mfa_verified_at', { withTimezone: true }),
     mfaLastUsedCounter: integer('mfa_last_used_counter'), // TOTP time counter of last used code (replay prevention)

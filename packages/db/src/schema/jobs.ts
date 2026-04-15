@@ -6,7 +6,8 @@
  * No external dependencies (no Redis, no pg-boss)  -  pure Drizzle ORM.
  */
 
-import { index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { check, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Jobs Table
@@ -60,6 +61,7 @@ export const jobs = pgTable(
     index('jobs_state_start_after_idx').on(table.state, table.startAfter),
     index('jobs_name_idx').on(table.name),
     index('jobs_state_idx').on(table.state),
+    check('jobs_state_check', sql`state IN ('created', 'active', 'completed', 'failed', 'retry')`),
   ],
 );
 

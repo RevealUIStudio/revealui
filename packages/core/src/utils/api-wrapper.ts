@@ -5,8 +5,6 @@
  * error handling, and logging.
  */
 
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 import { handleApiError } from './errors.js';
 import { logger } from './logger.js';
 import {
@@ -18,7 +16,7 @@ import {
 /**
  * API route handler function
  */
-export type ApiHandler<T = unknown> = (request: NextRequest) => Promise<Response | NextResponse<T>>;
+export type ApiHandler = (request: Request) => Promise<Response>;
 
 /**
  * Wrap an API route handler with request context, logging, and error handling
@@ -37,23 +35,23 @@ export type ApiHandler<T = unknown> = (request: NextRequest) => Promise<Response
  * ```typescript
  * // app/api/users/route.ts
  * import { withRequestContext } from '@revealui/core/utils/api-wrapper'
- * import { NextResponse } from 'next/server'
+ * // Uses standard Web API Request/Response
  *
  * export const GET = withRequestContext(async (request) => {
  *   // Request ID automatically available in logs
  *   logger.info('Fetching users') // Includes requestId automatically
  *
  *   const users = await db.query.users.findMany()
- *   return NextResponse.json(users)
+ *   return Response.json(users)
  * })
  * ```
  */
-export function withRequestContext<T = unknown>(handler: ApiHandler<T>): ApiHandler<T> {
-  return async (request: NextRequest): Promise<Response | NextResponse<T>> => {
+export function withRequestContext(handler: ApiHandler): ApiHandler {
+  return async (request: Request): Promise<Response> => {
     // Create request context from headers
     const context = createRequestContext({
       headers: Object.fromEntries(request.headers.entries()),
-      path: request.nextUrl.pathname,
+      path: new URL(request.url).pathname,
       method: request.method,
       ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
     });
@@ -80,10 +78,8 @@ export function withRequestContext<T = unknown>(handler: ApiHandler<T>): ApiHand
       });
 
       // Add request ID to response headers
-      if (response instanceof NextResponse) {
-        response.headers.set('x-request-id', context.requestId);
-        response.headers.set('x-request-duration', duration?.toString() || '0');
-      }
+      response.headers.set('x-request-id', context.requestId);
+      response.headers.set('x-request-duration', duration?.toString() || '0');
 
       return response;
     } catch (error) {
@@ -102,7 +98,7 @@ export function withRequestContext<T = unknown>(handler: ApiHandler<T>): ApiHand
         path: context.path,
       });
 
-      const errorResponse = NextResponse.json(
+      const errorResponse = Response.json(
         {
           error: {
             message: apiError.message,

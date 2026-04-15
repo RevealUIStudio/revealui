@@ -6,7 +6,17 @@
  * Deletion requests are append-only audit records.
  */
 
-import { boolean, index, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  check,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+} from 'drizzle-orm/pg-core';
 
 // =============================================================================
 // Consent Records
@@ -47,6 +57,10 @@ export const gdprConsents = pgTable(
     index('gdpr_consents_user_id_idx').on(table.userId),
     index('gdpr_consents_type_idx').on(table.type),
     index('gdpr_consents_granted_idx').on(table.granted),
+    check(
+      'gdpr_consents_type_check',
+      sql`type IN ('necessary', 'functional', 'analytics', 'marketing', 'personalization')`,
+    ),
   ],
 );
 
@@ -94,6 +108,10 @@ export const gdprDeletionRequests = pgTable(
     index('gdpr_deletion_requests_user_id_idx').on(table.userId),
     index('gdpr_deletion_requests_status_idx').on(table.status),
     index('gdpr_deletion_requests_requested_at_idx').on(table.requestedAt),
+    check(
+      'gdpr_deletion_requests_status_check',
+      sql`status IN ('pending', 'processing', 'completed', 'failed')`,
+    ),
   ],
 );
 
@@ -144,6 +162,11 @@ export const gdprBreaches = pgTable(
     index('gdpr_breaches_detected_at_idx').on(table.detectedAt),
     index('gdpr_breaches_status_idx').on(table.status),
     index('gdpr_breaches_severity_idx').on(table.severity),
+    check('gdpr_breaches_severity_check', sql`severity IN ('low', 'medium', 'high', 'critical')`),
+    check(
+      'gdpr_breaches_status_check',
+      sql`status IN ('detected', 'investigating', 'notified', 'resolved')`,
+    ),
   ],
 );
 

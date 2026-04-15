@@ -986,6 +986,11 @@ app.use('/api/studio-auth/*', noStore);
 app.use('/api/v1/studio-auth/*', noStore);
 app.use('/api/terminal-auth/*', noStore);
 app.use('/api/v1/terminal-auth/*', noStore);
+// console-auth: forward-compat alias for the desktop-client auth routes.
+// Same handler, same rate limits as /api/terminal-auth/*. Lets the Studio
+// DNS cutover target the new path without requiring an internal rename.
+app.use('/api/console-auth/*', noStore);
+app.use('/api/v1/console-auth/*', noStore);
 app.use('/api/api-keys/*', noStore);
 app.use('/api/v1/api-keys/*', noStore);
 app.use('/api/admin/*', noStore);
@@ -1040,6 +1045,10 @@ app.route('/api/studio-auth', studioAuthRoute);
 app.use('/api/terminal-auth/*', routeLimit('terminal-auth'));
 app.use('/api/v1/terminal-auth/*', routeLimit('terminal-auth'));
 app.route('/api/terminal-auth', terminalAuthRoute);
+// Alias mount (see comment above for console-auth no-store middleware).
+app.use('/api/console-auth/*', routeLimit('terminal-auth'));
+app.use('/api/v1/console-auth/*', routeLimit('terminal-auth'));
+app.route('/api/console-auth', terminalAuthRoute);
 
 // Terminal WebSocket bridge  -  daemon PTY sessions for remote access
 // Auth required: terminal sessions give PTY access to the server

@@ -1,0 +1,25 @@
+name: "RevealUI CodeQL config"
+
+# Exclude test files from analysis. CodeQL on test code is high-noise /
+# low-signal: taint-tracking rules fire on test fixtures, mock inputs, and
+# assertion helpers that never run in production. Real exploit surface
+# lives in source files, which are still analysed.
+paths-ignore:
+  - "**/__tests__/**"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/e2e/**"
+  - "**/*.e2e.ts"
+  - "**/test-fixtures/**"
+  - "**/*-corpus/**"
+
+# Dismissals for alerts in source files should use the GitHub UI/API with
+# a "false positive" + rationale comment, not path exclusions. The only
+# reason to add a rule-level exclusion here is if a sanitiser implementation
+# is persistently flagged by a rule that cannot model the sanitisation —
+# which is rare enough that per-alert dismissal is preferable.
+
+queries:
+  - uses: security-and-quality

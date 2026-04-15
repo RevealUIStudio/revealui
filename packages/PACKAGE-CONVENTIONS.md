@@ -4,6 +4,15 @@ Conventions for organizing packages in the RevealUI monorepo.
 
 See [CLAUDE.md](../CLAUDE.md) for the full package map and [docs/REFERENCE.md](../docs/REFERENCE.md) for API reference.
 
+## Naming: Apps vs Packages
+
+Monorepo-wide naming split, enforced on the `name` field in `package.json`:
+
+- **Apps** (`apps/*`): unscoped  -  `"admin"`, `"api"`, `"docs"`, `"marketing"`, `"studio"`. Never `@revealui/<app>`.
+- **Packages** (`packages/*`): scoped  -  `"@revealui/core"`, `"@revealui/security"`, etc.
+
+Rationale: apps are deploy targets, not consumable libraries; the `@revealui/` prefix is reserved for things that get published to npm.
+
 ## Directory Structure
 
 Packages with both server-side and client-side code follow `core/` + `client/`:

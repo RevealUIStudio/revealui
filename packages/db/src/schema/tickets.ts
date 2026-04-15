@@ -13,8 +13,10 @@
  * - ticketLabelAssignments: Junction table for ticket-label M:N
  */
 
+import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -218,6 +220,12 @@ export const tickets = pgTable(
     index('tickets_parent_ticket_id_idx').on(table.parentTicketId),
     index('tickets_reporter_id_idx').on(table.reporterId),
     uniqueIndex('tickets_board_ticket_number_idx').on(table.boardId, table.ticketNumber),
+    check(
+      'tickets_status_check',
+      sql`status IN ('backlog', 'todo', 'in_progress', 'review', 'done', 'closed')`,
+    ),
+    check('tickets_priority_check', sql`priority IN ('critical', 'high', 'medium', 'low')`),
+    check('tickets_type_check', sql`type IN ('bug', 'feature', 'task', 'improvement', 'epic')`),
   ],
 );
 

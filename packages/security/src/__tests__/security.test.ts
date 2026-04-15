@@ -2,7 +2,7 @@
  * Security Tests
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuditSystem, InMemoryAuditStorage } from '../audit';
 import { PasswordHasher, TwoFactorAuth } from '../auth';
 import { AuthorizationSystem, PolicyBuilder } from '../authorization';
@@ -348,12 +348,18 @@ describe('GDPR Compliance', () => {
     });
 
     it('should handle consent expiration', async () => {
-      await consent.grantConsent('123', 'analytics', 'explicit', 500);
-
-      // Wait for expiration (200ms margin avoids flaky failures from GC/timer jitter)
-      await new Promise((resolve) => setTimeout(resolve, 700));
-
-      expect(await consent.hasConsent('123', 'analytics')).toBe(false);
+      // Deterministic time: ConsentManager stores expiresAt from Date.now()
+      // and compares with new Date() in hasConsent, so vi.setSystemTime is
+      // sufficient. No real timers, no flake under CPU load.
+      vi.useFakeTimers();
+      try {
+        vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+        await consent.grantConsent('123', 'analytics', 'explicit', 500);
+        vi.setSystemTime(new Date('2026-01-01T00:00:00.600Z'));
+        expect(await consent.hasConsent('123', 'analytics')).toBe(false);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

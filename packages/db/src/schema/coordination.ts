@@ -8,8 +8,10 @@
  * Used by: admin dashboard (agent activity), Forge customers (multi-machine coordination)
  */
 
+import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -59,6 +61,7 @@ export const coordinationSessions = pgTable(
   (table) => [
     index('coordination_sessions_agent_status_idx').on(table.agentId, table.status),
     index('coordination_sessions_started_at_idx').on(table.startedAt),
+    check('coordination_sessions_status_check', sql`status IN ('active', 'ended', 'crashed')`),
   ],
 );
 
@@ -124,7 +127,13 @@ export const coordinationWorkItems = pgTable(
       .notNull(),
     completedAt: timestamp('completed_at', { withTimezone: true }),
   },
-  (table) => [index('coordination_work_items_status_owner_idx').on(table.status, table.ownerAgent)],
+  (table) => [
+    index('coordination_work_items_status_owner_idx').on(table.status, table.ownerAgent),
+    check(
+      'coordination_work_items_status_check',
+      sql`status IN ('open', 'claimed', 'done', 'cancelled')`,
+    ),
+  ],
 );
 
 // =============================================================================
@@ -163,6 +172,10 @@ export const coordinationQueueItems = pgTable(
   },
   (table) => [
     index('coordination_queue_target_consumed_idx').on(table.targetAgent, table.consumed),
+    check(
+      'coordination_queue_items_priority_check',
+      sql`priority IN ('low', 'normal', 'high', 'urgent')`,
+    ),
   ],
 );
 

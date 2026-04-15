@@ -4,7 +4,17 @@
  * These tables provide content management functionality for the admin app.
  */
 
-import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import {
+  boolean,
+  check,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -66,6 +76,7 @@ export const posts = pgTable(
     index('posts_author_id_idx').on(table.authorId),
     index('posts_featured_image_id_idx').on(table.featuredImageId),
     index('posts_deleted_at_idx').on(table.deletedAt),
+    check('posts_status_check', sql`status IN ('draft', 'published', 'archived')`),
   ],
 );
 

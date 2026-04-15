@@ -143,6 +143,10 @@ export const agentMemories = pgTable(
     index('agent_memories_verified_idx').on(table.verified),
     index('agent_memories_expires_at_idx').on(table.expiresAt),
     index('agent_memories_type_idx').on(table.type),
+    check(
+      'agent_memories_type_check',
+      sql`type IN ('fact', 'preference', 'decision', 'feedback', 'example', 'correction', 'skill', 'warning')`,
+    ),
   ],
 );
 
@@ -183,6 +187,7 @@ export const conversations = pgTable(
   (table) => [
     index('conversations_user_id_idx').on(table.userId),
     index('conversations_status_idx').on(table.status),
+    check('conversations_status_check', sql`status IN ('active', 'archived', 'ended')`),
   ],
 );
 
@@ -211,6 +216,7 @@ export const messages = pgTable(
   (table) => [
     index('messages_conversation_id_idx').on(table.conversationId),
     index('messages_role_idx').on(table.role),
+    check('messages_role_check', sql`role IN ('user', 'assistant', 'system')`),
   ],
 );
 
@@ -218,37 +224,46 @@ export const messages = pgTable(
 // User Devices Table (for multi-device sync)
 // =============================================================================
 
-export const userDevices = pgTable('user_devices', {
-  // Primary identifier
-  id: text('id').primaryKey(),
+export const userDevices = pgTable(
+  'user_devices',
+  {
+    // Primary identifier
+    id: text('id').primaryKey(),
 
-  // Relationships
-  userId: text('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  deviceId: text('device_id').notNull().unique(),
+    // Relationships
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    deviceId: text('device_id').notNull().unique(),
 
-  // Device information
-  deviceName: text('device_name'),
-  deviceType: text('device_type'), // 'desktop', 'mobile', 'tablet', 'cli'
-  userAgent: text('user_agent'),
+    // Device information
+    deviceName: text('device_name'),
+    deviceType: text('device_type'), // 'desktop', 'mobile', 'tablet', 'cli'
+    userAgent: text('user_agent'),
 
-  // Device auth (Studio/CLI → API bearer token)
-  tokenHash: text('token_hash'),
-  tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
-  tokenIssuedAt: timestamp('token_issued_at', { withTimezone: true }),
+    // Device auth (Studio/CLI → API bearer token)
+    tokenHash: text('token_hash'),
+    tokenExpiresAt: timestamp('token_expires_at', { withTimezone: true }),
+    tokenIssuedAt: timestamp('token_issued_at', { withTimezone: true }),
 
-  // Sync status
-  lastSeen: timestamp('last_seen', { withTimezone: true }).defaultNow(),
-  isActive: boolean('is_active').default(true),
+    // Sync status
+    lastSeen: timestamp('last_seen', { withTimezone: true }).defaultNow(),
+    isActive: boolean('is_active').default(true),
 
-  // Timestamps
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .$onUpdateFn(() => new Date())
-    .defaultNow()
-    .notNull(),
-});
+    // Timestamps
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .$onUpdateFn(() => new Date())
+      .defaultNow()
+      .notNull(),
+  },
+  () => [
+    check(
+      'user_devices_device_type_check',
+      sql`device_type IS NULL OR device_type IN ('desktop', 'mobile', 'tablet', 'cli')`,
+    ),
+  ],
+);
 
 // =============================================================================
 // Sync Metadata Table (for tracking sync state)
@@ -327,6 +342,10 @@ export const agentActions = pgTable(
     index('agent_actions_conversation_id_idx').on(table.conversationId),
     index('agent_actions_agent_id_idx').on(table.agentId),
     index('agent_actions_status_idx').on(table.status),
+    check(
+      'agent_actions_status_check',
+      sql`status IN ('pending', 'running', 'completed', 'failed', 'cancelled')`,
+    ),
   ],
 );
 

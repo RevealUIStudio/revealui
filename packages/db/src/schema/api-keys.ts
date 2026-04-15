@@ -6,7 +6,8 @@
  * Only the last 4 characters are stored in plaintext (keyHint) for UI display.
  */
 
-import { boolean, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { boolean, check, index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 import { users } from './users.js';
 
 // =============================================================================
@@ -50,6 +51,10 @@ export const userApiKeys = pgTable(
     index('user_api_keys_user_id_idx').on(table.userId),
     index('user_api_keys_user_provider_idx').on(table.userId, table.provider),
     index('user_api_keys_deleted_at_idx').on(table.deletedAt),
+    check(
+      'user_api_keys_provider_check',
+      sql`provider IN ('ollama', 'huggingface', 'vultr', 'inference-snaps')`,
+    ),
   ],
 );
 
