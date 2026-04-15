@@ -641,10 +641,10 @@ Phase D  -  Agent publisher tools (agent):
 
 **Deliverables:**
 - [x] Initial sweep completed 2026-04-13 — no `.gitmodules` found anywhere in `~/suite/`
-- [ ] Scripted audit: `scripts/audit-no-submodules.sh` — runs the four checks (root file, `.git/modules/`, `git config`, tree gitlinks) and exits non-zero on any hit
-- [ ] GitHub Actions workflow `no-submodules.yml` — runs the script on every PR and on a weekly cron (GitHub Actions cron, not Vercel; free-plan Vercel is capped at 1 cron/day and reserved for app jobs) across all RevealUIStudio repos via matrix
-- [ ] Document in repo templates: no submodules; use workspace `workspace:*` or published npm dep instead
-- [ ] Remediation runbook: if a submodule is ever found, convert it to a published dep or a vendored copy with clear provenance — never leave the submodule link in place
+- [x] Scripted audit: `scripts/audit-no-submodules.sh` — runs the four checks (root file, `.git/modules/`, `git config`, tree gitlinks) and exits non-zero on any hit (2026-04-15)
+- [x] GitHub Actions workflow `no-submodules.yml` — runs on every PR + push to main/test + weekly Sunday 6 AM UTC cron (2026-04-15)
+- [x] Policy + remediation doc: `docs/submodules/POLICY.md` — no submodules rule, CI enforcement, conversion runbook (2026-04-15)
+- [x] Remediation runbook: rolled into `docs/submodules/POLICY.md` — convert to published dep or vendor with provenance (2026-04-15)
 
 **Exit criteria:** CI blocks any `.gitmodules` addition org-wide; weekly cron proves zero drift; a new contributor can't accidentally add one without the PR failing.
 
