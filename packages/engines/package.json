@@ -1,0 +1,34 @@
+{
+  "name": "@revealui/engines",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Unified entry point for the five RevealUI business primitives: users, content, products, payments, intelligence",
+  "license": "FSL-1.1-MIT",
+  "type": "module",
+  "dependencies": {
+    "@revealui/auth": "workspace:*",
+    "@revealui/contracts": "workspace:*",
+    "@revealui/core": "workspace:*",
+    "@revealui/db": "workspace:*",
+    "@revealui/services": "workspace:*",
+    "@revealui/ai": "workspace:*"
+  },
+  "peerDependencies": {
+    "typescript": "^6.0.2"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./users": "./src/users/index.ts",
+    "./content": "./src/content/index.ts",
+    "./products": "./src/products/index.ts",
+    "./payments": "./src/payments/index.ts",
+    "./intelligence": "./src/intelligence/index.ts"
+  },
+  "scripts": {
+    "build": "echo 'Source-only package — consumed via tsconfig paths, no build needed'",
+    "dev": "echo 'Source-only package — no watch mode needed'",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  }
+}

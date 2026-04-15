@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ESNext"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "strict": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "declaration": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "types": ["node"],
+    "paths": {
+      "@revealui/auth": ["../auth/src/index.ts"],
+      "@revealui/auth/*": ["../auth/src/*"],
+      "@revealui/contracts": ["../contracts/src/index.ts"],
+      "@revealui/contracts/*": ["../contracts/src/*"],
+      "@revealui/core": ["../core/src/index.ts"],
+      "@revealui/core/*": ["../core/src/*"],
+      "@revealui/db": ["../db/src/index.ts"],
+      "@revealui/db/*": ["../db/src/*"],
+      "@revealui/services": ["../services/src/index.ts"],
+      "@revealui/services/*": ["../services/src/*"],
+      "@revealui/ai": ["../ai/src/index.ts"],
+      "@revealui/ai/*": ["../ai/src/*"]
+    }
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules"]
+}
