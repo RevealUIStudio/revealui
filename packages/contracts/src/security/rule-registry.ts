@@ -52,6 +52,7 @@ export const AD_HOC_SANITIZER_RULE: SecurityRule = {
     'Detects sanitization or escaping logic implemented outside @revealui/security. All untrusted-string sinks must use the canonical helpers.',
   severity: 'warning',
   category: 'sanitization',
+  cwe: 'CWE-116',
   remediation:
     'Use the appropriate helper from @revealui/security: sanitizeHtml, sanitizeTerminalLine, escapeShellArg, escapeSqlIdentifier, redactLogField, or sanitizeUrl.',
 };
