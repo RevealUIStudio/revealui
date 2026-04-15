@@ -1067,7 +1067,7 @@ importers:
   packages/engines:
     dependencies:
       '@revealui/ai':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../ai
       '@revealui/auth':
         specifier: workspace:*
