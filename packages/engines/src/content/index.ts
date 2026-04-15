@@ -4,71 +4,47 @@
  * Re-exports from @revealui/core, @revealui/db, and @revealui/contracts.
  */
 
-// ── Core: configuration & factories ─────────────────────────────────────────
-export {
-  buildConfig,
-  createRevealUI,
-  createRevealUICollection,
-  createRevealUIField,
-  createRevealUIBlock,
-  getRevealUI,
-  universalPostgresAdapter,
-} from '@revealui/core';
-
-// ── Core: rich text ─────────────────────────────────────────────────────────
-export {
-  lexicalEditor,
-  BoldFeature,
-  ItalicFeature,
-  UnderlineFeature,
-  HeadingFeature,
-  LinkFeature,
-  FixedToolbarFeature,
-  serializeLexicalState,
-} from '@revealui/core';
-
-// ── Core: access control helpers ────────────────────────────────────────────
-export { anyone, authenticated } from '@revealui/core';
-
-// ── Core: plugins ───────────────────────────────────────────────────────────
-export {
-  formBuilderPlugin,
-  nestedDocsPlugin,
-  redirectsPlugin,
-} from '@revealui/core';
-
-// ── Core: collection & field types ──────────────────────────────────────────
-export type {
-  Block,
-  BlocksField,
-  CheckboxField,
-  CollectionConfig,
-  Field,
-  GlobalConfig,
-  GroupField,
-  TextField,
-} from '@revealui/core';
-
-// ── DB: content tables ──────────────────────────────────────────────────────
-export {
-  pages,
-  pageRevisions,
-  sites,
-  siteCollaborators,
-  posts,
-  media,
-} from '@revealui/db';
-
 // ── Contracts: page schemas ─────────────────────────────────────────────────
+// ── Contracts: site schemas ─────────────────────────────────────────────────
+// ── Contracts: content blocks ───────────────────────────────────────────────
 export {
+  type AccordionBlock,
+  BLOCK_SCHEMA_VERSION,
+  type BlockType,
+  type ButtonBlock,
+  type CodeBlock,
+  type ColumnsBlock,
   type CreatePageInput,
   CreatePageInputSchema,
-  createPage,
+  type CreateSiteInput,
+  CreateSiteInputSchema,
+  canAgentEditSite,
+  canUserPerformAction,
   computePagePath,
+  countBlocks,
+  createCodeBlock,
+  createHeadingBlock,
+  createImageBlock,
+  createPage,
+  createSite,
+  createTextBlock,
+  type DividerBlock,
+  type EmbedBlock,
   estimateWordCount,
+  findBlockById,
+  type GridBlock,
   getPageBreadcrumbs,
-  isPageLocked,
+  type HeadingBlock,
+  type ImageBlock,
+  isColumnsBlock,
+  isContainerBlock,
+  isGridBlock,
+  isHeadingBlock,
+  isImageBlock,
   isLockedByUser,
+  isPageLocked,
+  isTextBlock,
+  type ListBlock,
   PAGE_SCHEMA_VERSION,
   type Page,
   type PageLock,
@@ -78,17 +54,7 @@ export {
   PageSeoSchema,
   type PageStatus,
   PageStatusSchema,
-  type UpdatePageInput,
-  UpdatePageInputSchema,
-} from '@revealui/contracts';
-
-// ── Contracts: site schemas ─────────────────────────────────────────────────
-export {
-  type CreateSiteInput,
-  CreateSiteInputSchema,
-  createSite,
-  canUserPerformAction,
-  canAgentEditSite,
+  type QuoteBlock,
   SITE_SCHEMA_VERSION,
   type Site,
   type SiteCollaborator,
@@ -102,41 +68,60 @@ export {
   SiteStatusSchema,
   type SiteTheme,
   SiteThemeSchema,
+  type SpacerBlock,
+  type TableBlock,
+  type TabsBlock,
+  type TextBlock,
+  type UpdatePageInput,
+  UpdatePageInputSchema,
   type UpdateSiteInput,
   UpdateSiteInputSchema,
-} from '@revealui/contracts';
-
-// ── Contracts: content blocks ───────────────────────────────────────────────
-export {
-  BLOCK_SCHEMA_VERSION,
-  type BlockType,
-  type TextBlock,
-  type HeadingBlock,
-  type ImageBlock,
   type VideoBlock,
-  type ButtonBlock,
-  type CodeBlock,
-  type DividerBlock,
-  type SpacerBlock,
-  type QuoteBlock,
-  type ListBlock,
-  type TableBlock,
-  type GridBlock,
-  type ColumnsBlock,
-  type EmbedBlock,
-  type AccordionBlock,
-  type TabsBlock,
-  findBlockById,
   walkBlocks,
-  countBlocks,
-  isContainerBlock,
-  isColumnsBlock,
-  isGridBlock,
-  isHeadingBlock,
-  isImageBlock,
-  isTextBlock,
-  createTextBlock,
-  createHeadingBlock,
-  createImageBlock,
-  createCodeBlock,
 } from '@revealui/contracts';
+// ── Core: collection & field types ──────────────────────────────────────────
+export type {
+  Block,
+  BlocksField,
+  CheckboxField,
+  CollectionConfig,
+  Field,
+  GlobalConfig,
+  GroupField,
+  TextField,
+} from '@revealui/core';
+// ── Core: configuration & factories ─────────────────────────────────────────
+// ── Core: rich text ─────────────────────────────────────────────────────────
+// ── Core: access control helpers ────────────────────────────────────────────
+// ── Core: plugins ───────────────────────────────────────────────────────────
+export {
+  anyone,
+  authenticated,
+  BoldFeature,
+  buildConfig,
+  createRevealUI,
+  createRevealUIBlock,
+  createRevealUICollection,
+  createRevealUIField,
+  FixedToolbarFeature,
+  formBuilderPlugin,
+  getRevealUI,
+  HeadingFeature,
+  ItalicFeature,
+  LinkFeature,
+  lexicalEditor,
+  nestedDocsPlugin,
+  redirectsPlugin,
+  serializeLexicalState,
+  UnderlineFeature,
+  universalPostgresAdapter,
+} from '@revealui/core';
+// ── DB: content tables ──────────────────────────────────────────────────────
+export {
+  media,
+  pageRevisions,
+  pages,
+  posts,
+  siteCollaborators,
+  sites,
+} from '@revealui/db';

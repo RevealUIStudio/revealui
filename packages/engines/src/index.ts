@@ -14,8 +14,8 @@
  * ```
  */
 
-export * as users from './users/index.js';
 export * as content from './content/index.js';
-export * as products from './products/index.js';
-export * as payments from './payments/index.js';
 export * as intelligence from './intelligence/index.js';
+export * as payments from './payments/index.js';
+export * as products from './products/index.js';
+export * as users from './users/index.js';

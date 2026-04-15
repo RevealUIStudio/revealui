@@ -10,10 +10,10 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
-    "@revealui/services": "workspace:*",
-    "@revealui/ai": "workspace:*"
+    "@revealui/services": "workspace:*"
   },
   "peerDependencies": {
+    "@revealui/ai": "workspace:^",
     "typescript": "^6.0.2"
   },
   "exports": {

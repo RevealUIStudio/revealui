@@ -4,60 +4,52 @@
  * Re-exports from @revealui/services, @revealui/db, and @revealui/core.
  */
 
-// ── Services: Stripe ────────────────────────────────────────────────────────
-export {
-  checkServicesLicense,
-  getStripe,
-  protectedStripe,
-  createPaymentIntent,
-} from '@revealui/services';
-
-// ── Services: Supabase ──────────────────────────────────────────────────────
-export {
-  createServerClient,
-  createBrowserClient,
-  createServerClientFromRequest,
-} from '@revealui/services';
-
-// ── Services: RevealCoin payments ───────────────────────────────────────────
-export {
-  getRvuiBalance,
-  verifyRvuiPayment,
-  configureRevealCoin,
-  getRevealCoinConfig,
-  configurePriceOracle,
-  fetchRvuiPrice,
-  startPriceOracle,
-  stopPriceOracle,
-  rvuiToUsd,
-  usdToRvui,
-  configureSafeguards,
-  validatePayment,
-} from '@revealui/services';
-
-// ── DB: billing tables ──────────────────────────────────────────────────────
-export {
-  accounts,
-  accountMemberships,
-  accountSubscriptions,
-  accountEntitlements,
-  usageMeters,
-  licenses,
-} from '@revealui/db';
-
 // ── Core: license & feature gates ───────────────────────────────────────────
 export {
-  isLicensed,
-  isFeatureEnabled,
+  generateLicenseKey,
   getCurrentTier,
-  getRequiredTier,
   getFeatures,
   getFeaturesForTier,
-  initializeLicense,
-  validateLicenseKey,
-  generateLicenseKey,
   getMaxSites,
   getMaxUsers,
+  getRequiredTier,
+  initializeLicense,
+  isFeatureEnabled,
+  isLicensed,
   type LicensePayload,
   type LicenseTier,
+  validateLicenseKey,
 } from '@revealui/core';
+// ── DB: billing tables ──────────────────────────────────────────────────────
+export {
+  accountEntitlements,
+  accountMemberships,
+  accountSubscriptions,
+  accounts,
+  licenses,
+  usageMeters,
+} from '@revealui/db';
+// ── Services: Stripe ────────────────────────────────────────────────────────
+// ── Services: Supabase ──────────────────────────────────────────────────────
+// ── Services: RevealCoin payments ───────────────────────────────────────────
+export {
+  checkServicesLicense,
+  configurePriceOracle,
+  configureRevealCoin,
+  configureSafeguards,
+  createBrowserClient,
+  createPaymentIntent,
+  createServerClient,
+  createServerClientFromRequest,
+  fetchRvuiPrice,
+  getRevealCoinConfig,
+  getRvuiBalance,
+  getStripe,
+  protectedStripe,
+  rvuiToUsd,
+  startPriceOracle,
+  stopPriceOracle,
+  usdToRvui,
+  validatePayment,
+  verifyRvuiPayment,
+} from '@revealui/services';
