@@ -51,11 +51,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build setup + cli packages
-        run: pnpm --filter @revealui/setup --filter @revealui/cli build
+      - name: Build cli + dependencies
+        run: pnpm --filter @revealui/cli... build
 
       - name: Run system scan (JSON)
-        run: node packages/cli/dist/cli.js system scan --json > scan-output.json
+        shell: bash
+        run: node packages/cli/dist/cli.js system scan --json > scan-output.json 2>scan-stderr.txt || true
+
+      - name: Show stderr (if any)
+        if: always()
+        shell: bash
+        run: cat scan-stderr.txt 2>/dev/null || true
 
       - name: Show scan output
         run: cat scan-output.json
