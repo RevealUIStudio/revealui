@@ -12,6 +12,8 @@
 export * from './bootstrap/index.js';
 // Environment setup
 export * from './environment/index.js';
+// System Tune (hardware-aware auto-config)
+export * from './system-tune/index.js';
 // Utilities
 export * from './utils/index.js';
 // Validators

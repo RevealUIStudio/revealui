@@ -1,0 +1,43 @@
+{
+  "$schema": "../profile-schema.json",
+  "id": "wsl-low-ram",
+  "name": "WSL2 Low-RAM Host",
+  "description": "Safe defaults for WSL2 on hosts with ≤8 GB RAM. Prevents the VM from starving Windows by capping memory, disabling aggressive reclaim, and keeping Docker off by default.",
+  "version": "0.1.0",
+  "origin": "2026-04-13 crash postmortem: WSL on 7.3 GB host claimed ~6 GB, starving Windows. Hand-authored fix captured as seed profile.",
+  "match": {
+    "platform": "wsl2",
+    "maxHostRamGb": 8
+  },
+  "tune": {
+    "wslconfig": {
+      "memory": "4GB",
+      "processors": 2,
+      "swap": "2GB",
+      "vmIdleTimeout": -1,
+      "autoMemoryReclaim": "disabled",
+      "networkingMode": "mirrored"
+    },
+    "node": {
+      "maxOldSpaceSize": 2048
+    },
+    "pnpm": {
+      "childConcurrency": 2
+    },
+    "turbo": {
+      "concurrency": 2
+    },
+    "vitest": {
+      "maxThreads": 2
+    },
+    "earlyoom": {
+      "enabled": true,
+      "memThreshold": 5,
+      "swapThreshold": 10,
+      "prefer": "turbo|biome|vitest|tsc|esbuild"
+    },
+    "docker": {
+      "autostart": false
+    }
+  }
+}
