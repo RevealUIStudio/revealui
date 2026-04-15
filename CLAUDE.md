@@ -171,7 +171,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 
 ## Build & Security Status
 - 31 workspaces build and typecheck clean
-- 20,000+ tests across 938 test files
+- 20,000+ tests across 1,676 test files
 - 36 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - 0 GitHub CodeQL alerts, 0 Dependabot alerts (as of 2026-04-12)

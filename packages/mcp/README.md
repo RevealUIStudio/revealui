@@ -11,7 +11,7 @@ Centralized MCP server infrastructure, configuration, and documentation for Reve
 
 This package contains everything MCP-related:
 
-- **7 MCP Servers** - Code validator, Vercel, Stripe, Neon, Supabase, Playwright, Next.js DevTools
+- **10 MCP Servers** - Code validator, Vercel, Stripe, Neon, Supabase, Playwright, Next.js DevTools, RevealUI Content, RevealUI Email, RevealUI Stripe
 - **Configuration Templates** - For Claude Code / Claude Desktop
 - **Utilities** - Config management, database adapters
 - **Documentation** - Complete guides and per-server docs

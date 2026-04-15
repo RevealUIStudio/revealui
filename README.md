@@ -36,7 +36,7 @@ You have:
 - **Billing:** Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard:** manage users, content, billing, and settings out of the box
 - **57 UI components:** built with Tailwind CSS v4, zero external UI dependencies
-- **11 MCP servers:** agents discover and use your business data through the same API humans use
+- **10 MCP servers:** agents discover and use your business data through the same API humans use
 - **Type-safe throughout:** Zod schemas shared between client, server, database, and agent tools
 
 No assembly required. Define your data once. Humans manage it through the dashboard, agents operate on it through MCP. Same permissions, same audit trail.
@@ -49,7 +49,7 @@ No assembly required. Define your data once. Humans manage it through the dashbo
 | **Content**      | Collections, rich text (Lexical), media, draft/live, REST API    | Collections auto-exposed as MCP tools. No integration step.  |
 | **Products**     | Product catalog, pricing tiers, usage tracking                   | Feature gates control which agent capabilities unlock.       |
 | **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal         | x402 micropayments via RevealCoin. Agents transact natively. |
-| **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 11 MCP servers.                   |
+| **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 10 MCP servers.                   |
 
 ## The JOSHUA Stack
 
@@ -58,7 +58,7 @@ Six principles that give you a tested starting point for every architectural dec
 | Principle | What it means |
 | --- | --- |
 | **Justifiable** | Every default earns its place. No magic, no hidden complexity, no decisions you can't explain to your team. |
-| **Orthogonal** | Clean separation of concerns across 22 packages. Use what you need, replace what you don't. Zero circular dependencies. |
+| **Orthogonal** | Clean separation of concerns across 21 packages. Use what you need, replace what you don't. Zero circular dependencies. |
 | **Sovereign** | Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No vendor holds your business hostage. |
 | **Hermetic** | Auth doesn't leak into billing. Content doesn't tangle with payments. Sealed boundaries, clean contracts between every layer. |
 | **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |
@@ -162,7 +162,6 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | [`@revealui/security`](packages/security)               | Headers, CORS, RBAC/ABAC, encryption, audit       |
 | [`@revealui/dev`](packages/dev)                         | Shared configs (Biome, TypeScript, Tailwind)      |
 | [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery |
-| [`@revealui/editors`](packages/editors)                 | Editor config sync (Zed, VS Code, Cursor)         |
 | [`@revealui/services`](packages/services)               | Stripe + Supabase integrations                    |
 | [`@revealui/test`](packages/test)                       | E2E specs, integration tests, fixtures, mocks     |
 | [`create-revealui`](packages/create-revealui)           | `npm create revealui` initializer                 |

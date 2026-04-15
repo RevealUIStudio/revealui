@@ -52,7 +52,7 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 **Project Overview**
 
 - **Framework**: RevealUI  -  Full-stack React 19 + Next.js 16 Admin Framework
-- **Package Count**: 22 packages (17 OSS + 5 Pro)
+- **Package Count**: 21 packages (19 OSS + 2 Pro)
 - **Test Status**: 1,300+ test files, all packages build and typecheck ✅
 - **Build Status**: All 30 workspaces build successfully ✅
 
