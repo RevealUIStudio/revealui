@@ -35,3 +35,8 @@ export {
   type ConsoleUsage,
   categorizeFile,
 } from './console-analyzer.js';
+export {
+  findSanitizerUsageIssues,
+  type SanitizerUsageIssue,
+  type SanitizerUsageIssueKind,
+} from './sanitizer-usage-analyzer.js';
