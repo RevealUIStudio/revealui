@@ -1,8 +1,8 @@
 import type { RevealUser } from '@revealui/core';
+import type { Tenant } from '@revealui/core/generated/types/admin';
 import type { Role } from '@/lib/access/permissions/roles';
 import type { AccessLevel } from '@/lib/access/roles/hasAnyRole';
 import { hasRole } from '@/lib/access/roles/hasRole';
-import type { Tenant } from '../../../types/index';
 
 export interface TenantAccess extends Tenant {
   tenantId: string; // FK to Tenant collection in RevealUI admin or Supabase

@@ -10,12 +10,12 @@
  */
 
 import type { AgentDefinition } from '@revealui/contracts/agents';
+import { deepClone } from '@revealui/core/utils/deep-clone';
 import { LWWRegister, type LWWRegisterData } from '../crdt/lww-register.js';
 import { ORSet, type ORSetData } from '../crdt/or-set.js';
 import type { PNCounterData } from '../crdt/pn-counter.js';
 import type { CRDTPersistence } from '../persistence/crdt-persistence.js';
 import type { SyncManager } from '../sync/sync-manager.js';
-import { deepClone } from '../utils/deep-clone.js';
 
 // =============================================================================
 // Types

@@ -178,7 +178,8 @@ describe('database connection failures', () => {
       const error = createSystemError('connect ECONNREFUSED 127.0.0.1:5432', 'ECONNREFUSED');
       mockPoolState.connectFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.connect()).rejects.toThrow('ECONNREFUSED');
     });
   });
@@ -202,7 +203,8 @@ describe('database connection failures', () => {
       const error = new Error('timeout expired');
       mockPoolState.connectFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.connect()).rejects.toThrow('timeout expired');
     });
 
@@ -239,7 +241,8 @@ describe('database connection failures', () => {
       const error = new Error('Timed out waiting for available connection in pool');
       mockPoolState.connectFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.connect()).rejects.toThrow('Timed out');
     });
 
@@ -288,10 +291,10 @@ describe('database connection failures', () => {
     });
 
     it('emits pool error event on unexpected connection termination', async () => {
-      const { pool: lazyPool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
 
-      // Pool creation is lazy  -  force initialization by accessing a property
-      void lazyPool.totalCount;
+      // Pool creation is lazy  -  force initialization by calling getPool
+      void getPool().totalCount;
 
       const errorHandlers = mockPoolState.eventHandlers.get('error') ?? [];
       expect(errorHandlers.length).toBeGreaterThan(0);
@@ -348,7 +351,8 @@ describe('database connection failures', () => {
       );
       mockPoolState.connectFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.connect()).rejects.toThrow('ENOTFOUND');
     });
 
@@ -359,7 +363,8 @@ describe('database connection failures', () => {
       );
       mockPoolState.connectFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
 
       try {
         await pool.connect();
@@ -391,7 +396,8 @@ describe('database connection failures', () => {
       const error = new Error('password authentication failed for user "testuser"');
       mockPoolState.connectFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.connect()).rejects.toThrow('password authentication failed');
     });
 
@@ -426,7 +432,8 @@ describe('database connection failures', () => {
       const error = createSystemError('certificate has expired', 'CERT_HAS_EXPIRED');
       mockPoolState.connectFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.connect()).rejects.toThrow('certificate has expired');
     });
 
@@ -437,7 +444,8 @@ describe('database connection failures', () => {
       );
       mockPoolState.connectFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.connect()).rejects.toThrow('altnames');
     });
 
@@ -448,7 +456,8 @@ describe('database connection failures', () => {
       );
       mockPoolState.connectFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.connect()).rejects.toThrow('protocol_version');
     });
   });
@@ -465,7 +474,8 @@ describe('database connection failures', () => {
       // First attempt fails, second succeeds
       mockPoolState.connectFn.mockRejectedValueOnce(error).mockResolvedValueOnce(mockClient);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
 
       // First connection attempt should fail
       await expect(pool.connect()).rejects.toThrow('ECONNREFUSED');
@@ -512,7 +522,8 @@ describe('database connection failures', () => {
     it('pool.end() resolves when all connections are released', async () => {
       mockPoolState.endFn.mockResolvedValue(undefined);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.end()).resolves.toBeUndefined();
       expect(mockPoolState.endFn).toHaveBeenCalledOnce();
     });
@@ -521,7 +532,8 @@ describe('database connection failures', () => {
       const error = new Error('Cannot end pool: active connections remain');
       mockPoolState.endFn.mockRejectedValue(error);
 
-      const { pool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
+      const pool = getPool();
       await expect(pool.end()).rejects.toThrow('active connections remain');
     });
 
@@ -590,10 +602,10 @@ describe('database connection failures', () => {
 
   describe('error event handling on idle clients', () => {
     it('registers an error event handler on pool creation', async () => {
-      const { pool: lazyPool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
 
-      // Pool creation is lazy  -  force initialization by accessing a property
-      void lazyPool.totalCount;
+      // Pool creation is lazy  -  force initialization by calling getPool
+      void getPool().totalCount;
 
       const errorHandlers = mockPoolState.eventHandlers.get('error');
       expect(errorHandlers).toBeDefined();
@@ -601,10 +613,10 @@ describe('database connection failures', () => {
     });
 
     it('error handler does not crash on non-Error objects', async () => {
-      const { pool: lazyPool } = await import('../../pool.js');
+      const { getPool } = await import('../../pool.js');
 
-      // Pool creation is lazy  -  force initialization by accessing a property
-      void lazyPool.totalCount;
+      // Pool creation is lazy  -  force initialization by calling getPool
+      void getPool().totalCount;
 
       const errorHandlers = mockPoolState.eventHandlers.get('error') ?? [];
 

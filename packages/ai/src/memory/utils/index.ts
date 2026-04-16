@@ -2,7 +2,6 @@
  * Utility functions
  */
 
-export { deepClone } from './deep-clone.js';
 export {
   findAgentContextById,
   findNodeIdMappingByEntity,

@@ -8,6 +8,7 @@
 import type { UserPreferences } from '@revealui/contracts/entities';
 import { UserPreferencesSchema } from '@revealui/contracts/entities';
 import { createLogger } from '@revealui/core/observability/logger';
+import { deepClone } from '@revealui/core/utils/deep-clone';
 import type { Database } from '@revealui/db/client';
 import { users } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
@@ -19,7 +20,6 @@ import {
   NotFoundError,
   ValidationError,
 } from '../errors/index.js';
-import { deepClone } from '../utils/deep-clone.js';
 import { findUserById } from '../utils/sql-helpers.js';
 
 // =============================================================================

@@ -27,7 +27,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { deepClone } from '../utils/deep-clone.js';
+import { deepClone } from '@revealui/core/utils/deep-clone';
 
 export interface LWWRegisterData<T> {
   value: T;
