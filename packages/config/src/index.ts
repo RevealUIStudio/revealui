@@ -329,4 +329,9 @@ export type {
   SupabaseConfig,
 };
 // Export validation functions
-export { formatValidationErrors, validateEnvVars };
+export { formatValidationErrors, validateAndThrow, validateEnvVars };
+
+// Export module-level config getters (documented in docs/REFERENCE.md as standalone helpers)
+export { getDatabaseConfig } from './modules/database.js';
+export { getRevealConfig } from './modules/reveal.js';
+export { getStripeConfig } from './modules/stripe.js';

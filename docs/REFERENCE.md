@@ -74,7 +74,7 @@ Next.js configuration wrapper. Merges RevealUI's webpack/Turbopack aliases, envi
 
 ```ts
 // next.config.ts
-import { withRevealUI } from "@revealui/core";
+import { withRevealUI } from "@revealui/core/nextjs/withRevealUI";
 
 export default withRevealUI(
   {
@@ -471,7 +471,7 @@ Requires a valid session (`req.user` must be present).
 Returns `true` if the user has the `'admin'` role.
 
 ```ts
-import { isAdmin } from '@revealui/core'
+import { isAdmin } from '@revealui/core/auth'
 
 access: { delete: isAdmin }
 ```
@@ -485,7 +485,7 @@ Returns `true` if the user has the `'super-admin'` role.
 Factory: returns an access function that requires a specific role.
 
 ```ts
-import { hasRole } from "@revealui/core";
+import { hasRole } from "@revealui/core/auth";
 
 access: {
   update: hasRole("editor");
@@ -497,7 +497,7 @@ access: {
 Factory: returns an access function that passes if the user has **any** of the given roles.
 
 ```ts
-import { hasAnyRole } from "@revealui/core";
+import { hasAnyRole } from "@revealui/core/auth";
 
 access: {
   create: hasAnyRole(["editor", "admin"]);
@@ -1540,11 +1540,8 @@ All tables are defined with Drizzle ORM and exported from subpath modules.
 ### Users & Auth
 
 ```ts
-import {
-  users,
-  sessions,
-  passwordResetTokens,
-} from "@revealui/db/schema/users";
+import { users, sessions } from "@revealui/db/schema/users";
+import { passwordResetTokens } from "@revealui/db/schema/password-reset-tokens";
 ```
 
 | Table                 | Key columns                                                         |
@@ -1585,7 +1582,9 @@ import {
 ### Audit & Monitoring
 
 ```ts
-import { auditLog, appLogs, errorEvents } from "@revealui/db/schema/rest";
+import { auditLog } from "@revealui/db/schema/audit-log";
+import { appLogs } from "@revealui/db/schema/app-logs";
+import { errorEvents } from "@revealui/db/schema/error-events";
 ```
 
 ---
@@ -2117,7 +2116,6 @@ import {
   Tabs,
   TabList,
   Tab,
-  TabPanels,
   TabPanel,
 } from "@revealui/presentation";
 

@@ -46,6 +46,9 @@ const CLI_VERSION: string = (cliRequire('../package.json') as { version: string 
 
 const logger = createLogger({ prefix: 'CLI' });
 
+// Re-export the programmatic project-creation API (documented in docs/REFERENCE.md).
+export { createProject, type CreateProjectConfig } from './commands/create.js';
+
 export interface CliOptions {
   template?: string;
   skipGit?: boolean;
