@@ -203,7 +203,7 @@ const sampleContent = {
       title: 'LAUNCH',
       name: 'RevealUI is Open Source',
       description:
-        'The core runtime is MIT-licensed and available on npm. 22 packages, 20,000+ tests, zero avoidable type errors. Run npx create-revealui to start building.',
+        'The core runtime is MIT-licensed and available on npm. 21 packages, 20,000+ tests, zero avoidable type errors. Run npx create-revealui to start building.',
       alt: 'RevealUI open source launch',
     },
     {
