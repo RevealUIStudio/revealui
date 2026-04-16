@@ -86,19 +86,6 @@ describe('pool module', () => {
     vi.resetModules();
   });
 
-  describe('pool export', () => {
-    it('exports a pool instance', async () => {
-      const { pool } = await import('../pool.js');
-      expect(pool).toBeDefined();
-    });
-
-    it('exports pool as default', async () => {
-      const mod = await import('../pool.js');
-      expect(mod.default).toBeDefined();
-      expect(mod.default).toBe(mod.pool);
-    });
-  });
-
   describe('checkDatabaseHealth', () => {
     it('returns healthy=true when connection succeeds', async () => {
       const mockClient = { query: vi.fn().mockResolvedValue({}), release: vi.fn() };
@@ -307,9 +294,9 @@ describe('pool module', () => {
       vi.resetModules();
 
       // Pool creation is lazy (deferred to first access via getPool()),
-      // so importing alone doesn't throw  -  accessing a pool property does.
-      const { pool: lazyPool } = await import('../pool.js');
-      expect(() => lazyPool.totalCount).toThrow(
+      // so importing alone doesn't throw  -  calling getPool() does.
+      const { getPool } = await import('../pool.js');
+      expect(() => getPool()).toThrow(
         'DATABASE_HOST (or DATABASE_URL / POSTGRES_URL) must be set in production',
       );
     });
@@ -321,8 +308,8 @@ describe('pool module', () => {
       });
       vi.resetModules();
 
-      const mod = await import('../pool.js');
-      expect(mod.pool).toBeDefined();
+      const { getPool } = await import('../pool.js');
+      expect(getPool()).toBeDefined();
     });
 
     it('does not throw in production when DATABASE_URL is set', async () => {
@@ -333,8 +320,8 @@ describe('pool module', () => {
       });
       vi.resetModules();
 
-      const mod = await import('../pool.js');
-      expect(mod.pool).toBeDefined();
+      const { getPool } = await import('../pool.js');
+      expect(getPool()).toBeDefined();
     });
 
     it('does not throw in development without any database env vars', async () => {
@@ -346,17 +333,17 @@ describe('pool module', () => {
       });
       vi.resetModules();
 
-      const mod = await import('../pool.js');
-      expect(mod.pool).toBeDefined();
+      const { getPool } = await import('../pool.js');
+      expect(getPool()).toBeDefined();
     });
   });
 
   describe('pool event handlers', () => {
     it('registers error, connect, acquire, and remove event handlers', async () => {
-      const { pool: lazyPool } = await import('../pool.js');
+      const { getPool } = await import('../pool.js');
 
-      // Pool creation is lazy  -  force initialization by accessing a property
-      void lazyPool.totalCount;
+      // Pool creation is lazy  -  force initialization by calling getPool
+      void getPool().totalCount;
 
       const eventNames = mockPoolInstance.on.mock.calls.map((call: [string, unknown]) => call[0]);
       expect(eventNames).toContain('error');
