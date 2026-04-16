@@ -278,6 +278,11 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
+        name: 'Messaging coverage',
+        command: 'pnpm',
+        args: ['validate:messaging'],
+      },
+      {
         name: 'Pro license validation',
         command: 'pnpm',
         args: ['validate:gitignore'],

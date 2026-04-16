@@ -1,0 +1,134 @@
+{
+  "totalThrows": 584,
+  "rawThrows": 489,
+  "typedThrows": 95,
+  "coveragePercent": 16.27,
+  "topRawThrowFiles": [
+    {
+      "file": "apps/api/src/routes/webhooks.ts",
+      "count": 18
+    },
+    {
+      "file": "packages/auth/src/server/oauth.ts",
+      "count": 15
+    },
+    {
+      "file": "packages/security/src/encryption.ts",
+      "count": 15
+    },
+    {
+      "file": "packages/ai/src/skills/loader/vercel-loader.ts",
+      "count": 10
+    },
+    {
+      "file": "packages/ai/src/llm/client.ts",
+      "count": 9
+    },
+    {
+      "file": "packages/core/src/instance/RevealUIInstance.ts",
+      "count": 9
+    },
+    {
+      "file": "packages/ai/src/skills/loader/github-loader.ts",
+      "count": 8
+    },
+    {
+      "file": "packages/cache/src/cdn-config.ts",
+      "count": 8
+    },
+    {
+      "file": "packages/db/src/crypto.ts",
+      "count": 8
+    },
+    {
+      "file": "apps/api/src/routes/agent-tasks.ts",
+      "count": 8
+    },
+    {
+      "file": "packages/core/src/license-encryption.ts",
+      "count": 7
+    },
+    {
+      "file": "apps/admin/src/lib/collections/Products/hooks/beforeChange.ts",
+      "count": 7
+    },
+    {
+      "file": "packages/core/src/collections/operations/update.ts",
+      "count": 6
+    },
+    {
+      "file": "packages/db/src/client/index.ts",
+      "count": 6
+    },
+    {
+      "file": "apps/admin/src/lib/collections/Prices/hooks/beforeChange.ts",
+      "count": 6
+    }
+  ],
+  "typedClassHistogram": [
+    {
+      "name": "DatabaseError",
+      "count": 31
+    },
+    {
+      "name": "ValidationError",
+      "count": 21
+    },
+    {
+      "name": "ScriptError",
+      "count": 14
+    },
+    {
+      "name": "APIError",
+      "count": 10
+    },
+    {
+      "name": "CrossDbReferenceError",
+      "count": 3
+    },
+    {
+      "name": "DatabaseConnectionError",
+      "count": 2
+    },
+    {
+      "name": "DatabaseConstraintError",
+      "count": 2
+    },
+    {
+      "name": "DatabaseOperationError",
+      "count": 2
+    },
+    {
+      "name": "TokenError",
+      "count": 2
+    },
+    {
+      "name": "ConfigValidationError",
+      "count": 2
+    },
+    {
+      "name": "MemoryError",
+      "count": 1
+    },
+    {
+      "name": "MigrationError",
+      "count": 1
+    },
+    {
+      "name": "NotFoundError",
+      "count": 1
+    },
+    {
+      "name": "OAuthAccountConflictError",
+      "count": 1
+    },
+    {
+      "name": "OwnerSlotError",
+      "count": 1
+    },
+    {
+      "name": "CircuitBreakerOpenError",
+      "count": 1
+    }
+  ]
+}

@@ -916,7 +916,7 @@ Holster: "Here is the shared state where coordination happens"
 - [ ] Add a CI check that verifies code samples in docs/ compile against current package exports (extract fenced code blocks, typecheck them)
 - [ ] Add a CI check that verifies CLI `--help` output matches the documented command reference
 - [ ] Add a pre-commit rule: if a public export is renamed or removed, require a corresponding docs/ change in the same commit
-- [ ] Track messaging coverage: percentage of error paths that have user-friendly messages vs raw throws
+- [x] **Messaging coverage tracker** ✅ 2026-04-16 — `scripts/validate/messaging-coverage.ts` (`pnpm validate:messaging`). Counts raw `throw new Error(...)` vs typed `throw new XxxError(...)` across all `packages/*/src` and `apps/*/src` TS/TSX (excluding tests/examples), computes a coverage % (currently **16.27%**, 95/584), and fails CI if coverage regresses more than 0.5pp vs the committed snapshot at `docs/reference/messaging-coverage.snapshot.json`. Ships hard-failing — the floor only moves up from here.
 
 ---
 
