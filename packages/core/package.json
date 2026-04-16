@@ -169,6 +169,22 @@
       "types": "./dist/api/rest.d.ts",
       "import": "./dist/api/rest.js"
     },
+    "./api/compression": {
+      "types": "./dist/api/compression.d.ts",
+      "import": "./dist/api/compression.js"
+    },
+    "./api/payload-optimization": {
+      "types": "./dist/api/payload-optimization.d.ts",
+      "import": "./dist/api/payload-optimization.js"
+    },
+    "./api/rate-limit": {
+      "types": "./dist/api/rate-limit.d.ts",
+      "import": "./dist/api/rate-limit.js"
+    },
+    "./api/response-cache": {
+      "types": "./dist/api/response-cache.d.ts",
+      "import": "./dist/api/response-cache.js"
+    },
     "./client": {
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js"
@@ -240,6 +256,10 @@
     "./monitoring/process-registry": {
       "types": "./dist/monitoring/process-registry.d.ts",
       "import": "./dist/monitoring/process-registry.js"
+    },
+    "./monitoring/query-monitor": {
+      "types": "./dist/monitoring/query-monitor.d.ts",
+      "import": "./dist/monitoring/query-monitor.js"
     },
     "./utils/error-responses": {
       "types": "./dist/utils/error-responses.d.ts",
