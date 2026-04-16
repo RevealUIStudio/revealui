@@ -14,20 +14,20 @@
 
 ---
 
-## Current Reality (as of 2026-04-12)
+## Current Reality (as of 2026-04-15)
 
 ### What Exists
 
 - **Codebase:** ~270,000 lines of TypeScript/Rust/Go across apps + packages
-- **History:** 2,360+ commits (Dec 30, 2025 – Apr 2026), solo developer
-- **Apps:** 7 (api, admin, docs, marketing, revealcoin, studio, terminal)
-- **Packages:** 24 packages + 7 apps = 31 workspaces
-- **Tests:** 1,676 test files, 20,000+ tests passing, all workspaces build and typecheck
-- **Database:** 81 tables (Drizzle ORM, dual NeonDB + Supabase)
+- **History:** 2,410+ commits (Dec 30, 2025 – Apr 2026), solo developer
+- **Apps:** 5 (api, admin, docs, marketing, revealcoin)
+- **Packages:** 25 packages + 5 apps = 30 workspaces
+- **Tests:** 1,706 test files, 20,000+ tests passing, all workspaces build and typecheck
+- **Database:** 81 tables (Drizzle ORM, dual NeonDB + Supabase), 61 CHECK constraints enforced (migration 0001 applied 2026-04-15)
 - **UI Components:** 57 native components (Tailwind v4, zero external UI deps)
-- **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks
+- **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml, system-tune-snapshot.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks
 - **Infrastructure:** Nix flakes, direnv, Biome 2 (sole linter), Turborepo, pnpm 10
-- **Security:** 7 audit rounds complete. 0 CodeQL alerts, 0 Dependabot alerts, 0 avoidable `any` types, 0 production console statements. AES-256-GCM encryption, bcrypt passwords, RBAC+ABAC, timing-safe TOTP. AST-based code-pattern analyzer (execSync injection, TOCTOU, ReDoS). Pre-push gate runs affected tests on protected branches.
+- **Security:** 7 audit rounds complete. 0 CodeQL alerts, 0 Dependabot alerts, 0 avoidable `any` types, 0 production console statements. AES-256-GCM encryption, bcrypt passwords, RBAC+ABAC, timing-safe TOTP. AST-based code-pattern analyzer (execSync injection, TOCTOU, ReDoS). Pre-push gate runs affected tests on protected branches. SOC2 audit track documented with pentest RFP template.
 
 ### What Works
 
@@ -35,8 +35,8 @@
 |---------|--------|------------|
 | admin engine (core) | Built | High  -  237 files, deep implementation |
 | AI agent system | Built | Medium  -  untested in production |
-| UI components (56) | Built | High  -  native hooks, no external deps |
-| Database schema (75 tables) | Built | Medium  -  migrations exist, production verified |
+| UI components (57) | Built | High  -  native hooks, no external deps |
+| Database schema (81 tables) | Built | High  -  migration 0001 applied, 61 CHECK constraints enforced |
 | Auth (sessions, rate limiting) | Built | Medium  -  code exists, no production verification |
 | Stripe integration | Built | Medium  -  DB-backed circuit breaker (circuit_breaker_state table) |
 | Lexical rich text | Built | Medium  -  recently integrated |
@@ -170,7 +170,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded  -  separ
 - [ ] Docker image pushed to GHCR  -  **owner action** after credential rotation
 
 #### 5.5 MCP Marketplace
-- [ ] **Owner action:** Run `pnpm db:migrate` against production NeonDB (marketplace tables are in migration 0000 + 0005, already defined)
+- [x] Migration 0001 applied to production NeonDB (2026-04-15)  -  49 CHECK constraints added, audit_log.severity data fixed (618 rows)
 - [ ] **Owner action:** Set `MARKETPLACE_CONNECT_RETURN_URL` in Vercel API env vars
 - [x] Batch payout cron  -  daily 04:00 UTC, Stripe Connect transfers, $0.50 min (marketplace-payouts.ts, 7 tests)  -  2026-03-31
 
@@ -591,7 +591,7 @@ Phase D  -  Agent publisher tools (agent):
 - [x] Build CLI (`revealui system scan` / `tune` / `revert`) with dry-run default (2026-04-15)
 - [ ] Wire into Studio first-run wizard
 - [ ] Wire into Forge self-hosted install script
-- [ ] CI: run `revealui system scan --json` on Ubuntu / macOS / Windows runners and snapshot the detection output
+- [x] CI: run `revealui system scan --json` on Ubuntu / macOS / Windows runners and snapshot the detection output (2026-04-15, PR #338)
 - [x] Crash-postmortem doc seeded with the 2026-04-13 incident (2026-04-15)
 
 **Exit criteria:** A user running `curl | sh` on a brand-new machine — Windows + WSL, bare Linux, macOS M-series, or low-RAM laptop — reaches a working RevealUI dev environment without hand-editing any system config file, and the setup is reproducible + reversible.
