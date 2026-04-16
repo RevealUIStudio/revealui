@@ -189,6 +189,18 @@
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js"
     },
+    "./client/ui": {
+      "types": "./dist/client/ui/index.d.ts",
+      "import": "./dist/client/ui/index.js"
+    },
+    "./client/admin": {
+      "types": "./dist/client/admin/index.d.ts",
+      "import": "./dist/client/admin/index.js"
+    },
+    "./client/richtext": {
+      "types": "./dist/client/richtext/index.d.ts",
+      "import": "./dist/client/richtext/index.js"
+    },
     "./types/interfaces/app": {
       "types": "./dist/types/interfaces/app.d.ts",
       "import": "./dist/types/interfaces/app.js"
