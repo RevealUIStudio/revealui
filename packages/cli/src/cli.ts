@@ -34,6 +34,7 @@ import {
   runDevUpCommand,
 } from './commands/dev.js';
 import { runDoctorCommand } from './commands/doctor.js';
+import { runMigrateCommand } from './commands/migrate.js';
 import {
   runSystemRevertCommand,
   runSystemScanCommand,
@@ -359,6 +360,16 @@ export function createCli(): Command {
     .description('Revert a previously applied tuning plan from backup')
     .action(async () => {
       await runSystemRevertCommand();
+    });
+
+  program
+    .command('migrate')
+    .description('Apply codemods to migrate your project to newer RevealUI versions')
+    .option('-d, --dry-run', 'Preview changes without writing files', false)
+    .option('--list', 'Show available codemods and applicability without running them', false)
+    .option('--only <name>', 'Run only the codemod with this name')
+    .action(async (options: { dryRun?: boolean; list?: boolean; only?: string }) => {
+      await runMigrateCommand(options);
     });
 
   program

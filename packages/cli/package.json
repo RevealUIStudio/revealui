@@ -27,7 +27,9 @@
     "commander": "^14.0.3",
     "execa": "^9.6.1",
     "jose": "^6.2.2",
-    "ora": "^9.3.0"
+    "ora": "^9.3.0",
+    "semver": "^7.7.4",
+    "tinyglobby": "^0.2.16"
   },
   "peerDependencies": {
     "@revealui/ai": "workspace:^"
@@ -39,6 +41,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/semver": "^7.7.1",
     "tsup": "^8.5.1",
     "typescript": "catalog:"
   },

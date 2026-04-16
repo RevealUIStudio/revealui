@@ -10,6 +10,7 @@ describe('cli', () => {
     expect(commandNames).toContain('doctor');
     expect(commandNames).toContain('db');
     expect(commandNames).toContain('dev');
+    expect(commandNames).toContain('migrate');
     expect(commandNames).toContain('shell');
   });
 });
