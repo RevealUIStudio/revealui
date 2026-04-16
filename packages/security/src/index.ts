@@ -47,7 +47,6 @@ export type {
 export {
   OAuthClient,
   OAuthProviders,
-  PasswordHasher,
   TwoFactorAuth,
 } from './auth.js';
 export type {

@@ -1,11 +1,11 @@
 /**
  * Authentication Utilities Tests
  *
- * Covers: OAuthClient, PasswordHasher, TwoFactorAuth (TOTP).
+ * Covers: OAuthClient, TwoFactorAuth (TOTP).
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { OAuthClient, PasswordHasher, TwoFactorAuth } from '../auth.js';
+import { OAuthClient, TwoFactorAuth } from '../auth.js';
 
 // =============================================================================
 // OAuthClient
@@ -118,46 +118,6 @@ describe('OAuthClient', () => {
     expect(result.email).toBe('user@example.com');
 
     vi.restoreAllMocks();
-  });
-});
-
-// =============================================================================
-// PasswordHasher (PBKDF2)
-// =============================================================================
-
-describe('PasswordHasher', () => {
-  it('hashes a password and produces salt:hash format', async () => {
-    const hashed = await PasswordHasher.hash('mypassword');
-    expect(hashed).toContain(':');
-
-    const [salt, hash] = hashed.split(':');
-    expect(salt).toBeDefined();
-    expect(hash).toBeDefined();
-    expect(salt!.length).toBe(32); // 16 bytes hex
-    expect(hash!.length).toBe(128); // 64 bytes hex
-  });
-
-  it('verifies correct password', async () => {
-    const hashed = await PasswordHasher.hash('correct-password');
-    const valid = await PasswordHasher.verify('correct-password', hashed);
-    expect(valid).toBe(true);
-  });
-
-  it('rejects wrong password', async () => {
-    const hashed = await PasswordHasher.hash('correct-password');
-    const valid = await PasswordHasher.verify('wrong-password', hashed);
-    expect(valid).toBe(false);
-  });
-
-  it('produces different hashes for same password (random salt)', async () => {
-    const hash1 = await PasswordHasher.hash('same-password');
-    const hash2 = await PasswordHasher.hash('same-password');
-    expect(hash1).not.toBe(hash2);
-  });
-
-  it('rejects malformed hash (no colon)', async () => {
-    const valid = await PasswordHasher.verify('password', 'nocolonhere');
-    expect(valid).toBe(false);
   });
 });
 

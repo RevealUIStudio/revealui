@@ -4,35 +4,12 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuditSystem, InMemoryAuditStorage } from '../audit';
-import { PasswordHasher, TwoFactorAuth } from '../auth';
+import { TwoFactorAuth } from '../auth';
 import { AuthorizationSystem, PolicyBuilder } from '../authorization';
 import { DataMasking, EncryptionSystem, TokenGenerator } from '../encryption';
 import { ConsentManager, DataAnonymization, DataExportSystem } from '../gdpr';
 import { InMemoryGDPRStorage } from '../gdpr-storage';
 import { CORSManager, SecurityHeaders, SecurityPresets } from '../headers';
-
-describe('PasswordHasher', () => {
-  it('should hash and verify passwords', async () => {
-    const hash = await PasswordHasher.hash('my-secure-password');
-
-    expect(hash).toContain(':');
-    expect(await PasswordHasher.verify('my-secure-password', hash)).toBe(true);
-    expect(await PasswordHasher.verify('wrong-password', hash)).toBe(false);
-  });
-
-  it('should produce different hashes for same password (random salt)', async () => {
-    const hash1 = await PasswordHasher.hash('same-password');
-    const hash2 = await PasswordHasher.hash('same-password');
-
-    expect(hash1).not.toBe(hash2);
-    expect(await PasswordHasher.verify('same-password', hash1)).toBe(true);
-    expect(await PasswordHasher.verify('same-password', hash2)).toBe(true);
-  });
-
-  it('should reject malformed hashes', async () => {
-    expect(await PasswordHasher.verify('password', 'no-colon-here')).toBe(false);
-  });
-});
 
 describe('TwoFactorAuth', () => {
   it('should generate a base32 secret', () => {
