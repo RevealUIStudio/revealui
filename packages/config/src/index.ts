@@ -307,6 +307,10 @@ export default configProxy;
 export type { Environment } from './loader.js';
 // Export loader utilities (for advanced usage)
 export { detectEnvironment, loadEnvironment } from './loader.js';
+// Export module-level config getters (documented in docs/REFERENCE.md as standalone helpers)
+export { getDatabaseConfig } from './modules/database.js';
+export { getRevealConfig } from './modules/reveal.js';
+export { getStripeConfig } from './modules/stripe.js';
 // Export shared RevealUI configuration functions
 export {
   getSharedCMSConfig,
@@ -330,8 +334,3 @@ export type {
 };
 // Export validation functions
 export { formatValidationErrors, validateAndThrow, validateEnvVars };
-
-// Export module-level config getters (documented in docs/REFERENCE.md as standalone helpers)
-export { getDatabaseConfig } from './modules/database.js';
-export { getRevealConfig } from './modules/reveal.js';
-export { getStripeConfig } from './modules/stripe.js';
