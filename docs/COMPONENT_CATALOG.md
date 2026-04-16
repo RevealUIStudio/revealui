@@ -121,7 +121,7 @@ extends React.HTMLAttributes<HTMLElement>
 
 **Usage:**
 ```tsx
-import { Text } from '@revealui/presentation/primitives'
+import { Text } from '@revealui/presentation'
 
 <Text className="text-muted-foreground">
   Description text
@@ -143,7 +143,7 @@ interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
 
 **Usage:**
 ```tsx
-import { Heading } from '@revealui/presentation/primitives'
+import { Heading } from '@revealui/presentation'
 
 <Heading level={2}>Section Title</Heading>
 ```
