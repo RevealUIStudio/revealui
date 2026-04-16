@@ -41,7 +41,7 @@ describe('ValueProposition', () => {
     const html = JSON.stringify(result);
     expect(html).toContain('Session auth, Stripe subscriptions, usage metering');
     expect(html).toContain('Define collections in TypeScript');
-    expect(html).toContain('10 MCP servers, agent coordination');
+    expect(html).toContain('12 MCP servers, agent coordination');
   });
 
   it('contains links to documentation', () => {

@@ -524,9 +524,3 @@ export class WorkboardManager {
 function emptyState(): WorkboardState {
   return { preamble: [], agents: [], tasks: [], blocked: [], done: [], log: [], _extra: {} };
 }
-
-// Re-export for backward compat
-/** @deprecated Use registerAgent instead */
-export const registerSession = WorkboardManager.prototype.registerAgent;
-/** @deprecated Use unregisterAgent instead */
-export const unregisterSession = WorkboardManager.prototype.unregisterAgent;

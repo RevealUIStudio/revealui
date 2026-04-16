@@ -19,8 +19,8 @@ All gates must pass on the `main` branch before deploy.
 
 - [ ] `pnpm gate` passes all three phases (quality, typecheck, test + build) **(blocking)**
 - [ ] `pnpm lint` reports zero errors (Biome 2) **(blocking)**
-- [ ] `pnpm typecheck:all` clean across all 31 workspaces **(blocking)**
-- [ ] `pnpm test` passes 20,000+ tests across 938 test files **(blocking)**
+- [ ] `pnpm typecheck:all` clean across all 30 workspaces **(blocking)**
+- [ ] `pnpm test` passes 20,000+ tests across 1,704 test files **(blocking)**
 - [ ] `pnpm build` succeeds for all apps and packages **(blocking)**
 - [ ] `pnpm validate:structure` confirms workspace structure integrity **(blocking)**
 - [ ] `pnpm audit:any` reports zero avoidable `any` types **(advisory)**

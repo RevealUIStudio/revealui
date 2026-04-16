@@ -119,21 +119,6 @@ export function checkDependencies(args: RevealUIDependencyCheckArgs): boolean {
   return true;
 }
 
-// Deep merge utility - re-exported from config/utils for convenience
-import { deepMerge as coreDeepMerge } from './config/utils.js';
-
-/**
- * @deprecated Use deepMerge from '@revealui/core/config/utils' or '@revealui/core' instead
- * This function is kept for backward compatibility but will be removed in a future version.
- */
-export function deepMergeSimple<T extends Record<string, unknown>>(
-  target: T,
-  source: Partial<T>,
-): T {
-  // Use the canonical deepMerge implementation from config/utils
-  return coreDeepMerge(target, source as T);
-}
-
 import type { JSONSchema4TypeName } from 'json-schema';
 import type React from 'react';
 // Type exports for richtext compatibility

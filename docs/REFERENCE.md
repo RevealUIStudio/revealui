@@ -2710,7 +2710,7 @@ Behaviour-only versions of form controls  -  bring your own styles.
 ## Related
 
 - [`@revealui/core`](/reference/core)  -  Uses `presentation` for admin UI components
-- [Component catalog](/docs/COMPONENT_CATALOG)  -  Visual index of all 58 components
+- [Component catalog](/docs/COMPONENT_CATALOG)  -  Visual index of all 57 components
 
 ---
 
