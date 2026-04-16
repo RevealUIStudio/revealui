@@ -14,7 +14,7 @@
  *   2 = connection or query error
  */
 
-import postgres from 'postgres';
+import pg from 'pg';
 
 const POSTGRES_URL = process.env.POSTGRES_URL;
 if (!POSTGRES_URL) {
@@ -22,7 +22,10 @@ if (!POSTGRES_URL) {
   process.exit(2);
 }
 
-const sql = postgres(POSTGRES_URL, { ssl: 'require', max: 1 });
+const client = new pg.Client({
+  connectionString: POSTGRES_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 interface CheckSpec {
   table: string;
@@ -236,6 +239,8 @@ const checks: CheckSpec[] = [
 ];
 
 async function run(): Promise<void> {
+  await client.connect();
+
   console.log('Migration 0001 Pre-Check');
   console.log('========================');
   console.log(`Checking ${checks.length} constraints against production data...\n`);
@@ -246,47 +251,50 @@ async function run(): Promise<void> {
   for (const check of checks) {
     try {
       // Check if table exists
-      const tableExists = await sql`
-        SELECT EXISTS (
+      const tableExists = await client.query(
+        `SELECT EXISTS (
           SELECT 1 FROM information_schema.tables
-          WHERE table_schema = 'public' AND table_name = ${check.table}
-        ) AS exists
-      `;
+          WHERE table_schema = 'public' AND table_name = $1
+        ) AS exists`,
+        [check.table],
+      );
 
-      if (!tableExists[0].exists) {
+      if (!tableExists.rows[0].exists) {
         console.log(`  SKIP  ${check.table}.${check.column} — table does not exist`);
         skipped++;
         continue;
       }
 
       // Check if column exists
-      const columnExists = await sql`
-        SELECT EXISTS (
+      const columnExists = await client.query(
+        `SELECT EXISTS (
           SELECT 1 FROM information_schema.columns
           WHERE table_schema = 'public'
-            AND table_name = ${check.table}
-            AND column_name = ${check.column}
-        ) AS exists
-      `;
+            AND table_name = $1
+            AND column_name = $2
+        ) AS exists`,
+        [check.table, check.column],
+      );
 
-      if (!columnExists[0].exists) {
+      if (!columnExists.rows[0].exists) {
         console.log(`  SKIP  ${check.table}.${check.column} — column does not exist`);
         skipped++;
         continue;
       }
 
       // Check if constraint already exists
-      const constraintExists = await sql`
-        SELECT EXISTS (
+      const constraintExists = await client.query(
+        `SELECT EXISTS (
           SELECT 1 FROM information_schema.table_constraints
           WHERE table_schema = 'public'
-            AND table_name = ${check.table}
+            AND table_name = $1
             AND constraint_type = 'CHECK'
-            AND constraint_name LIKE ${`%${check.column}%check%`}
-        ) AS exists
-      `;
+            AND constraint_name LIKE $2
+        ) AS exists`,
+        [check.table, `%${check.column}%check%`],
+      );
 
-      if (constraintExists[0].exists) {
+      if (constraintExists.rows[0].exists) {
         console.log(`  DONE  ${check.table}.${check.column} — constraint already exists`);
         skipped++;
         continue;
@@ -298,8 +306,8 @@ async function run(): Promise<void> {
         ? `SELECT COUNT(*) AS cnt FROM "${check.table}" WHERE "${check.column}" IS NOT NULL AND "${check.column}" NOT IN (${placeholders})`
         : `SELECT COUNT(*) AS cnt FROM "${check.table}" WHERE "${check.column}" NOT IN (${placeholders})`;
 
-      const result = await sql.unsafe(query, check.allowedValues);
-      const count = Number(result[0].cnt);
+      const result = await client.query(query, check.allowedValues);
+      const count = Number(result.rows[0].cnt);
 
       if (count > 0) {
         // Get sample bad values
@@ -307,8 +315,8 @@ async function run(): Promise<void> {
           ? `SELECT DISTINCT "${check.column}" FROM "${check.table}" WHERE "${check.column}" IS NOT NULL AND "${check.column}" NOT IN (${placeholders}) LIMIT 5`
           : `SELECT DISTINCT "${check.column}" FROM "${check.table}" WHERE "${check.column}" NOT IN (${placeholders}) LIMIT 5`;
 
-        const samples = await sql.unsafe(sampleQuery, check.allowedValues);
-        const badValues = samples.map((r: Record<string, unknown>) => r[check.column]);
+        const samples = await client.query(sampleQuery, check.allowedValues);
+        const badValues = samples.rows.map((r: Record<string, unknown>) => r[check.column]);
 
         console.log(`  FAIL  ${check.table}.${check.column} — ${count} row(s) violate constraint`);
         console.log(`        Bad values: ${JSON.stringify(badValues)}`);
@@ -343,4 +351,4 @@ run()
     console.error('Fatal error:', err);
     process.exit(2);
   })
-  .finally(() => sql.end());
+  .finally(() => client.end());
