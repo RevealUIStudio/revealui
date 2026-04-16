@@ -201,6 +201,10 @@
     "./saga": {
       "types": "./dist/saga/index.d.ts",
       "import": "./dist/saga/index.js"
+    },
+    "./pool": {
+      "types": "./dist/pool.d.ts",
+      "import": "./dist/pool.js"
     }
   },
   "files": [
