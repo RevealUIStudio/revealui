@@ -917,10 +917,10 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 ## Server-side usage
 
 ```typescript
-import { createLLMClient } from "@revealui/ai/llm";
+import { createLLMClientFromEnv } from "@revealui/ai/llm/client";
 
 // Auto-detects from environment (snaps > Ollama)
-const llm = createLLMClient();
+const llm = createLLMClientFromEnv();
 
 const response = await llm.chat([{ role: "user", content: "Hello!" }]);
 ```
@@ -954,69 +954,28 @@ LLM_PROVIDER=ollama
 - Rate limiting applies to key verification endpoints
 - Admin-level access cannot read user keys  -  only re-wrap them during rotation
 
-## Tenant-level keys
+## Per-user provider keys
 
-For multi-tenant deployments, you can also configure provider keys at the tenant level:
+For multi-tenant deployments, individual users can register their own provider keys (BYOK). The key is resolved from `tenant_provider_configs` → the user's encrypted `user_api_keys` row, falling back to the server-default client if no user-level key is configured:
 
 ```typescript
-import { createLLMClientForTenant } from "@revealui/ai/llm/client";
+import { createLLMClientForUser } from "@revealui/ai/llm/client";
 
-const llm = await createLLMClientForTenant(tenantId, db);
+const llm = await createLLMClientForUser(userId, db);
 ```
 
-Tenant-level inference configuration takes precedence over server defaults.
+User-level inference configuration takes precedence over server defaults.
 
 ---
 
-# @revealui/editors
+# RevCon (editor config sync)
 
-Editor config generation and sync for VS Code, Zed, Cursor, and Antigravity. Ensures consistent settings and recommended extensions across your team.
+Editor configuration sync — recommended extensions, workspace settings, and AI rules for VS Code, Zed, Cursor, and Antigravity — lives in **RevCon**, a sibling repository published separately from this monorepo.
 
-## Overview
+- Repo: [`RevealUIStudio/editor-configs`](https://github.com/RevealUIStudio/editor-configs)
+- CLI: `revcon sync`, `revcon diff`, `revcon pull`, `revcon push`
 
-`@revealui/editors` generates and synchronizes editor configuration files:
-
-- **VS Code**  -  recommended extensions list and workspace settings
-- **Zed**  -  editor settings generation
-- **Cursor**  -  AI rules and settings
-- **Antigravity**  -  agent configuration
-
-## Installation
-
-Requires a RevealUI Pro license.
-
-```bash
-pnpm add @revealui/editors
-```
-
-## Usage
-
-```typescript
-import {
-  generateVSCodeExtensions,
-  generateVSCodeSettings,
-  generateZedSettings,
-  generateCursorRules,
-  generateAntigravityRules,
-  syncEditorConfigs,
-} from "@revealui/editors";
-
-// Generate VS Code config
-const extensions = generateVSCodeExtensions();
-const settings = generateVSCodeSettings();
-
-// Generate Zed settings
-const zedSettings = generateZedSettings();
-
-// Sync all editor configs at once
-const results = await syncEditorConfigs({
-  projectRoot: "/path/to/your/project",
-});
-```
-
-## What this does NOT do (yet)
-
-Editor daemon integration (real-time sync, agent coordination from within your editor) is planned for a future release. See the [harnesses package](/pro/harnesses) for current multi-agent coordination capabilities.
+RevCon is intentionally decoupled from the RevealUI runtime: editor profiles evolve on a different cadence than the CMS/API packages and are not gated by the Pro license. Install it standalone rather than adding it as a runtime dependency of your RevealUI app.
 
 ---
 
@@ -1180,33 +1139,21 @@ const stripe = await getStripe();
 const { error } = await stripe.redirectToCheckout({ sessionId });
 ```
 
-### Billing handlers
+### Payment intents
 
-Pre-built Next.js route handlers for the complete billing flow:
+For one-time charges, the package exports `createPaymentIntent`:
 
 ```typescript
-import {
-  createCheckoutSession,
-  createPortalLink,
-  updatePrice,
-  updateProduct,
-  webhooks,
-  createPaymentIntent,
-} from "@revealui/services";
+import { createPaymentIntent, protectedStripe } from "@revealui/services";
 
-// apps/api/src/routes/billing.ts
-app.post("/checkout", createCheckoutSession);
-app.post("/portal", createPortalLink);
-app.post("/webhooks/stripe", webhooks);
+const paymentIntent = await createPaymentIntent({
+  amount: 2000, // $20.00 (cents)
+  currency: "usd",
+  metadata: { userId },
+});
 ```
 
-**`createCheckoutSession`**  -  Creates a Stripe Checkout session. Expects `{ priceId, userId, successUrl, cancelUrl }` in the request body.
-
-**`createPortalLink`**  -  Returns a Stripe Customer Portal URL for subscription management. Expects `{ customerId, returnUrl }`.
-
-**`webhooks`**  -  Handles `checkout.session.completed`, `customer.subscription.deleted`, and `customer.subscription.updated`. Verifies the Stripe webhook signature and updates the license record in the database.
-
-**`createPaymentIntent`**  -  Creates a PaymentIntent for one-time charges.
+Full checkout/portal/webhook route handlers are wired at the application layer (see `apps/api/src/routes/billing.ts` in the monorepo for the reference implementation). The `@revealui/services` package intentionally exposes only the low-level clients (`protectedStripe`, `getStripe`, `createPaymentIntent`) so that each app can implement its billing flow against its own license record.
 
 ### Webhook environment
 
