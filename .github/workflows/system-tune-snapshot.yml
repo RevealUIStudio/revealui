@@ -56,7 +56,7 @@ jobs:
 
       - name: Run system scan (JSON)
         shell: bash
-        run: node packages/cli/dist/cli.js system scan --json > scan-output.json 2>scan-stderr.txt || true
+        run: node packages/cli/bin/revealui.js system scan --json > scan-output.json 2>scan-stderr.txt || true
 
       - name: Show stderr (if any)
         if: always()
