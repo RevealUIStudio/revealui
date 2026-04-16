@@ -197,7 +197,7 @@ import { ... } from '@revealui/core/monitoring'
 #### Observability (metrics + tracing)
 
 ```ts
-import { metrics } from '@revealui/core/observability/logger'
+import { metrics } from '@revealui/core/observability'
 ```
 
 `metrics`, `tracing` utilities from `@revealui/core` are scaffolded. The `createLogger` from this path is **Stable**; the `metrics` and `tracing` exports are **Experimental**.

@@ -314,8 +314,8 @@ function processUser(user: UserContext) {
 items.map((item: { id: string }) => item.id)
 
 // ✅ CORRECT
-import type { ItemType } from '@revealui/contracts'
-items.map((item: ItemType) => item.id)
+import type { Page } from '@revealui/contracts'
+items.map((item: Page) => item.id)
 
 // ✅ ALSO CORRECT - Explicit return type
 items.map((item): string => item.id)
@@ -336,20 +336,20 @@ type UserBasic = Pick<User, 'id' | 'email'>
 
 ```typescript
 // ❌ WRONG
-interface MyConfig {
+interface SiteConfig {
   option1: string
   option2: boolean
 }
 
 // ✅ CORRECT - Define in contracts, export, import
-// packages/contracts/src/my-feature/config.ts
-export interface MyConfig {
+// packages/contracts/src/entities/site.ts
+export interface SiteSettings {
   option1: string
   option2: boolean
 }
 
 // Usage
-import type { MyConfig } from '@revealui/contracts/my-feature'
+import type { SiteSettings } from '@revealui/contracts/entities'
 ```
 
 ---

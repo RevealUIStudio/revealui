@@ -284,35 +284,24 @@ That model is a better fit for agentic commerce than classic per-seat SaaS becau
 Check the user's subscription in any route or component:
 
 ```typescript
-import { getLicense } from '@revealui/auth/server'
+import { getLicensePayload, isFeatureEnabled } from '@revealui/core'
 
 // In a route handler
-export async function GET(req: Request) {
-  const license = await getLicense(req)
+export async function GET() {
+  const license = getLicensePayload()
 
-  if (!license || license.tier !== 'pro') {
+  if (!license || !isFeatureEnabled('ai')) {
     return Response.json({ error: 'Pro subscription required' }, { status: 403 })
   }
 
   // Pro-only content here
-  return Response.json({ features: [...] })
+  return Response.json({ features: [] })
 }
 ```
 
-Or in React:
-
-```tsx
-import { useSubscription } from "@revealui/auth/client";
-
-function ProFeature() {
-  const { tier, isLoading } = useSubscription();
-
-  if (isLoading) return null;
-  if (tier !== "pro") return <UpgradePrompt />;
-
-  return <div>Pro-only content</div>;
-}
-```
+Or in React (client-side): fetch the license status from an API route that
+uses the server-side check above. There is no client-side subscription hook —
+authoritative license state lives on the server.
 
 ---
 

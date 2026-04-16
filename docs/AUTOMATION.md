@@ -142,8 +142,8 @@ packages/
 
 - Use `@/lib/*` for admin app imports
 - Use `revealui/*` for framework imports
-- Use `@revealui/core/types` (NOT `@revealui/types` - merged)
-- Use `@revealui/core/generated` (NOT `@revealui/generated` - merged)
+- Use `@revealui/core/types` (NOT the old, now-removed `@revealui/types` package)
+- Use `@revealui/core/generated/types` (NOT the old, now-removed `@revealui/generated` package)
 
 **Code Style**
 
@@ -173,14 +173,14 @@ docs/
 
 **Package Imports**
 
-```typescript
+```text
 // ✅ CORRECT (current)
 import type { Config } from "@revealui/core/types";
-import { GeneratedComponent } from "@revealui/core/generated/components";
+import type { Page, User } from "@revealui/core/generated/types";
 
-// ❌ WRONG (old, merged)
+// ❌ WRONG (old, now-removed packages)
 import type { Config } from "@revealui/types";
-import { GeneratedComponent } from "@revealui/generated/components";
+import type { Page, User } from "@revealui/generated/types";
 ```
 
 **Common Commands**

@@ -92,7 +92,7 @@ The `createLLMClientFromEnv()` function in `@revealui/ai` auto-detects the avail
 Auto-detection priority: `INFERENCE_SNAPS_BASE_URL` > `OLLAMA_BASE_URL`.
 
 ```typescript
-import { createLLMClientFromEnv } from '@revealui/ai/llm';
+import { createLLMClientFromEnv } from '@revealui/ai/llm/client';
 
 // Automatically detects inference snaps or Ollama
 const client = createLLMClientFromEnv();
