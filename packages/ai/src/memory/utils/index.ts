@@ -5,8 +5,6 @@
 export { deepClone } from './deep-clone.js';
 export {
   findAgentContextById,
-  findAgentMemoriesByUserId,
-  findAgentMemoryById,
   findNodeIdMappingByEntity,
   findNodeIdMappingByHash,
   findUserById,

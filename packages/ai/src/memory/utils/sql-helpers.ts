@@ -8,33 +8,11 @@
  * SQL injection prevention.
  */
 
-import type { AgentMemory } from '@revealui/contracts/agents';
 import type { NodeIdMappingsRow } from '@revealui/contracts/generated';
 import type { Database } from '@revealui/db/client';
 import { sql } from 'drizzle-orm';
 
 type QueryResult = unknown[] | { rows?: unknown[] };
-type EmbeddingMetadataRow = {
-  model: string;
-  vector: number[];
-  dimension: number;
-  generatedAt: string;
-};
-type AgentMemoryRow = {
-  id: string;
-  version: number | null;
-  content: string;
-  type: string;
-  source: unknown;
-  embedding: number[] | null;
-  embedding_metadata: EmbeddingMetadataRow | null;
-  metadata: unknown;
-  access_count: number | null;
-  accessed_at: Date | null;
-  verified: boolean | null;
-  created_at: Date;
-  expires_at: Date | null;
-};
 type AgentContextRow = {
   id: string;
   version: number | null;
@@ -144,126 +122,6 @@ export async function findNodeIdMappingByEntity(
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   } as NodeIdMappingsRow;
-}
-
-// =============================================================================
-// Agent Memories Queries
-// =============================================================================
-
-/**
- * Finds an agent memory by ID (returns raw database record format).
- *
- * @deprecated Use VectorMemoryService.getById() instead. This function queries
- * agent_memories which is now in the vector database (Supabase), not REST database.
- * If you need to query memories, use VectorMemoryService which uses the correct database.
- *
- * @param db - Database client (NOTE: Should be vector client, but type doesn't enforce this)
- * @param memoryId - Memory identifier
- * @returns Raw database memory record or undefined if not found
- */
-export async function findAgentMemoryById(
-  db: Database,
-  memoryId: string,
-): Promise<
-  | {
-      id: string;
-      version: number;
-      content: string;
-      type: string;
-      source: unknown;
-      embedding: number[] | null;
-      embeddingMetadata: unknown;
-      metadata: unknown;
-      accessCount: number | null;
-      accessedAt: Date | null;
-      verified: boolean | null;
-      createdAt: Date;
-      expiresAt: Date | null;
-    }
-  | undefined
-> {
-  // NOTE: This queries agent_memories which is in vector database
-  // Using raw SQL so it works, but caller must use vector client
-  const result = await db.execute(
-    sql`SELECT id, version, content, type, source, embedding, embedding_metadata, 
-               metadata, access_count, accessed_at, verified, verified_by, 
-               verified_at, site_id, agent_id, created_at, expires_at
-        FROM agent_memories 
-        WHERE id = ${memoryId} 
-        LIMIT 1`,
-  );
-
-  const rows = getRows(result as QueryResult);
-  if (!rows[0]) return undefined;
-
-  const row = rows[0] as AgentMemoryRow;
-  return {
-    id: row.id,
-    version: row.version || 1,
-    content: row.content,
-    type: row.type,
-    source: row.source,
-    embedding: row.embedding,
-    embeddingMetadata: row.embedding_metadata,
-    metadata: row.metadata,
-    accessCount: row.access_count,
-    accessedAt: row.accessed_at,
-    verified: row.verified,
-    createdAt: row.created_at,
-    expiresAt: row.expires_at,
-  };
-}
-
-/**
- * Finds agent memories by user ID.
- *
- * @deprecated Use VectorMemoryService.searchSimilar() or VectorMemoryService with filters instead.
- * This function queries agent_memories which is now in the vector database (Supabase).
- * If you need to query memories, use VectorMemoryService which uses the correct database.
- *
- * @param db - Database client (NOTE: Should be vector client, but type doesn't enforce this)
- * @param userId - User identifier
- * @returns Array of agent memories
- */
-export async function findAgentMemoriesByUserId(
-  db: Database,
-  userId: string,
-): Promise<AgentMemory[]> {
-  const result = await db.execute(
-    sql`SELECT id, version, content, type, source, embedding, embedding_metadata, 
-               metadata, access_count, accessed_at, verified, verified_by, 
-               verified_at, site_id, agent_id, created_at, expires_at
-        FROM agent_memories 
-        WHERE (source->>'id')::text = ${userId} 
-        ORDER BY created_at DESC`,
-  );
-
-  const rows = getRows(result as QueryResult);
-  return rows.map((row) => {
-    const record = row as AgentMemoryRow;
-    const metadata = record.embedding_metadata;
-    return {
-      id: record.id,
-      version: record.version || 1,
-      content: record.content,
-      type: record.type,
-      source: record.source,
-      embedding: metadata
-        ? {
-            model: metadata.model,
-            vector: record.embedding || metadata.vector,
-            dimension: metadata.dimension,
-            generatedAt: metadata.generatedAt,
-          }
-        : undefined,
-      metadata: (record.metadata || {}) as AgentMemory['metadata'],
-      accessedAt: record.accessed_at?.toISOString() || new Date().toISOString(),
-      accessCount: record.access_count || 0,
-      verified: record.verified ?? false,
-      createdAt: record.created_at,
-      expiresAt: record.expires_at,
-    };
-  }) as unknown as AgentMemory[];
 }
 
 // =============================================================================
