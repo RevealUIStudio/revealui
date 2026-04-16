@@ -366,7 +366,7 @@ This is the foundation. The five primitives  -  Users, Content, Products, Paymen
 ## Next steps
 
 - **Add more collections**  -  orders, reviews, blog posts, anything your business needs
-- **Customize the UI**  -  `packages/presentation` has 58 components to build with
+- **Customize the UI**  -  `packages/presentation` has 57 components to build with
 - **Add AI**  -  Pro tier adds AI agents; see the [AI guide](./AI.md)
 - **Invite your team**  -  role-based access control is already wired in
 

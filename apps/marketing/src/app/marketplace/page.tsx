@@ -201,7 +201,7 @@ export default function MarketplacePage() {
               Production Ready
             </span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              10 MCP Servers
+              12 MCP Servers
             </h2>
             <p className="mt-4 text-lg text-gray-600">
               Production MCP servers included with RevealUI. Each server is rate-limited, audited,

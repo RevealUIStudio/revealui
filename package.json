@@ -8,7 +8,6 @@
     "@biomejs/biome": "catalog:",
     "@changesets/cli": "^2.30.0",
     "@electric-sql/pglite": "^0.4.4",
-    "@lhci/cli": "^0.15.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@playwright/test": "catalog:",
     "@size-limit/file": "^12.1.0",
@@ -194,6 +193,7 @@
     "validate:gitignore": "tsx scripts/validate/gitignore-pro.ts",
     "validate:structure": "tsx scripts/validate/structure.ts",
     "validate:catalog": "tsx scripts/validate/catalog-changeset.ts --warn",
+    "validate:claims": "tsx scripts/validate/claim-drift.ts",
     "validate:versions": "tsx scripts/validate/version-policy.ts"
   },
   "type": "module"
