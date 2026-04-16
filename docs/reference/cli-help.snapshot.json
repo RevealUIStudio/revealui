@@ -1,0 +1,594 @@
+{
+  "name": "revealui",
+  "description": "RevealUI operational CLI",
+  "aliases": [],
+  "usage": "[options] [command]",
+  "arguments": [],
+  "options": [
+    {
+      "flags": "-V, --version",
+      "description": "output the version number"
+    }
+  ],
+  "subcommands": [
+    {
+      "name": "agent",
+      "description": "RevealUI coding agent (powered by local or cloud LLMs)",
+      "aliases": [],
+      "usage": "[options] [command]",
+      "arguments": [],
+      "options": [
+        {
+          "flags": "-p, --prompt <text>",
+          "description": "Run a single prompt in headless mode"
+        }
+      ],
+      "subcommands": [
+        {
+          "name": "status",
+          "description": "Show agent status: model, provider, project root",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [],
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "auth",
+      "description": "Manage npm registry authentication and publish tokens",
+      "aliases": [],
+      "usage": "[options] [command]",
+      "arguments": [],
+      "options": [],
+      "subcommands": [
+        {
+          "name": "set-token",
+          "description": "Store an npm token via RevVault and configure .npmrc",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--skip-npmrc",
+              "description": "Skip .npmrc modification",
+              "defaultValue": false
+            },
+            {
+              "flags": "--skip-vault",
+              "description": "Skip RevVault storage",
+              "defaultValue": false
+            },
+            {
+              "flags": "--token <value>",
+              "description": "npm token (or set NPM_TOKEN env var)"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "status",
+          "description": "Show current npm authentication state",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--json",
+              "description": "Output machine-readable JSON",
+              "defaultValue": false
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "verify",
+          "description": "Verify the full npm auth chain (env → RevVault → .npmrc → registry)",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--json",
+              "description": "Output machine-readable JSON",
+              "defaultValue": false
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "create",
+      "description": "Create a new RevealUI project",
+      "aliases": [],
+      "usage": "[options] [project-name]",
+      "arguments": [
+        {
+          "name": "project-name",
+          "description": "Name of the project",
+          "required": false
+        }
+      ],
+      "options": [
+        {
+          "flags": "--skip-git",
+          "description": "Skip git initialization",
+          "defaultValue": false
+        },
+        {
+          "flags": "--skip-install",
+          "description": "Skip dependency installation",
+          "defaultValue": false
+        },
+        {
+          "flags": "-t, --template <name>",
+          "description": "Template to use (basic-blog, e-commerce, portfolio)"
+        },
+        {
+          "flags": "-y, --yes",
+          "description": "Skip all prompts and use defaults",
+          "defaultValue": false
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "db",
+      "description": "Manage the local RevealUI database",
+      "aliases": [],
+      "usage": "[options] [command]",
+      "arguments": [],
+      "options": [],
+      "subcommands": [
+        {
+          "name": "cleanup",
+          "description": "Delete expired sessions, rate-limit rows, password-reset tokens, magic links, and publish due scheduled pages. Uses DATABASE_URL / POSTGRES_URL from the environment.",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--dry-run",
+              "description": "Count stale rows without deleting them",
+              "defaultValue": false
+            },
+            {
+              "flags": "--tables <names>",
+              "description": "Comma-separated subset: sessions,rateLimits,passwordResetTokens,magicLinks,scheduledPages"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "init",
+          "description": "Initialize the local PostgreSQL data directory",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--force",
+              "description": "Delete and recreate the local data directory",
+              "defaultValue": false
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "migrate",
+          "description": "Run Drizzle migrations using the local RevealUI database environment",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [],
+          "subcommands": []
+        },
+        {
+          "name": "reset",
+          "description": "Reset the local PostgreSQL data directory",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--force",
+              "description": "Confirm the destructive reset",
+              "defaultValue": false
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "start",
+          "description": "Start the local PostgreSQL server",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [],
+          "subcommands": []
+        },
+        {
+          "name": "status",
+          "description": "Show local PostgreSQL status",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [],
+          "subcommands": []
+        },
+        {
+          "name": "stop",
+          "description": "Stop the local PostgreSQL server",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [],
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "dev",
+      "description": "Prepare and manage the RevealUI development workspace",
+      "aliases": [],
+      "usage": "[options] [command]",
+      "arguments": [],
+      "options": [],
+      "subcommands": [
+        {
+          "name": "down",
+          "description": "Stop local RevealUI development services that are managed by the CLI",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [],
+          "subcommands": []
+        },
+        {
+          "name": "profile",
+          "description": "Persist or inspect the default dev profile",
+          "aliases": [],
+          "usage": "[options] [command]",
+          "arguments": [],
+          "options": [],
+          "subcommands": [
+            {
+              "name": "set",
+              "description": "Set the default profile used by `revealui dev up` and `revealui dev status`",
+              "aliases": [],
+              "usage": "[options] <name>",
+              "arguments": [
+                {
+                  "name": "name",
+                  "description": "Profile name: local, agent, admin, fullstack",
+                  "required": true
+                }
+              ],
+              "options": [],
+              "subcommands": []
+            },
+            {
+              "name": "show",
+              "description": "Show the configured default dev profile",
+              "aliases": [],
+              "usage": "[options]",
+              "arguments": [],
+              "options": [
+                {
+                  "flags": "--json",
+                  "description": "Output machine-readable JSON",
+                  "defaultValue": false
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
+        {
+          "name": "shell",
+          "description": "Alias for `revealui dev up` without starting an app script",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--dry-run",
+              "description": "Print the effective plan and actions without executing them",
+              "defaultValue": false
+            },
+            {
+              "flags": "--fix",
+              "description": "Apply safe automatic fixes before bootstrapping when possible",
+              "defaultValue": false
+            },
+            {
+              "flags": "--include <service...>",
+              "description": "Additional development services to prepare (currently supports: mcp)"
+            },
+            {
+              "flags": "--inside",
+              "description": "Internal flag used after re-entering nix develop",
+              "defaultValue": false
+            },
+            {
+              "flags": "--json",
+              "description": "Output machine-readable JSON",
+              "defaultValue": false
+            },
+            {
+              "flags": "--no-ensure",
+              "description": "Skip automatic local DB initialization/start"
+            },
+            {
+              "flags": "--profile <name>",
+              "description": "Named dev profile: local, agent, admin, fullstack"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "status",
+          "description": "Show current RevealUI development environment status",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--include <service...>",
+              "description": "Additional development services to preview in the effective plan"
+            },
+            {
+              "flags": "--inside",
+              "description": "Internal flag used after re-entering nix develop",
+              "defaultValue": false
+            },
+            {
+              "flags": "--json",
+              "description": "Output machine-readable JSON",
+              "defaultValue": false
+            },
+            {
+              "flags": "--profile <name>",
+              "description": "Named dev profile: local, agent, admin, fullstack"
+            },
+            {
+              "flags": "--script <name>",
+              "description": "Optional pnpm script to preview in the effective plan"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "up",
+          "description": "Ensure the local dev environment is ready, migrate the DB, optionally validate MCP, and start a dev script",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--dry-run",
+              "description": "Print the effective plan and actions without executing them",
+              "defaultValue": false
+            },
+            {
+              "flags": "--fix",
+              "description": "Apply safe automatic fixes before bootstrapping when possible",
+              "defaultValue": false
+            },
+            {
+              "flags": "--include <service...>",
+              "description": "Additional development services to prepare (currently supports: mcp)"
+            },
+            {
+              "flags": "--inside",
+              "description": "Internal flag used after re-entering nix develop",
+              "defaultValue": false
+            },
+            {
+              "flags": "--json",
+              "description": "Output machine-readable JSON",
+              "defaultValue": false
+            },
+            {
+              "flags": "--no-ensure",
+              "description": "Skip automatic local DB initialization/start"
+            },
+            {
+              "flags": "--profile <name>",
+              "description": "Named dev profile: local, agent, admin, fullstack"
+            },
+            {
+              "flags": "--script <name>",
+              "description": "Optional pnpm script to run after environment bootstrap"
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "doctor",
+      "description": "Check RevealUI workspace and developer environment health",
+      "aliases": [],
+      "usage": "[options]",
+      "arguments": [],
+      "options": [
+        {
+          "flags": "--fix",
+          "description": "Apply safe automatic fixes when possible",
+          "defaultValue": false
+        },
+        {
+          "flags": "--json",
+          "description": "Output machine-readable JSON",
+          "defaultValue": false
+        },
+        {
+          "flags": "--strict",
+          "description": "Exit nonzero when checks fail",
+          "defaultValue": false
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "migrate",
+      "description": "Apply codemods to migrate your project to newer RevealUI versions",
+      "aliases": [],
+      "usage": "[options]",
+      "arguments": [],
+      "options": [
+        {
+          "flags": "--list",
+          "description": "Show available codemods and applicability without running them",
+          "defaultValue": false
+        },
+        {
+          "flags": "--only <name>",
+          "description": "Run only the codemod with this name"
+        },
+        {
+          "flags": "-d, --dry-run",
+          "description": "Preview changes without writing files",
+          "defaultValue": false
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "shell",
+      "description": "Deprecated alias for `revealui dev shell`",
+      "aliases": [],
+      "usage": "[options]",
+      "arguments": [],
+      "options": [
+        {
+          "flags": "--ensure",
+          "description": "Initialize/start the local DB when possible",
+          "defaultValue": false
+        },
+        {
+          "flags": "--inside",
+          "description": "Internal flag used after re-entering nix develop",
+          "defaultValue": false
+        },
+        {
+          "flags": "--json",
+          "description": "Output machine-readable JSON",
+          "defaultValue": false
+        }
+      ],
+      "subcommands": []
+    },
+    {
+      "name": "system",
+      "description": "Hardware-aware system tuning for RevealUI development",
+      "aliases": [],
+      "usage": "[options] [command]",
+      "arguments": [],
+      "options": [],
+      "subcommands": [
+        {
+          "name": "revert",
+          "description": "Revert a previously applied tuning plan from backup",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [],
+          "subcommands": []
+        },
+        {
+          "name": "scan",
+          "description": "Read-only scan of host hardware and platform",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--json",
+              "description": "Output machine-readable JSON",
+              "defaultValue": false
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "tune",
+          "description": "Generate and apply a tuning plan for this machine",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--dry-run",
+              "description": "Show the plan without applying changes",
+              "defaultValue": false
+            },
+            {
+              "flags": "--json",
+              "description": "Output machine-readable JSON plan",
+              "defaultValue": false
+            },
+            {
+              "flags": "-y, --yes",
+              "description": "Apply without confirmation",
+              "defaultValue": false
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "name": "terminal",
+      "description": "Install RevealUI terminal profiles for your terminal emulator",
+      "aliases": [],
+      "usage": "[options] [command]",
+      "arguments": [],
+      "options": [],
+      "subcommands": [
+        {
+          "name": "install",
+          "description": "Detect and install terminal profiles for supported emulators",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--force",
+              "description": "Overwrite existing profile files",
+              "defaultValue": false
+            },
+            {
+              "flags": "--json",
+              "description": "Output machine-readable JSON",
+              "defaultValue": false
+            },
+            {
+              "flags": "--terminal <name>",
+              "description": "Install for a specific terminal (e.g. iTerm2, Alacritty, Kitty)"
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "name": "list",
+          "description": "List available terminal profiles and detected emulators",
+          "aliases": [],
+          "usage": "[options]",
+          "arguments": [],
+          "options": [
+            {
+              "flags": "--json",
+              "description": "Output machine-readable JSON",
+              "defaultValue": false
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    }
+  ]
+}

@@ -842,13 +842,20 @@ Holster: "Here is the shared state where coordination happens"
 
 ---
 
-## §4.18: Legacy and Deprecation Sweep (Phase A complete 2026-04-15)
+## §4.18: Legacy and Deprecation Sweep (Phase A complete 2026-04-15, Phase B complete 2026-04-16)
 
 **Initial sweep results (2026-04-15):**
 - Removed 6 deprecated exports with zero callers: `registerSession`/`unregisterSession` aliases, `WorkboardSession`/`WorkboardEntry` types, `deepMergeSimple`, `findAgentMemoryById`/`findAgentMemoriesByUserId`
 - Removed `@lhci/cli` from root devDependencies (no script or CI consumer)
 - Removed `postgres` from pnpm catalog (never declared as workspace dep — repo uses `pg`)
 - Identified 20+ additional dead exports across auth audit-bridge, OAuth, cache CDN, resilience patterns, MCP launchers — flagged for follow-up; not removed because some are part of public package API and would require major version bumps
+
+**Follow-up sweep (2026-04-16):**
+- PR #343 removed three more zero-caller @deprecated surfaces: `apps/admin/src/types/index.ts` barrel, `packages/ai/src/memory/utils/deep-clone.ts` (callers migrated to `@revealui/core/utils/deep-clone`), and `packages/db`'s `pool` Proxy + default export (callers switched to `getPool()`)
+- PR #344 removed `PasswordHasher` from `@revealui/security` public API (minor bump changeset — users migrate to `hashPassword`/`verifyPassword` from `@revealui/auth`)
+- Audited the remaining flagged symbols: all are intentional public surfaces (audit-bridge hooks, OAuth linking, CDN warmers, resilience wrappers, MCP binary launchers). Kept as-is.
+
+**Phase B delivery (PR #345, 2026-04-16):** codemod infrastructure + first transform (`password-hasher-to-auth`) shipping alongside PR #344's API removal.
 
 
 **Goal:** Zero legacy or deprecated code paths in the codebase. Every public API surface ships only current implementations. When a pattern changes, ship a codemod so users can migrate automatically.
@@ -857,29 +864,31 @@ Holster: "Here is the shared state where coordination happens"
 
 ### Phase A: Exhaustive Codebase Audit
 
-- [ ] Automated scan for deprecated markers: `@deprecated` JSDoc, `legacy` in identifiers/filenames, `compat` shims, re-exports of removed APIs, `_old`/`_v1`/`_prev` suffixes
-- [ ] Audit all barrel exports (`index.ts`) for re-exported symbols that no longer have a primary consumer
-- [ ] Audit CLI for duplicate/alias commands (e.g. `shell` alias for `dev shell`) and decide: remove or keep with clear redirect messaging
-- [ ] Audit config formats for backwards-compat fields that can be dropped
-- [ ] Audit hook scripts for patterns that pre-date the current architecture
-- [ ] Audit test files for mocks of removed or renamed interfaces
-- [ ] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate)
+- [x] Automated scan for deprecated markers: `@deprecated` JSDoc, `legacy` in identifiers/filenames, `compat` shims, re-exports of removed APIs, `_old`/`_v1`/`_prev` suffixes — swept in PRs #342/#343/#344 (2026-04-15/16)
+- [x] Audit all barrel exports (`index.ts`) for re-exported symbols that no longer have a primary consumer — 30-symbol sweep; removable surfaces (ai/deep-clone, admin/types barrel, db/pool Proxy) removed in #343; remainder are intentional public APIs
+- [x] Audit CLI for duplicate/alias commands (e.g. `shell` alias for `dev shell`) — kept with clear "Deprecated alias" description; scheduled for removal at next CLI major bump
+- [x] Audit config formats for backwards-compat fields that can be dropped — none found
+- [x] Audit hook scripts for patterns that pre-date the current architecture — clean (workboard files removed earlier)
+- [x] Audit test files for mocks of removed or renamed interfaces — pool tests migrated to `getPool()` in #343
+- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — captured inline in PR descriptions #343 / #344 / #345
 
-### Phase B: Codemod Infrastructure
+### Phase B: Codemod Infrastructure (Complete — PR #345, 2026-04-16)
 
-- [ ] Add `revealui migrate` CLI command that runs codemods against a user's project
-- [ ] Scaffold codemod runner: discover available transforms, detect applicable version range, apply in order, report results
-- [ ] Establish codemod authoring pattern: each transform is a standalone file in `packages/cli/src/codemods/` with a `name`, `fromVersion`, `toVersion`, and `transform(source, api)` function
-- [ ] Add `revealui migrate --dry-run` to preview changes without writing
-- [ ] Add `revealui migrate --list` to show available codemods for the user's current version
+- [x] Add `revealui migrate` CLI command that runs codemods against a user's project — `packages/cli/src/commands/migrate.ts`
+- [x] Scaffold codemod runner: discover available transforms, detect applicable version range (`semver.satisfies` against installed version from node_modules or declared range), apply in order, report results — `packages/cli/src/codemods/runner.ts`
+- [x] Establish codemod authoring pattern: each transform is a standalone file in `packages/cli/src/codemods/transforms/` with `name`, `fromVersion`, `toVersion`, and `transform(source, api)` — `packages/cli/src/codemods/types.ts`
+- [x] Add `revealui migrate --dry-run` to preview changes without writing
+- [x] Add `revealui migrate --list` to show available codemods for the user's current version
+- [x] Add `revealui migrate --only <name>` to scope to a single codemod
 
-### Phase C: Execute
+### Phase C: Execute (In Progress)
 
-- [ ] Write codemods for every breaking change identified in Phase A
-- [ ] Remove all legacy code paths, compat wrappers, and deprecated re-exports
+- [x] First codemod: `password-hasher-to-auth` (rewrites `PasswordHasher.{hash,verify}` from `@revealui/security` to `hashPassword` / `verifyPassword` from `@revealui/auth`) — PR #345
+- [ ] Write codemods for future breaking changes as they land (open-ended — each breaking PR ships its own transform)
+- [x] Remove all legacy code paths, compat wrappers, and deprecated re-exports — Phase A sweep complete
 - [ ] Update CHANGELOG entries to reference the codemod that handles the migration
 - [ ] Validate: run codemods against the `create-revealui` templates to ensure clean output
-- [ ] Validate: `pnpm gate` passes with zero legacy references
+- [x] Validate: `pnpm gate` passes with zero legacy references — verified on #342 merge
 
 ---
 
@@ -914,7 +923,7 @@ Holster: "Here is the shared state where coordination happens"
 
 - [x] **Claim/count drift detector** ✅ 2026-04-15 — `scripts/validate/claim-drift.ts` (`pnpm validate:claims`). Counts real packages/apps/workspaces/tests/UI components/MCP servers and fails if docs, marketing, or READMEs claim a different number. First run found 35 mismatches across docs/marketing — all corrected.
 - [ ] Add a CI check that verifies code samples in docs/ compile against current package exports (extract fenced code blocks, typecheck them)
-- [ ] Add a CI check that verifies CLI `--help` output matches the documented command reference
+- [x] **CLI help drift detector** ✅ 2026-04-16 — `scripts/validate/cli-help-drift.ts` (`pnpm validate:cli-help`). Walks the Commander tree from `createCli()`, diffs against the committed snapshot at `docs/reference/cli-help.snapshot.json`. Ships in the CI gate's quality phase; update with `UPDATE=1 pnpm validate:cli-help` alongside every CLI-surface change.
 - [ ] Add a pre-commit rule: if a public export is renamed or removed, require a corresponding docs/ change in the same commit
 - [ ] Track messaging coverage: percentage of error paths that have user-friendly messages vs raw throws
 

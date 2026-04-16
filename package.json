@@ -194,7 +194,8 @@
     "validate:structure": "tsx scripts/validate/structure.ts",
     "validate:catalog": "tsx scripts/validate/catalog-changeset.ts --warn",
     "validate:claims": "tsx scripts/validate/claim-drift.ts",
-    "validate:versions": "tsx scripts/validate/version-policy.ts"
+    "validate:versions": "tsx scripts/validate/version-policy.ts",
+    "validate:cli-help": "tsx scripts/validate/cli-help-drift.ts"
   },
   "type": "module"
 }

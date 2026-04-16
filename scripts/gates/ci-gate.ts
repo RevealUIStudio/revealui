@@ -272,6 +272,11 @@ async function gate(): Promise<void> {
         args: ['validate:versions'],
       },
       {
+        name: 'CLI help drift',
+        command: 'pnpm',
+        args: ['validate:cli-help'],
+      },
+      {
         name: 'Catalog changeset check',
         command: 'pnpm',
         args: ['validate:catalog'],
