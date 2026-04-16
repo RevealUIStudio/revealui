@@ -918,7 +918,7 @@ Holster: "Here is the shared state where coordination happens"
 ### Phase C: Automated Drift Detection
 
 - [x] **Claim/count drift detector** ✅ 2026-04-15 — `scripts/validate/claim-drift.ts` (`pnpm validate:claims`). Counts real packages/apps/workspaces/tests/UI components/MCP servers and fails if docs, marketing, or READMEs claim a different number. First run found 35 mismatches across docs/marketing — all corrected.
-- [ ] Add a CI check that verifies code samples in docs/ compile against current package exports (extract fenced code blocks, typecheck them)
+- [x] **Docs import drift detector** ✅ 2026-04-16 — `scripts/validate/docs-import-drift.ts` (`pnpm validate:docs-imports`). Extracts every `ts`/`tsx`/`typescript` code fence in `docs/`, parses `@revealui/*` imports, and checks each named import against the package's built `.d.ts` exports. Ships in the CI gate as **warn-only** — initial scan found ~225 stale imports, will flip to hard-fail once the backlog is drained. Doesn't do full tsc-style typechecking; focuses on the drift class that matters (removed/renamed public API names).
 - [ ] Add a CI check that verifies CLI `--help` output matches the documented command reference
 - [ ] Add a pre-commit rule: if a public export is renamed or removed, require a corresponding docs/ change in the same commit
 - [ ] Track messaging coverage: percentage of error paths that have user-friendly messages vs raw throws
