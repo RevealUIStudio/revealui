@@ -47,6 +47,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./a2a": {
+      "types": "./dist/a2a/index.d.ts",
+      "import": "./dist/a2a/index.js"
+    },
     "./memory": {
       "types": "./dist/memory/index.d.ts",
       "import": "./dist/memory/index.js"

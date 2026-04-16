@@ -38,19 +38,25 @@ sudo snap install nemotron-3-nano   # general-purpose, low resource
 ```
 
 ```typescript
-import { createAgent } from "@revealui/ai";
-import { createLLMClient } from "@revealui/ai/llm";
+import { AgentRuntime } from "@revealui/ai/orchestration/runtime";
+import { createLLMClientFromEnv } from "@revealui/ai/llm/client";
+import type { Agent, Task } from "@revealui/ai/orchestration/agent";
 
-// Auto-detects inference-snaps when running locally
-const llm = createLLMClient();
+// Auto-detects inference-snaps > Ollama from environment
+const llm = createLLMClientFromEnv();
 
-const agent = createAgent({
+const agent: Agent = {
+  id: "agent-1",
   name: "my-agent",
-  llm,
+  instructions: "You summarize content concisely.",
   tools: [],
-});
+  getContext: () => ({ agentId: "agent-1" }),
+};
 
-const result = await agent.run("Summarize the latest blog posts.");
+const task: Task = { id: "task-1", description: "Summarize the latest blog posts." };
+
+const runtime = new AgentRuntime({ maxIterations: 10 });
+const result = await runtime.executeTask(agent, task, llm);
 ```
 
 ## Commercial model
@@ -78,7 +84,7 @@ Agents use a four-store cognitive memory architecture:
 | `ProceduralMemory` | Skills and procedures        | Persistent (DB)     |
 
 ```typescript
-import { WorkingMemory, EpisodicMemory } from "@revealui/ai/memory";
+import { WorkingMemory, EpisodicMemory } from "@revealui/ai/memory/stores";
 
 const memory = {
   working: new WorkingMemory({ maxTokens: 4096 }),
@@ -106,17 +112,31 @@ Install: `sudo snap install <name>`. Each snap serves an OpenAI-compatible API a
 
 ## A2A protocol
 
-RevealUI implements the Google A2A (Agent-to-Agent) protocol for multi-agent coordination.
+RevealUI implements the Google A2A (Agent-to-Agent) protocol for multi-agent coordination. The transport is plain JSON-RPC 2.0 over HTTP — register an agent card, mount `handleA2AJsonRpc` at your `/a2a` route, and let any A2A-compatible client POST to it:
 
 ```typescript
-import { A2AServer, A2AClient } from "@revealui/ai/a2a";
+import { agentCardRegistry, handleA2AJsonRpc } from "@revealui/ai/a2a";
 
-// Register an agent to accept tasks
-const server = new A2AServer({ agent, port: 3010 });
+// Register an agent card (what this endpoint advertises)
+agentCardRegistry.register({
+  name: "my-agent",
+  description: "Summarizes blog posts",
+  url: "https://example.com/a2a",
+  capabilities: { streaming: false, tools: [] },
+});
 
-// Send tasks to another agent
-const client = new A2AClient({ endpoint: "http://localhost:3010" });
-const task = await client.sendTask({ message: "Process this document." });
+// Mount the JSON-RPC handler in your route (Hono / Next.js / etc.)
+app.post("/a2a", async (c) => {
+  const body = await c.req.json();
+  const response = await handleA2AJsonRpc(body, { agentName: "my-agent" });
+  return c.json(response);
+});
+```
+
+For task bookkeeping (store, cancel, append artifacts), use the task-store helpers:
+
+```typescript
+import { createTask, getTask, cancelTask, appendArtifact } from "@revealui/ai/a2a";
 ```
 
 ## Open-Model Inference
@@ -134,10 +154,10 @@ nemotron-3-nano status
 ```
 
 ```typescript
-import { createLLMClient } from "@revealui/ai/llm";
+import { createLLMClientFromEnv } from "@revealui/ai/llm/client";
 
 // Auto-detects from environment (snaps > Ollama)
-const llm = createLLMClient();
+const llm = createLLMClientFromEnv();
 ```
 
 Auto-detection priority: `INFERENCE_SNAPS_BASE_URL` > `OLLAMA_BASE_URL`. See the [inference guide](/pro/inference) for full configuration details.
@@ -151,8 +171,8 @@ suitable for SSE delivery to the browser.
 ### StreamingAgentRuntime
 
 ```typescript
-import { StreamingAgentRuntime } from "@revealui/ai/orchestration";
-import type { AgentStreamChunk } from "@revealui/ai/orchestration";
+import { StreamingAgentRuntime } from "@revealui/ai/orchestration/streaming-runtime";
+import type { AgentStreamChunk } from "@revealui/ai/orchestration/streaming-runtime";
 
 const runtime = new StreamingAgentRuntime({ maxIterations: 10 });
 
