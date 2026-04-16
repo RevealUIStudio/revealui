@@ -154,9 +154,9 @@ response = await client.chat(messages, { enableCache: true })
 ### Pattern 4: Skills/Resources
 
 ```typescript
-import { loadSkill } from '@revealui/ai/skills/registry'
+import { globalSkillRegistry } from '@revealui/ai/skills/registry'
 
-const skill = await skillRegistry.loadSkill('typescript-expert')
+const skill = await globalSkillRegistry.loadSkill('typescript-expert')
 
 // Skill instructions + resources (~5000 tokens)
 const messages = [

@@ -83,6 +83,14 @@
       "types": "./dist/skills/index.d.ts",
       "import": "./dist/skills/index.js"
     },
+    "./skills/registry": {
+      "types": "./dist/skills/registry/index.d.ts",
+      "import": "./dist/skills/registry/index.js"
+    },
+    "./llm/cache-utils": {
+      "types": "./dist/llm/cache-utils.d.ts",
+      "import": "./dist/llm/cache-utils.js"
+    },
     "./llm/client": {
       "types": "./dist/llm/client.d.ts",
       "import": "./dist/llm/client.js"
@@ -99,6 +107,14 @@
       "types": "./dist/llm/providers/base.d.ts",
       "import": "./dist/llm/providers/base.js"
     },
+    "./llm/response-cache": {
+      "types": "./dist/llm/response-cache.d.ts",
+      "import": "./dist/llm/response-cache.js"
+    },
+    "./llm/semantic-cache": {
+      "types": "./dist/llm/semantic-cache.d.ts",
+      "import": "./dist/llm/semantic-cache.js"
+    },
     "./tools/admin": {
       "types": "./dist/tools/admin/index.d.ts",
       "import": "./dist/tools/admin/index.js"
@@ -110,6 +126,10 @@
     "./ingestion": {
       "types": "./dist/ingestion/index.d.ts",
       "import": "./dist/ingestion/index.js"
+    },
+    "./orchestration/runtime": {
+      "types": "./dist/orchestration/runtime.d.ts",
+      "import": "./dist/orchestration/runtime.js"
     },
     "./orchestration/streaming-runtime": {
       "types": "./dist/orchestration/streaming-runtime.d.ts",
