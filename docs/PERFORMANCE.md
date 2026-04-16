@@ -1648,206 +1648,195 @@ Our optimization strategy:
 
 ## Bundle Analysis
 
-Location: `packages/core/src/optimization/bundle-analyzer.ts`
+Analyse bundles with framework-native tooling — RevealUI does not ship its own analyzer.
 
-### Analyzing Your Bundle
+### Next.js
 
 ```bash
-# Run bundle analysis
-pnpm benchmark:bundle:size
-
-# Analyze specific app
-pnpm benchmark:bundle:size -- admin
+pnpm add -D @next/bundle-analyzer
 ```
 
-### Using the Bundle Analyzer
+```javascript
+// next.config.js
+import withBundleAnalyzer from '@next/bundle-analyzer'
 
-```typescript
-import { analyzeBundleDirectory, generateBundleReport } from '@revealui/core/optimization/bundle-analyzer'
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})
 
-// Analyze build output
-const stats = analyzeBundleDirectory('.next')
-
-// Generate report
-const report = generateBundleReport(stats)
-console.log(report)
-
-// Get health score
-const { score, factors } = getBundleHealthScore(stats)
-console.log(`Bundle Health: ${score}/100`)
+export default bundleAnalyzer({
+  // your Next.js config
+})
 ```
 
-### Bundle Health Metrics
+```bash
+ANALYZE=true pnpm build
+# Writes an interactive treemap to .next/analyze/client.html
+```
 
-The bundle health score (0-100) is calculated from:
+### Vite
 
-1. **Bundle Size** (40% weight)
-   - Excellent: <500KB
-   - Good: 500KB-1MB
-   - Poor: >1MB
+```bash
+pnpm add -D rollup-plugin-visualizer
+```
 
-2. **Large Files** (30% weight)
-   - Files >100KB are flagged
-   - Each large file reduces score by 10 points
-
-3. **Code Splitting** (20% weight)
-   - Optimal: ~10 chunks
-   - Too few: Not enough splitting
-   - Too many: Over-splitting overhead
-
-4. **Dependencies** (10% weight)
-   - Duplicate dependencies reduce score
-   - Each duplicate -20 points
-
-### Optimization Suggestions
-
-The analyzer provides automatic suggestions:
-
-```typescript
-const suggestions = getOptimizationSuggestions(stats)
-
-for (const suggestion of suggestions) {
-  console.log(`${suggestion.severity}: ${suggestion.message}`)
-  if (suggestion.potentialSavings) {
-    console.log(`  Potential savings: ${formatSize(suggestion.potentialSavings)}`)
-  }
+```javascript
+// vite.config.ts
+import { visualizer } from 'rollup-plugin-visualizer'
+export default {
+  plugins: [visualizer({ filename: 'dist/stats.html', gzipSize: true })],
 }
 ```
 
-## Code Splitting
+### Bundle Health Targets
 
-Location: `packages/core/src/optimization/code-splitting.ts`
+Use these as review heuristics, not hard gates:
+
+1. **Bundle Size**
+   - Excellent: <500KB (gzipped, initial route)
+   - Good: 500KB-1MB
+   - Poor: >1MB
+
+2. **Large Files**
+   - Flag any individual chunk >100KB gzipped
+
+3. **Code Splitting**
+   - Expect ~10 async chunks for a medium app; very few = not splitting enough, very many = over-splitting
+
+4. **Duplicate Dependencies**
+   - Audit with `pnpm why <pkg>` and syncpack; each duplicate adds parse + eval cost
+
+## Code Splitting
 
 ### Route-Based Code Splitting
 
 ```typescript
-import { lazy } from 'react'
+import { lazy, Suspense } from 'react'
 
-// Basic lazy loading
 const HomePage = lazy(() => import('./pages/HomePage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 
-// With retry logic
-import { lazyWithRetry } from '@revealui/core/optimization/code-splitting'
+<Suspense fallback={<Loading />}>
+  <HomePage />
+</Suspense>
+```
 
-const HomePage = lazyWithRetry(() => import('./pages/HomePage'), {
-  maxRetries: 3,
-  retryDelay: 1000,
-})
+For Next.js, pages and `app/` routes are code-split automatically — no `lazy()` needed at the route level.
+
+#### Retry-on-chunk-load-error
+
+Deployed chunks can 404 after a new deploy. Wrap `import()` to retry once:
+
+```typescript
+function lazyWithRetry<T extends { default: React.ComponentType<unknown> }>(
+  factory: () => Promise<T>,
+): React.LazyExoticComponent<T['default']> {
+  return lazy(async () => {
+    try {
+      return await factory()
+    } catch {
+      await new Promise((r) => setTimeout(r, 500))
+      return factory()
+    }
+  })
+}
+
+const HomePage = lazyWithRetry(() => import('./pages/HomePage'))
 ```
 
 ### Component-Based Code Splitting
 
 ```typescript
-// Split large components
 const Chart = lazy(() => import('./components/Chart'))
 const Modal = lazy(() => import('./components/Modal'))
 const Editor = lazy(() => import('./components/Editor'))
 
-// Use with Suspense
 <Suspense fallback={<Loading />}>
   <Chart data={data} />
 </Suspense>
 ```
 
-### Prefetching
+### Prefetching on Hover
 
 ```typescript
-import { lazyWithPrefetch } from '@revealui/core/optimization/code-splitting'
-
-const { Component: Dashboard, prefetch } = lazyWithPrefetch(
-  () => import('./pages/Dashboard')
-)
-
-// Prefetch on hover
-<Link to="/dashboard" onMouseEnter={prefetch}>
-  Dashboard
-</Link>
+function DashboardLink() {
+  const prefetch = () => import('./pages/Dashboard')
+  return (
+    <a href="/dashboard" onPointerEnter={prefetch}>
+      Dashboard
+    </a>
+  )
+}
 ```
 
 ### Load on Interaction
 
 ```typescript
-import { loadOnInteraction } from '@revealui/core/optimization/code-splitting'
-
 const buttonRef = useRef<HTMLButtonElement>(null)
 
 useEffect(() => {
-  const cleanup = loadOnInteraction(
-    buttonRef.current,
-    () => import('./components/Modal'),
-    ['click']
-  )
-
-  return cleanup
+  const el = buttonRef.current
+  if (!el) return
+  const load = () => import('./components/Modal')
+  el.addEventListener('click', load, { once: true })
+  return () => el.removeEventListener('click', load)
 }, [])
 ```
 
 ### Load on Visibility
 
 ```typescript
-import { prefetchOnVisible } from '@revealui/core/optimization/code-splitting'
-
 const elementRef = useRef<HTMLDivElement>(null)
 
 useEffect(() => {
-  const cleanup = prefetchOnVisible(
-    elementRef.current,
-    () => import('./components/Footer'),
-    { rootMargin: '50px' }
+  const el = elementRef.current
+  if (!el) return
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        import('./components/Footer')
+        observer.disconnect()
+      }
+    },
+    { rootMargin: '50px' },
   )
-
-  return cleanup
+  observer.observe(el)
+  return () => observer.disconnect()
 }, [])
 ```
 
 ### Vendor Chunk Splitting
 
-```typescript
-import { VENDOR_CHUNK_CONFIGS } from '@revealui/core/optimization/code-splitting'
+Next.js and Vite both split vendor chunks automatically. For finer control, configure `splitChunks` (webpack) or `rollupOptions.output.manualChunks` (Vite). Typical groups:
 
-// Automatically splits vendors:
-// - react-vendors: React, ReactDOM, React Router
-// - ui-vendors: class-variance-authority, clsx
-// - utils-vendors: Lodash, date-fns, classnames
-// - vendors: All other node_modules
-```
+- `react-vendors`: React, ReactDOM, React Router
+- `ui-vendors`: `class-variance-authority`, `clsx`
+- `utils-vendors`: date-fns, lodash-es
+- `vendors`: other `node_modules`
 
 ### Bundle Budgets
 
-```typescript
-import { checkBundleBudgets, DEFAULT_BUDGETS } from '@revealui/core/optimization/code-splitting'
+Enforce budgets in CI with [`bundlesize`](https://github.com/siddharthkp/bundlesize) or Next.js's built-in `experimental.bundlePagesRouterDependencies`:
 
-const violations = checkBundleBudgets({
-  totalSize: 600 * 1024,
-  initialSize: 250 * 1024,
-  asyncSizes: [80 * 1024, 120 * 1024],
-  cssSize: 55 * 1024,
-}, DEFAULT_BUDGETS)
-
-// Default budgets:
-// - maxSize: 500KB
-// - maxInitialSize: 200KB
-// - maxAsyncSize: 100KB
-// - maxCSSSize: 50KB
-```
+| Budget | Target |
+|--------|--------|
+| Max total JS | 500KB gzipped |
+| Max initial JS | 200KB gzipped |
+| Max async chunk | 100KB gzipped |
+| Max CSS | 50KB gzipped |
 
 ## Asset Optimization
-
-Location: `packages/core/src/optimization/asset-optimizer.ts`
 
 ### Image Optimization
 
 ```typescript
-import { DEFAULT_IMAGE_CONFIG } from '@revealui/core/optimization/asset-optimizer'
-
-// Next.js Image configuration
+// next.config.js
 export default {
   images: {
-    domains: ['cdn.example.com'],
+    remotePatterns: [{ protocol: 'https', hostname: 'cdn.example.com' }],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
-    formats: ['webp', 'avif'],
+    formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 31536000, // 1 year
   },
 }
@@ -1855,18 +1844,19 @@ export default {
 
 #### Responsive Images
 
-```typescript
-import { generateSrcSet, generateSizesAttribute } from '@revealui/core/optimization/asset-optimizer'
+Next.js's `<Image>` generates `srcset` + `sizes` automatically from `sizes` prop. When you need them by hand:
 
-// Generate srcset
-const srcset = generateSrcSet('/image.jpg', [640, 1024, 1920])
+```typescript
+function srcSet(src: string, widths: number[]): string {
+  return widths.map((w) => `${src}?w=${w} ${w}w`).join(', ')
+}
 // /image.jpg?w=640 640w, /image.jpg?w=1024 1024w, /image.jpg?w=1920 1920w
 
-// Generate sizes attribute
-const sizes = generateSizesAttribute([
-  { media: '(max-width: 768px)', size: '100vw' },
-  { media: '(max-width: 1200px)', size: '50vw' },
-], '33vw')
+const sizes = [
+  '(max-width: 768px) 100vw',
+  '(max-width: 1200px) 50vw',
+  '33vw',
+].join(', ')
 ```
 
 #### Using Next.js Image
@@ -1887,21 +1877,7 @@ import Image from 'next/image'
 
 ### Font Optimization
 
-```typescript
-import { generateFontFace, generateFontPreload } from '@revealui/core/optimization/asset-optimizer'
-
-// Generate font-face CSS
-const fontFace = generateFontFace('Inter', '/fonts/inter.woff2', {
-  display: 'swap',
-  weights: [400, 700],
-  styles: ['normal'],
-})
-
-// Preload critical fonts
-const preload = generateFontPreload('/fonts/inter.woff2', 'font/woff2')
-```
-
-#### Next.js Font Optimization
+Use `next/font` — it self-hosts Google fonts and inlines `@font-face` / preload tags with zero runtime:
 
 ```tsx
 import { Inter } from 'next/font/google'
@@ -1913,7 +1889,7 @@ const inter = Inter({
   variable: '--font-inter',
 })
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html className={inter.variable}>
       <body>{children}</body>
@@ -1922,94 +1898,64 @@ export default function RootLayout({ children }) {
 }
 ```
 
+For non-Next frameworks, hand-author `<link rel="preload" as="font" crossorigin>` tags in `<head>` and `@font-face { font-display: swap }` in CSS.
+
 ### CSS Optimization
 
-```typescript
-// Remove unused CSS
-import { removeUnusedCSS } from '@revealui/core/optimization/asset-optimizer'
-
-const optimizedCSS = removeUnusedCSS(css, usedSelectors)
-
-// Inline critical CSS
-import { inlineCriticalCSS } from '@revealui/core/optimization/asset-optimizer'
-
-const html = inlineCriticalCSS(htmlContent, criticalCSS)
-```
+- **Tailwind v4** (the RevealUI default) already tree-shakes unused utilities at build time — no extra tool needed.
+- **Critical CSS**: Next.js inlines route-critical CSS automatically. For other frameworks, use [`critters`](https://github.com/GoogleChromeLabs/critters) or [`beasties`](https://github.com/danielroe/beasties).
 
 ### SVG Optimization
 
-```typescript
-import { optimizeSVG, svgToDataURI } from '@revealui/core/optimization/asset-optimizer'
+Run SVGs through [`svgo`](https://github.com/svg/svgo) at build time — either its CLI or `@svgr/webpack` / `vite-plugin-svgr`:
 
-// Optimize SVG
-const optimized = optimizeSVG(svgString, {
-  removeComments: true,
-  removeMetadata: true,
-  removeDimensions: true,
-})
-
-// Convert to data URI for inlining
-const dataURI = svgToDataURI(optimized)
+```bash
+pnpm dlx svgo --multipass src/icons/
 ```
+
+For inlining, a React-component-per-icon workflow (SVGR) is usually faster than data URIs.
 
 ### Resource Hints
 
-```typescript
-import {
-  preloadCriticalAssets,
-  prefetchNextPage,
-  dnsPrefetch,
-  preconnect,
-} from '@revealui/core/optimization/asset-optimizer'
+Emit resource hints declaratively in your framework:
 
-// Preload critical resources
-preloadCriticalAssets([
-  { href: '/fonts/inter.woff2', as: 'font', type: 'font/woff2' },
-  { href: '/critical.css', as: 'style' },
-])
-
-// DNS prefetch for external domains
-dnsPrefetch([
-  'https://api.example.com',
-  'https://cdn.example.com',
-])
-
-// Preconnect to critical origins
-preconnect([
-  'https://fonts.googleapis.com',
-  'https://cdn.example.com',
-])
-
-// Prefetch next page
-prefetchNextPage(['/about', '/contact'])
+```tsx
+// Next.js app/layout.tsx
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html>
+      <head>
+        <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossOrigin="" />
+        <link rel="preload" href="/critical.css" as="style" />
+        <link rel="dns-prefetch" href="https://api.example.com" />
+        <link rel="dns-prefetch" href="https://cdn.example.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="" />
+        <link rel="preconnect" href="https://cdn.example.com" crossOrigin="" />
+        <link rel="prefetch" href="/about" />
+        <link rel="prefetch" href="/contact" />
+      </head>
+      <body>{children}</body>
+    </html>
+  )
+}
 ```
 
 ## Build Performance
 
-Location: `packages/core/src/optimization/build-optimizer.ts`
-
 ### Next.js Optimization Config
 
 ```typescript
-import { DEFAULT_NEXT_CONFIG } from '@revealui/core/optimization/build-optimizer'
-
 // next.config.js
 export default {
-  ...DEFAULT_NEXT_CONFIG,
-
   compiler: {
     removeConsole: {
       exclude: ['error', 'warn'],
     },
   },
 
-  swcMinify: true,
-  outputFileTracing: true,
-
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: [
-      'lodash',
+      'lodash-es',
       'date-fns',
       '@radix-ui/react-icons',
     ],
@@ -2019,6 +1965,8 @@ export default {
   compress: true,
 }
 ```
+
+`swcMinify` and automatic output-file-tracing have been defaults since Next 14 — no flag needed. `experimental.optimizeCss` was removed in Next 16; Tailwind v4 handles CSS minification via Lightning CSS.
 
 ### Build Caching
 
@@ -2046,23 +1994,14 @@ pnpm build --parallel=4
 
 ### Build Profiling
 
-```typescript
-import { BuildProfiler } from '@revealui/core/optimization/build-optimizer'
+Use Turborepo's built-in profiler — it emits a Chrome-DevTools-compatible trace:
 
-const profiler = new BuildProfiler()
-
-profiler.start('build')
-profiler.start('compile')
-// ... compilation
-profiler.end('compile')
-profiler.start('optimize')
-// ... optimization
-profiler.end('optimize')
-profiler.end('build')
-
-// Get slowest operations
-const slowest = profiler.getSlowestProfiles(10)
+```bash
+pnpm turbo run build --profile=build.json
+# Open build.json in chrome://tracing or https://ui.perfetto.dev/
 ```
+
+For Next.js-specific compile profiling, set `NEXT_TURBOPACK_TRACING=true` (Turbopack) or pass `--profile` to the Webpack build.
 
 ## Tree Shaking
 
@@ -2163,18 +2102,20 @@ const budgets = {
 
 ### Enforcing Budgets
 
+Enforce in CI with [`bundlesize`](https://github.com/siddharthkp/bundlesize) or Next.js's [`--experimental-build-budget`](https://nextjs.org/docs) flag. A minimal hand-rolled check:
+
 ```typescript
-import { checkBundleBudgets } from '@revealui/core/optimization/code-splitting'
+import { statSync } from 'node:fs'
 
-const violations = checkBundleBudgets(stats, budgets)
-
-if (violations.length > 0) {
-  console.error('Bundle budget violations:')
-  for (const violation of violations) {
-    console.error(`${violation.type}: ${formatSize(violation.exceeded)} over budget`)
+function assertUnder(path: string, maxBytes: number): void {
+  const size = statSync(path).size
+  if (size > maxBytes) {
+    console.error(`${path}: ${size} bytes exceeds budget of ${maxBytes}`)
+    process.exit(1)
   }
-  process.exit(1)
 }
+
+assertUnder('.next/static/chunks/main.js', 200 * 1024)
 ```
 
 ### CI Integration
@@ -2650,29 +2591,6 @@ turbo prune
 pnpm clean
 ```
 
-## Integration with BuildCache
-
-This optimization complements the BuildCache utility (scripts/lib/cache.ts):
-
-- **Turbo**: Caches task outputs across runs
-- **BuildCache**: Caches build artifacts with content-based keys
-
-Use both for maximum performance:
-
-```typescript
-import { BuildCache } from '@revealui/scripts-lib'
-
-const cache = new BuildCache()
-const key = await cache.getCacheKey(['src/**/*.ts'])
-
-if (await cache.isCached(key)) {
-  await cache.restore(key, 'dist/')
-} else {
-  // Build runs (Turbo may still cache this)
-  await cache.save(key, 'dist/')
-}
-```
-
 ## Verification
 
 Test the optimizations:
@@ -2745,12 +2663,12 @@ Our caching strategy includes:
 
 ## CDN Caching
 
-Location: `packages/core/src/caching/cdn-config.ts`
+Location: `packages/cache/src/cdn-config.ts` (published as `@revealui/cache`)
 
 ### Cache-Control Headers
 
 ```typescript
-import { generateCacheControl, CDN_CACHE_PRESETS } from '@revealui/core/caching/cdn-config'
+import { generateCacheControl, CDN_CACHE_PRESETS } from '@revealui/cache'
 
 // Generate Cache-Control header
 const cacheControl = generateCacheControl({
@@ -2798,7 +2716,7 @@ CDN_CACHE_PRESETS.noCache
 #### Purge by URL
 
 ```typescript
-import { purgeCDNCache } from '@revealui/core/caching/cdn-config'
+import { purgeCDNCache } from '@revealui/cache'
 
 await purgeCDNCache(
   [
@@ -2816,7 +2734,7 @@ await purgeCDNCache(
 #### Purge by Tag
 
 ```typescript
-import { purgeCacheByTag, generateCacheTags } from '@revealui/core/caching/cdn-config'
+import { purgeCacheByTag, generateCacheTags } from '@revealui/cache'
 
 // Generate tags
 const tags = generateCacheTags({
@@ -2837,7 +2755,7 @@ await purgeCacheByTag(['post', 'user:456'], {
 #### Purge Everything
 
 ```typescript
-import { purgeAllCache } from '@revealui/core/caching/cdn-config'
+import { purgeAllCache } from '@revealui/cache'
 
 await purgeAllCache({
   provider: 'cloudflare',
@@ -2849,7 +2767,7 @@ await purgeAllCache({
 ### Cache Warming
 
 ```typescript
-import { warmCDNCache } from '@revealui/core/caching/cdn-config'
+import { warmCDNCache } from '@revealui/cache'
 
 const result = await warmCDNCache(
   [
@@ -2902,122 +2820,32 @@ This allows:
 
 ## Service Workers
 
-Location: `packages/core/src/caching/service-worker.ts`
+RevealUI does not ship a service-worker helper. Apps that need offline support or PWA features should use their framework's native integration:
 
-### Registration
+- **Next.js**: pair with [`next-pwa`](https://github.com/shadowwalker/next-pwa) or hand-author a service worker in `public/sw.js` and register it from a client component on page load.
+- **Vite**: use [`vite-plugin-pwa`](https://vite-pwa-org.netlify.app/).
 
-```typescript
-import { registerServiceWorker } from '@revealui/core/caching/service-worker'
-
-// Register on page load
-if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
-    registerServiceWorker({
-      scope: '/',
-      scriptURL: '/sw.js',
-    })
-  })
-}
-```
-
-### React Hook
-
-```typescript
-import { useServiceWorker } from '@revealui/core/caching/service-worker'
-
-function App() {
-  const sw = useServiceWorker()
-
-  useEffect(() => {
-    sw.register()
-
-    return () => {
-      // Cleanup if needed
-    }
-  }, [])
-
-  return <div>App</div>
-}
-```
-
-### Update Notification
-
-```typescript
-// Listen for service worker updates
-window.addEventListener('sw-update-available', (event) => {
-  const registration = event.detail.registration
-
-  // Show update notification
-  showNotification('New version available!', {
-    onUpdate: async () => {
-      await skipWaitingAndActivate()
-    },
-  })
-})
-```
-
-### Cache Management
-
-```typescript
-import {
-  clearAllCaches,
-  clearCache,
-  precacheURLs,
-  getCacheSize,
-} from '@revealui/core/caching/service-worker'
-
-// Clear all caches
-await clearAllCaches()
-
-// Clear specific cache
-await clearCache('static-assets-v1')
-
-// Precache URLs
-await precacheURLs([
-  '/',
-  '/about',
-  '/contact',
-  '/styles/critical.css',
-  '/fonts/inter.woff2',
-])
-
-// Get cache size
-const { quota, usage, available } = await getCacheSize()
-console.log(`Using ${usage} of ${quota} bytes (${available} available)`)
-```
-
-### Offline Detection
-
-```typescript
-import { isOffline, onNetworkChange } from '@revealui/core/caching/service-worker'
-
-// Check if offline
-if (isOffline()) {
-  showOfflineMessage()
-}
-
-// Listen for network changes
-const cleanup = onNetworkChange((online) => {
-  if (online) {
-    hideOfflineMessage()
-    syncOfflineData()
-  } else {
-    showOfflineMessage()
-  }
-})
-```
+For network-adjacent primitives RevealUI does provide (CDN purge, ISR revalidation, edge rate limiting), see the `@revealui/cache` sections above.
 
 ## Application-Level Caching
 
-Location: `packages/core/src/caching/app-cache.ts`
+Use [TanStack Query](https://tanstack.com/query/latest) directly — RevealUI does not wrap it. The patterns below are conventions the team has standardised on for admin and marketing apps.
 
 ### React Query Configuration
 
 ```typescript
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { DEFAULT_REACT_QUERY_CONFIG } from '@revealui/core/caching/app-cache'
 
-const queryClient = new QueryClient(DEFAULT_REACT_QUERY_CONFIG)
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,            // 1 minute
+      gcTime: 5 * 60_000,           // 5 minutes
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+})
 
 function App() {
   return (
@@ -3028,54 +2856,33 @@ function App() {
 }
 ```
 
-### Cache Key Generation
+### Cache Key Conventions
+
+Use a stable tuple shape so invalidation stays predictable:
 
 ```typescript
-import { CacheKeyGenerator } from '@revealui/core/caching/app-cache'
-
-const keyGen = new CacheKeyGenerator('app')
-
-// List keys
-const usersListKey = keyGen.list('users', { page: 1, limit: 20 })
-// ['app', 'users', 'list', '{"page":1,"limit":20}']
-
-// Detail keys
-const userDetailKey = keyGen.detail('users', 123)
-// ['app', 'users', 'detail', '123']
-
-// Infinite query keys
-const postsInfiniteKey = keyGen.infinite('posts', { category: 'tech' })
-// ['app', 'posts', 'infinite', '{"category":"tech"}']
-
-// Custom keys
-const customKey = keyGen.custom('users', 'me', 'preferences')
-// ['app', 'users', 'me', 'preferences']
+// ['<app-scope>', '<resource>', '<view>', ...params]
+const usersListKey = ['app', 'users', 'list', { page: 1, limit: 20 }] as const
+const userDetailKey = ['app', 'users', 'detail', 123] as const
+const postsInfiniteKey = ['app', 'posts', 'infinite', { category: 'tech' }] as const
 ```
 
 ### Cache Invalidation
 
 ```typescript
-import { CacheInvalidator } from '@revealui/core/caching/app-cache'
 import { useQueryClient } from '@tanstack/react-query'
 
-function Component() {
+function useInvalidateUsers() {
   const queryClient = useQueryClient()
 
-  const handleUpdate = () => {
-    // Invalidate all user queries
-    queryClient.invalidateQueries({
-      queryKey: CacheInvalidator.byResource('users'),
-    })
-
-    // Invalidate specific user
-    queryClient.invalidateQueries({
-      queryKey: CacheInvalidator.byId('users', 123),
-    })
-
+  return {
+    // Invalidate all user queries (matches ['app', 'users', ...])
+    all: () => queryClient.invalidateQueries({ queryKey: ['app', 'users'] }),
+    // Invalidate a specific user
+    byId: (id: number) =>
+      queryClient.invalidateQueries({ queryKey: ['app', 'users', 'detail', id] }),
     // Invalidate lists only
-    queryClient.invalidateQueries({
-      queryKey: CacheInvalidator.lists('users'),
-    })
+    lists: () => queryClient.invalidateQueries({ queryKey: ['app', 'users', 'list'] }),
   }
 }
 ```
@@ -3083,7 +2890,6 @@ function Component() {
 ### Optimistic Updates
 
 ```typescript
-import { OptimisticUpdater } from '@revealui/core/caching/app-cache'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 function useUpdateUser() {
@@ -3092,26 +2898,19 @@ function useUpdateUser() {
   return useMutation({
     mutationFn: updateUserAPI,
     onMutate: async (newUser) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['app', 'users'] })
+      const previousUsers = queryClient.getQueryData<User[]>(['app', 'users', 'list'])
 
-      // Snapshot previous value
-      const previousUsers = queryClient.getQueryData(['app', 'users', 'list'])
-
-      // Optimistically update
-      queryClient.setQueryData(
-        ['app', 'users', 'list'],
-        (old) => OptimisticUpdater.updateInList(old, newUser.id, newUser)
+      queryClient.setQueryData<User[]>(['app', 'users', 'list'], (old) =>
+        old?.map((u) => (u.id === newUser.id ? { ...u, ...newUser } : u)),
       )
 
       return { previousUsers }
     },
-    onError: (err, newUser, context) => {
-      // Rollback on error
-      queryClient.setQueryData(['app', 'users', 'list'], context.previousUsers)
+    onError: (_err, _newUser, context) => {
+      queryClient.setQueryData(['app', 'users', 'list'], context?.previousUsers)
     },
     onSettled: () => {
-      // Refetch after mutation
       queryClient.invalidateQueries({ queryKey: ['app', 'users'] })
     },
   })
@@ -3121,24 +2920,24 @@ function useUpdateUser() {
 ### Prefetching
 
 ```typescript
-import { CachePrefetcher } from '@revealui/core/caching/app-cache'
 import { useQueryClient } from '@tanstack/react-query'
 
-function UserLink({ userId }) {
+function UserLink({ userId }: { userId: number }) {
   const queryClient = useQueryClient()
 
-  const prefetchUser = () => {
+  const prefetch = () =>
     queryClient.prefetchQuery({
       queryKey: ['app', 'users', 'detail', userId],
       queryFn: () => fetchUser(userId),
+      staleTime: 30_000,
     })
-  }
 
-  // Prefetch on hover
-  const hoverHandlers = CachePrefetcher.onHover(prefetchUser, 300)
-
+  // Hover-with-delay prefetch: start on pointer enter, cancel on pointer leave.
   return (
-    <Link to={`/users/${userId}`} {...hoverHandlers}>
+    <Link
+      to={`/users/${userId}`}
+      onPointerEnter={prefetch}
+    >
       View User
     </Link>
   )
@@ -3147,29 +2946,32 @@ function UserLink({ userId }) {
 
 ### Cache Persistence
 
-```typescript
-import { CachePersistence } from '@revealui/core/caching/app-cache'
+React Query ships a first-party persister. Install and wire it directly:
 
-const persistence = new CachePersistence({
+```bash
+pnpm add @tanstack/query-sync-storage-persister @tanstack/react-query-persist-client
+```
+
+```typescript
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
+
+const persister = createSyncStoragePersister({
+  storage: typeof window === 'undefined' ? undefined : window.localStorage,
   key: 'app-cache',
-  storage: 'localStorage',
-  version: 1,
-  maxAge: 86400000, // 1 day
 })
 
-// Save to storage
-await persistence.save(data)
-
-// Load from storage
-const cachedData = await persistence.load()
-
-// Remove from storage
-await persistence.remove()
+<PersistQueryClientProvider
+  client={queryClient}
+  persistOptions={{ persister, maxAge: 24 * 60 * 60 * 1000, buster: 'v1' }}
+>
+  <YourApp />
+</PersistQueryClientProvider>
 ```
 
 ## Edge Caching & ISR
 
-Location: `packages/core/src/caching/edge-cache.ts`
+Location: `packages/cache/src/edge-cache.ts` (published as `@revealui/cache`)
 
 ### ISR Configuration
 
@@ -3195,7 +2997,7 @@ export default async function Page({ params }) {
 ### On-Demand Revalidation
 
 ```typescript
-import { revalidatePath, revalidateTag } from '@revealui/core/caching/edge-cache'
+import { revalidatePath, revalidateTag } from '@revealui/cache'
 
 // Revalidate specific path
 await revalidatePath('/posts/123', process.env.REVALIDATE_SECRET)
@@ -3204,7 +3006,7 @@ await revalidatePath('/posts/123', process.env.REVALIDATE_SECRET)
 await revalidateTag('posts', process.env.REVALIDATE_SECRET)
 
 // Revalidate multiple paths
-import { revalidatePaths } from '@revealui/core/caching/edge-cache'
+import { revalidatePaths } from '@revealui/cache'
 
 const result = await revalidatePaths(
   ['/posts/123', '/posts/456', '/'],
@@ -3217,7 +3019,7 @@ console.log(`Revalidated: ${result.revalidated}, Failed: ${result.failed}`)
 ### Edge Caching Headers
 
 ```typescript
-import { setEdgeCacheHeaders } from '@revealui/core/caching/edge-cache'
+import { setEdgeCacheHeaders } from '@revealui/cache'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -3236,7 +3038,7 @@ export async function GET() {
 ### Edge Rate Limiting
 
 ```typescript
-import { EdgeRateLimiter } from '@revealui/core/caching/edge-cache'
+import { EdgeRateLimiter } from '@revealui/cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 const rateLimiter = new EdgeRateLimiter({
@@ -3265,7 +3067,7 @@ export function middleware(request: NextRequest) {
 ### Geolocation-Based Caching
 
 ```typescript
-import { getGeoLocation, getPersonalizationConfig } from '@revealui/core/caching/edge-cache'
+import { getGeoLocation, getPersonalizationConfig } from '@revealui/cache'
 
 export function middleware(request: NextRequest) {
   const geo = getGeoLocation(request)
@@ -3390,35 +3192,47 @@ await purgeCacheByTag(['user:456']) // Invalidates all content for user 456
 
 ### 4. Prefetch Strategically
 
-```typescript
-// Prefetch on hover (300ms delay to avoid false positives)
-const handlers = CachePrefetcher.onHover(prefetchFn, 300)
+Wire prefetching with the platform primitives — React Query's `prefetchQuery`, plus `requestIdleCallback` and `IntersectionObserver` for timing:
 
-// Prefetch on idle
-CachePrefetcher.onIdle(prefetchFn)
+```typescript
+// Prefetch on hover
+<a onPointerEnter={() => queryClient.prefetchQuery(queryOpts)} />
+
+// Prefetch on idle (lowest priority)
+if (typeof requestIdleCallback !== 'undefined') {
+  requestIdleCallback(() => queryClient.prefetchQuery(queryOpts))
+}
 
 // Prefetch on visibility
-CachePrefetcher.onVisible(element, prefetchFn)
+const observer = new IntersectionObserver((entries) => {
+  if (entries.some((e) => e.isIntersecting)) {
+    queryClient.prefetchQuery(queryOpts)
+    observer.disconnect()
+  }
+})
+observer.observe(element)
 ```
 
 ### 5. Monitor Cache Performance
 
+Track cache hits and misses in application metrics. A minimal counter:
+
 ```typescript
-import { CacheStatsTracker } from '@revealui/core/caching/app-cache'
+let hits = 0
+let misses = 0
 
-const tracker = new CacheStatsTracker()
-
-// Track hits and misses
-if (cachedData) {
-  tracker.recordHit()
-} else {
-  tracker.recordMiss()
+function record(isHit: boolean): void {
+  if (isHit) hits++
+  else misses++
 }
 
-// Get statistics
-const stats = tracker.getStats()
-console.log(`Hit rate: ${stats.hitRate.toFixed(1)}%`)
+function hitRate(): number {
+  const total = hits + misses
+  return total === 0 ? 0 : (hits / total) * 100
+}
 ```
+
+For production, forward these counts to your observability stack (OpenTelemetry, Datadog, Vercel Observability) rather than keeping them in process memory.
 
 ### 6. Handle Cache Failures Gracefully
 
