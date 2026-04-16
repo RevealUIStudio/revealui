@@ -9,6 +9,14 @@
 export { Box, type BoxProps } from './Box.js';
 export { Flex, type FlexProps } from './Flex.js';
 export { Grid, type GridProps } from './Grid.js';
-export { Heading, type HeadingProps } from './Heading.js';
+// CVA primitive variants re-exported under aliases  -  the default `Heading` and
+// `Text` from `./components` are the Catalyst-style canonical API.
+export {
+  Heading as HeadingPrimitive,
+  type HeadingProps as HeadingPrimitiveProps,
+} from './Heading.js';
 export { Slot, type SlotProps } from './Slot.js';
-export { Text, type TextProps } from './Text.js';
+export {
+  Text as TextPrimitive,
+  type TextProps as TextPrimitiveProps,
+} from './Text.js';
