@@ -293,6 +293,10 @@
       "types": "./dist/caching/index.d.ts",
       "import": "./dist/caching/index.js"
     },
+    "./cache/query-cache": {
+      "types": "./dist/cache/query-cache.d.ts",
+      "import": "./dist/cache/query-cache.js"
+    },
     "./optimization/code-splitting": {
       "types": "./dist/optimization/code-splitting.d.ts",
       "import": "./dist/optimization/code-splitting.js"
