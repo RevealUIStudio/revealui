@@ -842,13 +842,18 @@ Holster: "Here is the shared state where coordination happens"
 
 ---
 
-## §4.18: Legacy and Deprecation Sweep (Phase A complete 2026-04-15)
+## §4.18: Legacy and Deprecation Sweep (Phase A in progress)
 
 **Initial sweep results (2026-04-15):**
 - Removed 6 deprecated exports with zero callers: `registerSession`/`unregisterSession` aliases, `WorkboardSession`/`WorkboardEntry` types, `deepMergeSimple`, `findAgentMemoryById`/`findAgentMemoriesByUserId`
 - Removed `@lhci/cli` from root devDependencies (no script or CI consumer)
 - Removed `postgres` from pnpm catalog (never declared as workspace dep — repo uses `pg`)
 - Identified 20+ additional dead exports across auth audit-bridge, OAuth, cache CDN, resilience patterns, MCP launchers — flagged for follow-up; not removed because some are part of public package API and would require major version bumps
+
+**Follow-up sweep results (2026-04-16, PR #343):**
+- Removed 3 more zero-caller `@deprecated` exports: `apps/admin/src/types/index.ts` (barrel re-export of admin types), `packages/ai/src/memory/utils/deep-clone.ts` (re-export of `@revealui/core/utils/deep-clone`), `packages/db/src/pool.ts` `pool` Proxy + `export default pool`
+- Internal callers migrated to the canonical import path; obsolete duplicate tests deleted
+- 6 `@deprecated` markers remain: 2 are string literals in analyzer error messages (not real deprecations); 1 is `packages/security/src/auth.ts` `PasswordHasher` (PBKDF2) which is a public API removal deserving its own PR with changeset + migration notes to `@revealui/auth` (bcrypt)
 
 
 **Goal:** Zero legacy or deprecated code paths in the codebase. Every public API surface ships only current implementations. When a pattern changes, ship a codemod so users can migrate automatically.
