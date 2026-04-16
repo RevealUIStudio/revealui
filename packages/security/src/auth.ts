@@ -166,67 +166,6 @@ export class OAuthClient {
 }
 
 /**
- * Password hashing utilities
- *
- * Uses PBKDF2 with a random salt for secure password hashing.
- *
- * @deprecated Use `@revealui/auth` instead  -  it uses bcrypt which is more
- * resistant to GPU brute-force attacks. This PBKDF2 implementation will be
- * removed in a future major version.
- */
-
-const PH_ITERATIONS = 100000;
-const PH_KEY_LENGTH = 64;
-const PH_DIGEST = 'sha512';
-
-/**
- * Hash password with PBKDF2 and random salt
- */
-async function hashPassword(password: string): Promise<string> {
-  const { pbkdf2, randomBytes: rb } = await import('node:crypto');
-  const salt = rb(16).toString('hex');
-
-  return new Promise((resolve, reject) => {
-    pbkdf2(password, salt, PH_ITERATIONS, PH_KEY_LENGTH, PH_DIGEST, (err, derivedKey) => {
-      if (err) reject(err);
-      else resolve(`${salt}:${derivedKey.toString('hex')}`);
-    });
-  });
-}
-
-/**
- * Verify password against stored hash
- */
-async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
-  const { pbkdf2, timingSafeEqual: tse } = await import('node:crypto');
-  const [salt, hash] = storedHash.split(':');
-
-  if (!(salt && hash)) {
-    return false;
-  }
-
-  return new Promise((resolve, reject) => {
-    pbkdf2(password, salt, PH_ITERATIONS, PH_KEY_LENGTH, PH_DIGEST, (err, derivedKey) => {
-      if (err) reject(err);
-      else {
-        const derived = Buffer.from(derivedKey.toString('hex'), 'utf-8');
-        const expected = Buffer.from(hash, 'utf-8');
-        if (derived.length !== expected.length) {
-          resolve(false);
-        } else {
-          resolve(tse(derived, expected));
-        }
-      }
-    });
-  });
-}
-
-export const PasswordHasher = {
-  hash: hashPassword,
-  verify: verifyPassword,
-} as const;
-
-/**
  * Two-factor authentication
  */
 
