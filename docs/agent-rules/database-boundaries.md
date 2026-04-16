@@ -44,17 +44,19 @@ packages/db/src/schema/
 
 ### NeonDB (Drizzle ORM)
 ```ts
-import { db } from '@revealui/db'
+import { getRestClient } from '@revealui/db'
 import { posts } from '@revealui/db/schema'
 
+const db = getRestClient()
 const results = await db.select().from(posts).where(eq(posts.status, 'published'))
 ```
 
 ### Supabase (vector/auth only)
 ```ts
 // Only in designated modules (packages/db/src/vector/, packages/ai/src/)
-import { createSupabaseClient } from '@revealui/db/vector'
+import { getVectorClient } from '@revealui/db'
 
+const supabase = getVectorClient()
 const { data } = await supabase.rpc('match_documents', { query_embedding: embedding })
 ```
 

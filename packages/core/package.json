@@ -113,6 +113,10 @@
       "types": "./dist/database/ssl-config.d.ts",
       "import": "./dist/database/ssl-config.js"
     },
+    "./database/type-adapter": {
+      "types": "./dist/database/type-adapter.d.ts",
+      "import": "./dist/database/type-adapter.js"
+    },
     "./storage": {
       "types": "./dist/storage/index.d.ts",
       "import": "./dist/storage/index.js"

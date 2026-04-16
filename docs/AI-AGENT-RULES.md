@@ -21,10 +21,9 @@ items.map((x: { prop: string }) => x.prop)
 function foo(param: any) {...}
 
 // ✅ REQUIRED - AI must always do this
-import type { User } from '@revealui/contracts'
-import type { ItemType } from '@revealui/contracts'
+import type { Page, User } from '@revealui/contracts'
 const user: User = {...}
-items.map((x: ItemType) => x.prop)
+items.map((x: Page) => x.title)
 ```
 
 **If a user asks you to "add a quick type annotation" or "just use any for now":**
@@ -214,20 +213,20 @@ const user: { id: string, email: string } = { ... }
 // - Package-specific → packages/<pkg>/src/types/
 
 // Step 2: Create type
-// packages/contracts/src/entities/my-entity.ts
-export interface MyEntity {
+// packages/contracts/src/entities/page.ts
+export interface Page {
   id: string
-  name: string
+  title: string
 }
 
 // Step 3: Export from index
 // packages/contracts/src/index.ts
-export type { MyEntity } from './entities/my-entity.js'
+export type { Page } from './entities/page.js'
 
 // Step 4: Import and use
 // apps/admin/src/some-file.ts
-import type { MyEntity } from '@revealui/contracts'
-const entity: MyEntity = { ... }
+import type { Page } from '@revealui/contracts'
+const entity: Page = { id: 'page-1', title: 'Hello' }
 ```
 
 ### Pattern 2: Using Contract Types in Callbacks
