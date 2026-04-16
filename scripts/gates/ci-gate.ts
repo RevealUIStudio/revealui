@@ -278,6 +278,12 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
+        name: 'Docs import drift',
+        command: 'pnpm',
+        args: ['validate:docs-imports', '--warn'],
+        warnOnly: true,
+      },
+      {
         name: 'Pro license validation',
         command: 'pnpm',
         args: ['validate:gitignore'],
