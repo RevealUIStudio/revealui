@@ -915,7 +915,7 @@ Holster: "Here is the shared state where coordination happens"
 - [x] **Claim/count drift detector** ✅ 2026-04-15 — `scripts/validate/claim-drift.ts` (`pnpm validate:claims`). Counts real packages/apps/workspaces/tests/UI components/MCP servers and fails if docs, marketing, or READMEs claim a different number. First run found 35 mismatches across docs/marketing — all corrected.
 - [ ] Add a CI check that verifies code samples in docs/ compile against current package exports (extract fenced code blocks, typecheck them)
 - [ ] Add a CI check that verifies CLI `--help` output matches the documented command reference
-- [ ] Add a pre-commit rule: if a public export is renamed or removed, require a corresponding docs/ change in the same commit
+- [x] **Export → docs guard** ✅ 2026-04-16 — `scripts/validate/export-docs-guard.ts` (`pnpm validate:export-docs`). For every `packages/*/src/index.ts` barrel that changes between `origin/test` and HEAD, parses the before/after with the TS compiler and flags any removed named export that isn't paired with a change under `docs/`. Runs in the CI gate as warn-only initially; promote to hard-fail once workflow is proven. Not pre-commit — the check needs the base ref, which is cleaner in pre-push / CI.
 - [ ] Track messaging coverage: percentage of error paths that have user-friendly messages vs raw throws
 
 ---

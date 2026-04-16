@@ -278,6 +278,12 @@ async function gate(): Promise<void> {
         warnOnly: true,
       },
       {
+        name: 'Export → docs guard',
+        command: 'pnpm',
+        args: ['validate:export-docs'],
+        warnOnly: true,
+      },
+      {
         name: 'Pro license validation',
         command: 'pnpm',
         args: ['validate:gitignore'],
