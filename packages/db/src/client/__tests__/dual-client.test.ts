@@ -33,11 +33,12 @@ describe('Dual Database Client', () => {
     resetClient();
     // Set up environment variables
     process.env.POSTGRES_URL = 'postgresql://rest-db';
-    process.env.DATABASE_URL = 'postgresql://vector-db';
+    process.env.SUPABASE_DATABASE_URL = 'postgresql://vector-db';
   });
 
   afterEach(() => {
     Reflect.deleteProperty(process.env, 'POSTGRES_URL');
+    Reflect.deleteProperty(process.env, 'SUPABASE_DATABASE_URL');
     Reflect.deleteProperty(process.env, 'DATABASE_URL');
   });
 
@@ -64,11 +65,11 @@ describe('Dual Database Client', () => {
     expect(defaultClient).toBe(restClient);
   });
 
-  it('should throw error if DATABASE_URL not set for vector client', () => {
+  it('should throw error if SUPABASE_DATABASE_URL not set for vector client', () => {
     resetClient(); // Reset cached client to force re-initialization
-    Reflect.deleteProperty(process.env, 'DATABASE_URL');
+    Reflect.deleteProperty(process.env, 'SUPABASE_DATABASE_URL');
 
-    expect(() => getVectorClient()).toThrow('DATABASE_URL');
+    expect(() => getVectorClient()).toThrow('SUPABASE_DATABASE_URL');
   });
 
   it('should throw error if POSTGRES_URL not set for rest client', () => {
