@@ -335,7 +335,7 @@ describe('Webhook Safety  -  money-critical paths', () => {
       );
     });
 
-    it('rejects webhook with 500 and logs CRITICAL when tier is unknown', async () => {
+    it('skips processing and logs error when tier is unknown (prevents infinite retry)', async () => {
       const event = {
         id: 'evt_safety_tier_unknown',
         type: 'customer.subscription.updated',
@@ -355,16 +355,18 @@ describe('Webhook Safety  -  money-critical paths', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      // Webhook should fail so Stripe retries  -  do NOT default to 'pro'
-      expect(res.status).toBe(500);
+      // Returns 200 (acknowledged) instead of 500 — prevents infinite Stripe
+      // retries while still logging the error for operator investigation.
+      // Customer keeps existing tier until metadata is fixed in Stripe dashboard.
+      expect(res.status).toBe(200);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
-        expect.stringContaining('CRITICAL'),
+        expect.stringContaining('tier metadata missing'),
         undefined,
-        expect.objectContaining({ tier: 'diamond' }),
+        expect.objectContaining({ customerId: 'cus_t' }),
       );
     });
 
-    it('rejects webhook with 500 and logs CRITICAL when tier metadata is missing entirely', async () => {
+    it('skips processing and logs error when tier metadata is absent (prevents infinite retry)', async () => {
       const event = {
         id: 'evt_safety_tier_missing',
         type: 'customer.subscription.updated',
@@ -384,12 +386,11 @@ describe('Webhook Safety  -  money-critical paths', () => {
       const app = createApp();
       const res = await app.request(postStripe(event));
 
-      // Webhook should fail so Stripe retries  -  do NOT default to 'pro'
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(200);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
-        expect.stringContaining('CRITICAL'),
+        expect.stringContaining('tier metadata missing'),
         undefined,
-        expect.objectContaining({ tier: null }),
+        expect.objectContaining({ customerId: 'cus_t' }),
       );
     });
 

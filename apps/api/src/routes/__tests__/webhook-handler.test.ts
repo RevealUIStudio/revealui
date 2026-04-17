@@ -586,25 +586,27 @@ describe('POST /stripe webhook  -  handler tests', () => {
       expect(set.tier).toBe('enterprise');
     });
 
-    it('rejects webhook with 500 for unknown tier', async () => {
+    it('skips processing and logs error for unknown tier (no infinite retry)', async () => {
       const event = makeUpdatedEvent('evt_tier_bad', { tier: 'gold' });
       mockConstructEvent.mockReturnValueOnce(event);
       const app = createApp();
       const res = await app.request(postStripe(event));
-      expect(res.status).toBe(500);
+      // Returns 200 (webhook acknowledged) instead of 500 (which would trigger
+      // infinite Stripe retries). The error is logged for operator investigation.
+      expect(res.status).toBe(200);
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
-        expect.stringContaining('unknown or missing tier'),
+        expect.stringContaining('tier metadata missing'),
         undefined,
-        expect.objectContaining({ tier: 'gold' }),
+        expect.objectContaining({ customerId: expect.any(String) }),
       );
     });
 
-    it('rejects webhook with 500 when tier metadata is absent', async () => {
+    it('skips processing when tier metadata is absent (no infinite retry)', async () => {
       const event = makeUpdatedEvent('evt_tier_none', {});
       mockConstructEvent.mockReturnValueOnce(event);
       const app = createApp();
       const res = await app.request(postStripe(event));
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(200);
     });
   });
 

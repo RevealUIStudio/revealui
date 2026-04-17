@@ -18,6 +18,69 @@ import { logger } from './utils/logger.js';
 /** Available license tiers */
 export type LicenseTier = 'free' | 'pro' | 'max' | 'enterprise';
 
+/**
+ * License operating mode — determines how the system behaves when license
+ * checks encounter various failure conditions.
+ *
+ * - active: License is valid and current
+ * - grace: License has an issue but is within a grace period (still allowed)
+ * - read-only: Perpetual support lapsed past grace — reads allowed, writes blocked
+ * - expired: Grace period exhausted — degraded to free tier
+ * - invalid: Signature invalid or tampered — hard fail
+ * - missing: No license configured — free tier
+ */
+export type LicenseMode = 'active' | 'grace' | 'read-only' | 'expired' | 'invalid' | 'missing';
+
+/** Detailed result from license status check */
+export interface LicenseCheckResult {
+  /** Whether the requested action is allowed */
+  allowed: boolean;
+  /** Current effective tier */
+  tier: LicenseTier;
+  /** Operating mode */
+  mode: LicenseMode;
+  /** Human-readable reason for the current mode */
+  reason?: string;
+  /** Milliseconds remaining in grace period (undefined if not in grace) */
+  graceRemainingMs?: number;
+  /** Whether writes should be blocked (read-only mode for lapsed perpetual) */
+  readOnly: boolean;
+}
+
+/** Grace period configuration (in days). Overridable via env for testing. */
+export interface GracePeriodConfig {
+  /** Days after subscription expiry before degrading to free (default: 3) */
+  subscriptionDays: number;
+  /** Days after perpetual support lapse before read-only mode (default: 30) */
+  perpetualDays: number;
+  /** Days of cached-license grace when infra is unreachable (default: 7) */
+  infraDays: number;
+}
+
+const DEFAULT_GRACE: GracePeriodConfig = {
+  subscriptionDays: parseEnvInt('LICENSE_GRACE_SUBSCRIPTION_DAYS', 3),
+  perpetualDays: parseEnvInt('LICENSE_GRACE_PERPETUAL_DAYS', 30),
+  infraDays: parseEnvInt('LICENSE_GRACE_INFRA_DAYS', 7),
+};
+
+function parseEnvInt(key: string, fallback: number): number {
+  const val = process.env[key];
+  if (val) {
+    const parsed = Number.parseInt(val, 10);
+    if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+  }
+  return fallback;
+}
+
+let graceConfig: GracePeriodConfig = { ...DEFAULT_GRACE };
+
+/**
+ * Configure grace period durations. Useful for testing.
+ */
+export function configureGracePeriods(overrides: Partial<GracePeriodConfig>): void {
+  graceConfig = { ...DEFAULT_GRACE, ...overrides };
+}
+
 /** Decoded license payload schema */
 const licensePayloadSchema = z.object({
   /** License tier */
@@ -79,12 +142,15 @@ interface LicenseState {
   tier: LicenseTier;
   payload: LicensePayload | null;
   validatedAt: number | null;
+  /** True when a license key was configured but failed validation (expired, invalid, etc.) */
+  keyPresentButInvalid: boolean;
 }
 
 let cachedState: LicenseState = {
   tier: 'free',
   payload: null,
   validatedAt: null,
+  keyPresentButInvalid: false,
 };
 
 /**
@@ -145,8 +211,11 @@ export async function validateLicenseKey(
     }
 
     const key = await importSPKI(publicKey, 'RS256');
+    // Accept tokens expired within the subscription grace window so the
+    // payload is available for grace-period calculations in isLicensed().
     const { payload } = await jwtVerify(licenseKey, key, {
       algorithms: ['RS256', 'ES256'],
+      clockTolerance: graceConfig.subscriptionDays * 86_400,
     });
 
     const result = licensePayloadSchema.safeParse(payload);
@@ -171,7 +240,12 @@ export async function initializeLicense(): Promise<LicenseTier> {
   const publicKey = getPublicKey();
 
   if (!(licenseKey && publicKey)) {
-    cachedState = { tier: 'free', payload: null, validatedAt: Date.now() };
+    cachedState = {
+      tier: 'free',
+      payload: null,
+      validatedAt: Date.now(),
+      keyPresentButInvalid: false,
+    };
     cachedAt = Date.now();
     return 'free';
   }
@@ -179,7 +253,13 @@ export async function initializeLicense(): Promise<LicenseTier> {
   const payload = await validateLicenseKey(licenseKey, publicKey);
 
   if (!payload) {
-    cachedState = { tier: 'free', payload: null, validatedAt: Date.now() };
+    // Key was present but failed validation (expired beyond grace, invalid signature, etc.)
+    cachedState = {
+      tier: 'free',
+      payload: null,
+      validatedAt: Date.now(),
+      keyPresentButInvalid: true,
+    };
     cachedAt = Date.now();
     return 'free';
   }
@@ -188,6 +268,7 @@ export async function initializeLicense(): Promise<LicenseTier> {
     tier: payload.tier,
     payload,
     validatedAt: Date.now(),
+    keyPresentButInvalid: false,
   };
   cachedAt = Date.now();
 
@@ -208,7 +289,7 @@ export async function initializeLicense(): Promise<LicenseTier> {
  */
 function evictStaleCache(): void {
   if (cachedAt > 0 && Date.now() - cachedAt > cacheConfig.ttlMs) {
-    cachedState = { tier: 'free', payload: null, validatedAt: null };
+    cachedState = { tier: 'free', payload: null, validatedAt: null, keyPresentButInvalid: false };
     cachedAt = 0;
   }
 }
@@ -233,6 +314,10 @@ export function getLicensePayload(): LicensePayload | null {
 /**
  * Checks whether the current license is at least the given tier.
  * Also validates that the license has not expired (checks JWT exp claim).
+ *
+ * Subscription grace: if the JWT has expired but is within the configured
+ * grace period (default 3 days), access is still allowed. Use
+ * `getLicenseStatus()` to check whether the license is in grace.
  */
 export function isLicensed(requiredTier: LicenseTier): boolean {
   evictStaleCache();
@@ -250,11 +335,99 @@ export function isLicensed(requiredTier: LicenseTier): boolean {
   if (!cachedState.payload?.perpetual && cachedState.payload?.exp) {
     const nowSeconds = Math.floor(Date.now() / 1000);
     if (cachedState.payload.exp < nowSeconds) {
+      // Expired — check subscription grace period
+      const graceEndSeconds = cachedState.payload.exp + graceConfig.subscriptionDays * 86_400;
+      if (nowSeconds < graceEndSeconds) {
+        // Within grace — still allowed, but callers should check getLicenseStatus()
+        return tierRank[cachedState.tier] >= tierRank[requiredTier];
+      }
       return false;
     }
   }
 
   return tierRank[cachedState.tier] >= tierRank[requiredTier];
+}
+
+/**
+ * Returns the full license status including mode, grace state, and read-only flag.
+ *
+ * Use this for UI decisions (banners, warnings) and API response headers.
+ * For simple gate checks, `isLicensed()` is sufficient.
+ */
+export function getLicenseStatus(requiredTier: LicenseTier = 'pro'): LicenseCheckResult {
+  evictStaleCache();
+
+  const tierRank: Record<LicenseTier, number> = {
+    free: 0,
+    pro: 1,
+    max: 2,
+    enterprise: 3,
+  };
+
+  // No license configured — or key was present but failed validation
+  if (!cachedState.payload) {
+    if (cachedState.keyPresentButInvalid) {
+      return {
+        allowed: requiredTier === 'free',
+        tier: 'free',
+        mode: 'expired',
+        reason: 'License key failed validation (expired beyond grace or invalid)',
+        readOnly: false,
+      };
+    }
+    return {
+      allowed: requiredTier === 'free',
+      tier: 'free',
+      mode: 'missing',
+      reason: 'No license configured',
+      readOnly: false,
+    };
+  }
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+
+  // Check subscription expiry + grace
+  if (!cachedState.payload.perpetual && cachedState.payload.exp) {
+    if (cachedState.payload.exp < nowSeconds) {
+      const graceEndSeconds = cachedState.payload.exp + graceConfig.subscriptionDays * 86_400;
+
+      if (nowSeconds < graceEndSeconds) {
+        const graceRemainingMs = (graceEndSeconds - nowSeconds) * 1000;
+        return {
+          allowed: tierRank[cachedState.tier] >= tierRank[requiredTier],
+          tier: cachedState.tier,
+          mode: 'grace',
+          reason: `Subscription expired, ${Math.ceil(graceRemainingMs / 86_400_000)}-day grace remaining`,
+          graceRemainingMs,
+          readOnly: false,
+        };
+      }
+
+      return {
+        allowed: requiredTier === 'free',
+        tier: 'free',
+        mode: 'expired',
+        reason: 'Subscription expired and grace period exhausted',
+        readOnly: false,
+      };
+    }
+  }
+
+  // Active license
+  return {
+    allowed: tierRank[cachedState.tier] >= tierRank[requiredTier],
+    tier: cachedState.tier,
+    mode: 'active',
+    readOnly: false,
+  };
+}
+
+/**
+ * Returns the configured grace period durations.
+ * Useful for API response headers and customer-facing documentation.
+ */
+export function getGraceConfig(): Readonly<GracePeriodConfig> {
+  return graceConfig;
 }
 
 /**
@@ -327,6 +500,6 @@ export async function generateLicenseKey(
  * Reset license state. Primarily for testing.
  */
 export function resetLicenseState(): void {
-  cachedState = { tier: 'free', payload: null, validatedAt: null };
+  cachedState = { tier: 'free', payload: null, validatedAt: null, keyPresentButInvalid: false };
   cachedAt = 0;
 }

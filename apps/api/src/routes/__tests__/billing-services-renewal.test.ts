@@ -28,12 +28,12 @@ describe('SERVICE_OFFERINGS  -  Track D', () => {
     expect(SERVICE_OFFERINGS).toHaveLength(4);
   });
 
-  it('has IDs: architecture-review, migration-assist, launch-package, consulting-hour', () => {
+  it('has IDs: architecture-review, launch-package, migration-assist, consulting-hour', () => {
     const ids = SERVICE_OFFERINGS.map((s) => s.id);
     expect(ids).toEqual([
       'architecture-review',
-      'migration-assist',
       'launch-package',
+      'migration-assist',
       'consulting-hour',
     ]);
   });
@@ -52,8 +52,8 @@ describe('SERVICE_OFFERINGS  -  Track D', () => {
       expect(Array.isArray(service.includes)).toBe(true);
       expect(service.includes.length).toBeGreaterThan(0);
 
-      // Optional price fields should be undefined in static data
-      expect(service.price).toBeUndefined();
+      // All offerings have prices set
+      expect(service.price).toBeDefined();
     }
   });
 
@@ -97,9 +97,9 @@ describe('SERVICE_OFFERINGS  -  Track D', () => {
     });
   });
 
-  it('all CTAs link to services@ email address', () => {
+  it('all CTAs link to Cal.com booking', () => {
     for (const service of SERVICE_OFFERINGS) {
-      expect(service.ctaHref).toContain('services@revealui.com');
+      expect(service.ctaHref).toContain('cal.com/revealuistudio');
     }
   });
 

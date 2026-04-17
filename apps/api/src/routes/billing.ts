@@ -1092,7 +1092,7 @@ app.openapi(pauseRoute, async (c) => {
     stripe.subscriptions.update(
       subscription.id,
       { pause_collection: { behavior: 'keep_as_draft' } },
-      { idempotencyKey: `pause-${subscription.id}-${user.id}-${Date.now()}` },
+      { idempotencyKey: `pause-${subscription.id}-${user.id}-${Math.floor(Date.now() / 60_000)}` },
     ),
   );
 
@@ -1151,7 +1151,7 @@ app.openapi(resumeRoute, async (c) => {
     stripe.subscriptions.update(
       subscription.id,
       { pause_collection: '' as unknown as Stripe.SubscriptionUpdateParams.PauseCollection },
-      { idempotencyKey: `resume-${subscription.id}-${user.id}-${Date.now()}` },
+      { idempotencyKey: `resume-${subscription.id}-${user.id}-${Math.floor(Date.now() / 60_000)}` },
     ),
   );
 
