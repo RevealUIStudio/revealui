@@ -238,8 +238,8 @@ describe('SERVICE_OFFERINGS', () => {
     const ids = SERVICE_OFFERINGS.map((s) => s.id);
     expect(ids).toEqual([
       'architecture-review',
-      'migration-assist',
       'launch-package',
+      'migration-assist',
       'consulting-hour',
     ]);
   });
@@ -267,15 +267,15 @@ describe('SERVICE_OFFERINGS', () => {
     }
   });
 
-  it('price fields are undefined in static arrays (populated at runtime)', () => {
+  it('all offerings have prices set', () => {
     for (const service of SERVICE_OFFERINGS) {
-      expect(service.price).toBeUndefined();
+      expect(service.price).toBeDefined();
     }
   });
 
-  it('all CTAs point to services@ email', () => {
+  it('all CTAs point to founder@ email', () => {
     for (const service of SERVICE_OFFERINGS) {
-      expect(service.ctaHref).toContain('services@revealui.com');
+      expect(service.ctaHref).toContain('founder@revealui.com');
     }
   });
 

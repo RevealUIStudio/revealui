@@ -28,7 +28,7 @@ export default function ServicesPage() {
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
             Architecture reviews, migrations, launch support, and one-on-one consulting. Work
-            directly with RevealUI engineers who built the platform.
+            directly with the founder who built every line of RevealUI.
           </p>
         </div>
       </section>
@@ -102,19 +102,19 @@ export default function ServicesPage() {
                 step: '1',
                 title: 'Reach out',
                 description:
-                  'Email services@revealui.com or use the booking links above. Describe your project and what you need help with.',
+                  'Email founder@revealui.com or use the booking links above. Describe your project and what you need help with.',
               },
               {
                 step: '2',
                 title: 'Scope and schedule',
                 description:
-                  'We review your requirements, confirm scope and timeline, and schedule the engagement. Consulting hours are available within 48 hours.',
+                  'I review your requirements, confirm scope and timeline, and send a proposal. Consulting hours are available within 48 hours.',
               },
               {
                 step: '3',
                 title: 'Deliver',
                 description:
-                  'We deliver the agreed work product: written reports, migration scripts, production deployments, or session recordings with follow-up notes.',
+                  'I deliver the agreed work product: written reports, migration scripts, production deployments, or session recordings with follow-up notes.',
               },
             ].map((item) => (
               <div key={item.step} className="text-center">
@@ -136,21 +136,21 @@ export default function ServicesPage() {
             Not sure what you need?
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Start with a consulting hour. We will help you figure out the right approach for your
+            Start with a consulting hour. I will help you figure out the right approach for your
             project and recommend next steps.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="mailto:services@revealui.com?subject=Consulting%20Hour"
+              href="mailto:founder@revealui.com?subject=Consulting%20Hour%20—%20Booking"
               className="rounded-md bg-amber-700 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-amber-600 transition-colors"
             >
               Book a Consulting Hour
             </a>
             <a
-              href="mailto:support@revealui.com"
+              href="mailto:founder@revealui.com?subject=Question%20about%20RevealUI%20Services"
               className="rounded-md bg-gray-100 px-8 py-4 text-base font-semibold text-gray-900 hover:bg-gray-200 transition-colors"
             >
-              Contact Support
+              Ask a Question
             </a>
           </div>
         </div>
