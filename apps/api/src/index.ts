@@ -53,6 +53,7 @@ import {
   checkLicenseStatus,
   checkSupportExpiry,
   requireAIAccess,
+  requireDomain,
   requireFeature,
 } from './middleware/license.js';
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from './middleware/rate-limit.js';
@@ -614,6 +615,11 @@ const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
 });
 app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
+
+// Domain restriction enforcement  -  validates the request origin against the license's
+// allowed domains. Skips validation when no domain restrictions exist (most licenses).
+app.use('/api/*', requireDomain());
+app.use('/api/v1/*', requireDomain());
 
 // Perpetual license support expiry enforcement  -  downgrades premium features to free
 // when the annual support contract has expired. Basic admin access remains perpetual.

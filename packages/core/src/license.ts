@@ -15,6 +15,10 @@ import { z } from 'zod';
 import { decryptLicenseKey } from './license-encryption.js';
 import { logger } from './utils/logger.js';
 
+/** JWT issuer and audience for license tokens — prevents cross-environment replay */
+const LICENSE_ISSUER = process.env.REVEALUI_LICENSE_ISSUER ?? 'https://revealui.com';
+const LICENSE_AUDIENCE = process.env.REVEALUI_LICENSE_AUDIENCE ?? 'revealui-license';
+
 /** Available license tiers */
 export type LicenseTier = 'free' | 'pro' | 'max' | 'enterprise';
 
@@ -214,8 +218,10 @@ export async function validateLicenseKey(
     // Accept tokens expired within the subscription grace window so the
     // payload is available for grace-period calculations in isLicensed().
     const { payload } = await jwtVerify(licenseKey, key, {
-      algorithms: ['RS256', 'ES256'],
+      algorithms: ['RS256'],
       clockTolerance: graceConfig.subscriptionDays * 86_400,
+      issuer: LICENSE_ISSUER,
+      audience: LICENSE_AUDIENCE,
     });
 
     const result = licensePayloadSchema.safeParse(payload);
@@ -489,7 +495,11 @@ export async function generateLicenseKey(
   if (kid) {
     header.kid = kid;
   }
-  const builder = new SignJWT({ ...payload }).setProtectedHeader(header).setIssuedAt();
+  const builder = new SignJWT({ ...payload })
+    .setProtectedHeader(header)
+    .setIssuedAt()
+    .setIssuer(LICENSE_ISSUER)
+    .setAudience(LICENSE_AUDIENCE);
   if (expiresInSeconds !== null) {
     builder.setExpirationTime(`${expiresInSeconds}s`);
   }
