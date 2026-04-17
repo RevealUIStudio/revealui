@@ -7,9 +7,12 @@
 
 import { type FeatureFlags, getRequiredTier, isFeatureEnabled } from '@revealui/core/features';
 import {
+  getGraceConfig,
   getCurrentTier,
   getLicensePayload,
+  getLicenseStatus,
   isLicensed,
+  type LicenseCheckResult,
   type LicenseTier,
 } from '@revealui/core/license';
 import type { MiddlewareHandler } from 'hono';
@@ -28,6 +31,9 @@ const SUPPORT_EMAIL = process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.co
 /** Cache for DB-side license status checks, keyed by billing owner/customer */
 const dbStatusCache = new Map<string, { status: string; checkedAt: number }>();
 const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+/** Tracks when the DB became unreachable for infra grace period calculation */
+let dbUnreachableSince: number | null = null;
 
 type RequestEntitlements = {
   accountId?: string | null;
@@ -268,14 +274,45 @@ export const checkLicenseStatus = (
     const now = Date.now();
     const cached = dbStatusCache.get(payload.customerId);
     if (!cached || now - cached.checkedAt > DB_STATUS_CHECK_INTERVAL) {
-      const status = await queryLicenseStatus(payload.customerId);
-      dbStatusCache.set(payload.customerId, {
-        status: status ?? 'active',
-        checkedAt: now,
-      });
+      try {
+        const status = await queryLicenseStatus(payload.customerId);
+        dbStatusCache.set(payload.customerId, {
+          status: status ?? 'active',
+          checkedAt: now,
+        });
+        // DB reachable — clear unreachable tracker
+        dbUnreachableSince = null;
+      } catch {
+        // DB unreachable — use cached status if available, track grace period
+        if (!dbUnreachableSince) {
+          dbUnreachableSince = now;
+        }
+
+        const infraGraceMs = getGraceConfig().infraDays * 86_400_000;
+        const unreachableDuration = now - dbUnreachableSince;
+
+        if (unreachableDuration > infraGraceMs) {
+          // Infra grace exhausted — degrade to free tier
+          dbStatusCache.delete(payload.customerId);
+          c.header('X-License-Mode', 'expired');
+          c.header('X-License-Reason', 'infra-unreachable-grace-exhausted');
+          await next();
+          return;
+        }
+
+        // Within infra grace — use last known status (or 'active' if never checked)
+        if (!cached) {
+          dbStatusCache.set(payload.customerId, { status: 'active', checkedAt: now });
+        }
+        const graceRemainingMs = infraGraceMs - unreachableDuration;
+        c.header('X-License-Mode', 'grace');
+        c.header('X-License-Grace-Remaining', String(Math.ceil(graceRemainingMs / 86_400_000)));
+      }
     }
 
     const effective = dbStatusCache.get(payload.customerId);
+
+    // Revoked — immediate fail-closed, no grace period
     if (effective?.status === 'revoked') {
       throw new HTTPException(403, {
         message: `Your license has been revoked. Contact ${SUPPORT_EMAIL}`,
@@ -286,6 +323,18 @@ export const checkLicenseStatus = (
       throw new HTTPException(403, {
         message: `Your license has expired. Renew at ${PRICING_URL}`,
       });
+    }
+
+    // Surface license status in response headers for client-side banners
+    const status = getLicenseStatus();
+    if (status.mode === 'grace') {
+      c.header('X-License-Mode', 'grace');
+      if (status.graceRemainingMs) {
+        c.header(
+          'X-License-Grace-Remaining',
+          String(Math.ceil(status.graceRemainingMs / 86_400_000)),
+        );
+      }
     }
 
     await next();
@@ -436,20 +485,31 @@ export const checkSupportExpiry = (
 
     // Check if support has expired
     if (effective.supportExpiresAt && effective.supportExpiresAt.getTime() < now) {
-      // Support expired  -  downgrade entitlements to free tier.
-      // The perpetual license itself remains valid (basic admin access),
-      // but premium features (AI, dashboard, sync, analytics) require active support.
-      const requestEntitlements = getRequestEntitlements(c);
-      if (requestEntitlements) {
-        c.set('entitlements', {
-          ...requestEntitlements,
-          tier: 'free' as const,
-          features: {},
-          subscriptionStatus: 'support_expired',
-        });
-      }
+      const perpetualGraceMs = getGraceConfig().perpetualDays * 86_400_000;
+      const timeSinceExpiry = now - effective.supportExpiresAt.getTime();
 
-      c.header('X-Support-Status', 'expired');
+      if (timeSinceExpiry <= perpetualGraceMs) {
+        // Within 30-day grace — keep full access, warn via headers
+        const graceRemainingDays = Math.ceil((perpetualGraceMs - timeSinceExpiry) / 86_400_000);
+        c.header('X-Support-Status', 'grace');
+        c.header('X-Support-Grace-Remaining', String(graceRemainingDays));
+      } else {
+        // Grace exhausted — read-only mode.
+        // The perpetual license keeps basic admin read access,
+        // but writes and premium features are blocked.
+        const requestEntitlements = getRequestEntitlements(c);
+        if (requestEntitlements) {
+          c.set('entitlements', {
+            ...requestEntitlements,
+            tier: 'free' as const,
+            features: {},
+            subscriptionStatus: 'support_expired',
+          });
+        }
+
+        c.header('X-Support-Status', 'expired');
+        c.header('X-License-Mode', 'read-only');
+      }
     }
 
     await next();
