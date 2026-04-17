@@ -375,12 +375,12 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
       expect(SERVICE_OFFERINGS).toHaveLength(4);
     });
 
-    it('service IDs are architecture-review, migration-assist, launch-package, consulting-hour', () => {
+    it('service IDs are architecture-review, launch-package, migration-assist, consulting-hour', () => {
       const ids = SERVICE_OFFERINGS.map((s) => s.id);
       expect(ids).toEqual([
         'architecture-review',
-        'migration-assist',
         'launch-package',
+        'migration-assist',
         'consulting-hour',
       ]);
     });

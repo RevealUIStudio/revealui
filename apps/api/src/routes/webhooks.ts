@@ -822,8 +822,19 @@ app.openapi(stripeWebhookRoute, async (c) => {
               break;
             }
 
-            // Extend support by 1 year from now (not from previous expiry)
-            const newSupportExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+            // Extend support by 1 year from the later of: now, or the
+            // existing expiry date. This ensures early renewals don't lose
+            // remaining months of paid support.
+            const [existingLicense] = await db
+              .select({ supportExpiresAt: licenses.supportExpiresAt })
+              .from(licenses)
+              .where(eq(licenses.id, licenseId))
+              .limit(1);
+            const baseDate = Math.max(
+              Date.now(),
+              existingLicense?.supportExpiresAt?.getTime() ?? 0,
+            );
+            const newSupportExpiresAt = new Date(baseDate + 365 * 24 * 60 * 60 * 1000);
 
             await db
               .update(licenses)
@@ -1634,7 +1645,30 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         // ── active (no cancel)  -  sync tier + reactivate ─────────────────────
         if (subscription.status === 'active' && !subscription.cancel_at_period_end) {
-          const newTier = resolveTier(subscription.metadata as Record<string, string>);
+          const newTier = resolveOptionalTier(
+            subscription.metadata as Record<string, string>,
+            'subscription.updated.reactivated',
+          );
+          if (!newTier) {
+            // Metadata is missing/invalid — log, alert, and skip rather than
+            // throw (which would cause infinite Stripe retries). The customer
+            // keeps their existing tier until metadata is fixed in Stripe dashboard.
+            logger.error(
+              'Subscription reactivated but tier metadata missing — skipping license sync. Fix metadata in Stripe dashboard.',
+              undefined,
+              { customerId, subscriptionId: subscription.id },
+            );
+            const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
+            sendTierFallbackAlert(alertEmail, {
+              tier: (subscription.metadata as Record<string, string>)?.tier ?? null,
+              metadata: subscription.metadata ?? null,
+            }).catch((err) => {
+              logger.error('Failed to send tier fallback alert', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            });
+            break;
+          }
           const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
           sagaSubtype = 'reactivated';
 
@@ -2225,9 +2259,15 @@ app.openapi(stripeWebhookRoute, async (c) => {
               ? invoiceSubscription.id
               : null;
 
-        // Determine severity: past_due (1-2 failures) vs suspended (3+ failures).
+        // Determine severity: past_due (initial failures) vs suspended (threshold+ failures).
         // past_due gets a grace period; suspended is immediate block.
-        const isSuspended = invoice.attempt_count != null && invoice.attempt_count >= 3;
+        // Threshold is configurable to match the Stripe retry schedule (Dashboard → Billing → Automatic collection).
+        const suspendThreshold = Number.parseInt(
+          process.env.STRIPE_SUSPEND_AFTER_ATTEMPTS ?? '3',
+          10,
+        );
+        const isSuspended =
+          invoice.attempt_count != null && invoice.attempt_count >= suspendThreshold;
         const entitlementStatus = isSuspended ? 'expired' : 'past_due';
 
         if (isSuspended) {
@@ -2236,14 +2276,21 @@ app.openapi(stripeWebhookRoute, async (c) => {
             attemptCount: invoice.attempt_count,
           });
 
-          // Scope to this subscription if known  -  don't expire perpetual licenses
+          // Scope to this subscription if known. Always exclude perpetual
+          // licenses  -  they are a separate purchase and must never be
+          // expired by a subscription payment failure.
           const licenseFilter = subscriptionId
             ? and(
                 eq(licenses.customerId, customerId),
                 eq(licenses.subscriptionId, subscriptionId),
+                eq(licenses.perpetual, false),
                 isNull(licenses.deletedAt),
               )
-            : and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt));
+            : and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.perpetual, false),
+                isNull(licenses.deletedAt),
+              );
           await db
             .update(licenses)
             .set({ status: 'expired', updatedAt: new Date() })
@@ -2592,8 +2639,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
       }
 
       case 'charge.refunded': {
-        // A charge has been refunded (partial or full). Revoke the customer's license
-        // if the refund fully covers the amount  -  partial refunds leave access intact.
+        // A charge has been refunded (partial or full). Revoke the customer's
+        // NON-PERPETUAL license if the refund fully covers the charge amount.
+        // Perpetual licenses are never revoked by a subscription refund —
+        // they are a separate purchase with their own refund path.
         const charge = event.data.object as Stripe.Charge;
         const customerId = resolveCustomerId(charge.customer);
         if (!customerId) break;
@@ -2601,10 +2650,19 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const isFullRefund = charge.amount_refunded >= charge.amount;
 
         if (isFullRefund) {
+          // Only revoke NON-PERPETUAL licenses. Perpetual licenses represent
+          // a separate one-time purchase and must never be revoked by a
+          // subscription charge refund.
           await db
             .update(licenses)
             .set({ status: 'revoked', updatedAt: new Date() })
-            .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)));
+            .where(
+              and(
+                eq(licenses.customerId, customerId),
+                eq(licenses.perpetual, false),
+                isNull(licenses.deletedAt),
+              ),
+            );
 
           await syncHostedSubscriptionState(db, {
             customerId,

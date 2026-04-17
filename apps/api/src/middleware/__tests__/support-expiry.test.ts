@@ -6,7 +6,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/core/license', () => ({
   getCurrentTier: vi.fn(() => 'pro'),
+  getGraceConfig: vi.fn(() => ({ subscriptionDays: 3, perpetualDays: 30, infraDays: 7 })),
   getLicensePayload: vi.fn(),
+  getLicenseStatus: vi.fn(() => ({ allowed: true, tier: 'pro', mode: 'active', readOnly: false })),
   isLicensed: vi.fn(() => true),
 }));
 
@@ -118,8 +120,8 @@ describe('checkSupportExpiry', () => {
     expect(res.headers.get('X-Support-Status')).toBeNull();
   });
 
-  it('downgrades entitlements when support is expired', async () => {
-    const pastDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+  it('downgrades entitlements when support is expired past grace period', async () => {
+    const pastDate = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000); // 60 days ago (past 30-day grace)
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_expired',
@@ -141,6 +143,7 @@ describe('checkSupportExpiry', () => {
     expect(res.status).toBe(200); // Still passes  -  basic admin access remains
     expect(res.headers.get('X-Support-Expires')).toBe(pastDate.toISOString());
     expect(res.headers.get('X-Support-Status')).toBe('expired');
+    expect(res.headers.get('X-License-Mode')).toBe('read-only');
   });
 
   it('caches support expiry and does not query every request', async () => {
@@ -205,8 +208,8 @@ describe('checkSupportExpiry', () => {
     expect(res.headers.get('X-Support-Status')).toBeNull();
   });
 
-  it('does not downgrade when no entitlements are set', async () => {
-    const pastDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  it('does not downgrade when no entitlements are set (but still marks headers)', async () => {
+    const pastDate = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000); // 60 days ago (past 30-day grace)
     mockedGetLicensePayload.mockReturnValue({
       tier: 'pro',
       customerId: 'cus_no_ent',
