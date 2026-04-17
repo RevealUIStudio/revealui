@@ -91,6 +91,8 @@ describe('Complete Authentication Flow Tests', { timeout: 60_000 }, () => {
     // Clear all mocks before each test
     vi.clearAllMocks();
     mockStorage.clear();
+    // Signup defaults to closed — enable for tests
+    process.env.REVEALUI_SIGNUP_OPEN = 'true';
 
     // Setup default mock implementations with proper chaining
     // The chain ends with limit() or returning() which return Promises

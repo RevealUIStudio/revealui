@@ -135,9 +135,9 @@ describe('auth', () => {
     mockLimit.mockResolvedValue([]);
     mockReturning.mockResolvedValue([makeUser()]);
 
-    // Reset env vars
-    delete process.env.REVEALUI_SIGNUP_OPEN;
+    // Reset env vars then enable signup for tests (default is now closed)
     delete process.env.REVEALUI_SIGNUP_WHITELIST;
+    process.env.REVEALUI_SIGNUP_OPEN = 'true';
   });
 
   // =========================================================================
@@ -465,11 +465,13 @@ describe('auth', () => {
       expect(isSignupAllowed('anyone@example.com')).toBe(true);
     });
 
-    it('allows all emails when neither env var is set', () => {
-      expect(isSignupAllowed('anyone@example.com')).toBe(true);
+    it('blocks signups when neither env var is set (default closed)', () => {
+      delete process.env.REVEALUI_SIGNUP_OPEN;
+      expect(isSignupAllowed('anyone@example.com')).toBe(false);
     });
 
     it('restricts to whitelist when REVEALUI_SIGNUP_WHITELIST is set', () => {
+      delete process.env.REVEALUI_SIGNUP_OPEN;
       process.env.REVEALUI_SIGNUP_WHITELIST = 'a@test.com, b@test.com';
       expect(isSignupAllowed('a@test.com')).toBe(true);
       expect(isSignupAllowed('b@test.com')).toBe(true);
@@ -501,6 +503,7 @@ describe('auth', () => {
     });
 
     it('rejects when signup is restricted', () => {
+      delete process.env.REVEALUI_SIGNUP_OPEN;
       process.env.REVEALUI_SIGNUP_WHITELIST = 'admin@test.com';
 
       const result = isSignupAllowed('outsider@test.com');

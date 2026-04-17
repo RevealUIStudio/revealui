@@ -219,24 +219,18 @@ let vectorClient: Database | null = null;
 // Track all pg.Pool instances for monitoring and cleanup
 const activePools: Map<string, Pool> = new Map();
 
-// Register cleanup handler
+// Register cleanup handler for graceful shutdown
 let cleanupHandlerRegistered = false;
 function registerPoolCleanup() {
   if (cleanupHandlerRegistered) return;
 
-  // Monitoring integration removed to avoid circular dependency
-  // Application layer should handle cleanup registration instead
-  // const monitoring = await getMonitoring()
-  // if (monitoring?.registerCleanupHandler) {
-  //   monitoring.registerCleanupHandler(
-  //     'database-pools',
-  //     async () => {
-  //       await closeAllPools()
-  //     },
-  //     'Close all database connection pools',
-  //     100, // High priority
-  //   )
-  // }
+  const shutdown = async () => {
+    await closeAllPools();
+  };
+
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
+  process.once('beforeExit', shutdown);
 
   cleanupHandlerRegistered = true;
 }
@@ -292,7 +286,14 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
 function getClientByType(type: DatabaseType): Database {
   if (type === 'vector') {
     if (!vectorClient) {
-      const url = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
+      const url = process.env.SUPABASE_DATABASE_URL;
+      if (!url && process.env.DATABASE_URL) {
+        throw new Error(
+          'SUPABASE_DATABASE_URL is not set but DATABASE_URL is. Vector queries require a ' +
+            'dedicated Supabase connection — falling back to DATABASE_URL would silently route ' +
+            'vector data to NeonDB. Set SUPABASE_DATABASE_URL explicitly.',
+        );
+      }
       if (!url || typeof url !== 'string') {
         throw new Error(
           'SUPABASE_DATABASE_URL environment variable is required for vector database. ' +
