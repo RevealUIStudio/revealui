@@ -11,12 +11,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
-const mockCustomersCreate = vi.fn();
-const mockCheckoutSessionsCreate = vi.fn();
-const mockBillingPortalSessionsCreate = vi.fn();
-const mockSubscriptionsList = vi.fn();
-const mockSubscriptionsUpdate = vi.fn();
-const mockMeterEventsCreate = vi.fn();
+const mockCustomersCreate = vi.hoisted(() => vi.fn());
+const mockCheckoutSessionsCreate = vi.hoisted(() => vi.fn());
+const mockBillingPortalSessionsCreate = vi.hoisted(() => vi.fn());
+const mockSubscriptionsList = vi.hoisted(() => vi.fn());
+const mockSubscriptionsUpdate = vi.hoisted(() => vi.fn());
+const mockMeterEventsCreate = vi.hoisted(() => vi.fn());
 const mockLogger = vi.hoisted(() => ({
   info: vi.fn(),
   error: vi.fn(),
@@ -26,15 +26,30 @@ const mockLogger = vi.hoisted(() => ({
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
-    // Must use class  -  billing.ts calls `new Stripe(key)`
     class {
       customers = { create: mockCustomersCreate };
       checkout = { sessions: { create: mockCheckoutSessionsCreate } };
       billingPortal = { sessions: { create: mockBillingPortalSessionsCreate } };
       subscriptions = { list: mockSubscriptionsList, update: mockSubscriptionsUpdate };
       billing = { meterEvents: { create: mockMeterEventsCreate } };
+      refunds = { create: vi.fn() };
+      invoices = { list: vi.fn() };
     } as unknown as (...args: unknown[]) => unknown,
   ),
+}));
+
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    customers: { create: mockCustomersCreate },
+    checkout: { sessions: { create: mockCheckoutSessionsCreate } },
+    billingPortal: { sessions: { create: mockBillingPortalSessionsCreate } },
+    subscriptions: { list: mockSubscriptionsList, update: mockSubscriptionsUpdate },
+    refunds: { create: vi.fn() },
+    invoices: { list: vi.fn() },
+  },
+  getStripe: vi.fn(() => ({
+    billing: { meterEvents: { create: mockMeterEventsCreate } },
+  })),
 }));
 
 vi.mock('@revealui/db/schema', () => ({
@@ -145,6 +160,7 @@ vi.mock('@revealui/db', () => ({
 
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: mockLogger,
+  createLogger: () => mockLogger,
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
