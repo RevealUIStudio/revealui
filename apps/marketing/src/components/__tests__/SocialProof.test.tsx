@@ -67,8 +67,8 @@ describe('SocialProof', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
     expect(html).toContain('Schema-first collections');
-    expect(html).toContain('Tailwind v4, zero external UI dependencies');
-    expect(html).toContain('ElectricSQL-powered sync foundation');
+    expect(html).toContain('Native components with zero external UI dependencies');
+    expect(html).toContain('Live sync for editors, clients, and agents');
     expect(html).toContain('A2A protocol agent system');
     expect(html).toContain('Checkout, subscriptions, webhook handling');
     expect(html).toContain('One deployment, many clients');
