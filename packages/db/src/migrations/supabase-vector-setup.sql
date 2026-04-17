@@ -49,6 +49,13 @@ CREATE INDEX IF NOT EXISTS agent_memories_created_at_idx ON agent_memories(creat
 -- Create composite index for common query patterns (site + agent filtering)
 CREATE INDEX IF NOT EXISTS agent_memories_site_agent_idx ON agent_memories(site_id, agent_id) WHERE site_id IS NOT NULL AND agent_id IS NOT NULL;
 
+-- rag_chunks HNSW index for RAG vector similarity search
+-- Without this, every RAG query does a full sequential scan on the embedding column
+CREATE INDEX IF NOT EXISTS rag_chunks_embedding_idx
+ON rag_chunks
+USING hnsw (embedding vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+
 -- Add comments for documentation
 COMMENT ON TABLE agent_memories IS 'Long-term agent memories with vector embeddings for semantic search. Stored in Supabase for optimized vector operations.';
 COMMENT ON COLUMN agent_memories.embedding IS 'Vector embedding (768 dimensions, nomic-embed-text) for semantic similarity search using pgvector';

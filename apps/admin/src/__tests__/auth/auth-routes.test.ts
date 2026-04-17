@@ -255,6 +255,7 @@ describe('POST /api/auth/sign-up', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    process.env.REVEALUI_SIGNUP_OPEN = 'true';
     vi.mocked(isSignupAllowed).mockReturnValue(true);
     vi.mocked(getMaxUsers).mockReturnValue(Infinity);
     const mod = await import('../../app/api/auth/sign-up/route');

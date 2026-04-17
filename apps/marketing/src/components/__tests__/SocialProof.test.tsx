@@ -34,21 +34,21 @@ describe('SocialProof', () => {
     expect(html).toContain('licensed');
   });
 
-  it('contains the tech stack badges', () => {
+  it('contains the capability badges', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
-    const techStack = [
-      'TypeScript',
-      'React 19',
-      'Next.js 16',
-      'Hono',
-      'Drizzle ORM',
-      'Stripe',
-      'Tailwind v4',
-      'ElectricSQL',
+    const capabilities = [
+      'Content Management',
+      'Auth & Sessions',
+      'Payments & Billing',
+      'AI Agents',
+      'Real-Time Sync',
+      'UI Components',
+      'REST API',
+      'Multi-Tenant',
     ];
-    for (const tech of techStack) {
-      expect(html).toContain(tech);
+    for (const cap of capabilities) {
+      expect(html).toContain(cap);
     }
   });
 
@@ -67,8 +67,8 @@ describe('SocialProof', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
     expect(html).toContain('Schema-first collections');
-    expect(html).toContain('Tailwind v4, zero external UI dependencies');
-    expect(html).toContain('ElectricSQL-powered sync foundation');
+    expect(html).toContain('Native components with zero external UI dependencies');
+    expect(html).toContain('Live sync for editors, clients, and agents');
     expect(html).toContain('A2A protocol agent system');
     expect(html).toContain('Checkout, subscriptions, webhook handling');
     expect(html).toContain('One deployment, many clients');
