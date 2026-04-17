@@ -100,9 +100,9 @@ export default function ServicesPage() {
             {[
               {
                 step: '1',
-                title: 'Reach out',
+                title: 'Book a call',
                 description:
-                  'Email services@revealui.com or use the booking links above. Describe your project and what you need help with.',
+                  'Use the booking links above to schedule a free 20-minute discovery call. Or email services@revealui.com if you prefer.',
               },
               {
                 step: '2',
@@ -141,16 +141,16 @@ export default function ServicesPage() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="mailto:services@revealui.com?subject=Consulting%20Hour%20—%20Booking"
+              href="https://cal.com/revealuistudio/revealui-discovery-call"
               className="rounded-md bg-amber-700 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-amber-600 transition-colors"
             >
-              Book a Consulting Hour
+              Book a Free Discovery Call
             </a>
             <a
-              href="mailto:services@revealui.com?subject=Question%20about%20RevealUI%20Services"
+              href="mailto:services@revealui.com"
               className="rounded-md bg-gray-100 px-8 py-4 text-base font-semibold text-gray-900 hover:bg-gray-200 transition-colors"
             >
-              Ask a Question
+              Email Us Instead
             </a>
           </div>
         </div>

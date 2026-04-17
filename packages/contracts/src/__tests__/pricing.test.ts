@@ -273,9 +273,9 @@ describe('SERVICE_OFFERINGS', () => {
     }
   });
 
-  it('all CTAs point to founder@ email', () => {
+  it('all CTAs point to Cal.com booking link', () => {
     for (const service of SERVICE_OFFERINGS) {
-      expect(service.ctaHref).toContain('services@revealui.com');
+      expect(service.ctaHref).toContain('cal.com/revealuistudio');
     }
   });
 
