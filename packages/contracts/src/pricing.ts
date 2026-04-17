@@ -279,7 +279,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     description:
       'I review your project structure, database schema, deployment pipeline, and security posture. You receive a written report with prioritized, actionable recommendations.',
     includes: [
-      'Full codebase review (up to 50K LOC)',
+      'Full codebase review',
       'Database schema and query analysis',
       'Deployment and CI/CD assessment',
       'Security posture review',
