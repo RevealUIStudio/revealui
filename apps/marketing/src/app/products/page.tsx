@@ -88,15 +88,15 @@ const primitives: Primitive[] = [
     together: {
       headline: 'Define your data model. Agents immediately operate on it.',
       description:
-        'Add a collection in TypeScript. The admin UI, REST API, and MCP tool all appear simultaneously. No integration step between what humans see and what agents can do.',
+        'Add a collection. The admin UI, REST API, and MCP tool all appear simultaneously. No integration step between what humans see and what agents can do.',
     },
     features: [
-      'TypeScript collection definitions',
-      'Rich text editor (Lexical)',
+      'Schema-first collection definitions',
+      'Rich text editor with custom blocks',
       'REST API with OpenAPI spec',
       'Draft/live publishing workflow',
       'Media management and CDN delivery',
-      'Real-time sync (ElectricSQL)',
+      'Real-time sync across sessions',
     ],
   },
   {

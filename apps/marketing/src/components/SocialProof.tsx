@@ -8,15 +8,15 @@ export function SocialProof() {
     { value: 'MIT', label: 'licensed' },
   ];
 
-  const techStack = [
-    'TypeScript',
-    'React 19',
-    'Next.js 16',
-    'Hono',
-    'Drizzle ORM',
-    'Stripe',
-    'Tailwind v4',
-    'ElectricSQL',
+  const capabilities = [
+    'Content Management',
+    'Auth & Sessions',
+    'Payments & Billing',
+    'AI Agents',
+    'Real-Time Sync',
+    'UI Components',
+    'REST API',
+    'Multi-Tenant',
   ];
 
   const features = [
@@ -30,14 +30,14 @@ export function SocialProof() {
     {
       title: 'Native UI Components',
       description:
-        'Tailwind v4, zero external UI dependencies. Buttons, forms, tables, modals, sidebars, all styled to your brand with CVA variants.',
+        'Native components with zero external UI dependencies. Buttons, forms, tables, modals, sidebars — all styled to your brand out of the box.',
       icon: 'M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3',
       iconColor: 'text-emerald-400',
     },
     {
       title: 'Real-Time Sync',
       description:
-        'ElectricSQL-powered sync foundation for editors, clients, and agents. No polling, no manual refresh. Collaborative editing coming soon.',
+        'Live sync for editors, clients, and agents. No polling, no manual refresh. Changes propagate instantly across all connected sessions.',
       icon: 'M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5',
       iconColor: 'text-cyan-400',
     },
@@ -81,19 +81,19 @@ export function SocialProof() {
           </dl>
         </div>
 
-        {/* Tech stack */}
+        {/* Capabilities */}
         <div className="mx-auto mt-10 max-w-4xl">
           <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">
-            Built on
+            Pre-wired
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-            {techStack.map((tech) => (
+            {capabilities.map((cap) => (
               <Badge
-                key={tech}
+                key={cap}
                 color="zinc"
                 className="rounded-full bg-gray-800 px-4 py-1.5 text-gray-300 ring-1 ring-gray-700"
               >
-                {tech}
+                {cap}
               </Badge>
             ))}
           </div>
