@@ -7,12 +7,11 @@
 
 import { type FeatureFlags, getRequiredTier, isFeatureEnabled } from '@revealui/core/features';
 import {
-  getGraceConfig,
   getCurrentTier,
+  getGraceConfig,
   getLicensePayload,
   getLicenseStatus,
   isLicensed,
-  type LicenseCheckResult,
   type LicenseTier,
 } from '@revealui/core/license';
 import type { MiddlewareHandler } from 'hono';
