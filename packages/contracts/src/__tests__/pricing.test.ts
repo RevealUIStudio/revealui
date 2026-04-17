@@ -275,7 +275,7 @@ describe('SERVICE_OFFERINGS', () => {
 
   it('all CTAs point to founder@ email', () => {
     for (const service of SERVICE_OFFERINGS) {
-      expect(service.ctaHref).toContain('founder@revealui.com');
+      expect(service.ctaHref).toContain('services@revealui.com');
     }
   });
 

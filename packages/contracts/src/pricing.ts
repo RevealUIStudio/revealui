@@ -288,7 +288,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Written report delivered within 5 business days',
     cta: 'Book a Discovery Call',
-    ctaHref: 'mailto:founder@revealui.com?subject=Architecture%20Review%20—%20Discovery%20Call',
+    ctaHref: 'mailto:services@revealui.com?subject=Architecture%20Review%20—%20Discovery%20Call',
   },
   {
     id: 'launch-package',
@@ -306,7 +306,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Production-ready deployment within 2-4 weeks',
     cta: 'Book a Discovery Call',
-    ctaHref: 'mailto:founder@revealui.com?subject=Launch%20Package%20—%20Discovery%20Call',
+    ctaHref: 'mailto:services@revealui.com?subject=Launch%20Package%20—%20Discovery%20Call',
   },
   {
     id: 'migration-assist',
@@ -324,7 +324,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Working migration with verified data integrity',
     cta: 'Get an Estimate',
-    ctaHref: 'mailto:founder@revealui.com?subject=Migration%20Assist%20—%20Estimate%20Request',
+    ctaHref: 'mailto:services@revealui.com?subject=Migration%20Assist%20—%20Estimate%20Request',
   },
   {
     id: 'consulting-hour',
@@ -340,7 +340,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Session recording and written follow-up notes',
     cta: 'Book a Session',
-    ctaHref: 'mailto:founder@revealui.com?subject=Consulting%20Hour%20—%20Booking',
+    ctaHref: 'mailto:services@revealui.com?subject=Consulting%20Hour%20—%20Booking',
   },
 ];
 

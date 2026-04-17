@@ -102,7 +102,7 @@ export default function ServicesPage() {
                 step: '1',
                 title: 'Reach out',
                 description:
-                  'Email founder@revealui.com or use the booking links above. Describe your project and what you need help with.',
+                  'Email services@revealui.com or use the booking links above. Describe your project and what you need help with.',
               },
               {
                 step: '2',
@@ -141,13 +141,13 @@ export default function ServicesPage() {
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="mailto:founder@revealui.com?subject=Consulting%20Hour%20—%20Booking"
+              href="mailto:services@revealui.com?subject=Consulting%20Hour%20—%20Booking"
               className="rounded-md bg-amber-700 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-amber-600 transition-colors"
             >
               Book a Consulting Hour
             </a>
             <a
-              href="mailto:founder@revealui.com?subject=Question%20about%20RevealUI%20Services"
+              href="mailto:services@revealui.com?subject=Question%20about%20RevealUI%20Services"
               className="rounded-md bg-gray-100 px-8 py-4 text-base font-semibold text-gray-900 hover:bg-gray-200 transition-colors"
             >
               Ask a Question
