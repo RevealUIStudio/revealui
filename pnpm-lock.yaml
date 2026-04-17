@@ -784,9 +784,6 @@ importers:
       '@clack/prompts':
         specifier: ^1.2.0
         version: 1.2.0
-      '@revealui/ai':
-        specifier: workspace:^
-        version: link:../ai
       '@revealui/config':
         specifier: workspace:*
         version: link:../config
@@ -824,6 +821,10 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 6.0.2
+    optionalDependencies:
+      '@revealui/ai':
+        specifier: workspace:*
+        version: link:../ai
 
   packages/config:
     dependencies:
@@ -1070,7 +1071,7 @@ importers:
   packages/engines:
     dependencies:
       '@revealui/ai':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../ai
       '@revealui/auth':
         specifier: workspace:*
