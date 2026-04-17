@@ -1639,7 +1639,7 @@ Current rules (see `.revealui/code-standards.json`):
 console.log('User created', userId)
 
 // ✅ Good
-import { logger } from '@revealui/core/logger'
+import { logger } from '@revealui/core/observability/logger'
 logger.info('User created', { userId })
 ```
 
@@ -2241,16 +2241,16 @@ Automatically redacts:
 
 ### Log Sampling
 
-For high-volume logs, sample only a percentage:
+For high-volume logs, sample only a percentage at the call site — there is
+no bundled helper; use a small guard to keep it explicit:
 
 ```typescript
-import { createSampledLogger } from '@revealui/core/observability/logger'
+import { logger } from '@revealui/core/observability/logger'
 
 // Log only 10% of messages
-const sampledLogger = createSampledLogger(0.1)
-
-// Use like normal logger
-sampledLogger.debug('This may or may not be logged')
+if (Math.random() < 0.1) {
+  logger.debug('This may or may not be logged')
+}
 ```
 
 ## Migration from console.log
@@ -2994,10 +2994,11 @@ The type system is validated in CI to prevent drift. The workflow runs on:
 ### 1. Query Database with Type Safety
 
 ```typescript
-import { db } from '@revealui/db'
+import { getClient } from '@revealui/db'
 import { users } from '@revealui/db/schema'
 
 // Fully typed query result
+const db = getClient()
 const user = await db.select().from(users).where(eq(users.id, userId))
 // user: UsersRow
 ```
@@ -3097,8 +3098,8 @@ export * from './new-table.js'
 // 3. Generate types
 // pnpm generate:all
 
-// 4. Use generated schemas
-import { NewTableSelectSchema } from '@revealui/contracts/generated'
+// 4. Use generated schemas (one per table, e.g. PostsSelectSchema, UsersSelectSchema)
+import { PostsSelectSchema } from '@revealui/contracts/generated/zod-schemas'
 ```
 
 ### For Existing Entity Contracts

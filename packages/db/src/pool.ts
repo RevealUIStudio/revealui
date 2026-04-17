@@ -119,15 +119,6 @@ export function getPool(): Pool {
   return _pool;
 }
 
-/**
- * @deprecated Use getPool() instead. Eager pool creation risks crashes at module parse time.
- */
-export const pool = new Proxy({} as Pool, {
-  get(_target, prop, receiver) {
-    return Reflect.get(getPool(), prop, receiver);
-  },
-});
-
 // ===========================================================================
 // ERROR HANDLING
 // ===========================================================================
@@ -211,17 +202,18 @@ export async function checkDatabaseHealth(): Promise<{
     waitingCount: number;
   };
 }> {
+  const p = getPool();
   try {
     // Test connection
-    const client = await pool.connect();
+    const client = await p.connect();
     await client.query('SELECT 1');
     client.release();
 
     // Get pool stats
     const stats = {
-      totalCount: pool.totalCount,
-      idleCount: pool.idleCount,
-      waitingCount: pool.waitingCount,
+      totalCount: p.totalCount,
+      idleCount: p.idleCount,
+      waitingCount: p.waitingCount,
     };
 
     return {
@@ -236,9 +228,9 @@ export async function checkDatabaseHealth(): Promise<{
     return {
       healthy: false,
       stats: {
-        totalCount: pool.totalCount,
-        idleCount: pool.idleCount,
-        waitingCount: pool.waitingCount,
+        totalCount: p.totalCount,
+        idleCount: p.idleCount,
+        waitingCount: p.waitingCount,
       },
     };
   }
@@ -256,13 +248,14 @@ export function getPoolStats(): {
   minConnections: number | undefined;
   utilization: number;
 } {
+  const p = getPool();
   return {
-    totalCount: pool.totalCount, // Total clients
-    idleCount: pool.idleCount, // Idle clients
-    waitingCount: pool.waitingCount, // Waiting requests
+    totalCount: p.totalCount, // Total clients
+    idleCount: p.idleCount, // Idle clients
+    waitingCount: p.waitingCount, // Waiting requests
     maxConnections: poolConfig.max,
     minConnections: poolConfig.min,
-    utilization: ((pool.totalCount - pool.idleCount) / (poolConfig.max || 20)) * 100,
+    utilization: ((p.totalCount - p.idleCount) / (poolConfig.max || 20)) * 100,
   };
 }
 
@@ -304,11 +297,12 @@ export async function warmupPool(): Promise<void> {
 
   const warmupConnections = Math.min(poolConfig.min || 5, poolConfig.max || 20);
   const clients = [];
+  const p = getPool();
 
   try {
     // Acquire minimum connections
     for (let i = 0; i < warmupConnections; i++) {
-      const client = await pool.connect();
+      const client = await p.connect();
       clients.push(client);
     }
 
@@ -332,9 +326,3 @@ export async function warmupPool(): Promise<void> {
     throw error;
   }
 }
-
-// ===========================================================================
-// EXPORTS
-// ===========================================================================
-
-export default pool;

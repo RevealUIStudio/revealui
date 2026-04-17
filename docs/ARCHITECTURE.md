@@ -390,7 +390,7 @@ export * from "./agents/vector-memories"; // Vector data only
 ```typescript
 // packages/ai/src/memory/vector-memory.ts
 import { getVectorClient } from "@revealui/db/client";
-import { agentMemories } from "@revealui/db/core/vector";
+import { agentMemories } from "@revealui/db/schema/vector";
 
 export class VectorMemoryService {
   private db = getVectorClient(); // Supabase
@@ -841,7 +841,7 @@ function createContractToDbMapper<TContract, TInsert>(
 
 ```typescript
 // apps/mainframe/src/components/Page.tsx
-import type { Page, Site, User } from '@revealui/core/generated/types'
+import type { Page, Tenant, User } from '@revealui/core/generated/types'
 
 export function PageComponent({ page }: { page: Page }) {
   // Full type safety from generated types
@@ -952,7 +952,8 @@ export type RPCRouter = {
 
 ```typescript
 // apps/admin/src/app/api/rpc/route.ts
-import type { RPCRouter } from "@revealui/core/rpc/types";
+// `RPCRouter` is the shared type sketched above; wire it up on whichever
+// transport you pick (Hono route, Next.js route handler, tRPC, etc.).
 
 export async function POST(request: NextRequest) {
   const { procedure, input } = await request.json();

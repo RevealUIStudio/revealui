@@ -236,23 +236,26 @@ RevealUI includes a server-side password reset flow.
 ### Request a Reset
 
 ```ts
-import { requestPasswordReset } from '@revealui/auth';
+import { generatePasswordResetToken } from '@revealui/auth';
 
-// Generates a time-limited token and returns it
-// Your application is responsible for sending the email
-const result = await requestPasswordReset(email);
+// Generates a time-limited token and returns it.
+// Your application is responsible for sending the email with the reset link.
+const result = await generatePasswordResetToken(email);
 
-if (result.success) {
-  await sendResetEmail(email, result.token);
+if (result.success && result.token && result.tokenId) {
+  // Both tokenId and token are needed to complete the reset
+  await sendResetEmail(email, result.tokenId, result.token);
 }
 ```
 
 ### Complete the Reset
 
 ```ts
-import { resetPassword } from '@revealui/auth';
+import { resetPasswordWithToken } from '@revealui/auth';
 
-const result = await resetPassword(token, newPassword);
+// tokenId identifies the reset row, token is the plain-text secret.
+// Both are delivered in the reset URL, e.g. `?id=<tokenId>&token=<token>`.
+const result = await resetPasswordWithToken(tokenId, token, newPassword);
 
 if (!result.success) {
   // Token expired or invalid, or password does not meet strength requirements
@@ -260,7 +263,7 @@ if (!result.success) {
 }
 ```
 
-Reset tokens are single-use and expire after a configurable duration (default: 1 hour).
+Reset tokens are single-use and expire after 15 minutes.
 
 ---
 
@@ -323,9 +326,11 @@ All endpoints accept and return JSON. Error responses use the format:
 ### Validating a Session
 
 ```ts
-import { validateSession } from '@revealui/auth';
+import { getSession } from '@revealui/auth';
 
-const authSession = await validateSession(sessionToken);
+// Reads the `revealui-session` cookie from the request headers,
+// looks up the matching row, and returns the session + user.
+const authSession = await getSession(request.headers);
 
 if (!authSession) {
   // Session is invalid or expired
@@ -339,9 +344,11 @@ if (!authSession) {
 ### Revoking a Session
 
 ```ts
-import { revokeSession } from '@revealui/auth';
+import { deleteSession } from '@revealui/auth';
 
-await revokeSession(sessionId);
+// Deletes the session associated with the request's cookie.
+// Returns true if a session was deleted, false if none matched.
+await deleteSession(request.headers);
 ```
 
 ### Cookie Domain

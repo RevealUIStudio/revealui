@@ -6,7 +6,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/core/license', () => ({
   getCurrentTier: vi.fn(() => 'pro'),
+  getGraceConfig: vi.fn(() => ({ subscriptionDays: 3, perpetualDays: 30, infraDays: 7 })),
   getLicensePayload: vi.fn(),
+  getLicenseStatus: vi.fn(() => ({ allowed: true, tier: 'pro', mode: 'active', readOnly: false })),
   isLicensed: vi.fn(() => true),
 }));
 

@@ -113,6 +113,10 @@
       "types": "./dist/database/ssl-config.d.ts",
       "import": "./dist/database/ssl-config.js"
     },
+    "./database/type-adapter": {
+      "types": "./dist/database/type-adapter.d.ts",
+      "import": "./dist/database/type-adapter.js"
+    },
     "./storage": {
       "types": "./dist/storage/index.d.ts",
       "import": "./dist/storage/index.js"
@@ -169,9 +173,37 @@
       "types": "./dist/api/rest.d.ts",
       "import": "./dist/api/rest.js"
     },
+    "./api/compression": {
+      "types": "./dist/api/compression.d.ts",
+      "import": "./dist/api/compression.js"
+    },
+    "./api/payload-optimization": {
+      "types": "./dist/api/payload-optimization.d.ts",
+      "import": "./dist/api/payload-optimization.js"
+    },
+    "./api/rate-limit": {
+      "types": "./dist/api/rate-limit.d.ts",
+      "import": "./dist/api/rate-limit.js"
+    },
+    "./api/response-cache": {
+      "types": "./dist/api/response-cache.d.ts",
+      "import": "./dist/api/response-cache.js"
+    },
     "./client": {
       "types": "./dist/client/index.d.ts",
       "import": "./dist/client/index.js"
+    },
+    "./client/ui": {
+      "types": "./dist/client/ui/index.d.ts",
+      "import": "./dist/client/ui/index.js"
+    },
+    "./client/admin": {
+      "types": "./dist/client/admin/index.d.ts",
+      "import": "./dist/client/admin/index.js"
+    },
+    "./client/richtext": {
+      "types": "./dist/client/richtext/index.d.ts",
+      "import": "./dist/client/richtext/index.js"
     },
     "./types/interfaces/app": {
       "types": "./dist/types/interfaces/app.d.ts",
@@ -241,6 +273,10 @@
       "types": "./dist/monitoring/process-registry.d.ts",
       "import": "./dist/monitoring/process-registry.js"
     },
+    "./monitoring/query-monitor": {
+      "types": "./dist/monitoring/query-monitor.d.ts",
+      "import": "./dist/monitoring/query-monitor.js"
+    },
     "./utils/error-responses": {
       "types": "./dist/utils/error-responses.d.ts",
       "import": "./dist/utils/error-responses.js"
@@ -260,6 +296,10 @@
     "./caching": {
       "types": "./dist/caching/index.d.ts",
       "import": "./dist/caching/index.js"
+    },
+    "./cache/query-cache": {
+      "types": "./dist/cache/query-cache.d.ts",
+      "import": "./dist/cache/query-cache.js"
     },
     "./optimization/code-splitting": {
       "types": "./dist/optimization/code-splitting.d.ts",

@@ -86,6 +86,34 @@
       "types": "./dist/schema/users.d.ts",
       "import": "./dist/schema/users.js"
     },
+    "./schema/password-reset-tokens": {
+      "types": "./dist/schema/password-reset-tokens.d.ts",
+      "import": "./dist/schema/password-reset-tokens.js"
+    },
+    "./schema/admin": {
+      "types": "./dist/schema/admin.d.ts",
+      "import": "./dist/schema/admin.js"
+    },
+    "./schema/licenses": {
+      "types": "./dist/schema/licenses.d.ts",
+      "import": "./dist/schema/licenses.js"
+    },
+    "./schema/api-keys": {
+      "types": "./dist/schema/api-keys.d.ts",
+      "import": "./dist/schema/api-keys.js"
+    },
+    "./schema/audit-log": {
+      "types": "./dist/schema/audit-log.d.ts",
+      "import": "./dist/schema/audit-log.js"
+    },
+    "./schema/app-logs": {
+      "types": "./dist/schema/app-logs.d.ts",
+      "import": "./dist/schema/app-logs.js"
+    },
+    "./schema/error-events": {
+      "types": "./dist/schema/error-events.d.ts",
+      "import": "./dist/schema/error-events.js"
+    },
     "./schema/code-provenance": {
       "types": "./dist/schema/code-provenance.d.ts",
       "import": "./dist/schema/code-provenance.js"
@@ -201,6 +229,10 @@
     "./saga": {
       "types": "./dist/saga/index.d.ts",
       "import": "./dist/saga/index.js"
+    },
+    "./pool": {
+      "types": "./dist/pool.d.ts",
+      "import": "./dist/pool.js"
     }
   },
   "files": [

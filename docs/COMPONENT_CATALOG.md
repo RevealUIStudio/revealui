@@ -121,7 +121,7 @@ extends React.HTMLAttributes<HTMLElement>
 
 **Usage:**
 ```tsx
-import { Text } from '@revealui/presentation/primitives'
+import { Text } from '@revealui/presentation'
 
 <Text className="text-muted-foreground">
   Description text
@@ -143,7 +143,7 @@ interface HeadingProps extends React.HTMLAttributes<HTMLHeadingElement> {
 
 **Usage:**
 ```tsx
-import { Heading } from '@revealui/presentation/primitives'
+import { Heading } from '@revealui/presentation'
 
 <Heading level={2}>Section Title</Heading>
 ```
@@ -323,13 +323,18 @@ extends React.InputHTMLAttributes<HTMLInputElement>
 
 **Usage:**
 ```tsx
-import { radio } from '@revealui/presentation'
+import { Radio, RadioField, RadioGroup } from '@revealui/presentation'
 
-<radio name="choice" value="option1" />
-<label>Option 1</label>
-
-<radio name="choice" value="option2" />
-<label>Option 2</label>
+<RadioGroup>
+  <RadioField>
+    <Radio name="choice" value="option1" />
+    <Label>Option 1</Label>
+  </RadioField>
+  <RadioField>
+    <Radio name="choice" value="option2" />
+    <Label>Option 2</Label>
+  </RadioField>
+</RadioGroup>
 ```
 
 ---
@@ -345,9 +350,9 @@ Toggle switch component.
 
 **Usage:**
 ```tsx
-import { switch } from '@revealui/presentation'
+import { Switch } from '@revealui/presentation'
 
-<switch checked={enabled} onChange={setEnabled} />
+<Switch checked={enabled} onChange={setEnabled} />
 ```
 
 ---
@@ -396,13 +401,13 @@ Fieldset container for grouping form controls.
 
 **Usage:**
 ```tsx
-import { fieldset } from '@revealui/presentation'
+import { Fieldset, Legend } from '@revealui/presentation'
 
-<fieldset>
-  <legend>Account Information</legend>
+<Fieldset>
+  <Legend>Account Information</Legend>
   <Label>Name</Label>
   <Input />
-</fieldset>
+</Fieldset>
 ```
 
 ---
@@ -413,12 +418,12 @@ Autocomplete combo box with native accessibility.
 
 **Usage:**
 ```tsx
-import { combobox } from '@revealui/presentation'
+import { Combobox, ComboboxLabel, ComboboxOption } from '@revealui/presentation'
 
 // See component file for detailed API
-<combobox>
+<Combobox>
   {/* Options */}
-</combobox>
+</Combobox>
 ```
 
 ---
@@ -429,12 +434,12 @@ Listbox select component with native accessibility.
 
 **Usage:**
 ```tsx
-import { listbox } from '@revealui/presentation'
+import { Listbox, ListboxLabel, ListboxOption } from '@revealui/presentation'
 
 // See component file for detailed API
-<listbox>
+<Listbox>
   {/* Options */}
-</listbox>
+</Listbox>
 ```
 
 ---
@@ -445,12 +450,12 @@ Dropdown menu component with native accessibility.
 
 **Usage:**
 ```tsx
-import { dropdown } from '@revealui/presentation'
+import { Dropdown, DropdownMenu, DropdownItem } from '@revealui/presentation'
 
 // See component file for detailed API
-<dropdown>
+<Dropdown>
   {/* Menu items */}
-</dropdown>
+</Dropdown>
 ```
 
 ---
@@ -548,22 +553,29 @@ Table component for tabular data.
 
 **Usage:**
 ```tsx
-import { table } from '@revealui/presentation'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@revealui/presentation'
 
-<table>
-  <thead>
-    <tr>
-      <th>Header 1</th>
-      <th>Header 2</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Cell 1</td>
-      <td>Cell 2</td>
-    </tr>
-  </tbody>
-</table>
+<Table>
+  <TableHead>
+    <TableRow>
+      <TableHeader>Header 1</TableHeader>
+      <TableHeader>Header 2</TableHeader>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <TableCell>Cell 1</TableCell>
+      <TableCell>Cell 2</TableCell>
+    </TableRow>
+  </TableBody>
+</Table>
 ```
 
 ---
@@ -574,7 +586,11 @@ Description list component for key-value pairs.
 
 **Usage:**
 ```tsx
-import { descriptionList } from '@revealui/presentation'
+import {
+  DescriptionDetails,
+  DescriptionList,
+  DescriptionTerm,
+} from '@revealui/presentation'
 
 // See component file for detailed API
 ```
@@ -587,9 +603,9 @@ User avatar component.
 
 **Usage:**
 ```tsx
-import { avatar } from '@revealui/presentation'
+import { Avatar } from '@revealui/presentation'
 
-<avatar src="/avatar.jpg" alt="User Name" />
+<Avatar src="/avatar.jpg" alt="User Name" />
 ```
 
 ---
@@ -600,10 +616,10 @@ Badge component for status indicators.
 
 **Usage:**
 ```tsx
-import { badge } from '@revealui/presentation'
+import { Badge } from '@revealui/presentation'
 
-<badge>New</badge>
-<badge variant="success">Active</badge>
+<Badge>New</Badge>
+<Badge color="lime">Active</Badge>
 ```
 
 ---
@@ -614,12 +630,12 @@ Visual divider/separator.
 
 **Usage:**
 ```tsx
-import { divider } from '@revealui/presentation'
+import { Divider } from '@revealui/presentation'
 
-<divider />
+<Divider />
 
 <div>Section 1</div>
-<divider />
+<Divider />
 <div>Section 2</div>
 ```
 
@@ -631,9 +647,10 @@ Styled heading component.
 
 **Usage:**
 ```tsx
-import { heading } from '@revealui/presentation'
+import { Heading, Subheading } from '@revealui/presentation'
 
-<heading>Page Title</heading>
+<Heading>Page Title</Heading>
+<Subheading>Section Title</Subheading>
 ```
 
 ---
@@ -644,9 +661,13 @@ Styled text component.
 
 **Usage:**
 ```tsx
-import { text } from '@revealui/presentation'
+import { Code, Strong, Text, TextLink } from '@revealui/presentation'
 
-<text>Body text content</text>
+<Text>Body text content</Text>
+<Text>
+  Rendered as <Strong>bold</Strong>, <Code>inline code</Code>,
+  or <TextLink href="/docs">inline link</TextLink>.
+</Text>
 ```
 
 ---
@@ -661,9 +682,9 @@ Navigation link component.
 
 **Usage:**
 ```tsx
-import { link } from '@revealui/presentation'
+import { Link } from '@revealui/presentation'
 
-<link href="/about">About</link>
+<Link href="/about">About</Link>
 ```
 
 ---
@@ -674,11 +695,11 @@ Navigation bar component.
 
 **Usage:**
 ```tsx
-import { navbar } from '@revealui/presentation'
+import { Navbar, NavbarItem, NavbarSection } from '@revealui/presentation'
 
-<navbar>
+<Navbar>
   {/* Navigation items */}
-</navbar>
+</Navbar>
 ```
 
 ---
@@ -689,11 +710,11 @@ Sidebar navigation component.
 
 **Usage:**
 ```tsx
-import { sidebar } from '@revealui/presentation'
+import { Sidebar, SidebarBody, SidebarItem, SidebarSection } from '@revealui/presentation'
 
-<sidebar>
+<Sidebar>
   {/* Sidebar content */}
-</sidebar>
+</Sidebar>
 ```
 
 ---
@@ -730,15 +751,17 @@ Alert/notification component.
 
 **Usage:**
 ```tsx
-import { alert } from '@revealui/presentation'
+import { Alert, AlertBody, AlertDescription, AlertTitle } from '@revealui/presentation'
 
-<alert variant="info">
-  Information message
-</alert>
+<Alert>
+  <AlertTitle>Heads up</AlertTitle>
+  <AlertDescription>Information message</AlertDescription>
+</Alert>
 
-<alert variant="error">
-  Error message
-</alert>
+<Alert>
+  <AlertTitle>Something went wrong</AlertTitle>
+  <AlertDescription>Error message</AlertDescription>
+</Alert>
 ```
 
 ---
@@ -814,11 +837,11 @@ Authentication page layout.
 
 **Usage:**
 ```tsx
-import { authLayout } from '@revealui/presentation'
+import { AuthLayout } from '@revealui/presentation'
 
-<authLayout>
+<AuthLayout>
   {/* Auth forms */}
-</authLayout>
+</AuthLayout>
 ```
 
 ---
@@ -829,11 +852,11 @@ Layout with sidebar navigation.
 
 **Usage:**
 ```tsx
-import { sidebarLayout } from '@revealui/presentation'
+import { SidebarLayout } from '@revealui/presentation'
 
-<sidebarLayout>
+<SidebarLayout>
   {/* Page content with sidebar */}
-</sidebarLayout>
+</SidebarLayout>
 ```
 
 ---
@@ -844,11 +867,11 @@ Stacked page layout.
 
 **Usage:**
 ```tsx
-import { stackedLayout } from '@revealui/presentation'
+import { StackedLayout } from '@revealui/presentation'
 
-<stackedLayout>
+<StackedLayout>
   {/* Stacked content sections */}
-</stackedLayout>
+</StackedLayout>
 ```
 
 ---
@@ -1453,7 +1476,7 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ## Component Summary by Package
 
-### @revealui/presentation (58 components)
+### @revealui/presentation (57 components)
 - 6 Primitives (Box, Flex, Grid, Text, Heading, Slot)
 - 13 Form Controls (Button, Input, Textarea, Select, Checkbox, Radio, etc.)
 - 8 Data Display (Card, Table, Avatar, Badge, etc.)
@@ -1481,4 +1504,4 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 ---
 
 **Last Updated:** 2026-03-03
-**Packages:** `@revealui/presentation` (58 components), `@revealui/core` (21 components)
+**Packages:** `@revealui/presentation` (57 components), `@revealui/core` (21 components)

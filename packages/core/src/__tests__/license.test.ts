@@ -9,9 +9,11 @@ import { decodeProtectedHeader } from 'jose';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import {
   computeKeyId,
+  configureGracePeriods,
   generateLicenseKey,
   getCurrentTier,
   getLicensePayload,
+  getLicenseStatus,
   getMaxAgentTasks,
   getMaxSites,
   getMaxUsers,
@@ -50,6 +52,7 @@ beforeAll(async () => {
 
 afterEach(() => {
   resetLicenseState();
+  configureGracePeriods({ subscriptionDays: 3, perpetualDays: 30, infraDays: 7 });
   delete process.env.REVEALUI_LICENSE_KEY;
   delete process.env.REVEALUI_LICENSE_PUBLIC_KEY;
 });
@@ -148,15 +151,28 @@ describe('validateLicenseKey', () => {
     expect(result).toBeNull();
   });
 
-  it('returns null for expired key', async () => {
-    // Generate a key that expired 1 second ago
+  it('returns null for key expired beyond grace period', async () => {
+    // Generate a key that expired 10 days ago (beyond 3-day grace)
     const jwt = await generateLicenseKey(
       { tier: 'pro', customerId: 'cus_exp' },
       privateKeyPem,
-      -1, // already expired
+      -(10 * 86_400), // expired 10 days ago
     );
     const result = await validateLicenseKey(jwt, publicKeyPem);
     expect(result).toBeNull();
+  });
+
+  it('returns payload for recently expired key (within grace)', async () => {
+    // Generate a key that expired 1 day ago (within 3-day grace)
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_grace_jwt' },
+      privateKeyPem,
+      -86_400, // expired 1 day ago
+    );
+    const result = await validateLicenseKey(jwt, publicKeyPem);
+    // Payload should be returned — grace period logic in isLicensed() handles the mode
+    expect(result).not.toBeNull();
+    expect(result?.tier).toBe('pro');
   });
 
   it('returns null for key signed with different private key', async () => {
@@ -471,5 +487,158 @@ describe('resetLicenseState', () => {
     resetLicenseState();
     expect(getCurrentTier()).toBe('free');
     expect(getLicensePayload()).toBeNull();
+  });
+});
+
+// =============================================================================
+// Grace periods  -  subscription expiry
+// =============================================================================
+
+describe('subscription grace period', () => {
+  it('allows access during 3-day grace after subscription expiry', async () => {
+    // Generate a key that expired 1 day ago
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_grace' },
+      privateKeyPem,
+      -86_400, // expired 1 day ago
+    );
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    await initializeLicense();
+
+    // isLicensed should still return true (within 3-day grace)
+    expect(isLicensed('pro')).toBe(true);
+  });
+
+  it('denies access after grace period exhausted', async () => {
+    // Set grace to 1 day — key expired 2 days ago is beyond grace
+    configureGracePeriods({ subscriptionDays: 1 });
+
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_no_grace' },
+      privateKeyPem,
+      -(2 * 86_400), // expired 2 days ago, beyond 1-day grace
+    );
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    await initializeLicense();
+
+    expect(isLicensed('pro')).toBe(false);
+  });
+
+  it('respects custom grace period configuration', async () => {
+    // Set grace to 10 days
+    configureGracePeriods({ subscriptionDays: 10 });
+
+    // Expired 7 days ago — within 10-day grace
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_custom_grace' },
+      privateKeyPem,
+      -(7 * 86_400),
+    );
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    await initializeLicense();
+
+    expect(isLicensed('pro')).toBe(true);
+  });
+
+  it('perpetual licenses are unaffected by subscription grace', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_perp_grace', perpetual: true },
+      privateKeyPem,
+      null,
+    );
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    await initializeLicense();
+
+    // Perpetual licenses skip exp check entirely — always valid
+    expect(isLicensed('pro')).toBe(true);
+  });
+});
+
+// =============================================================================
+// getLicenseStatus  -  rich status reporting
+// =============================================================================
+
+describe('getLicenseStatus', () => {
+  it('returns mode=missing when no license configured', () => {
+    const status = getLicenseStatus();
+    expect(status.mode).toBe('missing');
+    expect(status.tier).toBe('free');
+    expect(status.allowed).toBe(false);
+    expect(status.readOnly).toBe(false);
+  });
+
+  it('returns mode=missing but allowed for free tier check', () => {
+    const status = getLicenseStatus('free');
+    expect(status.mode).toBe('missing');
+    expect(status.allowed).toBe(true);
+  });
+
+  it('returns mode=active for valid license', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_active' }, privateKeyPem);
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    await initializeLicense();
+
+    const status = getLicenseStatus('pro');
+    expect(status.mode).toBe('active');
+    expect(status.tier).toBe('pro');
+    expect(status.allowed).toBe(true);
+    expect(status.readOnly).toBe(false);
+    expect(status.graceRemainingMs).toBeUndefined();
+  });
+
+  it('returns mode=grace for recently expired subscription', async () => {
+    // Expired 1 day ago, within 3-day grace
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_grace_status' },
+      privateKeyPem,
+      -86_400,
+    );
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    await initializeLicense();
+
+    const status = getLicenseStatus('pro');
+    expect(status.mode).toBe('grace');
+    expect(status.tier).toBe('pro');
+    expect(status.allowed).toBe(true);
+    expect(status.readOnly).toBe(false);
+    expect(status.graceRemainingMs).toBeGreaterThan(0);
+    expect(status.reason).toContain('grace remaining');
+  });
+
+  it('returns mode=expired when grace exhausted', async () => {
+    // 1-day grace, expired 2 days ago — beyond grace
+    configureGracePeriods({ subscriptionDays: 1 });
+
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_expired_status' },
+      privateKeyPem,
+      -(2 * 86_400),
+    );
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    await initializeLicense();
+
+    const status = getLicenseStatus('pro');
+    expect(status.mode).toBe('expired');
+    expect(status.tier).toBe('free');
+    expect(status.allowed).toBe(false);
+    expect(status.readOnly).toBe(false);
+  });
+
+  it('returns allowed=false when requesting higher tier than licensed', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_low' }, privateKeyPem);
+    process.env.REVEALUI_LICENSE_KEY = jwt;
+    process.env.REVEALUI_LICENSE_PUBLIC_KEY = publicKeyPem;
+    await initializeLicense();
+
+    const status = getLicenseStatus('enterprise');
+    expect(status.mode).toBe('active');
+    expect(status.allowed).toBe(false);
   });
 });

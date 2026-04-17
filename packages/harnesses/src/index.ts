@@ -159,7 +159,5 @@ export type { SessionType } from './workboard/session-identity.js';
 // Types  -  workboard protocol
 export type {
   ConflictResult,
-  WorkboardEntry,
-  WorkboardSession,
   WorkboardState,
 } from './workboard/workboard-protocol.js';

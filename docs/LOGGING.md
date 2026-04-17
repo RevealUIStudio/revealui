@@ -189,16 +189,16 @@ Automatically redacts:
 
 ### Log Sampling
 
-For high-volume logs, sample only a percentage:
+For high-volume logs, sample only a percentage at the call site — there is
+no bundled helper; use a small guard to keep it explicit:
 
 ```typescript
-import { createSampledLogger } from '@revealui/core/observability/logger'
+import { logger } from '@revealui/core/observability/logger'
 
 // Log only 10% of messages
-const sampledLogger = createSampledLogger(0.1)
-
-// Use like normal logger
-sampledLogger.debug('This may or may not be logged')
+if (Math.random() < 0.1) {
+  logger.debug('This may or may not be logged')
+}
 ```
 
 ## Migration from console.log

@@ -14,20 +14,20 @@
 
 ---
 
-## Current Reality (as of 2026-04-12)
+## Current Reality (as of 2026-04-15)
 
 ### What Exists
 
 - **Codebase:** ~270,000 lines of TypeScript/Rust/Go across apps + packages
-- **History:** 2,360+ commits (Dec 30, 2025 – Apr 2026), solo developer
-- **Apps:** 7 (api, admin, docs, marketing, revealcoin, studio, terminal)
-- **Packages:** 24 packages + 7 apps = 31 workspaces
-- **Tests:** 1,676 test files, 20,000+ tests passing, all workspaces build and typecheck
-- **Database:** 81 tables (Drizzle ORM, dual NeonDB + Supabase)
+- **History:** 2,410+ commits (Dec 30, 2025 – Apr 2026), solo developer
+- **Apps:** 5 (api, admin, docs, marketing, revealcoin)
+- **Packages:** 25 packages + 5 apps = 30 workspaces
+- **Tests:** 1,706 test files, 20,000+ tests passing, all workspaces build and typecheck
+- **Database:** 81 tables (Drizzle ORM, dual NeonDB + Supabase), 61 CHECK constraints enforced (migration 0001 applied 2026-04-15)
 - **UI Components:** 57 native components (Tailwind v4, zero external UI deps)
-- **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks
+- **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml, system-tune-snapshot.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks
 - **Infrastructure:** Nix flakes, direnv, Biome 2 (sole linter), Turborepo, pnpm 10
-- **Security:** 7 audit rounds complete. 0 CodeQL alerts, 0 Dependabot alerts, 0 avoidable `any` types, 0 production console statements. AES-256-GCM encryption, bcrypt passwords, RBAC+ABAC, timing-safe TOTP. AST-based code-pattern analyzer (execSync injection, TOCTOU, ReDoS). Pre-push gate runs affected tests on protected branches.
+- **Security:** 7 audit rounds complete. 0 CodeQL alerts, 0 Dependabot alerts, 0 avoidable `any` types, 0 production console statements. AES-256-GCM encryption, bcrypt passwords, RBAC+ABAC, timing-safe TOTP. AST-based code-pattern analyzer (execSync injection, TOCTOU, ReDoS). Pre-push gate runs affected tests on protected branches. SOC2 audit track documented with pentest RFP template.
 
 ### What Works
 
@@ -35,8 +35,8 @@
 |---------|--------|------------|
 | admin engine (core) | Built | High  -  237 files, deep implementation |
 | AI agent system | Built | Medium  -  untested in production |
-| UI components (56) | Built | High  -  native hooks, no external deps |
-| Database schema (75 tables) | Built | Medium  -  migrations exist, production verified |
+| UI components (57) | Built | High  -  native hooks, no external deps |
+| Database schema (81 tables) | Built | High  -  migration 0001 applied, 61 CHECK constraints enforced |
 | Auth (sessions, rate limiting) | Built | Medium  -  code exists, no production verification |
 | Stripe integration | Built | Medium  -  DB-backed circuit breaker (circuit_breaker_state table) |
 | Lexical rich text | Built | Medium  -  recently integrated |
@@ -82,7 +82,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded  -  separ
 **Status:** ALL sub-phases and open items complete (owner confirmed 2026-03-31).
 **Audit gap-closing plan:** ALL PHASES COMPLETE (2026-03-17, sessions 105-110).
 
-**Completed sub-phases:** 3.1 Documentation (deployed), 3.2 OSS Prep (16 packages published), 3.3 Marketing (landing page live), 3.4 Pro Tier (packages on npm), 3.5 Production Hardening (6 rounds  -  including CodeQL + regex refactor 2026-03-31), 3.6 AI Features (web search, memory consent, MCP hypervisor), 3.7 Business Operations (blog, outreach, external validation), 3.8 Pre-Public Audit, 3.9 Gap Closure, 3.10 Launch Operations (repo public 2026-03-25).
+**Completed sub-phases:** 3.1 Documentation (deployed), 3.2 OSS Prep (25 packages published), 3.3 Marketing (landing page live), 3.4 Pro Tier (packages on npm), 3.5 Production Hardening (6 rounds  -  including CodeQL + regex refactor 2026-03-31), 3.6 AI Features (web search, memory consent, MCP hypervisor), 3.7 Business Operations (blog, outreach, external validation), 3.8 Pre-Public Audit, 3.9 Gap Closure, 3.10 Launch Operations (repo public 2026-03-25).
 
 **Final hardening (2026-03-31):** 36 CodeQL alerts resolved, regex replaced with string methods across 28 files (security-critical paths: session tokens, SQL identifiers, cookie parsing, cache headers, email validation), boundary validation accuracy restored, E2E smoke CI fixed.
 
@@ -170,7 +170,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded  -  separ
 - [ ] Docker image pushed to GHCR  -  **owner action** after credential rotation
 
 #### 5.5 MCP Marketplace
-- [ ] **Owner action:** Run `pnpm db:migrate` against production NeonDB (marketplace tables are in migration 0000 + 0005, already defined)
+- [x] Migration 0001 applied to production NeonDB (2026-04-15)  -  49 CHECK constraints added, audit_log.severity data fixed (618 rows)
 - [ ] **Owner action:** Set `MARKETPLACE_CONNECT_RETURN_URL` in Vercel API env vars
 - [x] Batch payout cron  -  daily 04:00 UTC, Stripe Connect transfers, $0.50 min (marketplace-payouts.ts, 7 tests)  -  2026-03-31
 
@@ -260,7 +260,7 @@ Phase D  -  Cross-platform:
 - [x] Remediation (M3): YAML frontmatter on all 28 docs/*.md files ✅ 2026-03-31
 - [x] Remediation (M4): JSDoc on openapi barrel exports ✅ 2026-03-31
 - [x] Remediation (M1/M2): JOSHUA principle mapping + "When to Use" on 17 existing READMEs ✅ 2026-03-31
-- [x] Validate: agent-simulated navigation across all 22 packages  -  22/22 PASS (minor friction notes: db/ai/mcp subpath depth, dev unscoped naming) ✅ 2026-03-31
+- [x] Validate: agent-simulated navigation across all 25 packages  -  25/25 PASS (minor friction notes: db/ai/mcp subpath depth, dev unscoped naming) ✅ 2026-03-31
 
 #### Release Pipeline
 - [x] Set up canary release workflow (`@revealui/core@canary` via Changesets snapshots)  -  2026-03-31 (release-canary.yml, triggers on test branch push, OIDC trusted publishing)
@@ -591,7 +591,7 @@ Phase D  -  Agent publisher tools (agent):
 - [x] Build CLI (`revealui system scan` / `tune` / `revert`) with dry-run default (2026-04-15)
 - [ ] Wire into Studio first-run wizard
 - [ ] Wire into Forge self-hosted install script
-- [ ] CI: run `revealui system scan --json` on Ubuntu / macOS / Windows runners and snapshot the detection output
+- [x] CI: run `revealui system scan --json` on Ubuntu / macOS / Windows runners and snapshot the detection output (2026-04-15, PR #338)
 - [x] Crash-postmortem doc seeded with the 2026-04-13 incident (2026-04-15)
 
 **Exit criteria:** A user running `curl | sh` on a brand-new machine — Windows + WSL, bare Linux, macOS M-series, or low-RAM laptop — reaches a working RevealUI dev environment without hand-editing any system config file, and the setup is reproducible + reversible.
@@ -842,7 +842,19 @@ Holster: "Here is the shared state where coordination happens"
 
 ---
 
-## §4.18: Legacy and Deprecation Sweep (Pending)
+## §4.18: Legacy and Deprecation Sweep (Phase A in progress)
+
+**Initial sweep results (2026-04-15):**
+- Removed 6 deprecated exports with zero callers: `registerSession`/`unregisterSession` aliases, `WorkboardSession`/`WorkboardEntry` types, `deepMergeSimple`, `findAgentMemoryById`/`findAgentMemoriesByUserId`
+- Removed `@lhci/cli` from root devDependencies (no script or CI consumer)
+- Removed `postgres` from pnpm catalog (never declared as workspace dep — repo uses `pg`)
+- Identified 20+ additional dead exports across auth audit-bridge, OAuth, cache CDN, resilience patterns, MCP launchers — flagged for follow-up; not removed because some are part of public package API and would require major version bumps
+
+**Follow-up sweep results (2026-04-16, PR #343):**
+- Removed 3 more zero-caller `@deprecated` exports: `apps/admin/src/types/index.ts` (barrel re-export of admin types), `packages/ai/src/memory/utils/deep-clone.ts` (re-export of `@revealui/core/utils/deep-clone`), `packages/db/src/pool.ts` `pool` Proxy + `export default pool`
+- Internal callers migrated to the canonical import path; obsolete duplicate tests deleted
+- 6 `@deprecated` markers remain: 2 are string literals in analyzer error messages (not real deprecations); 1 is `packages/security/src/auth.ts` `PasswordHasher` (PBKDF2) which is a public API removal deserving its own PR with changeset + migration notes to `@revealui/auth` (bcrypt)
+
 
 **Goal:** Zero legacy or deprecated code paths in the codebase. Every public API surface ships only current implementations. When a pattern changes, ship a codemod so users can migrate automatically.
 
@@ -888,7 +900,7 @@ Holster: "Here is the shared state where coordination happens"
 - [ ] Audit all error messages across packages for clarity: does the user know what went wrong, why, and what to do next?
 - [ ] Audit onboarding flow (`revealui create` + `revealui dev up` + `revealui doctor`): walk through as a new user and document every point of confusion or missing context
 - [ ] Audit `.env.local` template comments generated by `revealui create`: do they accurately describe each variable and where to get the value?
-- [ ] Audit README.md files across all 22 packages: do they reflect current exports, usage patterns, and dependencies?
+- [ ] Audit README.md files across all 25 packages: do they reflect current exports, usage patterns, and dependencies?
 - [ ] Audit docs/ site content against actual API surfaces: flag any code samples that reference removed or renamed functions
 
 ### Phase B: User Flow Documentation
@@ -905,7 +917,8 @@ Holster: "Here is the shared state where coordination happens"
 
 ### Phase C: Automated Drift Detection
 
-- [ ] Add a CI check that verifies code samples in docs/ compile against current package exports (extract fenced code blocks, typecheck them)
+- [x] **Claim/count drift detector** ✅ 2026-04-15 — `scripts/validate/claim-drift.ts` (`pnpm validate:claims`). Counts real packages/apps/workspaces/tests/UI components/MCP servers and fails if docs, marketing, or READMEs claim a different number. First run found 35 mismatches across docs/marketing — all corrected.
+- [x] **Docs import drift detector** ✅ 2026-04-16 — `scripts/validate/docs-import-drift.ts` (`pnpm validate:docs-imports`). Extracts every `ts`/`tsx`/`typescript` code fence in `docs/`, parses `@revealui/*` imports, and checks each named import against the package's built `.d.ts` exports. Ships in the CI gate as **warn-only** — initial scan found ~225 stale imports, will flip to hard-fail once the backlog is drained. Doesn't do full tsc-style typechecking; focuses on the drift class that matters (removed/renamed public API names).
 - [ ] Add a CI check that verifies CLI `--help` output matches the documented command reference
 - [ ] Add a pre-commit rule: if a public export is renamed or removed, require a corresponding docs/ change in the same commit
 - [ ] Track messaging coverage: percentage of error paths that have user-friendly messages vs raw throws

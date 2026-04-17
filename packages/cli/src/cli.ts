@@ -34,6 +34,7 @@ import {
   runDevUpCommand,
 } from './commands/dev.js';
 import { runDoctorCommand } from './commands/doctor.js';
+import { runMigrateCommand } from './commands/migrate.js';
 import {
   runSystemRevertCommand,
   runSystemScanCommand,
@@ -45,6 +46,9 @@ const cliRequire = createRequire(import.meta.url);
 const CLI_VERSION: string = (cliRequire('../package.json') as { version: string }).version;
 
 const logger = createLogger({ prefix: 'CLI' });
+
+// Re-export the programmatic project-creation API (documented in docs/REFERENCE.md).
+export { type CreateProjectConfig, createProject } from './commands/create.js';
 
 export interface CliOptions {
   template?: string;
@@ -359,6 +363,16 @@ export function createCli(): Command {
     .description('Revert a previously applied tuning plan from backup')
     .action(async () => {
       await runSystemRevertCommand();
+    });
+
+  program
+    .command('migrate')
+    .description('Apply codemods to migrate your project to newer RevealUI versions')
+    .option('-d, --dry-run', 'Preview changes without writing files', false)
+    .option('--list', 'Show available codemods and applicability without running them', false)
+    .option('--only <name>', 'Run only the codemod with this name')
+    .action(async (options: { dryRun?: boolean; list?: boolean; only?: string }) => {
+      await runMigrateCommand(options);
     });
 
   program

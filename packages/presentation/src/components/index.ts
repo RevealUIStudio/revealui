@@ -62,10 +62,12 @@ export { EmptyState } from './empty-state.js';
 export { FormLabel, type FormLabelProps } from './FormLabel.js';
 export { Field, FieldGroup, Fieldset, Legend } from './fieldset.js';
 export { FormField, type FormFieldProps } from './form-field.js';
+export { Heading, Subheading } from './heading.js';
 export { Input as InputCVA, type InputProps } from './Input.js';
 export { Input, InputGroup } from './input-headless.js';
 export { Kbd, KbdShortcut } from './kbd.js';
 export { Label, type LabelProps } from './Label.js';
+export { Link } from './link.js';
 export { Listbox, ListboxDescription, ListboxLabel, ListboxOption } from './listbox.js';
 export {
   Navbar,
@@ -139,7 +141,16 @@ export { Stat, StatGroup } from './stat.js';
 export { Stepper, type StepperStep } from './stepper.js';
 export { Switch, SwitchField, SwitchGroup } from './switch.js';
 export { Textarea as TextareaCVA, type TextareaProps } from './Textarea.js';
+export {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './table.js';
 export { Tab, TabList, TabPanel, Tabs } from './tabs.js';
+export { Code, Strong, Text, TextLink } from './text.js';
 export { Textarea } from './textarea-headless.js';
 export { Timeline, TimelineItem } from './timeline.js';
 export { ToastProvider, useToast } from './toast.js';

@@ -116,17 +116,3 @@ export interface ConflictResult {
     overlappingFiles: string[];
   }>;
 }
-
-// ---------------------------------------------------------------------------
-// Backward compat  -  re-export old names as aliases
-// ---------------------------------------------------------------------------
-
-/** @deprecated Use WorkboardAgent instead */
-export type WorkboardSession = WorkboardAgent;
-
-/** @deprecated Use WorkboardState.log entries instead */
-export interface WorkboardEntry {
-  timestamp: string;
-  sessionId: string;
-  description: string;
-}
