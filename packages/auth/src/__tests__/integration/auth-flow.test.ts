@@ -25,6 +25,7 @@ describe.skipIf(!testDatabaseUrl || isTestMode)('Authentication Flow Integration
 
   // Verify database is configured before running tests
   beforeAll(async () => {
+    process.env.REVEALUI_SIGNUP_OPEN = 'true';
     // Generate test credentials
     testEmail = `test-${Date.now()}@example.com`;
     testPassword = 'TestPassword123!';

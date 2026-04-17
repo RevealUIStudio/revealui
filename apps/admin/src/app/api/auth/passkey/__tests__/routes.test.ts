@@ -216,6 +216,7 @@ function createAuthenticatedChallengeRequest(url: string, body: unknown): NextRe
 
 beforeEach(() => {
   vi.clearAllMocks();
+  process.env.REVEALUI_SIGNUP_OPEN = 'true';
   // Reset mock DB chain
   mockDb.select.mockReturnValue(mockDb);
   mockDb.from.mockReturnValue(mockDb);
