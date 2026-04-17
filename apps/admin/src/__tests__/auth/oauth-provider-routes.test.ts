@@ -485,8 +485,8 @@ describe('GET /api/auth/callback/[provider]', () => {
     expect(sessionCookie).toContain('HttpOnly');
     expect(sessionCookie).toContain('Path=/');
     expect(sessionCookie?.toLowerCase()).toContain('samesite=lax');
-    // 7 days = 604800 seconds
-    expect(sessionCookie).toContain('Max-Age=604800');
+    // 1 day = 86400 seconds (matches DB session expiry)
+    expect(sessionCookie).toContain('Max-Age=86400');
   });
 
   it('should delete oauth_state cookie on success', async () => {
