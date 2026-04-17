@@ -209,7 +209,8 @@ export async function signIn(
  * Behavior:
  * - If REVEALUI_SIGNUP_OPEN is 'true', all emails are allowed.
  * - If REVEALUI_SIGNUP_WHITELIST is set (comma-separated emails), only listed emails pass.
- * - If neither env var is set, signups are open (backwards compatible).
+ * - If neither env var is set, signups are CLOSED (security default).
+ *   Set REVEALUI_SIGNUP_OPEN=true explicitly to open registration.
  *
  * @param email - Lowercase, trimmed email to check
  * @returns true if signup is allowed
@@ -222,7 +223,10 @@ export function isSignupAllowed(email: string): boolean {
 
   const whitelist = process.env.REVEALUI_SIGNUP_WHITELIST;
   if (!whitelist) {
-    return true;
+    // Default to closed — require explicit REVEALUI_SIGNUP_OPEN=true
+    // or a whitelist to allow signups. Prevents accidental open
+    // registration on new deployments.
+    return false;
   }
 
   const allowedEmails = whitelist

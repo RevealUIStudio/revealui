@@ -48,9 +48,10 @@ vi.mock('@revealui/core/license', () => ({
   getMaxAgentTasks: vi.fn(() => 10_000),
 }));
 
-vi.mock('@revealui/core/observability/logger', () => ({
-  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
-}));
+vi.mock('@revealui/core/observability/logger', () => {
+  const mockLog = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
+  return { logger: mockLog, createLogger: () => mockLog };
+});
 
 // ─── DB Mock ─────────────────────────────────────────────────────────────────
 

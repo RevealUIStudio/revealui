@@ -69,6 +69,7 @@ vi.mock('../server/session', () => ({
 describe('Authentication', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.REVEALUI_SIGNUP_OPEN = 'true';
   });
 
   describe('signIn', () => {

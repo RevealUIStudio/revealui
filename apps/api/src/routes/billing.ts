@@ -5,7 +5,7 @@
  * with Stripe customer records via the `stripe_customer_id` column.
  */
 
-import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling';
+import { CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
@@ -21,6 +21,7 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { protectedStripe } from '@revealui/services';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
@@ -94,30 +95,24 @@ interface BillingEnv {
 
 const app = new OpenAPIHono<BillingEnv>();
 
-// Circuit breaker for Stripe API  -  fails fast when Stripe is unreachable
-const stripeBreaker = new CircuitBreaker({
-  failureThreshold: 5,
-  resetTimeout: 30_000,
-  successThreshold: 2,
-});
-
-let cachedStripe: Stripe | undefined;
-function getStripeClient(): Stripe {
-  if (cachedStripe) return cachedStripe;
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    throw new HTTPException(500, { message: 'Stripe is not configured' });
-  }
-  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
-  return cachedStripe;
-}
-
-/** Execute a Stripe operation through the circuit breaker */
-async function withStripe<T>(operation: (stripe: Stripe) => Promise<T>): Promise<T> {
+/**
+ * Execute a Stripe operation through the shared DB-backed circuit breaker
+ * (protectedStripe from @revealui/services). Maps Stripe errors to HTTP status codes.
+ *
+ * All billing routes use this single entry point — one Stripe instance,
+ * one circuit breaker, shared state across serverless instances via DB.
+ */
+async function withStripe<T>(
+  operation: (stripe: typeof protectedStripe) => Promise<T>,
+): Promise<T> {
   try {
-    return await stripeBreaker.execute(() => operation(getStripeClient()));
+    return await operation(protectedStripe);
   } catch (error) {
-    if (error instanceof CircuitBreakerOpenError) {
+    // DB-backed circuit breaker throws with "circuit breaker is OPEN" message
+    if (
+      error instanceof CircuitBreakerOpenError ||
+      (error instanceof Error && error.message.includes('circuit breaker is OPEN'))
+    ) {
       throw new HTTPException(503, {
         message: 'Payment service temporarily unavailable. Please try again shortly.',
       });
@@ -260,8 +255,7 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
   // NeonDB HTTP driver is stateless  -  db.transaction() is not supported.
   // Instead we use a conditional UPDATE (WHERE stripe_customer_id IS NULL)
   // so concurrent requests can't overwrite the winner.
-  const stripe = getStripeClient();
-  const customer = await stripe.customers.create(
+  const customer = await protectedStripe.customers.create(
     {
       email,
       metadata: { revealui_user_id: userId },
@@ -1775,7 +1769,10 @@ app.openapi(reportOverageRoute, async (c) => {
   }
 
   const db = getClient();
-  const stripe = getStripeClient();
+  // billing.meterEvents is not yet wrapped in protectedStripe — use raw client
+  // TODO: add billing.meterEvents to protectedStripe when Track B (credits) launches
+  const { getStripe } = await import('@revealui/services');
+  const stripe = getStripe();
 
   // Previous billing cycle = last calendar month
   const now = new Date();

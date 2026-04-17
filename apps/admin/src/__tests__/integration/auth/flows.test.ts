@@ -96,6 +96,7 @@ describe('Authentication Flow Integration', () => {
     vi.clearAllMocks();
     resetStorage();
     resetMockDb();
+    process.env.REVEALUI_SIGNUP_OPEN = 'true';
   });
 
   afterEach(() => {

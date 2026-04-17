@@ -337,6 +337,31 @@ function createProtectedStripe(stripeInstance?: Stripe) {
           'subscriptions.cancel',
         ),
     },
+    refunds: {
+      create: (
+        params: Stripe.RefundCreateParams,
+        options?: Stripe.RequestOptions,
+      ): Promise<Stripe.Refund> =>
+        callWithResilience(
+          () => getStripeInstance().refunds.create(params, options),
+          'refunds.create',
+        ),
+    },
+    invoices: {
+      list: (
+        params?: Stripe.InvoiceListParams,
+        options?: Stripe.RequestOptions,
+      ): Promise<Stripe.ApiList<Stripe.Invoice>> =>
+        callWithResilience(
+          () => getStripeInstance().invoices.list(params, options),
+          'invoices.list',
+        ),
+      retrieve: (...args: Parameters<Stripe['invoices']['retrieve']>): Promise<Stripe.Invoice> =>
+        callWithResilience(
+          () => getStripeInstance().invoices.retrieve(...args),
+          'invoices.retrieve',
+        ),
+    },
     get webhooks(): Stripe['webhooks'] {
       return getStripeInstance().webhooks;
     },
