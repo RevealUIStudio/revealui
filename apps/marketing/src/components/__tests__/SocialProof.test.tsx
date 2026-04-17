@@ -34,21 +34,21 @@ describe('SocialProof', () => {
     expect(html).toContain('licensed');
   });
 
-  it('contains the tech stack badges', () => {
+  it('contains the capability badges', () => {
     const result = SocialProof();
     const html = JSON.stringify(result);
-    const techStack = [
-      'TypeScript',
-      'React 19',
-      'Next.js 16',
-      'Hono',
-      'Drizzle ORM',
-      'Stripe',
-      'Tailwind v4',
-      'ElectricSQL',
+    const capabilities = [
+      'Content Management',
+      'Auth & Sessions',
+      'Payments & Billing',
+      'AI Agents',
+      'Real-Time Sync',
+      'UI Components',
+      'REST API',
+      'Multi-Tenant',
     ];
-    for (const tech of techStack) {
-      expect(html).toContain(tech);
+    for (const cap of capabilities) {
+      expect(html).toContain(cap);
     }
   });
 
