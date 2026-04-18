@@ -23,6 +23,7 @@ import {
   agentCreditBalance,
   licenses,
   processedWebhookEvents,
+  unreconciledWebhooks,
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
@@ -2075,13 +2076,33 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const receiptEmail =
             invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
           if (receiptEmail) {
-            // Resolve tier from the customer's license in DB (avoids invoice.subscription
-            // which is not typed in Stripe SDK v20  -  see existing comment at line 1124).
+            // Resolve tier from the license matching this invoice's subscription.
+            // Extract subscription ID from the invoice. The field exists at runtime
+            // but is not typed in this Stripe SDK version.
+            const rawSub = (invoice as unknown as { subscription?: string | { id: string } | null })
+              .subscription;
+            const invoiceSubId =
+              typeof rawSub === 'string'
+                ? rawSub
+                : typeof rawSub === 'object' && rawSub?.id
+                  ? rawSub.id
+                  : null;
+
             let receiptTier = 'pro';
+            // Prefer subscription-scoped lookup (prevents wrong tier when customer
+            // holds both perpetual and subscription licenses).
+            const licenseFilter = invoiceSubId
+              ? and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.subscriptionId, invoiceSubId),
+                  isNull(licenses.deletedAt),
+                )
+              : and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt));
+
             const [licenseRow] = await db
               .select({ tier: licenses.tier })
               .from(licenses)
-              .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)))
+              .where(licenseFilter)
               .orderBy(desc(licenses.updatedAt))
               .limit(1);
             if (licenseRow?.tier) {
@@ -2712,7 +2733,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
       }
     }
   } catch (err) {
-    await unmarkProcessed(db, event.id);
+    const cleanedUp = await unmarkProcessed(db, event.id);
     const msg = err instanceof Error ? err.message : 'Unknown error';
     logger.error('Webhook handler error', undefined, { detail: msg, eventType: event.type });
 
@@ -2740,7 +2761,64 @@ app.openapi(stripeWebhookRoute, async (c) => {
       });
     });
 
-    return c.json({ error: 'Webhook processing failed' }, 500);
+    if (cleanedUp) {
+      // Idempotency marker removed — Stripe retries will reprocess from scratch.
+      return c.json({ error: 'Webhook processing failed' }, 500);
+    }
+
+    // CRITICAL: Idempotency marker could NOT be removed (3 DB retries failed).
+    // Returning 500 would cause Stripe to retry, but the stale marker makes
+    // checkAndMarkProcessed return "duplicate" → 200 → Stripe stops.
+    // Result: customer paid, no license, silent drop.
+    //
+    // Record the event for manual reconciliation and return 200 to stop
+    // Stripe's retry loop immediately (retries would be swallowed anyway).
+    const obj = event.data.object;
+    const stripeObjId = 'id' in obj ? (obj as { id: string }).id : undefined;
+    const objType = 'object' in obj ? (obj as { object: string }).object : undefined;
+    const custId =
+      'customer' in obj && obj.customer
+        ? typeof obj.customer === 'string'
+          ? obj.customer
+          : typeof obj.customer === 'object' && 'id' in obj.customer
+            ? (obj.customer as { id: string }).id
+            : undefined
+        : undefined;
+
+    try {
+      await db
+        .insert(unreconciledWebhooks)
+        .values({
+          eventId: event.id,
+          eventType: event.type,
+          customerId: custId ?? null,
+          stripeObjectId: stripeObjId ?? null,
+          objectType: objType ?? null,
+          errorTrace: msg,
+        })
+        .onConflictDoNothing();
+    } catch (insertErr) {
+      // If even the reconciliation INSERT fails, the DB is fully down.
+      // The alert email and CRITICAL log from unmarkProcessed are the last resort.
+      logger.error('Failed to insert unreconciled webhook record', undefined, {
+        eventId: event.id,
+        error: insertErr instanceof Error ? insertErr.message : 'unknown',
+      });
+    }
+
+    logger.error(
+      'Returning 200 despite processing failure to prevent stale-idempotency silent drop',
+      undefined,
+      { eventId: event.id, eventType: event.type },
+    );
+    return c.json(
+      {
+        received: true as const,
+        status: 'unreconciled' as const,
+        reference: event.id,
+      },
+      200,
+    );
   }
 
   return c.json({ received: true as const }, 200);
