@@ -11,7 +11,7 @@
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { yjsDocumentPatches, yjsDocuments } from '@revealui/db/schema';
-import { applyPatches } from '@revealui/sync/collab';
+import { applyPatches } from '@revealui/sync/collab/server';
 import { logger } from '@revealui/utils/logger';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
