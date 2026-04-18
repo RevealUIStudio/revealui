@@ -133,6 +133,12 @@ export const agentMemories = pgTable(
       .references(() => sites.id, { onDelete: 'cascade' }),
     agentId: text('agent_id'),
 
+    // Multi-agent sharing scope (Layer 3)
+    scope: text('scope').default('private').notNull(),
+    sessionScope: text('session_scope'),
+    sourceFacts: jsonb('source_facts').$type<string[]>().default([]),
+    reconciledAt: timestamp('reconciled_at', { withTimezone: true }),
+
     // Timestamps
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     expiresAt: timestamp('expires_at', { withTimezone: true }),
@@ -143,10 +149,13 @@ export const agentMemories = pgTable(
     index('agent_memories_verified_idx').on(table.verified),
     index('agent_memories_expires_at_idx').on(table.expiresAt),
     index('agent_memories_type_idx').on(table.type),
+    index('agent_memories_scope_idx').on(table.scope),
+    index('agent_memories_session_scope_idx').on(table.sessionScope),
     check(
       'agent_memories_type_check',
       sql`type IN ('fact', 'preference', 'decision', 'feedback', 'example', 'correction', 'skill', 'warning')`,
     ),
+    check('agent_memories_scope_check', sql`scope IN ('private', 'shared', 'reconciled')`),
   ],
 );
 

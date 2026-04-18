@@ -10,6 +10,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(),
+  withTransaction: vi.fn((_db: unknown, fn: (tx: unknown) => unknown) => fn(_db)),
 }));
 
 vi.mock('@revealui/db/crypto', () => ({

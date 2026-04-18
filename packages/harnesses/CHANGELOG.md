@@ -1,5 +1,17 @@
 # @revealui/harnesses
 
+## 0.1.10
+
+### Patch Changes
+
+- Updated dependencies [80cc561]
+- Updated dependencies [77a9a68]
+- Updated dependencies [284fd1f]
+- Updated dependencies [f6ba434]
+- Updated dependencies [0e459ca]
+- Updated dependencies [2204021]
+  - @revealui/core@0.6.0
+
 ## 0.1.9
 
 ### Patch Changes

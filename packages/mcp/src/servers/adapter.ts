@@ -14,6 +14,7 @@
 import { randomBytes } from 'node:crypto';
 import { registerCleanupHandler } from '@revealui/core/monitoring';
 import { logger as coreLogger } from '@revealui/core/observability/logger';
+import { assertPublicUrl } from '@revealui/security';
 
 export enum McpErrorCode {
   VALIDATION_ERROR = 'VALIDATION_ERROR',
@@ -481,6 +482,10 @@ export abstract class MCPAdapter {
     const timer = setTimeout(() => controller.abort(), timeout);
 
     try {
+      // SSRF protection: resolve hostname and reject private/reserved IPs
+      // before sending credentials to an attacker-controlled endpoint.
+      await assertPublicUrl(url);
+
       const response = await fetch(url, {
         method,
         headers,

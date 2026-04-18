@@ -268,11 +268,23 @@ async function setupRestDatabase(): Promise<boolean> {
       return true;
     }
 
-    // Run setup
+    // Run Drizzle migrations (manages all tables, triggers, and indexes)
     const workspaceRoot = join(__dirname, '../../..');
-    const schemaPath = join(workspaceRoot, 'packages/db/src/migrations/neon-rest-setup.sql');
-
-    const success = await executeSQLFile(db, schemaPath, 'REST');
+    const migrationsDir = join(workspaceRoot, 'packages/db/migrations');
+    const migrationFiles = [
+      '0000_init.sql',
+      '0001_special_logan.sql',
+      '0002_triggers_search_vectors.sql',
+    ];
+    let success = true;
+    for (const file of migrationFiles) {
+      const filePath = join(migrationsDir, file);
+      const fileSuccess = await executeSQLFile(db, filePath, `REST (${file})`);
+      if (!fileSuccess) {
+        success = false;
+        break;
+      }
+    }
 
     if (!success) {
       return false;

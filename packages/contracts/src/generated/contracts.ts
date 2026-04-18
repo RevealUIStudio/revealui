@@ -1705,6 +1705,32 @@ export const SessionsInsertContract = createContract({
 })
 
 // =============================================================================
+// SharedFacts Contracts
+// =============================================================================
+
+/**
+ * Contract for sharedFacts row (Select)
+ * Database table: shared_facts
+ */
+export const SharedFactsRowContract = createContract({
+  name: 'SharedFactsRow',
+  version: '1',
+  description: 'Database row contract for shared_facts table',
+  schema: Schemas.SharedFactsSelectSchema,
+})
+
+/**
+ * Contract for sharedFacts insert
+ * Database table: shared_facts
+ */
+export const SharedFactsInsertContract = createContract({
+  name: 'SharedFactsInsert',
+  version: '1',
+  description: 'Database insert contract for shared_facts table',
+  schema: Schemas.SharedFactsInsertSchema,
+})
+
+// =============================================================================
 // SiteCollaborators Contracts
 // =============================================================================
 
@@ -1965,6 +1991,32 @@ export const TicketsInsertContract = createContract({
 })
 
 // =============================================================================
+// UnreconciledWebhooks Contracts
+// =============================================================================
+
+/**
+ * Contract for unreconciledWebhooks row (Select)
+ * Database table: unreconciled_webhooks
+ */
+export const UnreconciledWebhooksRowContract = createContract({
+  name: 'UnreconciledWebhooksRow',
+  version: '1',
+  description: 'Database row contract for unreconciled_webhooks table',
+  schema: Schemas.UnreconciledWebhooksSelectSchema,
+})
+
+/**
+ * Contract for unreconciledWebhooks insert
+ * Database table: unreconciled_webhooks
+ */
+export const UnreconciledWebhooksInsertContract = createContract({
+  name: 'UnreconciledWebhooksInsert',
+  version: '1',
+  description: 'Database insert contract for unreconciled_webhooks table',
+  schema: Schemas.UnreconciledWebhooksInsertSchema,
+})
+
+// =============================================================================
 // UsageMeters Contracts
 // =============================================================================
 
@@ -2092,6 +2144,32 @@ export const WaitlistInsertContract = createContract({
   version: '1',
   description: 'Database insert contract for waitlist table',
   schema: Schemas.WaitlistInsertSchema,
+})
+
+// =============================================================================
+// YjsDocumentPatches Contracts
+// =============================================================================
+
+/**
+ * Contract for yjsDocumentPatches row (Select)
+ * Database table: yjs_document_patches
+ */
+export const YjsDocumentPatchesRowContract = createContract({
+  name: 'YjsDocumentPatchesRow',
+  version: '1',
+  description: 'Database row contract for yjs_document_patches table',
+  schema: Schemas.YjsDocumentPatchesSelectSchema,
+})
+
+/**
+ * Contract for yjsDocumentPatches insert
+ * Database table: yjs_document_patches
+ */
+export const YjsDocumentPatchesInsertContract = createContract({
+  name: 'YjsDocumentPatchesInsert',
+  version: '1',
+  description: 'Database insert contract for yjs_document_patches table',
+  schema: Schemas.YjsDocumentPatchesInsertSchema,
 })
 
 // =============================================================================

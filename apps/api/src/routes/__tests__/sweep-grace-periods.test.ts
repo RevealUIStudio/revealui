@@ -23,6 +23,9 @@ const mockDb = {
 
 vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => mockDb),
+  withTransaction: vi.fn((db: { transaction: (fn: unknown) => unknown }, fn: unknown) =>
+    db.transaction(fn),
+  ),
 }));
 
 vi.mock('@revealui/core/license', () => ({

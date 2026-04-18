@@ -66,12 +66,15 @@ export * from './products.js';
 export * from './rate-limits.js';
 export * from './revealcoin.js';
 export * from './revmarket.js';
+export * from './shared-facts.js';
 export * from './sites.js';
 export * from './tenants.js';
 export * from './tickets.js';
 export * from './users.js';
 export * from './waitlist.js';
 export * from './webhook-events.js';
+export * from './webhook-reconciliation.js';
+export * from './yjs-document-patches.js';
 export * from './yjs-documents.js';
 
 // Note: Relations are defined in index.ts to avoid circular dependencies
