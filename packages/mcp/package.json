@@ -13,6 +13,7 @@
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
+    "@revealui/security": "workspace:*",
     "dotenv": "catalog:",
     "jose": "^6.2.2"
   },

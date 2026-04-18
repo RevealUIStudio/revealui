@@ -134,6 +134,11 @@ export {
 // Logger configuration
 export type { SecurityLogger } from './logger.js';
 export { configureSecurityLogger } from './logger.js';
+// SSRF protection
+export { assertPublicUrl, isPrivateIp, isPrivateIpv4, isPrivateIpv6 } from './ssrf.js';
+// Request IP (trusted-proxy-aware)
+export type { ClientIpConfig } from './request-ip.js';
+export { configureClientIp, getClientIp, resetClientIpConfig } from './request-ip.js';
 // Input sanitization
 export {
   escapeShellArg,

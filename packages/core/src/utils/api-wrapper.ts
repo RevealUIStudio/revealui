@@ -5,6 +5,7 @@
  * error handling, and logging.
  */
 
+import { getClientIp } from '@revealui/security';
 import { handleApiError } from './errors.js';
 import { logger } from './logger.js';
 import {
@@ -53,7 +54,7 @@ export function withRequestContext(handler: ApiHandler): ApiHandler {
       headers: Object.fromEntries(request.headers.entries()),
       path: new URL(request.url).pathname,
       method: request.method,
-      ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined,
+      ip: getClientIp(request),
     });
 
     // Log incoming request

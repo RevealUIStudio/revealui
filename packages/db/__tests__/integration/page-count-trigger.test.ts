@@ -31,7 +31,7 @@ beforeAll(async () => {
     )
   `);
 
-  // Install the trigger function + trigger (mirrors page-count-trigger.sql)
+  // Install the trigger function + trigger (mirrors 0002_triggers_search_vectors.sql)
   await db.query(`
     CREATE OR REPLACE FUNCTION page_count_trigger_fn()
     RETURNS trigger

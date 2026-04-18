@@ -4,6 +4,7 @@
  * Utilities for Next.js edge caching, ISR, and on-demand revalidation
  */
 
+import { getClientIp } from '@revealui/security';
 import type { NextRequest, NextResponse } from 'next/server';
 import { getCacheLogger } from './logger.js';
 
@@ -343,9 +344,7 @@ export class EdgeRateLimiter {
     remaining: number;
     reset: number;
   } {
-    const key = this.config.key
-      ? this.config.key(request)
-      : request.headers.get('x-forwarded-for') || 'unknown';
+    const key = this.config.key ? this.config.key(request) : getClientIp(request);
 
     const now = Date.now();
     let entry = this.cache.get(key);
@@ -443,7 +442,7 @@ export function getABTestVariant(
   }
 
   // Assign variant based on IP hash
-  const ip = request.headers.get('x-forwarded-for') || 'unknown';
+  const ip = getClientIp(request);
   const hash = simpleHash(ip + testName);
   const variantIndex = hash % variants.length;
   const variant = variants[variantIndex];
