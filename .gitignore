@@ -152,6 +152,9 @@ apps/docs/dist/docs/
 # ElectricSQL generated files
 .electric/
 
+# Supabase CLI local state (project link, temp files)
+supabase/.temp/
+
 # Editor configs (tracked externally: github.com/RevealUIStudio/editor-configs)
 .zed
 .zedignore

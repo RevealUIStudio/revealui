@@ -41,7 +41,7 @@
 | Stripe integration | Built | Medium  -  DB-backed circuit breaker (circuit_breaker_state table) |
 | Lexical rich text | Built | Medium  -  recently integrated |
 | REST API (Hono) | Built | Medium  -  routes exist, no production traffic |
-| ElectricSQL sync | **Verified** | **High  -  proxy + auth + shapes working in production (Railway → NeonDB)** |
+| ElectricSQL sync | **Verified** | **High  -  proxy + auth + shapes working in production (Railway → NeonDB, Supabase CLI linked, Vercel env wired)** |
 
 ### What Doesn't Exist
 
