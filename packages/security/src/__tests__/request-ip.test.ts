@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { getClientIp, configureClientIp, resetClientIpConfig } from '../request-ip.js';
+import { beforeEach, describe, expect, it } from 'vitest';
+import { configureClientIp, getClientIp, resetClientIpConfig } from '../request-ip.js';
 
 function makeRequest(headers: Record<string, string> = {}): Request {
   return new Request('http://localhost/', {

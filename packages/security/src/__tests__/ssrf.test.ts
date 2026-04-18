@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { isPrivateIpv4, isPrivateIpv6, isPrivateIp, assertPublicUrl } from '../ssrf.js';
+import { describe, expect, it } from 'vitest';
+import { assertPublicUrl, isPrivateIp, isPrivateIpv4, isPrivateIpv6 } from '../ssrf.js';
 
 describe('isPrivateIpv4', () => {
   const privateIps = [

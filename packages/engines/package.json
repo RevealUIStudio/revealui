@@ -6,12 +6,14 @@
   "license": "FSL-1.1-MIT",
   "type": "module",
   "dependencies": {
-    "@revealui/ai": "workspace:*",
     "@revealui/auth": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/services": "workspace:*"
+  },
+  "optionalDependencies": {
+    "@revealui/ai": "workspace:^"
   },
   "peerDependencies": {
     "typescript": "^6.0.2"
