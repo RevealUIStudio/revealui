@@ -28,6 +28,12 @@ export interface RevealUILike {
   create: (args: {
     collection: string;
     data: Record<string, unknown>;
+    /**
+     * Bypass access-control checks. Required during bootstrap because no
+     * authenticated user exists yet to satisfy the `users.access.create`
+     * predicate on a fresh database.
+     */
+    overrideAccess?: boolean;
   }) => Promise<Record<string, unknown>>;
 }
 
@@ -190,6 +196,7 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
         role: 'owner',
         roles: ['super-admin'],
       },
+      overrideAccess: true,
     });
   } catch (err) {
     const pgCode = (err as { code?: string }).code;
@@ -221,6 +228,7 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
           await revealui.create({
             collection: 'pages',
             data: page as never,
+            overrideAccess: true,
           });
         }
       }
