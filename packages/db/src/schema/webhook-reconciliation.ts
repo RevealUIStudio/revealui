@@ -10,6 +10,7 @@
  * resolves each row by re-processing or refunding.
  */
 
+import { sql } from 'drizzle-orm';
 import { index, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const unreconciledWebhooks = pgTable(
@@ -36,6 +37,10 @@ export const unreconciledWebhooks = pgTable(
   },
   (table) => [
     index('unreconciled_webhooks_customer_id_idx').on(table.customerId),
-    index('unreconciled_webhooks_created_at_idx').on(table.createdAt),
+    // Partial index: only unresolved rows. Makes "find all open reconciliation
+    // records" cheap as the table grows — the cron query hits this index.
+    index('unreconciled_webhooks_unresolved_idx')
+      .on(table.createdAt)
+      .where(sql`${table.resolvedAt} IS NULL`),
   ],
 );
