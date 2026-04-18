@@ -154,6 +154,7 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   desc: vi.fn((_col) => `desc(${String(_col)})`),
   isNull: vi.fn((_col) => `isNull(${String(_col)})`),
+  lt: vi.fn((_col, _val) => `lt(${String(_col)},${String(_val)})`),
 }));
 
 const mockSendEmail = vi.fn().mockResolvedValue(undefined);
@@ -724,6 +725,7 @@ describe('POST /stripe webhook', () => {
       return {
         id,
         type: 'invoice.payment_succeeded',
+        created: 1700000000,
         data: {
           object: {
             id: `inv_${id}`,
