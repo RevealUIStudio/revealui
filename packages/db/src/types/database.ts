@@ -74,6 +74,7 @@ import type {
   revealcoinPayments,
   revealcoinPriceSnapshots,
   sessions,
+  sharedFacts,
   siteCollaborators,
   sites,
   syncMetadata,
@@ -90,6 +91,7 @@ import type {
   userDevices,
   users,
   waitlist,
+  yjsDocumentPatches,
   yjsDocuments,
 } from '../schema/index.js'
 
@@ -422,6 +424,11 @@ export type SessionsRow = typeof sessions.$inferSelect
 export type SessionsInsert = typeof sessions.$inferInsert
 export type SessionsUpdate = Partial<SessionsInsert>
 
+// Shared Facts
+export type SharedFactsRow = typeof sharedFacts.$inferSelect
+export type SharedFactsInsert = typeof sharedFacts.$inferInsert
+export type SharedFactsUpdate = Partial<SharedFactsInsert>
+
 // Site Collaborators
 export type SiteCollaboratorsRow = typeof siteCollaborators.$inferSelect
 export type SiteCollaboratorsInsert = typeof siteCollaborators.$inferInsert
@@ -501,6 +508,11 @@ export type UsersUpdate = Partial<UsersInsert>
 export type WaitlistRow = typeof waitlist.$inferSelect
 export type WaitlistInsert = typeof waitlist.$inferInsert
 export type WaitlistUpdate = Partial<WaitlistInsert>
+
+// Yjs Document Patches
+export type YjsDocumentPatchesRow = typeof yjsDocumentPatches.$inferSelect
+export type YjsDocumentPatchesInsert = typeof yjsDocumentPatches.$inferInsert
+export type YjsDocumentPatchesUpdate = Partial<YjsDocumentPatchesInsert>
 
 // Yjs Documents
 export type YjsDocumentsRow = typeof yjsDocuments.$inferSelect
@@ -596,6 +608,7 @@ export type DatabaseRelationships = {
   revealcoinPayments: Relationship[]
   revealcoinPriceSnapshots: Relationship[]
   sessions: Relationship[]
+  sharedFacts: Relationship[]
   siteCollaborators: Relationship[]
   sites: Relationship[]
   syncMetadata: Relationship[]
@@ -612,6 +625,7 @@ export type DatabaseRelationships = {
   userDevices: Relationship[]
   users: Relationship[]
   waitlist: Relationship[]
+  yjsDocumentPatches: Relationship[]
   yjsDocuments: Relationship[]
 }
 
@@ -873,6 +887,9 @@ export const sessionsRelationships = [
   { foreignKeyName: 'sessions_user_id_users_id_fk', columns: ['user_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
 
+// SharedFacts relationships
+export const sharedFactsRelationships: readonly Relationship[] = []
+
 // SiteCollaborators relationships
 export const siteCollaboratorsRelationships = [
   { foreignKeyName: 'site_collaborators_site_id_sites_id_fk', columns: ['site_id'], isOneToOne: true, referencedRelation: 'sites', referencedColumns: ['id'] },
@@ -947,6 +964,9 @@ export const usersRelationships: readonly Relationship[] = []
 
 // Waitlist relationships
 export const waitlistRelationships: readonly Relationship[] = []
+
+// YjsDocumentPatches relationships
+export const yjsDocumentPatchesRelationships: readonly Relationship[] = []
 
 // YjsDocuments relationships
 export const yjsDocumentsRelationships: readonly Relationship[] = []
@@ -1378,6 +1398,12 @@ export type Database = {
         Update: SessionsUpdate
         Relationships: typeof sessionsRelationships
       }
+      shared_facts: {
+        Row: SharedFactsRow
+        Insert: SharedFactsInsert
+        Update: SharedFactsUpdate
+        Relationships: typeof sharedFactsRelationships
+      }
       site_collaborators: {
         Row: SiteCollaboratorsRow
         Insert: SiteCollaboratorsInsert
@@ -1473,6 +1499,12 @@ export type Database = {
         Insert: WaitlistInsert
         Update: WaitlistUpdate
         Relationships: typeof waitlistRelationships
+      }
+      yjs_document_patches: {
+        Row: YjsDocumentPatchesRow
+        Insert: YjsDocumentPatchesInsert
+        Update: YjsDocumentPatchesUpdate
+        Relationships: typeof yjsDocumentPatchesRelationships
       }
       yjs_documents: {
         Row: YjsDocumentsRow

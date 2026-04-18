@@ -1704,6 +1704,32 @@ export type SessionsRow = z.infer<typeof SessionsSelectSchema>
 export type SessionsInsert = z.infer<typeof SessionsInsertSchema>
 
 // =============================================================================
+// SharedFacts Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting sharedFacts rows from database
+ * Generated from Drizzle table definition: tables.sharedFacts
+ */
+export const SharedFactsSelectSchema = createSelectSchema(tables.sharedFacts)
+
+/**
+ * Zod schema for inserting sharedFacts rows to database
+ * Generated from Drizzle table definition: tables.sharedFacts
+ */
+export const SharedFactsInsertSchema = createInsertSchema(tables.sharedFacts)
+
+/**
+ * TypeScript type for sharedFacts row (Select)
+ */
+export type SharedFactsRow = z.infer<typeof SharedFactsSelectSchema>
+
+/**
+ * TypeScript type for sharedFacts insert
+ */
+export type SharedFactsInsert = z.infer<typeof SharedFactsInsertSchema>
+
+// =============================================================================
 // SiteCollaborators Schemas
 // =============================================================================
 
@@ -2118,6 +2144,32 @@ export type WaitlistRow = z.infer<typeof WaitlistSelectSchema>
  * TypeScript type for waitlist insert
  */
 export type WaitlistInsert = z.infer<typeof WaitlistInsertSchema>
+
+// =============================================================================
+// YjsDocumentPatches Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting yjsDocumentPatches rows from database
+ * Generated from Drizzle table definition: tables.yjsDocumentPatches
+ */
+export const YjsDocumentPatchesSelectSchema = createSelectSchema(tables.yjsDocumentPatches)
+
+/**
+ * Zod schema for inserting yjsDocumentPatches rows to database
+ * Generated from Drizzle table definition: tables.yjsDocumentPatches
+ */
+export const YjsDocumentPatchesInsertSchema = createInsertSchema(tables.yjsDocumentPatches)
+
+/**
+ * TypeScript type for yjsDocumentPatches row (Select)
+ */
+export type YjsDocumentPatchesRow = z.infer<typeof YjsDocumentPatchesSelectSchema>
+
+/**
+ * TypeScript type for yjsDocumentPatches insert
+ */
+export type YjsDocumentPatchesInsert = z.infer<typeof YjsDocumentPatchesInsertSchema>
 
 // =============================================================================
 // YjsDocuments Schemas

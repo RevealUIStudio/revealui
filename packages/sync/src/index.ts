@@ -53,6 +53,20 @@ export type {
 } from './hooks/useConversations.js';
 export { useConversations } from './hooks/useConversations.js';
 export type {
+  CreateSharedFactInput,
+  SharedFactRecord,
+  UpdateSharedFactInput,
+  UseSharedFactsResult,
+} from './hooks/useSharedFacts.js';
+export { useSharedFacts } from './hooks/useSharedFacts.js';
+export type {
+  CreateSharedMemoryInput,
+  SharedMemoryRecord,
+  UpdateSharedMemoryInput,
+  UseSharedMemoriesResult,
+} from './hooks/useSharedMemories.js';
+export { useSharedMemories } from './hooks/useSharedMemories.js';
+export type {
   CoordinationSessionRecord,
   CreateCoordinationSessionInput,
   UpdateCoordinationSessionInput,
