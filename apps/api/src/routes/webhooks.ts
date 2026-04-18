@@ -935,12 +935,6 @@ app.openapi(stripeWebhookRoute, async (c) => {
           }
 
           const normalizedKey = privateKey.replaceAll('\\n', '\n');
-          // null expiresInSeconds = no exp claim  -  perpetual license never expires
-          const licenseKey = await generateLicenseKey(
-            { tier, customerId, perpetual: true },
-            normalizedKey,
-            null,
-          );
 
           // Support contract expires 1 year from purchase
           const supportExpiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
@@ -976,6 +970,32 @@ app.openapi(stripeWebhookRoute, async (c) => {
             {
               name: 'insert-perpetual-license',
               execute: async (ctx) => {
+                // WH-2 fix: idempotency guard — check for existing perpetual license
+                // before generating a key. Prevents duplicate keys on saga retry after
+                // crash between step execution and idempotency key recording.
+                const [existing] = await ctx.db
+                  .select({ id: licenses.id })
+                  .from(licenses)
+                  .where(
+                    and(
+                      eq(licenses.customerId, customerId),
+                      eq(licenses.perpetual, true),
+                      isNull(licenses.deletedAt),
+                    ),
+                  )
+                  .limit(1);
+
+                if (existing) {
+                  return { licenseId: existing.id, skipped: true };
+                }
+
+                // null expiresInSeconds = no exp claim — perpetual license never expires
+                const licenseKey = await generateLicenseKey(
+                  { tier, customerId, perpetual: true },
+                  normalizedKey,
+                  null,
+                );
+
                 await ctx.db.insert(licenses).values({
                   id: licenseId,
                   userId: resolvedUserId,
@@ -991,9 +1011,11 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   createdAt: new Date(),
                   updatedAt: new Date(),
                 });
-                return { licenseId };
+                return { licenseId, skipped: false };
               },
-              compensate: async (ctx) => {
+              compensate: async (ctx, output) => {
+                const { skipped } = output as { skipped?: boolean };
+                if (skipped) return;
                 await ctx.db.delete(licenses).where(eq(licenses.id, licenseId));
               },
             },
@@ -1043,16 +1065,30 @@ app.openapi(stripeWebhookRoute, async (c) => {
           const perpetualEmail =
             session.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
           if (perpetualEmail) {
-            sendPerpetualLicenseActivatedEmail(
-              perpetualEmail,
-              tier,
-              supportExpiresAt,
-              licenseKey,
-            ).catch((err) => {
-              logger.error('Failed to send perpetual license activation email', undefined, {
-                detail: err instanceof Error ? err.message : 'unknown',
+            // Retrieve the key from DB — it was generated inside the saga step
+            const [perpetualLicense] = await db
+              .select({ licenseKey: licenses.licenseKey })
+              .from(licenses)
+              .where(
+                and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.perpetual, true),
+                  isNull(licenses.deletedAt),
+                ),
+              )
+              .limit(1);
+            if (perpetualLicense) {
+              sendPerpetualLicenseActivatedEmail(
+                perpetualEmail,
+                tier,
+                supportExpiresAt,
+                perpetualLicense.licenseKey,
+              ).catch((err) => {
+                logger.error('Failed to send perpetual license activation email', undefined, {
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
               });
-            });
+            }
           }
 
           break;
@@ -1119,7 +1155,6 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // with \n escaped in the .env format; the runtime preserves the literal
         // \n chars, so we must convert them to real newlines for jose/importPKCS8.
         const normalizedKey = privateKey.replaceAll('\\n', '\n');
-        const licenseKey = await generateLicenseKey({ tier, customerId }, normalizedKey);
 
         // Retrieve subscription to detect trialing state and trial_end date.
         // All new checkouts start as trialing (7-day trial configured in billing.ts).
@@ -1178,6 +1213,27 @@ app.openapi(stripeWebhookRoute, async (c) => {
           {
             name: 'insert-subscription-license',
             execute: async (ctx) => {
+              // WH-2 fix: idempotency guard — check for existing license before
+              // generating a key. Prevents duplicate keys on saga retry after
+              // crash between step execution and idempotency key recording.
+              const [existing] = await ctx.db
+                .select({ id: licenses.id })
+                .from(licenses)
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.subscriptionId, subscriptionId),
+                    isNull(licenses.deletedAt),
+                  ),
+                )
+                .limit(1);
+
+              if (existing) {
+                return { licenseId: existing.id, skipped: true };
+              }
+
+              const licenseKey = await generateLicenseKey({ tier, customerId }, normalizedKey);
+
               await ctx.db.insert(licenses).values({
                 id: licenseId,
                 userId: resolvedUserId,
@@ -1190,9 +1246,11 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 createdAt: new Date(),
                 updatedAt: new Date(),
               });
-              return { licenseId };
+              return { licenseId, skipped: false };
             },
-            compensate: async (ctx) => {
+            compensate: async (ctx, output) => {
+              const { skipped } = output as { skipped?: boolean };
+              if (skipped) return;
               await ctx.db.delete(licenses).where(eq(licenses.id, licenseId));
             },
           },
@@ -1250,15 +1308,29 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
         // Best-effort: also store in Stripe subscription metadata for easy retrieval.
         // Non-critical  -  license is already persisted in NeonDB above.
-        try {
-          await stripe.subscriptions.update(subscriptionId, {
-            metadata: { license_key: licenseKey, license_tier: tier },
-          });
-        } catch (stripeErr) {
-          logger.warn('Failed to write license key to Stripe subscription metadata', {
-            subscriptionId,
-            error: stripeErr instanceof Error ? stripeErr.message : 'unknown',
-          });
+        // Retrieve the key from DB — it was generated inside the saga step.
+        const [checkoutLicense] = await db
+          .select({ licenseKey: licenses.licenseKey })
+          .from(licenses)
+          .where(
+            and(
+              eq(licenses.customerId, customerId),
+              eq(licenses.subscriptionId, subscriptionId),
+              isNull(licenses.deletedAt),
+            ),
+          )
+          .limit(1);
+        if (checkoutLicense) {
+          try {
+            await stripe.subscriptions.update(subscriptionId, {
+              metadata: { license_key: checkoutLicense.licenseKey, license_tier: tier },
+            });
+          } catch (stripeErr) {
+            logger.warn('Failed to write license key to Stripe subscription metadata', {
+              subscriptionId,
+              error: stripeErr instanceof Error ? stripeErr.message : 'unknown',
+            });
+          }
         }
 
         // Best-effort: tag early adopter in Stripe customer metadata so their
@@ -1683,7 +1755,6 @@ app.openapi(stripeWebhookRoute, async (c) => {
           }
 
           const normalizedKey = privateKey.replaceAll('\\n', '\n');
-          const licenseKey = await generateLicenseKey({ tier: newTier, customerId }, normalizedKey);
 
           updateSteps.push(
             {
@@ -1700,6 +1771,21 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     ),
                   )
                   .limit(1);
+
+                // WH-2 fix: skip key regeneration if already active at the correct tier.
+                // Prevents unnecessary key churn on saga retry after crash.
+                if (prev?.status === 'active' && prev?.tier === newTier) {
+                  return {
+                    previousStatus: prev.status,
+                    previousTier: prev.tier,
+                    skipped: true,
+                  };
+                }
+
+                const licenseKey = await generateLicenseKey(
+                  { tier: newTier, customerId },
+                  normalizedKey,
+                );
 
                 await ctx.db
                   .update(licenses)
@@ -1719,6 +1805,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 return {
                   previousStatus: prev?.status ?? 'active',
                   previousTier: prev?.tier ?? newTier,
+                  skipped: false,
                 };
               },
               compensate: async (ctx, output) => {
@@ -2170,23 +2257,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
         const shouldHealHostedState = hostedStatus === null;
 
         if (shouldReactivateLegacyLicense) {
-          const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
-
-          if (!privateKey) {
-            logger.error(
-              'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  payment recovery failed',
-              undefined,
-              { customerId, subscriptionId: recoveredSubscription.id, tier: recoveredTier },
-            );
-            throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
-          }
-
-          const normalizedKey = privateKey.replaceAll('\\n', '\n');
-          const licenseKey = await generateLicenseKey(
-            { tier: recoveredTier, customerId },
-            normalizedKey,
-          );
-          // Scope to the recovered subscription  -  don't modify perpetual licenses
+          // WH-2 fix: re-check license status inside the mutation block. The
+          // `shouldReactivateLegacyLicense` flag was derived earlier; on a Stripe
+          // retry after crash, the prior run may have already set status='active'.
+          // Only generate a new key if the license still needs reactivation.
           const recoveryFilter = recoveredSubscription.id
             ? and(
                 eq(licenses.customerId, customerId),
@@ -2194,10 +2268,41 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 isNull(licenses.deletedAt),
               )
             : and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt));
-          await db
-            .update(licenses)
-            .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
-            .where(recoveryFilter);
+
+          const [freshLicense] = await db
+            .select({ status: licenses.status, tier: licenses.tier })
+            .from(licenses)
+            .where(recoveryFilter)
+            .limit(1);
+
+          if (freshLicense?.status === 'active' && freshLicense?.tier === recoveredTier) {
+            logger.info('Payment recovery skipped — license already active at correct tier', {
+              customerId,
+              subscriptionId: recoveredSubscription.id,
+              tier: recoveredTier,
+            });
+          } else {
+            const privateKey = process.env.REVEALUI_LICENSE_PRIVATE_KEY;
+
+            if (!privateKey) {
+              logger.error(
+                'CRITICAL: REVEALUI_LICENSE_PRIVATE_KEY not configured  -  payment recovery failed',
+                undefined,
+                { customerId, subscriptionId: recoveredSubscription.id, tier: recoveredTier },
+              );
+              throw new Error('REVEALUI_LICENSE_PRIVATE_KEY not configured');
+            }
+
+            const normalizedKey = privateKey.replaceAll('\\n', '\n');
+            const licenseKey = await generateLicenseKey(
+              { tier: recoveredTier, customerId },
+              normalizedKey,
+            );
+            await db
+              .update(licenses)
+              .set({ status: 'active', tier: recoveredTier, licenseKey, updatedAt: new Date() })
+              .where(recoveryFilter);
+          }
         } else if (existingLicense && !shouldReactivateHosted && !shouldHealHostedState) {
           break;
         }

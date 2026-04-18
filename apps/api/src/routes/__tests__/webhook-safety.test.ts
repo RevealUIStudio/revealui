@@ -896,18 +896,22 @@ describe('Webhook Safety  -  money-critical paths', () => {
 
       it('falls back to DB email lookup when customer_email is null', async () => {
         // Queue mock values for each sequential select().limit() call:
-        // #1: transaction user check (tx.select users by stripeCustomerId)
-        // #2: ensureHostedAccount → accountMemberships (no existing membership)
-        // #3: ensureHostedAccount → users by id (user not found → returns null)
-        // #4: resolveHostedAccountId → accountSubscriptions (no subscription)
-        // #5: resolveHostedAccountId → users by stripeCustomerId (no user → returns null)
-        // #6: findUserEmailByCustomerId → users (returns email for fallback)
+        // #1: verify-user-exists saga step
+        // #2: WH-2 idempotency guard in insert-subscription-license step
+        // #3: ensureHostedAccount → accountMemberships (no existing membership)
+        // #4: ensureHostedAccount → users by id (user not found → returns null)
+        // #5: resolveHostedAccountId → accountSubscriptions (no subscription)
+        // #6: resolveHostedAccountId → users by stripeCustomerId (no user → returns null)
+        // #7: post-saga license key retrieval for Stripe metadata
+        // #8: findUserEmailByCustomerId → users (returns email for fallback)
         mockDbSelectChain.limit
           .mockResolvedValueOnce([{ id: 'user_fallback' }])
           .mockResolvedValueOnce([])
           .mockResolvedValueOnce([])
           .mockResolvedValueOnce([])
           .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([])
+          .mockResolvedValueOnce([{ licenseKey: 'rv-license-key-safety-test' }])
           .mockResolvedValueOnce([{ email: 'dbuser@test.com' }]);
 
         const event = {
@@ -946,7 +950,10 @@ describe('Webhook Safety  -  money-critical paths', () => {
 
     describe('sendPerpetualLicenseActivatedEmail', () => {
       it('sends perpetual license email with correct tier and support expiry', async () => {
-        mockDbSelectChain.limit.mockResolvedValueOnce([{ id: 'user_perp_email' }]);
+        mockDbSelectChain.limit
+          .mockResolvedValueOnce([{ id: 'user_perp_email' }]) // verify-user-exists
+          .mockResolvedValueOnce([]) // WH-2: idempotency guard (no existing license)
+          .mockResolvedValueOnce([{ licenseKey: 'mock-perpetual-key' }]); // post-saga license key retrieval
 
         const event = {
           id: 'evt_safety_email_perp',

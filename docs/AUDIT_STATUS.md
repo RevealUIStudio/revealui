@@ -18,12 +18,12 @@
 | WH-1 | Silent payment drop on cleanup failure | `unreconciled_webhooks` table + 200-on-failure | #372 |
 | WH-4 | Wrong tier in payment receipt | Scoped license query to `invoice.subscription` | #372 |
 | DOCS | Inflated numbers in README/MASTER_PLAN | Replaced with grep-reproducible counts | #372 |
+| WH-2 | License key non-idempotent across saga retries | Moved `generateLicenseKey()` inside saga steps + idempotency guard at all 4 call sites | #TBD |
 
 ## Open
 
 | ID | Finding | Severity | Blocker? | Notes |
 |----|---------|----------|----------|-------|
-| WH-2 | License key non-idempotent across saga retries | High | No | Needs saga step refactor; checkpoint is NOT transactional with step effects, so idempotency guard on `(customerId, subscriptionId)` is also needed |
 | WH-3 | Concurrent event race on syncHostedSubscriptionState | Medium | No | Add event timestamp guard to UPDATE WHERE clause; failure mode is temporary stale status, not data loss |
 | CRON | Reconciliation cron for unreconciled_webhooks | Medium | No | Table exists, consumer pending; without cron, rows land but nobody is alerted |
 
