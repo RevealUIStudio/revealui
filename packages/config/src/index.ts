@@ -72,6 +72,17 @@ export interface Config {
 let cachedConfig: Config | null = null;
 
 /**
+ * Single placeholder string used for every build-time env fallback in
+ * `createConfig`. Intentionally unmistakable to human reviewers and secret
+ * scanners (Gitleaks, TruffleHog) so a grep for this file never reads as
+ * "oh, that's a credential." The `isBuildTime()` throw below prevents these
+ * values from ever reaching a request-handling context at runtime.
+ *
+ * Must be at least 32 characters to satisfy `secretSchema` in schema.ts.
+ */
+const BUILD_PLACEHOLDER = '__REVEALUI_BUILD_ONLY_NOT_A_SECRET__';
+
+/**
  * Check if we're in a build-time context where full validation isn't required
  */
 function isBuildTime(): boolean {
@@ -83,14 +94,13 @@ function isBuildTime(): boolean {
 
   // SKIP_ENV_VALIDATION is only valid when a recognized build context is active
   // or when running tests.  If it appears in any other context (production runtime,
-  // Hono API server, Docker containers) the build-time fallback secrets would be
-  // used at runtime  -  e.g. REVEALUI_SECRET='build-time-secret-not-for-runtime'
-  // can be found in this source file, making all JWTs trivially forgeable.
+  // Hono API server, Docker containers) the BUILD_PLACEHOLDER values would be
+  // used at runtime  -  making JWTs trivially forgeable and Stripe calls fail.
   if (process.env.SKIP_ENV_VALIDATION === 'true' && !isNextBuild && !isTestEnv) {
     throw new Error(
       'SKIP_ENV_VALIDATION=true is only valid during Next.js build phases (NEXT_PHASE) or ' +
         'in test environments (NODE_ENV=test). Remove it from all other environments  -  ' +
-        'using it at runtime exposes build-time fallback secrets in production.',
+        'using it at runtime exposes build-time placeholder values in production.',
     );
   }
 
@@ -116,9 +126,13 @@ function createConfig(strict: boolean = true): Config {
 
   // During build time, use lenient validation (only check format, not presence)
   if (!strict && isBuild) {
-    // For builds, create config with fallbacks - validation happens at runtime
+    // For builds, create config with fallbacks - validation happens at runtime.
+    // Every fallback uses BUILD_PLACEHOLDER (see top of file); Stripe fallbacks
+    // keep their `sk_test_` / `whsec_` / `pk_test_` prefixes so the dev-env
+    // sanity validator in schema.ts does not emit "use test key in development"
+    // warnings during builds.
     const partialEnv = {
-      REVEALUI_SECRET: envVars.REVEALUI_SECRET || '__BUILD_PLACEHOLDER_NOT_FOR_RUNTIME__',
+      REVEALUI_SECRET: envVars.REVEALUI_SECRET || BUILD_PLACEHOLDER,
       REVEALUI_PUBLIC_SERVER_URL: envVars.REVEALUI_PUBLIC_SERVER_URL || 'http://localhost:4000',
       NEXT_PUBLIC_SERVER_URL:
         envVars.NEXT_PUBLIC_SERVER_URL ||
@@ -126,10 +140,10 @@ function createConfig(strict: boolean = true): Config {
         'http://localhost:4000',
       POSTGRES_URL: envVars.POSTGRES_URL || envVars.DATABASE_URL || '',
       BLOB_READ_WRITE_TOKEN: envVars.BLOB_READ_WRITE_TOKEN || '',
-      STRIPE_SECRET_KEY: envVars.STRIPE_SECRET_KEY || 'sk_test_build',
-      STRIPE_WEBHOOK_SECRET: envVars.STRIPE_WEBHOOK_SECRET || 'whsec_build',
+      STRIPE_SECRET_KEY: envVars.STRIPE_SECRET_KEY || `sk_test_${BUILD_PLACEHOLDER}`,
+      STRIPE_WEBHOOK_SECRET: envVars.STRIPE_WEBHOOK_SECRET || `whsec_${BUILD_PLACEHOLDER}`,
       NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
-        envVars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_build',
+        envVars.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || `pk_test_${BUILD_PLACEHOLDER}`,
       ...envVars,
     } as EnvConfig;
 

@@ -72,6 +72,7 @@ export * from './tickets.js';
 export * from './users.js';
 export * from './waitlist.js';
 export * from './webhook-events.js';
+export * from './webhook-reconciliation.js';
 export * from './yjs-documents.js';
 
 // Note: Relations are defined in index.ts to avoid circular dependencies

@@ -50,7 +50,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (81 tables), dual-DB (Neon + Supabase) |
+| @revealui/db | Drizzle ORM schema (82 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | 57 native UI components (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
@@ -171,7 +171,7 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 
 ## Build & Security Status
 - 30 workspaces build and typecheck clean
-- 20,000+ tests across 1,704 test files
+- 12,185+ tests across 1,660 test files
 - 36 pnpm overrides enforce minimum safe versions for transitive deps
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
 - 0 GitHub CodeQL alerts, 0 Dependabot alerts (as of 2026-04-12)

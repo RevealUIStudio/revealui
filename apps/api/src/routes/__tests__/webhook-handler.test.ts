@@ -81,10 +81,12 @@ const mockDbSelectChain = {
 const mockDbInsertChain = { values: vi.fn() };
 const mockDbUpdateChain = { set: vi.fn(), where: vi.fn() };
 
+const mockDbDeleteChain = { where: vi.fn().mockResolvedValue(undefined) };
 const mockDb = {
   select: vi.fn(),
   insert: vi.fn(),
   update: vi.fn(),
+  delete: vi.fn().mockReturnValue(mockDbDeleteChain),
   transaction: vi.fn(),
 };
 
@@ -161,9 +163,11 @@ function resetDbChains() {
   mockDbInsertChain.values.mockResolvedValue(undefined);
   mockDbUpdateChain.set.mockReturnValue(mockDbUpdateChain);
   mockDbUpdateChain.where.mockResolvedValue({ rowCount: 1 });
+  mockDbDeleteChain.where.mockResolvedValue(undefined);
   mockDb.select.mockReturnValue(mockDbSelectChain);
   mockDb.insert.mockReturnValue(mockDbInsertChain);
   mockDb.update.mockReturnValue(mockDbUpdateChain);
+  mockDb.delete.mockReturnValue(mockDbDeleteChain);
   mockDb.transaction.mockImplementation(async (cb: (tx: typeof mockDb) => Promise<unknown>) =>
     cb(mockDb),
   );

@@ -1964,6 +1964,32 @@ export type TicketsRow = z.infer<typeof TicketsSelectSchema>
 export type TicketsInsert = z.infer<typeof TicketsInsertSchema>
 
 // =============================================================================
+// UnreconciledWebhooks Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting unreconciledWebhooks rows from database
+ * Generated from Drizzle table definition: tables.unreconciledWebhooks
+ */
+export const UnreconciledWebhooksSelectSchema = createSelectSchema(tables.unreconciledWebhooks)
+
+/**
+ * Zod schema for inserting unreconciledWebhooks rows to database
+ * Generated from Drizzle table definition: tables.unreconciledWebhooks
+ */
+export const UnreconciledWebhooksInsertSchema = createInsertSchema(tables.unreconciledWebhooks)
+
+/**
+ * TypeScript type for unreconciledWebhooks row (Select)
+ */
+export type UnreconciledWebhooksRow = z.infer<typeof UnreconciledWebhooksSelectSchema>
+
+/**
+ * TypeScript type for unreconciledWebhooks insert
+ */
+export type UnreconciledWebhooksInsert = z.infer<typeof UnreconciledWebhooksInsertSchema>
+
+// =============================================================================
 // UsageMeters Schemas
 // =============================================================================
 
