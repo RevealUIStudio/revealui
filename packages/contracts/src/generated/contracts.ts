@@ -1965,6 +1965,32 @@ export const TicketsInsertContract = createContract({
 })
 
 // =============================================================================
+// UnreconciledWebhooks Contracts
+// =============================================================================
+
+/**
+ * Contract for unreconciledWebhooks row (Select)
+ * Database table: unreconciled_webhooks
+ */
+export const UnreconciledWebhooksRowContract = createContract({
+  name: 'UnreconciledWebhooksRow',
+  version: '1',
+  description: 'Database row contract for unreconciled_webhooks table',
+  schema: Schemas.UnreconciledWebhooksSelectSchema,
+})
+
+/**
+ * Contract for unreconciledWebhooks insert
+ * Database table: unreconciled_webhooks
+ */
+export const UnreconciledWebhooksInsertContract = createContract({
+  name: 'UnreconciledWebhooksInsert',
+  version: '1',
+  description: 'Database insert contract for unreconciled_webhooks table',
+  schema: Schemas.UnreconciledWebhooksInsertSchema,
+})
+
+// =============================================================================
 // UsageMeters Contracts
 // =============================================================================
 

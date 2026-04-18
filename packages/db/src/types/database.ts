@@ -84,6 +84,7 @@ import type {
   ticketLabelAssignments,
   ticketLabels,
   tickets,
+  unreconciledWebhooks,
   usageMeters,
   userApiKeys,
   userDevices,
@@ -471,6 +472,11 @@ export type TicketsRow = typeof tickets.$inferSelect
 export type TicketsInsert = typeof tickets.$inferInsert
 export type TicketsUpdate = Partial<TicketsInsert>
 
+// Unreconciled Webhooks
+export type UnreconciledWebhooksRow = typeof unreconciledWebhooks.$inferSelect
+export type UnreconciledWebhooksInsert = typeof unreconciledWebhooks.$inferInsert
+export type UnreconciledWebhooksUpdate = Partial<UnreconciledWebhooksInsert>
+
 // Usage Meters
 export type UsageMetersRow = typeof usageMeters.$inferSelect
 export type UsageMetersInsert = typeof usageMeters.$inferInsert
@@ -600,6 +606,7 @@ export type DatabaseRelationships = {
   ticketLabelAssignments: Relationship[]
   ticketLabels: Relationship[]
   tickets: Relationship[]
+  unreconciledWebhooks: Relationship[]
   usageMeters: Relationship[]
   userApiKeys: Relationship[]
   userDevices: Relationship[]
@@ -918,6 +925,9 @@ export const ticketsRelationships = [
   { foreignKeyName: 'tickets_reporter_id_users_id_fk', columns: ['reporter_id'], isOneToOne: true, referencedRelation: 'users', referencedColumns: ['id'] },
   { foreignKeyName: 'tickets_parent_ticket_id_tickets_id_fk', columns: ['parent_ticket_id'], isOneToOne: true, referencedRelation: 'tickets', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
+
+// UnreconciledWebhooks relationships
+export const unreconciledWebhooksRelationships: readonly Relationship[] = []
 
 // UsageMeters relationships
 export const usageMetersRelationships = [
@@ -1427,6 +1437,12 @@ export type Database = {
         Insert: TicketsInsert
         Update: TicketsUpdate
         Relationships: typeof ticketsRelationships
+      }
+      unreconciled_webhooks: {
+        Row: UnreconciledWebhooksRow
+        Insert: UnreconciledWebhooksInsert
+        Update: UnreconciledWebhooksUpdate
+        Relationships: typeof unreconciledWebhooksRelationships
       }
       usage_meters: {
         Row: UsageMetersRow
