@@ -20,12 +20,12 @@
 | DOCS | Inflated numbers in README/MASTER_PLAN | Replaced with grep-reproducible counts | #372 |
 | WH-2 | License key non-idempotent across saga retries | Moved `generateLicenseKey()` inside saga steps + idempotency guard at all 4 call sites | #379 |
 | WH-3 | Concurrent event race on syncHostedSubscriptionState | `eventTimestamp` param + `WHERE updated_at < eventTimestamp` guard on all 15 call sites | #379 |
+| CRON | Reconciliation cron for unreconciled_webhooks | Weekly GitHub Actions workflow + `check-unreconciled.ts` script; creates/updates GitHub issue | #379 |
 
 ## Open
 
 | ID | Finding | Severity | Blocker? | Notes |
 |----|---------|----------|----------|-------|
-| CRON | Reconciliation cron for unreconciled_webhooks | Medium | No | Table exists, consumer pending; without cron, rows land but nobody is alerted |
 
 ## Verification Checks (2026-04-18)
 
