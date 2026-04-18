@@ -157,6 +157,7 @@ vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   desc: vi.fn((_col) => `desc(${String(_col)})`),
   isNull: vi.fn((_col) => `isNull(${String(_col)})`),
+  lt: vi.fn((_col, _val) => `lt(${String(_col)},${String(_val)})`),
 }));
 
 const mockSendEmail = vi.fn().mockResolvedValue(undefined);

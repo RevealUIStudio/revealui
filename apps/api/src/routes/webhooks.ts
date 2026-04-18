@@ -27,7 +27,7 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
 import {
@@ -441,6 +441,10 @@ async function syncHostedSubscriptionState(
     currentPeriodEnd?: Date | null;
     cancelAtPeriodEnd?: boolean;
     graceUntil?: Date | null;
+    /** WH-3: Stripe event creation timestamp. When provided, UPDATEs are
+     *  guarded with `WHERE updated_at < eventTimestamp` so out-of-order
+     *  webhook deliveries cannot overwrite fresher state. */
+    eventTimestamp?: Date;
   },
 ): Promise<void> {
   const accountId = await resolveHostedAccountId(db, params.customerId, params.userId ?? null);
@@ -485,10 +489,25 @@ async function syncHostedSubscriptionState(
   };
 
   if (existingSubscription?.id) {
-    await db
-      .update(accountSubscriptions)
-      .set(subscriptionValues)
-      .where(eq(accountSubscriptions.id, existingSubscription.id));
+    // WH-3: guard against out-of-order webhook deliveries. If eventTimestamp
+    // is provided, only update when the existing row is older than this event.
+    const subWhere = params.eventTimestamp
+      ? and(
+          eq(accountSubscriptions.id, existingSubscription.id),
+          lt(accountSubscriptions.updatedAt, params.eventTimestamp),
+        )
+      : eq(accountSubscriptions.id, existingSubscription.id);
+
+    const subResult = await db.update(accountSubscriptions).set(subscriptionValues).where(subWhere);
+
+    if (params.eventTimestamp && (subResult as { rowCount?: number }).rowCount === 0) {
+      logger.info('Stale webhook skipped for accountSubscriptions — newer state already applied', {
+        accountId,
+        subscriptionId: params.subscriptionId,
+        eventTimestamp: params.eventTimestamp.toISOString(),
+      });
+      return;
+    }
   } else {
     await db.insert(accountSubscriptions).values({
       id: crypto.randomUUID(),
@@ -510,10 +529,14 @@ async function syncHostedSubscriptionState(
   };
 
   if (existingEntitlement?.accountId) {
-    await db
-      .update(accountEntitlements)
-      .set(entitlementValues)
-      .where(eq(accountEntitlements.accountId, accountId));
+    const entWhere = params.eventTimestamp
+      ? and(
+          eq(accountEntitlements.accountId, accountId),
+          lt(accountEntitlements.updatedAt, params.eventTimestamp),
+        )
+      : eq(accountEntitlements.accountId, accountId);
+
+    await db.update(accountEntitlements).set(entitlementValues).where(entWhere);
   } else {
     await db.insert(accountEntitlements).values({
       accountId,
@@ -1272,6 +1295,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   : licenseExpiresAt,
                 cancelAtPeriodEnd: checkoutSubscription?.cancel_at_period_end ?? false,
                 graceUntil: licenseExpiresAt,
+                eventTimestamp: new Date(event.created * 1000),
               });
               return {};
             },
@@ -1434,6 +1458,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 currentPeriodStart: getSubscriptionPeriodDate(subscription, 'current_period_start'),
                 currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
+                eventTimestamp: new Date(event.created * 1000),
               });
               return {};
             },
@@ -1498,6 +1523,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 customerId,
                 subscriptionId: null,
                 status: 'revoked',
+                eventTimestamp: new Date(event.created * 1000),
               });
               return {};
             },
@@ -1600,6 +1626,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   graceUntil: isPastDue
                     ? getSubscriptionPeriodDate(subscription, 'current_period_end')
                     : null,
+                  eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
               },
@@ -1703,6 +1730,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     getSubscriptionPeriodDate(subscription, 'current_period_end') ?? cancelAt,
                   cancelAtPeriodEnd: true,
                   graceUntil: cancelAt,
+                  eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
               },
@@ -1847,6 +1875,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                     subscription.cancel_at_period_end && subscription.cancel_at
                       ? new Date(subscription.cancel_at * 1000)
                       : null,
+                  eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
               },
@@ -1948,6 +1977,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
                   cancelAtPeriodEnd: false,
                   graceUntil: null,
+                  eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
               },
@@ -1986,6 +2016,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
                 graceUntil: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+                eventTimestamp: new Date(event.created * 1000),
               });
               return {};
             },
@@ -2062,6 +2093,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
                   currentPeriodEnd: getSubscriptionPeriodDate(subscription, 'current_period_end'),
                   cancelAtPeriodEnd: subscription.cancel_at_period_end ?? false,
                   graceUntil: null,
+                  eventTimestamp: new Date(event.created * 1000),
                 });
                 return {};
               },
@@ -2139,6 +2171,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               subscription.status === 'trialing' && subscription.trial_end
                 ? new Date(subscription.trial_end * 1000)
                 : null,
+            eventTimestamp: new Date(event.created * 1000),
           });
         }
         logger.info('Subscription created', {
@@ -2335,6 +2368,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           currentPeriodEnd: getSubscriptionPeriodDate(recoveredSubscription, 'current_period_end'),
           cancelAtPeriodEnd: recoveredSubscription.cancel_at_period_end ?? false,
           graceUntil: null,
+          eventTimestamp: new Date(event.created * 1000),
         });
 
         resetLicenseState();
@@ -2438,6 +2472,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           subscriptionId,
           status: entitlementStatus,
           graceUntil,
+          eventTimestamp: new Date(event.created * 1000),
         });
 
         // Reset caches for any payment failure  -  both grace period (past_due)
@@ -2591,6 +2626,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
               tier: (restoredSub?.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? null,
               status: 'active',
               graceUntil: null,
+              eventTimestamp: new Date(event.created * 1000),
             });
 
             resetLicenseState();
@@ -2652,6 +2688,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
           customerId: disputeCustomerId,
           subscriptionId: null,
           status: 'revoked',
+          eventTimestamp: new Date(event.created * 1000),
         });
 
         resetLicenseState();
@@ -2794,6 +2831,7 @@ app.openapi(stripeWebhookRoute, async (c) => {
             customerId,
             subscriptionId: null,
             status: 'revoked',
+            eventTimestamp: new Date(event.created * 1000),
           });
 
           resetLicenseState();
