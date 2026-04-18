@@ -1,0 +1,76 @@
+#
+# Electric Latency Probe — isolated local stack
+#
+# Brings up a postgres + electric pair on non-default ports so it doesn't
+# collide with packages/mcp/docker-compose.yml (5432) or any other running
+# compose. Admin runs locally (pnpm dev:admin) against these services.
+#
+# Bring up:
+#   docker compose -f scripts/electric-latency-probe/docker-compose.yml up -d
+#
+# Tear down (removes volume — fresh DB next time):
+#   docker compose -f scripts/electric-latency-probe/docker-compose.yml down -v
+#
+# Ports:
+#   postgres: 5434  (avoids 5432 used by other composes)
+#   electric: 5133
+#
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: revealui-probe-postgres
+    # Logical replication is required by Electric. This is durable config,
+    # not a runtime flag — it survives restarts.
+    command:
+      - postgres
+      - -c
+      - wal_level=logical
+      - -c
+      - max_wal_senders=10
+      - -c
+      - max_replication_slots=10
+    environment:
+      POSTGRES_USER: revealui
+      POSTGRES_PASSWORD: revealui
+      POSTGRES_DB: revealui_probe
+    ports:
+      - '5434:5432'
+    volumes:
+      - probe-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U revealui -d revealui_probe']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    labels:
+      - 'com.revealui.service=probe-postgres'
+      - 'com.revealui.environment=probe'
+
+  electric:
+    image: electricsql/electric:latest
+    container_name: revealui-probe-electric
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Electric connects to postgres via the service name on the compose network.
+      DATABASE_URL: postgres://revealui:revealui@postgres:5432/revealui_probe?sslmode=disable
+      # ELECTRIC_INSECURE=true disables the shared-secret check for local dev.
+      # Probe's revealui/dev/electric/secret should be unset when running this way.
+      ELECTRIC_INSECURE: 'true'
+      ELECTRIC_HTTP_PORT: '3000'
+    ports:
+      - '5133:3000'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/v1/health']
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    labels:
+      - 'com.revealui.service=probe-electric'
+      - 'com.revealui.environment=probe'
+
+volumes:
+  probe-pgdata:
+    name: revealui-probe-pgdata
