@@ -72,7 +72,7 @@ const upcoming: Feature[] = [
     category: 'Infrastructure',
   },
   {
-    name: 'Visual Builder (Foundry)',
+    name: 'Visual Builder',
     description:
       'A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.',
     status: 'Planned: Q4 2026+',
