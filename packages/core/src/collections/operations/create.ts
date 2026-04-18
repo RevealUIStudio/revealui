@@ -158,12 +158,30 @@ export async function create(
     });
 
     const query = insertDocumentQuery(tableName, columns);
-    await db.query(query, [id, ...values]);
 
-    // For SQLite with WAL mode, writes are immediately visible to readers on the same connection
-    // Return the created document by fetching it from the database
-    // This ensures we return what was actually stored (with proper JSON deserialization)
-    // ID is already a string, so use it directly
+    // Wrap INSERT + read-back in a single transaction so both run on the same
+    // connection and snapshot. Without this, pooled pg adapters check out a
+    // fresh client per `db.query()` call, and the post-insert `findByID` can
+    // see a pre-INSERT snapshot — throwing "Document not found in database"
+    // even though the row is present (see revealui#383).
+    //
+    // Adapters without `transaction` (e.g. test mocks, in-memory stores with
+    // same-connection visibility like PGlite used directly without our wrapper)
+    // fall back to sequential queries.
+    if (db.transaction) {
+      return await db.transaction(async (tx) => {
+        await tx.query(query, [id, ...values]);
+        const createdDoc = await findByID(config, tx, { id });
+        if (!createdDoc) {
+          throw new Error(
+            `Failed to retrieve created document with id ${id}. Document not found in database.`,
+          );
+        }
+        return createdDoc;
+      });
+    }
+
+    await db.query(query, [id, ...values]);
     const createdDoc = await findByID(config, db, { id });
     if (!createdDoc) {
       throw new Error(

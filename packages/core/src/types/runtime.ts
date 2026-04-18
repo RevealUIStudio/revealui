@@ -271,11 +271,23 @@ export interface CollectionStorageAdapter {
 
 export interface QueryableDatabaseAdapter {
   query: (query: string, values?: unknown[]) => Promise<DatabaseResult>;
+  /**
+   * Execute a callback inside a database transaction with a single connection
+   * held across all queries. The callback receives a transactional adapter
+   * whose `query` runs on the same connection; committed on success, rolled
+   * back on throw.
+   *
+   * Optional: adapters without real connection affinity (e.g. test mocks) can
+   * omit this. Operations that need read-after-write consistency must guard
+   * with `if (db.transaction)` and fall back to sequential queries.
+   */
+  transaction?: <T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>) => Promise<T>;
   collectionStorage?: CollectionStorageAdapter;
 }
 
 export interface DatabaseAdapter {
   query: QueryableDatabaseAdapter['query'];
+  transaction?: QueryableDatabaseAdapter['transaction'];
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   init?: () => Promise<void>;
