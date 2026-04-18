@@ -1,5 +1,33 @@
 # @revealui/auth
 
+## 0.4.0
+
+### Minor Changes
+
+- f6ba434: **BREAKING (pre-1.0):** Signup now defaults to closed. New deployments must set `REVEALUI_SIGNUP_OPEN=true` or `REVEALUI_SIGNUP_WHITELIST` to allow registration. Prevents accidental open registration on new deployments.
+
+### Patch Changes
+
+- Updated dependencies [80cc561]
+- Updated dependencies [77a9a68]
+- Updated dependencies [f6ba434]
+- Updated dependencies [284fd1f]
+- Updated dependencies [2204021]
+- Updated dependencies [f6ba434]
+- Updated dependencies [0e459ca]
+- Updated dependencies [2204021]
+- Updated dependencies [59c670b]
+- Updated dependencies [2204021]
+- Updated dependencies [7db5151]
+- Updated dependencies [2204021]
+- Updated dependencies [2204021]
+- Updated dependencies [f6ba434]
+  - @revealui/core@0.6.0
+  - @revealui/db@0.4.0
+  - @revealui/security@0.3.0
+  - @revealui/config@0.4.0
+  - @revealui/contracts@1.4.0
+
 ## 0.3.8
 
 ### Patch Changes

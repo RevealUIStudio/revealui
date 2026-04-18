@@ -13,7 +13,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
-import { getClient } from '@revealui/db/client';
+import { getClient, withTransaction } from '@revealui/db/client';
 import { accountEntitlements, accountSubscriptions, licenses } from '@revealui/db/schema';
 import { and, eq, lte } from 'drizzle-orm';
 import { Hono } from 'hono';
@@ -59,7 +59,7 @@ app.post('/sweep-grace-periods', async (c) => {
 
     const expiredAccountIds: string[] = [];
     for (const entitlement of expiredGrace) {
-      await db.transaction(async (tx) => {
+      await withTransaction(db, async (tx) => {
         // Re-check status inside the transaction to prevent TOCTOU race:
         // a webhook may have already renewed this subscription between the
         // outer SELECT and this UPDATE. The WHERE clause ensures we only

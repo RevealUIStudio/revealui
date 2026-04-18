@@ -1,5 +1,15 @@
 # @revealui/contracts
 
+## 1.4.0
+
+### Patch Changes
+
+- f6ba434: Add prices to service offerings (Architecture Review $3,500, Launch Package $7,500, Migration Assist $300/hr, Consulting Hour $300/hr). CTAs now link to Cal.com booking instead of mailto. Update service offering order: launch package before migration assist.
+- Updated dependencies [77a9a68]
+- Updated dependencies [f6ba434]
+- Updated dependencies [59c670b]
+  - @revealui/db@0.4.0
+
 ## 1.3.7
 
 ### Patch Changes

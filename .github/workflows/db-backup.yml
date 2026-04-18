@@ -1,0 +1,68 @@
+name: Database Backup
+
+# Daily backup of production NeonDB.
+# Vercel free tier only allows 1 cron/day, so this runs on GitHub Actions.
+#
+# Schedule: 02:00 UTC daily (21:00 ET previous day)
+# Manual: workflow_dispatch for on-demand backups
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      format:
+        description: "Backup format (json or sql)"
+        required: false
+        default: "json"
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+
+jobs:
+  backup:
+    name: Backup & Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # Create backup
+      - name: Create database backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+        run: |
+          pnpm tsx scripts/commands/database/backup.ts \
+            --format=${{ inputs.format || 'json' }} \
+            --retain=7
+
+      # Verify backup integrity
+      - name: Verify backup
+        run: pnpm tsx scripts/commands/database/verify-backup.ts --max-age=1
+
+      # Upload as artifact (retained for 30 days)
+      - name: Upload backup artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: .revealui/backups/
+          retention-days: 30
+          if-no-files-found: error

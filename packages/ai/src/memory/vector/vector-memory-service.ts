@@ -16,7 +16,7 @@
 import type { AgentMemory } from '@revealui/contracts/agents';
 import { getRestClient, getVectorClient } from '@revealui/db/client';
 import { agentMemories } from '@revealui/db/schema';
-import { safeVectorInsert } from '@revealui/db/validation';
+import { assertCrossDbRefs, safeVectorInsert } from '@revealui/db/validation';
 import { and, eq, type SQL, sql } from 'drizzle-orm';
 
 export interface VectorSearchOptions {
@@ -311,6 +311,12 @@ export class VectorMemoryService {
     }
     if (updates.metadata?.custom?.agentId !== undefined) {
       updateData.agentId = (updates.metadata.custom.agentId as string) || null;
+    }
+
+    // Validate cross-DB references if siteId is changing
+    const newSiteId = updateData.siteId as string | undefined;
+    if (newSiteId) {
+      await assertCrossDbRefs(this.restDb, { siteId: newSiteId });
     }
 
     const result = await this.db

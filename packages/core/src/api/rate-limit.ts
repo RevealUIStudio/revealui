@@ -4,6 +4,7 @@
  * Implements rate limiting to prevent API abuse
  */
 
+import { getClientIp } from '@revealui/security';
 import { logger } from '../observability/logger.js';
 
 interface RateLimitConfig {
@@ -26,24 +27,14 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 /**
- * Default key generator (by IP address)
+ * Default key generator (by IP address).
+ *
+ * Delegates to `@revealui/security`'s trusted-proxy-aware
+ * `getClientIp` so the IP cannot be spoofed via X-Forwarded-For
+ * on deployments that configure their proxy trust correctly.
  */
 function defaultKeyGenerator(request: Request): string {
-  // Try to get real IP from headers
-  const forwarded = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
-
-  if (forwarded) {
-    const parts = forwarded.split(',');
-    return parts[0]?.trim() || 'unknown';
-  }
-
-  if (realIp) {
-    return realIp;
-  }
-
-  // Fallback to unknown (Request doesn't have ip property)
-  return 'unknown';
+  return getClientIp(request);
 }
 
 /**

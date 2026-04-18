@@ -1,6 +1,6 @@
 {
   "name": "@revealui/core",
-  "version": "0.5.6",
+  "version": "0.6.0",
   "description": "Runtime engine, REST API, auth, rich text, admin UI, and plugins for RevealUI",
   "license": "MIT",
   "dependencies": {

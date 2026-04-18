@@ -142,8 +142,8 @@ describe('DrizzleAuditStore  -  append-only enforcement', () => {
     const { resolve } = await import('node:path');
     const { fileURLToPath } = await import('node:url');
 
-    const dir = fileURLToPath(new URL('../migrations', import.meta.url));
-    const sql = readFileSync(resolve(dir, 'neon-rest-setup.sql'), 'utf8');
+    const dir = fileURLToPath(new URL('../../migrations', import.meta.url));
+    const sql = readFileSync(resolve(dir, '0002_triggers_search_vectors.sql'), 'utf8');
 
     expect(sql).toContain('prevent_audit_log_modification');
     expect(sql).toContain('BEFORE UPDATE OR DELETE ON "audit_log"');

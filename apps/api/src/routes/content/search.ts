@@ -4,7 +4,7 @@
  * GET /api/content/search?q=keyword&type=posts|pages|all&limit=20&offset=0
  *
  * Uses PostgreSQL full-text search with plainto_tsquery for safe user input.
- * Requires the add-search-indexes.sql migration to have been run.
+ * Requires Drizzle migration 0002_triggers_search_vectors to have been run.
  */
 
 import { getClient } from '@revealui/db/client';

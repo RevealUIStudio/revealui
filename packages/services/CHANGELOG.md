@@ -1,5 +1,27 @@
 # @revealui/services
 
+## 0.4.0
+
+### Minor Changes
+
+- f6ba434: Add `invoices.list`, `invoices.retrieve`, and `refunds.create` to `protectedStripe` — all routed through the DB-backed circuit breaker with retry logic. Enables billing routes to use a single shared Stripe client instead of maintaining a separate in-memory circuit breaker.
+
+### Patch Changes
+
+- Updated dependencies [80cc561]
+- Updated dependencies [77a9a68]
+- Updated dependencies [f6ba434]
+- Updated dependencies [284fd1f]
+- Updated dependencies [f6ba434]
+- Updated dependencies [0e459ca]
+- Updated dependencies [59c670b]
+- Updated dependencies [2204021]
+- Updated dependencies [f6ba434]
+  - @revealui/core@0.6.0
+  - @revealui/db@0.4.0
+  - @revealui/config@0.4.0
+  - @revealui/contracts@1.4.0
+
 ## 0.3.5
 
 ### Patch Changes

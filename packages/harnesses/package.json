@@ -1,6 +1,6 @@
 {
   "name": "@revealui/harnesses",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "[Pro] AI harness integration system - adapters, daemon, workboard coordination, and JSON-RPC server",
   "repository": {
     "type": "git",

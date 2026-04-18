@@ -1,5 +1,12 @@
 # @revealui/setup
 
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies [59c670b]
+  - @revealui/config@0.4.0
+
 ## 0.3.5
 
 ### Patch Changes

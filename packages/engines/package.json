@@ -1,6 +1,6 @@
 {
   "name": "@revealui/engines",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Unified entry point for the five RevealUI business primitives: users, content, products, payments, intelligence",
   "license": "FSL-1.1-MIT",
@@ -12,8 +12,10 @@
     "@revealui/db": "workspace:*",
     "@revealui/services": "workspace:*"
   },
+  "optionalDependencies": {
+    "@revealui/ai": "workspace:^"
+  },
   "peerDependencies": {
-    "@revealui/ai": "workspace:^",
     "typescript": "^6.0.2"
   },
   "exports": {

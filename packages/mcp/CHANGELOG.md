@@ -1,5 +1,21 @@
 # @revealui/mcp
 
+## 0.1.11
+
+### Patch Changes
+
+- Updated dependencies [80cc561]
+- Updated dependencies [77a9a68]
+- Updated dependencies [284fd1f]
+- Updated dependencies [f6ba434]
+- Updated dependencies [0e459ca]
+- Updated dependencies [59c670b]
+- Updated dependencies [2204021]
+- Updated dependencies [f6ba434]
+  - @revealui/core@0.6.0
+  - @revealui/config@0.4.0
+  - @revealui/contracts@1.4.0
+
 ## 0.1.10
 
 ### Patch Changes

@@ -1,5 +1,47 @@
 # @revealui/db
 
+## 0.4.0
+
+### Minor Changes
+
+- 77a9a68: Expose two previously internal-but-documented modules as public subpath imports:
+
+  - `@revealui/core/cache/query-cache` — `cacheQuery`, `cacheList`, `cacheItem`, `invalidateCache`, `invalidateCachePattern`, `invalidateResource`, `cacheSWR`
+  - `@revealui/db/pool` — `getPool`, `pool`, `checkDatabaseHealth`, `getPoolStats`, `startPoolMonitoring`, `warmupPool`
+
+  Both modules have existed in source with full unit test coverage (`packages/core/src/cache/query-cache.ts`, `packages/db/src/pool.ts`) but were not listed in `package.json#exports`, so `docs/DATABASE.md` examples like `import { monitorQuery } from '@revealui/core/monitoring/query-monitor'` and `import { getPoolStats } from '@revealui/db/pool'` would fail at the module resolver. No code changes — purely exports-map additions.
+
+  `@revealui/core/monitoring/query-monitor` is exposed separately in the companion PR that adds `api/*` subpaths.
+
+- f6ba434: **BREAKING (pre-1.0):** `SUPABASE_DATABASE_URL` is now required for vector queries — no longer falls back silently to `DATABASE_URL`. Prevents vector data routing to the wrong database in misconfigured deployments. Restore pool cleanup handler for graceful shutdown (SIGTERM/SIGINT/beforeExit). Add HNSW index for `rag_chunks.embedding` in Supabase vector setup SQL.
+- 59c670b: Expose previously-documented APIs that weren't actually on the public surface:
+
+  **`@revealui/db` — 8 new schema subpath exports** (source + dist existed; only the exports map was missing):
+
+  - `./schema/password-reset-tokens`
+  - `./schema/admin` (`posts`, `media`, `globalHeader`, `globalFooter`, `globalSettings`)
+  - `./schema/licenses`
+  - `./schema/api-keys` (`userApiKeys`, `tenantProviderConfigs`)
+  - `./schema/audit-log`
+  - `./schema/app-logs`
+  - `./schema/error-events`
+
+  **`@revealui/config` — 4 re-exports from the package root:**
+
+  - `validateAndThrow` — already in `./validator.js`, now on the root barrel
+  - `getDatabaseConfig` / `getRevealConfig` / `getStripeConfig` — from `./modules/{database,reveal,stripe}.js`
+
+  **`@revealui/cli` — programmatic project creation:**
+
+  - `createProject` and `CreateProjectConfig` are now exported from the package root for use in tests and custom tooling (documented in `docs/REFERENCE.md`).
+
+  No behavior changes — purely surface-area additions. Drops docs-import-drift findings in REFERENCE.md by 19 (21 → 2; the remaining 2 are `@revealui/core/api/rate-limit` which the companion PR handles).
+
+### Patch Changes
+
+- Updated dependencies [59c670b]
+  - @revealui/config@0.4.0
+
 ## 0.3.7
 
 ### Patch Changes
