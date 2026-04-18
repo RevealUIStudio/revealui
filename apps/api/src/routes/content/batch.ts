@@ -10,6 +10,7 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { withTransaction } from '@revealui/db';
 import * as mediaQueries from '@revealui/db/queries/media';
 import * as pageQueries from '@revealui/db/queries/pages';
 import * as postQueries from '@revealui/db/queries/posts';
@@ -303,7 +304,7 @@ app.openapi(
       });
     }
 
-    const results = await db.transaction(async (tx) => {
+    const results = await withTransaction(db, async (tx) => {
       return batchCreate(tx as unknown as DatabaseClient, collection, items, user.id);
     });
     return c.json({ success: true as const, results }, 200);
@@ -357,7 +358,7 @@ app.openapi(
       });
     }
 
-    const results = await db.transaction(async (tx) => {
+    const results = await withTransaction(db, async (tx) => {
       return batchUpdate(tx as unknown as DatabaseClient, collection, items);
     });
     return c.json({ success: true as const, results }, 200);
@@ -411,7 +412,7 @@ app.openapi(
       });
     }
 
-    const results = await db.transaction(async (tx) => {
+    const results = await withTransaction(db, async (tx) => {
       return batchDelete(tx as unknown as DatabaseClient, collection, items);
     });
     return c.json({ success: true as const, results }, 200);

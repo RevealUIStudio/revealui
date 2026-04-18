@@ -11,7 +11,7 @@
 
 import crypto from 'node:crypto';
 import { LLM_PROVIDERS } from '@revealui/contracts';
-import { getClient } from '@revealui/db';
+import { getClient, withTransaction } from '@revealui/db';
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto';
 import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
@@ -126,7 +126,7 @@ app.openapi(postRoute, async (c) => {
   const encrypted = encryptApiKey(apiKey);
   const keyHint = redactApiKey(apiKey);
 
-  await db.transaction(async (tx) => {
+  await withTransaction(db, async (tx) => {
     await tx.insert(userApiKeys).values({
       id,
       userId: user.id,
