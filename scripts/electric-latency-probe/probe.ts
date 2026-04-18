@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 // ---------------------------------------------------------------------------
 
 const REVVAULT_BIN =
-  process.env.REVVAULT ?? '/home/joshua-v-dev/suite/revvault/target/release/revvault';
+  process.env.REVVAULT ?? `${process.env.HOME}/suite/revvault/target/release/revvault`;
 
 interface SecretOptions {
   optional?: boolean;
