@@ -110,7 +110,7 @@ const Products = defineCollection({
 
 The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work on your behalf:
 
-- **AI agent system:** build and deploy purpose-built agents for your workflows
+- **AI agent system** _(beta — works in staging, production usage is early)_: build and deploy purpose-built agents for your workflows
 - **MCP framework:** hypervisor, adapter framework, and tool discovery for connecting agents to external services
 - **Open-model inference:** Ubuntu Inference Snaps (recommended), Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for instant local AI. No proprietary APIs, no vendor lock-in, zero API bills
 - **Task history:** every agent action logged, auditable, and visible in the dashboard
