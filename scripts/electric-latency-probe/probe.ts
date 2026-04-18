@@ -56,11 +56,9 @@ See scripts/electric-latency-probe/README.md for the full path list.
 const ADMIN_BASE_URL = revvault('revealui/dev/admin-base-url');
 const ELECTRIC_SERVICE_URL = revvault('revealui/dev/electric/service-url');
 const SESSION_COOKIE = revvault('revealui/dev/admin-session-cookie');
-// Electric secret is optional — only set if local Electric is configured with one
-const ELECTRIC_SECRET = revvault('revealui/dev/electric/secret', { optional: true });
+// Electric's shared secret (if any) is handled server-side by the admin proxy;
+// the probe never calls Electric directly, so it doesn't need the secret here.
 
-// TODO: confirm the cookie name before running. Inspect devtools →
-// Application → Cookies on the admin origin after signing in.
 const SESSION_COOKIE_NAME = 'revealui-session';
 
 // ---------------------------------------------------------------------------
@@ -368,7 +366,6 @@ async function main(): Promise<void> {
   // ----- Format report -----
   samples.sort((a, b) => a.sampleIndex - b.sampleIndex);
   const measured = samples.filter((s) => !s.isWarmup);
-  const warmup = samples.filter((s) => s.isWarmup);
   const roomQuoteValues = measured.map((s) => s.mutationAcceptedToSubscriberMs);
   const diagnosticValues = measured.map((s) => s.commitConfirmedToSubscriberMs);
 

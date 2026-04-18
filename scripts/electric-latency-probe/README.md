@@ -26,20 +26,16 @@ Revvault is the single source of truth for all secrets. See
 # Electric service URL — LOCAL running Electric (see step 2). Do NOT use prod.
 echo "http://localhost:5133" | revvault set revealui/dev/electric/service-url
 
-# Electric shared secret if your local Electric is configured with one
-# (ELECTRIC_SECRET env var on the Electric process). Skip this set if
-# running Electric with ELECTRIC_INSECURE=true for local dev.
-echo "<secret>" | revvault set revealui/dev/electric/secret
-
-# A valid signed-in session cookie for the local admin app.
-# Get this by signing into http://localhost:4000/admin in a browser,
-# opening devtools → Application → Cookies → copy the value of
-# `revealui-session`.
-echo "<cookie_value>" | revvault set revealui/dev/admin-session-cookie
-
-# The admin app base URL (usually localhost:4000 in dev)
+# The admin app base URL (usually localhost:4000 in dev).
 echo "http://localhost:4000" | revvault set revealui/dev/admin-base-url
+
+# Session cookie — deferred to step 5 (requires signed-in browser session).
 ```
+
+(Electric's shared secret, if any, is handled server-side by the admin
+proxy — the probe doesn't need its own copy in revvault.)
+
+All command blocks below assume your shell is at the repo root.
 
 ### 2. Bring up the probe stack (postgres + electric)
 
@@ -47,7 +43,6 @@ Isolated compose in this directory. Uses ports 5434 (postgres) and 5133
 (electric) — doesn't collide with any other compose.
 
 ```bash
-cd /home/joshua-v-dev/suite/revealui
 docker compose -f scripts/electric-latency-probe/docker-compose.yml up -d
 docker compose -f scripts/electric-latency-probe/docker-compose.yml ps
 # Both services should report "healthy" within ~30s.
@@ -59,7 +54,6 @@ Drizzle migrations create the tables the probe writes to (`shared_facts`,
 etc.). Run once after bringing up the stack:
 
 ```bash
-cd /home/joshua-v-dev/suite/revealui
 DATABASE_URL='postgres://revealui:revealui@localhost:5434/revealui_probe?sslmode=disable' \
   pnpm --filter @revealui/db db:migrate
 ```
@@ -70,24 +64,24 @@ The admin app's `.env.local` usually points at cloud. For the probe run,
 swap `DATABASE_URL` to the probe DB. Back up first so the swap is reversible:
 
 ```bash
-cd /home/joshua-v-dev/suite/revealui/apps/admin
-cp .env.local .env.local.backup
+cp apps/admin/.env.local apps/admin/.env.local.backup
 
 # Replace the DATABASE_URL line:
-sed -i 's|^DATABASE_URL=.*|DATABASE_URL=postgres://revealui:revealui@localhost:5434/revealui_probe?sslmode=disable|' .env.local
+sed -i 's|^DATABASE_URL=.*|DATABASE_URL=postgres://revealui:revealui@localhost:5434/revealui_probe?sslmode=disable|' \
+  apps/admin/.env.local
 
 # Add the probe Electric URL (or edit if present):
-grep -q '^ELECTRIC_SERVICE_URL=' .env.local \
-  && sed -i 's|^ELECTRIC_SERVICE_URL=.*|ELECTRIC_SERVICE_URL=http://localhost:5133|' .env.local \
-  || echo 'ELECTRIC_SERVICE_URL=http://localhost:5133' >> .env.local
+grep -q '^ELECTRIC_SERVICE_URL=' apps/admin/.env.local \
+  && sed -i 's|^ELECTRIC_SERVICE_URL=.*|ELECTRIC_SERVICE_URL=http://localhost:5133|' apps/admin/.env.local \
+  || echo 'ELECTRIC_SERVICE_URL=http://localhost:5133' >> apps/admin/.env.local
 ```
 
-Restore after the probe run: `cp .env.local.backup .env.local && rm .env.local.backup`.
+Restore after the probe run:
+`cp apps/admin/.env.local.backup apps/admin/.env.local && rm apps/admin/.env.local.backup`.
 
 ### 5. Start admin, sign in, store session cookie
 
 ```bash
-cd /home/joshua-v-dev/suite/revealui
 pnpm dev:admin
 # admin now serving on http://localhost:4000
 ```
@@ -107,7 +101,6 @@ echo '<cookie_value>' | revvault set revealui/dev/admin-session-cookie
 ### 6. Run the probe
 
 ```bash
-cd /home/joshua-v-dev/suite/revealui
 pnpm exec tsx scripts/electric-latency-probe/probe.ts
 
 # Output file:
@@ -118,11 +111,9 @@ pnpm exec tsx scripts/electric-latency-probe/probe.ts
 
 ```bash
 # Restore admin env
-cd /home/joshua-v-dev/suite/revealui/apps/admin
-cp .env.local.backup .env.local && rm .env.local.backup
+cp apps/admin/.env.local.backup apps/admin/.env.local && rm apps/admin/.env.local.backup
 
 # Bring down the probe stack (-v removes the postgres volume → fresh DB next time)
-cd /home/joshua-v-dev/suite/revealui
 docker compose -f scripts/electric-latency-probe/docker-compose.yml down -v
 ```
 
