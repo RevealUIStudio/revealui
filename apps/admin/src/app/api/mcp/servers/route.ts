@@ -164,6 +164,58 @@ const MCP_SERVERS: McpServerInfo[] = [
     ],
   },
   {
+    id: 'memory',
+    name: 'RevealUI Memory',
+    description:
+      'Multi-agent shared memory coordination. Publish facts, edit shared scratchpads, ' +
+      'share memories, and trigger LLM reconciliation across concurrent agents.',
+    status: 'configured',
+    packageName: '@revealui/mcp',
+    envRequired: ['REVEALUI_API_URL', 'REVEALUI_API_TOKEN'],
+    tools: [
+      {
+        name: 'memory_publish_fact',
+        description: 'Publish a discovery to the shared fact log',
+        parameterCount: 4,
+      },
+      {
+        name: 'memory_list_facts',
+        description: 'List facts for a coordination session',
+        parameterCount: 1,
+      },
+      {
+        name: 'memory_create_scratchpad',
+        description: 'Create a new shared Yjs scratchpad',
+        parameterCount: 3,
+      },
+      {
+        name: 'memory_patch_scratchpad',
+        description: 'Apply a structured patch to a scratchpad',
+        parameterCount: 5,
+      },
+      {
+        name: 'memory_read_scratchpad',
+        description: 'Read current scratchpad content as JSON',
+        parameterCount: 1,
+      },
+      {
+        name: 'memory_share',
+        description: 'Share a memory with all agents in a session',
+        parameterCount: 6,
+      },
+      {
+        name: 'memory_list_shared',
+        description: 'List shared and reconciled memories',
+        parameterCount: 1,
+      },
+      {
+        name: 'memory_reconcile',
+        description: 'Trigger LLM reconciliation of shared facts',
+        parameterCount: 2,
+      },
+    ],
+  },
+  {
     id: 'next-devtools',
     name: 'Next.js DevTools',
     description: 'Introspect Next.js app routes, pages, API routes, and bundle analysis.',
