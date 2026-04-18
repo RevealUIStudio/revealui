@@ -15,7 +15,7 @@
 import type { Field } from '@revealui/contracts/admin';
 import { defaultLogger } from '../instance/logger.js';
 import { logger } from '../observability/logger.js';
-import type { DatabaseAdapter, DatabaseResult } from '../types/index.js';
+import type { DatabaseAdapter, DatabaseResult, QueryableDatabaseAdapter } from '../types/index.js';
 import { safeParseRevealDocuments } from './safe-parse.js';
 import { getSSLConfig } from './ssl-config.js';
 
@@ -143,7 +143,55 @@ export function universalPostgresAdapter(
   config: UniversalPostgresAdapterConfig = {},
 ): DatabaseAdapter {
   let queryFn: (queryString: string, values: unknown[]) => Promise<DatabaseResult>;
+  let transactionFn: <T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>) => Promise<T>;
   let provider: 'neon' | 'supabase' | 'electric' | 'generic' = 'generic';
+
+  // Shared transaction builder for pg-library-backed providers (neon, supabase, generic).
+  // Holds one pooled client across BEGIN/fn/COMMIT so every query inside `fn` sees the
+  // same snapshot — required for read-after-write correctness.
+  type PgClient = {
+    query: (q: string, v?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number | null }>;
+    release: () => void;
+  };
+  const buildPgTransactionFn = (
+    pool: { connect: () => Promise<PgClient> },
+    providerLabel: string,
+  ): typeof transactionFn => {
+    return async <T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> => {
+      const client = await pool.connect();
+      let committed = false;
+      try {
+        await client.query('BEGIN');
+        const tx: QueryableDatabaseAdapter = {
+          query: async (queryString: string, values: unknown[] = []) => {
+            const result = await client.query(queryString, values);
+            return {
+              rows: safeParseRevealDocuments(result.rows),
+              rowCount: result.rowCount || 0,
+            };
+          },
+        };
+        const result = await fn(tx);
+        await client.query('COMMIT');
+        committed = true;
+        return result;
+      } catch (error) {
+        if (!committed) {
+          try {
+            await client.query('ROLLBACK');
+          } catch (rollbackErr) {
+            defaultLogger.error(
+              `${providerLabel} transaction rollback failed after error:`,
+              rollbackErr,
+            );
+          }
+        }
+        throw error;
+      } finally {
+        client.release();
+      }
+    };
+  };
 
   const initializeConnection = async (): Promise<void> => {
     // Allow explicit electric provider without a connection string (PGlite local)
@@ -202,6 +250,7 @@ export function universalPostgresAdapter(
             throw error;
           }
         };
+        transactionFn = buildPgTransactionFn(neonPool, 'Neon');
         break;
       }
 
@@ -234,6 +283,7 @@ export function universalPostgresAdapter(
               client.release();
             }
           };
+          transactionFn = buildPgTransactionFn(pool, 'Supabase (txn-pool)');
         } else {
           // Use pg library for session pooling or direct connections (port 5432)
           const { Pool } = await import('pg');
@@ -259,6 +309,7 @@ export function universalPostgresAdapter(
               throw error;
             }
           };
+          transactionFn = buildPgTransactionFn(pool, 'Supabase');
         }
         break;
       }
@@ -279,6 +330,23 @@ export function universalPostgresAdapter(
             rows: safeParseRevealDocuments(result.rows),
             rowCount: (result as { rowCount?: number }).rowCount || 0,
           };
+        };
+        // PGlite ships a native transaction(fn) with its own tx.query — wrap it
+        // so the callback sees a QueryableDatabaseAdapter.
+        transactionFn = async <T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> => {
+          // biome-ignore lint/style/noNonNullAssertion: db is set above in the electric branch
+          return await db!.transaction(async (pgliteTx) => {
+            const tx: QueryableDatabaseAdapter = {
+              query: async (queryString: string, values: unknown[] = []) => {
+                const result = await pgliteTx.query(queryString, values);
+                return {
+                  rows: safeParseRevealDocuments(result.rows),
+                  rowCount: (result as { rowCount?: number }).rowCount || 0,
+                };
+              },
+            };
+            return await fn(tx);
+          });
         };
         break;
       }
@@ -310,6 +378,7 @@ export function universalPostgresAdapter(
             throw error;
           }
         };
+        transactionFn = buildPgTransactionFn(pool, 'PostgreSQL');
         break;
       }
     }
@@ -394,6 +463,28 @@ export function universalPostgresAdapter(
       }
 
       return queryFn(queryString, values);
+    },
+
+    async transaction<T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> {
+      if (!initialized) {
+        await initializeConnection();
+        initialized = true;
+      }
+
+      // Flush pending table creations before opening a transaction so the
+      // schema is in place on the same connection we're about to hold.
+      const pendingCreations = getWorkerPendingTableCreations();
+      if (pendingCreations.length > 0) {
+        try {
+          await Promise.all(pendingCreations);
+          pendingCreations.length = 0;
+        } catch (error) {
+          defaultLogger.error('Failed to create tables before transaction:', error);
+          throw error;
+        }
+      }
+
+      return transactionFn(fn);
     },
 
     // Create table schema for PGlite provider

@@ -136,6 +136,47 @@ describe('create operation', () => {
     );
   });
 
+  it('should run INSERT and read-back inside a transaction when db.transaction is available', async () => {
+    // Regression for revealui#383 — pooled pg adapters check out a fresh
+    // connection per db.query() call, so the post-INSERT findByID can see
+    // a pre-INSERT snapshot. The fix wraps both in db.transaction() so they
+    // share a connection + snapshot.
+    const options: RevealCreateOptions = {
+      data: {
+        title: 'Test Document',
+      },
+    };
+
+    const mockCreatedDoc = {
+      id: 'test-id',
+      title: 'Test Document',
+    };
+
+    const txQuery = vi.fn().mockResolvedValue({ rows: [] } as DatabaseResult);
+    const mockTx = { query: txQuery };
+    const txDb = {
+      query: mockDb.query,
+      transaction: vi.fn(async (fn: (tx: typeof mockTx) => Promise<unknown>) => {
+        return await fn(mockTx);
+      }),
+    };
+
+    vi.mocked(findByID).mockResolvedValue(mockCreatedDoc as never);
+
+    const result = await create(mockConfig, txDb as never, options);
+
+    expect(result).toEqual(mockCreatedDoc);
+    expect(txDb.transaction).toHaveBeenCalledTimes(1);
+    // INSERT must run on the tx client, not on the outer db
+    expect(txQuery).toHaveBeenCalled();
+    expect(mockDb.query).not.toHaveBeenCalled();
+    // findByID must receive the tx, not the outer db, so it reads from the
+    // same connection as the INSERT
+    expect(findByID).toHaveBeenCalledWith(mockConfig, mockTx, {
+      id: expect.any(String),
+    });
+  });
+
   it('should return fallback data when db is null', async () => {
     const options: RevealCreateOptions = {
       data: {
