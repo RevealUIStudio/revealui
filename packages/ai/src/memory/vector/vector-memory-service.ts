@@ -313,16 +313,10 @@ export class VectorMemoryService {
       updateData.agentId = (updates.metadata.custom.agentId as string) || null;
     }
 
-    // Validate cross-DB references if FK fields are changing
+    // Validate cross-DB references if siteId is changing
     const newSiteId = updateData.siteId as string | undefined;
-    const newVerifiedBy = updates.verified
-      ? (updates.metadata?.verifiedBy as string | undefined)
-      : undefined;
-    if (newSiteId || newVerifiedBy) {
-      await assertCrossDbRefs(this.restDb, {
-        siteId: newSiteId || undefined,
-        userId: newVerifiedBy || undefined,
-      });
+    if (newSiteId) {
+      await assertCrossDbRefs(this.restDb, { siteId: newSiteId });
     }
 
     const result = await this.db
