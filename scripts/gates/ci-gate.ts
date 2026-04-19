@@ -289,6 +289,11 @@ async function gate(): Promise<void> {
         args: ['validate:gitignore'],
       },
       {
+        name: 'Claim drift (hard fail)',
+        command: 'pnpm',
+        args: ['validate:claims'],
+      },
+      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],
