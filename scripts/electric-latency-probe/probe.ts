@@ -55,11 +55,80 @@ See scripts/electric-latency-probe/README.md for the full path list.
 
 const ADMIN_BASE_URL = revvault('revealui/dev/admin-base-url');
 const ELECTRIC_SERVICE_URL = revvault('revealui/dev/electric/service-url');
-const SESSION_COOKIE = revvault('revealui/dev/admin-session-cookie');
-// Electric's shared secret (if any) is handled server-side by the admin proxy;
-// the probe never calls Electric directly, so it doesn't need the secret here.
+// Cookie is either pre-stored in revvault or obtained via auto-sign-in below.
+let sessionCookie = revvault('revealui/dev/admin-session-cookie', { optional: true }) ?? '';
 
-const SESSION_COOKIE_NAME = 'revealui-session';
+const sessionCookie_NAME = 'revealui-session';
+
+// Consistent user-agent for all requests. Session binding validates that the
+// user-agent matches between sign-in and subsequent requests — using a fixed
+// string ensures the probe's own sign-in and shape requests never mismatch.
+const PROBE_USER_AGENT = 'revealui-latency-probe/1.0';
+
+/**
+ * Sign in to the admin app and obtain a session cookie.
+ * Avoids user-agent mismatch issues with pre-stored cookies (the session
+ * binding system invalidates sessions when the user-agent changes).
+ */
+async function autoSignIn(): Promise<string> {
+  // Try the stored cookie first
+  if (sessionCookie) {
+    try {
+      const res = await fetch(`${ADMIN_BASE_URL}/api/auth/me`, {
+        headers: {
+          cookie: `${sessionCookie_NAME}=${sessionCookie}`,
+          'user-agent': PROBE_USER_AGENT,
+        },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) return sessionCookie;
+    } catch {
+      // Cookie invalid or expired — fall through to sign-in
+    }
+  }
+
+  // Sign in with revvault credentials
+  const adminEmail =
+    process.env.PROBE_ADMIN_EMAIL ??
+    revvault('revealui/dev/admin-email', { optional: true }) ??
+    'founder@revealui.com';
+  const adminPassword = revvault('revealui/dev/admin-password', { optional: true });
+  if (!adminPassword) {
+    console.error(`
+FAIL: No valid session cookie and no admin password in revvault.
+  Either store a valid cookie:  echo '<cookie>' | revvault set revealui/dev/admin-session-cookie
+  Or store admin credentials:   echo '<password>' | revvault set revealui/dev/admin-password
+`);
+    process.exit(1);
+  }
+
+  const res = await fetch(`${ADMIN_BASE_URL}/api/auth/sign-in`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'user-agent': PROBE_USER_AGENT,
+    },
+    body: JSON.stringify({ email: adminEmail, password: adminPassword }),
+    signal: AbortSignal.timeout(10000),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`Sign-in failed: HTTP ${res.status} — ${body}`);
+    process.exit(1);
+  }
+
+  const setCookies = res.headers.getSetCookie?.() ?? [];
+  for (const c of setCookies) {
+    if (c.startsWith(`${sessionCookie_NAME}=`)) {
+      const token = c.split('=')[1]?.split(';')[0];
+      if (token) return token;
+    }
+  }
+
+  console.error('Sign-in succeeded but no session cookie in response headers.');
+  process.exit(1);
+}
 
 // ---------------------------------------------------------------------------
 // Probe parameters
@@ -129,12 +198,19 @@ function subscribeToShape(onRow: (factId: string, ts: number) => void): () => vo
       url.searchParams.set('session_id', PROBE_SESSION_ID);
       url.searchParams.set('offset', offset);
       if (shapeHandle) url.searchParams.set('handle', shapeHandle);
-      url.searchParams.set('live', 'true');
+      // Electric rejects live=true when offset=-1 (initial sync must complete first).
+      // Only enable live polling after we have a real offset from the initial response.
+      if (offset !== '-1') {
+        url.searchParams.set('live', 'true');
+      }
 
       try {
         const res = await fetch(url.toString(), {
           signal: controller.signal,
-          headers: { cookie: `${SESSION_COOKIE_NAME}=${SESSION_COOKIE}` },
+          headers: {
+            cookie: `${sessionCookie_NAME}=${sessionCookie}`,
+            'user-agent': PROBE_USER_AGENT,
+          },
         });
         if (!res.ok) {
           if (res.status === 401) {
@@ -201,7 +277,8 @@ async function postOneFact(): Promise<{ factId: string; startMs: number; accepte
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      cookie: `${SESSION_COOKIE_NAME}=${SESSION_COOKIE}`,
+      cookie: `${sessionCookie_NAME}=${sessionCookie}`,
+      'user-agent': PROBE_USER_AGENT,
     },
     body: JSON.stringify({
       session_id: PROBE_SESSION_ID,
@@ -253,8 +330,11 @@ async function checkHealth(): Promise<HealthInfo> {
     url.searchParams.set('session_id', 'liveness-check');
     url.searchParams.set('offset', '-1');
     const res = await fetch(url.toString(), {
-      signal: AbortSignal.timeout(3000),
-      headers: { cookie: `${SESSION_COOKIE_NAME}=${SESSION_COOKIE}` },
+      signal: AbortSignal.timeout(5000),
+      headers: {
+        cookie: `${sessionCookie_NAME}=${sessionCookie}`,
+        'user-agent': PROBE_USER_AGENT,
+      },
     });
     info.adminReachable = res.ok || res.status === 404; // 404 means route works but no shape yet
     info.adminResponse = `HTTP ${res.status} ${res.statusText}`;
@@ -304,6 +384,13 @@ async function main(): Promise<void> {
   samples:     ${TOTAL_SAMPLES} (${WARMUP_SAMPLES} warmup, ${TOTAL_SAMPLES - WARMUP_SAMPLES} measured)
   notes file:  ${NOTES_PATH}
 `);
+
+  // Authenticate: validate stored cookie or sign in fresh.
+  // This ensures all subsequent requests use a consistent user-agent,
+  // preventing session binding violations.
+  sessionCookie = await autoSignIn();
+  console.log('  auth:      session valid');
+  console.log('');
 
   console.log('Liveness check...');
   const health = await checkHealth();
