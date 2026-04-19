@@ -196,7 +196,8 @@
     "validate:catalog": "tsx scripts/validate/catalog-changeset.ts --warn",
     "validate:claims": "tsx scripts/validate/claim-drift.ts",
     "validate:versions": "tsx scripts/validate/version-policy.ts",
-    "validate:docs-imports": "tsx scripts/validate/docs-import-drift.ts"
+    "validate:docs-imports": "tsx scripts/validate/docs-import-drift.ts",
+    "validate:migrations": "tsx scripts/validate/migration-journal.ts"
   },
   "type": "module"
 }
