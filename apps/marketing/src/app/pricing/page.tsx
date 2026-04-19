@@ -1,5 +1,4 @@
 import {
-  CREDIT_BUNDLES,
   PERPETUAL_TIERS,
   type PricingResponse,
   SERVICE_OFFERINGS,
@@ -55,9 +54,9 @@ const faqs = [
       "Pro and Max tiers include a 7-day free trial. After the trial ends, you'll be charged the monthly rate. You can cancel anytime during the trial without being charged.",
   },
   {
-    question: 'What are agent credits?',
+    question: 'How does agent task billing work?',
     answer:
-      'Every paid subscription includes a monthly task allowance (Pro: 10K, Max: 50K, Forge: unlimited). The first 1,000 tasks/month are free on any tier. If you need more, buy credit bundles. They never expire and stack with your monthly allowance.',
+      'Every paid subscription includes generous task allowances. Agent task usage billing is coming soon — for now, all tiers include unlimited agent tasks during early access.',
   },
   {
     question: 'What are perpetual licenses?',
@@ -107,7 +106,7 @@ export default async function PricingPage() {
     ...tier,
     ctaHref: tier.ctaHref.startsWith('/') ? `${adminUrl}${tier.ctaHref}` : tier.ctaHref,
   }));
-  const creditBundles = pricing?.credits ?? CREDIT_BUNDLES;
+  // creditBundles removed — Track B not shipped. Re-enable when usage billing lands.
   const perpetualTiers = pricing?.perpetual ?? PERPETUAL_TIERS;
   const services = pricing?.services ?? SERVICE_OFFERINGS;
 
@@ -117,14 +116,14 @@ export default async function PricingPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Four ways to use
+            Three ways to use
             <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               RevealUI
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Subscribe monthly, pay per agent task, buy a perpetual license, or book expert services.
-            Start free. Upgrade when you need to.
+            Subscribe monthly, buy a perpetual license, or book expert services. Start free. Upgrade
+            when you need to.
           </p>
           {/* Three-track badge row */}
           <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-medium">
@@ -134,12 +133,7 @@ export default async function PricingPage() {
             >
               Track A: Subscriptions
             </a>
-            <a
-              href="#track-b"
-              className="rounded-full bg-purple-100 px-4 py-1.5 text-purple-700 hover:bg-purple-200 transition-colors"
-            >
-              Track B: Agent Credits
-            </a>
+            {/* Track B: Agent Credits — coming soon, not yet shipped */}
             <a
               href="#track-c"
               className="rounded-full bg-emerald-100 px-4 py-1.5 text-emerald-700 hover:bg-emerald-200 transition-colors"
@@ -230,65 +224,8 @@ export default async function PricingPage() {
         </div>
       </section>
 
-      {/* Track B: Agent Credits */}
-      <section id="track-b" className="bg-purple-50 py-24 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <span className="text-sm font-semibold tracking-wide text-purple-600 uppercase">
-              Track B
-            </span>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Agent Credits
-            </h2>
-            <p className="mt-4 text-lg text-gray-600">
-              Pay per agent task. Buy once, never expires. Stacks with your monthly allowance.
-            </p>
-            <p className="mt-2 text-sm font-medium text-purple-700 bg-purple-100 inline-block px-3 py-1 rounded-full">
-              First 1,000 tasks/month free on every plan
-            </p>
-          </div>
-          <div className="mx-auto max-w-4xl grid grid-cols-1 gap-6 sm:grid-cols-3">
-            {creditBundles.map((bundle) => (
-              <div
-                key={bundle.name}
-                className={`rounded-2xl bg-white p-8 shadow-lg ${
-                  bundle.highlighted ? 'ring-2 ring-purple-500' : 'ring-1 ring-gray-200'
-                }`}
-              >
-                {bundle.highlighted && (
-                  <div className="mb-3 text-center">
-                    <span className="text-xs font-semibold text-purple-700 bg-purple-100 px-3 py-1 rounded-full">
-                      Best value
-                    </span>
-                  </div>
-                )}
-                <h3 className="text-lg font-bold text-gray-900">{bundle.name}</h3>
-                <p className="mt-1 text-sm text-gray-500">{bundle.description}</p>
-                <p className="mt-4 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold text-gray-900">{bundle.price ?? ' - '}</span>
-                  <span className="text-sm text-gray-500">{bundle.priceNote ?? ''}</span>
-                </p>
-                <p className="mt-1 text-xl font-semibold text-purple-600">{bundle.tasks} tasks</p>
-                <p className="mt-1 text-xs text-gray-500">{bundle.costPer ?? ''}</p>
-                <a
-                  href="https://admin.revealui.com/account/billing"
-                  className={`mt-8 block w-full rounded-md px-4 py-2.5 text-center text-sm font-semibold transition-colors ${
-                    bundle.highlighted
-                      ? 'bg-purple-600 text-white hover:bg-purple-500'
-                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                  }`}
-                >
-                  Buy Credits
-                </a>
-              </div>
-            ))}
-          </div>
-          <p className="mt-8 text-center text-sm text-gray-500">
-            Credits are available to Pro, Max, and Forge subscribers. Overage billing via Stripe -
-            no surprises.
-          </p>
-        </div>
-      </section>
+      {/* Track B: Agent Credits — coming soon. Entire section hidden until
+          usage/meter billing (Track B) is implemented. See GitHub issue. */}
 
       {/* Track C: Perpetual Licenses */}
       <section id="track-c" className="py-24 sm:py-32">

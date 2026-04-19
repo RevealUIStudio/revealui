@@ -39,7 +39,7 @@ describe('ValueProposition', () => {
   it('contains feature descriptions', () => {
     const result = ValueProposition();
     const html = JSON.stringify(result);
-    expect(html).toContain('Session auth, Stripe subscriptions, usage metering');
+    expect(html).toContain('Session auth, Stripe subscriptions, and webhooks');
     expect(html).toContain('Define collections in TypeScript');
     expect(html).toContain('12 MCP servers, agent coordination');
   });
