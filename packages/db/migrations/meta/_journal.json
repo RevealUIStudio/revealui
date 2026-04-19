@@ -22,6 +22,27 @@
       "when": 1776652800000,
       "tag": "0002_triggers_search_vectors",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776739200000,
+      "tag": "0003_shared_facts",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776825600000,
+      "tag": "0004_yjs_document_patches",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776912000000,
+      "tag": "0005_shared_memory_scope",
+      "breakpoints": true
     }
   ]
 }

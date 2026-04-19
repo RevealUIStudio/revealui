@@ -106,4 +106,69 @@ describe('create method', () => {
       "Collection 'non-existent' not found",
     );
   });
+
+  it('should enforce access.create when overrideAccess is not set', async () => {
+    const accessDenyingInstance: RevealUIInstance = {
+      ...mockInstance,
+      config: {
+        collections: [
+          {
+            slug: 'test-collection',
+            access: { create: async () => false },
+            hooks: { afterChange: [] },
+          } as never,
+        ],
+        globals: [],
+      },
+    };
+
+    const options = {
+      collection: 'test-collection',
+      data: { title: 'Test' },
+      req: {} as never,
+    };
+
+    await expect(create(accessDenyingInstance, mockEnsureDbConnected, options)).rejects.toThrow(
+      'Access denied',
+    );
+    expect(accessDenyingInstance.collections['test-collection'].create).not.toHaveBeenCalled();
+  });
+
+  it('should skip access.create check when overrideAccess is true (regression for bootstrap flow)', async () => {
+    const accessDenyingInstance: RevealUIInstance = {
+      ...mockInstance,
+      config: {
+        collections: [
+          {
+            slug: 'test-collection',
+            access: { create: async () => false },
+            hooks: { afterChange: [] },
+          } as never,
+        ],
+        globals: [],
+      },
+    };
+
+    const mockDoc: RevealDocument = { id: 'bootstrap-admin', title: 'First admin' };
+    vi.mocked(accessDenyingInstance.collections['test-collection'].create).mockResolvedValue(
+      mockDoc,
+    );
+
+    // No req — bootstrap flow doesn't have an authenticated user in-request;
+    // that's exactly the scenario overrideAccess is for. Without req, the
+    // afterChange hooks path also doesn't fire, so the result is whatever
+    // the low-level collection.create returns.
+    const options = {
+      collection: 'test-collection',
+      data: { title: 'First admin' },
+      overrideAccess: true,
+    };
+
+    const result = await create(accessDenyingInstance, mockEnsureDbConnected, options);
+
+    expect(result).toEqual(mockDoc);
+    expect(accessDenyingInstance.collections['test-collection'].create).toHaveBeenCalledWith(
+      options,
+    );
+  });
 });

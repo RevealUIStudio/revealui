@@ -67,6 +67,7 @@ describe('create operation', () => {
     expect(mockDb.query).toHaveBeenCalled();
     expect(findByID).toHaveBeenCalledWith(mockConfig, mockDb, {
       id: expect.any(String),
+      overrideAccess: true,
     });
   });
 
@@ -171,9 +172,11 @@ describe('create operation', () => {
     expect(txQuery).toHaveBeenCalled();
     expect(mockDb.query).not.toHaveBeenCalled();
     // findByID must receive the tx, not the outer db, so it reads from the
-    // same connection as the INSERT
+    // same connection as the INSERT. overrideAccess: true avoids a second
+    // access-control check on the just-created doc.
     expect(findByID).toHaveBeenCalledWith(mockConfig, mockTx, {
       id: expect.any(String),
+      overrideAccess: true,
     });
   });
 
