@@ -10,7 +10,7 @@
  */
 
 import { readdirSync, readFileSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { basename, join } from 'node:path';
 
 const MIGRATIONS_DIR = join(import.meta.dirname ?? '.', '../../packages/db/migrations');
 const JOURNAL_PATH = join(MIGRATIONS_DIR, 'meta/_journal.json');
