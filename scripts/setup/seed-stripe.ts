@@ -663,13 +663,9 @@ async function setupBillingPortal(
     log.warn(
       `Default billing portal config (${currentDefault.id}) was NOT created by this script.`,
     );
-    log.warn(
-      `  Its features may differ from the canonical set below. Review in Stripe dashboard:`,
-    );
+    log.warn(`  Its features may differ from the canonical set below. Review in Stripe dashboard:`);
     log.warn(`    https://dashboard.stripe.com/settings/billing/portal`);
-    log.warn(
-      `  Recommendation: archive it and select the seed-managed config as default.`,
-    );
+    log.warn(`  Recommendation: archive it and select the seed-managed config as default.`);
   }
 
   // Canonical feature set  -  all five portal capabilities enabled.
