@@ -126,15 +126,42 @@ export interface LicenseCacheConfig {
 
 const DEFAULT_TTL_MS = 15_000; // 15 seconds  -  revoked licenses lose access quickly
 
+/**
+ * Hard cap on cache TTL. Any env override exceeding this is clamped + warned.
+ * Revoked licenses must not stay cached longer than this, regardless of
+ * operator misconfiguration. 15 minutes balances revocation responsiveness
+ * against DB load for high-traffic deployments.
+ *
+ * Tracked by MASTER_PLAN §CR-8 CR8-P1-05.
+ */
+export const MAX_LICENSE_CACHE_TTL_MS = 15 * 60 * 1000;
+
+/**
+ * Parse and validate the `LICENSE_CACHE_TTL_MS` env value.
+ *
+ * Rules:
+ * - Unset / non-numeric / non-positive → `DEFAULT_TTL_MS` (15s)
+ * - Above `MAX_LICENSE_CACHE_TTL_MS` → clamped to cap, warning emitted
+ * - Otherwise → parsed value
+ *
+ * Exported for unit testing. Production code uses the module-load-time
+ * evaluation in `DEFAULT_CACHE_CONFIG` below.
+ */
+export function parseLicenseCacheTtlEnv(envValue: string | undefined): number {
+  if (!envValue) return DEFAULT_TTL_MS;
+  const parsed = Number.parseInt(envValue, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_TTL_MS;
+  if (parsed > MAX_LICENSE_CACHE_TTL_MS) {
+    console.warn(
+      `LICENSE_CACHE_TTL_MS=${parsed} exceeds the ${MAX_LICENSE_CACHE_TTL_MS}ms (15-minute) cap; using ${MAX_LICENSE_CACHE_TTL_MS}. Longer TTLs extend the window where revoked licenses retain access and are not permitted.`,
+    );
+    return MAX_LICENSE_CACHE_TTL_MS;
+  }
+  return parsed;
+}
+
 const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
-  ttlMs: (() => {
-    const envTtl = process.env.LICENSE_CACHE_TTL_MS;
-    if (envTtl) {
-      const parsed = Number.parseInt(envTtl, 10);
-      if (Number.isFinite(parsed) && parsed > 0) return parsed;
-    }
-    return DEFAULT_TTL_MS;
-  })(),
+  ttlMs: parseLicenseCacheTtlEnv(process.env.LICENSE_CACHE_TTL_MS),
 };
 
 let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG };

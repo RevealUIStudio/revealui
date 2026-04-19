@@ -6,7 +6,7 @@
  */
 
 import { decodeProtectedHeader } from 'jose';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   computeKeyId,
   configureGracePeriods,
@@ -20,6 +20,8 @@ import {
   initializeLicense,
   isLicensed,
   type LicenseTier,
+  MAX_LICENSE_CACHE_TTL_MS,
+  parseLicenseCacheTtlEnv,
   resetLicenseState,
   validateLicenseKey,
 } from '../license.js';
@@ -640,5 +642,60 @@ describe('getLicenseStatus', () => {
     const status = getLicenseStatus('enterprise');
     expect(status.mode).toBe('active');
     expect(status.allowed).toBe(false);
+  });
+});
+
+// =============================================================================
+// parseLicenseCacheTtlEnv  -  LICENSE_CACHE_TTL_MS env parsing + cap (CR8-P1-05)
+// =============================================================================
+
+describe('parseLicenseCacheTtlEnv', () => {
+  const DEFAULT_TTL_MS = 15_000;
+
+  it('returns default when env is undefined', () => {
+    expect(parseLicenseCacheTtlEnv(undefined)).toBe(DEFAULT_TTL_MS);
+  });
+
+  it('returns default when env is empty string', () => {
+    expect(parseLicenseCacheTtlEnv('')).toBe(DEFAULT_TTL_MS);
+  });
+
+  it('returns default when env is non-numeric', () => {
+    expect(parseLicenseCacheTtlEnv('abc')).toBe(DEFAULT_TTL_MS);
+  });
+
+  it('returns default when env is zero', () => {
+    expect(parseLicenseCacheTtlEnv('0')).toBe(DEFAULT_TTL_MS);
+  });
+
+  it('returns default when env is negative', () => {
+    expect(parseLicenseCacheTtlEnv('-1')).toBe(DEFAULT_TTL_MS);
+  });
+
+  it('returns parsed value when within cap', () => {
+    expect(parseLicenseCacheTtlEnv('30000')).toBe(30_000);
+    expect(parseLicenseCacheTtlEnv('60000')).toBe(60_000);
+  });
+
+  it('accepts values up to the exact cap', () => {
+    expect(parseLicenseCacheTtlEnv(String(MAX_LICENSE_CACHE_TTL_MS))).toBe(MAX_LICENSE_CACHE_TTL_MS);
+  });
+
+  it('clamps values above cap and emits a console warning', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+      expect(parseLicenseCacheTtlEnv(String(sevenDaysMs))).toBe(MAX_LICENSE_CACHE_TTL_MS);
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('exceeds');
+      expect(warnSpy.mock.calls[0][0]).toContain('cap');
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('cap is 15 minutes (900_000 ms)', () => {
+    expect(MAX_LICENSE_CACHE_TTL_MS).toBe(15 * 60 * 1000);
+    expect(MAX_LICENSE_CACHE_TTL_MS).toBe(900_000);
   });
 });
