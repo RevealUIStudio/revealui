@@ -147,7 +147,7 @@ Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap
 
 ### Long-Term (Q4 2026+)
 
-#### Visual Builder (Foundry)
+#### Visual Builder
 A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.
 
 #### SOC2 Type II Compliance
