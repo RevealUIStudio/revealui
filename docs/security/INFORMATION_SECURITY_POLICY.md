@@ -128,7 +128,7 @@ All changes pass through the CI gate before reaching `test` or `main`:
 
 1. **Quality** (parallel): Biome lint (hard fail), security audits (warn), structure checks (warn)
 2. **Type checking** (serial): TypeScript strict mode across all 30 workspaces
-3. **Test + Build** (parallel): 20,000+ Vitest tests, Turborepo build verification
+3. **Test + Build** (parallel): Vitest (full suite, hard fail), Turborepo build verification
 
 ### Branch Pipeline
 

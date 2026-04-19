@@ -1,6 +1,6 @@
 # Script Management System
 
-Complete guide to the RevealUI Script Management Enhancement System - an enterprise-grade infrastructure for managing 222+ TypeScript scripts with complete visibility, type safety, verification, and rollback capabilities.
+Complete guide to the RevealUI Script Management Enhancement System - infrastructure for managing 222+ TypeScript scripts with visibility, type safety, verification, and rollback capabilities.
 
 ## Table of Contents
 

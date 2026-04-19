@@ -74,7 +74,7 @@ RevealUI launched with:
 - **81 database tables** via Drizzle ORM (NeonDB + Supabase)
 - **57 UI components** with zero external dependencies
 - **12 MCP servers** for AI tool access (all MIT)
-- **20,000+ tests** across all packages
+- **Extensive test coverage** across unit, integration, and E2E layers
 - **4 GitHub template repos** for different starting points
 
 You can start right now:
