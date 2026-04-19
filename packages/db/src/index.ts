@@ -35,6 +35,7 @@ export {
   getClient,
   getPoolMetrics,
   getRestClient,
+  getRestPool,
   getVectorClient,
   requiresTransactions,
   resetClient,

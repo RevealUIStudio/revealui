@@ -37,6 +37,20 @@ export interface UniversalPostgresAdapterConfig {
    * Force a specific provider (optional, auto-detected if not provided)
    */
   provider?: 'neon' | 'supabase' | 'electric';
+  /**
+   * Shared pg Pool instance. When provided, the adapter uses this pool
+   * instead of creating its own. This eliminates dual-pool issues where
+   * the CMS adapter and the Drizzle ORM client create separate connections
+   * to the same database. Pass the same pool to both systems.
+   */
+  pool?: import('pg').Pool;
+  /**
+   * Async factory that returns a shared pg Pool. Called once during
+   * initializeConnection. Use this instead of `pool` when the pool
+   * source can't be imported at the top level (e.g., Turbopack async
+   * module init issues in Next.js).
+   */
+  poolFactory?: () => Promise<import('pg').Pool | null>;
 }
 
 /**
@@ -194,6 +208,29 @@ export function universalPostgresAdapter(
   };
 
   const initializeConnection = async (): Promise<void> => {
+    // Fast path: shared pool provided — skip all pool creation and provider detection.
+    // The caller (typically revealui.config.ts) passes the same pg.Pool that the
+    // Drizzle ORM client uses, eliminating the dual-connection-pool architecture.
+    // Resolve shared pool from either direct `pool` or async `poolFactory`
+    const sharedPool = config.pool ?? (config.poolFactory ? await config.poolFactory() : null);
+    if (sharedPool) {
+      provider = 'generic';
+      queryFn = async (queryString: string, values: unknown[] = []) => {
+        const client = await sharedPool.connect();
+        try {
+          const result = await client.query(queryString, values);
+          return {
+            rows: safeParseRevealDocuments(result.rows),
+            rowCount: result.rowCount || 0,
+          };
+        } finally {
+          client.release();
+        }
+      };
+      transactionFn = buildPgTransactionFn(sharedPool, 'shared-pool');
+      return;
+    }
+
     // Allow explicit electric provider without a connection string (PGlite local)
     let connectionString: string | undefined;
 

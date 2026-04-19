@@ -84,6 +84,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          # turbo --affected needs merge-base with the target branch.
+          # Full history ensures the merge base is always reachable.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
@@ -251,6 +255,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          # turbo --affected needs merge-base with the target branch.
+          # Full history ensures the merge base is always reachable.
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
         with:
