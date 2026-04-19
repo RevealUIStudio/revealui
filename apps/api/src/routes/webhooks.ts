@@ -9,6 +9,7 @@
  * duplicate processing across Vercel multi-region deployments.
  */
 
+import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '@revealui/contracts';
 import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import { generateLicenseKey, type LicenseTier, resetLicenseState } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
@@ -630,20 +631,10 @@ async function findHostedStatusByCustomerId(
 
 // ─── Webhook Endpoint ────────────────────────────────────────────────────────
 
-const relevantEvents = new Set([
-  'checkout.session.completed',
-  'customer.subscription.created',
-  'customer.subscription.updated',
-  'customer.subscription.deleted',
-  'customer.deleted',
-  'invoice.payment_failed',
-  'invoice.payment_succeeded',
-  'payment_intent.payment_failed',
-  'customer.subscription.trial_will_end',
-  'charge.dispute.closed',
-  'charge.dispute.created',
-  'charge.refunded',
-]);
+// Canonical list lives in `@revealui/contracts` so seed-stripe.ts and this
+// handler cannot drift. To add/remove events, edit the source there.
+// Tracked by CR-8 audit finding revealui#406.
+const relevantEvents = new Set<string>(RELEVANT_STRIPE_WEBHOOK_EVENTS);
 
 const stripeWebhookRoute = createRoute({
   method: 'post',
