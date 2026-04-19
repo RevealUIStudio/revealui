@@ -138,6 +138,7 @@ await db.insert(users).values({
 
 ## Related Documentation
 
+- [Migration Discipline](./docs/migrations-discipline.md) - How migrations work and rules to prevent silent failures
 - [Database Guide](../../docs/DATABASE.md) - Complete database setup and configuration
 - [Database Management](../../docs/DATABASE_MANAGEMENT.md) - Operations and maintenance
 - [Drizzle ORM Docs](https://orm.drizzle.team/) - Official Drizzle documentation
