@@ -41,6 +41,7 @@ export const users = pgTable(
 
     // Authentication
     password: text('password'), // Bcrypt hash of password (nullable for OAuth users)
+    mustRotatePassword: boolean('must_rotate_password').default(false).notNull(),
 
     // Role and status
     role: text('role').notNull().default('viewer'),

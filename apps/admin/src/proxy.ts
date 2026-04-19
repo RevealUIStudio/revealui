@@ -77,6 +77,14 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       homeUrl.pathname = '/';
       return NextResponse.redirect(homeUrl);
     }
+
+    // Password rotation enforcement  -  block /admin until password is changed
+    const mustRotate = request.cookies.get('revealui-must-rotate')?.value;
+    if (mustRotate === '1') {
+      const rotateUrl = request.nextUrl.clone();
+      rotateUrl.pathname = '/rotate-password';
+      return NextResponse.redirect(rotateUrl);
+    }
   }
 
   // Strip overrideAccess from external API requests  -  only server-side code may use it.

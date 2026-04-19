@@ -329,7 +329,10 @@ export async function changePassword(
     }
 
     const newHash = await bcrypt.hash(newPassword, 12);
-    await db.update(users).set({ password: newHash }).where(eq(users.id, userId));
+    await db
+      .update(users)
+      .set({ password: newHash, mustRotatePassword: false })
+      .where(eq(users.id, userId));
 
     // Invalidate all other sessions so stolen/compromised sessions cannot persist.
     // This mirrors resetPasswordWithToken which deletes ALL sessions. Here we keep

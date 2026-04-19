@@ -95,7 +95,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
       return response;
     }
 
-    // Create response with user data
+    // Create response with user data (include rotation flag if needed)
     const response = NextResponse.json({
       user: {
         id: result.user.id,
@@ -104,6 +104,7 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
         avatarUrl: result.user.avatarUrl,
         role: result.user.role,
       },
+      ...(result.requiresPasswordRotation ? { requiresPasswordRotation: true } : {}),
     });
 
     // Set role hint cookie for proxy.ts admin gate (defense-in-depth, not the security boundary).
@@ -121,6 +122,17 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
           ? process.env.SESSION_COOKIE_DOMAIN || undefined
           : undefined,
     });
+
+    // Set password rotation cookie (proxy.ts uses this to block /admin access)
+    if (result.requiresPasswordRotation) {
+      response.cookies.set('revealui-must-rotate', '1', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24,
+      });
+    }
 
     // Set session cookie
     response.cookies.set('revealui-session', result.sessionToken, {

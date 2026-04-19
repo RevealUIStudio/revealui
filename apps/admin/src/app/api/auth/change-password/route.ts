@@ -107,7 +107,10 @@ async function handler(request: NextRequest): Promise<NextResponse> {
       revokedOtherSessions: revokeOtherSessions,
     });
 
-    return NextResponse.json({ message: 'Password updated successfully.' });
+    const response = NextResponse.json({ message: 'Password updated successfully.' });
+    // Clear the rotation cookie so proxy.ts stops blocking /admin access
+    response.cookies.delete('revealui-must-rotate');
+    return response;
   } catch (error) {
     logger.error(
       'Error changing password',

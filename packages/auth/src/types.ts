@@ -60,8 +60,15 @@ export interface AuthSession {
 
 /** Discriminated union for sign-in outcomes. Check `success` first, then `reason` for failure details. */
 export type SignInResult =
-  | { success: true; requiresMfa?: false; user: User; sessionToken: string }
+  | {
+      success: true;
+      requiresMfa?: false;
+      requiresPasswordRotation?: false;
+      user: User;
+      sessionToken: string;
+    }
   | { success: true; requiresMfa: true; mfaUserId: string }
+  | { success: true; requiresPasswordRotation: true; user: User; sessionToken: string }
   | {
       success: false;
       reason:
