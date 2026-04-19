@@ -526,6 +526,16 @@ export {
 } from './pricing.js';
 
 // =============================================================================
+// Stripe Webhook Events (canonical list — single source of truth)
+// =============================================================================
+
+export {
+  RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT,
+  RELEVANT_STRIPE_WEBHOOK_EVENTS,
+  type RelevantStripeWebhookEvent,
+} from './stripe-webhook-events.js';
+
+// =============================================================================
 // RevealCoin (RVUI)
 // =============================================================================
 
