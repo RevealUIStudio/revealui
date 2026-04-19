@@ -63,6 +63,10 @@ revealui/dev/google/service-account-email # Gmail email provider
 revealui/dev/google/private-key
 revealui/dev/github/client-id            # OAuth SSO
 revealui/dev/github/client-secret
+revealui/dev/admin/bootstrap/email       # CLI admin bootstrap
+revealui/dev/admin/bootstrap/password    # CLI admin bootstrap (≥12 chars)
+revealui/dev/admin/bootstrap/name        # optional, defaults to "Super Admin"
+revealui/dev/admin/bootstrap/force-rotate # optional, default true
 ```
 
 Production (what CI + Vercel pull from when deploying):
