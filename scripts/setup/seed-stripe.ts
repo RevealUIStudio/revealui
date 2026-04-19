@@ -26,6 +26,9 @@ import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { config } from 'dotenv';
 import type Stripe from 'stripe';
+// Relative TS import resolves via tsx at script runtime; avoids adding
+// @revealui/contracts as a root-level dep. Script only; not bundled.
+import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
 
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
@@ -315,21 +318,15 @@ const CATALOG: ProductDefinition[] = [
   },
 ];
 
-// Canonical webhook events  -  must mirror `relevantEvents` in apps/api/src/routes/webhooks.ts
-const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
-  'checkout.session.completed',
-  'customer.subscription.created',
-  'customer.subscription.updated',
-  'customer.subscription.deleted',
-  'customer.deleted',
-  'invoice.payment_failed',
-  'invoice.payment_succeeded',
-  'payment_intent.payment_failed',
-  'customer.subscription.trial_will_end',
-  'charge.dispute.closed',
-  'charge.dispute.created',
-  'charge.refunded',
-];
+// Canonical webhook events now sourced from `@revealui/contracts` so this
+// script and `apps/api/src/routes/webhooks.ts` cannot drift.
+// `satisfies` preserves type-checking: if any event name in the shared
+// constant is NOT a valid Stripe EnabledEvent (e.g. stripe SDK types
+// change), TypeScript errors here rather than silently accepting it.
+// Tracked by CR-8 audit finding revealui#406.
+const WEBHOOK_EVENTS = [
+  ...RELEVANT_STRIPE_WEBHOOK_EVENTS,
+] satisfies Stripe.WebhookEndpointCreateParams.EnabledEvent[];
 
 // Env vars to track: public-facing price IDs + server-side aliases
 const PRICE_ENV_KEYS: Record<string, string> = {
