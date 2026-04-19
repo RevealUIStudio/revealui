@@ -26,6 +26,7 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
+    "@revealui/resilience": "workspace:*",
     "lru-cache": "^11.3.5",
     "zod": "^4.3.6"
   },
