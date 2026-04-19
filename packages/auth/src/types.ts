@@ -18,6 +18,7 @@ export interface User {
   email: string | null;
   avatarUrl: string | null;
   password: string | null;
+  mustRotatePassword?: boolean;
   role: string;
   status: string;
   agentModel: string | null;
