@@ -44,6 +44,13 @@ export interface UniversalPostgresAdapterConfig {
    * to the same database. Pass the same pool to both systems.
    */
   pool?: import('pg').Pool;
+  /**
+   * Async factory that returns a shared pg Pool. Called once during
+   * initializeConnection. Use this instead of `pool` when the pool
+   * source can't be imported at the top level (e.g., Turbopack async
+   * module init issues in Next.js).
+   */
+  poolFactory?: () => Promise<import('pg').Pool | null>;
 }
 
 /**
@@ -204,9 +211,10 @@ export function universalPostgresAdapter(
     // Fast path: shared pool provided — skip all pool creation and provider detection.
     // The caller (typically revealui.config.ts) passes the same pg.Pool that the
     // Drizzle ORM client uses, eliminating the dual-connection-pool architecture.
-    if (config.pool) {
+    // Resolve shared pool from either direct `pool` or async `poolFactory`
+    const sharedPool = config.pool ?? (config.poolFactory ? await config.poolFactory() : null);
+    if (sharedPool) {
       provider = 'generic';
-      const sharedPool = config.pool;
       queryFn = async (queryString: string, values: unknown[] = []) => {
         const client = await sharedPool.connect();
         try {
