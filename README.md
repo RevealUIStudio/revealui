@@ -36,7 +36,7 @@ You have:
 - **Billing:** Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard:** manage users, content, billing, and settings out of the box
 - **57 UI components:** built with Tailwind CSS v4, zero external UI dependencies
-- **12 MCP servers:** agents discover and use your business data through the same API humans use
+- **13 MCP servers:** agents discover and use your business data through the same API humans use
 - **Type-safe throughout:** Zod schemas shared between client, server, database, and agent tools
 
 No assembly required. Define your data once. Humans manage it through the dashboard, agents operate on it through MCP. Same permissions, same audit trail.
@@ -49,7 +49,7 @@ No assembly required. Define your data once. Humans manage it through the dashbo
 | **Content**      | Collections, rich text (Lexical), media, draft/live, REST API    | Collections auto-exposed as MCP tools. No integration step.  |
 | **Products**     | Product catalog, pricing tiers, usage tracking                   | Feature gates control which agent capabilities unlock.       |
 | **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal         | x402 micropayments via RevealCoin. Agents transact natively. |
-| **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 12 MCP servers.                   |
+| **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 13 MCP servers.                   |
 
 ## The JOSHUA Stack
 

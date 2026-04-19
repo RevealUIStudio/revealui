@@ -17,7 +17,7 @@ and a REST API. 287 source files in the core package. This is the heart of Revea
 and the most mature part of the codebase.
 
 ### UI component library
-65 native React components built on Tailwind CSS v4. No external UI dependencies
+57 native React components built on Tailwind CSS v4. No external UI dependencies
 (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA.
 Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
@@ -40,8 +40,8 @@ seen real production traffic.
 working config, database setup, and development server.
 
 ### CI and code quality
-3-phase CI gate (lint, typecheck, test, build). 26,000+ test cases across 1,451 test
-files. CodeQL and Gitleaks in CI. Biome for linting and formatting (no ESLint/Prettier).
+3-phase CI gate (lint, typecheck, test, build) with an extensive test suite across
+unit, integration, and E2E layers. CodeQL and Gitleaks in CI. Biome for linting and formatting (no ESLint/Prettier).
 Pre-push gate on protected branches.
 
 ---
@@ -124,8 +124,8 @@ Honest list of things that are not done, not deployed, or not verified.
 | UI components | 65 | Yes |
 | Database tables | 81 | Yes |
 | Database CHECK constraints | 61 | Yes |
-| Test cases | 26,000+ | Yes |
-| Test files | 1,451 | Yes |
+| Test cases | run `pnpm test` for current count | Reproducible |
+| Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |
 | API route files | 120+ | Yes |
 | CodeQL alerts | 0 | Yes (as of 2026-04-12) |
 | Dependabot alerts | 0 | Yes (as of 2026-04-12) |
@@ -143,8 +143,8 @@ git clone https://github.com/RevealUIStudio/revealui
 cd revealui
 pnpm install
 pnpm gate        # Run the full CI gate locally
-pnpm test        # Run all 26,000+ tests
-pnpm typecheck:all  # Typecheck all 31 workspaces
+pnpm test        # Run the full test suite
+pnpm typecheck:all  # Typecheck all 30 workspaces
 ```
 
 If something on this page doesn't match what you see in the code, file an issue.

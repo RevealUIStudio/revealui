@@ -74,7 +74,7 @@ As the team grows, an on-call rotation will be established. Currently, the found
 ### Phase 3: Remediation
 
 1. **Develop the fix** on a private branch (for P0/P1) or a standard feature branch (P2/P3).
-2. **Run the full CI gate**: `pnpm gate` (lint, typecheck, 20,000+ tests, build).
+2. **Run the full CI gate**: `pnpm gate` (lint, typecheck, full test suite, build).
 3. **Deploy via the standard pipeline**: feature branch, PR to `test`, verify on staging, PR to `main`, production deploy.
 4. **For P0**: Skip the `test` branch soak. Merge directly to `main` after CI passes.
 

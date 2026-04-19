@@ -73,6 +73,9 @@ jobs:
       - name: Boundary validation (hard fail)
         run: pnpm validate:boundary
 
+      - name: Claim drift validation (hard fail)
+        run: pnpm validate:claims
+
   # ---------------------------------------------------------------------------
   # Phase 2: Typecheck (all branches)
   # ---------------------------------------------------------------------------

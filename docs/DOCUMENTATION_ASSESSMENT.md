@@ -15,7 +15,7 @@ Brutally honest audit of what RevealUI documentation claims versus what the code
 
 ## Executive Summary
 
-RevealUI's core framework is **real and production-grade**  -  auth, billing, runtime engine, 57 UI components, 81-table database, 20,000+ tests. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
+RevealUI's core framework is **real and substantial**  -  auth, billing, runtime engine, 57 UI components, 81-table database, and an extensive test suite. The documentation is mostly accurate but has version drift, stale counts, broken internal links, and a few areas where aspirational language outpaces implementation. The biggest gaps are in examples (3 of 6 are README-only), ElectricSQL sync (basic), and Forge self-hosting (infrastructure skeletons only).
 
 ---
 
@@ -54,7 +54,7 @@ RevealUI's core framework is **real and production-grade**  -  auth, billing, ru
 | Stripe checkout/subscriptions/webhooks | 1,100-line webhook handler, 12 event types |
 | Drizzle ORM dual-DB (NeonDB + Supabase) | Schema + queries + boundary enforcement |
 | Biome 2 linting | Pre-commit hooks, CI hard-fail |
-| 20,000+ tests | Vitest + Playwright, passing in CI |
+| Extensive test suite | Vitest + Playwright, passing in CI |
 | MCP servers | 11 server files in packages/mcp/src/servers/ |
 | Content layer | 29 canonical definitions, byte-identical generation |
 
@@ -133,7 +133,7 @@ Note: `npx create-revealui` scaffolds a working basic-blog from npm templates  -
 | Package | Docs claim | Actual state | Completeness |
 |---------|-----------|--------------|-------------|
 | `@revealui/ai` | AI agents, memory, LLM orchestration | 40+ files, 18 import subpaths, real agents | ~80% |
-| `@revealui/mcp` | 12 MCP servers | **12 server files** (plus adapters/utils) | ~90% |
+| `@revealui/mcp` | 13 MCP servers | **13 server files** (plus adapters/utils) | ~90% |
 | `@revealui/harnesses` | AI coordination, workboard | 196 tests, JSON-RPC 2.0, content layer | ~95% |
 | `@revealui/editors` | Editor config sync | 20+ files, 6 test files | ~70% |
 | `@revealui/services` | Stripe + Supabase integrations | 354 tests passing | ~85% |
@@ -192,7 +192,7 @@ _Updated: 2026-03-28 | Commit: e1858051_
 | Pro tier purchasable | ✅ MET | Stripe flow verified (test mode) |
 | All 5 apps deployed | ✅ MET | revealui.com, admin, api, docs all return 200 |
 | CI gate passes | ✅ MET | `pnpm gate:quick` PASS |
-| 20,000+ tests | ✅ MET | 20,000+ tests across 1,300+ test files |
+| Extensive test suite | ✅ MET | Unit + integration + E2E across the monorepo |
 | Zero avoidable `any` types | ✅ MET | `pnpm audit:any` = 0 avoidable |
 | Zero production console stmts | ✅ MET | `pnpm audit:console` = 0 |
 | Security audit complete | ✅ MET | Session 133 (2026-03-28) |
