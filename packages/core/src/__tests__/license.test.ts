@@ -678,7 +678,9 @@ describe('parseLicenseCacheTtlEnv', () => {
   });
 
   it('accepts values up to the exact cap', () => {
-    expect(parseLicenseCacheTtlEnv(String(MAX_LICENSE_CACHE_TTL_MS))).toBe(MAX_LICENSE_CACHE_TTL_MS);
+    expect(parseLicenseCacheTtlEnv(String(MAX_LICENSE_CACHE_TTL_MS))).toBe(
+      MAX_LICENSE_CACHE_TTL_MS,
+    );
   });
 
   it('clamps values above cap and emits a console warning', () => {
