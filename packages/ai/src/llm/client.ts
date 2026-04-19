@@ -351,13 +351,12 @@ export class LLMClient {
       );
       // Try fallback if available
       if (this.fallbackProvider && this.config.fallbackProvider) {
+        const fp = this.fallbackProvider;
         const fallbackStart = Date.now();
         try {
           const fb = this.fallbackCircuitBreaker
-            ? await this.fallbackCircuitBreaker.execute(() =>
-                this.fallbackProvider?.chat(messages, options),
-              )
-            : await this.fallbackProvider.chat(messages, options);
+            ? await this.fallbackCircuitBreaker.execute(() => fp.chat(messages, options))
+            : await fp.chat(messages, options);
           this.healthMonitor?.recordCall(this.config.fallbackProvider, Date.now() - fallbackStart);
           return fb;
         } catch (fallbackError) {
@@ -393,12 +392,11 @@ export class LLMClient {
     } catch (error) {
       // Try fallback if available (only when using the primary provider path)
       if (!this.embedProviderOverride && this.fallbackProvider) {
+        const fp = this.fallbackProvider;
         try {
           return this.fallbackCircuitBreaker
-            ? await this.fallbackCircuitBreaker.execute(() =>
-                this.fallbackProvider?.embed(text, options),
-              )
-            : await this.fallbackProvider.embed(text, options);
+            ? await this.fallbackCircuitBreaker.execute(() => fp.embed(text, options))
+            : await fp.embed(text, options);
         } catch {
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
