@@ -10,12 +10,12 @@
 import type { Database } from '@revealui/db/client';
 import { decryptApiKey } from '@revealui/db/crypto';
 import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
-import { and, eq } from 'drizzle-orm';
 import {
   CircuitBreaker,
   type CircuitBreakerConfig,
   CircuitBreakerOpenError,
 } from '@revealui/resilience';
+import { and, eq } from 'drizzle-orm';
 import type { AuditStore } from '../audit/store.js';
 import type { ProviderHealthMonitor } from './provider-health.js';
 import type {
@@ -355,7 +355,7 @@ export class LLMClient {
         try {
           const fb = this.fallbackCircuitBreaker
             ? await this.fallbackCircuitBreaker.execute(() =>
-                this.fallbackProvider!.chat(messages, options),
+                this.fallbackProvider?.chat(messages, options),
               )
             : await this.fallbackProvider.chat(messages, options);
           this.healthMonitor?.recordCall(this.config.fallbackProvider, Date.now() - fallbackStart);
@@ -396,7 +396,7 @@ export class LLMClient {
         try {
           return this.fallbackCircuitBreaker
             ? await this.fallbackCircuitBreaker.execute(() =>
-                this.fallbackProvider!.embed(text, options),
+                this.fallbackProvider?.embed(text, options),
               )
             : await this.fallbackProvider.embed(text, options);
         } catch {
