@@ -17,7 +17,7 @@ and a REST API. 287 source files in the core package. This is the heart of Revea
 and the most mature part of the codebase.
 
 ### UI component library
-65 native React components built on Tailwind CSS v4. No external UI dependencies
+57 native React components built on Tailwind CSS v4. No external UI dependencies
 (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA.
 Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
@@ -144,7 +144,7 @@ cd revealui
 pnpm install
 pnpm gate        # Run the full CI gate locally
 pnpm test        # Run the full test suite
-pnpm typecheck:all  # Typecheck all 31 workspaces
+pnpm typecheck:all  # Typecheck all 30 workspaces
 ```
 
 If something on this page doesn't match what you see in the code, file an issue.

@@ -181,11 +181,11 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 
 ## CI Gate Architecture
 The `pnpm gate` script runs 3 phases:
-1. **Quality** (parallel): Biome lint (hard fail), audits (warn), structure (warn), security (warn)
+1. **Quality** (parallel): Biome lint (hard fail), audits (warn), structure (warn), security (warn), boundary validation (hard fail), claim-drift validation (hard fail)
 2. **Type checking** (serial): `pnpm -r typecheck` across all workspaces
 3. **Test + Build** (parallel): Vitest (hard fail), turbo build (hard fail)
 
-Biome, typecheck, tests, and build all block pushes. Audits and structure checks are warn-only.
+Biome, boundary, claim-drift, typecheck, tests, and build all block pushes. Audits and structure checks are warn-only.
 
 ## Security
 - CSP, CORS, HSTS headers in `@revealui/security` (re-exported via `packages/core/src/security/`)

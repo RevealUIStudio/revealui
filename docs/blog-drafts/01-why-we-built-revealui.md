@@ -73,7 +73,7 @@ RevealUI launched with:
 - **25 npm packages** published to the public registry
 - **81 database tables** via Drizzle ORM (NeonDB + Supabase)
 - **57 UI components** with zero external dependencies
-- **12 MCP servers** for AI tool access (all MIT)
+- **13 MCP servers** for AI tool access (all MIT)
 - **Extensive test coverage** across unit, integration, and E2E layers
 - **4 GitHub template repos** for different starting points
 
