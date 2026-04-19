@@ -152,7 +152,7 @@ export function parseLicenseCacheTtlEnv(envValue: string | undefined): number {
   const parsed = Number.parseInt(envValue, 10);
   if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_TTL_MS;
   if (parsed > MAX_LICENSE_CACHE_TTL_MS) {
-    console.warn(
+    logger.warn(
       `LICENSE_CACHE_TTL_MS=${parsed} exceeds the ${MAX_LICENSE_CACHE_TTL_MS}ms (15-minute) cap; using ${MAX_LICENSE_CACHE_TTL_MS}. Longer TTLs extend the window where revoked licenses retain access and are not permitted.`,
     );
     return MAX_LICENSE_CACHE_TTL_MS;
