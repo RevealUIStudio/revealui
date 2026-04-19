@@ -206,11 +206,11 @@ describe('PricingPage', () => {
     const result = await PricingPage();
     const html = JSON.stringify(result);
 
-    expect(html).toContain('Four ways to use');
+    expect(html).toContain('Three ways to use');
     expect(html).toContain('RevealUI');
   });
 
-  it('renders all four track navigation badges', async () => {
+  it('renders three track navigation badges (Track B hidden)', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
     const result = await PricingPage();
@@ -218,8 +218,8 @@ describe('PricingPage', () => {
 
     expect(html).toContain('Track A');
     expect(html).toContain('Subscriptions');
-    expect(html).toContain('Track B');
-    expect(html).toContain('Agent Credits');
+    // Track B (Agent Credits) hidden — not shipped yet
+    expect(html).not.toContain('Track B');
     expect(html).toContain('Track C');
     expect(html).toContain('Perpetual Licenses');
     expect(html).toContain('Track D');
@@ -238,15 +238,14 @@ describe('PricingPage', () => {
     expect(html).toContain('Forge');
   });
 
-  it('renders credit bundle names', async () => {
+  it('does not render credit bundle section (Track B not shipped)', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
     const result = await PricingPage();
     const html = JSON.stringify(result);
 
-    expect(html).toContain('Starter');
-    expect(html).toContain('Growth');
-    expect(html).toContain('Scale');
+    expect(html).not.toContain('Buy Credits');
+    expect(html).not.toContain('Track B');
   });
 
   it('renders perpetual license tier names', async () => {
@@ -268,7 +267,7 @@ describe('PricingPage', () => {
 
     expect(html).toContain('Frequently Asked Questions');
     expect(html).toContain('Can I use the Free tier for commercial projects?');
-    expect(html).toContain('What are agent credits?');
+    expect(html).toContain('How does agent task billing work?');
     expect(html).toContain('What are perpetual licenses?');
   });
 
@@ -355,7 +354,8 @@ describe('PricingPage', () => {
     const result = await PricingPage();
     const html = JSON.stringify(result);
 
-    expect(html).toContain('Test Bundle');
+    // Track B (credits) is hidden — Test Bundle should not render
+    expect(html).not.toContain('Test Bundle');
     expect(html).toContain('Test License');
   });
 
@@ -380,12 +380,14 @@ describe('PricingPage', () => {
     expect(html).toContain('Consulting Hour');
   });
 
-  it('renders the "Best value" badge on highlighted credit bundle', async () => {
+  it('does not render credit bundle "Best value" badge (Track B hidden)', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
     const result = await PricingPage();
     const html = JSON.stringify(result);
 
-    expect(html).toContain('Best value');
+    // Credit bundle section is hidden — no "Best value" badge should render
+    // from the credit bundles (it may appear elsewhere for subscription tiers)
+    expect(html).not.toContain('Buy Credits');
   });
 });
