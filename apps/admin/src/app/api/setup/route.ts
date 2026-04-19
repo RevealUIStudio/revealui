@@ -14,13 +14,32 @@ const SetupSchema = z.object({
 });
 
 /**
+ * Web setup is disabled in production by default. Use CLI bootstrap instead:
+ *   pnpm admin:bootstrap
+ *
+ * Enable with REVEALUI_ALLOW_WEB_SETUP=true (dev defaults to enabled).
+ */
+const isWebSetupDisabled =
+  process.env.REVEALUI_ALLOW_WEB_SETUP !== 'true' && process.env.NODE_ENV === 'production';
+
+/**
  * POST /api/setup  -  Bootstrap a fresh RevealUI instance.
  *
  * Creates the first admin user and seeds minimal content.
  * Self-disabling: returns 403 once any user exists.
  * No auth required (no users exist yet).
+ * Disabled in production unless REVEALUI_ALLOW_WEB_SETUP=true.
  */
 export async function POST(request: Request): Promise<NextResponse<BootstrapResult>> {
+  if (isWebSetupDisabled) {
+    return NextResponse.json(
+      {
+        status: 'error',
+        message: 'Web setup is disabled in production. Use CLI: pnpm admin:bootstrap',
+      } satisfies BootstrapResult,
+      { status: 404 },
+    );
+  }
   let body: unknown;
   try {
     body = await request.json();
@@ -62,6 +81,9 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
  * Returns { needed: true } if no users exist, { needed: false } otherwise.
  */
 export async function GET(): Promise<NextResponse> {
+  if (isWebSetupDisabled) {
+    return NextResponse.json({ needed: false, disabled: true }, { status: 404 });
+  }
   try {
     const revealui = await getRevealUIInstance();
     const existing = await revealui.find({
