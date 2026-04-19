@@ -21,7 +21,7 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-04-10.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
-| **RevealUI** (monorepo) | Beta | Deployed, 20,000+ tests, 25 npm packages. No paying users yet. |
+| **RevealUI** (monorepo) | Beta | Deployed, 25 npm packages, extensive test suite. No paying users yet. |
 | **Forge** (self-hosted) | Beta | Docker stack complete, license enforcement built. No external customers. |
 | **RevVault** (secrets) | Beta | Rust CLI + desktop app, age-encrypted vault. Not published to crates.io. |
 | **Studio** (desktop) | Alpha | Tauri 2 + React 19, agent coordination UI. No published binaries. |
@@ -147,7 +147,7 @@ Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap
 
 ### Long-Term (Q4 2026+)
 
-#### Visual Builder (Foundry)
+#### Visual Builder
 A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.
 
 #### SOC2 Type II Compliance

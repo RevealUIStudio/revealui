@@ -128,6 +128,7 @@
     "changeset:version": "changeset version && pnpm install --no-frozen-lockfile && git add pnpm-lock.yaml",
     "clean": "rm -rf node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist packages/*/.next apps/*/.next packages/*/.turbo apps/*/.turbo packages/*/tsconfig.tsbuildinfo apps/*/tsconfig.tsbuildinfo .next .turbo",
     "clean:install": "pnpm clean && pnpm install:clean",
+    "admin:bootstrap": "tsx scripts/admin/bootstrap.ts",
     "coverage:check": "tsx scripts/gates/test-coverage-gate.ts",
     "db:generate-types": "tsx scripts/dev-tools/post-migration-types.ts",
     "db:init": "tsx scripts/setup/database.ts",
@@ -195,7 +196,8 @@
     "validate:catalog": "tsx scripts/validate/catalog-changeset.ts --warn",
     "validate:claims": "tsx scripts/validate/claim-drift.ts",
     "validate:versions": "tsx scripts/validate/version-policy.ts",
-    "validate:docs-imports": "tsx scripts/validate/docs-import-drift.ts"
+    "validate:docs-imports": "tsx scripts/validate/docs-import-drift.ts",
+    "validate:migrations": "tsx scripts/validate/migration-journal.ts"
   },
   "type": "module"
 }

@@ -36,8 +36,8 @@ const shipped: Feature[] = [
   {
     name: 'Agent Credits (Track B)',
     description:
-      'Pay-per-task billing for AI agent execution. Buy credit bundles that never expire and stack with your monthly subscription allowance. First 1,000 tasks/month free on every plan.',
-    status: 'Available',
+      'Pay-per-task billing for AI agent execution. Buy credit bundles that never expire and stack with your monthly subscription allowance.',
+    status: 'Coming Soon',
     category: 'Billing',
   },
 ];
@@ -72,7 +72,7 @@ const upcoming: Feature[] = [
     category: 'Infrastructure',
   },
   {
-    name: 'Visual Builder (Foundry)',
+    name: 'Visual Builder',
     description:
       'A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.',
     status: 'Planned: Q4 2026+',

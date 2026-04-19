@@ -216,6 +216,11 @@ export function createClient(
 let restClient: Database | null = null;
 let vectorClient: Database | null = null;
 
+// The REST pool, stored for sharing with the CMS adapter (universal-postgres).
+// When the admin app passes this pool to universalPostgresAdapter({ pool }),
+// both systems use the same connection pool — eliminating dual-pool issues.
+let restPool: Pool | null = null;
+
 // Track all pg.Pool instances for monitoring and cleanup
 const activePools: Map<string, Pool> = new Map();
 
@@ -330,7 +335,30 @@ function getClientByType(type: DatabaseType): Database {
       );
     }
 
-    restClient = createClient({ connectionString: url }, restSchema);
+    // For pg-backed connections (Supabase, localhost), create the pool
+    // externally so it can be shared with the CMS adapter via getRestPool().
+    if (isSupabaseConnection(url)) {
+      const poolMax = parseInt(process.env.DB_POOL_MAX || '10', 10);
+      const poolIdleTimeout = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10);
+      const pool = new Pool({
+        connectionString: url,
+        ssl: getSSLConfig(url),
+        max: poolMax,
+        idleTimeoutMillis: poolIdleTimeout,
+        connectionTimeoutMillis: 10_000,
+      });
+      restPool = pool;
+      const poolId = `rest-pool`;
+      activePools.set(poolId, pool);
+      registerPoolCleanup();
+      restClient = drizzlePg({
+        client: pool,
+        schema: restSchema,
+        logger: false,
+      }) as unknown as Database;
+    } else {
+      restClient = createClient({ connectionString: url }, restSchema);
+    }
     restSupportsTransactions = isSupabaseConnection(url);
   }
   return restClient;
@@ -375,8 +403,34 @@ export function getVectorClient(): Database {
 export function resetClient(): void {
   restClient = null;
   vectorClient = null;
+  restPool = null;
   restSupportsTransactions = false;
   vectorSupportsTransactions = false;
+}
+
+/**
+ * Returns the underlying pg.Pool used by the REST database client, or null
+ * if the REST client uses Neon serverless (which has no pg.Pool).
+ *
+ * Pass this to `universalPostgresAdapter({ pool })` in revealui.config.ts
+ * so both the CMS adapter and Drizzle ORM share a single connection pool.
+ * This eliminates the dual-pool architecture that caused session/write
+ * visibility bugs when env vars were overridden (e.g., probe DB setup).
+ */
+export function getRestPool(): Pool | null {
+  // Force initialization if not yet done — but only if a DB URL is available.
+  // During Next.js build in CI, no DB URL exists and getClientByType would throw.
+  // Return null gracefully so the caller falls back to its own pool creation.
+  if (!restClient) {
+    const url = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+    if (!url) return null;
+    try {
+      getClientByType('rest');
+    } catch {
+      return null;
+    }
+  }
+  return restPool;
 }
 
 // =============================================================================

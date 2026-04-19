@@ -22,7 +22,7 @@
 - **History:** 2,410+ commits (Dec 30, 2025 – Apr 2026), solo developer
 - **Apps:** 5 (api, admin, docs, marketing, revealcoin)
 - **Packages:** 25 packages + 5 apps = 30 workspaces
-- **Tests:** 1,706 test files, 20,000+ tests passing, all workspaces build and typecheck
+- **Tests:** extensive test suite across unit, integration, and E2E layers; all workspaces build and typecheck (run `pnpm test` for current count)
 - **Database:** 81 tables (Drizzle ORM, dual NeonDB + Supabase), 61 CHECK constraints enforced (migration 0001 applied 2026-04-15)
 - **UI Components:** 57 native components (Tailwind v4, zero external UI deps)
 - **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml, system-tune-snapshot.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks
@@ -694,7 +694,7 @@ Phase D  -  Agent publisher tools (agent):
 
 ---
 
-### Phase 7: Foundry  -  Business Bundle Generator (post-Phase 5, new product)
+### Phase 7: Crucible  -  Business Bundle Generator (post-Phase 5, new product)
 
 **Origin:** Extracted from the Allevia Technology pitch kit workflow. Building the Allevia trial kit
 revealed a repeatable pattern worth productizing.
@@ -714,13 +714,13 @@ structured "boardroom-ready business bundle"  -  a complete sales deliverable pa
 companies pitching to enterprise or mid-market clients.
 
 **Seed artifact:** `~/projects/allevia-pitch-kit/`  -  the Allevia trial kit hand-assembled for
-RevealUI's first Forge prospect. The workflow to build it is the proto-Foundry pipeline.
+RevealUI's first Forge prospect. The workflow to build it is the proto-Crucible pipeline.
 
-**When to start:** After Phase 5 ships and RevealUI has recurring revenue. Foundry is a separate
+**When to start:** After Phase 5 ships and RevealUI has recurring revenue. Crucible is a separate
 product, not an extension of RevealUI.
 
-- [ ] Define Foundry product spec (target customer, bundle types, delivery formats)
-- [ ] Bootstrap as new project (`~/projects/Foundry`)
+- [ ] Define Crucible product spec (target customer, bundle types, delivery formats)
+- [ ] Bootstrap as new project (`~/suite/crucible`)
 - [ ] Extract Allevia kit workflow into repeatable pipeline steps
 - [ ] Build template library (pitch deck, SOW, install guide, pricing sheet)
 - [ ] Build bundle assembly CLI / UI

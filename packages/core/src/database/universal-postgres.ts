@@ -15,7 +15,7 @@
 import type { Field } from '@revealui/contracts/admin';
 import { defaultLogger } from '../instance/logger.js';
 import { logger } from '../observability/logger.js';
-import type { DatabaseAdapter, DatabaseResult } from '../types/index.js';
+import type { DatabaseAdapter, DatabaseResult, QueryableDatabaseAdapter } from '../types/index.js';
 import { safeParseRevealDocuments } from './safe-parse.js';
 import { getSSLConfig } from './ssl-config.js';
 
@@ -37,6 +37,20 @@ export interface UniversalPostgresAdapterConfig {
    * Force a specific provider (optional, auto-detected if not provided)
    */
   provider?: 'neon' | 'supabase' | 'electric';
+  /**
+   * Shared pg Pool instance. When provided, the adapter uses this pool
+   * instead of creating its own. This eliminates dual-pool issues where
+   * the CMS adapter and the Drizzle ORM client create separate connections
+   * to the same database. Pass the same pool to both systems.
+   */
+  pool?: import('pg').Pool;
+  /**
+   * Async factory that returns a shared pg Pool. Called once during
+   * initializeConnection. Use this instead of `pool` when the pool
+   * source can't be imported at the top level (e.g., Turbopack async
+   * module init issues in Next.js).
+   */
+  poolFactory?: () => Promise<import('pg').Pool | null>;
 }
 
 /**
@@ -143,9 +157,80 @@ export function universalPostgresAdapter(
   config: UniversalPostgresAdapterConfig = {},
 ): DatabaseAdapter {
   let queryFn: (queryString: string, values: unknown[]) => Promise<DatabaseResult>;
+  let transactionFn: <T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>) => Promise<T>;
   let provider: 'neon' | 'supabase' | 'electric' | 'generic' = 'generic';
 
+  // Shared transaction builder for pg-library-backed providers (neon, supabase, generic).
+  // Holds one pooled client across BEGIN/fn/COMMIT so every query inside `fn` sees the
+  // same snapshot — required for read-after-write correctness.
+  type PgClient = {
+    query: (q: string, v?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number | null }>;
+    release: () => void;
+  };
+  const buildPgTransactionFn = (
+    pool: { connect: () => Promise<PgClient> },
+    providerLabel: string,
+  ): typeof transactionFn => {
+    return async <T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> => {
+      const client = await pool.connect();
+      let committed = false;
+      try {
+        await client.query('BEGIN');
+        const tx: QueryableDatabaseAdapter = {
+          query: async (queryString: string, values: unknown[] = []) => {
+            const result = await client.query(queryString, values);
+            return {
+              rows: safeParseRevealDocuments(result.rows),
+              rowCount: result.rowCount || 0,
+            };
+          },
+        };
+        const result = await fn(tx);
+        await client.query('COMMIT');
+        committed = true;
+        return result;
+      } catch (error) {
+        if (!committed) {
+          try {
+            await client.query('ROLLBACK');
+          } catch (rollbackErr) {
+            defaultLogger.error(
+              `${providerLabel} transaction rollback failed after error:`,
+              rollbackErr,
+            );
+          }
+        }
+        throw error;
+      } finally {
+        client.release();
+      }
+    };
+  };
+
   const initializeConnection = async (): Promise<void> => {
+    // Fast path: shared pool provided — skip all pool creation and provider detection.
+    // The caller (typically revealui.config.ts) passes the same pg.Pool that the
+    // Drizzle ORM client uses, eliminating the dual-connection-pool architecture.
+    // Resolve shared pool from either direct `pool` or async `poolFactory`
+    const sharedPool = config.pool ?? (config.poolFactory ? await config.poolFactory() : null);
+    if (sharedPool) {
+      provider = 'generic';
+      queryFn = async (queryString: string, values: unknown[] = []) => {
+        const client = await sharedPool.connect();
+        try {
+          const result = await client.query(queryString, values);
+          return {
+            rows: safeParseRevealDocuments(result.rows),
+            rowCount: result.rowCount || 0,
+          };
+        } finally {
+          client.release();
+        }
+      };
+      transactionFn = buildPgTransactionFn(sharedPool, 'shared-pool');
+      return;
+    }
+
     // Allow explicit electric provider without a connection string (PGlite local)
     let connectionString: string | undefined;
 
@@ -202,6 +287,7 @@ export function universalPostgresAdapter(
             throw error;
           }
         };
+        transactionFn = buildPgTransactionFn(neonPool, 'Neon');
         break;
       }
 
@@ -234,6 +320,7 @@ export function universalPostgresAdapter(
               client.release();
             }
           };
+          transactionFn = buildPgTransactionFn(pool, 'Supabase (txn-pool)');
         } else {
           // Use pg library for session pooling or direct connections (port 5432)
           const { Pool } = await import('pg');
@@ -259,6 +346,7 @@ export function universalPostgresAdapter(
               throw error;
             }
           };
+          transactionFn = buildPgTransactionFn(pool, 'Supabase');
         }
         break;
       }
@@ -279,6 +367,23 @@ export function universalPostgresAdapter(
             rows: safeParseRevealDocuments(result.rows),
             rowCount: (result as { rowCount?: number }).rowCount || 0,
           };
+        };
+        // PGlite ships a native transaction(fn) with its own tx.query — wrap it
+        // so the callback sees a QueryableDatabaseAdapter.
+        transactionFn = async <T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> => {
+          // biome-ignore lint/style/noNonNullAssertion: db is set above in the electric branch
+          return await db!.transaction(async (pgliteTx) => {
+            const tx: QueryableDatabaseAdapter = {
+              query: async (queryString: string, values: unknown[] = []) => {
+                const result = await pgliteTx.query(queryString, values);
+                return {
+                  rows: safeParseRevealDocuments(result.rows),
+                  rowCount: (result as { rowCount?: number }).rowCount || 0,
+                };
+              },
+            };
+            return await fn(tx);
+          });
         };
         break;
       }
@@ -310,6 +415,7 @@ export function universalPostgresAdapter(
             throw error;
           }
         };
+        transactionFn = buildPgTransactionFn(pool, 'PostgreSQL');
         break;
       }
     }
@@ -394,6 +500,28 @@ export function universalPostgresAdapter(
       }
 
       return queryFn(queryString, values);
+    },
+
+    async transaction<T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> {
+      if (!initialized) {
+        await initializeConnection();
+        initialized = true;
+      }
+
+      // Flush pending table creations before opening a transaction so the
+      // schema is in place on the same connection we're about to hold.
+      const pendingCreations = getWorkerPendingTableCreations();
+      if (pendingCreations.length > 0) {
+        try {
+          await Promise.all(pendingCreations);
+          pendingCreations.length = 0;
+        } catch (error) {
+          defaultLogger.error('Failed to create tables before transaction:', error);
+          throw error;
+        }
+      }
+
+      return transactionFn(fn);
     },
 
     // Create table schema for PGlite provider

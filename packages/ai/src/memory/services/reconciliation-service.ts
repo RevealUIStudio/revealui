@@ -1,11 +1,22 @@
 /**
- * Reconciliation Service - LLM-powered fact resolution for multi-agent memory.
+ * Reconciliation Service - Fact resolution for multi-agent memory.
  *
  * Reads shared facts from a coordination session, groups related facts,
- * calls an LLM to determine canonical truths, resolve contradictions,
- * and deduplicate. Produces reconciled memories for Layer 3.
+ * deduplicates, and resolves contradictions. Produces reconciled memories
+ * for Layer 3.
  *
  * Layer 3 of the multi-agent shared memory architecture.
+ *
+ * LICENSING BOUNDARY:
+ * - `reconcileHeuristic()` is the production path — no external API calls,
+ *   safe for all tiers including free customers.
+ * - `buildReconciliationPrompt()` and `parseReconciliationResponse()` are
+ *   reference implementations for internal/developer use only. They build
+ *   a prompt string but DO NOT call any LLM API. If wired to an LLM provider,
+ *   the caller is responsible for API pricing and usage compliance.
+ * - Customer-facing reconciliation MUST use the heuristic path or a
+ *   self-hosted model (e.g. Ollama). Do not proxy third-party LLM APIs
+ *   to end users without a commercial API agreement with the provider.
  */
 
 export interface SharedFactInput {

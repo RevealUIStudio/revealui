@@ -53,7 +53,7 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 
 - **Framework**: RevealUI  -  Full-stack React 19 + Next.js 16 Admin Framework
 - **Package Count**: 25 packages (23 OSS + 2 Pro)
-- **Test Status**: 1,300+ test files, all packages build and typecheck ✅
+- **Test Status**: extensive test suite, all packages build and typecheck ✅
 - **Build Status**: All 30 workspaces build successfully ✅
 
 ### Commercial Direction
@@ -539,7 +539,7 @@ The agent has access to extensive automation scripts in `/scripts`:
 
 ### Configured MCP Servers
 
-The agent has access to **12 MCP servers** configured specifically for RevealUI:
+The agent has access to **13 MCP servers** configured specifically for RevealUI:
 
 1. **Code Validator MCP** (`mcp-code-validator`)
    - Static analysis and code quality checks

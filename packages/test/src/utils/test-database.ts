@@ -6,11 +6,10 @@
 
 import fs from 'node:fs';
 import { universalPostgresAdapter } from '@revealui/core';
-import type { DatabaseAdapter } from '@revealui/core/types';
+import type { DatabaseAdapter, QueryableDatabaseAdapter } from '@revealui/core/types';
 
 type TestDatabaseAdapter = DatabaseAdapter & {
   __testDbPath?: string;
-  transaction: (callback: (syncQuery?: unknown) => void | Promise<void>) => Promise<void>;
 };
 
 let testDb: TestDatabaseAdapter | null = null;
@@ -47,16 +46,23 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
       const converted = queryString.replace(/\?/g, () => `$${++idx}`);
       return base.query(converted, values);
     },
-    async transaction(callback: (syncQuery?: unknown) => void | Promise<void>) {
-      // Basic transaction wrapper  -  begin/commit/rollback
-      await base.query('BEGIN', []);
-      try {
-        await callback();
-        await base.query('COMMIT', []);
-      } catch (err) {
-        await base.query('ROLLBACK', []);
-        throw err;
+    async transaction<T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> {
+      // Delegate to the real adapter's transaction so the callback runs on
+      // a single held connection (required for read-after-write correctness).
+      // The `?` → `$n` placeholder conversion is applied inside the tx wrapper.
+      if (!base.transaction) {
+        throw new Error('Underlying test adapter does not support transactions');
       }
+      return await base.transaction(async (baseTx) => {
+        const tx: QueryableDatabaseAdapter = {
+          query: async (queryString: string, values: unknown[] = []) => {
+            let idx = 0;
+            const converted = queryString.replace(/\?/g, () => `$${++idx}`);
+            return baseTx.query(converted, values);
+          },
+        };
+        return await fn(tx);
+      });
     },
   };
 

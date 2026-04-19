@@ -22,8 +22,9 @@ export async function create(
 
   const collectionConfig = instance.config.collections?.find((c) => c.slug === collection);
 
-  // Enforce collection-level access control
-  if (collectionConfig?.access?.create && options.req) {
+  // Enforce collection-level access control (skip when overrideAccess is set,
+  // matching the low-level create() guard in collections/operations/create.ts)
+  if (collectionConfig?.access?.create && options.req && !options.overrideAccess) {
     const canCreate = await collectionConfig.access.create({
       req: options.req as unknown as ContractsRevealRequest,
       data: options.data,

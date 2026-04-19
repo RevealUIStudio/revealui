@@ -191,8 +191,10 @@ PGHBA
             export PGHOST="$PWD/.pgdata"
             export PGDATABASE="postgres"
             export PGUSER="postgres"
-            export POSTGRES_URL="postgresql://postgres@localhost:5432/postgres"
-            export DATABASE_URL="postgresql://postgres@localhost:5432/postgres"
+            # DB connection defaults — only set if not already provided by .env.local or revvault.
+            # This allows probe, test, and custom DB setups to override without direnv shadowing.
+            export POSTGRES_URL="''${POSTGRES_URL:-postgresql://postgres@localhost:5432/postgres}"
+            export DATABASE_URL="''${DATABASE_URL:-postgresql://postgres@localhost:5432/postgres}"
 
             # Silence NPM_TOKEN expansion warning
             export NPM_TOKEN="''${NPM_TOKEN:-}"

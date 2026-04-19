@@ -108,7 +108,7 @@ const primitives: Primitive[] = [
     forYou: {
       headline: 'Product catalog, pricing tiers, and usage tracking',
       description:
-        'Define products, pricing tiers, and feature gates in one place. Usage tracking, license enforcement, and upgrade prompts are built in. Four pricing tracks: subscriptions, agent credits, perpetual licenses, and services.',
+        'Define products, pricing tiers, and feature gates in one place. License enforcement and upgrade prompts are built in. Subscription billing via Stripe with perpetual license support.',
     },
     forAgents: {
       headline: 'Feature gates control which agent capabilities unlock per tier',

@@ -4,12 +4,16 @@
  * Provides mocks for database operations
  */
 
-import type { DatabaseAdapter, DatabaseResult, RevealDocument } from '@revealui/core/types';
+import type {
+  DatabaseAdapter,
+  DatabaseResult,
+  QueryableDatabaseAdapter,
+  RevealDocument,
+} from '@revealui/core/types';
 
 type MockDatabaseAdapter = DatabaseAdapter & {
   __mockData?: Record<string, unknown[]>;
   close?: () => Promise<void>;
-  transaction?: (callback: () => Promise<unknown>) => Promise<void>;
 };
 
 /**
@@ -66,9 +70,10 @@ export function createMockDatabase(): DatabaseAdapter {
       });
     },
 
-    async transaction(callback: () => Promise<unknown>): Promise<void> {
-      // Mock transaction
-      await callback();
+    async transaction<T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> {
+      // Mock transaction — no real connection affinity, just passes the mock
+      // itself as the tx client so queries run against the same mock state.
+      return await fn(mockDb);
     },
   };
 

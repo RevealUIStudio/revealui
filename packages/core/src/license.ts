@@ -10,10 +10,17 @@
  * - zod - Schema validation for license payloads
  */
 
-import { decodeProtectedHeader, importPKCS8, importSPKI, jwtVerify, SignJWT } from 'jose';
+// jose is imported lazily inside async functions to avoid Turbopack's
+// async module initialization ordering issue (see #399). Top-level
+// import of jose triggers an asyncModule wrapper that can race with
+// other modules in the auth route bundle during page data collection.
 import { z } from 'zod';
 import { decryptLicenseKey } from './license-encryption.js';
 import { logger } from './utils/logger.js';
+
+async function getJose() {
+  return await import('jose');
+}
 
 /** JWT issuer and audience for license tokens — prevents cross-environment replay */
 const LICENSE_ISSUER = process.env.REVEALUI_LICENSE_ISSUER ?? 'https://revealui.com';
@@ -119,15 +126,42 @@ export interface LicenseCacheConfig {
 
 const DEFAULT_TTL_MS = 15_000; // 15 seconds  -  revoked licenses lose access quickly
 
+/**
+ * Hard cap on cache TTL. Any env override exceeding this is clamped + warned.
+ * Revoked licenses must not stay cached longer than this, regardless of
+ * operator misconfiguration. 15 minutes balances revocation responsiveness
+ * against DB load for high-traffic deployments.
+ *
+ * Tracked by MASTER_PLAN §CR-8 CR8-P1-05.
+ */
+export const MAX_LICENSE_CACHE_TTL_MS = 15 * 60 * 1000;
+
+/**
+ * Parse and validate the `LICENSE_CACHE_TTL_MS` env value.
+ *
+ * Rules:
+ * - Unset / non-numeric / non-positive → `DEFAULT_TTL_MS` (15s)
+ * - Above `MAX_LICENSE_CACHE_TTL_MS` → clamped to cap, warning emitted
+ * - Otherwise → parsed value
+ *
+ * Exported for unit testing. Production code uses the module-load-time
+ * evaluation in `DEFAULT_CACHE_CONFIG` below.
+ */
+export function parseLicenseCacheTtlEnv(envValue: string | undefined): number {
+  if (!envValue) return DEFAULT_TTL_MS;
+  const parsed = Number.parseInt(envValue, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_TTL_MS;
+  if (parsed > MAX_LICENSE_CACHE_TTL_MS) {
+    logger.warn(
+      `LICENSE_CACHE_TTL_MS=${parsed} exceeds the ${MAX_LICENSE_CACHE_TTL_MS}ms (15-minute) cap; using ${MAX_LICENSE_CACHE_TTL_MS}. Longer TTLs extend the window where revoked licenses retain access and are not permitted.`,
+    );
+    return MAX_LICENSE_CACHE_TTL_MS;
+  }
+  return parsed;
+}
+
 const DEFAULT_CACHE_CONFIG: LicenseCacheConfig = {
-  ttlMs: (() => {
-    const envTtl = process.env.LICENSE_CACHE_TTL_MS;
-    if (envTtl) {
-      const parsed = Number.parseInt(envTtl, 10);
-      if (Number.isFinite(parsed) && parsed > 0) return parsed;
-    }
-    return DEFAULT_TTL_MS;
-  })(),
+  ttlMs: parseLicenseCacheTtlEnv(process.env.LICENSE_CACHE_TTL_MS),
 };
 
 let cacheConfig: LicenseCacheConfig = { ...DEFAULT_CACHE_CONFIG };
@@ -204,8 +238,9 @@ export async function validateLicenseKey(
   publicKey: string,
 ): Promise<LicensePayload | null> {
   try {
+    const jose = await getJose();
     // Extract kid from JWT header for forward-compatible key rotation
-    const header = decodeProtectedHeader(licenseKey);
+    const header = jose.decodeProtectedHeader(licenseKey);
     const expectedKid = await computeKeyId(publicKey);
     if (header.kid && header.kid !== expectedKid) {
       logger.warn(
@@ -214,10 +249,10 @@ export async function validateLicenseKey(
       );
     }
 
-    const key = await importSPKI(publicKey, 'RS256');
+    const key = await jose.importSPKI(publicKey, 'RS256');
     // Accept tokens expired within the subscription grace window so the
     // payload is available for grace-period calculations in isLicensed().
-    const { payload } = await jwtVerify(licenseKey, key, {
+    const { payload } = await jose.jwtVerify(licenseKey, key, {
       algorithms: ['RS256'],
       clockTolerance: graceConfig.subscriptionDays * 86_400,
       issuer: LICENSE_ISSUER,
@@ -489,13 +524,14 @@ export async function generateLicenseKey(
   expiresInSeconds: number | null = 365 * 24 * 60 * 60,
   publicKey?: string,
 ): Promise<string> {
-  const key = await importPKCS8(privateKey, 'RS256');
+  const jose = await getJose();
+  const key = await jose.importPKCS8(privateKey, 'RS256');
   const kid = publicKey ? await computeKeyId(publicKey) : undefined;
   const header: { alg: string; kid?: string } = { alg: 'RS256' };
   if (kid) {
     header.kid = kid;
   }
-  const builder = new SignJWT({ ...payload })
+  const builder = new jose.SignJWT({ ...payload })
     .setProtectedHeader(header)
     .setIssuedAt()
     .setIssuer(LICENSE_ISSUER)

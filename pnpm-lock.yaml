@@ -658,6 +658,9 @@ importers:
       '@revealui/db':
         specifier: workspace:*
         version: link:../db
+      '@revealui/resilience':
+        specifier: workspace:*
+        version: link:../resilience
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@electric-sql/pglite@0.4.4)(@neondatabase/serverless@1.0.2)(@opentelemetry/api@1.9.1)(@types/pg@8.20.0)(pg@8.20.0)

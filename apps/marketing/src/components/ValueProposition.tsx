@@ -5,7 +5,7 @@ export function ValueProposition() {
     {
       title: 'Auth + Billing, Done',
       description:
-        'Session auth, Stripe subscriptions, usage metering, and webhooks, already connected. Your agents inherit the same RBAC permissions and billing controls. Upgrade a customer, their agents get smarter.',
+        'Session auth, Stripe subscriptions, and webhooks, already connected. Your agents inherit the same RBAC permissions and billing controls. Upgrade a customer, their agents get smarter.',
       icon: 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z',
       accent: 'bg-gray-950',
       href: 'https://docs.revealui.com/docs/QUICK_START',
@@ -21,7 +21,7 @@ export function ValueProposition() {
     {
       title: 'AI + Agents, Done',
       description:
-        '12 MCP servers, agent coordination, and open-model inference, built into the foundation, not bolted on. Agents discover tools, remember context, and transact autonomously. No proprietary API keys required.',
+        '13 MCP servers, agent coordination, and open-model inference, built into the foundation, not bolted on. Agents discover tools, remember context, and transact autonomously. No proprietary API keys required.',
       icon: 'M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09zM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456z',
       accent: 'bg-violet-600',
       href: 'https://docs.revealui.com/docs/AI',

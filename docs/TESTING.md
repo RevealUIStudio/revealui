@@ -11,7 +11,7 @@ Reference guide to testing in the RevealUI monorepo.
 
 ## Overview
 
-RevealUI has **~20,000 test cases across 1,300+ test files**.
+RevealUI has an extensive test suite across unit, integration, and end-to-end layers. For a fresh count, run `pnpm test` or `find . -name "*.test.ts" -not -path "*/node_modules/*" -not -path "*/dist/*" | wc -l`.
 
 ### Testing Stack
 

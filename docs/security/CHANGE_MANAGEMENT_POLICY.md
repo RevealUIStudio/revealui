@@ -111,7 +111,7 @@ The CI gate (`pnpm gate`) enforces quality standards automatically:
 
 | Check | Type | Failure Mode |
 |-------|------|-------------|
-| Vitest | 20,000+ tests across 1,704 test files | Hard fail (blocks merge) |
+| Vitest | Full test suite across the monorepo | Hard fail (blocks merge) |
 | Turborepo build | Full build across all workspaces | Hard fail (blocks merge) |
 
 ### Pre-Push Gate

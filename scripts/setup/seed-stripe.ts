@@ -26,6 +26,9 @@ import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { config } from 'dotenv';
 import type Stripe from 'stripe';
+// Relative TS import resolves via tsx at script runtime; avoids adding
+// @revealui/contracts as a root-level dep. Script only; not bundled.
+import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
 
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
@@ -315,21 +318,15 @@ const CATALOG: ProductDefinition[] = [
   },
 ];
 
-// Canonical webhook events  -  must mirror `relevantEvents` in apps/api/src/routes/webhooks.ts
-const WEBHOOK_EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = [
-  'checkout.session.completed',
-  'customer.subscription.created',
-  'customer.subscription.updated',
-  'customer.subscription.deleted',
-  'customer.deleted',
-  'invoice.payment_failed',
-  'invoice.payment_succeeded',
-  'payment_intent.payment_failed',
-  'customer.subscription.trial_will_end',
-  'charge.dispute.closed',
-  'charge.dispute.created',
-  'charge.refunded',
-];
+// Canonical webhook events now sourced from `@revealui/contracts` so this
+// script and `apps/api/src/routes/webhooks.ts` cannot drift.
+// `satisfies` preserves type-checking: if any event name in the shared
+// constant is NOT a valid Stripe EnabledEvent (e.g. stripe SDK types
+// change), TypeScript errors here rather than silently accepting it.
+// Tracked by CR-8 audit finding revealui#406.
+const WEBHOOK_EVENTS = [
+  ...RELEVANT_STRIPE_WEBHOOK_EVENTS,
+] satisfies Stripe.WebhookEndpointCreateParams.EnabledEvent[];
 
 // Env vars to track: public-facing price IDs + server-side aliases
 const PRICE_ENV_KEYS: Record<string, string> = {
@@ -655,10 +652,33 @@ async function setupBillingPortal(
   log.info('Setting up billing portal configuration...');
 
   const existing = await stripe.billingPortal.configurations.list({ limit: 100 });
-  const match = existing.data.find((c) => c.metadata?.revealui_portal === 'true');
+  const seedCreated = existing.data.find((c) => c.metadata?.revealui_portal === 'true');
+  const currentDefault = existing.data.find((c) => c.is_default === true);
 
-  // Build the features config with all products for plan switching
+  // Drift detection: warn if the current default is NOT the seed-managed one.
+  // This was the CR-8 audit finding  -  a non-seed-managed config was default
+  // in test mode, missing subscription_update (customers couldn't self-serve
+  // plan switches). Warn loudly so the operator archives/reassigns in dashboard.
+  if (currentDefault && currentDefault.metadata?.revealui_portal !== 'true') {
+    log.warn(
+      `Default billing portal config (${currentDefault.id}) was NOT created by this script.`,
+    );
+    log.warn(`  Its features may differ from the canonical set below. Review in Stripe dashboard:`);
+    log.warn(`    https://dashboard.stripe.com/settings/billing/portal`);
+    log.warn(`  Recommendation: archive it and select the seed-managed config as default.`);
+  }
+
+  // Canonical feature set  -  all five portal capabilities enabled.
+  // The pre-CR-8 default had subscription_update disabled, blocking customer
+  // self-serve plan switches. Customers should be able to fully manage their
+  // account from the portal without contacting support.
   const portalFeatures: Stripe.BillingPortal.ConfigurationCreateParams.Features = {
+    customer_update: {
+      enabled: true,
+      // `email` intentionally omitted — RevealUI uses email as auth identity,
+      // and portal-editing it would drift from the auth session.
+      allowed_updates: ['address', 'name', 'phone', 'shipping', 'tax_id'],
+    },
     subscription_cancel: { enabled: true, mode: 'at_period_end' },
     subscription_update: {
       enabled: true,
@@ -673,14 +693,20 @@ async function setupBillingPortal(
     payment_method_update: { enabled: true },
   };
 
-  if (match) {
+  if (seedCreated) {
     if (dryRun) {
-      log.info(`Would update billing portal config: ${match.id}`);
+      log.info(`Would update billing portal config: ${seedCreated.id}`);
     } else {
-      await stripe.billingPortal.configurations.update(match.id, {
+      await stripe.billingPortal.configurations.update(seedCreated.id, {
         features: portalFeatures,
       });
-      log.success(`Updated billing portal config: ${match.id}`);
+      log.success(`Updated billing portal config: ${seedCreated.id}`);
+    }
+    if (seedCreated.is_default === false) {
+      log.warn(
+        `Seed-managed config ${seedCreated.id} is NOT the account default. Select it in Stripe dashboard:`,
+      );
+      log.warn(`    https://dashboard.stripe.com/settings/billing/portal`);
     }
     return;
   }
@@ -691,6 +717,9 @@ async function setupBillingPortal(
       `  Products for plan switching: ${subscriptionProducts
         .map((product) => product.productId)
         .join(', ')}`,
+    );
+    log.info(
+      `  Features enabled: customer_update, subscription_cancel, subscription_update, invoice_history, payment_method_update`,
     );
     return;
   }
@@ -704,8 +733,11 @@ async function setupBillingPortal(
   });
 
   log.success(`Created billing portal config: ${portalConfig.id}`);
+  log.warn(`ACTION REQUIRED: select this config as the default customer portal.`);
+  log.warn(`  Stripe API does not expose default-config selection — dashboard-only:`);
+  log.warn(`    https://dashboard.stripe.com/settings/billing/portal`);
   log.warn(
-    'Review the Stripe dashboard if you need this configuration selected as the default customer portal.',
+    `  Then archive any other portal configurations that are not the seed-managed one (metadata.revealui_portal='true').`,
   );
 }
 
