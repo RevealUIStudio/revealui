@@ -10,6 +10,11 @@
 import type { Database } from '@revealui/db/client';
 import { decryptApiKey } from '@revealui/db/crypto';
 import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
+import {
+  CircuitBreaker,
+  type CircuitBreakerConfig,
+  CircuitBreakerOpenError,
+} from '@revealui/resilience';
 import { and, eq } from 'drizzle-orm';
 import type { AuditStore } from '../audit/store.js';
 import type { ProviderHealthMonitor } from './provider-health.js';
@@ -77,6 +82,10 @@ export interface LLMClientConfig {
   semanticCacheOptions?: SemanticCacheOptions;
   /** Optional health monitor  -  records latency + error rate per provider */
   healthMonitor?: ProviderHealthMonitor;
+  /** Circuit breaker failure threshold before tripping (default: 5) */
+  circuitBreakerFailureThreshold?: number;
+  /** Circuit breaker reset timeout in ms before half-open probe (default: 30000) */
+  circuitBreakerResetTimeout?: number;
 }
 
 interface RateLimitState {
@@ -94,6 +103,8 @@ export class LLMClient {
   private responseCache?: ResponseCache;
   private semanticCache?: SemanticCache;
   private healthMonitor?: ProviderHealthMonitor;
+  private circuitBreaker: CircuitBreaker;
+  private fallbackCircuitBreaker?: CircuitBreaker;
   /** Tracks the last resolved API key so we only recreate the provider when it changes */
   private currentApiKey: string;
 
@@ -118,6 +129,18 @@ export class LLMClient {
 
     // Wire health monitor if provided
     this.healthMonitor = config.healthMonitor;
+
+    // Per-provider circuit breakers — isolate outages so one provider's failure
+    // doesn't block calls to a different provider
+    const cbConfig: CircuitBreakerConfig = {
+      failureThreshold: config.circuitBreakerFailureThreshold ?? 5,
+      resetTimeout: config.circuitBreakerResetTimeout ?? 30_000,
+      successThreshold: 2,
+    };
+    this.circuitBreaker = new CircuitBreaker(cbConfig);
+    if (config.fallbackProvider) {
+      this.fallbackCircuitBreaker = new CircuitBreaker(cbConfig);
+    }
 
     // Wire dedicated embed provider if supplied
     this.embedProviderOverride = config.embedProvider;
@@ -289,7 +312,9 @@ export class LLMClient {
     const callStart = Date.now();
     try {
       this.recordRequest();
-      const response = await this.provider.chat(messages, options);
+      const response = await this.circuitBreaker.execute(() =>
+        this.provider.chat(messages, options),
+      );
       this.healthMonitor?.recordCall(this.config.provider, Date.now() - callStart);
 
       // Store in semantic cache (if enabled)
@@ -326,11 +351,14 @@ export class LLMClient {
       );
       // Try fallback if available
       if (this.fallbackProvider && this.config.fallbackProvider) {
+        const fp = this.fallbackProvider;
         const fallbackStart = Date.now();
         try {
-          const fallbackResponse = await this.fallbackProvider.chat(messages, options);
+          const fb = this.fallbackCircuitBreaker
+            ? await this.fallbackCircuitBreaker.execute(() => fp.chat(messages, options))
+            : await fp.chat(messages, options);
           this.healthMonitor?.recordCall(this.config.fallbackProvider, Date.now() - fallbackStart);
-          return fallbackResponse;
+          return fb;
         } catch (fallbackError) {
           this.healthMonitor?.recordCall(
             this.config.fallbackProvider,
@@ -360,12 +388,15 @@ export class LLMClient {
 
     try {
       this.recordRequest();
-      return await embedProvider.embed(text, options);
+      return await this.circuitBreaker.execute(() => embedProvider.embed(text, options));
     } catch (error) {
       // Try fallback if available (only when using the primary provider path)
       if (!this.embedProviderOverride && this.fallbackProvider) {
+        const fp = this.fallbackProvider;
         try {
-          return await this.fallbackProvider.embed(text, options);
+          return this.fallbackCircuitBreaker
+            ? await this.fallbackCircuitBreaker.execute(() => fp.embed(text, options))
+            : await fp.embed(text, options);
         } catch {
           throw new Error(
             `Both primary and fallback providers failed: ${error instanceof Error ? error.message : String(error)}`,
@@ -384,12 +415,20 @@ export class LLMClient {
     }
 
     try {
+      // Circuit breaker check — streaming can't use execute() wrapper
+      // so we check state and record outcomes manually
+      if (this.circuitBreaker.isOpen()) {
+        throw new CircuitBreakerOpenError(`llm-${this.config.provider}`);
+      }
       this.recordRequest();
       yield* this.provider.stream(messages, options);
     } catch (error) {
       // Try fallback if available
       if (this.fallbackProvider) {
         try {
+          if (this.fallbackCircuitBreaker?.isOpen()) {
+            throw new CircuitBreakerOpenError(`llm-${this.config.fallbackProvider}`);
+          }
           yield* this.fallbackProvider.stream(messages, options);
         } catch {
           throw new Error(
@@ -408,6 +447,30 @@ export class LLMClient {
    */
   estimateRequest(messages: Message[]): { tokens: number; estimatedCostUsd: number } {
     return _estimateRequestTokens(messages, this.config.model ?? '');
+  }
+
+  /**
+   * Get circuit breaker stats for the primary and fallback providers.
+   */
+  getCircuitBreakerStats(): {
+    primary: { name: string; state: string; stats: ReturnType<CircuitBreaker['getStats']> };
+    fallback?: { name: string; state: string; stats: ReturnType<CircuitBreaker['getStats']> };
+  } {
+    return {
+      primary: {
+        name: `llm-${this.config.provider}`,
+        state: this.circuitBreaker.getState(),
+        stats: this.circuitBreaker.getStats(),
+      },
+      fallback:
+        this.fallbackCircuitBreaker && this.config.fallbackProvider
+          ? {
+              name: `llm-${this.config.fallbackProvider}`,
+              state: this.fallbackCircuitBreaker.getState(),
+              stats: this.fallbackCircuitBreaker.getStats(),
+            }
+          : undefined,
+    };
   }
 
   /**
