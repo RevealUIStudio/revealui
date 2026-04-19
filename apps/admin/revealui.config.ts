@@ -22,6 +22,7 @@ import {
   vercelBlobStorage,
 } from '@revealui/core';
 import { en } from '@revealui/core/admin/i18n/en';
+import { getRestPool } from '@revealui/db/client';
 import sharp from 'sharp';
 // Import shared configuration from @revealui/config
 import Banners from '@/lib/collections/Banners';
@@ -54,18 +55,25 @@ const dirname = path.dirname(filename);
 
 // Get shared config as fallback for serverURL and secret
 const sharedConfig = getSharedCMSConfig();
+// Share the Drizzle client's pg.Pool with the CMS adapter so both systems
+// use a single connection pool. This eliminates dual-pool issues where env
+// overrides (probe DB, custom DBs) only reach one system.
+const sharedPool = process.env.NODE_ENV !== 'test' ? getRestPool() : null;
+
 const dbAdapter =
   process.env.NODE_ENV === 'test'
     ? universalPostgresAdapter({
         provider: 'electric',
       })
-    : process.env.POSTGRES_URL || process.env.DATABASE_URL
-      ? universalPostgresAdapter({
-          connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
-        })
-      : universalPostgresAdapter({
-          provider: 'electric',
-        });
+    : sharedPool
+      ? universalPostgresAdapter({ pool: sharedPool })
+      : process.env.POSTGRES_URL || process.env.DATABASE_URL
+        ? universalPostgresAdapter({
+            connectionString: process.env.POSTGRES_URL || process.env.DATABASE_URL,
+          })
+        : universalPostgresAdapter({
+            provider: 'electric',
+          });
 const typedCollectionStorage = createTypedCollectionStorage();
 
 if (typedCollectionStorage) {

@@ -37,6 +37,13 @@ export interface UniversalPostgresAdapterConfig {
    * Force a specific provider (optional, auto-detected if not provided)
    */
   provider?: 'neon' | 'supabase' | 'electric';
+  /**
+   * Shared pg Pool instance. When provided, the adapter uses this pool
+   * instead of creating its own. This eliminates dual-pool issues where
+   * the CMS adapter and the Drizzle ORM client create separate connections
+   * to the same database. Pass the same pool to both systems.
+   */
+  pool?: import('pg').Pool;
 }
 
 /**
@@ -194,6 +201,28 @@ export function universalPostgresAdapter(
   };
 
   const initializeConnection = async (): Promise<void> => {
+    // Fast path: shared pool provided — skip all pool creation and provider detection.
+    // The caller (typically revealui.config.ts) passes the same pg.Pool that the
+    // Drizzle ORM client uses, eliminating the dual-connection-pool architecture.
+    if (config.pool) {
+      provider = 'generic';
+      const sharedPool = config.pool;
+      queryFn = async (queryString: string, values: unknown[] = []) => {
+        const client = await sharedPool.connect();
+        try {
+          const result = await client.query(queryString, values);
+          return {
+            rows: safeParseRevealDocuments(result.rows),
+            rowCount: result.rowCount || 0,
+          };
+        } finally {
+          client.release();
+        }
+      };
+      transactionFn = buildPgTransactionFn(sharedPool, 'shared-pool');
+      return;
+    }
+
     // Allow explicit electric provider without a connection string (PGlite local)
     let connectionString: string | undefined;
 
