@@ -3,10 +3,10 @@
   "version": 1,
   "entries": [
     {
-      "path": "packages/mcp/migrations/backfill_crdt_meta.js",
-      "rules": ["direct-import"],
-      "reason": "MCP parallel migration runner. Uses pg.Pool directly to backfill CRDT metadata columns. Slated for consolidation into the main drizzle-kit pipeline.",
-      "migrationPhase": 3
+      "path": "packages/mcp/migrations/005_performance_indexes.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "Performance indexes targeting core RevealUI tables (users, posts, sessions, media, …) — misplaced in the MCP package. The indexes themselves are valuable (CREATE INDEX CONCURRENTLY IF NOT EXISTS, idempotent and safe). Pending port into the main Drizzle schema as index() definitions on the relevant pgTable calls.",
+      "migrationPhase": 4
     },
     {
       "path": "packages/scripts/database/connection.ts",
