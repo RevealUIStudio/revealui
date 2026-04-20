@@ -197,7 +197,8 @@
     "validate:claims": "tsx scripts/validate/claim-drift.ts",
     "validate:versions": "tsx scripts/validate/version-policy.ts",
     "validate:docs-imports": "tsx scripts/validate/docs-import-drift.ts",
-    "validate:migrations": "tsx scripts/validate/migration-journal.ts"
+    "validate:migrations": "tsx scripts/validate/migration-journal.ts",
+    "validate:raw-sql": "tsx scripts/validate/raw-sql.ts"
   },
   "type": "module"
 }
