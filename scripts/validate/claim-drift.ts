@@ -113,7 +113,16 @@ interface ClaimMatch {
   metricName: string;
 }
 
-const SCAN_DIRS = ['docs', 'apps/marketing/src', 'README.md', 'CLAUDE.md', 'scripts/setup'];
+const SCAN_DIRS = [
+  'docs',
+  'apps/marketing/src',
+  'README.md',
+  'CLAUDE.md',
+  'CONTRIBUTING.md',
+  'scripts/setup',
+  'packages/mcp/README.md',
+  'packages/mcp/docs',
+];
 
 /** Historical documents where counts were accurate at time of writing */
 const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md'];

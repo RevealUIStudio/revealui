@@ -254,5 +254,5 @@ Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)
 ---
 
 **Status:** ✅ Consolidated and Active
-**Servers:** 7 available (1 active, 6 optional)
-**Last Updated:** 2026-03-04
+**Servers:** 13 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
+**Last Updated:** 2026-04-20
