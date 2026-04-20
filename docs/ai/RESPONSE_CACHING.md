@@ -481,7 +481,6 @@ Response caching provides:
 
 ---
 
-**Implementation**: Production-ready
 **Status**: ✅ Fully tested
 **Provider**: All providers
 **Deployment**: Set `LLM_ENABLE_RESPONSE_CACHE=true`

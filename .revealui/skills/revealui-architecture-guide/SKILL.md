@@ -58,13 +58,13 @@ RevealUI/
 - Drizzle ORM schemas
 - PostgreSQL/PGlite adapters
 - Migration management
-- **Status**: Production ready
+- **Status**: Stable
 
 **@revealui/auth** - Authentication & Authorization
 - JWT management
 - Role-based access control (RBAC)
 - Session handling
-- **Status**: Production ready
+- **Status**: Stable
 
 ### Feature Packages
 
@@ -79,7 +79,7 @@ RevealUI/
 - Input sanitization
 - CSRF protection
 - Rate limiting
-- **Status**: Production ready
+- **Status**: Stable
 
 ### Infrastructure Packages
 
@@ -87,7 +87,7 @@ RevealUI/
 - Environment variable management
 - Type-safe config with Zod validation
 - Multi-environment support
-- **Status**: Production ready
+- **Status**: Stable
 
 **@revealui/contracts** - Type contracts
 - Shared TypeScript interfaces

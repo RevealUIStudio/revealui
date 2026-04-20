@@ -9,8 +9,6 @@ audience: developer
 
 **Last Updated:** 2026-03-05
 **Package:** `@revealui/auth`
-**Status:** Production-ready
-**Production Readiness:** 8.5/10 🟢
 
 ---
 
