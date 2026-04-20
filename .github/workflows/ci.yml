@@ -76,6 +76,65 @@ jobs:
       - name: Claim drift validation (hard fail)
         run: pnpm validate:claims
 
+      - name: Migration journal validation (hard fail)
+        run: pnpm validate:migrations
+
+  # ---------------------------------------------------------------------------
+  # Phase 1.5: Drizzle migration apply (all branches)
+  #
+  # Proves that every drizzle-kit migration in packages/db/migrations applies
+  # cleanly against a fresh Postgres. Catches DDL errors that validate:migrations
+  # (static checks) and unit tests (PGlite) cannot: non-idempotent ADD CONSTRAINT,
+  # extension prerequisites, type mismatches, out-of-band .sql files that mutate
+  # prod schema without going through drizzle-kit.
+  # ---------------------------------------------------------------------------
+  db-migrations:
+    name: Drizzle Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: revealui_migrations
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
+
+      - name: Build @revealui/db (drizzle.config.ts reads from dist/)
+        run: pnpm --filter @revealui/db build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Apply migrations to fresh Postgres (hard fail)
+        run: pnpm --filter @revealui/db db:migrate
+        env:
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
+          DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
+
   # ---------------------------------------------------------------------------
   # Phase 2: Typecheck (all branches)
   # ---------------------------------------------------------------------------
@@ -536,7 +595,7 @@ jobs:
     name: CI Feedback
     runs-on: ubuntu-latest
     timeout-minutes: 2
-    needs: [quality, typecheck, test-unit, build]
+    needs: [quality, typecheck, test-unit, db-migrations, build]
     if: always() && github.event_name == 'pull_request'
 
     steps:
@@ -552,6 +611,9 @@ jobs:
           elif [[ "${{ needs.test-unit.result }}" == "failure" ]]; then
             echo "success=false" >> "$GITHUB_OUTPUT"
             echo "failed_job=test-unit" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ needs.db-migrations.result }}" == "failure" ]]; then
+            echo "success=false" >> "$GITHUB_OUTPUT"
+            echo "failed_job=db-migrations" >> "$GITHUB_OUTPUT"
           elif [[ "${{ needs.build.result }}" == "failure" ]]; then
             echo "success=false" >> "$GITHUB_OUTPUT"
             echo "failed_job=build" >> "$GITHUB_OUTPUT"
