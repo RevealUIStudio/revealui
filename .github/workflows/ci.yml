@@ -124,8 +124,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
-      - name: Build @revealui/db (drizzle.config.ts reads from dist/)
-        run: pnpm --filter @revealui/db build
+      - name: Build @revealui/db and its workspace deps (drizzle.config.ts reads from dist/)
+        run: pnpm --filter '@revealui/db...' build
         env:
           SKIP_ENV_VALIDATION: "true"
 
