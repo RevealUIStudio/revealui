@@ -47,7 +47,7 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1776579007043,
+      "when": 1776912000001,
       "tag": "0006_must_rotate_password",
       "breakpoints": true
     }
