@@ -38,6 +38,7 @@ import {
   sendDisputeReceivedEmail,
   sendGracePeriodStartedEmail,
   sendLicenseActivatedEmail,
+  sendPaymentActionRequiredEmail,
   sendPaymentFailedEmail,
   sendPaymentReceiptEmail,
   sendPaymentRecoveredEmail,
@@ -2385,6 +2386,61 @@ app.openapi(stripeWebhookRoute, async (c) => {
             });
           });
         }
+        break;
+      }
+
+      case 'invoice.payment_action_required': {
+        // Customer's bank returned a 3D Secure / SCA authentication challenge.
+        // The payment has NOT failed yet — they need to complete authentication
+        // on the hosted invoice URL. Access is not interrupted; we notify
+        // the customer so they can complete auth before Stripe retries.
+        //
+        // Distinct from `invoice.payment_failed`:
+        //   - action_required: customer CAN recover by authenticating
+        //   - payment_failed: a hard failure (declined, insufficient funds, etc.)
+        //     after which Stripe's retry schedule kicks in.
+        //
+        // We do NOT modify entitlement state here — that would prematurely
+        // downgrade someone who is simply in an SCA flow.
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = resolveCustomerId(invoice.customer);
+        if (!customerId) break;
+
+        logger.info('Invoice payment requires authentication (3DS/SCA)', {
+          customerId,
+          invoiceId: invoice.id,
+          hostedInvoiceUrl: invoice.hosted_invoice_url,
+        });
+
+        // Resolve tier for email personalization.
+        let actionRequiredTier = 'pro';
+        const [actionTierRow] = await db
+          .select({ tier: licenses.tier })
+          .from(licenses)
+          .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)))
+          .orderBy(desc(licenses.updatedAt))
+          .limit(1);
+        if (actionTierRow?.tier) {
+          actionRequiredTier = actionTierRow.tier;
+        }
+
+        const actionRequiredEmail =
+          invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+        if (actionRequiredEmail) {
+          sendPaymentActionRequiredEmail(actionRequiredEmail, actionRequiredTier).catch(
+            (err: unknown) => {
+              logger.error('Failed to send payment-action-required email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            },
+          );
+        }
+
+        auditLicenseEvent(db, 'payment.action_required', 'info', {
+          customerId,
+          invoiceId: invoice.id,
+          hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+        });
         break;
       }
 

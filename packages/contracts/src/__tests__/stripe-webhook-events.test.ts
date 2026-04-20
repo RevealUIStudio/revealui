@@ -36,6 +36,7 @@ describe('stripe-webhook-events', () => {
     // Invoice + payment intent (payment flow)
     expect(RELEVANT_STRIPE_WEBHOOK_EVENTS).toContain('invoice.payment_succeeded');
     expect(RELEVANT_STRIPE_WEBHOOK_EVENTS).toContain('invoice.payment_failed');
+    expect(RELEVANT_STRIPE_WEBHOOK_EVENTS).toContain('invoice.payment_action_required');
     expect(RELEVANT_STRIPE_WEBHOOK_EVENTS).toContain('payment_intent.payment_failed');
 
     // Dispute + refund (reversals)

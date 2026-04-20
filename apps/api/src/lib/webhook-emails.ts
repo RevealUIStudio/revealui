@@ -121,6 +121,24 @@ ${supportFooter('If you have questions, reply to this email or contact')}`,
   });
 }
 
+export async function sendPaymentActionRequiredEmail(to: string, tier = 'pro'): Promise<void> {
+  const portal = billingUrl();
+  const label = tierLabel(tier);
+  await sendEmail({
+    to,
+    subject: `Action required: authenticate your RevealUI payment`,
+    html: emailShell(
+      'Authentication Required',
+      `<h1 style="color: #2563eb;">Authentication Required</h1>
+<p>Your RevealUI ${escapeHtml(label)} subscription renewal requires additional authentication from your bank (3D Secure / Strong Customer Authentication).</p>
+<p>Your access is <strong>not interrupted</strong> — but to avoid a payment failure on the next retry, please complete authentication on your billing portal:</p>
+${ctaButton(portal, 'Complete Authentication')}
+${supportFooter('If you have questions, contact')}`,
+    ),
+    text: `Your RevealUI ${label} renewal requires 3D Secure authentication from your bank. Your access is not interrupted. Complete authentication at ${portal} to avoid a payment failure.`,
+  });
+}
+
 export async function sendPaymentFailedEmail(to: string, tier = 'pro'): Promise<void> {
   const portal = billingUrl();
   const label = tierLabel(tier);
