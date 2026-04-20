@@ -29,9 +29,9 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-04-10.
 | **RevCon** (configs) | Alpha | Editor config sync tooling. Functional, undocumented. |
 | **RevealCoin** (token) | Alpha | Solana devnet proof-of-concept. Not on mainnet. |
 | **RevSkills** (skills) | Alpha | 6 Claude Code skills on GitHub. No tests. |
-| **RevDev** (dev tools) | Planned | Harness infrastructure exists. Not a standalone product yet. |
-| **RevMarket** (marketplace) | Planned | Database schema defined. No API routes or UI. |
-| **RevKit** (templates) | Planned | Design documented. Stub implementation. |
+| **RevDev** (dev tools) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Harness infrastructure exists. Not a standalone product yet. |
+| **RevMarket** (marketplace) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Database schema defined. No API routes or UI. |
+| **RevKit** (templates) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Design documented. Stub implementation. |
 
 **Labels:** Production = real users + stable API. Beta = feature-complete, deployed, pre-users.
 Alpha = functional, not deployed/published. Planned = design or schema only.
