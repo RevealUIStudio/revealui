@@ -96,7 +96,12 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        # pgvector/pgvector bundles pgvector into postgres:16. Migration
+        # 0000 starts with `CREATE EXTENSION IF NOT EXISTS vector`, which
+        # vanilla postgres:16 cannot satisfy (extension not available).
+        # drizzle-kit's TTY spinner silently eats the error, so this image
+        # choice is what makes the failure surface at all.
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
