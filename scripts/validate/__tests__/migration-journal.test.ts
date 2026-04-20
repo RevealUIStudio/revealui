@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  type CustomManifest,
   checkCustomManifestShape,
   checkGhosts,
   checkMonotonicWhen,
   checkOrphans,
   checkSnapshotPresence,
-  type CustomManifest,
   type Journal,
   lintIdempotency,
 } from '../migration-journal.ts';
