@@ -43,6 +43,13 @@
       "when": 1776912000000,
       "tag": "0005_shared_memory_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776579007043,
+      "tag": "0006_must_rotate_password",
+      "breakpoints": true
     }
   ]
 }

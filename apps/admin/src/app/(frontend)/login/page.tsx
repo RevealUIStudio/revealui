@@ -79,7 +79,9 @@ function LoginContent() {
     setError(null);
 
     const result = await signIn({ email, password });
-    if (result.success) {
+    if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
+      router.push('/rotate-password');
+    } else if (result.success) {
       router.push('/admin');
     } else if ('requiresMfa' in result && result.requiresMfa) {
       router.push('/mfa');

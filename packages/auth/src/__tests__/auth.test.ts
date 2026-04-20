@@ -64,6 +64,14 @@ vi.mock('../server/session', () => ({
       expiresAt: new Date(),
     },
   })),
+  rotateSession: vi.fn(async () => ({
+    token: 'session-token-123',
+    session: {
+      id: 'session-123',
+      userId: 'user-123',
+      expiresAt: new Date(),
+    },
+  })),
 }));
 
 describe('Authentication', () => {
@@ -105,6 +113,33 @@ describe('Authentication', () => {
       const result = await signIn('test@example.com', 'wrong-password');
       expect(result.success).toBe(false);
       expect(result.error).toBe('Invalid email or password');
+    });
+
+    it('should return requiresPasswordRotation when mustRotatePassword is true', async () => {
+      const hashedPassword = await bcrypt.hash('correct-password', 12);
+      mockDb.select.mockReturnValue({
+        from: vi.fn(() => ({
+          where: vi.fn(() => ({
+            limit: vi.fn(() => [
+              {
+                ...mockUser,
+                password: hashedPassword,
+                emailVerified: true,
+                mfaEnabled: false,
+                mustRotatePassword: true,
+                createdAt: new Date(),
+              },
+            ]),
+          })),
+        })),
+      });
+
+      const result = await signIn('test@example.com', 'correct-password');
+      expect(result.success).toBe(true);
+      if (result.success && 'requiresPasswordRotation' in result) {
+        expect(result.requiresPasswordRotation).toBe(true);
+        expect(result.sessionToken).toBeDefined();
+      }
     });
 
     it('should return error if user has no password hash', async () => {

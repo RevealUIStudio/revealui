@@ -188,6 +188,16 @@ export async function signIn(
       };
     }
 
+    // Check if password rotation is required (e.g., bootstrapped admin accounts)
+    if (user.mustRotatePassword) {
+      return {
+        success: true,
+        requiresPasswordRotation: true,
+        user,
+        sessionToken: token,
+      };
+    }
+
     return {
       success: true,
       user,
