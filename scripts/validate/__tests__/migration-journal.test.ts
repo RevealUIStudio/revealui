@@ -26,10 +26,7 @@ describe('checkOrphans', () => {
   });
 
   it('fails when an SQL tag is missing from the journal', () => {
-    const result = checkOrphans(
-      ['0000_init', '0001_orphan'],
-      journal(entry(0, 1, '0000_init')),
-    );
+    const result = checkOrphans(['0000_init', '0001_orphan'], journal(entry(0, 1, '0000_init')));
     expect(result.ok).toBe(false);
     expect(result.errors[0]).toContain('0001_orphan');
   });
@@ -37,10 +34,7 @@ describe('checkOrphans', () => {
 
 describe('checkGhosts', () => {
   it('passes when every journal entry has an SQL file', () => {
-    const result = checkGhosts(
-      ['0000_init'],
-      journal(entry(0, 1, '0000_init')),
-    );
+    const result = checkGhosts(['0000_init'], journal(entry(0, 1, '0000_init')));
     expect(result.ok).toBe(true);
   });
 
@@ -57,11 +51,7 @@ describe('checkGhosts', () => {
 describe('checkMonotonicWhen', () => {
   it('passes when when values are strictly increasing across idx order', () => {
     const result = checkMonotonicWhen(
-      journal(
-        entry(0, 100, '0000_a'),
-        entry(1, 200, '0001_b'),
-        entry(2, 300, '0002_c'),
-      ),
+      journal(entry(0, 100, '0000_a'), entry(1, 200, '0001_b'), entry(2, 300, '0002_c')),
     );
     expect(result.ok).toBe(true);
   });
@@ -80,9 +70,7 @@ describe('checkMonotonicWhen', () => {
   });
 
   it('fails when two adjacent entries have equal when values', () => {
-    const result = checkMonotonicWhen(
-      journal(entry(0, 100, '0000_a'), entry(1, 100, '0001_b')),
-    );
+    const result = checkMonotonicWhen(journal(entry(0, 100, '0000_a'), entry(1, 100, '0001_b')));
     expect(result.ok).toBe(false);
   });
 
