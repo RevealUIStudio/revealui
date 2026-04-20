@@ -109,7 +109,7 @@ async function handler(request: NextRequest): Promise<NextResponse> {
 
     const response = NextResponse.json({ message: 'Password updated successfully.' });
     // Clear the rotation cookie so proxy.ts stops blocking /admin access
-    response.cookies.delete('revealui-must-rotate');
+    response.cookies?.delete('revealui-must-rotate');
     return response;
   } catch (error) {
     logger.error(
