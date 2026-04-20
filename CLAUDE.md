@@ -50,7 +50,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (82 tables), dual-DB (Neon + Supabase) |
+| @revealui/db | Drizzle ORM schema (81 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | 57 native UI components (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |

@@ -147,7 +147,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/core`](packages/core)                       | Runtime engine, REST API, auth, rich text, plugins |
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
-| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (82 tables), dual-DB client     |
+| [`@revealui/db`](packages/db)                           | Drizzle ORM schema (81 tables), dual-DB client     |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
 | [`@revealui/presentation`](packages/presentation)       | 57 UI components (Tailwind v4, zero ext deps)     |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |
