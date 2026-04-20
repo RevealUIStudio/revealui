@@ -299,6 +299,11 @@ async function gate(): Promise<void> {
         args: ['validate:migrations'],
       },
       {
+        name: 'Raw-SQL (hard fail)',
+        command: 'pnpm',
+        args: ['validate:raw-sql'],
+      },
+      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],
