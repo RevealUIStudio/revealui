@@ -131,8 +131,6 @@ export { launchPlaywrightMcp } from './servers/playwright.js';
 export { launchStripeMcp } from './servers/stripe.js';
 export { launchSupabaseMcp } from './servers/supabase.js';
 export { launchVercelMcp } from './servers/vercel.js';
-// Persistent idempotency stores
-export { createPostgresIdempotencyStore } from './stores/postgres-idempotency.js';
 // Telemetry (structured observability events)
 export {
   type McpEvent,

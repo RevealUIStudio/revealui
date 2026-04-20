@@ -73,9 +73,8 @@ packages/mcp/
 │   ├── SETUP.md          # Setup instructions
 │   └── servers/          # Per-server documentation
 │       └── code-validator.md
-├── migrations/           # Database migrations
-│   ├── 0001_add_crdt_columns.sql
-│   └── ...
+├── migrations/           # Performance indexes for core tables (pending port to drizzle-kit)
+│   └── 005_performance_indexes.sql
 └── package.json
 ```
 

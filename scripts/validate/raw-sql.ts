@@ -141,17 +141,16 @@ const EXECUTE_SQL_LITERAL_EXCLUDED_PATH_SEGMENTS = [
 // Rule: sql-file-outside-migrations. drizzle-kit writes SQL under this dir.
 const SQL_MIGRATIONS_DIR = 'packages/db/migrations';
 
-// Paths where bare .sql files are explicitly allowed (e.g., test fixtures,
-// ElectricSQL sync schema applied outside drizzle-kit by design).
+// Paths where bare .sql files are explicitly allowed (e.g., test fixtures).
+// Individual out-of-band .sql files that need a documented exemption go in
+// raw-sql-allowlist.json instead of this blanket list — they deserve a
+// file-scoped reason and (where applicable) a migrationPhase tag.
 const SQL_FILE_ALLOWED_PATH_SEGMENTS = [
   '__tests__/',
   'node_modules/',
   'dist/',
   '.turbo/',
   'coverage/',
-  // MCP parallel migration runner — exempt until Phase 3 consolidates
-  // it into the main drizzle-kit pipeline. Tracked in raw-sql-migration-plan.md.
-  'packages/mcp/migrations/',
 ];
 
 // Suppression comment — must carry a non-empty reason after the colon.
