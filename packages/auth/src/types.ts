@@ -68,8 +68,19 @@ export type SignInResult =
       user: User;
       sessionToken: string;
     }
-  | { success: true; requiresMfa: true; mfaUserId: string }
-  | { success: true; requiresPasswordRotation: true; user: User; sessionToken: string }
+  | {
+      success: true;
+      requiresMfa: true;
+      requiresPasswordRotation?: false;
+      mfaUserId: string;
+    }
+  | {
+      success: true;
+      requiresMfa?: false;
+      requiresPasswordRotation: true;
+      user: User;
+      sessionToken: string;
+    }
   | {
       success: false;
       reason:
