@@ -255,6 +255,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
+    "db:backfill-migrations": "tsx src/scripts/backfill-migrations.ts",
     "db:cleanup": "tsx src/scripts/cleanup-expired.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
