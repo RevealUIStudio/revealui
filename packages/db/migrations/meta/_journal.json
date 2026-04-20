@@ -50,6 +50,13 @@
       "when": 1776912000001,
       "tag": "0006_must_rotate_password",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1776912000002,
+      "tag": "0007_account_membership_seat_limit",
+      "breakpoints": true
     }
   ]
 }
