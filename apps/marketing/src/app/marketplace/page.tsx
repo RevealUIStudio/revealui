@@ -87,9 +87,22 @@ const mcpServers: McpServer[] = [
     status: 'live',
   },
   {
-    name: 'Auth',
-    description: 'Manage users, sessions, roles, and permissions programmatically.',
-    category: 'Security',
+    name: 'RevealUI Memory',
+    description:
+      'Read and write the agent memory store (episodic, semantic, and procedural layers).',
+    category: 'Content',
+    status: 'live',
+  },
+  {
+    name: 'Vultr Test',
+    description: 'Vultr GPU inference test harness for validating open-model endpoints.',
+    category: 'AI',
+    status: 'live',
+  },
+  {
+    name: 'Email Provider',
+    description: 'Shared helper surface powering the other email-capable MCP servers.',
+    category: 'Communication',
     status: 'live',
   },
 ];
@@ -102,7 +115,7 @@ const categoryColors: Record<string, string> = {
   Development: 'bg-indigo-100 text-indigo-700',
   Content: 'bg-pink-100 text-pink-700',
   Communication: 'bg-orange-100 text-orange-700',
-  Security: 'bg-red-100 text-red-700',
+  AI: 'bg-violet-100 text-violet-700',
 };
 
 // ---------------------------------------------------------------------------
