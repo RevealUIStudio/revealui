@@ -907,12 +907,12 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 
 ## Supported Inference Paths
 
-| Path | Runtime | Notes |
-|------|---------|-------|
-| **Ubuntu Inference Snaps** | Canonical snap runtime | Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
-| **Ollama** | Local GGUF models | Any open source GGUF model. Default: `gemma4:e2b` |
-| **HuggingFace** | HuggingFace Inference API | Open models hosted on HuggingFace infrastructure |
-| **Vultr** | Vultr GPU Cloud | Open models on Vultr serverless inference |
+| Path | Runtime | Status | Notes |
+|------|---------|--------|-------|
+| **Ollama** | Local GGUF models | Supported | Any open source GGUF model. Default: `gemma4:e2b` |
+| **HuggingFace** | HuggingFace Inference API | Supported | Open models hosted on HuggingFace infrastructure |
+| **Vultr** | Vultr GPU Cloud | Supported | Open models on Vultr serverless inference |
+| **Ubuntu Inference Snaps** | Canonical snap runtime | Planned — CLI install available; Studio UI integration in development | Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano. Install via `sudo snap install <model>`; full Studio lifecycle management coming in a later phase. Set `INFERENCE_SNAPS_BASE_URL` env var to wire an existing snap service to the LLM client. |
 
 ## Server-side usage
 
