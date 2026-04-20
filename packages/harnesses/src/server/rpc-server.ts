@@ -13,6 +13,7 @@ import { TOOL_PROFILES } from '../vaughn/capabilities.js';
 import { generateAllConfigs } from '../vaughn/config-normalizer.js';
 import type { VaughnEventEnvelope } from '../vaughn/event-envelope.js';
 import type { InferenceService } from './inference-service.js';
+import type { SharedMemoryClient } from './shared-memory-client.js';
 import type { SpawnerService } from './spawner-service.js';
 
 interface JsonRpcRequest {
@@ -92,6 +93,10 @@ const ERR_INTERNAL = -32603;
  *   vaughn.dispatch           → { adapterId: string | null }
  *   vaughn.events             → VaughnEventEnvelope[]
  *   vaughn.config.sync        → { files: Record<string, string> }
+ *   shared.facts.publish      → SharedFact
+ *   shared.memory.store       → SharedMemory
+ *   shared.scratchpad.patch   → YjsPatch
+ *   shared.reconcile          → ReconcileResult
  */
 export class RpcServer {
   private server = createServer();
@@ -100,6 +105,7 @@ export class RpcServer {
   private inference: InferenceService | null = null;
   private mergePipeline: MergePipeline | null = null;
   private ciFeedback: CIFeedback | null = null;
+  private sharedMemory: SharedMemoryClient | null = null;
   private vaughnDispatchFn:
     | ((requirements: Partial<VaughnCapabilities>, description: string) => string | null)
     | null = null;
@@ -775,6 +781,80 @@ export class RpcServer {
         return { jsonrpc: '2.0', id, result: { files } };
       }
 
+      // -----------------------------------------------------------------------
+      // Shared Memory (admin API-backed, NeonDB + Electric)
+      // -----------------------------------------------------------------------
+      case 'shared.facts.publish': {
+        if (!this.sharedMemory) return this.noService(id, 'sharedMemory');
+        const sessionId = p.sessionId as string | undefined;
+        const agentId = p.agentId as string | undefined;
+        const content = p.content as string | undefined;
+        const factType = p.factType as string | undefined;
+        if (!(sessionId && agentId && content && factType))
+          return this.missingParam(id, 'sessionId, agentId, content, factType');
+        const fact = await this.sharedMemory.publishFact({
+          sessionId,
+          agentId,
+          content,
+          factType,
+          confidence: p.confidence as number | undefined,
+          tags: p.tags as string[] | undefined,
+          sourceRef: p.sourceRef as Record<string, unknown> | undefined,
+        });
+        return { jsonrpc: '2.0', id, result: fact };
+      }
+
+      case 'shared.memory.store': {
+        if (!this.sharedMemory) return this.noService(id, 'sharedMemory');
+        const agentId = p.agentId as string | undefined;
+        const siteId = p.siteId as string | undefined;
+        const sessionScope = p.sessionScope as string | undefined;
+        const content = p.content as string | undefined;
+        const type = p.type as string | undefined;
+        const source = p.source as Record<string, unknown> | undefined;
+        if (!(agentId && siteId && sessionScope && content && type && source))
+          return this.missingParam(id, 'agentId, siteId, sessionScope, content, type, source');
+        const memory = await this.sharedMemory.storeMemory({
+          agentId,
+          siteId,
+          sessionScope,
+          content,
+          type,
+          source,
+          metadata: p.metadata as Record<string, unknown> | undefined,
+          sourceFacts: p.sourceFacts as string[] | undefined,
+        });
+        return { jsonrpc: '2.0', id, result: memory };
+      }
+
+      case 'shared.scratchpad.patch': {
+        if (!this.sharedMemory) return this.noService(id, 'sharedMemory');
+        const documentId = p.documentId as string | undefined;
+        const agentId = p.agentId as string | undefined;
+        const patchType = p.patchType as string | undefined;
+        const path = p.path as string | undefined;
+        const content = p.content as string | undefined;
+        if (!(documentId && agentId && patchType && path && content))
+          return this.missingParam(id, 'documentId, agentId, patchType, path, content');
+        const patch = await this.sharedMemory.patchScratchpad({
+          documentId,
+          agentId,
+          patchType,
+          path,
+          content,
+        });
+        return { jsonrpc: '2.0', id, result: patch };
+      }
+
+      case 'shared.reconcile': {
+        if (!this.sharedMemory) return this.noService(id, 'sharedMemory');
+        const sessionId = p.sessionId as string | undefined;
+        const siteId = p.siteId as string | undefined;
+        if (!(sessionId && siteId)) return this.missingParam(id, 'sessionId, siteId');
+        const result = await this.sharedMemory.reconcile({ sessionId, siteId });
+        return { jsonrpc: '2.0', id, result };
+      }
+
       default:
         return {
           jsonrpc: '2.0',
@@ -842,6 +922,11 @@ export class RpcServer {
   /** Attach the CI feedback handler (called by coordinator after construction). */
   setCIFeedback(feedback: CIFeedback): void {
     this.ciFeedback = feedback;
+  }
+
+  /** Attach the shared memory client (called by coordinator after construction). */
+  setSharedMemory(client: SharedMemoryClient): void {
+    this.sharedMemory = client;
   }
 
   /** Attach the VAUGHN dispatch function (called by coordinator after construction). */
