@@ -68,6 +68,21 @@ export class SharedMemoryClient {
     this.cookie = `revealui-session=${config.sessionCookie}`;
   }
 
+  private async get<T>(path: string, params: Record<string, string>): Promise<T> {
+    const url = new URL(`${this.baseUrl}${path}`);
+    for (const [k, v] of Object.entries(params)) {
+      url.searchParams.set(k, v);
+    }
+    const res = await fetch(url, {
+      headers: { Cookie: this.cookie },
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`${res.status} ${res.statusText}: ${text}`);
+    }
+    return (await res.json()) as T;
+  }
+
   private async post<T>(path: string, body: unknown): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const res = await fetch(url, {
@@ -146,6 +161,25 @@ export class SharedMemoryClient {
       path: params.path,
       content: params.content,
     });
+  }
+
+  /** List shared facts for a coordination session. */
+  async listFacts(params: {
+    sessionId: string;
+    activeOnly?: boolean;
+    limit?: number;
+  }): Promise<SharedFact[]> {
+    const query: Record<string, string> = { session_id: params.sessionId };
+    if (params.activeOnly === false) query.active = 'false';
+    if (params.limit) query.limit = String(params.limit);
+    return this.get('/api/sync/shared-facts', query);
+  }
+
+  /** List shared memories for a coordination session scope. */
+  async listMemories(params: { sessionScope: string; limit?: number }): Promise<SharedMemory[]> {
+    const query: Record<string, string> = { session_scope: params.sessionScope };
+    if (params.limit) query.limit = String(params.limit);
+    return this.get('/api/sync/shared-memories', query);
   }
 
   /** Trigger reconciliation for a coordination session. */

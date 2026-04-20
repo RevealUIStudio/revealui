@@ -804,6 +804,18 @@ export class RpcServer {
         return { jsonrpc: '2.0', id, result: fact };
       }
 
+      case 'shared.facts.list': {
+        if (!this.sharedMemory) return this.noService(id, 'sharedMemory');
+        const sessionId = p.sessionId as string | undefined;
+        if (!sessionId) return this.missingParam(id, 'sessionId');
+        const facts = await this.sharedMemory.listFacts({
+          sessionId,
+          activeOnly: p.activeOnly as boolean | undefined,
+          limit: p.limit as number | undefined,
+        });
+        return { jsonrpc: '2.0', id, result: facts };
+      }
+
       case 'shared.memory.store': {
         if (!this.sharedMemory) return this.noService(id, 'sharedMemory');
         const agentId = p.agentId as string | undefined;
@@ -825,6 +837,17 @@ export class RpcServer {
           sourceFacts: p.sourceFacts as string[] | undefined,
         });
         return { jsonrpc: '2.0', id, result: memory };
+      }
+
+      case 'shared.memory.list': {
+        if (!this.sharedMemory) return this.noService(id, 'sharedMemory');
+        const sessionScope = p.sessionScope as string | undefined;
+        if (!sessionScope) return this.missingParam(id, 'sessionScope');
+        const memories = await this.sharedMemory.listMemories({
+          sessionScope,
+          limit: p.limit as number | undefined,
+        });
+        return { jsonrpc: '2.0', id, result: memories };
       }
 
       case 'shared.scratchpad.patch': {
