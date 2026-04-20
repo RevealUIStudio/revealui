@@ -31,6 +31,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
+import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import {
   provisionGitHubAccess,
   sendCancellationConfirmationEmail,
@@ -306,17 +307,6 @@ function resolveSubscriptionId(subscription: string | Stripe.Subscription | null
   if (!subscription) return null;
   if (typeof subscription === 'string') return subscription;
   return subscription.id;
-}
-
-function getHostedLimitsForTier(tier: 'free' | 'pro' | 'max' | 'enterprise'): {
-  maxSites?: number;
-  maxUsers?: number;
-  maxAgentTasks?: number;
-} {
-  if (tier === 'enterprise') return { maxAgentTasks: Number.MAX_SAFE_INTEGER };
-  if (tier === 'max') return { maxSites: 15, maxUsers: 100, maxAgentTasks: 50_000 };
-  if (tier === 'pro') return { maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 };
-  return { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 };
 }
 
 function buildAccountSlug(userId: string): string {
