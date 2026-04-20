@@ -205,4 +205,3 @@ Biome, boundary, claim-drift, typecheck, tests, and build all block pushes. Audi
 - GDPR compliance framework (consent, deletion, anonymization)
 - AI memory validation: prototype pollution prevention, depth/size limits
 - CI: CodeQL, Gitleaks, dependency auditing, secret scanning (security-audit.yml, consolidated)
-- Zero-trust agent architecture (planned): process isolation, least privilege, continuous verification
