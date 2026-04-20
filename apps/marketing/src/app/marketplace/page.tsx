@@ -211,14 +211,14 @@ export default function MarketplacePage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-sm font-semibold tracking-wide text-violet-600 uppercase">
-              Production Ready
+              Open Source
             </span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               13 MCP Servers
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              Production MCP servers included with RevealUI. Each server is rate-limited, audited,
-              and governed by RBAC.
+              MCP servers included with RevealUI. Each server is rate-limited, audited, and governed
+              by RBAC.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

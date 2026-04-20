@@ -165,7 +165,7 @@ const sampleContent = {
     {
       name: 'Five Primitives, One Stack',
       description:
-        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them into a single deployable stack  -  authenticated, tested, and production-ready from day one.',
+        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them into a single deployable stack  -  authenticated, tested, and wired together from day one.',
     },
   ],
   cards: [
