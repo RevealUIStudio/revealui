@@ -8,7 +8,7 @@
 import { CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
-import { getClient } from '@revealui/db';
+import { getClient, getRestPool } from '@revealui/db';
 import {
   accountEntitlements,
   accountMemberships,
@@ -242,6 +242,7 @@ const UpgradeResponseSchema = z.object({
 async function ensureStripeCustomer(userId: string, email: string): Promise<string> {
   const db = getClient();
 
+  // Fast path: user already has a Stripe customer id.
   const [user] = await db
     .select({ stripeCustomerId: users.stripeCustomerId })
     .from(users)
@@ -251,10 +252,89 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
     return user.stripeCustomerId;
   }
 
-  // Create Stripe customer with idempotency key (safe to retry).
-  // NeonDB HTTP driver is stateless  -  db.transaction() is not supported.
-  // Instead we use a conditional UPDATE (WHERE stripe_customer_id IS NULL)
-  // so concurrent requests can't overwrite the winner.
+  // Slow path: need to create a Stripe customer. This is the race-prone
+  // section that issue #394 tracks. Two kinds of race exist:
+  //
+  //  1. Concurrent-request race: two ensureStripeCustomer() calls for the
+  //     same user at the same time — both see stripe_customer_id=null, both
+  //     create Stripe customers, only one write wins. Previously handled by
+  //     the Stripe idempotency key (`create-customer-${userId}`) — same key
+  //     returns the same Stripe customer.
+  //  2. Delayed-retry race: request creates Stripe customer, DB update
+  //     fails, then >24h later a subsequent call retries. Stripe idempotency
+  //     keys have a ~24h TTL, so the retry creates a NEW customer. Two
+  //     Stripe customers for one user, billing state splits.
+  //
+  // Fix: serialize the read→create→write critical section per-user using a
+  // Postgres advisory lock. Needs a real pg connection (not the NeonDB HTTP
+  // driver). The shared pg.Pool primitive landed by #390 (getRestPool) makes
+  // this reachable from here.
+  const pool = getRestPool();
+  if (pool) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Per-user advisory lock. Scope string 'stripe:ensure:<userId>' is
+      // hashed by Postgres into a 64-bit lock id. Auto-released on
+      // COMMIT/ROLLBACK (pg_advisory_xact_lock, not pg_advisory_lock).
+      await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [`stripe:ensure:${userId}`]);
+
+      // Re-read inside the lock — a racing request may have won while we
+      // waited for the lock.
+      const winnerResult = await client.query<{ stripe_customer_id: string | null }>(
+        `SELECT stripe_customer_id FROM users WHERE id = $1`,
+        [userId],
+      );
+      const alreadyCreated = winnerResult.rows[0]?.stripe_customer_id;
+      if (alreadyCreated) {
+        await client.query('COMMIT');
+        return alreadyCreated;
+      }
+
+      // We hold the lock and no customer exists. Create and persist
+      // atomically.
+      const customer = await protectedStripe.customers.create(
+        {
+          email,
+          metadata: { revealui_user_id: userId },
+        },
+        {
+          idempotencyKey: `create-customer-${userId}`,
+        },
+      );
+
+      await client.query(
+        `UPDATE users SET stripe_customer_id = $1, updated_at = NOW() WHERE id = $2`,
+        [customer.id, userId],
+      );
+
+      await client.query('COMMIT');
+      return customer.id;
+    } catch (err) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackErr) {
+        logger.error('ensureStripeCustomer rollback failed after error', {
+          userId,
+          rollbackErr: String(rollbackErr),
+        });
+      }
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  // Fallback path: pool unavailable (e.g. build-time with no DATABASE_URL).
+  // Use the prior conditional-UPDATE best-effort pattern. Safe for the
+  // common single-request case; does NOT defend against the delayed-retry
+  // race — but that path is not reachable in production where POSTGRES_URL
+  // is set. Logged so any production hit is visible.
+  logger.warn('ensureStripeCustomer: shared pg.Pool unavailable, falling back to non-locked path', {
+    userId,
+  });
+
   const customer = await protectedStripe.customers.create(
     {
       email,
@@ -265,14 +345,11 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
     },
   );
 
-  // Conditional update: only writes if no customer ID is set yet.
-  // If another request already wrote one, this is a no-op.
   await db
     .update(users)
     .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
     .where(and(eq(users.id, userId), isNull(users.stripeCustomerId)));
 
-  // Re-read to return whichever customer ID won the race
   const [updated] = await db
     .select({ stripeCustomerId: users.stripeCustomerId })
     .from(users)

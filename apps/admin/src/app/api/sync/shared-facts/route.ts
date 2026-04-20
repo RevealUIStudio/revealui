@@ -12,6 +12,7 @@ import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { sharedFacts } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
@@ -27,6 +28,46 @@ export const runtime = 'nodejs';
 const SESSION_ID_RE = /^[a-zA-Z0-9_-]+$/;
 const AGENT_ID_RE = /^[a-zA-Z0-9_-]+$/;
 const VALID_FACT_TYPES = new Set(['discovery', 'bug', 'decision', 'warning', 'question', 'answer']);
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
+  try {
+    const session = await getSession(request.headers, extractRequestContext(request));
+    if (!session) {
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
+    }
+    const sessionId = request.nextUrl.searchParams.get('session_id');
+    if (!(sessionId && SESSION_ID_RE.test(sessionId))) {
+      return createValidationErrorResponse(
+        'session_id query param is required',
+        'session_id',
+        sessionId,
+      );
+    }
+    const activeOnly = request.nextUrl.searchParams.get('active') !== 'false';
+    const limit = Math.min(
+      Number.parseInt(request.nextUrl.searchParams.get('limit') ?? '100', 10),
+      500,
+    );
+    const db = getClient();
+    const conditions = [eq(sharedFacts.sessionId, sessionId)];
+    if (activeOnly) conditions.push(isNull(sharedFacts.supersededBy));
+    const rows = await db
+      .select()
+      .from(sharedFacts)
+      .where(and(...conditions))
+      .orderBy(desc(sharedFacts.createdAt))
+      .limit(limit);
+    return NextResponse.json(rows);
+  } catch (error) {
+    logger.error('Error listing shared facts', { error });
+    return createErrorResponse(error, {
+      endpoint: '/api/sync/shared-facts',
+      operation: 'list_shared_facts',
+    });
+  }
+}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const aiGate = checkAIFeatureGate();
