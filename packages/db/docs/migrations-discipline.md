@@ -100,13 +100,37 @@ The script (`packages/db/src/scripts/backfill-migrations.ts`) is idempotent — 
 
 ### Exception: Migrations Drizzle Can't Express
 
-Rarely, you need SQL that `drizzle-kit generate` can't produce (complex data backfills, custom triggers, partial indexes with expressions). In that case:
+Rarely, you need SQL that `drizzle-kit generate` can't produce (complex data backfills, custom triggers, partial indexes with expressions, vector indexes, etc). In that case:
 
-1. Write the `.sql` file
-2. **Manually add the journal entry** to `meta/_journal.json` with the correct `idx`, `tag`, and `when` timestamp
-3. **Create the snapshot JSON** — copy the previous snapshot as `meta/NNNN_snapshot.json` and update it to reflect the new schema state
-4. Commit all three files together
-5. **Flag the PR for extra review** — hand-written migrations are a red flag
+1. Write the `.sql` file (idempotent per the rules table above).
+2. **Manually add the journal entry** to `meta/_journal.json` with the correct `idx`, `tag`, and `when` timestamp (strictly greater than the prior entry's `when`).
+3. **Create the snapshot JSON** — copy the previous snapshot as `meta/NNNN_snapshot.json` and update it to reflect the new schema state. If you genuinely cannot (the migration adds objects Drizzle's DSL doesn't model — triggers, vector indexes), you may set `missingSnapshot: true` in the manifest entry below.
+4. **Add an entry to `meta/_custom.json`** declaring intent (see schema below). The validator hard-fails if a journal entry is missing a snapshot AND has no manifest entry.
+5. Commit all four files together.
+6. **Flag the PR for extra review** — hand-written migrations are a red flag.
+
+#### `meta/_custom.json` schema
+
+```json
+{
+  "version": 1,
+  "doc": "Allowlist of migrations whose SQL was NOT produced by drizzle-kit generate.",
+  "custom": [
+    {
+      "tag": "0042_some_hand_written_migration",
+      "rationale": "Why drizzle-kit generate could not produce this. Must be >= 16 chars and a real reason a reviewer would accept.",
+      "missingSnapshot": false,
+      "snapshotDebtNote": "Required if missingSnapshot is true; describe the regen path or why the absence is permanent."
+    }
+  ]
+}
+```
+
+The validator (`scripts/validate/migration-journal.ts`) enforces:
+- Every entry's `tag` references a real journal entry.
+- `rationale` is at least 16 characters (forces an actual reason).
+- If `missingSnapshot: true`, `snapshotDebtNote` is required.
+- No duplicate `tag` entries.
 
 ## Diagnostic: Silent Exit 1
 
@@ -135,7 +159,8 @@ The `migration-journal` validator in `scripts/validate/migration-journal.ts` run
 | `orphans` | `.sql` files without a journal entry (2026-04-18 incident) |
 | `ghosts` | Journal entries without a `.sql` file (deleted SQL not removed from journal) |
 | `monotonic-when` | Journal `when` not strictly increasing across `idx` order (2026-04-19 bug #2 — drizzle-orm silently skips entries with non-monotonic `when`) |
-| `snapshot-presence` | Journal entry without `meta/<NNNN>_snapshot.json` (breaks `drizzle-kit generate` for the next migration; current allowlist for `0002_triggers_search_vectors` through `0005_shared_memory_scope` is removed when snapshots are regenerated or `meta/_custom.json` lands in PR3) |
+| `snapshot-presence` | Journal entry without `meta/<NNNN>_snapshot.json` (breaks `drizzle-kit generate` for the next migration). Exempted only by entries in `meta/_custom.json` with `missingSnapshot: true`. |
+| `custom-manifest-shape` | `meta/_custom.json` entries must reference real journal tags, have a non-trivial rationale, declare `snapshotDebtNote` when `missingSnapshot: true`, and not duplicate tags. |
 | `idempotency` | Per-`.sql`: unguarded `ADD CONSTRAINT` or `DROP CONSTRAINT` without `IF EXISTS` (2026-04-19 bug #1) |
 
-PR3 will add a `drizzle-kit generate` parity check that verifies each non-allowlisted migration's SQL byte-matches what `generate` would produce against the current schema, closing the "hand-written without journal entry" loop entirely.
+The deploy workflow's existing `Validate Migrations` job runs `drizzle-kit generate` against the current schema and fails if it produces any uncommitted output — i.e., if a TS schema edit landed without an accompanying generated migration. That gate plus `_custom.json` together close the hand-written-without-journal-entry loop: any new SQL file must either be drizzle-generated (caught by the parity check on schema drift) or explicitly declared in `_custom.json` (caught by the manifest-shape check at PR time).
