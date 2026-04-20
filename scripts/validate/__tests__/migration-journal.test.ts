@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
+  type CustomManifest,
+  checkCustomManifestShape,
   checkGhosts,
   checkMonotonicWhen,
   checkOrphans,
+  checkSnapshotPresence,
   type Journal,
   lintIdempotency,
 } from '../migration-journal.ts';
@@ -134,5 +137,87 @@ describe('lintIdempotency', () => {
     const sql = `ALTER TABLE "x" ADD CONSTRAINT "y" CHECK (true);`;
     // 0000_init is in IDEMPOTENCY_LINT_ALLOWLIST.
     expect(lintIdempotency('0000_init', sql).ok).toBe(true);
+  });
+});
+
+function manifest(...entries: CustomManifest['custom']): CustomManifest {
+  return { version: 1, custom: entries };
+}
+
+describe('checkSnapshotPresence', () => {
+  it('skips tags listed in _custom.json with missingSnapshot: true', () => {
+    // The actual snapshot files don't exist for these synthetic tags, but
+    // they're exempted via the manifest, so the check passes.
+    const result = checkSnapshotPresence(
+      journal(entry(0, 1, '0000_synthetic_no_snapshot')),
+      manifest({
+        tag: '0000_synthetic_no_snapshot',
+        rationale: 'synthetic test fixture (>= 16 chars)',
+        missingSnapshot: true,
+        snapshotDebtNote: 'n/a',
+      }),
+    );
+    expect(result.ok).toBe(true);
+  });
+});
+
+describe('checkCustomManifestShape', () => {
+  it('passes a well-formed manifest', () => {
+    const result = checkCustomManifestShape(
+      manifest({
+        tag: '0002_triggers_search_vectors',
+        rationale: 'PG triggers and HNSW vector indexes — not Drizzle DSL expressible',
+        missingSnapshot: true,
+        snapshotDebtNote: 'snapshot would be a copy of 0001 — omitted',
+      }),
+      journal(entry(2, 100, '0002_triggers_search_vectors')),
+    );
+    expect(result.ok).toBe(true);
+  });
+
+  it('fails when an entry references a tag absent from the journal', () => {
+    const result = checkCustomManifestShape(
+      manifest({
+        tag: '9999_phantom',
+        rationale: 'this tag does not exist in the journal at all',
+      }),
+      journal(),
+    );
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toContain('9999_phantom');
+  });
+
+  it('fails when an entry has a too-short rationale', () => {
+    const result = checkCustomManifestShape(
+      manifest({ tag: '0002_x', rationale: 'short' }),
+      journal(entry(2, 100, '0002_x')),
+    );
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toContain('rationale of at least 16');
+  });
+
+  it('fails when missingSnapshot: true but no snapshotDebtNote', () => {
+    const result = checkCustomManifestShape(
+      manifest({
+        tag: '0002_x',
+        rationale: 'a sufficiently long rationale string for the lint',
+        missingSnapshot: true,
+      }),
+      journal(entry(2, 100, '0002_x')),
+    );
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toContain('snapshotDebtNote');
+  });
+
+  it('fails on duplicate entries for the same tag', () => {
+    const result = checkCustomManifestShape(
+      manifest(
+        { tag: '0002_x', rationale: 'first entry, sufficiently long rationale' },
+        { tag: '0002_x', rationale: 'second entry, also sufficiently long' },
+      ),
+      journal(entry(2, 100, '0002_x')),
+    );
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toContain('Duplicate');
   });
 });
