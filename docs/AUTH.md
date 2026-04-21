@@ -918,15 +918,10 @@ NODE_ENV="production"  # Enables secure cookies
 1. **Run database migrations:**
 
 ```bash
-# Apply migration to add password_hash field and indexes
-psql $DATABASE_URL -f packages/db/src/orm/drizzle/0001_add_password_hash.sql
-```
-
-Or use the migration script:
-
-```bash
 pnpm db:migrate
 ```
+
+Migrations live in `packages/db/migrations/` and are applied by drizzle-kit; the `users.password` column (bcrypt hash) is created by the initial migration (`0000_init.sql`).
 
 2. **Verify tables exist:**
 
@@ -960,14 +955,7 @@ RevealUI supports migrating from JWT-based authentication to database-backed ses
 
 #### 1. Database Migration
 
-Run the migration to add `password_hash` field and indexes:
-
-```bash
-# Apply migration
-psql $DATABASE_URL -f packages/db/src/orm/drizzle/0001_add_password_hash.sql
-```
-
-Or use the migration script:
+Run migrations to ensure the schema (including `users.password` and session/reset-token indexes) is up to date:
 
 ```bash
 pnpm db:migrate
