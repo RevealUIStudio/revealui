@@ -307,6 +307,17 @@ export async function markUnhandled(
 // =============================================================================
 
 /**
+ * Fetch a single job row by id. Returns null when the id doesn't exist.
+ * Used by the hybrid POST path (CR8-P2-01 phase C) for poll-to-complete
+ * and by the canonical status endpoint.
+ */
+export async function getJobById(jobId: string, opts: DbOverride = {}): Promise<Job | null> {
+  const db = opts.db ?? getClient();
+  const rows = await db.select().from(jobs).where(eq(jobs.id, jobId)).limit(1);
+  return rows[0] ?? null;
+}
+
+/**
  * Count jobs eligible right now (state='created', start_after <= now()).
  * Used by the cron safety-net (phase B) to decide whether to fire a wake.
  */

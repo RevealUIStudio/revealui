@@ -81,6 +81,39 @@ describe('idempotentWrite', () => {
     expect(operation).not.toHaveBeenCalled();
   });
 
+  it('returns the cached result on replay when cacheResult was set originally', async () => {
+    // Replay: existing row has a stored result jsonb (because original
+    // call passed cacheResult: true and the operation returned an
+    // object). New behavior: idempotentWrite surfaces that cached value
+    // in `result` instead of leaving it undefined.
+    const selectChain = createSelectChain([
+      {
+        key: 'agent.dispatch.llm:job-42',
+        expiresAt: new Date(Date.now() + 60_000),
+        result: { success: true, output: 'memoized response', tokensUsed: 1234 },
+      },
+    ]);
+    db.select.mockReturnValue(selectChain);
+
+    const operation = vi.fn().mockResolvedValue({ should: 'never run' });
+
+    const result = await idempotentWrite(
+      db as never,
+      'agent.dispatch.llm:job-42',
+      'agent-dispatch-llm',
+      operation,
+      { cacheResult: true },
+    );
+
+    expect(result.alreadyProcessed).toBe(true);
+    expect(result.result).toEqual({
+      success: true,
+      output: 'memoized response',
+      tokensUsed: 1234,
+    });
+    expect(operation).not.toHaveBeenCalled();
+  });
+
   it('executes operation when key exists but is expired', async () => {
     // Return an existing key with past expiry
     const selectChain = createSelectChain([

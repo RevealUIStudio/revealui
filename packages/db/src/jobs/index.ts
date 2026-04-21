@@ -23,6 +23,7 @@ export {
   DEFAULT_VISIBILITY_TIMEOUT_MS,
   DeadlineExceededError,
   deadlineSignal,
+  getJobById,
   markCompleted,
   markFailedOrRetry,
   markUnhandled,
