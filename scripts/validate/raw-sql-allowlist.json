@@ -29,8 +29,8 @@
     {
       "path": "scripts/seed-admin.mjs",
       "rules": ["direct-import"],
-      "reason": "Admin-user seed script. .mjs standalone runner that predates @revealui/db. Works outside the pnpm workspace context. Could be migrated to TS + @revealui/db but low ROI.",
-      "migrationPhase": 6
+      "reason": "Admin-user seed script. Queries Neon Auth's own schema (`neon_auth.\"user\"`), not the app's public.users table — that's a third-party schema provided by Neon Auth which Drizzle correctly does not track. Routing this through @revealui/db would require adding neon_auth tables to the schema, which would be misleading (they are not owned by this project). Permanent.",
+      "migrationPhase": null
     },
     {
       "path": "apps/admin/src/app/api/auth/passkey/register-verify/route.ts",
@@ -53,26 +53,26 @@
     {
       "path": "apps/api/src/index.ts",
       "rules": ["execute-sql-literal"],
-      "reason": "db.execute(sql`SELECT 1`) liveness probe. Trivially migratable to db.select().from(someTable).limit(1) but a SELECT 1 is clearer intent for a liveness check.",
-      "migrationPhase": 6
+      "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseAlert. SELECT 1 is the canonical idiomatic liveness check — it asks 'is the DB reachable and responding?' without coupling the probe to any specific application table (which would change the probe's semantic to 'is this particular table reachable?'). Permanent idiomatic raw SQL.",
+      "migrationPhase": null
     },
     {
       "path": "apps/api/src/routes/health.ts",
       "rules": ["execute-sql-literal"],
-      "reason": "db.execute(sql`SELECT 1`) liveness probe (route variant). Same rationale as apps/api/src/index.ts.",
-      "migrationPhase": 6
+      "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseHealthCheck. Same idiomatic-SELECT-1 rationale as apps/api/src/index.ts. Permanent.",
+      "migrationPhase": null
     },
     {
       "path": "packages/ai/src/memory/utils/sql-helpers.ts",
       "rules": ["execute-sql-literal"],
-      "reason": "4 plain parameterized SELECTs with manual snake_case → camelCase transformation. Trivially migratable to typed Drizzle query builder.",
+      "reason": "4 parameterized SELECTs on node_id_mappings, agent_contexts, and users with manual snake_case → camelCase transformation. The production code is migratable to Drizzle core query builder (db.select().from().where().limit()) — verified via a 2026-04-21 port that built cleanly — BUT breaks ~18 tests across 4 files (node-id-service.test.ts, edge-cases.test.ts, performance.test.ts, agent-context-manager.test.ts) which mock db.execute rather than db.select chains. Durable migration requires replacing the mock-based tests with PGlite-backed integration tests (or rewriting all ~20 mock sites to stub the full query-builder chain). Blocked on that test-infrastructure migration.",
       "migrationPhase": 6
     },
     {
       "path": "scripts/dev-tools/verify-test-setup.ts",
       "rules": ["execute-sql-literal"],
-      "reason": "Dev-tool diagnostic that verifies test-harness DB state with multiple SELECTs. Runs outside production; migration to query builder is low-value (schema introspection queries).",
-      "migrationPhase": 6
+      "reason": "Dev-tool that verifies test-harness DB state. Of its 7 raw-SQL calls, 3 are `SELECT 1` / `SELECT vector(...)` connectivity probes (same idiomatic-liveness rationale as apps/api/src/routes/health.ts) and 4 are information_schema / pg_indexes introspection queries that cannot go through Drizzle's query builder (Drizzle queries defined tables, not Postgres metadata). Permanent.",
+      "migrationPhase": null
     },
     {
       "path": "packages/db/src/supabase/setup-vector-extension.sql",
