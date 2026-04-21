@@ -79,6 +79,9 @@ jobs:
       - name: Migration journal validation (hard fail)
         run: pnpm validate:migrations
 
+      - name: Raw-SQL validation (hard fail)
+        run: pnpm validate:raw-sql
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #
