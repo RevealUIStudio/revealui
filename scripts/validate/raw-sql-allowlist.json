@@ -79,18 +79,6 @@
       "rules": ["sql-file-outside-migrations"],
       "reason": "Supabase-side pgvector extension bootstrap (CREATE EXTENSION IF NOT EXISTS vector). Applied by scripts/setup/setup-dual-database.ts against getVectorClient(). drizzle-kit currently only tracks the Neon side of the dual-DB architecture; Supabase-side DDL lives outside drizzle-kit by necessity. Phase 7 (drizzle-consolidation-spec) evaluates standing up a second drizzle-kit pipeline for Supabase; until then, this file + setup-dual-database.ts are the canonical Supabase-side applier. See packages/db/src/supabase/README.md for the architectural rationale.",
       "migrationPhase": 7
-    },
-    {
-      "path": "packages/sync/setup-sync-schema.sql",
-      "rules": ["sql-file-outside-migrations"],
-      "reason": "Documentation SQL in the @revealui/sync package — no code consumers (recon 2026-04-20 grep returned zero references). Describes the tables @revealui/sync needs from the host app. Pending Phase 4b.4: compare against Drizzle schema and either port missing tables to schema or delete if already covered.",
-      "migrationPhase": 4
-    },
-    {
-      "path": "scripts/setup-sync-schema.sql",
-      "rules": ["sql-file-outside-migrations"],
-      "reason": "Active file (read at runtime by scripts/setup/setup-sync-schema.ts). Different content from packages/sync/setup-sync-schema.sql (recon 2026-04-20). Creates ElectricSQL-related conversations/messages tables. Pending Phase 4b.4: port tables into Drizzle schema, switch the TS runner to drizzle-kit, delete the loose file.",
-      "migrationPhase": 4
     }
   ]
 }
