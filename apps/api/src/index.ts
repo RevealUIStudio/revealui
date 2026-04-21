@@ -38,6 +38,11 @@ import { sql } from 'drizzle-orm';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
 import { logger as honoLogger } from 'hono/logger';
+// Side-effect import: registers durable-queue handlers at module top
+// level so both the producer (POST /api/agent-tasks) and the worker
+// (POST /api/jobs/run) invocations see the same registry. See
+// CR8-P2-01 phase C.
+import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import { auditMiddleware } from './middleware/audit.js';
@@ -150,6 +155,11 @@ process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Validate Forge config at startup  -  exits if FORGE_* env vars are inconsistent
 validateForgeConfig();
+
+// Validate durable-dispatch flag config (CR8-P2-01 phase C) — if the
+// flag is on, the wake secret must be set, or every dispatch silently
+// falls back to the daily cron cadence.
+assertDispatchFlagConfigured();
 
 /**
  * Parse and validate CORS origins from environment variable.
