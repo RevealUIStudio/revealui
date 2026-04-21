@@ -3,12 +3,6 @@
   "version": 1,
   "entries": [
     {
-      "path": "packages/mcp/migrations/005_performance_indexes.sql",
-      "rules": ["sql-file-outside-migrations"],
-      "reason": "Performance indexes targeting core RevealUI tables (users, posts, sessions, media, …) — misplaced in the MCP package. The indexes themselves are valuable (CREATE INDEX CONCURRENTLY IF NOT EXISTS, idempotent and safe). Pending port into the main Drizzle schema as index() definitions on the relevant pgTable calls.",
-      "migrationPhase": 4
-    },
-    {
       "path": "packages/scripts/database/connection.ts",
       "rules": ["direct-import"],
       "reason": "Type-only import of Pool/PoolClient from pg for the @revealui/scripts DB-connection factory. Scripts package is tooling and needs pg's type shape; routing through @revealui/db would invert the dependency.",
@@ -90,12 +84,6 @@
       "path": "packages/db/src/migrations/supabase-vector-setup.sql",
       "rules": ["sql-file-outside-migrations"],
       "reason": "Supabase-specific vector extension setup (applied once to the Supabase-side DB). Will be imported into drizzle-kit migrations or documented as explicit pre-drizzle bootstrap for the dual-DB architecture.",
-      "migrationPhase": 4
-    },
-    {
-      "path": "packages/db/src/orm/drizzle/0000_grey_malcolm_colcord.sql",
-      "rules": ["sql-file-outside-migrations"],
-      "reason": "Orphan from previous drizzle-kit tooling layout. Candidate for deletion or archival in Phase 4.",
       "migrationPhase": 4
     },
     {
