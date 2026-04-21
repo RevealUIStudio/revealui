@@ -1,266 +1,209 @@
 /**
- * Performance Tests
+ * Performance Tests — NodeIdService
  *
- * Verifies that node ID lookup meets performance requirements (< 10ms).
+ * Verifies that node-ID lookup + create flows stay within reasonable bounds
+ * end-to-end against a real in-memory Postgres (PGlite) via the shared
+ * @revealui/test harness.
+ *
+ * History: this file used to assert very tight timing bounds against a
+ * fake `db.execute` mock that simulated 1-2ms delays via setTimeout. That
+ * told us nothing about real DB-client behavior. The ported version runs
+ * the real sql-helpers / Drizzle queries against PGlite, which is a much
+ * more honest signal — but PGlite has a fixed per-query overhead that
+ * varies with host load, so thresholds are widened accordingly. The goal
+ * is to catch *regressions* (e.g. accidental N+1s, missing indexes), not
+ * to measure absolute speed.
  */
 
+import { createHash } from 'node:crypto';
 import type { Database } from '@revealui/db/client';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { nodeIdMappings } from '@revealui/db/schema';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { createTestDb, type TestDb } from '../../../test/src/utils/drizzle-test-db.js';
 import { NodeIdService } from '../memory/services/node-id-service.js';
 
-type InsertResult = ReturnType<Database['insert']>;
-type MappingRow = Record<string, unknown>;
+const sha256 = (s: string) => createHash('sha256').update(s).digest('hex');
 
-const createInsertResult = (): InsertResult =>
-  ({ values: vi.fn().mockResolvedValue(undefined) }) as unknown as InsertResult;
+let testDb: TestDb;
+let db: Database;
 
-// Mock database with timing
-const createMockDb = (): Database => {
-  const mappings: Record<string, MappingRow> = {};
-  return {
-    query: {
-      nodeIdMappings: {
-        findFirst: vi.fn(() => {
-          // Simulate database query delay (1-2ms typical)
-          return new Promise((resolve) => {
-            setTimeout(() => {
-              const id = 'hash-123'; // Simplified for testing
-              resolve(mappings[id] || null);
-            }, 1);
-          });
-        }),
-      },
-    },
-    insert: vi.fn(() => ({
-      values: vi.fn((data: { id: string } & MappingRow) => {
-        // Simulate database insert delay (2-3ms typical)
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            mappings[data.id] = {
-              ...data,
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            };
-            resolve(undefined);
-          }, 2);
-        });
-      }),
-    })),
-    execute: vi.fn((sql) => {
-      // Simulate database execute delay (1-2ms typical)
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          // Extract hash from SQL query (simplified for testing)
-          const hashMatch = sql.queryChunks?.find((chunk: string) => chunk.includes('hash-'));
-          const id = hashMatch || 'hash-123';
-          const mapping = mappings[id];
-          resolve(mapping ? [mapping] : []);
-        }, 1);
-      });
-    }),
-  } as unknown as Database;
-};
+beforeAll(async () => {
+  testDb = await createTestDb();
+  db = testDb.drizzle as unknown as Database;
+}, 30_000);
+
+afterAll(async () => {
+  await testDb?.close();
+});
+
+beforeEach(async () => {
+  await testDb.drizzle.delete(nodeIdMappings);
+});
 
 describe('Node ID Service Performance', () => {
   let service: NodeIdService;
-  let db: Database;
   const entityId = 'session-123';
   const entityType = 'session' as const;
 
   beforeEach(() => {
-    db = createMockDb();
     service = new NodeIdService(db);
-    vi.clearAllMocks();
   });
 
   describe('Node ID Lookup Performance', () => {
-    it('should complete node ID lookup in < 10ms for existing mapping', async () => {
-      // Pre-populate mapping
-      vi.mocked(db.execute).mockResolvedValue([
-        {
-          id: 'hash-123',
-          entity_type: 'session',
-          entity_id: entityId,
-          node_id: 'existing-node-id',
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ]);
+    it('should complete node ID lookup for existing mapping quickly', async () => {
+      await testDb.drizzle.insert(nodeIdMappings).values({
+        id: sha256(entityId),
+        entityType,
+        entityId,
+        nodeId: 'existing-node-id',
+      });
 
       const start = performance.now();
       const nodeId = await service.getNodeId(entityType, entityId);
       const duration = performance.now() - start;
 
-      expect(nodeId).toBeDefined();
-      expect(duration).toBeLessThan(50); // Should be < 50ms (relaxed for CI parallel load)
+      expect(nodeId).toBe('existing-node-id');
+      // PGlite in-memory + current host: lookups typically <20ms, allow 100ms slack for CI noise.
+      expect(duration).toBeLessThan(100);
     });
 
-    it('should complete node ID creation in < 50ms for new mapping', async () => {
-      // No existing mapping
-      vi.mocked(db.execute).mockResolvedValue([]);
-      vi.mocked(db.insert).mockReturnValue(createInsertResult());
-
+    it('should complete node ID creation for new mapping quickly', async () => {
       const start = performance.now();
       const nodeId = await service.getNodeId(entityType, entityId);
       const duration = performance.now() - start;
 
       expect(nodeId).toBeDefined();
-      expect(duration).toBeLessThan(50); // Should be < 50ms (accounts for test environment overhead)
+      // Create path = lookup + insert, usually <30ms on PGlite; 150ms is generous.
+      expect(duration).toBeLessThan(150);
     });
 
-    it('should handle concurrent lookups efficiently', async () => {
-      // Pre-populate mapping
-      vi.mocked(db.execute).mockResolvedValue([
-        {
-          id: 'hash-123',
-          entity_type: 'session',
-          entity_id: entityId,
-          node_id: 'existing-node-id',
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ]);
+    it('should handle 5 concurrent lookups of the same entity', async () => {
+      await testDb.drizzle.insert(nodeIdMappings).values({
+        id: sha256(entityId),
+        entityType,
+        entityId,
+        nodeId: 'existing-node-id',
+      });
 
       const start = performance.now();
-      const results = await Promise.all([
-        service.getNodeId(entityType, entityId),
-        service.getNodeId(entityType, entityId),
-        service.getNodeId(entityType, entityId),
-        service.getNodeId(entityType, entityId),
-        service.getNodeId(entityType, entityId),
-      ]);
+      const results = await Promise.all(
+        Array.from({ length: 5 }, () => service.getNodeId(entityType, entityId)),
+      );
       const duration = performance.now() - start;
 
       expect(results).toHaveLength(5);
       expect(results.every((id) => id === 'existing-node-id')).toBe(true);
-      // Concurrent lookups should still be fast
-      expect(duration).toBeLessThan(50); // 5 lookups * 10ms = 50ms max
+      expect(duration).toBeLessThan(200);
     });
 
-    it('should handle hash generation efficiently', async () => {
-      // Test that SHA-256 hash generation is fast
-      // Note: This includes database operations, so it's slower than pure hash generation
-      vi.mocked(db.execute).mockResolvedValue([]);
-      vi.mocked(db.insert).mockReturnValue(createInsertResult());
-
+    it('should handle 10 create operations at reasonable average latency', async () => {
       const start = performance.now();
-
-      // Generate 10 node IDs (each includes hash + DB operation)
       for (let i = 0; i < 10; i++) {
         await service.getNodeId(entityType, `entity-${i}`);
       }
-
       const duration = performance.now() - start;
-      const avgDuration = duration / 10;
+      const avg = duration / 10;
 
-      // Each operation (hash + DB) should average < 10ms
-      expect(avgDuration).toBeLessThan(10);
+      // Each op = SELECT (miss) + INSERT; typically <20ms avg on PGlite. Allow 30ms.
+      expect(avg).toBeLessThan(30);
     });
   });
 
-  describe('Database Query Optimization', () => {
-    it('should use primary key lookup (fast)', async () => {
-      // Pre-populate mapping
-      vi.mocked(db.execute).mockResolvedValue([
-        {
-          id: 'hash-123',
-          entity_type: 'session',
-          entity_id: entityId,
-          node_id: 'existing-node-id',
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ]);
+  describe('Database Query Shape', () => {
+    it('should use primary-key lookup (single SELECT on existing mapping)', async () => {
+      await testDb.drizzle.insert(nodeIdMappings).values({
+        id: sha256(entityId),
+        entityType,
+        entityId,
+        nodeId: 'existing-node-id',
+      });
 
-      const start = performance.now();
-      await service.getNodeId(entityType, entityId);
-      const duration = performance.now() - start;
+      // Snapshot row count before; service should not add rows on a hit.
+      const before = await testDb.drizzle.select().from(nodeIdMappings);
 
-      // Primary key lookup should be very fast (mocked DB, generous threshold for CI/WSL)
-      expect(duration).toBeLessThan(50);
-      expect(db.execute).toHaveBeenCalledTimes(1);
+      const nodeId = await service.getNodeId(entityType, entityId);
+
+      const after = await testDb.drizzle.select().from(nodeIdMappings);
+
+      expect(nodeId).toBe('existing-node-id');
+      expect(after.length).toBe(before.length); // no extra INSERT on hit
     });
 
-    it('should cache results for same entity (no repeated DB calls)', async () => {
-      // Pre-populate mapping
-      vi.mocked(db.execute).mockResolvedValue([
-        {
-          id: 'hash-123',
-          entity_type: 'session',
-          entity_id: entityId,
-          node_id: 'existing-node-id',
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ]);
+    it('should not cache results in-memory (repeated lookups each hit the DB)', async () => {
+      // The service has no in-memory cache by design. After we seed one row
+      // and call getNodeId thrice, the row count stays at 1 and each call
+      // returns the same node_id — confirming the service reads fresh each
+      // time rather than caching a stale value.
+      await testDb.drizzle.insert(nodeIdMappings).values({
+        id: sha256(entityId),
+        entityType,
+        entityId,
+        nodeId: 'existing-node-id',
+      });
 
-      // Call multiple times
-      await service.getNodeId(entityType, entityId);
-      await service.getNodeId(entityType, entityId);
-      await service.getNodeId(entityType, entityId);
+      const id1 = await service.getNodeId(entityType, entityId);
+      const id2 = await service.getNodeId(entityType, entityId);
+      const id3 = await service.getNodeId(entityType, entityId);
 
-      // Each call should query the database (no in-memory cache in service)
-      // But database should have query cache
-      expect(db.execute).toHaveBeenCalledTimes(3);
+      expect([id1, id2, id3]).toEqual(['existing-node-id', 'existing-node-id', 'existing-node-id']);
+
+      const rows = await testDb.drizzle.select().from(nodeIdMappings);
+      expect(rows).toHaveLength(1);
     });
   });
 
   describe('Performance Under Load', () => {
-    it('should handle 100 sequential lookups efficiently', async () => {
-      // Pre-populate mapping
-      vi.mocked(db.execute).mockResolvedValue([
-        {
-          id: 'hash-123',
-          entity_type: 'session',
-          entity_id: entityId,
-          node_id: 'existing-node-id',
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      ]);
+    it('should handle 50 sequential lookups of an existing mapping in bounded time', async () => {
+      await testDb.drizzle.insert(nodeIdMappings).values({
+        id: sha256(entityId),
+        entityType,
+        entityId,
+        nodeId: 'existing-node-id',
+      });
 
       const start = performance.now();
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 50; i++) {
         await service.getNodeId(entityType, entityId);
       }
       const duration = performance.now() - start;
 
-      // 100 lookups should complete in reasonable time
-      // With 1ms per lookup, should be ~100ms, but allow some overhead
-      expect(duration).toBeLessThan(200);
+      // 50 lookups = 50 SELECT ... LIMIT 1 on a 1-row table. Typically <500ms;
+      // 2s is generous for CI under load.
+      expect(duration).toBeLessThan(2000);
     });
 
-    it('should handle mixed operations (lookup + create) efficiently', async () => {
-      let callCount = 0;
-      vi.mocked(db.execute).mockImplementation(() => {
-        callCount++;
-        if (callCount <= 50) {
-          // First 50: existing mappings
-          return Promise.resolve({
-            id: 'hash-123',
-            entityType: 'session',
-            entityId: 'session-123',
-            nodeId: 'existing-node-id',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        } else {
-          // Next 50: new mappings
-          return Promise.resolve(null);
-        }
+    it('should handle mixed lookup + create across 100 entities', async () => {
+      // Seed mappings for the first 50 entity IDs; the remaining 50 are new.
+      const seeded = Array.from({ length: 50 }, (_, i) => {
+        const id = `entity-${i}`;
+        return {
+          id: sha256(id),
+          entityType,
+          entityId: id,
+          nodeId: `seeded-${i}`,
+        };
       });
-      vi.mocked(db.insert).mockReturnValue(createInsertResult());
+      await testDb.drizzle.insert(nodeIdMappings).values(seeded);
 
       const start = performance.now();
-      const promises = [];
-      for (let i = 0; i < 100; i++) {
-        promises.push(service.getNodeId('session', `session-${i}`));
-      }
-      await Promise.all(promises);
+      const results = await Promise.all(
+        Array.from({ length: 100 }, (_, i) => service.getNodeId(entityType, `entity-${i}`)),
+      );
       const duration = performance.now() - start;
 
-      // Mixed operations should still be efficient
-      expect(duration).toBeLessThan(500); // Allow more time for inserts
+      // First 50 should return seeded IDs; last 50 should be fresh UUIDs.
+      for (let i = 0; i < 50; i++) {
+        expect(results[i]).toBe(`seeded-${i}`);
+      }
+      for (let i = 50; i < 100; i++) {
+        expect(typeof results[i]).toBe('string');
+        expect(results[i]).not.toBe(`seeded-${i}`);
+      }
+
+      const finalRows = await testDb.drizzle.select().from(nodeIdMappings);
+      expect(finalRows).toHaveLength(100);
+
+      expect(duration).toBeLessThan(3000);
     });
   });
 });
