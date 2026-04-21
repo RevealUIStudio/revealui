@@ -385,9 +385,13 @@ async function buildDispatcher(
     ) {
       return ticketQueries.updateTicket(db, id, data);
     },
-    async createComment(id: string, body: Record<string, unknown>) {
+    async createComment(id: string, body: Record<string, unknown>, options?: { id?: string }) {
+      // When the caller (createTicketTools) passes a deterministic id, use
+      // it so a crash-and-resume of the same dispatch produces the same
+      // row and the PK constraint dedupes naturally. Otherwise fall back
+      // to a random UUID for backward compatibility.
       return commentQueries.createComment(db, {
-        id: crypto.randomUUID(),
+        id: options?.id ?? crypto.randomUUID(),
         ticketId: id,
         body,
       });
