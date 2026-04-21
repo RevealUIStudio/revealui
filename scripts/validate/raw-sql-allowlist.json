@@ -89,19 +89,13 @@
     {
       "path": "packages/sync/setup-sync-schema.sql",
       "rules": ["sql-file-outside-migrations"],
-      "reason": "ElectricSQL sync-schema definition consumed by Electric tooling, not drizzle-kit. Standalone by design — Electric owns this schema lifecycle.",
-      "migrationPhase": null
-    },
-    {
-      "path": "scripts/db/fix-audit-log-severity.sql",
-      "rules": ["sql-file-outside-migrations"],
-      "reason": "Ad-hoc data-correction script for audit-log severity backfill. Candidate for either deletion (if already applied) or promotion to drizzle-kit migration in Phase 4.",
+      "reason": "Documentation SQL in the @revealui/sync package — no code consumers (recon 2026-04-20 grep returned zero references). Describes the tables @revealui/sync needs from the host app. Pending Phase 4b.4: compare against Drizzle schema and either port missing tables to schema or delete if already covered.",
       "migrationPhase": 4
     },
     {
       "path": "scripts/setup-sync-schema.sql",
       "rules": ["sql-file-outside-migrations"],
-      "reason": "Duplicate of packages/sync/setup-sync-schema.sql at the scripts/ level. Likely orphaned — target for deletion in Phase 4.",
+      "reason": "Active file (read at runtime by scripts/setup/setup-sync-schema.ts). Different content from packages/sync/setup-sync-schema.sql (recon 2026-04-20). Creates ElectricSQL-related conversations/messages tables. Pending Phase 4b.4: port tables into Drizzle schema, switch the TS runner to drizzle-kit, delete the loose file.",
       "migrationPhase": 4
     }
   ]
