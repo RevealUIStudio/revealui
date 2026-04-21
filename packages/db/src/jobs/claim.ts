@@ -16,7 +16,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import { and, eq, lte, sql } from 'drizzle-orm';
+import { and, eq, lt, lte, sql } from 'drizzle-orm';
 import type { Database } from '../client/index.js';
 import { getClient, getRestPool } from '../client/index.js';
 import { type Job, jobs } from '../schema/jobs.js';
@@ -317,6 +317,79 @@ export async function countEligible(opts: DbOverride = {}): Promise<number> {
     .from(jobs)
     .where(and(eq(jobs.state, 'created'), lte(jobs.startAfter, new Date())));
   return rows[0]?.count ?? 0;
+}
+
+/**
+ * Details of a single reclaimed job, surfaced for logging + observability by
+ * the cron safety-net.
+ */
+export interface ReclaimedJob {
+  id: string;
+  name: string;
+  retryCount: number;
+  previousLockedBy: string | null;
+  previousLockedUntil: Date | null;
+}
+
+/**
+ * Reclaim jobs whose visibility timeout expired before completion.
+ *
+ * Transitions `state='active' AND locked_until < now()` rows back to
+ * `state='created'` with `retry_count += 1` and a diagnostic `last_error`
+ * so the usual retry/DLQ logic applies on the next claim.
+ *
+ * Intended to be called from the cron safety-net (CR8-P2-01 phase B) so
+ * that a pod crash or hung handler doesn't orphan a row in 'active'
+ * indefinitely. Idempotent: running it twice in quick succession finds
+ * nothing to reclaim on the second pass.
+ */
+export async function reclaimStalled(opts: DbOverride = {}): Promise<ReclaimedJob[]> {
+  const db = opts.db ?? getClient();
+
+  // Capture the rows we're about to reclaim (for logging) before mutating.
+  const stale = await db
+    .select({
+      id: jobs.id,
+      name: jobs.name,
+      retryCount: jobs.retryCount,
+      lockedBy: jobs.lockedBy,
+      lockedUntil: jobs.lockedUntil,
+    })
+    .from(jobs)
+    .where(
+      and(
+        eq(jobs.state, 'active'),
+        sql`${jobs.lockedUntil} IS NOT NULL`,
+        lt(jobs.lockedUntil, new Date()),
+      ),
+    );
+
+  if (stale.length === 0) return [];
+
+  await db
+    .update(jobs)
+    .set({
+      state: 'created',
+      lockedBy: null,
+      lockedUntil: null,
+      retryCount: sql`${jobs.retryCount} + 1`,
+      lastError: 'stalled: claim expired before completion',
+    })
+    .where(
+      and(
+        eq(jobs.state, 'active'),
+        sql`${jobs.lockedUntil} IS NOT NULL`,
+        lt(jobs.lockedUntil, new Date()),
+      ),
+    );
+
+  return stale.map((row) => ({
+    id: row.id,
+    name: row.name,
+    retryCount: row.retryCount + 1,
+    previousLockedBy: row.lockedBy,
+    previousLockedUntil: row.lockedUntil,
+  }));
 }
 
 // =============================================================================
