@@ -63,12 +63,6 @@
       "migrationPhase": null
     },
     {
-      "path": "packages/ai/src/memory/utils/sql-helpers.ts",
-      "rules": ["execute-sql-literal"],
-      "reason": "4 parameterized SELECTs on node_id_mappings, agent_contexts, and users with manual snake_case → camelCase transformation. The production code is migratable to Drizzle core query builder (db.select().from().where().limit()) — verified via a 2026-04-21 port that built cleanly — BUT breaks ~18 tests across 4 files (node-id-service.test.ts, edge-cases.test.ts, performance.test.ts, agent-context-manager.test.ts) which mock db.execute rather than db.select chains. Durable migration requires replacing the mock-based tests with PGlite-backed integration tests (or rewriting all ~20 mock sites to stub the full query-builder chain). Blocked on that test-infrastructure migration.",
-      "migrationPhase": 6
-    },
-    {
       "path": "scripts/dev-tools/verify-test-setup.ts",
       "rules": ["execute-sql-literal"],
       "reason": "Dev-tool that verifies test-harness DB state. Of its 7 raw-SQL calls, 3 are `SELECT 1` / `SELECT vector(...)` connectivity probes (same idiomatic-liveness rationale as apps/api/src/routes/health.ts) and 4 are information_schema / pg_indexes introspection queries that cannot go through Drizzle's query builder (Drizzle queries defined tables, not Postgres metadata). Permanent.",
