@@ -75,12 +75,6 @@
       "migrationPhase": 6
     },
     {
-      "path": "packages/db/src/migrations/audit-log-revoke.sql",
-      "rules": ["sql-file-outside-migrations"],
-      "reason": "Hand-applied DDL patch for audit-log access control. Will be imported into drizzle-kit migrations or documented as explicit pre-drizzle bootstrap.",
-      "migrationPhase": 4
-    },
-    {
       "path": "packages/db/src/supabase/setup-vector-extension.sql",
       "rules": ["sql-file-outside-migrations"],
       "reason": "Supabase-side pgvector extension bootstrap (CREATE EXTENSION IF NOT EXISTS vector). Applied by scripts/setup/setup-dual-database.ts against getVectorClient(). drizzle-kit currently only tracks the Neon side of the dual-DB architecture; Supabase-side DDL lives outside drizzle-kit by necessity. Phase 7 (drizzle-consolidation-spec) evaluates standing up a second drizzle-kit pipeline for Supabase; until then, this file + setup-dual-database.ts are the canonical Supabase-side applier. See packages/db/src/supabase/README.md for the architectural rationale.",
