@@ -16,7 +16,7 @@
  * Worker loop (apps/api/src/routes/jobs/run.ts) — claims + dispatches.
  */
 
-export type { ClaimOptions, DbOverride, RetryDecision } from './claim.js';
+export type { ClaimOptions, DbOverride, ReclaimedJob, RetryDecision } from './claim.js';
 export {
   claimNext,
   countEligible,
@@ -26,6 +26,7 @@ export {
   markCompleted,
   markFailedOrRetry,
   markUnhandled,
+  reclaimStalled,
   releaseClaim,
 } from './claim.js';
 export type { EnqueueOptions, EnqueueResult } from './enqueue.js';
