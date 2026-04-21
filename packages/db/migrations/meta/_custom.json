@@ -32,6 +32,12 @@
       "rationale": "PG PL/pgSQL trigger (enforce_account_membership_seat_limit) plus BEFORE INSERT / UPDATE OF status trigger on account_memberships — DB-level backstop for the app-level guard at apps/api/src/lib/seat-count-guard.ts. CR8-P2-03 defense-in-depth. Not expressible in Drizzle's schema DSL (no schema changes; trigger + function only).",
       "missingSnapshot": true,
       "snapshotDebtNote": "Snapshot would be a copy of 0006's snapshot (this migration adds no Drizzle-modeled columns/tables), but is omitted to avoid confusion, matching the 0002_triggers_search_vectors precedent."
+    },
+    {
+      "tag": "0008_jobs_visibility_timeout",
+      "rationale": "Hand-written ALTER TABLE on jobs adding locked_by/locked_until/last_error columns plus a partial index on (locked_until) WHERE state = 'active'. CR8-P2-01 phase A — durable work queue visibility-timeout semantics. drizzle-kit can model the columns but not the partial-index predicate (WHERE clause inside CREATE INDEX IF NOT EXISTS), and the ADD COLUMN statements are wrapped in IF NOT EXISTS for idempotent re-apply. Companion Drizzle schema update at packages/db/src/schema/jobs.ts adds the columns + partial index for type-safety; callers query via Drizzle, not raw SQL.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as 0003: snapshot regeneration via `pnpm --filter @revealui/db db:generate` against a clean DB once the shared-facts/yjs/shared-memory debt is worked through. Deferred to keep phase A scoped."
     }
   ]
 }
