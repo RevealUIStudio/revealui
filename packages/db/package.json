@@ -230,6 +230,10 @@
       "types": "./dist/saga/index.d.ts",
       "import": "./dist/saga/index.js"
     },
+    "./jobs": {
+      "types": "./dist/jobs/index.d.ts",
+      "import": "./dist/jobs/index.js"
+    },
     "./pool": {
       "types": "./dist/pool.d.ts",
       "import": "./dist/pool.js"
