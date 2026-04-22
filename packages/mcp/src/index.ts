@@ -129,6 +129,22 @@ export {
   type MCPTool,
   type NamespacedTool,
 } from './hypervisor.js';
+// OAuth 2.1 client provider (Stage 2 PR-2.1 — revvault-backed credential storage)
+export {
+  createMemoryVault,
+  createRevvaultVault,
+  type McpOAuthPaths,
+  McpOAuthProvider,
+  type McpOAuthProviderOptions,
+  mcpOAuthPaths,
+  type OAuthClientInformation,
+  type OAuthClientInformationFull,
+  type OAuthClientMetadata,
+  type OAuthTokens,
+  RevvaultError,
+  type RevvaultVaultOptions,
+  type Vault,
+} from './oauth.js';
 // Tool pipeline (composition / chaining)
 export {
   executePipeline,
