@@ -5,13 +5,13 @@
  *
  * Wraps `@modelcontextprotocol/sdk`'s `Client` with a RevealUI-shaped surface:
  * transport selection, capability enforcement (method throws a typed error if
- * the server doesn't advertise the feature), and per-URI resource
- * subscription fan-out with automatic protocol-level subscribe/unsubscribe.
+ * the server doesn't advertise the feature), per-URI resource subscription
+ * fan-out, and application-layer handlers for the server-initiated primitives
+ * (sampling, elicitation, roots).
  *
- * PR-0.1 (this PR) ships the resources + prompts surface. Subsequent Stage 0
- * PRs layer on sampling, elicitation, roots, completions, logging, progress,
- * cancellation, and generic notification handling using the same `McpClient`
- * instance.
+ * PR-0.1 shipped resources + prompts. PR-0.2 (this commit) adds sampling,
+ * elicitation, roots, and completions. PR-0.3 closes Stage 0 with logging,
+ * progress, cancellation, and generic notification routing.
  *
  * The hypervisor (`./hypervisor.ts`) continues to speak its custom JSON-RPC
  * for tool calls. Stage 1 migrates the hypervisor to route through this
@@ -22,11 +22,24 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import {
+  type ClientCapabilities,
+  type CompleteRequest,
+  type CompleteResult,
+  type CreateMessageRequest,
+  CreateMessageRequestSchema,
+  type CreateMessageResult,
+  type ElicitRequest,
+  ElicitRequestSchema,
+  type ElicitResult,
+  ListRootsRequestSchema,
   type Prompt,
   type PromptMessage,
+  type PromptReference,
   type Resource,
   type ResourceContents,
+  type ResourceTemplateReference,
   ResourceUpdatedNotificationSchema,
+  type Root,
   type ServerCapabilities,
 } from '@modelcontextprotocol/sdk/types.js';
 
@@ -59,6 +72,45 @@ export type CustomTransportOptions = {
 export type TransportOptions = StdioTransportOptions | CustomTransportOptions;
 
 // ---------------------------------------------------------------------------
+// Application-layer handlers for server-initiated requests
+// ---------------------------------------------------------------------------
+
+/**
+ * Handle a `sampling/createMessage` request FROM the server. The server is
+ * asking the client to run an LLM completion on its behalf — typically the
+ * client delegates to the application's configured LLM provider.
+ *
+ * Providing this handler causes the client to advertise the `sampling`
+ * capability during initialize; omitting it leaves the capability absent and
+ * the server will treat sampling as unsupported.
+ */
+export type SamplingHandler = (
+  params: CreateMessageRequest['params'],
+) => Promise<CreateMessageResult>;
+
+/**
+ * Handle an `elicitation/create` request FROM the server. The server is
+ * asking the client to elicit structured input from the user (form mode) or
+ * direct them to a URL (URL mode). The handler is responsible for rendering
+ * UI and returning the user's response.
+ *
+ * Providing this handler advertises the `elicitation` capability (form mode;
+ * URL mode is advertised too — callers can return `action: 'decline'` for
+ * modes they don't implement).
+ */
+export type ElicitationHandler = (params: ElicitRequest['params']) => Promise<ElicitResult>;
+
+/**
+ * Return the client's current roots (directories or URI namespaces it
+ * exposes to the server). Called each time the server issues `roots/list`,
+ * so the provider SHOULD return current state rather than a cached snapshot.
+ *
+ * Providing this advertises the `roots` capability (with `listChanged: true`
+ * — the client can notify via `notifyRootsListChanged()`).
+ */
+export type RootsProvider = () => Root[] | Promise<Root[]>;
+
+// ---------------------------------------------------------------------------
 // Client options
 // ---------------------------------------------------------------------------
 
@@ -67,6 +119,12 @@ export type McpClientOptions = {
   clientInfo: { name: string; version: string };
   /** Where and how to reach the server. */
   transport: TransportOptions;
+  /** Handle `sampling/createMessage` requests from the server. */
+  samplingHandler?: SamplingHandler;
+  /** Handle `elicitation/create` requests from the server. */
+  elicitationHandler?: ElicitationHandler;
+  /** Provide the client's current roots in response to `roots/list`. */
+  rootsProvider?: RootsProvider;
 };
 
 // ---------------------------------------------------------------------------
@@ -101,7 +159,23 @@ export class McpNotConnectedError extends Error {
 // Public types re-exported for convenience
 // ---------------------------------------------------------------------------
 
-export type { Prompt, PromptMessage, Resource, ResourceContents, ServerCapabilities };
+export type {
+  ClientCapabilities,
+  CompleteRequest,
+  CompleteResult,
+  CreateMessageRequest,
+  CreateMessageResult,
+  ElicitRequest,
+  ElicitResult,
+  Prompt,
+  PromptMessage,
+  PromptReference,
+  Resource,
+  ResourceContents,
+  ResourceTemplateReference,
+  Root,
+  ServerCapabilities,
+};
 
 /** Parameters delivered to a `subscribeResource` handler. */
 export type ResourceUpdatedParams = { uri: string };
@@ -111,6 +185,34 @@ export type GetPromptResult = {
   description?: string;
   messages: PromptMessage[];
 };
+
+/** Either a prompt or a resource-template reference — the two valid targets
+ *  for `completions/complete`. */
+export type CompletionReference = PromptReference | ResourceTemplateReference;
+
+/** The completion result returned by `complete()`. */
+export type Completion = CompleteResult['completion'];
+
+// ---------------------------------------------------------------------------
+// Capability auto-advertisement
+// ---------------------------------------------------------------------------
+
+/**
+ * Derive the client capability declaration from which handlers/providers the
+ * caller supplied. Only features we can actually service get advertised.
+ *
+ * Form-mode elicitation is advertised as the default when an elicitation
+ * handler is provided (matches the SDK's interpretation of `elicitation: {}`).
+ * URL-mode callers who want that surface explicitly can add it — future
+ * enhancement; PR-0.2 treats the handler as a single entry point.
+ */
+function buildCapabilities(options: McpClientOptions): ClientCapabilities {
+  const caps: ClientCapabilities = {};
+  if (options.samplingHandler) caps.sampling = {};
+  if (options.elicitationHandler) caps.elicitation = {};
+  if (options.rootsProvider) caps.roots = { listChanged: true };
+  return caps;
+}
 
 // ---------------------------------------------------------------------------
 // McpClient
@@ -135,7 +237,7 @@ export class McpClient {
   constructor(options: McpClientOptions) {
     this.options = options;
     this.sdk = new Client(options.clientInfo, {
-      capabilities: {},
+      capabilities: buildCapabilities(options),
       listChanged: {
         resources: { onChanged: () => this.fireListChanged('resources') },
         prompts: { onChanged: () => this.fireListChanged('prompts') },
@@ -158,6 +260,24 @@ export class McpClient {
         }
       }
     });
+
+    // Register server-initiated request handlers. Each is only wired when the
+    // caller supplied the corresponding handler/provider — that way the
+    // declared capability set matches what we can actually service.
+    if (options.samplingHandler) {
+      const handler = options.samplingHandler;
+      this.sdk.setRequestHandler(CreateMessageRequestSchema, (request) => handler(request.params));
+    }
+    if (options.elicitationHandler) {
+      const handler = options.elicitationHandler;
+      this.sdk.setRequestHandler(ElicitRequestSchema, (request) => handler(request.params));
+    }
+    if (options.rootsProvider) {
+      const provider = options.rootsProvider;
+      this.sdk.setRequestHandler(ListRootsRequestSchema, async () => ({
+        roots: await provider(),
+      }));
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -288,6 +408,47 @@ export class McpClient {
   }
 
   // -------------------------------------------------------------------------
+  // Roots
+  // -------------------------------------------------------------------------
+
+  /**
+   * Notify the server that the client's roots have changed. The server will
+   * typically re-fetch via `roots/list`, which routes to the `rootsProvider`
+   * passed at construction. No-op if the client wasn't constructed with a
+   * `rootsProvider` — advertising list-changed without a provider is
+   * nonsensical, so we fail fast.
+   */
+  async notifyRootsListChanged(): Promise<void> {
+    this.assertConnected('notifyRootsListChanged');
+    if (!this.options.rootsProvider) {
+      throw new Error(
+        'McpClient.notifyRootsListChanged() requires a rootsProvider at construction',
+      );
+    }
+    await this.sdk.sendRootsListChanged();
+  }
+
+  // -------------------------------------------------------------------------
+  // Completions
+  // -------------------------------------------------------------------------
+
+  /**
+   * Request argument completions from the server. The reference points at a
+   * prompt or resource-template; the server returns suggestion values for
+   * the named argument given the current partial value.
+   */
+  async complete(
+    reference: CompletionReference,
+    argument: { name: string; value: string },
+  ): Promise<Completion> {
+    this.assertConnected('complete');
+    this.requireCapability('completions');
+    const params: CompleteRequest['params'] = { ref: reference, argument };
+    const result = await this.sdk.complete(params);
+    return result.completion;
+  }
+
+  // -------------------------------------------------------------------------
   // Health
   // -------------------------------------------------------------------------
 
@@ -319,7 +480,9 @@ export class McpClient {
     if (!this.connected) throw new McpNotConnectedError(method);
   }
 
-  private requireCapability(capability: 'resources' | 'prompts' | 'tools' | 'logging'): void {
+  private requireCapability(
+    capability: 'resources' | 'prompts' | 'tools' | 'logging' | 'completions',
+  ): void {
     const caps = this.getServerCapabilities();
     if (!caps?.[capability]) throw new McpCapabilityError(capability);
   }
