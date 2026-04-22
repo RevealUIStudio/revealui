@@ -21,6 +21,7 @@
  * client so transport abstraction (Streamable HTTP) lands cleanly.
  */
 
+import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import {
@@ -88,9 +89,13 @@ export type CustomTransportOptions = {
  * SSE streaming for progress/notifications, and OAuth 2.1 for authenticated
  * deployments.
  *
- * OAuth wiring lands in Stage 2; this PR (Stage 1) exposes the transport
- * without an `authProvider`. Callers who need auth before Stage 2 can pass
- * their own bearer token via `requestInit.headers`.
+ * Pass `authProvider` to enable OAuth 2.1 (Authorization Code + PKCE,
+ * Dynamic Client Registration, automatic refresh). `@revealui/mcp` ships
+ * `McpOAuthProvider` at `./oauth.js` — construct it with a
+ * `(tenant, server, vault)` triple and a redirect URL, and attach it here.
+ * If `authProvider` is omitted and the server requires auth, the SDK throws
+ * `UnauthorizedError` on connect. Callers who need static bearer-token auth
+ * instead can pass the header via `requestInit.headers`.
  */
 export type StreamableHttpTransportOptions = {
   kind: 'streamable-http';
@@ -105,6 +110,12 @@ export type StreamableHttpTransportOptions = {
   sessionId?: string;
   /** SSE reconnection tuning (delays, retry ceiling). */
   reconnectionOptions?: StreamableHTTPReconnectionOptions;
+  /**
+   * OAuth 2.1 client provider. The SDK invokes discovery, DCR, PKCE, and
+   * refresh flows through this object, persisting state via the provider's
+   * storage methods. See `./oauth.js` for a revvault-backed implementation.
+   */
+  authProvider?: OAuthClientProvider;
 };
 
 export type TransportOptions =
@@ -312,6 +323,12 @@ export class McpClient {
   private readonly sdk: Client;
   private readonly options: McpClientOptions;
   private connected = false;
+  /**
+   * Tracks the Streamable HTTP transport when that kind is in use, so
+   * `finishAuth()` can delegate to it. Set by `createTransport`, cleared
+   * on `close()`.
+   */
+  private httpTransport?: StreamableHTTPClientTransport;
   private readonly resourceSubscribers = new Map<
     string,
     Set<(params: ResourceUpdatedParams) => void>
@@ -398,7 +415,36 @@ export class McpClient {
     if (!this.connected) return;
     await this.sdk.close();
     this.connected = false;
+    this.httpTransport = undefined;
     this.resourceSubscribers.clear();
+  }
+
+  /**
+   * Finalize an OAuth 2.1 authorization flow initiated by an `authProvider`.
+   *
+   * After `connect()` triggers `OAuthClientProvider.redirectToAuthorization`,
+   * the user completes consent at the authorization server and is redirected
+   * back to the caller's callback URL with a `code` query parameter. The
+   * caller passes that `code` here, which delegates to the Streamable HTTP
+   * transport's `finishAuth`: the SDK exchanges the code (with the stored
+   * PKCE verifier) at the token endpoint and persists the resulting token
+   * set via the provider's `saveTokens`. Retry `connect()` afterward.
+   *
+   * Throws if the client is not using the `streamable-http` transport or if
+   * `connect()` has not been called yet (the transport is constructed during
+   * `connect`).
+   */
+  async finishAuth(authorizationCode: string): Promise<void> {
+    if (this.options.transport.kind !== 'streamable-http') {
+      throw new Error(
+        `McpClient.finishAuth() requires the 'streamable-http' transport ` +
+          `(got '${this.options.transport.kind}')`,
+      );
+    }
+    if (!this.httpTransport) {
+      throw new McpNotConnectedError('finishAuth');
+    }
+    await this.httpTransport.finishAuth(authorizationCode);
   }
 
   /** Server capabilities returned by `initialize`. Undefined before connect. */
@@ -647,7 +693,10 @@ export class McpClient {
         if (t.fetch) sdkOptions.fetch = t.fetch;
         if (t.sessionId) sdkOptions.sessionId = t.sessionId;
         if (t.reconnectionOptions) sdkOptions.reconnectionOptions = t.reconnectionOptions;
-        return new StreamableHTTPClientTransport(url, sdkOptions);
+        if (t.authProvider) sdkOptions.authProvider = t.authProvider;
+        const transport = new StreamableHTTPClientTransport(url, sdkOptions);
+        this.httpTransport = transport;
+        return transport;
       }
     }
   }
