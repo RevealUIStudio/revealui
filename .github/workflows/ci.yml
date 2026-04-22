@@ -222,14 +222,14 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a.1: Integration tests (main only — requires DB)
+  # Phase 3a.1: Integration tests (all PRs + push to main — requires DB)
   # ---------------------------------------------------------------------------
   test-integration:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: quality
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
     services:
       postgres:
