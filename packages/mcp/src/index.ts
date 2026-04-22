@@ -164,6 +164,11 @@ export {
   StripeAdapter,
   VercelAdapter,
 } from './servers/adapter.js';
+// First-party server factories (Stage 1 PR-1.2 — dual-mode template)
+export {
+  createRevealuiContentServer,
+  setCredentials as setRevealuiContentCredentials,
+} from './servers/factories/revealui-content.js';
 // Server launchers
 export { launchNeonMcp } from './servers/neon.js';
 export { launchNextDevtoolsMcp } from './servers/next-devtools.js';
