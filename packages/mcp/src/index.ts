@@ -43,6 +43,8 @@ export {
   connectPostgres,
   createMcpDbClient,
   type McpDbClient,
+  type McpDocumentOperationsInsert,
+  type McpDocumentOperationsRow,
   type QueryResult,
 } from './adapters/db.js';
 // Auth bridge (JWT claims validation + tool authorization)

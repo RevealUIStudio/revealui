@@ -12,6 +12,7 @@
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import getMcpConfig from '@revealui/config/mcp';
+import type { McpDocumentOperationsInsert, McpDocumentOperationsRow } from '@revealui/contracts';
 import { getSSLConfig } from '@revealui/core/database/ssl-config';
 
 export interface QueryResult<T = Record<string, unknown>> {
@@ -23,6 +24,16 @@ export type McpDbClient = {
   query: <T = Record<string, unknown>>(sql: string, params?: unknown[]) => Promise<QueryResult<T>>;
   close: () => Promise<void>;
 };
+
+/**
+ * Re-export the Drizzle-generated types for MCP's document-operations log so
+ * consumers of `@revealui/mcp` don't have to also import `@revealui/contracts`
+ * just to type a `mcp_document_operations` row. These types ARE the source of
+ * truth — they are generated from the Drizzle schema at
+ * `packages/db/src/schema/mcp-document-operations.ts` and will track any
+ * future column changes automatically.
+ */
+export type { McpDocumentOperationsInsert, McpDocumentOperationsRow };
 
 // Type for PGlite instance (minimal interface to avoid import issues)
 interface PGliteInstance {
