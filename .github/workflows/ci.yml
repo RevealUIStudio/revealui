@@ -82,6 +82,9 @@ jobs:
       - name: Raw-SQL validation (hard fail)
         run: pnpm validate:raw-sql
 
+      - name: Empty-catch validation (hard fail)
+        run: pnpm validate:empty-catch
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #
