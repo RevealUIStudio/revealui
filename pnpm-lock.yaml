@@ -263,6 +263,9 @@ importers:
       '@revealui/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@revealui/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
       '@revealui/paywall':
         specifier: workspace:*
         version: link:../../packages/paywall

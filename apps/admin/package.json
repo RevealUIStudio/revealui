@@ -11,6 +11,7 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
+    "@revealui/mcp": "workspace:*",
     "@revealui/paywall": "workspace:*",
     "@revealui/presentation": "workspace:*",
     "@revealui/setup": "workspace:*",
