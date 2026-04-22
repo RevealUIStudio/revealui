@@ -4,9 +4,11 @@ import { check, index, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-co
 /**
  * Structured application logs  -  warn and above, all apps.
  *
- * Append-only. No FK constraints (logs outlive users/requests).
- * Written via the DB log transport (packages/db/src/log-transport.ts).
- * Only populated in production; dev logs stay on stdout.
+ * No FK constraints (logs outlive users/requests). Written via the
+ * DB log transport (packages/db/src/log-transport.ts). Only populated
+ * in production; dev logs stay on stdout. Retention: rows older than
+ * REVEALUI_LOG_RETENTION_DAYS (default 90) are purged by the daily
+ * cron — see packages/db/src/cleanup/log-retention.ts.
  */
 export const appLogs = pgTable(
   'app_logs',
