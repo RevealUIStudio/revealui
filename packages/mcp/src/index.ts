@@ -54,6 +54,23 @@ export {
   McpAuthClaimsSchema,
   validateMcpClaims,
 } from './auth.js';
+// MCP protocol client (Stage 0 — PR-0.1 ships resources + prompts)
+export {
+  type CustomTransportOptions,
+  type GetPromptResult,
+  McpCapabilityError,
+  McpClient,
+  type McpClientOptions,
+  McpNotConnectedError,
+  type Prompt,
+  type PromptMessage,
+  type Resource,
+  type ResourceContents,
+  type ResourceUpdatedParams,
+  type ServerCapabilities,
+  type StdioTransportOptions,
+  type TransportOptions,
+} from './client.js';
 // Configuration
 export {
   getMcpConfig,
