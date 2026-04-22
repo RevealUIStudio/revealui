@@ -54,7 +54,7 @@ export {
   McpAuthClaimsSchema,
   validateMcpClaims,
 } from './auth.js';
-// MCP protocol client (Stage 0 complete — PR-0.1 resources + prompts, PR-0.2 sampling + elicitation + roots + completions, PR-0.3 logging + progress + cancellation + generic notifications)
+// MCP protocol client (Stage 0 complete; Stage 1 PR-1.1 adds Streamable HTTP transport)
 export {
   type ClientCapabilities,
   type CompleteRequest,
@@ -89,6 +89,9 @@ export {
   type SamplingHandler,
   type ServerCapabilities,
   type StdioTransportOptions,
+  type StreamableHTTPClientTransportOptions,
+  type StreamableHTTPReconnectionOptions,
+  type StreamableHttpTransportOptions,
   type TransportOptions,
 } from './client.js';
 // Configuration
@@ -168,6 +171,12 @@ export { launchPlaywrightMcp } from './servers/playwright.js';
 export { launchStripeMcp } from './servers/stripe.js';
 export { launchSupabaseMcp } from './servers/supabase.js';
 export { launchVercelMcp } from './servers/vercel.js';
+// Streamable HTTP server-side helper (Stage 1 PR-1.1)
+export {
+  createNodeStreamableHttpHandler,
+  type StreamableHttpHandler,
+  type StreamableHttpHandlerOptions,
+} from './streamable-http.js';
 // Telemetry (structured observability events)
 export {
   type McpEvent,

@@ -23,6 +23,11 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import {
+  StreamableHTTPClientTransport,
+  type StreamableHTTPClientTransportOptions,
+  type StreamableHTTPReconnectionOptions,
+} from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { AnyObjectSchema, SchemaOutput } from '@modelcontextprotocol/sdk/server/zod-compat.js';
 import type { RequestOptions } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
@@ -71,14 +76,43 @@ export type StdioTransportOptions = {
 /**
  * Inject a pre-built SDK `Transport`. Intended for tests (`InMemoryTransport`)
  * and for experimental transports not yet first-classed in this discriminator.
- * Stage 1 adds `{ kind: 'streamable-http'; ... }`.
  */
 export type CustomTransportOptions = {
   kind: 'custom';
   transport: Transport;
 };
 
-export type TransportOptions = StdioTransportOptions | CustomTransportOptions;
+/**
+ * Talk MCP over the spec's Streamable HTTP transport. The preferred remote
+ * transport as of the 2025 spec revision — supports request/response JSON,
+ * SSE streaming for progress/notifications, and OAuth 2.1 for authenticated
+ * deployments.
+ *
+ * OAuth wiring lands in Stage 2; this PR (Stage 1) exposes the transport
+ * without an `authProvider`. Callers who need auth before Stage 2 can pass
+ * their own bearer token via `requestInit.headers`.
+ */
+export type StreamableHttpTransportOptions = {
+  kind: 'streamable-http';
+  /** MCP endpoint URL (e.g. `https://example.com/mcp`). */
+  url: string | URL;
+  /** Fetch `RequestInit` applied to every outgoing request. Use this for
+   *  headers, credentials, custom signals, etc. */
+  requestInit?: RequestInit;
+  /** Override `fetch`. Defaults to global `fetch`. */
+  fetch?: typeof fetch;
+  /** Reuse a server-issued session ID (e.g. for reconnection). */
+  sessionId?: string;
+  /** SSE reconnection tuning (delays, retry ceiling). */
+  reconnectionOptions?: StreamableHTTPReconnectionOptions;
+};
+
+export type TransportOptions =
+  | StdioTransportOptions
+  | CustomTransportOptions
+  | StreamableHttpTransportOptions;
+
+export type { StreamableHTTPClientTransportOptions, StreamableHTTPReconnectionOptions };
 
 // ---------------------------------------------------------------------------
 // Application-layer handlers for server-initiated requests
@@ -606,6 +640,15 @@ export class McpClient {
         });
       case 'custom':
         return t.transport;
+      case 'streamable-http': {
+        const url = t.url instanceof URL ? t.url : new URL(t.url);
+        const sdkOptions: StreamableHTTPClientTransportOptions = {};
+        if (t.requestInit) sdkOptions.requestInit = t.requestInit;
+        if (t.fetch) sdkOptions.fetch = t.fetch;
+        if (t.sessionId) sdkOptions.sessionId = t.sessionId;
+        if (t.reconnectionOptions) sdkOptions.reconnectionOptions = t.reconnectionOptions;
+        return new StreamableHTTPClientTransport(url, sdkOptions);
+      }
     }
   }
 

@@ -66,6 +66,10 @@
     "./auth": {
       "types": "./dist/auth.d.ts",
       "import": "./dist/auth.js"
+    },
+    "./streamable-http": {
+      "types": "./dist/streamable-http.d.ts",
+      "import": "./dist/streamable-http.js"
     }
   },
   "files": [
