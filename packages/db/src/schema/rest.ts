@@ -57,6 +57,7 @@ export * from './jobs.js';
 export * from './licenses.js';
 export * from './magic-links.js';
 export * from './marketplace.js';
+export * from './mcp-document-operations.js';
 export * from './node-ids.js';
 export * from './oauth-accounts.js';
 export * from './pages.js';
