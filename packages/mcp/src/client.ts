@@ -9,9 +9,12 @@
  * fan-out, and application-layer handlers for the server-initiated primitives
  * (sampling, elicitation, roots).
  *
- * PR-0.1 shipped resources + prompts. PR-0.2 (this commit) adds sampling,
- * elicitation, roots, and completions. PR-0.3 closes Stage 0 with logging,
- * progress, cancellation, and generic notification routing.
+ * Stage 0 completion as of PR-0.3:
+ *   PR-0.1 — resources + prompts.
+ *   PR-0.2 — sampling + elicitation + roots + completions.
+ *   PR-0.3 — logging, progress, cancellation, generic notification routing,
+ *            per-request options (signal + onProgress + timeout) threaded
+ *            through every client-initiated call.
  *
  * The hypervisor (`./hypervisor.ts`) continues to speak its custom JSON-RPC
  * for tool calls. Stage 1 migrates the hypervisor to route through this
@@ -20,6 +23,8 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import type { AnyObjectSchema, SchemaOutput } from '@modelcontextprotocol/sdk/server/zod-compat.js';
+import type { RequestOptions } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import {
   type ClientCapabilities,
@@ -32,6 +37,10 @@ import {
   ElicitRequestSchema,
   type ElicitResult,
   ListRootsRequestSchema,
+  type LoggingLevel,
+  type LoggingMessageNotification,
+  LoggingMessageNotificationSchema,
+  type Progress,
   type Prompt,
   type PromptMessage,
   type PromptReference,
@@ -93,10 +102,6 @@ export type SamplingHandler = (
  * asking the client to elicit structured input from the user (form mode) or
  * direct them to a URL (URL mode). The handler is responsible for rendering
  * UI and returning the user's response.
- *
- * Providing this handler advertises the `elicitation` capability (form mode;
- * URL mode is advertised too — callers can return `action: 'decline'` for
- * modes they don't implement).
  */
 export type ElicitationHandler = (params: ElicitRequest['params']) => Promise<ElicitResult>;
 
@@ -109,6 +114,46 @@ export type ElicitationHandler = (params: ElicitRequest['params']) => Promise<El
  * — the client can notify via `notifyRootsListChanged()`).
  */
 export type RootsProvider = () => Root[] | Promise<Root[]>;
+
+// ---------------------------------------------------------------------------
+// Per-request options
+// ---------------------------------------------------------------------------
+
+/**
+ * Per-request options applied to every client-initiated call. Mirrors the
+ * SDK's `RequestOptions` but exposes only the fields we expect consumers to
+ * use (we may add more as Stage 0 / 1 evolve).
+ *
+ * - `signal` — pass an `AbortSignal` to cancel the request mid-flight. When
+ *   aborted the SDK emits `notifications/cancelled` to the server and the
+ *   pending promise rejects with an AbortError.
+ * - `onProgress` — subscribe to per-request progress notifications. The SDK
+ *   automatically correlates `notifications/progress` by the progress token
+ *   and invokes this callback.
+ * - `timeout` — request-level timeout in ms. If exceeded the SDK raises a
+ *   `RequestTimeout` error. Absent = SDK default.
+ * - `resetTimeoutOnProgress` — if true, receiving a progress notification
+ *   resets the timeout clock. Useful for long-running operations.
+ */
+export type McpRequestOptions = {
+  signal?: AbortSignal;
+  onProgress?: (progress: Progress) => void;
+  timeout?: number;
+  resetTimeoutOnProgress?: boolean;
+};
+
+/** Internal: translate our options to the SDK's native shape. */
+function toSdkRequestOptions(options?: McpRequestOptions): RequestOptions | undefined {
+  if (!options) return undefined;
+  const sdkOptions: RequestOptions = {};
+  if (options.signal) sdkOptions.signal = options.signal;
+  if (options.onProgress) sdkOptions.onprogress = options.onProgress;
+  if (options.timeout !== undefined) sdkOptions.timeout = options.timeout;
+  if (options.resetTimeoutOnProgress !== undefined) {
+    sdkOptions.resetTimeoutOnProgress = options.resetTimeoutOnProgress;
+  }
+  return sdkOptions;
+}
 
 // ---------------------------------------------------------------------------
 // Client options
@@ -167,6 +212,9 @@ export type {
   CreateMessageResult,
   ElicitRequest,
   ElicitResult,
+  LoggingLevel,
+  LoggingMessageNotification,
+  Progress,
   Prompt,
   PromptMessage,
   PromptReference,
@@ -193,6 +241,9 @@ export type CompletionReference = PromptReference | ResourceTemplateReference;
 /** The completion result returned by `complete()`. */
 export type Completion = CompleteResult['completion'];
 
+/** Parameters delivered to an `onLog` subscriber. */
+export type LogMessageParams = LoggingMessageNotification['params'];
+
 // ---------------------------------------------------------------------------
 // Capability auto-advertisement
 // ---------------------------------------------------------------------------
@@ -204,7 +255,7 @@ export type Completion = CompleteResult['completion'];
  * Form-mode elicitation is advertised as the default when an elicitation
  * handler is provided (matches the SDK's interpretation of `elicitation: {}`).
  * URL-mode callers who want that surface explicitly can add it — future
- * enhancement; PR-0.2 treats the handler as a single entry point.
+ * enhancement; today the handler is a single entry point.
  */
 function buildCapabilities(options: McpClientOptions): ClientCapabilities {
   const caps: ClientCapabilities = {};
@@ -220,6 +271,9 @@ function buildCapabilities(options: McpClientOptions): ClientCapabilities {
 
 type ListChangedChannel = 'resources' | 'prompts' | 'tools';
 
+// biome-ignore lint/suspicious/noExplicitAny: handler payload type is recovered from the schema
+type NotificationHandler = (notification: any) => void;
+
 export class McpClient {
   private readonly sdk: Client;
   private readonly options: McpClientOptions;
@@ -233,6 +287,14 @@ export class McpClient {
     prompts: new Set(),
     tools: new Set(),
   };
+  /**
+   * Subscribers per notification schema. First `on(schema, handler)` call for
+   * a schema registers a single fan-out handler with the SDK; subsequent
+   * calls just add to the Set. Removing the last subscriber keeps the SDK
+   * handler registered (no public API to unregister by schema) — empty
+   * fan-out is a cheap no-op.
+   */
+  private readonly notificationSubscribers = new Map<AnyObjectSchema, Set<NotificationHandler>>();
 
   constructor(options: McpClientOptions) {
     this.options = options;
@@ -245,9 +307,10 @@ export class McpClient {
       },
     });
 
-    // Fan notifications/resources/updated out to per-URI subscribers. The SDK
-    // calls this handler for every update; we dispatch to interested parties.
-    this.sdk.setNotificationHandler(ResourceUpdatedNotificationSchema, (notification) => {
+    // Route resource-updated notifications through the generic fan-out so the
+    // same `on(ResourceUpdatedNotificationSchema, ...)` subscription API
+    // remains available without overwriting our per-URI subscriber dispatch.
+    this.on(ResourceUpdatedNotificationSchema, (notification) => {
       const uri = notification.params.uri;
       const subscribers = this.resourceSubscribers.get(uri);
       if (!subscribers) return;
@@ -255,8 +318,7 @@ export class McpClient {
         try {
           handler({ uri });
         } catch {
-          // Swallow per-subscriber errors; one bad handler must not disrupt
-          // the others, and the SDK doesn't care either way.
+          // Swallow per-subscriber errors.
         }
       }
     });
@@ -314,17 +376,17 @@ export class McpClient {
   // Resources
   // -------------------------------------------------------------------------
 
-  async listResources(): Promise<Resource[]> {
+  async listResources(options?: McpRequestOptions): Promise<Resource[]> {
     this.assertConnected('listResources');
     this.requireCapability('resources');
-    const result = await this.sdk.listResources();
+    const result = await this.sdk.listResources(undefined, toSdkRequestOptions(options));
     return result.resources;
   }
 
-  async readResource(uri: string): Promise<ResourceContents[]> {
+  async readResource(uri: string, options?: McpRequestOptions): Promise<ResourceContents[]> {
     this.assertConnected('readResource');
     this.requireCapability('resources');
-    const result = await this.sdk.readResource({ uri });
+    const result = await this.sdk.readResource({ uri }, toSdkRequestOptions(options));
     return result.contents;
   }
 
@@ -339,6 +401,7 @@ export class McpClient {
   async subscribeResource(
     uri: string,
     handler: (params: ResourceUpdatedParams) => void,
+    options?: McpRequestOptions,
   ): Promise<() => Promise<void>> {
     this.assertConnected('subscribeResource');
     const caps = this.getServerCapabilities();
@@ -349,7 +412,7 @@ export class McpClient {
     if (!subscribers) {
       subscribers = new Set();
       this.resourceSubscribers.set(uri, subscribers);
-      await this.sdk.subscribeResource({ uri });
+      await this.sdk.subscribeResource({ uri }, toSdkRequestOptions(options));
     }
     subscribers.add(handler);
 
@@ -373,18 +436,22 @@ export class McpClient {
   // Prompts
   // -------------------------------------------------------------------------
 
-  async listPrompts(): Promise<Prompt[]> {
+  async listPrompts(options?: McpRequestOptions): Promise<Prompt[]> {
     this.assertConnected('listPrompts');
     this.requireCapability('prompts');
-    const result = await this.sdk.listPrompts();
+    const result = await this.sdk.listPrompts(undefined, toSdkRequestOptions(options));
     return result.prompts;
   }
 
-  async getPrompt(name: string, args?: Record<string, string>): Promise<GetPromptResult> {
+  async getPrompt(
+    name: string,
+    args?: Record<string, string>,
+    options?: McpRequestOptions,
+  ): Promise<GetPromptResult> {
     this.assertConnected('getPrompt');
     this.requireCapability('prompts');
     const params = args === undefined ? { name } : { name, arguments: args };
-    const result = await this.sdk.getPrompt(params);
+    const result = await this.sdk.getPrompt(params, toSdkRequestOptions(options));
     return {
       description: result.description,
       messages: result.messages,
@@ -440,21 +507,87 @@ export class McpClient {
   async complete(
     reference: CompletionReference,
     argument: { name: string; value: string },
+    options?: McpRequestOptions,
   ): Promise<Completion> {
     this.assertConnected('complete');
     this.requireCapability('completions');
     const params: CompleteRequest['params'] = { ref: reference, argument };
-    const result = await this.sdk.complete(params);
+    const result = await this.sdk.complete(params, toSdkRequestOptions(options));
     return result.completion;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logging (PR-0.3)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Set the minimum log level the server should emit. Requires the server to
+   * advertise the `logging` capability.
+   */
+  async setLoggingLevel(level: LoggingLevel, options?: McpRequestOptions): Promise<void> {
+    this.assertConnected('setLoggingLevel');
+    this.requireCapability('logging');
+    await this.sdk.setLoggingLevel(level, toSdkRequestOptions(options));
+  }
+
+  /**
+   * Subscribe to server-emitted log messages. Returns an unregister function.
+   *
+   * Implemented on top of the generic `on()` fan-out, so multiple subscribers
+   * coexist cleanly (admin UI, CLI logger, telemetry exporter, …).
+   */
+  onLog(handler: (params: LogMessageParams) => void): () => void {
+    return this.on(LoggingMessageNotificationSchema, (notification) => {
+      handler(notification.params);
+    });
+  }
+
+  // -------------------------------------------------------------------------
+  // Generic notification subscription (PR-0.3)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Subscribe to arbitrary server notifications by zod schema. First
+   * subscription per schema installs a single SDK handler that fans out to
+   * every registered subscriber; later subscriptions join the existing fan.
+   * Returns an unregister function.
+   *
+   * Typically callers use the purpose-built subscribers (`onLog`,
+   * `onResourcesListChanged`, `subscribeResource`) rather than this. Use
+   * `on()` for schemas the client doesn't yet expose a named subscriber for.
+   */
+  on<T extends AnyObjectSchema>(
+    schema: T,
+    handler: (notification: SchemaOutput<T>) => void,
+  ): () => void {
+    let subscribers = this.notificationSubscribers.get(schema);
+    if (!subscribers) {
+      subscribers = new Set<NotificationHandler>();
+      this.notificationSubscribers.set(schema, subscribers);
+      const fanOut: NotificationHandler = (notification) => {
+        for (const h of subscribers ?? []) {
+          try {
+            h(notification);
+          } catch {
+            // Swallow per-subscriber errors.
+          }
+        }
+      };
+      this.sdk.setNotificationHandler(schema, fanOut);
+    }
+    subscribers.add(handler as NotificationHandler);
+    return () => {
+      subscribers?.delete(handler as NotificationHandler);
+    };
   }
 
   // -------------------------------------------------------------------------
   // Health
   // -------------------------------------------------------------------------
 
-  async ping(): Promise<void> {
+  async ping(options?: McpRequestOptions): Promise<void> {
     this.assertConnected('ping');
-    await this.sdk.ping();
+    await this.sdk.ping(toSdkRequestOptions(options));
   }
 
   // -------------------------------------------------------------------------
