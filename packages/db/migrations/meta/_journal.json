@@ -64,6 +64,13 @@
       "when": 1776998400000,
       "tag": "0008_jobs_visibility_timeout",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1777084800000,
+      "tag": "0009_mcp_document_operations",
+      "breakpoints": true
     }
   ]
 }
