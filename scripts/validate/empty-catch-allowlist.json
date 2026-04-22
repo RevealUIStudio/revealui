@@ -1,0 +1,5 @@
+{
+  "$comment": "CR8-P1-02 empty-catch validator allowlist. Allowlist is EMPTY by design: both pre-existing violations were fixed with inline `// empty-catch-ok: <reason>` suppression comments at the moment the validator was introduced. Preferred fix for any new silent .catch(...): (1) add logger.warn/console.warn with context, (2) add `// empty-catch-ok: <reason>` on the same line or the line immediately preceding, (3) as last resort, add an entry here with the file path, a line number (recommended), and a non-empty reason.",
+  "version": 1,
+  "entries": []
+}
