@@ -39,8 +39,6 @@ export async function checkMcpLicense(): Promise<boolean> {
 
 // Database adapter
 export {
-  type CrdtOperationsInsert,
-  type CrdtOperationsRow,
   connectPglite,
   connectPostgres,
   createMcpDbClient,

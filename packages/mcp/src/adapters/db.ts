@@ -1,16 +1,17 @@
 /**
  * DB adapter for MCP.
- * - `connectPglite()` initializes ElectricSQL/pglite client with CRDT metadata.
- * - `connectPostgres()` creates a standard Postgres client with Electric metadata.
- * - `createMcpDbClient()` factory that selects adapter based on config.
+ * - `connectPglite()` returns a PGlite-backed client.
+ * - `connectPostgres()` returns a `pg.Pool`-backed client.
+ * - `createMcpDbClient()` selects adapter based on `persistenceDriver` config.
  *
- * Uses @revealui/contracts as the single source of truth for CRDT operation types.
+ * Schema is the caller's responsibility — these factories do NOT bootstrap any
+ * tables. Apply drizzle-kit migrations (`pnpm --filter @revealui/db db:migrate`
+ * or the PGlite equivalent) before issuing queries.
  */
 
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import getMcpConfig from '@revealui/config/mcp';
-import type { CrdtOperationsInsert, CrdtOperationsRow } from '@revealui/contracts';
 import { getSSLConfig } from '@revealui/core/database/ssl-config';
 
 export interface QueryResult<T = Record<string, unknown>> {
@@ -23,9 +24,6 @@ export type McpDbClient = {
   close: () => Promise<void>;
 };
 
-/** Re-export contracts CRDT types for consumers */
-export type { CrdtOperationsInsert, CrdtOperationsRow };
-
 // Type for PGlite instance (minimal interface to avoid import issues)
 interface PGliteInstance {
   waitReady: Promise<void>;
@@ -36,23 +34,6 @@ interface PGliteInstance {
   exec(query: string): Promise<unknown>;
   close(): Promise<void>;
 }
-
-// CRDT operations table schema for conflict-free replication
-const CRDT_TABLE_SQL = `
-  CREATE TABLE IF NOT EXISTS crdt_operations (
-    id TEXT PRIMARY KEY,
-    document_id TEXT NOT NULL,
-    operation_type TEXT NOT NULL,
-    payload JSONB NOT NULL,
-    vector_clock JSONB NOT NULL,
-    node_id TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    applied_at TIMESTAMPTZ
-  );
-  CREATE INDEX IF NOT EXISTS idx_crdt_ops_document ON crdt_operations(document_id);
-  CREATE INDEX IF NOT EXISTS idx_crdt_ops_node ON crdt_operations(node_id);
-  CREATE INDEX IF NOT EXISTS idx_crdt_ops_created ON crdt_operations(created_at DESC);
-`;
 
 /**
  * Connect to PGlite (embedded PostgreSQL) for local development/testing.
@@ -88,9 +69,6 @@ export async function connectPglite(options?: { dataDir?: string }): Promise<Mcp
     }
     throw error;
   }
-
-  // Create CRDT operations table
-  await db.exec(CRDT_TABLE_SQL);
 
   return {
     async query<T = Record<string, unknown>>(
@@ -141,9 +119,6 @@ export async function connectPostgres(): Promise<McpDbClient> {
   } finally {
     client.release();
   }
-
-  // Create CRDT operations table
-  await pool.query(CRDT_TABLE_SQL);
 
   return {
     async query<T = Record<string, unknown>>(
