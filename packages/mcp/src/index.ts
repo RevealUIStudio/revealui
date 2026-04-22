@@ -54,7 +54,7 @@ export {
   McpAuthClaimsSchema,
   validateMcpClaims,
 } from './auth.js';
-// MCP protocol client (Stage 0 — PR-0.1 resources + prompts, PR-0.2 sampling + elicitation + roots + completions)
+// MCP protocol client (Stage 0 complete — PR-0.1 resources + prompts, PR-0.2 sampling + elicitation + roots + completions, PR-0.3 logging + progress + cancellation + generic notifications)
 export {
   type ClientCapabilities,
   type CompleteRequest,
@@ -68,10 +68,15 @@ export {
   type ElicitRequest,
   type ElicitResult,
   type GetPromptResult,
+  type LoggingLevel,
+  type LoggingMessageNotification,
+  type LogMessageParams,
   McpCapabilityError,
   McpClient,
   type McpClientOptions,
   McpNotConnectedError,
+  type McpRequestOptions,
+  type Progress,
   type Prompt,
   type PromptMessage,
   type PromptReference,
