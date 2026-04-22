@@ -75,7 +75,26 @@ describe('PrivacyPolicyPage', () => {
     const html = JSON.stringify(PrivacyPolicyPage());
 
     expect(html).toContain('Last updated');
-    expect(html).toContain('March 4, 2026');
+    expect(html).toContain('April 22, 2026');
+  });
+
+  it('commits to concrete retention windows', () => {
+    const html = JSON.stringify(PrivacyPolicyPage());
+
+    // Application logs + error events: 90 days (enforced by cron;
+    // see packages/db/src/cleanup/log-retention.ts).
+    expect(html).toContain('Application logs and error events');
+    expect(html).toContain('90 days');
+
+    // Agent activity audit logs: indefinite (tamper-evident hash chain).
+    expect(html).toContain('Agent activity audit logs');
+    expect(html).toContain('indefinitely');
+
+    // Post-deletion ceiling: 30 days (current flow runs immediately).
+    expect(html).toContain('within 30 days');
+
+    // Billing retention for tax compliance: 7 years.
+    expect(html).toContain('7 years');
   });
 
   it('exports correct metadata', () => {
