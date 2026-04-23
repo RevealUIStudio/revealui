@@ -18,6 +18,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { Hono } from 'hono';
 import billingReadinessApp from './billing-readiness.js';
 import cleanupApp from './cleanup.js';
+import drainUnreconciledApp from './drain-unreconciled.js';
 import jobsSafetyNetApp from './jobs-safety-net.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
@@ -34,6 +35,10 @@ interface JobResult {
 }
 
 const JOBS = [
+  // drain-unreconciled runs first so any failed webhook replays land back in
+  // the accounting DB before billing-readiness evaluates price parity and
+  // sweep-grace-periods transitions past_due → expired.
+  { name: 'drain-unreconciled', app: drainUnreconciledApp, path: '/drain-unreconciled' },
   { name: 'billing-readiness', app: billingReadinessApp, path: '/billing-readiness' },
   { name: 'publish-scheduled', app: publishScheduledApp, path: '/publish-scheduled' },
   { name: 'sweep-grace-periods', app: sweepGracePeriodsApp, path: '/sweep-grace-periods' },
