@@ -10,21 +10,40 @@
  * POST /api/agent-tasks/:ticketId/dispatch
  *   Dispatches an agent for an existing ticket. Use this when a ticket
  *   was created manually and you want to hand it to the agent system.
+ *
+ * GET /api/agent-tasks/:ticketId/status (CR8-P2-01 phase C)
+ *   Returns the canonical dispatch status for a ticket — usable by any
+ *   caller (admin UI, external agent, RevDev) to poll after receiving a
+ *   202 from the POST endpoints.
+ *
+ * Durable dispatch (CR8-P2-01 phase C):
+ *   When REVEALUI_JOBS_AGENT_DISPATCH_ENABLED=true, POST handlers enqueue
+ *   an `agent.dispatch` job and poll for up to 22 s. Completion within
+ *   the window returns 200 with the dispatch result (same shape as the
+ *   legacy sync path). Timeout returns 202 with a jobId and statusUrl
+ *   the caller can poll. Crashes mid-dispatch are reclaimed by the cron
+ *   safety-net (phase B); the LLM call is memoized so a resume doesn't
+ *   double-bill (phase C handler). When the flag is off, the route
+ *   behaves exactly as it did pre-phase-C.
  */
 
 import type { DatabaseClient } from '@revealui/db/client';
+import { enqueue, getJobById } from '@revealui/db/jobs';
 import * as boardQueries from '@revealui/db/queries/boards';
-import * as commentQueries from '@revealui/db/queries/ticket-comments';
 import * as ticketQueries from '@revealui/db/queries/tickets';
+import type { Job } from '@revealui/db/schema';
 import { agentMemories } from '@revealui/db/schema/agents';
 import { safeVectorInsert } from '@revealui/db/validation/cross-db';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
+import type { AgentDispatchOutput, AgentDispatchPayload } from '../jobs/agent-dispatch.js';
+import { buildDispatcher, type Dispatcher } from '../lib/agent-dispatcher.js';
 
 type Variables = {
   db: DatabaseClient;
   tenant?: { id: string };
   user?: { id: string; role: string };
+  requestId?: string;
 };
 
 const AGENT_TASK_ROLES = new Set(['admin', 'owner', 'editor', 'agent']);
@@ -40,9 +59,32 @@ function requireAgentTaskRole(c: { get: (key: string) => unknown }): { id: strin
   return user;
 }
 
+function isDurableDispatchEnabled(): boolean {
+  return process.env.REVEALUI_JOBS_AGENT_DISPATCH_ENABLED === 'true';
+}
+
 const app = new OpenAPIHono<{ Variables: Variables }>();
 
 const ErrorSchema = z.object({ success: z.literal(false), error: z.string() });
+
+const DispatchSuccessShape = {
+  success: z.literal(true),
+  ticketId: z.string(),
+  agentOutput: z.string().nullable(),
+  status: z.string(),
+  /** Present when the dispatch ran through the durable queue. */
+  jobId: z.string().optional(),
+};
+
+const DispatchPendingShape = {
+  success: z.literal(true),
+  ticketId: z.string(),
+  ticketNumber: z.number().optional(),
+  jobId: z.string(),
+  statusUrl: z.string(),
+  /** Human-readable hint for UIs while polling. */
+  message: z.string(),
+};
 
 // =============================================================================
 // POST /api/agent-tasks  -  natural language → ticket → agent → outcome
@@ -55,7 +97,7 @@ app.openapi(
     tags: ['agent-tasks'],
     summary: 'Submit a natural language task for an agent to execute',
     description:
-      'Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.',
+      'Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result. When durable dispatch is enabled and the agent takes longer than ~22 s, returns 202 with a jobId the caller can poll at /status.',
     request: {
       body: {
         content: {
@@ -76,15 +118,17 @@ app.openapi(
         content: {
           'application/json': {
             schema: z.object({
-              success: z.literal(true),
-              ticketId: z.string(),
+              ...DispatchSuccessShape,
               ticketNumber: z.number(),
-              agentOutput: z.string().nullable(),
-              status: z.string(),
             }),
           },
         },
-        description: 'Agent task completed',
+        description: 'Agent task completed within the sync/poll window',
+      },
+      202: {
+        content: { 'application/json': { schema: z.object(DispatchPendingShape) } },
+        description:
+          'Dispatch enqueued but still running at the poll-window timeout. Caller polls the statusUrl.',
       },
       400: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Bad request' },
       403: {
@@ -94,12 +138,11 @@ app.openapi(
     },
   }),
   async (c) => {
-    requireAgentTaskRole(c);
+    const user = requireAgentTaskRole(c);
     const db = c.get('db');
     const tenant = c.get('tenant');
     const { instruction, boardId, priority } = c.req.valid('json');
 
-    // Verify board exists and caller is in the same tenant
     const board = await boardQueries.getBoardById(db, boardId);
     if (!board) {
       return c.json({ success: false as const, error: `Board "${boardId}" not found` }, 400);
@@ -108,7 +151,6 @@ app.openapi(
       return c.json({ success: false as const, error: `Board "${boardId}" not found` }, 400);
     }
 
-    // Create the ticket  -  the agent's work item
     const ticket = await ticketQueries.createTicket(db, {
       id: crypto.randomUUID(),
       boardId,
@@ -122,10 +164,41 @@ app.openapi(
       return c.json({ success: false as const, error: 'Failed to create ticket' }, 400);
     }
 
-    // Build the dispatcher with DB-backed ticket mutation client
+    // --- Durable dispatch path (flag on) ---
+    if (isDurableDispatchEnabled()) {
+      const outcome = await runDurableDispatch(db, ticket, user, tenant, c.get('requestId'));
+      if (outcome.kind === 'complete') {
+        return c.json(
+          {
+            success: true as const,
+            ticketId: ticket.id,
+            ticketNumber: ticket.ticketNumber,
+            agentOutput: outcome.agentOutput,
+            status: outcome.status,
+            jobId: outcome.jobId,
+          },
+          200,
+        );
+      }
+      if (outcome.kind === 'failed') {
+        return c.json({ success: false as const, error: outcome.error }, 403);
+      }
+      return c.json(
+        {
+          success: true as const,
+          ticketId: ticket.id,
+          ticketNumber: ticket.ticketNumber,
+          jobId: outcome.jobId,
+          statusUrl: outcome.statusUrl,
+          message: 'Dispatch is running; poll statusUrl for completion.',
+        },
+        202,
+      );
+    }
+
+    // --- Legacy sync path (flag off) ---
     const dispatcher = await buildDispatcher(db, tenant?.id);
     if (!dispatcher) {
-      // AI not configured  -  return the ticket but note it was not dispatched
       await ticketQueries.updateTicket(db, ticket.id, { status: 'open' });
       return c.json(
         {
@@ -137,16 +210,12 @@ app.openapi(
       );
     }
 
-    // Dispatch agent with timeout, persist outcome to memory
     const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
     if (!dispatchResult.success) {
       return c.json({ success: false as const, error: dispatchResult.error }, 403);
     }
     const { result } = dispatchResult;
-
-    // Re-fetch final ticket state
     const finalTicket = await ticketQueries.getTicketById(db, ticket.id);
-
     return c.json(
       {
         success: true as const,
@@ -177,17 +246,12 @@ app.openapi(
     },
     responses: {
       200: {
-        content: {
-          'application/json': {
-            schema: z.object({
-              success: z.literal(true),
-              ticketId: z.string(),
-              agentOutput: z.string().nullable(),
-              status: z.string(),
-            }),
-          },
-        },
-        description: 'Agent dispatch completed',
+        content: { 'application/json': { schema: z.object(DispatchSuccessShape) } },
+        description: 'Agent dispatch completed within the sync/poll window',
+      },
+      202: {
+        content: { 'application/json': { schema: z.object(DispatchPendingShape) } },
+        description: 'Dispatch enqueued but still running at the poll-window timeout',
       },
       404: {
         content: { 'application/json': { schema: ErrorSchema } },
@@ -196,6 +260,125 @@ app.openapi(
       403: {
         content: { 'application/json': { schema: ErrorSchema } },
         description: 'AI feature requires Pro or Enterprise license',
+      },
+    },
+  }),
+  async (c) => {
+    const user = requireAgentTaskRole(c);
+    const db = c.get('db');
+    const tenant = c.get('tenant');
+    const { ticketId } = c.req.valid('param');
+
+    const ticket = await ticketQueries.getTicketById(db, ticketId);
+    if (!ticket) {
+      return c.json({ success: false as const, error: 'Ticket not found' }, 404);
+    }
+    const board = await boardQueries.getBoardById(db, ticket.boardId);
+    if (tenant && board?.tenantId && board.tenantId !== tenant.id) {
+      return c.json({ success: false as const, error: 'Ticket not found' }, 404);
+    }
+
+    // --- Durable dispatch path ---
+    if (isDurableDispatchEnabled()) {
+      await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' });
+      const outcome = await runDurableDispatch(db, ticket, user, tenant, c.get('requestId'));
+      if (outcome.kind === 'complete') {
+        return c.json(
+          {
+            success: true as const,
+            ticketId,
+            agentOutput: outcome.agentOutput,
+            status: outcome.status,
+            jobId: outcome.jobId,
+          },
+          200,
+        );
+      }
+      if (outcome.kind === 'failed') {
+        return c.json({ success: false as const, error: outcome.error }, 403);
+      }
+      return c.json(
+        {
+          success: true as const,
+          ticketId,
+          jobId: outcome.jobId,
+          statusUrl: outcome.statusUrl,
+          message: 'Dispatch is running; poll statusUrl for completion.',
+        },
+        202,
+      );
+    }
+
+    // --- Legacy sync path ---
+    const dispatcher = await buildDispatcher(db, tenant?.id);
+    if (!dispatcher) {
+      return c.json(
+        {
+          success: false as const,
+          error:
+            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+        },
+        403,
+      );
+    }
+
+    await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' });
+
+    const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
+    if (!dispatchResult.success) {
+      return c.json({ success: false as const, error: dispatchResult.error }, 403);
+    }
+    const { result } = dispatchResult;
+    const finalTicket = await ticketQueries.getTicketById(db, ticketId);
+
+    return c.json(
+      {
+        success: true as const,
+        ticketId,
+        agentOutput: result.output ?? null,
+        status: finalTicket?.status ?? (result.success ? 'done' : 'blocked'),
+      },
+      200,
+    );
+  },
+);
+
+// =============================================================================
+// GET /api/agent-tasks/:ticketId/status  -  canonical dispatch status
+// =============================================================================
+
+const StatusShape = z.object({
+  success: z.literal(true),
+  ticketId: z.string(),
+  jobId: z.string().nullable(),
+  status: z.enum(['idle', 'pending', 'running', 'completed', 'failed']),
+  output: z.string().nullable(),
+  error: z.string().nullable(),
+  attemptsMade: z.number().nullable(),
+  nextAttemptAt: z.string().nullable(),
+});
+
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/{ticketId}/status',
+    tags: ['agent-tasks'],
+    summary: 'Fetch the canonical dispatch status for a ticket',
+    description:
+      'Returns the current state of the most recent dispatch job for a ticket. `status = idle` means no job was ever queued (legacy sync dispatch or ticket never dispatched). Safe to poll; returns 200 even when nothing is in flight.',
+    request: {
+      params: z.object({
+        ticketId: z.string().openapi({ param: { name: 'ticketId', in: 'path' } }),
+      }),
+    },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: StatusShape } },
+        description: 'Dispatch status',
+      },
+      404: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Ticket not found',
       },
     },
   }),
@@ -214,62 +397,179 @@ app.openapi(
       return c.json({ success: false as const, error: 'Ticket not found' }, 404);
     }
 
-    const dispatcher = await buildDispatcher(db, tenant?.id);
-    if (!dispatcher) {
+    const job = await getJobById(jobIdForTicket(ticketId));
+    if (!job) {
       return c.json(
         {
-          success: false as const,
-          error:
-            "Feature 'ai' requires a Pro or Enterprise license. Upgrade at https://revealui.com/pricing",
+          success: true as const,
+          ticketId,
+          jobId: null,
+          status: 'idle' as const,
+          output: null,
+          error: null,
+          attemptsMade: null,
+          nextAttemptAt: null,
         },
-        403,
+        200,
       );
     }
 
-    // Mark in_progress before dispatch
-    await ticketQueries.updateTicket(db, ticketId, { status: 'in_progress' });
-
-    // Dispatch agent with timeout, persist outcome to memory
-    const dispatchResult = await dispatchWithTimeout(db, dispatcher, ticket);
-    if (!dispatchResult.success) {
-      return c.json({ success: false as const, error: dispatchResult.error }, 403);
-    }
-    const { result } = dispatchResult;
-
-    const finalTicket = await ticketQueries.getTicketById(db, ticketId);
-
-    return c.json(
-      {
-        success: true as const,
-        ticketId,
-        agentOutput: result.output ?? null,
-        status: finalTicket?.status ?? (result.success ? 'done' : 'blocked'),
-      },
-      200,
-    );
+    return c.json(serializeStatus(ticketId, job), 200);
   },
 );
 
 // =============================================================================
-// Helpers
+// Durable dispatch helper (CR8-P2-01 phase C)
+// =============================================================================
+
+/** Poll window before falling back to 202. Leaves ~8 s of Vercel's 30 s budget
+ *  for ticket create + response serialization + network. */
+const POLL_WINDOW_MS = 22_000;
+/** Capped exponential backoff for the poll loop. */
+const POLL_INITIAL_MS = 200;
+const POLL_MAX_MS = 2_000;
+
+type DispatchOutcome =
+  | {
+      kind: 'complete';
+      jobId: string;
+      agentOutput: string | null;
+      status: string;
+    }
+  | {
+      kind: 'failed';
+      error: string;
+    }
+  | {
+      kind: 'pending';
+      jobId: string;
+      statusUrl: string;
+    };
+
+async function runDurableDispatch(
+  db: DatabaseClient,
+  ticket: { id: string },
+  user: { id: string },
+  tenant: { id: string } | undefined,
+  requestId: string | undefined,
+): Promise<DispatchOutcome> {
+  const jobId = jobIdForTicket(ticket.id);
+
+  await enqueue<AgentDispatchPayload>(
+    'agent.dispatch',
+    {
+      ticketId: ticket.id,
+      tenantId: tenant?.id,
+      userId: user.id,
+      requestId,
+    },
+    { idempotencyKey: jobId, retryLimit: 3 },
+  );
+
+  const deadline = Date.now() + POLL_WINDOW_MS;
+  let backoff = POLL_INITIAL_MS;
+  while (Date.now() < deadline) {
+    await sleep(Math.min(backoff, deadline - Date.now()));
+    backoff = Math.min(backoff * 2, POLL_MAX_MS);
+
+    const job = await getJobById(jobId);
+    if (!job) continue;
+
+    if (job.state === 'completed') {
+      const output = (job.output ?? {}) as Partial<AgentDispatchOutput>;
+      const finalTicket = await ticketQueries.getTicketById(db, ticket.id);
+      return {
+        kind: 'complete',
+        jobId,
+        agentOutput: output.output ?? null,
+        status: finalTicket?.status ?? output.status ?? 'done',
+      };
+    }
+
+    if (job.state === 'failed') {
+      return {
+        kind: 'failed',
+        error: job.lastError ?? 'Agent dispatch failed',
+      };
+    }
+    // else state === 'created' or 'active' — keep polling
+  }
+
+  return {
+    kind: 'pending',
+    jobId,
+    statusUrl: `/api/agent-tasks/${ticket.id}/status`,
+  };
+}
+
+/**
+ * One job per ticket: the job id is derived from the ticket id so
+ * repeated POSTs for the same ticket dedupe at `enqueue()` via the
+ * ON CONFLICT DO NOTHING branch. Re-dispatching a completed ticket
+ * returns the cached result; force-re-dispatch is a future tracker.
+ */
+function jobIdForTicket(ticketId: string): string {
+  return `agent.dispatch:${ticketId}`;
+}
+
+function serializeStatus(
+  ticketId: string,
+  job: Job,
+): {
+  success: true;
+  ticketId: string;
+  jobId: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  output: string | null;
+  error: string | null;
+  attemptsMade: number;
+  nextAttemptAt: string | null;
+} {
+  const outputValue = job.output as Partial<AgentDispatchOutput> | null;
+  const status: 'pending' | 'running' | 'completed' | 'failed' =
+    job.state === 'completed'
+      ? 'completed'
+      : job.state === 'failed'
+        ? 'failed'
+        : job.state === 'active'
+          ? 'running'
+          : 'pending';
+  const nextAttemptAt =
+    status === 'pending' && job.startAfter && job.startAfter > new Date()
+      ? job.startAfter.toISOString()
+      : null;
+  return {
+    success: true,
+    ticketId,
+    jobId: job.id,
+    status,
+    output: outputValue?.output ?? null,
+    error: job.lastError ?? null,
+    attemptsMade: job.retryCount,
+    nextAttemptAt,
+  };
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
+}
+
+// =============================================================================
+// Legacy sync dispatch helper (flag-off path)
 // =============================================================================
 
 /** Agent dispatch timeout  -  configurable via AGENT_TIMEOUT_MS env var */
 const AGENT_TIMEOUT_MS = Number(process.env.AGENT_TIMEOUT_MS) || 120_000;
 
 /**
- * Dispatch an agent for a ticket with a timeout guard, then persist the
- * outcome to agent_memories. Shared by both POST handlers.
+ * Legacy in-request dispatch with in-process timeout + best-effort memory
+ * write. Preserved so the flag-off path behaves exactly as it did pre-
+ * phase-C. When the flag flips default-on and the deletion PR lands,
+ * this helper and dispatchWithTimeout go away.
  */
 async function dispatchWithTimeout(
   db: DatabaseClient,
-  dispatcher: {
-    dispatch: (ticket: Record<string, unknown>) => Promise<{
-      success: boolean;
-      output?: string;
-      metadata?: { executionTime?: number; tokensUsed?: number };
-    }>;
-  },
+  dispatcher: Dispatcher,
   ticket: { id: string; title: string; description: unknown; type: string; priority: string },
 ): Promise<
   | {
@@ -290,7 +590,7 @@ async function dispatchWithTimeout(
     );
   });
 
-  let result: Awaited<ReturnType<typeof dispatcher.dispatch>>;
+  let result: Awaited<ReturnType<Dispatcher['dispatch']>>;
   try {
     result = await Promise.race([
       dispatcher
@@ -321,7 +621,6 @@ async function dispatchWithTimeout(
     await ticketQueries.updateTicket(db, ticket.id, { status: 'blocked' });
   }
 
-  // Persist agent outcome to agent_memories (best-effort)
   if (result.output) {
     try {
       const memoryValues = {
@@ -346,176 +645,11 @@ async function dispatchWithTimeout(
         siteId: memoryValues.siteId,
       });
     } catch {
-      // Memory persistence is best-effort  -  don't fail the request
+      // Memory persistence is best-effort
     }
   }
 
   return { success: true, result };
-}
-
-/**
- * Build a TicketAgentDispatcher backed by the real DB client.
- * Returns null if no LLM provider is configured or @revealui/ai is not installed.
- */
-async function buildDispatcher(
-  db: DatabaseClient,
-  _tenantId: string | undefined,
-): Promise<{
-  dispatch: (ticket: Record<string, unknown>) => Promise<{
-    success: boolean;
-    output?: string;
-    metadata?: { executionTime?: number; tokensUsed?: number };
-  }>;
-} | null> {
-  const aiMod = await import('@revealui/ai').catch(() => null);
-  if (!aiMod) return null;
-
-  let llmClient: unknown;
-  try {
-    llmClient = aiMod.createLLMClientFromEnv();
-  } catch {
-    return null;
-  }
-
-  // TicketMutationClient backed by real DB queries
-  const ticketClient = {
-    async updateTicket(
-      id: string,
-      data: { status?: string; columnId?: string; metadata?: Record<string, unknown> },
-    ) {
-      return ticketQueries.updateTicket(db, id, data);
-    },
-    async createComment(id: string, body: Record<string, unknown>) {
-      return commentQueries.createComment(db, {
-        id: crypto.randomUUID(),
-        ticketId: id,
-        body,
-      });
-    },
-  };
-
-  // AdminAPIClient  -  routes through the admin REST API if configured, otherwise no-ops
-  const adminBaseUrl = process.env.ADMIN_URL ?? process.env.NEXT_PUBLIC_ADMIN_URL;
-  const apiClient = buildCMSClient(adminBaseUrl);
-
-  // Type assertions needed: TicketAgentDispatcher comes from Pro package with its own
-  // type resolution path. llmClient is unknown from dynamic import; the dispatcher's
-  // dispatch() accepts TicketInput (narrower than Record<string, unknown>).
-  type DispatcherConfig = ConstructorParameters<typeof aiMod.TicketAgentDispatcher>[0];
-  return new aiMod.TicketAgentDispatcher({
-    llmClient: llmClient as DispatcherConfig['llmClient'],
-    apiClient,
-    ticketClient,
-  }) as unknown as NonNullable<Awaited<ReturnType<typeof buildDispatcher>>>;
-}
-
-/**
- * Build a AdminAPIClient that calls the admin REST API.
- * If no admin URL is available, returns a stub that reports the misconfiguration.
- */
-function buildCMSClient(baseUrl: string | undefined) {
-  if (!baseUrl) {
-    const stub = async () => {
-      throw new Error(
-        'ADMIN_URL not configured. Set ADMIN_URL to connect the agent to the admin app.',
-      );
-    };
-    return {
-      find: stub,
-      findById: stub,
-      create: stub,
-      update: stub,
-      delete: stub,
-      findGlobal: stub,
-      updateGlobal: stub,
-    };
-  }
-
-  const headers = () => ({
-    'Content-Type': 'application/json',
-    ...(process.env.CMS_API_KEY ? { Authorization: `Bearer ${process.env.CMS_API_KEY}` } : {}),
-  });
-
-  return {
-    async find(options: {
-      collection: string;
-      page?: number;
-      limit?: number;
-      where?: Record<string, unknown>;
-      sort?: string;
-    }) {
-      const params = new URLSearchParams();
-      if (options.page) params.set('page', String(options.page));
-      if (options.limit) params.set('limit', String(options.limit));
-      if (options.sort) params.set('sort', options.sort);
-      const res = await fetch(`${baseUrl}/api/${options.collection}?${params}`, {
-        headers: headers(),
-      });
-      if (!res.ok) throw new Error(`Admin find failed: ${res.statusText}`);
-      const body: unknown = await res.json();
-      const data =
-        body !== null && typeof body === 'object' ? (body as Record<string, unknown>) : {};
-      return {
-        docs: Array.isArray(data.docs) ? (data.docs as unknown[]) : undefined,
-        totalDocs: typeof data.totalDocs === 'number' ? data.totalDocs : undefined,
-        page: typeof data.page === 'number' ? data.page : undefined,
-        totalPages: typeof data.totalPages === 'number' ? data.totalPages : undefined,
-      };
-    },
-
-    async findById(collection: string, id: string) {
-      const res = await fetch(`${baseUrl}/api/${collection}/${id}`, { headers: headers() });
-      if (!res.ok) throw new Error(`Admin findById failed: ${res.statusText}`);
-      return res.json();
-    },
-
-    async create(options: { collection: string; data: Record<string, unknown> }) {
-      const res = await fetch(`${baseUrl}/api/${options.collection}`, {
-        method: 'POST',
-        headers: headers(),
-        body: JSON.stringify(options.data),
-      });
-      if (!res.ok) throw new Error(`Admin create failed: ${res.statusText}`);
-      return res.json();
-    },
-
-    async update(options: { collection: string; id: string; data: Record<string, unknown> }) {
-      const res = await fetch(`${baseUrl}/api/${options.collection}/${options.id}`, {
-        method: 'PATCH',
-        headers: headers(),
-        body: JSON.stringify(options.data),
-      });
-      if (!res.ok) throw new Error(`Admin update failed: ${res.statusText}`);
-      return res.json();
-    },
-
-    async delete(options: { collection: string; id: string }) {
-      const res = await fetch(`${baseUrl}/api/${options.collection}/${options.id}`, {
-        method: 'DELETE',
-        headers: headers(),
-      });
-      if (!res.ok) throw new Error(`Admin delete failed: ${res.statusText}`);
-    },
-
-    async findGlobal(options: { slug: string; depth?: number }) {
-      const params = options.depth !== undefined ? `?depth=${options.depth}` : '';
-      const res = await fetch(`${baseUrl}/api/globals/${options.slug}${params}`, {
-        headers: headers(),
-      });
-      if (!res.ok) throw new Error(`Admin findGlobal failed: ${res.statusText}`);
-      return res.json();
-    },
-
-    async updateGlobal(options: { slug: string; data: Record<string, unknown> }) {
-      const res = await fetch(`${baseUrl}/api/globals/${options.slug}`, {
-        method: 'POST',
-        headers: headers(),
-        body: JSON.stringify(options.data),
-      });
-      if (!res.ok) throw new Error(`Admin updateGlobal failed: ${res.statusText}`);
-      return res.json();
-    },
-  };
 }
 
 export default app;

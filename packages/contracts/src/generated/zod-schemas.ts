@@ -1184,6 +1184,32 @@ export type MarketplaceTransactionsRow = z.infer<typeof MarketplaceTransactionsS
 export type MarketplaceTransactionsInsert = z.infer<typeof MarketplaceTransactionsInsertSchema>
 
 // =============================================================================
+// McpDocumentOperations Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting mcpDocumentOperations rows from database
+ * Generated from Drizzle table definition: tables.mcpDocumentOperations
+ */
+export const McpDocumentOperationsSelectSchema = createSelectSchema(tables.mcpDocumentOperations)
+
+/**
+ * Zod schema for inserting mcpDocumentOperations rows to database
+ * Generated from Drizzle table definition: tables.mcpDocumentOperations
+ */
+export const McpDocumentOperationsInsertSchema = createInsertSchema(tables.mcpDocumentOperations)
+
+/**
+ * TypeScript type for mcpDocumentOperations row (Select)
+ */
+export type McpDocumentOperationsRow = z.infer<typeof McpDocumentOperationsSelectSchema>
+
+/**
+ * TypeScript type for mcpDocumentOperations insert
+ */
+export type McpDocumentOperationsInsert = z.infer<typeof McpDocumentOperationsInsertSchema>
+
+// =============================================================================
 // Media Schemas
 // =============================================================================
 

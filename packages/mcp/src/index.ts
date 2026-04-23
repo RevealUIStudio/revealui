@@ -39,12 +39,12 @@ export async function checkMcpLicense(): Promise<boolean> {
 
 // Database adapter
 export {
-  type CrdtOperationsInsert,
-  type CrdtOperationsRow,
   connectPglite,
   connectPostgres,
   createMcpDbClient,
   type McpDbClient,
+  type McpDocumentOperationsInsert,
+  type McpDocumentOperationsRow,
   type QueryResult,
 } from './adapters/db.js';
 // Auth bridge (JWT claims validation + tool authorization)
@@ -54,6 +54,48 @@ export {
   McpAuthClaimsSchema,
   validateMcpClaims,
 } from './auth.js';
+// MCP protocol client (Stage 0 complete; Stage 1 PR-1.1 adds Streamable HTTP transport)
+export {
+  type CallToolResult,
+  type ClientCapabilities,
+  type CompleteRequest,
+  type CompleteResult,
+  type Completion,
+  type CompletionReference,
+  type CreateMessageRequest,
+  type CreateMessageResult,
+  type CustomTransportOptions,
+  type ElicitationHandler,
+  type ElicitRequest,
+  type ElicitResult,
+  type GetPromptResult,
+  type LoggingLevel,
+  type LoggingMessageNotification,
+  type LogMessageParams,
+  McpCapabilityError,
+  McpClient,
+  type McpClientOptions,
+  McpNotConnectedError,
+  type McpRequestOptions,
+  type Progress,
+  type Prompt,
+  type PromptMessage,
+  type PromptReference,
+  type Resource,
+  type ResourceContents,
+  type ResourceTemplateReference,
+  type ResourceUpdatedParams,
+  type Root,
+  type RootsProvider,
+  type SamplingHandler,
+  type ServerCapabilities,
+  type StdioTransportOptions,
+  type StreamableHTTPClientTransportOptions,
+  type StreamableHTTPReconnectionOptions,
+  type StreamableHttpTransportOptions,
+  type Tool,
+  type TransportOptions,
+} from './client.js';
 // Configuration
 export {
   getMcpConfig,
@@ -89,6 +131,24 @@ export {
   type MCPTool,
   type NamespacedTool,
 } from './hypervisor.js';
+// Usage metering (Stage 6.2 — tool-call boundary hook, consumer-wired sink)
+export type { McpMeterEvent, McpMeterSink } from './metering.js';
+// OAuth 2.1 client provider (Stage 2 PR-2.1 — revvault-backed credential storage)
+export {
+  createMemoryVault,
+  createRevvaultVault,
+  type McpOAuthPaths,
+  McpOAuthProvider,
+  type McpOAuthProviderOptions,
+  mcpOAuthPaths,
+  type OAuthClientInformation,
+  type OAuthClientInformationFull,
+  type OAuthClientMetadata,
+  type OAuthTokens,
+  RevvaultError,
+  type RevvaultVaultOptions,
+  type Vault,
+} from './oauth.js';
 // Tool pipeline (composition / chaining)
 export {
   executePipeline,
@@ -124,6 +184,11 @@ export {
   StripeAdapter,
   VercelAdapter,
 } from './servers/adapter.js';
+// First-party server factories (Stage 1 PR-1.2 — dual-mode template)
+export {
+  createRevealuiContentServer,
+  setCredentials as setRevealuiContentCredentials,
+} from './servers/factories/revealui-content.js';
 // Server launchers
 export { launchNeonMcp } from './servers/neon.js';
 export { launchNextDevtoolsMcp } from './servers/next-devtools.js';
@@ -131,8 +196,12 @@ export { launchPlaywrightMcp } from './servers/playwright.js';
 export { launchStripeMcp } from './servers/stripe.js';
 export { launchSupabaseMcp } from './servers/supabase.js';
 export { launchVercelMcp } from './servers/vercel.js';
-// Persistent idempotency stores
-export { createPostgresIdempotencyStore } from './stores/postgres-idempotency.js';
+// Streamable HTTP server-side helper (Stage 1 PR-1.1)
+export {
+  createNodeStreamableHttpHandler,
+  type StreamableHttpHandler,
+  type StreamableHttpHandlerOptions,
+} from './streamable-http.js';
 // Telemetry (structured observability events)
 export {
   type McpEvent,

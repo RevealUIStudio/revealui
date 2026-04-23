@@ -54,6 +54,7 @@ import type {
   marketplaceAgents,
   marketplaceServers,
   marketplaceTransactions,
+  mcpDocumentOperations,
   media,
   messages,
   nodeIdMappings,
@@ -324,6 +325,11 @@ export type MarketplaceTransactionsRow = typeof marketplaceTransactions.$inferSe
 export type MarketplaceTransactionsInsert = typeof marketplaceTransactions.$inferInsert
 export type MarketplaceTransactionsUpdate = Partial<MarketplaceTransactionsInsert>
 
+// Mcp Document Operations
+export type McpDocumentOperationsRow = typeof mcpDocumentOperations.$inferSelect
+export type McpDocumentOperationsInsert = typeof mcpDocumentOperations.$inferInsert
+export type McpDocumentOperationsUpdate = Partial<McpDocumentOperationsInsert>
+
 // Media
 export type MediaRow = typeof media.$inferSelect
 export type MediaInsert = typeof media.$inferInsert
@@ -588,6 +594,7 @@ export type DatabaseRelationships = {
   marketplaceAgents: Relationship[]
   marketplaceServers: Relationship[]
   marketplaceTransactions: Relationship[]
+  mcpDocumentOperations: Relationship[]
   media: Relationship[]
   messages: Relationship[]
   nodeIdMappings: Relationship[]
@@ -803,6 +810,9 @@ export const marketplaceServersRelationships = [
 export const marketplaceTransactionsRelationships = [
   { foreignKeyName: 'marketplace_transactions_server_id_marketplace_servers_id_fk', columns: ['server_id'], isOneToOne: true, referencedRelation: 'marketplace_servers', referencedColumns: ['id'] },
 ] as const satisfies readonly Relationship[]
+
+// McpDocumentOperations relationships
+export const mcpDocumentOperationsRelationships: readonly Relationship[] = []
 
 // Media relationships
 export const mediaRelationships = [
@@ -1277,6 +1287,12 @@ export type Database = {
         Insert: MarketplaceTransactionsInsert
         Update: MarketplaceTransactionsUpdate
         Relationships: typeof marketplaceTransactionsRelationships
+      }
+      mcp_document_operations: {
+        Row: McpDocumentOperationsRow
+        Insert: McpDocumentOperationsInsert
+        Update: McpDocumentOperationsUpdate
+        Relationships: typeof mcpDocumentOperationsRelationships
       }
       media: {
         Row: MediaRow

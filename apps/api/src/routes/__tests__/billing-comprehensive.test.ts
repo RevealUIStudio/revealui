@@ -176,6 +176,10 @@ const mockDb = { select: vi.fn(), update: vi.fn(), transaction: vi.fn() };
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
+  // Null forces ensureStripeCustomer onto the conditional-UPDATE fallback
+  // path (same behavior as before #394's advisory-lock addition), which is
+  // what these tests were written against.
+  getRestPool: vi.fn(() => null),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({

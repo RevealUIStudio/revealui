@@ -29,9 +29,9 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-04-10.
 | **RevCon** (configs) | Alpha | Editor config sync tooling. Functional, undocumented. |
 | **RevealCoin** (token) | Alpha | Solana devnet proof-of-concept. Not on mainnet. |
 | **RevSkills** (skills) | Alpha | 6 Claude Code skills on GitHub. No tests. |
-| **RevDev** (dev tools) | Planned | Harness infrastructure exists. Not a standalone product yet. |
-| **RevMarket** (marketplace) | Planned | Database schema defined. No API routes or UI. |
-| **RevKit** (templates) | Planned | Design documented. Stub implementation. |
+| **RevDev** (dev tools) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Harness infrastructure exists. Not a standalone product yet. |
+| **RevMarket** (marketplace) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Database schema defined. No API routes or UI. |
+| **RevKit** (templates) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Design documented. Stub implementation. |
 
 **Labels:** Production = real users + stable API. Beta = feature-complete, deployed, pre-users.
 Alpha = functional, not deployed/published. Planned = design or schema only.
@@ -115,11 +115,11 @@ Give users the ability to interact with an AI agent directly from the admin dash
 - API reference for all packages
 - Collection cookbook with common patterns
 
-#### Ecosystem Integration
+#### Ecosystem Integration — [#528](https://github.com/RevealUIStudio/revealui/issues/528)
 - RevVault desktop app integration in Studio _(already built: `VaultPanel.tsx` connects via Tauri to RevVault)_
-- RevVault rotation engine as a Pro feature  -  automated credential lifecycle management
-- RevKit agent coordination protocol extraction as `@revealui/workboard`  -  MIT standalone package
-- Unified ecosystem messaging across marketing, docs, and pricing surfaces
+- RevVault rotation engine as a Pro feature  -  automated credential lifecycle management. _Currently: 5 interactive rotation shell scripts ship at `~/suite/.jv/scripts/rotation/` (neon, revealui-secret, stripe-webhook, probe-current-values, probe-mcp-api-key); Rust workspace at `~/suite/revvault/` ready to absorb them as a first-class subsystem._
+- RevKit agent coordination protocol extraction as `@revealui/workboard`  -  MIT standalone package. _Currently: implementation lives inside `@revealui/harnesses` (FSL-1.1-MIT Pro) at `packages/harnesses/src/workboard/`; extraction brings it in line with the PRO.md declaration that RevKit agent coordination is MIT-free._
+- Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
 
 #### Developer Experience
 - `create-revealui` template improvements (more starters, better defaults)
@@ -129,20 +129,20 @@ Give users the ability to interact with an AI agent directly from the admin dash
 
 ### Mid-Term (Q3 2026)
 
-#### Agent Marketplace
-A registry where developers can publish and discover MCP servers and AI agent capabilities. Revenue share model (80% developer / 20% platform).
+#### Agent Marketplace — [#526](https://github.com/RevealUIStudio/revealui/issues/526)
+A registry where developers can publish and discover MCP servers and AI agent capabilities. Revenue share model (80% developer / 20% platform). _Currently: MCP Server Marketplace (Phase 5.5) and RevMarket autonomous-agent layer (Phase 5.16) are both substantially built — schemas, API routes, admin UI, Stripe Connect payouts, x402 payment middleware, developer docs — but x402 is disabled by default and live charging is gated on §CR-8 A-grade achievement and Stripe live-mode switch._
 
-#### Multi-User Collaboration
+#### Multi-User Collaboration — [#514](https://github.com/RevealUIStudio/revealui/issues/514)
 Real-time multi-user editing powered by ElectricSQL. Currently basic shape subscriptions and Yjs CRDT foundation exist (experimental). Full conflict resolution, presence indicators, and collaborative workflows are planned.
 
-#### Forge Features
-- SSO/SAML authentication
+#### Forge Features — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
+- SSO/SAML authentication — tracked separately in [#449](https://github.com/RevealUIStudio/revealui/issues/449)
 - Advanced audit logging
 - Custom RBAC policy editor
 - Multi-region deployment support
 - SLA guarantees
 
-#### Self-Hosted (Forge Edition)
+#### Self-Hosted (Forge Edition) — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
 Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap capable. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
 
 ### Long-Term (Q4 2026+)
@@ -150,7 +150,7 @@ Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap
 #### Visual Builder
 A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.
 
-#### SOC2 Type II Compliance
+#### SOC2 Type II Compliance — [#516](https://github.com/RevealUIStudio/revealui/issues/516)
 Forge security certification for teams that require it.
 
 #### RevealCoin + x402 Agent Payments

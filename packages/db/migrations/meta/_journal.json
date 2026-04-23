@@ -47,8 +47,36 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1776579007043,
+      "when": 1776912000001,
       "tag": "0006_must_rotate_password",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1776912000002,
+      "tag": "0007_account_membership_seat_limit",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776998400000,
+      "tag": "0008_jobs_visibility_timeout",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1777084800000,
+      "tag": "0009_mcp_document_operations",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1777171200000,
+      "tag": "0010_unreconciled_webhooks",
       "breakpoints": true
     }
   ]

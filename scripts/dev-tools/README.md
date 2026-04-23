@@ -110,7 +110,7 @@ pnpm db:setup-test
 - Review Docker Compose logs
 
 **Migrations fail**
-- Verify migration files exist in `packages/db/src/orm/drizzle/`
+- Verify migration files exist in `packages/db/migrations/`
 - Check database permissions
 - Ensure pgvector extension is available
 

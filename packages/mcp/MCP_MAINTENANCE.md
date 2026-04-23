@@ -155,10 +155,10 @@ CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
 3. **Apply schema migrations to staging (include CRDT metadata columns)**
-- Add migration files: `packages/mcp/migrations/0001_add_crdt_columns.sql` and rollback script.
+- Define CRDT metadata columns in the relevant Drizzle schema files under `packages/db/src/schema/` and generate a drizzle-kit migration (`pnpm --filter @revealui/db db:generate`). The previous parallel-pipeline `0001_add_crdt_columns.sql` targeted tables that were never part of the RevealUI schema and was deleted in 2026-04-20 (Phase 3a of the raw-SQL migration plan). Any future CRDT-column addition routes through drizzle-kit.
 
 4. **Small backfill (sample subset)**
-- Run `packages/mcp/migrations/backfill_crdt_meta.js` for representative rows; validate merges.
+- Write the backfill as a Drizzle-backed script (e.g. `packages/db/src/scripts/backfill-*.ts`) rather than a standalone `pg.Pool` runner; run against a representative subset and validate CRDT merge semantics before full rollout.
 
 5. **Run integration smoke tests**
 - Execute CRDT integration test suite against staging.
