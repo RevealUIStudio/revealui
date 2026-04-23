@@ -173,7 +173,6 @@ export function universalPostgresAdapter(
   ): typeof transactionFn => {
     return async <T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> => {
       const client = await pool.connect();
-      let committed = false;
       try {
         await client.query('BEGIN');
         const tx: QueryableDatabaseAdapter = {
@@ -187,18 +186,15 @@ export function universalPostgresAdapter(
         };
         const result = await fn(tx);
         await client.query('COMMIT');
-        committed = true;
         return result;
       } catch (error) {
-        if (!committed) {
-          try {
-            await client.query('ROLLBACK');
-          } catch (rollbackErr) {
-            defaultLogger.error(
-              `${providerLabel} transaction rollback failed after error:`,
-              rollbackErr,
-            );
-          }
+        try {
+          await client.query('ROLLBACK');
+        } catch (rollbackErr) {
+          defaultLogger.error(
+            `${providerLabel} transaction rollback failed after error:`,
+            rollbackErr,
+          );
         }
         throw error;
       } finally {

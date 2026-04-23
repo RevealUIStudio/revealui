@@ -206,7 +206,7 @@ async function setupVectorDatabase(): Promise<boolean> {
 
     // Run setup
     const workspaceRoot = join(__dirname, '../../..');
-    const schemaPath = join(workspaceRoot, 'packages/db/src/migrations/supabase-vector-setup.sql');
+    const schemaPath = join(workspaceRoot, 'packages/db/src/supabase/setup-vector-extension.sql');
 
     const success = await executeSQLFile(db, schemaPath, 'Vector');
 

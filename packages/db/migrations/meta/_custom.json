@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../scripts/validate/_custom.schema.json",
+  "version": 1,
+  "doc": "Allowlist of migrations whose SQL was NOT produced by `drizzle-kit generate`. Every entry must have a rationale that survives a code review. The migration-journal validator hard-fails on hand-written migrations (`ADD CONSTRAINT` outside DO $$ block, `DROP CONSTRAINT` without IF EXISTS, missing snapshot) UNLESS their tag appears here AND meets the per-tag conditions below.",
+  "custom": [
+    {
+      "tag": "0002_triggers_search_vectors",
+      "rationale": "PG triggers (notify_collab_change, set_updated_at), full-text-search GIN indexes with weighted to_tsvector(), and HNSW vector indexes — none expressible in Drizzle's schema DSL.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Snapshot would be a copy of 0001's snapshot (this migration adds no Drizzle-modeled columns/tables), but is omitted to avoid confusion."
+    },
+    {
+      "tag": "0003_shared_facts",
+      "rationale": "Hand-written shared_facts table for ElectricSQL multi-agent coordination (CRDT layer 1). Should have been produced by drizzle-kit generate; pre-existing debt from the 2026-04-18 incident.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Regenerate snapshot via `pnpm --filter @revealui/db db:generate` against a clean DB OR manually copy 0001 and add the new table — tracked as TODO."
+    },
+    {
+      "tag": "0004_yjs_document_patches",
+      "rationale": "Hand-written yjs_document_patches table for collaborative document patches (CRDT layer 2). Should have been produced by drizzle-kit generate; pre-existing debt from the 2026-04-18 incident.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as 0003."
+    },
+    {
+      "tag": "0005_shared_memory_scope",
+      "rationale": "Hand-written ALTER TABLE on agent_memories adding scope/session_scope/source_facts/reconciled_at + scope CHECK constraint (CRDT layer 3). Should have been produced by drizzle-kit generate; pre-existing debt from the 2026-04-18 incident. ADD CONSTRAINT now wrapped in DO $$ idempotency block as of #434.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as 0003."
+    },
+    {
+      "tag": "0007_account_membership_seat_limit",
+      "rationale": "PG PL/pgSQL trigger (enforce_account_membership_seat_limit) plus BEFORE INSERT / UPDATE OF status trigger on account_memberships — DB-level backstop for the app-level guard at apps/api/src/lib/seat-count-guard.ts. CR8-P2-03 defense-in-depth. Not expressible in Drizzle's schema DSL (no schema changes; trigger + function only).",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Snapshot would be a copy of 0006's snapshot (this migration adds no Drizzle-modeled columns/tables), but is omitted to avoid confusion, matching the 0002_triggers_search_vectors precedent."
+    },
+    {
+      "tag": "0008_jobs_visibility_timeout",
+      "rationale": "Hand-written ALTER TABLE on jobs adding locked_by/locked_until/last_error columns plus a partial index on (locked_until) WHERE state = 'active'. CR8-P2-01 phase A — durable work queue visibility-timeout semantics. drizzle-kit can model the columns but not the partial-index predicate (WHERE clause inside CREATE INDEX IF NOT EXISTS), and the ADD COLUMN statements are wrapped in IF NOT EXISTS for idempotent re-apply. Companion Drizzle schema update at packages/db/src/schema/jobs.ts adds the columns + partial index for type-safety; callers query via Drizzle, not raw SQL.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as 0003: snapshot regeneration via `pnpm --filter @revealui/db db:generate` against a clean DB once the shared-facts/yjs/shared-memory debt is worked through. Deferred to keep phase A scoped."
+    },
+    {
+      "tag": "0010_unreconciled_webhooks",
+      "rationale": "Hand-written CREATE TABLE + indexes for the `unreconciled_webhooks` table. The table was defined in packages/db/src/schema/webhook-reconciliation.ts and already appears in the Drizzle snapshots at meta/0006_snapshot.json and meta/0009_snapshot.json, but NO .sql migration ever created it (verified 2026-04-22: grep -n 'unreconciled' migrations/*.sql → zero hits). Production likely has the table from an ad-hoc drizzle-kit push at some point (webhooks.ts writes to it at runtime; if prod didn't have it, webhook processing would be failing). Migration uses CREATE TABLE IF NOT EXISTS + CREATE INDEX IF NOT EXISTS so it is safe to apply against both fresh DBs (creates it) and prod (no-op). Partial index `unreconciled_webhooks_unresolved_idx` on (created_at) WHERE resolved_at IS NULL is not expressible in Drizzle's schema DSL beyond the .where() modifier.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Snapshot already captures the table (meta/0006_snapshot.json + meta/0009_snapshot.json reference it). Missing snapshot for this tag specifically because it's a retroactive catch-up for an unmigrated table; the canonical snapshot state is the 0009 snapshot. Full snapshot regen deferred to the general snapshot-debt backfill tracked alongside 0003/0004/0005/0008."
+    }
+  ]
+}

@@ -77,6 +77,14 @@ export {
 export { HarnessRegistry } from './registry/harness-registry.js';
 // Server
 export { RpcServer } from './server/rpc-server.js';
+export type {
+  ReconcileResult,
+  SharedFact,
+  SharedMemory,
+  SharedMemoryClientConfig,
+  YjsPatch,
+} from './server/shared-memory-client.js';
+export { SharedMemoryClient } from './server/shared-memory-client.js';
 export type { DaemonStoreConfig } from './storage/daemon-store.js';
 // Storage (PGlite-backed daemon state)
 export { DaemonStore } from './storage/daemon-store.js';

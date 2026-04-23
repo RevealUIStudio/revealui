@@ -249,7 +249,7 @@ This is used as middleware in the API. AI routes check `requireFeature('ai')`. M
 RevealUI supports three billing models simultaneously:
 
 1. **Subscriptions** -- Monthly recurring charges via Stripe. Standard for SaaS.
-2. **Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Forge is unlimited. Overage is reported to Stripe Billing Meters.
+2. **Agent credits** -- Task quotas enforced per tier. Pro gets 10,000 tasks/month, Max gets 50,000, Forge is unlimited. Overage is tracked in the `agent_task_usage` table today; Stripe Billing Meters emission for cross-cycle overage invoicing is on the roadmap.
 3. **Perpetual licenses** -- One-time purchase, own forever, with an optional annual support renewal. The license JWT has no expiration, and the system tracks `supportExpiresAt` separately from the license validity.
 
 ### License verification API
@@ -465,11 +465,11 @@ AI is not free. RevealUI tracks task usage per billing cycle:
 | Max | 50,000 tasks |
 | Forge      | Unlimited |
 
-Overage beyond the quota is tracked in the `agent_task_usage` table and reported to Stripe Billing Meters at the end of each cycle via a cron job. This enables usage-based pricing without blocking execution in real-time.
+Overage beyond the quota is tracked in the `agent_task_usage` table. Stripe Billing Meters emission — the end-of-cycle cron that would post accrued overage to `stripe.billing.meterEvents.create` — is on the roadmap, not shipped. Once that lands, the quota-track-and-bill loop closes without blocking execution in real-time. Until then, usage accrues in the DB without cross-cycle invoicing.
 
 ### How Intelligence connects to everything else
 
-AI agents authenticate through the Users system (session cookies or API keys). Agents create and modify Content (posts, pages, media). Agent execution is metered as a Product (task quotas per tier). Overage billing feeds through Payments (Stripe Billing Meters). The A2A protocol enables agents to purchase services from other agents via x402, closing the loop.
+AI agents authenticate through the Users system (session cookies or API keys). Agents create and modify Content (posts, pages, media). Agent execution is metered as a Product (task quotas per tier). Overage-billing emission through Payments (Stripe Billing Meters) is on the roadmap; usage is already tracked in `agent_task_usage` today. The A2A protocol enables agents to purchase services from other agents via x402, closing the loop.
 
 ---
 

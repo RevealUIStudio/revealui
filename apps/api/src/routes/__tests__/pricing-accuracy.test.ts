@@ -46,7 +46,7 @@ const EXPECTED_FEATURE_TIER_MAP: Record<FeatureFlagKey, LicenseTierId> = {
   sso: 'enterprise',
 };
 
-/** Must match getHostedLimitsForTier in webhooks.ts */
+/** Must match getHostedLimitsForTier in apps/api/src/lib/tier-limits.ts */
 const EXPECTED_HOSTED_LIMITS: Record<
   LicenseTierId,
   { maxSites: number; maxUsers: number; maxAgentTasks: number }
