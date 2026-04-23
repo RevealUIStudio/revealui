@@ -132,17 +132,17 @@ Give users the ability to interact with an AI agent directly from the admin dash
 #### Agent Marketplace
 A registry where developers can publish and discover MCP servers and AI agent capabilities. Revenue share model (80% developer / 20% platform).
 
-#### Multi-User Collaboration
+#### Multi-User Collaboration — [#514](https://github.com/RevealUIStudio/revealui/issues/514)
 Real-time multi-user editing powered by ElectricSQL. Currently basic shape subscriptions and Yjs CRDT foundation exist (experimental). Full conflict resolution, presence indicators, and collaborative workflows are planned.
 
-#### Forge Features
-- SSO/SAML authentication
+#### Forge Features — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
+- SSO/SAML authentication — tracked separately in [#449](https://github.com/RevealUIStudio/revealui/issues/449)
 - Advanced audit logging
 - Custom RBAC policy editor
 - Multi-region deployment support
 - SLA guarantees
 
-#### Self-Hosted (Forge Edition)
+#### Self-Hosted (Forge Edition) — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
 Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap capable. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
 
 ### Long-Term (Q4 2026+)
@@ -150,7 +150,7 @@ Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap
 #### Visual Builder
 A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.
 
-#### SOC2 Type II Compliance
+#### SOC2 Type II Compliance — [#516](https://github.com/RevealUIStudio/revealui/issues/516)
 Forge security certification for teams that require it.
 
 #### RevealCoin + x402 Agent Payments
