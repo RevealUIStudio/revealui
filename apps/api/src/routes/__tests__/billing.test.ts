@@ -689,7 +689,7 @@ describe('POST /upgrade', () => {
 
     expect(res.status).toBe(400);
     const body = (await res.json()) as Record<string, unknown>;
-    expect(body.error as string).toContain('No active subscription');
+    expect(body.error as string).toContain('No active or trialing subscription');
   });
 
   it('returns 400 when subscription has no items', async () => {
@@ -699,7 +699,7 @@ describe('POST /upgrade', () => {
       [{ stripeCustomerId: 'cus_existing' }],
     );
     mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_empty', items: { data: [] } }],
+      data: [{ id: 'sub_empty', status: 'active', items: { data: [] } }],
     });
 
     const app = createApp();
@@ -719,7 +719,7 @@ describe('POST /upgrade', () => {
       [{ stripeCustomerId: 'cus_existing' }],
     );
     mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
     });
     mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro' });
 
@@ -741,7 +741,7 @@ describe('POST /upgrade', () => {
       [{ stripeCustomerId: 'cus_existing' }],
     );
     mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
     });
 
     const app = createApp();
@@ -751,8 +751,8 @@ describe('POST /upgrade', () => {
 
     expect(mockSubscriptionsList).toHaveBeenCalledWith({
       customer: 'cus_existing',
-      status: 'active',
-      limit: 1,
+      status: 'all',
+      limit: 10,
     });
   });
 
@@ -763,7 +763,7 @@ describe('POST /upgrade', () => {
       [{ stripeCustomerId: 'cus_account' }],
     );
     mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
     });
 
     const app = createApp();
@@ -773,8 +773,8 @@ describe('POST /upgrade', () => {
 
     expect(mockSubscriptionsList).toHaveBeenCalledWith({
       customer: 'cus_account',
-      status: 'active',
-      limit: 1,
+      status: 'all',
+      limit: 10,
     });
   });
 
@@ -784,7 +784,7 @@ describe('POST /upgrade', () => {
       [{ stripeCustomerId: 'cus_account_ctx' }],
     );
     mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
     });
 
     const app = createApp(MOCK_USER, {
@@ -796,8 +796,8 @@ describe('POST /upgrade', () => {
 
     expect(mockSubscriptionsList).toHaveBeenCalledWith({
       customer: 'cus_account_ctx',
-      status: 'active',
-      limit: 1,
+      status: 'all',
+      limit: 10,
     });
     expect(mockDb.select).toHaveBeenCalledTimes(2);
   });
@@ -809,7 +809,7 @@ describe('POST /upgrade', () => {
       [{ stripeCustomerId: 'cus_existing' }],
     );
     mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+      data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
     });
 
     const app = createApp();
