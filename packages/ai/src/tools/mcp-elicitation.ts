@@ -51,6 +51,7 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { emitMcpEvent, type McpEventSink } from './mcp-events.js';
 
 // ---------------------------------------------------------------------------
 // Structural MCP spec types (subset)
@@ -117,19 +118,46 @@ export interface CreateElicitationHandlerOptions {
    * message + field count. Useful for audit trails.
    */
   onElicitationRequest?: (info: { message: string; fieldCount: number; mode?: string }) => void;
+  /**
+   * Protocol-level observability sink (Stage 6.1). Fires once per
+   * `elicitation/create` call (after the handler decides — whether
+   * the user accepted, declined, cancelled, url-mode auto-declined,
+   * or the timeout fired) with `{ kind: 'mcp.elicitation.create',
+   * action, fieldCount, mode?, duration_ms, success }`. URL-mode
+   * auto-decline + timeout-cancel both emit `success: true` — they
+   * are legitimate handler outcomes, not failures. Only thrown errors
+   * report `success: false`.
+   */
+  onEvent?: McpEventSink;
+  /**
+   * Optional server identifier included in emitted events. Leave unset
+   * when the handler is shared across multiple servers.
+   */
+  namespace?: string;
 }
 
 export function createElicitationHandler(
   options: CreateElicitationHandlerOptions,
 ): McpElicitationHandler {
-  const { onElicit, timeoutMs, allowUrlMode, onElicitationRequest } = options;
+  const { onElicit, timeoutMs, allowUrlMode, onElicitationRequest, onEvent, namespace } = options;
 
   return async (params: McpElicitRequestParams): Promise<McpElicitResult> => {
+    const fieldCount = countSchemaFields(params.requestedSchema);
+    const started = Date.now();
+
     if (params.mode === 'url' && !allowUrlMode) {
+      emitMcpEvent(onEvent, {
+        kind: 'mcp.elicitation.create',
+        ...(namespace !== undefined ? { namespace } : {}),
+        action: 'decline',
+        fieldCount,
+        ...(params.mode !== undefined ? { mode: params.mode } : {}),
+        duration_ms: Date.now() - started,
+        success: true,
+      });
       return { action: 'decline' };
     }
 
-    const fieldCount = countSchemaFields(params.requestedSchema);
     onElicitationRequest?.({
       message: params.message,
       fieldCount,
@@ -137,6 +165,7 @@ export function createElicitationHandler(
     });
 
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    let result: McpElicitResult;
     try {
       const userResponse = onElicit(params).catch((error) => {
         // Errors inside the consumer's UI callback → cancel (not decline —
@@ -149,19 +178,30 @@ export function createElicitationHandler(
       });
 
       if (timeoutMs === undefined || timeoutMs <= 0) {
-        return await userResponse;
+        result = await userResponse;
+      } else {
+        const timeoutPromise = new Promise<McpElicitResult>((resolve) => {
+          timeoutHandle = setTimeout(() => {
+            resolve({ action: 'cancel' });
+          }, timeoutMs);
+        });
+        result = await Promise.race([userResponse, timeoutPromise]);
       }
-
-      const timeoutPromise = new Promise<McpElicitResult>((resolve) => {
-        timeoutHandle = setTimeout(() => {
-          resolve({ action: 'cancel' });
-        }, timeoutMs);
-      });
-
-      return await Promise.race([userResponse, timeoutPromise]);
     } finally {
       if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
     }
+
+    emitMcpEvent(onEvent, {
+      kind: 'mcp.elicitation.create',
+      ...(namespace !== undefined ? { namespace } : {}),
+      action: result.action,
+      fieldCount,
+      ...(params.mode !== undefined ? { mode: params.mode } : {}),
+      duration_ms: Date.now() - started,
+      success: true,
+    });
+
+    return result;
   };
 }
 

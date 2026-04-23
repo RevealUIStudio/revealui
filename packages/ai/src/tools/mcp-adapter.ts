@@ -23,6 +23,7 @@
 
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from './base.js';
+import { emitMcpEvent, type McpEventSink } from './mcp-events.js';
 
 export interface MCPTool {
   name: string;
@@ -187,6 +188,15 @@ export interface CreateToolsFromMcpClientOptions {
    * agent run. Resource/prompt meta-tools also receive the signal.
    */
   signal?: AbortSignal;
+  /**
+   * Protocol-level observability sink (Stage 6.1). Fires exactly once
+   * per tool / resource / prompt call with a structured summary
+   * (`namespace`, operation, `duration_ms`, `success`, `error?`). See
+   * `./mcp-events.ts` for the event shapes and `createCoreLoggerSink()`
+   * for the default routing to `@revealui/core/observability/logger`.
+   * Safe to pass a throwing sink — adapter swallows sink errors.
+   */
+  onEvent?: McpEventSink;
 }
 
 /** Spec-shaped `Progress` notification subset. */
@@ -252,6 +262,7 @@ export async function createToolsFromMcpClient(
     category,
     ...(options.onProgress !== undefined ? { onProgress: options.onProgress } : {}),
     ...(options.signal !== undefined ? { signal: options.signal } : {}),
+    ...(options.onEvent !== undefined ? { onEvent: options.onEvent } : {}),
   };
 
   const tools: Tool[] = [];
@@ -290,6 +301,7 @@ interface BuildToolContext {
   category: string;
   onProgress?: (event: McpProgressEvent) => void;
   signal?: AbortSignal;
+  onEvent?: McpEventSink;
 }
 
 /**
@@ -325,6 +337,7 @@ function buildServerTool(
 
     async execute(params: unknown): Promise<ToolResult> {
       const validated = zodSchema.parse(params);
+      const started = Date.now();
       try {
         const result = await client.callTool(
           descriptor.name,
@@ -332,15 +345,37 @@ function buildServerTool(
           buildRequestOptions(ctx, descriptor.name),
         );
         if (result.isError) {
-          return { success: false, error: extractErrorText(result) };
+          const errorText = extractErrorText(result);
+          emitMcpEvent(ctx.onEvent, {
+            kind: 'mcp.tool.call',
+            namespace: ctx.namespace,
+            toolName: descriptor.name,
+            duration_ms: Date.now() - started,
+            success: false,
+            error: errorText,
+          });
+          return { success: false, error: errorText };
         }
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.tool.call',
+          namespace: ctx.namespace,
+          toolName: descriptor.name,
+          duration_ms: Date.now() - started,
+          success: true,
+        });
         const payload = result.structuredContent ?? result.content;
         return { success: true, data: serializeMCPResult(payload) };
       } catch (error) {
-        return {
+        const message = error instanceof Error ? error.message : String(error);
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.tool.call',
+          namespace: ctx.namespace,
+          toolName: descriptor.name,
+          duration_ms: Date.now() - started,
           success: false,
-          error: error instanceof Error ? error.message : String(error),
-        };
+          error: message,
+        });
+        return { success: false, error: message };
       }
     },
 
@@ -358,15 +393,28 @@ function buildListResourcesTool(client: McpClientLike, ctx: BuildToolContext): T
     parameters: z.object({}),
 
     async execute(): Promise<ToolResult> {
+      const started = Date.now();
       try {
         const resources =
           (await client.listResources?.(buildRequestOptions(ctx, 'list_resources'))) ?? [];
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.resource.list',
+          namespace: ctx.namespace,
+          duration_ms: Date.now() - started,
+          success: true,
+          resourceCount: resources.length,
+        });
         return { success: true, data: serializeMCPResult(resources) };
       } catch (error) {
-        return {
+        const message = error instanceof Error ? error.message : String(error);
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.resource.list',
+          namespace: ctx.namespace,
+          duration_ms: Date.now() - started,
           success: false,
-          error: error instanceof Error ? error.message : String(error),
-        };
+          error: message,
+        });
+        return { success: false, error: message };
       }
     },
 
@@ -393,9 +441,17 @@ function buildReadResourceTool(client: McpClientLike, ctx: BuildToolContext): To
 
     async execute(params: unknown): Promise<ToolResult> {
       const { uri } = paramsSchema.parse(params);
+      const started = Date.now();
       try {
         const contents =
           (await client.readResource?.(uri, buildRequestOptions(ctx, 'read_resource'))) ?? [];
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.resource.read',
+          namespace: ctx.namespace,
+          uri,
+          duration_ms: Date.now() - started,
+          success: true,
+        });
         const joinedText = flattenResourceText(contents);
         const base: ToolResult = {
           success: true,
@@ -403,10 +459,16 @@ function buildReadResourceTool(client: McpClientLike, ctx: BuildToolContext): To
         };
         return joinedText !== undefined ? { ...base, content: joinedText } : base;
       } catch (error) {
-        return {
+        const message = error instanceof Error ? error.message : String(error);
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.resource.read',
+          namespace: ctx.namespace,
+          uri,
+          duration_ms: Date.now() - started,
           success: false,
-          error: error instanceof Error ? error.message : String(error),
-        };
+          error: message,
+        });
+        return { success: false, error: message };
       }
     },
 
@@ -429,15 +491,28 @@ function buildListPromptsTool(client: McpClientLike, ctx: BuildToolContext): Too
     parameters: z.object({}),
 
     async execute(): Promise<ToolResult> {
+      const started = Date.now();
       try {
         const prompts =
           (await client.listPrompts?.(buildRequestOptions(ctx, 'list_prompts'))) ?? [];
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.prompt.list',
+          namespace: ctx.namespace,
+          duration_ms: Date.now() - started,
+          success: true,
+          promptCount: prompts.length,
+        });
         return { success: true, data: serializeMCPResult(prompts) };
       } catch (error) {
-        return {
+        const message = error instanceof Error ? error.message : String(error);
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.prompt.list',
+          namespace: ctx.namespace,
+          duration_ms: Date.now() - started,
           success: false,
-          error: error instanceof Error ? error.message : String(error),
-        };
+          error: message,
+        });
+        return { success: false, error: message };
       }
     },
 
@@ -468,11 +543,28 @@ function buildGetPromptTool(client: McpClientLike, ctx: BuildToolContext): Tool 
 
     async execute(params: unknown): Promise<ToolResult> {
       const { name, args } = paramsSchema.parse(params);
+      const started = Date.now();
       try {
         const result = await client.getPrompt?.(name, args, buildRequestOptions(ctx, 'get_prompt'));
         if (!result) {
-          return { success: false, error: 'client does not implement getPrompt' };
+          const msg = 'client does not implement getPrompt';
+          emitMcpEvent(ctx.onEvent, {
+            kind: 'mcp.prompt.get',
+            namespace: ctx.namespace,
+            promptName: name,
+            duration_ms: Date.now() - started,
+            success: false,
+            error: msg,
+          });
+          return { success: false, error: msg };
         }
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.prompt.get',
+          namespace: ctx.namespace,
+          promptName: name,
+          duration_ms: Date.now() - started,
+          success: true,
+        });
         const joinedText = flattenPromptMessages(result.messages);
         const base: ToolResult = {
           success: true,
@@ -480,10 +572,16 @@ function buildGetPromptTool(client: McpClientLike, ctx: BuildToolContext): Tool 
         };
         return joinedText !== undefined ? { ...base, content: joinedText } : base;
       } catch (error) {
-        return {
+        const message = error instanceof Error ? error.message : String(error);
+        emitMcpEvent(ctx.onEvent, {
+          kind: 'mcp.prompt.get',
+          namespace: ctx.namespace,
+          promptName: name,
+          duration_ms: Date.now() - started,
           success: false,
-          error: error instanceof Error ? error.message : String(error),
-        };
+          error: message,
+        });
+        return { success: false, error: message };
       }
     },
 

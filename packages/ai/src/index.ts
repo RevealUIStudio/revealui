@@ -103,6 +103,7 @@ export * from './tools/deduplicator.js';
 export * from './tools/document-summarizer.js';
 export * from './tools/mcp-adapter.js';
 export * from './tools/mcp-elicitation.js';
+export * from './tools/mcp-events.js';
 export * from './tools/mcp-sampling.js';
 export * from './tools/memory/index.js';
 export * from './tools/registry.js';

@@ -271,3 +271,83 @@ describe('createSamplingHandler — observability + errors', () => {
     await expect(handler(makeParams())).rejects.toThrow('rate limited');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Stage 6.1 — onEvent observability hook
+// ---------------------------------------------------------------------------
+
+describe('createSamplingHandler — onEvent', () => {
+  it('emits mcp.sampling.create on success with model, counts, and namespace', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const llm = makeLLM();
+    const handler = createSamplingHandler({
+      llm,
+      defaultModel: 'gemma3',
+      namespace: 'content',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+
+    await handler(
+      makeParams({
+        messages: [
+          { role: 'user', content: { type: 'text', text: 'one' } },
+          { role: 'assistant', content: { type: 'text', text: 'two' } },
+        ],
+        maxTokens: 1024,
+      }),
+    );
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.sampling.create',
+      namespace: 'content',
+      model: 'gemma3',
+      messageCount: 2,
+      maxTokens: 1024,
+      success: true,
+    });
+    expect(typeof events[0]?.duration_ms).toBe('number');
+  });
+
+  it('omits namespace when none was configured on the handler', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const handler = createSamplingHandler({
+      llm: makeLLM(),
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    await handler(makeParams());
+
+    expect(events[0]).not.toHaveProperty('namespace');
+  });
+
+  it('emits mcp.sampling.create with success: false on LLM errors and rethrows', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const llm: SamplingLLM = {
+      chat: vi.fn(async () => {
+        throw new Error('rate limited');
+      }),
+    };
+    const handler = createSamplingHandler({
+      llm,
+      defaultModel: 'gemma3',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+
+    await expect(handler(makeParams())).rejects.toThrow('rate limited');
+
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.sampling.create',
+      model: 'gemma3',
+      success: false,
+      error: 'rate limited',
+    });
+  });
+
+  it('is silent without onEvent', async () => {
+    // No observable effect beyond not-throwing; but we verify the handler
+    // still resolves normally with no sink attached.
+    const handler = createSamplingHandler({ llm: makeLLM() });
+    const result = await handler(makeParams());
+    expect(result.role).toBe('assistant');
+  });
+});

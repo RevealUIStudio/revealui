@@ -183,3 +183,110 @@ describe('createElicitationHandler — observability', () => {
     expect(events[0]).toMatchObject({ mode: 'url' });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Stage 6.1 — onEvent observability hook
+// ---------------------------------------------------------------------------
+
+describe('createElicitationHandler — onEvent', () => {
+  it('emits mcp.elicitation.create with action: "accept" on user accept', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const handler = createElicitationHandler({
+      onElicit: async () => ({ action: 'accept', content: { confirm: true } }),
+      namespace: 'content',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+
+    await handler(makeParams());
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.elicitation.create',
+      namespace: 'content',
+      action: 'accept',
+      fieldCount: 1,
+      success: true,
+    });
+    expect(typeof events[0]?.duration_ms).toBe('number');
+  });
+
+  it('emits action: "decline" when the user declines', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const handler = createElicitationHandler({
+      onElicit: async () => ({ action: 'decline' }),
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    await handler(makeParams());
+    expect(events[0]).toMatchObject({ action: 'decline', success: true });
+  });
+
+  it('emits action: "cancel" when the user cancels', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const handler = createElicitationHandler({
+      onElicit: async () => ({ action: 'cancel' }),
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    await handler(makeParams());
+    expect(events[0]).toMatchObject({ action: 'cancel', success: true });
+  });
+
+  it('emits action: "decline" + success: true on URL-mode auto-decline', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const handler = createElicitationHandler({
+      onElicit: async () => {
+        throw new Error('should not be called');
+      },
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+
+    await handler(makeParams({ mode: 'url' }));
+
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.elicitation.create',
+      action: 'decline',
+      mode: 'url',
+      success: true,
+    });
+  });
+
+  it('emits action: "cancel" when the timeout fires', async () => {
+    vi.useFakeTimers();
+    const events: Array<Record<string, unknown>> = [];
+    const handler = createElicitationHandler({
+      onElicit: () => new Promise(() => {}),
+      timeoutMs: 100,
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+
+    const promise = handler(makeParams());
+    await vi.advanceTimersByTimeAsync(101);
+    await promise;
+
+    expect(events[0]).toMatchObject({ action: 'cancel', success: true });
+  });
+
+  it('emits action: "cancel" when onElicit throws (error is mapped to cancel)', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const handler = createElicitationHandler({
+      onElicit: async () => {
+        throw new Error('UI crashed');
+      },
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+
+    await handler(makeParams());
+
+    // The action is 'cancel' because the error→cancel mapping wrapped the
+    // thrown error before we emitted. success remains true — the handler
+    // completed successfully, returning a valid spec result.
+    expect(events[0]).toMatchObject({ action: 'cancel', success: true });
+  });
+
+  it('is silent without onEvent', async () => {
+    const handler = createElicitationHandler({
+      onElicit: async () => ({ action: 'accept' }),
+    });
+    const result = await handler(makeParams());
+    expect(result.action).toBe('accept');
+  });
+});
