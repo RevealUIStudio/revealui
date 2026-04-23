@@ -421,6 +421,9 @@ importers:
       '@revealui/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@revealui/mcp':
+        specifier: workspace:*
+        version: link:../../packages/mcp
       '@revealui/openapi':
         specifier: workspace:*
         version: link:../../packages/openapi

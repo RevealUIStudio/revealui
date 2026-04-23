@@ -13,6 +13,7 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
+    "@revealui/mcp": "workspace:*",
     "@revealui/openapi": "workspace:*",
     "@sentry/node": "^10.49.0",
     "@vercel/blob": "^2.3.3",

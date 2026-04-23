@@ -10,9 +10,19 @@
  * See packages/ai/src/client/hooks/useAgentStream.ts for the React hook.
  */
 
+import { logger } from '@revealui/core/observability/logger';
+import type { McpClient } from '@revealui/mcp/client';
+import { createRevvaultVault } from '@revealui/mcp/oauth';
+import {
+  buildRemoteMcpClient,
+  listConnectedMcpServers,
+  RemoteServerNotConnectedError,
+} from '@revealui/mcp/remote-client';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
 import { streamSSE } from 'hono/streaming';
+import { recordUsageMeter } from '../lib/metering.js';
+import { getEntitlementsFromContext } from '../middleware/entitlements.js';
 
 type Variables = {
   tenant?: { id: string };
@@ -200,7 +210,71 @@ app.openapi(agentStreamRoute, async (c) => {
     }
   }
 
-  const allTools = [...cmsTools, ...codingTools];
+  const allTools: unknown[] = [...cmsTools, ...codingTools];
+
+  // ─── Stage 5 + 6 integration (A.1) ────────────────────────────────────
+  // Connect the tenant's OAuth-authorized MCP servers and merge their
+  // tools into `allTools`. Compose a protocol-log sink that fans
+  // Stage 6.1 events into the central logger and, when an `accountId`
+  // is resolvable from entitlements, into `usage_meters`. Safe
+  // fallback: no tenant header → `mcpClients: []`, just the logger sink.
+  const mcpClients: McpClient[] = [];
+  const tenant = c.get('tenant')?.id;
+  const accountId = getEntitlementsFromContext(c).accountId;
+
+  const loggerSink = aiMod.createCoreLoggerSink();
+  const meterSink = accountId
+    ? aiMod.createUsageMeterSink({
+        accountId,
+        write: (row) => recordUsageMeter(row),
+      })
+    : undefined;
+  // Type of the Stage 6.1 event sink, derived from @revealui/ai via
+  // the lazy-imported aiMod so apps/api keeps zero static references to
+  // the optional Pro package (enforced by scripts/validate/boundary.ts).
+  type AiMod = NonNullable<typeof aiMod>;
+  type McpEventSink = ReturnType<AiMod['createCoreLoggerSink']>;
+  const onEvent: McpEventSink = meterSink
+    ? (event) => {
+        loggerSink(event);
+        meterSink(event);
+      }
+    : loggerSink;
+
+  if (tenant) {
+    let serverIds: string[] = [];
+    try {
+      serverIds = await listConnectedMcpServers(createRevvaultVault(), tenant);
+    } catch (error) {
+      logger.warn('[agent-stream] failed to list MCP servers for tenant', {
+        tenant,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    for (const server of serverIds) {
+      try {
+        const built = await buildRemoteMcpClient({ tenant, server });
+        await built.client.connect();
+        const mcpTools = await aiMod.createToolsFromMcpClient(built.client, {
+          namespace: server,
+          onEvent,
+        });
+        mcpClients.push(built.client);
+        allTools.push(...mcpTools);
+      } catch (error) {
+        // Per-server isolation — one server failing doesn't break the
+        // whole agent call. Re-auth required is silent (expected).
+        if (!(error instanceof RemoteServerNotConnectedError)) {
+          logger.warn('[agent-stream] failed to connect MCP server', {
+            tenant,
+            server,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    }
+  }
 
   const localDisclaimer = isLocalOnly
     ? '\n\nYou are in free tier mode. You can read and search code but cannot make edits, run commands, or perform git operations. Upgrade to Pro for full coding capabilities.'
@@ -281,6 +355,12 @@ Workspace: ${workspaceId}`,
         }),
         event: 'error',
       });
+    } finally {
+      // Tear down any MCP clients we connected at handler entry so
+      // sockets + OAuth-refresh timers don't leak across requests.
+      for (const client of mcpClients) {
+        await client.close().catch(() => undefined);
+      }
     }
   });
 });

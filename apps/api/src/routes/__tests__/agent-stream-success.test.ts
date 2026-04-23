@@ -59,6 +59,12 @@ vi.mock('hono/streaming', () => ({
 
 vi.mock('@revealui/ai', () => ({
   createLLMClientFromEnv: vi.fn().mockReturnValue({ type: 'env-client' }),
+  // A.1: agent-stream composes Stage 6.1/6.2 sinks + builds MCP tools from
+  // tenant-connected servers. Stub each factory with a harmless
+  // no-op; tests that care about sink behavior set their own spies.
+  createCoreLoggerSink: vi.fn().mockReturnValue(() => {}),
+  createUsageMeterSink: vi.fn().mockReturnValue(() => {}),
+  createToolsFromMcpClient: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock('@revealui/ai/llm/client', () => ({
@@ -159,8 +165,16 @@ beforeEach(async () => {
   vi.clearAllMocks();
   capturedEvents.length = 0;
 
-  const { createLLMClientFromEnv } = await import('@revealui/ai');
+  const {
+    createLLMClientFromEnv,
+    createCoreLoggerSink,
+    createUsageMeterSink,
+    createToolsFromMcpClient,
+  } = await import('@revealui/ai');
   vi.mocked(createLLMClientFromEnv).mockReturnValue({ type: 'env-client' });
+  vi.mocked(createCoreLoggerSink).mockReturnValue(() => {});
+  vi.mocked(createUsageMeterSink).mockReturnValue(() => {});
+  vi.mocked(createToolsFromMcpClient).mockResolvedValue([]);
 
   const { LLMClient } = await import('@revealui/ai/llm/client');
   // biome-ignore lint/complexity/useArrowFunction: LLMClient is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
