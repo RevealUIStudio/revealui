@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card';
+import type { CollectionMcpSummary } from '@/lib/mcp/collections';
 
 interface RemoteServerSummary {
   tenant: string;
@@ -28,6 +29,7 @@ export default function McpCatalogPage() {
   const [activeTenant, setActiveTenant] = useState<string | null>(null);
   const [builtins, setBuiltins] = useState<McpServerInfo[]>([]);
   const [remotes, setRemotes] = useState<RemoteServerSummary[]>([]);
+  const [collections, setCollections] = useState<CollectionMcpSummary[]>([]);
   const [state, setState] = useState<LoadState>('idle');
   const [message, setMessage] = useState<string | null>(null);
 
@@ -42,6 +44,26 @@ export default function McpCatalogPage() {
         if (!cancelled) setBuiltins(data.servers ?? []);
       } catch (err) {
         if (!cancelled) setMessage(`Failed to load built-in servers: ${(err as Error).message}`);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Load MCP content-exposure map on mount (tenant-agnostic in v1).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/mcp/collections', { credentials: 'include' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as { collections: CollectionMcpSummary[] };
+        if (!cancelled) setCollections(data.collections ?? []);
+      } catch (err) {
+        if (!cancelled) {
+          setMessage(`Failed to load collection exposure: ${(err as Error).message}`);
+        }
       }
     })();
     return () => {
@@ -217,6 +239,57 @@ export default function McpCatalogPage() {
                         >
                           Disconnect
                         </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* Content exposure (tenant-agnostic in v1) */}
+        <section className="mb-10">
+          <h2 className="mb-1 text-lg font-medium text-white">
+            Content exposure{' '}
+            <span className="text-sm font-normal text-zinc-500">({collections.length})</span>
+          </h2>
+          <p className="mb-3 text-xs text-zinc-500">
+            Collections exposed to MCP clients as resources via the{' '}
+            <span className="font-mono text-zinc-400">revealui-content</span> server. Opt a
+            collection out by setting{' '}
+            <span className="font-mono text-zinc-400">mcpResource: false</span> in its
+            CollectionConfig.
+          </p>
+          {collections.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+              Loading collection exposure…
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-lg border border-zinc-800">
+              <table className="w-full text-sm">
+                <thead className="bg-zinc-900/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-medium text-zinc-400">Slug</th>
+                    <th className="px-4 py-3 text-left font-medium text-zinc-400">Label</th>
+                    <th className="px-4 py-3 text-left font-medium text-zinc-400">Exposure</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {collections.map((c) => (
+                    <tr key={c.slug} className="border-t border-zinc-800/50">
+                      <td className="px-4 py-3 font-mono text-zinc-300">{c.slug}</td>
+                      <td className="px-4 py-3 text-zinc-400">{c.labelPlural ?? c.label}</td>
+                      <td className="px-4 py-3">
+                        {c.mcpResource ? (
+                          <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+                            exposed
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-zinc-700/40 px-2 py-0.5 text-xs font-medium text-zinc-400">
+                            hidden
+                          </span>
+                        )}
                       </td>
                     </tr>
                   ))}
