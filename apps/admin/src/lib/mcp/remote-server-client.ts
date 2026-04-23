@@ -11,7 +11,7 @@
  * Stage 3.2 of the MCP v1 plan.
  */
 
-import { McpClient } from '@revealui/mcp/client';
+import { type ElicitationHandler, McpClient } from '@revealui/mcp/client';
 import {
   createRevvaultVault,
   McpOAuthProvider,
@@ -61,6 +61,12 @@ export interface BuildRemoteMcpClientOptions {
   clientName?: string;
   /** Client version reported during `initialize`. */
   clientVersion?: string;
+  /**
+   * Handler invoked when the server sends `elicitation/create`. Registered
+   * on the `McpClient` at construction time so capability advertisement
+   * matches what the caller can actually service.
+   */
+  elicitationHandler?: ElicitationHandler;
 }
 
 export interface BuiltRemoteMcpClient {
@@ -102,6 +108,7 @@ export async function buildRemoteMcpClient(
       url: meta.serverUrl,
       authProvider: provider,
     },
+    ...(options.elicitationHandler ? { elicitationHandler: options.elicitationHandler } : {}),
   });
 
   return { client, meta };
