@@ -11,6 +11,10 @@ import {
   createToolsFromMcpClient,
   type McpCallToolResultLike,
   type McpClientLike,
+  type McpGetPromptResultLike,
+  type McpPromptDescriptor,
+  type McpResourceContentLike,
+  type McpResourceDescriptor,
   type McpToolDescriptor,
 } from '../../tools/mcp-adapter.js';
 
@@ -21,6 +25,29 @@ function makeClient(
   return {
     listTools: vi.fn().mockResolvedValue(descriptors),
     callTool: vi.fn(async (name, args) => callHandler(name, args)),
+  };
+}
+
+interface FullClientOptions {
+  tools?: McpToolDescriptor[];
+  resources?: McpResourceDescriptor[];
+  resourceContents?: Record<string, ReadonlyArray<McpResourceContentLike>>;
+  prompts?: McpPromptDescriptor[];
+  promptResults?: Record<string, McpGetPromptResultLike>;
+}
+
+function makeFullClient(opts: FullClientOptions): McpClientLike {
+  return {
+    listTools: vi.fn().mockResolvedValue(opts.tools ?? []),
+    callTool: vi.fn().mockResolvedValue({ content: [] }),
+    listResources: vi.fn().mockResolvedValue(opts.resources ?? []),
+    readResource: vi.fn(async (uri: string) => opts.resourceContents?.[uri] ?? []),
+    listPrompts: vi.fn().mockResolvedValue(opts.prompts ?? []),
+    getPrompt: vi.fn(async (name: string) => {
+      const result = opts.promptResults?.[name];
+      if (!result) throw new Error(`prompt not found: ${name}`);
+      return result;
+    }),
   };
 }
 
@@ -212,5 +239,263 @@ describe('createToolsFromMcpClient', () => {
       category: 'content-mcp',
     });
     expect(tools[0]?.getMetadata?.().category).toBe('content-mcp');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Stage 5.1b — resource + prompt meta-tools
+// ---------------------------------------------------------------------------
+
+describe('createToolsFromMcpClient — resources (Stage 5.1b)', () => {
+  it('emits list_resources + read_resource meta-tools when the client supports resources', async () => {
+    const client = makeFullClient({
+      resources: [
+        { uri: 'revealui-content://posts/1', name: 'posts/Post 1', mimeType: 'application/json' },
+      ],
+    });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'content' });
+    const names = tools.map((t) => t.name);
+    expect(names).toContain('mcp_content__list_resources');
+    expect(names).toContain('mcp_content__read_resource');
+  });
+
+  it('list_resources returns the descriptors verbatim', async () => {
+    const descriptors: McpResourceDescriptor[] = [
+      { uri: 'revealui-content://posts/1', name: 'Post 1' },
+      { uri: 'revealui-content://pages/home', name: 'Home' },
+    ];
+    const client = makeFullClient({ resources: descriptors });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'content' });
+    const listTool = tools.find((t) => t.name === 'mcp_content__list_resources');
+    const result = await listTool?.execute({});
+
+    expect(result?.success).toBe(true);
+    expect(result?.data).toEqual(descriptors);
+  });
+
+  it('read_resource fetches contents by URI and joins text parts into `content`', async () => {
+    const client = makeFullClient({
+      resourceContents: {
+        'revealui-content://posts/1': [
+          { uri: 'revealui-content://posts/1', text: 'First paragraph.', mimeType: 'text/plain' },
+          { uri: 'revealui-content://posts/1', text: 'Second paragraph.', mimeType: 'text/plain' },
+        ],
+      },
+    });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'content' });
+    const readTool = tools.find((t) => t.name === 'mcp_content__read_resource');
+    const result = await readTool?.execute({ uri: 'revealui-content://posts/1' });
+
+    expect(result?.success).toBe(true);
+    expect(result?.content).toBe('First paragraph.\n\nSecond paragraph.');
+    expect(Array.isArray(result?.data)).toBe(true);
+  });
+
+  it('read_resource omits `content` flattening when any part is binary (blob)', async () => {
+    const client = makeFullClient({
+      resourceContents: {
+        'revealui-content://media/1': [
+          { uri: 'revealui-content://media/1', blob: 'base64data==', mimeType: 'image/png' },
+        ],
+      },
+    });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'content' });
+    const readTool = tools.find((t) => t.name === 'mcp_content__read_resource');
+    const result = await readTool?.execute({ uri: 'revealui-content://media/1' });
+
+    expect(result?.success).toBe(true);
+    expect(result?.content).toBeUndefined();
+    expect(Array.isArray(result?.data)).toBe(true);
+  });
+
+  it('skips resource meta-tools when include.resources is false', async () => {
+    const client = makeFullClient({ resources: [{ uri: 'x://y', name: 'y' }] });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      include: { resources: false },
+    });
+    expect(tools.some((t) => t.name === 'mcp_srv__list_resources')).toBe(false);
+    expect(tools.some((t) => t.name === 'mcp_srv__read_resource')).toBe(false);
+  });
+
+  it('skips resource meta-tools silently when the client does not implement them', async () => {
+    const client: McpClientLike = {
+      listTools: vi.fn().mockResolvedValue([]),
+      callTool: vi.fn().mockResolvedValue({ content: [] }),
+      // no listResources / readResource
+    };
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'minimal' });
+    expect(tools.some((t) => t.name === 'mcp_minimal__list_resources')).toBe(false);
+    expect(tools.some((t) => t.name === 'mcp_minimal__read_resource')).toBe(false);
+  });
+
+  it('surfaces read_resource transport errors as failed ToolResult', async () => {
+    const client = makeFullClient({});
+    client.readResource = vi.fn().mockRejectedValue(new Error('transport closed'));
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const readTool = tools.find((t) => t.name === 'mcp_srv__read_resource');
+    const result = await readTool?.execute({ uri: 'x://y' });
+
+    expect(result?.success).toBe(false);
+    expect(result?.error).toBe('transport closed');
+  });
+});
+
+describe('createToolsFromMcpClient — prompts (Stage 5.1b)', () => {
+  it('emits list_prompts + get_prompt meta-tools when the client supports prompts', async () => {
+    const client = makeFullClient({
+      prompts: [{ name: 'rewrite', description: 'Rewrite input for clarity' }],
+    });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const names = tools.map((t) => t.name);
+    expect(names).toContain('mcp_srv__list_prompts');
+    expect(names).toContain('mcp_srv__get_prompt');
+  });
+
+  it('list_prompts returns the descriptors verbatim', async () => {
+    const descriptors: McpPromptDescriptor[] = [
+      {
+        name: 'summarize',
+        description: 'Summarize a long document',
+        arguments: [{ name: 'text', required: true }],
+      },
+    ];
+    const client = makeFullClient({ prompts: descriptors });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const listTool = tools.find((t) => t.name === 'mcp_srv__list_prompts');
+    const result = await listTool?.execute({});
+
+    expect(result?.success).toBe(true);
+    expect(result?.data).toEqual(descriptors);
+  });
+
+  it('get_prompt flattens text messages into `content`', async () => {
+    const client = makeFullClient({
+      promptResults: {
+        rewrite: {
+          description: 'Rewrite helper',
+          messages: [
+            { role: 'user', content: { type: 'text', text: 'Please rewrite:' } },
+            { role: 'user', content: { type: 'text', text: 'Hello world.' } },
+          ],
+        },
+      },
+    });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const getTool = tools.find((t) => t.name === 'mcp_srv__get_prompt');
+    const result = await getTool?.execute({ name: 'rewrite' });
+
+    expect(result?.success).toBe(true);
+    expect(result?.content).toBe('user: Please rewrite:\n\nuser: Hello world.');
+  });
+
+  it('get_prompt handles string-content messages (not just typed-text)', async () => {
+    const client = makeFullClient({
+      promptResults: {
+        greet: {
+          messages: [{ role: 'assistant', content: 'Hi there' }],
+        },
+      },
+    });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const getTool = tools.find((t) => t.name === 'mcp_srv__get_prompt');
+    const result = await getTool?.execute({ name: 'greet' });
+
+    expect(result?.success).toBe(true);
+    expect(result?.content).toBe('assistant: Hi there');
+  });
+
+  it('get_prompt forwards args to the client', async () => {
+    const getPromptSpy = vi.fn(async () => ({ messages: [] }));
+    const client: McpClientLike = {
+      listTools: vi.fn().mockResolvedValue([]),
+      callTool: vi.fn().mockResolvedValue({ content: [] }),
+      listPrompts: vi.fn().mockResolvedValue([{ name: 'greet' }]),
+      getPrompt: getPromptSpy,
+    };
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const getTool = tools.find((t) => t.name === 'mcp_srv__get_prompt');
+    await getTool?.execute({ name: 'greet', args: { user: 'alice', style: 'formal' } });
+
+    expect(getPromptSpy).toHaveBeenCalledWith('greet', { user: 'alice', style: 'formal' });
+  });
+
+  it('get_prompt rejects non-string argument values (per MCP spec)', async () => {
+    const client = makeFullClient({ promptResults: { greet: { messages: [] } } });
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const getTool = tools.find((t) => t.name === 'mcp_srv__get_prompt');
+
+    // args.style is a number — zod validation should reject before the call
+    await expect(
+      getTool?.execute({ name: 'greet', args: { style: 42 as unknown as string } }),
+    ).rejects.toThrow();
+  });
+
+  it('skips prompt meta-tools when include.prompts is false', async () => {
+    const client = makeFullClient({ prompts: [{ name: 'greet' }] });
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      include: { prompts: false },
+    });
+    expect(tools.some((t) => t.name === 'mcp_srv__list_prompts')).toBe(false);
+    expect(tools.some((t) => t.name === 'mcp_srv__get_prompt')).toBe(false);
+  });
+
+  it('skips prompt meta-tools silently when the client does not implement them', async () => {
+    const client: McpClientLike = {
+      listTools: vi.fn().mockResolvedValue([]),
+      callTool: vi.fn().mockResolvedValue({ content: [] }),
+      // no listPrompts / getPrompt
+    };
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'minimal' });
+    expect(tools.some((t) => t.name === 'mcp_minimal__list_prompts')).toBe(false);
+    expect(tools.some((t) => t.name === 'mcp_minimal__get_prompt')).toBe(false);
+  });
+});
+
+describe('createToolsFromMcpClient — include flag combinations', () => {
+  it('include.tools: false skips server tools but keeps resources + prompts', async () => {
+    const client = makeFullClient({
+      tools: [{ name: 'list_sites', inputSchema: { type: 'object', properties: {} } }],
+      resources: [{ uri: 'x://y', name: 'y' }],
+      prompts: [{ name: 'greet' }],
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      include: { tools: false },
+    });
+    expect(tools.some((t) => t.name === 'mcp_srv__list_sites')).toBe(false);
+    expect(tools.some((t) => t.name === 'mcp_srv__list_resources')).toBe(true);
+    expect(tools.some((t) => t.name === 'mcp_srv__list_prompts')).toBe(true);
+  });
+
+  it('emits all three surfaces by default (tools + resources + prompts)', async () => {
+    const client = makeFullClient({
+      tools: [{ name: 'echo', inputSchema: { type: 'object', properties: {} } }],
+      resources: [{ uri: 'x://y', name: 'y' }],
+      prompts: [{ name: 'greet' }],
+    });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const names = tools.map((t) => t.name);
+    expect(names).toContain('mcp_srv__echo');
+    expect(names).toContain('mcp_srv__list_resources');
+    expect(names).toContain('mcp_srv__read_resource');
+    expect(names).toContain('mcp_srv__list_prompts');
+    expect(names).toContain('mcp_srv__get_prompt');
   });
 });

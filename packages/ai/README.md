@@ -81,9 +81,38 @@ const runtime = new AgentRuntime({
 ```
 
 Tools from each client are namespaced as `mcp_<name>__<toolName>` so multiple
-clients coexist without collisions. Stage 5.1b will extend this path with
-resources + prompts; Stage 5.2 adds recursive sampling through the agent's
-LLM provider.
+clients coexist without collisions.
+
+### Resources + prompts (Stage 5.1b)
+
+When an MCP client advertises resources and/or prompts, the adapter
+additionally emits per-server meta-tools so the agent can read them on
+demand without any bespoke wiring:
+
+| Meta-tool | Calls | Returns |
+|---|---|---|
+| `mcp_<ns>__list_resources` | `client.listResources()` | `[{ uri, name?, description?, mimeType? }, …]` |
+| `mcp_<ns>__read_resource({ uri })` | `client.readResource(uri)` | resource contents; text parts flattened into the `content` field for token-efficient LLM context |
+| `mcp_<ns>__list_prompts` | `client.listPrompts()` | `[{ name, description?, arguments? }, …]` |
+| `mcp_<ns>__get_prompt({ name, args? })` | `client.getPrompt(name, args)` | `{ description?, messages }`; text messages flattened to `<role>: <text>` |
+
+All four are opt-out via `include` on `createToolsFromMcpClient()`. Meta-tools
+are silently skipped when the client doesn't implement the underlying
+method (e.g. servers that don't advertise the resources capability).
+
+```typescript
+// Include every primitive (default)
+const tools = await createToolsFromMcpClient(client, { namespace: 'content' })
+
+// Tools only, skip the resources/prompts meta-tools
+const toolsOnly = await createToolsFromMcpClient(client, {
+  namespace: 'content',
+  include: { tools: true, resources: false, prompts: false },
+})
+```
+
+Stage 5.2 will add recursive sampling (server → agent's LLM provider);
+Stage 5.3 surfaces elicitation + progress + cancellation in agent UI.
 
 The legacy `mcpToolSource` path (hypervisor-backed) still works and is
 kept for backwards compatibility, but new integrations should prefer the
