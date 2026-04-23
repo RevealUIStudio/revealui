@@ -203,7 +203,13 @@ export default function McpCatalogPage() {
                           {r.connectionState}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="flex items-center justify-end gap-3 px-4 py-3 text-right">
+                        <a
+                          href={`/admin/mcp/inspect?tenant=${encodeURIComponent(r.tenant)}&server=${encodeURIComponent(r.server)}`}
+                          className="text-xs font-medium text-emerald-400 hover:text-emerald-300"
+                        >
+                          Inspect
+                        </a>
                         <button
                           type="button"
                           onClick={() => void handleDisconnect(r.server)}

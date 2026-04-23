@@ -56,6 +56,7 @@ export {
 } from './auth.js';
 // MCP protocol client (Stage 0 complete; Stage 1 PR-1.1 adds Streamable HTTP transport)
 export {
+  type CallToolResult,
   type ClientCapabilities,
   type CompleteRequest,
   type CompleteResult,
@@ -92,6 +93,7 @@ export {
   type StreamableHTTPClientTransportOptions,
   type StreamableHTTPReconnectionOptions,
   type StreamableHttpTransportOptions,
+  type Tool,
   type TransportOptions,
 } from './client.js';
 // Configuration
