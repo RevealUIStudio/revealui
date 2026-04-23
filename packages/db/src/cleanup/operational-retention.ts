@@ -1,20 +1,17 @@
 /**
  * Operational Hygiene Retention
  *
- * Purges terminal rows from internal queue and idempotency tables past
- * their retention windows. Keeps hot tables lean; no PII concerns (these
- * are internal operational state, not user data).
+ * Purges terminal rows from internal queue / idempotency / reconciliation
+ * tables past their retention windows. Keeps hot tables lean; no PII
+ * concerns (these are internal operational state, not user data).
  *
  * See ~/suite/.jv/docs/cr8-p3-02-retention-design.md for the decision
- * record. This is PR2 in the CR8-P3-02 arc; PR1 shipped the log tables.
- *
- * NOTE: the design doc originally called for a third purge on
- * `unreconciled_webhooks`. That table is defined in the Drizzle schema
- * but has no corresponding CREATE TABLE migration (verified 2026-04-22
- * — snapshots at migrations/meta/0006_snapshot.json + 0009_snapshot.json
- * reference it, but no .sql migration creates it). A fresh DB would fail
- * the retention query. Dropped from PR2 scope; tracked in a separate
- * follow-up to ship the missing migration first.
+ * record. Part of the CR8-P3-02 arc:
+ *   - PR1 (revealui#495): app_logs + error_events retention
+ *   - PR2 (revealui#499): jobs + processed_webhook_events retention
+ *   - fix  (revealui#500): missing unreconciled_webhooks migration (0010)
+ *   - this PR: extends PR2 with unreconciled_webhooks retention now that
+ *     the migration is in place.
  *
  * Windows:
  *   - jobs (state IN ('completed', 'failed'), completedAt < cutoff)
@@ -27,14 +24,21 @@
  *     → REVEALUI_WEBHOOK_EVENT_RETENTION_DAYS (default 90)
  *     Stripe idempotency markers. Stripe retry horizon is ~24h; 90d is
  *     belt-and-suspenders. No PII.
+ *
+ *   - unreconciled_webhooks (resolvedAt IS NOT NULL AND resolvedAt < cutoff)
+ *     → REVEALUI_WEBHOOK_RECONCILIATION_RETENTION_DAYS (default 90)
+ *     SAFETY: only purges resolved rows. Unresolved rows represent open
+ *     customer-payment-fulfillment bugs and MUST persist until manually
+ *     reconciled. resolvedAt=NULL rows are skipped unconditionally.
  */
 
 import { and, inArray, isNotNull, lt } from 'drizzle-orm';
 import { getClient } from '../client/index.js';
 import { jobs } from '../schema/jobs.js';
 import { processedWebhookEvents } from '../schema/webhook-events.js';
+import { unreconciledWebhooks } from '../schema/webhook-reconciliation.js';
 
-export type OperationalRetentionTable = 'jobs' | 'webhookEvents';
+export type OperationalRetentionTable = 'jobs' | 'webhookEvents' | 'unreconciledWebhooks';
 
 export interface CleanupOperationalOptions {
   /** When true, counts rows without deleting (default: false) */
@@ -50,21 +54,24 @@ export interface CleanupOperationalOptions {
 export interface CleanupOperationalResult {
   jobs: number;
   webhookEvents: number;
+  unreconciledWebhooks: number;
   dryRun: boolean;
   windows: Record<OperationalRetentionTable, number>;
   cutoffs: Record<OperationalRetentionTable, Date>;
 }
 
-const ALL_TABLES: OperationalRetentionTable[] = ['jobs', 'webhookEvents'];
+const ALL_TABLES: OperationalRetentionTable[] = ['jobs', 'webhookEvents', 'unreconciledWebhooks'];
 
 const DEFAULT_WINDOWS: Record<OperationalRetentionTable, number> = {
   jobs: 30,
   webhookEvents: 90,
+  unreconciledWebhooks: 90,
 };
 
 const ENV_VARS: Record<OperationalRetentionTable, string> = {
   jobs: 'REVEALUI_JOB_RETENTION_DAYS',
   webhookEvents: 'REVEALUI_WEBHOOK_EVENT_RETENTION_DAYS',
+  unreconciledWebhooks: 'REVEALUI_WEBHOOK_RECONCILIATION_RETENTION_DAYS',
 };
 
 function resolveWindow(table: OperationalRetentionTable, override?: number): number {
@@ -96,6 +103,8 @@ function resolveWindow(table: OperationalRetentionTable, override?: number): num
  *   - `processed_webhook_events`: no protected state; all rows past the
  *     window are purgeable (idempotency markers are bounded by time, not
  *     state).
+ *   - `unreconciled_webhooks`: only rows with resolvedAt IS NOT NULL are
+ *     considered. Open reconciliation work is never silently purged.
  */
 export async function cleanupOperational(
   options: CleanupOperationalOptions = {},
@@ -107,17 +116,20 @@ export async function cleanupOperational(
   const windows: Record<OperationalRetentionTable, number> = {
     jobs: resolveWindow('jobs', overrides.jobs),
     webhookEvents: resolveWindow('webhookEvents', overrides.webhookEvents),
+    unreconciledWebhooks: resolveWindow('unreconciledWebhooks', overrides.unreconciledWebhooks),
   };
 
   const now = Date.now();
   const cutoffs: Record<OperationalRetentionTable, Date> = {
     jobs: new Date(now - windows.jobs * 24 * 60 * 60 * 1000),
     webhookEvents: new Date(now - windows.webhookEvents * 24 * 60 * 60 * 1000),
+    unreconciledWebhooks: new Date(now - windows.unreconciledWebhooks * 24 * 60 * 60 * 1000),
   };
 
   const result: CleanupOperationalResult = {
     jobs: 0,
     webhookEvents: 0,
+    unreconciledWebhooks: 0,
     dryRun,
     windows,
     cutoffs,
@@ -152,6 +164,24 @@ export async function cleanupOperational(
     } else {
       const deleted = await db.delete(processedWebhookEvents).where(where).returning();
       result.webhookEvents = deleted.length;
+    }
+  }
+
+  if (tables.includes('unreconciledWebhooks')) {
+    // SAFETY: only resolved rows. Unresolved = open customer-payment bug.
+    const where = and(
+      isNotNull(unreconciledWebhooks.resolvedAt),
+      lt(unreconciledWebhooks.resolvedAt, cutoffs.unreconciledWebhooks),
+    );
+    if (dryRun) {
+      const rows = await db
+        .select({ eventId: unreconciledWebhooks.eventId })
+        .from(unreconciledWebhooks)
+        .where(where);
+      result.unreconciledWebhooks = rows.length;
+    } else {
+      const deleted = await db.delete(unreconciledWebhooks).where(where).returning();
+      result.unreconciledWebhooks = deleted.length;
     }
   }
 
