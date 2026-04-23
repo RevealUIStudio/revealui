@@ -40,6 +40,7 @@ import { createMiddleware } from 'hono/factory';
 import { logger as honoLogger } from 'hono/logger';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
+import { validateStartup } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
@@ -1102,42 +1103,6 @@ app.onError(errorHandler);
 
 // For Vercel serverless
 export default app;
-
-/**
- * Validate required environment variables and trigger the lazy config proxy
- * so that any missing/invalid config causes a loud failure at startup rather
- * than silently failing on the first real request.
- */
-function validateStartup(): void {
-  const required = ['POSTGRES_URL', 'NODE_ENV'];
-  const missing = required.filter((key) => !process.env[key]);
-  if (missing.length > 0) {
-    throw new Error(
-      `STARTUP VALIDATION FAILED: Missing required environment variables: ${missing.join(', ')}. ` +
-        'Check your .env file or deployment configuration.',
-    );
-  }
-
-  // In production, additional vars are required
-  if (process.env.NODE_ENV === 'production') {
-    const prodRequired = [
-      'REVEALUI_SECRET',
-      'REVEALUI_KEK',
-      'REVEALUI_PUBLIC_SERVER_URL',
-      'STRIPE_SECRET_KEY',
-      'STRIPE_WEBHOOK_SECRET',
-      'REVEALUI_LICENSE_PRIVATE_KEY',
-      'REVEALUI_CRON_SECRET',
-      'CORS_ORIGIN',
-    ];
-    const missingProd = prodRequired.filter((key) => !process.env[key]);
-    if (missingProd.length > 0) {
-      throw new Error(
-        `STARTUP VALIDATION FAILED: Missing production-required env vars: ${missingProd.join(', ')}.`,
-      );
-    }
-  }
-}
 
 // Alerting  -  register channels and rules, start periodic evaluation.
 // Runs in both dev and prod. Console channel always active.
