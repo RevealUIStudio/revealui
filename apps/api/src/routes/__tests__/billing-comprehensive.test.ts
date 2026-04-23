@@ -334,13 +334,13 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;
-      expect(body.error as string).toContain('No active subscription');
+      expect(body.error as string).toContain('No active or trialing subscription');
     });
 
     it('cancels subscription at period end and returns effectiveAt date', async () => {
       _selectResult = [{ stripeCustomerId: 'cus_existing' }];
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       const cancelTimestamp = Math.floor(new Date('2026-04-15T00:00:00Z').getTime() / 1000);
       mockSubscriptionsUpdate.mockResolvedValue({
@@ -361,7 +361,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
     it('sets cancel_at_period_end to true on Stripe subscription', async () => {
       _selectResult = [{ stripeCustomerId: 'cus_existing' }];
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro', cancel_at: null });
 
@@ -381,7 +381,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
     it('uses current time as effectiveAt when Stripe returns no cancel_at', async () => {
       _selectResult = [{ stripeCustomerId: 'cus_existing' }];
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro', cancel_at: null });
 
@@ -399,7 +399,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
     it('queries Stripe for active subscription with correct customer', async () => {
       _selectResult = [{ stripeCustomerId: 'cus_downgrade' }];
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
+        data: [{ id: 'sub_1', status: 'active', items: { data: [{ id: 'si_1' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
 
@@ -408,8 +408,8 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(mockSubscriptionsList).toHaveBeenCalledWith({
         customer: 'cus_downgrade',
-        status: 'active',
-        limit: 1,
+        status: 'all',
+        limit: 10,
       });
     });
 
@@ -426,7 +426,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
         return mockDbSelectChain;
       });
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
+        data: [{ id: 'sub_1', status: 'active', items: { data: [{ id: 'si_1' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
 
@@ -435,15 +435,15 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(mockSubscriptionsList).toHaveBeenCalledWith({
         customer: 'cus_account',
-        status: 'active',
-        limit: 1,
+        status: 'all',
+        limit: 10,
       });
     });
 
     it('prefers request-scoped account entitlements for downgrades', async () => {
       queueSelectResults([{ stripeCustomerId: 'cus_account_ctx' }]);
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
+        data: [{ id: 'sub_1', status: 'active', items: { data: [{ id: 'si_1' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
 
@@ -456,8 +456,8 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(mockSubscriptionsList).toHaveBeenCalledWith({
         customer: 'cus_account_ctx',
-        status: 'active',
-        limit: 1,
+        status: 'all',
+        limit: 10,
       });
       expect(mockDb.select).toHaveBeenCalledTimes(1);
     });
@@ -943,7 +943,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
         [{ stripeCustomerId: 'cus_existing' }],
       );
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       mockSubscriptionsUpdate.mockRejectedValue(new Error('Stripe: invalid_price'));
 
@@ -1094,7 +1094,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
         [{ stripeCustomerId: 'cus_existing' }],
       );
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({
         id: 'sub_pro',
@@ -1107,6 +1107,90 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
       );
 
       expect(res.status).toBe(200);
+    });
+
+    // ── P1-I: trial users can upgrade out of their trial ─────────────────
+    it('allows a trialing subscription to upgrade to a paid tier', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_trial' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_trial', status: 'trialing', items: { data: [{ id: 'si_trial' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({
+        id: 'sub_trial',
+        items: { data: [{ id: 'si_pro', price: { id: 'price_pro_server' } }] },
+      });
+
+      const app = createApp(MOCK_USER, { tier: 'free', accountId: 'acc-trial' });
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }),
+      );
+
+      expect(res.status).toBe(200);
+      expect(mockSubscriptionsUpdate).toHaveBeenCalled();
+    });
+
+    it('uses status=all in the Stripe list query (not status=active) so trialing subs are returned', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_any' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_x', status: 'active', items: { data: [{ id: 'si_x' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({
+        id: 'sub_x',
+        items: { data: [{ id: 'si_pro', price: { id: 'price_pro_server' } }] },
+      });
+
+      const app = createApp(MOCK_USER, { tier: 'free', accountId: 'acc-x' });
+      await app.request(post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }));
+
+      expect(mockSubscriptionsList).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'all' }),
+      );
+    });
+
+    it('rejects upgrade when the only subscription is canceled', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_canceled' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_gone', status: 'canceled', items: { data: [{ id: 'si_gone' }] } }],
+      });
+
+      const app = createApp(MOCK_USER, { tier: 'free', accountId: 'acc-gone' });
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }),
+      );
+
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toContain('No active or trialing subscription');
+    });
+
+    it('rejects upgrade when the subscription is in incomplete state', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_inc' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_inc', status: 'incomplete', items: { data: [{ id: 'si_inc' }] } }],
+      });
+
+      const app = createApp(MOCK_USER, { tier: 'free', accountId: 'acc-inc' });
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }),
+      );
+
+      expect(res.status).toBe(400);
     });
   });
 });

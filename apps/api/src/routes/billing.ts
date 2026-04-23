@@ -898,18 +898,29 @@ app.openapi(upgradeRoute, async (c) => {
     });
   }
 
-  // Find the user's current active subscription
+  // Find the user's current subscription eligible to upgrade.
+  //
+  // Stripe's `subscriptions.list({ status })` accepts one status (or 'all'),
+  // not a union. We need `active` AND `trialing` — trial customers need to
+  // be able to upgrade to a paid tier before the trial ends. Filtering with
+  // `status: 'active'` alone made this impossible; the error "No active
+  // subscription found" was the symptom. Fetch with `status: 'all'` and
+  // filter client-side.
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({
       customer: stripeCustomerId,
-      status: 'active',
-      limit: 1,
+      status: 'all',
+      limit: 10,
     }),
   );
 
-  const subscription = subscriptionList.data[0];
+  const subscription = subscriptionList.data.find(
+    (s) => s.status === 'active' || s.status === 'trialing',
+  );
   if (!subscription) {
-    throw new HTTPException(400, { message: 'No active subscription found to upgrade.' });
+    throw new HTTPException(400, {
+      message: 'No active or trialing subscription found to upgrade.',
+    });
   }
 
   const item = subscription.items.data[0];
@@ -1013,17 +1024,23 @@ app.openapi(downgradeRoute, async (c) => {
     });
   }
 
+  // See upgrade route for why we don't use Stripe's `status` filter directly.
+  // Trial users must also be able to cancel before the trial ends.
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({
       customer: stripeCustomerId,
-      status: 'active',
-      limit: 1,
+      status: 'all',
+      limit: 10,
     }),
   );
 
-  const subscription = subscriptionList.data[0];
+  const subscription = subscriptionList.data.find(
+    (s) => s.status === 'active' || s.status === 'trialing',
+  );
   if (!subscription) {
-    throw new HTTPException(400, { message: 'No active subscription found to downgrade.' });
+    throw new HTTPException(400, {
+      message: 'No active or trialing subscription found to downgrade.',
+    });
   }
 
   // R5-H10: Reject concurrent subscription modifications (with 15-min staleness expiry)
