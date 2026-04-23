@@ -25,6 +25,7 @@ import { protectedStripe } from '@revealui/services';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
+import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../lib/tier-pricing.js';
 import {
   sendDowngradeConfirmationEmail,
   sendUpgradeConfirmationEmail,
@@ -37,17 +38,6 @@ const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7'
 /** How far ahead to look for expiring support contracts (overridable via env, default 30 days) */
 const SUPPORT_RENEWAL_WINDOW_MS =
   Number.parseInt(process.env.REVEALUI_SUPPORT_RENEWAL_DAYS ?? '30', 10) * 24 * 60 * 60 * 1000;
-
-/**
- * Canonical monthly tier prices in USD (whole dollars).
- * Single source of truth  -  used for RVUI payment recording and MRR fallbacks.
- * Must match the marketing site and Stripe product catalog.
- */
-const CANONICAL_TIER_PRICES: Record<string, number> = {
-  pro: 49,
-  max: 149,
-  enterprise: 299,
-};
 
 /**
  * Computes a Stripe meter event timestamp for the last second of a billing cycle.
@@ -908,18 +898,29 @@ app.openapi(upgradeRoute, async (c) => {
     });
   }
 
-  // Find the user's current active subscription
+  // Find the user's current subscription eligible to upgrade.
+  //
+  // Stripe's `subscriptions.list({ status })` accepts one status (or 'all'),
+  // not a union. We need `active` AND `trialing` — trial customers need to
+  // be able to upgrade to a paid tier before the trial ends. Filtering with
+  // `status: 'active'` alone made this impossible; the error "No active
+  // subscription found" was the symptom. Fetch with `status: 'all'` and
+  // filter client-side.
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({
       customer: stripeCustomerId,
-      status: 'active',
-      limit: 1,
+      status: 'all',
+      limit: 10,
     }),
   );
 
-  const subscription = subscriptionList.data[0];
+  const subscription = subscriptionList.data.find(
+    (s) => s.status === 'active' || s.status === 'trialing',
+  );
   if (!subscription) {
-    throw new HTTPException(400, { message: 'No active subscription found to upgrade.' });
+    throw new HTTPException(400, {
+      message: 'No active or trialing subscription found to upgrade.',
+    });
   }
 
   const item = subscription.items.data[0];
@@ -1023,17 +1024,23 @@ app.openapi(downgradeRoute, async (c) => {
     });
   }
 
+  // See upgrade route for why we don't use Stripe's `status` filter directly.
+  // Trial users must also be able to cancel before the trial ends.
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({
       customer: stripeCustomerId,
-      status: 'active',
-      limit: 1,
+      status: 'all',
+      limit: 10,
     }),
   );
 
-  const subscription = subscriptionList.data[0];
+  const subscription = subscriptionList.data.find(
+    (s) => s.status === 'active' || s.status === 'trialing',
+  );
   if (!subscription) {
-    throw new HTTPException(400, { message: 'No active subscription found to downgrade.' });
+    throw new HTTPException(400, {
+      message: 'No active or trialing subscription found to downgrade.',
+    });
   }
 
   // R5-H10: Reject concurrent subscription modifications (with 15-min staleness expiry)
@@ -2081,7 +2088,11 @@ app.openapi(refundRoute, async (c) => {
   }
 
   // R5-H14: Idempotency key prevents duplicate refunds on network retries
-  const idempotencyKey = `refund-${chargeId ?? paymentIntentId}-${user.id}`;
+  // AND deduplicates across concurrent admins working the same support ticket.
+  // Binding to `amount || 'full'` (not `user.id`) keeps partial refunds of
+  // different amounts distinct while converging full refunds and any two
+  // admins issuing the same partial to one Stripe refund.
+  const idempotencyKey = `refund-${chargeId ?? paymentIntentId}-${amount ?? 'full'}`;
 
   const refundParams: Stripe.RefundCreateParams = {
     ...(paymentIntentId ? { payment_intent: paymentIntentId } : {}),
@@ -2177,10 +2188,12 @@ app.openapi(rvuiPaymentRoute, async (c) => {
 
 // ─── Admin Revenue Metrics ────────────────────────────────────────────────────
 
-/** Fallback monthly prices (cents) for MRR estimation when catalog has no Stripe price */
-const FALLBACK_TIER_PRICE_CENTS: Record<string, number> = Object.fromEntries(
-  Object.entries(CANONICAL_TIER_PRICES).map(([tier, usd]) => [tier, usd * 100]),
-);
+/**
+ * Fallback monthly prices (cents) for MRR estimation when catalog has no
+ * Stripe price. Imported from `../lib/tier-pricing.ts` so the cron-level
+ * parity check and this route share the same source of truth.
+ */
+const FALLBACK_TIER_PRICE_CENTS = MRR_TIER_PRICE_FALLBACK_CENTS;
 
 const MetricsTierBreakdownSchema = z.object({
   pro: z.number().openapi({ description: 'Active pro subscriptions' }),

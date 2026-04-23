@@ -37,6 +37,8 @@ export type {
   GlobalHeaderInsert,
   GlobalSettingsRow,
   GlobalSettingsInsert,
+  McpDocumentOperationsRow,
+  McpDocumentOperationsInsert,
   MediaRow,
   MediaInsert,
   MessagesRow,
@@ -77,6 +79,9 @@ export type FailedAttemptsUpdate = Partial<import('./zod-schemas.js').FailedAtte
 export type GlobalFooterUpdate = Partial<import('./zod-schemas.js').GlobalFooterInsert>
 export type GlobalHeaderUpdate = Partial<import('./zod-schemas.js').GlobalHeaderInsert>
 export type GlobalSettingsUpdate = Partial<import('./zod-schemas.js').GlobalSettingsInsert>
+export type McpDocumentOperationsUpdate = Partial<
+  import('./zod-schemas.js').McpDocumentOperationsInsert
+>
 export type MediaUpdate = Partial<import('./zod-schemas.js').MediaInsert>
 export type MessagesUpdate = Partial<import('./zod-schemas.js').MessagesInsert>
 export type NodeIdMappingsUpdate = Partial<import('./zod-schemas.js').NodeIdMappingsInsert>

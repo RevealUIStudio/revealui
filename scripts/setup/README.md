@@ -43,7 +43,6 @@ revealui dev up --include mcp
 | ------------------------ | -------------------------------------- |
 | `cleanup-rate-limits.ts` | Clear rate limit records from database |
 | `cleanup-sessions.ts`    | Remove expired session data            |
-| `setup-sync-schema.ts`   | Configure schema for Electric sync     |
 
 ## Environment Configuration
 

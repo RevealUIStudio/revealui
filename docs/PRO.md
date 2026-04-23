@@ -48,7 +48,7 @@ This guide covers the full Pro surface area, not just MCP setup:
 
 - account-level commercial packaging
 - MCP servers and developer tooling
-- Open-model inference (Ubuntu snaps, Ollama)
+- Open-model inference (Ollama shipped; Ubuntu Inference Snaps on roadmap)
 - editor and harness workflows
 - Stripe, Supabase, and x402 payment features
 - marketplace monetization
@@ -905,21 +905,31 @@ All MCP servers are **completely free**:
 
 RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, no vendor lock-in, no API bills.
 
-## Supported Inference Paths
+## Inference Paths
 
-| Path | Runtime | Status | Notes |
-|------|---------|--------|-------|
-| **Ollama** | Local GGUF models | Supported | Any open source GGUF model. Default: `gemma4:e2b` |
-| **HuggingFace** | HuggingFace Inference API | Supported | Open models hosted on HuggingFace infrastructure |
-| **Vultr** | Vultr GPU Cloud | Supported | Open models on Vultr serverless inference |
-| **Ubuntu Inference Snaps** | Canonical snap runtime | Planned — CLI install available; Studio UI integration in development | Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano. Install via `sudo snap install <model>`; full Studio lifecycle management coming in a later phase. Set `INFERENCE_SNAPS_BASE_URL` env var to wire an existing snap service to the LLM client. |
+### Shipped
+
+| Path | Runtime | Notes |
+|------|---------|-------|
+| **Ollama** | Local GGUF models | Any open source GGUF model. Default: `gemma4:e2b` |
+| **HuggingFace** | HuggingFace Inference API | Open models hosted on HuggingFace infrastructure |
+| **Vultr** | Vultr GPU Cloud | Open models on Vultr serverless inference |
+
+### Planned (roadmap)
+
+| Path | Runtime | Current state | Tracking |
+|------|---------|---------------|----------|
+| **Ubuntu Inference Snaps** | Canonical snap runtime | CLI install works today for Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano (`sudo snap install <model>`). Setting `INFERENCE_SNAPS_BASE_URL` wires an already-running snap service to the LLM client. Studio lifecycle management (start / stop / health / model discovery) is **not shipped**. | Integration issue to be filed; see MASTER_PLAN §CR-9 P1-04 |
 
 ## Server-side usage
 
 ```typescript
 import { createLLMClientFromEnv } from "@revealui/ai/llm/client";
 
-// Auto-detects from environment (snaps > Ollama)
+// Auto-detects from environment in precedence order:
+//   INFERENCE_SNAPS_BASE_URL (if set — planned path, manual wiring)
+//   OLLAMA_BASE_URL (default local runtime)
+//   HUGGINGFACE_API_KEY / VULTR_API_KEY (hosted fallbacks)
 const llm = createLLMClientFromEnv();
 
 const response = await llm.chat([{ role: "user", content: "Hello!" }]);
@@ -928,7 +938,8 @@ const response = await llm.chat([{ role: "user", content: "Hello!" }]);
 ## Environment configuration
 
 ```bash
-# Ubuntu inference snap
+# Ubuntu inference snap — planned path; requires manual snap install + service
+# (see Planned roadmap table above). Studio UI lifecycle not shipped.
 INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
 
 # Ollama (any open source model)
@@ -942,7 +953,7 @@ VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
 VULTR_BASE_URL=https://api.vultrinference.com/v1
 
 # Force specific inference path (overrides auto-detection)
-# Valid values: ollama, huggingface, vultr, inference-snaps
+# Valid values: ollama, huggingface, vultr, inference-snaps (planned)
 LLM_PROVIDER=ollama
 ```
 

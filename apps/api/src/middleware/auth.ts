@@ -16,6 +16,7 @@ import { userDevices, users } from '@revealui/db/schema';
 import { and, eq } from 'drizzle-orm';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { extractRequestContext } from '../lib/request-context.js';
 
 export interface AuthOptions {
   /** If true, unauthenticated requests get 401. If false, session is set but not required. */
@@ -99,7 +100,10 @@ export const authMiddleware = (options: AuthOptions = {}): MiddlewareHandler => 
     }
 
     // 2. Fall back to session cookie (browsers, admin dashboard)
-    const sessionData = await getSession(c.req.raw.headers);
+    //    Pass request context so the auth layer can invalidate a session that
+    //    arrives with a different UA/IP than it was bound to — same check the
+    //    admin Next.js surface runs via `extractRequestContext(request)`.
+    const sessionData = await getSession(c.req.raw.headers, extractRequestContext(c));
     if (sessionData) {
       c.set('user', sessionData.user);
       c.set('session', sessionData.session);

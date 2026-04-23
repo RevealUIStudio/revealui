@@ -38,8 +38,14 @@ import { sql } from 'drizzle-orm';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
 import { logger as honoLogger } from 'hono/logger';
+// Side-effect import: registers durable-queue handlers at module top
+// level so both the producer (POST /api/agent-tasks) and the worker
+// (POST /api/jobs/run) invocations see the same registry. See
+// CR8-P2-01 phase C.
+import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
+import { validateStartup } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
@@ -75,13 +81,17 @@ import contentRoute from './routes/content/index.js';
 import cronBillingReadinessRoute from './routes/cron/billing-readiness.js';
 import cronCleanupRoute from './routes/cron/cleanup.js';
 import cronDispatchRoute from './routes/cron/dispatch.js';
+import cronDrainUnreconciledRoute from './routes/cron/drain-unreconciled.js';
+import cronJobsSafetyNetRoute from './routes/cron/jobs-safety-net.js';
 import cronMarketplacePayoutsRoute from './routes/cron/marketplace-payouts.js';
 import cronPublishRoute from './routes/cron/publish-scheduled.js';
+import cronReconcileSubscriptionsRoute from './routes/cron/reconcile-subscriptions.js';
 import cronSweepGraceRoute from './routes/cron/sweep-grace-periods.js';
 import errorsRoute from './routes/errors.js';
 import gdprRoute from './routes/gdpr.js';
 import ghcrRoute from './routes/ghcr.js';
 import healthRoute from './routes/health.js';
+import jobsRoute from './routes/jobs/index.js';
 import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
 import maintenanceRoute from './routes/maintenance.js';
@@ -148,6 +158,11 @@ process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Validate Forge config at startup  -  exits if FORGE_* env vars are inconsistent
 validateForgeConfig();
+
+// Validate durable-dispatch flag config (CR8-P2-01 phase C) — if the
+// flag is on, the wake secret must be set, or every dispatch silently
+// falls back to the daily cron cadence.
+assertDispatchFlagConfigured();
 
 /**
  * Parse and validate CORS origins from environment variable.
@@ -1036,10 +1051,14 @@ app.route('/api/admin', adminObservabilityRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
 app.route('/api/cron', cronDispatchRoute);
+app.route('/api/cron', cronDrainUnreconciledRoute);
 app.route('/api/cron', cronMarketplacePayoutsRoute);
 app.route('/api/cron', cronPublishRoute);
+app.route('/api/cron', cronReconcileSubscriptionsRoute);
 app.route('/api/cron', cronSweepGraceRoute);
 app.route('/api/cron', cronCleanupRoute);
+app.route('/api/cron', cronJobsSafetyNetRoute);
+app.route('/api/jobs', jobsRoute);
 app.route('/api/ghcr', ghcrRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
@@ -1086,10 +1105,14 @@ app.route('/api/v1/admin', adminObservabilityRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
 app.route('/api/v1/cron', cronDispatchRoute);
+app.route('/api/v1/cron', cronDrainUnreconciledRoute);
 app.route('/api/v1/cron', cronMarketplacePayoutsRoute);
 app.route('/api/v1/cron', cronPublishRoute);
+app.route('/api/v1/cron', cronReconcileSubscriptionsRoute);
 app.route('/api/v1/cron', cronSweepGraceRoute);
 app.route('/api/v1/cron', cronCleanupRoute);
+app.route('/api/v1/cron', cronJobsSafetyNetRoute);
+app.route('/api/v1/jobs', jobsRoute);
 app.route('/api/v1/ghcr', ghcrRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
@@ -1102,42 +1125,6 @@ app.onError(errorHandler);
 
 // For Vercel serverless
 export default app;
-
-/**
- * Validate required environment variables and trigger the lazy config proxy
- * so that any missing/invalid config causes a loud failure at startup rather
- * than silently failing on the first real request.
- */
-function validateStartup(): void {
-  const required = ['POSTGRES_URL', 'NODE_ENV'];
-  const missing = required.filter((key) => !process.env[key]);
-  if (missing.length > 0) {
-    throw new Error(
-      `STARTUP VALIDATION FAILED: Missing required environment variables: ${missing.join(', ')}. ` +
-        'Check your .env file or deployment configuration.',
-    );
-  }
-
-  // In production, additional vars are required
-  if (process.env.NODE_ENV === 'production') {
-    const prodRequired = [
-      'REVEALUI_SECRET',
-      'REVEALUI_KEK',
-      'REVEALUI_PUBLIC_SERVER_URL',
-      'STRIPE_SECRET_KEY',
-      'STRIPE_WEBHOOK_SECRET',
-      'REVEALUI_LICENSE_PRIVATE_KEY',
-      'REVEALUI_CRON_SECRET',
-      'CORS_ORIGIN',
-    ];
-    const missingProd = prodRequired.filter((key) => !process.env[key]);
-    if (missingProd.length > 0) {
-      throw new Error(
-        `STARTUP VALIDATION FAILED: Missing production-required env vars: ${missingProd.join(', ')}.`,
-      );
-    }
-  }
-}
 
 // Alerting  -  register channels and rules, start periodic evaluation.
 // Runs in both dev and prod. Console channel always active.

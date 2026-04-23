@@ -519,7 +519,6 @@ Semantic caching provides:
 
 ---
 
-**Implementation**: Production-ready
 **Status**: ✅ Fully tested
 **Provider**: All providers (requires pgvector)
 **Deployment**: Set `LLM_ENABLE_SEMANTIC_CACHE=true`

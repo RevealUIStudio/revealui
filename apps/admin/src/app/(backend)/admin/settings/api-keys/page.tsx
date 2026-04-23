@@ -82,6 +82,7 @@ export default function ApiKeysPage() {
         setSaved(true);
         setTimeout(() => setSaved(false), SAVED_FEEDBACK_MS);
       } else {
+        // empty-catch-ok: JSON-parse fallback for an error-response body; `{}` is the safe shape so `data.error` evaluates to undefined and the UI falls back to the generic error text below.
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         setSaveError(
           data.error ?? 'Failed to save key. Contact support@revealui.com if this persists.',

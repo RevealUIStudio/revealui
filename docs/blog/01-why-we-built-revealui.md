@@ -237,7 +237,7 @@ I want to be honest about where RevealUI is and isn't the right choice.
 
 **It's opinionated.** That's the **Justifiable** principle  -  every choice has a reason you can explain in one sentence. React 19, Next.js 16, Hono, Drizzle ORM, NeonDB, Tailwind v4. If you need Vue or Svelte on the frontend, RevealUI isn't for you today. The API layer (Hono) is framework-agnostic and serves standard REST, so you could consume it from any frontend  -  but the admin dashboard and admin are React. The point isn't that these are the *right* choices for every team  -  it's that they're a coherent set of choices that work well together. If you're not sure what to pick, this is a slam dunk starting point. When your needs outgrow a specific tool, swap it  -  the **Orthogonal** architecture means nothing is welded shut.
 
-**It's early.** This is a v0 launch. The core is stable (5,500+ tests, full TypeScript strict mode, comprehensive security hardening), but the ecosystem is young. There's no plugin marketplace yet. The template library is small. The community is just getting started.
+**It's early.** This is a v0 launch. The core is stable (extensive test coverage, full TypeScript strict mode, comprehensive security hardening — run `pnpm test` for the current count), but the ecosystem is young. There's no plugin marketplace yet. The template library is small. The community is just getting started.
 
 **It's a solo project.** I'm one developer at RevealUI Studio. The upside is that decisions are fast and the vision is coherent. The downside is that there's one person triaging issues and reviewing PRs. I'm building in public precisely because I need the community to grow with the project.
 
