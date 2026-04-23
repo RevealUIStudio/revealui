@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+// console-allowed
 
 /**
  * CI Gate  -  Local CI/CD Quality Gate for RevealUI
@@ -297,6 +298,16 @@ async function gate(): Promise<void> {
         name: 'Migration journal',
         command: 'pnpm',
         args: ['validate:migrations'],
+      },
+      {
+        name: 'Raw-SQL (hard fail)',
+        command: 'pnpm',
+        args: ['validate:raw-sql'],
+      },
+      {
+        name: 'Empty-catch (hard fail)',
+        command: 'pnpm',
+        args: ['validate:empty-catch'],
       },
       {
         name: 'Security audit',

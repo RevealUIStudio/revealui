@@ -165,7 +165,7 @@ const sampleContent = {
     {
       name: 'Five Primitives, One Stack',
       description:
-        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them into a single deployable stack  -  authenticated, tested, and production-ready from day one.',
+        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them into a single deployable stack  -  authenticated, tested, and wired together from day one.',
     },
   ],
   cards: [
@@ -203,7 +203,7 @@ const sampleContent = {
       title: 'LAUNCH',
       name: 'RevealUI is Open Source',
       description:
-        'The core runtime is MIT-licensed and available on npm. 25 packages, 20,000+ tests, zero avoidable type errors. Run npx create-revealui to start building.',
+        'The core runtime is MIT-licensed and available on npm. Built with TypeScript strict mode, extensive test coverage, and zero avoidable type errors. Run npx create-revealui to start building.',
       alt: 'RevealUI open source launch',
     },
     {
