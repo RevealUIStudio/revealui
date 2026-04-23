@@ -20,6 +20,7 @@ import billingReadinessApp from './billing-readiness.js';
 import cleanupApp from './cleanup.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
+import reconcileSubscriptionsApp from './reconcile-subscriptions.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
 import uptimeCheckApp from './uptime-check.js';
 
@@ -33,6 +34,14 @@ interface JobResult {
 }
 
 const JOBS = [
+  // reconcile-subscriptions runs before sweep-grace-periods so any drift we
+  // detect (e.g. Stripe says past_due, we say active) surfaces in logs
+  // before the sweep cron acts on our stored state.
+  {
+    name: 'reconcile-subscriptions',
+    app: reconcileSubscriptionsApp,
+    path: '/reconcile-subscriptions',
+  },
   { name: 'billing-readiness', app: billingReadinessApp, path: '/billing-readiness' },
   { name: 'publish-scheduled', app: publishScheduledApp, path: '/publish-scheduled' },
   { name: 'sweep-grace-periods', app: sweepGracePeriodsApp, path: '/sweep-grace-periods' },
