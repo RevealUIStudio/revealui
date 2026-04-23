@@ -113,7 +113,16 @@ interface ClaimMatch {
   metricName: string;
 }
 
-const SCAN_DIRS = ['docs', 'apps/marketing/src', 'README.md', 'CLAUDE.md', 'scripts/setup'];
+const SCAN_DIRS = [
+  'docs',
+  'apps/marketing/src',
+  'README.md',
+  'CLAUDE.md',
+  'CONTRIBUTING.md',
+  'scripts/setup',
+  'packages/mcp/README.md',
+  'packages/mcp/docs',
+];
 
 /** Historical documents where counts were accurate at time of writing */
 const EXCLUDE_FILES = ['docs/system-tune/CRASH-POSTMORTEMS.md'];
@@ -191,6 +200,79 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
 
   for (const p of SCAN_DIRS) {
     scanPath(p);
+  }
+
+  return matches;
+}
+
+// ---------------------------------------------------------------------------
+// Future-tense claim scanner (CR9-P2-02)
+//
+// Enforces the CONTRIBUTING.md convention: every parenthetical future-tense
+// marker — "(coming soon)", "(planned)", "(roadmap)", "(TBD)", "(forthcoming)",
+// "(will ship)", "(in progress)" — must cite a tracker on the same line:
+// a GitHub issue/PR number (`#123`), issues/pulls URL, `milestone` reference,
+// or workflow file (`*.yml` / `*.yaml`).
+//
+// Scope is narrow by design (high-visibility surfaces only). Expand as
+// remaining CR9-P1-05 audit passes close.
+// ---------------------------------------------------------------------------
+
+interface FutureClaimMatch {
+  file: string;
+  line: number;
+  marker: string;
+  text: string;
+}
+
+/** Files scanned for unlinked future-tense markers. */
+const FUTURE_TENSE_SCAN_FILES = ['README.md', 'CLAUDE.md', 'docs/ROADMAP.md', 'docs/PRO.md'];
+
+const FUTURE_TENSE_PATTERN =
+  /\((coming soon|planned|roadmap|TBD|forthcoming|will ship|in progress)\b[^)]*\)/i;
+
+const TRACKER_PATTERN = /(#\d+|\/(issues|pull|pulls)\/\d+|\bmilestones?\b|\.ya?ml\b)/i;
+
+function scanForFutureTenseClaims(): FutureClaimMatch[] {
+  const matches: FutureClaimMatch[] = [];
+
+  for (const rel of FUTURE_TENSE_SCAN_FILES) {
+    const full = path.join(ROOT, rel);
+    let content: string;
+    try {
+      content = fs.readFileSync(full, 'utf8');
+    } catch {
+      continue;
+    }
+
+    const lines = content.split('\n');
+    let inFence = false;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Track fenced code blocks and skip their contents
+      if (line.startsWith('```')) {
+        inFence = !inFence;
+        continue;
+      }
+      if (inFence) continue;
+
+      // Skip markdown headings (section labels, not feature claims)
+      if (/^#{1,6}\s/.test(line)) continue;
+
+      const match = FUTURE_TENSE_PATTERN.exec(line);
+      if (!match) continue;
+
+      // Pass if the line cites a tracker (issue, PR, milestone, workflow)
+      if (TRACKER_PATTERN.test(line)) continue;
+
+      matches.push({
+        file: rel,
+        line: i + 1,
+        marker: match[0],
+        text: line.trim(),
+      });
+    }
   }
 
   return matches;
@@ -300,18 +382,39 @@ function run(): void {
     }
   }
 
+  // Future-tense claim check (CR9-P2-02)
+  const futureClaims = scanForFutureTenseClaims();
+
   console.log('====================');
   console.log(`Claims scanned: ${claims.length}`);
   console.log(`Mismatches:     ${mismatches}`);
+  console.log(`Future-tense files scanned: ${FUTURE_TENSE_SCAN_FILES.length}`);
+  console.log(`Unlinked future-tense markers: ${futureClaims.length}`);
 
-  if (mismatches > 0) {
-    console.log('\nFailed: claims do not match codebase reality.');
-    if (!showFix) {
-      console.log('Run with --fix to see suggested corrections.');
+  if (futureClaims.length > 0) {
+    console.log('\nUnlinked future-tense claims (convention: CONTRIBUTING.md):');
+    for (const c of futureClaims) {
+      console.log(`  ${c.file}:${c.line}  ${c.marker}`);
+      console.log(`    ${c.text.substring(0, 140)}`);
+    }
+    console.log(
+      '\nEvery future-tense marker must cite a tracker: issue/PR number, milestone, or workflow file.',
+    );
+  }
+
+  if (mismatches > 0 || futureClaims.length > 0) {
+    if (mismatches > 0) {
+      console.log('\nFailed: claims do not match codebase reality.');
+      if (!showFix) {
+        console.log('Run with --fix to see suggested corrections.');
+      }
+    }
+    if (futureClaims.length > 0) {
+      console.log('\nFailed: unlinked future-tense claims.');
     }
     process.exit(1);
   } else {
-    console.log('\nAll claims match codebase reality.');
+    console.log('\nAll claims match codebase reality and future-tense markers are tracked.');
   }
 }
 

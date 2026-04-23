@@ -1,9 +1,10 @@
 /**
  * Error Events Table - Persistent storage for application errors.
  *
- * Append-only table. Captures unhandled errors from admin (client + server)
- * and API. Queryable via the admin dashboard /admin/errors page.
- * Supplemented by Axiom log drain for full log search.
+ * Captures unhandled errors from admin (client + server) and API.
+ * Queryable via the admin dashboard /admin/errors page. Retention:
+ * rows older than REVEALUI_LOG_RETENTION_DAYS (default 90) are purged
+ * by the daily cron — see packages/db/src/cleanup/log-retention.ts.
  */
 
 import { sql } from 'drizzle-orm';

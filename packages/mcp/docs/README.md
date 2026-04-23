@@ -21,15 +21,21 @@ Complete guide for setting up and using Model Context Protocol (MCP) servers in 
 
 ## Overview
 
-RevealUI includes 7 MCP servers for enhanced AI capabilities:
+RevealUI includes 13 MCP servers for enhanced AI capabilities (ground-truth count enforced by `pnpm validate:claims`):
 
-- **Code Validator MCP** - Static analysis and code quality checks
-- **Vercel MCP** - Deploy and manage Vercel projects
-- **Stripe MCP** - Payment processing and billing operations
-- **NeonDB MCP** - Database operations and SQL queries
-- **Supabase MCP** - Supabase project management and CRUD operations
-- **Playwright MCP** - Browser automation and web scraping
-- **Next.js DevTools MCP** - Next.js 16+ runtime diagnostics and automation
+- **Code Validator MCP** — Static analysis and code quality checks
+- **Neon MCP** — NeonDB database operations and SQL queries
+- **Next.js DevTools MCP** — Next.js 16+ runtime diagnostics and automation
+- **Playwright MCP** — Browser automation and web scraping
+- **RevealUI Content MCP** — Content collection CRUD through RevealUI's own API
+- **RevealUI Email MCP** — Transactional email send + template management
+- **RevealUI Memory MCP** — Agent memory store reads/writes
+- **RevealUI Stripe MCP** — RevealUI-specific Stripe ops (billing portal, webhooks, tier enforcement)
+- **Stripe MCP** — Generic Stripe payment / subscription / invoice ops
+- **Supabase MCP** — Supabase project management + CRUD operations
+- **Vercel MCP** — Vercel deploy, env var, log inspection
+- **Vultr Test MCP** — Vultr GPU inference test harness
+- **Email Provider** — shared helper surface for other email-capable servers
 
 All servers are **free** and run locally as npm packages.
 

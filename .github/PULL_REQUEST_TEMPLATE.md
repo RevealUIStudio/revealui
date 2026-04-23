@@ -18,6 +18,7 @@
 - [ ] `pnpm gate:quick` passes (lint + typecheck)
 - [ ] Tests added/updated and passing
 - [ ] No `any` types or `console.*` in production code
+- [ ] Any future-tense claims (`(coming soon)`, `(planned)`, `(roadmap)`, `(TBD)`) cite a tracker — GitHub issue/PR, milestone, or workflow file. See `CONTRIBUTING.md#future-tense-claims`.
 
 ## Screenshots / Recordings
 

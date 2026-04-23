@@ -2,8 +2,10 @@
  * Cron: Stale Data Cleanup
  *
  * Deletes expired sessions, rate limits, password reset tokens, magic links,
- * publishes overdue scheduled pages, recovers stuck sagas, and cleans up
- * expired idempotency keys. Piggybacks on the daily cron dispatcher.
+ * publishes overdue scheduled pages, recovers stuck sagas, cleans up expired
+ * idempotency keys, purges old log rows past their retention window, and
+ * purges terminal rows from operational-hygiene tables (jobs, webhook events,
+ * resolved reconciliation records). Piggybacks on the daily cron dispatcher.
  *
  * Protected by X-Cron-Secret header (defense-in-depth  -  also validated in dispatch.ts).
  */
@@ -11,7 +13,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
-import { cleanupStaleTokens } from '@revealui/db/cleanup';
+import { cleanupOldLogs, cleanupOperational, cleanupStaleTokens } from '@revealui/db/cleanup';
 import { cleanupExpiredIdempotencyKeys, recoverStaleSagas } from '@revealui/db/saga';
 import { Hono } from 'hono';
 
@@ -87,12 +89,74 @@ app.post('/cleanup', async (c) => {
       logger.error(`[cron-cleanup] Saga recovery/cleanup failed: ${message}`);
     }
 
+    // Log retention purge: app_logs + error_events past the configured window.
+    // Non-fatal — logged and reported but does not fail the cron if it errors.
+    let logsPurged = { appLogs: 0, errorEvents: 0, retentionDays: 0 };
+    try {
+      const logsResult = await cleanupOldLogs();
+      logsPurged = {
+        appLogs: logsResult.appLogs,
+        errorEvents: logsResult.errorEvents,
+        retentionDays: logsResult.retentionDays,
+      };
+      if (logsResult.appLogs > 0 || logsResult.errorEvents > 0) {
+        logger.info('[cron-cleanup] Purged logs past retention window', {
+          appLogs: logsResult.appLogs,
+          errorEvents: logsResult.errorEvents,
+          retentionDays: logsResult.retentionDays,
+          cutoff: logsResult.cutoff.toISOString(),
+        });
+      }
+    } catch (logErr) {
+      const message = logErr instanceof Error ? logErr.message : String(logErr);
+      logger.error(`[cron-cleanup] Log retention purge failed: ${message}`);
+    }
+
+    // Operational-hygiene purge: terminal jobs, processed webhook events,
+    // resolved reconciliation records. Safety rules enforced at the query
+    // level — active jobs and unresolved reconciliation rows survive
+    // unconditionally. Non-fatal.
+    let operationalPurged = {
+      jobs: 0,
+      webhookEvents: 0,
+      unreconciledWebhooks: 0,
+      windows: { jobs: 0, webhookEvents: 0, unreconciledWebhooks: 0 },
+    };
+    try {
+      const opsResult = await cleanupOperational();
+      operationalPurged = {
+        jobs: opsResult.jobs,
+        webhookEvents: opsResult.webhookEvents,
+        unreconciledWebhooks: opsResult.unreconciledWebhooks,
+        windows: opsResult.windows,
+      };
+      const total = opsResult.jobs + opsResult.webhookEvents + opsResult.unreconciledWebhooks;
+      if (total > 0) {
+        logger.info('[cron-cleanup] Purged operational rows past retention', {
+          jobs: opsResult.jobs,
+          webhookEvents: opsResult.webhookEvents,
+          unreconciledWebhooks: opsResult.unreconciledWebhooks,
+          windows: opsResult.windows,
+          cutoffs: {
+            jobs: opsResult.cutoffs.jobs.toISOString(),
+            webhookEvents: opsResult.cutoffs.webhookEvents.toISOString(),
+            unreconciledWebhooks: opsResult.cutoffs.unreconciledWebhooks.toISOString(),
+          },
+        });
+      }
+    } catch (opsErr) {
+      const message = opsErr instanceof Error ? opsErr.message : String(opsErr);
+      logger.error(`[cron-cleanup] Operational retention purge failed: ${message}`);
+    }
+
     return c.json({
       success: true,
       ...result,
       total,
       recoveredSagas,
       expiredIdempotencyKeys: expiredKeys,
+      logsPurged,
+      operationalPurged,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

@@ -142,6 +142,46 @@ describe('bootstrap', () => {
     );
   });
 
+  it('records tosAcceptedAt and tosVersion on the bootstrap admin', async () => {
+    // Regression guard for revealui#431 — web signup records TOS acceptance;
+    // bootstrap must match so the first admin has the same legal record.
+    const before = new Date();
+    await bootstrap({
+      revealui: mockRevealUI,
+      admin: VALID_ADMIN,
+    });
+    const after = new Date();
+
+    const createCall = (mockRevealUI.create as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
+    const data = createCall?.data as Record<string, unknown>;
+
+    expect(data.tosAcceptedAt).toBeInstanceOf(Date);
+    const acceptedAt = data.tosAcceptedAt as Date;
+    expect(acceptedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+    expect(acceptedAt.getTime()).toBeLessThanOrEqual(after.getTime());
+
+    expect(typeof data.tosVersion).toBe('string');
+    expect((data.tosVersion as string).length).toBeGreaterThan(0);
+  });
+
+  it('honors TOS_VERSION env override when present', async () => {
+    const prev = process.env.TOS_VERSION;
+    process.env.TOS_VERSION = '2099-01-01';
+    try {
+      await bootstrap({
+        revealui: mockRevealUI,
+        admin: VALID_ADMIN,
+      });
+
+      const createCall = (mockRevealUI.create as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
+      const data = createCall?.data as Record<string, unknown>;
+      expect(data.tosVersion).toBe('2099-01-01');
+    } finally {
+      if (prev === undefined) delete process.env.TOS_VERSION;
+      else process.env.TOS_VERSION = prev;
+    }
+  });
+
   it('continues even if seed fails (non-fatal)', async () => {
     const seedFails: RevealUILike = {
       find: vi
