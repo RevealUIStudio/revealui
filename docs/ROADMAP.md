@@ -129,8 +129,8 @@ Give users the ability to interact with an AI agent directly from the admin dash
 
 ### Mid-Term (Q3 2026)
 
-#### Agent Marketplace
-A registry where developers can publish and discover MCP servers and AI agent capabilities. Revenue share model (80% developer / 20% platform).
+#### Agent Marketplace — [#526](https://github.com/RevealUIStudio/revealui/issues/526)
+A registry where developers can publish and discover MCP servers and AI agent capabilities. Revenue share model (80% developer / 20% platform). _Currently: MCP Server Marketplace (Phase 5.5) and RevMarket autonomous-agent layer (Phase 5.16) are both substantially built — schemas, API routes, admin UI, Stripe Connect payouts, x402 payment middleware, developer docs — but x402 is disabled by default and live charging is gated on §CR-8 A-grade achievement and Stripe live-mode switch._
 
 #### Multi-User Collaboration — [#514](https://github.com/RevealUIStudio/revealui/issues/514)
 Real-time multi-user editing powered by ElectricSQL. Currently basic shape subscriptions and Yjs CRDT foundation exist (experimental). Full conflict resolution, presence indicators, and collaborative workflows are planned.
