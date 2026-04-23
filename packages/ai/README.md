@@ -111,8 +111,50 @@ const toolsOnly = await createToolsFromMcpClient(client, {
 })
 ```
 
-Stage 5.2 will add recursive sampling (server → agent's LLM provider);
 Stage 5.3 surfaces elicitation + progress + cancellation in agent UI.
+
+### Recursive sampling (Stage 5.2)
+
+Some MCP servers need LLM capabilities without bundling a provider. The
+spec lets servers issue `sampling/createMessage` requests — the *client*
+runs the inference, keeps cost + context control, and returns the result.
+On the Ubuntu reference stack, that means servers get LLM access via the
+developer's local Canonical Inference Snap — no cloud round-trip required.
+
+```typescript
+import { McpClient } from '@revealui/mcp/client'
+import { InferenceSnapsProvider, createSamplingHandler } from '@revealui/ai'
+
+const llm = new InferenceSnapsProvider({
+  baseURL: 'http://localhost:9090/v1',
+  model: 'gemma3',
+})
+
+const client = new McpClient({
+  clientInfo: { name: 'my-agent', version: '1.0.0' },
+  transport: { kind: 'streamable-http', url: 'https://example.com/mcp' },
+  samplingHandler: createSamplingHandler({
+    llm,
+    defaultModel: 'gemma3',
+    allowedModels: ['gemma3', 'deepseek-r1'],  // strongly recommended
+    onSamplingRequest: (info) => {
+      // metering / audit trail
+      metrics.incr('mcp.sampling', { model: info.model })
+    },
+  }),
+})
+await client.connect()
+```
+
+`allowedModels` filters `modelPreferences.hints` from the server — hints
+outside the list are ignored so a malicious server can't escalate costs.
+The handler reports the resolved model back in `result.model`.
+
+**Scope in 5.2:** text-only messages (non-text content throws with a clear
+error). Multimodal sampling lands with the provider interface's content
+parts extension. `stopSequences` aren't forwarded to the LLM yet (the
+current `LLMChatOptions` doesn't expose that field); this is advisory per
+spec, so omission is compliant.
 
 The legacy `mcpToolSource` path (hypervisor-backed) still works and is
 kept for backwards compatibility, but new integrations should prefer the
