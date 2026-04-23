@@ -45,7 +45,7 @@
 
 ## Publishing
 - OSS packages: `publishConfig.access: "public"`, MIT license
-- Pro packages: `"private": true` (not published to npm)
+- Pro packages (`@revealui/ai`, `@revealui/harnesses`): `publishConfig.access: "public"`, Fair Source (FSL-1.1-MIT) — published to npm, source in-repo, converts to MIT two years after each release (see `docs/architecture/ADR-003-fair-source-licensing.md`)
 - Use changesets for versioning: `pnpm changeset` → `pnpm changeset:version` → `pnpm changeset:publish`
 
 ## Import Conventions

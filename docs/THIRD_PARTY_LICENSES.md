@@ -16,7 +16,6 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 **License Distribution**:
 - MIT: 45+ packages (90%+)
 - Apache-2.0: 3+ packages
-- BSD-3-Clause: 2+ packages
 - ISC: 1+ packages
 - 0BSD: 1+ packages
 
@@ -57,10 +56,6 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 - **@vercel/analytics** v1.3.1 - Vercel Analytics
 - **@vercel/speed-insights** v1.1.0 - Vercel Speed Insights
 - **@vercel/web-vitals** v1.0.0 - Vercel Web Vitals
-
-### BSD-3-Clause Licensed
-- **@types/jest** v29.5.14 - TypeScript definitions for Jest
-- **@types/testing-library__jest-dom** v6.0.0 - TypeScript definitions for jest-dom
 
 ### 0BSD Licensed
 - **tsx** v4.19.2 - TypeScript execution and REPL for node.js
