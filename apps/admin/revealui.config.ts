@@ -3,7 +3,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getSharedCMSConfig } from '@revealui/config/revealui';
-import type { CollectionConfig, Field } from '@revealui/contracts/admin';
+import type { Field } from '@revealui/contracts/admin';
 import type { RevealUIField, RevealUIInstance } from '@revealui/core';
 import {
   BoldFeature,
@@ -23,24 +23,7 @@ import {
 } from '@revealui/core';
 import { en } from '@revealui/core/admin/i18n/en';
 import sharp from 'sharp';
-// Import shared configuration from @revealui/config
-import Banners from '@/lib/collections/Banners';
-import Cards from '@/lib/collections/Cards';
-import Categories from '@/lib/collections/Categories';
-import Contents from '@/lib/collections/Contents';
-import { Conversations } from '@/lib/collections/Conversations';
-import Events from '@/lib/collections/Events';
-import Heros from '@/lib/collections/Heros';
-import Layouts from '@/lib/collections/Layouts';
-import { Media } from '@/lib/collections/Media';
-import { Orders } from '@/lib/collections/Orders';
-import { Pages } from '@/lib/collections/Pages/index';
-import { Posts } from '@/lib/collections/Posts';
-import Prices from '@/lib/collections/Prices';
-import Products from '@/lib/collections/Products';
-import Subscriptions from '@/lib/collections/Subscriptions';
-import Tags from '@/lib/collections/Tags';
-import { Tenants } from '@/lib/collections/Tenants';
+import { allCollections } from '@/lib/collections/registry';
 import Users from '@/lib/collections/Users';
 import { createTypedCollectionStorage } from '@/lib/db/typedCollectionStorage';
 import { Footer, Header, Settings } from '@/lib/globals';
@@ -247,27 +230,7 @@ export default buildConfig({
       },
     }),
   ],
-  collections: [
-    Users,
-    Tenants,
-    Pages,
-    Media,
-    Layouts,
-    Contents,
-    Categories,
-    Tags,
-    Events,
-    Cards,
-    Heros,
-    Products,
-    Prices,
-    Orders,
-    Posts,
-    Subscriptions,
-    Banners,
-    Conversations,
-    // biome-ignore lint/suspicious/noExplicitAny: heterogeneous collection array requires invariant generic
-  ] as CollectionConfig<any>[],
+  collections: allCollections,
   // Programmatically create first user on initialization if none exists
   onInit: async (instance: unknown) => {
     const revealui = instance as RevealUIInstance;
