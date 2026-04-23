@@ -121,11 +121,11 @@ Give users the ability to interact with an AI agent directly from the admin dash
 - RevKit agent coordination protocol extraction as `@revealui/workboard`  -  MIT standalone package. _Currently: implementation lives inside `@revealui/harnesses` (FSL-1.1-MIT Pro) at `packages/harnesses/src/workboard/`; extraction brings it in line with the PRO.md declaration that RevKit agent coordination is MIT-free._
 - Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
 
-#### Developer Experience
-- `create-revealui` template improvements (more starters, better defaults)
-- Hot module reload improvements for admin development
-- Better error messages and debugging output
-- Plugin system documentation
+#### Developer Experience — [#535](https://github.com/RevealUIStudio/revealui/issues/535)
+- `create-revealui` template improvements (more starters, better defaults). _Currently: `@revealui/cli` ships 4 templates (`basic-blog`, `e-commerce`, `portfolio`, `starter`) at `packages/cli/templates/`; bullet covers template audit + one new opinionated-SaaS starter + smoother prompts + post-init onboarding._
+- Hot module reload improvements for admin development. _Currently: admin runs Next.js 16 with Turbopack configured; bullet covers baseline measurement + collection-definition HMR + RichText plugin HMR + dev-startup optimization._
+- Better error messages and debugging output. _Currently: `packages/core/src/error-handling/` ships boundaries + reporter + fallbacks + Sentry wired per §CR-8 Phase 1; bullet covers user-facing error audit + opaque → actionable rewrites + structured `DEBUG=revealui:*` namespaces + API error-envelope consistency._
+- Plugin system documentation. _Currently: Plugin API lives at `packages/core/src/types/plugins.ts` with 3 first-party plugins (`form-builder`, `nested-docs`, `redirects`) but no dedicated `docs/PLUGINS.md`; bullet closes that documentation gap._
 
 ### Mid-Term (Q3 2026)
 
