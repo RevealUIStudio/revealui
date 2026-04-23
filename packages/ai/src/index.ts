@@ -79,6 +79,7 @@ export * from './ingestion/index.js';
 export * from './llm/client.js';
 export * from './llm/provider-health.js';
 export * from './llm/providers/base.js';
+export * from './llm/providers/inference-snaps.js';
 export * from './llm/providers/openai-compat.js';
 export * from './llm/token-counter.js';
 export * from './llm/workspace-provider-config.js';
