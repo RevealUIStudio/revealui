@@ -1,61 +1,10 @@
-# Test fixtures with fake/test Stripe keys and mock API key patterns
-# These are NOT real secrets — they are test doubles (sk_test_, fake JWTs, mock PEM keys)
-# .env.test contains dummy test values (msk_test_, mwhsec_test_, mpk_test_ prefixes)
-.env.test:stripe-access-token:2
-.env.test:stripe-access-token:3
-.env.test:stripe-access-token:4
-# Migration patch with test Stripe key references
-.claude/clack-migration.patch:stripe-access-token:228
-.claude/clack-migration.patch:stripe-access-token:285
-apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:178
-apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:288
-apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:331
-apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:400
-apps/api/src/routes/__tests__/billing.test.ts:stripe-access-token:522
-apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:219
-apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:326
-apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:460
-apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:536
-apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:656
-apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:710
-apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:754
-apps/api/src/routes/__tests__/billing-comprehensive.test.ts:stripe-access-token:808
-apps/api/src/routes/__tests__/webhook-handler.test.ts:stripe-access-token:151
-apps/api/src/routes/__tests__/webhooks-expansion.test.ts:stripe-access-token:143
-apps/api/src/routes/__tests__/webhook-signature-replay.test.ts:stripe-access-token:151
-apps/api/src/routes/__tests__/webhook-lifecycle-complete.test.ts:stripe-access-token:290
-apps/api/src/routes/__tests__/webhooks.test.ts:stripe-access-token:133
-apps/admin/src/__tests__/api/revalidate.test.ts:generic-api-key:31
-packages/cli/src/commands/create.ts:stripe-access-token:79
-packages/cli/src/prompts/__tests__/prompts.test.ts:generic-api-key:242
-packages/cli/src/__tests__/create.test.ts:stripe-access-token:81
-packages/core/src/__tests__/license.test.ts:private-key:173
-packages/test/src/integration/api/api-error-handler.integration.test.ts:stripe-access-token:88
-packages/config/src/__tests__/schema.test.ts:generic-api-key:231
-packages/config/src/__tests__/schema.test.ts:private-key:207
-packages/test/src/units/auth/jwt-validation.test.ts:jwt:49
-apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:145
-apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:156
-apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:402
-apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:414
-apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:427
-apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:444
-apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:467
-apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:482
-apps/api/src/routes/__tests__/api-keys.test.ts:generic-api-key:522
-apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:146
-apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:161
-apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:180
-apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:204
-apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:228
-apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:240
-apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:250
-apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:261
-apps/api/src/routes/__tests__/api-keys-edge.test.ts:generic-api-key:313
-packages/security/src/__tests__/security.test.ts:generic-api-key:64
-apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:422
-apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:509
-apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:620
-apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:733
-apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:815
-apps/api/src/routes/__tests__/billing-coverage-gaps.test.ts:stripe-access-token:863
+# Per-finding allowlist for gitleaks scans.
+#
+# Prefer `gitleaks.toml` [allowlist] path/regex rules for class-level
+# exemptions (test fixtures, CLI templates, env templates, docs). Those
+# rules are durable across line-number drift from refactors.
+#
+# Only add entries here for a single unique finding that needs to stay
+# while it's being resolved. Entry format:
+#   <fingerprint>:<file>:<rule-id>:<line>
+# See: https://github.com/gitleaks/gitleaks#gitleaksignore

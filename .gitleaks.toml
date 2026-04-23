@@ -1,0 +1,65 @@
+# Gitleaks configuration — RevealUI
+# https://github.com/gitleaks/gitleaks
+#
+# Extends the default rule set with a path-based allowlist that covers
+# test fixtures, CLI templates, example secrets in documentation, and
+# CI workflow placeholder values.
+#
+# Rules of thumb before adding a path here:
+#   1. Every string in that path MUST be a fake/placeholder by convention
+#      (sk_test_..., whsec_test_..., pk_test_..., eyJ...fake.jwt, etc.).
+#   2. No real credential has ever shipped through this path, and the
+#      review process prevents one from landing.
+#   3. If a single line is the false positive, prefer a commit+fingerprint
+#      entry in .gitleaksignore over broadening this allowlist.
+#
+# Real credentials must NOT be added here. Rotate them and purge the blob.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures, CLI templates, documentation examples, and CI placeholder secrets"
+
+paths = [
+  # Tests — any file under a __tests__ directory
+  '''(^|.*/)__tests__/.*''',
+
+  # Tests — *.test.{ts,tsx,js,jsx,mjs,cjs} and *.spec.{...} anywhere
+  '''.*\.(test|spec)\.(c|m)?[jt]sx?$''',
+
+  # Shared test harness: fixtures, mocks, integration scaffolding
+  '''^packages/test/.*''',
+
+  # Integration / E2E test directories outside __tests__/
+  '''^packages/.*/integration/.*''',
+  '''^packages/.*/e2e/.*''',
+
+  # CLI scaffolding and prompts — emit placeholder env keys into user templates
+  '''^packages/cli/src/commands/create\.ts$''',
+  '''^packages/cli/src/prompts/.*''',
+  '''^packages/cli/templates/.*''',
+
+  # Env templates anywhere in the tree — *.env.test, *.env.template,
+  # *.env.example, *.env.production.template, *.env.*.example, etc.
+  # Bare ".env" is deliberately NOT matched.
+  '''(^|.*/)\.env\.(test|template|example)$''',
+  '''(^|.*/)\.env\..+\.(template|example)$''',
+
+  # CI workflow files — repo root AND templates shipped inside packages
+  # (all secret-shaped strings are placeholders; real secrets use ${{ secrets.* }})
+  '''^\.github/workflows/.*\.ya?ml$''',
+  '''^packages/config/src/ci/.*\.ya?ml$''',
+  '''^packages/.*/ci/.*\.ya?ml$''',
+
+  # Documentation — env-var / secrets reference docs contain example values
+  '''^docs/.*\.md$''',
+  '''^packages/.*/docs/.*\.md$''',
+  '''^apps/.*/docs/.*\.md$''',
+
+  # Placeholder wrapper scripts (literal sk_test_placeholder etc.)
+  '''^apps/web/stripe-mcp-wrapper$''',
+
+  # Migration patch artefacts retained as historical references
+  '''^\.claude/.*\.patch$''',
+]
