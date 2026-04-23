@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPolicyPage() {
-  const lastUpdated = 'March 4, 2026';
+  const lastUpdated = 'April 22, 2026';
   return (
     <div className="min-h-screen bg-white">
       <article className="mx-auto max-w-3xl px-6 py-24 lg:px-8 prose prose-gray">
@@ -36,8 +36,7 @@ export default function PrivacyPolicyPage() {
         <h3>Usage Data</h3>
         <p>
           We collect server logs (IP address, request path, user agent) for security monitoring and
-          debugging. Logs are retained only as long as necessary for security and operational
-          purposes.
+          debugging. See §4 below for retention windows.
         </p>
         <h3>Content Data</h3>
         <p>
@@ -81,8 +80,10 @@ export default function PrivacyPolicyPage() {
         <h2>4. Data Retention</h2>
         <p>
           Account data is retained while your account is active. After account deletion, we
-          permanently remove your personal data within 30 days. Server logs are retained only as
-          long as necessary for security and operational purposes. Billing records are retained as
+          permanently remove your personal data within 30 days. Application logs and error events
+          are retained for 90 days. Agent activity audit logs are retained indefinitely for security
+          and compliance purposes. Infrastructure server logs (IP address, request path, user agent)
+          are retained by our hosting provider per their policy. Billing records are retained as
           required by tax law (typically 7 years).
         </p>
 
