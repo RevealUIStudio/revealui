@@ -192,6 +192,145 @@ describe('revealui-content factory over Streamable HTTP', () => {
     expect(apiReq?.headers['user-agent']).toBe('RevealUI-MCP/1.0');
   });
 
+  it('advertises the resources capability (Stage 4.1)', async () => {
+    const mcp = await startMcpHttp();
+    teardowns.push(mcp.close);
+
+    const client = new McpClient({
+      clientInfo: { name: 'resources-caps-test', version: '0.0.1' },
+      transport: { kind: 'streamable-http', url: mcp.url },
+    });
+    await client.connect();
+    teardowns.push(async () => {
+      await client.close();
+    });
+
+    expect(client.getServerCapabilities()?.resources).toBeDefined();
+  });
+
+  it('lists content collections as MCP resources', async () => {
+    const mockApi = await startMockApi({
+      '/api/posts': {
+        docs: [
+          { id: 'p1', title: 'First post' },
+          { id: 'p2', title: 'Second post' },
+        ],
+      },
+      '/api/pages': { docs: [{ id: 'pg1', title: 'Home' }] },
+      '/api/products': { docs: [{ id: 'pr1', name: 'Widget' }] },
+      '/api/media': { docs: [{ id: 'm1', filename: 'hero.jpg' }] },
+    });
+    teardowns.push(mockApi.close);
+    process.env.REVEALUI_API_URL = mockApi.url;
+    process.env.REVEALUI_API_KEY = 'test-api-key';
+
+    const mcp = await startMcpHttp();
+    teardowns.push(mcp.close);
+
+    const client = new McpClient({
+      clientInfo: { name: 'list-resources-test', version: '0.0.1' },
+      transport: { kind: 'streamable-http', url: mcp.url },
+    });
+    await client.connect();
+    teardowns.push(async () => {
+      await client.close();
+    });
+
+    const resources = await client.listResources();
+    // 2 posts + 1 page + 1 product + 1 media = 5
+    expect(resources).toHaveLength(5);
+    expect(resources.map((r) => r.uri).sort()).toEqual([
+      'revealui-content://media/m1',
+      'revealui-content://pages/pg1',
+      'revealui-content://posts/p1',
+      'revealui-content://posts/p2',
+      'revealui-content://products/pr1',
+    ]);
+    const post = resources.find((r) => r.uri === 'revealui-content://posts/p1');
+    expect(post?.name).toBe('posts/First post');
+    expect(post?.mimeType).toBe('application/json');
+  });
+
+  it('survives partial failure — an unavailable collection does not blank the list', async () => {
+    // /api/pages returns 404 (intentionally omitted); /api/posts returns docs.
+    const mockApi = await startMockApi({
+      '/api/posts': { docs: [{ id: 'p1', title: 'Only post' }] },
+      '/api/products': { docs: [] },
+      '/api/media': { docs: [] },
+    });
+    teardowns.push(mockApi.close);
+    process.env.REVEALUI_API_URL = mockApi.url;
+    process.env.REVEALUI_API_KEY = 'test-api-key';
+
+    const mcp = await startMcpHttp();
+    teardowns.push(mcp.close);
+
+    const client = new McpClient({
+      clientInfo: { name: 'partial-fail-test', version: '0.0.1' },
+      transport: { kind: 'streamable-http', url: mcp.url },
+    });
+    await client.connect();
+    teardowns.push(async () => {
+      await client.close();
+    });
+
+    const resources = await client.listResources();
+    expect(resources.map((r) => r.uri)).toEqual(['revealui-content://posts/p1']);
+  });
+
+  it('reads a resource by URI', async () => {
+    const mockApi = await startMockApi({
+      '/api/posts/p1': { id: 'p1', title: 'First post', body: 'hello world' },
+    });
+    teardowns.push(mockApi.close);
+    process.env.REVEALUI_API_URL = mockApi.url;
+    process.env.REVEALUI_API_KEY = 'test-api-key';
+
+    const mcp = await startMcpHttp();
+    teardowns.push(mcp.close);
+
+    const client = new McpClient({
+      clientInfo: { name: 'read-resource-test', version: '0.0.1' },
+      transport: { kind: 'streamable-http', url: mcp.url },
+    });
+    await client.connect();
+    teardowns.push(async () => {
+      await client.close();
+    });
+
+    const contents = await client.readResource('revealui-content://posts/p1');
+    expect(contents).toHaveLength(1);
+    expect(contents[0]?.mimeType).toBe('application/json');
+    const parsed = JSON.parse(contents[0]?.text as string);
+    expect(parsed.id).toBe('p1');
+    expect(parsed.title).toBe('First post');
+  });
+
+  it('rejects malformed resource URIs', async () => {
+    process.env.REVEALUI_API_URL = 'http://127.0.0.1:1';
+    process.env.REVEALUI_API_KEY = 'test';
+
+    const mcp = await startMcpHttp();
+    teardowns.push(mcp.close);
+
+    const client = new McpClient({
+      clientInfo: { name: 'bad-uri-test', version: '0.0.1' },
+      transport: { kind: 'streamable-http', url: mcp.url },
+    });
+    await client.connect();
+    teardowns.push(async () => {
+      await client.close();
+    });
+
+    await expect(client.readResource('http://other-scheme/nope')).rejects.toThrow(
+      /Unknown resource URI/,
+    );
+    // Collection not in the default set.
+    await expect(client.readResource('revealui-content://unknown-collection/x')).rejects.toThrow(
+      /not exposed as a resource/,
+    );
+  });
+
   it('returns a tool-level error when credentials are missing', async () => {
     // Ensure no credentials in env for this scenario.
     delete process.env.REVEALUI_API_URL;
