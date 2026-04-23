@@ -57,7 +57,7 @@ async function requestHandler(request: NextRequest): Promise<NextResponse> {
     if (user) {
       const { token } = await createMagicLink(user.id);
 
-      // Send recovery email via configured provider (Resend/SMTP/mock)
+      // Send recovery email via Gmail REST API (or mock in dev without creds)
       const emailResult = await sendRecoveryEmail(email, token);
 
       if (!emailResult.success) {
