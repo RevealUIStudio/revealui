@@ -8,12 +8,86 @@ AI system for RevealUI - memory, LLM, orchestration, and tools.
 ## Features
 
 - **Memory System**: CRDT-based persistent memory (Working, Episodic, Semantic)
-- **LLM Integration**: Provider abstractions for Anthropic, GROQ, Ollama, and more
+- **LLM Integration**: Provider abstractions for Anthropic, GROQ, Ollama, Canonical Inference Snaps, and more
 - **Agent Orchestration**: Runtime and execution engine for AI agents
-- **Tool Calling**: Tool registry and execution system
+- **Tool Calling**: Tool registry + standard-MCP-client integration (Stage 5.1a)
 - **Vector Search**: Semantic search with pgvector
 - **Type-safe**: Full TypeScript support
 - **Performant**: Optimized for low-latency operations
+
+## Reference stack (Ubuntu)
+
+The recommended on-prem / on-device stack pairs `@revealui/ai` with a
+**Canonical Inference Snap** for local LLM inference:
+
+```
+@revealui/ai (this package)
+   │
+   ├── agent runtime + tool-calling loop
+   │
+   ├── MCP client → @revealui/mcp/client → tools/resources/prompts from MCP servers
+   │
+   └── LLM provider → OpenAI-compatible HTTP → localhost:<port>/v1
+                                                    ▲
+                                                    │
+                                         Canonical Inference Snap
+                                         (DeepSeek R1, Qwen 2.5 VL,
+                                          Gemma 3, Nemotron Nano —
+                                          silicon-optimized on Intel/
+                                          Ampere/NVIDIA/NPU)
+```
+
+Quick setup:
+
+```bash
+sudo snap install gemma3               # or deepseek-r1, qwen-vl, etc.
+gemma3 set http.port=9090
+gemma3 status                          # confirms base URL
+```
+
+```typescript
+import { InferenceSnapsProvider, LLMClient } from '@revealui/ai'
+
+const provider = new InferenceSnapsProvider({
+  baseURL: 'http://localhost:9090/v1',
+  model: 'gemma3',
+})
+
+const client = new LLMClient({ provider })
+```
+
+Cloud providers (Anthropic, OpenAI, GROQ) remain supported; the local
+inference path is the documented default for self-hosted deployments.
+
+## MCP tool integration
+
+Standard MCP servers plug into the agent runtime as tool sources. Construct
+an `McpClient` (from `@revealui/mcp/client`), connect it, and pass it to
+`AgentRuntime`:
+
+```typescript
+import { McpClient } from '@revealui/mcp/client'
+import { AgentRuntime } from '@revealui/ai'
+
+const contentClient = new McpClient({
+  clientInfo: { name: 'my-agent', version: '1.0.0' },
+  transport: { kind: 'streamable-http', url: 'https://admin.example.com/api/mcp/content' },
+})
+await contentClient.connect()
+
+const runtime = new AgentRuntime({
+  mcpClients: [{ name: 'content', client: contentClient }],
+})
+```
+
+Tools from each client are namespaced as `mcp_<name>__<toolName>` so multiple
+clients coexist without collisions. Stage 5.1b will extend this path with
+resources + prompts; Stage 5.2 adds recursive sampling through the agent's
+LLM provider.
+
+The legacy `mcpToolSource` path (hypervisor-backed) still works and is
+kept for backwards compatibility, but new integrations should prefer the
+`mcpClients` path.
 
 ## Installation
 
