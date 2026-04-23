@@ -32,12 +32,11 @@ vi.mock('../x402.js', () => ({
 }));
 
 import { isFeatureEnabled } from '@revealui/core/features';
-import { getCurrentTier, isLicensed } from '@revealui/core/license';
+import { getCurrentTier } from '@revealui/core/license';
 import { errorHandler } from '../error.js';
-import { requireFeature, requireLicense } from '../license.js';
+import { requireFeature } from '../license.js';
 import { getX402Config, verifyPayment } from '../x402.js';
 
-const mockedIsLicensed = vi.mocked(isLicensed);
 const mockedGetCurrentTier = vi.mocked(getCurrentTier);
 const mockedIsFeatureEnabled = vi.mocked(isFeatureEnabled);
 const mockedGetX402Config = vi.mocked(getX402Config);
@@ -69,147 +68,6 @@ function createApp(
 beforeEach(() => {
   vi.clearAllMocks();
   mockedGetX402Config.mockReturnValue({ enabled: false } as ReturnType<typeof getX402Config>);
-});
-
-// ---------------------------------------------------------------------------
-// requireLicense
-// ---------------------------------------------------------------------------
-describe('requireLicense', () => {
-  it('returns 403 when tier is insufficient', async () => {
-    mockedIsLicensed.mockReturnValue(false);
-    mockedGetCurrentTier.mockReturnValue('free');
-
-    const app = createApp(requireLicense('pro'));
-    const res = await app.request('/protected/resource');
-
-    expect(res.status).toBe(403);
-    const body = await parseBody(res);
-    expect(body.error).toContain('pro');
-    expect(body.error).toContain('free');
-    expect(body.error).toContain('revealui.com/pricing');
-  });
-
-  it('passes when tier is sufficient', async () => {
-    mockedIsLicensed.mockReturnValue(true);
-
-    const app = createApp(requireLicense('pro'));
-    const res = await app.request('/protected/resource');
-
-    expect(res.status).toBe(200);
-    const body = await parseBody(res);
-    expect(body.ok).toBe(true);
-  });
-
-  it('enterprise license passes pro check', async () => {
-    mockedIsLicensed.mockReturnValue(true);
-    mockedGetCurrentTier.mockReturnValue('enterprise');
-
-    const app = createApp(requireLicense('pro'));
-    const res = await app.request('/protected/resource');
-
-    expect(res.status).toBe(200);
-  });
-
-  it('returns 403 for enterprise requirement with pro tier', async () => {
-    mockedIsLicensed.mockReturnValue(false);
-    mockedGetCurrentTier.mockReturnValue('pro');
-
-    const app = createApp(requireLicense('enterprise'));
-    const res = await app.request('/protected/resource');
-
-    expect(res.status).toBe(403);
-    const body = await parseBody(res);
-    expect(body.error).toContain('enterprise');
-    expect(body.error).toContain('pro');
-  });
-
-  it('allows free tier when free is required', async () => {
-    mockedIsLicensed.mockReturnValue(true);
-    mockedGetCurrentTier.mockReturnValue('free');
-
-    const app = createApp(requireLicense('free'));
-    const res = await app.request('/protected/resource');
-
-    expect(res.status).toBe(200);
-  });
-
-  it('prefers request-scoped entitlement tier over global license state', async () => {
-    mockedIsLicensed.mockReturnValue(false);
-    mockedGetCurrentTier.mockReturnValue('free');
-
-    const app = createApp(requireLicense('pro'), { tier: 'enterprise' });
-    const res = await app.request('/protected/resource');
-
-    expect(res.status).toBe(200);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// requireLicense  -  x402 enabled
-// ---------------------------------------------------------------------------
-describe('requireLicense  -  x402', () => {
-  beforeEach(() => {
-    mockedGetX402Config.mockReturnValue({
-      enabled: true,
-      receivingAddress: '0x1234',
-      pricePerTask: '0.001',
-      network: 'base-sepolia',
-      facilitatorUrl: 'https://x402.org/facilitator',
-      usdcAsset: '0xUSDC',
-      maxTimeoutSeconds: 300,
-    } as ReturnType<typeof getX402Config>);
-  });
-
-  it('returns 402 with x402 headers when tier is insufficient and x402 is enabled', async () => {
-    mockedIsLicensed.mockReturnValue(false);
-    mockedGetCurrentTier.mockReturnValue('free');
-
-    const app = createApp(requireLicense('pro'));
-    const res = await app.request('/protected/resource');
-
-    expect(res.status).toBe(402);
-    const body = await parseBody(res);
-    expect(body.code).toBe('HTTP_402');
-    expect(body.upgrade_url).toBe('https://revealui.com/pricing');
-    expect(res.headers.get('X-PAYMENT-REQUIRED')).toBe('base64-encoded-payment-required');
-    expect(res.headers.get('X-REVEALUI-FEATURE')).toBe('pro');
-  });
-
-  it('passes when valid x402 payment header is present', async () => {
-    mockedIsLicensed.mockReturnValue(false);
-    mockedVerifyPayment.mockResolvedValue({ valid: true });
-
-    const app = createApp(requireLicense('pro'));
-    const res = await app.request('/protected/resource', {
-      headers: { 'x-payment-payload': 'valid-payment-data' },
-    });
-
-    expect(res.status).toBe(200);
-    expect(mockedVerifyPayment).toHaveBeenCalledWith('valid-payment-data', '/protected/resource');
-  });
-
-  it('returns 402 when x402 payment header is invalid', async () => {
-    mockedIsLicensed.mockReturnValue(false);
-    mockedVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid payment' });
-
-    const app = createApp(requireLicense('pro'));
-    const res = await app.request('/protected/resource', {
-      headers: { 'x-payment-payload': 'invalid-payment' },
-    });
-
-    expect(res.status).toBe(402);
-  });
-
-  it('still returns 403 when x402 is disabled', async () => {
-    mockedGetX402Config.mockReturnValue({ enabled: false } as ReturnType<typeof getX402Config>);
-    mockedIsLicensed.mockReturnValue(false);
-    mockedGetCurrentTier.mockReturnValue('free');
-
-    const app = createApp(requireLicense('pro'));
-    const res = await app.request('/protected/resource');
-
-    expect(res.status).toBe(403);
-  });
 });
 
 // ---------------------------------------------------------------------------
