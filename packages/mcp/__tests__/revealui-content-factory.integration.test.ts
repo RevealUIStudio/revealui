@@ -13,7 +13,11 @@ import { createServer as createHttpServer, type Server as NodeHttpServer } from 
 import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
 import { McpClient } from '../src/client.js';
-import { createRevealuiContentServer } from '../src/servers/factories/revealui-content.js';
+import {
+  type CollectionMcpSummary,
+  type CreateRevealuiContentServerOptions,
+  createRevealuiContentServer,
+} from '../src/servers/factories/revealui-content.js';
 import { createNodeStreamableHttpHandler } from '../src/streamable-http.js';
 
 // ---------------------------------------------------------------------------
@@ -67,9 +71,9 @@ async function startMockApi(responses: Record<string, unknown>): Promise<MockApi
 
 type McpHandle = { url: string; close: () => Promise<void> };
 
-async function startMcpHttp(): Promise<McpHandle> {
+async function startMcpHttp(options?: CreateRevealuiContentServerOptions): Promise<McpHandle> {
   const handler = createNodeStreamableHttpHandler({
-    createServer: createRevealuiContentServer,
+    createServer: () => createRevealuiContentServer(options),
     enableJsonResponse: true,
   });
   const httpServer: NodeHttpServer = createHttpServer((req, res) => {
@@ -329,6 +333,121 @@ describe('revealui-content factory over Streamable HTTP', () => {
     await expect(client.readResource('revealui-content://unknown-collection/x')).rejects.toThrow(
       /not exposed as a resource/,
     );
+  });
+
+  // -------------------------------------------------------------------------
+  // Stage 4.2 — dynamic collection introspection
+  // -------------------------------------------------------------------------
+
+  it('respects mcpResource: false when introspecting via HTTP', async () => {
+    // /api/mcp/collections returns two collections; one opts out.
+    const mockApi = await startMockApi({
+      '/api/mcp/collections': {
+        collections: [
+          { slug: 'posts', label: 'Post', labelPlural: 'Posts', mcpResource: true },
+          { slug: 'users', label: 'User', labelPlural: 'Users', mcpResource: false },
+        ],
+      },
+      '/api/posts': { docs: [{ id: 'p1', title: 'First post' }] },
+      // Even though /api/users would return docs, mcpResource: false should
+      // prevent the factory from even asking for them.
+      '/api/users': { docs: [{ id: 'u1', email: 'user@example.com' }] },
+    });
+    teardowns.push(mockApi.close);
+    process.env.REVEALUI_API_URL = mockApi.url;
+    process.env.REVEALUI_API_KEY = 'test-api-key';
+
+    const mcp = await startMcpHttp();
+    teardowns.push(mcp.close);
+
+    const client = new McpClient({
+      clientInfo: { name: 'dynamic-introspect-test', version: '0.0.1' },
+      transport: { kind: 'streamable-http', url: mcp.url },
+    });
+    await client.connect();
+    teardowns.push(async () => {
+      await client.close();
+    });
+
+    const resources = await client.listResources();
+    expect(resources.map((r) => r.uri)).toEqual(['revealui-content://posts/p1']);
+
+    // Factory should have asked for collections once and posts once, but
+    // never users (opted out at the summary layer).
+    expect(mockApi.requests.some((r) => r.path === '/api/mcp/collections')).toBe(true);
+    expect(mockApi.requests.some((r) => r.path === '/api/posts')).toBe(true);
+    expect(mockApi.requests.some((r) => r.path === '/api/users')).toBe(false);
+  });
+
+  it('injected collectionsProvider takes precedence over HTTP introspection', async () => {
+    // The mock exposes BOTH an introspection endpoint AND specific data,
+    // but the provider overrides the introspected list with a different
+    // shape. The factory should respect the provider and not hit the HTTP
+    // introspection endpoint at all.
+    const mockApi = await startMockApi({
+      '/api/mcp/collections': {
+        collections: [{ slug: 'posts', label: 'Post', labelPlural: 'Posts', mcpResource: true }],
+      },
+      '/api/pages': { docs: [{ id: 'pg1', title: 'Home' }] },
+    });
+    teardowns.push(mockApi.close);
+    process.env.REVEALUI_API_URL = mockApi.url;
+    process.env.REVEALUI_API_KEY = 'test-api-key';
+
+    const provider = async (): Promise<CollectionMcpSummary[]> => [
+      { slug: 'pages', label: 'Page', labelPlural: 'Pages', mcpResource: true },
+    ];
+
+    const mcp = await startMcpHttp({ collectionsProvider: provider });
+    teardowns.push(mcp.close);
+
+    const client = new McpClient({
+      clientInfo: { name: 'provider-test', version: '0.0.1' },
+      transport: { kind: 'streamable-http', url: mcp.url },
+    });
+    await client.connect();
+    teardowns.push(async () => {
+      await client.close();
+    });
+
+    const resources = await client.listResources();
+    expect(resources.map((r) => r.uri)).toEqual(['revealui-content://pages/pg1']);
+    // Provider took precedence — the HTTP introspection endpoint should not
+    // have been consulted.
+    expect(mockApi.requests.some((r) => r.path === '/api/mcp/collections')).toBe(false);
+  });
+
+  it('falls back to curated set when neither provider nor HTTP introspection is available', async () => {
+    // Mock returns 404 for /api/mcp/collections (not in responses), so
+    // HTTP introspection fails. The curated set (posts/pages/products/
+    // media) must still drive resource enumeration.
+    const mockApi = await startMockApi({
+      '/api/posts': { docs: [{ id: 'p1', title: 'Only post' }] },
+      '/api/pages': { docs: [] },
+      '/api/products': { docs: [] },
+      '/api/media': { docs: [] },
+    });
+    teardowns.push(mockApi.close);
+    process.env.REVEALUI_API_URL = mockApi.url;
+    process.env.REVEALUI_API_KEY = 'test-api-key';
+
+    const mcp = await startMcpHttp();
+    teardowns.push(mcp.close);
+
+    const client = new McpClient({
+      clientInfo: { name: 'curated-fallback-test', version: '0.0.1' },
+      transport: { kind: 'streamable-http', url: mcp.url },
+    });
+    await client.connect();
+    teardowns.push(async () => {
+      await client.close();
+    });
+
+    const resources = await client.listResources();
+    expect(resources.map((r) => r.uri)).toEqual(['revealui-content://posts/p1']);
+    // Factory tried the introspection endpoint and gracefully fell back.
+    const introspectAttempt = mockApi.requests.find((r) => r.path === '/api/mcp/collections');
+    expect(introspectAttempt).toBeDefined();
   });
 
   it('returns a tool-level error when credentials are missing', async () => {
