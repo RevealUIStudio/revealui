@@ -14,15 +14,22 @@
  *   revealui_list_users         — list users (admin only)
  *   revealui_site_stats         — per-site user + content counts
  *
+ * Resources (Stage 4.1 + 4.2): every CollectionConfig with `mcpResource !==
+ * false` is surfaced as an MCP resource under `revealui-content://<slug>/
+ * <id>`. The factory resolves the effective set via three tiers:
+ *
+ *   1. Injected `collectionsProvider` — in-process consumers (admin, agent
+ *      runtime) pass a function that reads directly from the admin registry.
+ *   2. HTTP introspection — fetches `${REVEALUI_API_URL}/api/mcp/collections`
+ *      with the configured API key. Used by out-of-process consumers that
+ *      can reach a running admin.
+ *   3. Curated fallback — `posts`, `pages`, `products`, `media` with
+ *      well-known title fields. Used when neither 1 nor 2 is available
+ *      (airgapped dev, admin offline, credentials missing).
+ *
  * Credentials are supplied by the hypervisor (or HTTP launcher wrapper)
  * via `setCredentials()`. Falls back to `REVEALUI_API_URL` +
  * `REVEALUI_API_KEY` env vars when no override is set.
- *
- * This file is the template 12 remaining first-party servers will follow:
- *   1. Extract a `create<Name>Server()` factory here
- *   2. Make `<name>.ts` a thin stdio launcher that consumes the factory
- *   3. Consumers (admin, agent runtime) import the factory directly for
- *      HTTP hosting via `createNodeStreamableHttpHandler`.
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -56,6 +63,15 @@ let _credentialOverrides: Record<string, string> = {};
  */
 export function setCredentials(creds: Record<string, string>): void {
   _credentialOverrides = creds;
+}
+
+function resolveCredentials(): { apiUrl?: string; apiKey?: string } {
+  const apiUrl = (_credentialOverrides.REVEALUI_API_URL ?? process.env.REVEALUI_API_URL)?.replace(
+    /\/$/,
+    '',
+  );
+  const apiKey = _credentialOverrides.REVEALUI_API_KEY ?? process.env.REVEALUI_API_KEY;
+  return { apiUrl, apiKey };
 }
 
 // ---------------------------------------------------------------------------
@@ -174,29 +190,71 @@ const TOOLS: Tool[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Resource catalog (Stage 4.1)
+// Resource catalog (Stage 4.1 + 4.2)
 // ---------------------------------------------------------------------------
 
 /**
- * Collections that default to being exposed as MCP resources. The admin-side
- * `mcpResource: false` opt-out on a collection definition (Stage 4.1 contracts
- * change) will subtract from this set once the admin publishes an
- * introspection surface (Stage 4.2). For now this is the curated v1 set —
- * the collections RevealUI treats as first-class content and which every
- * admin instance has.
+ * MCP-facing summary of a content collection. Wire-compatible with the shape
+ * returned by `GET /api/mcp/collections` on the admin app.
  */
-const DEFAULT_RESOURCEABLE_COLLECTIONS: ReadonlyArray<{
+export interface CollectionMcpSummary {
+  /** Collection slug. */
   slug: string;
-  titleField: string;
-  description: string;
-}> = [
-  { slug: 'posts', titleField: 'title', description: 'Blog posts and articles' },
-  { slug: 'pages', titleField: 'title', description: 'Site pages (marketing, landing, docs)' },
-  { slug: 'products', titleField: 'name', description: 'Catalog products' },
-  { slug: 'media', titleField: 'filename', description: 'Uploaded media assets' },
+  /** Human-readable singular label (e.g. `Post`). */
+  label: string;
+  /** Human-readable plural label, when known. */
+  labelPlural?: string;
+  /**
+   * Resolved MCP-resource flag. Only collections with `mcpResource: true`
+   * are surfaced as resources.
+   */
+  mcpResource: boolean;
+}
+
+/**
+ * Injection point for in-process consumers. Returning `null` signals the
+ * factory to try the next tier (HTTP, then curated).
+ */
+export type CollectionsProvider = () => Promise<CollectionMcpSummary[] | null>;
+
+export interface CreateRevealuiContentServerOptions {
+  /**
+   * Optional provider used to resolve the list of collections exposed as
+   * MCP resources. When provided, skips HTTP introspection. In-process
+   * admin or agent-runtime consumers wire this to read the registry
+   * directly; out-of-process subprocess consumers leave it unset.
+   */
+  collectionsProvider?: CollectionsProvider;
+}
+
+/**
+ * Curated fallback used when neither an injected provider nor HTTP
+ * introspection is available. These four collections exist in every admin
+ * instance shipped today and have stable well-known title fields.
+ */
+const CURATED_FALLBACK: ReadonlyArray<CollectionMcpSummary> = [
+  { slug: 'posts', label: 'Post', labelPlural: 'Posts', mcpResource: true },
+  { slug: 'pages', label: 'Page', labelPlural: 'Pages', mcpResource: true },
+  { slug: 'products', label: 'Product', labelPlural: 'Products', mcpResource: true },
+  { slug: 'media', label: 'Media', mcpResource: true },
 ];
 
-/** URI scheme for Stage 4.1. Stage 4.2 may extend with a tenant segment. */
+/**
+ * Well-known title-field overrides by slug. Collections listed here pick
+ * their title from the named field; unknown collections fall back to a
+ * cascade (`title` → `name` → `filename` → `label` → id).
+ */
+const TITLE_FIELD_OVERRIDES: Record<string, string> = {
+  posts: 'title',
+  pages: 'title',
+  products: 'name',
+  media: 'filename',
+};
+
+const TITLE_FIELD_CASCADE = ['title', 'name', 'filename', 'label'] as const;
+
+/** URI scheme for Stage 4.1. Stage 4.2 leaves this stable; a `revealui://
+ *  <tenant>/<collection>/<id>` variant is parked for a future design call. */
 const RESOURCE_URI_PREFIX = 'revealui-content://';
 
 /** Max rows per collection surfaced in a single `resources/list` response. */
@@ -225,21 +283,26 @@ function extractDocs(body: unknown): ContentRow[] {
   return [];
 }
 
-function pickTitle(row: ContentRow, titleField: string): string {
-  const raw = row[titleField];
-  if (typeof raw === 'string' && raw.length > 0) return raw;
+function pickTitle(row: ContentRow, collectionSlug: string): string {
+  const override = TITLE_FIELD_OVERRIDES[collectionSlug];
+  if (override) {
+    const raw = row[override];
+    if (typeof raw === 'string' && raw.length > 0) return raw;
+  }
+  for (const field of TITLE_FIELD_CASCADE) {
+    const raw = row[field];
+    if (typeof raw === 'string' && raw.length > 0) return raw;
+  }
   return String(row.id);
 }
 
-function resourceForRow(
-  collection: { slug: string; titleField: string; description: string },
-  row: ContentRow,
-): Resource {
+function resourceForRow(summary: CollectionMcpSummary, row: ContentRow): Resource {
   const id = String(row.id);
+  const description = summary.labelPlural ?? `${summary.label} collection`;
   return {
-    uri: `${RESOURCE_URI_PREFIX}${collection.slug}/${id}`,
-    name: `${collection.slug}/${pickTitle(row, collection.titleField)}`,
-    description: `${collection.description} (id: ${id})`,
+    uri: `${RESOURCE_URI_PREFIX}${summary.slug}/${id}`,
+    name: `${summary.slug}/${pickTitle(row, summary.slug)}`,
+    description: `${description} (id: ${id})`,
     mimeType: 'application/json',
   };
 }
@@ -256,6 +319,43 @@ function parseResourceUri(uri: string): { collection: string; id: string } | nul
   return { collection, id };
 }
 
+/**
+ * Fetch collection summaries from the admin introspection endpoint.
+ * Returns `null` on any failure (network, non-200, malformed body) —
+ * callers fall back to the curated set.
+ */
+async function fetchCollectionsFromAdmin(
+  apiUrl: string,
+  apiKey: string,
+): Promise<CollectionMcpSummary[] | null> {
+  try {
+    const res = await fetch(`${apiUrl}/api/mcp/collections`, {
+      headers: apiHeaders(apiKey),
+    });
+    if (!res.ok) return null;
+    const body = (await res.json()) as { collections?: unknown };
+    if (!Array.isArray(body.collections)) return null;
+    const out: CollectionMcpSummary[] = [];
+    for (const raw of body.collections) {
+      if (!raw || typeof raw !== 'object') continue;
+      const r = raw as Partial<CollectionMcpSummary>;
+      if (typeof r.slug !== 'string' || r.slug.length === 0) continue;
+      if (typeof r.label !== 'string' || r.label.length === 0) continue;
+      if (typeof r.mcpResource !== 'boolean') continue;
+      out.push({
+        slug: r.slug,
+        label: r.label,
+        labelPlural: typeof r.labelPlural === 'string' ? r.labelPlural : undefined,
+        mcpResource: r.mcpResource,
+      });
+    }
+    return out;
+    // empty-catch-ok: network/auth/schema errors fall back to curated set
+  } catch {
+    return null;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Factory
 // ---------------------------------------------------------------------------
@@ -266,24 +366,52 @@ function parseResourceUri(uri: string): { collection: string; id: string } | nul
  * request handlers registered. Dual-mode launchers (stdio, Streamable HTTP)
  * consume this factory; the factory itself is transport-agnostic.
  */
-export function createRevealuiContentServer(): Server {
+export function createRevealuiContentServer(options?: CreateRevealuiContentServerOptions): Server {
   const server = new Server(
     { name: 'revealui-content', version: '1.0.0' },
     { capabilities: { tools: {}, resources: {} } },
   );
 
+  // Per-server memoization: resolve the effective collection set once and
+  // reuse across `resources/list` + `resources/read` for the lifetime of the
+  // server instance. Avoids double-fetching on every read.
+  let cachedCollections: CollectionMcpSummary[] | null = null;
+
+  async function resolveCollections(): Promise<CollectionMcpSummary[]> {
+    if (cachedCollections) return cachedCollections;
+
+    // Tier 1: injected provider (in-process consumers).
+    if (options?.collectionsProvider) {
+      const fromProvider = await options.collectionsProvider().catch(() => null);
+      if (fromProvider) {
+        cachedCollections = fromProvider.filter((c) => c.mcpResource);
+        return cachedCollections;
+      }
+    }
+
+    // Tier 2: HTTP introspection against admin.
+    const { apiUrl, apiKey } = resolveCredentials();
+    if (apiUrl && apiKey) {
+      const fromHttp = await fetchCollectionsFromAdmin(apiUrl, apiKey);
+      if (fromHttp) {
+        cachedCollections = fromHttp.filter((c) => c.mcpResource);
+        return cachedCollections;
+      }
+    }
+
+    // Tier 3: curated fallback.
+    cachedCollections = [...CURATED_FALLBACK];
+    return cachedCollections;
+  }
+
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
   // -------------------------------------------------------------------------
-  // Resources (Stage 4.1)
+  // Resources (Stage 4.1 + 4.2)
   // -------------------------------------------------------------------------
 
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
-    const apiUrl = (_credentialOverrides.REVEALUI_API_URL ?? process.env.REVEALUI_API_URL)?.replace(
-      /\/$/,
-      '',
-    );
-    const apiKey = _credentialOverrides.REVEALUI_API_KEY ?? process.env.REVEALUI_API_KEY;
+    const { apiUrl, apiKey } = resolveCredentials();
     if (!(apiUrl && apiKey)) {
       // Without credentials the server can't enumerate rows; advertise an
       // empty list rather than erroring — clients still see the resources
@@ -291,8 +419,9 @@ export function createRevealuiContentServer(): Server {
       return { resources: [] };
     }
 
+    const collections = await resolveCollections();
     const resources: Resource[] = [];
-    for (const collection of DEFAULT_RESOURCEABLE_COLLECTIONS) {
+    for (const collection of collections) {
       try {
         const body = await apiGet(apiUrl, apiKey, `/api/${collection.slug}`, {
           limit: String(DEFAULT_RESOURCE_PAGE_SIZE),
@@ -315,16 +444,13 @@ export function createRevealuiContentServer(): Server {
         `Unknown resource URI (expected ${RESOURCE_URI_PREFIX}<collection>/<id>): ${request.params.uri}`,
       );
     }
-    const collection = DEFAULT_RESOURCEABLE_COLLECTIONS.find((c) => c.slug === parsed.collection);
+    const collections = await resolveCollections();
+    const collection = collections.find((c) => c.slug === parsed.collection);
     if (!collection) {
       throw new Error(`Collection is not exposed as a resource: ${parsed.collection}`);
     }
 
-    const apiUrl = (_credentialOverrides.REVEALUI_API_URL ?? process.env.REVEALUI_API_URL)?.replace(
-      /\/$/,
-      '',
-    );
-    const apiKey = _credentialOverrides.REVEALUI_API_KEY ?? process.env.REVEALUI_API_KEY;
+    const { apiUrl, apiKey } = resolveCredentials();
     if (!(apiUrl && apiKey)) {
       throw new Error('REVEALUI_API_URL and REVEALUI_API_KEY must be set');
     }
@@ -345,11 +471,7 @@ export function createRevealuiContentServer(): Server {
     const startTime = Date.now();
     const toolName = request.params.name;
 
-    const apiUrl = (_credentialOverrides.REVEALUI_API_URL ?? process.env.REVEALUI_API_URL)?.replace(
-      /\/$/,
-      '',
-    );
-    const apiKey = _credentialOverrides.REVEALUI_API_KEY ?? process.env.REVEALUI_API_KEY;
+    const { apiUrl, apiKey } = resolveCredentials();
 
     if (!(apiUrl && apiKey)) {
       return {

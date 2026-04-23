@@ -9,7 +9,7 @@
  * `fromVersion` — i.e. the project has not yet migrated.
  */
 
-import { readFile, stat, writeFile } from 'node:fs/promises';
+import { open, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import semver from 'semver';
 import { registry } from './registry.js';
@@ -162,17 +162,36 @@ async function applyCodemodToFile(
     return { changed: false };
   }
   try {
-    const stats = await stat(filePath);
-    if (!stats.isFile()) return { changed: false };
-    const source = await readFile(filePath, 'utf8');
-    const api: CodemodApi = { filePath, logger: opts.logger };
-    const next = codemod.transform(source, api);
-    if (next === null || next === source) return { changed: false };
-    if (!opts.dryRun) {
-      await writeFile(filePath, next, 'utf8');
+    // Single file handle covers stat + read + write atomically, closing the
+    // stat-then-read / stat-then-write TOCTOU gaps CodeQL flags on separate
+    // fs/promises calls (js/file-system-race).
+    const handle = await open(filePath, 'r+');
+    try {
+      const stats = await handle.stat();
+      if (!stats.isFile()) return { changed: false };
+      const source = await handle.readFile('utf8');
+      const api: CodemodApi = { filePath, logger: opts.logger };
+      const next = codemod.transform(source, api);
+      if (next === null || next === source) return { changed: false };
+      if (!opts.dryRun) {
+        await handle.truncate(0);
+        await handle.write(next, 0, 'utf8');
+      }
+      return { changed: true };
+    } finally {
+      await handle.close();
     }
-    return { changed: true };
   } catch (error) {
+    // Preserve original "silently skip non-file paths" behavior: EISDIR
+    // (opened a directory) and ENOENT (file vanished) return no-op, not error.
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      (error.code === 'EISDIR' || error.code === 'ENOENT')
+    ) {
+      return { changed: false };
+    }
     return { changed: false, error: error instanceof Error ? error : new Error(String(error)) };
   }
 }
