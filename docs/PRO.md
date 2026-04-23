@@ -967,7 +967,15 @@ LLM_PROVIDER=ollama
 
 ## Per-user provider keys
 
-For multi-tenant deployments, individual users can register their own provider keys (BYOK). The key is resolved from `tenant_provider_configs` → the user's encrypted `user_api_keys` row, falling back to the server-default client if no user-level key is configured:
+For multi-tenant deployments, individual users can register their own keys for the
+**open-model** provider endpoints supported by RevealUI — Vultr, HuggingFace, Groq,
+Ollama, and Ubuntu Inference Snaps. Proprietary "bring-your-own-key" paths
+(Anthropic, OpenAI, etc.) were removed on 2026-04-05 in the open-model-only pivot;
+`@revealui/ai` only ships providers for Apache-2.0 / Fair-Source open models.
+
+The key is resolved from `tenant_provider_configs` → the user's encrypted
+`user_api_keys` row, falling back to the server-default client if no user-level
+key is configured:
 
 ```typescript
 import { createLLMClientForUser } from "@revealui/ai/llm/client";
