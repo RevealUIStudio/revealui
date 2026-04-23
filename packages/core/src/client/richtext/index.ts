@@ -47,7 +47,6 @@ export type { ToolbarPluginProps } from './plugins/ToolbarPlugin.js';
 // Toolbar plugins
 export { ToolbarPlugin } from './plugins/ToolbarPlugin.js';
 export type { RichTextEditorProps } from './RichTextEditor.js';
-// Main editor component - production ready
 export { RichTextEditor, richTextEditorStyles } from './RichTextEditor.js';
 
 // Feature client components (implementations coming in Phase 2)

@@ -7,6 +7,7 @@ import { loginAfterCreate, recordLastLoggedInTenant } from '@/lib/hooks/index';
 const Users: RevealCollectionConfig<User> = {
   slug: 'users',
   timestamps: true,
+  mcpResource: false,
   admin: {
     useAsTitle: 'email',
     defaultColumns: ['email'],

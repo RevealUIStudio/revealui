@@ -1185,6 +1185,32 @@ export const MarketplaceTransactionsInsertContract = createContract({
 })
 
 // =============================================================================
+// McpDocumentOperations Contracts
+// =============================================================================
+
+/**
+ * Contract for mcpDocumentOperations row (Select)
+ * Database table: mcp_document_operations
+ */
+export const McpDocumentOperationsRowContract = createContract({
+  name: 'McpDocumentOperationsRow',
+  version: '1',
+  description: 'Database row contract for mcp_document_operations table',
+  schema: Schemas.McpDocumentOperationsSelectSchema,
+})
+
+/**
+ * Contract for mcpDocumentOperations insert
+ * Database table: mcp_document_operations
+ */
+export const McpDocumentOperationsInsertContract = createContract({
+  name: 'McpDocumentOperationsInsert',
+  version: '1',
+  description: 'Database insert contract for mcp_document_operations table',
+  schema: Schemas.McpDocumentOperationsInsertSchema,
+})
+
+// =============================================================================
 // Media Contracts
 // =============================================================================
 

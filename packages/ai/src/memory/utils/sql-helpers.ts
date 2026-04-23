@@ -1,39 +1,24 @@
 /**
- * SQL Helper Utilities
+ * Memory-layer query helpers
  *
- * Provides type-safe raw SQL query helpers to work around Neon HTTP driver
- * compatibility issues with Drizzle's relational query builder.
+ * Small, typed helpers for lookups performed by the agent-memory persistence
+ * layer. Every helper returns a Drizzle-inferred row shape — no manual
+ * snake_case → camelCase transformation needed.
  *
- * These helpers use Drizzle's sql tagged template for type safety and
- * SQL injection prevention.
+ * History: originally written with `db.execute(sql`…`)` + hand-rolled result
+ * unwrapping as a defensive posture against an early Neon HTTP driver
+ * incompatibility with Drizzle's relational query builder (`db.query.*`).
+ * Ported to the core query builder (`db.select().from(…).where(…).limit(1)`)
+ * in Phase 6.1 — the same callers already use `.update()` and `.insert()`
+ * against the same tables on the same Database client without issue, and the
+ * core builder is a different code path from the relational one.
  */
 
 import type { NodeIdMappingsRow } from '@revealui/contracts/generated';
 import type { Database } from '@revealui/db/client';
-import { sql } from 'drizzle-orm';
-
-type QueryResult = unknown[] | { rows?: unknown[] };
-type AgentContextRow = {
-  id: string;
-  version: number | null;
-  session_id: string;
-  agent_id: string;
-  context: unknown;
-  priority: number | null;
-  embedding: number[] | null;
-  created_at: Date;
-  updated_at: Date;
-};
-
-const getRows = (result: QueryResult): unknown[] => {
-  if (Array.isArray(result)) {
-    return result;
-  }
-  if (result && typeof result === 'object' && Array.isArray(result.rows)) {
-    return result.rows;
-  }
-  return [];
-};
+import type { AgentContext, User } from '@revealui/db/schema';
+import { agentContexts, nodeIdMappings, users } from '@revealui/db/schema';
+import { and, eq } from 'drizzle-orm';
 
 // =============================================================================
 // Node ID Mappings Queries
@@ -50,39 +35,12 @@ export async function findNodeIdMappingByHash(
   db: Database,
   hash: string,
 ): Promise<NodeIdMappingsRow | undefined> {
-  const result = await db.execute(
-    sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at
-        FROM node_id_mappings
-        WHERE id = ${hash}
-        LIMIT 1`,
-  );
-
-  // Handle different result formats (Neon HTTP vs direct Postgres)
-  const rows = getRows(result as QueryResult);
-  if (!rows[0]) return undefined;
-
-  // Transform snake_case to camelCase to match NodeIdMappingsRow type
-  const row = rows[0] as {
-    id: string;
-    entity_type: string;
-    entity_id: string;
-    node_id: string;
-    created_at: Date;
-    updated_at: Date;
-  };
-
-  return {
-    id: row.id,
-    entityType: row.entity_type,
-    entityId: row.entity_id,
-    nodeId: row.node_id,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  } as NodeIdMappingsRow;
+  const [row] = await db.select().from(nodeIdMappings).where(eq(nodeIdMappings.id, hash)).limit(1);
+  return row as NodeIdMappingsRow | undefined;
 }
 
 /**
- * Finds a node ID mapping by entity ID and type.
+ * Finds a node ID mapping by entity type + entity ID.
  *
  * @param db - Database client
  * @param entityType - Type of entity ('session' or 'user')
@@ -94,34 +52,12 @@ export async function findNodeIdMappingByEntity(
   entityType: 'session' | 'user',
   entityId: string,
 ): Promise<NodeIdMappingsRow | undefined> {
-  const result = await db.execute(
-    sql`SELECT id, entity_type, entity_id, node_id, created_at, updated_at
-        FROM node_id_mappings
-        WHERE entity_type = ${entityType} AND entity_id = ${entityId}
-        LIMIT 1`,
-  );
-
-  const rows = getRows(result as QueryResult);
-  if (!rows[0]) return undefined;
-
-  // Transform snake_case to camelCase to match NodeIdMappingsRow type
-  const row = rows[0] as {
-    id: string;
-    entity_type: string;
-    entity_id: string;
-    node_id: string;
-    created_at: Date;
-    updated_at: Date;
-  };
-
-  return {
-    id: row.id,
-    entityType: row.entity_type,
-    entityId: row.entity_id,
-    nodeId: row.node_id,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  } as NodeIdMappingsRow;
+  const [row] = await db
+    .select()
+    .from(nodeIdMappings)
+    .where(and(eq(nodeIdMappings.entityType, entityType), eq(nodeIdMappings.entityId, entityId)))
+    .limit(1);
+  return row as NodeIdMappingsRow | undefined;
 }
 
 // =============================================================================
@@ -129,52 +65,18 @@ export async function findNodeIdMappingByEntity(
 // =============================================================================
 
 /**
- * Finds an agent context by CRDT ID (returns raw database record format).
+ * Finds an agent context by CRDT ID.
  *
  * @param db - Database client
  * @param crdtId - CRDT identifier (format: sessionId:agentId)
- * @returns Raw database context record or undefined if not found
+ * @returns Agent context row or undefined if not found
  */
 export async function findAgentContextById(
   db: Database,
   crdtId: string,
-): Promise<
-  | {
-      id: string;
-      version: number;
-      sessionId: string;
-      agentId: string;
-      context: unknown;
-      priority: number | null;
-      embedding: number[] | null;
-      createdAt: Date;
-      updatedAt: Date;
-    }
-  | undefined
-> {
-  const result = await db.execute(
-    sql`SELECT id, version, session_id, agent_id, context, priority, 
-               embedding, created_at, updated_at
-        FROM agent_contexts 
-        WHERE id = ${crdtId} 
-        LIMIT 1`,
-  );
-
-  const rows = getRows(result as QueryResult);
-  if (!rows[0]) return undefined;
-
-  const row = rows[0] as AgentContextRow;
-  return {
-    id: row.id,
-    version: row.version || 1,
-    sessionId: row.session_id,
-    agentId: row.agent_id,
-    context: row.context || {},
-    priority: row.priority || 0.5,
-    embedding: row.embedding,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
+): Promise<AgentContext | undefined> {
+  const [row] = await db.select().from(agentContexts).where(eq(agentContexts.id, crdtId)).limit(1);
+  return row;
 }
 
 // =============================================================================
@@ -182,23 +84,20 @@ export async function findAgentContextById(
 // =============================================================================
 
 /**
- * Finds a user by ID.
+ * Finds a user by ID, returning only the columns the memory layer needs.
  *
  * @param db - Database client
  * @param userId - User identifier
- * @returns User record or undefined if not found
+ * @returns User record (id + preferences) or undefined if not found
  */
 export async function findUserById(
   db: Database,
   userId: string,
-): Promise<{ id: string; preferences: unknown } | undefined> {
-  const result = await db.execute(
-    sql`SELECT id, preferences 
-        FROM users 
-        WHERE id = ${userId} 
-        LIMIT 1`,
-  );
-
-  const rows = getRows(result as QueryResult);
-  return rows[0] as { id: string; preferences: unknown } | undefined;
+): Promise<Pick<User, 'id' | 'preferences'> | undefined> {
+  const [row] = await db
+    .select({ id: users.id, preferences: users.preferences })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  return row;
 }

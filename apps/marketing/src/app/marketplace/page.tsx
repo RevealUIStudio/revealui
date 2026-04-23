@@ -87,9 +87,22 @@ const mcpServers: McpServer[] = [
     status: 'live',
   },
   {
-    name: 'Auth',
-    description: 'Manage users, sessions, roles, and permissions programmatically.',
-    category: 'Security',
+    name: 'RevealUI Memory',
+    description:
+      'Read and write the agent memory store (episodic, semantic, and procedural layers).',
+    category: 'Content',
+    status: 'live',
+  },
+  {
+    name: 'Vultr Test',
+    description: 'Vultr GPU inference test harness for validating open-model endpoints.',
+    category: 'AI',
+    status: 'live',
+  },
+  {
+    name: 'Email Provider',
+    description: 'Shared helper surface powering the other email-capable MCP servers.',
+    category: 'Communication',
     status: 'live',
   },
 ];
@@ -102,7 +115,7 @@ const categoryColors: Record<string, string> = {
   Development: 'bg-indigo-100 text-indigo-700',
   Content: 'bg-pink-100 text-pink-700',
   Communication: 'bg-orange-100 text-orange-700',
-  Security: 'bg-red-100 text-red-700',
+  AI: 'bg-violet-100 text-violet-700',
 };
 
 // ---------------------------------------------------------------------------
@@ -198,14 +211,14 @@ export default function MarketplacePage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-sm font-semibold tracking-wide text-violet-600 uppercase">
-              Production Ready
+              Open Source
             </span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               13 MCP Servers
             </h2>
             <p className="mt-4 text-lg text-gray-600">
-              Production MCP servers included with RevealUI. Each server is rate-limited, audited,
-              and governed by RBAC.
+              MCP servers included with RevealUI. Each server is rate-limited, audited, and governed
+              by RBAC.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

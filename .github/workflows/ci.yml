@@ -76,6 +76,76 @@ jobs:
       - name: Claim drift validation (hard fail)
         run: pnpm validate:claims
 
+      - name: Migration journal validation (hard fail)
+        run: pnpm validate:migrations
+
+      - name: Raw-SQL validation (hard fail)
+        run: pnpm validate:raw-sql
+
+      - name: Empty-catch validation (hard fail)
+        run: pnpm validate:empty-catch
+
+  # ---------------------------------------------------------------------------
+  # Phase 1.5: Drizzle migration apply (all branches)
+  #
+  # Proves that every drizzle-kit migration in packages/db/migrations applies
+  # cleanly against a fresh Postgres. Catches DDL errors that validate:migrations
+  # (static checks) and unit tests (PGlite) cannot: non-idempotent ADD CONSTRAINT,
+  # extension prerequisites, type mismatches, out-of-band .sql files that mutate
+  # prod schema without going through drizzle-kit.
+  # ---------------------------------------------------------------------------
+  db-migrations:
+    name: Drizzle Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: quality
+
+    services:
+      postgres:
+        # pgvector/pgvector bundles pgvector into postgres:16. Migration
+        # 0000 starts with `CREATE EXTENSION IF NOT EXISTS vector`, which
+        # vanilla postgres:16 cannot satisfy (extension not available).
+        # drizzle-kit's TTY spinner silently eats the error, so this image
+        # choice is what makes the failure surface at all.
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: revealui_migrations
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
+
+      - name: Build @revealui/db and its workspace deps (drizzle.config.ts reads from dist/)
+        run: pnpm --filter '@revealui/db...' build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Apply migrations to fresh Postgres (hard fail)
+        run: pnpm --filter @revealui/db db:migrate
+        env:
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
+          DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_migrations"
+
   # ---------------------------------------------------------------------------
   # Phase 2: Typecheck (all branches)
   # ---------------------------------------------------------------------------
@@ -152,14 +222,14 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
   # ---------------------------------------------------------------------------
-  # Phase 3a.1: Integration tests (main only — requires DB)
+  # Phase 3a.1: Integration tests (all PRs + push to main — requires DB)
   # ---------------------------------------------------------------------------
   test-integration:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: quality
-    if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
 
     services:
       postgres:
@@ -536,7 +606,7 @@ jobs:
     name: CI Feedback
     runs-on: ubuntu-latest
     timeout-minutes: 2
-    needs: [quality, typecheck, test-unit, build]
+    needs: [quality, typecheck, test-unit, db-migrations, build]
     if: always() && github.event_name == 'pull_request'
 
     steps:
@@ -552,6 +622,9 @@ jobs:
           elif [[ "${{ needs.test-unit.result }}" == "failure" ]]; then
             echo "success=false" >> "$GITHUB_OUTPUT"
             echo "failed_job=test-unit" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ needs.db-migrations.result }}" == "failure" ]]; then
+            echo "success=false" >> "$GITHUB_OUTPUT"
+            echo "failed_job=db-migrations" >> "$GITHUB_OUTPUT"
           elif [[ "${{ needs.build.result }}" == "failure" ]]; then
             echo "success=false" >> "$GITHUB_OUTPUT"
             echo "failed_job=build" >> "$GITHUB_OUTPUT"

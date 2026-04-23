@@ -1,0 +1,78 @@
+{
+  "$comment": "Phase 2 raw-SQL linter allowlist. See .jv/docs/raw-sql-migration-plan.md. File-scoped exemptions for pre-existing raw-SQL sites. New raw SQL must either (a) be added here with a reason and migrationPhase, or (b) carry an inline `// drizzle-raw: <reason>` comment on the same line.",
+  "version": 1,
+  "entries": [
+    {
+      "path": "packages/scripts/database/connection.ts",
+      "rules": ["direct-import"],
+      "reason": "Type-only import of Pool/PoolClient from pg for the @revealui/scripts DB-connection factory. Scripts package is tooling and needs pg's type shape; routing through @revealui/db would invert the dependency.",
+      "migrationPhase": null
+    },
+    {
+      "path": "packages/scripts/database/transaction-manager.ts",
+      "rules": ["direct-import"],
+      "reason": "Type-only import of pg Client/Pool for the @revealui/scripts transaction helper. Same rationale as connection.ts — scripts package owns its own DB helpers.",
+      "migrationPhase": null
+    },
+    {
+      "path": "scripts/commands/database/check-unreconciled.ts",
+      "rules": ["direct-import"],
+      "reason": "Standalone diagnostic CLI for payment-reconciliation monitoring. Runs in GitHub Actions, uses pg Client directly against DATABASE_URL to keep the script dependency-minimal.",
+      "migrationPhase": null
+    },
+    {
+      "path": "scripts/db/precheck-migration-0001.ts",
+      "rules": ["direct-import"],
+      "reason": "Pre-migration check script — intentionally uses pg directly to verify constraints before drizzle-kit applies migration 0001. Cannot depend on @revealui/db being in a valid state.",
+      "migrationPhase": null
+    },
+    {
+      "path": "scripts/seed-admin.mjs",
+      "rules": ["direct-import"],
+      "reason": "Admin-user seed script. Queries Neon Auth's own schema (`neon_auth.\"user\"`), not the app's public.users table — that's a third-party schema provided by Neon Auth which Drizzle correctly does not track. Routing this through @revealui/db would require adding neon_auth tables to the schema, which would be misleading (they are not owned by this project). Permanent.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/admin/src/app/api/auth/passkey/register-verify/route.ts",
+      "rules": ["execute-sql-literal"],
+      "reason": "pg_advisory_xact_lock for user-limit race-free check inside db.transaction. Postgres system function; no Drizzle query-builder helper exists. Permanent escape hatch.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/admin/src/app/api/auth/sign-up/route.ts",
+      "rules": ["execute-sql-literal"],
+      "reason": "pg_advisory_xact_lock for user-limit race-free check inside db.transaction. Same pattern as passkey/register-verify. Postgres system function, permanent escape hatch.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/admin/src/lib/api/txid.ts",
+      "rules": ["execute-sql-literal"],
+      "reason": "SELECT pg_current_xact_id()::xid::text — Postgres transaction-ID helper used to match logical-replication streams against ElectricSQL client updates. Postgres system function, no Drizzle helper.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/api/src/index.ts",
+      "rules": ["execute-sql-literal"],
+      "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseAlert. SELECT 1 is the canonical idiomatic liveness check — it asks 'is the DB reachable and responding?' without coupling the probe to any specific application table (which would change the probe's semantic to 'is this particular table reachable?'). Permanent idiomatic raw SQL.",
+      "migrationPhase": null
+    },
+    {
+      "path": "apps/api/src/routes/health.ts",
+      "rules": ["execute-sql-literal"],
+      "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseHealthCheck. Same idiomatic-SELECT-1 rationale as apps/api/src/index.ts. Permanent.",
+      "migrationPhase": null
+    },
+    {
+      "path": "scripts/dev-tools/verify-test-setup.ts",
+      "rules": ["execute-sql-literal"],
+      "reason": "Dev-tool that verifies test-harness DB state. Of its 7 raw-SQL calls, 3 are `SELECT 1` / `SELECT vector(...)` connectivity probes (same idiomatic-liveness rationale as apps/api/src/routes/health.ts) and 4 are information_schema / pg_indexes introspection queries that cannot go through Drizzle's query builder (Drizzle queries defined tables, not Postgres metadata). Permanent.",
+      "migrationPhase": null
+    },
+    {
+      "path": "packages/db/src/supabase/setup-vector-extension.sql",
+      "rules": ["sql-file-outside-migrations"],
+      "reason": "Supabase-side pgvector extension bootstrap (CREATE EXTENSION IF NOT EXISTS vector). Applied by scripts/setup/setup-dual-database.ts against getVectorClient(). drizzle-kit currently only tracks the Neon side of the dual-DB architecture; Supabase-side DDL lives outside drizzle-kit by necessity. Phase 7 (drizzle-consolidation-spec) evaluates standing up a second drizzle-kit pipeline for Supabase; until then, this file + setup-dual-database.ts are the canonical Supabase-side applier. See packages/db/src/supabase/README.md for the architectural rationale.",
+      "migrationPhase": 7
+    }
+  ]
+}

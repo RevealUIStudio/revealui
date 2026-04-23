@@ -400,6 +400,10 @@ export type {
   GlobalSettingsInsert,
   GlobalSettingsRow,
   GlobalSettingsUpdate,
+  // MCP document-sync op log (Phase 3b)
+  McpDocumentOperationsInsert,
+  McpDocumentOperationsRow,
+  McpDocumentOperationsUpdate,
   MediaInsert,
   MediaRow,
   MediaUpdate,
