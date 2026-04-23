@@ -96,6 +96,7 @@
       "srvx": ">=0.11.13",
       "smol-toml": ">=1.6.1",
       "jsdom": "29.0.1",
+      "uuid": ">=14.0.0",
       "@revealui/config": "workspace:*",
       "@revealui/contracts": "workspace:*",
       "@revealui/db": "workspace:*"
