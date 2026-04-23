@@ -56,6 +56,7 @@ export {
 } from './auth.js';
 // MCP protocol client (Stage 0 complete; Stage 1 PR-1.1 adds Streamable HTTP transport)
 export {
+  type CallToolResult,
   type ClientCapabilities,
   type CompleteRequest,
   type CompleteResult,
@@ -92,6 +93,7 @@ export {
   type StreamableHTTPClientTransportOptions,
   type StreamableHTTPReconnectionOptions,
   type StreamableHttpTransportOptions,
+  type Tool,
   type TransportOptions,
 } from './client.js';
 // Configuration
@@ -129,6 +131,24 @@ export {
   type MCPTool,
   type NamespacedTool,
 } from './hypervisor.js';
+// Usage metering (Stage 6.2 — tool-call boundary hook, consumer-wired sink)
+export type { McpMeterEvent, McpMeterSink } from './metering.js';
+// OAuth 2.1 client provider (Stage 2 PR-2.1 — revvault-backed credential storage)
+export {
+  createMemoryVault,
+  createRevvaultVault,
+  type McpOAuthPaths,
+  McpOAuthProvider,
+  type McpOAuthProviderOptions,
+  mcpOAuthPaths,
+  type OAuthClientInformation,
+  type OAuthClientInformationFull,
+  type OAuthClientMetadata,
+  type OAuthTokens,
+  RevvaultError,
+  type RevvaultVaultOptions,
+  type Vault,
+} from './oauth.js';
 // Tool pipeline (composition / chaining)
 export {
   executePipeline,

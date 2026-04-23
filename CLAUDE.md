@@ -52,7 +52,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
 | @revealui/db | Drizzle ORM schema (81 tables), dual-DB (Neon + Supabase) |
 | @revealui/auth | Session auth, password reset, rate limiting |
-| @revealui/presentation | 57 native UI components (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
+| @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
 | @revealui/config | Type-safe env config (Zod + lazy Proxy) |
 | @revealui/utils | Logger, DB helpers, validation |
@@ -170,11 +170,11 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-data
 - Database tests use PGlite (in-memory PostgreSQL)
 
 ## Build & Security Status
-- 30 workspaces build and typecheck clean
+- All workspaces build and typecheck clean (run `pnpm build` and `pnpm typecheck:all`)
 - Extensive test suite across unit, integration, and E2E layers (run `pnpm test` for current count)
-- 36 pnpm overrides enforce minimum safe versions for transitive deps
+- Pinned overrides enforce minimum safe versions for transitive deps (see `pnpm.overrides` block in root `package.json`)
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
-- 0 GitHub CodeQL alerts, 0 Dependabot alerts (as of 2026-04-12)
+- GitHub security alerts (CodeQL + Dependabot) monitored via the Security tab; open warnings tracked in [revealui#509](https://github.com/RevealUIStudio/revealui/issues/509)
 - AST-based code-pattern analyzer: execSync injection, TOCTOU, ReDoS (ret parser + contracts schemas)
 - Pre-push gate runs affected tests on protected branches
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
@@ -201,7 +201,7 @@ Biome, boundary, claim-drift, typecheck, tests, and build all block pushes. Audi
 - Rich text: isSafeUrl() blocks javascript:/vbscript:/data: in Lexical link/image rendering
 - Webhook rate limiting: 100 req/min on /api/webhooks
 - Cross-DB cleanup: `@revealui/db/cleanup` for orphaned Supabase data after site deletion
-- RBAC + ABAC policy engine in core (58 enforcement tests prove role isolation)
+- RBAC + ABAC policy engine in core (enforcement tests in `packages/core/src/__tests__/auth/` and `packages/core/src/collections/operations/__tests__/access-enforcement.test.ts` prove role isolation)
 - GDPR compliance framework (consent, deletion, anonymization)
 - AI memory validation: prototype pollution prevention, depth/size limits
 - CI: CodeQL, Gitleaks, dependency auditing, secret scanning (security-audit.yml, consolidated)

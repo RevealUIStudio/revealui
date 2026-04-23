@@ -70,6 +70,14 @@
     "./streamable-http": {
       "types": "./dist/streamable-http.d.ts",
       "import": "./dist/streamable-http.js"
+    },
+    "./oauth": {
+      "types": "./dist/oauth.d.ts",
+      "import": "./dist/oauth.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
     }
   },
   "files": [
