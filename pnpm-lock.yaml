@@ -111,6 +111,7 @@ overrides:
   srvx: '>=0.11.13'
   smol-toml: '>=1.6.1'
   jsdom: 29.0.1
+  uuid: '>=14.0.0'
   '@revealui/config': workspace:*
   '@revealui/contracts': workspace:*
   '@revealui/db': workspace:*
@@ -8804,8 +8805,8 @@ packages:
   uuid-parse@1.1.0:
     resolution: {integrity: sha512-OdmXxA8rDsQ7YpNVbKSJkNzTw2I+S5WsbMDnCtIWSQaosNAcWtFuI/YK1TjzUI6nbkgiqEyh8gWngfcv8Asd9A==}
 
-  uuid@8.3.2:
-    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+  uuid@14.0.0:
+    resolution: {integrity: sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg==}
     hasBin: true
 
   vary@1.1.2:
@@ -14480,7 +14481,7 @@ snapshots:
   hyperid@3.3.0:
     dependencies:
       buffer: 5.7.1
-      uuid: 8.3.2
+      uuid: 14.0.0
       uuid-parse: 1.1.0
 
   iceberg-js@0.8.1: {}
@@ -16843,7 +16844,7 @@ snapshots:
 
   uuid-parse@1.1.0: {}
 
-  uuid@8.3.2: {}
+  uuid@14.0.0: {}
 
   vary@1.1.2: {}
 
