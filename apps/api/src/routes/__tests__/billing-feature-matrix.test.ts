@@ -6,9 +6,8 @@
  *
  * Tests:
  * 1. requireFeature() enforcement for all 15 features × 4 tiers
- * 2. requireLicense() tier gating for all 4 tiers
- * 3. Error response format (upgrade URL, required tier name)
- * 4. Resource limits match documented tier definitions
+ * 2. Error response format (upgrade URL, required tier name)
+ * 3. Resource limits match documented tier definitions
  */
 
 import { Hono } from 'hono';
@@ -83,7 +82,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 // ─── Imports (after mocks) ──────────────────────────────────────────────────
 
 import { getFeaturesForTier } from '@revealui/core/features';
-import { requireFeature, requireLicense } from '../../middleware/license.js';
+import { requireFeature } from '../../middleware/license.js';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -189,22 +188,6 @@ function makeFeatureRequest(
   return testApp.request(new Request('http://localhost/test'));
 }
 
-function makeLicenseRequest(minimumTier: Tier, currentTier: Tier) {
-  const app = new Hono();
-  app.use('*', async (c, next) => {
-    c.set('entitlements', {
-      accountId: 'acct_test',
-      subscriptionStatus: 'active',
-      tier: currentTier,
-    });
-    await next();
-  });
-  app.use('*', requireLicense(minimumTier));
-  app.get('/test', (c) => c.json({ ok: true }));
-
-  return app.request(new Request('http://localhost/test'));
-}
-
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 describe('Feature-Tier Access Matrix', () => {
@@ -280,38 +263,6 @@ describe('Feature Gate Error Response Format', () => {
     expect(res.status).toBe(403);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.error).toContain('dashboard');
-  });
-});
-
-describe('Tier License Gating (requireLicense)', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    process.env.REVEALUI_PRICING_URL = 'https://revealui.com/pricing';
-  });
-
-  // Generate test cases: [requiredTier, currentTier, shouldBeAllowed]
-  const licenseCases: [Tier, Tier, boolean][] = [];
-  for (const requiredTier of TIERS) {
-    for (const currentTier of TIERS) {
-      const allowed = TIER_RANK[currentTier] >= TIER_RANK[requiredTier];
-      licenseCases.push([requiredTier, currentTier, allowed]);
-    }
-  }
-
-  it.each(
-    licenseCases,
-  )('requireLicense(%s) with tier=%s → %s', async (requiredTier, currentTier, shouldBeAllowed) => {
-    const res = await makeLicenseRequest(requiredTier, currentTier);
-
-    if (shouldBeAllowed) {
-      expect(res.status).toBe(200);
-    } else {
-      expect(res.status).toBe(403);
-      const body = (await res.json()) as Record<string, unknown>;
-      expect(body.success).toBe(false);
-      expect(body.error).toContain(requiredTier);
-      expect(body.error).toContain('revealui.com/pricing');
-    }
   });
 });
 

@@ -189,7 +189,6 @@ vi.mock('../../lib/webhook-emails.js', () => ({
 
 vi.mock('../../middleware/license.js', () => ({
   resetDbStatusCache: vi.fn(),
-  requireLicense: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
   requireFeature: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
   checkLicenseStatus: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
 }));
