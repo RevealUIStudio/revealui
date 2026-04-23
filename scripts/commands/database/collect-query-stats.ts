@@ -126,7 +126,9 @@ async function main(): Promise<void> {
       if (ext.rowCount === 0) {
         logger.error('pg_stat_statements extension is not enabled on this database.');
         logger.info('Operator setup (Neon):');
-        logger.info('  1. Neon console → project → Settings → Integrations → enable pg_stat_statements');
+        logger.info(
+          '  1. Neon console → project → Settings → Integrations → enable pg_stat_statements',
+        );
         logger.info('     (alternative) CREATE EXTENSION IF NOT EXISTS pg_stat_statements;');
         logger.info('  2. Wait a few hours for representative traffic to accumulate.');
         logger.info('  3. Re-run this script.');
@@ -172,7 +174,7 @@ async function main(): Promise<void> {
         await writeFile(outPath, JSON.stringify(report, null, 2), 'utf8');
         logger.success(`Report written to ${outPath}`);
       } else if (options.json) {
-        console.log(JSON.stringify(report, null, 2));
+        process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
       } else {
         printHumanReport(report);
       }
@@ -192,9 +194,7 @@ function printHumanReport(report: QueryStatsReport): void {
   logger.divider();
   logger.info(`Collected at: ${report.collected_at}`);
   logger.info(`Target: ${report.provider} (${report.host})`);
-  logger.info(
-    `Options: limit=${report.options.limit}, min-calls=${report.options.minCalls}`,
-  );
+  logger.info(`Options: limit=${report.options.limit}, min-calls=${report.options.minCalls}`);
   logger.divider();
 
   printSection('Top by mean execution time (ms)', report.top_by_mean_exec_time);
