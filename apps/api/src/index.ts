@@ -38,6 +38,11 @@ import { sql } from 'drizzle-orm';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
 import { logger as honoLogger } from 'hono/logger';
+// Side-effect import: registers durable-queue handlers at module top
+// level so both the producer (POST /api/agent-tasks) and the worker
+// (POST /api/jobs/run) invocations see the same registry. See
+// CR8-P2-01 phase C.
+import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
 import { auditMiddleware } from './middleware/audit.js';
@@ -76,6 +81,7 @@ import cronBillingReadinessRoute from './routes/cron/billing-readiness.js';
 import cronCleanupRoute from './routes/cron/cleanup.js';
 import cronDispatchRoute from './routes/cron/dispatch.js';
 import cronDrainUnreconciledRoute from './routes/cron/drain-unreconciled.js';
+import cronJobsSafetyNetRoute from './routes/cron/jobs-safety-net.js';
 import cronMarketplacePayoutsRoute from './routes/cron/marketplace-payouts.js';
 import cronPublishRoute from './routes/cron/publish-scheduled.js';
 import cronSweepGraceRoute from './routes/cron/sweep-grace-periods.js';
@@ -83,6 +89,7 @@ import errorsRoute from './routes/errors.js';
 import gdprRoute from './routes/gdpr.js';
 import ghcrRoute from './routes/ghcr.js';
 import healthRoute from './routes/health.js';
+import jobsRoute from './routes/jobs/index.js';
 import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
 import maintenanceRoute from './routes/maintenance.js';
@@ -149,6 +156,11 @@ process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Validate Forge config at startup  -  exits if FORGE_* env vars are inconsistent
 validateForgeConfig();
+
+// Validate durable-dispatch flag config (CR8-P2-01 phase C) — if the
+// flag is on, the wake secret must be set, or every dispatch silently
+// falls back to the daily cron cadence.
+assertDispatchFlagConfigured();
 
 /**
  * Parse and validate CORS origins from environment variable.
@@ -1042,6 +1054,8 @@ app.route('/api/cron', cronMarketplacePayoutsRoute);
 app.route('/api/cron', cronPublishRoute);
 app.route('/api/cron', cronSweepGraceRoute);
 app.route('/api/cron', cronCleanupRoute);
+app.route('/api/cron', cronJobsSafetyNetRoute);
+app.route('/api/jobs', jobsRoute);
 app.route('/api/ghcr', ghcrRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
@@ -1093,6 +1107,8 @@ app.route('/api/v1/cron', cronMarketplacePayoutsRoute);
 app.route('/api/v1/cron', cronPublishRoute);
 app.route('/api/v1/cron', cronSweepGraceRoute);
 app.route('/api/v1/cron', cronCleanupRoute);
+app.route('/api/v1/cron', cronJobsSafetyNetRoute);
+app.route('/api/v1/jobs', jobsRoute);
 app.route('/api/v1/ghcr', ghcrRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);

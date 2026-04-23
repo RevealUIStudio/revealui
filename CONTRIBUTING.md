@@ -186,6 +186,30 @@ docs: update QUICK_START guide
 - Update relevant guides in `/docs`
 - Include code examples for new features
 
+#### Future-tense claims
+
+Every future-tense claim in docs — "coming soon", "(planned)", "will ship", "roadmap", "TBD" — **must cite a GitHub issue or milestone** so a reader can track the actual delivery state. The rule applies to prose, table cells, tier descriptions, blog drafts, feature comparisons, and README status lines alike.
+
+Acceptable forms:
+
+```markdown
+- **Multi-tenant SSO** (planned — [#123](https://github.com/RevealUIStudio/revealui/issues/123))
+- **Forge self-hosted artifact** (roadmap — tracked in [milestone: Forge v1](https://github.com/RevealUIStudio/revealui/milestones))
+- Studio binary release (CI in progress — see `studio-release.yml`)
+```
+
+Not acceptable:
+
+```markdown
+- **Multi-tenant SSO** (coming soon)          ← no issue link, no date
+- Forge self-hosted artifact (planned)         ← no tracking reference
+- Studio binary release (TBD)                  ← same
+```
+
+Why: every unlinked "coming soon" either ages into a broken promise or becomes load-bearing for a reader making a purchase / adoption decision. The pattern already hit us once — see MASTER_PLAN §CR-8 and §CR-9 for the audit that surfaced it. If the feature is real, it has a tracked issue; if it doesn't, it shouldn't be surfaced as "coming soon" in the first place.
+
+File a GitHub issue before writing the claim. Link it in the prose. If the feature is abandoned later, close the issue and remove the claim in the same PR.
+
 ### Script Standards
 
 When creating or modifying packages:

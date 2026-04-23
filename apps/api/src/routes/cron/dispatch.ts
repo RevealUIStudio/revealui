@@ -19,6 +19,7 @@ import { Hono } from 'hono';
 import billingReadinessApp from './billing-readiness.js';
 import cleanupApp from './cleanup.js';
 import drainUnreconciledApp from './drain-unreconciled.js';
+import jobsSafetyNetApp from './jobs-safety-net.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
@@ -44,6 +45,7 @@ const JOBS = [
   { name: 'marketplace-payouts', app: marketplacePayoutsApp, path: '/marketplace-payouts' },
   { name: 'cleanup', app: cleanupApp, path: '/cleanup' },
   { name: 'uptime-check', app: uptimeCheckApp, path: '/uptime-check' },
+  { name: 'jobs-safety-net', app: jobsSafetyNetApp, path: '/jobs-safety-net' },
 ];
 
 app.post('/dispatch', async (c) => {

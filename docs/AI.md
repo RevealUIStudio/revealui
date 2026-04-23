@@ -504,6 +504,5 @@ LLM_ENABLE_SEMANTIC_CACHE=true
 
 ---
 
-**Implementation**: Production-ready
 **Status**: Fully tested
 **Inference paths**: All (Ubuntu Inference Snaps, Ollama)
