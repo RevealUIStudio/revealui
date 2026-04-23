@@ -148,5 +148,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 
+  // Persist non-credential metadata for downstream admin tooling (tool browser,
+  // server catalog detail pages). Consumers read from this same path via
+  // `lib/mcp/remote-server-client.ts`. If this write fails we still consider
+  // the authorization successful — the user can reconnect to rehydrate meta.
+  const meta = {
+    serverUrl: pending.serverUrl,
+    connectedAt: new Date().toISOString(),
+    connectedBy: authSession.user.id,
+  };
+  await vault
+    .set(`mcp/${pending.tenant}/${pending.server}/meta`, JSON.stringify(meta))
+    .catch(() => undefined); // empty-catch-ok: meta is best-effort — tokens are the load-bearing state
+
   return NextResponse.redirect(resultUrl(origin, { connected: pending.server }), 302);
 }

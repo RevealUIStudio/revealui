@@ -33,6 +33,7 @@ import type { AnyObjectSchema, SchemaOutput } from '@modelcontextprotocol/sdk/se
 import type { RequestOptions } from '@modelcontextprotocol/sdk/shared/protocol.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import {
+  type CallToolResult,
   type ClientCapabilities,
   type CompleteRequest,
   type CompleteResult,
@@ -56,6 +57,7 @@ import {
   ResourceUpdatedNotificationSchema,
   type Root,
   type ServerCapabilities,
+  type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 
 // ---------------------------------------------------------------------------
@@ -250,6 +252,7 @@ export class McpNotConnectedError extends Error {
 // ---------------------------------------------------------------------------
 
 export type {
+  CallToolResult,
   ClientCapabilities,
   CompleteRequest,
   CompleteResult,
@@ -268,6 +271,7 @@ export type {
   ResourceTemplateReference,
   Root,
   ServerCapabilities,
+  Tool,
 };
 
 /** Parameters delivered to a `subscribeResource` handler. */
@@ -510,6 +514,50 @@ export class McpClient {
         }
       }
     };
+  }
+
+  // -------------------------------------------------------------------------
+  // Prompts
+  // -------------------------------------------------------------------------
+
+  // -------------------------------------------------------------------------
+  // Tools
+  // -------------------------------------------------------------------------
+
+  /**
+   * Enumerate tools the server exposes. Requires the server to advertise the
+   * `tools` capability.
+   *
+   * Returns the SDK's `Tool` shape unchanged — name, description, input JSON
+   * Schema (as `inputSchema`), and any spec-defined annotations.
+   */
+  async listTools(options?: McpRequestOptions): Promise<Tool[]> {
+    this.assertConnected('listTools');
+    this.requireCapability('tools');
+    const result = await this.sdk.listTools(undefined, toSdkRequestOptions(options));
+    return result.tools;
+  }
+
+  /**
+   * Invoke a tool by name with the supplied structured arguments. Requires
+   * the server to advertise `tools`. Returns the full SDK `CallToolResult`
+   * (structured content + isError flag + optional `_meta`).
+   *
+   * Tool failures surface as `{ isError: true, content: [...] }` rather than
+   * thrown exceptions — the server is explicitly asked to communicate tool
+   * errors in-band per the MCP spec. Transport-level failures still throw.
+   */
+  async callTool(
+    name: string,
+    args?: Record<string, unknown>,
+    options?: McpRequestOptions,
+  ): Promise<CallToolResult> {
+    this.assertConnected('callTool');
+    this.requireCapability('tools');
+    const params: { name: string; arguments?: Record<string, unknown> } = { name };
+    if (args !== undefined) params.arguments = args;
+    const result = await this.sdk.callTool(params, undefined, toSdkRequestOptions(options));
+    return result as CallToolResult;
   }
 
   // -------------------------------------------------------------------------
