@@ -111,6 +111,52 @@ describe('authMiddleware', () => {
       const passedHeaders = mockedGetSession.mock.calls[0]![0];
       expect(passedHeaders).toBeInstanceOf(Headers);
     });
+
+    it('passes extracted request context (UA + IP) to getSession for session binding', async () => {
+      mockedGetSession.mockResolvedValue(mockSession());
+
+      const app = new Hono<{ Variables: TestVariables }>();
+      app.use('*', authMiddleware({ required: false }));
+      app.get('/test', (c) => c.json({ ok: true }));
+
+      await app.request('/test', {
+        headers: {
+          cookie: 'revealui-session=abc123',
+          'user-agent': 'Mozilla/5.0 (test)',
+          'x-forwarded-for': '203.0.113.1, 198.51.100.5',
+        },
+      });
+
+      expect(mockedGetSession).toHaveBeenCalledOnce();
+      const passedContext = mockedGetSession.mock.calls[0]![1];
+      expect(passedContext).toEqual({
+        userAgent: 'Mozilla/5.0 (test)',
+        ipAddress: '203.0.113.1',
+      });
+    });
+
+    it('falls back to x-real-ip when x-forwarded-for is absent', async () => {
+      mockedGetSession.mockResolvedValue(mockSession());
+
+      const app = new Hono<{ Variables: TestVariables }>();
+      app.use('*', authMiddleware({ required: false }));
+      app.get('/test', (c) => c.json({ ok: true }));
+
+      await app.request('/test', {
+        headers: {
+          cookie: 'revealui-session=abc123',
+          'user-agent': 'client/1.0',
+          'x-real-ip': '198.51.100.9',
+        },
+      });
+
+      expect(mockedGetSession).toHaveBeenCalledOnce();
+      const passedContext = mockedGetSession.mock.calls[0]![1];
+      expect(passedContext).toEqual({
+        userAgent: 'client/1.0',
+        ipAddress: '198.51.100.9',
+      });
+    });
   });
 
   describe('required: false (optional auth)', () => {
