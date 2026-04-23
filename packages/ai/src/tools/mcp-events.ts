@@ -207,3 +207,157 @@ export function emitMcpEvent(sink: McpEventSink | undefined, event: McpLogEvent)
     });
   }
 }
+
+// ---------------------------------------------------------------------------
+// Stage 6.2 — usage metering sink
+// ---------------------------------------------------------------------------
+
+/**
+ * Row shape consumed by the sink's `write` callback. Structurally
+ * matches `usage_meters` insert payload in `@revealui/db/schema/accounts`.
+ * Kept as a plain interface here to avoid importing Drizzle's inferred
+ * insert type and to let tests build rows without a db client.
+ */
+export interface McpUsageMeterRow {
+  /** Synthetic primary key. Default: `crypto.randomUUID()`. */
+  id: string;
+  /** Tenant / account fk (NOT NULL on `usage_meters`). */
+  accountId: string;
+  /** Dot-notation meter name: mirrors `McpLogEvent.kind`. */
+  meterName: string;
+  /**
+   * Event count. v1 uses `1` per call (row-per-call pattern); billing
+   * aggregation rolls these up. A larger quantity makes sense only
+   * when the meter represents a volume (tokens, bytes) rather than
+   * a count of events.
+   */
+  quantity: number;
+  /** Timestamp the metered event occurred. */
+  periodStart: Date;
+  /** Reserved for aggregation-mode rows; `null` for per-call rows. */
+  periodEnd: Date | null;
+  /**
+   * Origin label. Per the `usage_meters` CHECK constraint one of
+   * `'system' | 'user' | 'agent' | 'api'`. Defaults to `'agent'`
+   * since this sink consumes agent-runtime protocol events.
+   */
+  source: 'system' | 'user' | 'agent' | 'api';
+  /** Unique key. Backs `uniqueIndex` on `usage_meters`. */
+  idempotencyKey: string;
+}
+
+/**
+ * Consumer-supplied row writer. Typically:
+ * `(row) => db.insert(usageMeters).values(row)`.
+ * Can be sync (throws on error) or async. The sink awaits thenable
+ * results and logs rejections at warn — write failures never propagate
+ * back into the MCP call that produced the event.
+ */
+export type McpUsageMeterWriter = (row: McpUsageMeterRow) => void | Promise<void>;
+
+export interface CreateUsageMeterSinkOptions {
+  /**
+   * Tenant / account id required by the `usage_meters.accountId NOT
+   * NULL fk` constraint. Agent-side adapters are tenant-agnostic by
+   * design — consumer binds the correct account when constructing
+   * the sink, typically one sink per authenticated call path.
+   */
+  accountId: string;
+  /**
+   * Row persistence callback. Structural so consumers can plug in
+   * raw Drizzle, a wrapped client, or a test double.
+   */
+  write: McpUsageMeterWriter;
+  /**
+   * Origin label per `usage_meters.source` check constraint. Default
+   * `'agent'`.
+   */
+  source?: McpUsageMeterRow['source'];
+  /**
+   * Custom idempotency-key generator. Default: fresh
+   * `crypto.randomUUID()` per event (safe; no retry coalescence).
+   * Supply a deterministic generator (e.g. `${requestId}:${e.kind}`)
+   * to collapse duplicate retries of one semantic call to a single
+   * row.
+   */
+  idempotencyKey?: (event: McpLogEvent) => string;
+  /**
+   * Custom row-id generator. Default: fresh UUID. Provided as a hook
+   * for consumers integrating with an existing id scheme.
+   */
+  id?: (event: McpLogEvent) => string;
+}
+
+/**
+ * Map an `McpLogEvent.kind` to a `usage_meters.meterName` string.
+ * One-to-one: the dot-notation kind IS the meter name.
+ *
+ * @internal
+ */
+const METER_NAMES: Readonly<Record<McpLogEvent['kind'], string>> = {
+  'mcp.tool.call': 'mcp.tool.call',
+  'mcp.resource.list': 'mcp.resource.list',
+  'mcp.resource.read': 'mcp.resource.read',
+  'mcp.prompt.list': 'mcp.prompt.list',
+  'mcp.prompt.get': 'mcp.prompt.get',
+  'mcp.sampling.create': 'mcp.sampling.create',
+  'mcp.elicitation.create': 'mcp.elicitation.create',
+};
+
+/**
+ * Build an `McpEventSink` that translates Stage 6.1 protocol log
+ * events into `usage_meters` insert rows (Stage 6.2).
+ *
+ * This is the agent-adapter-lane counterpart to the hypervisor's
+ * `setUsageMeterSink()` in `@revealui/mcp`. Both paths land rows in
+ * the same `usage_meters` table. The agent-adapter path covers the
+ * four boundaries the hypervisor doesn't own
+ * (`resource.list/read`, `prompt.list/get`, `sampling.create`,
+ * `elicitation.create`) plus the agent-side `tool.call` for
+ * `McpClient`-using agents.
+ *
+ * @example
+ * ```typescript
+ * import { usageMeters } from '@revealui/db';
+ * import {
+ *   createToolsFromMcpClient,
+ *   createUsageMeterSink,
+ * } from '@revealui/ai';
+ *
+ * const tools = await createToolsFromMcpClient(client, {
+ *   namespace: 'content',
+ *   onEvent: createUsageMeterSink({
+ *     accountId: session.accountId,
+ *     write: (row) => db.insert(usageMeters).values(row),
+ *   }),
+ * });
+ * ```
+ */
+export function createUsageMeterSink(options: CreateUsageMeterSinkOptions): McpEventSink {
+  const source = options.source ?? 'agent';
+  const genId = options.id ?? (() => crypto.randomUUID());
+  const genKey = options.idempotencyKey ?? (() => crypto.randomUUID());
+
+  return (event) => {
+    const row: McpUsageMeterRow = {
+      id: genId(event),
+      accountId: options.accountId,
+      meterName: METER_NAMES[event.kind],
+      quantity: 1,
+      periodStart: new Date(),
+      periodEnd: null,
+      source,
+      idempotencyKey: genKey(event),
+    };
+
+    const result = options.write(row);
+    if (result && typeof (result as Promise<void>).catch === 'function') {
+      (result as Promise<void>).catch((error) => {
+        logger.warn('[mcp] usage meter write rejected; continuing', {
+          event: event.kind,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
+    }
+  };
+}
