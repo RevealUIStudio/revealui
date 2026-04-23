@@ -7,11 +7,14 @@
  * connected; missing tokens count as disconnected (and simply aren't listed
  * here — the catalog UI surfaces the "connect" CTA separately).
  *
- * Stage 3.1 of the MCP v1 plan.
+ * Stage 3.1 of the MCP v1 plan; enumeration logic extracted to
+ * `@revealui/mcp/remote-client` in A.1 of the post-v1 arc so the API app
+ * can reuse it.
  */
 
 import { getSession } from '@revealui/auth/server';
 import { createRevvaultVault } from '@revealui/mcp/oauth';
+import { listConnectedMcpServers } from '@revealui/mcp/remote-client';
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
@@ -57,21 +60,13 @@ export async function GET(
   }
 
   const vault = createRevvaultVault();
-  const paths = await vault.list(`mcp/${tenant}/`);
+  const serverIds = await listConnectedMcpServers(vault, tenant);
 
-  // Match `mcp/<tenant>/<server>/tokens` and collect unique server ids.
-  const serverIds = new Set<string>();
-  for (const path of paths) {
-    const segments = path.split('/');
-    if (segments.length === 4 && segments[3] === 'tokens') {
-      const server = segments[2];
-      if (server && IDENTIFIER_RE.test(server)) serverIds.add(server);
-    }
-  }
-
-  const servers: RemoteMcpServerSummary[] = Array.from(serverIds)
-    .sort()
-    .map((server) => ({ tenant, server, connectionState: 'connected' }));
+  const servers: RemoteMcpServerSummary[] = serverIds.map((server) => ({
+    tenant,
+    server,
+    connectionState: 'connected',
+  }));
 
   return NextResponse.json({ servers });
 }

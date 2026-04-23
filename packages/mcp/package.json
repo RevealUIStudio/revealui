@@ -78,6 +78,10 @@
     "./client": {
       "types": "./dist/client.d.ts",
       "import": "./dist/client.js"
+    },
+    "./remote-client": {
+      "types": "./dist/remote-client.d.ts",
+      "import": "./dist/remote-client.js"
     }
   },
   "files": [
