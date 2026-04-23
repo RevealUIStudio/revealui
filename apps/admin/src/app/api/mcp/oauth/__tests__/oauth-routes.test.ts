@@ -27,6 +27,8 @@ vi.mock('@revealui/mcp/oauth', async () => {
     delete: async (p: string): Promise<void> => {
       vaultStore.delete(p);
     },
+    list: async (prefix: string): Promise<string[]> =>
+      Array.from(vaultStore.keys()).filter((k) => k.startsWith(prefix)),
   };
   return {
     ...actual,

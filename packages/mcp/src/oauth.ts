@@ -68,6 +68,14 @@ export interface Vault {
   set(path: string, value: string): Promise<void>;
   /** Deletes the value at `path`. No-op if not present. */
   delete(path: string): Promise<void>;
+  /**
+   * Lists every path that starts with `prefix`. Returns an empty array when
+   * no matches exist. The return order is implementation-defined.
+   *
+   * Used by admin catalog tooling to enumerate configured servers without
+   * requiring an out-of-band registry.
+   */
+  list(prefix: string): Promise<string[]>;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +167,19 @@ export function createRevvaultVault(options: RevvaultVaultOptions = {}): Vault {
         throw new RevvaultError(`revvault delete exited ${code}: ${stderr.trim()}`);
       }
     },
+    async list(prefix) {
+      assertSafePrefix(prefix);
+      const { code, stdout, stderr } = await run(['list', prefix]);
+      if (code !== 0) {
+        throw new RevvaultError(`revvault list exited ${code}: ${stderr.trim()}`);
+      }
+      // `revvault list` emits one path per line. Empty / informational output
+      // (e.g. `No secrets found.`) returns an empty array.
+      return stdout
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && line.startsWith(prefix));
+    },
   };
 }
 
@@ -169,6 +190,16 @@ function assertSafePath(path: string): void {
   }
   if (path.includes('..') || path.startsWith('/') || path.endsWith('/')) {
     throw new RevvaultError(`Vault path is not well-formed: ${path}`);
+  }
+}
+
+/** Same rules as {@link assertSafePath} but allows the trailing slash of a prefix. */
+function assertSafePrefix(prefix: string): void {
+  if (!/^[A-Za-z0-9/_\-.]+$/.test(prefix)) {
+    throw new RevvaultError(`Vault prefix contains disallowed characters: ${prefix}`);
+  }
+  if (prefix.includes('..') || prefix.startsWith('/')) {
+    throw new RevvaultError(`Vault prefix is not well-formed: ${prefix}`);
   }
 }
 
@@ -200,6 +231,13 @@ export function createMemoryVault(seed?: Record<string, string>): Vault {
     },
     async delete(path) {
       store.delete(path);
+    },
+    async list(prefix) {
+      const out: string[] = [];
+      for (const key of store.keys()) {
+        if (key.startsWith(prefix)) out.push(key);
+      }
+      return out;
     },
   };
 }

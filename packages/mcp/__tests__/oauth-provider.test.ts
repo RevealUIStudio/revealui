@@ -55,6 +55,24 @@ describe('createMemoryVault', () => {
     const vault = createMemoryVault({ 'foo/bar': 'baz' });
     expect(await vault.get('foo/bar')).toBe('baz');
   });
+
+  it('list(prefix) returns every key under the prefix', async () => {
+    const vault = createMemoryVault({
+      'mcp/acme/linear/tokens': 'a',
+      'mcp/acme/linear/client': 'b',
+      'mcp/acme/notion/tokens': 'c',
+      'mcp/other/stripe/tokens': 'd',
+      'unrelated/key': 'e',
+    });
+    const acme = await vault.list('mcp/acme/');
+    expect(acme.sort()).toEqual([
+      'mcp/acme/linear/client',
+      'mcp/acme/linear/tokens',
+      'mcp/acme/notion/tokens',
+    ]);
+    expect(await vault.list('mcp/')).toHaveLength(4);
+    expect(await vault.list('nope/')).toEqual([]);
+  });
 });
 
 describe('McpOAuthProvider', () => {
