@@ -186,6 +186,12 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
   // while the Payload `roles` array uses the application taxonomy
   // (super-admin/admin). Both layers consume different fields;
   // first user is 'owner' at the DB layer and 'super-admin' at the app layer.
+  //
+  // TOS capture: record acceptance at bootstrap time so the bootstrap admin has
+  // the same legal-defensibility record as web-signup users. Web signup sets
+  // these fields in apps/admin/src/app/api/auth/sign-up/route.ts:61-62;
+  // matching the pattern (including the same env-var default) keeps the two
+  // code paths in sync.
   try {
     await revealui.create({
       collection: 'users',
@@ -195,6 +201,8 @@ export async function bootstrap(options: BootstrapOptions): Promise<BootstrapRes
         password: admin.password,
         role: 'owner',
         roles: ['super-admin'],
+        tosAcceptedAt: new Date(),
+        tosVersion: process.env.TOS_VERSION ?? '2026-03-01',
       },
       overrideAccess: true,
     });

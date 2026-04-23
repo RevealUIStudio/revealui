@@ -8,12 +8,210 @@ AI system for RevealUI - memory, LLM, orchestration, and tools.
 ## Features
 
 - **Memory System**: CRDT-based persistent memory (Working, Episodic, Semantic)
-- **LLM Integration**: Provider abstractions for Anthropic, GROQ, Ollama, and more
+- **LLM Integration**: Provider abstractions for Anthropic, GROQ, Ollama, Canonical Inference Snaps, and more
 - **Agent Orchestration**: Runtime and execution engine for AI agents
-- **Tool Calling**: Tool registry and execution system
+- **Tool Calling**: Tool registry + standard-MCP-client integration (Stage 5.1a)
 - **Vector Search**: Semantic search with pgvector
 - **Type-safe**: Full TypeScript support
 - **Performant**: Optimized for low-latency operations
+
+## Reference stack (Ubuntu)
+
+The recommended on-prem / on-device stack pairs `@revealui/ai` with a
+**Canonical Inference Snap** for local LLM inference:
+
+```
+@revealui/ai (this package)
+   │
+   ├── agent runtime + tool-calling loop
+   │
+   ├── MCP client → @revealui/mcp/client → tools/resources/prompts from MCP servers
+   │
+   └── LLM provider → OpenAI-compatible HTTP → localhost:<port>/v1
+                                                    ▲
+                                                    │
+                                         Canonical Inference Snap
+                                         (DeepSeek R1, Qwen 2.5 VL,
+                                          Gemma 3, Nemotron Nano —
+                                          silicon-optimized on Intel/
+                                          Ampere/NVIDIA/NPU)
+```
+
+Quick setup:
+
+```bash
+sudo snap install gemma3               # or deepseek-r1, qwen-vl, etc.
+gemma3 set http.port=9090
+gemma3 status                          # confirms base URL
+```
+
+```typescript
+import { InferenceSnapsProvider, LLMClient } from '@revealui/ai'
+
+const provider = new InferenceSnapsProvider({
+  baseURL: 'http://localhost:9090/v1',
+  model: 'gemma3',
+})
+
+const client = new LLMClient({ provider })
+```
+
+Cloud providers (Anthropic, OpenAI, GROQ) remain supported; the local
+inference path is the documented default for self-hosted deployments.
+
+## MCP tool integration
+
+Standard MCP servers plug into the agent runtime as tool sources. Construct
+an `McpClient` (from `@revealui/mcp/client`), connect it, and pass it to
+`AgentRuntime`:
+
+```typescript
+import { McpClient } from '@revealui/mcp/client'
+import { AgentRuntime } from '@revealui/ai'
+
+const contentClient = new McpClient({
+  clientInfo: { name: 'my-agent', version: '1.0.0' },
+  transport: { kind: 'streamable-http', url: 'https://admin.example.com/api/mcp/content' },
+})
+await contentClient.connect()
+
+const runtime = new AgentRuntime({
+  mcpClients: [{ name: 'content', client: contentClient }],
+})
+```
+
+Tools from each client are namespaced as `mcp_<name>__<toolName>` so multiple
+clients coexist without collisions.
+
+### Resources + prompts (Stage 5.1b)
+
+When an MCP client advertises resources and/or prompts, the adapter
+additionally emits per-server meta-tools so the agent can read them on
+demand without any bespoke wiring:
+
+| Meta-tool | Calls | Returns |
+|---|---|---|
+| `mcp_<ns>__list_resources` | `client.listResources()` | `[{ uri, name?, description?, mimeType? }, …]` |
+| `mcp_<ns>__read_resource({ uri })` | `client.readResource(uri)` | resource contents; text parts flattened into the `content` field for token-efficient LLM context |
+| `mcp_<ns>__list_prompts` | `client.listPrompts()` | `[{ name, description?, arguments? }, …]` |
+| `mcp_<ns>__get_prompt({ name, args? })` | `client.getPrompt(name, args)` | `{ description?, messages }`; text messages flattened to `<role>: <text>` |
+
+All four are opt-out via `include` on `createToolsFromMcpClient()`. Meta-tools
+are silently skipped when the client doesn't implement the underlying
+method (e.g. servers that don't advertise the resources capability).
+
+```typescript
+// Include every primitive (default)
+const tools = await createToolsFromMcpClient(client, { namespace: 'content' })
+
+// Tools only, skip the resources/prompts meta-tools
+const toolsOnly = await createToolsFromMcpClient(client, {
+  namespace: 'content',
+  include: { tools: true, resources: false, prompts: false },
+})
+```
+
+### Elicitation, progress, cancellation (Stage 5.3)
+
+MCP servers can ask the user for structured input mid-flow
+(`elicitation/create`), report progress on long-running tool calls, and
+respect cancellation. `@revealui/ai` wires all three through consumer
+callbacks — the agent package stays UI-agnostic:
+
+```typescript
+import { McpClient } from '@revealui/mcp/client'
+import { createElicitationHandler, createToolsFromMcpClient } from '@revealui/ai'
+
+const controller = new AbortController() // wire to a UI cancel button
+
+const client = new McpClient({
+  clientInfo: { name: 'my-agent', version: '1.0.0' },
+  transport: { kind: 'streamable-http', url: '…' },
+  elicitationHandler: createElicitationHandler({
+    onElicit: async ({ message, requestedSchema }) => {
+      const form = await showFormDialog({ title: message, schema: requestedSchema })
+      if (!form) return { action: 'cancel' }
+      return { action: 'accept', content: form.values }
+    },
+    timeoutMs: 60_000,         // auto-cancel if no response
+    // allowUrlMode: false      // default — URL-mode auto-declines
+  }),
+})
+await client.connect()
+
+const tools = await createToolsFromMcpClient(client, {
+  namespace: 'content',
+  signal: controller.signal,    // cancel all MCP RPC when aborted
+  onProgress: (event) => {      // per-tool-call progress events
+    progressBar.update(event.toolName, event.progress.progress, event.progress.total)
+  },
+})
+```
+
+**Elicitation safety:**
+- `mode: 'url'` (out-of-band consent) is auto-declined unless
+  `allowUrlMode: true`. URL-mode is a phishing vector when users can't
+  easily verify the target domain.
+- `timeoutMs` auto-cancels (not declines) when no response arrives.
+  Useful in headless automation.
+- Errors thrown inside `onElicit` map to `{ action: 'cancel' }` — the
+  server sees a clean non-response, not a crashed protocol.
+
+**Progress events** are forwarded from the server's
+`notifications/progress` stream with the namespace + tool name stamped
+for multi-client attribution. Resource + prompt meta-tools also emit
+(via their own `notifications/progress` flows).
+
+**Cancellation** uses the MCP spec's `notifications/cancelled` — aborting
+the `AbortSignal` propagates to in-flight RPC calls on the wire, so
+long-running operations stop instead of just being ignored.
+
+### Recursive sampling (Stage 5.2)
+
+Some MCP servers need LLM capabilities without bundling a provider. The
+spec lets servers issue `sampling/createMessage` requests — the *client*
+runs the inference, keeps cost + context control, and returns the result.
+On the Ubuntu reference stack, that means servers get LLM access via the
+developer's local Canonical Inference Snap — no cloud round-trip required.
+
+```typescript
+import { McpClient } from '@revealui/mcp/client'
+import { InferenceSnapsProvider, createSamplingHandler } from '@revealui/ai'
+
+const llm = new InferenceSnapsProvider({
+  baseURL: 'http://localhost:9090/v1',
+  model: 'gemma3',
+})
+
+const client = new McpClient({
+  clientInfo: { name: 'my-agent', version: '1.0.0' },
+  transport: { kind: 'streamable-http', url: 'https://example.com/mcp' },
+  samplingHandler: createSamplingHandler({
+    llm,
+    defaultModel: 'gemma3',
+    allowedModels: ['gemma3', 'deepseek-r1'],  // strongly recommended
+    onSamplingRequest: (info) => {
+      // metering / audit trail
+      metrics.incr('mcp.sampling', { model: info.model })
+    },
+  }),
+})
+await client.connect()
+```
+
+`allowedModels` filters `modelPreferences.hints` from the server — hints
+outside the list are ignored so a malicious server can't escalate costs.
+The handler reports the resolved model back in `result.model`.
+
+**Scope in 5.2:** text-only messages (non-text content throws with a clear
+error). Multimodal sampling lands with the provider interface's content
+parts extension. `stopSequences` aren't forwarded to the LLM yet (the
+current `LLMChatOptions` doesn't expose that field); this is advisory per
+spec, so omission is compliant.
+
+The legacy `mcpToolSource` path (hypervisor-backed) still works and is
+kept for backwards compatibility, but new integrations should prefer the
+`mcpClients` path.
 
 ## Installation
 

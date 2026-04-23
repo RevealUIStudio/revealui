@@ -129,6 +129,18 @@ jobs:
         # meta table). Do NOT invoke root `pnpm db:migrate` here — that
         # forwards to drizzle-kit migrate via the @revealui/db filter too,
         # but keeping the explicit --filter form makes the CI contract obvious.
+        #
+        # Output capture: drizzle-kit's TUI spinner uses `\r` to overwrite
+        # the previous line, which causes the actual error message to be
+        # eaten when the migrator fails (see 2026-04-19 incident — the
+        # `duplicate_object` from 0005's unguarded ADD CONSTRAINT was
+        # invisible until the spinner output was inspected manually).
+        # Forcing NO_COLOR + piping through `tr '\r' '\n'` converts each
+        # spinner tick to its own line, leaving the trailing error visible.
+        # PIPESTATUS preserves drizzle-kit's exit code through the pipe.
+        env:
+          NO_COLOR: "1"
+          FORCE_COLOR: "0"
         run: |
           set -a
           # shellcheck disable=SC1091
@@ -138,7 +150,8 @@ jobs:
             echo "::error::POSTGRES_URL not found in pulled Vercel env"
             exit 1
           fi
-          pnpm --filter @revealui/db db:migrate
+          pnpm --filter @revealui/db db:migrate 2>&1 | tr '\r' '\n'
+          exit "${PIPESTATUS[0]}"
 
   # ---------------------------------------------------------------------------
   # Detect which apps were affected by the merge

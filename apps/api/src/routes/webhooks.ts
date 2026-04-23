@@ -31,6 +31,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import Stripe from 'stripe';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
+import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import {
   provisionGitHubAccess,
   sendCancellationConfirmationEmail,
@@ -38,6 +39,7 @@ import {
   sendDisputeReceivedEmail,
   sendGracePeriodStartedEmail,
   sendLicenseActivatedEmail,
+  sendPaymentActionRequiredEmail,
   sendPaymentFailedEmail,
   sendPaymentReceiptEmail,
   sendPaymentRecoveredEmail,
@@ -305,17 +307,6 @@ function resolveSubscriptionId(subscription: string | Stripe.Subscription | null
   if (!subscription) return null;
   if (typeof subscription === 'string') return subscription;
   return subscription.id;
-}
-
-function getHostedLimitsForTier(tier: 'free' | 'pro' | 'max' | 'enterprise'): {
-  maxSites?: number;
-  maxUsers?: number;
-  maxAgentTasks?: number;
-} {
-  if (tier === 'enterprise') return { maxAgentTasks: Number.MAX_SAFE_INTEGER };
-  if (tier === 'max') return { maxSites: 15, maxUsers: 100, maxAgentTasks: 50_000 };
-  if (tier === 'pro') return { maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 };
-  return { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 };
 }
 
 function buildAccountSlug(userId: string): string {
@@ -2385,6 +2376,61 @@ app.openapi(stripeWebhookRoute, async (c) => {
             });
           });
         }
+        break;
+      }
+
+      case 'invoice.payment_action_required': {
+        // Customer's bank returned a 3D Secure / SCA authentication challenge.
+        // The payment has NOT failed yet — they need to complete authentication
+        // on the hosted invoice URL. Access is not interrupted; we notify
+        // the customer so they can complete auth before Stripe retries.
+        //
+        // Distinct from `invoice.payment_failed`:
+        //   - action_required: customer CAN recover by authenticating
+        //   - payment_failed: a hard failure (declined, insufficient funds, etc.)
+        //     after which Stripe's retry schedule kicks in.
+        //
+        // We do NOT modify entitlement state here — that would prematurely
+        // downgrade someone who is simply in an SCA flow.
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = resolveCustomerId(invoice.customer);
+        if (!customerId) break;
+
+        logger.info('Invoice payment requires authentication (3DS/SCA)', {
+          customerId,
+          invoiceId: invoice.id,
+          hostedInvoiceUrl: invoice.hosted_invoice_url,
+        });
+
+        // Resolve tier for email personalization.
+        let actionRequiredTier = 'pro';
+        const [actionTierRow] = await db
+          .select({ tier: licenses.tier })
+          .from(licenses)
+          .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)))
+          .orderBy(desc(licenses.updatedAt))
+          .limit(1);
+        if (actionTierRow?.tier) {
+          actionRequiredTier = actionTierRow.tier;
+        }
+
+        const actionRequiredEmail =
+          invoice.customer_email ?? (await findUserEmailByCustomerId(db, customerId));
+        if (actionRequiredEmail) {
+          sendPaymentActionRequiredEmail(actionRequiredEmail, actionRequiredTier).catch(
+            (err: unknown) => {
+              logger.error('Failed to send payment-action-required email', undefined, {
+                detail: err instanceof Error ? err.message : 'unknown',
+              });
+            },
+          );
+        }
+
+        auditLicenseEvent(db, 'payment.action_required', 'info', {
+          customerId,
+          invoiceId: invoice.id,
+          hostedInvoiceUrl: invoice.hosted_invoice_url ?? null,
+        });
         break;
       }
 
