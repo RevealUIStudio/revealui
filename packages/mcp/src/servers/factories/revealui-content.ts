@@ -29,7 +29,11 @@ import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
   type CallToolRequest,
   CallToolRequestSchema,
+  ListResourcesRequestSchema,
   ListToolsRequestSchema,
+  type ReadResourceRequest,
+  ReadResourceRequestSchema,
+  type Resource,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 
@@ -170,6 +174,89 @@ const TOOLS: Tool[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Resource catalog (Stage 4.1)
+// ---------------------------------------------------------------------------
+
+/**
+ * Collections that default to being exposed as MCP resources. The admin-side
+ * `mcpResource: false` opt-out on a collection definition (Stage 4.1 contracts
+ * change) will subtract from this set once the admin publishes an
+ * introspection surface (Stage 4.2). For now this is the curated v1 set —
+ * the collections RevealUI treats as first-class content and which every
+ * admin instance has.
+ */
+const DEFAULT_RESOURCEABLE_COLLECTIONS: ReadonlyArray<{
+  slug: string;
+  titleField: string;
+  description: string;
+}> = [
+  { slug: 'posts', titleField: 'title', description: 'Blog posts and articles' },
+  { slug: 'pages', titleField: 'title', description: 'Site pages (marketing, landing, docs)' },
+  { slug: 'products', titleField: 'name', description: 'Catalog products' },
+  { slug: 'media', titleField: 'filename', description: 'Uploaded media assets' },
+];
+
+/** URI scheme for Stage 4.1. Stage 4.2 may extend with a tenant segment. */
+const RESOURCE_URI_PREFIX = 'revealui-content://';
+
+/** Max rows per collection surfaced in a single `resources/list` response. */
+const DEFAULT_RESOURCE_PAGE_SIZE = 50;
+
+interface ContentRow extends Record<string, unknown> {
+  id: string | number;
+}
+
+interface ContentListResponse {
+  docs?: ContentRow[];
+  data?: ContentRow[];
+  items?: ContentRow[];
+}
+
+/** Extract rows from one of several shapes the RevealUI content API uses. */
+function extractDocs(body: unknown): ContentRow[] {
+  if (!body || typeof body !== 'object') return [];
+  const b = body as ContentListResponse & { data?: ContentRow[] | { docs?: ContentRow[] } };
+  if (Array.isArray(b.docs)) return b.docs;
+  if (Array.isArray(b.items)) return b.items;
+  if (Array.isArray(b.data)) return b.data;
+  if (b.data && typeof b.data === 'object' && Array.isArray((b.data as { docs?: unknown }).docs)) {
+    return (b.data as { docs: ContentRow[] }).docs;
+  }
+  return [];
+}
+
+function pickTitle(row: ContentRow, titleField: string): string {
+  const raw = row[titleField];
+  if (typeof raw === 'string' && raw.length > 0) return raw;
+  return String(row.id);
+}
+
+function resourceForRow(
+  collection: { slug: string; titleField: string; description: string },
+  row: ContentRow,
+): Resource {
+  const id = String(row.id);
+  return {
+    uri: `${RESOURCE_URI_PREFIX}${collection.slug}/${id}`,
+    name: `${collection.slug}/${pickTitle(row, collection.titleField)}`,
+    description: `${collection.description} (id: ${id})`,
+    mimeType: 'application/json',
+  };
+}
+
+function parseResourceUri(uri: string): { collection: string; id: string } | null {
+  if (!uri.startsWith(RESOURCE_URI_PREFIX)) return null;
+  const rest = uri.slice(RESOURCE_URI_PREFIX.length);
+  const slash = rest.indexOf('/');
+  if (slash < 1 || slash === rest.length - 1) return null;
+  const collection = rest.slice(0, slash);
+  const id = rest.slice(slash + 1);
+  if (!/^[a-z][a-z0-9-]*$/.test(collection)) return null;
+  if (!/^[A-Za-z0-9_-]+$/.test(id)) return null;
+  return { collection, id };
+}
+
+// ---------------------------------------------------------------------------
 // Factory
 // ---------------------------------------------------------------------------
 
@@ -182,10 +269,77 @@ const TOOLS: Tool[] = [
 export function createRevealuiContentServer(): Server {
   const server = new Server(
     { name: 'revealui-content', version: '1.0.0' },
-    { capabilities: { tools: {} } },
+    { capabilities: { tools: {}, resources: {} } },
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
+
+  // -------------------------------------------------------------------------
+  // Resources (Stage 4.1)
+  // -------------------------------------------------------------------------
+
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    const apiUrl = (_credentialOverrides.REVEALUI_API_URL ?? process.env.REVEALUI_API_URL)?.replace(
+      /\/$/,
+      '',
+    );
+    const apiKey = _credentialOverrides.REVEALUI_API_KEY ?? process.env.REVEALUI_API_KEY;
+    if (!(apiUrl && apiKey)) {
+      // Without credentials the server can't enumerate rows; advertise an
+      // empty list rather than erroring — clients still see the resources
+      // capability and can retry once creds are set.
+      return { resources: [] };
+    }
+
+    const resources: Resource[] = [];
+    for (const collection of DEFAULT_RESOURCEABLE_COLLECTIONS) {
+      try {
+        const body = await apiGet(apiUrl, apiKey, `/api/${collection.slug}`, {
+          limit: String(DEFAULT_RESOURCE_PAGE_SIZE),
+          page: '1',
+        });
+        for (const row of extractDocs(body)) {
+          resources.push(resourceForRow(collection, row));
+        }
+      } catch {
+        // empty-catch-ok: an unavailable collection shouldn't blank-out the entire resource list
+      }
+    }
+    return { resources };
+  });
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request: ReadResourceRequest) => {
+    const parsed = parseResourceUri(request.params.uri);
+    if (!parsed) {
+      throw new Error(
+        `Unknown resource URI (expected ${RESOURCE_URI_PREFIX}<collection>/<id>): ${request.params.uri}`,
+      );
+    }
+    const collection = DEFAULT_RESOURCEABLE_COLLECTIONS.find((c) => c.slug === parsed.collection);
+    if (!collection) {
+      throw new Error(`Collection is not exposed as a resource: ${parsed.collection}`);
+    }
+
+    const apiUrl = (_credentialOverrides.REVEALUI_API_URL ?? process.env.REVEALUI_API_URL)?.replace(
+      /\/$/,
+      '',
+    );
+    const apiKey = _credentialOverrides.REVEALUI_API_KEY ?? process.env.REVEALUI_API_KEY;
+    if (!(apiUrl && apiKey)) {
+      throw new Error('REVEALUI_API_URL and REVEALUI_API_KEY must be set');
+    }
+
+    const row = await apiGet(apiUrl, apiKey, `/api/${parsed.collection}/${parsed.id}`);
+    return {
+      contents: [
+        {
+          uri: request.params.uri,
+          mimeType: 'application/json',
+          text: JSON.stringify(row, null, 2),
+        },
+      ],
+    };
+  });
 
   server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
     const startTime = Date.now();
