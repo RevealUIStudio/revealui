@@ -73,6 +73,23 @@ export interface McpClientLike {
     args?: Record<string, unknown>,
     options?: unknown,
   ): Promise<McpCallToolResultLike>;
+  /**
+   * Resources (Stage 5.1b). Optional: when absent on the client, the
+   * adapter skips emitting resource meta-tools for the server regardless
+   * of `include.resources`.
+   */
+  listResources?(options?: unknown): Promise<ReadonlyArray<McpResourceDescriptor>>;
+  readResource?(uri: string, options?: unknown): Promise<ReadonlyArray<McpResourceContentLike>>;
+  /**
+   * Prompts (Stage 5.1b). Optional: when absent, prompt meta-tools are
+   * skipped for the server.
+   */
+  listPrompts?(options?: unknown): Promise<ReadonlyArray<McpPromptDescriptor>>;
+  getPrompt?(
+    name: string,
+    args?: Record<string, string>,
+    options?: unknown,
+  ): Promise<McpGetPromptResultLike>;
 }
 
 /** Subset of the spec `Tool` shape needed for agent-side discovery. */
@@ -89,6 +106,42 @@ export interface McpCallToolResultLike {
   structuredContent?: unknown;
 }
 
+/** Subset of the spec `Resource` shape needed for listing. */
+export interface McpResourceDescriptor {
+  uri: string;
+  name?: string;
+  description?: string;
+  mimeType?: string;
+}
+
+/** One element of `readResource`'s response — either a text or a blob content part. */
+export interface McpResourceContentLike {
+  uri: string;
+  mimeType?: string;
+  text?: string;
+  blob?: string;
+}
+
+/** Subset of the spec `Prompt` shape needed for listing. */
+export interface McpPromptDescriptor {
+  name: string;
+  description?: string;
+  arguments?: ReadonlyArray<{
+    name: string;
+    description?: string;
+    required?: boolean;
+  }>;
+}
+
+/** Subset of the spec `GetPromptResult` shape. */
+export interface McpGetPromptResultLike {
+  description?: string;
+  messages: ReadonlyArray<{
+    role: 'user' | 'assistant' | string;
+    content: unknown;
+  }>;
+}
+
 export interface CreateToolsFromMcpClientOptions {
   /**
    * Namespace (typically the server's identifier) prepended to each tool
@@ -101,6 +154,24 @@ export interface CreateToolsFromMcpClientOptions {
    * Defaults to `'mcp'`.
    */
   category?: string;
+  /**
+   * Which MCP primitives to expose to the agent as tools (Stage 5.1b).
+   *
+   * - `tools` (default `true`): wrap every server tool.
+   * - `resources` (default `true`): emit two meta-tools per namespace —
+   *   `mcp_<ns>__list_resources` and `mcp_<ns>__read_resource({ uri })`.
+   *   Skipped silently when the client doesn't expose `listResources` /
+   *   `readResource`.
+   * - `prompts` (default `true`): emit two meta-tools per namespace —
+   *   `mcp_<ns>__list_prompts` and `mcp_<ns>__get_prompt({ name, args? })`.
+   *   Skipped silently when the client doesn't expose `listPrompts` /
+   *   `getPrompt`.
+   */
+  include?: {
+    tools?: boolean;
+    resources?: boolean;
+    prompts?: boolean;
+  };
 }
 
 /**
@@ -137,50 +208,242 @@ export async function createToolsFromMcpClient(
     );
   }
 
-  const descriptors = await client.listTools();
   const category = options.category ?? 'mcp';
+  const includeTools = options.include?.tools !== false;
+  const includeResources = options.include?.resources !== false;
+  const includePrompts = options.include?.prompts !== false;
 
-  return descriptors.map((descriptor): Tool => {
-    const zodSchema = jsonSchemaObjectToZod(descriptor.inputSchema);
-    const namespacedName = `mcp_${options.namespace}__${descriptor.name}`;
+  const tools: Tool[] = [];
 
-    return {
-      name: namespacedName,
-      label: descriptor.name,
-      description: descriptor.description ?? `${options.namespace}: ${descriptor.name}`,
-      parameters: zodSchema,
+  // --- Server tools (Stage 5.1a) -----------------------------------------
+  if (includeTools) {
+    const descriptors = await client.listTools();
+    for (const descriptor of descriptors) {
+      tools.push(buildServerTool(client, descriptor, options.namespace, category));
+    }
+  }
 
-      async execute(params: unknown): Promise<ToolResult> {
-        const validated = zodSchema.parse(params);
-        try {
-          const result = await client.callTool(
-            descriptor.name,
-            validated as Record<string, unknown>,
-          );
-          if (result.isError) {
-            return {
-              success: false,
-              error: extractErrorText(result),
-            };
-          }
-          const payload = result.structuredContent ?? result.content;
-          return {
-            success: true,
-            data: serializeMCPResult(payload),
-          };
-        } catch (error) {
-          return {
-            success: false,
-            error: error instanceof Error ? error.message : String(error),
-          };
+  // --- Resource meta-tools (Stage 5.1b) ----------------------------------
+  if (includeResources && client.listResources && client.readResource) {
+    tools.push(buildListResourcesTool(client, options.namespace, category));
+    tools.push(buildReadResourceTool(client, options.namespace, category));
+  }
+
+  // --- Prompt meta-tools (Stage 5.1b) ------------------------------------
+  if (includePrompts && client.listPrompts && client.getPrompt) {
+    tools.push(buildListPromptsTool(client, options.namespace, category));
+    tools.push(buildGetPromptTool(client, options.namespace, category));
+  }
+
+  return tools;
+}
+
+function buildServerTool(
+  client: McpClientLike,
+  descriptor: McpToolDescriptor,
+  namespace: string,
+  category: string,
+): Tool {
+  const zodSchema = jsonSchemaObjectToZod(descriptor.inputSchema);
+  const namespacedName = `mcp_${namespace}__${descriptor.name}`;
+  return {
+    name: namespacedName,
+    label: descriptor.name,
+    description: descriptor.description ?? `${namespace}: ${descriptor.name}`,
+    parameters: zodSchema,
+
+    async execute(params: unknown): Promise<ToolResult> {
+      const validated = zodSchema.parse(params);
+      try {
+        const result = await client.callTool(descriptor.name, validated as Record<string, unknown>);
+        if (result.isError) {
+          return { success: false, error: extractErrorText(result) };
         }
-      },
+        const payload = result.structuredContent ?? result.content;
+        return { success: true, data: serializeMCPResult(payload) };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
 
-      getMetadata() {
-        return { category, version: '1.0.0', mcpNamespace: options.namespace };
-      },
-    };
+    getMetadata() {
+      return { category, version: '1.0.0', mcpNamespace: namespace };
+    },
+  };
+}
+
+function buildListResourcesTool(client: McpClientLike, namespace: string, category: string): Tool {
+  return {
+    name: `mcp_${namespace}__list_resources`,
+    label: 'list_resources',
+    description: `List resources exposed by the ${namespace} MCP server. Returns an array of { uri, name, description?, mimeType? }.`,
+    parameters: z.object({}),
+
+    async execute(): Promise<ToolResult> {
+      try {
+        const resources = (await client.listResources?.()) ?? [];
+        return { success: true, data: serializeMCPResult(resources) };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
+
+    getMetadata() {
+      return { category, version: '1.0.0', mcpNamespace: namespace, kind: 'resources' };
+    },
+  };
+}
+
+function buildReadResourceTool(client: McpClientLike, namespace: string, category: string): Tool {
+  const paramsSchema = z.object({
+    uri: z.string().min(1).describe('Resource URI to read (e.g. revealui-content://posts/abc)'),
   });
+  return {
+    name: `mcp_${namespace}__read_resource`,
+    label: 'read_resource',
+    description: `Read a resource by URI from the ${namespace} MCP server. Returns the resource contents (text parts flattened to a joined string when possible).`,
+    parameters: paramsSchema,
+
+    async execute(params: unknown): Promise<ToolResult> {
+      const { uri } = paramsSchema.parse(params);
+      try {
+        const contents = (await client.readResource?.(uri)) ?? [];
+        const joinedText = flattenResourceText(contents);
+        const base: ToolResult = {
+          success: true,
+          data: serializeMCPResult(contents),
+        };
+        return joinedText !== undefined ? { ...base, content: joinedText } : base;
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
+
+    getMetadata() {
+      return { category, version: '1.0.0', mcpNamespace: namespace, kind: 'resources' };
+    },
+  };
+}
+
+function buildListPromptsTool(client: McpClientLike, namespace: string, category: string): Tool {
+  return {
+    name: `mcp_${namespace}__list_prompts`,
+    label: 'list_prompts',
+    description: `List prompts exposed by the ${namespace} MCP server. Returns an array of { name, description?, arguments? }.`,
+    parameters: z.object({}),
+
+    async execute(): Promise<ToolResult> {
+      try {
+        const prompts = (await client.listPrompts?.()) ?? [];
+        return { success: true, data: serializeMCPResult(prompts) };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
+
+    getMetadata() {
+      return { category, version: '1.0.0', mcpNamespace: namespace, kind: 'prompts' };
+    },
+  };
+}
+
+function buildGetPromptTool(client: McpClientLike, namespace: string, category: string): Tool {
+  const paramsSchema = z.object({
+    name: z.string().min(1).describe('Prompt name to retrieve'),
+    args: z
+      .record(z.string(), z.string())
+      .optional()
+      .describe('Prompt arguments as a string-valued map (per MCP spec)'),
+  });
+  return {
+    name: `mcp_${namespace}__get_prompt`,
+    label: 'get_prompt',
+    description: `Get a resolved prompt from the ${namespace} MCP server. Returns { description?, messages } — messages is an array of { role, content }.`,
+    parameters: paramsSchema,
+
+    async execute(params: unknown): Promise<ToolResult> {
+      const { name, args } = paramsSchema.parse(params);
+      try {
+        const result = await client.getPrompt?.(name, args);
+        if (!result) {
+          return { success: false, error: 'client does not implement getPrompt' };
+        }
+        const joinedText = flattenPromptMessages(result.messages);
+        const base: ToolResult = {
+          success: true,
+          data: serializeMCPResult(result),
+        };
+        return joinedText !== undefined ? { ...base, content: joinedText } : base;
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    },
+
+    getMetadata() {
+      return { category, version: '1.0.0', mcpNamespace: namespace, kind: 'prompts' };
+    },
+  };
+}
+
+/**
+ * Collapse an array of resource contents to a single text string when every
+ * part carries text. Returns `undefined` if any part is binary (blob) or has
+ * no text, signaling the caller that a token-efficient summary isn't
+ * available — in which case the full `data` array still carries everything.
+ */
+function flattenResourceText(contents: ReadonlyArray<McpResourceContentLike>): string | undefined {
+  if (contents.length === 0) return undefined;
+  const parts: string[] = [];
+  for (const part of contents) {
+    if (typeof part.text === 'string') {
+      parts.push(part.text);
+    } else {
+      return undefined;
+    }
+  }
+  return parts.join('\n\n');
+}
+
+/**
+ * Collapse a prompt's message array to a single text summary in
+ * `<role>: <text>` format. Returns `undefined` when any message has a
+ * non-text content shape (image, resource reference, …).
+ */
+function flattenPromptMessages(
+  messages: ReadonlyArray<{ role: string; content: unknown }>,
+): string | undefined {
+  if (messages.length === 0) return undefined;
+  const lines: string[] = [];
+  for (const msg of messages) {
+    const text = extractMessageText(msg.content);
+    if (text === undefined) return undefined;
+    lines.push(`${msg.role}: ${text}`);
+  }
+  return lines.join('\n\n');
+}
+
+function extractMessageText(content: unknown): string | undefined {
+  if (typeof content === 'string') return content;
+  if (content && typeof content === 'object') {
+    const c = content as { type?: string; text?: string };
+    if (c.type === 'text' && typeof c.text === 'string') return c.text;
+  }
+  return undefined;
 }
 
 /**
