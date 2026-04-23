@@ -3,8 +3,9 @@
  *
  * Deletes expired sessions, rate limits, password reset tokens, magic links,
  * publishes overdue scheduled pages, recovers stuck sagas, cleans up expired
- * idempotency keys, and purges old log rows past the retention window.
- * Piggybacks on the daily cron dispatcher.
+ * idempotency keys, purges old log rows past their retention window, and
+ * purges terminal rows from operational-hygiene tables (jobs, webhook events,
+ * resolved reconciliation records). Piggybacks on the daily cron dispatcher.
  *
  * Protected by X-Cron-Secret header (defense-in-depth  -  also validated in dispatch.ts).
  */
@@ -12,7 +13,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
-import { cleanupOldLogs, cleanupStaleTokens } from '@revealui/db/cleanup';
+import { cleanupOldLogs, cleanupOperational, cleanupStaleTokens } from '@revealui/db/cleanup';
 import { cleanupExpiredIdempotencyKeys, recoverStaleSagas } from '@revealui/db/saga';
 import { Hono } from 'hono';
 
@@ -111,6 +112,38 @@ app.post('/cleanup', async (c) => {
       logger.error(`[cron-cleanup] Log retention purge failed: ${message}`);
     }
 
+    // Operational-hygiene purge: terminal jobs + processed webhook events.
+    // Safety rules enforced at the query level — active jobs survive
+    // unconditionally. Non-fatal.
+    let operationalPurged = {
+      jobs: 0,
+      webhookEvents: 0,
+      windows: { jobs: 0, webhookEvents: 0 },
+    };
+    try {
+      const opsResult = await cleanupOperational();
+      operationalPurged = {
+        jobs: opsResult.jobs,
+        webhookEvents: opsResult.webhookEvents,
+        windows: opsResult.windows,
+      };
+      const total = opsResult.jobs + opsResult.webhookEvents;
+      if (total > 0) {
+        logger.info('[cron-cleanup] Purged operational rows past retention', {
+          jobs: opsResult.jobs,
+          webhookEvents: opsResult.webhookEvents,
+          windows: opsResult.windows,
+          cutoffs: {
+            jobs: opsResult.cutoffs.jobs.toISOString(),
+            webhookEvents: opsResult.cutoffs.webhookEvents.toISOString(),
+          },
+        });
+      }
+    } catch (opsErr) {
+      const message = opsErr instanceof Error ? opsErr.message : String(opsErr);
+      logger.error(`[cron-cleanup] Operational retention purge failed: ${message}`);
+    }
+
     return c.json({
       success: true,
       ...result,
@@ -118,6 +151,7 @@ app.post('/cleanup', async (c) => {
       recoveredSagas,
       expiredIdempotencyKeys: expiredKeys,
       logsPurged,
+      operationalPurged,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
