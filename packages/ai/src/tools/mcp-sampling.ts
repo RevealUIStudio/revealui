@@ -44,6 +44,7 @@
  */
 
 import type { LLMChatOptions, LLMResponse, Message } from '../llm/providers/base.js';
+import { emitMcpEvent, type McpEventSink } from './mcp-events.js';
 
 // ---------------------------------------------------------------------------
 // Structural LLM shape
@@ -154,10 +155,26 @@ export interface CreateSamplingHandlerOptions {
     maxTokens: number;
     systemPrompt?: string;
   }) => void;
+  /**
+   * Protocol-level observability sink (Stage 6.1). Fires once per
+   * `sampling/createMessage` call (after the LLM responds, or on
+   * failure) with `{ kind: 'mcp.sampling.create', model, messageCount,
+   * maxTokens, duration_ms, success, error? }`. Set `namespace` when
+   * the handler is attached to a single-server `McpClient` so events
+   * can be grouped in the aggregator.
+   */
+  onEvent?: McpEventSink;
+  /**
+   * Optional server identifier included in emitted events. Leave unset
+   * when the handler is shared across multiple servers — consumer's
+   * sink wrapper can fill in namespace from call-site context.
+   */
+  namespace?: string;
 }
 
 export function createSamplingHandler(options: CreateSamplingHandlerOptions): McpSamplingHandler {
-  const { llm, allowedModels, defaultModel, selectModel, onSamplingRequest } = options;
+  const { llm, allowedModels, defaultModel, selectModel, onSamplingRequest, onEvent, namespace } =
+    options;
 
   return async (params: McpSamplingRequestParams): Promise<McpSamplingResult> => {
     const model = resolveModel(params.modelPreferences?.hints, {
@@ -185,21 +202,46 @@ export function createSamplingHandler(options: CreateSamplingHandlerOptions): Mc
       ...(params.temperature !== undefined ? { temperature: params.temperature } : {}),
     };
 
-    const response = await llm.chat(messages, chatOptions);
+    const started = Date.now();
+    try {
+      const response = await llm.chat(messages, chatOptions);
 
-    const stopReason = mapFinishReason(response.finishReason);
-    const result: McpSamplingResult = {
-      model: reportedModel,
-      role: 'assistant',
-      content: {
-        type: 'text',
-        text: response.content,
-      },
-    };
-    if (stopReason !== undefined) {
-      result.stopReason = stopReason;
+      emitMcpEvent(onEvent, {
+        kind: 'mcp.sampling.create',
+        ...(namespace !== undefined ? { namespace } : {}),
+        model: reportedModel,
+        messageCount: params.messages.length,
+        maxTokens: params.maxTokens,
+        duration_ms: Date.now() - started,
+        success: true,
+      });
+
+      const stopReason = mapFinishReason(response.finishReason);
+      const result: McpSamplingResult = {
+        model: reportedModel,
+        role: 'assistant',
+        content: {
+          type: 'text',
+          text: response.content,
+        },
+      };
+      if (stopReason !== undefined) {
+        result.stopReason = stopReason;
+      }
+      return result;
+    } catch (error) {
+      emitMcpEvent(onEvent, {
+        kind: 'mcp.sampling.create',
+        ...(namespace !== undefined ? { namespace } : {}),
+        model: reportedModel,
+        messageCount: params.messages.length,
+        maxTokens: params.maxTokens,
+        duration_ms: Date.now() - started,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
     }
-    return result;
   };
 }
 

@@ -615,3 +615,219 @@ describe('createToolsFromMcpClient — include flag combinations', () => {
     expect(names).toContain('mcp_srv__get_prompt');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Stage 6.1 — onEvent observability hook
+// ---------------------------------------------------------------------------
+
+describe('createToolsFromMcpClient — onEvent', () => {
+  it('emits mcp.tool.call with success: true + duration + toolName on happy path', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const client = makeClient(
+      [{ name: 'noop', inputSchema: { type: 'object', properties: {} } }],
+      async () => ({ content: [{ type: 'text', text: 'ok' }] }),
+    );
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    await tools[0]?.execute({});
+
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.tool.call',
+      namespace: 'srv',
+      toolName: 'noop',
+      success: true,
+    });
+    expect(typeof events[0]?.duration_ms).toBe('number');
+    expect(events[0]?.duration_ms).toBeGreaterThanOrEqual(0);
+  });
+
+  it('emits mcp.tool.call with success: false on isError result (error text propagated)', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const client = makeClient(
+      [{ name: 'noop', inputSchema: { type: 'object', properties: {} } }],
+      async () => ({ isError: true, content: [{ type: 'text', text: 'server rejected' }] }),
+    );
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    const result = await tools[0]?.execute({});
+
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.tool.call',
+      success: false,
+      error: 'server rejected',
+    });
+    expect(result).toEqual({ success: false, error: 'server rejected' });
+  });
+
+  it('emits mcp.tool.call with success: false on thrown errors', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const client = makeClient(
+      [{ name: 'flaky', inputSchema: { type: 'object', properties: {} } }],
+      async () => {
+        throw new Error('transport broke');
+      },
+    );
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    await tools[0]?.execute({});
+
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.tool.call',
+      success: false,
+      error: 'transport broke',
+    });
+  });
+
+  it('emits mcp.resource.list with resourceCount', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const client = makeFullClient({
+      resources: [
+        { uri: 'x://1', name: 'one' },
+        { uri: 'x://2', name: 'two' },
+      ],
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    const listTool = tools.find((t) => t.name === 'mcp_srv__list_resources');
+    await listTool?.execute({});
+
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.resource.list',
+      namespace: 'srv',
+      success: true,
+      resourceCount: 2,
+    });
+  });
+
+  it('emits mcp.resource.read with the requested URI', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const client = makeFullClient({
+      resources: [{ uri: 'x://hello', name: 'hello' }],
+      resourceContents: { 'x://hello': [{ uri: 'x://hello', text: 'contents' }] },
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    const readTool = tools.find((t) => t.name === 'mcp_srv__read_resource');
+    await readTool?.execute({ uri: 'x://hello' });
+
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.resource.read',
+      namespace: 'srv',
+      uri: 'x://hello',
+      success: true,
+    });
+  });
+
+  it('emits mcp.prompt.list with promptCount', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const client = makeFullClient({
+      prompts: [{ name: 'greet' }, { name: 'summarize' }, { name: 'classify' }],
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    const listTool = tools.find((t) => t.name === 'mcp_srv__list_prompts');
+    await listTool?.execute({});
+
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.prompt.list',
+      namespace: 'srv',
+      success: true,
+      promptCount: 3,
+    });
+  });
+
+  it('emits mcp.prompt.get with promptName', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const client = makeFullClient({
+      prompts: [{ name: 'greet' }],
+      promptResults: {
+        greet: { messages: [{ role: 'user', content: { type: 'text', text: 'hi' } }] },
+      },
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    const getTool = tools.find((t) => t.name === 'mcp_srv__get_prompt');
+    await getTool?.execute({ name: 'greet' });
+
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.prompt.get',
+      namespace: 'srv',
+      promptName: 'greet',
+      success: true,
+    });
+  });
+
+  it('emits mcp.prompt.get with success: false when the server errors', async () => {
+    const events: Array<Record<string, unknown>> = [];
+    const client = makeFullClient({
+      prompts: [{ name: 'greet' }],
+      // promptResults is empty → getPrompt throws "prompt not found"
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onEvent: (e) => events.push(e as unknown as Record<string, unknown>),
+    });
+    const getTool = tools.find((t) => t.name === 'mcp_srv__get_prompt');
+    await getTool?.execute({ name: 'greet' });
+
+    expect(events[0]).toMatchObject({
+      kind: 'mcp.prompt.get',
+      promptName: 'greet',
+      success: false,
+    });
+    expect(events[0]?.error).toMatch(/prompt not found/);
+  });
+
+  it('works without onEvent — no emission, no throw', async () => {
+    const client = makeClient(
+      [{ name: 'noop', inputSchema: { type: 'object', properties: {} } }],
+      async () => ({ content: [] }),
+    );
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    const result = await tools[0]?.execute({});
+    expect(result?.success).toBe(true);
+  });
+
+  it('continues when the sink throws (does not break the underlying call)', async () => {
+    const client = makeClient(
+      [{ name: 'noop', inputSchema: { type: 'object', properties: {} } }],
+      async () => ({ content: [] }),
+    );
+    const sink = vi.fn(() => {
+      throw new Error('sink broken');
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onEvent: sink,
+    });
+    const result = await tools[0]?.execute({});
+
+    expect(result?.success).toBe(true);
+    expect(sink).toHaveBeenCalledTimes(1);
+  });
+});
