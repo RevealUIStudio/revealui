@@ -5,7 +5,7 @@
  * 1. All expected Stripe price env vars are set
  * 2. REVEALUI_LICENSE_PRIVATE_KEY is present (for license JWT generation)
  * 3. Billing catalog DB rows exist for all tiers
- * 4. Email provider configured (warning only  -  Gmail or Resend)
+ * 4. Email provider configured (warning only  -  Gmail API via Google Workspace service account)
  *
  * Sends an alert email to REVEALUI_ALERT_EMAIL on any failure.
  * Runs daily at 06:00 UTC (configured in vercel.json).

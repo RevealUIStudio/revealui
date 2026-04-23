@@ -9,8 +9,8 @@ Marketing site for RevealUI  -  agentic business runtime. Users, content, produc
 - Hero: "Build your business, not your boilerplate." + five primitives subtitle
 - ValueProposition: "Stop stitching tools together"  -  Own Your Stack, AI Agents Built In, Production Stack Included
 - SocialProof: six capability cards
-- LeadCapture: waitlist form with DB-backed storage and Resend email notifications
-- ProductMockup: illustrated browser chrome of the CMS admin UI
+- LeadCapture: waitlist form (posts to RevealUI API; storage and email handled server-side via Gmail API)
+- ProductMockup: illustrated browser chrome of the admin UI
 
 ## Development
 
@@ -27,14 +27,16 @@ The ignoreCommand skips builds when no `apps/marketing/**` files changed.
 
 ## Environment Variables
 
+The marketing site has no server-side secrets  -  it proxies form submissions to the RevealUI API, which handles storage and email.
+
 ```env
-RESEND_API_KEY=          # Waitlist founder notification emails (Resend)
-DATABASE_URL=            # NeonDB connection string (waitlist storage)
+NEXT_PUBLIC_API_URL=     # RevealUI API base (default: https://api.revealui.com)
+NEXT_PUBLIC_ADMIN_URL=   # RevealUI admin URL (default: https://admin.revealui.com)
 ```
 
 ## API
 
-- `POST /api/waitlist`  -  Add email to waitlist (DB-backed, rate-limited, Resend notification)
+- `POST /api/waitlist`  -  Proxies waitlist signup to the RevealUI API (rate-limited; API handles storage + email)
 - `GET /api/waitlist`  -  410 Gone (removed for GDPR)
 
 ## Routes
@@ -57,7 +59,7 @@ The marketing site should present RevealUI as:
 ## Key Components
 
 - `src/components/HeroSection.tsx`  -  Headline + CTA + ProductMockup
-- `src/components/ProductMockup.tsx`  -  Illustrated CMS admin UI (browser chrome)
+- `src/components/ProductMockup.tsx`  -  Illustrated admin UI (browser chrome)
 - `src/components/ValueProposition.tsx`  -  Three-column feature section
 - `src/components/SocialProof.tsx`  -  Six capability cards
 - `src/components/LeadCapture.tsx`  -  Waitlist form
