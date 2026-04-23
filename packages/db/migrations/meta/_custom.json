@@ -38,6 +38,12 @@
       "rationale": "Hand-written ALTER TABLE on jobs adding locked_by/locked_until/last_error columns plus a partial index on (locked_until) WHERE state = 'active'. CR8-P2-01 phase A — durable work queue visibility-timeout semantics. drizzle-kit can model the columns but not the partial-index predicate (WHERE clause inside CREATE INDEX IF NOT EXISTS), and the ADD COLUMN statements are wrapped in IF NOT EXISTS for idempotent re-apply. Companion Drizzle schema update at packages/db/src/schema/jobs.ts adds the columns + partial index for type-safety; callers query via Drizzle, not raw SQL.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as 0003: snapshot regeneration via `pnpm --filter @revealui/db db:generate` against a clean DB once the shared-facts/yjs/shared-memory debt is worked through. Deferred to keep phase A scoped."
+    },
+    {
+      "tag": "0010_unreconciled_webhooks",
+      "rationale": "Hand-written CREATE TABLE + indexes for the `unreconciled_webhooks` table. The table was defined in packages/db/src/schema/webhook-reconciliation.ts and already appears in the Drizzle snapshots at meta/0006_snapshot.json and meta/0009_snapshot.json, but NO .sql migration ever created it (verified 2026-04-22: grep -n 'unreconciled' migrations/*.sql → zero hits). Production likely has the table from an ad-hoc drizzle-kit push at some point (webhooks.ts writes to it at runtime; if prod didn't have it, webhook processing would be failing). Migration uses CREATE TABLE IF NOT EXISTS + CREATE INDEX IF NOT EXISTS so it is safe to apply against both fresh DBs (creates it) and prod (no-op). Partial index `unreconciled_webhooks_unresolved_idx` on (created_at) WHERE resolved_at IS NULL is not expressible in Drizzle's schema DSL beyond the .where() modifier.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Snapshot already captures the table (meta/0006_snapshot.json + meta/0009_snapshot.json reference it). Missing snapshot for this tag specifically because it's a retroactive catch-up for an unmigrated table; the canonical snapshot state is the 0009 snapshot. Full snapshot regen deferred to the general snapshot-debt backfill tracked alongside 0003/0004/0005/0008."
     }
   ]
 }
