@@ -4,8 +4,7 @@
  * (NOT NULL accountId fk, source CHECK, unique idempotencyKey).
  */
 
-import type { McpUsageMeterRow } from '@revealui/ai';
-import { accounts, usageMeters } from '@revealui/db/schema';
+import { accounts, type NewUsageMeter, usageMeters } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -37,7 +36,7 @@ async function seedAccount(db: TestDb, id = 'acct_test'): Promise<string> {
   return id;
 }
 
-function makeRow(overrides: Partial<McpUsageMeterRow> = {}): McpUsageMeterRow {
+function makeRow(overrides: Partial<NewUsageMeter> = {}): NewUsageMeter {
   return {
     id: overrides.id ?? crypto.randomUUID(),
     accountId: overrides.accountId ?? 'acct_test',
@@ -106,7 +105,7 @@ describe('recordUsageMeter', () => {
     const { recordUsageMeter } = await import('../metering.js');
     await seedAccount(testDb);
 
-    const kinds: McpUsageMeterRow['meterName'][] = [
+    const kinds: string[] = [
       'mcp.tool.call',
       'mcp.resource.list',
       'mcp.resource.read',

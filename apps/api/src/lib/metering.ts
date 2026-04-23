@@ -12,9 +12,8 @@
  * `.jv/docs/admin-mcp-integration-scope.md` §1.A.1 Q3 for the rationale.
  */
 
-import type { McpUsageMeterRow } from '@revealui/ai';
 import { getClient } from '@revealui/db';
-import { usageMeters } from '@revealui/db/schema';
+import { type NewUsageMeter, usageMeters } from '@revealui/db/schema';
 
 /**
  * Persist a single `usage_meters` row. Idempotent via the unique index on
@@ -28,7 +27,7 @@ import { usageMeters } from '@revealui/db/schema';
  * a thrown error is logged at warn but never breaks the underlying MCP
  * protocol call.
  */
-export async function recordUsageMeter(row: McpUsageMeterRow): Promise<void> {
+export async function recordUsageMeter(row: NewUsageMeter): Promise<void> {
   const db = getClient();
   await db.insert(usageMeters).values(row).onConflictDoNothing();
 }
