@@ -184,3 +184,178 @@ describe('emitMcpEvent', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Stage 6.2 — createUsageMeterSink
+// ---------------------------------------------------------------------------
+
+import { createUsageMeterSink, type McpUsageMeterRow } from '../../tools/mcp-events.js';
+
+describe('createUsageMeterSink', () => {
+  it('writes a usage_meters row with accountId + meterName + defaults', () => {
+    const rows: McpUsageMeterRow[] = [];
+    const sink = createUsageMeterSink({
+      accountId: 'acct-123',
+      write: (row) => {
+        rows.push(row);
+      },
+    });
+
+    sink(successEvent());
+
+    expect(rows).toHaveLength(1);
+    const row = rows[0]!;
+    expect(row).toMatchObject({
+      accountId: 'acct-123',
+      meterName: 'mcp.tool.call',
+      quantity: 1,
+      periodEnd: null,
+      source: 'agent',
+    });
+    expect(row.id).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(row.idempotencyKey).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(row.periodStart).toBeInstanceOf(Date);
+  });
+
+  it('maps each event kind to the matching meter name', () => {
+    const rows: McpUsageMeterRow[] = [];
+    const sink = createUsageMeterSink({
+      accountId: 'acct-123',
+      write: (row) => {
+        rows.push(row);
+      },
+    });
+
+    sink({
+      kind: 'mcp.resource.read',
+      namespace: 'content',
+      uri: 'revealui://posts/1',
+      duration_ms: 3,
+      success: true,
+    });
+    sink({
+      kind: 'mcp.prompt.get',
+      namespace: 'content',
+      promptName: 'greet',
+      duration_ms: 4,
+      success: true,
+    });
+    sink({
+      kind: 'mcp.sampling.create',
+      model: 'gemma3',
+      messageCount: 2,
+      maxTokens: 256,
+      duration_ms: 1200,
+      success: true,
+    });
+    sink({
+      kind: 'mcp.elicitation.create',
+      action: 'accept',
+      fieldCount: 1,
+      duration_ms: 8,
+      success: true,
+    });
+
+    expect(rows.map((r) => r.meterName)).toEqual([
+      'mcp.resource.read',
+      'mcp.prompt.get',
+      'mcp.sampling.create',
+      'mcp.elicitation.create',
+    ]);
+  });
+
+  it('honors custom source label', () => {
+    const rows: McpUsageMeterRow[] = [];
+    const sink = createUsageMeterSink({
+      accountId: 'acct-123',
+      source: 'api',
+      write: (row) => {
+        rows.push(row);
+      },
+    });
+    sink(successEvent());
+    expect(rows[0]?.source).toBe('api');
+  });
+
+  it('uses supplied idempotencyKey generator for retry coalescence', () => {
+    const rows: McpUsageMeterRow[] = [];
+    const sink = createUsageMeterSink({
+      accountId: 'acct-123',
+      idempotencyKey: (e) => `fixed:${e.kind}`,
+      write: (row) => {
+        rows.push(row);
+      },
+    });
+    sink(successEvent());
+    sink(successEvent());
+    expect(rows[0]?.idempotencyKey).toBe('fixed:mcp.tool.call');
+    expect(rows[1]?.idempotencyKey).toBe('fixed:mcp.tool.call');
+  });
+
+  it('uses supplied id generator', () => {
+    const rows: McpUsageMeterRow[] = [];
+    let counter = 0;
+    const sink = createUsageMeterSink({
+      accountId: 'acct-123',
+      id: () => `row-${++counter}`,
+      write: (row) => {
+        rows.push(row);
+      },
+    });
+    sink(successEvent());
+    sink(successEvent());
+    expect(rows[0]?.id).toBe('row-1');
+    expect(rows[1]?.id).toBe('row-2');
+  });
+
+  it('emits a row for failed events too (billing cares about attempts)', () => {
+    const rows: McpUsageMeterRow[] = [];
+    const sink = createUsageMeterSink({
+      accountId: 'acct-123',
+      write: (row) => {
+        rows.push(row);
+      },
+    });
+    sink(failureEvent());
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.meterName).toBe('mcp.tool.call');
+  });
+
+  it('awaits and swallows rejected async writes without throwing', async () => {
+    const sink = createUsageMeterSink({
+      accountId: 'acct-123',
+      write: async () => {
+        throw new Error('db unavailable');
+      },
+    });
+
+    expect(() => sink(successEvent())).not.toThrow();
+    // Let the rejected microtask settle so logger.warn is observed.
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringMatching(/usage meter write rejected/),
+      expect.objectContaining({ event: 'mcp.tool.call', error: 'db unavailable' }),
+    );
+  });
+
+  it('swallows synchronous write throws via emitMcpEvent when wrapped', () => {
+    // When paired with the adapter's own emitMcpEvent safe-dispatch,
+    // a sink that throws sync never propagates. Here we verify the
+    // integration boundary: emitMcpEvent(sink, event) swallows
+    // throws, and the usage-meter sink constructed here is callable
+    // through that path.
+    const brokenSink = createUsageMeterSink({
+      accountId: 'acct-123',
+      write: () => {
+        throw new Error('sync write boom');
+      },
+    });
+
+    expect(() => emitMcpEvent(brokenSink, successEvent())).not.toThrow();
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringMatching(/event sink threw/),
+      expect.objectContaining({ event: 'mcp.tool.call' }),
+    );
+  });
+});
