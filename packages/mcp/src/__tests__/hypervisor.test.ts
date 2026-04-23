@@ -632,4 +632,229 @@ describe('MCPHypervisor', () => {
       }).not.toThrow();
     });
   });
+
+  // ===========================================================================
+  // Stage 6.2 — usage metering sink
+  // ===========================================================================
+
+  describe('setUsageMeterSink() + emitMeter', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('emits mcp.tool.call with success: true + duration on callTool success', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+      const { stdoutCb } = await startServerWithFakeTimers(hv);
+
+      const sink = vi.fn();
+      hv.setUsageMeterSink(sink);
+
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callTool('test-server', 'do_thing', { x: 1 });
+
+      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+        id: number;
+      };
+      stdoutCb(
+        Buffer.from(`${JSON.stringify({ jsonrpc: '2.0', id: req.id, result: { ok: true } })}\n`),
+      );
+
+      await toolPromise;
+
+      expect(sink).toHaveBeenCalledTimes(1);
+      const event = sink.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(event).toMatchObject({
+        kind: 'mcp.tool.call',
+        serverName: 'test-server',
+        toolName: 'do_thing',
+        success: true,
+      });
+      expect(event).not.toHaveProperty('tenantId');
+      expect(event.duration_ms).toBeTypeOf('number');
+      expect(event.duration_ms as number).toBeGreaterThanOrEqual(0);
+    });
+
+    it('emits mcp.tool.call with success: false + error on callTool failure', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+      const { stdoutCb } = await startServerWithFakeTimers(hv);
+
+      const sink = vi.fn();
+      hv.setUsageMeterSink(sink);
+
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callTool('test-server', 'failing_tool', {});
+
+      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+        id: number;
+      };
+      stdoutCb(
+        Buffer.from(
+          `${JSON.stringify({
+            jsonrpc: '2.0',
+            id: req.id,
+            error: { code: -32000, message: 'server-side failure' },
+          })}\n`,
+        ),
+      );
+
+      await expect(toolPromise).rejects.toThrow(/server-side failure/);
+
+      const event = sink.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(event).toMatchObject({
+        kind: 'mcp.tool.call',
+        serverName: 'test-server',
+        toolName: 'failing_tool',
+        success: false,
+      });
+      expect(event.error).toMatch(/server-side failure/);
+    });
+
+    it('emits with tenantId populated via callToolForTenant', async () => {
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+
+      // Inject a tenant-scoped entry with a running mock process (bypass
+      // startServerForTenant's spawn + credential-resolve path).
+      const tenantEntry = {
+        config: testConfig,
+        process: mockProcess as unknown as import('node:child_process').ChildProcess,
+        tools: [],
+        healthy: true,
+        lastPingAt: null,
+      };
+      (hv as unknown as { tenantServers: Map<string, typeof tenantEntry> }).tenantServers.set(
+        'acct-123:test-server',
+        tenantEntry,
+      );
+      mockProcess.exitCode = null;
+
+      const sink = vi.fn();
+      hv.setUsageMeterSink(sink);
+
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callToolForTenant('test-server', 'acct-123', 'deploy', {
+        env: 'prod',
+      });
+
+      // Drive the pending request to resolution by reaching into the
+      // private map the hypervisor populated when it wrote the RPC frame.
+      await new Promise((r) => setTimeout(r, 0));
+      const pending = (
+        hv as unknown as {
+          pendingRequests: Map<
+            number,
+            { resolve: (v: unknown) => void; reject: (e: Error) => void; timer: NodeJS.Timeout }
+          >;
+        }
+      ).pendingRequests;
+      expect(pending.size).toBe(1);
+      const [, first] = Array.from(pending.entries())[0] ?? [];
+      clearTimeout(first?.timer);
+      first?.resolve({ content: [{ type: 'text', text: 'ok' }] });
+
+      await toolPromise;
+
+      const event = sink.mock.calls[0]?.[0] as Record<string, unknown>;
+      expect(event).toMatchObject({
+        kind: 'mcp.tool.call',
+        serverName: 'test-server',
+        toolName: 'deploy',
+        tenantId: 'acct-123',
+        success: true,
+      });
+    });
+
+    it('does not emit when no sink is registered', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+      const { stdoutCb } = await startServerWithFakeTimers(hv);
+
+      // No setUsageMeterSink call — should be a no-op.
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callTool('test-server', 'do_thing', {});
+
+      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+        id: number;
+      };
+      stdoutCb(
+        Buffer.from(`${JSON.stringify({ jsonrpc: '2.0', id: req.id, result: { ok: true } })}\n`),
+      );
+
+      await expect(toolPromise).resolves.toBeDefined();
+    });
+
+    it('setUsageMeterSink(null) disables a previously-installed sink', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+      const { stdoutCb } = await startServerWithFakeTimers(hv);
+
+      const sink = vi.fn();
+      hv.setUsageMeterSink(sink);
+      hv.setUsageMeterSink(null);
+
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callTool('test-server', 'do_thing', {});
+      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+        id: number;
+      };
+      stdoutCb(
+        Buffer.from(`${JSON.stringify({ jsonrpc: '2.0', id: req.id, result: { ok: true } })}\n`),
+      );
+      await toolPromise;
+
+      expect(sink).not.toHaveBeenCalled();
+    });
+
+    it('swallows synchronous sink exceptions without breaking the call', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+      const { stdoutCb } = await startServerWithFakeTimers(hv);
+
+      hv.setUsageMeterSink(() => {
+        throw new Error('sink broken');
+      });
+
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callTool('test-server', 'do_thing', {});
+      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+        id: number;
+      };
+      stdoutCb(
+        Buffer.from(`${JSON.stringify({ jsonrpc: '2.0', id: req.id, result: { ok: true } })}\n`),
+      );
+
+      // Call should still resolve successfully; the underlying result is not
+      // affected by the failing sink.
+      await expect(toolPromise).resolves.toBeDefined();
+    });
+
+    it('swallows rejected async sink promises without breaking the call', async () => {
+      vi.useFakeTimers();
+      const hv = MCPHypervisor.getInstance();
+      hv.registerServer(testConfig);
+      const { stdoutCb } = await startServerWithFakeTimers(hv);
+
+      hv.setUsageMeterSink(async () => {
+        throw new Error('async sink failed');
+      });
+
+      mockProcess.stdin.write.mockClear();
+      const toolPromise = hv.callTool('test-server', 'do_thing', {});
+      const req = JSON.parse((mockProcess.stdin.write.mock.calls[0]?.[0] as string).trim()) as {
+        id: number;
+      };
+      stdoutCb(
+        Buffer.from(`${JSON.stringify({ jsonrpc: '2.0', id: req.id, result: { ok: true } })}\n`),
+      );
+
+      await expect(toolPromise).resolves.toBeDefined();
+    });
+  });
 });

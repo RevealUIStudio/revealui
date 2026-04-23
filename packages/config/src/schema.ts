@@ -62,6 +62,38 @@ const optionalSchema = z.object({
   // Cron endpoint authentication
   REVEALUI_CRON_SECRET: secretSchema.optional(),
 
+  // Log retention window for app_logs + error_events (days). Default 90.
+  // Privacy policy commits to a concrete window; see docs/security/.
+  REVEALUI_LOG_RETENTION_DAYS: z.coerce
+    .number()
+    .int()
+    .min(1, 'Must be at least 1 day')
+    .max(3650, 'Must not exceed 3650 days (10 years)')
+    .default(90),
+
+  // Operational-hygiene retention windows (days). Purge terminal rows past
+  // the window to keep hot tables lean. See packages/db/src/cleanup/
+  // operational-retention.ts.
+  REVEALUI_JOB_RETENTION_DAYS: z.coerce
+    .number()
+    .int()
+    .min(1, 'Must be at least 1 day')
+    .max(3650, 'Must not exceed 3650 days (10 years)')
+    .default(30),
+  REVEALUI_WEBHOOK_EVENT_RETENTION_DAYS: z.coerce
+    .number()
+    .int()
+    .min(1, 'Must be at least 1 day')
+    .max(3650, 'Must not exceed 3650 days (10 years)')
+    .default(90),
+  // Resolved rows only — unresolved (open customer-payment bugs) never purged.
+  REVEALUI_WEBHOOK_RECONCILIATION_RETENTION_DAYS: z.coerce
+    .number()
+    .int()
+    .min(1, 'Must be at least 1 day')
+    .max(3650, 'Must not exceed 3650 days (10 years)')
+    .default(90),
+
   // License key signing (RSA-2048 PEM)
   REVEALUI_LICENSE_PRIVATE_KEY: z.string().optional(),
   REVEALUI_LICENSE_PUBLIC_KEY: z.string().optional(),

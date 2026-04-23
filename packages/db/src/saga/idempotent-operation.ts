@@ -31,7 +31,14 @@ import { idempotencyKeys } from '../schema/idempotency.js';
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface IdempotentWriteResult<T> {
-  /** The operation's return value (undefined if already processed) */
+  /**
+   * The operation's return value. Populated in two cases:
+   *   1. Fresh execution: the function ran and returned this value.
+   *   2. Replay after a prior run that stored `cacheResult: true`: this
+   *      is the memoized value from the original run.
+   * Undefined only when the key already exists but no result was cached
+   * (e.g. operations that don't opt into `cacheResult`).
+   */
   result?: T;
   /** True if the operation was skipped because the key already existed */
   alreadyProcessed: boolean;
@@ -68,7 +75,11 @@ export async function idempotentWrite<T>(
 
   // Step 1: Check if already processed
   const existing = await db
-    .select({ key: idempotencyKeys.key, expiresAt: idempotencyKeys.expiresAt })
+    .select({
+      key: idempotencyKeys.key,
+      expiresAt: idempotencyKeys.expiresAt,
+      result: idempotencyKeys.result,
+    })
     .from(idempotencyKeys)
     .where(eq(idempotencyKeys.key, key))
     .limit(1);
@@ -77,7 +88,13 @@ export async function idempotentWrite<T>(
   if (row) {
     // Check if expired
     if (!row.expiresAt || row.expiresAt >= new Date()) {
-      return { alreadyProcessed: true };
+      // Replay — surface the cached result when the original write opted
+      // in via `cacheResult: true`. Callers that didn't opt in get
+      // `alreadyProcessed: true` and `result: undefined` as before.
+      return {
+        alreadyProcessed: true,
+        result: (row.result ?? undefined) as T | undefined,
+      };
     }
     // Expired  -  clean up and proceed
     await db.delete(idempotencyKeys).where(eq(idempotencyKeys.key, key));

@@ -7,8 +7,17 @@
  *
  * These are injected by createTicketTools() and are always paired with
  * admin tools so agents can act on content AND report back through the ticket.
+ *
+ * Retry-safe ids (CR8-P2-01 phase C prerequisite): when a `dispatchId`
+ * is provided, comment ids are derived deterministically from
+ * (dispatchId, call-ordinal). A crash-and-resume of the same dispatch
+ * re-issues tool calls in the same order and generates the same ids,
+ * letting the persistence layer's primary-key constraint dedupe
+ * naturally. When `dispatchId` is omitted, ids remain random (the
+ * caller's `TicketMutationClient` picks its own id).
  */
 
+import { createHash } from 'node:crypto';
 import { z } from 'zod/v4';
 import type { Tool, ToolResult } from './base.js';
 
@@ -26,13 +35,55 @@ export interface TicketMutationClient {
     },
   ): Promise<{ id: string; status: string } | null>;
 
+  /**
+   * Create a comment on a ticket. When `options.id` is provided the
+   * implementation MUST use that id (enables deterministic replay under
+   * retry); when omitted the implementation picks its own id (typically
+   * a random UUID for backward compatibility).
+   */
   createComment(
     ticketId: string,
     body: Record<string, unknown>,
+    options?: { id?: string },
   ): Promise<{ id: string; ticketId: string } | null | undefined>;
 }
 
-export function createTicketTools(ticketId: string, client: TicketMutationClient): Tool[] {
+export interface CreateTicketToolsOptions {
+  /**
+   * When set, tool calls that write rows (e.g. add_ticket_comment) use
+   * this as the seed for deterministic id derivation. Pair with the
+   * durable work queue's jobId so crash-resume produces the same ids
+   * and the DB's PK constraint dedupes duplicate attempts.
+   *
+   * When omitted, ids remain random (existing behavior).
+   */
+  dispatchId?: string;
+}
+
+/**
+ * Derive a deterministic, URL-safe comment id from (dispatchId,
+ * callOrdinal). Exported so the handler side can assert that the same
+ * inputs produce the same id (e.g. during crash-sim tests).
+ */
+export function deriveCommentId(dispatchId: string, callOrdinal: number): string {
+  const hash = createHash('sha256').update(`${dispatchId}:comment:${callOrdinal}`).digest('hex');
+  // 32 hex chars (~128 bits) is plenty for a PK and keeps the column
+  // narrower than a full hex digest.
+  return `cmt_${hash.slice(0, 32)}`;
+}
+
+export function createTicketTools(
+  ticketId: string,
+  client: TicketMutationClient,
+  options: CreateTicketToolsOptions = {},
+): Tool[] {
+  // Per-instance call counter. Because createTicketTools() is invoked
+  // fresh inside each dispatcher.dispatch() call, the ordinal is
+  // stable across the agentic loop of a single dispatch but reset for
+  // the next dispatch — which is exactly what retry-safe id derivation
+  // needs.
+  let commentOrdinal = 0;
+
   const updateStatusTool: Tool = {
     name: 'update_ticket_status',
     description:
@@ -72,12 +123,21 @@ export function createTicketTools(ticketId: string, client: TicketMutationClient
     }),
     async execute(params): Promise<ToolResult> {
       const { text } = params as { text: string };
+      const ordinal = commentOrdinal++;
+      const derivedId = options.dispatchId
+        ? deriveCommentId(options.dispatchId, ordinal)
+        : undefined;
+
       try {
         const body = {
           type: 'doc',
           content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
         };
-        const comment = await client.createComment(ticketId, body);
+        const comment = await client.createComment(
+          ticketId,
+          body,
+          derivedId ? { id: derivedId } : undefined,
+        );
         if (!comment) {
           return { success: false, error: 'Failed to create comment' };
         }

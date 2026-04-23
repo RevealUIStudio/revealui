@@ -12,8 +12,8 @@ import { estimateCost } from '../llm/token-counter.js';
 import type { AgentSkillProvider } from '../skills/integration/agent-skill-provider.js';
 import type { ApprovalCallback, Tool, ToolResult } from '../tools/base.js';
 import { ToolCallDeduplicator } from '../tools/deduplicator.js';
-import type { MCPToolSource } from '../tools/mcp-adapter.js';
-import { discoverMCPTools } from '../tools/mcp-adapter.js';
+import type { MCPToolSource, McpClientLike } from '../tools/mcp-adapter.js';
+import { createToolsFromMcpClient, discoverMCPTools } from '../tools/mcp-adapter.js';
 import { createWebSearchTool } from '../tools/web/duck-duck-go.js';
 import type { Agent, AgentResult, Task } from './agent.js';
 
@@ -58,8 +58,34 @@ export interface RuntimeConfig {
    * Optional MCP Hypervisor (or any MCPToolSource). When provided, tools from
    * all healthy MCP servers are merged into the agent's tool set before each
    * task execution. Pass an MCPHypervisor from @revealui/mcp.
+   *
+   * @deprecated Prefer `mcpClients` (Stage 5.1a). The hypervisor path doesn't
+   *   expose the full MCP protocol surface (resources, prompts, sampling,
+   *   elicitation). Standard `McpClient` instances do. This field stays for
+   *   backwards compatibility and will keep working until a future major.
    */
   mcpToolSource?: MCPToolSource;
+  /**
+   * Optional set of standard MCP clients (Stage 5.1a). When provided, each
+   * client's tools are listed and merged into the agent's tool set before
+   * each task. Tool names are namespaced as `mcp_<name>__<toolName>` so
+   * multiple clients can coexist without collisions. Consumers construct the
+   * client (stdio / Streamable HTTP + OAuth) and pre-connect it before
+   * passing it here. The runtime does NOT own client lifecycle.
+   *
+   * @example
+   * ```typescript
+   * import { McpClient } from '@revealui/mcp/client';
+   *
+   * const contentClient = new McpClient({ ... });
+   * await contentClient.connect();
+   *
+   * const runtime = new AgentRuntime({
+   *   mcpClients: [{ name: 'content', client: contentClient }],
+   * });
+   * ```
+   */
+  mcpClients?: ReadonlyArray<{ name: string; client: McpClientLike }>;
   /**
    * Optional skill provider. When set, activated skills are injected into the
    * system prompt before the first LLM call, giving the agent contextual
@@ -105,6 +131,7 @@ export class AgentRuntime {
       maxRetries: config.maxRetries ?? 3,
       enableCache: config.enableCache ?? true, // Enable by default for cost savings
       mcpToolSource: config.mcpToolSource,
+      mcpClients: config.mcpClients,
       skillProvider: config.skillProvider,
       thinkingLevel: config.thinkingLevel,
       modelTier: config.modelTier,
@@ -158,8 +185,23 @@ export class AgentRuntime {
     let totalTokens = 0;
     let totalCostUsd = 0;
 
-    // Merge MCP-discovered tools (from healthy servers) into the agent's tool set
-    const mcpTools = this.config.mcpToolSource ? discoverMCPTools(this.config.mcpToolSource) : [];
+    // Merge MCP-discovered tools into the agent's tool set. Two paths:
+    //   - Standard `McpClient` instances (Stage 5.1a, preferred)
+    //   - `MCPToolSource` / hypervisor (legacy, deprecated but supported)
+    const mcpTools: Tool[] = [];
+    if (this.config.mcpToolSource) {
+      mcpTools.push(...discoverMCPTools(this.config.mcpToolSource));
+    }
+    if (this.config.mcpClients && this.config.mcpClients.length > 0) {
+      for (const { name, client } of this.config.mcpClients) {
+        try {
+          const fromClient = await createToolsFromMcpClient(client, { namespace: name });
+          mcpTools.push(...fromClient);
+        } catch {
+          // empty-catch-ok: an unhealthy MCP client shouldn't fail the whole task — other clients + base tools still apply
+        }
+      }
+    }
 
     // Swap in a custom WebSearchProvider if the agent config specifies one (P4-3)
     const customProvider = agent.config?.webSearchProvider;

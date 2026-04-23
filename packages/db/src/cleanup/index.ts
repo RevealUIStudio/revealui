@@ -13,6 +13,18 @@ export {
   cleanupVectorDataForSite,
   configureCleanup,
 } from './cross-db-cleanup.js';
+export {
+  type CleanupLogsOptions,
+  type CleanupLogsResult,
+  cleanupOldLogs,
+  type LogRetentionTable,
+} from './log-retention.js';
+export {
+  type CleanupOperationalOptions,
+  type CleanupOperationalResult,
+  cleanupOperational,
+  type OperationalRetentionTable,
+} from './operational-retention.js';
 export { cleanupRagDataForSite } from './rag-site-cleanup.js';
 export {
   type CleanupTable,

@@ -12,6 +12,7 @@ import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
 import { agentMemories, eq, sites } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
+import { and, desc, or } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
 import { checkAIFeatureGate } from '@/lib/middleware/ai-feature-gate';
 import {
@@ -26,6 +27,48 @@ export const runtime = 'nodejs';
 
 const AGENT_ID_RE = /^[a-zA-Z0-9_-]+$/;
 const SESSION_SCOPE_RE = /^[a-zA-Z0-9_-]+$/;
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const aiGate = checkAIFeatureGate();
+  if (aiGate) return aiGate;
+  try {
+    const session = await getSession(request.headers, extractRequestContext(request));
+    if (!session) {
+      return createApplicationErrorResponse('Unauthorized', 'UNAUTHORIZED', 401);
+    }
+    const sessionScope = request.nextUrl.searchParams.get('session_scope');
+    if (!(sessionScope && SESSION_SCOPE_RE.test(sessionScope))) {
+      return createValidationErrorResponse(
+        'session_scope query param is required',
+        'session_scope',
+        sessionScope,
+      );
+    }
+    const limit = Math.min(
+      Number.parseInt(request.nextUrl.searchParams.get('limit') ?? '100', 10),
+      500,
+    );
+    const db = getClient();
+    const rows = await db
+      .select()
+      .from(agentMemories)
+      .where(
+        and(
+          eq(agentMemories.sessionScope, sessionScope),
+          or(eq(agentMemories.scope, 'shared'), eq(agentMemories.scope, 'reconciled')),
+        ),
+      )
+      .orderBy(desc(agentMemories.createdAt))
+      .limit(limit);
+    return NextResponse.json(rows);
+  } catch (error) {
+    logger.error('Error listing shared memories', { error });
+    return createErrorResponse(error, {
+      endpoint: '/api/sync/shared-memories',
+      operation: 'list_shared_memories',
+    });
+  }
+}
 const VALID_MEMORY_TYPES = new Set([
   'fact',
   'preference',
