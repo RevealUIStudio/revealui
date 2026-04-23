@@ -4,17 +4,20 @@
  * Read-only endpoints for the admin dashboard dashboard observability pages.
  * All endpoints require admin role (admin, super-admin, admin, super-admin).
  *
- * GET /admin/logs       -  paginated app logs, filterable by app and level
- * GET /admin/errors     -  paginated error events
- * GET /admin/audit      -  paginated audit log, filterable by severity and agentId
- * GET /admin/webhooks   -  paginated processed webhook events, filterable by eventType
+ * GET /admin/logs          -  paginated app logs, filterable by app and level
+ * GET /admin/errors        -  paginated error events
+ * GET /admin/audit         -  paginated audit log, filterable by severity and agentId
+ * GET /admin/webhooks      -  paginated processed webhook events, filterable by eventType
+ * GET /admin/jobs          -  paginated queue jobs, filterable by state and name (CR8-P2-01 phase D)
+ * GET /admin/jobs/summary  -  aggregate queue stats (state counts + per-handler 24h counts +
+ *                             recent failures) (CR8-P2-01 phase D)
  */
 
 import { getClient } from '@revealui/db';
 import type { DatabaseClient } from '@revealui/db/client';
-import { appLogs, auditLog, errorEvents, processedWebhookEvents } from '@revealui/db/schema';
+import { appLogs, auditLog, errorEvents, jobs, processedWebhookEvents } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, count, desc, eq, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, gte, type SQL } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString } from '../_helpers/serialize.js';
@@ -378,6 +381,234 @@ app.openapi(
         total,
         limit,
         offset,
+      },
+      200,
+    );
+  },
+);
+
+// =============================================================================
+// GET /admin/jobs  -  paginated queue jobs (CR8-P2-01 phase D)
+// =============================================================================
+
+const JobStateSchema = z.enum(['created', 'active', 'completed', 'failed', 'retry']);
+
+const JobSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  state: z.string(),
+  priority: z.number(),
+  retryCount: z.number(),
+  retryLimit: z.number(),
+  lastError: z.string().nullable(),
+  lockedBy: z.string().nullable(),
+  lockedUntil: z.string().nullable(),
+  startAfter: z.string(),
+  createdAt: z.string(),
+  startedAt: z.string().nullable(),
+  completedAt: z.string().nullable(),
+  output: z.unknown().nullable(),
+  data: z.unknown(),
+});
+
+const JobsQuery = PaginationQuery.extend({
+  state: JobStateSchema.optional(),
+  name: z.string().optional(),
+});
+
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/jobs',
+    tags: ['admin', 'observability'],
+    summary: 'List durable-queue jobs (admin-only)',
+    description:
+      'Paginated view of the `jobs` table. Filterable by state (created/active/completed/failed/retry) and by handler name. Ordered newest-created first.',
+    request: { query: JobsQuery },
+    responses: {
+      200: {
+        content: { 'application/json': { schema: paginatedSchema(JobSchema) } },
+        description: 'Paginated jobs',
+      },
+      401: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Unauthorized',
+      },
+      403: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Forbidden' },
+    },
+  }),
+  async (c) => {
+    requireAdmin(c.get('user'));
+
+    const { limit, offset, state, name } = c.req.valid('query');
+    const db = c.get('db') ?? getClient();
+
+    const clauses: SQL[] = [];
+    if (state) clauses.push(eq(jobs.state, state));
+    if (name) clauses.push(eq(jobs.name, name));
+    const where =
+      clauses.length === 0 ? undefined : clauses.length === 1 ? clauses[0] : and(...clauses);
+
+    const [rows, [countResult]] = await Promise.all([
+      db.select().from(jobs).where(where).orderBy(desc(jobs.createdAt)).limit(limit).offset(offset),
+      db.select({ total: count() }).from(jobs).where(where),
+    ]);
+
+    const total = countResult?.total ?? 0;
+
+    return c.json(
+      {
+        success: true as const,
+        data: rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          state: row.state,
+          priority: row.priority,
+          retryCount: row.retryCount,
+          retryLimit: row.retryLimit,
+          lastError: row.lastError ?? null,
+          lockedBy: row.lockedBy ?? null,
+          lockedUntil: row.lockedUntil ? dateToString(row.lockedUntil) : null,
+          startAfter: dateToString(row.startAfter),
+          createdAt: dateToString(row.createdAt),
+          startedAt: row.startedAt ? dateToString(row.startedAt) : null,
+          completedAt: row.completedAt ? dateToString(row.completedAt) : null,
+          output: row.output ?? null,
+          data: row.data,
+        })),
+        total,
+        limit,
+        offset,
+      },
+      200,
+    );
+  },
+);
+
+// =============================================================================
+// GET /admin/jobs/summary  -  aggregate stats (CR8-P2-01 phase D)
+// =============================================================================
+
+const JobSummarySchema = z.object({
+  success: z.literal(true),
+  stateCounts: z.object({
+    created: z.number(),
+    active: z.number(),
+    completed: z.number(),
+    failed: z.number(),
+    retry: z.number(),
+  }),
+  byHandler24h: z.array(
+    z.object({
+      name: z.string(),
+      completed: z.number(),
+      failed: z.number(),
+      running: z.number(),
+    }),
+  ),
+  recentFailures: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      lastError: z.string().nullable(),
+      retryCount: z.number(),
+      completedAt: z.string().nullable(),
+    }),
+  ),
+  /** ISO timestamp the snapshot was taken. */
+  timestamp: z.string(),
+});
+
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/jobs/summary',
+    tags: ['admin', 'observability'],
+    summary: 'Durable-queue aggregate stats (admin-only)',
+    description:
+      'Returns: current depth by state, per-handler counts over the last 24 hours (completed / failed / running), and the 10 most-recent failures. Intended for the admin jobs dashboard header.',
+    responses: {
+      200: {
+        content: { 'application/json': { schema: JobSummarySchema } },
+        description: 'Queue summary',
+      },
+      401: {
+        content: { 'application/json': { schema: ErrorSchema } },
+        description: 'Unauthorized',
+      },
+      403: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Forbidden' },
+    },
+  }),
+  async (c) => {
+    requireAdmin(c.get('user'));
+    const db = c.get('db') ?? getClient();
+
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // One round-trip each for the three aggregates. Neon HTTP driver:
+    // sequential is fine; all three queries are light.
+    const stateRows = await db
+      .select({ state: jobs.state, total: count() })
+      .from(jobs)
+      .groupBy(jobs.state);
+
+    const handlerRows = await db
+      .select({ name: jobs.name, state: jobs.state, total: count() })
+      .from(jobs)
+      .where(gte(jobs.createdAt, since24h))
+      .groupBy(jobs.name, jobs.state);
+
+    const failureRows = await db
+      .select()
+      .from(jobs)
+      .where(eq(jobs.state, 'failed'))
+      .orderBy(desc(jobs.completedAt))
+      .limit(10);
+
+    const stateCounts = {
+      created: 0,
+      active: 0,
+      completed: 0,
+      failed: 0,
+      retry: 0,
+    };
+    for (const row of stateRows) {
+      if (row.state in stateCounts) {
+        (stateCounts as Record<string, number>)[row.state] = row.total;
+      }
+    }
+
+    // Pivot (name, state, count) -> { name, completed, failed, running }.
+    const byHandlerMap = new Map<string, { completed: number; failed: number; running: number }>();
+    for (const row of handlerRows) {
+      if (!byHandlerMap.has(row.name)) {
+        byHandlerMap.set(row.name, { completed: 0, failed: 0, running: 0 });
+      }
+      const entry = byHandlerMap.get(row.name);
+      if (!entry) continue;
+      if (row.state === 'completed') entry.completed = row.total;
+      else if (row.state === 'failed') entry.failed = row.total;
+      else if (row.state === 'active') entry.running = row.total;
+      // 'created' + 'retry' counted nowhere — per-handler view focuses on
+      // processed outcomes + in-flight, not queue depth.
+    }
+    const byHandler24h = [...byHandlerMap.entries()]
+      .map(([name, counts]) => ({ name, ...counts }))
+      .sort((a, b) => b.completed + b.failed + b.running - (a.completed + a.failed + a.running));
+
+    return c.json(
+      {
+        success: true as const,
+        stateCounts,
+        byHandler24h,
+        recentFailures: failureRows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          lastError: row.lastError ?? null,
+          retryCount: row.retryCount,
+          completedAt: row.completedAt ? dateToString(row.completedAt) : null,
+        })),
+        timestamp: dateToString(new Date()),
       },
       200,
     );

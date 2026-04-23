@@ -17,7 +17,7 @@
  *   1 = verification failed (missing, corrupt, stale, or incomplete)
  */
 
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { open, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const REQUIRED_TABLES = ['users', 'sites', 'pages', 'sessions', 'audit_log'] as const;
@@ -152,31 +152,30 @@ async function main(): Promise<void> {
 
   result.file = latestPath;
 
-  // Check age
+  // Stat + read atomically via one file handle — closes the stat-then-read
+  // TOCTOU gap CodeQL flags on separate fs/promises calls (js/file-system-race).
   try {
-    const fileStat = await stat(latestPath);
-    const ageMs = Date.now() - fileStat.mtime.getTime();
-    result.ageHours = Math.round((ageMs / 3_600_000) * 10) / 10;
+    const handle = await open(latestPath);
+    try {
+      const fileStat = await handle.stat();
+      const ageMs = Date.now() - fileStat.mtime.getTime();
+      result.ageHours = Math.round((ageMs / 3_600_000) * 10) / 10;
+      if (result.ageHours > maxAgeHours) {
+        result.errors.push(`Backup is ${result.ageHours}h old (max: ${maxAgeHours}h) — stale`);
+      }
 
-    if (result.ageHours > maxAgeHours) {
-      result.errors.push(`Backup is ${result.ageHours}h old (max: ${maxAgeHours}h) — stale`);
-    }
-  } catch {
-    result.errors.push('Cannot stat backup file');
-  }
-
-  // Read and verify content
-  try {
-    const content = await readFile(latestPath, 'utf8');
-
-    if (content.length === 0) {
-      result.errors.push('Backup file is empty');
-    } else if (latestPath.endsWith('.json')) {
-      await verifyJsonBackup(content, result);
-    } else if (latestPath.endsWith('.sql')) {
-      await verifySqlBackup(content, result);
-    } else {
-      result.errors.push(`Unknown backup format: ${latestPath}`);
+      const content = await handle.readFile('utf8');
+      if (content.length === 0) {
+        result.errors.push('Backup file is empty');
+      } else if (latestPath.endsWith('.json')) {
+        await verifyJsonBackup(content, result);
+      } else if (latestPath.endsWith('.sql')) {
+        await verifySqlBackup(content, result);
+      } else {
+        result.errors.push(`Unknown backup format: ${latestPath}`);
+      }
+    } finally {
+      await handle.close();
     }
   } catch {
     result.errors.push('Cannot read backup file');

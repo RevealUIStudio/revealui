@@ -150,14 +150,23 @@ export class TicketAgentDispatcher {
    * - Have access to all admin tools (create/update/delete content, globals, media, users)
    * - Have access to ticket mutation tools (update status, add comment)
    * - Run the agentic loop until done or max iterations
+   *
+   * When `options.dispatchId` is provided, id-generating tool calls
+   * (currently `add_ticket_comment`) derive their ids deterministically
+   * from (dispatchId, call-ordinal). This makes the dispatch retry-safe:
+   * a crash-and-resume re-issues tool calls in the same order and
+   * produces the same ids, so the persistence layer's PK constraint
+   * dedupes naturally. Pair with the durable work queue's jobId.
    */
-  async dispatch(ticket: TicketInput): Promise<AgentResult> {
+  async dispatch(ticket: TicketInput, options: { dispatchId?: string } = {}): Promise<AgentResult> {
     const { apiClient, ticketClient, collections, globals, memory: sharedMemory, db } = this.config;
 
     // Build tool set: admin tools + ticket mutation tools + web scraper + optional summarizer
     const cmsConfig: AdminToolsConfig = { apiClient, collections, globals };
     const cmsTools = createAdminTools(cmsConfig);
-    const ticketTools = createTicketTools(ticket.id, ticketClient);
+    const ticketTools = createTicketTools(ticket.id, ticketClient, {
+      dispatchId: options.dispatchId,
+    });
     const extraTools = db
       ? [webScraperTool, createDocumentSummarizerTool(db, this.config.llmClient)]
       : [webScraperTool];

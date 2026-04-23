@@ -121,7 +121,6 @@ vi.mock('@revealui/core/license', () => ({
 vi.mock('../../middleware/license.js', () => ({
   resetDbStatusCache: (...args: unknown[]) => mockResetDbStatusCache(...args),
   resetSupportExpiryCache: (...args: unknown[]) => mockResetSupportExpiryCache(...args),
-  requireLicense: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
   requireFeature: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
   checkLicenseStatus: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
 }));
@@ -177,6 +176,10 @@ const mockDb = { select: vi.fn(), update: vi.fn(), transaction: vi.fn() };
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
+  // Null forces ensureStripeCustomer onto the conditional-UPDATE fallback
+  // path (same behavior as before #394's advisory-lock addition), which is
+  // what these tests were written against.
+  getRestPool: vi.fn(() => null),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({

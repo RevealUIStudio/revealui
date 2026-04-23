@@ -230,6 +230,10 @@
       "types": "./dist/saga/index.d.ts",
       "import": "./dist/saga/index.js"
     },
+    "./jobs": {
+      "types": "./dist/jobs/index.d.ts",
+      "import": "./dist/jobs/index.js"
+    },
     "./pool": {
       "types": "./dist/pool.d.ts",
       "import": "./dist/pool.js"
@@ -255,6 +259,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
+    "db:backfill-migrations": "tsx src/scripts/backfill-migrations.ts",
     "db:cleanup": "tsx src/scripts/cleanup-expired.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
