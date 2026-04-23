@@ -112,30 +112,35 @@ app.post('/cleanup', async (c) => {
       logger.error(`[cron-cleanup] Log retention purge failed: ${message}`);
     }
 
-    // Operational-hygiene purge: terminal jobs + processed webhook events.
-    // Safety rules enforced at the query level — active jobs survive
+    // Operational-hygiene purge: terminal jobs, processed webhook events,
+    // resolved reconciliation records. Safety rules enforced at the query
+    // level — active jobs and unresolved reconciliation rows survive
     // unconditionally. Non-fatal.
     let operationalPurged = {
       jobs: 0,
       webhookEvents: 0,
-      windows: { jobs: 0, webhookEvents: 0 },
+      unreconciledWebhooks: 0,
+      windows: { jobs: 0, webhookEvents: 0, unreconciledWebhooks: 0 },
     };
     try {
       const opsResult = await cleanupOperational();
       operationalPurged = {
         jobs: opsResult.jobs,
         webhookEvents: opsResult.webhookEvents,
+        unreconciledWebhooks: opsResult.unreconciledWebhooks,
         windows: opsResult.windows,
       };
-      const total = opsResult.jobs + opsResult.webhookEvents;
+      const total = opsResult.jobs + opsResult.webhookEvents + opsResult.unreconciledWebhooks;
       if (total > 0) {
         logger.info('[cron-cleanup] Purged operational rows past retention', {
           jobs: opsResult.jobs,
           webhookEvents: opsResult.webhookEvents,
+          unreconciledWebhooks: opsResult.unreconciledWebhooks,
           windows: opsResult.windows,
           cutoffs: {
             jobs: opsResult.cutoffs.jobs.toISOString(),
             webhookEvents: opsResult.cutoffs.webhookEvents.toISOString(),
+            unreconciledWebhooks: opsResult.cutoffs.unreconciledWebhooks.toISOString(),
           },
         });
       }

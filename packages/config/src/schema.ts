@@ -86,6 +86,13 @@ const optionalSchema = z.object({
     .min(1, 'Must be at least 1 day')
     .max(3650, 'Must not exceed 3650 days (10 years)')
     .default(90),
+  // Resolved rows only — unresolved (open customer-payment bugs) never purged.
+  REVEALUI_WEBHOOK_RECONCILIATION_RETENTION_DAYS: z.coerce
+    .number()
+    .int()
+    .min(1, 'Must be at least 1 day')
+    .max(3650, 'Must not exceed 3650 days (10 years)')
+    .default(90),
 
   // License key signing (RSA-2048 PEM)
   REVEALUI_LICENSE_PRIVATE_KEY: z.string().optional(),

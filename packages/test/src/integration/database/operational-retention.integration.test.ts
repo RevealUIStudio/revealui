@@ -15,7 +15,7 @@
  */
 
 import { cleanupOperational } from '@revealui/db/cleanup';
-import { jobs, processedWebhookEvents } from '@revealui/db/schema';
+import { jobs, processedWebhookEvents, unreconciledWebhooks } from '@revealui/db/schema';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb, type TestDb } from '../../utils/drizzle-test-db.js';
 
@@ -40,13 +40,16 @@ describe('operational-hygiene retention (CR8-P3-02 PR2)', () => {
   beforeEach(async () => {
     await testDb.pglite.exec('DELETE FROM jobs');
     await testDb.pglite.exec('DELETE FROM processed_webhook_events');
+    await testDb.pglite.exec('DELETE FROM unreconciled_webhooks');
     delete process.env.REVEALUI_JOB_RETENTION_DAYS;
     delete process.env.REVEALUI_WEBHOOK_EVENT_RETENTION_DAYS;
+    delete process.env.REVEALUI_WEBHOOK_RECONCILIATION_RETENTION_DAYS;
   });
 
   afterEach(() => {
     delete process.env.REVEALUI_JOB_RETENTION_DAYS;
     delete process.env.REVEALUI_WEBHOOK_EVENT_RETENTION_DAYS;
+    delete process.env.REVEALUI_WEBHOOK_RECONCILIATION_RETENTION_DAYS;
   });
 
   describe('jobs', () => {
@@ -189,6 +192,72 @@ describe('operational-hygiene retention (CR8-P3-02 PR2)', () => {
         'SELECT id FROM processed_webhook_events',
       );
       expect(remaining.rows.map((r) => r.id)).toEqual(['evt_fresh']);
+    });
+  });
+
+  describe('unreconciled_webhooks', () => {
+    it('deletes RESOLVED rows past 90d, keeps unresolved rows forever', async () => {
+      await testDb.drizzle.insert(unreconciledWebhooks).values([
+        {
+          eventId: 'evt_old_resolved',
+          eventType: 'checkout.session.completed',
+          errorTrace: 'stripe timeout',
+          createdAt: daysAgo(200),
+          resolvedAt: daysAgo(100),
+          resolvedBy: 'cron',
+        },
+        {
+          eventId: 'evt_ancient_unresolved',
+          eventType: 'invoice.payment_failed',
+          errorTrace: 'customer unreachable',
+          createdAt: daysAgo(365),
+          resolvedAt: null,
+          resolvedBy: null,
+        },
+        {
+          eventId: 'evt_fresh_resolved',
+          eventType: 'customer.subscription.updated',
+          errorTrace: 'race condition',
+          createdAt: daysAgo(30),
+          resolvedAt: daysAgo(10),
+          resolvedBy: 'admin@revealui.com',
+        },
+      ]);
+
+      const result = await cleanupOperational(asDbOpts());
+
+      expect(result.unreconciledWebhooks).toBe(1);
+      expect(result.windows.unreconciledWebhooks).toBe(90);
+
+      const remaining = await testDb.pglite.query<{ event_id: string }>(
+        'SELECT event_id FROM unreconciled_webhooks ORDER BY event_id',
+      );
+      // ancient-unresolved MUST survive; fresh-resolved survives by window.
+      expect(remaining.rows.map((r) => r.event_id)).toEqual([
+        'evt_ancient_unresolved',
+        'evt_fresh_resolved',
+      ]);
+    });
+
+    it('NEVER purges unresolved rows regardless of age (safety)', async () => {
+      await testDb.drizzle.insert(unreconciledWebhooks).values([
+        {
+          eventId: 'evt_eternal_bug',
+          eventType: 'checkout.session.completed',
+          errorTrace: 'unhandled payment',
+          createdAt: daysAgo(10_000),
+          resolvedAt: null,
+          resolvedBy: null,
+        },
+      ]);
+
+      const result = await cleanupOperational(asDbOpts());
+      expect(result.unreconciledWebhooks).toBe(0);
+
+      const remaining = await testDb.pglite.query<{ event_id: string }>(
+        'SELECT event_id FROM unreconciled_webhooks',
+      );
+      expect(remaining.rows).toHaveLength(1);
     });
   });
 
