@@ -1361,4 +1361,75 @@ describe('POST /refund', () => {
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.status).toBe('pending');
   });
+
+  // ── Idempotency key shape ───────────────────────────────────────────────
+  // The key must NOT include user.id or two admins racing the same support
+  // ticket will create distinct keys and Stripe will issue two refunds.
+  // Binding to `amount || 'full'` converges same-amount refunds across admins.
+  it('idempotency key includes chargeId + amount and excludes user.id', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_key',
+      status: 'succeeded',
+      amount: 2500,
+      currency: 'usd',
+    });
+    const app = createApp(ADMIN_USER);
+    await app.request(post('/refund', { chargeId: 'ch_key', amount: 2500 }));
+
+    expect(mockRefundsCreate).toHaveBeenCalledOnce();
+    const [, opts] = mockRefundsCreate.mock.calls[0] as [unknown, { idempotencyKey: string }];
+    expect(opts.idempotencyKey).toBe('refund-ch_key-2500');
+    expect(opts.idempotencyKey).not.toContain(ADMIN_USER.id);
+  });
+
+  it('full refund (no amount) uses "full" in the idempotency key', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_full',
+      status: 'succeeded',
+      amount: 4900,
+      currency: 'usd',
+    });
+    const app = createApp(ADMIN_USER);
+    await app.request(post('/refund', { chargeId: 'ch_full' }));
+
+    const [, opts] = mockRefundsCreate.mock.calls[0] as [unknown, { idempotencyKey: string }];
+    expect(opts.idempotencyKey).toBe('refund-ch_full-full');
+  });
+
+  it('two admins issuing the same refund produce the same idempotency key', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_race',
+      status: 'succeeded',
+      amount: 1000,
+      currency: 'usd',
+    });
+
+    const appA = createApp(ADMIN_USER);
+    const appB = createApp(OWNER_USER);
+    await appA.request(post('/refund', { chargeId: 'ch_race', amount: 1000 }));
+    await appB.request(post('/refund', { chargeId: 'ch_race', amount: 1000 }));
+
+    expect(mockRefundsCreate).toHaveBeenCalledTimes(2);
+    const [, optsA] = mockRefundsCreate.mock.calls[0] as [unknown, { idempotencyKey: string }];
+    const [, optsB] = mockRefundsCreate.mock.calls[1] as [unknown, { idempotencyKey: string }];
+    expect(optsA.idempotencyKey).toBe(optsB.idempotencyKey);
+  });
+
+  it('different partial refund amounts produce distinct idempotency keys', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_partial',
+      status: 'succeeded',
+      amount: 500,
+      currency: 'usd',
+    });
+    const app = createApp(ADMIN_USER);
+    await app.request(post('/refund', { chargeId: 'ch_partial', amount: 500 }));
+    await app.request(post('/refund', { chargeId: 'ch_partial', amount: 1500 }));
+
+    const [, optsOne] = mockRefundsCreate.mock.calls[0] as [unknown, { idempotencyKey: string }];
+    const [, optsTwo] = mockRefundsCreate.mock.calls[1] as [unknown, { idempotencyKey: string }];
+    expect(optsOne.idempotencyKey).not.toBe(optsTwo.idempotencyKey);
+    expect(optsOne.idempotencyKey).toBe('refund-ch_partial-500');
+    expect(optsTwo.idempotencyKey).toBe('refund-ch_partial-1500');
+  });
 });

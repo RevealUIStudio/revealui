@@ -2088,7 +2088,11 @@ app.openapi(refundRoute, async (c) => {
   }
 
   // R5-H14: Idempotency key prevents duplicate refunds on network retries
-  const idempotencyKey = `refund-${chargeId ?? paymentIntentId}-${user.id}`;
+  // AND deduplicates across concurrent admins working the same support ticket.
+  // Binding to `amount || 'full'` (not `user.id`) keeps partial refunds of
+  // different amounts distinct while converging full refunds and any two
+  // admins issuing the same partial to one Stripe refund.
+  const idempotencyKey = `refund-${chargeId ?? paymentIntentId}-${amount ?? 'full'}`;
 
   const refundParams: Stripe.RefundCreateParams = {
     ...(paymentIntentId ? { payment_intent: paymentIntentId } : {}),
