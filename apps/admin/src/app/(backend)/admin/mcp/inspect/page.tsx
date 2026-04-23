@@ -1,25 +1,25 @@
 /**
  * MCP — Server Inspector (/admin/mcp/inspect?tenant=X&server=Y)
  *
- * Stage 3.2 of the MCP v1 plan. Tool browser + ad-hoc invoker for an
- * OAuth-authorized remote MCP server.
+ * Stage 3.2 + 3.3. Tabbed inspector for an OAuth-authorized remote MCP
+ * server:
+ *   - Tools (3.2)     — `inputSchema` → form → invoke → result.
+ *   - Resources (3.3) — list + read-only preview pane.
+ *   - Prompts (3.3)   — list + completion-aware argument form → resolve.
  *
- * Flow:
- *   1. Reads `?tenant=` and `?server=` from the URL.
- *   2. Fetches `GET /api/mcp/remote-servers/<server>/tools?tenant=<tenant>`.
- *   3. Renders each tool as a collapsible card with an argument form
- *      derived from `Tool.inputSchema` (best-effort — arbitrary JSON strings
- *      for non-trivial schemas).
- *   4. On submit, POSTs `/api/mcp/remote-servers/<server>/call-tool` and
- *      displays the `CallToolResult` content blocks inline.
+ * Reads `?tenant=` and `?server=` from the URL; the top-level "tools" fetch
+ * is always the anchor (it also returns `serverUrl` for the header).
  *
- * Resource/prompt browsing (which would consume the completions handler)
- * lands in Stage 3.3.
+ * Elicitation / progress / log streaming lands in Stage 3.4.
  */
 
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { PromptsPanel } from '@/lib/components/mcp/prompts-panel';
+import { ResourcesPanel } from '@/lib/components/mcp/resources-panel';
+
+type InspectorTab = 'tools' | 'resources' | 'prompts';
 
 interface Tool {
   name: string;
@@ -58,6 +58,7 @@ export default function InspectMcpServerPage() {
   const tenant = useSearchParam('tenant');
   const server = useSearchParam('server');
 
+  const [activeTab, setActiveTab] = useState<InspectorTab>('tools');
   const [tools, setTools] = useState<Tool[]>([]);
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const [state, setState] = useState<LoadState>('idle');
@@ -128,38 +129,67 @@ export default function InspectMcpServerPage() {
         )}
       </div>
 
-      <div className="mx-auto max-w-5xl p-6">
-        {message && (
-          <div
-            role="alert"
-            className={`mb-6 rounded-lg border p-3 text-sm ${
-              state === 'error'
-                ? 'border-red-800 bg-red-900/20 text-red-300'
-                : 'border-zinc-800 bg-zinc-900/50 text-zinc-300'
-            }`}
-          >
-            {message}
-          </div>
-        )}
-
-        {state === 'loading' && (
-          <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
-            Loading tools…
-          </div>
-        )}
-
-        {state === 'ready' && tools.length === 0 && (
-          <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
-            This server doesn&rsquo;t advertise any tools, or the{' '}
-            <span className="font-mono text-zinc-400">tools</span> capability isn&rsquo;t declared.
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {tools.map((tool) => (
-            <ToolCard key={tool.name} tool={tool} tenant={tenant} server={server} />
+      {/* Tabs */}
+      <div className="border-b border-zinc-800 bg-zinc-900/70">
+        <nav className="mx-auto flex max-w-5xl gap-1 px-6" aria-label="Inspector surfaces">
+          {(['tools', 'resources', 'prompts'] as InspectorTab[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setActiveTab(t)}
+              className={`-mb-px border-b-2 px-3 py-2 text-sm capitalize transition-colors ${
+                activeTab === t
+                  ? 'border-emerald-500 text-emerald-300'
+                  : 'border-transparent text-zinc-400 hover:text-zinc-200'
+              }`}
+              aria-current={activeTab === t ? 'page' : undefined}
+            >
+              {t}
+            </button>
           ))}
-        </div>
+        </nav>
+      </div>
+
+      <div className="mx-auto max-w-5xl p-6">
+        {activeTab === 'tools' && (
+          <>
+            {message && (
+              <div
+                role="alert"
+                className={`mb-6 rounded-lg border p-3 text-sm ${
+                  state === 'error'
+                    ? 'border-red-800 bg-red-900/20 text-red-300'
+                    : 'border-zinc-800 bg-zinc-900/50 text-zinc-300'
+                }`}
+              >
+                {message}
+              </div>
+            )}
+
+            {state === 'loading' && (
+              <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+                Loading tools…
+              </div>
+            )}
+
+            {state === 'ready' && tools.length === 0 && (
+              <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/30 p-6 text-center text-sm text-zinc-500">
+                This server doesn&rsquo;t advertise any tools, or the{' '}
+                <span className="font-mono text-zinc-400">tools</span> capability isn&rsquo;t
+                declared.
+              </div>
+            )}
+
+            <div className="space-y-4">
+              {tools.map((tool) => (
+                <ToolCard key={tool.name} tool={tool} tenant={tenant} server={server} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {activeTab === 'resources' && <ResourcesPanel tenant={tenant} server={server} />}
+        {activeTab === 'prompts' && <PromptsPanel tenant={tenant} server={server} />}
       </div>
     </div>
   );
