@@ -11,7 +11,6 @@ import {
   getGraceConfig,
   getLicensePayload,
   getLicenseStatus,
-  isLicensed,
   type LicenseTier,
 } from '@revealui/core/license';
 import type { MiddlewareHandler } from 'hono';
@@ -46,78 +45,9 @@ type FeatureGateOptions = {
   mode?: FeatureGateMode;
 };
 
-function tierRank(tier: LicenseTier): number {
-  return { free: 0, pro: 1, max: 2, enterprise: 3 }[tier];
-}
-
 function getRequestEntitlements(c: { get: (key: string) => unknown }): RequestEntitlements | null {
   return (c.get('entitlements') as RequestEntitlements | undefined) ?? null;
 }
-
-/**
- * Require a minimum license tier to access the route.
- *
- * When x402 is enabled and the user's tier is insufficient:
- * 1. Checks for X-PAYMENT-PAYLOAD header (agent already paid via x402)
- * 2. If valid payment: proceeds
- * 3. If no payment: returns 402 with X-PAYMENT-REQUIRED header + upgrade_url
- *
- * When x402 is disabled: returns 403 (original behavior).
- */
-export const requireLicense = (minimumTier: LicenseTier): MiddlewareHandler => {
-  return async (c, next) => {
-    const requestEntitlements = getRequestEntitlements(c);
-    const currentTier = requestEntitlements?.tier ?? getCurrentTier();
-    const allowed = requestEntitlements?.tier
-      ? tierRank(currentTier) >= tierRank(minimumTier)
-      : isLicensed(minimumTier);
-
-    if (!allowed) {
-      const x402 = getX402Config();
-
-      if (x402.enabled) {
-        // Check if agent already paid via x402
-        const paymentHeader = c.req.header('x-payment-payload');
-        if (paymentHeader) {
-          const resource = new URL(c.req.url).pathname;
-          const result = await verifyPayment(paymentHeader, resource);
-          if (result.valid) {
-            await next();
-            return;
-          }
-        }
-
-        // Return 402 with payment instructions
-        const resource = new URL(c.req.url).pathname;
-        const paymentRequired = buildPaymentRequired(resource);
-
-        return c.json(
-          {
-            success: false as const,
-            error: `This endpoint requires a ${minimumTier} license. Current tier: ${currentTier}.`,
-            code: 'HTTP_402',
-            upgrade_url: PRICING_URL,
-          },
-          402,
-          {
-            'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired),
-            'X-REVEALUI-FEATURE': minimumTier,
-          },
-        );
-      }
-
-      return c.json(
-        {
-          success: false as const,
-          error: `This endpoint requires a ${minimumTier} license. Current tier: ${currentTier}. Upgrade at ${PRICING_URL}`,
-          code: 'HTTP_403',
-        },
-        403,
-      );
-    }
-    return next();
-  };
-};
 
 /**
  * Require a specific feature to be enabled.
