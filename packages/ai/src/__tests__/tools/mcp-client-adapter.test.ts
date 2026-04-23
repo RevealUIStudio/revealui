@@ -429,7 +429,13 @@ describe('createToolsFromMcpClient — prompts (Stage 5.1b)', () => {
     const getTool = tools.find((t) => t.name === 'mcp_srv__get_prompt');
     await getTool?.execute({ name: 'greet', args: { user: 'alice', style: 'formal' } });
 
-    expect(getPromptSpy).toHaveBeenCalledWith('greet', { user: 'alice', style: 'formal' });
+    // The adapter always passes a third `options` argument; it's `undefined` when
+    // onProgress + signal are both absent (Stage 5.3 wiring).
+    expect(getPromptSpy).toHaveBeenCalledWith(
+      'greet',
+      { user: 'alice', style: 'formal' },
+      undefined,
+    );
   });
 
   it('get_prompt rejects non-string argument values (per MCP spec)', async () => {
@@ -463,6 +469,116 @@ describe('createToolsFromMcpClient — prompts (Stage 5.1b)', () => {
     const tools = await createToolsFromMcpClient(client, { namespace: 'minimal' });
     expect(tools.some((t) => t.name === 'mcp_minimal__list_prompts')).toBe(false);
     expect(tools.some((t) => t.name === 'mcp_minimal__get_prompt')).toBe(false);
+  });
+});
+
+describe('createToolsFromMcpClient — progress + signal (Stage 5.3)', () => {
+  it('forwards onProgress to server tool calls with namespace + toolName context', async () => {
+    const events: unknown[] = [];
+    const client = makeClient(
+      [{ name: 'long_op', inputSchema: { type: 'object', properties: {} } }],
+      async (_name, _args) => ({ content: [] }),
+    );
+    // Simulate the SDK calling onProgress mid-request.
+    client.callTool = vi.fn(async (_name, _args, options) => {
+      const onProgress = (options as { onProgress?: (p: unknown) => void } | undefined)?.onProgress;
+      onProgress?.({ progress: 25, total: 100, message: 'working' });
+      onProgress?.({ progress: 75, total: 100 });
+      return { content: [] };
+    });
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      onProgress: (event) => events.push(event),
+    });
+    await tools[0]?.execute({});
+
+    expect(events).toEqual([
+      {
+        namespace: 'srv',
+        toolName: 'long_op',
+        progress: { progress: 25, total: 100, message: 'working' },
+      },
+      {
+        namespace: 'srv',
+        toolName: 'long_op',
+        progress: { progress: 75, total: 100 },
+      },
+    ]);
+  });
+
+  it('forwards signal to server tool calls', async () => {
+    const captured: Array<unknown> = [];
+    const client = makeClient(
+      [{ name: 'op', inputSchema: { type: 'object', properties: {} } }],
+      async () => ({ content: [] }),
+    );
+    client.callTool = vi.fn(async (_name, _args, options) => {
+      captured.push(options);
+      return { content: [] };
+    });
+    const controller = new AbortController();
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      signal: controller.signal,
+    });
+    await tools[0]?.execute({});
+
+    const firstCall = captured[0] as { signal?: AbortSignal } | undefined;
+    expect(firstCall?.signal).toBe(controller.signal);
+  });
+
+  it('passes undefined request options when neither onProgress nor signal is set', async () => {
+    const captured: Array<unknown> = [];
+    const client = makeClient(
+      [{ name: 'op', inputSchema: { type: 'object', properties: {} } }],
+      async () => ({ content: [] }),
+    );
+    client.callTool = vi.fn(async (_name, _args, options) => {
+      captured.push(options);
+      return { content: [] };
+    });
+
+    const tools = await createToolsFromMcpClient(client, { namespace: 'srv' });
+    await tools[0]?.execute({});
+
+    // Undefined, not an empty object — keeps the RPC frame clean.
+    expect(captured[0]).toBeUndefined();
+  });
+
+  it('forwards onProgress + signal to resource + prompt meta-tools as well', async () => {
+    const events: unknown[] = [];
+    const listResourceCalls: unknown[] = [];
+    const readResourceCalls: unknown[] = [];
+    const client: McpClientLike = {
+      listTools: vi.fn().mockResolvedValue([]),
+      callTool: vi.fn().mockResolvedValue({ content: [] }),
+      listResources: vi.fn(async (options) => {
+        listResourceCalls.push(options);
+        return [];
+      }),
+      readResource: vi.fn(async (_uri, options) => {
+        readResourceCalls.push(options);
+        return [];
+      }),
+    };
+    const controller = new AbortController();
+
+    const tools = await createToolsFromMcpClient(client, {
+      namespace: 'srv',
+      signal: controller.signal,
+      onProgress: (e) => events.push(e),
+    });
+    const listTool = tools.find((t) => t.name === 'mcp_srv__list_resources');
+    const readTool = tools.find((t) => t.name === 'mcp_srv__read_resource');
+    await listTool?.execute({});
+    await readTool?.execute({ uri: 'x://y' });
+
+    const listOpts = listResourceCalls[0] as { signal?: AbortSignal };
+    const readOpts = readResourceCalls[0] as { signal?: AbortSignal };
+    expect(listOpts.signal).toBe(controller.signal);
+    expect(readOpts.signal).toBe(controller.signal);
   });
 });
 

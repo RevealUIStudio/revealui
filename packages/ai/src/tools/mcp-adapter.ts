@@ -172,6 +172,41 @@ export interface CreateToolsFromMcpClientOptions {
     resources?: boolean;
     prompts?: boolean;
   };
+  /**
+   * Progress observability hook (Stage 5.3). Every server tool call made
+   * through the wrapped `Tool.execute()` forwards per-request progress
+   * notifications here. Resource + prompt meta-tools don't emit
+   * progress (they're single-shot lookups).
+   */
+  onProgress?: (event: McpProgressEvent) => void;
+  /**
+   * Optional `AbortSignal` forwarded to every server tool call (Stage
+   * 5.3). When the signal aborts, in-flight MCP RPC calls are
+   * cancelled via `notifications/cancelled` per the MCP spec. Useful
+   * for wiring a consumer-facing cancel button into an active
+   * agent run. Resource/prompt meta-tools also receive the signal.
+   */
+  signal?: AbortSignal;
+}
+
+/** Spec-shaped `Progress` notification subset. */
+export interface McpProgressLike {
+  /** Monotonically increasing progress token value. */
+  progress: number;
+  /** Total expected units of work, when the server knows it. */
+  total?: number;
+  /** Human-readable status message. */
+  message?: string;
+}
+
+/** Event payload forwarded to `onProgress`. */
+export interface McpProgressEvent {
+  /** Namespace the tool belongs to (for multi-client agents). */
+  namespace: string;
+  /** Wrapped tool name that emitted the event (without the `mcp_<ns>__` prefix). */
+  toolName: string;
+  /** Progress payload as reported by the server. */
+  progress: McpProgressLike;
 }
 
 /**
@@ -212,6 +247,12 @@ export async function createToolsFromMcpClient(
   const includeTools = options.include?.tools !== false;
   const includeResources = options.include?.resources !== false;
   const includePrompts = options.include?.prompts !== false;
+  const ctx: BuildToolContext = {
+    namespace: options.namespace,
+    category,
+    ...(options.onProgress !== undefined ? { onProgress: options.onProgress } : {}),
+    ...(options.signal !== undefined ? { signal: options.signal } : {}),
+  };
 
   const tools: Tool[] = [];
 
@@ -219,43 +260,77 @@ export async function createToolsFromMcpClient(
   if (includeTools) {
     const descriptors = await client.listTools();
     for (const descriptor of descriptors) {
-      tools.push(buildServerTool(client, descriptor, options.namespace, category));
+      tools.push(buildServerTool(client, descriptor, ctx));
     }
   }
 
   // --- Resource meta-tools (Stage 5.1b) ----------------------------------
   if (includeResources && client.listResources && client.readResource) {
-    tools.push(buildListResourcesTool(client, options.namespace, category));
-    tools.push(buildReadResourceTool(client, options.namespace, category));
+    tools.push(buildListResourcesTool(client, ctx));
+    tools.push(buildReadResourceTool(client, ctx));
   }
 
   // --- Prompt meta-tools (Stage 5.1b) ------------------------------------
   if (includePrompts && client.listPrompts && client.getPrompt) {
-    tools.push(buildListPromptsTool(client, options.namespace, category));
-    tools.push(buildGetPromptTool(client, options.namespace, category));
+    tools.push(buildListPromptsTool(client, ctx));
+    tools.push(buildGetPromptTool(client, ctx));
   }
 
   return tools;
 }
 
+/**
+ * Internal context bundled per-`createToolsFromMcpClient` call and
+ * handed to every `build*Tool` helper. Keeps the signature manageable
+ * once options grow beyond name + category (Stage 5.3 added progress +
+ * signal threading).
+ */
+interface BuildToolContext {
+  namespace: string;
+  category: string;
+  onProgress?: (event: McpProgressEvent) => void;
+  signal?: AbortSignal;
+}
+
+/**
+ * Build the request-options object passed to `client.callTool()` /
+ * `readResource()` / etc. Wraps the ctx's `onProgress` with the
+ * specific tool name + namespace so every emitted event is attributable.
+ */
+function buildRequestOptions(
+  ctx: BuildToolContext,
+  toolName: string,
+): { onProgress?: (progress: McpProgressLike) => void; signal?: AbortSignal } | undefined {
+  const opts: { onProgress?: (progress: McpProgressLike) => void; signal?: AbortSignal } = {};
+  if (ctx.onProgress) {
+    const emit = ctx.onProgress;
+    opts.onProgress = (progress) => emit({ namespace: ctx.namespace, toolName, progress });
+  }
+  if (ctx.signal) opts.signal = ctx.signal;
+  return opts.onProgress || opts.signal ? opts : undefined;
+}
+
 function buildServerTool(
   client: McpClientLike,
   descriptor: McpToolDescriptor,
-  namespace: string,
-  category: string,
+  ctx: BuildToolContext,
 ): Tool {
   const zodSchema = jsonSchemaObjectToZod(descriptor.inputSchema);
-  const namespacedName = `mcp_${namespace}__${descriptor.name}`;
+  const namespacedName = `mcp_${ctx.namespace}__${descriptor.name}`;
   return {
     name: namespacedName,
     label: descriptor.name,
-    description: descriptor.description ?? `${namespace}: ${descriptor.name}`,
+    description: descriptor.description ?? `${ctx.namespace}: ${descriptor.name}`,
     parameters: zodSchema,
 
     async execute(params: unknown): Promise<ToolResult> {
       const validated = zodSchema.parse(params);
       try {
-        const result = await client.callTool(descriptor.name, validated as Record<string, unknown>);
+        const result = await client.callTool(
+          descriptor.name,
+          validated as Record<string, unknown>,
+          buildRequestOptions(ctx, descriptor.name),
+        );
         if (result.isError) {
           return { success: false, error: extractErrorText(result) };
         }
@@ -270,21 +345,22 @@ function buildServerTool(
     },
 
     getMetadata() {
-      return { category, version: '1.0.0', mcpNamespace: namespace };
+      return { category: ctx.category, version: '1.0.0', mcpNamespace: ctx.namespace };
     },
   };
 }
 
-function buildListResourcesTool(client: McpClientLike, namespace: string, category: string): Tool {
+function buildListResourcesTool(client: McpClientLike, ctx: BuildToolContext): Tool {
   return {
-    name: `mcp_${namespace}__list_resources`,
+    name: `mcp_${ctx.namespace}__list_resources`,
     label: 'list_resources',
-    description: `List resources exposed by the ${namespace} MCP server. Returns an array of { uri, name, description?, mimeType? }.`,
+    description: `List resources exposed by the ${ctx.namespace} MCP server. Returns an array of { uri, name, description?, mimeType? }.`,
     parameters: z.object({}),
 
     async execute(): Promise<ToolResult> {
       try {
-        const resources = (await client.listResources?.()) ?? [];
+        const resources =
+          (await client.listResources?.(buildRequestOptions(ctx, 'list_resources'))) ?? [];
         return { success: true, data: serializeMCPResult(resources) };
       } catch (error) {
         return {
@@ -295,25 +371,31 @@ function buildListResourcesTool(client: McpClientLike, namespace: string, catego
     },
 
     getMetadata() {
-      return { category, version: '1.0.0', mcpNamespace: namespace, kind: 'resources' };
+      return {
+        category: ctx.category,
+        version: '1.0.0',
+        mcpNamespace: ctx.namespace,
+        kind: 'resources',
+      };
     },
   };
 }
 
-function buildReadResourceTool(client: McpClientLike, namespace: string, category: string): Tool {
+function buildReadResourceTool(client: McpClientLike, ctx: BuildToolContext): Tool {
   const paramsSchema = z.object({
     uri: z.string().min(1).describe('Resource URI to read (e.g. revealui-content://posts/abc)'),
   });
   return {
-    name: `mcp_${namespace}__read_resource`,
+    name: `mcp_${ctx.namespace}__read_resource`,
     label: 'read_resource',
-    description: `Read a resource by URI from the ${namespace} MCP server. Returns the resource contents (text parts flattened to a joined string when possible).`,
+    description: `Read a resource by URI from the ${ctx.namespace} MCP server. Returns the resource contents (text parts flattened to a joined string when possible).`,
     parameters: paramsSchema,
 
     async execute(params: unknown): Promise<ToolResult> {
       const { uri } = paramsSchema.parse(params);
       try {
-        const contents = (await client.readResource?.(uri)) ?? [];
+        const contents =
+          (await client.readResource?.(uri, buildRequestOptions(ctx, 'read_resource'))) ?? [];
         const joinedText = flattenResourceText(contents);
         const base: ToolResult = {
           success: true,
@@ -329,21 +411,27 @@ function buildReadResourceTool(client: McpClientLike, namespace: string, categor
     },
 
     getMetadata() {
-      return { category, version: '1.0.0', mcpNamespace: namespace, kind: 'resources' };
+      return {
+        category: ctx.category,
+        version: '1.0.0',
+        mcpNamespace: ctx.namespace,
+        kind: 'resources',
+      };
     },
   };
 }
 
-function buildListPromptsTool(client: McpClientLike, namespace: string, category: string): Tool {
+function buildListPromptsTool(client: McpClientLike, ctx: BuildToolContext): Tool {
   return {
-    name: `mcp_${namespace}__list_prompts`,
+    name: `mcp_${ctx.namespace}__list_prompts`,
     label: 'list_prompts',
-    description: `List prompts exposed by the ${namespace} MCP server. Returns an array of { name, description?, arguments? }.`,
+    description: `List prompts exposed by the ${ctx.namespace} MCP server. Returns an array of { name, description?, arguments? }.`,
     parameters: z.object({}),
 
     async execute(): Promise<ToolResult> {
       try {
-        const prompts = (await client.listPrompts?.()) ?? [];
+        const prompts =
+          (await client.listPrompts?.(buildRequestOptions(ctx, 'list_prompts'))) ?? [];
         return { success: true, data: serializeMCPResult(prompts) };
       } catch (error) {
         return {
@@ -354,12 +442,17 @@ function buildListPromptsTool(client: McpClientLike, namespace: string, category
     },
 
     getMetadata() {
-      return { category, version: '1.0.0', mcpNamespace: namespace, kind: 'prompts' };
+      return {
+        category: ctx.category,
+        version: '1.0.0',
+        mcpNamespace: ctx.namespace,
+        kind: 'prompts',
+      };
     },
   };
 }
 
-function buildGetPromptTool(client: McpClientLike, namespace: string, category: string): Tool {
+function buildGetPromptTool(client: McpClientLike, ctx: BuildToolContext): Tool {
   const paramsSchema = z.object({
     name: z.string().min(1).describe('Prompt name to retrieve'),
     args: z
@@ -368,15 +461,15 @@ function buildGetPromptTool(client: McpClientLike, namespace: string, category: 
       .describe('Prompt arguments as a string-valued map (per MCP spec)'),
   });
   return {
-    name: `mcp_${namespace}__get_prompt`,
+    name: `mcp_${ctx.namespace}__get_prompt`,
     label: 'get_prompt',
-    description: `Get a resolved prompt from the ${namespace} MCP server. Returns { description?, messages } — messages is an array of { role, content }.`,
+    description: `Get a resolved prompt from the ${ctx.namespace} MCP server. Returns { description?, messages } — messages is an array of { role, content }.`,
     parameters: paramsSchema,
 
     async execute(params: unknown): Promise<ToolResult> {
       const { name, args } = paramsSchema.parse(params);
       try {
-        const result = await client.getPrompt?.(name, args);
+        const result = await client.getPrompt?.(name, args, buildRequestOptions(ctx, 'get_prompt'));
         if (!result) {
           return { success: false, error: 'client does not implement getPrompt' };
         }
@@ -395,7 +488,12 @@ function buildGetPromptTool(client: McpClientLike, namespace: string, category: 
     },
 
     getMetadata() {
-      return { category, version: '1.0.0', mcpNamespace: namespace, kind: 'prompts' };
+      return {
+        category: ctx.category,
+        version: '1.0.0',
+        mcpNamespace: ctx.namespace,
+        kind: 'prompts',
+      };
     },
   };
 }

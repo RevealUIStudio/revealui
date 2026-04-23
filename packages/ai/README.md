@@ -111,7 +111,60 @@ const toolsOnly = await createToolsFromMcpClient(client, {
 })
 ```
 
-Stage 5.3 surfaces elicitation + progress + cancellation in agent UI.
+### Elicitation, progress, cancellation (Stage 5.3)
+
+MCP servers can ask the user for structured input mid-flow
+(`elicitation/create`), report progress on long-running tool calls, and
+respect cancellation. `@revealui/ai` wires all three through consumer
+callbacks — the agent package stays UI-agnostic:
+
+```typescript
+import { McpClient } from '@revealui/mcp/client'
+import { createElicitationHandler, createToolsFromMcpClient } from '@revealui/ai'
+
+const controller = new AbortController() // wire to a UI cancel button
+
+const client = new McpClient({
+  clientInfo: { name: 'my-agent', version: '1.0.0' },
+  transport: { kind: 'streamable-http', url: '…' },
+  elicitationHandler: createElicitationHandler({
+    onElicit: async ({ message, requestedSchema }) => {
+      const form = await showFormDialog({ title: message, schema: requestedSchema })
+      if (!form) return { action: 'cancel' }
+      return { action: 'accept', content: form.values }
+    },
+    timeoutMs: 60_000,         // auto-cancel if no response
+    // allowUrlMode: false      // default — URL-mode auto-declines
+  }),
+})
+await client.connect()
+
+const tools = await createToolsFromMcpClient(client, {
+  namespace: 'content',
+  signal: controller.signal,    // cancel all MCP RPC when aborted
+  onProgress: (event) => {      // per-tool-call progress events
+    progressBar.update(event.toolName, event.progress.progress, event.progress.total)
+  },
+})
+```
+
+**Elicitation safety:**
+- `mode: 'url'` (out-of-band consent) is auto-declined unless
+  `allowUrlMode: true`. URL-mode is a phishing vector when users can't
+  easily verify the target domain.
+- `timeoutMs` auto-cancels (not declines) when no response arrives.
+  Useful in headless automation.
+- Errors thrown inside `onElicit` map to `{ action: 'cancel' }` — the
+  server sees a clean non-response, not a crashed protocol.
+
+**Progress events** are forwarded from the server's
+`notifications/progress` stream with the namespace + tool name stamped
+for multi-client attribution. Resource + prompt meta-tools also emit
+(via their own `notifications/progress` flows).
+
+**Cancellation** uses the MCP spec's `notifications/cancelled` — aborting
+the `AbortSignal` propagates to in-flight RPC calls on the wire, so
+long-running operations stop instead of just being ignored.
 
 ### Recursive sampling (Stage 5.2)
 
