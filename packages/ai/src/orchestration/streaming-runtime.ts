@@ -17,8 +17,40 @@ import { ToolCallDeduplicator } from '../tools/deduplicator.js';
 import type { Agent, Task } from './agent.js';
 import { AgentRuntime, type RuntimeConfig } from './runtime.js';
 
+/**
+ * Chunk types emitted over the agent-stream SSE channel.
+ *
+ * The generator in `StreamingAgentRuntime.streamTask` emits the core turn
+ * events (`text`, `tool_call_start`, `tool_call_result`, `error`, `done`).
+ *
+ * Side-channel events originate outside the generator — route-level
+ * handlers (MCP sampling / elicitation) write them to the SSE stream
+ * directly between turns:
+ *
+ *   - `session_info` — emitted once at stream start with the
+ *     agent-run session id. Clients use the id to POST elicitation
+ *     responses back via `POST /api/agent-stream/elicit`.
+ *   - `sampling_request` — fired when a connected MCP server calls
+ *     `sampling/create`; the handler services the request synchronously
+ *     and emits this chunk for observability.
+ *   - `elicitation_request` — fired when a connected MCP server calls
+ *     `elicitation/create`; the handler pauses waiting for a POST
+ *     response keyed on `(sessionId, elicitationId)`.
+ *
+ * A.2b of the post-v1 MCP arc — the side-channel types are defined here
+ * so the `useAgentStream` consumer + future UI can narrow on them.
+ * A.2b-backend wires the emission; A.2b-frontend renders them.
+ */
 export interface AgentStreamChunk {
-  type: 'text' | 'tool_call_start' | 'tool_call_result' | 'error' | 'done';
+  type:
+    | 'text'
+    | 'tool_call_start'
+    | 'tool_call_result'
+    | 'error'
+    | 'done'
+    | 'session_info'
+    | 'sampling_request'
+    | 'elicitation_request';
   content?: string;
   toolCall?: { name: string; arguments: string };
   toolResult?: ToolResult;
@@ -26,6 +58,29 @@ export interface AgentStreamChunk {
   metadata?: {
     tokensUsed?: number;
     executionTime?: number;
+  };
+  /**
+   * Present on `session_info`, `sampling_request`, `elicitation_request`.
+   * Identifies the agent-run session; clients key elicitation POSTs on
+   * this.
+   */
+  sessionId?: string;
+  /**
+   * Namespace (MCP server id) the side-channel event originated from.
+   * Present on `sampling_request` + `elicitation_request`.
+   */
+  namespace?: string;
+  /** Present on `sampling_request` — requested model + shape. */
+  sampling?: {
+    model: string;
+    messageCount: number;
+    maxTokens: number;
+  };
+  /** Present on `elicitation_request` — form payload. */
+  elicitation?: {
+    elicitationId: string;
+    requestedSchema: unknown;
+    message?: string;
   };
 }
 
