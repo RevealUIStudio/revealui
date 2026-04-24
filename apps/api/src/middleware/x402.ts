@@ -212,13 +212,13 @@ export function buildPaymentRequired(resource: string, customPrice?: string): Pa
       network: config.rvuiNetwork,
       maxAmountRequired: toRvuiAtomicUnits(discountedPrice),
       resource,
-      description: `RevealUI agent task — ${discountedPrice} USD in RVUI (20% discount)`,
+      description: `RevealUI agent task — ${discountedPrice} USD in RVC (20% discount)`,
       mimeType: 'application/json',
       outputSchema: {},
       payTo: config.rvuiReceivingAddress,
       maxTimeoutSeconds: config.maxTimeoutSeconds,
       asset: config.rvuiAsset,
-      extra: { name: 'RVUI', version: '1', discount: '20%' },
+      extra: { name: 'RVC', version: '1', discount: '20%' },
     });
   }
 
@@ -372,12 +372,12 @@ export function buildPaymentMethods(baseUrl: string): Record<string, unknown> | 
       network: config.rvuiNetwork,
       maxAmountRequired: toRvuiAtomicUnits(discountedPrice),
       resource: `${baseUrl}/api/agent-stream`,
-      description: `RevealUI agent task — ${discountedPrice} USD in RVUI (20% discount)`,
+      description: `RevealUI agent task — ${discountedPrice} USD in RVC (20% discount)`,
       mimeType: 'application/json',
       payTo: config.rvuiReceivingAddress,
       maxTimeoutSeconds: config.maxTimeoutSeconds,
       asset: config.rvuiAsset,
-      extra: { name: 'RVUI', version: '1', discount: '20%' },
+      extra: { name: 'RVC', version: '1', discount: '20%' },
     });
   }
 

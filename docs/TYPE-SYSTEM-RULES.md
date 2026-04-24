@@ -160,7 +160,7 @@ import type { CollectionMetadata } from '@revealui/ai/tools/admin'
 
 ### Automated Checks
 
-1. **ESLint Rule**: `@typescript-eslint/consistent-type-imports`
+1. **Biome rule**: `style/useImportType` (equivalent of `@typescript-eslint/consistent-type-imports`)
    - Enforces `import type` syntax
    - Catches missing type imports
 
@@ -168,7 +168,7 @@ import type { CollectionMetadata } from '@revealui/ai/tools/admin'
    - Prevents `any` types
    - Requires explicit types
 
-3. **Custom ESLint Rule** (Planned): `revealui/no-inline-types`
+3. **Custom Biome rule** (planned): `revealui/no-inline-types`
    - Detects inline object types in annotations
    - Suggests contract type imports
 
@@ -375,7 +375,7 @@ If you find code violating these rules:
 
 Planned tooling:
 - `pnpm ops migrate:inline-types` - Detect and suggest replacements
-- ESLint auto-fix for simple cases
+- Biome auto-fix for simple cases (once the custom rule lands)
 - Codemod for common patterns
 
 ---
@@ -444,7 +444,7 @@ const temp: { id: string } = getTempData()
 
 - ✅ Linting rules configured (Biome)
 - ✅ Pre-commit hooks active
-- 🚧 Custom ESLint rule (planned)
+- 🚧 Custom Biome rule (planned)
 - 🚧 Automated migration tool (planned)
 - ✅ Code review checklist updated
 

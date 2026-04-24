@@ -386,7 +386,9 @@ describe('RVUI payment discovery', () => {
     expect(rvuiMethod.scheme).toBe('solana-spl');
     expect(rvuiMethod.network).toBe('solana:devnet');
     expect(rvuiMethod.payTo).toBe('SolanaTestWallet123');
-    expect(rvuiMethod.extra).toEqual({ name: 'RVUI', version: '1', discount: '20%' });
+    // extra.name is the customer-facing on-chain ticker (RVC), distinct from
+    // the internal RVUI_* env vars + variable names (Kingdom taxonomy split).
+    expect(rvuiMethod.extra).toEqual({ name: 'RVC', version: '1', discount: '20%' });
   });
 
   it('applies 20% discount to RVUI price', () => {

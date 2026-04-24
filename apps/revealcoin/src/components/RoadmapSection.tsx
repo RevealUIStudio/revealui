@@ -1,25 +1,45 @@
-const milestones = [
+type MilestoneStatus = 'current' | 'upcoming' | 'complete';
+
+interface Milestone {
+  phase: string;
+  title: string;
+  status: MilestoneStatus;
+  items: string[];
+}
+
+const milestones: Milestone[] = [
   {
-    phase: 'Phase 1',
-    title: 'Token Launch',
-    status: 'complete' as const,
+    phase: 'Phase 0',
+    title: 'Foundation',
+    status: 'current',
     items: [
       'Token-2022 mint deployed',
-      'Full supply distributed to allocations',
-      'Vesting custody enforced',
+      'Allocations defined + custody-enforced vesting',
       'Metadata on Arweave',
+      'On-chain vesting migration (in design)',
+      'Multi-sig on mint authority (pending)',
+    ],
+  },
+  {
+    phase: 'Phase 1',
+    title: 'Public Distribution',
+    status: 'upcoming',
+    items: [
+      'Gated on: on-chain vesting + multi-sig complete',
+      'Initial liquidity seeding',
+      'Community channels + public communication',
     ],
   },
   {
     phase: 'Phase 2',
     title: 'Liquidity & Trading',
-    status: 'current' as const,
+    status: 'upcoming',
     items: ['Raydium CPMM pool creation', 'Jupiter aggregator listing', 'Price oracle (TWAP)'],
   },
   {
     phase: 'Phase 3',
     title: 'Marketplace Integration',
-    status: 'upcoming' as const,
+    status: 'upcoming',
     items: [
       'RVC payments in RevealUI marketplace',
       'x402 micropayment protocol',
@@ -29,7 +49,7 @@ const milestones = [
   {
     phase: 'Phase 4',
     title: 'Governance',
-    status: 'upcoming' as const,
+    status: 'upcoming',
     items: [
       'Proposal creation & voting',
       'Treasury spend visibility',

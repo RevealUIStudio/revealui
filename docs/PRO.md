@@ -20,6 +20,7 @@ Per-user or perpetual licenses can still exist for narrowly scoped products, but
 - [Overview](#overview)
 - [Commercial Model](#commercial-model)
 - [What Pro Includes](#what-pro-includes)
+- [Licensing (Fair Source + MIT)](#licensing-fair-source--mit)
 - [MCP Setup](#mcp-setup)
 - [MCP Servers](#mcp-servers)
 - [Getting API Keys](#getting-api-keys)
@@ -95,6 +96,23 @@ RevealUI is part of a four-project ecosystem. Each project has features distribu
 | RevealCoin x402 agent payments | | | | Yes |
 
 The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free forever. Commercial features (desktop app, rotation engine, provisioning, x402 payments) require the corresponding tier.
+
+## Licensing (Fair Source + MIT)
+
+RevealUI publishes every package to npm from the same public repo. There are two source licenses in play:
+
+- **OSS packages (MIT):** `@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/security`, `@revealui/utils`, `@revealui/config`, `@revealui/cache`, `@revealui/resilience`, `@revealui/openapi`, `@revealui/sync`, `@revealui/mcp`, and the rest of the public infrastructure. Use them however you want — commercial products, forks, SaaS, whatever.
+- **Pro packages (Fair Source, FSL-1.1-MIT):** `@revealui/ai` and `@revealui/harnesses`. Source-visible in the public repo, installable from npm like any other package, with one legal constraint: you can't build a product that competes directly with RevealUI on top of them. Two years after each release the license on that release automatically converts to plain MIT. FSL-1.1 is the same license used by Sentry, GitButler, and Keygen.
+
+**What this means in practice:**
+
+- You get full source access to the Pro packages for audit, security review, bug reports, and self-service debugging. No "black box" you have to trust.
+- You can use the Pro packages commercially as long as your product isn't a substantially similar developer platform competing with RevealUI. Building a SaaS product on top of the AI primitives, agents, editors, harnesses, or MCP marketplace is fine. Publishing a competing "platform software sold at the account or workspace level" isn't.
+- Every Pro release has a scheduled MIT-conversion date two years out. You can see the history in the package's changelog, and today's FSL source becomes tomorrow's MIT source.
+
+The Pro tier gate isn't enforced by the license — it's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are RS256-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
+
+For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-003-fair-source-licensing.md). Root-level `LICENSE` (MIT) and `LICENSE.FSL` describe the terms verbatim.
 
 ## MCP Setup
 
