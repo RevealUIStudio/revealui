@@ -71,6 +71,7 @@ import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
 import adminObservabilityRoute from './routes/admin/observability.js';
 import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
+import agentStreamElicitRoute from './routes/agent-stream-elicit.js';
 import agentTasksRoute from './routes/agent-tasks.js';
 import apiKeysRoute from './routes/api-keys.js';
 import authRoute from './routes/auth.js';
@@ -752,6 +753,8 @@ app.post('/api/agent-tasks/*', writeProtected);
 app.post('/api/v1/agent-tasks/*', writeProtected);
 app.post('/api/agent-stream', writeProtected);
 app.post('/api/v1/agent-stream', writeProtected);
+app.post('/api/agent-stream/elicit', writeProtected);
+app.post('/api/v1/agent-stream/elicit', writeProtected);
 app.get('/api/rag/*', writeProtected);
 app.get('/api/v1/rag/*', writeProtected);
 app.post('/api/rag/*', writeProtected);
@@ -1044,6 +1047,12 @@ app.route('/api/webhooks', webhooksRoute);
 app.route('/api/provenance', provenanceRoute);
 app.route('/api/tickets', ticketsRoute);
 app.route('/api/agent-tasks', agentTasksRoute);
+// A.2b: elicitation-response endpoint for in-flight agent runs. Mounted
+// BEFORE the parent `/api/agent-stream` route so Hono's trie-based router
+// matches the more-specific path first. The OpenAPIHono instance for
+// agent-stream is already bound to `/` for its POST streaming handler, so
+// elicit must be a sibling rather than a sub-route.
+app.route('/api/agent-stream/elicit', agentStreamElicitRoute);
 app.route('/api/agent-stream', agentStreamRoute);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
@@ -1098,6 +1107,7 @@ app.route('/api/v1/webhooks', webhooksRoute);
 app.route('/api/v1/provenance', provenanceRoute);
 app.route('/api/v1/tickets', ticketsRoute);
 app.route('/api/v1/agent-tasks', agentTasksRoute);
+app.route('/api/v1/agent-stream/elicit', agentStreamElicitRoute);
 app.route('/api/v1/agent-stream', agentStreamRoute);
 app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);

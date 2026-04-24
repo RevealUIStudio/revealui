@@ -147,6 +147,23 @@ function parseSse(text: string): SseEvent[] {
   return events;
 }
 
+/**
+ * A.2b emits a `session_info` chunk as the FIRST SSE frame on every
+ * agent-stream response so the client learns the `sessionId` to POST back
+ * to `/api/agent-stream/elicit`. Tests that assert the shape of agent-
+ * generated chunks (`text`, `tool_call_start`, `done`, etc.) use this
+ * helper to strip the session_info prefix; tests that care about the
+ * prefix itself assert on the raw `parseSse` output.
+ */
+function dropSessionInfo(events: SseEvent[]): SseEvent[] {
+  if (events.length === 0) return events;
+  const first = events[0];
+  if (first && first.event === 'session_info') {
+    return events.slice(1);
+  }
+  return events;
+}
+
 /** Get the runtime mock returned for the most recent request. */
 async function getRuntimeMock() {
   const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
@@ -229,6 +246,35 @@ describe('agent-stream  -  success path (AI modules working)', () => {
     expect(res.headers.get('content-type')).toContain('text/event-stream');
   });
 
+  it('emits a session_info chunk as the FIRST SSE frame (A.2b)', async () => {
+    // The A.2b side-channel contract: the client learns the sessionId from
+    // the leading frame and POSTs elicitation responses to
+    // /api/agent-stream/elicit?sessionId=... — so session_info MUST
+    // precede any other chunks, even when the agent runs to done
+    // immediately.
+    const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
+    // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
+    vi.mocked(StreamingAgentRuntime).mockImplementation(function () {
+      return {
+        streamTask: vi.fn().mockImplementation(async function* () {
+          yield { type: 'done', result: 'ok' };
+        }),
+      };
+    });
+
+    const app = createApp();
+    const res = await jsonPost(app, '/agent-stream', { instruction: 'noop' });
+    const events = parseSse(await res.text());
+
+    expect(events.length).toBeGreaterThanOrEqual(2);
+    expect(events[0]!.event).toBe('session_info');
+    const sessionInfo = events[0]!.data as { type: string; sessionId: string };
+    expect(sessionInfo.type).toBe('session_info');
+    expect(sessionInfo.sessionId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
+  });
+
   it('emits one SSE frame per chunk with matching event type', async () => {
     const { StreamingAgentRuntime } = await import('@revealui/ai/orchestration/streaming-runtime');
     // biome-ignore lint/complexity/useArrowFunction: StreamingAgentRuntime is called with `new`  -  arrow functions cannot be constructors (Vitest 4)
@@ -246,7 +292,7 @@ describe('agent-stream  -  success path (AI modules working)', () => {
     const res = await jsonPost(app, '/agent-stream', { instruction: 'Say hello' });
 
     expect(res.status).toBe(200);
-    const events = parseSse(await res.text());
+    const events = dropSessionInfo(parseSse(await res.text()));
     expect(events).toHaveLength(3);
     expect(events[0]!.event).toBe('thinking');
     expect(events[1]!.event).toBe('token');
@@ -266,8 +312,8 @@ describe('agent-stream  -  success path (AI modules working)', () => {
     });
 
     const app = createApp();
-    const events = parseSse(
-      await (await jsonPost(app, '/agent-stream', { instruction: 'Hi' })).text(),
+    const events = dropSessionInfo(
+      parseSse(await (await jsonPost(app, '/agent-stream', { instruction: 'Hi' })).text()),
     );
 
     expect(events[0]!.data).toMatchObject({ type: 'token', content: 'Hi', index: 0 });
@@ -290,8 +336,8 @@ describe('agent-stream  -  success path (AI modules working)', () => {
     });
 
     const app = createApp();
-    const events = parseSse(
-      await (await jsonPost(app, '/agent-stream', { instruction: '' })).text(),
+    const events = dropSessionInfo(
+      parseSse(await (await jsonPost(app, '/agent-stream', { instruction: '' })).text()),
     );
 
     expect(events).toHaveLength(2);
@@ -311,8 +357,8 @@ describe('agent-stream  -  success path (AI modules working)', () => {
     });
 
     const app = createApp();
-    const events = parseSse(
-      await (await jsonPost(app, '/agent-stream', { instruction: 'crash' })).text(),
+    const events = dropSessionInfo(
+      parseSse(await (await jsonPost(app, '/agent-stream', { instruction: 'crash' })).text()),
     );
 
     expect(events).toHaveLength(1);
