@@ -1,15 +1,23 @@
 /**
- * useAgentStream  -  React hook for streaming agent responses via SSE
+ * useAgentStream  -  React hook for streaming agent responses via SSE.
  *
- * Uses fetch + ReadableStream (NOT EventSource  -  it doesn't support POST).
+ * Admin-local implementation. The Pro `@revealui/ai` package ships an
+ * equivalent hook for non-admin consumers (CLI, harnesses, third-party
+ * agent UIs); admin keeps its own copy so the structural-decoupling
+ * discipline (`scripts/validate/boundary.ts` Check 4) holds — apps must
+ * not statically import from optional Fair Source packages. The hook
+ * shape is intentionally identical to `@revealui/ai/client/hooks/
+ * useAgentStream`; when a chunk type lands in either, mirror it here.
+ *
+ * Uses fetch + ReadableStream (NOT EventSource — it doesn't support POST).
  * Accumulates AgentStreamChunks into state and exposes:
  *   - text: accumulated output text
  *   - chunks: all received chunks in order
  *   - isStreaming: true while the stream is open
  *   - error: last error message, if any
- *   - sessionId: agent-run session id from the leading session_info chunk (A.2b)
- *   - pendingElicitations: outstanding form-mode elicitation requests by id (A.2b)
- *   - submitElicitation: POST a response to /api/agent-stream/elicit (A.2b)
+ *   - sessionId: agent-run session id from the leading session_info chunk
+ *   - pendingElicitations: outstanding form-mode elicitation requests
+ *   - submitElicitation: POST a response to /api/agent-stream/elicit
  *   - abort(): cancels the stream
  */
 
@@ -19,10 +27,11 @@ import { useCallback, useRef, useState } from 'react';
 
 /**
  * Mirror of `AgentStreamChunk` in
- * `@revealui/ai/orchestration/streaming-runtime`. Duplicated here (rather
- * than imported) so client bundles don't pull in server-only orchestration
- * code through the type graph. Keep these in lockstep — when a new chunk
- * type lands in the runtime, mirror it here.
+ * `@revealui/ai/orchestration/streaming-runtime`. Side-channel chunk
+ * types (`session_info`, `sampling_request`, `elicitation_request`)
+ * are emitted by the agent-stream route between turns; the runtime's
+ * core `text | tool_call_start | tool_call_result | error | done`
+ * still come from the generator.
  */
 export interface AgentStreamChunk {
   type:
@@ -71,11 +80,6 @@ export interface AgentStreamRequest {
   mode?: 'admin' | 'coding';
 }
 
-/**
- * Outstanding elicitation request awaiting a UI response. The hook keeps
- * one entry per `elicitationId`; entries are removed when
- * `submitElicitation()` lands successfully or when the stream ends.
- */
 export interface PendingElicitation {
   elicitationId: string;
   namespace: string;
@@ -89,7 +93,7 @@ export type ElicitationAction = 'accept' | 'decline' | 'cancel';
  * Permitted primitive value types per the MCP spec (`ElicitResult.content`).
  * The hook is a thin transport — the server-side zod schema at
  * `apps/api/src/routes/agent-stream-elicit.ts` is the authoritative
- * validator. We accept a wider input shape so callers can pass
+ * validator. We accept a wider input shape here so callers can pass
  * `Record<string, unknown>` from generic form serializers without
  * up-front narrowing; non-primitive values get rejected by the server.
  */
@@ -101,9 +105,7 @@ export interface UseAgentStreamState {
   chunks: AgentStreamChunk[];
   isStreaming: boolean;
   error: string | null;
-  /** Set when the leading `session_info` chunk arrives. Null otherwise. */
   sessionId: string | null;
-  /** Map of pending elicitations keyed by elicitationId. */
   pendingElicitations: PendingElicitation[];
 }
 
@@ -111,11 +113,6 @@ export interface UseAgentStreamReturn extends UseAgentStreamState {
   start: (request: AgentStreamRequest, apiBase?: string) => Promise<void>;
   abort: () => void;
   reset: () => void;
-  /**
-   * POST an elicitation response to `/api/agent-stream/elicit` and remove
-   * the entry from `pendingElicitations` on success. Throws if the network
-   * call fails or the server returns a non-2xx status.
-   */
   submitElicitation: (
     elicitationId: string,
     action: ElicitationAction,
@@ -187,7 +184,6 @@ export function useAgentStream(): UseAgentStreamReturn {
 
         buffer += decoder.decode(value, { stream: true });
 
-        // Parse SSE lines: "data: {...}\n\n"
         const events = buffer.split('\n\n');
         buffer = events.pop() ?? '';
 
@@ -200,7 +196,6 @@ export function useAgentStream(): UseAgentStreamReturn {
           try {
             chunk = JSON.parse(jsonStr) as AgentStreamChunk;
           } catch {
-            // Malformed SSE data  -  skip
             continue;
           }
           setState((s) => applyChunk(s, chunk));
@@ -218,6 +213,9 @@ export function useAgentStream(): UseAgentStreamReturn {
       }));
     }
   }, []);
+
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const submitElicitation = useCallback(
     async (
@@ -244,7 +242,6 @@ export function useAgentStream(): UseAgentStreamReturn {
         const errText = await response.text();
         throw new Error(`elicit response failed: HTTP ${response.status}: ${errText}`);
       }
-      // Remove the resolved entry from pendingElicitations
       setState((s) => ({
         ...s,
         pendingElicitations: s.pendingElicitations.filter((p) => p.elicitationId !== elicitationId),
@@ -253,12 +250,6 @@ export function useAgentStream(): UseAgentStreamReturn {
     [],
   );
 
-  // submitElicitation needs the *current* sessionId at call time, so we
-  // mirror state into a ref. Avoids stale-closure bugs without making the
-  // callback's dependencies churn on every chunk.
-  const stateRef = useRef(state);
-  stateRef.current = state;
-
   return { ...state, start, abort, reset, submitElicitation };
 }
 
@@ -266,8 +257,6 @@ export function useAgentStream(): UseAgentStreamReturn {
  * Pure reducer applying one SSE chunk to the hook's state. Extracted for
  * test-friendliness — call sites can simulate `start()` by feeding chunks
  * to `applyChunk()` against `INITIAL_STATE`.
- *
- * @internal
  */
 function applyChunk(s: UseAgentStreamState, chunk: AgentStreamChunk): UseAgentStreamState {
   const next: UseAgentStreamState = {
@@ -285,9 +274,6 @@ function applyChunk(s: UseAgentStreamState, chunk: AgentStreamChunk): UseAgentSt
     case 'error':
       next.error = chunk.error ?? 'Unknown error';
       next.isStreaming = false;
-      // Cancel all pending elicitations on stream error — the server-side
-      // session is being torn down so any open form is no longer
-      // resolvable.
       next.pendingElicitations = [];
       break;
     case 'done':
@@ -307,9 +293,6 @@ function applyChunk(s: UseAgentStreamState, chunk: AgentStreamChunk): UseAgentSt
         ];
       }
       break;
-    // tool_call_start / tool_call_result / sampling_request: no state
-    // mutation beyond appending to `chunks`. Consumers render from the
-    // chunk list directly.
     default:
       break;
   }
@@ -317,16 +300,6 @@ function applyChunk(s: UseAgentStreamState, chunk: AgentStreamChunk): UseAgentSt
   return next;
 }
 
-// ---------------------------------------------------------------------------
-// Test-only export
-// ---------------------------------------------------------------------------
-
-/**
- * Pure reducer used internally to apply a chunk to state. Exported for
- * unit tests so the chunk → state mapping can be verified without
- * mounting a React component or stubbing `fetch`.
- *
- * @internal
- */
+// Test-only exports
 export const _applyChunkForTesting = applyChunk;
 export const _initialStateForTesting: UseAgentStreamState = INITIAL_STATE;
