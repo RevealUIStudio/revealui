@@ -1,6 +1,5 @@
 ---
 '@revealui/ai': minor
-'api': minor
 ---
 
 A.2b-backend of the post-v1 MCP arc — wire Stage 5.3 elicitation handler
