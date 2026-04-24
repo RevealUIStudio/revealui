@@ -1,11 +1,24 @@
 /**
- * Unit tests for {@link listConnectedMcpServers}. Uses the in-memory vault
- * so tests are hermetic — no revvault subprocess, no network.
+ * Unit tests for {@link listConnectedMcpServers} and the
+ * {@link buildRemoteMcpClient} options-to-`McpClient` plumbing. Uses the
+ * in-memory vault so tests are hermetic — no revvault subprocess, no
+ * network.
  */
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createMemoryVault, RevvaultError } from '../src/oauth.js';
-import { listConnectedMcpServers } from '../src/remote-client.js';
+import { buildRemoteMcpClient, listConnectedMcpServers } from '../src/remote-client.js';
+
+// Mock McpClient constructor so buildRemoteMcpClient tests can inspect the
+// options passed through without actually opening a transport.
+vi.mock('../src/client.js', async () => {
+  const actual = await vi.importActual<typeof import('../src/client.js')>('../src/client.js');
+  const McpClientMock = vi.fn();
+  return {
+    ...actual,
+    McpClient: McpClientMock,
+  };
+});
 
 describe('listConnectedMcpServers', () => {
   it('returns sorted unique server ids from tokens paths', async () => {
@@ -106,5 +119,59 @@ describe('listConnectedMcpServers', () => {
     const servers = await listConnectedMcpServers(vault, 'acme');
 
     expect(servers).toEqual(['linear']);
+  });
+});
+
+describe('buildRemoteMcpClient', () => {
+  const META = JSON.stringify({
+    serverUrl: 'https://mcp.example.com',
+    connectedAt: '2026-04-24T00:00:00.000Z',
+    connectedBy: 'user-123',
+  });
+
+  async function importFreshClient() {
+    // vi.mock hoists; re-import the mocked constructor so per-test setup can
+    // clear its call history without teardown affecting other suites.
+    const { McpClient } = await import('../src/client.js');
+    return vi.mocked(McpClient);
+  }
+
+  it('passes samplingHandler through to the McpClient constructor (A.2a)', async () => {
+    const McpClientMock = await importFreshClient();
+    McpClientMock.mockClear();
+
+    const vault = createMemoryVault({ 'mcp/acme/linear/meta': META });
+    const samplingHandler = vi.fn();
+    await buildRemoteMcpClient({ tenant: 'acme', server: 'linear', vault, samplingHandler });
+
+    expect(McpClientMock).toHaveBeenCalledTimes(1);
+    const opts = McpClientMock.mock.calls[0]?.[0];
+    expect(opts?.samplingHandler).toBe(samplingHandler);
+    expect(opts?.elicitationHandler).toBeUndefined();
+  });
+
+  it('passes elicitationHandler through to the McpClient constructor', async () => {
+    const McpClientMock = await importFreshClient();
+    McpClientMock.mockClear();
+
+    const vault = createMemoryVault({ 'mcp/acme/linear/meta': META });
+    const elicitationHandler = vi.fn();
+    await buildRemoteMcpClient({ tenant: 'acme', server: 'linear', vault, elicitationHandler });
+
+    const opts = McpClientMock.mock.calls[0]?.[0];
+    expect(opts?.elicitationHandler).toBe(elicitationHandler);
+    expect(opts?.samplingHandler).toBeUndefined();
+  });
+
+  it('omits both handlers from the McpClient options when neither is supplied', async () => {
+    const McpClientMock = await importFreshClient();
+    McpClientMock.mockClear();
+
+    const vault = createMemoryVault({ 'mcp/acme/linear/meta': META });
+    await buildRemoteMcpClient({ tenant: 'acme', server: 'linear', vault });
+
+    const opts = McpClientMock.mock.calls[0]?.[0];
+    expect(opts?.samplingHandler).toBeUndefined();
+    expect(opts?.elicitationHandler).toBeUndefined();
   });
 });

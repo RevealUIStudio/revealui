@@ -20,7 +20,7 @@
  * duplicating admin code.
  */
 
-import { type ElicitationHandler, McpClient } from './client.js';
+import { type ElicitationHandler, McpClient, type SamplingHandler } from './client.js';
 import {
   createRevvaultVault,
   McpOAuthProvider,
@@ -122,6 +122,15 @@ export interface BuildRemoteMcpClientOptions {
    * matches what the caller can actually service.
    */
   elicitationHandler?: ElicitationHandler;
+  /**
+   * Handler invoked when the server sends `sampling/create`. Registered
+   * on the `McpClient` at construction time so capability advertisement
+   * matches what the caller can actually service. Typically built via
+   * `createSamplingHandler` from `@revealui/ai`, which routes the request
+   * through the caller's configured LLM with an optional model allowlist
+   * for cost safety.
+   */
+  samplingHandler?: SamplingHandler;
 }
 
 export interface BuiltRemoteMcpClient {
@@ -164,6 +173,7 @@ export async function buildRemoteMcpClient(
       authProvider: provider,
     },
     ...(options.elicitationHandler ? { elicitationHandler: options.elicitationHandler } : {}),
+    ...(options.samplingHandler ? { samplingHandler: options.samplingHandler } : {}),
   });
 
   return { client, meta };

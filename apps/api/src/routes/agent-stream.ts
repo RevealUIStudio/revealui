@@ -252,9 +252,45 @@ app.openapi(agentStreamRoute, async (c) => {
       });
     }
 
+    // A.2a: Sampling handler allowlist. MCP servers may request any model
+    // via `modelPreferences.hints`; we filter those hints to this list so
+    // servers can't silently route us to expensive models. Models outside
+    // the list fall back to `defaultModel`. Conservative set — extend when
+    // specific models are validated + cost-bounded.
+    const samplingAllowedModels = [
+      'gemma3',
+      'gemma3:e2b',
+      'gemma3:e4b',
+      'deepseek-r1',
+      'qwen3',
+    ] as const;
+    const samplingDefaultModel = process.env.LLM_MODEL ?? 'gemma3';
+
     for (const server of serverIds) {
       try {
-        const built = await buildRemoteMcpClient({ tenant, server });
+        // A.2a: Per-server sampling handler so when the MCP server calls
+        // `sampling/create` mid-agent-run, our configured LLM services it.
+        // Same `onEvent` sink as the tool adapters so Stage 6.1 logger +
+        // Stage 6.2 usage_meters capture `mcp.sampling.create` events too.
+        //
+        // Structural cast note: `@revealui/ai`'s `McpSamplingHandler` uses a
+        // simplified message-content shape, while `@revealui/mcp`'s
+        // `SamplingHandler` (fed into the SDK) uses the full
+        // `TextContent | ImageContent | AudioContent | …` union. The two
+        // are runtime-compatible for the text fields the handler actually
+        // reads — the cast documents the known type-system mismatch that
+        // falls out of Stage 5.2's structural-decoupling design. Fixing
+        // it for real means widening `McpSamplingRequestParams.messages[].
+        // content` in `@revealui/ai`; deferred — out of A.2a scope.
+        const samplingHandler = aiMod.createSamplingHandler({
+          llm: llmClient as Parameters<typeof aiMod.createSamplingHandler>[0]['llm'],
+          allowedModels: samplingAllowedModels,
+          defaultModel: samplingDefaultModel,
+          namespace: server,
+          onEvent,
+        }) as unknown as Parameters<typeof buildRemoteMcpClient>[0]['samplingHandler'];
+
+        const built = await buildRemoteMcpClient({ tenant, server, samplingHandler });
         await built.client.connect();
         const mcpTools = await aiMod.createToolsFromMcpClient(built.client, {
           namespace: server,
