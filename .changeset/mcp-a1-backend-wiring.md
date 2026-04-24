@@ -1,7 +1,5 @@
 ---
 '@revealui/mcp': minor
-'api': minor
-'admin': patch
 ---
 
 A.1 of the post-v1 MCP arc — first production consumer of Stage 5 + Stage 6
