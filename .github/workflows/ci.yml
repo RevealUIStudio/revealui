@@ -85,6 +85,12 @@ jobs:
       - name: Empty-catch validation (hard fail)
         run: pnpm validate:empty-catch
 
+      - name: Changeset validation (hard fail)
+        # Catches mixed ignored+non-ignored changeset frontmatter BEFORE
+        # merge, instead of discovering the same rejection later inside
+        # release-canary.yml when it is already on test.
+        run: pnpm validate:changesets
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #

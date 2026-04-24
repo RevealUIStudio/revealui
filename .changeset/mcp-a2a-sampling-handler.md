@@ -1,6 +1,5 @@
 ---
 '@revealui/mcp': minor
-'api': patch
 ---
 
 A.2a of the post-v1 MCP arc — wire Stage 5.2 sampling handler into agent-stream.
