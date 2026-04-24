@@ -194,7 +194,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 
 2. **Check pnpm version**
    ```bash
-   pnpm --version  # Should be 9.14.2+
+   pnpm --version  # Should be 10+
    ```
 
 3. **Verify workspace configuration**

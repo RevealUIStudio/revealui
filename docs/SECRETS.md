@@ -54,13 +54,12 @@ revealui/dev/stripe/webhook-secret
 revealui/dev/stripe/publishable-key      # pk_test_*
 revealui/dev/revealui-secret             # JWT/session, ≥32 chars
 revealui/dev/revealui-admin-api-key      # API admin auth
-revealui/dev/resend/api-key              # email service
-revealui/dev/resend/from-email           # sender address
 revealui/dev/blob/read-write-token       # Vercel Blob file uploads
 revealui/dev/google/client-id            # OAuth SSO
 revealui/dev/google/client-secret
-revealui/dev/google/service-account-email # Gmail email provider
-revealui/dev/google/private-key
+revealui/dev/google/service-account-email # Gmail API email provider (service account)
+revealui/dev/google/service-account-from # From address (Workspace user w/ domain-wide delegation)
+revealui/dev/google/private-key          # Gmail API service-account PKCS8 PEM
 revealui/dev/github/client-id            # OAuth SSO
 revealui/dev/github/client-secret
 revealui/dev/admin/bootstrap/email       # CLI admin bootstrap
@@ -85,13 +84,12 @@ revealui/prod/vercel/api-token
 revealui/prod/revealui-secret
 revealui/prod/revealui-cron-secret
 revealui/prod/revealui-admin-api-key
-revealui/prod/resend/api-key
-revealui/prod/resend/from-email
 revealui/prod/blob/read-write-token
-revealui/prod/google/client-id
+revealui/prod/google/client-id           # OAuth SSO
 revealui/prod/google/client-secret
-revealui/prod/google/service-account-email
-revealui/prod/google/private-key
+revealui/prod/google/service-account-email # Gmail API email provider (service account)
+revealui/prod/google/service-account-from # From address (Workspace user w/ domain-wide delegation)
+revealui/prod/google/private-key         # Gmail API service-account PKCS8 PEM
 revealui/prod/github/client-id
 revealui/prod/github/client-secret
 revealui/prod/sentry/auth-token          # CI/CD error tracking
