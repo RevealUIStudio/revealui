@@ -65,12 +65,9 @@ describe('account-owner gate', () => {
       const app = createApp(stubEntitlements({ accountId: 'acc_1', membershipRole: 'member' }));
       const res = await app.request('/billing-handler', { method: 'POST' });
       expect(res.status).toBe(403);
-      const body = (await res.json()) as { error?: { message?: string } } | { message?: string };
-      const message =
-        (body as { error?: { message?: string } }).error?.message ??
-        (body as { message?: string }).message ??
-        '';
-      expect(message).toMatch(/only the account owner/i);
+      // errorHandler (middleware/error.ts) returns { success: false, error: <message>, code: 'HTTP_403' }
+      const body = (await res.json()) as { error?: string };
+      expect(body.error ?? '').toMatch(/only the account owner/i);
     });
 
     it('blocks any non-owner role string (defense-in-depth)', async () => {
