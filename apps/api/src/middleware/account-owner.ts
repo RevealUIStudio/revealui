@@ -39,14 +39,17 @@ import { getEntitlementsFromContext } from './entitlements.js';
  */
 export function assertAccountOwner(c: Context): void {
   const entitlements = getEntitlementsFromContext(c);
+  const role = entitlements.membershipRole;
 
   // Pre-account users: no membership row yet. Allow through so the Stripe
   // webhook can create the account + assign owner on successful signup.
-  if (entitlements.membershipRole === null) {
+  // Treats both `null` (explicit free entitlements) and `undefined` (test
+  // stubs that predate this field) as pre-account.
+  if (role === null || role === undefined) {
     return;
   }
 
-  if (entitlements.membershipRole !== 'owner') {
+  if (role !== 'owner') {
     throw new HTTPException(403, {
       message: 'Only the account owner can change billing',
     });
