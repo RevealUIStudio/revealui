@@ -521,9 +521,14 @@ export class LLMClient {
  *
  * All providers use OpenAI-compatible APIs. No proprietary provider SDKs.
  *
+ * Canonical Inference Snaps is the reference local provider on Ubuntu — offline,
+ * silicon-optimized, no API key required. See `providers/inference-snaps.ts` for
+ * install docs (`sudo snap install gemma3`, etc.).
+ *
  * Provider defaults:
- *   groq   → qwen/qwen3-32b
- *   ollama → gemma4:e2b
+ *   inference-snaps → gemma3       (base URL defaults to http://localhost:9090/v1)
+ *   groq            → qwen/qwen3-32b
+ *   ollama          → gemma4:e2b   (base URL defaults to http://localhost:11434)
  */
 export function createLLMClientFromEnv(): LLMClient {
   // Auto-detect provider when LLM_PROVIDER is not explicitly set
@@ -538,8 +543,11 @@ export function createLLMClientFromEnv(): LLMClient {
     provider = 'ollama';
   } else {
     throw new Error(
-      'No LLM provider configured. Set one of: OLLAMA_BASE_URL (local Ollama), ' +
-        'INFERENCE_SNAPS_BASE_URL (local snap), GROQ_API_KEY (cloud). ' +
+      'No LLM provider configured. Set one of: ' +
+        'INFERENCE_SNAPS_BASE_URL (local Canonical Inference Snap; see ' +
+        'packages/ai/src/llm/providers/inference-snaps.ts for install), ' +
+        'OLLAMA_BASE_URL (local Ollama), ' +
+        'GROQ_API_KEY (cloud). ' +
         'Alternatively, set LLM_PROVIDER explicitly.',
     );
   }
@@ -566,7 +574,9 @@ export function createLLMClientFromEnv(): LLMClient {
     defaultModel = 'gemma4:e2b';
   } else if (provider === 'inference-snaps') {
     apiKey = 'inference-snaps'; // inference-snaps ignores the API key
-    baseURL = process.env.INFERENCE_SNAPS_BASE_URL;
+    // Defaults to Canonical's Inference Snap local service on port 9090; override
+    // via INFERENCE_SNAPS_BASE_URL when the snap listens on a non-default port.
+    baseURL = process.env.INFERENCE_SNAPS_BASE_URL ?? 'http://localhost:9090/v1';
     defaultModel = 'gemma3';
   }
 
