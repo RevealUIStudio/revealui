@@ -1,6 +1,5 @@
 ---
 '@revealui/ai': minor
-'admin': minor
 ---
 
 A.2b-frontend of the post-v1 MCP arc — first user-visible Stage 5 surface.
