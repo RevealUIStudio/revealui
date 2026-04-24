@@ -1,6 +1,5 @@
 ---
 '@revealui/mcp': minor
-'admin': minor
 ---
 
 Stage 3.1 of the MCP v1 plan — admin-side server catalog for OAuth-authorized

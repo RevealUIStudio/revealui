@@ -1,6 +1,5 @@
 ---
 '@revealui/mcp': minor
-'admin': minor
 ---
 
 Stage 3.2 of the MCP v1 plan — tool browser + ad-hoc invoker for connected
