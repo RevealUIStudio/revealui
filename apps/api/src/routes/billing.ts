@@ -30,6 +30,7 @@ import {
   sendDowngradeConfirmationEmail,
   sendUpgradeConfirmationEmail,
 } from '../lib/webhook-emails.js';
+import { assertAccountOwner } from '../middleware/account-owner.js';
 import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
 
 /** Default trial period for new subscriptions (overridable via env) */
@@ -559,6 +560,7 @@ app.openapi(checkoutRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const { priceId, tier } = c.req.valid('json');
   const resolvedTier = tier ?? 'pro';
@@ -644,6 +646,7 @@ app.openapi(portalRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
   const customerId = await resolveHostedStripeCustomerId(user.id, requestEntitlements?.accountId);
@@ -872,6 +875,7 @@ app.openapi(upgradeRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const { priceId, targetTier } = c.req.valid('json');
   const resolvedPriceId = await resolveCatalogPriceId(targetTier, 'subscription', priceId);
@@ -1012,6 +1016,7 @@ app.openapi(downgradeRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
   const stripeCustomerId = await resolveHostedStripeCustomerId(
@@ -1150,6 +1155,7 @@ app.openapi(pauseRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
 
@@ -1209,6 +1215,7 @@ app.openapi(resumeRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
 
@@ -1283,6 +1290,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   if (!user.email) {
     throw new HTTPException(400, { message: 'An email address is required for billing' });
@@ -1405,6 +1413,7 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   if (!user.email) {
     throw new HTTPException(400, { message: 'An email address is required for billing' });
@@ -1530,6 +1539,7 @@ app.openapi(creditCheckoutRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   if (!user.email) {
     throw new HTTPException(400, { message: 'An email address is required for billing' });
