@@ -1,8 +1,17 @@
-const milestones = [
+type MilestoneStatus = 'current' | 'upcoming' | 'complete';
+
+interface Milestone {
+  phase: string;
+  title: string;
+  status: MilestoneStatus;
+  items: string[];
+}
+
+const milestones: Milestone[] = [
   {
     phase: 'Phase 0',
     title: 'Foundation',
-    status: 'current' as const,
+    status: 'current',
     items: [
       'Token-2022 mint deployed',
       'Allocations defined + custody-enforced vesting',
@@ -14,7 +23,7 @@ const milestones = [
   {
     phase: 'Phase 1',
     title: 'Public Distribution',
-    status: 'upcoming' as const,
+    status: 'upcoming',
     items: [
       'Gated on: on-chain vesting + multi-sig complete',
       'Initial liquidity seeding',
@@ -24,13 +33,13 @@ const milestones = [
   {
     phase: 'Phase 2',
     title: 'Liquidity & Trading',
-    status: 'upcoming' as const,
+    status: 'upcoming',
     items: ['Raydium CPMM pool creation', 'Jupiter aggregator listing', 'Price oracle (TWAP)'],
   },
   {
     phase: 'Phase 3',
     title: 'Marketplace Integration',
-    status: 'upcoming' as const,
+    status: 'upcoming',
     items: [
       'RVC payments in RevealUI marketplace',
       'x402 micropayment protocol',
@@ -40,7 +49,7 @@ const milestones = [
   {
     phase: 'Phase 4',
     title: 'Governance',
-    status: 'upcoming' as const,
+    status: 'upcoming',
     items: [
       'Proposal creation & voting',
       'Treasury spend visibility',
