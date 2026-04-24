@@ -423,9 +423,18 @@ export default function AgentDetailPage({ params }: PageProps) {
               {/* Right: Task tester + history */}
               <div className="flex flex-col gap-6">
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-zinc-500">
-                    Task Tester
-                  </h2>
+                  <div className="mb-4 flex items-center justify-between gap-2">
+                    <h2 className="text-sm font-medium uppercase tracking-wide text-zinc-500">
+                      Task Tester
+                    </h2>
+                    <a
+                      href={`/admin/agents/${encodeURIComponent(agentId)}/run`}
+                      className="rounded-md border border-emerald-700 bg-emerald-900/20 px-3 py-1.5 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-900/40"
+                      title="Stream agent execution live (Stage 5 surface)"
+                    >
+                      Watch live ↗
+                    </a>
+                  </div>
                   <TaskTester
                     agentId={agentId}
                     agentName={card.name}

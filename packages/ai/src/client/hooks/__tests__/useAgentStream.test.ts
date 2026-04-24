@@ -9,7 +9,12 @@
 
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useAgentStream } from '../useAgentStream.js';
+import {
+  _applyChunkForTesting,
+  _initialStateForTesting,
+  type AgentStreamChunk,
+  useAgentStream,
+} from '../useAgentStream.js';
 
 // ─── SSE Stream Builder ───────────────────────────────────────────────────────
 
@@ -59,6 +64,12 @@ describe('useAgentStream  -  initial state', () => {
     expect(result.current.chunks).toHaveLength(0);
     expect(result.current.isStreaming).toBe(false);
     expect(result.current.error).toBeNull();
+  });
+
+  it('starts with null sessionId and no pending elicitations (A.2b)', () => {
+    const { result } = renderHook(() => useAgentStream());
+    expect(result.current.sessionId).toBeNull();
+    expect(result.current.pendingElicitations).toEqual([]);
   });
 });
 
@@ -298,5 +309,225 @@ describe('useAgentStream  -  reset', () => {
     expect(callCount).toBe(2);
     await waitFor(() => expect(result.current.isStreaming).toBe(false));
     expect(result.current.error).toBeNull();
+  });
+});
+
+// ─── A.2b side-channel chunk handling ────────────────────────────────────────
+
+describe('useAgentStream  -  applyChunk reducer (A.2b)', () => {
+  const SESSION_ID = '00000000-0000-4000-8000-000000000000';
+
+  it('captures sessionId from a session_info chunk', () => {
+    const next = _applyChunkForTesting(_initialStateForTesting, {
+      type: 'session_info',
+      sessionId: SESSION_ID,
+    });
+    expect(next.sessionId).toBe(SESSION_ID);
+    expect(next.chunks).toHaveLength(1);
+  });
+
+  it('appends a sampling_request chunk without other state mutation', () => {
+    const start = { ..._initialStateForTesting, sessionId: SESSION_ID };
+    const next = _applyChunkForTesting(start, {
+      type: 'sampling_request',
+      sessionId: SESSION_ID,
+      namespace: 'linear',
+      sampling: { model: 'gemma3', messageCount: 4, maxTokens: 1024 },
+    });
+    expect(next.chunks).toHaveLength(1);
+    expect(next.pendingElicitations).toEqual([]);
+    expect(next.text).toBe('');
+  });
+
+  it('appends an elicitation_request chunk to pendingElicitations', () => {
+    const start = { ..._initialStateForTesting, sessionId: SESSION_ID };
+    const next = _applyChunkForTesting(start, {
+      type: 'elicitation_request',
+      sessionId: SESSION_ID,
+      namespace: 'linear',
+      elicitation: {
+        elicitationId: 'elicit-1',
+        requestedSchema: { type: 'object', properties: {} },
+        message: 'Pick a project',
+      },
+    });
+    expect(next.pendingElicitations).toEqual([
+      {
+        elicitationId: 'elicit-1',
+        namespace: 'linear',
+        requestedSchema: { type: 'object', properties: {} },
+        message: 'Pick a project',
+      },
+    ]);
+  });
+
+  it('preserves existing pending elicitations when new ones arrive', () => {
+    const start: typeof _initialStateForTesting = {
+      ..._initialStateForTesting,
+      sessionId: SESSION_ID,
+      pendingElicitations: [
+        {
+          elicitationId: 'elicit-1',
+          namespace: 'linear',
+          requestedSchema: {},
+        },
+      ],
+    };
+    const next = _applyChunkForTesting(start, {
+      type: 'elicitation_request',
+      sessionId: SESSION_ID,
+      namespace: 'github',
+      elicitation: { elicitationId: 'elicit-2', requestedSchema: {} },
+    });
+    expect(next.pendingElicitations.map((p) => p.elicitationId)).toEqual(['elicit-1', 'elicit-2']);
+  });
+
+  it('clears pending elicitations on done', () => {
+    const start: typeof _initialStateForTesting = {
+      ..._initialStateForTesting,
+      sessionId: SESSION_ID,
+      isStreaming: true,
+      pendingElicitations: [
+        { elicitationId: 'elicit-1', namespace: 'linear', requestedSchema: {} },
+      ],
+    };
+    const next = _applyChunkForTesting(start, { type: 'done' });
+    expect(next.isStreaming).toBe(false);
+    expect(next.pendingElicitations).toEqual([]);
+  });
+
+  it('clears pending elicitations on error', () => {
+    const start: typeof _initialStateForTesting = {
+      ..._initialStateForTesting,
+      sessionId: SESSION_ID,
+      isStreaming: true,
+      pendingElicitations: [
+        { elicitationId: 'elicit-1', namespace: 'linear', requestedSchema: {} },
+      ],
+    };
+    const next = _applyChunkForTesting(start, {
+      type: 'error',
+      error: 'boom',
+    });
+    expect(next.error).toBe('boom');
+    expect(next.isStreaming).toBe(false);
+    expect(next.pendingElicitations).toEqual([]);
+  });
+
+  it('drops malformed elicitation_request without elicitation payload', () => {
+    const start = { ..._initialStateForTesting, sessionId: SESSION_ID };
+    const malformed: AgentStreamChunk = {
+      type: 'elicitation_request',
+      sessionId: SESSION_ID,
+      namespace: 'linear',
+      // elicitation field intentionally absent
+    };
+    const next = _applyChunkForTesting(start, malformed);
+    expect(next.pendingElicitations).toEqual([]);
+    expect(next.chunks).toHaveLength(1);
+  });
+});
+
+describe('useAgentStream  -  submitElicitation (A.2b)', () => {
+  const SESSION_ID = '00000000-0000-4000-8000-000000000000';
+
+  it('POSTs to /api/agent-stream/elicit with the resolved sessionId + body', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        makeOkResponse(
+          makeSseStream([
+            { type: 'session_info', sessionId: SESSION_ID },
+            {
+              type: 'elicitation_request',
+              sessionId: SESSION_ID,
+              namespace: 'linear',
+              elicitation: { elicitationId: 'elicit-1', requestedSchema: {} },
+            },
+            // intentionally NOT terminating with `done` so the stream stays
+            // open and we can assert pendingElicitations is populated
+          ]),
+        ),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), { status: 200 }));
+
+    const { result } = renderHook(() => useAgentStream());
+
+    await act(async () => {
+      await result.current.start({ instruction: 'go' });
+    });
+
+    await waitFor(() => expect(result.current.pendingElicitations).toHaveLength(1));
+    expect(result.current.sessionId).toBe(SESSION_ID);
+
+    await act(async () => {
+      await result.current.submitElicitation('elicit-1', 'accept', { project: 'web' });
+    });
+
+    // Second fetch is the POST to /elicit
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+    const [url, init] = fetchSpy.mock.calls[1];
+    expect(url).toBe('/api/agent-stream/elicit');
+    expect(init?.method).toBe('POST');
+    expect(JSON.parse(init?.body as string)).toEqual({
+      sessionId: SESSION_ID,
+      elicitationId: 'elicit-1',
+      action: 'accept',
+      content: { project: 'web' },
+    });
+    expect(result.current.pendingElicitations).toHaveLength(0);
+  });
+
+  it('omits content when action is decline or cancel', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        makeOkResponse(makeSseStream([{ type: 'session_info', sessionId: SESSION_ID }])),
+      )
+      .mockResolvedValue(new Response(JSON.stringify({ success: true }), { status: 200 }));
+
+    const { result } = renderHook(() => useAgentStream());
+    await act(async () => {
+      await result.current.start({ instruction: 'go' });
+    });
+
+    await waitFor(() => expect(result.current.sessionId).toBe(SESSION_ID));
+
+    await act(async () => {
+      await result.current.submitElicitation('elicit-1', 'decline', { ignored: true });
+    });
+
+    const [, init] = fetchSpy.mock.calls[1];
+    const body = JSON.parse(init?.body as string);
+    expect(body).toEqual({
+      sessionId: SESSION_ID,
+      elicitationId: 'elicit-1',
+      action: 'decline',
+    });
+  });
+
+  it('throws when called before start() resolves a sessionId', async () => {
+    const { result } = renderHook(() => useAgentStream());
+    await expect(result.current.submitElicitation('elicit-1', 'cancel')).rejects.toThrow(
+      /no sessionId/,
+    );
+  });
+
+  it('throws when the elicit POST returns non-2xx', async () => {
+    vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        makeOkResponse(makeSseStream([{ type: 'session_info', sessionId: SESSION_ID }])),
+      )
+      .mockResolvedValueOnce(new Response('Forbidden', { status: 403 }));
+
+    const { result } = renderHook(() => useAgentStream());
+    await act(async () => {
+      await result.current.start({ instruction: 'go' });
+    });
+    await waitFor(() => expect(result.current.sessionId).toBe(SESSION_ID));
+
+    await expect(result.current.submitElicitation('elicit-1', 'accept', { x: 1 })).rejects.toThrow(
+      /403/,
+    );
   });
 });
