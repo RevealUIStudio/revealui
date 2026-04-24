@@ -994,7 +994,9 @@ Creates a Stripe refund for a payment intent or charge. Admin-only. Full or part
 
 **Pay for subscription with RevealCoin**
 
-Verifies an on-chain RVUI payment transaction and activates the subscription tier. Applies the 15% RVUI discount. Requires wallet address and transaction signature.
+Verifies an on-chain RVC (RevealCoin) payment transaction and activates the subscription tier. Applies the 15% RVC discount. Requires wallet address and transaction signature.
+
+> **Note:** The route path `/api/billing/rvui-payment` uses the internal project codename (`$RVUI`). The on-chain token symbol is **RVC**. Both refer to the same token.
 
 **Request body** (JSON)
 
@@ -1217,7 +1219,9 @@ Creates a Stripe refund for a payment intent or charge. Admin-only. Full or part
 
 **Pay for subscription with RevealCoin**
 
-Verifies an on-chain RVUI payment transaction and activates the subscription tier. Applies the 15% RVUI discount. Requires wallet address and transaction signature.
+Verifies an on-chain RVC (RevealCoin) payment transaction and activates the subscription tier. Applies the 15% RVC discount. Requires wallet address and transaction signature.
+
+> **Note:** The route path uses the internal project codename (`$RVUI`). The on-chain token symbol is **RVC**.
 
 **Request body** (JSON)
 
