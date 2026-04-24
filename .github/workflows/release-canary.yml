@@ -91,7 +91,11 @@ jobs:
 
       - name: Publish canary to npm
         if: steps.changesets.outputs.count != '0'
-        run: pnpm changeset publish --tag canary --no-git-checks
+        # --no-git-checks was removed in @changesets/cli 2.x; publish no
+        # longer runs git-state checks (those moved to `changeset version`),
+        # so the flag is both unknown and unneeded. Publishing with
+        # `--tag canary` alone is correct for snapshot releases.
+        run: pnpm changeset publish --tag canary
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
