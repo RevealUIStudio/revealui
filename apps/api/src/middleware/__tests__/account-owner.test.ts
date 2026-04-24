@@ -56,17 +56,13 @@ describe('account-owner gate', () => {
     });
 
     it('allows account owners through', async () => {
-      const app = createApp(
-        stubEntitlements({ accountId: 'acc_1', membershipRole: 'owner' }),
-      );
+      const app = createApp(stubEntitlements({ accountId: 'acc_1', membershipRole: 'owner' }));
       const res = await app.request('/billing-handler', { method: 'POST' });
       expect(res.status).toBe(200);
     });
 
     it('blocks non-owner members with 403', async () => {
-      const app = createApp(
-        stubEntitlements({ accountId: 'acc_1', membershipRole: 'member' }),
-      );
+      const app = createApp(stubEntitlements({ accountId: 'acc_1', membershipRole: 'member' }));
       const res = await app.request('/billing-handler', { method: 'POST' });
       expect(res.status).toBe(403);
       const body = (await res.json()) as { error?: { message?: string } } | { message?: string };
@@ -79,9 +75,7 @@ describe('account-owner gate', () => {
 
     it('blocks any non-owner role string (defense-in-depth)', async () => {
       for (const role of ['member', 'viewer', 'billing-admin', 'READ', '']) {
-        const app = createApp(
-          stubEntitlements({ accountId: 'acc_1', membershipRole: role }),
-        );
+        const app = createApp(stubEntitlements({ accountId: 'acc_1', membershipRole: role }));
         const res = await app.request('/billing-handler', { method: 'POST' });
         expect(res.status, `role=${role} should be blocked`).toBe(403);
       }
@@ -121,17 +115,13 @@ describe('account-owner gate', () => {
     });
 
     it('allows owners through', async () => {
-      const app = createApp(
-        stubEntitlements({ accountId: 'acc_1', membershipRole: 'owner' }),
-      );
+      const app = createApp(stubEntitlements({ accountId: 'acc_1', membershipRole: 'owner' }));
       const res = await app.request('/billing-mutation', { method: 'POST' });
       expect(res.status).toBe(200);
     });
 
     it('blocks non-owners with 403', async () => {
-      const app = createApp(
-        stubEntitlements({ accountId: 'acc_1', membershipRole: 'member' }),
-      );
+      const app = createApp(stubEntitlements({ accountId: 'acc_1', membershipRole: 'member' }));
       const res = await app.request('/billing-mutation', { method: 'POST' });
       expect(res.status).toBe(403);
     });
