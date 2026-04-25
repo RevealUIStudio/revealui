@@ -425,10 +425,18 @@ jobs:
 
       - name: Rollback on failure
         if: failure()
+        # Per GAP-128: `vercel rollback` with no URL argument is a STATUS
+        # QUERY ("checking rollback status..."), not an action. To actually
+        # roll back, we must pass the previous-good deployment URL. This
+        # step pre-fetches it via `vercel ls --prod` and rolls the alias
+        # explicitly, then verifies the alias moved.
         run: |
+          set -uo pipefail
           echo "::warning::Smoke test failed — rolling back affected apps"
           pnpm add -g vercel@latest
           APP_LIST="${{ needs.detect.outputs.app-list }}"
+          ROLLBACK_FAILED=0
+          ROLLBACK_NO_HISTORY=0
           for app in $APP_LIST; do
             case "$app" in
               api)        PID="prj_zk6EQijYXwd9L7BccuBssi436ktM" ;;
@@ -438,10 +446,63 @@ jobs:
               revealcoin) PID="prj_XDiPXngciRytGA8j0vNIDz7hENRM" ;;
               *) continue ;;
             esac
-            echo "Rolling back $app..."
-            VERCEL_PROJECT_ID="$PID" vercel rollback --token="$VERCEL_TOKEN" || echo "::warning::Rollback failed for $app"
+
+            echo ""
+            echo "=== Rolling back $app ($PID) ==="
+
+            # 1. List recent production deployments. Take the second-most-
+            #    recent READY one — the most recent IS the broken deploy.
+            DEPLOY_LIST=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod --token="$VERCEL_TOKEN" 2>&1 || true)
+            PREV_URL=$(printf '%s\n' "$DEPLOY_LIST" \
+              | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
+              | sed -n '2p')
+
+            if [ -z "$PREV_URL" ]; then
+              echo "::warning::No previous deployment found for $app — broken deploy is live, manual intervention required"
+              ROLLBACK_NO_HISTORY=$((ROLLBACK_NO_HISTORY+1))
+              continue
+            fi
+
+            echo "Previous good deploy: $PREV_URL"
+
+            # 2. Roll the alias explicitly to that URL.
+            if ! VERCEL_PROJECT_ID="$PID" vercel rollback "$PREV_URL" --token="$VERCEL_TOKEN" --yes 2>&1; then
+              echo "::warning::vercel rollback command failed for $app"
+              ROLLBACK_FAILED=$((ROLLBACK_FAILED+1))
+              continue
+            fi
+
+            # 3. Verify the alias actually moved by inspecting the
+            #    project's current production deploy. Wait briefly for
+            #    propagation.
+            sleep 5
+            CURRENT_URL=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod --token="$VERCEL_TOKEN" 2>&1 \
+              | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
+              | head -n 1)
+
+            if [ "$CURRENT_URL" = "$PREV_URL" ]; then
+              echo "✅ Rollback verified: $app production now serving $CURRENT_URL"
+            else
+              echo "::warning::Rollback issued but verification failed — current=$CURRENT_URL, expected=$PREV_URL"
+              ROLLBACK_FAILED=$((ROLLBACK_FAILED+1))
+            fi
           done
-          echo "::error::Rollback complete — investigate before re-deploying"
+
+          echo ""
+          echo "=== Rollback summary ==="
+          echo "Failed:     $ROLLBACK_FAILED"
+          echo "No history: $ROLLBACK_NO_HISTORY"
+
+          # Exit non-zero so the workflow status reflects the failed
+          # smoke test AND the rollback outcome. If any rollback failed
+          # or had no history, that's a clear "broken deploy still live"
+          # signal that needs human attention.
+          if [ "$ROLLBACK_FAILED" -gt 0 ] || [ "$ROLLBACK_NO_HISTORY" -gt 0 ]; then
+            echo "::error::One or more apps could not be auto-rolled-back — broken deploy may still be live; investigate immediately"
+            exit 1
+          fi
+          echo "::error::Smoke test failed — affected apps were auto-rolled-back successfully; investigate cause before re-deploying"
+          exit 1
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

@@ -13,50 +13,55 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+// SEO/social metadata mirrors the home-page positioning. When the H1 in
+// apps/marketing/src/components/landing/Hero.tsx changes, these strings
+// need to change too — keep them aligned.
+const PAGE_TITLE = 'RevealUI | Build a business your agents can run.';
+const PAGE_DESCRIPTION =
+  'Auth, billing, content, and AI primitives wired into one runtime — so the same APIs your users hit, your agents hit too.';
+const OG_IMAGE_URL = `/api/og?title=${encodeURIComponent('RevealUI')}&description=${encodeURIComponent('Build a business your agents can run.')}`;
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://revealui.com'),
-  title: 'RevealUI | Agentic Business Runtime',
-  description:
-    'Agentic business runtime. Users, content, products, payments, and AI, pre-wired, open source, and part of a four-project ecosystem for building, securing, and monetizing agentic software.',
+  title: PAGE_TITLE,
+  description: PAGE_DESCRIPTION,
   keywords: [
     'open source',
-    'agentic business runtime',
-    'JOSHUA Stack',
-    'software product',
+    'agent-native',
+    'AI agents',
+    'business runtime',
     'auth',
     'billing',
-    'AI agents',
-    'payments',
-    'open source',
+    'CMS',
+    'admin dashboard',
+    'MCP',
+    'Stripe',
+    'Next.js',
+    'self-hostable',
+    'RevealUI',
     'RevVault',
     'RevKit',
     'RevealCoin',
-    'ecosystem',
-    'secret vault',
   ],
   authors: [{ name: 'RevealUI Studio' }],
   openGraph: {
-    title: 'RevealUI | Agentic Business Runtime. Build your business, not your boilerplate.',
-    description:
-      'Agentic business runtime. Users, content, products, payments, and AI, pre-wired, open source, and ready to deploy.',
+    title: PAGE_TITLE,
+    description: PAGE_DESCRIPTION,
     type: 'website',
     images: [
       {
-        url: '/api/og?title=RevealUI&description=Agentic business runtime. Build your business, not your boilerplate.',
+        url: OG_IMAGE_URL,
         width: 1200,
         height: 630,
-        alt: 'RevealUI | Agentic Business Runtime',
+        alt: PAGE_TITLE,
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RevealUI | Agentic Business Runtime. Build your business, not your boilerplate.',
-    description:
-      'Agentic business runtime. Users, content, products, payments, and AI, pre-wired, open source, and ready to deploy.',
-    images: [
-      '/api/og?title=RevealUI&description=Agentic business runtime. Build your business, not your boilerplate.',
-    ],
+    title: PAGE_TITLE,
+    description: PAGE_DESCRIPTION,
+    images: [OG_IMAGE_URL],
   },
 };
 

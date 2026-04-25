@@ -1,21 +1,25 @@
-import { Audiences } from '@/components/Audiences';
-import { EcosystemSection } from '@/components/EcosystemSection';
 import { Footer } from '@/components/Footer';
 import { GetStarted } from '@/components/GetStarted';
-import { HeroSection } from '@/components/HeroSection';
-import { JoshuaStack } from '@/components/JoshuaStack';
-import { SocialProof } from '@/components/SocialProof';
-import { ValueProposition } from '@/components/ValueProposition';
+import { Demo } from '@/components/landing/Demo';
+import { Faq } from '@/components/landing/Faq';
+import { Hero } from '@/components/landing/Hero';
+import { Persona } from '@/components/landing/Persona';
+import { PricingTeaser } from '@/components/landing/PricingTeaser';
+import { Primitives } from '@/components/landing/Primitives';
+import { Problem } from '@/components/landing/Problem';
+import { Proof } from '@/components/landing/Proof';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
-      <HeroSection />
-      <ValueProposition />
-      <JoshuaStack />
-      <SocialProof />
-      <EcosystemSection />
-      <Audiences />
+      <Hero />
+      <Problem />
+      <Demo />
+      <Primitives />
+      <Persona />
+      <Proof />
+      <PricingTeaser />
+      <Faq />
       <GetStarted />
       <Footer />
     </div>
