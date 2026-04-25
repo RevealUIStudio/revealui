@@ -1,4 +1,4 @@
-export function ProblemV2() {
+export function Problem() {
   const without = [
     'Auth, sessions, RBAC',
     'Stripe billing + webhooks',

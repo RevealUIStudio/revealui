@@ -20,7 +20,7 @@ const ciSignals = [
   'Affected-only PR gate',
 ];
 
-export function ProofV2() {
+export function Proof() {
   return (
     <section className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
