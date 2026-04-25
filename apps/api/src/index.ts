@@ -97,6 +97,7 @@ import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
 import maintenanceRoute from './routes/maintenance.js';
 import marketplaceRoute from './routes/marketplace.js';
+import mcpUsageRoute from './routes/mcp-usage.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
@@ -1054,6 +1055,8 @@ app.route('/api/agent-tasks', agentTasksRoute);
 // elicit must be a sibling rather than a sub-route.
 app.route('/api/agent-stream/elicit', agentStreamElicitRoute);
 app.route('/api/agent-stream', agentStreamRoute);
+// A.3: Usage aggregation endpoint for the /admin/mcp Usage tab.
+app.route('/api/mcp/usage', mcpUsageRoute);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);
@@ -1109,6 +1112,7 @@ app.route('/api/v1/tickets', ticketsRoute);
 app.route('/api/v1/agent-tasks', agentTasksRoute);
 app.route('/api/v1/agent-stream/elicit', agentStreamElicitRoute);
 app.route('/api/v1/agent-stream', agentStreamRoute);
+app.route('/api/v1/mcp/usage', mcpUsageRoute);
 app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);
