@@ -36,33 +36,27 @@ export function Faq() {
           </h2>
         </div>
 
-        <div className="mx-auto mt-16 max-w-3xl">
-          <dl className="divide-y divide-gray-200">
-            {faqs.map((item) => (
-              <details key={item.q} className="group py-6">
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left">
-                  <dt className="text-lg font-semibold leading-7 text-gray-950">{item.q}</dt>
-                  <span className="ml-2 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition group-open:rotate-45 group-open:bg-emerald-50 group-open:text-emerald-700">
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                    >
-                      <title>Toggle</title>
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 4.5v15m7.5-7.5h-15"
-                      />
-                    </svg>
-                  </span>
-                </summary>
-                <dd className="mt-4 pr-9 text-base leading-7 text-gray-600">{item.a}</dd>
-              </details>
-            ))}
-          </dl>
+        <div className="mx-auto mt-16 max-w-3xl divide-y divide-gray-200">
+          {faqs.map((item) => (
+            <details key={item.q} className="group py-6">
+              <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left">
+                <h3 className="text-lg font-semibold leading-7 text-gray-950">{item.q}</h3>
+                <span className="ml-2 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition group-open:rotate-45 group-open:bg-emerald-50 group-open:text-emerald-700">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                  >
+                    <title>Toggle</title>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                </span>
+              </summary>
+              <div className="mt-4 pr-9 text-base leading-7 text-gray-600">{item.a}</div>
+            </details>
+          ))}
         </div>
       </div>
     </section>
