@@ -1,4 +1,4 @@
-import React, { type Ref } from 'react';
+import React, { type CSSProperties, type Ref } from 'react';
 
 export interface SlotProps extends React.HTMLAttributes<HTMLElement> {
   children?: React.ReactNode;
@@ -8,13 +8,27 @@ export interface SlotProps extends React.HTMLAttributes<HTMLElement> {
 
 /**
  * Slot component for polymorphic composition
- * Allows components to merge props with child elements
+ * Clones the child element and merges parent props with the child's own props.
+ * Parent className/style come first; child's are merged on top so authors can override.
  */
-function Slot({ children, asChild, ref, ...slotProps }: SlotProps) {
-  if (asChild && React.isValidElement(children)) {
+function Slot({ children, asChild: _asChild, ref, ...slotProps }: SlotProps) {
+  if (React.isValidElement(children)) {
+    const childProps = children.props as {
+      className?: string;
+      style?: CSSProperties;
+      [key: string]: unknown;
+    };
+    const mergedClassName = [slotProps.className, childProps.className].filter(Boolean).join(' ');
+    const mergedStyle: CSSProperties | undefined =
+      slotProps.style || childProps.style
+        ? { ...(slotProps.style ?? {}), ...(childProps.style ?? {}) }
+        : undefined;
+
     return React.cloneElement(children, {
       ...slotProps,
-      ...(children.props as Record<string, unknown>),
+      ...childProps,
+      className: mergedClassName || undefined,
+      style: mergedStyle,
       ref,
     } as unknown as React.HTMLAttributes<HTMLElement>);
   }
