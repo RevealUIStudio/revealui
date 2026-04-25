@@ -57,9 +57,7 @@ export function DemoV2() {
               </div>
             </div>
           </div>
-          <p className="mt-3 text-center text-xs text-gray-500">
-            Recording coming soon. Click to be notified when it&apos;s live.
-          </p>
+          <p className="mt-3 text-center text-xs text-gray-500">Recording coming soon.</p>
         </div>
 
         <div className="mx-auto mt-20 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-3">

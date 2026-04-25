@@ -18,7 +18,7 @@ const tiers = [
   },
   {
     name: 'Pro',
-    price: 'From $TBD',
+    price: '$49',
     cadence: 'per workspace / month',
     description: 'Managed hosting, AI primitives, and priority support.',
     features: [
@@ -33,9 +33,10 @@ const tiers = [
   },
   {
     name: 'Enterprise',
-    price: 'Custom',
-    cadence: 'volume + governance',
-    description: 'SSO, audit logs, on-prem deployment, and a named contact.',
+    price: '$299',
+    cadence: 'per workspace / month',
+    description:
+      'SSO, audit logs, on-prem deployment, and a named contact. Custom plans for high volume.',
     features: [
       'Everything in Pro',
       'SSO + SCIM provisioning',
