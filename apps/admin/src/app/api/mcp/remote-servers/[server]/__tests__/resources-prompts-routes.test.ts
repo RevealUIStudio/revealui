@@ -341,9 +341,13 @@ describe('POST /api/mcp/remote-servers/[server]/get-prompt', () => {
 
   it.each([
     '__proto__',
-    'constructor',
-    'prototype',
-  ])('rejects an argument key named %s with HTTP 400', async (reservedKey) => {
+    '_private',
+    '123_starts_with_digit',
+    'has spaces',
+    'has.dots',
+    'a'.repeat(65),
+    '',
+  ])('rejects an argument key %j that does not match the allow-list', async (badKey) => {
     mockGetSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
     const { POST } = await import('../get-prompt/route.js');
     const res = await POST(
@@ -352,21 +356,18 @@ describe('POST /api/mcp/remote-servers/[server]/get-prompt', () => {
         body: JSON.stringify({
           tenant: 'acme',
           name: 'greeting',
-          arguments: { [reservedKey]: 'value' },
+          arguments: { [badKey]: 'value' },
         }),
       }) as never,
       { params: Promise.resolve({ server: 'linear' }) },
     );
     expect(res.status).toBe(400);
-    const body = (await res.json()) as { error: string };
-    expect(body.error).toContain(reservedKey);
-    expect(body.error).toMatch(/reserved/i);
-    // Object.prototype must not be polluted, even though the request
-    // was rejected — the guard runs before any property write.
+    // Object.prototype must not be polluted by a __proto__ key, even
+    // when the JSON parser materialised it before our guard ran.
     expect((Object.prototype as Record<string, unknown>).value).toBeUndefined();
   });
 
-  it('forwards args via a null-prototype object (defense in depth)', async () => {
+  it('forwards regex-allowed args via a null-prototype object', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
     let observedArgs: Record<string, string> | undefined;
     mockBuild.mockImplementationOnce(async () => {
@@ -385,13 +386,19 @@ describe('POST /api/mcp/remote-servers/[server]/get-prompt', () => {
         body: JSON.stringify({
           tenant: 'acme',
           name: 'greeting',
-          arguments: { topic: 'safe' },
+          // All three keys start with a letter and stay within the
+          // allow-list pattern. `constructor` is allowed by the regex
+          // but lands as an ordinary own-property on the null-prototype
+          // destination — no Object.prototype pollution.
+          arguments: { topic: 'safe', user_id: 'u1', constructor: 'literal' },
         }),
       }) as never,
       { params: Promise.resolve({ server: 'linear' }) },
     );
     expect(res.status).toBe(200);
     expect(observedArgs?.topic).toBe('safe');
+    expect(observedArgs?.user_id).toBe('u1');
+    expect(observedArgs?.constructor).toBe('literal');
     expect(Object.getPrototypeOf(observedArgs)).toBeNull();
   });
 });
