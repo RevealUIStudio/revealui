@@ -104,4 +104,4 @@ import { createLLMClient } from '@revealui/ai/llm'
 const llm = createLLMClient()
 ```
 
-See the [inference guide](/pro/byok) for full setup and all providers.
+See the [inference guide](/pro/inference) for full setup and all providers.

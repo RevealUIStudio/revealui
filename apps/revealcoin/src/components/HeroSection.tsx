@@ -40,8 +40,8 @@ export function HeroSection() {
           color="violet"
           className="mb-6 gap-2 rounded-full px-4 py-1.5 ring-1 ring-violet-200/80"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-pulse" />
-          Live on Solana Mainnet
+          <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+          Deployed on Solana Mainnet · Pre-launch
         </Badge>
 
         <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
@@ -58,6 +58,17 @@ export function HeroSection() {
           Utility payments, governance voting, and ecosystem rewards - built on Solana Token-2022
           with {TOTAL_SUPPLY_DISPLAY} fixed supply.
         </p>
+
+        {/* Pre-launch disclaimer — token deployed but gated */}
+        <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-900">
+          <p className="font-semibold">Public trading is not yet live.</p>
+          <p className="mt-1 leading-relaxed">
+            The token is deployed on mainnet, but distribution and Raydium liquidity are gated
+            behind two pre-launch commitments: on-chain vesting migration (replacing the current
+            custodial vesting model) and multi-sig on the mint authority. Watch the roadmap below
+            for progress on both.
+          </p>
+        </div>
 
         {/* Supply symbolism */}
         <div className="mt-6 inline-flex items-center gap-3 rounded-xl bg-gray-950 px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-white/10">

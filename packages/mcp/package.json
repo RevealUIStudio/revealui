@@ -1,6 +1,6 @@
 {
   "name": "@revealui/mcp",
-  "version": "0.1.11",
+  "version": "0.2.0",
   "description": "Model Context Protocol integrations for RevealUI — adapter framework, hypervisor, and MCP contracts",
   "repository": {
     "type": "git",
@@ -21,7 +21,7 @@
     "@electric-sql/pglite": "^0.4.4",
     "pg": "catalog:",
     "typescript": "catalog:",
-    "vitest": "^4.1.3"
+    "vitest": "^4.1.5"
   },
   "engines": {
     "node": ">=24.13.0"
@@ -67,9 +67,21 @@
       "types": "./dist/auth.d.ts",
       "import": "./dist/auth.js"
     },
-    "./stores/postgres": {
-      "types": "./dist/stores/postgres-idempotency.d.ts",
-      "import": "./dist/stores/postgres-idempotency.js"
+    "./streamable-http": {
+      "types": "./dist/streamable-http.d.ts",
+      "import": "./dist/streamable-http.js"
+    },
+    "./oauth": {
+      "types": "./dist/oauth.d.ts",
+      "import": "./dist/oauth.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    },
+    "./remote-client": {
+      "types": "./dist/remote-client.d.ts",
+      "import": "./dist/remote-client.js"
     }
   },
   "files": [

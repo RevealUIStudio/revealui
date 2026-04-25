@@ -87,7 +87,7 @@ pnpm dev
 | **For payments** | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | When testing checkout, subscriptions, or billing |
 | **For uploads** | `BLOB_READ_WRITE_TOKEN` | When testing media uploads |
 | **For AI** | `LLM_PROVIDER`, `OLLAMA_BASE_URL` or `INFERENCE_SNAPS_BASE_URL` | When testing AI agent features |
-| **For email** | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | When testing password reset or waitlist emails |
+| **For email** | `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `EMAIL_FROM` | When testing password reset or waitlist emails (Gmail API via Google Workspace service account) |
 | **For sync** | `NEXT_PUBLIC_ELECTRIC_SERVICE_URL`, `ELECTRIC_SERVICE_URL` | When testing real-time sync features |
 | **For monitoring** | `NEXT_PUBLIC_SENTRY_DSN` | Recommended for staging and production |
 
@@ -170,8 +170,10 @@ During Next.js builds, set `SKIP_ENV_VALIDATION=true` to defer validation to run
 | `VERCEL_CLIENT_SECRET` | No | None | Vercel OAuth App client secret. | HIGH (server-only) | admin |
 | `OAUTH_ADMIN_EMAILS` | No | None | Comma-separated email allowlist for OAuth admin access. Leave empty to allow any authenticated OAuth account. | MEDIUM | admin |
 | `NEXT_PUBLIC_APP_URL` | No | `NEXT_PUBLIC_SERVER_URL` | Base URL for constructing OAuth redirect URIs. | LOW (client-safe) | admin |
-| `RESEND_API_KEY` | No | None | Resend API key for transactional emails (password reset, waitlist notifications). | HIGH (server-only) | admin, api |
-| `RESEND_FROM_EMAIL` | No | None | Sender address for transactional emails. | LOW | admin, api |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | No | None | Google Workspace service-account email with domain-wide delegation for Gmail API. Used for transactional emails (password reset, waitlist notifications). | HIGH (server-only) | admin, api |
+| `GOOGLE_PRIVATE_KEY` | No | None | Google Workspace service-account private key (PEM). Paired with `GOOGLE_SERVICE_ACCOUNT_EMAIL`. | HIGH (server-only) | admin, api |
+| `EMAIL_FROM` | No | `noreply@revealui.com` | Sender address for transactional emails. Must match a domain the Gmail service account can send as. | LOW | admin, api |
+| `EMAIL_REPLY_TO` | No | None | Optional reply-to address for transactional emails. | LOW | admin, api |
 | `REVEALUI_WAITLIST_NOTIFY_EMAIL` | No | None | Email address to notify on waitlist signups. Silently skipped if unset. | LOW | marketing |
 | `REVEALUI_SUPPORT_EMAIL` | No | `support@revealui.com` | Support contact shown in transactional emails sent to customers. | LOW | admin, api |
 

@@ -20,6 +20,7 @@ Per-user or perpetual licenses can still exist for narrowly scoped products, but
 - [Overview](#overview)
 - [Commercial Model](#commercial-model)
 - [What Pro Includes](#what-pro-includes)
+- [Licensing (Fair Source + MIT)](#licensing-fair-source--mit)
 - [MCP Setup](#mcp-setup)
 - [MCP Servers](#mcp-servers)
 - [Getting API Keys](#getting-api-keys)
@@ -48,7 +49,7 @@ This guide covers the full Pro surface area, not just MCP setup:
 
 - account-level commercial packaging
 - MCP servers and developer tooling
-- Open-model inference (Ubuntu snaps, Ollama)
+- Open-model inference (Ollama shipped; Ubuntu Inference Snaps on roadmap)
 - editor and harness workflows
 - Stripe, Supabase, and x402 payment features
 - marketplace monetization
@@ -95,6 +96,23 @@ RevealUI is part of a four-project ecosystem. Each project has features distribu
 | RevealCoin x402 agent payments | | | | Yes |
 
 The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free forever. Commercial features (desktop app, rotation engine, provisioning, x402 payments) require the corresponding tier.
+
+## Licensing (Fair Source + MIT)
+
+RevealUI publishes every package to npm from the same public repo. There are two source licenses in play:
+
+- **OSS packages (MIT):** `@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/security`, `@revealui/utils`, `@revealui/config`, `@revealui/cache`, `@revealui/resilience`, `@revealui/openapi`, `@revealui/sync`, `@revealui/mcp`, and the rest of the public infrastructure. Use them however you want — commercial products, forks, SaaS, whatever.
+- **Pro packages (Fair Source, FSL-1.1-MIT):** `@revealui/ai` and `@revealui/harnesses`. Source-visible in the public repo, installable from npm like any other package, with one legal constraint: you can't build a product that competes directly with RevealUI on top of them. Two years after each release the license on that release automatically converts to plain MIT. FSL-1.1 is the same license used by Sentry, GitButler, and Keygen.
+
+**What this means in practice:**
+
+- You get full source access to the Pro packages for audit, security review, bug reports, and self-service debugging. No "black box" you have to trust.
+- You can use the Pro packages commercially as long as your product isn't a substantially similar developer platform competing with RevealUI. Building a SaaS product on top of the AI primitives, agents, editors, harnesses, or MCP marketplace is fine. Publishing a competing "platform software sold at the account or workspace level" isn't.
+- Every Pro release has a scheduled MIT-conversion date two years out. You can see the history in the package's changelog, and today's FSL source becomes tomorrow's MIT source.
+
+The Pro tier gate isn't enforced by the license — it's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are RS256-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
+
+For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-003-fair-source-licensing.md). Root-level `LICENSE` (MIT) and `LICENSE.FSL` describe the terms verbatim.
 
 ## MCP Setup
 
@@ -905,21 +923,31 @@ All MCP servers are **completely free**:
 
 RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, no vendor lock-in, no API bills.
 
-## Supported Inference Paths
+## Inference Paths
+
+### Shipped
 
 | Path | Runtime | Notes |
 |------|---------|-------|
-| **Ubuntu Inference Snaps** | Canonical snap runtime | Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano |
 | **Ollama** | Local GGUF models | Any open source GGUF model. Default: `gemma4:e2b` |
 | **HuggingFace** | HuggingFace Inference API | Open models hosted on HuggingFace infrastructure |
 | **Vultr** | Vultr GPU Cloud | Open models on Vultr serverless inference |
+
+### Planned (roadmap)
+
+| Path | Runtime | Current state | Tracking |
+|------|---------|---------------|----------|
+| **Ubuntu Inference Snaps** | Canonical snap runtime | CLI install works today for Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano (`sudo snap install <model>`). Setting `INFERENCE_SNAPS_BASE_URL` wires an already-running snap service to the LLM client. Studio lifecycle management (start / stop / health / model discovery) is **not shipped**. | Integration issue to be filed; see MASTER_PLAN §CR-9 P1-04 |
 
 ## Server-side usage
 
 ```typescript
 import { createLLMClientFromEnv } from "@revealui/ai/llm/client";
 
-// Auto-detects from environment (snaps > Ollama)
+// Auto-detects from environment in precedence order:
+//   INFERENCE_SNAPS_BASE_URL (if set — planned path, manual wiring)
+//   OLLAMA_BASE_URL (default local runtime)
+//   HUGGINGFACE_API_KEY / VULTR_API_KEY (hosted fallbacks)
 const llm = createLLMClientFromEnv();
 
 const response = await llm.chat([{ role: "user", content: "Hello!" }]);
@@ -928,7 +956,8 @@ const response = await llm.chat([{ role: "user", content: "Hello!" }]);
 ## Environment configuration
 
 ```bash
-# Ubuntu inference snap
+# Ubuntu inference snap — planned path; requires manual snap install + service
+# (see Planned roadmap table above). Studio UI lifecycle not shipped.
 INFERENCE_SNAPS_BASE_URL=http://localhost:8080/v1
 
 # Ollama (any open source model)
@@ -942,7 +971,7 @@ VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
 VULTR_BASE_URL=https://api.vultrinference.com/v1
 
 # Force specific inference path (overrides auto-detection)
-# Valid values: ollama, huggingface, vultr, inference-snaps
+# Valid values: ollama, huggingface, vultr, inference-snaps (planned)
 LLM_PROVIDER=ollama
 ```
 
@@ -956,7 +985,15 @@ LLM_PROVIDER=ollama
 
 ## Per-user provider keys
 
-For multi-tenant deployments, individual users can register their own provider keys (BYOK). The key is resolved from `tenant_provider_configs` → the user's encrypted `user_api_keys` row, falling back to the server-default client if no user-level key is configured:
+For multi-tenant deployments, individual users can register their own keys for the
+**open-model** provider endpoints supported by RevealUI — Vultr, HuggingFace, Groq,
+Ollama, and Ubuntu Inference Snaps. Proprietary "bring-your-own-key" paths
+(Anthropic, OpenAI, etc.) were removed on 2026-04-05 in the open-model-only pivot;
+`@revealui/ai` only ships providers for Apache-2.0 / Fair-Source open models.
+
+The key is resolved from `tenant_provider_configs` → the user's encrypted
+`user_api_keys` row, falling back to the server-default client if no user-level
+key is configured:
 
 ```typescript
 import { createLLMClientForUser } from "@revealui/ai/llm/client";

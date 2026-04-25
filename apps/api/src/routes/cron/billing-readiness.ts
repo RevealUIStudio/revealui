@@ -5,7 +5,7 @@
  * 1. All expected Stripe price env vars are set
  * 2. REVEALUI_LICENSE_PRIVATE_KEY is present (for license JWT generation)
  * 3. Billing catalog DB rows exist for all tiers
- * 4. Email provider configured (warning only  -  Gmail or Resend)
+ * 4. Email provider configured (warning only  -  Gmail API via Google Workspace service account)
  *
  * Sends an alert email to REVEALUI_ALERT_EMAIL on any failure.
  * Runs daily at 06:00 UTC (configured in vercel.json).
@@ -18,8 +18,29 @@ import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
 import { Hono } from 'hono';
+import Stripe from 'stripe';
+import { MRR_TIER_PRICE_FALLBACK_CENTS, type SubscriptionTierId } from '../../lib/tier-pricing.js';
 
 const app = new Hono();
+
+let cachedStripe: Stripe | undefined;
+function getStripeClient(): Stripe {
+  if (cachedStripe) return cachedStripe;
+  const key = process.env.STRIPE_SECRET_KEY?.trim();
+  if (!key) throw new Error('STRIPE_SECRET_KEY not configured');
+  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
+  return cachedStripe;
+}
+
+/** Subscription tiers whose Stripe prices must match the MRR fallback. */
+const SUBSCRIPTION_TIERS: Array<{
+  tier: SubscriptionTierId;
+  priceEnvVar: 'STRIPE_PRO_PRICE_ID' | 'STRIPE_MAX_PRICE_ID' | 'STRIPE_ENTERPRISE_PRICE_ID';
+}> = [
+  { tier: 'pro', priceEnvVar: 'STRIPE_PRO_PRICE_ID' },
+  { tier: 'max', priceEnvVar: 'STRIPE_MAX_PRICE_ID' },
+  { tier: 'enterprise', priceEnvVar: 'STRIPE_ENTERPRISE_PRICE_ID' },
+];
 
 const ALERT_EMAIL = process.env.REVEALUI_ALERT_EMAIL ?? 'founder@revealui.com';
 
@@ -123,7 +144,49 @@ app.post('/billing-readiness', async (c) => {
     });
   }
 
-  // 4. Check email provider configuration (warning only  -  billing works without
+  // 4. Check Stripe price parity against MRR fallback (CR8-P2-04)
+  //
+  //    For each subscription tier, fetch the Stripe price on the configured
+  //    env var and compare `price.unit_amount` to the MRR fallback cents.
+  //    Drift means the admin dashboard will misreport MRR for one full day
+  //    until the next cron run, and — more importantly — that the published
+  //    marketing price has diverged from what Stripe will charge.
+  //
+  //    We skip tiers whose env var is missing (earlier check already flags
+  //    that) to avoid double-alerting. Stripe errors (network, permission,
+  //    deleted price) surface as check failures so they page someone.
+  for (const { tier, priceEnvVar } of SUBSCRIPTION_TIERS) {
+    const priceId = process.env[priceEnvVar]?.trim();
+    if (!priceId) continue; // env-var absence already flagged by section 1
+    try {
+      const stripe = getStripeClient();
+      const price = await stripe.prices.retrieve(priceId);
+      const expected = MRR_TIER_PRICE_FALLBACK_CENTS[tier];
+      if (price.unit_amount === null) {
+        results.push({
+          check: `stripe:price:${tier}`,
+          ok: false,
+          detail: `${priceId} has no unit_amount (free-form or tiered price?)`,
+        });
+      } else if (price.unit_amount !== expected) {
+        results.push({
+          check: `stripe:price:${tier}`,
+          ok: false,
+          detail: `Stripe price ${price.unit_amount} cents != fallback ${expected} cents (${priceId})`,
+        });
+      } else {
+        results.push({ check: `stripe:price:${tier}`, ok: true, detail: `${expected} cents` });
+      }
+    } catch (err) {
+      results.push({
+        check: `stripe:price:${tier}`,
+        ok: false,
+        detail: `lookup failed: ${err instanceof Error ? err.message : String(err)}`,
+      });
+    }
+  }
+
+  // 5. Check email provider configuration (warning only  -  billing works without
   //    email, but transactional emails will silently fail)
   const hasGmail =
     Boolean(process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) && Boolean(process.env.GOOGLE_PRIVATE_KEY);

@@ -29,6 +29,9 @@ export default defineConfig({
         'src/**/__tests__/**',
         'src/**/test-fixtures.ts',
         'src/types/database.ts', // Generated file
+        'src/**/index.ts', // Barrel files — pure re-exports, no runtime logic
+        'src/**/types.ts', // Type-only modules (TS `export type`, zero runtime)
+        'src/scripts/**', // CLI entry points (shebang scripts) — run manually, tested via pnpm db:cleanup / db:backfill
         'dist/**',
       ],
       thresholds: {

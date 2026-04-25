@@ -17,6 +17,7 @@
 import { type ChildProcess, spawn } from 'node:child_process';
 import { registerCleanupHandler } from '@revealui/core/monitoring';
 import { logger } from '@revealui/core/observability/logger';
+import type { McpMeterEvent, McpMeterSink } from './metering.js';
 
 // =============================================================================
 // Types
@@ -138,6 +139,7 @@ export class MCPHypervisor {
   /** Tenant-scoped server instances: key = `${tenantId}:${serverName}` */
   private tenantServers: Map<string, ServerEntry> = new Map();
   private credentialResolver: MCPCredentialResolver | null = null;
+  private meterSink: McpMeterSink | null = null;
   private requestCounter = 0;
   private pendingRequests: Map<
     number,
@@ -453,22 +455,39 @@ export class MCPHypervisor {
         arguments: args,
       });
 
+      const durationMs = Date.now() - startTime;
       logger.info('[MCPHypervisor] Tool complete', {
         event: 'mcp.tool.complete',
         server: serverName,
         tool: toolName,
         success: true,
-        durationMs: Date.now() - startTime,
+        durationMs: durationMs,
+      });
+      this.emitMeter({
+        kind: 'mcp.tool.call',
+        serverName,
+        toolName,
+        duration_ms: durationMs,
+        success: true,
       });
 
       return result;
     } catch (error) {
+      const durationMs = Date.now() - startTime;
       logger.info('[MCPHypervisor] Tool failed', {
         event: 'mcp.tool.complete',
         server: serverName,
         tool: toolName,
         success: false,
-        durationMs: Date.now() - startTime,
+        durationMs: durationMs,
+      });
+      this.emitMeter({
+        kind: 'mcp.tool.call',
+        serverName,
+        toolName,
+        duration_ms: durationMs,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
@@ -499,6 +518,49 @@ export class MCPHypervisor {
    */
   setCredentialResolver(resolver: MCPCredentialResolver): void {
     this.credentialResolver = resolver;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Usage metering (Stage 6.2)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Install a consumer-wired metering sink. Fires exactly once per
+   * tool-call boundary (success or failure) with an `McpMeterEvent`.
+   * Sinks may be sync or async — invocation is fire-and-forget; sink
+   * errors are logged at warn and never propagate into the call path.
+   *
+   * See `./metering.ts` for the event shape. Pass `null` to disable.
+   */
+  setUsageMeterSink(sink: McpMeterSink | null): void {
+    this.meterSink = sink;
+  }
+
+  /**
+   * Fire the consumer-wired metering sink. Swallows errors so
+   * observability can never corrupt a successful tool call.
+   *
+   * @internal
+   */
+  private emitMeter(event: McpMeterEvent): void {
+    const sink = this.meterSink;
+    if (!sink) return;
+    try {
+      const result = sink(event);
+      if (result && typeof (result as Promise<void>).catch === 'function') {
+        (result as Promise<void>).catch((error) => {
+          logger.warn('[MCPHypervisor] usage meter sink rejected; continuing', {
+            event: event.kind,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        });
+      }
+    } catch (error) {
+      logger.warn('[MCPHypervisor] usage meter sink threw; continuing', {
+        event: event.kind,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -673,24 +735,43 @@ export class MCPHypervisor {
         entry.process?.stdin?.write(`${JSON.stringify(request)}\n`);
       });
 
+      const durationMs = Date.now() - startTime;
       logger.info('[MCPHypervisor] Tenant tool complete', {
         event: 'mcp.tool.complete',
         server: serverName,
         tool: toolName,
         tenant: tenantId,
         success: true,
-        durationMs: Date.now() - startTime,
+        durationMs: durationMs,
+      });
+      this.emitMeter({
+        kind: 'mcp.tool.call',
+        serverName,
+        toolName,
+        tenantId,
+        duration_ms: durationMs,
+        success: true,
       });
 
       return result;
     } catch (error) {
+      const durationMs = Date.now() - startTime;
       logger.info('[MCPHypervisor] Tenant tool failed', {
         event: 'mcp.tool.complete',
         server: serverName,
         tool: toolName,
         tenant: tenantId,
         success: false,
-        durationMs: Date.now() - startTime,
+        durationMs: durationMs,
+      });
+      this.emitMeter({
+        kind: 'mcp.tool.call',
+        serverName,
+        toolName,
+        tenantId,
+        duration_ms: durationMs,
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }

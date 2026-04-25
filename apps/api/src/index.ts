@@ -38,8 +38,14 @@ import { sql } from 'drizzle-orm';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
 import { logger as honoLogger } from 'hono/logger';
+// Side-effect import: registers durable-queue handlers at module top
+// level so both the producer (POST /api/agent-tasks) and the worker
+// (POST /api/jobs/run) invocations see the same registry. See
+// CR8-P2-01 phase C.
+import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
+import { validateStartup } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
@@ -65,6 +71,7 @@ import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
 import adminObservabilityRoute from './routes/admin/observability.js';
 import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
+import agentStreamElicitRoute from './routes/agent-stream-elicit.js';
 import agentTasksRoute from './routes/agent-tasks.js';
 import apiKeysRoute from './routes/api-keys.js';
 import authRoute from './routes/auth.js';
@@ -75,17 +82,22 @@ import contentRoute from './routes/content/index.js';
 import cronBillingReadinessRoute from './routes/cron/billing-readiness.js';
 import cronCleanupRoute from './routes/cron/cleanup.js';
 import cronDispatchRoute from './routes/cron/dispatch.js';
+import cronDrainUnreconciledRoute from './routes/cron/drain-unreconciled.js';
+import cronJobsSafetyNetRoute from './routes/cron/jobs-safety-net.js';
 import cronMarketplacePayoutsRoute from './routes/cron/marketplace-payouts.js';
 import cronPublishRoute from './routes/cron/publish-scheduled.js';
+import cronReconcileSubscriptionsRoute from './routes/cron/reconcile-subscriptions.js';
 import cronSweepGraceRoute from './routes/cron/sweep-grace-periods.js';
 import errorsRoute from './routes/errors.js';
 import gdprRoute from './routes/gdpr.js';
 import ghcrRoute from './routes/ghcr.js';
 import healthRoute from './routes/health.js';
+import jobsRoute from './routes/jobs/index.js';
 import licenseRoute from './routes/license.js';
 import logsRoute from './routes/logs.js';
 import maintenanceRoute from './routes/maintenance.js';
 import marketplaceRoute from './routes/marketplace.js';
+import mcpUsageRoute from './routes/mcp-usage.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
@@ -148,6 +160,11 @@ process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Validate Forge config at startup  -  exits if FORGE_* env vars are inconsistent
 validateForgeConfig();
+
+// Validate durable-dispatch flag config (CR8-P2-01 phase C) — if the
+// flag is on, the wake secret must be set, or every dispatch silently
+// falls back to the daily cron cadence.
+assertDispatchFlagConfigured();
 
 /**
  * Parse and validate CORS origins from environment variable.
@@ -737,6 +754,8 @@ app.post('/api/agent-tasks/*', writeProtected);
 app.post('/api/v1/agent-tasks/*', writeProtected);
 app.post('/api/agent-stream', writeProtected);
 app.post('/api/v1/agent-stream', writeProtected);
+app.post('/api/agent-stream/elicit', writeProtected);
+app.post('/api/v1/agent-stream/elicit', writeProtected);
 app.get('/api/rag/*', writeProtected);
 app.get('/api/v1/rag/*', writeProtected);
 app.post('/api/rag/*', writeProtected);
@@ -1029,17 +1048,29 @@ app.route('/api/webhooks', webhooksRoute);
 app.route('/api/provenance', provenanceRoute);
 app.route('/api/tickets', ticketsRoute);
 app.route('/api/agent-tasks', agentTasksRoute);
+// A.2b: elicitation-response endpoint for in-flight agent runs. Mounted
+// BEFORE the parent `/api/agent-stream` route so Hono's trie-based router
+// matches the more-specific path first. The OpenAPIHono instance for
+// agent-stream is already bound to `/` for its POST streaming handler, so
+// elicit must be a sibling rather than a sub-route.
+app.route('/api/agent-stream/elicit', agentStreamElicitRoute);
 app.route('/api/agent-stream', agentStreamRoute);
+// A.3: Usage aggregation endpoint for the /admin/mcp Usage tab.
+app.route('/api/mcp/usage', mcpUsageRoute);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
 app.route('/api/cron', cronDispatchRoute);
+app.route('/api/cron', cronDrainUnreconciledRoute);
 app.route('/api/cron', cronMarketplacePayoutsRoute);
 app.route('/api/cron', cronPublishRoute);
+app.route('/api/cron', cronReconcileSubscriptionsRoute);
 app.route('/api/cron', cronSweepGraceRoute);
 app.route('/api/cron', cronCleanupRoute);
+app.route('/api/cron', cronJobsSafetyNetRoute);
+app.route('/api/jobs', jobsRoute);
 app.route('/api/ghcr', ghcrRoute);
 app.route('/api/maintenance', maintenanceRoute);
 app.route('/api/marketplace', marketplaceRoute);
@@ -1079,17 +1110,23 @@ app.route('/api/v1/webhooks', webhooksRoute);
 app.route('/api/v1/provenance', provenanceRoute);
 app.route('/api/v1/tickets', ticketsRoute);
 app.route('/api/v1/agent-tasks', agentTasksRoute);
+app.route('/api/v1/agent-stream/elicit', agentStreamElicitRoute);
 app.route('/api/v1/agent-stream', agentStreamRoute);
+app.route('/api/v1/mcp/usage', mcpUsageRoute);
 app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
 app.route('/api/v1/cron', cronDispatchRoute);
+app.route('/api/v1/cron', cronDrainUnreconciledRoute);
 app.route('/api/v1/cron', cronMarketplacePayoutsRoute);
 app.route('/api/v1/cron', cronPublishRoute);
+app.route('/api/v1/cron', cronReconcileSubscriptionsRoute);
 app.route('/api/v1/cron', cronSweepGraceRoute);
 app.route('/api/v1/cron', cronCleanupRoute);
+app.route('/api/v1/cron', cronJobsSafetyNetRoute);
+app.route('/api/v1/jobs', jobsRoute);
 app.route('/api/v1/ghcr', ghcrRoute);
 app.route('/api/v1/maintenance', maintenanceRoute);
 app.route('/api/v1/marketplace', marketplaceRoute);
@@ -1102,42 +1139,6 @@ app.onError(errorHandler);
 
 // For Vercel serverless
 export default app;
-
-/**
- * Validate required environment variables and trigger the lazy config proxy
- * so that any missing/invalid config causes a loud failure at startup rather
- * than silently failing on the first real request.
- */
-function validateStartup(): void {
-  const required = ['POSTGRES_URL', 'NODE_ENV'];
-  const missing = required.filter((key) => !process.env[key]);
-  if (missing.length > 0) {
-    throw new Error(
-      `STARTUP VALIDATION FAILED: Missing required environment variables: ${missing.join(', ')}. ` +
-        'Check your .env file or deployment configuration.',
-    );
-  }
-
-  // In production, additional vars are required
-  if (process.env.NODE_ENV === 'production') {
-    const prodRequired = [
-      'REVEALUI_SECRET',
-      'REVEALUI_KEK',
-      'REVEALUI_PUBLIC_SERVER_URL',
-      'STRIPE_SECRET_KEY',
-      'STRIPE_WEBHOOK_SECRET',
-      'REVEALUI_LICENSE_PRIVATE_KEY',
-      'REVEALUI_CRON_SECRET',
-      'CORS_ORIGIN',
-    ];
-    const missingProd = prodRequired.filter((key) => !process.env[key]);
-    if (missingProd.length > 0) {
-      throw new Error(
-        `STARTUP VALIDATION FAILED: Missing production-required env vars: ${missingProd.join(', ')}.`,
-      );
-    }
-  }
-}
 
 // Alerting  -  register channels and rules, start periodic evaluation.
 // Runs in both dev and prod. Console channel always active.

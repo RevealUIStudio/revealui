@@ -11,7 +11,7 @@ Centralized MCP server infrastructure, configuration, and documentation for Reve
 
 This package contains everything MCP-related:
 
-- **10 MCP Servers** - Code validator, Vercel, Stripe, Neon, Supabase, Playwright, Next.js DevTools, RevealUI Content, RevealUI Email, RevealUI Stripe
+- **13 MCP Servers** — Code Validator, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Supabase, Vercel, Vultr Test, and an Email Provider helper. Ground-truth count is enforced by `pnpm validate:claims`.
 - **Configuration Templates** - For Claude Code / Claude Desktop
 - **Utilities** - Config management, database adapters
 - **Documentation** - Complete guides and per-server docs
@@ -55,14 +55,9 @@ tsx packages/mcp/src/servers/code-validator.ts
 ```
 packages/mcp/
 ├── src/
-│   ├── servers/          # 7 MCP server implementations
+│   ├── servers/          # MCP server implementations (run `ls packages/mcp/src/servers/` for the current list)
 │   │   ├── code-validator.ts   ← AI code standards enforcer
-│   │   ├── vercel.ts
-│   │   ├── stripe.ts
-│   │   ├── neon.ts
-│   │   ├── supabase.ts
-│   │   ├── playwright.ts
-│   │   └── next-devtools.ts
+│   │   └── …                   ← Neon, Next.js DevTools, Playwright, RevealUI-*, Stripe, Supabase, Vercel, Vultr Test
 │   ├── config/           # Configuration utilities
 │   │   ├── index.ts
 │   │   ├── config.json
@@ -78,9 +73,6 @@ packages/mcp/
 │   ├── SETUP.md          # Setup instructions
 │   └── servers/          # Per-server documentation
 │       └── code-validator.md
-├── migrations/           # Database migrations
-│   ├── 0001_add_crdt_columns.sql
-│   └── ...
 └── package.json
 ```
 
@@ -259,5 +251,5 @@ Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)
 ---
 
 **Status:** ✅ Consolidated and Active
-**Servers:** 7 available (1 active, 6 optional)
-**Last Updated:** 2026-03-04
+**Servers:** 13 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
+**Last Updated:** 2026-04-20

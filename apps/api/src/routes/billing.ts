@@ -8,7 +8,7 @@
 import { CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
-import { getClient } from '@revealui/db';
+import { getClient, getRestPool } from '@revealui/db';
 import {
   accountEntitlements,
   accountMemberships,
@@ -25,10 +25,12 @@ import { protectedStripe } from '@revealui/services';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
+import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../lib/tier-pricing.js';
 import {
   sendDowngradeConfirmationEmail,
   sendUpgradeConfirmationEmail,
 } from '../lib/webhook-emails.js';
+import { assertAccountOwner } from '../middleware/account-owner.js';
 import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/license.js';
 
 /** Default trial period for new subscriptions (overridable via env) */
@@ -37,17 +39,6 @@ const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7'
 /** How far ahead to look for expiring support contracts (overridable via env, default 30 days) */
 const SUPPORT_RENEWAL_WINDOW_MS =
   Number.parseInt(process.env.REVEALUI_SUPPORT_RENEWAL_DAYS ?? '30', 10) * 24 * 60 * 60 * 1000;
-
-/**
- * Canonical monthly tier prices in USD (whole dollars).
- * Single source of truth  -  used for RVUI payment recording and MRR fallbacks.
- * Must match the marketing site and Stripe product catalog.
- */
-const CANONICAL_TIER_PRICES: Record<string, number> = {
-  pro: 49,
-  max: 149,
-  enterprise: 299,
-};
 
 /**
  * Computes a Stripe meter event timestamp for the last second of a billing cycle.
@@ -242,6 +233,7 @@ const UpgradeResponseSchema = z.object({
 async function ensureStripeCustomer(userId: string, email: string): Promise<string> {
   const db = getClient();
 
+  // Fast path: user already has a Stripe customer id.
   const [user] = await db
     .select({ stripeCustomerId: users.stripeCustomerId })
     .from(users)
@@ -251,10 +243,89 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
     return user.stripeCustomerId;
   }
 
-  // Create Stripe customer with idempotency key (safe to retry).
-  // NeonDB HTTP driver is stateless  -  db.transaction() is not supported.
-  // Instead we use a conditional UPDATE (WHERE stripe_customer_id IS NULL)
-  // so concurrent requests can't overwrite the winner.
+  // Slow path: need to create a Stripe customer. This is the race-prone
+  // section that issue #394 tracks. Two kinds of race exist:
+  //
+  //  1. Concurrent-request race: two ensureStripeCustomer() calls for the
+  //     same user at the same time — both see stripe_customer_id=null, both
+  //     create Stripe customers, only one write wins. Previously handled by
+  //     the Stripe idempotency key (`create-customer-${userId}`) — same key
+  //     returns the same Stripe customer.
+  //  2. Delayed-retry race: request creates Stripe customer, DB update
+  //     fails, then >24h later a subsequent call retries. Stripe idempotency
+  //     keys have a ~24h TTL, so the retry creates a NEW customer. Two
+  //     Stripe customers for one user, billing state splits.
+  //
+  // Fix: serialize the read→create→write critical section per-user using a
+  // Postgres advisory lock. Needs a real pg connection (not the NeonDB HTTP
+  // driver). The shared pg.Pool primitive landed by #390 (getRestPool) makes
+  // this reachable from here.
+  const pool = getRestPool();
+  if (pool) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Per-user advisory lock. Scope string 'stripe:ensure:<userId>' is
+      // hashed by Postgres into a 64-bit lock id. Auto-released on
+      // COMMIT/ROLLBACK (pg_advisory_xact_lock, not pg_advisory_lock).
+      await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [`stripe:ensure:${userId}`]);
+
+      // Re-read inside the lock — a racing request may have won while we
+      // waited for the lock.
+      const winnerResult = await client.query<{ stripe_customer_id: string | null }>(
+        `SELECT stripe_customer_id FROM users WHERE id = $1`,
+        [userId],
+      );
+      const alreadyCreated = winnerResult.rows[0]?.stripe_customer_id;
+      if (alreadyCreated) {
+        await client.query('COMMIT');
+        return alreadyCreated;
+      }
+
+      // We hold the lock and no customer exists. Create and persist
+      // atomically.
+      const customer = await protectedStripe.customers.create(
+        {
+          email,
+          metadata: { revealui_user_id: userId },
+        },
+        {
+          idempotencyKey: `create-customer-${userId}`,
+        },
+      );
+
+      await client.query(
+        `UPDATE users SET stripe_customer_id = $1, updated_at = NOW() WHERE id = $2`,
+        [customer.id, userId],
+      );
+
+      await client.query('COMMIT');
+      return customer.id;
+    } catch (err) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackErr) {
+        logger.error('ensureStripeCustomer rollback failed after error', {
+          userId,
+          rollbackErr: String(rollbackErr),
+        });
+      }
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
+  // Fallback path: pool unavailable (e.g. build-time with no DATABASE_URL).
+  // Use the prior conditional-UPDATE best-effort pattern. Safe for the
+  // common single-request case; does NOT defend against the delayed-retry
+  // race — but that path is not reachable in production where POSTGRES_URL
+  // is set. Logged so any production hit is visible.
+  logger.warn('ensureStripeCustomer: shared pg.Pool unavailable, falling back to non-locked path', {
+    userId,
+  });
+
   const customer = await protectedStripe.customers.create(
     {
       email,
@@ -265,14 +336,11 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
     },
   );
 
-  // Conditional update: only writes if no customer ID is set yet.
-  // If another request already wrote one, this is a no-op.
   await db
     .update(users)
     .set({ stripeCustomerId: customer.id, updatedAt: new Date() })
     .where(and(eq(users.id, userId), isNull(users.stripeCustomerId)));
 
-  // Re-read to return whichever customer ID won the race
   const [updated] = await db
     .select({ stripeCustomerId: users.stripeCustomerId })
     .from(users)
@@ -492,6 +560,7 @@ app.openapi(checkoutRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const { priceId, tier } = c.req.valid('json');
   const resolvedTier = tier ?? 'pro';
@@ -577,6 +646,7 @@ app.openapi(portalRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
   const customerId = await resolveHostedStripeCustomerId(user.id, requestEntitlements?.accountId);
@@ -805,6 +875,7 @@ app.openapi(upgradeRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const { priceId, targetTier } = c.req.valid('json');
   const resolvedPriceId = await resolveCatalogPriceId(targetTier, 'subscription', priceId);
@@ -831,18 +902,29 @@ app.openapi(upgradeRoute, async (c) => {
     });
   }
 
-  // Find the user's current active subscription
+  // Find the user's current subscription eligible to upgrade.
+  //
+  // Stripe's `subscriptions.list({ status })` accepts one status (or 'all'),
+  // not a union. We need `active` AND `trialing` — trial customers need to
+  // be able to upgrade to a paid tier before the trial ends. Filtering with
+  // `status: 'active'` alone made this impossible; the error "No active
+  // subscription found" was the symptom. Fetch with `status: 'all'` and
+  // filter client-side.
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({
       customer: stripeCustomerId,
-      status: 'active',
-      limit: 1,
+      status: 'all',
+      limit: 10,
     }),
   );
 
-  const subscription = subscriptionList.data[0];
+  const subscription = subscriptionList.data.find(
+    (s) => s.status === 'active' || s.status === 'trialing',
+  );
   if (!subscription) {
-    throw new HTTPException(400, { message: 'No active subscription found to upgrade.' });
+    throw new HTTPException(400, {
+      message: 'No active or trialing subscription found to upgrade.',
+    });
   }
 
   const item = subscription.items.data[0];
@@ -934,6 +1016,7 @@ app.openapi(downgradeRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const requestEntitlements = c.get('entitlements') as RequestEntitlements | undefined;
   const stripeCustomerId = await resolveHostedStripeCustomerId(
@@ -946,17 +1029,23 @@ app.openapi(downgradeRoute, async (c) => {
     });
   }
 
+  // See upgrade route for why we don't use Stripe's `status` filter directly.
+  // Trial users must also be able to cancel before the trial ends.
   const subscriptionList = await withStripe((stripe) =>
     stripe.subscriptions.list({
       customer: stripeCustomerId,
-      status: 'active',
-      limit: 1,
+      status: 'all',
+      limit: 10,
     }),
   );
 
-  const subscription = subscriptionList.data[0];
+  const subscription = subscriptionList.data.find(
+    (s) => s.status === 'active' || s.status === 'trialing',
+  );
   if (!subscription) {
-    throw new HTTPException(400, { message: 'No active subscription found to downgrade.' });
+    throw new HTTPException(400, {
+      message: 'No active or trialing subscription found to downgrade.',
+    });
   }
 
   // R5-H10: Reject concurrent subscription modifications (with 15-min staleness expiry)
@@ -1066,6 +1155,7 @@ app.openapi(pauseRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
 
@@ -1125,6 +1215,7 @@ app.openapi(resumeRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   const stripeCustomerId = await ensureStripeCustomer(user.id, user.email ?? '');
 
@@ -1199,6 +1290,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   if (!user.email) {
     throw new HTTPException(400, { message: 'An email address is required for billing' });
@@ -1321,6 +1413,7 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   if (!user.email) {
     throw new HTTPException(400, { message: 'An email address is required for billing' });
@@ -1446,6 +1539,7 @@ app.openapi(creditCheckoutRoute, async (c) => {
   if (!user) {
     throw new HTTPException(401, { message: 'Authentication required' });
   }
+  assertAccountOwner(c);
 
   if (!user.email) {
     throw new HTTPException(400, { message: 'An email address is required for billing' });
@@ -2004,7 +2098,11 @@ app.openapi(refundRoute, async (c) => {
   }
 
   // R5-H14: Idempotency key prevents duplicate refunds on network retries
-  const idempotencyKey = `refund-${chargeId ?? paymentIntentId}-${user.id}`;
+  // AND deduplicates across concurrent admins working the same support ticket.
+  // Binding to `amount || 'full'` (not `user.id`) keeps partial refunds of
+  // different amounts distinct while converging full refunds and any two
+  // admins issuing the same partial to one Stripe refund.
+  const idempotencyKey = `refund-${chargeId ?? paymentIntentId}-${amount ?? 'full'}`;
 
   const refundParams: Stripe.RefundCreateParams = {
     ...(paymentIntentId ? { payment_intent: paymentIntentId } : {}),
@@ -2100,10 +2198,12 @@ app.openapi(rvuiPaymentRoute, async (c) => {
 
 // ─── Admin Revenue Metrics ────────────────────────────────────────────────────
 
-/** Fallback monthly prices (cents) for MRR estimation when catalog has no Stripe price */
-const FALLBACK_TIER_PRICE_CENTS: Record<string, number> = Object.fromEntries(
-  Object.entries(CANONICAL_TIER_PRICES).map(([tier, usd]) => [tier, usd * 100]),
-);
+/**
+ * Fallback monthly prices (cents) for MRR estimation when catalog has no
+ * Stripe price. Imported from `../lib/tier-pricing.ts` so the cron-level
+ * parity check and this route share the same source of truth.
+ */
+const FALLBACK_TIER_PRICE_CENTS = MRR_TIER_PRICE_FALLBACK_CENTS;
 
 const MetricsTierBreakdownSchema = z.object({
   pro: z.number().openapi({ description: 'Active pro subscriptions' }),

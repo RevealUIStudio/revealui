@@ -7,9 +7,7 @@
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode enum for exit codes
- * - scripts/lib/index.ts - Shared utilities (commandExists, createLogger, execCommand, fileExists, getProjectRoot, waitFor)
- * - node:path - Path manipulation utilities (join)
- * - node:fs/promises - File system operations (readFile, dynamic import)
+ * - scripts/lib/index.ts - Shared utilities (commandExists, createLogger, execCommand, getProjectRoot, waitFor)
  *
  * @requires
  * - External: docker - Container runtime
@@ -17,13 +15,11 @@
  * - External: psql - PostgreSQL client (in test container)
  */
 
-import { join } from 'node:path';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import {
   commandExists,
   createLogger,
   execCommand,
-  fileExists,
   getProjectRoot,
   waitFor,
 } from '@revealui/scripts/index.js';
@@ -89,60 +85,20 @@ async function waitForDatabase(composeCmd: string, projectRoot: string) {
   logger.success('Database is ready!');
 }
 
-async function applyMigrations(composeCmd: string, projectRoot: string) {
-  logger.info('Running migrations...');
+async function applyMigrations(_composeCmd: string, projectRoot: string) {
+  logger.info('Applying schema via drizzle-kit push...');
 
-  const migrationFile = join(
-    projectRoot,
-    'packages/db/src/orm/drizzle/0000_misty_pepper_potts.sql',
-  );
+  const result = await execCommand('pnpm', ['--filter', '@revealui/db', 'db:push'], {
+    cwd: projectRoot,
+    env: {
+      POSTGRES_URL: 'postgresql://test:test@localhost:5433/test_revealui',
+    },
+  });
 
-  if (await fileExists(migrationFile)) {
-    logger.info('Applying migration SQL directly...');
-    const { readFile } = await import('node:fs/promises');
-    const sql = await readFile(migrationFile, 'utf-8');
-
-    const [cmd, ...args] = composeCmd.split(' ');
-    const result = await execCommand(
-      cmd,
-      [
-        ...args,
-        '-f',
-        'infrastructure/docker-compose/services/test.yml',
-        'exec',
-        '-T',
-        'postgres-test',
-        'psql',
-        '-U',
-        'test',
-        '-d',
-        'test_revealui',
-      ],
-      {
-        cwd: projectRoot,
-        stdin: sql,
-        silent: true,
-      },
-    );
-
-    if (result.success) {
-      logger.success('Migration applied');
-    } else {
-      logger.warning(`Migration had issues: ${result.message}`);
-      // Continue anyway - might be non-critical errors
-    }
+  if (result.success) {
+    logger.success('Schema applied');
   } else {
-    logger.warning('Migration SQL file not found, attempting drizzle-kit push...');
-    const result = await execCommand('pnpm', ['--filter', '@revealui/db', 'db:push'], {
-      cwd: projectRoot,
-      env: {
-        POSTGRES_URL: 'postgresql://test:test@localhost:5433/test_revealui',
-      },
-    });
-
-    if (!result.success) {
-      logger.warning('Migration failed, but continuing...');
-    }
+    logger.warning('Schema push failed, but continuing...');
   }
 }
 

@@ -81,7 +81,12 @@ const faqs = [
   {
     question: 'What does "full source code access" mean?',
     answer:
-      'You get the complete RevealUI source code, including all apps and packages. You can modify, extend, and deploy it however you need. All paid tiers include priority updates and commercial package access.',
+      'You get the complete RevealUI source code — every app and package is published in the public monorepo. Infrastructure packages (@revealui/core, auth, db, contracts, security, utils, config, cache, resilience, openapi, sync, mcp) are MIT-licensed. The two Pro packages (@revealui/ai, @revealui/harnesses) ship under Fair Source (FSL-1.1-MIT): source is visible, commercial use is permitted except for building a directly competing developer platform, and each release automatically converts to plain MIT two years after publication. All paid tiers add runtime entitlements (license validation, feature gates, priority updates) on top of that source access — nothing is hidden behind a closed binary.',
+  },
+  {
+    question: 'What is Fair Source (FSL-1.1-MIT)?',
+    answer:
+      "Fair Source is a middle path between closed commercial and plain open-source. Our Pro packages (@revealui/ai and @revealui/harnesses) are source-visible on GitHub, installable from npm, and legally usable in commercial products — with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. The Pro tier gate is enforced at runtime (RS256-signed license JWTs, 6-layer middleware, per-entry-point feature checks), not at the source level — so FSL is the legal backstop, and runtime enforcement is the real protection.",
   },
   {
     question: 'Do you offer custom pricing for large teams?',

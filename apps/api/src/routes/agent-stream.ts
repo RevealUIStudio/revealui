@@ -10,9 +10,24 @@
  * See packages/ai/src/client/hooks/useAgentStream.ts for the React hook.
  */
 
+import { logger } from '@revealui/core/observability/logger';
+import type { ElicitationHandler, McpClient, SamplingHandler } from '@revealui/mcp/client';
+import { createRevvaultVault } from '@revealui/mcp/oauth';
+import {
+  buildRemoteMcpClient,
+  listConnectedMcpServers,
+  RemoteServerNotConnectedError,
+} from '@revealui/mcp/remote-client';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
-import { streamSSE } from 'hono/streaming';
+import { type SSEStreamingApi, streamSSE } from 'hono/streaming';
+import {
+  awaitElicitationResponse,
+  createAgentRunSession,
+  deleteAgentRunSession,
+} from '../lib/agent-run-sessions.js';
+import { recordUsageMeter } from '../lib/metering.js';
+import { getEntitlementsFromContext } from '../middleware/entitlements.js';
 
 type Variables = {
   tenant?: { id: string };
@@ -200,7 +215,184 @@ app.openapi(agentStreamRoute, async (c) => {
     }
   }
 
-  const allTools = [...cmsTools, ...codingTools];
+  const allTools: unknown[] = [...cmsTools, ...codingTools];
+
+  // ─── Stage 5 + 6 integration (A.1 / A.2a / A.2b) ──────────────────────
+  // Connect the tenant's OAuth-authorized MCP servers and merge their
+  // tools into `allTools`. Compose a protocol-log sink that fans
+  // Stage 6.1 events into the central logger and, when an `accountId`
+  // is resolvable from entitlements, into `usage_meters`. Safe
+  // fallback: no tenant header → `mcpClients: []`, just the logger sink.
+  //
+  // A.2b adds side-channel SSE chunks for sampling + elicitation so the
+  // `/admin/agents/:id/run` page (A.2b-frontend) can render live:
+  // `streamRef` is a late-binding reference to the SSE stream, captured
+  // here via a shared mutable box so per-server handlers built before
+  // `streamSSE()` starts can write into the stream once it exists.
+  const mcpClients: McpClient[] = [];
+  const tenant = c.get('tenant')?.id;
+  const accountId = getEntitlementsFromContext(c).accountId;
+  const runSession = createAgentRunSession(user.id);
+  const streamRef: { current: SSEStreamingApi | undefined } = { current: undefined };
+
+  const loggerSink = aiMod.createCoreLoggerSink();
+  const meterSink = accountId
+    ? aiMod.createUsageMeterSink({
+        accountId,
+        write: (row) => recordUsageMeter(row),
+      })
+    : undefined;
+  // Type of the Stage 6.1 event sink, derived from @revealui/ai via
+  // the lazy-imported aiMod so apps/api keeps zero static references to
+  // the optional Pro package (enforced by scripts/validate/boundary.ts).
+  type AiMod = NonNullable<typeof aiMod>;
+  type McpEventSink = ReturnType<AiMod['createCoreLoggerSink']>;
+  const onEvent: McpEventSink = meterSink
+    ? (event) => {
+        loggerSink(event);
+        meterSink(event);
+      }
+    : loggerSink;
+
+  if (tenant) {
+    let serverIds: string[] = [];
+    try {
+      serverIds = await listConnectedMcpServers(createRevvaultVault(), tenant);
+    } catch (error) {
+      logger.warn('[agent-stream] failed to list MCP servers for tenant', {
+        tenant,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    // A.2a: Sampling handler allowlist. MCP servers may request any model
+    // via `modelPreferences.hints`; we filter those hints to this list so
+    // servers can't silently route us to expensive models. Models outside
+    // the list fall back to `defaultModel`. Conservative set — extend when
+    // specific models are validated + cost-bounded.
+    const samplingAllowedModels = [
+      'gemma3',
+      'gemma3:e2b',
+      'gemma3:e4b',
+      'deepseek-r1',
+      'qwen3',
+    ] as const;
+    const samplingDefaultModel = process.env.LLM_MODEL ?? 'gemma3';
+
+    for (const server of serverIds) {
+      try {
+        // A.2a: base per-server sampling handler. The `as unknown as` cast
+        // documents the known @revealui/ai vs @revealui/mcp SamplingHandler
+        // type mismatch (simplified content shape vs SDK union). See
+        // `.jv/docs/admin-mcp-integration-scope.md` §A.2a for the deferred
+        // real fix (widening `McpSamplingRequestParams.messages[].content`).
+        const innerSamplingHandler = aiMod.createSamplingHandler({
+          llm: llmClient as Parameters<typeof aiMod.createSamplingHandler>[0]['llm'],
+          allowedModels: samplingAllowedModels,
+          defaultModel: samplingDefaultModel,
+          namespace: server,
+          onEvent,
+        }) as unknown as SamplingHandler;
+
+        // A.2b: wrap the sampling handler with a chunk-emit wrapper so the
+        // UI can render a "sampling in progress" card alongside the event.
+        // Chunk is best-effort — emit errors are swallowed so a stream
+        // write never breaks the underlying MCP handler call.
+        const samplingHandler: SamplingHandler = async (params) => {
+          try {
+            await streamRef.current?.writeSSE({
+              event: 'sampling_request',
+              data: JSON.stringify({
+                type: 'sampling_request',
+                sessionId: runSession.sessionId,
+                namespace: server,
+                sampling: {
+                  model: samplingDefaultModel,
+                  messageCount: params.messages.length,
+                  maxTokens: params.maxTokens,
+                },
+              }),
+            });
+          } catch (emitError) {
+            logger.warn('[agent-stream] sampling_request chunk emit failed', {
+              server,
+              error: emitError instanceof Error ? emitError.message : String(emitError),
+            });
+          }
+          return innerSamplingHandler(params);
+        };
+
+        // A.2b: per-server elicitation handler. When the MCP server calls
+        // `elicitation/create`, write the request to the SSE stream with a
+        // unique elicitationId, then park on the run-session registry
+        // until the client POSTs a response to /api/agent-stream/elicit.
+        // Missing stream = cancel (client never registered, so no UI can
+        // respond); missing session (e.g. after teardown) likewise cancels
+        // via the registry's fallback.
+        //
+        // URL-mode elicitation is auto-declined — the client UI only
+        // supports form mode, and URL mode routes the user-agent to a
+        // server-supplied URL which is a social-engineering risk without
+        // explicit UI that shows the URL and requires a user click. When
+        // URL mode becomes a deliberate product decision, re-enable it
+        // alongside that UI (A.2b-frontend or a follow-up).
+        const elicitationHandler: ElicitationHandler = async (params) => {
+          if ('mode' in params && params.mode === 'url') {
+            return { action: 'decline' };
+          }
+          const elicitationId = crypto.randomUUID();
+          const stream = streamRef.current;
+          if (!stream) return { action: 'cancel' };
+          try {
+            await stream.writeSSE({
+              event: 'elicitation_request',
+              data: JSON.stringify({
+                type: 'elicitation_request',
+                sessionId: runSession.sessionId,
+                namespace: server,
+                elicitation: {
+                  elicitationId,
+                  requestedSchema: params.requestedSchema,
+                  ...(params.message ? { message: params.message } : {}),
+                },
+              }),
+            });
+          } catch (emitError) {
+            logger.warn('[agent-stream] elicitation_request chunk emit failed', {
+              server,
+              error: emitError instanceof Error ? emitError.message : String(emitError),
+            });
+            return { action: 'cancel' };
+          }
+          return awaitElicitationResponse(runSession.sessionId, elicitationId);
+        };
+
+        const built = await buildRemoteMcpClient({
+          tenant,
+          server,
+          samplingHandler,
+          elicitationHandler,
+        });
+        await built.client.connect();
+        const mcpTools = await aiMod.createToolsFromMcpClient(built.client, {
+          namespace: server,
+          onEvent,
+        });
+        mcpClients.push(built.client);
+        allTools.push(...mcpTools);
+      } catch (error) {
+        // Per-server isolation — one server failing doesn't break the
+        // whole agent call. Re-auth required is silent (expected).
+        if (!(error instanceof RemoteServerNotConnectedError)) {
+          logger.warn('[agent-stream] failed to connect MCP server', {
+            tenant,
+            server,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    }
+  }
 
   const localDisclaimer = isLocalOnly
     ? '\n\nYou are in free tier mode. You can read and search code but cannot make edits, run commands, or perform git operations. Upgrade to Pro for full coding capabilities.'
@@ -256,6 +448,20 @@ Workspace: ${workspaceId}`,
     // Clean up on client disconnect
     c.req.raw.signal?.addEventListener('abort', () => controller.abort());
 
+    // A.2b: publish the agent-run session id to the client as the first
+    // chunk so it knows what sessionId to POST to /api/agent-stream/elicit
+    // when an `elicitation_request` chunk lands. Also populates the
+    // late-binding streamRef so the sampling/elicitation handlers built
+    // above can now write side-channel chunks.
+    streamRef.current = stream;
+    await stream.writeSSE({
+      event: 'session_info',
+      data: JSON.stringify({
+        type: 'session_info',
+        sessionId: runSession.sessionId,
+      }),
+    });
+
     try {
       // llmClient is typed as unknown because it comes from dynamically imported Pro packages;
       // the runtime type is LLMClient when present.
@@ -281,6 +487,17 @@ Workspace: ${workspaceId}`,
         }),
         event: 'error',
       });
+    } finally {
+      // Tear down any MCP clients we connected at handler entry so
+      // sockets + OAuth-refresh timers don't leak across requests.
+      for (const client of mcpClients) {
+        await client.close().catch(() => undefined);
+      }
+      // A.2b: delete the run session. Any still-pending elicitation
+      // handlers resolve with `{ action: 'cancel' }` so the MCP servers
+      // can complete their `elicitation/create` requests cleanly.
+      deleteAgentRunSession(runSession.sessionId);
+      streamRef.current = undefined;
     }
   });
 });

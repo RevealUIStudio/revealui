@@ -758,6 +758,15 @@ export const CollectionStructureSchema = z
     // Default sort
     defaultSort: z.string().optional(),
 
+    /**
+     * Expose this collection's rows as MCP resources via the
+     * `revealui-content` server. Default: `true`. Set to `false` to opt the
+     * collection out of the MCP resource surface (e.g. collections that
+     * contain credentials or PII the agent layer shouldn't see). Stage 4 of
+     * the MCP v1 plan. The admin UI toggle for this lands with Stage 4.2.
+     */
+    mcpResource: z.boolean().optional(),
+
     // Note: access, hooks, endpoints are functions - not validated here
   })
   .passthrough();
@@ -778,6 +787,11 @@ export interface CollectionStructure {
   custom?: Record<string, unknown> | undefined;
   dbName?: string | undefined;
   defaultSort?: string | undefined;
+  /**
+   * Expose this collection's rows as MCP resources via the `revealui-content`
+   * server. Default: `true`. Stage 4 of the MCP v1 plan.
+   */
+  mcpResource?: boolean | undefined;
 }
 
 /**

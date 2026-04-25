@@ -42,6 +42,15 @@ export interface CreateTestDbOptions {
   migrationsDir?: string;
   /** Enable query logging (default: false) */
   logger?: boolean;
+  /**
+   * Enable the PGlite pgvector extension. When true, the harness loads
+   * `@electric-sql/pglite/vector`, enables the `vector` type, and keeps
+   * (rather than skips) tables + statements that reference vector columns.
+   * Required for tests that query tables like `agent_contexts`, `agent_memories`,
+   * or `rag_chunks` which have pgvector-typed embedding columns.
+   * Default: false.
+   */
+  enableVector?: boolean;
 }
 
 // =============================================================================
@@ -96,32 +105,51 @@ export async function createTestDb(options?: CreateTestDbOptions): Promise<TestD
   const { drizzle } = await import('drizzle-orm/pglite');
   const dbSchema = await import('@revealui/db/schema');
 
-  // Create in-memory PGlite instance
-  const pglite = new PGlite();
+  // Optionally load the pgvector extension. When `enableVector` is true, we
+  // register the extension up front so `CREATE EXTENSION vector` + `vector(N)`
+  // columns succeed natively and vector-typed tables can be created.
+  const enableVector = options?.enableVector === true;
+  let pglite: PGlite;
+  if (enableVector) {
+    const { vector } = await import('@electric-sql/pglite/vector');
+    pglite = new PGlite({ extensions: { vector } });
+  } else {
+    pglite = new PGlite();
+  }
 
   // Apply all migrations
   const migrationsDir = options?.migrationsDir ?? findMigrationsDir();
   const statements = await loadMigrations(migrationsDir);
 
-  // Tables that use vector columns  -  PGlite doesn't support pgvector
+  // Tables that use vector columns — PGlite skips these unless the vector
+  // extension was loaded via `enableVector: true`.
   const vectorTables = new Set<string>();
 
   for (const stmt of statements) {
     const lower = stmt.toLowerCase();
 
-    // Skip CREATE EXTENSION for vector
-    if (lower.includes('create extension') && lower.includes('vector')) continue;
+    // CREATE EXTENSION vector: skip unless vector is enabled (so the
+    // extension statement becomes a no-op to keep migrations ordering clean).
+    if (lower.includes('create extension') && lower.includes('vector')) {
+      if (enableVector) {
+        try {
+          await pglite.exec(stmt);
+        } catch {
+          // already loaded via options — ignore
+        }
+      }
+      continue;
+    }
 
-    // Detect and skip tables that use vector columns
-    if (lower.includes('vector(') && lower.includes('create table')) {
-      // Extract table name: CREATE TABLE "table_name" (
+    // Detect and skip tables that use vector columns — ONLY when vector is disabled.
+    if (!enableVector && lower.includes('vector(') && lower.includes('create table')) {
       const tableMatch = stmt.match(/create\s+table\s+"([^"]+)"/i);
       if (tableMatch) vectorTables.add(tableMatch[1]);
       continue;
     }
 
-    // Skip statements referencing vector tables
-    if (vectorTables.size > 0) {
+    // Skip statements referencing vector tables (only applies when vector is disabled).
+    if (!enableVector && vectorTables.size > 0) {
       const refsVectorTable = [...vectorTables].some(
         (t) => lower.includes(`"${t}"`) || lower.includes(`"${t}".`),
       );
@@ -134,7 +162,7 @@ export async function createTestDb(options?: CreateTestDbOptions): Promise<TestD
       const msg = err instanceof Error ? err.message : String(err);
       // Skip errors from unsupported extensions or vector types
       if (msg.includes('extension') || msg.includes('EXTENSION')) continue;
-      if (msg.includes('"vector"') || msg.includes('type "vector"')) continue;
+      if (!enableVector && (msg.includes('"vector"') || msg.includes('type "vector"'))) continue;
       if (msg.includes('does not exist')) continue;
       if (msg.includes('already exists')) continue;
       // CONCURRENTLY  -  retry without it

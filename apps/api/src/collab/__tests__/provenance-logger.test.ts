@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createProvenanceLogger } from '../provenance-logger.js';
 import type { ClientIdentity } from '../room-manager.js';
 
@@ -24,77 +24,40 @@ function createUpdate(size = 10): Uint8Array {
   return new Uint8Array(size).fill(1);
 }
 
-describe('createProvenanceLogger', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
+// Historical: this file used to test the buffered flush-every-5s / flush-
+// at-50 behavior. That buffer was removed in the direct-write refactor
+// because in-memory buffering is a crash-loss window and the queue is
+// the wrong primitive for per-edit durability. These tests now encode
+// the direct-write contract.
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('should create logger with logEdit, flush, destroy methods', () => {
+describe('createProvenanceLogger (direct-write)', () => {
+  it('exposes logEdit, flush, destroy', () => {
     const db = createMockDb();
     const logger = createProvenanceLogger(db);
-
-    expect(logger.logEdit).toBeDefined();
     expect(typeof logger.logEdit).toBe('function');
-    expect(logger.flush).toBeDefined();
     expect(typeof logger.flush).toBe('function');
-    expect(logger.destroy).toBeDefined();
     expect(typeof logger.destroy).toBe('function');
   });
 
-  it('should buffer entries without immediate DB insert', () => {
+  it('inserts immediately on logEdit (no buffer)', () => {
     const db = createMockDb();
     const logger = createProvenanceLogger(db);
 
     logger.logEdit('doc1', createIdentity(), createUpdate());
-
-    expect(db.insert).not.toHaveBeenCalled();
-  });
-
-  it('should flush buffer when size limit (50) is reached', async () => {
-    const db = createMockDb();
-    const logger = createProvenanceLogger(db);
-    const identity = createIdentity();
-
-    for (let i = 0; i < 50; i++) {
-      logger.logEdit('doc1', identity, createUpdate());
-    }
-
-    await vi.advanceTimersByTimeAsync(0);
 
     expect(db.insert).toHaveBeenCalledTimes(1);
     const valuesCall = db.insert.mock.results[0].value.values;
-    expect(valuesCall).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          documentId: 'doc1',
-          clientType: 'human',
-          clientId: 'test-client',
-          clientName: 'Test User',
-        }),
-      ]),
-    );
-    const entriesArg = valuesCall.mock.calls[0][0];
-    expect(entriesArg).toHaveLength(50);
+    expect(valuesCall).toHaveBeenCalledWith([
+      expect.objectContaining({
+        documentId: 'doc1',
+        clientType: 'human',
+        clientId: 'test-client',
+        clientName: 'Test User',
+      }),
+    ]);
   });
 
-  it('should flush buffer on 5-second interval', async () => {
-    const db = createMockDb();
-    const logger = createProvenanceLogger(db);
-
-    logger.logEdit('doc1', createIdentity(), createUpdate());
-
-    expect(db.insert).not.toHaveBeenCalled();
-
-    await vi.advanceTimersByTimeAsync(5000);
-
-    expect(db.insert).toHaveBeenCalledTimes(1);
-  });
-
-  it('should batch multiple entries into a single insert call', async () => {
+  it('issues one insert per logEdit (no batching)', () => {
     const db = createMockDb();
     const logger = createProvenanceLogger(db);
     const identity = createIdentity();
@@ -103,66 +66,140 @@ describe('createProvenanceLogger', () => {
     logger.logEdit('doc2', identity, createUpdate());
     logger.logEdit('doc3', identity, createUpdate());
 
-    await logger.flush();
-
-    expect(db.insert).toHaveBeenCalledTimes(1);
-    const valuesCall = db.insert.mock.results[0].value.values;
-    const entriesArg = valuesCall.mock.calls[0][0];
-    expect(entriesArg).toHaveLength(3);
-    expect(entriesArg[0]).toEqual(expect.objectContaining({ documentId: 'doc1' }));
-    expect(entriesArg[1]).toEqual(expect.objectContaining({ documentId: 'doc2' }));
-    expect(entriesArg[2]).toEqual(expect.objectContaining({ documentId: 'doc3' }));
+    expect(db.insert).toHaveBeenCalledTimes(3);
   });
 
-  it('should retry on insert failure (push entries back to buffer)', async () => {
-    const valuesFailOnce = vi
-      .fn()
-      .mockRejectedValueOnce(new Error('DB error'))
-      .mockResolvedValue(undefined);
+  it('passes null agentModel through for human identities', () => {
+    const db = createMockDb();
+    const logger = createProvenanceLogger(db);
+
+    logger.logEdit('doc1', createIdentity({ type: 'human' }), createUpdate());
+
+    const valuesCall = db.insert.mock.results[0].value.values;
+    const row = valuesCall.mock.calls[0][0][0];
+    expect(row.agentModel).toBeNull();
+  });
+
+  it('passes agentModel through for agent identities', () => {
+    const db = createMockDb();
+    const logger = createProvenanceLogger(db);
+
+    logger.logEdit(
+      'doc1',
+      {
+        type: 'agent',
+        id: 'agent-1',
+        name: 'Test Agent',
+        color: '#61AFEF',
+        agentModel: 'claude-opus-4-7',
+      },
+      createUpdate(),
+    );
+
+    const valuesCall = db.insert.mock.results[0].value.values;
+    const row = valuesCall.mock.calls[0][0][0];
+    expect(row.agentModel).toBe('claude-opus-4-7');
+    expect(row.clientType).toBe('agent');
+  });
+
+  it('captures the update payload + size correctly', () => {
+    const db = createMockDb();
+    const logger = createProvenanceLogger(db);
+
+    const update = createUpdate(42);
+    logger.logEdit('doc1', createIdentity(), update);
+
+    const valuesCall = db.insert.mock.results[0].value.values;
+    const row = valuesCall.mock.calls[0][0][0];
+    expect(row.updateSize).toBe(42);
+    expect(Buffer.isBuffer(row.updateData)).toBe(true);
+    expect(row.updateData.length).toBe(42);
+  });
+
+  it('flush() awaits in-flight inserts', async () => {
+    let resolveInsert: (() => void) | undefined;
+    const insertPromise = new Promise<void>((resolve) => {
+      resolveInsert = resolve;
+    });
     const db = {
       insert: vi.fn().mockReturnValue({
-        values: valuesFailOnce,
+        values: vi.fn().mockReturnValue(insertPromise),
       }),
     };
     const logger = createProvenanceLogger(db);
 
     logger.logEdit('doc1', createIdentity(), createUpdate());
 
-    await logger.flush();
-    expect(db.insert).toHaveBeenCalledTimes(1);
+    const flushPromise = logger.flush();
+    let flushResolved = false;
+    flushPromise.then(() => {
+      flushResolved = true;
+    });
 
-    await logger.flush();
-    expect(db.insert).toHaveBeenCalledTimes(2);
-    const secondCallEntries = valuesFailOnce.mock.calls[1][0];
-    expect(secondCallEntries).toHaveLength(1);
-    expect(secondCallEntries[0]).toEqual(expect.objectContaining({ documentId: 'doc1' }));
+    // flush should NOT resolve while the insert is still pending
+    await new Promise((r) => setTimeout(r, 0));
+    expect(flushResolved).toBe(false);
+
+    resolveInsert?.();
+    await flushPromise;
+    expect(flushResolved).toBe(true);
   });
 
-  it('should not log after destroy is called', async () => {
+  it('flush() is a no-op when no inserts are in flight', async () => {
+    const db = createMockDb();
+    const logger = createProvenanceLogger(db);
+    await expect(logger.flush()).resolves.toBeUndefined();
+  });
+
+  it('swallows insert failures (fire-and-forget)', async () => {
+    const db = {
+      insert: vi.fn().mockReturnValue({
+        values: vi.fn().mockRejectedValue(new Error('DB down')),
+      }),
+    };
+    const logger = createProvenanceLogger(db);
+
+    // logEdit must not throw synchronously even when the underlying
+    // insert is doomed. flush() must resolve, not reject.
+    expect(() => logger.logEdit('doc1', createIdentity(), createUpdate())).not.toThrow();
+    await expect(logger.flush()).resolves.toBeUndefined();
+  });
+
+  it('drops logEdit calls after destroy()', async () => {
     const db = createMockDb();
     const logger = createProvenanceLogger(db);
 
     await logger.destroy();
-
     logger.logEdit('doc1', createIdentity(), createUpdate());
-    await logger.flush();
 
     expect(db.insert).not.toHaveBeenCalled();
   });
 
-  it('should flush remaining entries on destroy', async () => {
-    const db = createMockDb();
+  it('destroy() awaits in-flight inserts before returning', async () => {
+    let resolveInsert: (() => void) | undefined;
+    const insertPromise = new Promise<void>((resolve) => {
+      resolveInsert = resolve;
+    });
+    const db = {
+      insert: vi.fn().mockReturnValue({
+        values: vi.fn().mockReturnValue(insertPromise),
+      }),
+    };
     const logger = createProvenanceLogger(db);
-    const identity = createIdentity();
 
-    logger.logEdit('doc1', identity, createUpdate());
-    logger.logEdit('doc2', identity, createUpdate());
+    logger.logEdit('doc1', createIdentity(), createUpdate());
 
-    await logger.destroy();
+    const destroyPromise = logger.destroy();
+    let destroyResolved = false;
+    destroyPromise.then(() => {
+      destroyResolved = true;
+    });
 
-    expect(db.insert).toHaveBeenCalledTimes(1);
-    const valuesCall = db.insert.mock.results[0].value.values;
-    const entriesArg = valuesCall.mock.calls[0][0];
-    expect(entriesArg).toHaveLength(2);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(destroyResolved).toBe(false);
+
+    resolveInsert?.();
+    await destroyPromise;
+    expect(destroyResolved).toBe(true);
   });
 });

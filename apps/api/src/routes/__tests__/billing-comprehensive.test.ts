@@ -121,7 +121,6 @@ vi.mock('@revealui/core/license', () => ({
 vi.mock('../../middleware/license.js', () => ({
   resetDbStatusCache: (...args: unknown[]) => mockResetDbStatusCache(...args),
   resetSupportExpiryCache: (...args: unknown[]) => mockResetSupportExpiryCache(...args),
-  requireLicense: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
   requireFeature: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
   checkLicenseStatus: vi.fn(() => async (_c: unknown, next: () => Promise<void>) => next()),
 }));
@@ -177,6 +176,10 @@ const mockDb = { select: vi.fn(), update: vi.fn(), transaction: vi.fn() };
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => mockDb),
+  // Null forces ensureStripeCustomer onto the conditional-UPDATE fallback
+  // path (same behavior as before #394's advisory-lock addition), which is
+  // what these tests were written against.
+  getRestPool: vi.fn(() => null),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
@@ -331,13 +334,13 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(res.status).toBe(400);
       const body = (await res.json()) as Record<string, unknown>;
-      expect(body.error as string).toContain('No active subscription');
+      expect(body.error as string).toContain('No active or trialing subscription');
     });
 
     it('cancels subscription at period end and returns effectiveAt date', async () => {
       _selectResult = [{ stripeCustomerId: 'cus_existing' }];
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       const cancelTimestamp = Math.floor(new Date('2026-04-15T00:00:00Z').getTime() / 1000);
       mockSubscriptionsUpdate.mockResolvedValue({
@@ -358,7 +361,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
     it('sets cancel_at_period_end to true on Stripe subscription', async () => {
       _selectResult = [{ stripeCustomerId: 'cus_existing' }];
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro', cancel_at: null });
 
@@ -378,7 +381,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
     it('uses current time as effectiveAt when Stripe returns no cancel_at', async () => {
       _selectResult = [{ stripeCustomerId: 'cus_existing' }];
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro', cancel_at: null });
 
@@ -396,7 +399,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
     it('queries Stripe for active subscription with correct customer', async () => {
       _selectResult = [{ stripeCustomerId: 'cus_downgrade' }];
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
+        data: [{ id: 'sub_1', status: 'active', items: { data: [{ id: 'si_1' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
 
@@ -405,8 +408,8 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(mockSubscriptionsList).toHaveBeenCalledWith({
         customer: 'cus_downgrade',
-        status: 'active',
-        limit: 1,
+        status: 'all',
+        limit: 10,
       });
     });
 
@@ -423,7 +426,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
         return mockDbSelectChain;
       });
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
+        data: [{ id: 'sub_1', status: 'active', items: { data: [{ id: 'si_1' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
 
@@ -432,15 +435,15 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(mockSubscriptionsList).toHaveBeenCalledWith({
         customer: 'cus_account',
-        status: 'active',
-        limit: 1,
+        status: 'all',
+        limit: 10,
       });
     });
 
     it('prefers request-scoped account entitlements for downgrades', async () => {
       queueSelectResults([{ stripeCustomerId: 'cus_account_ctx' }]);
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_1', items: { data: [{ id: 'si_1' }] } }],
+        data: [{ id: 'sub_1', status: 'active', items: { data: [{ id: 'si_1' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_1', cancel_at: null });
 
@@ -453,8 +456,8 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
 
       expect(mockSubscriptionsList).toHaveBeenCalledWith({
         customer: 'cus_account_ctx',
-        status: 'active',
-        limit: 1,
+        status: 'all',
+        limit: 10,
       });
       expect(mockDb.select).toHaveBeenCalledTimes(1);
     });
@@ -940,7 +943,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
         [{ stripeCustomerId: 'cus_existing' }],
       );
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       mockSubscriptionsUpdate.mockRejectedValue(new Error('Stripe: invalid_price'));
 
@@ -1091,7 +1094,7 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
         [{ stripeCustomerId: 'cus_existing' }],
       );
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', items: { data: [{ id: 'si_pro' }] } }],
+        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
       });
       mockSubscriptionsUpdate.mockResolvedValue({
         id: 'sub_pro',
@@ -1104,6 +1107,90 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
       );
 
       expect(res.status).toBe(200);
+    });
+
+    // ── P1-I: trial users can upgrade out of their trial ─────────────────
+    it('allows a trialing subscription to upgrade to a paid tier', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_trial' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_trial', status: 'trialing', items: { data: [{ id: 'si_trial' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({
+        id: 'sub_trial',
+        items: { data: [{ id: 'si_pro', price: { id: 'price_pro_server' } }] },
+      });
+
+      const app = createApp(MOCK_USER, { tier: 'free', accountId: 'acc-trial' });
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }),
+      );
+
+      expect(res.status).toBe(200);
+      expect(mockSubscriptionsUpdate).toHaveBeenCalled();
+    });
+
+    it('uses status=all in the Stripe list query (not status=active) so trialing subs are returned', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_any' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_x', status: 'active', items: { data: [{ id: 'si_x' }] } }],
+      });
+      mockSubscriptionsUpdate.mockResolvedValue({
+        id: 'sub_x',
+        items: { data: [{ id: 'si_pro', price: { id: 'price_pro_server' } }] },
+      });
+
+      const app = createApp(MOCK_USER, { tier: 'free', accountId: 'acc-x' });
+      await app.request(post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }));
+
+      expect(mockSubscriptionsList).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'all' }),
+      );
+    });
+
+    it('rejects upgrade when the only subscription is canceled', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_canceled' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_gone', status: 'canceled', items: { data: [{ id: 'si_gone' }] } }],
+      });
+
+      const app = createApp(MOCK_USER, { tier: 'free', accountId: 'acc-gone' });
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }),
+      );
+
+      expect(res.status).toBe(400);
+      const body = (await res.json()) as { error: string };
+      expect(body.error).toContain('No active or trialing subscription');
+    });
+
+    it('rejects upgrade when the subscription is in incomplete state', async () => {
+      queueSelectResults(
+        [{ stripePriceId: 'price_pro_server' }],
+        [],
+        [{ stripeCustomerId: 'cus_inc' }],
+      );
+      mockSubscriptionsList.mockResolvedValue({
+        data: [{ id: 'sub_inc', status: 'incomplete', items: { data: [{ id: 'si_inc' }] } }],
+      });
+
+      const app = createApp(MOCK_USER, { tier: 'free', accountId: 'acc-inc' });
+      const res = await app.request(
+        post('/upgrade', { priceId: 'price_pro_server', targetTier: 'pro' }),
+      );
+
+      expect(res.status).toBe(400);
     });
   });
 });
@@ -1273,5 +1360,76 @@ describe('POST /refund', () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
     expect(body.status).toBe('pending');
+  });
+
+  // ── Idempotency key shape ───────────────────────────────────────────────
+  // The key must NOT include user.id or two admins racing the same support
+  // ticket will create distinct keys and Stripe will issue two refunds.
+  // Binding to `amount || 'full'` converges same-amount refunds across admins.
+  it('idempotency key includes chargeId + amount and excludes user.id', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_key',
+      status: 'succeeded',
+      amount: 2500,
+      currency: 'usd',
+    });
+    const app = createApp(ADMIN_USER);
+    await app.request(post('/refund', { chargeId: 'ch_key', amount: 2500 }));
+
+    expect(mockRefundsCreate).toHaveBeenCalledOnce();
+    const [, opts] = mockRefundsCreate.mock.calls[0] as [unknown, { idempotencyKey: string }];
+    expect(opts.idempotencyKey).toBe('refund-ch_key-2500');
+    expect(opts.idempotencyKey).not.toContain(ADMIN_USER.id);
+  });
+
+  it('full refund (no amount) uses "full" in the idempotency key', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_full',
+      status: 'succeeded',
+      amount: 4900,
+      currency: 'usd',
+    });
+    const app = createApp(ADMIN_USER);
+    await app.request(post('/refund', { chargeId: 'ch_full' }));
+
+    const [, opts] = mockRefundsCreate.mock.calls[0] as [unknown, { idempotencyKey: string }];
+    expect(opts.idempotencyKey).toBe('refund-ch_full-full');
+  });
+
+  it('two admins issuing the same refund produce the same idempotency key', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_race',
+      status: 'succeeded',
+      amount: 1000,
+      currency: 'usd',
+    });
+
+    const appA = createApp(ADMIN_USER);
+    const appB = createApp(OWNER_USER);
+    await appA.request(post('/refund', { chargeId: 'ch_race', amount: 1000 }));
+    await appB.request(post('/refund', { chargeId: 'ch_race', amount: 1000 }));
+
+    expect(mockRefundsCreate).toHaveBeenCalledTimes(2);
+    const [, optsA] = mockRefundsCreate.mock.calls[0] as [unknown, { idempotencyKey: string }];
+    const [, optsB] = mockRefundsCreate.mock.calls[1] as [unknown, { idempotencyKey: string }];
+    expect(optsA.idempotencyKey).toBe(optsB.idempotencyKey);
+  });
+
+  it('different partial refund amounts produce distinct idempotency keys', async () => {
+    mockRefundsCreate.mockResolvedValue({
+      id: 're_partial',
+      status: 'succeeded',
+      amount: 500,
+      currency: 'usd',
+    });
+    const app = createApp(ADMIN_USER);
+    await app.request(post('/refund', { chargeId: 'ch_partial', amount: 500 }));
+    await app.request(post('/refund', { chargeId: 'ch_partial', amount: 1500 }));
+
+    const [, optsOne] = mockRefundsCreate.mock.calls[0] as [unknown, { idempotencyKey: string }];
+    const [, optsTwo] = mockRefundsCreate.mock.calls[1] as [unknown, { idempotencyKey: string }];
+    expect(optsOne.idempotencyKey).not.toBe(optsTwo.idempotencyKey);
+    expect(optsOne.idempotencyKey).toBe('refund-ch_partial-500');
+    expect(optsTwo.idempotencyKey).toBe('refund-ch_partial-1500');
   });
 });
