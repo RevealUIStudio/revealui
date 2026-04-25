@@ -339,7 +339,34 @@ describe('POST /api/mcp/remote-servers/[server]/get-prompt', () => {
     expect(observedArgs).toBeUndefined();
   });
 
-  it('does not pollute Object.prototype via a __proto__ argument key', async () => {
+  it.each([
+    '__proto__',
+    'constructor',
+    'prototype',
+  ])('rejects an argument key named %s with HTTP 400', async (reservedKey) => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
+    const { POST } = await import('../get-prompt/route.js');
+    const res = await POST(
+      makeRequest('http://admin.test/api/mcp/remote-servers/linear/get-prompt', {
+        method: 'POST',
+        body: JSON.stringify({
+          tenant: 'acme',
+          name: 'greeting',
+          arguments: { [reservedKey]: 'value' },
+        }),
+      }) as never,
+      { params: Promise.resolve({ server: 'linear' }) },
+    );
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain(reservedKey);
+    expect(body.error).toMatch(/reserved/i);
+    // Object.prototype must not be polluted, even though the request
+    // was rejected — the guard runs before any property write.
+    expect((Object.prototype as Record<string, unknown>).value).toBeUndefined();
+  });
+
+  it('forwards args via a null-prototype object (defense in depth)', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
     let observedArgs: Record<string, string> | undefined;
     mockBuild.mockImplementationOnce(async () => {
@@ -358,19 +385,13 @@ describe('POST /api/mcp/remote-servers/[server]/get-prompt', () => {
         body: JSON.stringify({
           tenant: 'acme',
           name: 'greeting',
-          arguments: { __proto__: 'polluted', constructor: 'evil', topic: 'safe' },
+          arguments: { topic: 'safe' },
         }),
       }) as never,
       { params: Promise.resolve({ server: 'linear' }) },
     );
     expect(res.status).toBe(200);
-    // The benign key still flows through.
     expect(observedArgs?.topic).toBe('safe');
-    // Object.prototype is untouched — no foreign properties leaked.
-    expect((Object.prototype as Record<string, unknown>).polluted).toBeUndefined();
-    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
-    // The forwarded args object has a null prototype (reserved keys land
-    // as ordinary own-properties with no inheritance side effect).
     expect(Object.getPrototypeOf(observedArgs)).toBeNull();
   });
 });

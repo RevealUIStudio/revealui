@@ -80,13 +80,22 @@ export async function POST(
         { status: 400 },
       );
     }
-    // Null-prototype: prompt-argument keys come from the request body
-    // (untrusted), so writing to a plain object lets a `__proto__` /
-    // `constructor` / `prototype` key reach Object.prototype's setters
-    // (CodeQL js/remote-property-injection). With a null prototype those
-    // become ordinary own-property writes with no prototype side effect.
+    // Two layers of defense for the user-supplied keys we forward to
+    // `client.getPrompt`:
+    //   (1) reject the three reserved JS property names that could reach
+    //       Object.prototype's setters, so CodeQL's
+    //       js/remote-property-injection sink sees a guarded write;
+    //   (2) write into a null-prototype object, which makes the previous
+    //       check defense-in-depth (any `__proto__` / `constructor`
+    //       write would just land as an ordinary own-property anyway).
     const out: Record<string, string> = Object.create(null);
     for (const [k, v] of Object.entries(body.arguments as Record<string, unknown>)) {
+      if (k === '__proto__' || k === 'constructor' || k === 'prototype') {
+        return NextResponse.json(
+          { error: `body.arguments.${k} is a reserved JavaScript property name` },
+          { status: 400 },
+        );
+      }
       if (typeof v !== 'string') {
         return NextResponse.json(
           {
