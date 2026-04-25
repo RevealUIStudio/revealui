@@ -44,6 +44,12 @@
       "rationale": "Hand-written CREATE TABLE + indexes for the `unreconciled_webhooks` table. The table was defined in packages/db/src/schema/webhook-reconciliation.ts and already appears in the Drizzle snapshots at meta/0006_snapshot.json and meta/0009_snapshot.json, but NO .sql migration ever created it (verified 2026-04-22: grep -n 'unreconciled' migrations/*.sql → zero hits). Production likely has the table from an ad-hoc drizzle-kit push at some point (webhooks.ts writes to it at runtime; if prod didn't have it, webhook processing would be failing). Migration uses CREATE TABLE IF NOT EXISTS + CREATE INDEX IF NOT EXISTS so it is safe to apply against both fresh DBs (creates it) and prod (no-op). Partial index `unreconciled_webhooks_unresolved_idx` on (created_at) WHERE resolved_at IS NULL is not expressible in Drizzle's schema DSL beyond the .where() modifier.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Snapshot already captures the table (meta/0006_snapshot.json + meta/0009_snapshot.json reference it). Missing snapshot for this tag specifically because it's a retroactive catch-up for an unmigrated table; the canonical snapshot state is the 0009 snapshot. Full snapshot regen deferred to the general snapshot-debt backfill tracked alongside 0003/0004/0005/0008."
+    },
+    {
+      "tag": "0011_usage_meters_duration_ms",
+      "rationale": "A.3 of the post-v1 MCP arc — adds two nullable columns (`duration_ms` bigint, `errored` boolean) to `usage_meters` so the new `/admin/mcp` Usage tab can plot p50/p95 duration buckets + success/error rate per meterName. Hand-written with `ADD COLUMN IF NOT EXISTS` so it's idempotent against any prod environment that already applied an ad-hoc `drizzle-kit push` for the schema change. drizzle-kit produces functionally equivalent SQL (`ALTER TABLE ... ADD COLUMN ...` without the IF NOT EXISTS guard), but the descriptive tag + idempotency match the 0010 precedent for this kind of small column-addition migration.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as 0003/0004/0005/0008/0010: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Drizzle schema change at packages/db/src/schema/accounts.ts already adds the columns at the type level; consumers query via Drizzle, not raw SQL, so the type contract is intact."
     }
   ]
 }

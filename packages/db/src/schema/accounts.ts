@@ -189,6 +189,22 @@ export const usageMeters = pgTable(
     source: text('source').notNull().default('system'),
     idempotencyKey: text('idempotency_key').notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    /**
+     * Wall-clock duration of the call in milliseconds. NULL on rows
+     * written before A.3 (2026-04-24); subsequent rows from the
+     * Stage 6.1 / 6.2 sinks populate this from `event.duration_ms`.
+     * Excluded from p-bucket aggregations via `WHERE duration_ms
+     * IS NOT NULL` so the migration boundary is invisible.
+     */
+    durationMs: bigint('duration_ms', { mode: 'number' }),
+    /**
+     * `true` when the underlying protocol call surfaced an error
+     * (server returned `isError: true`, the call threw, or transport
+     * timed out). NULL on rows written before A.3; new rows populate
+     * from `!event.success`. Used by the `/admin/mcp` Usage tab to
+     * compute success rate per `meterName`.
+     */
+    errored: boolean('errored'),
   },
   (table) => [
     uniqueIndex('usage_meters_idempotency_key_idx').on(table.idempotencyKey),

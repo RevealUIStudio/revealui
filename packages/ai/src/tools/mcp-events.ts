@@ -244,6 +244,21 @@ export interface McpUsageMeterRow {
   source: 'system' | 'user' | 'agent' | 'api';
   /** Unique key. Backs `uniqueIndex` on `usage_meters`. */
   idempotencyKey: string;
+  /**
+   * Wall-clock duration of the protocol call in milliseconds, lifted
+   * directly from `event.duration_ms`. Optional in the row shape so
+   * pre-A.3 consumers writing into rows without a `duration_ms`
+   * column don't break — the sink populates it whenever the consumer's
+   * schema accepts it. A.3 of the post-v1 MCP arc.
+   */
+  durationMs?: number;
+  /**
+   * `true` when the protocol call surfaced an error (`!event.success`).
+   * Optional for the same forward-compat reason as `durationMs`.
+   * The Usage tab on `/admin/mcp` aggregates these into success-rate
+   * counts per `meterName`. A.3.
+   */
+  errored?: boolean;
 }
 
 /**
@@ -348,6 +363,8 @@ export function createUsageMeterSink(options: CreateUsageMeterSinkOptions): McpE
       periodEnd: null,
       source,
       idempotencyKey: genKey(event),
+      durationMs: event.duration_ms,
+      errored: !event.success,
     };
 
     const result = options.write(row);
