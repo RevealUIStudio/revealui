@@ -27,6 +27,14 @@ import { extractRequestContext } from '@/lib/utils/request-context';
 
 const IDENTIFIER_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
+// Prompt-argument names must start with a letter — this rejects
+// `__proto__` (and any underscore-prefixed reserved name), and is a
+// pattern that CodeQL's js/remote-property-injection query recognises
+// as a sanitiser for tainted property writes. Underscore + hyphen
+// inside the name are allowed for legitimate identifiers like
+// `user_id` or `account-id`.
+const PROMPT_ARG_KEY_RE = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
+
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ server: string }> },
@@ -82,17 +90,21 @@ export async function POST(
     }
     // Two layers of defense for the user-supplied keys we forward to
     // `client.getPrompt`:
-    //   (1) reject the three reserved JS property names that could reach
-    //       Object.prototype's setters, so CodeQL's
-    //       js/remote-property-injection sink sees a guarded write;
-    //   (2) write into a null-prototype object, which makes the previous
-    //       check defense-in-depth (any `__proto__` / `constructor`
-    //       write would just land as an ordinary own-property anyway).
+    //   (1) regex-test each key against `PROMPT_ARG_KEY_RE` (must start
+    //       with a letter — rejects `__proto__` and any other
+    //       underscore-prefixed reserved name); this is the
+    //       allow-list-style sanitiser CodeQL's
+    //       js/remote-property-injection query recognises;
+    //   (2) write into a null-prototype object, so even if a name like
+    //       `constructor` slips past the regex, the resulting property
+    //       is an ordinary own-property with no prototype side effect.
     const out: Record<string, string> = Object.create(null);
     for (const [k, v] of Object.entries(body.arguments as Record<string, unknown>)) {
-      if (k === '__proto__' || k === 'constructor' || k === 'prototype') {
+      if (!PROMPT_ARG_KEY_RE.test(k)) {
         return NextResponse.json(
-          { error: `body.arguments.${k} is a reserved JavaScript property name` },
+          {
+            error: `body.arguments key '${k}' must match /^[A-Za-z][A-Za-z0-9_-]{0,63}$/`,
+          },
           { status: 400 },
         );
       }
