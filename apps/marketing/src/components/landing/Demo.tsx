@@ -63,7 +63,7 @@ export function Demo() {
         <div className="mx-auto mt-20 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-3">
           {beats.map((b) => (
             <div key={b.n} className="rounded-2xl bg-white p-8 ring-1 ring-gray-950/5">
-              <div className="font-mono text-xs font-semibold uppercase tracking-widest text-emerald-600">
+              <div className="font-mono text-xs font-semibold uppercase tracking-widest text-emerald-700">
                 {b.n}
               </div>
               <h3 className="mt-3 text-lg font-semibold text-gray-950">{b.title}</h3>
