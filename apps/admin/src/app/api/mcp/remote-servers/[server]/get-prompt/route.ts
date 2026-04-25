@@ -80,7 +80,12 @@ export async function POST(
         { status: 400 },
       );
     }
-    const out: Record<string, string> = {};
+    // Null-prototype: prompt-argument keys come from the request body
+    // (untrusted), so writing to a plain object lets a `__proto__` /
+    // `constructor` / `prototype` key reach Object.prototype's setters
+    // (CodeQL js/remote-property-injection). With a null prototype those
+    // become ordinary own-property writes with no prototype side effect.
+    const out: Record<string, string> = Object.create(null);
     for (const [k, v] of Object.entries(body.arguments as Record<string, unknown>)) {
       if (typeof v !== 'string') {
         return NextResponse.json(

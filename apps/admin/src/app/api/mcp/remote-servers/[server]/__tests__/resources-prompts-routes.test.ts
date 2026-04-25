@@ -338,4 +338,39 @@ describe('POST /api/mcp/remote-servers/[server]/get-prompt', () => {
     expect(res.status).toBe(200);
     expect(observedArgs).toBeUndefined();
   });
+
+  it('does not pollute Object.prototype via a __proto__ argument key', async () => {
+    mockGetSession.mockResolvedValue({ user: { id: 'u1', role: 'admin' } });
+    let observedArgs: Record<string, string> | undefined;
+    mockBuild.mockImplementationOnce(async () => {
+      const client = new FakeMcpClient();
+      client.getPromptImpl = async (_name, args) => {
+        observedArgs = args as Record<string, string>;
+        return { messages: [] };
+      };
+      fakeClients.push(client);
+      return { client: client as never, meta: { serverUrl: 'http://remote.test/mcp' } };
+    });
+    const { POST } = await import('../get-prompt/route.js');
+    const res = await POST(
+      makeRequest('http://admin.test/api/mcp/remote-servers/linear/get-prompt', {
+        method: 'POST',
+        body: JSON.stringify({
+          tenant: 'acme',
+          name: 'greeting',
+          arguments: { __proto__: 'polluted', constructor: 'evil', topic: 'safe' },
+        }),
+      }) as never,
+      { params: Promise.resolve({ server: 'linear' }) },
+    );
+    expect(res.status).toBe(200);
+    // The benign key still flows through.
+    expect(observedArgs?.topic).toBe('safe');
+    // Object.prototype is untouched — no foreign properties leaked.
+    expect((Object.prototype as Record<string, unknown>).polluted).toBeUndefined();
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+    // The forwarded args object has a null prototype (reserved keys land
+    // as ordinary own-properties with no inheritance side effect).
+    expect(Object.getPrototypeOf(observedArgs)).toBeNull();
+  });
 });
