@@ -384,6 +384,14 @@ jobs:
     needs: [detect, deploy]
 
     steps:
+      # pnpm is required by the "Rollback on failure" step below. Without
+      # this setup, the rollback fails with `pnpm: command not found`
+      # before it can install vercel CLI, which leaves a broken deploy
+      # live (precedent: 2026-04-25 #540 incident, GAP-122).
+      - uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6.0.3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
       - name: Health check — API (readiness probe)
         run: |
           API_URL="${REVEALUI_API_URL:-https://api.revealui.com}"
