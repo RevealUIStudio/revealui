@@ -46,7 +46,7 @@ const accentBg: Record<string, string> = {
   violet: 'bg-violet-50 text-violet-700 ring-violet-200',
 };
 
-export function PrimitivesV2() {
+export function Primitives() {
   return (
     <section className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">

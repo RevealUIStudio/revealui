@@ -46,7 +46,7 @@ const backgroundPrimitives = [
   },
 ];
 
-export function HeroV2() {
+export function Hero() {
   return (
     <section className="relative isolate overflow-hidden bg-white px-6 pt-20 pb-20 sm:px-6 sm:pt-28 sm:pb-28 lg:px-8">
       {/* Brand background: warm wash + radial spotlight + faint primitive symbols */}
