@@ -1,9 +1,24 @@
 import { Link, useLocation } from '@revealui/router';
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { showcaseEntries } from './showcase/registry.js';
 
 const SearchBar = lazy(async () =>
   import('./SearchBar').then((mod) => ({ default: mod.SearchBar })),
 );
+
+/**
+ * Build the Showcase nav items from the registry. Two stable anchors
+ * (Overview + Design Tokens) followed by every entry sorted by display name.
+ * Adding a new showcase to `showcase/registry.ts` automatically surfaces
+ * it here — no hand-maintained list to drift.
+ */
+const showcaseNavItems = [
+  { label: 'Overview', path: '/showcase' },
+  { label: 'Design Tokens', path: '/showcase/tokens' },
+  ...[...showcaseEntries]
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((entry) => ({ label: entry.name, path: `/showcase/${entry.slug}` })),
+];
 
 interface DocLayoutProps {
   children?: React.ReactNode;
@@ -72,26 +87,7 @@ const sections: NavSection[] = [
   },
   {
     title: 'Showcase',
-    items: [
-      { label: 'Overview', path: '/showcase' },
-      { label: 'Design Tokens', path: '/showcase/tokens' },
-      { label: 'Accordion', path: '/showcase/accordion' },
-      { label: 'Avatar', path: '/showcase/avatar' },
-      { label: 'Badge', path: '/showcase/badge' },
-      { label: 'Button', path: '/showcase/button' },
-      { label: 'Callout', path: '/showcase/callout' },
-      { label: 'Card', path: '/showcase/card' },
-      { label: 'Dialog', path: '/showcase/dialog' },
-      { label: 'Drawer', path: '/showcase/drawer' },
-      { label: 'Input', path: '/showcase/input' },
-      { label: 'Progress', path: '/showcase/progress' },
-      { label: 'Stat', path: '/showcase/stat' },
-      { label: 'Switch', path: '/showcase/switch' },
-      { label: 'Table', path: '/showcase/table' },
-      { label: 'Tabs', path: '/showcase/tabs' },
-      { label: 'Toast', path: '/showcase/toast' },
-      { label: 'Tooltip', path: '/showcase/tooltip' },
-    ],
+    items: showcaseNavItems,
   },
   {
     title: 'Pro & Enterprise',
