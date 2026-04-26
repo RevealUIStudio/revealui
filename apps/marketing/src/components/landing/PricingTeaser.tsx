@@ -72,10 +72,10 @@ const TEASER_TIERS: TeaserTier[] = [
   {
     id: 'pro',
     name: 'Pro',
-    description: 'Managed hosting, AI primitives, and priority support.',
+    description: 'Pro AI primitives, agent task allowance, and priority support.',
     features: [
       'Everything in Free',
-      'Managed hosting + auto-scaling',
+      '10,000 agent tasks / month included',
       'Pro AI features (agents, RAG, MCP)',
       'Priority support, SLA',
     ],
