@@ -58,7 +58,8 @@ const TEASER_TIERS: TeaserTier[] = [
   {
     id: 'free',
     name: 'Free',
-    description: 'All open-source packages. MIT-licensed. No telemetry.',
+    description:
+      'OSS packages, MIT-licensed. No telemetry. Pro packages are Fair Source (FSL), source-visible and convert to MIT after two years.',
     features: [
       'Full primitive stack',
       'Admin dashboard + API',
@@ -76,8 +77,8 @@ const TEASER_TIERS: TeaserTier[] = [
     features: [
       'Everything in Free',
       '10,000 agent tasks / month included',
-      'Pro AI features (agents, RAG, MCP)',
-      'Priority support, SLA',
+      'Pro AI features (agents, MCP, memory)',
+      'Priority support',
     ],
     cta: 'See Pro pricing',
     href: '/pricing',
@@ -87,12 +88,12 @@ const TEASER_TIERS: TeaserTier[] = [
     id: 'enterprise',
     name: 'Enterprise',
     description:
-      'SSO, audit logs, on-prem deployment, and a named contact. Custom plans for high volume.',
+      'Audit logs, multi-tenant architecture, and a named contact. Custom plans for high volume; SSO and on-prem on the roadmap.',
     features: [
       'Everything in Pro',
-      'SSO + SCIM provisioning',
       'Audit logs + compliance reports',
-      'On-prem and air-gapped deploy',
+      'Multi-tenant architecture',
+      'Roadmap: SSO, SCIM, on-prem deploy',
     ],
     cta: 'Talk to us',
     href: '/contact',
@@ -112,8 +113,8 @@ export async function PricingTeaser() {
             Start free. Pay when you scale.
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Self-host the open-source stack at no cost. Move to Pro for managed hosting and AI
-            primitives.
+            Self-host the open-source stack at no cost. Pay for the AI primitives and priority
+            support when your business needs them.
           </p>
         </div>
 

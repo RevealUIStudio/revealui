@@ -14,10 +14,17 @@ export async function register() {
   }
 
   try {
-    const [{ logger }, { validateRequiredEnvVars }] = await Promise.all([
+    const [{ logger }, { validateRequiredEnvVars }, { configureClientIp }] = await Promise.all([
       import('@revealui/core/observability/logger'),
       import('@/lib/utils/env-validation'),
+      import('@revealui/security'),
     ]);
+
+    // Configure trusted-proxy-aware client IP extraction for session-binding
+    // validation. See GAP-130 + packages/security/src/request-ip.ts.
+    // trustedProxyCount: 1 reflects the current Vercel-only proxy chain. Bump
+    // to 2 in the SAME PR as Cloudflare orange-cloud cutover (GAP-133 phases 5-6).
+    configureClientIp({ trustedProxyCount: 1 });
 
     const environment = process.env.NODE_ENV || 'development';
 

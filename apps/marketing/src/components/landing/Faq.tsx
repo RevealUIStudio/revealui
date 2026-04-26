@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: 'Production-ready?',
-    a: 'Built behind a full CI gate: Biome lint, Vitest unit and integration, Playwright E2E, CodeQL, Gitleaks, dependency auditing. The full feature set is covered by the test suite, and every PR runs the gate before it can land. Used in production by RevealUI Studio.',
+    a: "Built behind a full CI gate: Biome lint, Vitest unit and integration, Playwright E2E, CodeQL, Gitleaks, dependency auditing. The full feature set is covered by the test suite, and every PR runs the gate before it can land. Used to run RevealUI Studio's own site and admin.",
   },
   {
     q: "What's the rest of the suite?",
