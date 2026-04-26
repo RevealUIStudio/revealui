@@ -114,3 +114,31 @@ jobs:
             echo "::warning::sweep-grace-periods returned $status (non-200)"
             exit 1
           fi
+
+  reconcile-customers:
+    name: reconcile-customers
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST /api/cron/reconcile-customers
+        env:
+          API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
+          CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+        run: |
+          if [[ -z "$CRON_SECRET" ]]; then
+            echo "::error::REVEALUI_CRON_SECRET secret not set"
+            exit 1
+          fi
+          response=$(curl -sS -X POST \
+            -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP_STATUS:%{http_code}" \
+            "$API_URL/api/cron/reconcile-customers" || true)
+          status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+          body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+          echo "Status: $status"
+          echo "Body: $body"
+          if [[ "$status" != "200" ]]; then
+            echo "::warning::reconcile-customers returned $status (non-200)"
+            exit 1
+          fi
