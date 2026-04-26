@@ -4,17 +4,17 @@ const beats = [
   {
     n: '01',
     title: 'Spin up a stack.',
-    body: 'One command. Auth, billing, content, admin UI, and agent layer running locally in 60 seconds.',
+    body: 'One command. Auth, content, admin UI, the Stripe webhook handler, and MCP server scaffolding all running locally in 60 seconds.',
   },
   {
     n: '02',
-    title: 'Real customer flow.',
-    body: 'A user signs up, picks a plan, and pays. Stripe handles checkout. The admin UI shows the new account.',
+    title: 'Customer flow, end to end.',
+    body: 'A user signs up, picks a plan, and Stripe test-mode checkout completes. The admin UI shows the new account. Switch to live mode when you are ready to take real money.',
   },
   {
     n: '03',
     title: 'Agent-native, by default.',
-    body: 'A chat agent reads the customer, refunds the subscription, and writes a CMS post explaining why — same APIs.',
+    body: 'Every primitive ships with a matching MCP server. Wire an LLM provider and your agents read customers, refund subscriptions, and write content through the same APIs your app uses.',
   },
 ];
 
@@ -27,10 +27,10 @@ export function Demo() {
             Watch it work
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-            From CLI to live business in 90 seconds.
+            From CLI to a working stack in 90 seconds.
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Three beats. No edits. The whole stack, end to end.
+            Three beats. Local in 60 seconds. Test-mode Stripe by default. Agents wired in via MCP.
           </p>
         </div>
 
