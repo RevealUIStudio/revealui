@@ -113,8 +113,8 @@ export async function PricingTeaser() {
             Start free. Pay when you scale.
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Self-host the open-source stack at no cost. Move to Pro for managed hosting and AI
-            primitives.
+            Self-host the open-source stack at no cost. Pay for the AI primitives and priority
+            support when your business needs them.
           </p>
         </div>
 
