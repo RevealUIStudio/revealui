@@ -52,7 +52,7 @@ Clean separation of concerns. Each package has a single responsibility. No circu
 Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No vendor holds your business hostage.
 
 **Evidence:**
-- MIT license on all 18 OSS packages
+- MIT license on the 22 OSS packages; 3 Pro packages (`@revealui/ai`, `@revealui/harnesses`, `@revealui/engines`) are Fair Source (FSL-1.1-MIT, MIT after 2 years)
 - No vendor-specific APIs in core (Vercel adapters are optional, in `@revealui/cache`)
 - Dual-database architecture: NeonDB (primary) + Supabase (vectors)  -  both replaceable
 - Open-model AI default: Ubuntu Inference Snaps, Ollama, and open source models. Cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic for prompt caching) are pluggable but opt-in via env vars — there is no vendor lock-in

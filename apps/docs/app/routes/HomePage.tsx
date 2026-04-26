@@ -44,7 +44,7 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 ### Reference
 - [Package Reference](/docs/REFERENCE)  -  All packages: core, auth, db, contracts, presentation, router, CLI
 - [REST API](/api/rest-api)  -  OpenAPI reference for all endpoints
-- [Component Catalog](/docs/COMPONENT_CATALOG)  -  58 pre-wired UI components
+- [Component Catalog](/docs/COMPONENT_CATALOG)  -  57 pre-wired UI components
 - [AI](/docs/AI)  -  AI agents, prompt/response/semantic caching
 - [Marketplace](/docs/MARKETPLACE)  -  Extensibility and integrations
 

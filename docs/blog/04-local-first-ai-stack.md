@@ -126,7 +126,7 @@ Running locally doesn't mean running poorly. The RevealUI agent stack has the sa
 
 - **Planning and tools**  -  agents can create todos, read and write files, execute shell commands
 - **Memory**  -  episodic memory, working memory, CRDT-based persistence across sessions
-- **MCP integrations**  -  Stripe, Supabase, Neon, Vercel, Playwright tool servers
+- **MCP integrations**  -  13 first-party tool servers (Stripe, Supabase, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, plus RevealUI-internal Content / Email / Memory / Stripe servers, Vultr Test, and the adapter base class)
 - **Orchestration**  -  multi-agent coordination, sub-agent spawning, streaming
 
 What you do give up: the raw capability of a 70B+ cloud model. Smaller local models like Gemma 4 are excellent for structured tasks  -  code generation, data processing, form filling, API orchestration  -  but won't match a frontier model on open-ended reasoning. For most business automation use cases, that's an acceptable trade.
