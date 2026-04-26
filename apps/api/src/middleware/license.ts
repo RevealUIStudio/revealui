@@ -28,7 +28,51 @@ const SUPPORT_EMAIL = process.env.REVEALUI_SUPPORT_EMAIL ?? 'support@revealui.co
 
 /** Cache for DB-side license status checks, keyed by billing owner/customer */
 const dbStatusCache = new Map<string, { status: string; checkedAt: number }>();
-const DB_STATUS_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * TTL for the DB status cache. Defaults to 30s (was 5 min until GAP-139).
+ *
+ * Rationale: this cache sits on both the hosted path and the legacy
+ * self-hosted JWT path. On the legacy path, a cancelled / refunded /
+ * revoked customer continues to receive Pro feature access until the TTL
+ * expires. A 5-minute window is too long for STRIPE_LIVE_MODE — for a
+ * paying customer this is a billing-incorrect window; for a fraudulent /
+ * abuse case it's a 5-minute escape hatch.
+ *
+ * 30s balances revocation propagation speed against per-request DB read
+ * pressure on the hosted path. Operators can override via
+ * `DB_STATUS_CHECK_INTERVAL_MS` env (e.g. `=0` to disable the cache for
+ * incident debugging).
+ *
+ * The maximum is capped at 60_000ms (60s) so that a misconfigured value
+ * cannot reintroduce the 5-min regression. Values >60_000 are clamped
+ * with a warning.
+ *
+ * Mirrors the env-override pattern in `@revealui/core/license`'s
+ * LICENSE_CACHE_TTL_MS (which is a separate, JWT-license cache; this one
+ * is the DB-side status cache).
+ *
+ * See GAP-139.
+ */
+const DEFAULT_DB_STATUS_CHECK_INTERVAL_MS = 30 * 1000; // 30 seconds
+const MAX_DB_STATUS_CHECK_INTERVAL_MS = 60 * 1000; // 60 seconds (hard cap)
+
+function parseDbStatusCheckIntervalEnv(raw: string | undefined): number {
+  if (!raw || raw.trim() === '') return DEFAULT_DB_STATUS_CHECK_INTERVAL_MS;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) return DEFAULT_DB_STATUS_CHECK_INTERVAL_MS;
+  if (parsed > MAX_DB_STATUS_CHECK_INTERVAL_MS) {
+    process.stderr.write(
+      `DB_STATUS_CHECK_INTERVAL_MS=${parsed} exceeds the ${MAX_DB_STATUS_CHECK_INTERVAL_MS}ms cap; using ${MAX_DB_STATUS_CHECK_INTERVAL_MS}. Longer TTLs extend the post-revocation Pro-access window and are not permitted.\n`,
+    );
+    return MAX_DB_STATUS_CHECK_INTERVAL_MS;
+  }
+  return parsed;
+}
+
+const DB_STATUS_CHECK_INTERVAL = parseDbStatusCheckIntervalEnv(
+  process.env.DB_STATUS_CHECK_INTERVAL_MS,
+);
 
 /** Tracks when the DB became unreachable for infra grace period calculation */
 let dbUnreachableSince: number | null = null;
