@@ -43,7 +43,6 @@ const REQUIRED_IN_PRODUCTION_HOSTED = [
 
 const REQUIRED_IN_PRODUCTION_FORGE = [
   'REVEALUI_SECRET',
-  'REVEALUI_KEK',
   'REVEALUI_PUBLIC_SERVER_URL',
   'NEXT_PUBLIC_SERVER_URL',
   // The studio-issued JWT and matching public key. validateLicenseAtStartup
@@ -52,6 +51,12 @@ const REQUIRED_IN_PRODUCTION_FORGE = [
   'REVEALUI_LICENSE_KEY',
   'REVEALUI_LICENSE_PUBLIC_KEY',
   'CORS_ORIGIN',
+  // REVEALUI_KEK is intentionally NOT required in forge mode today: the
+  // current forge/stamp.sh pipeline doesn't generate or propagate one,
+  // and requiring it would break customer Docker stacks at boot. KEK
+  // format is still validated below (so a customer who does configure
+  // KEK can't ship a malformed one). Tracking issue: stamp.sh should
+  // generate + revvault-store a KEK alongside the other secrets.
 ] as const;
 
 /**
@@ -120,13 +125,15 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
 
   // ── Format checks that apply in BOTH modes ────────────────────────
 
-  // KEK — exactly 64 hex characters (32 bytes / 256 bits)
+  // KEK — exactly 64 hex characters (32 bytes / 256 bits). Required in
+  // hosted (caught by REQUIRED check above), optional in forge — so the
+  // format check only runs when KEK is set.
   const kek = env.REVEALUI_KEK ?? '';
-  if (!/^[0-9a-f]{64}$/i.test(kek)) {
+  if (kek !== '' && !/^[0-9a-f]{64}$/i.test(kek)) {
     errors.push('REVEALUI_KEK must be exactly 64 hexadecimal characters (256 bits).');
   }
 
-  // Secret minimum length
+  // Secret minimum length — required in both modes, so always set here.
   const secret = env.REVEALUI_SECRET ?? '';
   if (secret.length < 32) {
     errors.push('REVEALUI_SECRET must be at least 32 characters.');
