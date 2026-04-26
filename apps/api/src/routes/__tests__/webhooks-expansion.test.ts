@@ -16,15 +16,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
-const mockConstructEvent = vi.fn();
-const mockSubscriptionsUpdate = vi.fn();
-const mockSubscriptionsRetrieve = vi.fn();
-const mockSubscriptionsList = vi.fn();
-const mockChargesRetrieve = vi.fn();
+const {
+  mockConstructEvent,
+  mockSubscriptionsUpdate,
+  mockSubscriptionsRetrieve,
+  mockSubscriptionsList,
+  mockChargesRetrieve,
+} = vi.hoisted(() => ({
+  mockConstructEvent: vi.fn(),
+  mockSubscriptionsUpdate: vi.fn(),
+  mockSubscriptionsRetrieve: vi.fn(),
+  mockSubscriptionsList: vi.fn(),
+  mockChargesRetrieve: vi.fn(),
+}));
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
-    // Must use a class  -  webhooks.ts calls `new Stripe(key)`
     class {
       webhooks = { constructEventAsync: mockConstructEvent };
       subscriptions = {
@@ -35,6 +42,20 @@ vi.mock('stripe', () => ({
       charges = { retrieve: mockChargesRetrieve };
     } as unknown as (...args: unknown[]) => unknown,
   ),
+}));
+
+// GAP-131: webhooks.ts now uses protectedStripe from @revealui/services
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    webhooks: { constructEventAsync: mockConstructEvent },
+    subscriptions: {
+      update: mockSubscriptionsUpdate,
+      retrieve: mockSubscriptionsRetrieve,
+      list: mockSubscriptionsList,
+    },
+    charges: { retrieve: mockChargesRetrieve },
+    customers: { update: vi.fn() },
+  },
 }));
 
 vi.mock('@revealui/core/features', () => ({

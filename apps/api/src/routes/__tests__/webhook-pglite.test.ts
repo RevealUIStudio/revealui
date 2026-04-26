@@ -18,8 +18,10 @@ import {
 
 // ─── Mocks (before imports) ─────────────────────────────────────────────────
 
-const mockConstructEvent = vi.fn();
-const mockSubscriptionsRetrieve = vi.fn();
+const { mockConstructEvent, mockSubscriptionsRetrieve } = vi.hoisted(() => ({
+  mockConstructEvent: vi.fn(),
+  mockSubscriptionsRetrieve: vi.fn(),
+}));
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
@@ -32,6 +34,20 @@ vi.mock('stripe', () => ({
       };
     } as unknown as (...args: unknown[]) => unknown,
   ),
+}));
+
+// GAP-131: webhooks.ts now uses protectedStripe from @revealui/services
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    webhooks: { constructEventAsync: mockConstructEvent },
+    subscriptions: {
+      update: vi.fn(),
+      retrieve: mockSubscriptionsRetrieve,
+      list: vi.fn().mockResolvedValue({ data: [] }),
+    },
+    customers: { update: vi.fn() },
+    charges: { retrieve: vi.fn() },
+  },
 }));
 
 let testDb: TestDb;

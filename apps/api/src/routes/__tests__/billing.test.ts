@@ -46,6 +46,8 @@ vi.mock('@revealui/services', () => ({
     subscriptions: { list: mockSubscriptionsList, update: mockSubscriptionsUpdate },
     refunds: { create: vi.fn() },
     invoices: { list: vi.fn() },
+    // GAP-131: billing.meterEvents.create is now wrapped in protectedStripe
+    billing: { meterEvents: { create: mockMeterEventsCreate } },
   },
   getStripe: vi.fn(() => ({
     billing: { meterEvents: { create: mockMeterEventsCreate } },
