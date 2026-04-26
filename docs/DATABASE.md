@@ -1319,5 +1319,5 @@ setInterval(() => {
 
 ---
 
-**Last Updated**: February 2026
-**Version**: 1.0.0
+**Last Updated**: 2026-04-26
+**Version**: 0.2 (working draft — pre-1.0 per the suite-wide [versioning convention](../CONTRIBUTING.md#versioning))

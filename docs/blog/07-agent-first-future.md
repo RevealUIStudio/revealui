@@ -16,7 +16,7 @@ When you build a SaaS product today, the acquisition funnel looks something like
 
 Now consider what happens when a developer asks Claude, "What platform has billing built in and supports MCP?" The agent does not open a browser. It does not read your hero banner. It does not care about your gradient backgrounds or testimonial carousel. It searches structured data sources -- package registries, OpenAPI specs, Agent Cards, tool definitions -- and evaluates them programmatically.
 
-This is not a hypothetical future. IEEE Spectrum has reported that autonomous AI agents are becoming primary users of the web. Gartner projects that 40% of enterprise applications will embed AI agents by the end of 2026. The agent economy is projected to reach $10.91 billion in 2026, growing at 43% year-over-year.
+This is not a hypothetical future. Industry coverage and analyst forecasts in 2025–2026 have consistently put autonomous AI agents on the path to becoming primary consumers of web APIs and structured data, with adoption projections in the tens of percent of enterprise applications and the agent-economy total addressable market growing at high double-digit rates year-over-year. (Specific figures cycle quickly; treat the directional signal as the durable claim, not the exact percentages.)
 
 The traditional marketing funnel is not going away. But it is being supplemented by a parallel funnel:
 

@@ -657,7 +657,7 @@ Failed verifications downgrade the declared capability to `false` and log a warn
 - [x] Session identity detection (6-tier)
 - [x] Claude Code adapter (hooks + workboard)
 - [x] Content layer (canonical definitions → tool-specific generation)
-- [x] RPC server (JSON-RPC over Unix socket)
+- [x] RPC server (JSON-RPC over Unix socket) — code shipped; the daemon process itself is not auto-started in default sessions today, so RPC features no-op gracefully when the socket is absent. See `~/.claude/hooks/` for the `isDaemonAlive()` gate.
 
 ### Phase 2: VAUGHN Core
 - [x] Define `VaughnAdapter` interface in `@revealui/harnesses`

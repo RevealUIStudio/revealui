@@ -1,4 +1,4 @@
-# From Zero to Production in 10 Minutes
+# From Zero to Production in About 30 Minutes
 
 **Build a complete business application with auth, content, and payments  -  faster than you can order lunch.**
 
@@ -572,7 +572,7 @@ Your application is live. Visit `https://my-business.vercel.app/admin` to access
 
 ## What you have built
 
-Stop the clock. In roughly 10 minutes, you have a ready-to-deploy business application with:
+Stop the clock. With accounts pre-provisioned (NeonDB, Stripe, Vercel) and copy-paste commands, the walkthrough fits in about 30 minutes start to deployed. From here you have a business application with:
 
 - **A admin with typed collections and access control**  -  define your data model in TypeScript, get a full admin UI and REST API automatically
 - **User authentication with session-based auth**  -  secure by default with httpOnly cookies, brute force protection, and rate limiting
