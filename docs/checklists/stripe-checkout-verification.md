@@ -150,10 +150,12 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 
 ---
 
-## 8. RVUI Payment (Disabled)
+## 8. RevealCoin (RVC) Payment (Disabled)
+
+> The route slug `rvui-payment` is an internal code constant; `RVC` is the customer-facing on-chain ticker for [RevealCoin](https://github.com/RevealUIStudio/revealcoin) (Solana Token-2022). Public messaging uses `RVC`.
 
 - [ ] Hit `POST /api/billing/rvui-payment`
-- [ ] Verify: returns 501 "RVUI payment is not yet available"
+- [ ] Verify: returns 501 "RVC payment is not yet available"
 
 ---
 
@@ -178,7 +180,9 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 | Upgrade | | |
 | Downgrade | | |
 | Webhooks (failure/dispute/refund/trial) | | |
-| RVUI disabled | | |
+| RVC disabled | | |
 | Edge cases | | |
 
-**All flows verified → safe to switch `STRIPE_SECRET_KEY` to live.**
+**All flows verified → checkout mechanics tested in TEST mode.**
+
+> Switching `STRIPE_SECRET_KEY` to a live key (`sk_live_*`) and flipping `STRIPE_LIVE_MODE=true` is gated on the internal billing-readiness audit. This checklist verifies the wire-up; it is not the only gate. Flip live mode only after billing-readiness sign-off.

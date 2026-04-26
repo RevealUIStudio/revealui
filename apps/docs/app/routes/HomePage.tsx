@@ -33,7 +33,7 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 - [Authentication](/docs/AUTH)  -  Session-based auth, sign in/up, rate limiting
 - [Database](/docs/DATABASE)  -  Drizzle ORM, migrations, type-safe queries
 - [CI/CD & Deployment](/docs/CI_CD_GUIDE)  -  Deploy to Vercel, Railway, or self-host
-- [Environment Variables](/docs/ENVIRONMENT_VARIABLES_GUIDE)  -  All env var reference
+- [Environment Variables](/docs/ENVIRONMENT-VARIABLES-GUIDE)  -  All env var reference
 - [Testing](/docs/TESTING)  -  Unit, integration, and E2E testing patterns
 
 ### Architecture

@@ -90,7 +90,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 **Stripe keys** (optional)  -  [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys (use test mode keys)
 
-See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for the full reference.
+See [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) for the full reference.
 
 ---
 

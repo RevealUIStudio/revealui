@@ -61,12 +61,7 @@ audience: developer
 10. [Configuration and Setup](#configuration-and-setup)
     - [Environment Variables](#environment-variables)
     - [Database Setup](#database-setup)
-11. [Migration Guide (JWT to Session-Based)](#migration-guide-jwt-to-session-based)
-    - [Current System (JWT)](#current-system-jwt)
-    - [New System (Sessions)](#new-system-sessions)
-    - [Migration Steps](#migration-steps)
-    - [Migration Checklist](#migration-checklist)
-    - [Rollback Plan](#rollback-plan)
+11. [Migration from Legacy JWT (historical)](#migration-from-legacy-jwt-historical)
 12. [Best Practices](#best-practices)
 13. [Error Handling](#error-handling)
     - [Common Errors](#common-errors)
@@ -74,11 +69,10 @@ audience: developer
 14. [Troubleshooting](#troubleshooting)
 15. [Current Status and Roadmap](#current-status-and-roadmap)
     - [What Works](#what-works)
-    - [What Needs Work](#what-needs-work)
+    - [What's still ahead](#whats-still-ahead)
     - [Production Deployment](#production-deployment)
-16. [Migration to Horizontal Scaling](#migration-to-horizontal-scaling)
-17. [Related Documentation](#related-documentation)
-18. [References](#references)
+16. [Related Documentation](#related-documentation)
+17. [References](#references)
 
 ---
 
@@ -304,7 +298,7 @@ export const verifications = pgTable('verifications', {
 - `X-RateLimit-Reset`: Timestamp when limit resets
 - `Retry-After`: Seconds to wait before retrying (when rate limited)
 
-**⚠️ Limitation:** Currently uses in-memory storage (won't work with multiple servers or after server restart)
+**Storage:** production deployments use database-backed storage (NeonDB) for both rate limiting and brute-force protection (see [`packages/auth/src/server/storage/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/auth/src/server/storage)). In-memory storage is the local-dev fallback only and emits a warning if used in production.
 
 ### 5. Brute Force Protection
 
@@ -313,7 +307,7 @@ export const verifications = pgTable('verifications', {
 - Automatic unlock after cooldown
 - Error message: "Account locked due to too many failed attempts. Please try again in X minutes."
 
-**⚠️ Limitation:** Currently uses in-memory storage (won't work with multiple servers or after server restart)
+**Storage:** production deployments use database-backed storage (NeonDB) for both rate limiting and brute-force protection (see [`packages/auth/src/server/storage/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/auth/src/server/storage)). In-memory storage is the local-dev fallback only and emits a warning if used in production.
 
 ### 6. Password Security
 
@@ -933,145 +927,20 @@ Required tables:
 
 ---
 
-## Migration Guide (JWT to Session-Based)
+## Migration from Legacy JWT (historical)
 
-RevealUI supports migrating from JWT-based authentication to database-backed session authentication. This section explains the migration process.
+RevealUI today is **session-only** for user-facing auth ([ADR-004](./architecture/ADR-004-session-only-auth.md)). JWT is used only for license validation (RS256, server-side), not for session cookies.
 
-### Current System (JWT)
+If you are running a legacy fork that still issued user JWTs in `revealui-token` cookies, the migration is one-time:
 
-- JWT tokens stored in cookies (`revealui-token`)
-- Token validation via JWT verify
-- No session revocation
-- No database-backed sessions
+1. **Run migrations** — `pnpm db:migrate` ensures `users.password` and the sessions/reset-token indexes are present.
+2. **Replace JWT-cookie reads with `getSession`** — `import { getSession } from '@revealui/auth/server'`. The session cookie is `revealui-session` (HttpOnly, Secure, SameSite=Lax).
+3. **Replace client hooks with `useSession`** — `import { useSession } from '@revealui/auth/react'`.
+4. **Remove the legacy `revealui-token` JWT cookie**, `getJWTUser` helpers, and any feature-flag dual-path.
 
-### New System (Sessions)
+Net behavioral change: session revocation is now possible (records live in the `sessions` table); cookie-only validation no longer trusts a stale signed token.
 
-- Database-backed sessions
-- Session tokens in HTTP-only cookies
-- Session revocation support
-- Better security and control
-
-### Migration Steps
-
-#### 1. Database Migration
-
-Run migrations to ensure the schema (including `users.password` and session/reset-token indexes) is up to date:
-
-```bash
-pnpm db:migrate
-```
-
-#### 2. Update Existing Users
-
-For existing users who need to use password authentication:
-
-```sql
--- Users will need to reset their passwords
--- Or you can create a migration script to:
--- 1. Generate temporary passwords
--- 2. Email users to reset
--- 3. Or migrate from existing password storage
-```
-
-#### 3. Dual Support Period
-
-During migration, support both systems:
-
-```typescript
-// Check both JWT and session auth
-const jwtUser = await getJWTUser(request)
-const sessionUser = await getSession(request.headers)
-
-const user = sessionUser?.user || jwtUser
-```
-
-#### 4. Update API Routes
-
-Gradually update routes to use new auth:
-
-```typescript
-// Old (JWT)
-const token = request.cookies.get('revealui-token')?.value
-const user = jwt.verify(token, secret)
-
-// New (Session)
-import { getSession } from '@revealui/auth/server'
-const session = await getSession(request.headers)
-const user = session?.user
-```
-
-#### 5. Update Client Code
-
-Update React components to use new hooks:
-
-```typescript
-// Old (if using custom hooks)
-const { user } = useJWTUser()
-
-// New
-import { useSession } from '@revealui/auth/react'
-const { data: session } = useSession()
-const user = session?.user
-```
-
-#### 6. Deprecation
-
-After migration period:
-
-1. Remove JWT validation code
-2. Remove JWT cookie handling
-3. Remove old auth utilities
-4. Update all routes to use sessions only
-
-### Migration Checklist
-
-- [ ] Run database migration
-- [ ] Update API routes to use `getSession()`
-- [ ] Update React components to use `useSession()`
-- [ ] Test authentication flows
-- [ ] Test session expiration
-- [ ] Test session revocation
-- [ ] Update documentation
-- [ ] Remove JWT code
-
-### Rollback Plan
-
-If issues occur:
-
-1. Keep JWT code in place during migration
-2. Use feature flag to switch between systems
-3. Monitor error rates
-4. Rollback by disabling session auth
-
-### Migration Testing
-
-Test the following scenarios:
-
-1. **Sign Up**
-   - Create new account
-   - Verify session is created
-   - Verify cookie is set
-
-2. **Sign In**
-   - Sign in with email/password
-   - Verify session is created
-   - Verify cookie is set
-
-3. **Session Validation**
-   - Access protected route with valid session
-   - Access protected route with invalid session
-   - Access protected route with expired session
-
-4. **Sign Out**
-   - Sign out user
-   - Verify session is deleted
-   - Verify cookie is cleared
-   - Verify subsequent requests fail
-
-5. **Session Expiration**
-   - Wait for session to expire
-   - Verify requests fail after expiration
-   - Verify refresh works (if implemented)
+If you have not been running such a legacy fork, no migration is required — the package shipped session-only since [ADR-004](./architecture/ADR-004-session-only-auth.md).
 
 ---
 
@@ -1195,47 +1064,25 @@ Test the following scenarios:
 - ✅ CSRF protection
 - ✅ SQL injection prevention
 
-### What Needs Work
+### What's still ahead
 
-1. ✅ **Email Sending** - Fully implemented with Gmail API (Google Workspace)
-2. **In-Memory Stores** - Rate limiting and brute force protection won't scale horizontally
-3. ✅ **Missing Endpoints** - `/api/auth/session` and `/api/auth/me` fully implemented
-4. **Integration Tests** - Not running (need DATABASE_URL)
-5. **Performance Baseline** - Not established
+1. **Integration tests** — currently not running in CI (need a `DATABASE_URL` test fixture).
+2. **Performance baseline** — no production traffic to measure against. Targets are documented in [PERFORMANCE.md](./PERFORMANCE.md) but treat them as proposed budgets.
+3. **MFA** — `apps/admin/src/app/api/auth/mfa/` ships; verify your admin flow surfaces it before relying on it for compliance.
 
 ### Production Deployment
 
-#### ✅ Ready For
+#### ✅ Ready
 
-- Single-server deployments
-- MVP/prototype applications
-- Low to medium traffic applications
+- Single- and multi-server deployments (storage is database-backed; in-memory fallback is dev-only)
+- Low to medium traffic
+- Email sending via Gmail API (Google Workspace) — implemented in `apps/admin/src/lib/email/index.ts`
+- `/api/auth/session` and `/api/auth/me` endpoints — implemented in `apps/admin/src/app/api/auth/`
 
-#### 🔴 Must Fix Before Production
+#### 🟡 Recommended before scaling outbound
 
-1. **Implement Email Sending**
-   - Password reset emails
-   - Email verification
-   - Remove token from response
-
-2. **Migrate In-Memory Stores**
-   - Move rate limiting to database backend
-   - Move brute force protection to database backend
-   - Move reset tokens to database
-
-#### 🟡 Should Fix Before Production
-
-3. **Create Missing Endpoints**
-   - `GET /api/auth/session`
-   - `GET /api/auth/me`
-
-4. **Run Integration Tests**
-   - Set up test database
-   - Verify database integration
-
-5. **Establish Performance Baseline**
-   - Run k6 load tests
-   - Identify bottlenecks
+1. **Run integration tests** — set up a test database fixture and wire `auth-flows.test.ts` into CI
+2. **Establish performance baseline** — run k6 load tests, identify bottlenecks before traffic arrives
 
 #### API Endpoints Status
 
@@ -1244,30 +1091,15 @@ Test the following scenarios:
 | `/api/auth/sign-up` | POST | ✅ Complete | Create new user account |
 | `/api/auth/sign-in` | POST | ✅ Complete | Authenticate with email/password |
 | `/api/auth/sign-out` | POST | ✅ Complete | Delete session and sign out |
-| `/api/auth/password-reset` | POST | ⚠️ Partial | Generate reset token (no email) |
+| `/api/auth/password-reset` | POST | ✅ Complete | Generate reset token + email via Gmail API |
 | `/api/auth/password-reset` | PUT | ✅ Complete | Reset password with token |
-| `/api/auth/session` | GET | ❌ Missing | Get current session |
-| `/api/auth/me` | GET | ❌ Missing | Get current user |
+| `/api/auth/session` | GET | ✅ Complete | Get current session |
+| `/api/auth/me` | GET | ✅ Complete | Get current user |
+| `/api/auth/mfa` | various | ✅ Complete | TOTP / passkey enrollment + verification |
+| `/api/auth/sessions` | GET / DELETE | ✅ Complete | List and revoke active sessions |
 
 ---
 
-## Migration to Horizontal Scaling
-
-When ready to scale horizontally, migrate in-memory stores:
-
-1. **Rate Limiting:** Move to database with TTL
-   - Use PostgreSQL `INSERT ... ON CONFLICT` with expiry column
-   - Key format: `ratelimit:{ip}:{endpoint}`
-
-2. **Brute Force Protection:** Move to database with TTL
-   - Use PostgreSQL `INSERT ... ON CONFLICT` with expiry column
-   - Key format: `bruteforce:{email}`
-
-3. **Password Reset Tokens:** Move to database table
-   - Use existing `verifications` table
-   - Ensure proper expiration handling
-
----
 
 ## Related Documentation
 
@@ -1286,8 +1118,7 @@ When ready to scale horizontally, migrate in-memory stores:
 
 ---
 
-**Last Updated:** 2026-03-05
-**Production Readiness:** 8.5/10 🟢
+**Last Updated:** 2026-04-26 (post honesty audit)
 
 ---
 

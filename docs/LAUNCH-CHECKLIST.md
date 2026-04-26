@@ -102,7 +102,7 @@ All gates must pass on the `main` branch before deploy.
 
 ## 5. Environment Variables
 
-Refer to `docs/ENVIRONMENT_VARIABLES_GUIDE.md` for the full reference.
+Refer to `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for the full reference.
 
 ### Required (all environments)
 
@@ -192,7 +192,7 @@ Complete the Stripe checkout checklist at `docs/checklists/stripe-checkout-verif
 The `pnpm preflight` script checks for these files automatically.
 
 - [ ] `docs/LAUNCH-CHECKLIST.md` (this file) **(blocking)**
-- [ ] `docs/ENVIRONMENT_VARIABLES_GUIDE.md` **(blocking)**
+- [ ] `docs/ENVIRONMENT-VARIABLES-GUIDE.md` **(blocking)**
 - [ ] `SECURITY.md` at repository root **(blocking)**
 - [ ] `LICENSE` at repository root (MIT for OSS packages) **(blocking)**
 - [ ] `README.md` at repository root **(blocking)**

@@ -7,7 +7,9 @@ audience: developer
 
 # MCP Marketplace
 
-The RevealUI MCP Marketplace lets developers publish Model Context Protocol (MCP) servers with a per-call price. Callers pay in USDC on Base via the x402 protocol. RevealUI takes 20%; you earn 80%.
+> **Preview status.** The publish/list/invoke/onboard endpoints are wired; live payouts are gated on the internal billing-readiness audit (Stripe runs in TEST mode in production today). The 80/20 revenue split is the planned launch policy.
+
+The RevealUI MCP Marketplace lets developers publish Model Context Protocol (MCP) servers with a per-call price. Callers pay in USDC on Base via the x402 protocol. The planned revenue split is 80% developer / 20% platform; live payouts open once the billing-readiness audit closes.
 
 ---
 
@@ -358,45 +360,15 @@ curl -X POST http://localhost:3004/api/marketplace/servers/<id>/invoke \
   -d '{"jsonrpc": "2.0", "id": 1, "method": "your_method", "params": {}}'
 ```
 
-### Health checks
+### Health checks (planned)
 
-The marketplace proxy checks your server's availability before listing it. If your server is unreachable for 3 consecutive health checks (every 5 minutes), it is automatically suspended. Restore it by fixing the endpoint and calling:
-
-```http
-POST /api/marketplace/servers/<id>/restore
-Authorization: Bearer <your-session-token>
-```
+Automatic health-check sweep with auto-suspend (3 consecutive failures, 5-minute interval) and a `POST /api/marketplace/servers/:id/restore` endpoint are on the marketplace roadmap. Until they ship, listing visibility is manually managed via the publish/unpublish endpoints documented above.
 
 ---
 
-## Disputes and refunds
+## Disputes and refunds (planned)
 
-### Caller disputes
-
-If a caller believes a server returned an incorrect or incomplete response, they can file a dispute:
-
-```http
-POST /api/marketplace/disputes
-Authorization: Bearer <your-session-token>
-Content-Type: application/json
-
-{
-  "transactionId": "txn_abc123",
-  "reason": "Server returned an error instead of the expected analysis"
-}
-```
-
-Disputes are reviewed manually. If upheld, the caller is credited and the amount is deducted from the developer's balance.
-
-### Automatic refunds
-
-The marketplace automatically refunds callers when:
-
-- The server returns an HTTP 5xx error
-- The server times out (>30 seconds)
-- The proxy fails to reach the server
-
-These refunds are immediate and do not count against the developer.
+A `POST /api/marketplace/disputes` endpoint and an automatic-refund policy (HTTP 5xx, timeouts, proxy failures) are on the marketplace roadmap. Until that work lands, billing disputes are handled manually — contact [support@revealui.com](mailto:support@revealui.com).
 
 ---
 
@@ -423,28 +395,9 @@ These refunds are immediate and do not count against the developer.
 
 ---
 
-## Server analytics
+## Server analytics (planned)
 
-Track your server's performance via the developer dashboard or API:
-
-```http
-GET /api/marketplace/servers/<id>/analytics?period=30d
-Authorization: Bearer <your-session-token>
-```
-
-```json
-{
-  "calls": 1234,
-  "revenue": "6.17",
-  "avgResponseTimeMs": 420,
-  "errorRate": 0.02,
-  "uniqueCallers": 89,
-  "topMethods": [
-    { "method": "check_types", "calls": 890 },
-    { "method": "lint_file", "calls": 344 }
-  ]
-}
-```
+A developer-dashboard analytics surface (`GET /api/marketplace/servers/:id/analytics`) is on the marketplace roadmap. Until it ships, queries against `marketplace_transactions` in the API can be made by the publishing developer.
 
 ---
 
@@ -452,6 +405,6 @@ Authorization: Bearer <your-session-token>
 
 - [Pro overview](./PRO.md)
 - [AI agents](./AI.md)
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
+- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md)
 - [x402 protocol](https://x402.org)
 - [Coinbase x402 SDK](https://github.com/coinbase/x402)

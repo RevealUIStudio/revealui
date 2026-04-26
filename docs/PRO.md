@@ -68,17 +68,22 @@ This is the model the product and billing architecture should converge on from 2
 
 ## What Pro Includes
 
-RevealUI Pro currently groups commercial capabilities such as:
+RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime — Pro packages, Pro APIs, Pro feature gates. It also unlocks features in *companion products* across the RevealUI Studio Suite.
 
-- Studio desktop app (Tauri)  -  agent coordination hub, local inference management, visual agent dashboard
+**In the RevealUI runtime (this monorepo):**
+
+- Pro packages (Fair Source / FSL-1.1-MIT): `@revealui/ai`, `@revealui/harnesses`
 - MCP servers and developer tooling
 - Open-model inference configuration per deployment
-- editor integrations and harness coordination
 - Stripe and Supabase service integrations
 - x402 micropayments and paid API support
-- marketplace and self-hosted commercial deployment options
-- RevVault desktop app (Tauri) for age-encrypted secret management
-- RevVault rotation engine for automated credential lifecycle
+- Marketplace and self-hosted commercial deployment options
+
+**Unlocked in companion products (separate repos in the [RevealUI Studio Suite](https://github.com/RevealUIStudio)):**
+
+- **Studio** desktop app (lives in [RevDev](https://github.com/RevealUIStudio/revdev), Tauri) — agent coordination hub, local inference management, visual agent dashboard. Studio talks to your RevealUI runtime; the Pro tier unlocks Studio's commercial features.
+- **RevVault** desktop app (lives in [RevVault](https://github.com/RevealUIStudio/revvault), Tauri) — age-encrypted secret management
+- **RevVault rotation engine** — automated credential lifecycle
 
 ## Ecosystem Features by Tier
 
@@ -112,21 +117,26 @@ RevealUI publishes every package to npm from the same public repo. There are two
 
 The Pro tier gate isn't enforced by the license — it's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are RS256-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
 
-For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-003-fair-source-licensing.md). Root-level `LICENSE` (MIT) and `LICENSE.FSL` describe the terms verbatim.
+For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-003-fair-source-licensing.md). The root `LICENSE` file (MIT) and per-package `LICENSE` files inside `packages/ai/`, `packages/harnesses/`, and `packages/engines/` (FSL-1.1-MIT) describe the terms verbatim.
 
 ## MCP Setup
 
-RevealUI includes 13 MCP servers for enhanced AI capabilities:
+RevealUI ships **13 MCP servers** under `packages/mcp/src/servers/` for enhanced AI capabilities. Highlights:
 
 - **Code Validator MCP** - Static analysis and code quality checks
 - **Vercel MCP** - Deploy and manage Vercel projects
-- **Stripe MCP** - Payment processing and billing operations
-- **NeonDB MCP** - Database operations and SQL queries
+- **Stripe MCP** + **RevealUI Stripe MCP** - Payment processing and billing operations
+- **NeonDB MCP** - Database operations and SQL queries (remote endpoint at `mcp.neon.tech`)
 - **Supabase MCP** - Supabase project management and CRUD operations
 - **Playwright MCP** - Browser automation and web scraping
 - **Next.js DevTools MCP** - Next.js 16+ runtime diagnostics and automation
+- **RevealUI Content MCP** - admin content collections via MCP
+- **RevealUI Email MCP** + **RevealUI Memory MCP** - first-party platform servers
+- **Vultr Test MCP** - inference provider test harness
 
-All servers are **free** and run locally as npm packages.
+The full list lives at [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers); exports use launcher functions (`launchStripeMcp`, `launchSupabaseMcp`, etc.).
+
+All servers are **free**; most run locally as npm packages (NeonDB MCP is a remote endpoint).
 
 ---
 
@@ -302,7 +312,7 @@ The supported local workflow is to validate credentials with `pnpm setup:mcp` an
 3. Copy the key (starts with `neon_`)
 4. Add to `.env`: `NEON_API_KEY=neon_xxx...`
 
-**Detailed guide**: See [NEON_API_KEY_SETUP.md](./ENVIRONMENT_VARIABLES_GUIDE.md)
+**Detailed guide**: See [NEON_API_KEY_SETUP.md](./ENVIRONMENT-VARIABLES-GUIDE.md)
 
 ### Supabase Credentials
 
@@ -900,7 +910,7 @@ All MCP servers are **completely free**:
 
 ## Related Documentation
 
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
+- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Database](./DATABASE.md) - Database setup and network compatibility
 - [Master Index](./INDEX.md) - Complete documentation index
 
@@ -1194,8 +1204,10 @@ Full checkout/portal/webhook route handlers are wired at the application layer (
 
 ### Webhook environment
 
+> Pre-launch posture: RevealUI runs in Stripe TEST mode in production. Use `sk_test_*` until billing-readiness sign-off; `STRIPE_LIVE_MODE=true` flips the live path.
+
 ```bash
-STRIPE_SECRET_KEY=sk_live_...
+STRIPE_SECRET_KEY=sk_test_...   # Use sk_live_... once billing-readiness sign-off lands
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_ID=price_...       # Your Pro tier price
 ```
@@ -1255,10 +1267,10 @@ const data = await withSupabaseResilience(() =>
 ## Environment configuration
 
 ```bash
-# Stripe
-STRIPE_SECRET_KEY=sk_live_...
+# Stripe (use sk_test_/pk_test_ until billing-readiness sign-off; sk_live_/pk_live_ post-flip)
+STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PUBLISHABLE_KEY=pk_live_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
 
 # Supabase (new API keys, recommended)
 SUPABASE_URL=https://xxx.supabase.co
