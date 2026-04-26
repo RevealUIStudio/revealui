@@ -717,6 +717,13 @@ app.use('/api/v1/collab/snapshot/*', requireFeature('advancedSync', { mode: 'ent
 app.use('/api/collab/update', requireFeature('advancedSync', { mode: 'entitlements' }));
 app.use('/api/v1/collab/update', requireFeature('advancedSync', { mode: 'entitlements' }));
 
+// MCP usage aggregations are a Pro feature — without this gate, the
+// `mcp` capability we sell to Pro+ tiers leaks via /api/mcp/usage to
+// the free tier (caller's account-scoped, but the metering itself is
+// the Pro-tier sell). Both versioned + unversioned mounts are gated.
+app.use('/api/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
+app.use('/api/v1/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
+
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
