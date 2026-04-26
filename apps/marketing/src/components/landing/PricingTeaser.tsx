@@ -58,7 +58,8 @@ const TEASER_TIERS: TeaserTier[] = [
   {
     id: 'free',
     name: 'Free',
-    description: 'All open-source packages. MIT-licensed. No telemetry.',
+    description:
+      'OSS packages, MIT-licensed. No telemetry. Pro packages are Fair Source (FSL), source-visible and convert to MIT after two years.',
     features: [
       'Full primitive stack',
       'Admin dashboard + API',
@@ -112,8 +113,8 @@ export async function PricingTeaser() {
             Start free. Pay when you scale.
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Self-host the open-source stack at no cost. Move to Pro for managed hosting and AI
-            primitives.
+            Self-host the open-source stack at no cost. Pay for the AI primitives and priority
+            support when your business needs them.
           </p>
         </div>
 
