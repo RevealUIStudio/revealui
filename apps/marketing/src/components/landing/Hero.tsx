@@ -82,8 +82,8 @@ export function Hero() {
           </h1>
 
           <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Auth, billing, content, and AI primitives wired into one runtime &mdash; so the same
-            APIs your users hit, your agents hit too.
+            Auth, billing, content, and AI primitives wired into one runtime, with every primitive
+            exposed to your agents via MCP.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -126,28 +126,48 @@ export function Hero() {
           </div>
 
           <p className="mt-4 text-sm text-gray-500">
-            Production-ready in 60 seconds. No credit card.
+            Local dev stack in 60 seconds. No credit card.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500">
-            {['MIT licensed', 'Self-hostable', 'No vendor lock-in'].map((item) => (
-              <div key={item} className="flex items-center gap-2">
-                <svg
-                  className="h-4 w-4 text-emerald-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  aria-hidden="true"
+            {[
+              { label: 'OSS (MIT)', href: undefined },
+              { label: 'Pro is Fair Source', href: '/fair-source' },
+              { label: 'Self-hostable', href: undefined },
+              { label: 'No vendor lock-in', href: undefined },
+            ].map((item) => {
+              const inner = (
+                <>
+                  <svg
+                    className="h-4 w-4 text-emerald-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    aria-hidden="true"
+                  >
+                    <title>Check</title>
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {item.label}
+                </>
+              );
+              return item.href ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="flex items-center gap-2 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-700"
                 >
-                  <title>Check</title>
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                {item}
-              </div>
-            ))}
+                  {inner}
+                </a>
+              ) : (
+                <div key={item.label} className="flex items-center gap-2">
+                  {inner}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
