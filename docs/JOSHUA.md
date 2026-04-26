@@ -55,7 +55,7 @@ Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No v
 - MIT license on all 18 OSS packages
 - No vendor-specific APIs in core (Vercel adapters are optional, in `@revealui/cache`)
 - Dual-database architecture: NeonDB (primary) + Supabase (vectors)  -  both replaceable
-- Open-model AI: Ubuntu snaps, Ollama, and open source models  -  no proprietary cloud APIs
+- Open-model AI default: Ubuntu Inference Snaps, Ollama, and open source models. Cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic for prompt caching) are pluggable but opt-in via env vars — there is no vendor lock-in
 - Self-hostable: Docker Compose, Railway, bare metal  -  documented in CI/CD guide
 - Stripe is the only commercial dependency in the billing path, and it's behind an interface
 
