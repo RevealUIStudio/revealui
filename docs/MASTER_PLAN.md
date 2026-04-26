@@ -23,7 +23,7 @@
 - **Apps:** 5 (api, admin, docs, marketing, revealcoin)
 - **Packages:** 26 packages + 5 apps = 31 workspaces
 - **Tests:** extensive test suite across unit, integration, and E2E layers; all workspaces build and typecheck (run `pnpm test` for current count)
-- **Database:** 81 tables (Drizzle ORM, dual NeonDB + Supabase), 61 CHECK constraints enforced (migration 0001 applied 2026-04-15)
+- **Database:** 85 tables (Drizzle ORM, dual NeonDB + Supabase), 61 CHECK constraints enforced (migration 0001 applied 2026-04-15)
 - **UI Components:** 57 native components (Tailwind v4, zero external UI deps)
 - **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml, system-tune-snapshot.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks
 - **Infrastructure:** Nix flakes, direnv, Biome 2 (sole linter), Turborepo, pnpm 10
@@ -36,7 +36,7 @@
 | admin engine (core) | Built | High  -  237 files, deep implementation |
 | AI agent system | Built | Medium  -  untested in production |
 | UI components (57) | Built | High  -  native hooks, no external deps |
-| Database schema (81 tables) | Built | High  -  migration 0001 applied, 61 CHECK constraints enforced |
+| Database schema (85 tables) | Built | High  -  migration 0001 applied, 61 CHECK constraints enforced |
 | Auth (sessions, rate limiting) | Built | Medium  -  code exists, no production verification |
 | Stripe integration | Built | Medium  -  DB-backed circuit breaker (circuit_breaker_state table) |
 | Lexical rich text | Built | Medium  -  recently integrated |

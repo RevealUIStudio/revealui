@@ -1,4 +1,4 @@
-# From Zero to Production in 10 Minutes
+# From Zero to Production in About 30 Minutes
 
 **Build a complete business application with auth, content, and payments  -  faster than you can order lunch.**
 
@@ -572,7 +572,7 @@ Your application is live. Visit `https://my-business.vercel.app/admin` to access
 
 ## What you have built
 
-Stop the clock. In roughly 10 minutes, you have a ready-to-deploy business application with:
+Stop the clock. With accounts pre-provisioned (NeonDB, Stripe, Vercel) and copy-paste commands, the walkthrough fits in about 30 minutes start to deployed. From here you have a business application with:
 
 - **A admin with typed collections and access control**  -  define your data model in TypeScript, get a full admin UI and REST API automatically
 - **User authentication with session-based auth**  -  secure by default with httpOnly cookies, brute force protection, and rate limiting
@@ -600,7 +600,7 @@ export REVEALUI_LICENSE_KEY=<your-pro-license-key>
 
 ### Connect MCP servers
 
-RevealUI ships with open-source MCP (Model Context Protocol) servers for Stripe, Supabase, Neon, Vercel, and Playwright. Let your AI agents interact directly with your business infrastructure.
+RevealUI ships with 13 open-source MCP (Model Context Protocol) servers — including Stripe, Supabase, Neon, Vercel, Playwright, Code Validator, and Next.js DevTools (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). Let your AI agents interact directly with your business infrastructure.
 
 ### Add more collections
 

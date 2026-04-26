@@ -13,7 +13,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 
 ## Getting Started
 
-- [Quick Start](./QUICK_START.md): 5-minute setup guide
+- [Quick Start](./QUICK_START.md): get a local dev stack running
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
 
@@ -25,7 +25,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
 - [CI/CD & Deployment](./CI_CD_GUIDE.md): Pipelines, Vercel deployment, staging
-- [Environment Variables](./ENVIRONMENT_VARIABLES_GUIDE.md): Configuration reference
+- [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md): Configuration reference
 
 ## Pricing & Commerce
 

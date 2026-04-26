@@ -9,7 +9,9 @@ audience: maintainer
 
 _Generated: 2026-03-28 | Branch: test | Commit: ce5f1ea8_
 
-Brutally honest audit of what RevealUI documentation claims versus what the codebase actually delivers.
+> **⚠️ Stale snapshot.** This assessment was produced 2026-03-28. Many of the gaps it tracks have closed since (post-marketing-honesty-gate, post-docs-honesty-gate). Use [`WHAT_WORKS_TODAY.md`](./WHAT_WORKS_TODAY.md) and the live `pnpm validate:claims` gate as the current source of truth — those are continuously verified. This file is preserved as a historical record of the 2026-03 audit; numeric claims here may differ from current state (e.g., this doc says "76 pgTable declarations" — the current count is 85).
+
+Brutally honest audit of what RevealUI documentation claimed versus what the codebase actually delivered as of the snapshot date.
 
 ---
 
@@ -26,7 +28,7 @@ RevealUI's core framework is **real and substantial**  -  auth, billing, runtime
 | Claim | Where | Actual | Fix |
 |-------|-------|--------|-----|
 | TypeScript 5.9 | README badge | **6.0.2** | Update badge |
-| 68 database tables | README, CLAUDE.md, QUICK_START | **76 pgTable declarations** | Update all references |
+| 85 database tables | README, CLAUDE.md, QUICK_START | **76 pgTable declarations** | Update all references |
 | ~~6 apps~~ | ~~README~~ | ~~**7** (revealcoin app undocumented)~~ | ✅ Fixed  -  revealcoin listed as experimental |
 | Node.js 24.0 | README/badges | **24.13.0** (.node-version) | Minor  -  acceptable |
 

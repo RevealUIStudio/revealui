@@ -1,22 +1,26 @@
 # @revealui/mcp
 
-MCP (Model Context Protocol) servers for RevealUI Pro. Connect your AI agents to Stripe, Supabase, Neon, Vercel, and Playwright via standardized tool interfaces.
+MCP (Model Context Protocol) servers for RevealUI. Connect your AI agents to Stripe, Supabase, Neon, Vercel, Playwright, and more via standardized tool interfaces.
+
+> **License: MIT (OSS).** `@revealui/mcp` is part of the open-source RevealUI surface — no Pro license required to use it. Pro packages (`@revealui/ai`, `@revealui/harnesses`) are Fair Source / FSL-1.1-MIT; this package is plain MIT.
 
 ## Overview
 
-`@revealui/mcp` provides pre-built MCP server adapters:
+`@revealui/mcp` ships **13 first-party MCP server launchers** under `packages/mcp/src/servers/`. The full list lives in the source; a representative sample:
 
-| Server | Tools provided |
-|--------|---------------|
-| `stripe` | Customers, invoices, subscriptions, products, prices |
-| `supabase` | Database queries, auth, storage, realtime |
-| `neon` | SQL queries, migrations, branching |
-| `vercel` | Deployments, domains, env vars, logs |
-| `playwright` | Browser automation, screenshots, testing |
+| Server | Launcher | Tools provided |
+|--------|----------|---------------|
+| Stripe | `launchStripeMcp` | Customers, invoices, subscriptions, products, prices |
+| RevealUI Stripe | `launchRevealUIStripeMcp` | RevealUI-aware Stripe + license layer |
+| Supabase | `launchSupabaseMcp` | Database queries, auth, storage, realtime |
+| Neon | `launchNeonMcp` | SQL queries, migrations, branching (remote endpoint at `mcp.neon.tech`) |
+| Vercel | `launchVercelMcp` | Deployments, domains, env vars, logs |
+| Playwright | `launchPlaywrightMcp` | Browser automation, screenshots, testing |
+| Next.js DevTools | `launchNextDevtoolsMcp` | Next.js 16+ runtime diagnostics |
+| RevealUI Content | `launchRevealUIContentMcp` | admin content collections |
+| RevealUI Email / Memory / etc. | (see source) | First-party platform servers |
 
 ## Installation
-
-Requires a RevealUI Pro license.
 
 ```bash
 pnpm add @revealui/mcp
@@ -25,83 +29,34 @@ pnpm add @revealui/mcp
 ## Quick start
 
 ```typescript
-import { StripeMCPServer, VercelMCPServer } from '@revealui/mcp'
+import { launchStripeMcp } from '@revealui/mcp'
 
-// Start Stripe MCP server
-const stripe = new StripeMCPServer({
+// Launchers return a server handle; see packages/mcp/src/index.ts and the
+// per-server source files (e.g. packages/mcp/src/servers/stripe.ts) for the
+// current API shape and configuration.
+const handle = await launchStripeMcp({
   apiKey: process.env.STRIPE_SECRET_KEY,
-  port: 3020,
 })
-
-await stripe.start()
-// MCP endpoint: http://localhost:3020/mcp
 ```
 
 ## Using with an agent
 
-```typescript
-import { createAgent } from '@revealui/ai'
-import { MCPClient } from '@revealui/mcp/client'
+The MCP-to-agent integration ships in `@revealui/ai` (Fair Source / Pro). See [`packages/ai/src/tools/mcp-adapter.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/ai/src/tools/mcp-adapter.ts) for the current adapter API. The hypervisor + metering primitives that connect MCP tool calls to your billing surface live in `@revealui/mcp` itself; see [`packages/mcp/src/hypervisor.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/mcp/src/hypervisor.ts) and [`packages/mcp/src/metering.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/mcp/src/metering.ts).
 
-const stripeTools = await MCPClient.loadTools('http://localhost:3020/mcp')
+## Per-server snippets
 
-const agent = createAgent({
-  name: 'billing-agent',
-  llm,
-  tools: stripeTools,
-})
+Each launcher accepts its own configuration. The canonical reference is the source file under [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers); examples:
 
-const result = await agent.run('List all active subscriptions created this month.')
-```
+- `launchStripeMcp({ apiKey })` — local proxy around Stripe's official MCP package
+- `launchSupabaseMcp({ url, serviceRoleKey })`
+- `launchNeonMcp({ connectionString, readOnly })` — note: the public NeonDB MCP is also available remotely at `mcp.neon.tech`
+- `launchPlaywrightMcp({ browser: 'chromium', headless: true })`
+- `launchVercelMcp({ apiKey })`
 
-## Stripe MCP server
+For tool names + parameter schemas exposed by each server, point your MCP client at the launcher and call `tools/list` per the [MCP spec](https://modelcontextprotocol.io).
 
-```typescript
-import { StripeMCPServer } from '@revealui/mcp'
+## Related
 
-const server = new StripeMCPServer({
-  apiKey: process.env.STRIPE_SECRET_KEY,
-  // Optional: restrict to specific operations
-  allowedOperations: ['customers.list', 'subscriptions.list', 'invoices.retrieve'],
-})
-```
-
-Available tools: `stripe_list_customers`, `stripe_get_subscription`, `stripe_create_invoice`, `stripe_list_products`, and more.
-
-## Supabase MCP server
-
-```typescript
-import { SupabaseMCPServer } from '@revealui/mcp'
-
-const server = new SupabaseMCPServer({
-  url: process.env.SUPABASE_URL,
-  serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-})
-```
-
-## Neon MCP server
-
-```typescript
-import { NeonMCPServer } from '@revealui/mcp'
-
-const server = new NeonMCPServer({
-  connectionString: process.env.DATABASE_URL,
-  // Read-only mode for safety
-  readOnly: true,
-})
-```
-
-## Playwright MCP server
-
-Enables agents to automate browsers for testing, scraping, or UI interactions.
-
-```typescript
-import { PlaywrightMCPServer } from '@revealui/mcp'
-
-const server = new PlaywrightMCPServer({
-  browser: 'chromium',
-  headless: true,
-})
-```
-
-Available tools: `playwright_navigate`, `playwright_click`, `playwright_fill`, `playwright_screenshot`, `playwright_extract_text`.
+- [Pro overview](/docs/PRO)
+- [AI agents](/docs/AI)
+- [`packages/mcp` source](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp)

@@ -1,65 +1,35 @@
-# @revealui/editors
+# Editor Config Sync — see RevCon
 
-Editor configuration generators for VS Code, Zed, and Antigravity. Keeps your editor setup consistent across the team and aligned with RevealUI project conventions.
+> **This page redirects.** Editor configuration sync is **not** an `@revealui/editors` package inside this monorepo. It ships as a separate suite product called **RevCon**, distributed standalone and used independently of any RevealUI license.
 
-## Overview
+## Where it lives
 
-`@revealui/editors` generates and syncs editor configuration files:
+- **Repo:** [RevealUIStudio/revcon](https://github.com/RevealUIStudio/revcon)
+- **CLI:** `pnpm dlx revcon sync` (or install with `pnpm add -D @revealui/revcon` once published)
+- **License:** RevCon is intentionally decoupled from the RevealUI runtime — editor profiles evolve on a different cadence than the CMS/API packages and are not gated by the Pro license.
 
-- **VS Code**  -  `.vscode/settings.json` + `.vscode/extensions.json` (recommended extensions)
-- **Zed**  -  `.zed/settings.json` (theme, keybindings, extensions)
-- **Antigravity**  -  `.agents/rules/revealui.md` (agent rules)
+## What RevCon does
 
-## Installation
+- Syncs editor configs across **VS Code**, **Zed**, **Cursor**, and supported agent shells
+- Distributes Claude Code rules, Cursor rules, agent skill files, and shell snippets across all repos in the suite via `link.sh`
+- Validates frontmatter on agent/skill `.md`/`.mdc` files
+- Provides per-profile overrides (e.g. `revealui` profile) so a developer can swap conventions per project
 
-Requires a RevealUI Pro license.
+## Why it's a separate product
+
+The `@revealui/editors` listing in earlier versions of this docs site referred to an in-monorepo package that does not exist. The functionality always lived in RevCon, which sits alongside RevealUI in the [RevealUI Studio Suite](https://github.com/RevealUIStudio).
+
+## Quick start
 
 ```bash
-pnpm add @revealui/editors
+# From any repo where you want suite-aligned editor configs
+pnpm dlx revcon sync
+
+# Or, if RevCon is checked out alongside this repo
+~/suite/revcon/link.sh
 ```
 
-## Usage
+## Related
 
-### Sync all editor configs
-
-```typescript
-import { syncEditorConfigs } from '@revealui/editors'
-
-const result = await syncEditorConfigs({
-  rootDir: process.cwd(),
-  // Optional: only sync specific editors (default: all)
-  editors: ['vscode', 'zed', 'antigravity'],
-})
-
-console.log('Written:', result.written)
-console.log('Skipped (unchanged):', result.skipped)
-console.log('Errors:', result.errors)
-```
-
-### Generate individual configs
-
-```typescript
-import {
-  generateVSCodeSettings,
-  generateVSCodeExtensions,
-  generateZedSettings,
-  generateAntigravityRules,
-} from '@revealui/editors'
-
-// Each returns a JSON-serializable object or string
-const vscodeSettings = generateVSCodeSettings()
-const vscodeExtensions = generateVSCodeExtensions()
-const zedSettings = generateZedSettings()
-const antigravityRules = generateAntigravityRules()
-```
-
-## What it does
-
-- Writes config files only when content has changed (skip-if-identical)
-- Creates directories as needed
-- Returns a `SyncResult` with `written`, `skipped`, and `errors` arrays
-- VS Code configs are shared across VS Code, Cursor, and Antigravity (written once)
-
-## Roadmap
-
-Editor daemon integration (real-time sync, agent coordination from within your editor) is planned for a future release. See the [harnesses package](/pro/harnesses) for current multi-agent coordination capabilities.
+- [RevCon README](https://github.com/RevealUIStudio/revcon/blob/main/README.md)
+- [Pro overview (RevealUI)](/docs/PRO)
