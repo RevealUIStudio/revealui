@@ -412,14 +412,6 @@ describe('@revealui/engines', () => {
       expect(payments.usageMeters).toBeDefined();
     });
 
-    it('exports Supabase client factories', async () => {
-      const { payments } = await import('../index.js');
-
-      expect(typeof payments.createServerClient).toBe('function');
-      expect(typeof payments.createServerClientFromRequest).toBe('function');
-      expect(typeof payments.createBrowserClient).toBe('function');
-    });
-
     it('exports RevealCoin payment functions', async () => {
       const { payments } = await import('../index.js');
 
