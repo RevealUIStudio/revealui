@@ -30,11 +30,11 @@ import {
 } from '@revealui/core/observability/alerts';
 import { logger } from '@revealui/core/observability/logger';
 import { audit, SecurityHeaders, SecurityPresets } from '@revealui/core/security';
-import { configureClientIp } from '@revealui/security';
 import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
 import { sites, users } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
+import { configureClientIp } from '@revealui/security';
 import { sql } from 'drizzle-orm';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
