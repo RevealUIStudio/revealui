@@ -13,6 +13,64 @@ export async function register() {
     return;
   }
 
+  // ── Forge boot license enforcement ─────────────────────────────────
+  // Mirrors apps/api/src/lib/validate-startup.ts → validateLicenseAtStartup.
+  // Hosted SaaS (REVEALUI_LICENSE_PRIVATE_KEY present) is a no-op; self-
+  // hosted Forge customer mode hard-fails the runtime on missing/invalid
+  // license so Docker restart-loops instead of serving traffic without a
+  // valid studio-issued JWT.
+  //
+  // We use process.exit(1) rather than `throw` because Next.js's
+  // instrumentation.ts contract is "never throw — it kills the entire
+  // runtime". process.exit(1) is the *intentional* kill, distinct from
+  // accidental crashes that the surrounding try/catch swallows.
+  //
+  // TODO: extract this block to @revealui/core/forge-license-boot once
+  // the same pattern is needed in a third app. Today (api + admin) the
+  // ~25-line duplication is preferable to a new package boundary.
+  if (process.env.SKIP_ENV_VALIDATION !== 'true' && !process.env.REVEALUI_LICENSE_PRIVATE_KEY) {
+    const failures: string[] = [];
+    if (!process.env.REVEALUI_LICENSE_KEY) {
+      failures.push(
+        'REVEALUI_LICENSE_KEY is required for Forge deployments. ' +
+          'Run bin/revvault-bootstrap.sh to materialize docker/.env from revvault, ' +
+          'or contact the operator who stamped this kit.',
+      );
+    }
+    if (!process.env.REVEALUI_LICENSE_PUBLIC_KEY) {
+      failures.push(
+        'REVEALUI_LICENSE_PUBLIC_KEY is required for Forge deployments. ' +
+          'Stamped kits embed this value in docker/.env.example.',
+      );
+    }
+    if (failures.length === 0) {
+      try {
+        const { validateLicenseKey } = await import('@revealui/core/license');
+        const publicKey = (process.env.REVEALUI_LICENSE_PUBLIC_KEY ?? '').replace(/\\n/g, '\n');
+        const payload = await validateLicenseKey(process.env.REVEALUI_LICENSE_KEY ?? '', publicKey);
+        if (!payload) {
+          failures.push(
+            'REVEALUI_LICENSE_KEY is invalid, expired beyond grace, ' +
+              'or signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY. ' +
+              'Contact the operator who stamped this kit to re-issue the license.',
+          );
+        }
+      } catch (err) {
+        failures.push(
+          `License validation failed unexpectedly: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
+    if (failures.length > 0) {
+      // Logger may not be initialized yet — write directly to stderr so
+      // the failure is visible in Docker logs.
+      process.stderr.write(
+        `LICENSE VALIDATION FAILED:\n${failures.map((m) => `  - ${m}`).join('\n')}\n`,
+      );
+      process.exit(1);
+    }
+  }
+
   try {
     const [{ logger }, { validateRequiredEnvVars }] = await Promise.all([
       import('@revealui/core/observability/logger'),
