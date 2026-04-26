@@ -144,7 +144,7 @@ function main(): void {
     `\n[validate:stripe-client] FAIL — ${violations.length} unauthorised \`new Stripe(\` site(s) detected.\n\n`,
   );
   process.stderr.write(
-    'Every consumer must use \`protectedStripe\` from \`@revealui/services\` (DB-backed\n' +
+    'Every consumer must use `protectedStripe` from `@revealui/services` (DB-backed\n' +
       'circuit breaker + retry + single API-version pin). The only legitimate site\n' +
       'is the canonical wrapper at packages/services/src/stripe/stripeClient.ts.\n\n' +
       'See GAP-131 for context. Migrate the offending site(s) to:\n\n' +
