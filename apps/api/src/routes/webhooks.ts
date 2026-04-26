@@ -2882,12 +2882,116 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // A charge has been refunded (partial or full). Revoke the customer's
         // NON-PERPETUAL license if the refund fully covers the charge amount.
         // Perpetual licenses are never revoked by a subscription refund —
-        // they are a separate purchase with their own refund path.
+        // they are a separate purchase with their own refund path (BLOCKING-A,
+        // tracked separately; deferred from Surface 6 fix-train).
+        //
+        // GAP-124 Surface 6 BLOCKING-B: credit-bundle refunds debit
+        // agentCreditBalance (when the original charge was a credit-bundle
+        // purchase, detected via PaymentIntent metadata).
+        //
+        // GAP-124 Surface 6 BLOCKING-C: full refunds of subscription invoices
+        // cancel the underlying Stripe subscription so Stripe stops billing.
+        //
+        // usage_meters are NOT rolled back on refund. They are an append-only
+        // ledger of recorded events; the refund itself is the financial
+        // reversal. Reporting that needs a "refund-aware" usage view must
+        // filter out usage from refunded charges separately.
         const charge = event.data.object as Stripe.Charge;
         const customerId = resolveCustomerId(charge.customer);
         if (!customerId) break;
 
         const isFullRefund = charge.amount_refunded >= charge.amount;
+
+        // ── BLOCKING-B: Credit-bundle refund — debit agentCreditBalance ───
+        // The agentCreditBalance schema is keyed by userId (one row per user)
+        // with no charge linkage. To detect a credit-bundle refund we fetch
+        // the original PaymentIntent and inspect its metadata, which is
+        // populated at credit-bundle checkout (see checkout.session.completed
+        // → mode === 'payment' → metadata.credits_bundle).
+        //
+        // Heuristic: if the PaymentIntent carries credits_bundle + credits_tasks
+        // metadata, this charge is a credit-bundle purchase. Debit the
+        // refunded user's balance (and totalPurchased) by `credits_tasks`,
+        // clamped at 0 — the customer may have already spent the credits.
+        //
+        // Ambiguity policy: if revealui_user_id is missing AND the user
+        // cannot be uniquely resolved from stripeCustomerId (multiple matches
+        // or none), we log a warning and skip — defer to admin manual action
+        // rather than guess.
+        const paymentIntentId =
+          typeof charge.payment_intent === 'string'
+            ? charge.payment_intent
+            : (charge.payment_intent?.id ?? null);
+        if (paymentIntentId) {
+          let pi: Stripe.PaymentIntent | null = null;
+          try {
+            pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+          } catch (err) {
+            logger.warn('Failed to retrieve PaymentIntent for refund — skipping credit-debit', {
+              customerId,
+              chargeId: charge.id,
+              paymentIntentId,
+              detail: err instanceof Error ? err.message : 'unknown',
+            });
+          }
+          if (pi?.metadata?.credits_bundle) {
+            const bundleTasks = Number.parseInt(pi.metadata.credits_tasks ?? '0', 10);
+            // Prorate credit debit by the refund ratio so partial $ refunds
+            // debit a proportional number of credits. Full refunds debit the
+            // full bundle.
+            const refundRatio =
+              charge.amount > 0 ? Math.min(charge.amount_refunded / charge.amount, 1) : 1;
+            const refundedTasks = Math.round(bundleTasks * refundRatio);
+            let creditUserId = pi.metadata.revealui_user_id ?? null;
+
+            if (!creditUserId) {
+              const matches = await db
+                .select({ id: users.id })
+                .from(users)
+                .where(eq(users.stripeCustomerId, customerId))
+                .limit(2);
+              if (matches.length === 1) {
+                creditUserId = matches[0].id;
+              } else {
+                logger.warn(
+                  'Credit-bundle refund: ambiguous user lookup — skipping debit (defer to admin)',
+                  {
+                    customerId,
+                    chargeId: charge.id,
+                    paymentIntentId,
+                    matchCount: matches.length,
+                  },
+                );
+              }
+            }
+
+            if (creditUserId && refundedTasks > 0) {
+              await db
+                .update(agentCreditBalance)
+                .set({
+                  balance: sql`GREATEST(${agentCreditBalance.balance} - ${refundedTasks}, 0)`,
+                  totalPurchased: sql`GREATEST(${agentCreditBalance.totalPurchased} - ${refundedTasks}, 0)`,
+                  updatedAt: new Date(),
+                })
+                .where(eq(agentCreditBalance.userId, creditUserId));
+
+              logger.warn('Credit-bundle refund: balance debited', {
+                customerId,
+                chargeId: charge.id,
+                userId: creditUserId,
+                refundedTasks,
+                bundle: pi.metadata.credits_bundle,
+              });
+              auditLicenseEvent(db, 'credits.refunded', 'warn', {
+                customerId,
+                chargeId: charge.id,
+                userId: creditUserId,
+                refundedTasks,
+                bundle: pi.metadata.credits_bundle,
+              });
+            }
+          }
+        }
 
         if (isFullRefund) {
           // Only revoke NON-PERPETUAL licenses. Perpetual licenses represent
@@ -2926,6 +3030,103 @@ app.openapi(stripeWebhookRoute, async (c) => {
             amountRefunded: charge.amount_refunded,
             amount: charge.amount,
           });
+
+          // ── BLOCKING-C: Cancel the underlying Stripe subscription ────────
+          // Without this, Stripe continues invoicing the customer at the next
+          // cycle while our entitlement is 'revoked' — producing immediate
+          // "I got a refund and you charged me again" confusion + likely
+          // chargebacks.
+          //
+          // Detect via Charge → Invoice → Subscription chain. Idempotent:
+          // if the subscription is already canceled, Stripe returns
+          // resource_missing / "No such subscription" or "subscription is
+          // already canceled"; we log info and continue.
+          // charge.invoice exists at runtime (Stripe sends it for invoice-
+          // backed charges) but is not in the SDK type. Same SDK-typing gap
+          // as elsewhere in this file (see line ~2235 comment). Cast through
+          // unknown to read it.
+          const chargeInvoice = (charge as unknown as { invoice?: string | { id: string } | null })
+            .invoice;
+          const invoiceId =
+            typeof chargeInvoice === 'string' ? chargeInvoice : (chargeInvoice?.id ?? null);
+          if (invoiceId) {
+            try {
+              const invoice = await stripe.invoices.retrieve(invoiceId);
+              // Stripe SDK v20 moved subscription from invoice.subscription to
+              // invoice.parent.subscription_details.subscription (matches the
+              // fix at line ~2451 in this file).
+              const invoiceSubscriptionField = invoice.parent?.subscription_details?.subscription;
+              const subscriptionId =
+                typeof invoiceSubscriptionField === 'string'
+                  ? invoiceSubscriptionField
+                  : (invoiceSubscriptionField?.id ?? null);
+              if (subscriptionId) {
+                try {
+                  await stripe.subscriptions.cancel(subscriptionId, {
+                    invoice_now: false,
+                    prorate: false,
+                  });
+                  logger.warn('Stripe subscription canceled after full refund', {
+                    customerId,
+                    chargeId: charge.id,
+                    invoiceId,
+                    subscriptionId,
+                  });
+                  auditLicenseEvent(db, 'subscription.canceled.refund', 'warn', {
+                    customerId,
+                    chargeId: charge.id,
+                    invoiceId,
+                    subscriptionId,
+                  });
+                } catch (cancelErr) {
+                  // Already-canceled is the common idempotent case. Stripe
+                  // surfaces it as a StripeInvalidRequestError with
+                  // code='resource_missing' (deleted) or a message containing
+                  // 'already canceled' / 'already been canceled'. Treat all
+                  // of these as a no-op success.
+                  const msg = cancelErr instanceof Error ? cancelErr.message : 'unknown';
+                  const code = (cancelErr as { code?: string }).code;
+                  const isAlreadyCanceled =
+                    code === 'resource_missing' ||
+                    /already\s+(been\s+)?cance(l|ll)ed/i.test(msg) ||
+                    /no such subscription/i.test(msg);
+                  if (isAlreadyCanceled) {
+                    logger.info(
+                      'Stripe subscription already canceled — refund cancel is no-op (idempotent)',
+                      {
+                        customerId,
+                        chargeId: charge.id,
+                        subscriptionId,
+                        detail: msg,
+                      },
+                    );
+                  } else {
+                    // Unexpected error — log loudly but don't crash the
+                    // webhook (email + audit-log already wrote; subscription
+                    // cancel can be retried by admin).
+                    logger.error(
+                      'Failed to cancel Stripe subscription after full refund',
+                      undefined,
+                      {
+                        customerId,
+                        chargeId: charge.id,
+                        subscriptionId,
+                        detail: msg,
+                        code,
+                      },
+                    );
+                  }
+                }
+              }
+            } catch (invoiceErr) {
+              logger.warn('Failed to retrieve invoice for refund — skipping subscription cancel', {
+                customerId,
+                chargeId: charge.id,
+                invoiceId,
+                detail: invoiceErr instanceof Error ? invoiceErr.message : 'unknown',
+              });
+            }
+          }
         } else {
           logger.info('Partial refund issued  -  license retained', {
             customerId,
