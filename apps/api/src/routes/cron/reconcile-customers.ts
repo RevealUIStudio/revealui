@@ -44,9 +44,10 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountSubscriptions, unreconciledWebhooks, users } from '@revealui/db/schema';
+import { protectedStripe } from '@revealui/services';
 import { eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 
 const app = new Hono();
 
@@ -92,7 +93,12 @@ app.post('/reconcile-customers', async (c) => {
   const lookbackUnix = Math.floor((Date.now() - lookbackDays * 24 * 60 * 60 * 1000) / 1000);
 
   const db = getClient();
-  const stripe = new Stripe(stripeSecretKey, { apiVersion: '2026-03-25.dahlia' });
+  // GAP-131: every Stripe consumer must go through `protectedStripe` (DB-backed
+  // circuit breaker + retry + single API-version pin). The cron originally landed
+  // before #581's consolidation guard merged; this migration fixes the validator
+  // miss without changing behavior — `protectedStripe.customers.list` routes
+  // through the same SDK call wrapped by `callWithResilience`.
+  const stripe = protectedStripe;
 
   // ── pull Stripe customers in window ───────────────────────────────────
   // Bounded: a single page of up to `batchSize`. We DO check `has_more`
