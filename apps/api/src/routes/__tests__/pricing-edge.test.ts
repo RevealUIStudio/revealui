@@ -17,13 +17,23 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 // Mocks  -  must come before imports
 // ---------------------------------------------------------------------------
 
-const mockProductsList = vi.fn();
-const mockLoggerWarn = vi.fn();
-const mockLoggerError = vi.fn();
+// Hoisted because vi.mock factories are hoisted above this line.
+const { mockProductsList, mockLoggerWarn, mockLoggerError } = vi.hoisted(() => ({
+  mockProductsList: vi.fn(),
+  mockLoggerWarn: vi.fn(),
+  mockLoggerError: vi.fn(),
+}));
 
 vi.mock('stripe', () => ({
   default: class MockStripe {
     products = { list: mockProductsList };
+  },
+}));
+
+// GAP-131: pricing.ts now uses protectedStripe from @revealui/services
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    products: { list: mockProductsList },
   },
 }));
 
@@ -54,6 +64,12 @@ beforeAll(async () => {
   vi.doMock('stripe', () => ({
     default: class MockStripe {
       products = { list: mockProductsList };
+    },
+  }));
+
+  vi.doMock('@revealui/services', () => ({
+    protectedStripe: {
+      products: { list: mockProductsList },
     },
   }));
 

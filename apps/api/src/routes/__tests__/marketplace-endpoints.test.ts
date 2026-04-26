@@ -80,6 +80,15 @@ vi.mock('stripe', () => ({
   default: mockStripeConstructor,
 }));
 
+// GAP-131: marketplace now uses protectedStripe from @revealui/services
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    accounts: { create: mockStripeAccountsCreate },
+    accountLinks: { create: mockStripeAccountLinksCreate },
+    transfers: { create: mockStripeTransfersCreate },
+  },
+}));
+
 // ─── Drizzle mock with per-query result queue ───────────────────────────────
 
 /** Queue of results  -  each db.select() call shifts the next result from here. */

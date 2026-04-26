@@ -310,6 +310,11 @@ async function gate(): Promise<void> {
         args: ['validate:empty-catch'],
       },
       {
+        name: 'Stripe-client consolidation (hard fail)',
+        command: 'pnpm',
+        args: ['validate:stripe-client'],
+      },
+      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],

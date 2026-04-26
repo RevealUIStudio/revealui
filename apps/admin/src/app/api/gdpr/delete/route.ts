@@ -6,7 +6,6 @@ import { users } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
 import { withRateLimit } from '@/lib/middleware/rate-limit';
 import { writeGDPRAuditEntry } from '@/lib/utilities/gdpr-audit';
 import { getRevealUIInstance } from '@/lib/utilities/revealui-singleton';
@@ -111,24 +110,54 @@ async function gdprDeleteHandler(request: NextRequest) {
     }
 
     // Clean up Stripe customer record (GDPR: remove PII from third-party systems)
+    //
+    // GAP-131: Stripe access goes through the shared `protectedStripe` wrapper
+    // from `@revealui/services` (DB-backed circuit breaker, retry, single API
+    // version pin). The admin app pulls services via dynamic import (Pro peer
+    // dep) so the runtime degrades gracefully if services isn't installed.
+    //
+    // Failure handling: this remains NON-BLOCKING for the user deletion.
+    // GDPR mandates we delete the user record even if a third-party (Stripe)
+    // cleanup fails. The error is logged at ERROR with enough context for an
+    // operator to manually retry the Stripe-side `customers.del` (or a
+    // sweeper cron to pick it up). When the circuit breaker is OPEN the
+    // wrapper throws a recognisable "Stripe circuit breaker is OPEN" error;
+    // the same log path captures it so the retry surface is uniform.
+    let stripeCustomerId: string | null | undefined;
     try {
       const db = getClient();
       const [userRow] = await db
         .select({ stripeCustomerId: users.stripeCustomerId })
         .from(users)
         .where(eq(users.id, userIdToDelete));
+      stripeCustomerId = userRow?.stripeCustomerId;
 
-      if (userRow?.stripeCustomerId && process.env.STRIPE_SECRET_KEY) {
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-          apiVersion: '2026-03-25.dahlia',
-        });
-        await stripe.customers.del(userRow.stripeCustomerId);
+      if (stripeCustomerId && process.env.STRIPE_SECRET_KEY) {
+        const services = await import('@revealui/services').catch(() => null);
+        if (!services) {
+          logger.error(
+            'Stripe customer cleanup skipped during GDPR delete — @revealui/services not installed',
+            {
+              userId: userIdToDelete,
+              stripeCustomerId,
+              action: 'manual-cleanup-required',
+            },
+          );
+        } else {
+          await services.protectedStripe.customers.del(stripeCustomerId);
+        }
       }
     } catch (stripeErr) {
-      // Non-blocking: Stripe cleanup failure should not prevent user deletion
+      // Non-blocking: Stripe cleanup failure should not prevent user deletion.
+      // The log includes stripeCustomerId so a sweeper cron / operator can
+      // replay the deletion when the breaker closes / Stripe recovers.
+      const message = stripeErr instanceof Error ? stripeErr.message : String(stripeErr);
       logger.error('Stripe customer cleanup failed during GDPR delete', {
         userId: userIdToDelete,
-        error: stripeErr instanceof Error ? stripeErr.message : String(stripeErr),
+        stripeCustomerId,
+        breakerOpen: message.includes('circuit breaker is OPEN'),
+        error: message,
+        action: 'manual-cleanup-required',
       });
     }
 

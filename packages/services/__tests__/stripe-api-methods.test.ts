@@ -79,6 +79,26 @@ function buildMockStripe() {
         create: vi.fn(),
       },
     },
+    charges: {
+      retrieve: vi.fn(),
+    },
+    transfers: {
+      create: vi.fn(),
+    },
+    accounts: {
+      create: vi.fn(),
+    },
+    accountLinks: {
+      create: vi.fn(),
+    },
+    events: {
+      retrieve: vi.fn(),
+    },
+    billing: {
+      meterEvents: {
+        create: vi.fn(),
+      },
+    },
     webhooks: { constructEvent: vi.fn() },
     balance: { retrieve: vi.fn() },
   };
@@ -298,5 +318,143 @@ describe('createProtectedStripe  -  error propagation', () => {
   it('propagates non-retryable errors from prices.list', async () => {
     mockStripe.prices.list.mockRejectedValue(new Error('Invalid API key [401]'));
     await expect(client.prices.list()).rejects.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// GAP-131 — extended surface: charges, transfers, accounts, accountLinks,
+// events, billing.meterEvents (consumed by webhooks, marketplace, crons,
+// drain-unreconciled, billing.ts overage reporter)
+// ---------------------------------------------------------------------------
+
+describe('createProtectedStripe  -  charges', () => {
+  let mockStripe: ReturnType<typeof buildMockStripe>;
+  let client: ReturnType<typeof createProtectedStripe>;
+
+  beforeEach(() => {
+    mockStripe = buildMockStripe();
+    // biome-ignore lint/suspicious/noExplicitAny: test DI
+    client = createProtectedStripe(mockStripe as any);
+  });
+
+  it('charges.retrieve delegates to stripe instance', async () => {
+    const charge = { id: 'ch_1', object: 'charge', amount: 999 };
+    mockStripe.charges.retrieve.mockResolvedValue(charge);
+    const result = await client.charges.retrieve('ch_1');
+    expect(result).toEqual(charge);
+    expect(mockStripe.charges.retrieve).toHaveBeenCalledWith('ch_1');
+  });
+});
+
+describe('createProtectedStripe  -  transfers', () => {
+  let mockStripe: ReturnType<typeof buildMockStripe>;
+  let client: ReturnType<typeof createProtectedStripe>;
+
+  beforeEach(() => {
+    mockStripe = buildMockStripe();
+    // biome-ignore lint/suspicious/noExplicitAny: test DI
+    client = createProtectedStripe(mockStripe as any);
+  });
+
+  it('transfers.create delegates to stripe instance', async () => {
+    const transfer = { id: 'tr_1', object: 'transfer', amount: 5000 };
+    mockStripe.transfers.create.mockResolvedValue(transfer);
+    const result = await client.transfers.create({
+      amount: 5000,
+      currency: 'usd',
+      destination: 'acct_1',
+    });
+    expect(result).toEqual(transfer);
+    expect(mockStripe.transfers.create).toHaveBeenCalledWith(
+      { amount: 5000, currency: 'usd', destination: 'acct_1' },
+      undefined,
+    );
+  });
+
+  it('transfers.create propagates non-retryable errors', async () => {
+    mockStripe.transfers.create.mockRejectedValue(
+      new Error('Insufficient available balance [402]'),
+    );
+    await expect(
+      client.transfers.create({ amount: 5000, currency: 'usd', destination: 'acct_1' }),
+    ).rejects.toThrow();
+  });
+});
+
+describe('createProtectedStripe  -  accounts and accountLinks', () => {
+  let mockStripe: ReturnType<typeof buildMockStripe>;
+  let client: ReturnType<typeof createProtectedStripe>;
+
+  beforeEach(() => {
+    mockStripe = buildMockStripe();
+    // biome-ignore lint/suspicious/noExplicitAny: test DI
+    client = createProtectedStripe(mockStripe as any);
+  });
+
+  it('accounts.create delegates to stripe instance', async () => {
+    const account = { id: 'acct_1', object: 'account', type: 'express' };
+    mockStripe.accounts.create.mockResolvedValue(account);
+    const result = await client.accounts.create({ type: 'express' });
+    expect(result).toEqual(account);
+    expect(mockStripe.accounts.create).toHaveBeenCalledWith({ type: 'express' }, undefined);
+  });
+
+  it('accountLinks.create delegates to stripe instance', async () => {
+    const link = { object: 'account_link', url: 'https://connect.stripe.com/setup/...' };
+    mockStripe.accountLinks.create.mockResolvedValue(link);
+    const result = await client.accountLinks.create({
+      account: 'acct_1',
+      refresh_url: 'https://example.com/refresh',
+      return_url: 'https://example.com/return',
+      type: 'account_onboarding',
+    });
+    expect(result).toEqual(link);
+  });
+});
+
+describe('createProtectedStripe  -  events', () => {
+  let mockStripe: ReturnType<typeof buildMockStripe>;
+  let client: ReturnType<typeof createProtectedStripe>;
+
+  beforeEach(() => {
+    mockStripe = buildMockStripe();
+    // biome-ignore lint/suspicious/noExplicitAny: test DI
+    client = createProtectedStripe(mockStripe as any);
+  });
+
+  it('events.retrieve delegates to stripe instance', async () => {
+    const event = { id: 'evt_1', object: 'event', type: 'customer.subscription.updated' };
+    mockStripe.events.retrieve.mockResolvedValue(event);
+    const result = await client.events.retrieve('evt_1');
+    expect(result).toEqual(event);
+    expect(mockStripe.events.retrieve).toHaveBeenCalledWith('evt_1');
+  });
+});
+
+describe('createProtectedStripe  -  billing.meterEvents', () => {
+  let mockStripe: ReturnType<typeof buildMockStripe>;
+  let client: ReturnType<typeof createProtectedStripe>;
+
+  beforeEach(() => {
+    mockStripe = buildMockStripe();
+    // biome-ignore lint/suspicious/noExplicitAny: test DI
+    client = createProtectedStripe(mockStripe as any);
+  });
+
+  it('billing.meterEvents.create delegates to stripe instance with options', async () => {
+    const event = { object: 'billing.meter_event', event_name: 'agent_task_overage' };
+    mockStripe.billing.meterEvents.create.mockResolvedValue(event);
+    const result = await client.billing.meterEvents.create(
+      {
+        event_name: 'agent_task_overage',
+        payload: { stripe_customer_id: 'cus_1', value: '42' },
+      },
+      { idempotencyKey: 'overage-user-1' },
+    );
+    expect(result).toEqual(event);
+    expect(mockStripe.billing.meterEvents.create).toHaveBeenCalledWith(
+      expect.objectContaining({ event_name: 'agent_task_overage' }),
+      { idempotencyKey: 'overage-user-1' },
+    );
   });
 });
