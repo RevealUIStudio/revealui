@@ -81,9 +81,13 @@ vi.mock('@revealui/core/features', () => ({
   getFeaturesForTier: vi.fn(() => ({ ai: true, payments: true })),
 }));
 
-vi.mock('@revealui/core/observability/logger', () => ({
-  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
-}));
+vi.mock('@revealui/core/observability/logger', () => {
+  const logger = { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() };
+  return {
+    logger,
+    createLogger: vi.fn(() => logger),
+  };
+});
 
 vi.mock('../../lib/webhook-emails.js', () => ({
   provisionGitHubAccess: vi.fn().mockResolvedValue(undefined),
