@@ -33,6 +33,13 @@ vi.mock('stripe', () => {
   return { default: MockStripe };
 });
 
+// GAP-131: reconcile-subscriptions now uses protectedStripe from @revealui/services
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    subscriptions: { retrieve: hoisted.retrieveMock },
+  },
+}));
+
 import reconcileApp from './reconcile-subscriptions.js';
 
 interface LocalRow {

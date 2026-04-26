@@ -28,8 +28,9 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { protectedStripe } from '@revealui/services';
 import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import {
@@ -60,15 +61,18 @@ type DbExecutor = Pick<Database, 'select' | 'insert' | 'update' | 'delete'>;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-let cachedStripe: Stripe | undefined;
-function getStripeClient(): Stripe {
-  if (cachedStripe) return cachedStripe;
-  const key = process.env.STRIPE_SECRET_KEY?.trim();
-  if (!key) {
+/**
+ * GAP-131: All Stripe access goes through the shared `protectedStripe`
+ * wrapper from `@revealui/services` (DB-backed circuit breaker, retry,
+ * single API-version pin). The wrapper's `.webhooks` getter exposes the
+ * raw Stripe webhooks object for signature verification — that operation
+ * is offline (HMAC verify) and does not need breaker protection.
+ */
+function getStripeClient(): typeof protectedStripe {
+  if (!process.env.STRIPE_SECRET_KEY?.trim()) {
     throw new Error('STRIPE_SECRET_KEY not configured');
   }
-  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
-  return cachedStripe;
+  return protectedStripe;
 }
 
 function getWebhookSecret(): string {
@@ -721,7 +725,7 @@ const stripeWebhookRoute = createRoute({
 
 app.openapi(stripeWebhookRoute, async (c) => {
   let webhookSecret: string;
-  let stripe: Stripe;
+  let stripe: typeof protectedStripe;
   try {
     webhookSecret = getWebhookSecret();
     stripe = getStripeClient();

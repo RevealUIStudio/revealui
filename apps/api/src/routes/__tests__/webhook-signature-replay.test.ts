@@ -19,10 +19,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks  -  declared before imports so vi.mock hoisting takes effect ─────────
 
-const mockConstructEvent = vi.fn();
-const mockSubscriptionsUpdate = vi.fn();
-const mockSubscriptionsRetrieve = vi.fn();
-const mockSubscriptionsList = vi.fn();
+const {
+  mockConstructEvent,
+  mockSubscriptionsUpdate,
+  mockSubscriptionsRetrieve,
+  mockSubscriptionsList,
+} = vi.hoisted(() => ({
+  mockConstructEvent: vi.fn(),
+  mockSubscriptionsUpdate: vi.fn(),
+  mockSubscriptionsRetrieve: vi.fn(),
+  mockSubscriptionsList: vi.fn(),
+}));
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
@@ -35,6 +42,20 @@ vi.mock('stripe', () => ({
       };
     } as unknown as (...args: unknown[]) => unknown,
   ),
+}));
+
+// GAP-131: webhooks.ts now uses protectedStripe from @revealui/services
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    webhooks: { constructEventAsync: mockConstructEvent },
+    subscriptions: {
+      update: mockSubscriptionsUpdate,
+      retrieve: mockSubscriptionsRetrieve,
+      list: mockSubscriptionsList,
+    },
+    customers: { update: vi.fn() },
+    charges: { retrieve: vi.fn() },
+  },
 }));
 
 vi.mock('@revealui/core/features', () => ({
@@ -825,23 +846,18 @@ describe('POST /stripe webhook  -  signature timing & replay protection', () => 
       expect(res.status).toBe(503);
     });
 
-    it('uses cached Stripe client even when STRIPE_SECRET_KEY is removed (module-level cache)', async () => {
-      // The Stripe client is cached at module level (let cachedStripe) after first use.
-      // Deleting the env var after the client is cached does not cause a 500  -
-      // the cached instance continues to work. This test verifies the caching behavior.
+    it('returns 503 when STRIPE_SECRET_KEY is removed (env preflight on every call)', async () => {
+      // GAP-131: webhooks.ts now uses the shared protectedStripe wrapper from
+      // @revealui/services. The route's `getStripeClient()` re-checks the env
+      // var on every request (preflight) and returns 503 when it is missing.
+      // The previous module-level `cachedStripe` cache that survived env-var
+      // deletion was removed when the per-file factory was deleted.
       delete process.env.STRIPE_SECRET_KEY;
-
-      mockConstructEvent.mockReturnValueOnce({
-        id: 'evt_cached_client',
-        type: 'unknown.event',
-        data: { object: {} },
-      });
 
       const app = createApp();
       const res = await app.request(postStripe(VALID_BODY, 't=123,v1=nokey'));
 
-      // Returns 200 because the cached Stripe client is reused
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(503);
     });
   });
 

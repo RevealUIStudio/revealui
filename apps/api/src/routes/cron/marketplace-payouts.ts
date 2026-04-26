@@ -19,23 +19,14 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { marketplaceServers, marketplaceTransactions } from '@revealui/db/schema';
+import { protectedStripe } from '@revealui/services';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
-import Stripe from 'stripe';
 
 const app = new Hono();
 
 /** Stripe minimum transfer amount in cents */
 const MIN_TRANSFER_CENTS = 50;
-
-let cachedStripe: Stripe | undefined;
-function getStripeClient(): Stripe {
-  if (cachedStripe) return cachedStripe;
-  const key = process.env.STRIPE_SECRET_KEY?.trim();
-  if (!key) throw new Error('STRIPE_SECRET_KEY not configured');
-  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
-  return cachedStripe;
-}
 
 interface PayoutResult {
   stripeAccountId: string;
@@ -99,7 +90,8 @@ app.post('/marketplace-payouts', async (c) => {
       );
     }
 
-    const stripe = getStripeClient();
+    // GAP-131: shared protectedStripe wrapper (DB-backed circuit breaker + retry)
+    const stripe = protectedStripe;
     const results: PayoutResult[] = [];
 
     for (const payout of pendingPayouts) {
