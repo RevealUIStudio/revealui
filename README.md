@@ -304,9 +304,12 @@ RevealUI is MIT-licensed and free to use. Sponsorship funds development, documen
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+This repository is dual-licensed:
 
-Pro packages are commercially licensed. See [LICENSE.commercial](LICENSE.commercial).
+- **OSS packages** (most of the repo, including every `@revealui/*` package without its own in-package `LICENSE` file): MIT — see [LICENSE](LICENSE).
+- **Pro packages** (`@revealui/ai`, `@revealui/harnesses`): Functional Source License v1.1 with MIT Future License (FSL-1.1-MIT) — source-available for non-competing use, automatically converts to MIT on each package's Change Date (~2 years from first FSL publish). See [LICENSE.commercial](LICENSE.commercial) for the dual-license explainer and each Pro package's `LICENSE` file for canonical terms.
+
+For commercial licensing alternatives or licensing questions: founder@revealui.com.
 
 ---
 
