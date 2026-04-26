@@ -28,7 +28,7 @@ After adopting Fair Source licensing (ADR-003), all source code moved to the pub
 
 ### No submodules
 
-The repos are fully independent. No submodules, no git-level coupling. Coordination happens through convention (both repos share the same `.claude/rules/` via RevCon symlinks) and the workboard protocol.
+The repos are fully independent. No submodules, no git-level coupling. Coordination happens through convention (both repos share the same agent / editor convention rules) and a shared workboard protocol.
 
 ## Alternatives Considered
 
@@ -41,4 +41,4 @@ The repos are fully independent. No submodules, no git-level coupling. Coordinat
 - Contributors only need the public repo. The private repo is founder-only.
 - MASTER_PLAN updates require a separate commit to the private repo (agents handle this automatically via the coordination protocol)
 - No sync scripts, no code duplication between repos
-- The private repo is lightweight (~114 files, mostly markdown)
+- The private repo is lightweight — markdown plans, gap trackers, and business documents

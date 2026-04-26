@@ -16,7 +16,7 @@ When you build a SaaS product today, the acquisition funnel looks something like
 
 Now consider what happens when a developer asks Claude, "What platform has billing built in and supports MCP?" The agent does not open a browser. It does not read your hero banner. It does not care about your gradient backgrounds or testimonial carousel. It searches structured data sources -- package registries, OpenAPI specs, Agent Cards, tool definitions -- and evaluates them programmatically.
 
-This is not a hypothetical future. IEEE Spectrum has reported that autonomous AI agents are becoming primary users of the web. Gartner projects that 40% of enterprise applications will embed AI agents by the end of 2026. The agent economy is projected to reach $10.91 billion in 2026, growing at 43% year-over-year.
+This is not a hypothetical future. Industry coverage and analyst forecasts in 2025–2026 have consistently put autonomous AI agents on the path to becoming primary consumers of web APIs and structured data, with adoption projections in the tens of percent of enterprise applications and the agent-economy total addressable market growing at high double-digit rates year-over-year. (Specific figures cycle quickly; treat the directional signal as the durable claim, not the exact percentages.)
 
 The traditional marketing funnel is not going away. But it is being supplemented by a parallel funnel:
 
@@ -108,7 +108,7 @@ Four protocols converge to create the agent-first web. Each solves a different p
 | Protocol | Created by | Governed by | Purpose | RevealUI implementation |
 |---|---|---|---|---|
 | **A2A** (Agent-to-Agent) | Google | Linux Foundation (Agentic AI Foundation) | Agents discover and delegate work to other agents | Full A2A 1.0: Agent Cards, JSON-RPC task lifecycle (`tasks/send`, `tasks/get`, `tasks/cancel`), SSE streaming |
-| **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 13 MCP servers: Stripe, Supabase, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Vultr Test, Email Provider |
+| **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 13 first-party MCP servers: Stripe, Supabase, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, plus the RevealUI-internal Content / Email / Memory / Stripe servers, Vultr Test, and the adapter base class |
 | **x402** (HTTP 402 Payment Required) | Coinbase | Open standard | Internet-native micropayments for machine-to-machine commerce | Per-call USDC payments on Base, Coinbase facilitator verification, marketplace payment proxy |
 | **OpenAPI** | OpenAPI Initiative | Linux Foundation | Machine-readable API descriptions | Auto-generated from Hono route definitions with Zod schemas |
 
@@ -153,7 +153,7 @@ Agents use the host's configured inference path. The `createLLMClientFromEnv()` 
 
 The Model Context Protocol (MCP) defines how agents invoke tools. Where A2A is about agent-to-agent communication, MCP is about agent-to-tool communication. An MCP server exposes a set of tools -- functions that an agent can call with structured inputs and get structured outputs.
 
-RevealUI ships with seven MCP servers that cover the full infrastructure stack:
+RevealUI ships with 13 first-party MCP servers (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). The seven that cover the core infrastructure stack:
 
 - **Stripe** -- Create checkout sessions, manage subscriptions, query payment history
 - **Supabase** -- Vector storage, real-time auth, embedding operations

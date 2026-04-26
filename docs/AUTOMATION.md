@@ -71,7 +71,7 @@ From 2026 onward, automation features should align with:
 packages/
 ├── core/           # Runtime engine (includes types/ and generated/)
 ├── contracts/      # Zod schemas & TypeScript types
-├── db/             # Database (Drizzle ORM, 81 tables)
+├── db/             # Database (Drizzle ORM, 85 tables)
 ├── auth/           # Authentication system
 ├── presentation/   # 57 UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
@@ -134,7 +134,7 @@ packages/
 
 1. [Deployment Runbook](./guides/deployment/DEPLOYMENT_RUNBOOK.md)
 2. [CI/CD Guide](./development/CI_CD_GUIDE.md)
-3. [Environment Variables Guide](./development/ENVIRONMENT_VARIABLES_GUIDE.md)
+3. [Environment Variables Guide](./development/ENVIRONMENT-VARIABLES-GUIDE.md)
 
 ### Important Conventions
 
@@ -2591,7 +2591,7 @@ All integrations can leverage the configured MCP servers:
 
 - [Deployment Runbook](./CI_CD_GUIDE.md)
 - [CI/CD Guide](./CI_CD_GUIDE.md)
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
+- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md)
 
 ### Cohesion & Quality
 

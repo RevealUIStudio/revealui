@@ -7,8 +7,8 @@ audience: developer
 
 # @revealui/core  -  API Stability Reference
 
-**Version:** 0.2.x
-**Last Updated:** 2026-03-07
+**Version:** 0.6.x
+**Last Updated:** 2026-04-26
 **Status:** Pre-1.0 (breaking changes possible with minor bumps; see [Version Policy](#version-policy))
 
 ---

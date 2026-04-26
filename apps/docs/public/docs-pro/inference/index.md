@@ -1,20 +1,20 @@
 # Open-Model Inference
 
-RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, no vendor lock-in, no API bills.
+RevealUI AI defaults to open-model inference (Snaps, Ollama). Cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible endpoints) are pluggable but opt-in via environment variables.
 
-## Recommended: Ubuntu Inference Snaps
+## Planned: Ubuntu Inference Snaps
 
-**Inference Snaps** from Canonical are the recommended way to run local AI with RevealUI. One command installs a pre-optimized model with hardware-aware engine selection, signed packages, and an OpenAI-compatible API.
+**Inference Snaps** from Canonical are the planned recommended path for local AI with RevealUI. Today, you install + run the snap yourself, then point RevealUI at it via `INFERENCE_SNAPS_BASE_URL`. Studio lifecycle management (start / stop / health / model discovery) is on the roadmap; until that ships, treat Snap operations as standalone (Ollama is the practical default for most users today).
 
 ```bash
 # Install the free tier default model
-sudo snap install nemotron-3-nano
+sudo snap install nemotron-nano
 
 # Check status and endpoint
-nemotron-3-nano status
+nemotron-nano status
 
-# Optional: change the HTTP port (default varies by snap)
-nemotron-3-nano set http.port=9090
+# Optional: change the HTTP port (default 9090)
+nemotron-nano set http.port=9090
 ```
 
 The snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`  -  the RevealUI AI provider uses this directly with zero additional configuration.
@@ -23,7 +23,7 @@ The snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`  -  the
 
 | Snap | Type | RAM | Use Case |
 |------|------|-----|----------|
-| `nemotron-3-nano` | General (reasoning + non-reasoning) | ~4 GB | **Free tier default**  -  fast, lightweight |
+| `nemotron-nano` | General (reasoning + non-reasoning) | ~4 GB | **Free tier default**  -  fast, lightweight |
 | `gemma3` | General + vision | ~8 GB | Image understanding, multimodal tasks |
 | `deepseek-r1` | Reasoning | ~16 GB | Complex analysis, chain-of-thought |
 | `qwen-vl` | Vision-language | ~8 GB | Document parsing, visual Q&A |
@@ -50,8 +50,8 @@ When `INFERENCE_SNAPS_BASE_URL` is set, the LLM client auto-detects it as the pr
 
 | Path | Runtime | Cost | Use Case |
 |------|---------|------|----------|
-| **Ubuntu Inference Snaps** (recommended) | Canonical snap runtime | Free (your hardware) | Production  -  Gemma 4, Nemotron-Nano, DeepSeek-R1, Qwen-VL |
-| **Ollama** | Local GGUF models | Free (your hardware) | Flexible  -  any open source GGUF model (Gemma 4, Qwen, Mistral) |
+| **Ollama** (default) | Local GGUF models | Free (your hardware) | Flexible  -  any open source GGUF model (Gemma 4, Qwen, Mistral) |
+| **Ubuntu Inference Snaps** (planned) | Canonical snap runtime | Free (your hardware) | Local production  -  Gemma 3, Nemotron-Nano, DeepSeek-R1, Qwen-VL |
 | **HuggingFace** | HuggingFace Inference API | API usage costs | Open models hosted on HuggingFace infrastructure |
 | **Vultr** | Vultr GPU Cloud | API usage costs | Open models on Vultr serverless inference |
 
@@ -105,10 +105,10 @@ The LLM client factory auto-detects your inference path in this order:
 ## Server-side Usage
 
 ```typescript
-import { createLLMClient } from '@revealui/ai/llm'
+import { createLLMClientFromEnv } from '@revealui/ai/llm/client'
 
 // Auto-detects from environment
-const llm = createLLMClient()
+const llm = createLLMClientFromEnv()
 
 const response = await llm.chat([
   { role: 'user', content: 'Hello!' },
@@ -118,6 +118,6 @@ const response = await llm.chat([
 ## Security
 
 - Local providers (snaps, Ollama): no API keys leave your infrastructure
-- Cloud providers (HuggingFace, Vultr): data is sent to your chosen cloud endpoint, but only open models are used  -  no proprietary APIs
-- Full air-gap capability with Ollama (zero network required after model download)
+- Cloud providers (Groq, HuggingFace, Vultr, OpenAI-compatible): data is sent to your chosen endpoint when API keys are configured. Picking only open-weights models is your choice; the package supports both.
+- Air-gap capability with Ollama (zero network required after model download). The default RevealUI deployment also depends on cloud services (Postgres / Stripe / Blob storage) — the local AI path is optional, not a guarantee that the whole stack runs offline.
 - Inference snaps are signed and verified by Canonical

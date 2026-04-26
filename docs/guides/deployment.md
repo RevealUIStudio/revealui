@@ -183,15 +183,19 @@ docker compose down
 
 ### Health Checks
 
-The API exposes a health endpoint at `GET /api/health` that returns:
+The API exposes a health endpoint at `GET /health/ready` (Vercel-friendly path; legacy alias at `GET /api/health`) that returns:
 
 ```json
 {
   "status": "ok",
-  "version": "1.0.0",
-  "uptime": 3600
+  "version": "0.5.5",
+  "uptime": 3600,
+  "db": "healthy",
+  "memory": "47.52%"
 }
 ```
+
+Pre-1.0; the `version` field reports the runtime package version from `package.json`. Don't depend on it being stable until the project promotes to 1.0.
 
 Use this in your Docker health check or load balancer configuration.
 
@@ -299,7 +303,7 @@ server {
 | `VERCEL_CLIENT_ID` | Vercel OAuth client ID | Vercel sign-in |
 | `VERCEL_CLIENT_SECRET` | Vercel OAuth client secret | Vercel sign-in |
 
-See [Environment Variables Guide](../ENVIRONMENT_VARIABLES_GUIDE.md) for the complete reference.
+See [Environment Variables Guide](../ENVIRONMENT-VARIABLES-GUIDE.md) for the complete reference.
 
 ---
 
@@ -353,5 +357,5 @@ RevealUI uses a structured logger (`@revealui/utils`). In production, logs are w
 ## Related Documentation
 
 - [CI/CD Guide](../CI_CD_GUIDE.md) -- Pipeline configuration and rollback procedures
-- [Environment Variables](../ENVIRONMENT_VARIABLES_GUIDE.md) -- Full configuration reference
+- [Environment Variables](../ENVIRONMENT-VARIABLES-GUIDE.md) -- Full configuration reference
 - [Architecture](../ARCHITECTURE.md) -- System design and infrastructure

@@ -47,11 +47,11 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **Billing stack**  -  Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/forge)
 - **UI components**  -  57 native React 19 components (Tailwind v4, zero external UI deps)
 - **Real-time sync**  -  ElectricSQL integration for editor/client/agent sync _(experimental  -  basic shape subscriptions, no offline-first)_
-- **Database**  -  81 tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
+- **Database**  -  85 tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
 - **CLI**  -  `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents**  -  A2A protocol, CRDT memory, open-model inference, streaming, tool execution
-- **MCP servers**  -  5 production servers (Stripe, Neon, Supabase, Vercel, Playwright)
-- **Desktop app**  -  Tauri 2 + React 19 native AI experience (agent hub, local inference, vault, tunnel)
+- **MCP servers**  -  13 first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Supabase, Vercel, Playwright, Code Validator, Next.js DevTools, RevealUI Content / Email / Memory / Stripe, Vultr Test, plus the adapter base class)
+- **Desktop app (RevDev)**  -  Tauri 2 + React 19 native AI experience (agent hub, local inference, vault, tunnel) — ships in the separate [RevDev](https://github.com/RevealUIStudio/revdev) repo, not in the RevealUI monorepo
 - **Security**  -  CSP, CORS, HSTS, AES-256-GCM encryption, timing-safe TOTP, GDPR framework, 187 security tests
 - **CI/CD**  -  3-phase gate (lint + typecheck + test + build), CodeQL, Gitleaks, OIDC npm publishing
 - **Accessibility**  -  WCAG 2.1 AA compliance on marketing site and admin login/admin pages

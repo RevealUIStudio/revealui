@@ -33,7 +33,7 @@ This comprehensive guide covers deploying RevealUI to production using Vercel wi
 
 ## Required Environment Variables
 
-**Complete Reference**: See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for comprehensive configuration with quick reference tables.
+**Complete Reference**: See [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) for comprehensive configuration with quick reference tables.
 
 ### Minimum Required (8 variables)
 
@@ -57,7 +57,7 @@ STRIPE_WEBHOOK_SECRET=whsec_xxx
 
 ### Optional Variables
 
-For monitoring, Supabase client integration, and other optional features, see [Environment Variables Guide - Optional Variables](./ENVIRONMENT_VARIABLES_GUIDE.md#optional-variables).
+For monitoring, Supabase client integration, and other optional features, see [Environment Variables Guide - Optional Variables](./ENVIRONMENT-VARIABLES-GUIDE.md#optional-variables).
 
 ---
 
@@ -116,7 +116,7 @@ pnpm install
 
 ### 3. Add Environment Variables
 
-In Vercel Dashboard → Settings → Environment Variables, add all required variables from [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md#minimum-viable-configuration).
+In Vercel Dashboard → Settings → Environment Variables, add all required variables from [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md#minimum-viable-configuration).
 
 **Minimum required (8 variables)** - See guide for complete list and descriptions.
 
@@ -213,7 +213,7 @@ cp .env.template .env.development.local
 
 ### 2. Configure Local Variables
 
-See [Environment Variables Guide - Development Configuration](./ENVIRONMENT_VARIABLES_GUIDE.md#development-configuration) for complete local development setup.
+See [Environment Variables Guide - Development Configuration](./ENVIRONMENT-VARIABLES-GUIDE.md#development-configuration) for complete local development setup.
 
 **Quick start:** Use test/development keys for all services. Generate `REVEALUI_SECRET` with:
 ```bash
@@ -922,7 +922,7 @@ To reduce need for rollbacks:
 
 ### Environment Variables
 
-**Complete Configuration**: See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for all variables with detailed descriptions.
+**Complete Configuration**: See [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) for all variables with detailed descriptions.
 
 **Quick Reference**:
 - Required (8 variables): Core, Database, Storage, Stripe
@@ -2040,7 +2040,7 @@ export TEST_POSTGRES_DB="test_$(openssl rand -hex 4)"
 
 ### Docker Environment Variables Reference
 
-See [Environment Variables Guide - ElectricSQL Section](./ENVIRONMENT_VARIABLES_GUIDE.md#electricsql-optional) for complete ElectricSQL configuration.
+See [Environment Variables Guide - ElectricSQL Section](./ENVIRONMENT-VARIABLES-GUIDE.md#electricsql-optional) for complete ElectricSQL configuration.
 
 **Key Production Requirements**:
 - Set `ELECTRIC_SECRET` (32+ chars)
@@ -2212,7 +2212,7 @@ These archives are preserved for historical reference and troubleshooting.
 ## Related Documentation
 
 ### Essential Guides
-- **[Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)** - ⭐ Complete configuration guide with quick reference tables
+- **[Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md)** - ⭐ Complete configuration guide with quick reference tables
 - [Database Guide](./DATABASE.md) - Complete database setup and management
 - [Quick Start Guide](./QUICK_START.md) - 5-minute setup guide
 

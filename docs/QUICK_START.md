@@ -90,7 +90,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 **Stripe keys** (optional)  -  [dashboard.stripe.com](https://dashboard.stripe.com) → Developers → API Keys (use test mode keys)
 
-See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for the full reference.
+See [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) for the full reference.
 
 ---
 
@@ -102,7 +102,7 @@ Before starting the dev server, initialize the database schema:
 pnpm db:migrate
 ```
 
-This creates all 81 tables. If you see a connection error, double-check your `POSTGRES_URL`  -  it must include `?sslmode=require` for NeonDB.
+This creates all 85 tables. If you see a connection error, double-check your `POSTGRES_URL`  -  it must include `?sslmode=require` for NeonDB.
 
 ---
 
