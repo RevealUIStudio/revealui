@@ -22,6 +22,7 @@ import drainUnreconciledApp from './drain-unreconciled.js';
 import jobsSafetyNetApp from './jobs-safety-net.js';
 import marketplacePayoutsApp from './marketplace-payouts.js';
 import publishScheduledApp from './publish-scheduled.js';
+import reconcileCustomersApp from './reconcile-customers.js';
 import reconcileSubscriptionsApp from './reconcile-subscriptions.js';
 import sweepGracePeriodsApp from './sweep-grace-periods.js';
 import uptimeCheckApp from './uptime-check.js';
@@ -48,6 +49,16 @@ const JOBS = [
     app: reconcileSubscriptionsApp,
     path: '/reconcile-subscriptions',
   },
+  // reconcile-customers follows reconcile-subscriptions so the Stripe→local
+  // walk runs while reconcile-subscriptions' drift logs are still adjacent
+  // in the dispatcher output. Surface 10 Gap B / GAP-143 — alert-only orphan
+  // detection. Writes rows to `unreconciledWebhooks` keyed by
+  // `cron-orphan:<customerId>`; the next dispatcher tick's
+  // `drain-unreconciled` will see them with a `customer.orphaned` event_type
+  // (which it cannot replay — drain-unreconciled is signature-bound to real
+  // Stripe events, so these rows surface to ops via the dashboard / aged
+  // alert path).
+  { name: 'reconcile-customers', app: reconcileCustomersApp, path: '/reconcile-customers' },
   { name: 'billing-readiness', app: billingReadinessApp, path: '/billing-readiness' },
   { name: 'publish-scheduled', app: publishScheduledApp, path: '/publish-scheduled' },
   { name: 'sweep-grace-periods', app: sweepGracePeriodsApp, path: '/sweep-grace-periods' },
