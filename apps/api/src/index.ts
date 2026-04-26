@@ -46,7 +46,7 @@ import { logger as honoLogger } from 'hono/logger';
 import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
-import { validateStartup } from './lib/validate-startup.js';
+import { validateLicenseAtStartup, validateStartup } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
@@ -1196,15 +1196,21 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
   audit.setStorage(new PostgresAuditStorage());
   validateStartup();
-  initializeLicense()
+  // validateLicenseAtStartup is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY
+  // present); in self-hosted Forge mode it throws on missing/invalid license,
+  // which we surface as process.exit(1) so a stamped kit refuses to serve
+  // traffic without a valid studio-issued JWT.
+  validateLicenseAtStartup()
+    .then(() => initializeLicense())
     .then((tier) => {
       logger.info(`License tier: ${tier}`);
     })
     .catch((err: unknown) => {
       logger.error(
-        'License initialization failed',
+        'License validation failed; exiting',
         err instanceof Error ? err : new Error(String(err)),
       );
+      process.exit(1);
     });
   initPriceOracle();
   initAlerting();
@@ -1230,15 +1236,22 @@ if (process.env.NODE_ENV === 'production') {
   // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
   audit.setStorage(new PostgresAuditStorage());
   validateStartup();
-  initializeLicense()
+  // Forge customer deployments (Docker stack from forge/stamp.sh) reach
+  // here in NODE_ENV=production with a studio-issued JWT in
+  // REVEALUI_LICENSE_KEY but no signing key. validateLicenseAtStartup
+  // throws on invalid/expired/missing license; process.exit(1) makes the
+  // container restart-loop instead of silently degrading to free tier.
+  validateLicenseAtStartup()
+    .then(() => initializeLicense())
     .then((tier) => {
       logger.info(`License tier: ${tier}`);
     })
     .catch((err: unknown) => {
       logger.error(
-        'License initialization failed',
+        'License validation failed; exiting',
         err instanceof Error ? err : new Error(String(err)),
       );
+      process.exit(1);
     });
   initPriceOracle();
   initAlerting();

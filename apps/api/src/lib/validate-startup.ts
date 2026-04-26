@@ -1,3 +1,5 @@
+import { validateLicenseKey } from '@revealui/core/license';
+
 export type EnvMap = Record<string, string | undefined>;
 
 const REQUIRED_ALWAYS = ['POSTGRES_URL', 'NODE_ENV'] as const;
@@ -174,6 +176,74 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
 
   if (errors.length > 0) {
     throw new Error(`STARTUP VALIDATION FAILED:\n  - ${errors.join('\n  - ')}`);
+  }
+}
+
+/**
+ * Boot-time license enforcement for self-hosted (Forge) deployments.
+ *
+ * The hosted SaaS deployment (apps/api on Vercel for revealui.com) signs
+ * license JWTs for paying subscribers, so REVEALUI_LICENSE_PRIVATE_KEY is
+ * always set there — entitlement comes from `account_entitlements` rows,
+ * not from an env-var JWT. Boot-time license enforcement is a no-op in
+ * that mode.
+ *
+ * Self-hosted Forge customer deployments don't have the studio's signing
+ * key — they only consume a JWT signed by the studio, plus the matching
+ * public key. We detect Forge mode by the absence of
+ * REVEALUI_LICENSE_PRIVATE_KEY and, when in that mode:
+ *
+ *   - REVEALUI_LICENSE_KEY must be set (the studio-issued JWT)
+ *   - REVEALUI_LICENSE_PUBLIC_KEY must be set (master verification key)
+ *   - The JWT must verify cleanly (signature + expiry, with the
+ *     subscription grace window from `@revealui/core/license`)
+ *
+ * Throws on any failure so the API refuses to boot rather than silently
+ * degrading to free tier (which is `initializeLicense`'s default
+ * behavior). This is the gate that makes a stamped Forge kit honor its
+ * license — without it, an expired or tampered key would still let the
+ * stack come up.
+ *
+ * Honors `SKIP_ENV_VALIDATION=true` so Docker-build contexts and tests
+ * can compile without live credentials present. Takes `env` as an
+ * argument (defaulted to `process.env`) so tests can pass explicit
+ * fixtures.
+ */
+export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvMap): Promise<void> {
+  if (env.SKIP_ENV_VALIDATION === 'true') {
+    return;
+  }
+
+  // Mode detection: absence of the signing key = self-hosted Forge customer.
+  const isForgeMode = !env.REVEALUI_LICENSE_PRIVATE_KEY;
+  if (!isForgeMode) {
+    return;
+  }
+
+  if (!env.REVEALUI_LICENSE_KEY) {
+    throw new Error(
+      'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_KEY is required for Forge deployments. ' +
+        'Run bin/revvault-bootstrap.sh to materialize docker/.env from revvault, ' +
+        'or contact the operator who stamped this kit.',
+    );
+  }
+  if (!env.REVEALUI_LICENSE_PUBLIC_KEY) {
+    throw new Error(
+      'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_PUBLIC_KEY is required for Forge deployments. ' +
+        'Stamped kits embed this value in docker/.env.example; check that it survived the bootstrap step.',
+    );
+  }
+
+  // Restore real newlines if the public key landed as a single-line PEM
+  // (the .env-encoded format that stamp.sh produces).
+  const publicKey = env.REVEALUI_LICENSE_PUBLIC_KEY.replace(/\\n/g, '\n');
+  const payload = await validateLicenseKey(env.REVEALUI_LICENSE_KEY, publicKey);
+  if (!payload) {
+    throw new Error(
+      'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_KEY is invalid, expired beyond grace, ' +
+        'or signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY. ' +
+        'Contact the operator who stamped this kit to re-issue the license.',
+    );
   }
 }
 
