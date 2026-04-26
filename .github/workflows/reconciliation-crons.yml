@@ -1,0 +1,116 @@
+name: Reconciliation Crons (15-min)
+
+# GAP-142 Option B — external GHA scheduler for the reconciliation crons.
+#
+# Background: Vercel Hobby tier crons run at most daily. Surface 10's audit
+# found the unreconciled-webhook → drainer convergence path could take up to
+# 24 hours, contradicting Surface 8's "60s" atomicity contract. Until Vercel
+# Pro is in budget (Joshua direction 2026-04-25: post-first-sale upgrade),
+# this workflow runs every 15 min as a free external scheduler.
+#
+# Each cron endpoint runs in parallel. Failures of one don't block others.
+# All endpoints are idempotent + bounded-batch — safe to re-run on overlap
+# (cron runs that overlap due to GHA queue lag).
+#
+# When Vercel Pro lands later, this workflow can be retired in favor of
+# native vercel.json crons. See GAP-133 phases 5-6 + GAP-142 Option A.
+
+on:
+  schedule:
+    # Every 15 minutes. UTC. Note: GHA scheduled workflows can be delayed
+    # by 5-15 min during high load; the actual cadence is "approximately
+    # every 15 minutes" not "exactly every 15 minutes." That's fine for
+    # reconciliation — it's a backstop, not a critical path.
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    # Manual trigger for ops + testing
+    inputs:
+      reason:
+        description: 'Reason for manual run'
+        required: false
+        default: 'manual ops trigger'
+
+jobs:
+  drain-unreconciled:
+    name: drain-unreconciled
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST /api/cron/drain-unreconciled
+        env:
+          API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
+          CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+        run: |
+          if [[ -z "$CRON_SECRET" ]]; then
+            echo "::error::REVEALUI_CRON_SECRET secret not set"
+            exit 1
+          fi
+          response=$(curl -sS -X POST \
+            -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP_STATUS:%{http_code}" \
+            "$API_URL/api/cron/drain-unreconciled" || true)
+          status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+          body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+          echo "Status: $status"
+          echo "Body: $body"
+          if [[ "$status" != "200" ]]; then
+            echo "::warning::drain-unreconciled returned $status (non-200)"
+            exit 1
+          fi
+
+  reconcile-subscriptions:
+    name: reconcile-subscriptions
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST /api/cron/reconcile-subscriptions
+        env:
+          API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
+          CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+        run: |
+          if [[ -z "$CRON_SECRET" ]]; then
+            echo "::error::REVEALUI_CRON_SECRET secret not set"
+            exit 1
+          fi
+          response=$(curl -sS -X POST \
+            -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP_STATUS:%{http_code}" \
+            "$API_URL/api/cron/reconcile-subscriptions" || true)
+          status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+          body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+          echo "Status: $status"
+          echo "Body: $body"
+          if [[ "$status" != "200" ]]; then
+            echo "::warning::reconcile-subscriptions returned $status (non-200)"
+            exit 1
+          fi
+
+  sweep-grace-periods:
+    name: sweep-grace-periods
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: POST /api/cron/sweep-grace-periods
+        env:
+          API_URL: ${{ vars.REVEALUI_API_URL || 'https://api.revealui.com' }}
+          CRON_SECRET: ${{ secrets.REVEALUI_CRON_SECRET }}
+        run: |
+          if [[ -z "$CRON_SECRET" ]]; then
+            echo "::error::REVEALUI_CRON_SECRET secret not set"
+            exit 1
+          fi
+          response=$(curl -sS -X POST \
+            -H "X-Cron-Secret: $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP_STATUS:%{http_code}" \
+            "$API_URL/api/cron/sweep-grace-periods" || true)
+          status=$(echo "$response" | grep "HTTP_STATUS:" | cut -d: -f2)
+          body=$(echo "$response" | sed '/HTTP_STATUS:/d')
+          echo "Status: $status"
+          echo "Body: $body"
+          if [[ "$status" != "200" ]]; then
+            echo "::warning::sweep-grace-periods returned $status (non-200)"
+            exit 1
+          fi

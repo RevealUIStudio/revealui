@@ -10,8 +10,8 @@ export function GetStarted() {
             Ready to build?
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-400">
-            Users, content, products, payments, and AI, pre-wired and ready to deploy. Start
-            building your business in minutes.
+            Users, content, products, payments, and AI, pre-wired. Start building locally in
+            minutes; flip to live mode when you are ready.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <ButtonCVA asChild size="lg" className="bg-white text-gray-950 hover:bg-gray-100">

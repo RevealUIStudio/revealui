@@ -210,3 +210,76 @@ describe('checkLicenseStatus', () => {
     expect(queryFn).not.toHaveBeenCalled();
   });
 });
+
+// ---------------------------------------------------------------------------
+// GAP-139: dbStatusCache TTL freshness — post-revocation Pro access window
+// ---------------------------------------------------------------------------
+describe('checkLicenseStatus  -  cache TTL freshness (GAP-139)', () => {
+  it('re-queries DB after the cache TTL window expires (revocation propagation)', async () => {
+    vi.useFakeTimers();
+    try {
+      mockedGetLicensePayload.mockReturnValue({
+        tier: 'pro',
+        customerId: 'cus_ttl_1',
+      });
+
+      // First call returns 'active'; subsequent calls return 'revoked' to
+      // simulate Stripe-side revocation that arrived between cache-fill +
+      // next read.
+      const queryFn = vi
+        .fn<(customerId: string) => Promise<string>>()
+        .mockResolvedValueOnce('active')
+        .mockResolvedValue('revoked');
+
+      const app = createApp(queryFn);
+
+      // First request: queries DB, caches 'active' result, returns 200
+      const res1 = await app.request('/resource');
+      expect(res1.status).toBe(200);
+      expect(queryFn).toHaveBeenCalledTimes(1);
+
+      // Within TTL: cached 'active' is reused, DB NOT queried
+      vi.advanceTimersByTime(20_000); // +20s, still within default 30s TTL
+      const res2 = await app.request('/resource');
+      expect(res2.status).toBe(200);
+      expect(queryFn).toHaveBeenCalledTimes(1);
+
+      // After TTL: DB MUST be re-queried; revocation propagates
+      // 35s total = 35s after the first cache write, beyond the 30s default
+      vi.advanceTimersByTime(15_000);
+      const res3 = await app.request('/resource');
+      expect(res3.status).toBe(403);
+      expect(queryFn).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('re-queries DB on EVERY request when the cache is invalidated by resetDbStatusCache()', async () => {
+    // Sanity check that the existing reset path still works (used by
+    // webhook handlers post-revocation to invalidate cached state).
+    mockedGetLicensePayload.mockReturnValue({
+      tier: 'pro',
+      customerId: 'cus_reset_1',
+    });
+
+    const queryFn = vi
+      .fn<(customerId: string) => Promise<string>>()
+      .mockResolvedValueOnce('active')
+      .mockResolvedValue('revoked');
+
+    const app = createApp(queryFn);
+
+    // First request: caches 'active'
+    const res1 = await app.request('/resource');
+    expect(res1.status).toBe(200);
+
+    // Manual cache invalidation (what webhook handlers do post-revocation)
+    resetDbStatusCache();
+
+    // Next request: must hit DB again, sees 'revoked'
+    const res2 = await app.request('/resource');
+    expect(res2.status).toBe(403);
+    expect(queryFn).toHaveBeenCalledTimes(2);
+  });
+});

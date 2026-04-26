@@ -279,6 +279,173 @@ function scanForFutureTenseClaims(): FutureClaimMatch[] {
 }
 
 // ---------------------------------------------------------------------------
+// Aspirational-feature blocklist (PR D)
+//
+// High-visibility marketing-copy files (the landing page + GetStarted CTA)
+// must NOT name features that don't ship today unless paired with a qualifier
+// on the same line. The list is hand-maintained from the
+// marketing-claims-2026-04-25 internal honesty audit.
+//
+// Each blocklist token is checked case-insensitively. A token is allowed if
+// the line also contains any QUALIFIER pattern (e.g. "(coming soon)",
+// "(roadmap)", "Roadmap:", or a github issue/PR link).
+//
+// Add/remove tokens here when feature reality changes — when "managed
+// hosting" actually ships, for example, drop it from BLOCKLIST.
+// ---------------------------------------------------------------------------
+
+interface AspirationalMatch {
+  file: string;
+  line: number;
+  token: string;
+  why: string;
+  text: string;
+}
+
+/** Files scanned for aspirational features without qualifiers. */
+const ASPIRATIONAL_SCAN_FILES = [
+  'apps/marketing/src/components/landing',
+  'apps/marketing/src/components/GetStarted.tsx',
+];
+
+interface BlocklistEntry {
+  /** Word/phrase that misleads when shipped without a qualifier. */
+  token: RegExp;
+  /** Human-readable label printed when matched. */
+  label: string;
+  /** Why this is blocklisted — printed alongside the failure. */
+  why: string;
+}
+
+const BLOCKLIST: BlocklistEntry[] = [
+  {
+    token: /\bmanaged hosting\b/i,
+    label: 'managed hosting',
+    why: 'no managed-hosting service ships today',
+  },
+  {
+    token: /\bauto-scal(e|ing)\b/i,
+    label: 'auto-scaling',
+    why: 'no managed platform offers auto-scaling',
+  },
+  {
+    token: /\bdunning\b/i,
+    label: 'dunning',
+    why: 'not implemented; only in stripe-best-practices guidance',
+  },
+  {
+    token: /\b(SSO|single sign-on)\b/i,
+    label: 'SSO',
+    why: 'sso marked planned in packages/core/src/features.ts',
+  },
+  {
+    token: /\bSCIM\b/i,
+    label: 'SCIM',
+    why: 'SCIM provisioning not in code',
+  },
+  {
+    token: /\bon-prem\b/i,
+    label: 'on-prem',
+    why: 'forge docker images not yet published to GHCR',
+  },
+  {
+    token: /\bair-gapped\b/i,
+    label: 'air-gapped',
+    why: 'no documented air-gap deploy path',
+  },
+  {
+    token: /\bRAG\b/,
+    label: 'RAG',
+    why: 'gated on Ollama+pgvector setup, not reachable in default flow',
+  },
+  {
+    token: /\bSLA\b/,
+    label: 'SLA',
+    why: 'no SLA documented in docs/',
+  },
+];
+
+/**
+ * A line is allowed if it contains any qualifier signal:
+ *   - parenthetical markers: "(coming soon)", "(planned)", "(roadmap)",
+ *     "(in active development)", "(forthcoming)", "(will ship)",
+ *     "(in progress)", "(TBD)"
+ *   - the bare word "roadmap" anywhere (case-insensitive) — covers both
+ *     "Roadmap: X" prefixes and "X is on the roadmap" framing
+ *   - a tracker citation (#NNN / issues|pull|pulls URL / .yml workflow /
+ *     `milestone`)
+ */
+const QUALIFIER_PATTERN =
+  /\((coming soon|planned|roadmap|in active development|forthcoming|will ship|in progress|TBD)\b[^)]*\)|\broadmap\b|(#\d+|\/(issues|pull|pulls)\/\d+|\bmilestones?\b|\.ya?ml\b)/i;
+
+function scanForAspirationalFeatures(): AspirationalMatch[] {
+  const matches: AspirationalMatch[] = [];
+
+  function scanFile(filePath: string): void {
+    const rel = path.relative(ROOT, filePath);
+    let content: string;
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+    } catch {
+      return;
+    }
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      // Skip JSX comments and import lines — they are not user-visible copy
+      if (line.trim().startsWith('//') || line.trim().startsWith('import ')) continue;
+      // Skip lines inside `{/* ... */}` JSX comments (single-line only; multi-line ignored)
+      if (line.trim().startsWith('{/*') && line.trim().endsWith('*/}')) continue;
+
+      for (const entry of BLOCKLIST) {
+        if (!entry.token.test(line)) continue;
+        if (QUALIFIER_PATTERN.test(line)) continue;
+        matches.push({
+          file: rel,
+          line: i + 1,
+          token: entry.label,
+          why: entry.why,
+          text: line.trim(),
+        });
+      }
+    }
+  }
+
+  function walk(dir: string): void {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) {
+        walk(full);
+      } else if (e.name.endsWith('.tsx') || e.name.endsWith('.ts')) {
+        scanFile(full);
+      }
+    }
+  }
+
+  for (const rel of ASPIRATIONAL_SCAN_FILES) {
+    const full = path.join(ROOT, rel);
+    try {
+      const stat = fs.statSync(full);
+      if (stat.isFile()) {
+        scanFile(full);
+      } else if (stat.isDirectory()) {
+        walk(full);
+      }
+    } catch {
+      // path missing, skip
+    }
+  }
+
+  return matches;
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -385,11 +552,16 @@ function run(): void {
   // Future-tense claim check (CR9-P2-02)
   const futureClaims = scanForFutureTenseClaims();
 
+  // Aspirational-feature blocklist for high-visibility landing copy
+  const aspirationalClaims = scanForAspirationalFeatures();
+
   console.log('====================');
   console.log(`Claims scanned: ${claims.length}`);
   console.log(`Mismatches:     ${mismatches}`);
   console.log(`Future-tense files scanned: ${FUTURE_TENSE_SCAN_FILES.length}`);
   console.log(`Unlinked future-tense markers: ${futureClaims.length}`);
+  console.log(`Aspirational-feature scan files: ${ASPIRATIONAL_SCAN_FILES.length}`);
+  console.log(`Unqualified aspirational features: ${aspirationalClaims.length}`);
 
   if (futureClaims.length > 0) {
     console.log('\nUnlinked future-tense claims (convention: CONTRIBUTING.md):');
@@ -402,7 +574,18 @@ function run(): void {
     );
   }
 
-  if (mismatches > 0 || futureClaims.length > 0) {
+  if (aspirationalClaims.length > 0) {
+    console.log('\nUnqualified aspirational features in landing copy:');
+    for (const c of aspirationalClaims) {
+      console.log(`  ${c.file}:${c.line}  "${c.token}" (${c.why})`);
+      console.log(`    ${c.text.substring(0, 140)}`);
+    }
+    console.log(
+      '\nEach blocklist token must be paired with a qualifier on the same line: "(coming soon)", "(roadmap)", "(in active development)", "(planned)", or a "Roadmap:" prefix. Or remove the claim.',
+    );
+  }
+
+  if (mismatches > 0 || futureClaims.length > 0 || aspirationalClaims.length > 0) {
     if (mismatches > 0) {
       console.log('\nFailed: claims do not match codebase reality.');
       if (!showFix) {
@@ -412,9 +595,14 @@ function run(): void {
     if (futureClaims.length > 0) {
       console.log('\nFailed: unlinked future-tense claims.');
     }
+    if (aspirationalClaims.length > 0) {
+      console.log('\nFailed: unqualified aspirational features in landing copy.');
+    }
     process.exit(1);
   } else {
-    console.log('\nAll claims match codebase reality and future-tense markers are tracked.');
+    console.log(
+      '\nAll claims match codebase reality, future-tense markers are tracked, and aspirational features are qualified.',
+    );
   }
 }
 

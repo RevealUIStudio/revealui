@@ -23,6 +23,29 @@ export interface ShowcaseExample {
   render: () => React.ReactNode;
 }
 
+/**
+ * Accessibility notes for a component. All fields optional; rendered as a
+ * collapsed-by-default section on the showcase page when any field is set.
+ */
+export interface ShowcaseAccessibility {
+  /** WCAG criteria explicitly covered, e.g. ["WCAG 2.1 AA contrast", "WCAG 2.1.1 Keyboard"] */
+  conformance?: string[];
+  /** Keyboard interactions, keyed by key name. e.g. {"Tab": "Move focus to next item"} */
+  keyboard?: Record<string, string>;
+  /** ARIA attributes the component renders or expects. */
+  aria?: Record<string, string>;
+  /** Free-form notes (e.g. "use aria-label when no visible label") */
+  notes?: string;
+}
+
+/**
+ * Cross-link to a related showcase by slug. Rendered as a "See also" strip.
+ */
+export interface ShowcaseRelated {
+  slug: string;
+  reason?: string;
+}
+
 /** Complete showcase definition for a single component */
 export interface ShowcaseStory {
   /** URL slug: /showcase/{slug} */
@@ -43,6 +66,31 @@ export interface ShowcaseStory {
   examples?: ShowcaseExample[];
   /** Custom code generator  -  receives current props, returns JSX string */
   code?: (props: Record<string, unknown>) => string;
+  /**
+   * When-to-use / when-not-to-use guidance. Markdown supported.
+   * Rendered above the interactive preview when present.
+   */
+  usage?: {
+    /** Markdown body explaining when to reach for this component. */
+    when?: string;
+    /** Markdown body explaining when NOT to use it (alternatives, anti-patterns). */
+    avoid?: string;
+  };
+  /**
+   * `npm install` snippet shown at the top of the page. Defaults to
+   * `npm install @revealui/presentation` when omitted; override only if the
+   * component is shipped from a different package or needs extra peerDeps.
+   */
+  install?: string;
+  /**
+   * Path inside the @revealui/presentation package to the component source,
+   * e.g. "src/components/Button.tsx". Renders a "View source" link to GitHub.
+   */
+  sourceUrl?: string;
+  /** Accessibility notes; rendered when any field is set. */
+  a11y?: ShowcaseAccessibility;
+  /** "See also" cross-links to related showcases. */
+  related?: ShowcaseRelated[];
 }
 
 /** Registry entry for lazy-loading stories */
