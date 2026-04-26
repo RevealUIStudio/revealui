@@ -366,6 +366,106 @@ describe('webhook integration  -  customer.subscription.deleted', () => {
   });
 });
 
+describe('webhook integration  -  customer.deleted (GAP-140 perpetual protection)', () => {
+  it('revokes ONLY non-perpetual licenses; perpetual licenses are preserved', async () => {
+    // Setup: one user with BOTH a subscription license AND a perpetual license
+    // for the same Stripe customer. The perpetual license represents a
+    // separately-purchased one-time purchase that must NOT be revoked when
+    // the Stripe customer record is deleted.
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-mixed-1',
+      email: 'mixed@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_mixed_1' })
+      .where(eq(users.id, 'user-mixed-1'));
+
+    // Subscription license (must be revoked on customer.deleted)
+    await testDb.drizzle.insert(licenses).values({
+      id: 'lic-sub-1',
+      userId: 'user-mixed-1',
+      licenseKey: 'sub-key',
+      tier: 'pro',
+      customerId: 'cus_mixed_1',
+      subscriptionId: 'sub_mixed_1',
+      status: 'active',
+      perpetual: false,
+    });
+
+    // Perpetual license (must be preserved on customer.deleted)
+    await testDb.drizzle.insert(licenses).values({
+      id: 'lic-perp-1',
+      userId: 'user-mixed-1',
+      licenseKey: 'perp-key',
+      tier: 'pro',
+      customerId: 'cus_mixed_1',
+      subscriptionId: null,
+      status: 'active',
+      perpetual: true,
+    });
+
+    const event = makeStripeEvent('customer.deleted', {
+      id: 'cus_mixed_1',
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    // Subscription license should be revoked
+    const subRow = await testDb.drizzle.select().from(licenses).where(eq(licenses.id, 'lic-sub-1'));
+    expect(subRow).toHaveLength(1);
+    expect(subRow[0].status).toBe('revoked');
+
+    // Perpetual license should be PRESERVED (status still 'active')
+    const perpRow = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.id, 'lic-perp-1'));
+    expect(perpRow).toHaveLength(1);
+    expect(perpRow[0].status).toBe('active');
+    expect(perpRow[0].perpetual).toBe(true);
+  });
+
+  it('revokes only-subscription license set when no perpetual licenses exist', async () => {
+    // Regression check: customer with no perpetual still has all subscription
+    // licenses revoked correctly.
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-sub-only',
+      email: 'subonly@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_sub_only' })
+      .where(eq(users.id, 'user-sub-only'));
+
+    await testDb.drizzle.insert(licenses).values({
+      id: 'lic-sub-only-1',
+      userId: 'user-sub-only',
+      licenseKey: 'sub-only-key',
+      tier: 'pro',
+      customerId: 'cus_sub_only',
+      subscriptionId: 'sub_only_1',
+      status: 'active',
+      perpetual: false,
+    });
+
+    const event = makeStripeEvent('customer.deleted', {
+      id: 'cus_sub_only',
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    const rows = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.id, 'lic-sub-only-1'));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].status).toBe('revoked');
+  });
+});
+
 describe('webhook integration  -  irrelevant events', () => {
   it('returns 200 without processing for unknown event types', async () => {
     const event = makeStripeEvent('invoice.created', {
