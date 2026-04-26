@@ -299,7 +299,7 @@ server {
 | `VERCEL_CLIENT_ID` | Vercel OAuth client ID | Vercel sign-in |
 | `VERCEL_CLIENT_SECRET` | Vercel OAuth client secret | Vercel sign-in |
 
-See [Environment Variables Guide](../ENVIRONMENT_VARIABLES_GUIDE.md) for the complete reference.
+See [Environment Variables Guide](../ENVIRONMENT-VARIABLES-GUIDE.md) for the complete reference.
 
 ---
 
@@ -353,5 +353,5 @@ RevealUI uses a structured logger (`@revealui/utils`). In production, logs are w
 ## Related Documentation
 
 - [CI/CD Guide](../CI_CD_GUIDE.md) -- Pipeline configuration and rollback procedures
-- [Environment Variables](../ENVIRONMENT_VARIABLES_GUIDE.md) -- Full configuration reference
+- [Environment Variables](../ENVIRONMENT-VARIABLES-GUIDE.md) -- Full configuration reference
 - [Architecture](../ARCHITECTURE.md) -- System design and infrastructure

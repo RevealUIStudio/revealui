@@ -25,7 +25,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
 - [CI/CD & Deployment](./CI_CD_GUIDE.md): Pipelines, Vercel deployment, staging
-- [Environment Variables](./ENVIRONMENT_VARIABLES_GUIDE.md): Configuration reference
+- [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md): Configuration reference
 
 ## Pricing & Commerce
 

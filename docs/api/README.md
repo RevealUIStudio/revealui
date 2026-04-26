@@ -197,7 +197,7 @@ For detailed package-level API documentation:
 - [@revealui/contracts](../REFERENCE.md) -- Zod schemas and TypeScript types
 - [@revealui/db](../DATABASE.md) -- Drizzle ORM schema and query patterns
 - [@revealui/auth](../AUTH.md) -- Authentication, sessions, OAuth
-- [@revealui/config](../ENVIRONMENT_VARIABLES_GUIDE.md) -- Environment configuration
+- [@revealui/config](../ENVIRONMENT-VARIABLES-GUIDE.md) -- Environment configuration
 - [@revealui/presentation](../COMPONENT_CATALOG.md) -- UI component library
 
 ---

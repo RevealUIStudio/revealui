@@ -355,7 +355,7 @@ The `deploy.yml` workflow validates critical environment variables before deploy
 
 1. Add the variable to the Vercel project dashboard for all environments (production, preview, development).
 2. Update `packages/config/` with the new Zod schema if it needs runtime validation.
-3. Update `docs/ENVIRONMENT_VARIABLES_GUIDE.md` with the new variable.
+3. Update `docs/ENVIRONMENT-VARIABLES-GUIDE.md` with the new variable.
 4. If the variable is required for deploy, add it to the validation step in `deploy.yml`.
 
 ---

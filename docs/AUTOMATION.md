@@ -134,7 +134,7 @@ packages/
 
 1. [Deployment Runbook](./guides/deployment/DEPLOYMENT_RUNBOOK.md)
 2. [CI/CD Guide](./development/CI_CD_GUIDE.md)
-3. [Environment Variables Guide](./development/ENVIRONMENT_VARIABLES_GUIDE.md)
+3. [Environment Variables Guide](./development/ENVIRONMENT-VARIABLES-GUIDE.md)
 
 ### Important Conventions
 
@@ -2591,7 +2591,7 @@ All integrations can leverage the configured MCP servers:
 
 - [Deployment Runbook](./CI_CD_GUIDE.md)
 - [CI/CD Guide](./CI_CD_GUIDE.md)
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
+- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md)
 
 ### Cohesion & Quality
 

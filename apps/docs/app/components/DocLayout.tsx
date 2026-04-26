@@ -61,7 +61,7 @@ const sections: NavSection[] = [
       { label: 'Authentication', path: '/docs/AUTH' },
       { label: 'Database', path: '/docs/DATABASE' },
       { label: 'CI/CD & Deployment', path: '/docs/CI_CD_GUIDE' },
-      { label: 'Environment Variables', path: '/docs/ENVIRONMENT_VARIABLES_GUIDE' },
+      { label: 'Environment Variables', path: '/docs/ENVIRONMENT-VARIABLES-GUIDE' },
       { label: 'Testing', path: '/docs/TESTING' },
       { label: 'Troubleshooting', path: '/docs/TROUBLESHOOTING' },
     ],
