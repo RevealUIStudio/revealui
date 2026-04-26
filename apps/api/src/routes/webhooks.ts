@@ -539,15 +539,38 @@ async function syncHostedSubscriptionState(
   // GAP-105 M-03: Proactive resource capping on downgrade
   const oldTier = (existingEntitlement?.tier as 'free' | 'pro' | 'max' | 'enterprise') ?? 'free';
   if (isDowngrade(oldTier, resolvedTier)) {
-    const capResult = await capResourcesOnDowngrade(db, accountId, oldTier, resolvedTier);
-    if (capResult.capped) {
-      logger.info('Downgrade resource capping applied', {
-        accountId,
-        oldTier,
-        newTier: resolvedTier,
-        sitesArchived: capResult.sitesArchived,
-        membershipsRevoked: capResult.membershipsRevoked,
-      });
+    // GAP-141 resilience: try/catch around cap so a transient throw (DB blip,
+    // network glitch) does NOT propagate up. The entitlement upsert above has
+    // ALREADY committed when the cap runs — propagating an error would cause
+    // the calling saga to compensate the entitlement (roll tier back to old),
+    // which is the wrong rollback semantics. The customer's billing state IS
+    // the new tier; what failed is the resource cleanup. Next sync (Stripe
+    // retry / GAP-142 15-min cron / admin re-trigger) re-runs idempotently
+    // and the cap converges. v0.4.x follow-up (GAP-141 Phase 1): hoist into a
+    // saga step so failures land in unreconciledWebhooks for drainer pickup.
+    try {
+      const capResult = await capResourcesOnDowngrade(db, accountId, oldTier, resolvedTier);
+      if (capResult.capped) {
+        logger.info('Downgrade resource capping applied', {
+          accountId,
+          oldTier,
+          newTier: resolvedTier,
+          sitesArchived: capResult.sitesArchived,
+          membershipsRevoked: capResult.membershipsRevoked,
+        });
+      }
+    } catch (capErr) {
+      logger.error(
+        'Downgrade resource capping failed; entitlement advanced but resources NOT capped. Convergence relies on next sync (Stripe retry / GAP-142 reconciliation cron / admin re-trigger).',
+        capErr instanceof Error ? capErr : new Error(String(capErr)),
+        {
+          accountId,
+          oldTier,
+          newTier: resolvedTier,
+          // searchable tag for ops alarms in log aggregation
+          alertTag: 'cap.failed',
+        },
+      );
     }
   }
 }
