@@ -34,6 +34,7 @@ import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
 import { sites, users } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
+import { configureClientIp } from '@revealui/security';
 import { sql } from 'drizzle-orm';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
@@ -1214,6 +1215,15 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   logger.info(`📚 API documentation available at http://localhost:${port}/docs`);
   logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`);
 }
+
+// Configure trusted-proxy-aware client IP extraction for session-binding
+// validation. See GAP-130 + packages/security/src/request-ip.ts.
+// trustedProxyCount: 1 reflects the current Vercel-only proxy chain. When
+// Cloudflare is added in front of api.revealui.com (GAP-133 phases 5-6), bump
+// to 2 in the SAME PR as the orange-cloud cutover — leaving N=1 after Cloudflare
+// goes orange = spoofable IPs again; setting N=2 before Cloudflare = garbage
+// IPs / 'unknown' for everyone.
+configureClientIp({ trustedProxyCount: 1 });
 
 // Also validate in production before accepting traffic
 if (process.env.NODE_ENV === 'production') {

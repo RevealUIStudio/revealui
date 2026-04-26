@@ -273,6 +273,9 @@ importers:
       '@revealui/presentation':
         specifier: workspace:*
         version: link:../../packages/presentation
+      '@revealui/security':
+        specifier: workspace:*
+        version: link:../../packages/security
       '@revealui/services':
         specifier: workspace:^
         version: link:../../packages/services
@@ -427,6 +430,9 @@ importers:
       '@revealui/openapi':
         specifier: workspace:*
         version: link:../../packages/openapi
+      '@revealui/security':
+        specifier: workspace:*
+        version: link:../../packages/security
       '@revealui/services':
         specifier: workspace:^
         version: link:../../packages/services
