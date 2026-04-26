@@ -1,0 +1,90 @@
+RevealUI Studio — Commercial Licensing for Pro Packages
+
+This file is an explainer for the dual-license structure of this repository.
+It is NOT a standalone license document; the canonical license terms for
+each Pro package live in that package's own LICENSE file.
+
+## Repository Licensing Overview
+
+Most of this repository (the OSS packages, apps, scripts, docs, and tooling)
+is licensed under the MIT License. See LICENSE in the repository root for
+those terms.
+
+A small number of "Pro" packages are licensed under the Functional Source
+License v1.1 with MIT Future License (FSL-1.1-MIT) instead of MIT. Those
+packages each carry their own LICENSE file containing the canonical FSL
+terms; this file documents which packages are covered and what FSL-1.1-MIT
+permits and restricts.
+
+## Pro Packages Covered
+
+The following packages distributed in this repository are licensed under
+FSL-1.1-MIT, not MIT:
+
+- @revealui/ai          (see packages/ai/LICENSE)
+- @revealui/harnesses   (see packages/harnesses/LICENSE)
+
+Additional Pro packages may be added in future. The presence of a LICENSE
+file inside a package directory containing the FSL-1.1-MIT text is the
+authoritative signal that the package is governed by FSL terms rather than
+the root MIT LICENSE.
+
+## What FSL-1.1-MIT Permits
+
+Source code for Pro packages is publicly available. You may:
+
+- Use the package internally for any purpose, including commercial use
+- Modify the package and distribute derivative works under the same terms
+- Inspect, audit, and debug the source
+- Depend on the package from your own software
+
+## What FSL-1.1-MIT Restricts
+
+You may NOT make the functionality of a Pro package available to third
+parties as a service that competes with RevealUI Studio's commercial
+offerings. The full restriction text in each per-package LICENSE controls;
+in plain language, prohibited uses include:
+
+- Hosting the package as part of a SaaS that primarily delivers the
+  package's functionality
+- Offering a service whose value derives entirely or primarily from the
+  package
+- Repackaging the functionality for redistribution as a competing service
+
+If you are unsure whether your intended use is restricted, contact
+founder@revealui.com before relying on the package.
+
+## Change Date and MIT Conversion
+
+Each Pro package's LICENSE file specifies a Change Date. On the earlier of
+that date or the fourth anniversary of the first publicly-available
+distribution of a specific version of the package under FSL, the package
+automatically converts to the MIT License (the "Change License"). After
+conversion, all FSL restrictions are removed for the version in question
+and going forward.
+
+This means every Pro package in this repository will eventually become MIT;
+FSL-1.1-MIT is a time-limited restriction, not a permanent one.
+
+## Commercial Licensing Alternatives
+
+If FSL-1.1-MIT terms do not fit your use case (for example, you are
+building a service that the FSL would prohibit, or you need contractual
+guarantees beyond what an open license provides), commercial licensing is
+available.
+
+Contact: founder@revealui.com
+
+## Canonical FSL-1.1-MIT Text
+
+The Functional Source License v1.1 with MIT Future License is published at:
+
+  https://fsl.software/FSL-1.1-MIT.template.md
+
+The full canonical text is reproduced verbatim in each Pro package's
+LICENSE file. If there is any conflict between this explainer and a
+per-package LICENSE file, the per-package LICENSE file controls.
+
+---
+
+Copyright (c) 2025-2026 RevealUI Studio

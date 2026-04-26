@@ -28,6 +28,14 @@ vi.mock('stripe', () => ({
   },
 }));
 
+// GAP-131: billing-readiness now uses the protectedStripe wrapper from
+// @revealui/services for Stripe price parity checks.
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    prices: { retrieve: mockRetrieve },
+  },
+}));
+
 vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(() => mockDb),
 }));

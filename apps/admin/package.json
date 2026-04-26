@@ -14,6 +14,7 @@
     "@revealui/mcp": "workspace:*",
     "@revealui/paywall": "workspace:*",
     "@revealui/presentation": "workspace:*",
+    "@revealui/security": "workspace:*",
     "@revealui/setup": "workspace:*",
     "@revealui/sync": "workspace:*",
     "@revealui/utils": "workspace:*",
