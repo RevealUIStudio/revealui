@@ -4,7 +4,7 @@ export function Problem() {
     'Stripe billing + webhooks',
     'A CMS for your team',
     'An admin dashboard',
-    'Background jobs and queues',
+    'Reliable webhook delivery',
     'Agent glue for every endpoint',
   ];
 
