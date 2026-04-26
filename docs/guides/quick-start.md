@@ -47,7 +47,7 @@ POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
 
 Get your `POSTGRES_URL` from [console.neon.tech](https://console.neon.tech).
 
-See [Environment Variables Guide](../ENVIRONMENT_VARIABLES_GUIDE.md) for the full reference.
+See [Environment Variables Guide](../ENVIRONMENT-VARIABLES-GUIDE.md) for the full reference.
 
 ---
 
@@ -57,7 +57,7 @@ See [Environment Variables Guide](../ENVIRONMENT_VARIABLES_GUIDE.md) for the ful
 pnpm db:migrate
 ```
 
-This creates all 81 tables. If you see a connection error, verify that `POSTGRES_URL` includes `?sslmode=require`.
+This creates all 85 tables. If you see a connection error, verify that `POSTGRES_URL` includes `?sslmode=require`.
 
 ---
 

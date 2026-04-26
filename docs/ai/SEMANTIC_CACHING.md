@@ -1,18 +1,19 @@
 # Semantic Caching for LLM Responses
 
-**73% cost reduction** through intelligent, meaning-based caching.
+Up to **73% cost reduction** in published industry benchmarks (Redis blog, FAQ-style traffic) through meaning-based caching.
+
+> **Note on benchmarks.** Every percentage and dollar figure in this guide is from Redis's published benchmarks and similar industry references — they are not measured RevealUI traffic (RevealUI is pre-launch with 0 paying customers). RevealUI ships the implementation; your real savings depend on your query distribution.
 
 ## Overview
 
 Semantic caching uses **vector embeddings** to match similar queries, not just exact duplicates. This provides dramatically better hit rates than exact-match caching.
 
-### Real-World Performance
+### Industry-benchmark performance (Redis)
 
-Based on industry benchmarks:
-- **73% cost reduction** (vs 20% for exact-match caching)
-- **65% cache hit rate** (vs 18% for exact matches)
-- **96.9% latency reduction** on cache hits
-- **3.6x better hit rate** than exact matching
+- **~73% cost reduction** (vs ~20% for exact-match caching)
+- **~65% cache hit rate** (vs ~18% for exact matches)
+- **~96.9% latency reduction** on cache hits
+- **~3.6× better hit rate** than exact matching
 
 ### How It Works
 
@@ -94,7 +95,8 @@ When a query comes in, we generate a vector embedding:
 
 ```typescript
 const embedding = await generateEmbedding(userQuery)
-// Returns: [0.123, -0.456, 0.789, ...] (1536 dimensions)
+// Returns: [0.123, -0.456, 0.789, ...] (768 dimensions with the default
+// nomic-embed-text via Ollama; 1536 if you configure OpenAI's text-embedding-3-small)
 ```
 
 ### 2. Similarity Search
@@ -443,31 +445,33 @@ CREATE INDEX idx_vector_type ON memories (type);
 
 ## Cost Analysis
 
-### Semantic Caching ROI
+### Estimating savings for your traffic
 
-**Scenario**: 1000 queries/day, 65% hit rate
+There is no universal "Semantic Caching ROI" number — savings depend entirely on your duplicate-and-similar rate, your provider's per-token cost, and your traffic volume. Build your own estimate from measured stats:
 
-| Metric | Without Cache | With Semantic Cache | Savings |
-|--------|--------------|---------------------|---------|
-| API calls/day | 1000 | 350 | 650 (65%) |
-| Monthly tokens | 90M | 31.5M | 58.5M (65%) |
-| Monthly cost | $270 | $94.50 | **$175.50 (65%)** |
-| Annual savings | - | - | **$2,106** |
+```ts
+import { getGlobalSemanticCache } from '@revealui/ai/llm/semantic-cache'
 
-**Plus**: Faster responses (60ms vs 2000ms)
+const cache = getGlobalSemanticCache()
+const stats = cache.getStats() // { hits, misses, hitRate, ... }
 
-### Comparison: All Caching Strategies
+// providerCostPerCall = your blended cost per LLM call (USD)
+// callsPerDay = your measured daily call volume
+const dailySavings = stats.hitRate * callsPerDay * providerCostPerCall
+const monthlySavings = dailySavings * 30
+```
 
-**Setup**: Vultr + All caching enabled
+For published reference benchmarks, Redis reports up to ~65% hit rate / ~73% cost reduction on FAQ-style traffic. Treat those numbers as a ceiling, not a forecast.
 
-| Strategy | Hit Rate | Cost Reduction | Monthly Cost |
-|----------|----------|---------------|--------------|
-| No caching | 0% | 0% | $270 |
-| Response cache only | 18% | 18% | $221 |
-| Semantic cache only | 65% | 65% | $94.50 |
-| **Both combined** | **73%** | **73%** | **$73** |
+### Comparison: cache-strategy stacking
 
-**Recommendation**: Enable **both** semantic + response caching for maximum savings.
+Combine response, semantic, and (Anthropic-only) prompt caching when your traffic mix supports it:
+
+- **Response cache** catches exact-duplicate requests cheaply (no embedding cost).
+- **Semantic cache** catches similar requests at a low embedding cost per miss.
+- **Prompt cache** (Anthropic only) discounts repeated input prefix tokens server-side.
+
+Each layer has its own hit rate; treat them as additive on disjoint slices of your traffic, not multiplicative.
 
 ## Implementation Notes
 
@@ -479,33 +483,36 @@ Semantic caching requires PostgreSQL with pgvector extension:
 -- Enable pgvector extension
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- Memories table (already created by migrations)
--- Includes embedding column with VECTOR(1536) type
+-- Memories table (created by migrations)
+-- Default schema uses VECTOR(768) for nomic-embed-text via Ollama
+-- (see packages/db/src/schema/rag.ts and packages/ai/src/embeddings/index.ts).
+-- If you switch to OpenAI text-embedding-3-small, the column becomes VECTOR(1536).
 ```
 
 ### Embedding Generation
 
-Uses OpenAI's `text-embedding-3-small` model:
-- **Dimensions**: 1536
-- **Cost**: ~$0.00002 per query
-- **Speed**: ~50ms average
-- **Model**: text-embedding-3-small
+Default: Ollama's `nomic-embed-text` model — local, free, 768 dimensions. The default is set in `packages/ai/src/embeddings/index.ts`.
+
+| Provider / Model | Dimensions | Cost | Speed |
+|---|---|---|---|
+| **Ollama / `nomic-embed-text` (default)** | **768** | Free (local) | Local-network fast |
+| OpenAI / `text-embedding-3-small` (opt-in) | 1536 | ~$0.00002 / query | ~50ms |
+| OpenAI / `text-embedding-3-large` (opt-in) | 3072 | ~$0.00013 / query | ~50ms |
 
 ### Storage Costs
 
-**Per cached entry**:
-- Embedding: 1536 floats × 4 bytes = 6 KB
+**Per cached entry (default 768-dim)**:
+- Embedding: 768 floats × 4 bytes = 3 KB
 - Metadata: ~1-2 KB
-- **Total**: ~8 KB per entry
+- **Total**: ~5 KB per entry
 
-**1000 cached entries** ≈ 8 MB storage (negligible)
+**1000 cached entries** ≈ 5 MB storage (negligible). With 1536-dim OpenAI embeddings, double that.
 
 ## Summary
 
 Semantic caching provides:
-- ✅ **73% cost reduction** on average
-- ✅ **65% cache hit rate** (vs 18% for exact matches)
-- ✅ **96.9% faster** responses on cache hits
+- Cost reduction on cache hits is 100% (no provider call). Real-world dollar savings depend on your duplicate-rate × hit-rate. Industry benchmarks (Redis blog, FAQ-style traffic) report ~65% hit rate / ~73% cost reduction; RevealUI ships the implementation, but those numbers are not measured RevealUI traffic.
+- ✅ Faster responses on cache hits (no provider round-trip)
 - ✅ Works with **all providers** (Vultr, OpenAI, Anthropic)
 - ✅ **Zero code changes** (environment variable only)
 - ✅ **Multi-tenant support** for SaaS applications
@@ -519,6 +526,6 @@ Semantic caching provides:
 
 ---
 
-**Status**: ✅ Fully tested
+**Status**: Implementation has unit tests in `packages/ai/src/llm/__tests__/`. Production traffic baseline is not yet established (RevealUI is pre-launch).
 **Provider**: All providers (requires pgvector)
 **Deployment**: Set `LLM_ENABLE_SEMANTIC_CACHE=true`

@@ -22,30 +22,15 @@ Cross-reference `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for env var details.
 
 ### Encryption Keys (Maintenance Window Required)
 
-#### REVEALUI_KEK (AES-256-GCM field encryption)
+#### REVEALUI_KEK (AES-256-GCM field encryption) — NOT YET ROTATABLE
 
 Used by: `@revealui/db/crypto` for API keys, TOTP secrets, and any `encryptField()` call.
 
-```bash
-# 1. Generate new KEK
-NEW_KEK=$(openssl rand -hex 32)
+> **Status: rotation tooling not yet built.** A naive KEK rotation would brick every encrypted DB row. The required re-encryption migration tool (`migrate:rekey` or equivalent) is tracked as **GAP-126** and has not yet shipped. **Do not attempt to rotate `REVEALUI_KEK` until that tool lands.** If you need to rotate before then, a coordinated maintenance window with manual data re-encryption is required — open a ticket against the security workstream first.
+>
+> When tooling ships, the procedure will be: generate new KEK → run re-encryption migration → update RevVault + Vercel → redeploy → verify. The verify step will hit a `/api/health/crypto` endpoint that decrypts a known canary value.
 
-# 2. Run re-encryption migration (reads old KEK from env, writes with new)
-REVEALUI_KEK_NEW=$NEW_KEK pnpm --filter @revealui/db run migrate:rekey
-
-# 3. Update RevVault + Vercel
-revvault set revealui/env/core REVEALUI_KEK "$NEW_KEK"
-vercel env rm REVEALUI_KEK production
-vercel env add REVEALUI_KEK production <<< "$NEW_KEK"
-
-# 4. Redeploy all apps
-vercel deploy --prod
-
-# 5. Verify: decrypt a known encrypted field
-curl -s https://api.revealui.com/api/health/crypto | jq .status
-```
-
-**Risk:** All encrypted data becomes unreadable if migration fails. Back up DB first.
+**Risk:** All encrypted data becomes unreadable if a naive rotate-without-rekey is attempted. This is why the tooling gate exists.
 
 #### REVEALUI_LICENSE_PRIVATE_KEY (RSA-2048 license signing)
 
@@ -63,7 +48,10 @@ revvault set revealui/env/license REVEALUI_LICENSE_PRIVATE_KEY "$PRIV"
 revvault set revealui/env/license REVEALUI_LICENSE_PUBLIC_KEY "$PUB"
 
 # 4. Re-sign all active licenses (existing licenses won't validate)
-pnpm --filter api run licenses:resign
+#    Note: a `licenses:resign` script is on the roadmap; until it ships,
+#    re-sign by reissuing each license through the standard checkout/reissue
+#    flow or by writing a one-off script that uses `signLicense` from
+#    `packages/services/src/license/sign.ts` directly.
 
 # 5. Redeploy + verify
 ```
@@ -72,12 +60,7 @@ pnpm --filter api run licenses:resign
 
 #### REVEALUI_LICENSE_ENCRYPTION_KEY (license key encryption at rest)
 
-Same procedure as REVEALUI_KEK but scoped to the license table:
-
-```bash
-NEW_KEY=$(openssl rand -hex 32)
-REVEALUI_LICENSE_ENCRYPTION_KEY_NEW=$NEW_KEY pnpm --filter api run licenses:rekey
-```
+Same shape as REVEALUI_KEK rotation — and like REVEALUI_KEK, the rekey tool (`licenses:rekey`) does not yet ship. Track GAP-126 for tooling status. Until then, treat this key as no-rotate or schedule a coordinated maintenance window with manual re-encryption.
 
 ### Session & Auth Secrets
 
@@ -120,7 +103,7 @@ revvault set revealui/env/admin REVEALUI_ADMIN_API_KEY "$NEW_KEY"
 2. Stripe provides a 72-hour overlap window with both keys valid
 3. Update `revvault set revealui/env/stripe STRIPE_SECRET_KEY "sk_live_..."`
 4. Redeploy api + admin
-5. Verify: `curl -s https://api.revealui.com/api/health/stripe | jq .status`
+5. Verify: `curl -s https://api.revealui.com/health/ready | jq .status` (the consolidated readiness endpoint exercises the Stripe client during initialization)
 6. Delete old key in Stripe after 24h observation
 
 #### STRIPE_WEBHOOK_SECRET
@@ -138,7 +121,7 @@ revvault set revealui/env/admin REVEALUI_ADMIN_API_KEY "$NEW_KEY"
 1. Neon Console > Connection pooling > Rotate password
 2. Update connection string in RevVault
 3. Redeploy all apps simultaneously (coordinate to minimize gap)
-4. Verify with: `pnpm --filter api run db:health`
+4. Verify with: `curl -s https://api.revealui.com/health/ready | jq .` (returns `db: healthy` plus connection details)
 
 **Risk:** Brief downtime if stale connection pools exist. Use rolling deploy.
 

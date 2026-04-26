@@ -7,6 +7,8 @@ audience: enterprise
 
 # RevealUI Forge  -  Self-Hosted Deployment
 
+> **⚠️ Preview status — Forge Docker images are not yet published to GHCR.** The `docker/` stack, stamp scripts, source tree, and licensing flow are production-ready, but the images this guide references (`ghcr.io/revealuistudio/revealui-api`, `ghcr.io/revealuistudio/revealui-admin`) have not been published yet. The `docker pull` commands below will fail with `manifest unknown` until images publish. Until then, build from source at the [revealui repo](https://github.com/RevealUIStudio/revealui) or use the [Forge kit's source tree](https://github.com/RevealUIStudio/forge). License-key issuance and welcome emails go live when Stripe billing-readiness sign-off lands.
+
 Forge is the enterprise tier of RevealUI. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
 
 Forge is best treated as a deployment-level commercial product, distinct from the hosted account-level subscription and metered usage model used for SaaS.
@@ -34,7 +36,7 @@ Forge sits beside, not underneath, the hosted pricing model:
 ## Prerequisites
 
 - Docker Engine 24+ and Docker Compose v2
-- A Forge license key (issued at checkout  -  `rui_forge_...`)
+- A Forge license key (issued at checkout once live billing is enabled  -  `rui_forge_...`)
 - A domain you control (e.g. `admin.acme.com`)
 - Stripe keys for billing (if you want to use the billing stack)
 - A NeonDB or PostgreSQL 16 database URL
@@ -46,11 +48,12 @@ Forge sits beside, not underneath, the hosted pricing model:
 ### 1. Pull the stack
 
 ```bash
+# Preview — images publish post-launch; commands below will fail with `manifest unknown` until then.
 docker pull ghcr.io/revealuistudio/revealui-api:latest
 docker pull ghcr.io/revealuistudio/revealui-admin:latest
 ```
 
-> GHCR access is gated by your license key. Log in with the token provided in your Forge welcome email:
+> Once Forge launches, GHCR access will be gated by your license key. You'll log in with the token provided in your Forge welcome email:
 >
 > ```bash
 > echo "$GHCR_TOKEN" | docker login ghcr.io -u revealuistudio --password-stdin
@@ -108,7 +111,7 @@ curl https://admin.acme.com/health
 
 ## Environment variables
 
-All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) for the full reference.
+All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) for the full reference.
 
 | Variable                       | Required | Description                                          |
 | ------------------------------ | -------- | ---------------------------------------------------- |
@@ -412,6 +415,6 @@ Contact support for assistance with large migrations or custom data transformati
 
 ## Related
 
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
+- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md)
 - [Auth & Security](./AUTH.md)
 - [Pro overview](./PRO.md)

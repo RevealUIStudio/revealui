@@ -148,7 +148,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Changes to .env files require server restart
    - Stop (Ctrl+C) and run `pnpm dev` again
 
-**See Also**: [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md#validation-checklist)
+**See Also**: [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md#validation-checklist)
 
 ---
 
@@ -172,7 +172,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Development and production must use different secrets
    - Staging should have its own secret
 
-**See Also**: [Environment Variables - REVEALUI_SECRET](./ENVIRONMENT_VARIABLES_GUIDE.md#1-revealui_secret)
+**See Also**: [Environment Variables - REVEALUI_SECRET](./ENVIRONMENT-VARIABLES-GUIDE.md#1-revealui_secret)
 
 ---
 
@@ -506,7 +506,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 ## Related Documentation
 
 - [Quick Start Guide](./QUICK_START.md) - Initial setup
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
+- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Database Guide](./DATABASE.md) - Database setup and management
 - [CI/CD Guide](./CI_CD_GUIDE.md) - Deployment troubleshooting
 - [Standards Guide](./STANDARDS.md) - Code standards and best practices

@@ -371,5 +371,5 @@ For cross-subdomain auth (e.g., `admin.revealui.com` and `api.revealui.com`), se
 ## Related Documentation
 
 - [Auth & Security Reference](../AUTH.md) -- Full auth system reference
-- [Environment Variables](../ENVIRONMENT_VARIABLES_GUIDE.md) -- All configuration options
+- [Environment Variables](../ENVIRONMENT-VARIABLES-GUIDE.md) -- All configuration options
 - [Database Guide](../DATABASE.md) -- Schema and migration details

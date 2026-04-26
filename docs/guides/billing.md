@@ -361,4 +361,4 @@ The billing system uses these NeonDB tables:
 
 - [Build Your Business](../BUILD_YOUR_BUSINESS.md) -- End-to-end product setup
 - [Pro Features](../PRO.md) -- AI, MCP, and commercial features
-- [Environment Variables](../ENVIRONMENT_VARIABLES_GUIDE.md) -- Full configuration reference
+- [Environment Variables](../ENVIRONMENT-VARIABLES-GUIDE.md) -- Full configuration reference

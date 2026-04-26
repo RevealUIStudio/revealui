@@ -7,9 +7,9 @@ audience: developer
 
 # RevealUI Component Catalog
 
-**Last Updated:** 2026-03-03
+**Last Updated:** 2026-04-26
 **Packages:** `@revealui/presentation`, `@revealui/core`
-**Total Components:** 64
+**Total Components:** 78 across both packages — **57 in `@revealui/presentation`** (the standalone UI library) plus 21 admin / richtext components in `@revealui/core`.
 
 ---
 
