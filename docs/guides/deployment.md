@@ -183,15 +183,19 @@ docker compose down
 
 ### Health Checks
 
-The API exposes a health endpoint at `GET /api/health` that returns:
+The API exposes a health endpoint at `GET /health/ready` (Vercel-friendly path; legacy alias at `GET /api/health`) that returns:
 
 ```json
 {
   "status": "ok",
-  "version": "1.0.0",
-  "uptime": 3600
+  "version": "0.5.5",
+  "uptime": 3600,
+  "db": "healthy",
+  "memory": "47.52%"
 }
 ```
+
+Pre-1.0; the `version` field reports the runtime package version from `package.json`. Don't depend on it being stable until the project promotes to 1.0.
 
 Use this in your Docker health check or load balancer configuration.
 

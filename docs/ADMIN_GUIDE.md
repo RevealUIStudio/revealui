@@ -831,7 +831,7 @@ Before creating posts, you may want to set up categories:
 
 ### Content Examples
 
-Ready-to-use content examples for each collection. Copy and paste these into your admin admin panel and replace the placeholder text with your own content.
+Ready-to-use content examples for each collection. Copy and paste these into your admin panel and replace the placeholder text with your own content.
 
 **Contents Collection Examples**
 
@@ -1052,7 +1052,7 @@ Image: [Link uploaded media]
 **Problem**: API returns empty `docs` array
 **Solutions**:
 
-- Check if data exists in admin admin
+- Check if data exists in admin
 - Verify collection access permissions
 - Check `where` filters are correct
 

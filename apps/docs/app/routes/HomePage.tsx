@@ -24,7 +24,7 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 ## Documentation Sections
 
 ### Getting Started
-- [Quick Start](/docs/QUICK_START)  -  Get running in 5 minutes
+- [Quick Start](/docs/QUICK_START)  -  Get a local dev stack running
 - [Build Your Business](/docs/BUILD_YOUR_BUSINESS)  -  End-to-end tutorial: scaffold to deploy
 - [Examples](/docs/EXAMPLES)  -  Blog, subscription starter, e-commerce storefront
 
@@ -61,7 +61,7 @@ See the [Quick Start guide](/docs/QUICK_START) for the full walkthrough, or brow
 - [The Five Primitives](/docs/blog/05-five-primitives)  -  Users, content, products, payments, AI
 - [Open Source & Pro](/docs/blog/06-open-source-and-pro)  -  Our monetization philosophy
 - [Agent-First Future](/docs/blog/07-agent-first-future)  -  Building for the agent economy
-- [Getting Started in 10 Minutes](/docs/blog/08-getting-started)  -  From zero to deployed
+- [Getting Started in About 30 Minutes](/docs/blog/08-getting-started)  -  From zero to deployed
 
 ---
 

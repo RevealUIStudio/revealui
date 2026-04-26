@@ -119,7 +119,7 @@ const sections: NavSection[] = [
       { label: 'The Five Primitives', path: '/docs/blog/05-five-primitives' },
       { label: 'Open Source & Pro', path: '/docs/blog/06-open-source-and-pro' },
       { label: 'Agent-First Future', path: '/docs/blog/07-agent-first-future' },
-      { label: 'Getting Started in 10 Minutes', path: '/docs/blog/08-getting-started' },
+      { label: 'Getting Started in About 30 Minutes', path: '/docs/blog/08-getting-started' },
     ],
   },
   {
