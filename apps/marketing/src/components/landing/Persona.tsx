@@ -1,8 +1,8 @@
 const checklist = [
   'Drop in user accounts and orgs in five lines of config',
   'Wire Stripe billing without writing a single webhook handler',
-  'Edit prompts and content through a real admin UI',
-  'Expose every API to your agents via MCP, automatically',
+  'Configure agents and edit content through a real admin UI',
+  'Every primitive ships with a matching MCP server, so agents work day one',
 ];
 
 export function Persona() {
