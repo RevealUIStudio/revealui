@@ -58,7 +58,8 @@ const TEASER_TIERS: TeaserTier[] = [
   {
     id: 'free',
     name: 'Free',
-    description: 'All open-source packages. MIT-licensed. No telemetry.',
+    description:
+      'OSS packages, MIT-licensed. No telemetry. Pro packages are Fair Source (FSL), source-visible and convert to MIT after two years.',
     features: [
       'Full primitive stack',
       'Admin dashboard + API',
