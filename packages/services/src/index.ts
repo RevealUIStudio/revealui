@@ -1,25 +1,15 @@
 /**
  * services - Shared Services Package
  *
- * Provides server-side and client-side service integrations:
+ * Provides service integrations:
  * - Stripe payment processing
- * - Supabase database and auth
+ * - RevealCoin / Solana
  *
  * ## Usage
  *
- * ### Full Package (Recommended)
  * ```typescript
- * import { protectedStripe, createServerClient, createBrowserClient } from 'services'
- * ```
- *
- * ### Core (Server-side)
- * ```typescript
- * import { createServerClient, protectedStripe } from 'services/server'
- * ```
- *
- * ### Client (Browser)
- * ```typescript
- * import { createBrowserClient } from 'services/client'
+ * import { protectedStripe } from '@revealui/services'
+ * import { protectedStripe } from '@revealui/services/server'
  * ```
  */
 
@@ -42,7 +32,5 @@ export function checkServicesLicense(): boolean {
 }
 
 // Re-export client (client-side) exports
-export * from './client/index.js';
 export * from './revealcoin/index.js';
 export * from './stripe/index.js';
-export * from './supabase/index.js';

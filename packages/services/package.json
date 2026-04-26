@@ -1,7 +1,7 @@
 {
   "name": "@revealui/services",
   "version": "0.4.0",
-  "description": "External service integrations for RevealUI — Stripe, Supabase, and Vercel",
+  "description": "External service integrations for RevealUI — Stripe, Solana, and Vercel",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
@@ -14,8 +14,6 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@solana/kit": "^6.8.0",
-    "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.103.3",
     "@vercel/node": "^5.7.12",
     "drizzle-orm": "catalog:",
     "stripe": "^22.0.2"
@@ -46,10 +44,6 @@
     "./server": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./client": {
-      "types": "./dist/client/index.d.ts",
-      "import": "./dist/client/index.js"
     },
     "./stripe/payment-intent": {
       "types": "./dist/stripe/payment-intent.d.ts",
