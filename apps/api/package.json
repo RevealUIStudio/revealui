@@ -15,6 +15,7 @@
     "@revealui/db": "workspace:*",
     "@revealui/mcp": "workspace:*",
     "@revealui/openapi": "workspace:*",
+    "@revealui/security": "workspace:*",
     "@sentry/node": "^10.49.0",
     "@vercel/blob": "^2.3.3",
     "drizzle-orm": "catalog:",

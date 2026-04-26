@@ -362,6 +362,56 @@ function createProtectedStripe(stripeInstance?: Stripe) {
           'invoices.retrieve',
         ),
     },
+    charges: {
+      retrieve: (...args: Parameters<Stripe['charges']['retrieve']>): Promise<Stripe.Charge> =>
+        callWithResilience(() => getStripeInstance().charges.retrieve(...args), 'charges.retrieve'),
+    },
+    transfers: {
+      create: (
+        params: Stripe.TransferCreateParams,
+        options?: Stripe.RequestOptions,
+      ): Promise<Stripe.Transfer> =>
+        callWithResilience(
+          () => getStripeInstance().transfers.create(params, options),
+          'transfers.create',
+        ),
+    },
+    accounts: {
+      create: (
+        params?: Stripe.AccountCreateParams,
+        options?: Stripe.RequestOptions,
+      ): Promise<Stripe.Account> =>
+        callWithResilience(
+          () => getStripeInstance().accounts.create(params, options),
+          'accounts.create',
+        ),
+    },
+    accountLinks: {
+      create: (
+        params: Stripe.AccountLinkCreateParams,
+        options?: Stripe.RequestOptions,
+      ): Promise<Stripe.AccountLink> =>
+        callWithResilience(
+          () => getStripeInstance().accountLinks.create(params, options),
+          'accountLinks.create',
+        ),
+    },
+    events: {
+      retrieve: (...args: Parameters<Stripe['events']['retrieve']>): Promise<Stripe.Event> =>
+        callWithResilience(() => getStripeInstance().events.retrieve(...args), 'events.retrieve'),
+    },
+    billing: {
+      meterEvents: {
+        create: (
+          params: Stripe.Billing.MeterEventCreateParams,
+          options?: Stripe.RequestOptions,
+        ): Promise<Stripe.Billing.MeterEvent> =>
+          callWithResilience(
+            () => getStripeInstance().billing.meterEvents.create(params, options),
+            'billing.meterEvents.create',
+          ),
+      },
+    },
     get webhooks(): Stripe['webhooks'] {
       return getStripeInstance().webhooks;
     },

@@ -98,6 +98,18 @@ const sections: NavSection[] = [
     ],
   },
   {
+    title: 'RevealUI Studio Suite',
+    items: [
+      { label: 'Suite Overview', path: '/docs/SUITE' },
+      { label: 'RevDev — Studio + Console', path: '/docs/suite/revdev' },
+      { label: 'RevVault — Secret Vault', path: '/docs/suite/revvault' },
+      { label: 'RevCon — Editor Sync', path: '/docs/suite/revcon' },
+      { label: 'RevealCoin — RVC Token', path: '/docs/suite/revealcoin' },
+      { label: 'RevSkills — Agent Skills', path: '/docs/suite/revskills' },
+      { label: 'RevKit — WSL Workstation', path: '/docs/suite/revkit' },
+    ],
+  },
+  {
     title: 'Blog',
     items: [
       { label: 'Why We Built RevealUI', path: '/docs/blog/01-why-we-built-revealui' },

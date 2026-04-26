@@ -55,6 +55,14 @@ vi.mock('stripe', () => {
   return { default: MockStripe };
 });
 
+// GAP-131: drain-unreconciled now uses protectedStripe from @revealui/services
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    events: { retrieve: vi.fn() },
+    webhooks: { generateTestHeaderStringAsync: vi.fn() },
+  },
+}));
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

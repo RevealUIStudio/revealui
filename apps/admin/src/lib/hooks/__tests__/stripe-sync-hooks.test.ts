@@ -312,6 +312,10 @@ describe('customerProxy', () => {
     const newCustomer = { id: 'cus_new_1', email: 'new@test.com' };
 
     mockCustomersRetrieve.mockResolvedValue(existingCustomer);
+    // GAP-132 B-3 look-up-first guard: POST path calls customers.list({email}) before create.
+    // Empty result → fall through to create. (vi.clearAllMocks clears call history but not
+    // mockResolvedValue/mockRejectedValue from prior tests, so set this explicitly.)
+    mockCustomersList.mockResolvedValue({ data: [] });
     mockCustomersCreate.mockResolvedValue(newCustomer);
 
     const req = createMockRequest({

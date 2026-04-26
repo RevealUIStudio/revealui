@@ -2,7 +2,8 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Module-level spy shared across the MockStripe instances.
 // The source caches the first Stripe instance, so all tests share one spy.
-const mockProductsList = vi.fn();
+// Hoisted because vi.mock factories are hoisted above this line.
+const { mockProductsList } = vi.hoisted(() => ({ mockProductsList: vi.fn() }));
 
 // Mock Stripe before imports
 vi.mock('stripe', () => {
@@ -12,6 +13,13 @@ vi.mock('stripe', () => {
     },
   };
 });
+
+// GAP-131: pricing.ts now uses protectedStripe from @revealui/services
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    products: { list: mockProductsList },
+  },
+}));
 
 // Mock circuit breaker to pass through by default.
 // Individual tests can override CircuitBreakerOpenError by throwing it.
@@ -301,6 +309,13 @@ describe('GET /api/pricing  -  Stripe integration', () => {
       },
     }));
 
+    // GAP-131: pricing.ts now uses protectedStripe from @revealui/services
+    vi.doMock('@revealui/services', () => ({
+      protectedStripe: {
+        products: { list: sharedMockList },
+      },
+    }));
+
     vi.doMock('@revealui/core/error-handling', () => ({
       CircuitBreaker: class {
         async execute<T>(fn: () => Promise<T>): Promise<T> {
@@ -561,6 +576,13 @@ describe('GET /api/pricing  -  circuit breaker open', () => {
     vi.doMock('stripe', () => ({
       default: class MockStripe {
         products = { list: vi.fn() };
+      },
+    }));
+
+    // GAP-131: pricing.ts now uses protectedStripe from @revealui/services
+    vi.doMock('@revealui/services', () => ({
+      protectedStripe: {
+        products: { list: vi.fn() },
       },
     }));
 

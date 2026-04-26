@@ -18,8 +18,19 @@ import {
 
 // ─── Mocks (before imports) ─────────────────────────────────────────────────
 
-const mockConstructEvent = vi.fn();
-const mockSubscriptionsRetrieve = vi.fn();
+const {
+  mockConstructEvent,
+  mockSubscriptionsRetrieve,
+  mockSubscriptionsCancel,
+  mockInvoicesRetrieve,
+  mockPaymentIntentsRetrieve,
+} = vi.hoisted(() => ({
+  mockConstructEvent: vi.fn(),
+  mockSubscriptionsRetrieve: vi.fn(),
+  mockSubscriptionsCancel: vi.fn(),
+  mockInvoicesRetrieve: vi.fn(),
+  mockPaymentIntentsRetrieve: vi.fn(),
+}));
 
 vi.mock('stripe', () => ({
   default: vi.fn().mockImplementation(
@@ -28,10 +39,35 @@ vi.mock('stripe', () => ({
       subscriptions = {
         update: vi.fn(),
         retrieve: mockSubscriptionsRetrieve,
+        cancel: mockSubscriptionsCancel,
         list: vi.fn().mockResolvedValue({ data: [] }),
+      };
+      invoices = {
+        retrieve: mockInvoicesRetrieve,
+      };
+      paymentIntents = {
+        retrieve: mockPaymentIntentsRetrieve,
       };
     } as unknown as (...args: unknown[]) => unknown,
   ),
+}));
+
+// GAP-131: webhooks.ts now uses protectedStripe from @revealui/services
+// GAP-124 Surface 6 needs cancel/invoices/paymentIntents on the same mock.
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    webhooks: { constructEventAsync: mockConstructEvent },
+    subscriptions: {
+      update: vi.fn(),
+      retrieve: mockSubscriptionsRetrieve,
+      cancel: mockSubscriptionsCancel,
+      list: vi.fn().mockResolvedValue({ data: [] }),
+    },
+    customers: { update: vi.fn() },
+    charges: { retrieve: vi.fn() },
+    invoices: { retrieve: mockInvoicesRetrieve },
+    paymentIntents: { retrieve: mockPaymentIntentsRetrieve },
+  },
 }));
 
 let testDb: TestDb;
@@ -85,7 +121,7 @@ vi.mock('../../middleware/license.js', () => ({
 
 // ─── Imports (after mocks) ──────────────────────────────────────────────────
 
-import { licenses, processedWebhookEvents, users } from '@revealui/db/schema';
+import { agentCreditBalance, licenses, processedWebhookEvents, users } from '@revealui/db/schema';
 import webhooksRoute from '../webhooks.js';
 
 // ─── Test helpers ───────────────────────────────────────────────────────────
@@ -350,6 +386,106 @@ describe('webhook integration  -  customer.subscription.deleted', () => {
   });
 });
 
+describe('webhook integration  -  customer.deleted (GAP-140 perpetual protection)', () => {
+  it('revokes ONLY non-perpetual licenses; perpetual licenses are preserved', async () => {
+    // Setup: one user with BOTH a subscription license AND a perpetual license
+    // for the same Stripe customer. The perpetual license represents a
+    // separately-purchased one-time purchase that must NOT be revoked when
+    // the Stripe customer record is deleted.
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-mixed-1',
+      email: 'mixed@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_mixed_1' })
+      .where(eq(users.id, 'user-mixed-1'));
+
+    // Subscription license (must be revoked on customer.deleted)
+    await testDb.drizzle.insert(licenses).values({
+      id: 'lic-sub-1',
+      userId: 'user-mixed-1',
+      licenseKey: 'sub-key',
+      tier: 'pro',
+      customerId: 'cus_mixed_1',
+      subscriptionId: 'sub_mixed_1',
+      status: 'active',
+      perpetual: false,
+    });
+
+    // Perpetual license (must be preserved on customer.deleted)
+    await testDb.drizzle.insert(licenses).values({
+      id: 'lic-perp-1',
+      userId: 'user-mixed-1',
+      licenseKey: 'perp-key',
+      tier: 'pro',
+      customerId: 'cus_mixed_1',
+      subscriptionId: null,
+      status: 'active',
+      perpetual: true,
+    });
+
+    const event = makeStripeEvent('customer.deleted', {
+      id: 'cus_mixed_1',
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    // Subscription license should be revoked
+    const subRow = await testDb.drizzle.select().from(licenses).where(eq(licenses.id, 'lic-sub-1'));
+    expect(subRow).toHaveLength(1);
+    expect(subRow[0].status).toBe('revoked');
+
+    // Perpetual license should be PRESERVED (status still 'active')
+    const perpRow = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.id, 'lic-perp-1'));
+    expect(perpRow).toHaveLength(1);
+    expect(perpRow[0].status).toBe('active');
+    expect(perpRow[0].perpetual).toBe(true);
+  });
+
+  it('revokes only-subscription license set when no perpetual licenses exist', async () => {
+    // Regression check: customer with no perpetual still has all subscription
+    // licenses revoked correctly.
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-sub-only',
+      email: 'subonly@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_sub_only' })
+      .where(eq(users.id, 'user-sub-only'));
+
+    await testDb.drizzle.insert(licenses).values({
+      id: 'lic-sub-only-1',
+      userId: 'user-sub-only',
+      licenseKey: 'sub-only-key',
+      tier: 'pro',
+      customerId: 'cus_sub_only',
+      subscriptionId: 'sub_only_1',
+      status: 'active',
+      perpetual: false,
+    });
+
+    const event = makeStripeEvent('customer.deleted', {
+      id: 'cus_sub_only',
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    const rows = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.id, 'lic-sub-only-1'));
+    expect(rows).toHaveLength(1);
+    expect(rows[0].status).toBe('revoked');
+  });
+});
+
 describe('webhook integration  -  irrelevant events', () => {
   it('returns 200 without processing for unknown event types', async () => {
     const event = makeStripeEvent('invoice.created', {
@@ -365,5 +501,261 @@ describe('webhook integration  -  irrelevant events', () => {
       .from(processedWebhookEvents)
       .where(eq(processedWebhookEvents.id, event.id as string));
     expect(rows).toHaveLength(0);
+  });
+});
+
+// GAP-124 Surface 6 fix-train tests — BLOCKING-B (credit-bundle refunds debit
+// agentCreditBalance) and BLOCKING-C (full refund of subscription invoice
+// cancels Stripe subscription).
+describe('webhook integration  -  charge.refunded (Surface 6 fix-train)', () => {
+  it('full credit-bundle refund debits agentCreditBalance', async () => {
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-credit-refund',
+      email: 'creditrefund@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_credit_refund' })
+      .where(eq(users.id, 'user-credit-refund'));
+
+    // Seed a balance that the refund will roll back. Bundle is 1000 tasks;
+    // user has spent 200 (balance=800), so refund debits 1000 down to 0
+    // (clamped) and totalPurchased back to 0.
+    await testDb.drizzle.insert(agentCreditBalance).values({
+      userId: 'user-credit-refund',
+      balance: 800,
+      totalPurchased: 1000,
+    });
+
+    // PaymentIntent metadata identifies this as a credit-bundle purchase.
+    mockPaymentIntentsRetrieve.mockResolvedValueOnce({
+      id: 'pi_credit_refund',
+      metadata: {
+        credits_bundle: 'starter',
+        credits_tasks: '1000',
+        revealui_user_id: 'user-credit-refund',
+      },
+    });
+
+    const event = makeStripeEvent('charge.refunded', {
+      id: 'ch_credit_refund',
+      customer: 'cus_credit_refund',
+      payment_intent: 'pi_credit_refund',
+      amount: 5000,
+      amount_refunded: 5000,
+      currency: 'usd',
+      billing_details: { email: 'creditrefund@example.com' },
+      invoice: null,
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    const balanceRows = await testDb.drizzle
+      .select()
+      .from(agentCreditBalance)
+      .where(eq(agentCreditBalance.userId, 'user-credit-refund'));
+
+    expect(balanceRows).toHaveLength(1);
+    // 800 - 1000 = -200 → clamped at 0
+    expect(balanceRows[0].balance).toBe(0);
+    // 1000 - 1000 = 0
+    expect(balanceRows[0].totalPurchased).toBe(0);
+
+    expect(mockPaymentIntentsRetrieve).toHaveBeenCalledWith('pi_credit_refund');
+  });
+
+  it('credit-bundle refund with ambiguous user lookup logs warning and skips', async () => {
+    // Two users share the same stripeCustomerId; PaymentIntent metadata
+    // omits revealui_user_id — should skip debit, defer to admin.
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-amb-1',
+      email: 'amb1@example.com',
+    });
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-amb-2',
+      email: 'amb2@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_ambiguous' })
+      .where(eq(users.id, 'user-amb-1'));
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_ambiguous' })
+      .where(eq(users.id, 'user-amb-2'));
+
+    await testDb.drizzle.insert(agentCreditBalance).values({
+      userId: 'user-amb-1',
+      balance: 500,
+      totalPurchased: 500,
+    });
+
+    mockPaymentIntentsRetrieve.mockResolvedValueOnce({
+      id: 'pi_ambiguous',
+      metadata: {
+        credits_bundle: 'starter',
+        credits_tasks: '500',
+        // No revealui_user_id — forces fallback to customer lookup.
+      },
+    });
+
+    const event = makeStripeEvent('charge.refunded', {
+      id: 'ch_ambiguous',
+      customer: 'cus_ambiguous',
+      payment_intent: 'pi_ambiguous',
+      amount: 2500,
+      amount_refunded: 2500,
+      currency: 'usd',
+      billing_details: { email: 'amb1@example.com' },
+      invoice: null,
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    // Balance unchanged — debit was skipped due to ambiguity.
+    const balanceRows = await testDb.drizzle
+      .select()
+      .from(agentCreditBalance)
+      .where(eq(agentCreditBalance.userId, 'user-amb-1'));
+    expect(balanceRows).toHaveLength(1);
+    expect(balanceRows[0].balance).toBe(500);
+    expect(balanceRows[0].totalPurchased).toBe(500);
+  });
+
+  it('full subscription invoice refund cancels Stripe subscription', async () => {
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-sub-refund',
+      email: 'subrefund@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_sub_refund' })
+      .where(eq(users.id, 'user-sub-refund'));
+
+    await testDb.drizzle.insert(licenses).values({
+      id: 'lic-sub-refund',
+      userId: 'user-sub-refund',
+      licenseKey: 'sub-refund-key',
+      tier: 'pro',
+      customerId: 'cus_sub_refund',
+      subscriptionId: 'sub_to_cancel',
+      status: 'active',
+      perpetual: false,
+    });
+
+    // No credit-bundle metadata on the PaymentIntent — pure subscription.
+    mockPaymentIntentsRetrieve.mockResolvedValueOnce({
+      id: 'pi_sub_refund',
+      metadata: {},
+    });
+
+    // Charge → Invoice → Subscription chain. Stripe SDK v20 moved
+    // subscription from invoice.subscription to
+    // invoice.parent.subscription_details.subscription — match the
+    // production code path.
+    mockInvoicesRetrieve.mockResolvedValueOnce({
+      id: 'in_sub_refund',
+      parent: { subscription_details: { subscription: 'sub_to_cancel' } },
+    });
+
+    mockSubscriptionsCancel.mockResolvedValueOnce({
+      id: 'sub_to_cancel',
+      status: 'canceled',
+    });
+
+    const event = makeStripeEvent('charge.refunded', {
+      id: 'ch_sub_refund',
+      customer: 'cus_sub_refund',
+      payment_intent: 'pi_sub_refund',
+      invoice: 'in_sub_refund',
+      amount: 4900,
+      amount_refunded: 4900,
+      currency: 'usd',
+      billing_details: { email: 'subrefund@example.com' },
+    });
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    // Local license revoked.
+    const licenseRows = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.id, 'lic-sub-refund'));
+    expect(licenseRows[0].status).toBe('revoked');
+
+    // Stripe subscription canceled with idempotent flags.
+    expect(mockInvoicesRetrieve).toHaveBeenCalledWith('in_sub_refund');
+    expect(mockSubscriptionsCancel).toHaveBeenCalledWith('sub_to_cancel', {
+      invoice_now: false,
+      prorate: false,
+    });
+  });
+
+  it('handles already-canceled Stripe subscription gracefully (idempotent)', async () => {
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-already-cancel',
+      email: 'alreadycancel@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_already_cancel' })
+      .where(eq(users.id, 'user-already-cancel'));
+
+    await testDb.drizzle.insert(licenses).values({
+      id: 'lic-already-cancel',
+      userId: 'user-already-cancel',
+      licenseKey: 'already-cancel-key',
+      tier: 'pro',
+      customerId: 'cus_already_cancel',
+      subscriptionId: 'sub_already_canceled',
+      status: 'active',
+      perpetual: false,
+    });
+
+    mockPaymentIntentsRetrieve.mockResolvedValueOnce({
+      id: 'pi_already_cancel',
+      metadata: {},
+    });
+
+    mockInvoicesRetrieve.mockResolvedValueOnce({
+      id: 'in_already_cancel',
+      parent: { subscription_details: { subscription: 'sub_already_canceled' } },
+    });
+
+    // Stripe surfaces "already canceled" as resource_missing in modern SDKs.
+    const stripeError = Object.assign(new Error('No such subscription: sub_already_canceled'), {
+      code: 'resource_missing',
+    });
+    mockSubscriptionsCancel.mockRejectedValueOnce(stripeError);
+
+    const event = makeStripeEvent('charge.refunded', {
+      id: 'ch_already_cancel',
+      customer: 'cus_already_cancel',
+      payment_intent: 'pi_already_cancel',
+      invoice: 'in_already_cancel',
+      amount: 4900,
+      amount_refunded: 4900,
+      currency: 'usd',
+      billing_details: { email: 'alreadycancel@example.com' },
+    });
+
+    const res = await postWebhook(event);
+    // Webhook still returns 200 — the cancel-already-canceled path is a no-op.
+    expect(res.status).toBe(200);
+
+    // License revoke still happened locally.
+    const licenseRows = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.id, 'lic-already-cancel'));
+    expect(licenseRows[0].status).toBe('revoked');
+
+    expect(mockSubscriptionsCancel).toHaveBeenCalledWith('sub_already_canceled', {
+      invoice_now: false,
+      prorate: false,
+    });
   });
 });
