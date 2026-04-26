@@ -58,7 +58,7 @@ Six principles that give you a tested starting point for every architectural dec
 | Principle | What it means |
 | --- | --- |
 | **Justifiable** | Every default earns its place. No magic, no hidden complexity, no decisions you can't explain to your team. |
-| **Orthogonal** | Clean separation of concerns across 25 packages. Use what you need, replace what you don't. Zero circular dependencies. |
+| **Orthogonal** | Clean separation of concerns across 26 packages. Use what you need, replace what you don't. Zero circular dependencies. |
 | **Sovereign** | Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No vendor holds your business hostage. |
 | **Hermetic** | Auth doesn't leak into billing. Content doesn't tangle with payments. Sealed boundaries, clean contracts between every layer. |
 | **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |

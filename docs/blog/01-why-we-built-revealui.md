@@ -224,7 +224,7 @@ This is the part that's genuinely hard to replicate by stitching services togeth
 
 Some numbers on what's actually shipped:
 
-- **25 packages** across the monorepo (5 apps, 23 OSS packages, and 2 Pro packages)
+- **26 packages** across the monorepo (5 apps, 23 OSS packages, and 2 Pro packages)
 - **81 database tables** via Drizzle ORM
 - **57 UI components** in the presentation layer (zero external UI dependencies  -  just Tailwind v4, clsx, and CVA)
 - **Extensive test coverage** across unit, integration, and E2E layers
