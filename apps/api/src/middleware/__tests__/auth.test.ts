@@ -123,7 +123,7 @@ describe('authMiddleware', () => {
         headers: {
           cookie: 'revealui-session=abc123',
           'user-agent': 'Mozilla/5.0 (test)',
-          'x-forwarded-for': '203.0.113.1, 198.51.100.5',
+          'x-forwarded-for': '203.0.113.1',
         },
       });
 
