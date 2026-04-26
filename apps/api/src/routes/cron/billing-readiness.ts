@@ -17,20 +17,11 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
+import { protectedStripe } from '@revealui/services';
 import { Hono } from 'hono';
-import Stripe from 'stripe';
 import { MRR_TIER_PRICE_FALLBACK_CENTS, type SubscriptionTierId } from '../../lib/tier-pricing.js';
 
 const app = new Hono();
-
-let cachedStripe: Stripe | undefined;
-function getStripeClient(): Stripe {
-  if (cachedStripe) return cachedStripe;
-  const key = process.env.STRIPE_SECRET_KEY?.trim();
-  if (!key) throw new Error('STRIPE_SECRET_KEY not configured');
-  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
-  return cachedStripe;
-}
 
 /** Subscription tiers whose Stripe prices must match the MRR fallback. */
 const SUBSCRIPTION_TIERS: Array<{
@@ -159,8 +150,8 @@ app.post('/billing-readiness', async (c) => {
     const priceId = process.env[priceEnvVar]?.trim();
     if (!priceId) continue; // env-var absence already flagged by section 1
     try {
-      const stripe = getStripeClient();
-      const price = await stripe.prices.retrieve(priceId);
+      // GAP-131: shared protectedStripe wrapper.
+      const price = await protectedStripe.prices.retrieve(priceId);
       const expected = MRR_TIER_PRICE_FALLBACK_CENTS[tier];
       if (price.unit_amount === null) {
         results.push({

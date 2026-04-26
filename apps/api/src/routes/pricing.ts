@@ -15,12 +15,18 @@ import {
 import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { logger } from '@revealui/core/observability/logger';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import Stripe from 'stripe';
+import { protectedStripe } from '@revealui/services';
+import type Stripe from 'stripe';
 
 const app = new OpenAPIHono();
 
 // ---------------------------------------------------------------------------
-// Stripe client (self-contained  -  does not share with billing.ts)
+// Stripe client (GAP-131): the actual Stripe call goes through the shared
+// protectedStripe wrapper (DB-backed circuit breaker + retry, single API
+// version pin). The local `pricingBreaker` remains as a per-route fast-fail
+// guard that flips the response to fallback prices without waiting for the
+// DB breaker round-trip — pricing is hot-path public data and the fallback
+// is the right answer when Stripe is degraded.
 // ---------------------------------------------------------------------------
 
 const pricingBreaker = new CircuitBreaker({
@@ -29,16 +35,8 @@ const pricingBreaker = new CircuitBreaker({
   successThreshold: 2,
 });
 
-let cachedStripe: Stripe | null | undefined;
-function getStripeClient(): Stripe | null {
-  if (cachedStripe !== undefined) return cachedStripe;
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) {
-    cachedStripe = null;
-    return null;
-  }
-  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
-  return cachedStripe;
+function isStripeConfigured(): boolean {
+  return Boolean(process.env.STRIPE_SECRET_KEY);
 }
 
 // ---------------------------------------------------------------------------
@@ -143,12 +141,11 @@ interface StripeProductMap {
 }
 
 async function fetchStripePrices(): Promise<StripeProductMap | null> {
-  const stripe = getStripeClient();
-  if (!stripe) return null;
+  if (!isStripeConfigured()) return null;
 
   try {
     const result = await pricingBreaker.execute(async () => {
-      const products = await stripe.products.list({
+      const products = await protectedStripe.products.list({
         active: true,
         expand: ['data.default_price'],
         limit: 100,

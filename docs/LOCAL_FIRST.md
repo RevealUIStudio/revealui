@@ -7,7 +7,7 @@ audience: developer
 
 # Local-First Setup
 
-Run RevealUI entirely on your own hardware with local AI inference  -  no proprietary APIs, no remote secret storage, fully reproducible dev environment. Pro tier also supports cloud-hosted open models via the RevealUI harness.
+Run RevealUI's AI inference and secrets layer entirely on your own hardware. Local-first is an **optional path** that swaps cloud LLM providers for Snaps/Ollama and remote secret managers for RevVault — the default RevealUI deployment still uses cloud services (Neon Postgres, Stripe, Vercel Blob storage). Cloud-compatible LLM providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic) are pluggable but opt-in via env vars.
 
 ## Overview
 
@@ -60,13 +60,13 @@ The Nix flake activates: Node 24, pnpm 10, Biome, and all build dependencies are
 Inference snaps are the primary recommended path for local AI. Canonical's snap-packaged model serving provides hardware-aware engine selection, signed packages, and zero configuration:
 
 ```bash
-sudo snap install nemotron-3-nano   # general-purpose, low resource
+sudo snap install nemotron-nano   # general-purpose, low resource
 # or: sudo snap install gemma3      # general + vision
 ```
 
 Verify the snap is running:
 ```bash
-nemotron-3-nano status
+nemotron-nano status
 ```
 
 Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.
@@ -163,11 +163,11 @@ Once set up, the full local-first stack starts with:
 pnpm dev:app
 ```
 
-Or use Studio to manage services, agents, and local inference from a native desktop interface.
+Or use [Studio](./suite/revdev.md) — a separate [RevDev](https://github.com/RevealUIStudio/revdev) product (Tauri desktop app) that gives you a native interface for managing services, agents, and local inference against your RevealUI install.
 
 ## Verifying local inference
 
-In the admin admin dashboard, navigate to **Admin → AI → Agent Tasks** and run a test task. You should see the inference request handled locally with no outbound network traffic to any AI provider.
+In the admin dashboard, navigate to **AI → Agent Tasks** and run a test task. You should see the inference request handled locally with no outbound network traffic to any AI provider.
 
 ## Troubleshooting
 

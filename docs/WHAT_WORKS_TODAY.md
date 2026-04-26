@@ -144,7 +144,7 @@ cd revealui
 pnpm install
 pnpm gate        # Run the full CI gate locally
 pnpm test        # Run the full test suite
-pnpm typecheck:all  # Typecheck all 30 workspaces
+pnpm typecheck:all  # Typecheck all 31 workspaces
 ```
 
 If something on this page doesn't match what you see in the code, file an issue.

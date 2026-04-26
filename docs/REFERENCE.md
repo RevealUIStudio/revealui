@@ -343,7 +343,7 @@ interface RevealDeleteOptions {
 
 ### `revealui.login(options)`
 
-Authenticates a user and returns a signed JWT.
+Authenticates a user and returns a session token. Sessions are server-stored and identified by an opaque random hex string in the `revealui-session` cookie (HttpOnly, Secure, SameSite=Lax). There is no JWT in the session cookie — see [ADR-004: Session-Only Auth](./architecture/ADR-004-session-only-auth.md). License JWTs (RS256) are a separate surface.
 
 ```ts
 const { user, token } = await revealui.login({
@@ -353,6 +353,7 @@ const { user, token } = await revealui.login({
     password: "secret",
   },
 });
+// token is the opaque session identifier; sessions are server-side records.
 ```
 
 Passwords must be stored as bcrypt hashes. Plain-text passwords are rejected.

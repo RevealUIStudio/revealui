@@ -273,6 +273,9 @@ importers:
       '@revealui/presentation':
         specifier: workspace:*
         version: link:../../packages/presentation
+      '@revealui/security':
+        specifier: workspace:*
+        version: link:../../packages/security
       '@revealui/services':
         specifier: workspace:^
         version: link:../../packages/services
@@ -427,6 +430,9 @@ importers:
       '@revealui/openapi':
         specifier: workspace:*
         version: link:../../packages/openapi
+      '@revealui/security':
+        specifier: workspace:*
+        version: link:../../packages/security
       '@revealui/services':
         specifier: workspace:^
         version: link:../../packages/services
@@ -1306,6 +1312,12 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 4.1.5(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.1)(@types/node@25.6.0)(@vitest/coverage-v8@4.1.5)(@vitest/ui@4.1.5)(happy-dom@20.9.0(bufferutil@4.1.0)(utf-8-validate@6.0.6))(jsdom@29.0.1(@noble/hashes@1.8.0))(vite@8.0.9(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
+
+  packages/revealui:
+    dependencies:
+      create-revealui:
+        specifier: workspace:*
+        version: link:../create-revealui
 
   packages/router:
     dependencies:

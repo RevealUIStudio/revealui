@@ -53,6 +53,10 @@
       "types": "./dist/license.d.ts",
       "import": "./dist/license.js"
     },
+    "./forge-license": {
+      "types": "./dist/forge-license.d.ts",
+      "import": "./dist/forge-license.js"
+    },
     "./features": {
       "types": "./dist/features.d.ts",
       "import": "./dist/features.js"

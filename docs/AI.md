@@ -141,16 +141,16 @@ import { createTask, getTask, cancelTask, appendArtifact } from "@revealui/ai/a2
 
 ## Open-Model Inference
 
-All inference runs on open source models  -  no proprietary cloud APIs, no vendor lock-in.
+The default and recommended path is open-model inference: **Ollama** (any open source GGUF model) and **Canonical's Ubuntu Inference Snaps** (planned recommended path; Studio lifecycle pending). Cloud-compatible providers — Groq, Vultr, HuggingFace, OpenAI-compatible endpoints, and Anthropic (for prompt-caching) — are pluggable but opt-in via environment variables. There is no vendor lock-in: switch providers by changing `LLM_PROVIDER`.
 
-The recommended setup is **Ubuntu Inference Snaps**  -  Canonical's snap-packaged model serving with hardware-aware engine selection, signed packages, and zero configuration:
+For the planned recommended path (when you're ready to install + run a Canonical Inference Snap yourself):
 
 ```bash
 # Install your first model (free tier default)
-sudo snap install nemotron-3-nano
+sudo snap install nemotron-nano
 
 # Check status
-nemotron-3-nano status
+nemotron-nano status
 ```
 
 ```typescript
