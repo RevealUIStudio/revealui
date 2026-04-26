@@ -76,8 +76,8 @@ const TEASER_TIERS: TeaserTier[] = [
     features: [
       'Everything in Free',
       '10,000 agent tasks / month included',
-      'Pro AI features (agents, RAG, MCP)',
-      'Priority support, SLA',
+      'Pro AI features (agents, MCP, memory)',
+      'Priority support',
     ],
     cta: 'See Pro pricing',
     href: '/pricing',
@@ -87,12 +87,12 @@ const TEASER_TIERS: TeaserTier[] = [
     id: 'enterprise',
     name: 'Enterprise',
     description:
-      'SSO, audit logs, on-prem deployment, and a named contact. Custom plans for high volume.',
+      'Audit logs, multi-tenant architecture, and a named contact. Custom plans for high volume; SSO and on-prem on the roadmap.',
     features: [
       'Everything in Pro',
-      'SSO + SCIM provisioning',
       'Audit logs + compliance reports',
-      'On-prem and air-gapped deploy',
+      'Multi-tenant architecture',
+      'Roadmap: SSO, SCIM, on-prem deploy',
     ],
     cta: 'Talk to us',
     href: '/contact',
