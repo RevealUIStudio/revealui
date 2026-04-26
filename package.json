@@ -154,6 +154,7 @@
     "dev:up": "bash scripts/dev-tools/revealui-shell.sh",
     "dev:watched": "tsx scripts/dev-tools/dev-watchdog.ts",
     "docs:generate:api": "tsx scripts/docs/generate-api.ts",
+    "forge:issue-license": "tsx scripts/setup/issue-forge-license.ts",
     "format": "biome format --write .",
     "gate": "tsx scripts/gates/ci-gate.ts",
     "gate:quick": "tsx scripts/gates/ci-gate.ts --phase=1",
