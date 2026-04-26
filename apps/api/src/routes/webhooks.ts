@@ -1486,12 +1486,25 @@ app.openapi(stripeWebhookRoute, async (c) => {
         // Uses saga pattern for NeonDB-safe multi-step atomicity with compensating actions.
         const customerDeleteSteps: SagaStep[] = [
           {
-            name: 'revoke-all-licenses',
+            // Revoke only NON-PERPETUAL (subscription) licenses on
+            // Stripe-customer deletion. Perpetual licenses are one-time
+            // purchases the customer rightfully owns and must NOT be
+            // clobbered when their Stripe customer record is deleted (which
+            // can happen via admin action, GDPR flow, or merge). Mirrors
+            // the perpetual-aware filter the dunning + charge.refunded
+            // paths already apply. See GAP-140.
+            name: 'revoke-non-perpetual-licenses',
             execute: async (ctx) => {
               await ctx.db
                 .update(licenses)
                 .set({ status: 'revoked', updatedAt: new Date() })
-                .where(and(eq(licenses.customerId, customerId), isNull(licenses.deletedAt)));
+                .where(
+                  and(
+                    eq(licenses.customerId, customerId),
+                    eq(licenses.perpetual, false),
+                    isNull(licenses.deletedAt),
+                  ),
+                );
               return {};
             },
             compensate: async () => {
