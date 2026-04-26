@@ -253,3 +253,142 @@ describe('validateStartup — STRIPE_LIVE_MODE toggle (test-mode pre-launch)', (
     expect(warnSpy).toHaveBeenCalledTimes(1);
   });
 });
+
+// ─── validateLicenseAtStartup (Forge boot-time enforcement) ─────────────
+import { generateKeyPairSync } from 'node:crypto';
+import { generateLicenseKey } from '@revealui/core/license';
+import { beforeAll } from 'vitest';
+import { validateLicenseAtStartup } from '../validate-startup.js';
+
+let testPrivateKey: string;
+let testPublicKey: string;
+let mismatchedPublicKey: string;
+
+beforeAll(() => {
+  const pair = generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  });
+  testPrivateKey = pair.privateKey;
+  testPublicKey = pair.publicKey;
+
+  // Second keypair to test signature mismatch detection.
+  const otherPair = generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  });
+  mismatchedPublicKey = otherPair.publicKey;
+});
+
+describe('validateLicenseAtStartup', () => {
+  it('is a no-op when SKIP_ENV_VALIDATION=true', async () => {
+    await expect(
+      validateLicenseAtStartup({ SKIP_ENV_VALIDATION: 'true' }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY present)', async () => {
+    // Hosted SaaS deployment has the signing key — license enforcement
+    // is DB-driven via account_entitlements, not boot-time.
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_PRIVATE_KEY: 'any-non-empty-value',
+        // Even with KEY/PUBLIC_KEY missing, hosted mode skips the check.
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('throws in Forge mode when REVEALUI_LICENSE_KEY is missing', async () => {
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        // No REVEALUI_LICENSE_PRIVATE_KEY → Forge mode
+        // No REVEALUI_LICENSE_KEY → should throw
+      }),
+    ).rejects.toThrow(/REVEALUI_LICENSE_KEY is required for Forge/);
+  });
+
+  it('throws in Forge mode when REVEALUI_LICENSE_PUBLIC_KEY is missing', async () => {
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: 'doesnt-matter-no-pubkey-to-verify',
+      }),
+    ).rejects.toThrow(/REVEALUI_LICENSE_PUBLIC_KEY is required for Forge/);
+  });
+
+  it('throws when the JWT is malformed', async () => {
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: 'not.a.valid.jwt',
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+      }),
+    ).rejects.toThrow(/REVEALUI_LICENSE_KEY is invalid/);
+  });
+
+  it('throws when the JWT was signed with a different key', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'allevia' },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    // Verify against a DIFFERENT public key — must fail.
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: mismatchedPublicKey,
+      }),
+    ).rejects.toThrow(/REVEALUI_LICENSE_KEY is invalid/);
+  });
+
+  it('throws when the JWT is expired beyond the grace window', async () => {
+    // Generate a JWT that expired 30 days ago — well past the default
+    // 3-day subscription grace.
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'expired-co' },
+      testPrivateKey,
+      -30 * 24 * 60 * 60, // negative seconds → already expired
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+      }),
+    ).rejects.toThrow(/REVEALUI_LICENSE_KEY is invalid/);
+  });
+
+  it('passes for a valid Forge license JWT', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'allevia' },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('handles single-line PEM public key (with literal \\n separators)', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'docker-co' },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    // Simulate the .env-encoded form that stamp.sh writes.
+    const singleLinePublicKey = testPublicKey.replace(/\n/g, '\\n');
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: singleLinePublicKey,
+      }),
+    ).resolves.toBeUndefined();
+  });
+});
