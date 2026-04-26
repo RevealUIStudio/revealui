@@ -43,6 +43,15 @@ vi.mock('stripe', () => {
   return { default: MockStripe };
 });
 
+// GAP-131: route uses protectedStripe from @revealui/services. Mock the wrapper
+// directly so we don't pull in supabase/resilience.ts (which imports
+// `createLogger` and would force this test to mock a wider observability surface).
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    customers: { list: hoisted.customersListMock },
+  },
+}));
+
 import reconcileApp from '../reconcile-customers.js';
 
 // ---------------------------------------------------------------------------
