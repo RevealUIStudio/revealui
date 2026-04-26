@@ -600,7 +600,7 @@ export REVEALUI_LICENSE_KEY=<your-pro-license-key>
 
 ### Connect MCP servers
 
-RevealUI ships with open-source MCP (Model Context Protocol) servers for Stripe, Supabase, Neon, Vercel, and Playwright. Let your AI agents interact directly with your business infrastructure.
+RevealUI ships with 13 open-source MCP (Model Context Protocol) servers — including Stripe, Supabase, Neon, Vercel, Playwright, Code Validator, and Next.js DevTools (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). Let your AI agents interact directly with your business infrastructure.
 
 ### Add more collections
 

@@ -71,7 +71,7 @@ From 2026 onward, automation features should align with:
 packages/
 ├── core/           # Runtime engine (includes types/ and generated/)
 ├── contracts/      # Zod schemas & TypeScript types
-├── db/             # Database (Drizzle ORM, 81 tables)
+├── db/             # Database (Drizzle ORM, 85 tables)
 ├── auth/           # Authentication system
 ├── presentation/   # 57 UI components (Tailwind v4)
 ├── router/         # File-based router with SSR

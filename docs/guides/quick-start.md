@@ -57,7 +57,7 @@ See [Environment Variables Guide](../ENVIRONMENT-VARIABLES-GUIDE.md) for the ful
 pnpm db:migrate
 ```
 
-This creates all 81 tables. If you see a connection error, verify that `POSTGRES_URL` includes `?sslmode=require`.
+This creates all 85 tables. If you see a connection error, verify that `POSTGRES_URL` includes `?sslmode=require`.
 
 ---
 

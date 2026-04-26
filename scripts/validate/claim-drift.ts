@@ -106,6 +106,42 @@ function countWorkspaces(): number {
   return countPackages() + countApps();
 }
 
+/**
+ * Count `pgTable(` declarations across `packages/db/src/schema/*.ts`.
+ * The audit-first source of truth for "how many database tables ship".
+ */
+function countDbTables(): number {
+  const schemaDir = path.join(ROOT, 'packages/db/src/schema');
+  if (!fs.existsSync(schemaDir)) return 0;
+  let total = 0;
+  function walk(dir: string): void {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) {
+        walk(full);
+      } else if (e.name.endsWith('.ts') && !e.name.endsWith('.test.ts')) {
+        let content: string;
+        try {
+          content = fs.readFileSync(full, 'utf8');
+        } catch {
+          continue;
+        }
+        // Match standalone `pgTable(` calls (not inside a comment block start)
+        const matches = content.match(/pgTable\s*\(/g);
+        if (matches) total += matches.length;
+      }
+    }
+  }
+  walk(schemaDir);
+  return total;
+}
+
 // ---------------------------------------------------------------------------
 // Claim scanner
 // ---------------------------------------------------------------------------
@@ -753,6 +789,7 @@ function run(): void {
   const testFiles = countTestFiles();
   const uiComponents = countUIComponents();
   const mcpServers = countMCPServers();
+  const dbTables = countDbTables();
 
   console.log('Actual metrics:');
   console.log(`  Packages:      ${packages}`);
@@ -761,6 +798,7 @@ function run(): void {
   console.log(`  Test files:    ${testFiles}`);
   console.log(`  UI components: ${uiComponents}`);
   console.log(`  MCP servers:   ${mcpServers}`);
+  console.log(`  DB tables:     ${dbTables}`);
   console.log();
 
   const metrics: Metric[] = [
@@ -799,6 +837,17 @@ function run(): void {
       name: 'MCP servers',
       actual: mcpServers,
       claimPatterns: [/\b(\d+)\s*MCP\s*[Ss]ervers?\b/i],
+    },
+    {
+      name: 'DB tables',
+      actual: dbTables,
+      claimPatterns: [
+        // "85 tables", "85 PostgreSQL tables", "85 database tables", "85 Drizzle tables"
+        // Constrain to plausible totals (10..199) to avoid mid-doc small-number noise
+        /\b([1-9]\d{1,2})\s+(?:PostgreSQL\s+|database\s+|Drizzle\s+|primary\s+)?tables?\b/i,
+        // "Schema (85 tables)" parenthetical
+        /\(\s*([1-9]\d{1,2})\s+tables?\s*\)/i,
+      ],
     },
   ];
 

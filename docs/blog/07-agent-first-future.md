@@ -108,7 +108,7 @@ Four protocols converge to create the agent-first web. Each solves a different p
 | Protocol | Created by | Governed by | Purpose | RevealUI implementation |
 |---|---|---|---|---|
 | **A2A** (Agent-to-Agent) | Google | Linux Foundation (Agentic AI Foundation) | Agents discover and delegate work to other agents | Full A2A 1.0: Agent Cards, JSON-RPC task lifecycle (`tasks/send`, `tasks/get`, `tasks/cancel`), SSE streaming |
-| **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 13 MCP servers: Stripe, Supabase, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Vultr Test, Email Provider |
+| **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 13 first-party MCP servers: Stripe, Supabase, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, plus the RevealUI-internal Content / Email / Memory / Stripe servers, Vultr Test, and the adapter base class |
 | **x402** (HTTP 402 Payment Required) | Coinbase | Open standard | Internet-native micropayments for machine-to-machine commerce | Per-call USDC payments on Base, Coinbase facilitator verification, marketplace payment proxy |
 | **OpenAPI** | OpenAPI Initiative | Linux Foundation | Machine-readable API descriptions | Auto-generated from Hono route definitions with Zod schemas |
 
@@ -153,7 +153,7 @@ Agents use the host's configured inference path. The `createLLMClientFromEnv()` 
 
 The Model Context Protocol (MCP) defines how agents invoke tools. Where A2A is about agent-to-agent communication, MCP is about agent-to-tool communication. An MCP server exposes a set of tools -- functions that an agent can call with structured inputs and get structured outputs.
 
-RevealUI ships with seven MCP servers that cover the full infrastructure stack:
+RevealUI ships with 13 first-party MCP servers (full list in [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers)). The seven that cover the core infrastructure stack:
 
 - **Stripe** -- Create checkout sessions, manage subscriptions, query payment history
 - **Supabase** -- Vector storage, real-time auth, embedding operations

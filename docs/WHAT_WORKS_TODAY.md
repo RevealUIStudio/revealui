@@ -19,7 +19,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **57 native React components** in `packages/presentation/src/components/`, built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**85 PostgreSQL tables** with Drizzle ORM. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
+**85 PostgreSQL tables** with Drizzle ORM, **61 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
