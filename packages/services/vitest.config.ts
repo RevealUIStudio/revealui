@@ -6,7 +6,6 @@ export default defineConfig({
     alias: {
       services: path.resolve(__dirname, './src'),
       'services/server': path.resolve(__dirname, './src/index.ts'),
-      'services/client': path.resolve(__dirname, './src/client/index.ts'),
     },
   },
   define: {
