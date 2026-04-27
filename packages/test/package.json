@@ -12,14 +12,14 @@
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
     "drizzle-orm": "catalog:",
-    "hono": "4.12.14",
-    "stripe": "^22.0.2",
+    "hono": "4.12.15",
+    "stripe": "^22.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.4",
     "@playwright/test": "catalog:",
-    "@supabase/supabase-js": "^2.103.3",
+    "@supabase/supabase-js": "^2.104.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

@@ -35,7 +35,7 @@
     "playwright": "^1.59.1",
     "size-limit": "^12.1.0",
     "supabase-mcp": "^1.5.0",
-    "syncpack": "^14.3.0",
+    "syncpack": "^14.3.1",
     "tsx": "catalog:",
     "turbo": "^2.9.6",
     "typescript": "catalog:",
