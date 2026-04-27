@@ -209,12 +209,10 @@ RevealUI supports open models for AI features. No proprietary cloud APIs are req
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
-| `LLM_PROVIDER` | No | `openai` | LLM provider selection. Options: `openai`, `anthropic`, `vultr`, `ollama`, `inference-snaps`. | LOW | ai, api |
+| `LLM_PROVIDER` | No | `inference-snaps` | LLM provider selection. Options: `groq`, `huggingface`, `inference-snaps`, `ollama`. | LOW | ai, api |
 | `LLM_MODEL` | No | None | Provider-specific model name (e.g., `gemma4:e2b`, `qwen/qwen3-32b`). | LOW | ai, api |
-| `OPENAI_API_KEY` | No | None | OpenAI API key. Only needed if using the OpenAI provider. | HIGH (server-only) | ai |
-| `ANTHROPIC_API_KEY` | No | None | Anthropic API key. Only needed if using the Anthropic provider. | HIGH (server-only) | ai |
-| `VULTR_API_KEY` | No | None | Vultr AI API key. Only needed if using the Vultr provider. | HIGH (server-only) | ai |
-| `VULTR_BASE_URL` | No | `https://api.vultrinference.com/v1` | Vultr inference endpoint URL. | LOW | ai |
+| `OPENAI_API_KEY` | No | None | OpenAI API key. Only needed if using an OpenAI-compatible endpoint. | HIGH (server-only) | ai |
+| `ANTHROPIC_API_KEY` | No | None | Anthropic API key. Only needed for Anthropic prompt-caching integrations. | HIGH (server-only) | ai |
 | `INFERENCE_SNAPS_BASE_URL` | No | `http://localhost:9090/v1` | Ubuntu Inference Snaps endpoint (Canonical). Recommended for self-hosted inference. | LOW | ai |
 | `OLLAMA_BASE_URL` | No | `http://localhost:11434` | Ollama endpoint for running local GGUF models. | LOW | ai |
 | `TAVILY_API_KEY` | No | None | Tavily API key for AI agent web search tools. | HIGH (server-only) | ai |

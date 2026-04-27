@@ -56,7 +56,7 @@ Hono-based API with OpenAPI spec generation, Swagger docs, authentication middle
 rate limiting, CSRF protection, and 120+ route files. Serves the admin dashboard. Deployed to `api.revealui.com`. **Has not handled production traffic from paying users.**
 
 ### AI agent system
-LLM provider abstraction (default: Ollama; opt-in: Groq, Vultr, HuggingFace, OpenAI-compatible), CRDT-based memory (`WorkingMemory`, `EpisodicMemory`, `SemanticMemory`, `ProceduralMemory`), tool registry, streaming runtime, and orchestration layer. Embeddings default to Ollama `nomic-embed-text` (768 dim). Pro packages (`@revealui/ai`, `@revealui/harnesses`) are Fair Source / FSL-1.1-MIT.
+LLM provider abstraction (default: Ollama; opt-in: Groq, HuggingFace, OpenAI-compatible), CRDT-based memory (`WorkingMemory`, `EpisodicMemory`, `SemanticMemory`, `ProceduralMemory`), tool registry, streaming runtime, and orchestration layer. Embeddings default to Ollama `nomic-embed-text` (768 dim). Pro packages (`@revealui/ai`, `@revealui/harnesses`) are Fair Source / FSL-1.1-MIT.
 **Untested in production. The agent system works in development; not yet stress-tested with real workloads or paying users.**
 
 ### Security

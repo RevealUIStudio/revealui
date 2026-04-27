@@ -316,30 +316,6 @@ const response = await client.chat([
 ])
 ```
 
-#### Vultr (Vultr AI / Serverless Inference)
-
-You can configure the client to use Vultr Serverless Inference by setting `LLM_PROVIDER=vultr` and providing the `VULTR_API_KEY` and optionally `VULTR_BASE_URL` env vars. Example:
-
-```
-LLM_PROVIDER=vultr
-VULTR_API_KEY=your_inference_api_key
-VULTR_BASE_URL=https://api.vultrinference.com/v1  # optional
-```
-
-The `VultrProvider` supports the chat and (if available for the selected model) embeddings endpoints. Streaming is attempted via the chat streaming endpoint when supported by the API.
-
-Demo: quick test script
-
-You can run a quick demo script that exercises chat and embeddings endpoints. From the repository root:
-
-```bash
-# replace with real values
-VULTR_API_KEY=your_key VULTR_MODEL=your-model-id ts-node packages/ai/scripts/test-vultr.ts
-```
-
-The script prints the raw API responses and a simplified assistant output.
-
-
 ### Agent Orchestration
 
 Agent runtime and execution engine for autonomous agents.
