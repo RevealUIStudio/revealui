@@ -14,3 +14,7 @@ export * from './providers/groq.js';
 export * from './providers/inference-snaps.js';
 export * from './providers/ollama.js';
 export * from './providers/openai-compat.js';
+
+// Export per-workspace provider registry (used by admin inference-config route
+// to hydrate per-site config at boot + apply changes immediately on PUT)
+export * from './workspace-provider-config.js';
