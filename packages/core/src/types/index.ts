@@ -374,7 +374,7 @@ export type {
   RevealUISchemaArgs,
   RevealUITraverseFieldsArgs,
   RevealUITraverseFieldsResult,
-} from './legacy.js';
+} from './internal.js';
 
 // =============================================================================
 // JOB TYPES

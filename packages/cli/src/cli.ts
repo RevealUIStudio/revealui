@@ -375,9 +375,12 @@ export function createCli(): Command {
       await runMigrateCommand(options);
     });
 
+  // TODO(v1.0.0): remove deprecated `revealui shell` top-level alias.
+  // Migration path: users should run `revealui dev shell` (or `revealui dev up`).
+  // See §4.18 Phase A audit (.jv/docs/audits/legacy-sweep-2026-04-27.md §2.3).
   program
     .command('shell')
-    .description('Deprecated alias for `revealui dev shell`')
+    .description('Deprecated alias for `revealui dev shell` — will be removed at v1.0.0')
     .option('--ensure', 'Initialize/start the local DB when possible', false)
     .option('--json', 'Output machine-readable JSON', false)
     .option('--inside', 'Internal flag used after re-entering nix develop', false)
