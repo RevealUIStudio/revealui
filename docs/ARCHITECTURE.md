@@ -7,9 +7,9 @@ audience: developer
 
 # RevealUI System Architecture
 
-**Last Updated:** 2026-03-16
-**Status:** Complete Architecture Design
-**Version:** 2.0
+**Last Updated:** 2026-04-26
+**Status:** Working draft (architectural target — not all systems are live in default deployments)
+**Version:** 0.2
 
 ---
 
@@ -65,13 +65,13 @@ audience: developer
 
 ## Executive Summary
 
-RevealUI implements a hybrid multi-database architecture with comprehensive type safety, integrating multiple specialized systems for optimal performance and scalability. Every architectural decision is guided by the **[JOSHUA Stack](./JOSHUA.md)** principles  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
+RevealUI is a Postgres-primary stack with comprehensive type safety, optional sidecars for AI/vector and real-time sync, and Vercel-friendly deployment defaults. Every architectural decision is guided by the **[JOSHUA Stack](./JOSHUA.md)** principles  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
 
 ### Core Systems
 
-1. **NeonDB (POSTGRES_URL)**: Transactional REST API + ElectricSQL sync source
-2. **Supabase (DATABASE_URL)**: Vector database for AI embeddings and semantic search
-3. **ElectricSQL**: Real-time synchronization for agent contexts and conversations
+1. **NeonDB (POSTGRES_URL — primary)**: Transactional REST API source. Houses 85 tables including `agent_memories` and other vector-typed tables (NeonDB supports `pgvector`). Source of truth for the application.
+2. **Supabase (SUPABASE_DATABASE_URL — optional RAG sidecar)**: Hosts `rag_chunks` and related embedding tables when an Ollama/cloud RAG path is wired. Phase 7 (in roadmap) consolidates RAG embeddings onto NeonDB pgvector and retires the Supabase sidecar; current usage is minimal.
+3. **ElectricSQL (optional sync layer)**: Real-time synchronization for agent contexts and conversations when enabled (env vars are off by default).
 4. **Vercel AI SDK**: Streaming AI completions with React hooks
 5. **Vercel Blob Storage**: Media and file storage
 6. **Remote Procedure Calls (RPC)**: Type-safe API calls
@@ -79,7 +79,7 @@ RevealUI implements a hybrid multi-database architecture with comprehensive type
 
 ### Architecture Type
 
-Hybrid Multi-Database + Vercel Cloud Platform Integration with Full Type Safety
+Postgres-primary with optional sidecars (RAG, real-time sync) + Vercel-friendly deployment defaults + full type safety
 
 ### Key Benefits
 
@@ -186,109 +186,54 @@ That last exception is temporary, not a preferred pattern. It exists because the
 
 ## Database Architecture
 
-### Triple Database Design
+### Postgres-primary with optional sidecars
 
-RevealUI uses three separate database layers for optimal performance and scalability:
+RevealUI is a **single primary Postgres** stack (NeonDB) with two optional sidecars: a **Supabase RAG layer** for embedding-heavy document chunks, and an **ElectricSQL sync layer** for real-time client sync. Both sidecars are off by default; the application runs end-to-end against NeonDB alone.
 
 ```mermaid
 graph TB
     subgraph Client[Client Layer]
         React[React Components]
-        ElectricClient[ElectricSQL Client]
+        ElectricClient[ElectricSQL Client<br/>optional]
         LocalCache[(Browser Cache<br/>HTTP Sync)]
     end
 
-    subgraph Sync[Sync Layer]
+    subgraph Sync[Sync Layer — optional]
         ElectricService[ElectricSQL Service]
     end
 
     subgraph Server[Server Database Layer]
-        NeonDB[(NeonDB<br/>POSTGRES_URL<br/>REST/Transactional)]
-        Supabase[(Supabase<br/>DATABASE_URL<br/>Vector Search)]
+        NeonDB[(NeonDB - primary<br/>POSTGRES_URL<br/>REST + agent_memories<br/>via pgvector)]
+        Supabase[(Supabase - optional<br/>SUPABASE_DATABASE_URL<br/>RAG chunk embeddings)]
     end
 
     React --> ElectricClient
     ElectricClient --> LocalCache
     ElectricClient <--> ElectricService
     ElectricService <--> NeonDB
-    NeonDB --> Supabase
+    NeonDB -.optional RAG.-> Supabase
 ```
 
-### Benefits of Triple Database Architecture
+> **Note on `agent_memories`:** Despite the historical "vector database" framing, `agent_memories` lives in **NeonDB** (not Supabase) because of FK constraints on `sites` / `users`. NeonDB supports `pgvector`. See [`packages/db/src/schema/vector.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/db/src/schema/vector.ts) for the canonical comment. The Supabase sidecar today is used for RAG chunk embeddings only; the Phase 7 consolidation goal is to move RAG onto NeonDB pgvector and retire the Supabase sidecar entirely.
 
-#### 1. Performance Isolation ✅
+### When to enable each layer
 
-**Problem Solved:**
+#### NeonDB (always)
 
-- Vector similarity searches (HNSW indexes) are CPU/memory intensive
-- Heavy vector queries can slow down transactional REST operations
-- Embedding generation competes with user-facing queries
+- Source of truth for all transactional data: users, content, products, payments, agent memories, marketplace transactions, etc.
+- Supports `pgvector` for vector embeddings inline with relational data.
+- Serverless / scale-to-zero for variable workload.
 
-**Benefit:**
+#### Supabase RAG sidecar (optional)
 
-- NeonDB handles REST/transactional workloads with predictable latency
-- Supabase handles vector operations independently
-- Each database optimized for its workload
+- Only enable when ingesting large document corpora for retrieval-augmented agent contexts.
+- Today's role per [`memory: project_supabase_usage_minimal`](../../.jv/memory): RAG chunks + a duplicate billing copy (legacy). Auth/storage/realtime/RLS/edge-fn are NOT used.
+- Phase 7 plan: consolidate onto NeonDB pgvector and retire this sidecar.
 
-**Real-World Impact:**
+#### ElectricSQL sync (optional)
 
-```
-Scenario: Agent performs semantic search over 1M embeddings
-- Single DB: REST API latency spikes 200-500ms during search
-- Triple DB: REST API unaffected, vector search isolated
-```
-
-#### 2. Independent Scaling ✅
-
-**NeonDB:**
-
-- Scale for transactional throughput (connections, query speed)
-- Serverless/scale-to-zero for variable REST workload
-
-**Supabase:**
-
-- Scale for vector storage/query performance (CPU, memory for HNSW)
-- Dedicated instances for CPU-heavy operations
-
-**ElectricSQL:**
-
-- Lightweight sync service
-- Scales with client connections
-
-#### 3. Security & Access Control ✅
-
-**Separation of Concerns:**
-
-- **NeonDB**: Contains user PII, auth data, sensitive business logic
-- **Supabase**: Contains embeddings, agent memories (less sensitive)
-- **ElectricSQL**: Syncs filtered data with row-level security
-
-**Access Pattern:**
-
-```
-REST API Services → NeonDB (user data, admin)
-AI Agent Services → Supabase (vector search)
-Client Apps → ElectricSQL → NeonDB (real-time sync)
-```
-
-#### 4. Real-Time Sync & Local-First Architecture ✅
-
-**ElectricSQL Benefits:**
-
-- Client-side local-first storage (browser cache via HTTP sync)
-- Cross-tab synchronization for agent data
-- Offline-first operation with automatic sync
-- Reduced server load (queries against local DB)
-- Better user experience (instant reads, background writes)
-
-#### 5. Cost Efficiency ✅
-
-**Optimized Spend:**
-
-- NeonDB: Pay for transactional capacity needed
-- Supabase: Pay for vector storage/compute needed
-- ElectricSQL: Self-hosted sync service (no additional DB cost)
-- Avoid over-provisioning one database for both workloads
+- Enable when a real-time / offline-first client experience is required for specific tables (agent contexts, conversations).
+- Scales with client connection count; self-hosted.
 
 ---
 
@@ -368,7 +313,7 @@ AI/Vector Operations + Semantic Search
 ### Connection
 
 ```env
-DATABASE_URL=postgresql://...@db.supabase.co/...
+SUPABASE_DATABASE_URL=postgresql://...@db.supabase.co/...
 ```
 
 ### Why Separate
@@ -840,7 +785,7 @@ function createContractToDbMapper<TContract, TInsert>(
 **Frontend Usage:**
 
 ```typescript
-// apps/mainframe/src/components/Page.tsx
+// apps/admin/src/components/Page.tsx
 import type { Page, Tenant, User } from '@revealui/core/generated/types'
 
 export function PageComponent({ page }: { page: Page }) {
@@ -1181,10 +1126,10 @@ AI Agent Request
     ▼
 Vector Memory Service (packages/ai/src/memory/...)
     │
-    ├─→ Generate Embedding (Ollama nomic-embed-text)
+    ├─→ Generate Embedding (Ollama nomic-embed-text, 768-dim)
     │
     ▼
-Supabase (DATABASE_URL)
+NeonDB (POSTGRES_URL — agent_memories lives here)
     │
     ├─→ Semantic Search (pgvector)
     │   └─→ SELECT * FROM agent_memories
@@ -1349,41 +1294,25 @@ Customer-facing meters should map to business activity rather than upstream infr
 
 ### Current Status
 
-✅ **ElectricSQL Setup Complete**
+- **NeonDB primary**: source of truth for everything, including `agent_memories` (NeonDB pgvector)
+- **Supabase RAG sidecar**: optional; today used only for `rag_chunks` plus a legacy duplicate billing copy. Auth / storage / realtime / RLS / edge-functions are unused.
+- **ElectricSQL**: optional sync layer; service connects to NeonDB. Agent tables (`agent_contexts`, `agent_memories`, `conversations`) can be electrified when sync is enabled. Off by default.
 
-- ElectricSQL service connected to NeonDB
-- Agent tables electrified (agent_contexts, agent_memories, conversations)
-- Client-side sync configured (@revealui/sync package)
-- Real-time sync working for agent data
+### Phase 7: Consolidate RAG onto NeonDB (planned)
 
-### Future Migration: Vector Operations to Supabase
+Direction: **Supabase → NeonDB** (move RAG embeddings off the optional sidecar and onto Postgres-primary, retire the Supabase dependency for RAG entirely).
 
-#### Phase 1: Supabase Setup (Week 1)
+Phase order (ship-order, not calendar):
 
-- [ ] Enable `pgvector` extension in Supabase
-- [ ] Create `agent_memories` table in Supabase
-- [ ] Update config to support vector database
-- [ ] Implement `getClient('vector')` in `@revealui/db`
+1. **Audit current Supabase usage** — confirm RAG chunks + legacy duplicate billing copy are the only consumers; identify any other tables that drifted onto Supabase
+2. **Provision pgvector RAG schema in NeonDB** — port `rag_chunks`, embedding indexes, and ingest pipeline targets to NeonDB
+3. **Dual-write RAG ingest** — write new chunks to both Supabase and NeonDB; validate parity
+4. **Cut RAG reads to NeonDB** — query path moves; Supabase reads stop
+5. **Backfill historical RAG data** — copy historical chunks from Supabase → NeonDB; verify counts and quality (sampled retrieval comparisons)
+6. **Cut Supabase off** — drop SUPABASE_DATABASE_URL from runtime config; remove `@revealui/services` Supabase clients from RAG code paths
+7. **Retire the legacy duplicate billing copy** — separate workstream; tracked under the billing-readiness audit
 
-#### Phase 2: Dual Write (Week 2)
-
-- [ ] Write new agent memories to both NeonDB and Supabase
-- [ ] Validate data consistency
-- [ ] Monitor performance
-
-#### Phase 3: Vector Migration (Week 3)
-
-- [ ] Migrate existing embeddings from NeonDB to Supabase
-- [ ] Update vector search to use Supabase
-- [ ] Remove vector columns from NeonDB `agent_memories`
-- [ ] Keep non-vector agent data in NeonDB (synced via ElectricSQL)
-
-#### Phase 4: Cleanup (Week 4)
-
-- [ ] Stop writing vectors to NeonDB
-- [ ] Remove old vector infrastructure from NeonDB
-- [ ] Update documentation
-- [ ] Final architecture: NeonDB (REST) + Supabase (Vector) + ElectricSQL (Sync)
+Each phase is checkpointed against a verify command and rollback point. There is no calendar attached — the audit-first SDLC convention drives sequencing, not week labels.
 
 ---
 
@@ -1582,7 +1511,7 @@ await vectorDb.insert(agentMemories).values({
 POSTGRES_URL=postgresql://...@neon.tech/...
 
 # Supabase (Vector database)
-DATABASE_URL=postgresql://...@db.supabase.co/...
+SUPABASE_DATABASE_URL=postgresql://...@db.supabase.co/...
 
 # ElectricSQL Service
 ELECTRIC_SERVICE_URL=http://localhost:5133
@@ -1599,7 +1528,8 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
 ```
 REST API Routes → NeonDB (POSTGRES_URL)
-Vector Services → Supabase (DATABASE_URL)
+Agent memory + per-record vectors → NeonDB (POSTGRES_URL via pgvector)
+RAG document chunks (optional sidecar) → Supabase (SUPABASE_DATABASE_URL)
 ElectricSQL → NeonDB (POSTGRES_URL)
 ```
 
@@ -1876,7 +1806,7 @@ Core framework UI components for the admin admin interface.
 4. **FloatingToolbarPlugin** (`plugins/FloatingToolbarPlugin.tsx`)
    - **Purpose**: Floating toolbar for rich text
 
-#### Web App Components (`apps/mainframe/src/components/`)
+#### Web App Components (`apps/admin/src/components/`)
 
 Frontend application components.
 
@@ -2412,7 +2342,7 @@ All entities in `@revealui/contracts` use the dual representation pattern:
 - **admin Blocks**: `apps/admin/src/lib/blocks/`
 - **Admin Components**: `apps/admin/src/lib/components/`
 - **Framework UI**: `packages/core/src/client/ui/`
-- **Web App**: `apps/mainframe/src/components/`
+- **Marketing Site**: `apps/marketing/src/components/`
 - **RevealUI Elements**: `apps/admin/src/components/revealui/`
 
 #### Business Logic

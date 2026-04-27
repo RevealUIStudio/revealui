@@ -1,6 +1,6 @@
 # Open Source + Pro: How We Think About Monetization
 
-RevealUI is launching this week. Before we talk about features or roadmaps, I want to be completely transparent about how we make money, what's free, what's paid, and why.
+RevealUI is open source today; the commercial side is pre-launch. Before we talk about features or roadmaps, I want to be completely transparent about how we plan to make money, what's free, what's paid, and why.
 
 This is a solo-founder project. I don't have a VC board to answer to or a growth team optimizing conversion funnels. I have a business model I believe in, and I'd rather explain it plainly than have you discover the trade-offs later.
 
@@ -61,7 +61,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 | **Users/editors** | 3 | 25 | 100 | Unlimited |
 | **Agent tasks/mo** | 1,000 | 10,000 | 50,000 | Unlimited |
 | **API rate limit** | 200 req/min | 300 req/min | 600 req/min | 1,000 req/min |
-| **Auth** | Session-based | Session-based | Session-based | Session + OAuth + SSO/SAML (planned) |
+| **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + SSO/SAML (planned, see [#509](https://github.com/RevealUIStudio/revealui/issues/509)) |
 | **admin collections** | Unlimited | Unlimited | Unlimited | Unlimited |
 | **Real-time sync** | Basic | Full | Full | Full |
 | **AI agents (open-model)** | -- | Yes | Yes | Yes |

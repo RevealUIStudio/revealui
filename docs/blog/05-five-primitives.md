@@ -430,16 +430,19 @@ Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict r
 
 ### MCP servers
 
-RevealUI ships six MCP (Model Context Protocol) servers, open source under MIT:
+RevealUI ships **13 MCP (Model Context Protocol) servers**, open source under MIT. The most commonly used:
 
 | Server | Purpose |
 |--------|---------|
 | Stripe | Query customers, invoices, subscriptions from AI agents |
 | Supabase | Execute vector searches and auth operations |
-| Neon | Run SQL queries and manage database branches |
+| Neon | Run SQL queries and manage database branches (remote endpoint at `mcp.neon.tech`) |
 | Vercel | Deploy, inspect deployments, manage environment variables |
 | Code Validator | Static analysis and lint checking within agent workflows |
 | Playwright | Browser automation for testing and scraping |
+| Next.js DevTools | Next.js 16+ runtime diagnostics and automation |
+
+In addition to those seven, RevealUI ships first-party servers (`revealui-content`, `revealui-email`, `revealui-memory`, `revealui-stripe`), a Vultr inference test harness, and the shared `adapter` base class — all under [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers).
 
 These servers are tools that agents can invoke during task execution. An agent can query your Stripe dashboard, check your deployment status, and run your test suite without you writing integration code.
 

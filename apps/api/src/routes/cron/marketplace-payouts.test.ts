@@ -47,6 +47,13 @@ vi.mock('stripe', () => {
   };
 });
 
+// GAP-131: marketplace-payouts now uses protectedStripe from @revealui/services
+vi.mock('@revealui/services', () => ({
+  protectedStripe: {
+    transfers: { create: vi.fn() },
+  },
+}));
+
 const mockDb = {
   select: vi.fn(() => mockDb),
   from: vi.fn(() => mockDb),

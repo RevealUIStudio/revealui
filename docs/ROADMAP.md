@@ -21,7 +21,7 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-04-10.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
-| **RevealUI** (monorepo) | Beta | Deployed, 25 npm packages, extensive test suite. No paying users yet. |
+| **RevealUI** (monorepo) | Beta | Deployed, 26 npm packages, extensive test suite. No paying users yet. |
 | **Forge** (self-hosted) | Beta | Docker stack complete, license enforcement built. No external customers. |
 | **RevVault** (secrets) | Beta | Rust CLI + desktop app, age-encrypted vault. Not published to crates.io. |
 | **Studio** (desktop) | Alpha | Tauri 2 + React 19, agent coordination UI. No published binaries. |
@@ -47,11 +47,11 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **Billing stack**  -  Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/forge)
 - **UI components**  -  57 native React 19 components (Tailwind v4, zero external UI deps)
 - **Real-time sync**  -  ElectricSQL integration for editor/client/agent sync _(experimental  -  basic shape subscriptions, no offline-first)_
-- **Database**  -  81 tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
+- **Database**  -  85 tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
 - **CLI**  -  `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents**  -  A2A protocol, CRDT memory, open-model inference, streaming, tool execution
-- **MCP servers**  -  5 production servers (Stripe, Neon, Supabase, Vercel, Playwright)
-- **Desktop app**  -  Tauri 2 + React 19 native AI experience (agent hub, local inference, vault, tunnel)
+- **MCP servers**  -  13 first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Supabase, Vercel, Playwright, Code Validator, Next.js DevTools, RevealUI Content / Email / Memory / Stripe, Vultr Test, plus the adapter base class)
+- **Desktop app (RevDev)**  -  Tauri 2 + React 19 native AI experience (agent hub, local inference, vault, tunnel) — ships in the separate [RevDev](https://github.com/RevealUIStudio/revdev) repo, not in the RevealUI monorepo
 - **Security**  -  CSP, CORS, HSTS, AES-256-GCM encryption, timing-safe TOTP, GDPR framework, 187 security tests
 - **CI/CD**  -  3-phase gate (lint + typecheck + test + build), CodeQL, Gitleaks, OIDC npm publishing
 - **Accessibility**  -  WCAG 2.1 AA compliance on marketing site and admin login/admin pages
@@ -59,7 +59,7 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 ### Launch (v0.3.3  -  current)
 
 - **Public repo** on GitHub with MIT license (OSS packages)
-- **25 packages** published to npm
+- **26 packages** published to npm
 - **4 template repos** (basic-blog, e-commerce, portfolio, starter)
 - **Production deploys**  -  admin, API, Marketing, Docs on Vercel
 - **Stripe test mode** verified end-to-end (checkout, webhooks, license generation)

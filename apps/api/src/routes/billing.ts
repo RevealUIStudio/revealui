@@ -1863,10 +1863,8 @@ app.openapi(reportOverageRoute, async (c) => {
   }
 
   const db = getClient();
-  // billing.meterEvents is not yet wrapped in protectedStripe — use raw client
-  // TODO: add billing.meterEvents to protectedStripe when Track B (credits) launches
-  const { getStripe } = await import('@revealui/services');
-  const stripe = getStripe();
+  // GAP-131: `billing.meterEvents.create` is now wrapped by protectedStripe;
+  // every Stripe call across the suite shares one circuit breaker.
 
   // Previous billing cycle = last calendar month
   const now = new Date();
@@ -1893,7 +1891,7 @@ app.openapi(reportOverageRoute, async (c) => {
     }
 
     try {
-      await stripe.billing.meterEvents.create(
+      await protectedStripe.billing.meterEvents.create(
         {
           event_name: meterEventName,
           payload: {

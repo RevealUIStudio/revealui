@@ -24,9 +24,9 @@ import {
   type NewMarketplaceTransaction,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { protectedStripe } from '@revealui/services';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import Stripe from 'stripe';
 import { authMiddleware } from '../middleware/auth.js';
 import { buildPaymentRequired, encodePaymentRequired, verifyPayment } from '../middleware/x402.js';
 
@@ -133,13 +133,15 @@ function computeSplit(priceUsdc: string): {
   };
 }
 
-let cachedStripe: Stripe | undefined;
-function getStripeClient(): Stripe {
-  if (cachedStripe) return cachedStripe;
-  const key = process.env.STRIPE_SECRET_KEY?.trim();
-  if (!key) throw new Error('STRIPE_SECRET_KEY not configured');
-  cachedStripe = new Stripe(key, { apiVersion: '2026-03-25.dahlia', maxNetworkRetries: 2 });
-  return cachedStripe;
+/**
+ * GAP-131: Stripe access goes through the shared protectedStripe wrapper
+ * (DB-backed circuit breaker + retry, single API-version pin).
+ */
+function getStripeClient(): typeof protectedStripe {
+  if (!process.env.STRIPE_SECRET_KEY?.trim()) {
+    throw new Error('STRIPE_SECRET_KEY not configured');
+  }
+  return protectedStripe;
 }
 
 // =============================================================================

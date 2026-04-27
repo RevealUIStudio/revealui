@@ -36,7 +36,7 @@ Every default earns its place. No magic, no hidden complexity, no decisions you 
 Clean separation of concerns. Each package has a single responsibility. No circular dependencies. Use what you need, replace what you don't.
 
 **Evidence:**
-- 25 packages, zero circular deps  -  enforced by Turborepo dependency graph
+- 26 packages, zero circular deps  -  enforced by Turborepo dependency graph
 - `@revealui/auth` knows nothing about billing; `@revealui/db` knows nothing about HTTP
 - `@revealui/contracts` is the only package that every other package may depend on (types + schemas)
 - `@revealui/presentation` has zero external UI dependencies (only clsx + CVA)
@@ -52,10 +52,10 @@ Clean separation of concerns. Each package has a single responsibility. No circu
 Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No vendor holds your business hostage.
 
 **Evidence:**
-- MIT license on all 18 OSS packages
+- MIT license on the 22 OSS packages; 3 Pro packages (`@revealui/ai`, `@revealui/harnesses`, `@revealui/engines`) are Fair Source (FSL-1.1-MIT, MIT after 2 years)
 - No vendor-specific APIs in core (Vercel adapters are optional, in `@revealui/cache`)
 - Dual-database architecture: NeonDB (primary) + Supabase (vectors)  -  both replaceable
-- Open-model AI: Ubuntu snaps, Ollama, and open source models  -  no proprietary cloud APIs
+- Open-model AI default: Ubuntu Inference Snaps, Ollama, and open source models. Cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic for prompt caching) are pluggable but opt-in via env vars — there is no vendor lock-in
 - Self-hostable: Docker Compose, Railway, bare metal  -  documented in CI/CD guide
 - Stripe is the only commercial dependency in the billing path, and it's behind an interface
 

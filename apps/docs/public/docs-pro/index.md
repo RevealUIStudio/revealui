@@ -1,30 +1,37 @@
 # RevealUI Pro
 
-RevealUI Pro adds AI agents, MCP servers, and editor integrations on top of the open-source foundation. All AI runs on open models  -  no proprietary cloud APIs.
+RevealUI Pro adds AI agents, MCP integrations, and inference orchestration on top of the open-source foundation. The default and recommended inference path is open-model (Ollama, Canonical Inference Snaps); cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible) are pluggable but opt-in.
 
 ## What's included
 
-| Package | Description |
-|---------|-------------|
-| [`@revealui/ai`](/pro/ai) | AI agents, open-model inference, CRDT memory, A2A protocol |
-| [`@revealui/mcp`](/pro/mcp) | MCP hypervisor, adapter framework, tool discovery |
-| [`@revealui/editors`](/pro/editors) | Editor config sync (Zed, VS Code, Cursor) |
-| `@revealui/services` | Stripe + Supabase service integrations |
-| [Open-Model Inference](/pro/inference) | 4 providers: Ubuntu Inference Snaps (recommended), Ollama, HuggingFace, Vultr |
+| Package | License | Description |
+|---------|---------|-------------|
+| [`@revealui/ai`](/pro/ai) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | AI agents, open-model inference, CRDT memory, A2A protocol |
+| [`@revealui/harnesses`](https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | Harness adapters, workboard coordination |
+| [`@revealui/mcp`](/pro/mcp) | MIT (free for any tier) | MCP hypervisor, adapter framework, 14 first-party server launchers |
+| [`@revealui/services`](https://github.com/RevealUIStudio/revealui/tree/main/packages/services) | MIT | Stripe + Supabase service integrations |
+| [Open-Model Inference](/pro/inference) | — | Default Ollama; Inference Snaps planned; Groq / Vultr / HuggingFace / OpenAI-compatible opt-in |
+| [Editor Config Sync](/pro/editors) | — | Ships in the separate **RevCon** repo (not in this monorepo); not gated by Pro |
 
 ## License
 
-Pro packages are commercially licensed. An active Pro or Forge subscription, or a perpetual license, is required.
+The two Pro packages (`@revealui/ai`, `@revealui/harnesses`) are **Fair Source (FSL-1.1-MIT)** — source is visible in the public repo, the package is installable from npm, and each release converts to plain MIT after 2 years. Runtime feature gates verify your Pro / Forge / perpetual license via JWT (RS256).
+
+`@revealui/mcp` and `@revealui/services` are MIT — free for any tier, including the Free plan.
 
 - [View pricing](https://revealui.com/pricing)
 - [Manage your license](https://admin.revealui.com)
 
 ## Installation
 
-Pro packages are published to npm. After purchasing, install with your package manager:
+Install only the packages you need. `@revealui/mcp` is free; `@revealui/ai` requires a Pro license at runtime.
 
 ```bash
-pnpm add @revealui/ai @revealui/mcp
+# OSS (free)
+pnpm add @revealui/mcp
+
+# Pro (Fair Source — installable from npm; runtime requires a license)
+pnpm add @revealui/ai
 ```
 
 Set your license key in the environment:
@@ -37,5 +44,6 @@ REVEALUI_LICENSE_KEY=your-license-key
 
 - [AI agents guide](/pro/ai)
 - [MCP server configuration](/pro/mcp)
-- [Editor integrations](/pro/editors)
+- [Editor Config Sync — see RevCon](/pro/editors)
 - [Open-model inference](/pro/inference)
+- [Pro overview (canonical)](/docs/PRO)

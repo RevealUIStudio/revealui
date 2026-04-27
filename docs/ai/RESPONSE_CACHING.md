@@ -1,10 +1,12 @@
 # Response Caching for All LLM Providers
 
-**100% cost savings on duplicate requests** for any LLM provider.
+Cache **complete LLM responses** at the application level — works with any provider. A cache HIT costs zero (no provider call); real-world dollar savings depend on your duplicate rate × hit rate.
+
+> **Note on dollar figures.** Every dollar amount in this guide is illustrative arithmetic against assumed traffic patterns and assumed provider pricing — not measured RevealUI traffic (RevealUI is pre-launch with 0 paying customers). Use the calculator below to estimate against your own stats.
 
 ## Overview
 
-Response caching complements Anthropic's prompt caching by caching **complete LLM responses** at the application level. This works with **any provider** (Vultr, OpenAI, Anthropic, etc.) and provides 100% savings on cache hits.
+Response caching complements Anthropic's prompt caching by caching **complete LLM responses** at the application level. This works with **any provider** (Vultr, OpenAI, Anthropic, etc.); on a cache hit, no provider call is made (so the marginal cost is zero).
 
 ### Caching Comparison
 
@@ -436,51 +438,41 @@ LLM_ENABLE_RESPONSE_CACHE=true
 
 Check logs for cache stats after each request.
 
-## Cost Comparison
+## Estimating savings for your traffic
 
-### Vultr with Response Caching
+Response-cache savings = `hitRate × callsPerDay × providerCostPerCall`. Plug in your measured numbers:
 
-**Scenario**: 1000 requests/day, 20% duplicates
+```ts
+import { getGlobalResponseCache } from '@revealui/ai/llm/response-cache'
 
-| Metric | Without Cache | With Cache | Savings |
-|--------|--------------|-----------|---------|
-| API calls | 1000/day | 800/day | 200/day (20%) |
-| Monthly tokens | 90M | 72M | 18M (20%) |
-| Monthly cost | $270 | $216 | **$54 (20%)** |
-| Annual savings | - | - | **$648** |
+const stats = getGlobalResponseCache().getStats() // { hits, misses, hitRate, ... }
 
-### Vultr + Anthropic Comparison
+// providerCostPerCall = your blended cost per LLM call (USD)
+// callsPerDay = your measured daily call volume
+const dailySavings = stats.hitRate * callsPerDay * providerCostPerCall
+const monthlySavings = dailySavings * 30
+```
 
-If you switched to Anthropic:
-
-| Feature | Vultr + Response Cache | Anthropic + Both Caches |
-|---------|----------------------|-------------------------|
-| Response cache | ✅ 20% savings | ✅ 20% savings |
-| Prompt cache | ❌ Not available | ✅ 70% savings |
-| **Total savings** | **20%** | **76%** |
-| Monthly cost | $216 | $65 |
-| **Difference** | - | **Save $151 more** |
+Stacking response cache (any provider) with Anthropic prompt caching (when you use Anthropic) lets each layer hit a different slice of your traffic. Treat the layers as additive on disjoint slices, not multiplicative on the same call.
 
 ## Summary
 
 Response caching provides:
-- ✅ 100% savings on duplicate requests
-- ✅ Works with any provider (Vultr, OpenAI, Anthropic)
+- ✅ Cache hits skip the provider call entirely (marginal cost zero)
+- ✅ Works with any provider (Vultr, OpenAI, Anthropic, Groq, Ollama, etc.)
 - ✅ Zero code changes (environment variable only)
 - ✅ Automatic cache management (LRU eviction)
 - ✅ Built-in statistics and monitoring
 - ✅ Configurable TTL and size
 - ✅ Complements Anthropic prompt caching
 
-**Perfect for**:
-- Vultr users (no prompt caching available)
-- OpenAI users (no prompt caching available)
-- Development/testing (repeated prompts)
-- FAQ-style applications
-- Maximum savings when combined with Anthropic
+**Best when**:
+- A measurable fraction of your queries are exact duplicates (FAQ traffic, scripted health checks, dev/test loops)
+- You're on a provider that doesn't ship prompt caching (Vultr, OpenAI today)
+- You're stacking with Anthropic prompt caching for a multi-layer hit profile
 
 ---
 
-**Status**: ✅ Fully tested
+**Status**: Implementation has unit tests in `packages/ai/src/llm/__tests__/`. Production traffic baseline is not yet established (RevealUI is pre-launch).
 **Provider**: All providers
 **Deployment**: Set `LLM_ENABLE_RESPONSE_CACHE=true`

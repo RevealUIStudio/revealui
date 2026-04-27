@@ -19,7 +19,7 @@ All gates must pass on the `main` branch before deploy.
 
 - [ ] `pnpm gate` passes all three phases (quality, typecheck, test + build) **(blocking)**
 - [ ] `pnpm lint` reports zero errors (Biome 2) **(blocking)**
-- [ ] `pnpm typecheck:all` clean across all 30 workspaces **(blocking)**
+- [ ] `pnpm typecheck:all` clean across all 31 workspaces **(blocking)**
 - [ ] `pnpm test` passes the full test suite **(blocking)**
 - [ ] `pnpm build` succeeds for all apps and packages **(blocking)**
 - [ ] `pnpm validate:structure` confirms workspace structure integrity **(blocking)**
@@ -89,7 +89,7 @@ All gates must pass on the `main` branch before deploy.
 
 - [ ] `pnpm db:migrate` runs clean against production database **(blocking)**
 - [ ] Migration drift check passes (validated in `deploy.yml`) **(blocking)**
-- [ ] All 81 tables exist with correct schemas **(blocking)**
+- [ ] All 85 tables exist with correct schemas **(blocking)**
 - [ ] `pnpm db:seed` populates required initial data (admin user, default site) **(blocking)**
 - [ ] Indexes verified for high-traffic queries **(blocking)**
 - [ ] `circuit_breaker_state` table exists (Stripe resilience) **(blocking)**
@@ -102,7 +102,7 @@ All gates must pass on the `main` branch before deploy.
 
 ## 5. Environment Variables
 
-Refer to `docs/ENVIRONMENT_VARIABLES_GUIDE.md` for the full reference.
+Refer to `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for the full reference.
 
 ### Required (all environments)
 
@@ -192,7 +192,7 @@ Complete the Stripe checkout checklist at `docs/checklists/stripe-checkout-verif
 The `pnpm preflight` script checks for these files automatically.
 
 - [ ] `docs/LAUNCH-CHECKLIST.md` (this file) **(blocking)**
-- [ ] `docs/ENVIRONMENT_VARIABLES_GUIDE.md` **(blocking)**
+- [ ] `docs/ENVIRONMENT-VARIABLES-GUIDE.md` **(blocking)**
 - [ ] `SECURITY.md` at repository root **(blocking)**
 - [ ] `LICENSE` at repository root (MIT for OSS packages) **(blocking)**
 - [ ] `README.md` at repository root **(blocking)**

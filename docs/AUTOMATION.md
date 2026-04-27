@@ -52,9 +52,9 @@ Comprehensive guide to AI agent capabilities, configurations, and workflows in t
 **Project Overview**
 
 - **Framework**: RevealUI  -  Full-stack React 19 + Next.js 16 Admin Framework
-- **Package Count**: 25 packages (23 OSS + 2 Pro)
+- **Package Count**: 26 packages (23 OSS + 2 Pro)
 - **Test Status**: extensive test suite, all packages build and typecheck ✅
-- **Build Status**: All 30 workspaces build successfully ✅
+- **Build Status**: All 31 workspaces build successfully ✅
 
 ### Commercial Direction
 
@@ -71,7 +71,7 @@ From 2026 onward, automation features should align with:
 packages/
 ├── core/           # Runtime engine (includes types/ and generated/)
 ├── contracts/      # Zod schemas & TypeScript types
-├── db/             # Database (Drizzle ORM, 81 tables)
+├── db/             # Database (Drizzle ORM, 85 tables)
 ├── auth/           # Authentication system
 ├── presentation/   # 57 UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
@@ -134,7 +134,7 @@ packages/
 
 1. [Deployment Runbook](./guides/deployment/DEPLOYMENT_RUNBOOK.md)
 2. [CI/CD Guide](./development/CI_CD_GUIDE.md)
-3. [Environment Variables Guide](./development/ENVIRONMENT_VARIABLES_GUIDE.md)
+3. [Environment Variables Guide](./development/ENVIRONMENT-VARIABLES-GUIDE.md)
 
 ### Important Conventions
 
@@ -2591,7 +2591,7 @@ All integrations can leverage the configured MCP servers:
 
 - [Deployment Runbook](./CI_CD_GUIDE.md)
 - [CI/CD Guide](./CI_CD_GUIDE.md)
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
+- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md)
 
 ### Cohesion & Quality
 

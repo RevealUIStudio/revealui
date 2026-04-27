@@ -1,0 +1,51 @@
+{
+  "name": "revealui",
+  "version": "0.1.0",
+  "description": "RevealUI — open-source agentic business runtime. Meta-installer that proxies to create-revealui.",
+  "keywords": [
+    "revealui",
+    "agentic",
+    "business-runtime",
+    "saas",
+    "open-source",
+    "typescript",
+    "react",
+    "nextjs",
+    "scaffold",
+    "starter"
+  ],
+  "homepage": "https://revealui.com",
+  "bugs": {
+    "url": "https://github.com/RevealUIStudio/revealui/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RevealUIStudio/revealui.git",
+    "directory": "packages/revealui"
+  },
+  "license": "MIT",
+  "author": "RevealUI Studio <founder@revealui.com>",
+  "type": "module",
+  "bin": {
+    "revealui": "./bin/revealui.js"
+  },
+  "dependencies": {
+    "create-revealui": "workspace:*"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "scripts": {
+    "test": "node bin/revealui.js --help > /dev/null && echo 'bin OK'",
+    "lint": "biome check ."
+  }
+}

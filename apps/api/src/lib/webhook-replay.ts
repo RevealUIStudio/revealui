@@ -18,8 +18,20 @@ export type ReplayOutcome =
   | { kind: 'stripe-error'; detail: string }
   | { kind: 'handler-error'; status: number; body: unknown };
 
+/**
+ * Minimum Stripe surface needed for replay: `events.retrieve`. Both the raw
+ * Stripe SDK client and the `protectedStripe` wrapper from
+ * `@revealui/services` satisfy this — the wrapper is preferred at consumer
+ * sites so replays go through the shared circuit breaker (GAP-131).
+ */
+export interface StripeEventsClient {
+  events: {
+    retrieve(id: string): Promise<Stripe.Event>;
+  };
+}
+
 export interface ReplayDeps {
-  stripe: Stripe;
+  stripe: StripeEventsClient;
   db: DbClient;
   webhookSecret: string;
   /**

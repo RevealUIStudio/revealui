@@ -17,7 +17,7 @@ RevealUI's local-first story comes from four independent pieces that happen to c
 | Layer | Technology | What it does |
 |-------|-----------|-------------|
 | **Secrets** | RevVault (age encryption) | Credentials stay on your machine, encrypted at rest |
-| **AI inference** | Inference snaps / Ollama (open models) | LLM inference with no proprietary APIs  -  local or self-hosted cloud via harness |
+| **AI inference (default)** | Inference snaps / Ollama (open models) | Local LLM inference. Cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic) are pluggable via env vars but opt-in. |
 | **Dev environment** | Nix flakes + direnv | Reproducible environment, zero manual tool installs |
 | **Business logic** | RevealUI Pro | Auth, content, payments, AI agents  -  all wired |
 
@@ -48,10 +48,10 @@ RevealUI's AI agents run on open source models locally. The recommended path is 
 
 ```bash
 # Install a model (one command)
-sudo snap install nemotron-3-nano
+sudo snap install nemotron-nano
 
 # Check status
-nemotron-3-nano status
+nemotron-nano status
 ```
 
 Each snap serves an OpenAI-compatible API locally. The `@revealui/ai` package auto-detects the running snap and routes agent calls to it. The same agent orchestration, memory system, and MCP integrations work with any supported inference path  -  because they all expose OpenAI-compatible `/v1/chat/completions` endpoints.
@@ -76,7 +76,7 @@ cd RevealUI
 direnv allow        # Nix builds and activates the full dev environment
 
 # Install a model via inference snaps (recommended)
-sudo snap install nemotron-3-nano
+sudo snap install nemotron-nano
 
 # Or use Ollama
 ollama pull gemma4:e2b
@@ -96,7 +96,7 @@ flake.nix
 └── devShell
     └── nodejs, pnpm, biome          # Standard RevealUI toolchain
 
-sudo snap install nemotron-3-nano    # Or: ollama pull gemma4:e2b
+sudo snap install nemotron-nano    # Or: ollama pull gemma4:e2b
 └── OpenAI-compatible API served locally
 
 @revealui/ai                         # Agent orchestration routes to local model
@@ -108,7 +108,7 @@ The entire AI-powered business stack  -  auth, content, products, payments, agen
 
 ## Who this is for
 
-The "local-first" configuration is one of two inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, recommended) and Ollama (any open source GGUF model, fallback). Both paths run open models  -  no proprietary cloud APIs, no vendor lock-in.
+The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, planned recommended) and Ollama (any open source GGUF model, default local). Cloud-compatible providers — Groq, Vultr, HuggingFace, OpenAI-compatible endpoints, and Anthropic for prompt caching — are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.
 
 But there's a real and growing audience for whom those concerns matter:
 
@@ -126,7 +126,7 @@ Running locally doesn't mean running poorly. The RevealUI agent stack has the sa
 
 - **Planning and tools**  -  agents can create todos, read and write files, execute shell commands
 - **Memory**  -  episodic memory, working memory, CRDT-based persistence across sessions
-- **MCP integrations**  -  Stripe, Supabase, Neon, Vercel, Playwright tool servers
+- **MCP integrations**  -  13 first-party tool servers (Stripe, Supabase, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, plus RevealUI-internal Content / Email / Memory / Stripe servers, Vultr Test, and the adapter base class)
 - **Orchestration**  -  multi-agent coordination, sub-agent spawning, streaming
 
 What you do give up: the raw capability of a 70B+ cloud model. Smaller local models like Gemma 4 are excellent for structured tasks  -  code generation, data processing, form filling, API orchestration  -  but won't match a frontier model on open-ended reasoning. For most business automation use cases, that's an acceptable trade.

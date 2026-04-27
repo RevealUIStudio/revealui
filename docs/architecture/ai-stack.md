@@ -1,6 +1,6 @@
 # AI Stack Architecture
 
-RevealUI's AI subsystem lives in `@revealui/ai` (Pro, Fair Source FSL-1.1-MIT). It provides open-model inference, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime  -  all gated by tier. No proprietary cloud APIs are supported.
+RevealUI's AI subsystem lives in `@revealui/ai` (Pro, Fair Source FSL-1.1-MIT). It provides open-model inference, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime  -  all gated by tier. The default and recommended path is open-model inference (Ollama, Canonical Inference Snaps); cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic for prompt caching) are pluggable but opt-in via environment variables.
 
 ## Inference Abstraction
 
@@ -25,12 +25,14 @@ All LLM access flows through `LLMClient`, a factory that wraps inference backend
 
 Revenue tiers control AI access via runtime feature gating:
 
+> **Pricing source.** Tier pricing is defined in [`packages/contracts/src/pricing.ts`](https://github.com/RevealUIStudio/revealui/blob/main/packages/contracts/src/pricing.ts) and exposed at runtime via `GET /api/pricing` (which falls back to Stripe Products API in production). Treat the linked file as the source of truth; the table below is a snapshot.
+
 | Tier | AI Access | Task Quota | Coding Tools | Inference |
 |------|-----------|-----------|--------------|-----------|
 | **Free** | Local only (Ollama / snaps) | 1,000/mo | Read-only | `INFERENCE_SNAPS_BASE_URL` or `OLLAMA_BASE_URL` |
-| **Pro** ($49/mo) | Local + cloud harness | 10,000/mo | Full | Snaps, Ollama, RevealUI cloud |
-| **Max** ($149/mo) | Local + cloud + advanced config | 50,000/mo | Full + memory | Snaps, Ollama, RevealUI cloud |
-| **Enterprise** ($299/mo) | Unlimited | Metered | Full + memory + multi-tenant | All open models |
+| **Pro** | Local + cloud harness | 10,000/mo | Full | Snaps, Ollama, RevealUI cloud |
+| **Max** | Local + cloud + advanced config | 50,000/mo | Full + memory | Snaps, Ollama, RevealUI cloud |
+| **Forge (Enterprise)** | Unlimited | Metered | Full + memory + multi-tenant | All open models |
 
 ### Access Modes
 

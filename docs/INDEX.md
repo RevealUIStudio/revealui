@@ -13,7 +13,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 
 ## Getting Started
 
-- [Quick Start](./QUICK_START.md): 5-minute setup guide
+- [Quick Start](./QUICK_START.md): get a local dev stack running
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
 
@@ -25,7 +25,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
 - [CI/CD & Deployment](./CI_CD_GUIDE.md): Pipelines, Vercel deployment, staging
-- [Environment Variables](./ENVIRONMENT_VARIABLES_GUIDE.md): Configuration reference
+- [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md): Configuration reference
 
 ## Pricing & Commerce
 
@@ -46,7 +46,8 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 - [Core Stability](./CORE_STABILITY.md): API stability tiers, production verification status, version policy
 - [Component Catalog](./COMPONENT_CATALOG.md): 57 native UI components
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
-- [Pro](./PRO.md): Studio desktop app, MCP servers, open-model inference, editor integrations, harnesses, services, x402, marketplace, Forge
+- [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/harnesses`), MCP integration, open-model inference, x402, marketplace
+- [RevealUI Studio Suite](./SUITE.md): Companion products (RevDev, RevVault, RevCon, RevealCoin, Forge, RevSkills, RevKit) — what each does and how they compose
 
 ## Agent Coordination
 
@@ -57,6 +58,18 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 
 - [MCP Marketplace](./MARKETPLACE.md): Publish MCP servers with agent-commerce pricing and revenue-share options
 - [Forge](./FORGE.md): Self-hosted enterprise deployment (Docker Compose, domain lock, unlimited users)
+
+## RevealUI Studio Suite
+
+RevealUI is one product in a suite of eight that compose into an agent-first SDLC platform. See [Suite Overview](./SUITE.md) for the full table and composition story.
+
+- [RevDev](./suite/revdev.md) — Studio (Tauri 2 desktop) + Console (Go SSH TUI) + harness daemon
+- [RevVault](./suite/revvault.md) — age-encrypted secret vault, source of truth for every suite secret
+- [RevCon](./suite/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
+- [RevealCoin](./suite/revealcoin.md) — `RVC` token on Solana Token-2022, mainnet mint deployed
+- [Forge](./FORGE.md) — self-hosted enterprise deployment kit
+- [RevSkills](./suite/revskills.md) — curated Agent Skills for Claude Code / Cursor
+- [RevKit](./suite/revkit.md) — portable WSL workstation toolkit
 
 ## Legal
 

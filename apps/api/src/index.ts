@@ -34,6 +34,7 @@ import { closeAllPools, getClient } from '@revealui/db';
 import { createDbLogHandler } from '@revealui/db/log-transport';
 import { sites, users } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
+import { configureClientIp } from '@revealui/security';
 import { sql } from 'drizzle-orm';
 import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
@@ -45,7 +46,7 @@ import { logger as honoLogger } from 'hono/logger';
 import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
-import { validateStartup } from './lib/validate-startup.js';
+import { validateLicenseAtStartup, validateStartup } from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
@@ -86,6 +87,7 @@ import cronDrainUnreconciledRoute from './routes/cron/drain-unreconciled.js';
 import cronJobsSafetyNetRoute from './routes/cron/jobs-safety-net.js';
 import cronMarketplacePayoutsRoute from './routes/cron/marketplace-payouts.js';
 import cronPublishRoute from './routes/cron/publish-scheduled.js';
+import cronReconcileCustomersRoute from './routes/cron/reconcile-customers.js';
 import cronReconcileSubscriptionsRoute from './routes/cron/reconcile-subscriptions.js';
 import cronSweepGraceRoute from './routes/cron/sweep-grace-periods.js';
 import errorsRoute from './routes/errors.js';
@@ -1066,6 +1068,7 @@ app.route('/api/cron', cronDispatchRoute);
 app.route('/api/cron', cronDrainUnreconciledRoute);
 app.route('/api/cron', cronMarketplacePayoutsRoute);
 app.route('/api/cron', cronPublishRoute);
+app.route('/api/cron', cronReconcileCustomersRoute);
 app.route('/api/cron', cronReconcileSubscriptionsRoute);
 app.route('/api/cron', cronSweepGraceRoute);
 app.route('/api/cron', cronCleanupRoute);
@@ -1122,6 +1125,7 @@ app.route('/api/v1/cron', cronDispatchRoute);
 app.route('/api/v1/cron', cronDrainUnreconciledRoute);
 app.route('/api/v1/cron', cronMarketplacePayoutsRoute);
 app.route('/api/v1/cron', cronPublishRoute);
+app.route('/api/v1/cron', cronReconcileCustomersRoute);
 app.route('/api/v1/cron', cronReconcileSubscriptionsRoute);
 app.route('/api/v1/cron', cronSweepGraceRoute);
 app.route('/api/v1/cron', cronCleanupRoute);
@@ -1192,15 +1196,21 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
   audit.setStorage(new PostgresAuditStorage());
   validateStartup();
-  initializeLicense()
+  // validateLicenseAtStartup is a no-op in hosted mode (REVEALUI_LICENSE_PRIVATE_KEY
+  // present); in self-hosted Forge mode it throws on missing/invalid license,
+  // which we surface as process.exit(1) so a stamped kit refuses to serve
+  // traffic without a valid studio-issued JWT.
+  validateLicenseAtStartup()
+    .then(() => initializeLicense())
     .then((tier) => {
       logger.info(`License tier: ${tier}`);
     })
     .catch((err: unknown) => {
       logger.error(
-        'License initialization failed',
+        'License validation failed; exiting',
         err instanceof Error ? err : new Error(String(err)),
       );
+      process.exit(1);
     });
   initPriceOracle();
   initAlerting();
@@ -1212,20 +1222,36 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`);
 }
 
+// Configure trusted-proxy-aware client IP extraction for session-binding
+// validation. See GAP-130 + packages/security/src/request-ip.ts.
+// trustedProxyCount: 1 reflects the current Vercel-only proxy chain. When
+// Cloudflare is added in front of api.revealui.com (GAP-133 phases 5-6), bump
+// to 2 in the SAME PR as the orange-cloud cutover — leaving N=1 after Cloudflare
+// goes orange = spoofable IPs again; setting N=2 before Cloudflare = garbage
+// IPs / 'unknown' for everyone.
+configureClientIp({ trustedProxyCount: 1 });
+
 // Also validate in production before accepting traffic
 if (process.env.NODE_ENV === 'production') {
   // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
   audit.setStorage(new PostgresAuditStorage());
   validateStartup();
-  initializeLicense()
+  // Forge customer deployments (Docker stack from forge/stamp.sh) reach
+  // here in NODE_ENV=production with a studio-issued JWT in
+  // REVEALUI_LICENSE_KEY but no signing key. validateLicenseAtStartup
+  // throws on invalid/expired/missing license; process.exit(1) makes the
+  // container restart-loop instead of silently degrading to free tier.
+  validateLicenseAtStartup()
+    .then(() => initializeLicense())
     .then((tier) => {
       logger.info(`License tier: ${tier}`);
     })
     .catch((err: unknown) => {
       logger.error(
-        'License initialization failed',
+        'License validation failed; exiting',
         err instanceof Error ? err : new Error(String(err)),
       );
+      process.exit(1);
     });
   initPriceOracle();
   initAlerting();

@@ -34,9 +34,9 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { unreconciledWebhooks } from '@revealui/db/schema';
+import { protectedStripe } from '@revealui/services';
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
-import Stripe from 'stripe';
 import { replayStripeEvent } from '../../lib/webhook-replay.js';
 import webhooksApp from '../webhooks.js';
 
@@ -100,7 +100,10 @@ app.post('/drain-unreconciled', async (c) => {
     Number.parseInt(process.env.DRAIN_DURATION_BUDGET_MS ?? '', 10) || DEFAULT_DURATION_BUDGET_MS;
 
   const db = getClient();
-  const stripe = new Stripe(stripeSecretKey, { apiVersion: '2026-03-25.dahlia' });
+  // GAP-131: shared protectedStripe wrapper. The events.retrieve surface
+  // is structurally compatible with replayStripeEvent's ReplayDeps.stripe
+  // (StripeEventsClient).
+  const stripe = protectedStripe;
 
   // Oldest unresolved first — they are most at risk of escalating past the
   // 24h critical threshold.

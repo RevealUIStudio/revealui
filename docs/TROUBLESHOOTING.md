@@ -148,7 +148,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Changes to .env files require server restart
    - Stop (Ctrl+C) and run `pnpm dev` again
 
-**See Also**: [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md#validation-checklist)
+**See Also**: [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md#validation-checklist)
 
 ---
 
@@ -172,7 +172,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Development and production must use different secrets
    - Staging should have its own secret
 
-**See Also**: [Environment Variables - REVEALUI_SECRET](./ENVIRONMENT_VARIABLES_GUIDE.md#1-revealui_secret)
+**See Also**: [Environment Variables - REVEALUI_SECRET](./ENVIRONMENT-VARIABLES-GUIDE.md#1-revealui_secret)
 
 ---
 
@@ -357,25 +357,32 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 
 ---
 
-### JWT Token Errors
+### Session Errors
 
-**Symptoms**: "Invalid token", "Token expired"
+> Per [ADR-004](./architecture/ADR-004-session-only-auth.md), user-facing auth is session-only — there are no JWTs in the session cookie. JWT is used for license validation (`REVEALUI_LICENSE_PRIVATE_KEY` / RS256), which is a separate surface.
+
+**Symptoms**: "Invalid session", "Session expired"
 
 **Solutions**:
 
-1. **Check token expiration**
-   - Tokens expire after configured period
-   - Re-login to get new token
+1. **Check session expiration**
+   - Sessions expire on a sliding window (see `packages/auth/src/server/session.ts`)
+   - Re-login to get a new session
 
 2. **Verify REVEALUI_SECRET**
    - Must be 32+ characters
-   - Must not change between deployments
+   - Must not change between deployments — rotating it invalidates all active sessions
+   - Used for session signing, CSRF, and HMAC operations (NOT JWT signing)
 
 3. **Check server time**
-   - Server clock must be accurate
-   - Use NTP if on VPS
+   - Server clock must be accurate (within a few seconds of UTC)
+   - Use NTP if on a VPS
 
-**See Also**: [Auth Guide](./AUTH.md)
+4. **License JWT errors (separate)**
+   - If you see "Invalid license" / "License signature failed", check `REVEALUI_LICENSE_PUBLIC_KEY` matches the private key that signed the token
+   - License JWTs use RS256; public/private keys must be a matched pair
+
+**See Also**: [Auth Guide](./AUTH.md), [ADR-004](./architecture/ADR-004-session-only-auth.md)
 
 ---
 
@@ -499,7 +506,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 ## Related Documentation
 
 - [Quick Start Guide](./QUICK_START.md) - Initial setup
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md) - Configuration
+- [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Database Guide](./DATABASE.md) - Database setup and management
 - [CI/CD Guide](./CI_CD_GUIDE.md) - Deployment troubleshooting
 - [Standards Guide](./STANDARDS.md) - Code standards and best practices

@@ -25,9 +25,10 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountSubscriptions } from '@revealui/db/schema';
+import { protectedStripe } from '@revealui/services';
 import { and, inArray, isNotNull } from 'drizzle-orm';
 import { Hono } from 'hono';
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 
 const app = new Hono();
 
@@ -120,7 +121,10 @@ app.post('/reconcile-subscriptions', async (c) => {
     DEFAULT_DURATION_BUDGET_MS;
 
   const db = getClient();
-  const stripe = new Stripe(stripeSecretKey, { apiVersion: '2026-03-25.dahlia' });
+  // Stripe access goes through the shared protectedStripe wrapper:
+  // single API-version pin, single DB-backed circuit breaker, single retry
+  // policy across all consumers (GAP-131).
+  const stripe = protectedStripe;
 
   // Only reconcile rows that believe they are live AND have a Stripe sub id
   // to compare against. Perpetual-license rows and credit-bundle-only
