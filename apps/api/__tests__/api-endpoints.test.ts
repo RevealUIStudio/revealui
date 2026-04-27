@@ -120,8 +120,10 @@ vi.mock('@revealui/db/queries/ticket-comments', () => ({
   createComment: vi.fn().mockResolvedValue({
     id: 'comment-1',
     ticketId: 'ticket-1',
+    authorId: null,
     body: 'test',
     createdAt: new Date(),
+    updatedAt: new Date(),
   }),
   getCommentById: vi
     .fn()
