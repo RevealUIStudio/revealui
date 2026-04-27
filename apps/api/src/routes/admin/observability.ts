@@ -4,20 +4,22 @@
  * Read-only endpoints for the admin dashboard dashboard observability pages.
  * All endpoints require admin role (admin, super-admin, admin, super-admin).
  *
- * GET /admin/logs          -  paginated app logs, filterable by app and level
- * GET /admin/errors        -  paginated error events
- * GET /admin/audit         -  paginated audit log, filterable by severity and agentId
- * GET /admin/webhooks      -  paginated processed webhook events, filterable by eventType
- * GET /admin/jobs          -  paginated queue jobs, filterable by state and name (CR8-P2-01 phase D)
- * GET /admin/jobs/summary  -  aggregate queue stats (state counts + per-handler 24h counts +
- *                             recent failures) (CR8-P2-01 phase D)
+ * GET /admin/logs            -  paginated app logs, filterable by app and level
+ * GET /admin/errors          -  paginated error events
+ * GET /admin/audit           -  paginated audit log, filterable by severity, agentId,
+ *                               eventType, date range, and policy violation
+ * GET /admin/audit/export    -  CSV/JSON export of audit log (Max+ tier feature)
+ * GET /admin/webhooks        -  paginated processed webhook events, filterable by eventType
+ * GET /admin/jobs            -  paginated queue jobs, filterable by state and name (CR8-P2-01 phase D)
+ * GET /admin/jobs/summary    -  aggregate queue stats (state counts + per-handler 24h counts +
+ *                               recent failures) (CR8-P2-01 phase D)
  */
 
 import { getClient } from '@revealui/db';
 import type { DatabaseClient } from '@revealui/db/client';
 import { appLogs, auditLog, errorEvents, jobs, processedWebhookEvents } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { and, count, desc, eq, gte, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, gte, lte, type SQL, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import { dateToString } from '../_helpers/serialize.js';
@@ -244,10 +246,68 @@ const AuditEntrySchema = z.object({
   policyViolations: z.array(z.string()),
 });
 
-const AuditQuery = PaginationQuery.extend({
+/**
+ * Filters supported by both /audit (paginated list) and /audit/export
+ * (CSV/JSON dump). Severity + agentId have been here since v0; this PR
+ * adds eventType, dateFrom, dateTo, and policyViolationId so investigators
+ * can scope down to a specific incident before paging or exporting.
+ */
+const AuditFilterFields = {
   severity: z.string().optional(),
   agentId: z.string().optional(),
-});
+  eventType: z.string().optional(),
+  dateFrom: z
+    .string()
+    .datetime({ offset: true })
+    .optional()
+    .openapi({ description: 'ISO 8601 lower bound (inclusive) on `timestamp`.' }),
+  dateTo: z
+    .string()
+    .datetime({ offset: true })
+    .optional()
+    .openapi({ description: 'ISO 8601 upper bound (inclusive) on `timestamp`.' }),
+  policyViolationId: z
+    .string()
+    .optional()
+    .openapi({
+      description:
+        'Match entries whose `policy_violations` JSONB array contains this string. Useful for ' +
+        "scoping to a single rule's violations.",
+    }),
+} as const;
+
+const AuditQuery = PaginationQuery.extend(AuditFilterFields);
+
+/**
+ * Translate the filter set into an AND-composed SQL where clause that
+ * both the list + export handlers can reuse. Returns undefined when no
+ * filter is set (then drizzle skips the WHERE entirely).
+ */
+function buildAuditWhereClause(filters: {
+  severity?: string;
+  agentId?: string;
+  eventType?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  policyViolationId?: string;
+}): SQL | undefined {
+  const clauses: SQL[] = [];
+  if (filters.severity) clauses.push(eq(auditLog.severity, filters.severity));
+  if (filters.agentId) clauses.push(eq(auditLog.agentId, filters.agentId));
+  if (filters.eventType) clauses.push(eq(auditLog.eventType, filters.eventType));
+  if (filters.dateFrom) clauses.push(gte(auditLog.timestamp, new Date(filters.dateFrom)));
+  if (filters.dateTo) clauses.push(lte(auditLog.timestamp, new Date(filters.dateTo)));
+  if (filters.policyViolationId) {
+    // JSONB containment: array @> jsonb_build_array(<id>) matches any row
+    // whose policy_violations array contains the requested id.
+    clauses.push(
+      sql`${auditLog.policyViolations} @> ${JSON.stringify([filters.policyViolationId])}::jsonb`,
+    );
+  }
+  if (clauses.length === 0) return undefined;
+  if (clauses.length === 1) return clauses[0];
+  return and(...clauses);
+}
 
 app.openapi(
   createRoute({
@@ -271,14 +331,18 @@ app.openapi(
   async (c) => {
     requireAdmin(c.get('user'));
 
-    const { limit, offset, severity, agentId } = c.req.valid('query');
+    const { limit, offset, severity, agentId, eventType, dateFrom, dateTo, policyViolationId } =
+      c.req.valid('query');
     const db = c.get('db') ?? getClient();
 
-    const clauses: SQL[] = [];
-    if (severity) clauses.push(eq(auditLog.severity, severity));
-    if (agentId) clauses.push(eq(auditLog.agentId, agentId));
-    const where =
-      clauses.length === 0 ? undefined : clauses.length === 1 ? clauses[0] : and(...clauses);
+    const where = buildAuditWhereClause({
+      severity,
+      agentId,
+      eventType,
+      dateFrom,
+      dateTo,
+      policyViolationId,
+    });
 
     const [rows, [countResult]] = await Promise.all([
       db
@@ -315,6 +379,144 @@ app.openapi(
     );
   },
 );
+
+// =============================================================================
+// GET /admin/audit/export — Max+ tier feature (gated via requireFeature in index.ts)
+// =============================================================================
+
+/**
+ * Export-only safety cap. Even with filters applied, a runaway export
+ * shouldn't tie up the API process or pump unbounded data through Vercel's
+ * response window. Customers needing larger exports paginate via /audit.
+ */
+const AUDIT_EXPORT_MAX_ROWS = 10_000;
+
+const AuditExportQuery = z.object({
+  format: z.enum(['csv', 'json']).default('csv'),
+  ...AuditFilterFields,
+});
+
+/**
+ * Escape a value for CSV per RFC 4180: wrap in double quotes, double any
+ * embedded double quotes. We always quote — simpler and safe for fields
+ * that may contain commas, newlines, or quotes (payload JSON especially).
+ */
+function csvEscape(value: unknown): string {
+  let str: string;
+  if (value === null || value === undefined) {
+    str = '';
+  } else if (typeof value === 'string') {
+    str = value;
+  } else {
+    str = JSON.stringify(value);
+  }
+  return `"${str.replace(/"/g, '""')}"`;
+}
+
+app.get('/audit/export', async (c) => {
+  requireAdmin(c.get('user'));
+
+  const parsed = AuditExportQuery.safeParse(Object.fromEntries(new URL(c.req.url).searchParams));
+  if (!parsed.success) {
+    throw new HTTPException(400, {
+      message: `Invalid query: ${parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ')}`,
+    });
+  }
+
+  const { format, severity, agentId, eventType, dateFrom, dateTo, policyViolationId } = parsed.data;
+  const db = c.get('db') ?? getClient();
+
+  const where = buildAuditWhereClause({
+    severity,
+    agentId,
+    eventType,
+    dateFrom,
+    dateTo,
+    policyViolationId,
+  });
+
+  const rows = await db
+    .select()
+    .from(auditLog)
+    .where(where)
+    .orderBy(desc(auditLog.timestamp))
+    .limit(AUDIT_EXPORT_MAX_ROWS);
+
+  const filenameStamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+  if (format === 'json') {
+    const body = {
+      exportedAt: new Date().toISOString(),
+      rowCount: rows.length,
+      capped: rows.length === AUDIT_EXPORT_MAX_ROWS,
+      maxRows: AUDIT_EXPORT_MAX_ROWS,
+      filters: { severity, agentId, eventType, dateFrom, dateTo, policyViolationId },
+      data: rows.map((row) => ({
+        id: row.id,
+        timestamp: dateToString(row.timestamp),
+        eventType: row.eventType,
+        severity: row.severity,
+        agentId: row.agentId,
+        taskId: row.taskId ?? null,
+        sessionId: row.sessionId ?? null,
+        payload: row.payload,
+        policyViolations: row.policyViolations,
+        signature: row.signature ?? null,
+        previousSignature: row.previousSignature ?? null,
+      })),
+    };
+    return c.body(JSON.stringify(body, null, 2), 200, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Content-Disposition': `attachment; filename="audit-log-${filenameStamp}.json"`,
+      'Cache-Control': 'no-store',
+    });
+  }
+
+  // CSV — RFC 4180. Headers cover the same columns as the JSON export so
+  // operators can swap formats without losing fields. Tamper-detection
+  // signatures are included so customers can verify integrity offline.
+  const header = [
+    'id',
+    'timestamp',
+    'event_type',
+    'severity',
+    'agent_id',
+    'task_id',
+    'session_id',
+    'payload',
+    'policy_violations',
+    'signature',
+    'previous_signature',
+  ]
+    .map(csvEscape)
+    .join(',');
+
+  const lines = rows.map((row) =>
+    [
+      row.id,
+      dateToString(row.timestamp),
+      row.eventType,
+      row.severity,
+      row.agentId,
+      row.taskId ?? '',
+      row.sessionId ?? '',
+      row.payload,
+      row.policyViolations,
+      row.signature ?? '',
+      row.previousSignature ?? '',
+    ]
+      .map(csvEscape)
+      .join(','),
+  );
+
+  const csv = [header, ...lines].join('\r\n');
+
+  return c.body(csv, 200, {
+    'Content-Type': 'text/csv; charset=utf-8',
+    'Content-Disposition': `attachment; filename="audit-log-${filenameStamp}.csv"`,
+    'Cache-Control': 'no-store',
+  });
+});
 
 // =============================================================================
 // GET /admin/webhooks

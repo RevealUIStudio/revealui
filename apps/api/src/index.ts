@@ -726,6 +726,13 @@ app.use('/api/v1/collab/update', requireFeature('advancedSync', { mode: 'entitle
 app.use('/api/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
 app.use('/api/v1/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
 
+// Audit log export is a Max+ tier feature ("auditLog" in DEFAULT_FEATURES).
+// The basic /api/admin/audit listing stays admin-role-gated only — this
+// adds richer capability (CSV / JSON export of filtered windows) on top
+// for Max+ tiers, without removing any existing admin's access.
+app.use('/api/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
+app.use('/api/v1/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
+
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
