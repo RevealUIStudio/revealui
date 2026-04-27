@@ -56,7 +56,7 @@ jobs:
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
       - name: Biome lint (hard fail)
-        run: pnpm lint:biome
+        run: pnpm lint
 
       - name: Any-type audit
         run: pnpm audit:any
