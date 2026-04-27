@@ -16,15 +16,7 @@
  */
 
 import { sql } from 'drizzle-orm';
-import {
-  check,
-  integer,
-  pgTable,
-  real,
-  text,
-  timestamp,
-  uniqueIndex,
-} from 'drizzle-orm/pg-core';
+import { check, integer, pgTable, real, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 import { sites } from './sites.js';
 
 export const workspaceInferenceConfigs = pgTable(

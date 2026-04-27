@@ -2173,6 +2173,32 @@ export const WaitlistInsertContract = createContract({
 })
 
 // =============================================================================
+// WorkspaceInferenceConfigs Contracts
+// =============================================================================
+
+/**
+ * Contract for workspaceInferenceConfigs row (Select)
+ * Database table: workspace_inference_configs
+ */
+export const WorkspaceInferenceConfigsRowContract = createContract({
+  name: 'WorkspaceInferenceConfigsRow',
+  version: '1',
+  description: 'Database row contract for workspace_inference_configs table',
+  schema: Schemas.WorkspaceInferenceConfigsSelectSchema,
+})
+
+/**
+ * Contract for workspaceInferenceConfigs insert
+ * Database table: workspace_inference_configs
+ */
+export const WorkspaceInferenceConfigsInsertContract = createContract({
+  name: 'WorkspaceInferenceConfigsInsert',
+  version: '1',
+  description: 'Database insert contract for workspace_inference_configs table',
+  schema: Schemas.WorkspaceInferenceConfigsInsertSchema,
+})
+
+// =============================================================================
 // YjsDocumentPatches Contracts
 // =============================================================================
 

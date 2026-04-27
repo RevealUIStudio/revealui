@@ -1,4 +1,5 @@
 #!/usr/bin/env tsx
+// console-allowed
 
 /**
  * Raw-SQL Validator — Phase 2 of the raw-SQL migration plan.
@@ -267,9 +268,11 @@ function checkDirectImport(
     const trimmed = line.trimStart();
     // Fast path — skip anything not starting with import/export/require/from
     if (
-      !trimmed.startsWith('import') &&
-      !trimmed.startsWith('export') &&
-      !trimmed.includes('require(')
+      !(
+        trimmed.startsWith('import') ||
+        trimmed.startsWith('export') ||
+        trimmed.includes('require(')
+      )
     ) {
       continue;
     }

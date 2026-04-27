@@ -31,7 +31,6 @@ import {
   accountSubscriptions,
   accounts,
   sites,
-  users,
 } from '@revealui/db/schema';
 import { asc, eq, inArray } from 'drizzle-orm';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';

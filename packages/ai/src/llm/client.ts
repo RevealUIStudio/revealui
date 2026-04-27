@@ -543,11 +543,6 @@ export function createLLMClientFromEnv(): LLMClient {
     // Zero-config Ubuntu default: assume Inference Snaps on the standard
     // local port. Operator sees the warning once at boot.
     provider = 'inference-snaps';
-    console.warn(
-      '[ai] No LLM provider configured; defaulting to Inference Snaps at ' +
-        'http://localhost:9090/v1 (Ubuntu local). Set INFERENCE_SNAPS_BASE_URL ' +
-        'or LLM_PROVIDER to silence this message.',
-    );
   }
 
   let apiKey: string | undefined;

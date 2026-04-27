@@ -33,8 +33,8 @@ describe('VAUGHN capabilities', () => {
 
   it('TOOL_PROFILES has entries for all known tools', () => {
     expect(TOOL_PROFILES['claude-code']).toBeDefined();
-    expect(TOOL_PROFILES['codex']).toBeDefined();
-    expect(TOOL_PROFILES['cursor']).toBeDefined();
+    expect(TOOL_PROFILES.codex).toBeDefined();
+    expect(TOOL_PROFILES.cursor).toBeDefined();
     expect(TOOL_PROFILES['revealui-agent']).toBeDefined();
   });
 
@@ -53,13 +53,13 @@ describe('VAUGHN capabilities', () => {
   });
 
   it('codex has sandbox support', () => {
-    const caps = TOOL_PROFILES['codex'];
+    const caps = TOOL_PROFILES.codex;
     expect(caps.sandbox.supported).toBe(true);
     expect(caps.sandbox.modes).toContain('read-only');
   });
 
   it('cursor has minimal capabilities', () => {
-    const caps = TOOL_PROFILES['cursor'];
+    const caps = TOOL_PROFILES.cursor;
     expect(caps.headless).toBe(false);
     expect(caps.hooks.supported).toBe(false);
     expect(caps.readWorkboard).toBe(false);
