@@ -719,6 +719,20 @@ app.use('/api/v1/collab/snapshot/*', requireFeature('advancedSync', { mode: 'ent
 app.use('/api/collab/update', requireFeature('advancedSync', { mode: 'entitlements' }));
 app.use('/api/v1/collab/update', requireFeature('advancedSync', { mode: 'entitlements' }));
 
+// MCP usage aggregations are a Pro feature — without this gate, the
+// `mcp` capability we sell to Pro+ tiers leaks via /api/mcp/usage to
+// the free tier (caller's account-scoped, but the metering itself is
+// the Pro-tier sell). Both versioned + unversioned mounts are gated.
+app.use('/api/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
+app.use('/api/v1/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
+
+// Audit log export is a Max+ tier feature ("auditLog" in DEFAULT_FEATURES).
+// The basic /api/admin/audit listing stays admin-role-gated only — this
+// adds richer capability (CSV / JSON export of filtered windows) on top
+// for Max+ tiers, without removing any existing admin's access.
+app.use('/api/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
+app.use('/api/v1/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
+
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
