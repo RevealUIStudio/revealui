@@ -21,12 +21,14 @@ const { mockBoards, mockTickets } = vi.hoisted(() => ({
   mockBoards: [
     {
       id: 'board-1',
+      schemaVersion: '1',
       name: 'Main Board',
       slug: 'main-board',
       description: null,
       ownerId: null,
       tenantId: null,
       isDefault: true,
+      settings: {},
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -34,6 +36,7 @@ const { mockBoards, mockTickets } = vi.hoisted(() => ({
   mockTickets: [
     {
       id: 'ticket-1',
+      schemaVersion: '1',
       boardId: 'board-1',
       columnId: 'col-1',
       parentTicketId: null,
