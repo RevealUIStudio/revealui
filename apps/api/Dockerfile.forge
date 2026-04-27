@@ -20,6 +20,7 @@ COPY packages/contracts/package.json  ./packages/contracts/
 COPY packages/core/package.json       ./packages/core/
 COPY packages/db/package.json         ./packages/db/
 COPY packages/dev/package.json        ./packages/dev/
+COPY packages/mcp/package.json        ./packages/mcp/
 COPY packages/openapi/package.json    ./packages/openapi/
 COPY packages/resilience/package.json ./packages/resilience/
 COPY packages/security/package.json   ./packages/security/
