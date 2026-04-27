@@ -4,7 +4,7 @@
   "description": "Runtime engine, REST API, auth, rich text, admin UI, and plugins for RevealUI",
   "license": "MIT",
   "dependencies": {
-    "@electric-sql/pglite": "^0.4.4",
+    "@electric-sql/pglite": "^0.4.5",
     "@lexical/clipboard": "^0.43.0",
     "@lexical/code": "^0.43.0",
     "@lexical/html": "^0.43.0",
