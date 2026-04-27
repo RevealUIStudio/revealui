@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 const ApiKeySchema = z.object({
-  provider: z.enum(['ollama', 'huggingface', 'vultr', 'inference-snaps']),
+  provider: z.enum(['groq', 'huggingface', 'inference-snaps', 'ollama']),
   key: z.string().min(1).max(4096),
 });
 

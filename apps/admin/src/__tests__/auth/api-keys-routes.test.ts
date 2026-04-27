@@ -231,7 +231,7 @@ describe('POST /api/user/api-keys', () => {
     vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
 
     const req = makePostRequest('/api/user/api-keys', {
-      provider: 'vultr',
+      provider: 'groq',
       key: 'gsk_abc123',
     });
     await POST(req);
@@ -290,7 +290,7 @@ describe('POST /api/user/api-keys', () => {
   it('accepts all valid provider values', async () => {
     vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
 
-    const providers = ['ollama', 'huggingface', 'vultr', 'inference-snaps'];
+    const providers = ['groq', 'huggingface', 'inference-snaps', 'ollama'];
     for (const provider of providers) {
       vi.clearAllMocks();
       vi.mocked(getSession).mockResolvedValue(mockSessionData as never);
@@ -415,7 +415,7 @@ describe('GET /api/user/api-keys/value', () => {
     setupSelectChain([
       {
         id: 'key-1',
-        provider: 'vultr',
+        provider: 'groq',
         encryptedKey: 'encrypted:gsk-abc',
       },
     ]);

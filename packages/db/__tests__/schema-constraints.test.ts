@@ -551,7 +551,7 @@ describe('User API Keys  -  constraints', () => {
   it('allows nullable last_used_at', async () => {
     await insertUser();
     await db.query(
-      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'u1', 'vultr', 'enc')",
+      "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'u1', 'groq', 'enc')",
     );
     const r = await db.query<{ last_used_at: Date | null }>(
       "SELECT last_used_at FROM user_api_keys WHERE id = 'k1'",
@@ -578,7 +578,7 @@ describe('Tenant Provider Configs  -  constraints', () => {
   it('defaults is_default to false', async () => {
     await insertUser();
     await db.query(
-      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'vultr')",
+      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'groq')",
     );
     const r = await db.query<{ is_default: boolean }>(
       "SELECT is_default FROM tenant_provider_configs WHERE id = 'tc1'",
@@ -818,7 +818,7 @@ describe('Cross-table cascade deletes', () => {
       "INSERT INTO user_api_keys (id, user_id, provider, encrypted_key) VALUES ('k1', 'u1', 'ollama', 'enc')",
     );
     await db.query(
-      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'vultr')",
+      "INSERT INTO tenant_provider_configs (id, user_id, provider) VALUES ('tc1', 'u1', 'groq')",
     );
     await db.query(
       "INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at) VALUES ('t1', 'u1', 'hash1', NOW() + INTERVAL '1 hour')",

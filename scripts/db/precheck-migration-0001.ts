@@ -80,7 +80,7 @@ const checks: CheckSpec[] = [
   {
     table: 'user_api_keys',
     column: 'provider',
-    allowedValues: ['ollama', 'huggingface', 'vultr', 'inference-snaps'],
+    allowedValues: ['groq', 'huggingface', 'inference-snaps', 'ollama'],
   },
   { table: 'app_logs', column: 'level', allowedValues: ['warn', 'error', 'fatal'] },
   { table: 'app_logs', column: 'app', allowedValues: ['admin', 'api', 'marketing', 'mainframe'] },
