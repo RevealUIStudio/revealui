@@ -94,12 +94,6 @@ const mcpServers: McpServer[] = [
     status: 'live',
   },
   {
-    name: 'Vultr Test',
-    description: 'Vultr GPU inference test harness for validating open-model endpoints.',
-    category: 'AI',
-    status: 'live',
-  },
-  {
     name: 'Email Provider',
     description: 'Shared helper surface powering the other email-capable MCP servers.',
     category: 'Communication',

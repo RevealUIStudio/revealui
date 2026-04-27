@@ -5,8 +5,7 @@
  * Provides 100% cost savings on cache hits vs Anthropic's 90% token-level savings.
  *
  * Use cases:
- * - Vultr (doesn't have prompt caching)
- * - OpenAI (doesn't have prompt caching)
+ * - Groq (doesn't have prompt caching)
  * - Any provider without built-in caching
  * - Supplement to Anthropic prompt caching for exact duplicates
  *

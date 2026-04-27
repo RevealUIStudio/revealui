@@ -14,4 +14,3 @@ export * from './providers/groq.js';
 export * from './providers/inference-snaps.js';
 export * from './providers/ollama.js';
 export * from './providers/openai-compat.js';
-export * from './providers/vultr.js';
