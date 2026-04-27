@@ -35,7 +35,6 @@ import {
 } from './providers/inference-snaps.js';
 import { OllamaProvider, type OllamaProviderConfig } from './providers/ollama.js';
 import type { OpenAICompatConfig } from './providers/openai-compat.js';
-import { VultrProvider, type VultrProviderConfig } from './providers/vultr.js';
 import { type CacheStats, ResponseCache, type ResponseCacheOptions } from './response-cache.js';
 import {
   SemanticCache,
@@ -44,7 +43,7 @@ import {
 } from './semantic-cache.js';
 import { estimateRequest as _estimateRequestTokens } from './token-counter.js';
 
-export type LLMProviderType = 'vultr' | 'groq' | 'ollama' | 'huggingface' | 'inference-snaps';
+export type LLMProviderType = 'groq' | 'ollama' | 'huggingface' | 'inference-snaps';
 
 export interface LLMClientConfig {
   provider: LLMProviderType;
@@ -170,14 +169,11 @@ export class LLMClient {
     type: LLMProviderType,
     config:
       | OpenAICompatConfig
-      | VultrProviderConfig
       | GroqProviderConfig
       | OllamaProviderConfig
       | InferenceSnapsProviderConfig,
   ): LLMProvider {
     switch (type) {
-      case 'vultr':
-        return new VultrProvider(config as VultrProviderConfig);
       case 'groq':
         return new GroqProvider(config as GroqProviderConfig);
       case 'ollama':
@@ -517,7 +513,9 @@ export class LLMClient {
  * Create an LLM client from environment variables.
  *
  * When LLM_PROVIDER is not set, auto-detects the provider by checking env vars
- * in priority order: INFERENCE_SNAPS → GROQ → OLLAMA.
+ * in priority order: INFERENCE_SNAPS → GROQ → OLLAMA. If none are set, defaults
+ * to Inference Snaps at http://localhost:9090/v1 (Ubuntu local) and emits a
+ * one-line stderr warning so the implicit default is discoverable in logs.
  *
  * All providers use OpenAI-compatible APIs. No proprietary provider SDKs.
  *
@@ -542,13 +540,13 @@ export function createLLMClientFromEnv(): LLMClient {
   } else if (process.env.OLLAMA_BASE_URL) {
     provider = 'ollama';
   } else {
-    throw new Error(
-      'No LLM provider configured. Set one of: ' +
-        'INFERENCE_SNAPS_BASE_URL (local Canonical Inference Snap; see ' +
-        'packages/ai/src/llm/providers/inference-snaps.ts for install), ' +
-        'OLLAMA_BASE_URL (local Ollama), ' +
-        'GROQ_API_KEY (cloud). ' +
-        'Alternatively, set LLM_PROVIDER explicitly.',
+    // Zero-config Ubuntu default: assume Inference Snaps on the standard
+    // local port. Operator sees the warning once at boot.
+    provider = 'inference-snaps';
+    console.warn(
+      '[ai] No LLM provider configured; defaulting to Inference Snaps at ' +
+        'http://localhost:9090/v1 (Ubuntu local). Set INFERENCE_SNAPS_BASE_URL ' +
+        'or LLM_PROVIDER to silence this message.',
     );
   }
 
@@ -556,10 +554,7 @@ export function createLLMClientFromEnv(): LLMClient {
   let baseURL: string | undefined;
   let defaultModel: string | undefined;
 
-  if (provider === 'vultr') {
-    apiKey = process.env.VULTR_API_KEY;
-    baseURL = process.env.VULTR_BASE_URL;
-  } else if (provider === 'huggingface') {
+  if (provider === 'huggingface') {
     apiKey = process.env.HF_TOKEN;
     baseURL = process.env.HF_MODEL_URL;
   } else if (provider === 'groq') {
@@ -583,7 +578,7 @@ export function createLLMClientFromEnv(): LLMClient {
   if (!apiKey) {
     throw new Error(
       `API key not found for provider "${provider}". Set the corresponding env var ` +
-        `(INFERENCE_SNAPS_BASE_URL, GROQ_API_KEY, OLLAMA_BASE_URL, VULTR_API_KEY, or HF_TOKEN).`,
+        `(INFERENCE_SNAPS_BASE_URL, GROQ_API_KEY, OLLAMA_BASE_URL, or HF_TOKEN).`,
     );
   }
 

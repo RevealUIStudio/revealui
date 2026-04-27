@@ -76,16 +76,6 @@ export async function validateProviderKey(
         return { valid: false, error: `HuggingFace validation failed: HTTP ${res.status}` };
       }
 
-      case 'vultr': {
-        // Vultr Serverless Inference API (OpenAI-compatible)
-        const res = await probeFetch('https://api.vultrinference.com/v1/models', {
-          headers: { Authorization: `Bearer ${apiKey}` },
-        });
-        if (res.ok) return { valid: true };
-        if (res.status === 401) return { valid: false, error: 'Invalid Vultr API key' };
-        return { valid: false, error: `Vultr validation failed: HTTP ${res.status}` };
-      }
-
       case 'ollama': {
         // Ollama is local  -  we cannot reliably probe it from the server.
         // Accept the key as-is (Ollama doesn't use API keys anyway).
