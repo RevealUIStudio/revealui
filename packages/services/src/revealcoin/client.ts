@@ -276,6 +276,45 @@ export async function verifyRvuiPayment(
   }, 'verifyRvuiPayment');
 }
 
+/**
+ * Total RVUI token supply, queried from the Token-2022 mint.
+ */
+export interface RvuiSupply {
+  /** Raw on-chain amount (including decimals). */
+  raw: bigint;
+  /** Total supply formatted as a decimal string (e.g. "58906000000.000000"). */
+  uiAmountString: string;
+  /** Token decimals (RVUI is 6). */
+  decimals: number;
+}
+
+/**
+ * Get the total RVUI token supply.
+ *
+ * Queries the Token-2022 mint info via Solana JSON-RPC `getTokenSupply`.
+ * Reflects current circulating supply minus any burns.
+ */
+export async function getRvuiSupply(): Promise<RvuiSupply> {
+  return callWithResilience(async () => {
+    const rpc = getRpc();
+    const config = getRevealCoinConfig();
+    const mintAddress = RVUI_MINT_ADDRESSES[config.network];
+    if (!mintAddress) {
+      throw new Error(`RVUI not deployed on ${config.network}`);
+    }
+
+    const mint = address(mintAddress);
+
+    const response = await rpc.getTokenSupply(mint, { commitment: config.queryCommitment }).send();
+
+    return {
+      raw: BigInt(response.value.amount),
+      uiAmountString: response.value.uiAmountString,
+      decimals: response.value.decimals,
+    };
+  }, 'getRvuiSupply');
+}
+
 // =============================================================================
 // Test-only exports
 // =============================================================================
