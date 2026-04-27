@@ -58,8 +58,6 @@ function requireAdmin(user: { id: string; role: string } | undefined): void {
   }
 }
 
-const ErrorSchema = z.object({ success: z.literal(false), error: z.string() });
-
 const ConfigShape = z.object({
   workspaceId: z.string(),
   source: z.enum(['configured', 'default']),
@@ -184,11 +182,6 @@ app.openapi(
         },
         description: 'Config (per-site) or system default',
       },
-      401: {
-        content: { 'application/json': { schema: ErrorSchema } },
-        description: 'Unauthorized',
-      },
-      403: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Forbidden' },
     },
   }),
   async (c) => {
@@ -227,15 +220,6 @@ app.openapi(
         },
         description: 'Config saved',
       },
-      400: {
-        content: { 'application/json': { schema: ErrorSchema } },
-        description: 'Invalid body',
-      },
-      401: {
-        content: { 'application/json': { schema: ErrorSchema } },
-        description: 'Unauthorized',
-      },
-      403: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Forbidden' },
     },
   }),
   async (c) => {
@@ -330,11 +314,6 @@ app.openapi(
         },
         description: 'Config deleted; default returned',
       },
-      401: {
-        content: { 'application/json': { schema: ErrorSchema } },
-        description: 'Unauthorized',
-      },
-      403: { content: { 'application/json': { schema: ErrorSchema } }, description: 'Forbidden' },
     },
   }),
   async (c) => {

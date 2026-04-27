@@ -83,7 +83,7 @@ export function getClientIp(request: Request, config?: ClientIpConfig): string {
   if (ipHeader) {
     const value = request.headers.get(ipHeader);
     if (value) {
-      return value.split(',')[0]?.trim();
+      return value.split(',')[0]!.trim();
     }
   }
 

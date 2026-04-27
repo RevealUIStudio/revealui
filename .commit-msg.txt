@@ -1,0 +1,34 @@
+fix(api,security): repair two TS regressions caused by biome --unsafe auto-fix in 6cc28179e
+
+CI on 6cc28179e surfaced two cascading typecheck failures that
+6cc28179e introduced via biome's `--unsafe` auto-fix. Fixing both
+without reverting the rest of the cleanup.
+
+1. **packages/security/src/request-ip.ts:86** —
+   biome rewrote `value.split(',')[0]!.trim()` to
+   `value.split(',')[0]?.trim()`. The non-null assertion was correct
+   (split always returns ≥1 element), but the optional chain widens
+   the return to `string | undefined`, which violates the function's
+   `: string` signature. Restored the non-null assertion. This single
+   line was the root cause of all 4 CI failures (Build, Typecheck,
+   Unit Tests, Integration Tests) — @revealui/security failed dts
+   build, cascading to every downstream consumer.
+
+2. **apps/api/src/routes/admin/inference-config.ts** — three OpenAPI
+   route declarations (GET, PUT, DELETE) listed `401` / `403` (and
+   PUT also `400`) in `responses:` with `ErrorSchema` payloads. But
+   the handlers throw `HTTPException` for those statuses, which is
+   caught by the global error middleware and never returns directly
+   from the handler. The OpenAPI type system saw the handler return
+   only `200` while the schema required `200 | 401 | 403`, producing
+   a "not assignable to Handler<...>" error. Dropped the 401/403/400
+   entries (they're documented in the global error middleware
+   contract) and removed the now-unused `ErrorSchema` definition.
+   Matches the api-keys.ts route pattern: handlers declare only what
+   they directly return; HTTPException paths are global concerns.
+
+Verified locally:
+  pnpm --filter api typecheck       → clean
+  pnpm --filter @revealui/security typecheck → clean
+  pnpm --filter api exec vitest run src/routes/__tests__/inference-config.test.ts
+                                    → 14/14 pass
