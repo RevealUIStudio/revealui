@@ -1,4 +1,4 @@
-CREATE TABLE "workspace_inference_configs" (
+CREATE TABLE IF NOT EXISTS "workspace_inference_configs" (
 	"id" text PRIMARY KEY NOT NULL,
 	"workspace_id" text NOT NULL,
 	"provider" text NOT NULL,
@@ -18,7 +18,12 @@ CREATE TABLE "workspace_inference_configs" (
       ))
 );
 --> statement-breakpoint
-ALTER TABLE "user_api_keys" DROP CONSTRAINT "user_api_keys_provider_check";--> statement-breakpoint
-ALTER TABLE "workspace_inference_configs" ADD CONSTRAINT "workspace_inference_configs_workspace_id_sites_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."sites"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-CREATE UNIQUE INDEX "workspace_inference_configs_workspace_id_uidx" ON "workspace_inference_configs" USING btree ("workspace_id");--> statement-breakpoint
-ALTER TABLE "user_api_keys" ADD CONSTRAINT "user_api_keys_provider_check" CHECK (provider IN ('groq', 'huggingface', 'inference-snaps', 'ollama'));
+ALTER TABLE "user_api_keys" DROP CONSTRAINT IF EXISTS "user_api_keys_provider_check";--> statement-breakpoint
+DO $$ BEGIN
+	ALTER TABLE "workspace_inference_configs" ADD CONSTRAINT "workspace_inference_configs_workspace_id_sites_id_fk" FOREIGN KEY ("workspace_id") REFERENCES "public"."sites"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "workspace_inference_configs_workspace_id_uidx" ON "workspace_inference_configs" USING btree ("workspace_id");--> statement-breakpoint
+DO $$ BEGIN
+	ALTER TABLE "user_api_keys" ADD CONSTRAINT "user_api_keys_provider_check" CHECK (provider IN ('groq', 'huggingface', 'inference-snaps', 'ollama'));
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;

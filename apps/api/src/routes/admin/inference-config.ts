@@ -143,7 +143,7 @@ async function syncRegistry(
   maxTokens: number | null,
 ): Promise<void> {
   const aiMod = await import('@revealui/ai/llm/server').catch(() => null);
-  if (!aiMod || !aiMod.workspaceProviderRegistry) return;
+  if (!aiMod?.workspaceProviderRegistry) return;
 
   aiMod.workspaceProviderRegistry.set({
     workspaceId,
@@ -158,7 +158,7 @@ async function syncRegistry(
 
 async function clearRegistry(workspaceId: string): Promise<void> {
   const aiMod = await import('@revealui/ai/llm/server').catch(() => null);
-  if (!aiMod || !aiMod.workspaceProviderRegistry) return;
+  if (!aiMod?.workspaceProviderRegistry) return;
   aiMod.workspaceProviderRegistry.delete(workspaceId);
 }
 

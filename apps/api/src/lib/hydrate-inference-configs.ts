@@ -13,16 +13,16 @@
  * to env-based provider config.
  */
 
+import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { decryptApiKey } from '@revealui/db/crypto';
 import { workspaceInferenceConfigs } from '@revealui/db/schema';
-import { logger } from '@revealui/core/observability/logger';
 
 const KEYLESS_PROVIDERS = new Set(['inference-snaps', 'ollama']);
 
 export async function hydrateInferenceConfigs(): Promise<void> {
   const aiMod = await import('@revealui/ai/llm/server').catch(() => null);
-  if (!aiMod || !aiMod.workspaceProviderRegistry) {
+  if (!aiMod?.workspaceProviderRegistry) {
     // @revealui/ai not installed (OSS-only); nothing to hydrate.
     return;
   }
