@@ -370,25 +370,29 @@ export function emitStripeTestModeWarning(): void {
 
 /**
  * Emitted once per cold start when running with `RVUI_PAYMENTS_ENABLED=true`.
- * The RVUI verification path skips the safeguards pipeline today (replay
- * attack hole tracked as GAP-159 in revealui-jv); the warning makes the
- * posture unmistakable in runtime logs so an operator can't accidentally
- * leave it on in an environment carrying real RVC value.
+ * RVUI is treated as an experimental discount currency — the safeguards
+ * pipeline is wired (replay protection + caps + circuit breaker) but
+ * mainnet activation still requires the on-chain unlock per
+ * `project_revealcoin_pre_launch_gates`. The warning keeps the experimental
+ * posture visible in runtime logs.
+ *
+ * History: pre-#648 this banner warned about a replay-attack hole in the
+ * verify path (GAP-159). #648 closed the hole; the wording was relaxed in
+ * #651 once safeguards were wired.
  */
 export function emitRvuiSafeguardsWarning(): void {
   const banner = [
     '',
     '⚠️  ╔══════════════════════════════════════════════════════════════════╗',
-    '⚠️  ║  RVUI PAYMENTS — replay-attack hole (GAP-159)                    ║',
+    '⚠️  ║  RVUI PAYMENTS — experimental discount currency                  ║',
     '⚠️  ║                                                                  ║',
-    '⚠️  ║  RVUI_PAYMENTS_ENABLED=true and the RVUI safeguards pipeline    ║',
-    '⚠️  ║  (validatePayment + recordPayment + isDuplicateTransaction) is  ║',
-    '⚠️  ║  unwired upstream of verifyRvuiPayment. A single txSignature    ║',
-    '⚠️  ║  can be replayed N times across paid endpoints — all N pass.    ║',
+    '⚠️  ║  RVUI_PAYMENTS_ENABLED=true. Replay protection + caps + circuit ║',
+    '⚠️  ║  breaker are wired into the verify path (GAP-159 closed via     ║',
+    '⚠️  ║  revealui#648).                                                  ║',
     '⚠️  ║                                                                  ║',
-    '⚠️  ║  Safe ONLY in devnet test environments. Do NOT enable in any    ║',
-    '⚠️  ║  environment carrying real RVC value until GAP-159 closes —     ║',
-    '⚠️  ║  wires safeguards into x402.verifySolanaPayment.                ║',
+    '⚠️  ║  Mainnet activation still gated on the pre-launch unlock        ║',
+    '⚠️  ║  (multi-sig + on-chain vesting); devnet/staging is the          ║',
+    '⚠️  ║  recommended environment until that lands.                       ║',
     '⚠️  ╚══════════════════════════════════════════════════════════════════╝',
     '',
     '',
