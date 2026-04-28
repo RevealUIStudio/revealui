@@ -12,12 +12,44 @@
 import crypto from 'node:crypto';
 import { LLM_PROVIDERS } from '@revealui/contracts';
 import { getClient, withTransaction } from '@revealui/db';
+import type { Database } from '@revealui/db/client';
 import { encryptApiKey, redactApiKey } from '@revealui/db/crypto';
-import { tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
+import { auditLog, tenantProviderConfigs, userApiKeys } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, eq } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+
+/**
+ * Record a credential lifecycle event in audit_log. Best-effort: an
+ * audit-write failure must not block the API response (the rotation /
+ * create / delete already succeeded at this point). Consumed by the
+ * Pro-tier `vaultRotation` paywall (`/api/rotation/history`).
+ */
+async function recordCredentialEvent(
+  db: Database,
+  userId: string,
+  eventType: 'credential:created' | 'credential:rotated' | 'credential:revoked',
+  payload: {
+    credentialKind: 'user_api_key';
+    credentialId: string;
+    provider: string;
+    label?: string | null;
+  },
+): Promise<void> {
+  try {
+    await db.insert(auditLog).values({
+      id: crypto.randomUUID(),
+      eventType,
+      severity: 'info',
+      agentId: userId,
+      payload,
+      policyViolations: [],
+    });
+  } catch {
+    // best-effort; never block the caller on audit-write failure
+  }
+}
 
 const ALLOWED_PROVIDERS = LLM_PROVIDERS;
 
@@ -136,6 +168,13 @@ app.openapi(postRoute, async (c) => {
       label: label ?? null,
     });
 
+    await recordCredentialEvent(tx, user.id, 'credential:created', {
+      credentialKind: 'user_api_key',
+      credentialId: id,
+      provider,
+      label: label ?? null,
+    });
+
     // Optionally set/update the default provider config for this user
     if (setAsDefault) {
       // Clear existing default for this provider
@@ -247,13 +286,19 @@ app.openapi(deleteRoute, async (c) => {
   const db = getClient();
 
   const [existing] = await db
-    .select({ id: userApiKeys.id })
+    .select({ id: userApiKeys.id, provider: userApiKeys.provider })
     .from(userApiKeys)
     .where(and(eq(userApiKeys.id, id), eq(userApiKeys.userId, user.id)));
 
   if (!existing) throw new HTTPException(404, { message: 'API key not found' });
 
   await db.delete(userApiKeys).where(and(eq(userApiKeys.id, id), eq(userApiKeys.userId, user.id)));
+
+  await recordCredentialEvent(db, user.id, 'credential:revoked', {
+    credentialKind: 'user_api_key',
+    credentialId: id,
+    provider: existing.provider,
+  });
 
   return c.json({ deleted: true });
 });
@@ -292,7 +337,7 @@ app.openapi(rotateRoute, async (c) => {
   const db = getClient();
 
   const [existing] = await db
-    .select({ id: userApiKeys.id })
+    .select({ id: userApiKeys.id, provider: userApiKeys.provider })
     .from(userApiKeys)
     .where(and(eq(userApiKeys.id, id), eq(userApiKeys.userId, user.id)));
 
@@ -305,6 +350,12 @@ app.openapi(rotateRoute, async (c) => {
     .update(userApiKeys)
     .set({ encryptedKey: encrypted, keyHint, updatedAt: new Date() })
     .where(eq(userApiKeys.id, id));
+
+  await recordCredentialEvent(db, user.id, 'credential:rotated', {
+    credentialKind: 'user_api_key',
+    credentialId: id,
+    provider: existing.provider,
+  });
 
   return c.json({ id, keyHint });
 });

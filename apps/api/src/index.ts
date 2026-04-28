@@ -107,6 +107,7 @@ import mcpUsageRoute from './routes/mcp-usage.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
+import rotationRoute from './routes/rotation.js';
 import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
 import { createTerminalRoute } from './routes/terminal-ws.js';
@@ -762,6 +763,13 @@ app.put(
 app.use('/api/analytics/*', requireFeature('analytics', { mode: 'entitlements' }));
 app.use('/api/v1/analytics/*', requireFeature('analytics', { mode: 'entitlements' }));
 
+// Credential rotation history is a Pro+ tier feature ("vaultRotation" in
+// DEFAULT_FEATURES). The rotate/create/revoke operations themselves stay
+// free for all tiers (the audit emission is just a side-effect); the
+// Pro-tier value is the queryable history surface at /api/rotation/*.
+app.use('/api/rotation/*', requireFeature('vaultRotation', { mode: 'entitlements' }));
+app.use('/api/v1/rotation/*', requireFeature('vaultRotation', { mode: 'entitlements' }));
+
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
@@ -1109,6 +1117,7 @@ app.route('/api/admin', adminObservabilityRoute);
 app.route('/api/admin/inference/config', adminInferenceConfigRoute);
 app.route('/api/analytics', analyticsRoute);
 app.route('/api/devkit', devkitRoute);
+app.route('/api/rotation', rotationRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
 app.route('/api/cron', cronDispatchRoute);
@@ -1170,6 +1179,7 @@ app.route('/api/v1/admin', adminObservabilityRoute);
 app.route('/api/v1/admin/inference/config', adminInferenceConfigRoute);
 app.route('/api/v1/analytics', analyticsRoute);
 app.route('/api/v1/devkit', devkitRoute);
+app.route('/api/v1/rotation', rotationRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
 app.route('/api/v1/cron', cronDispatchRoute);
