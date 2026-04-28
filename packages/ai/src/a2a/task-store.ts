@@ -94,7 +94,12 @@ export function cancelTask(id: string): boolean {
   const task = _tasks.get(id);
   if (!task) return false;
 
-  const cancelable = task.status.state === 'submitted' || task.status.state === 'working';
+  // 'pending-payment' is cancelable so a requester who decides not to pay
+  // can release the task slot rather than leaving it dangling.
+  const cancelable =
+    task.status.state === 'submitted' ||
+    task.status.state === 'working' ||
+    task.status.state === 'pending-payment';
   if (!cancelable) return false;
 
   // Signal abort to any running execution

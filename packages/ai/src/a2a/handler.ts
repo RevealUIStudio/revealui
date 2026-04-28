@@ -69,6 +69,7 @@ async function handleTasksSend(
   params: unknown,
   agentId?: string,
   llmClient?: LLMClient,
+  options?: { paymentVerified?: boolean },
 ): Promise<A2AJsonRpcResponse> {
   const parsed = A2ASendTaskParamsSchema.safeParse(params);
   if (!parsed.success) {
@@ -80,6 +81,28 @@ async function handleTasksSend(
   // Validate agent exists if agentId provided
   if (agentId && !agentCardRegistry.has(agentId)) {
     return err(id, RPC_AGENT_NOT_FOUND, `Agent '${agentId}' not found`);
+  }
+
+  // Resolve agent definition early — needed for the pricing gate below AND
+  // for execution context (system prompt, capabilities) further down.
+  const agentDef = agentId
+    ? agentCardRegistry.getDef(agentId)
+    : agentCardRegistry.getDef('revealui-creator');
+
+  // x402 payment gate: when an agent has pricing AND payment was not
+  // verified upstream by the route, emit a 'pending-payment' task. The
+  // route layer translates this state into HTTP 402 with a fresh
+  // X-PAYMENT-REQUIRED header. Pricing rides in task.metadata so the
+  // route can build the requirements without re-querying the registry.
+  if (agentDef?.pricing && !options?.paymentVerified) {
+    const task = createTask({
+      id: p.id,
+      sessionId: p.sessionId,
+      message: p.message,
+      metadata: { ...p.metadata, pricing: agentDef.pricing },
+    });
+    const pending = updateTaskState(task.id, 'pending-payment');
+    return ok(id, pending);
   }
 
   // Create task in submitted state
@@ -98,10 +121,6 @@ async function handleTasksSend(
 
     // Execute via orchestration  -  for now, produce a direct text response.
     // Full AgentRuntime integration wires in when an LLM provider is configured.
-    const agentDef = agentId
-      ? agentCardRegistry.getDef(agentId)
-      : agentCardRegistry.getDef('revealui-creator');
-
     if (signal?.aborted) {
       return ok(id, getTask(task.id));
     }
@@ -201,12 +220,13 @@ export async function handleA2AJsonRpc(
   req: A2AJsonRpcRequest,
   agentId?: string,
   llmClient?: LLMClient,
+  options?: { paymentVerified?: boolean },
 ): Promise<A2AJsonRpcResponse> {
   const { id, method, params } = req;
 
   switch (method) {
     case 'tasks/send':
-      return handleTasksSend(id, params, agentId, llmClient);
+      return handleTasksSend(id, params, agentId, llmClient, options);
 
     case 'tasks/get':
       return handleTasksGet(id, params);
@@ -216,7 +236,7 @@ export async function handleA2AJsonRpc(
 
     case 'tasks/sendSubscribe':
       // SSE streaming is handled at the Hono route level; return a reference task here
-      return handleTasksSend(id, params, agentId, llmClient);
+      return handleTasksSend(id, params, agentId, llmClient, options);
 
     default:
       return err(id, RPC_METHOD_NOT_FOUND, `Method '${method}' not found`);
