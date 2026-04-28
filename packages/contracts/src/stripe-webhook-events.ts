@@ -48,6 +48,7 @@ export const RELEVANT_STRIPE_WEBHOOK_EVENTS = [
   'invoice.payment_failed',
   'invoice.payment_succeeded',
   'payment_intent.payment_failed',
+  'payment_intent.requires_action',
 
   // Dispute + refund (customer-initiated reversals)
   'charge.dispute.closed',
@@ -66,4 +67,4 @@ export type RelevantStripeWebhookEvent = (typeof RELEVANT_STRIPE_WEBHOOK_EVENTS)
  * Expected event count — acts as a coarse drift detector for reviewers.
  * If you're adjusting the array above, update this too.
  */
-export const RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT = 13;
+export const RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT = 14;
