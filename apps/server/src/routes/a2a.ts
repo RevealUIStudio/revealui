@@ -20,6 +20,7 @@
 import type { A2AJsonRpcRequest } from '@revealui/contracts';
 import { A2AJsonRpcRequestSchema, AgentDefinitionSchema } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
+import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
@@ -31,6 +32,7 @@ import {
   buildPaymentMethods,
   buildPaymentRequired,
   encodePaymentRequired,
+  getAdvertisedCurrencyLabel,
   getX402Config,
   verifyPayment,
 } from '../middleware/x402.js';
@@ -1068,14 +1070,17 @@ a2a.openapi(
         const userId = (c.get('user') as UserContext | undefined)?.id ?? '';
         const agentDef = agentId ? aiMod.agentCardRegistry.getDef(agentId) : undefined;
         const amountUsd = agentDef?.pricing?.usdc ?? getX402Config().pricePerTask;
-        const verification = await verifyPayment(paymentPayload, resource, {
-          userId,
-          amountUsd,
-        });
+        const verification = await verifyPayment(
+          paymentPayload,
+          resource,
+          { userId, amountUsd },
+          'a2a',
+        );
         if (verification.valid) {
           paymentVerified = true;
         } else {
           const paymentRequired = buildPaymentRequired(resource);
+          trackX402PaymentRequired('a2a-invalid-proof', getAdvertisedCurrencyLabel());
           return c.json(
             {
               jsonrpc: '2.0',
@@ -1131,6 +1136,7 @@ a2a.openapi(
       const baseUrl = getBaseUrl(c.req.raw);
       const resource = `${baseUrl}${new URL(c.req.url).pathname}`;
       const paymentRequired = buildPaymentRequired(resource, taskResult?.metadata?.pricing?.usdc);
+      trackX402PaymentRequired('a2a-pending-payment', getAdvertisedCurrencyLabel());
       return c.json(result, 402, {
         'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired),
       });

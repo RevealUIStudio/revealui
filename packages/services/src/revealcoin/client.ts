@@ -8,9 +8,25 @@
 
 import { RVUI_MINT_ADDRESSES, RVUI_TOKEN_CONFIG, RVUI_TOKEN_PROGRAM } from '@revealui/contracts';
 import { createLogger } from '@revealui/core/observability/logger';
+import {
+  trackX402SafeguardRejection,
+  type X402SafeguardRejectionReason,
+} from '@revealui/core/observability/metrics';
 import { address, createSolanaRpc, signature } from '@solana/kit';
 import { DbCircuitBreaker } from '../stripe/db-circuit-breaker.js';
 import { getRevealCoinConfig, resolveRpcUrl } from './config.js';
+
+/** Map a safeguards.ts free-text rejection reason to a stable metric label. */
+function classifySafeguardReason(reason: string | undefined): X402SafeguardRejectionReason {
+  if (!reason) return 'unknown';
+  const lower = reason.toLowerCase();
+  if (lower.includes('signature already used')) return 'duplicate-tx';
+  if (lower.includes('volatility') || lower.includes('circuit breaker')) return 'circuit-breaker';
+  if (lower.includes('exceeds maximum')) return 'single-payment-cap';
+  if (lower.includes('rate limit')) return 'wallet-rate-limit';
+  if (lower.includes('discount cap')) return 'discount-cap';
+  return 'unknown';
+}
 
 const logger = createLogger({ service: 'RevealCoin' });
 
@@ -358,6 +374,9 @@ export async function verifyRvuiPayment(
       amountUsd: amountUsdNum,
     });
     if (!safeguardResult.allowed) {
+      // Emit the rejection metric BEFORE returning so operators can see
+      // which safeguard fired (replay vs cap vs rate-limit vs ...).
+      trackX402SafeguardRejection(classifySafeguardReason(safeguardResult.reason));
       return {
         valid: false,
         error: safeguardResult.reason ?? 'Payment safeguard check failed',

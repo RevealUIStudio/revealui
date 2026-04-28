@@ -120,6 +120,7 @@ vi.mock('../../middleware/x402.js', () => ({
   encodePaymentRequired: mockEncodePaymentRequired,
   verifyPayment: mockVerifyPayment,
   getX402Config: mockGetX402Config,
+  getAdvertisedCurrencyLabel: () => 'usdc-only',
 }));
 
 vi.mock('../../middleware/task-quota.js', () => ({
@@ -770,6 +771,7 @@ describe('POST /a2a  -  x402 pending-payment flow', () => {
       'valid-base64-proof',
       expect.any(String),
       expect.objectContaining({ userId: expect.any(String), amountUsd: expect.any(String) }),
+      'a2a',
     );
     const callArgs = mockHandleA2AJsonRpc.mock.calls[0];
     expect(callArgs?.[3]).toEqual({ paymentVerified: true });

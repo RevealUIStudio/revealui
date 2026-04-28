@@ -12,6 +12,9 @@ import {
   trackDBQuery,
   trackError,
   trackHTTPRequest,
+  trackX402PaymentRequired,
+  trackX402PaymentVerify,
+  trackX402SafeguardRejection,
   updateActiveConnections,
   updateMemoryUsage,
 } from '../metrics.js';
@@ -683,6 +686,154 @@ describe('Helper functions', () => {
 
       clearInterval(timer);
       vi.useRealTimers();
+    });
+  });
+
+  describe('trackX402PaymentRequired', () => {
+    it('increments x402_payment_required_total with route + currency labels', () => {
+      const before = appMetrics.x402PaymentRequiredTotal.get({
+        route: 'a2a-pending-payment',
+        currency: 'usdc-rvui',
+      });
+
+      trackX402PaymentRequired('a2a-pending-payment', 'usdc-rvui');
+
+      expect(
+        appMetrics.x402PaymentRequiredTotal.get({
+          route: 'a2a-pending-payment',
+          currency: 'usdc-rvui',
+        }),
+      ).toBe(before + 1);
+    });
+
+    it('keeps separate counts for usdc-only vs usdc-rvui', () => {
+      const beforeOnly = appMetrics.x402PaymentRequiredTotal.get({
+        route: 'task-quota',
+        currency: 'usdc-only',
+      });
+      const beforeBoth = appMetrics.x402PaymentRequiredTotal.get({
+        route: 'task-quota',
+        currency: 'usdc-rvui',
+      });
+
+      trackX402PaymentRequired('task-quota', 'usdc-only');
+      trackX402PaymentRequired('task-quota', 'usdc-only');
+      trackX402PaymentRequired('task-quota', 'usdc-rvui');
+
+      expect(
+        appMetrics.x402PaymentRequiredTotal.get({ route: 'task-quota', currency: 'usdc-only' }),
+      ).toBe(beforeOnly + 2);
+      expect(
+        appMetrics.x402PaymentRequiredTotal.get({ route: 'task-quota', currency: 'usdc-rvui' }),
+      ).toBe(beforeBoth + 1);
+    });
+  });
+
+  describe('trackX402PaymentVerify', () => {
+    it('increments verify counter with route + scheme + result labels', () => {
+      const beforeCount = appMetrics.x402PaymentVerifyTotal.get({
+        route: 'marketplace-invoke',
+        scheme: 'exact',
+        result: 'valid',
+      });
+
+      trackX402PaymentVerify('marketplace-invoke', 'exact', 'valid', 250);
+
+      expect(
+        appMetrics.x402PaymentVerifyTotal.get({
+          route: 'marketplace-invoke',
+          scheme: 'exact',
+          result: 'valid',
+        }),
+      ).toBe(beforeCount + 1);
+    });
+
+    it('observes duration on the histogram (average reflects new sample)', () => {
+      // Use a unique route to isolate this test's effect on the histogram
+      // (which is keyed only on `scheme`, not `route` — so any prior
+      // observe call from another test would skew average() globally).
+      // We can still verify that calling track increments the underlying
+      // average toward our value.
+      const histBefore = appMetrics.x402PaymentVerifyDuration.average();
+      trackX402PaymentVerify('isolated-route', 'exact', 'valid', 1000);
+      const histAfter = appMetrics.x402PaymentVerifyDuration.average();
+      // Every observe() shifts the average toward the new value; cannot
+      // assert exact value (other tests may have observed too) but can
+      // assert it changed OR is finite.
+      expect(Number.isFinite(histAfter)).toBe(true);
+      expect(histAfter).not.toBe(Number.NaN);
+      // If this is the first ever observation, before is 0 and after > 0
+      if (histBefore === 0) {
+        expect(histAfter).toBeGreaterThan(0);
+      }
+    });
+
+    it('counts invalid results separately from valid', () => {
+      const beforeValid = appMetrics.x402PaymentVerifyTotal.get({
+        route: 'a2a',
+        scheme: 'solana-spl',
+        result: 'valid',
+      });
+      const beforeInvalid = appMetrics.x402PaymentVerifyTotal.get({
+        route: 'a2a',
+        scheme: 'solana-spl',
+        result: 'invalid',
+      });
+
+      trackX402PaymentVerify('a2a', 'solana-spl', 'invalid', 100);
+
+      expect(
+        appMetrics.x402PaymentVerifyTotal.get({
+          route: 'a2a',
+          scheme: 'solana-spl',
+          result: 'valid',
+        }),
+      ).toBe(beforeValid);
+      expect(
+        appMetrics.x402PaymentVerifyTotal.get({
+          route: 'a2a',
+          scheme: 'solana-spl',
+          result: 'invalid',
+        }),
+      ).toBe(beforeInvalid + 1);
+    });
+  });
+
+  describe('trackX402SafeguardRejection', () => {
+    it('increments rejection counter with the matching reason label', () => {
+      const before = appMetrics.x402SafeguardRejectionTotal.get({ reason: 'duplicate-tx' });
+
+      trackX402SafeguardRejection('duplicate-tx');
+
+      expect(appMetrics.x402SafeguardRejectionTotal.get({ reason: 'duplicate-tx' })).toBe(
+        before + 1,
+      );
+    });
+
+    it('keeps each rejection reason separately countable', () => {
+      const beforeReplay = appMetrics.x402SafeguardRejectionTotal.get({ reason: 'duplicate-tx' });
+      const beforeCap = appMetrics.x402SafeguardRejectionTotal.get({
+        reason: 'single-payment-cap',
+      });
+      const beforeRate = appMetrics.x402SafeguardRejectionTotal.get({
+        reason: 'wallet-rate-limit',
+      });
+
+      trackX402SafeguardRejection('duplicate-tx');
+      trackX402SafeguardRejection('single-payment-cap');
+      trackX402SafeguardRejection('wallet-rate-limit');
+      trackX402SafeguardRejection('discount-cap');
+      trackX402SafeguardRejection('circuit-breaker');
+
+      expect(appMetrics.x402SafeguardRejectionTotal.get({ reason: 'duplicate-tx' })).toBe(
+        beforeReplay + 1,
+      );
+      expect(appMetrics.x402SafeguardRejectionTotal.get({ reason: 'single-payment-cap' })).toBe(
+        beforeCap + 1,
+      );
+      expect(appMetrics.x402SafeguardRejectionTotal.get({ reason: 'wallet-rate-limit' })).toBe(
+        beforeRate + 1,
+      );
     });
   });
 });

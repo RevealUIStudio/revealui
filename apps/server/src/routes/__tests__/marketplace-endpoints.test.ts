@@ -74,6 +74,7 @@ vi.mock('../../middleware/x402.js', () => ({
   buildPaymentRequired: mockBuildPaymentRequired,
   encodePaymentRequired: mockEncodePaymentRequired,
   verifyPayment: mockVerifyPayment,
+  getAdvertisedCurrencyLabel: () => 'usdc-only',
 }));
 
 vi.mock('stripe', () => ({

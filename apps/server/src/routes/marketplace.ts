@@ -16,6 +16,7 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { getClient } from '@revealui/db';
 import {
   marketplaceServers,
@@ -28,7 +29,12 @@ import { protectedStripe } from '@revealui/services';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { authMiddleware } from '../middleware/auth.js';
-import { buildPaymentRequired, encodePaymentRequired, verifyPayment } from '../middleware/x402.js';
+import {
+  buildPaymentRequired,
+  encodePaymentRequired,
+  getAdvertisedCurrencyLabel,
+  verifyPayment,
+} from '../middleware/x402.js';
 
 // =============================================================================
 // Helpers
@@ -610,6 +616,7 @@ app.openapi(
       // No payment  -  return 402 with server-specific price requirements
       const paymentRequired = buildPaymentRequired(resource, server.pricePerCallUsdc);
       const encoded = encodePaymentRequired(paymentRequired);
+      trackX402PaymentRequired('marketplace-invoke', getAdvertisedCurrencyLabel());
       return c.json(
         {
           error: 'Payment required',
@@ -627,10 +634,12 @@ app.openapi(
     const callerId = (c.get('user') as UserContext | undefined)?.id ?? null;
 
     // Verify the payment proof against the facilitator
-    const verification = await verifyPayment(paymentHeader, resource, {
-      userId: callerId ?? '',
-      amountUsd: server.pricePerCallUsdc,
-    });
+    const verification = await verifyPayment(
+      paymentHeader,
+      resource,
+      { userId: callerId ?? '', amountUsd: server.pricePerCallUsdc },
+      'marketplace-invoke',
+    );
     if (!verification.valid) {
       return c.json({ error: `Payment verification failed: ${verification.error}` }, 402);
     }

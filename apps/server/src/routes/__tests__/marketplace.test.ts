@@ -82,6 +82,7 @@ vi.mock('../../middleware/x402.js', () => ({
   buildPaymentRequired: mockBuildPaymentRequired,
   encodePaymentRequired: mockEncodePaymentRequired,
   verifyPayment: mockVerifyPayment,
+  getAdvertisedCurrencyLabel: () => 'usdc-only',
 }));
 
 vi.mock('stripe', () => ({
@@ -939,6 +940,7 @@ describe('POST /servers/:id/invoke -- x402 payment flow', () => {
       'my-payment-payload-value',
       expect.stringContaining('/servers/mcp_abcdef123456/invoke'),
       expect.objectContaining({ userId: expect.any(String), amountUsd: expect.any(String) }),
+      'marketplace-invoke',
     );
   });
 });
