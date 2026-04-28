@@ -559,7 +559,7 @@ export const AgentDefinitionSchema = z.object({
    *
    * String values to avoid float precision loss; consumers convert to
    * atomic units (USDC = 6 decimals, RVUI = 6 decimals) at the x402
-   * emission boundary in `apps/api/src/middleware/x402.ts`.
+   * emission boundary in `apps/server/src/middleware/x402.ts`.
    */
   pricing: z
     .object({

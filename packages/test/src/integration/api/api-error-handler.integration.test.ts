@@ -4,7 +4,7 @@
  * PURPOSE: Verify error handler does NOT leak internal errors (PRODUCTION BLOCKER FIX)
  *
  * CRITICAL CONTEXT: Production blocker #5 - API error handler previously leaked internal
- * details at apps/api/src/middleware/error.ts:30-35. These tests verify the fix.
+ * details at apps/server/src/middleware/error.ts:30-35. These tests verify the fix.
  *
  * TESTS:
  * - Generic errors return safe message (no internal details)

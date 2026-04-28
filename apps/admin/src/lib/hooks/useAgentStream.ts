@@ -92,7 +92,7 @@ export type ElicitationAction = 'accept' | 'decline' | 'cancel';
 /**
  * Permitted primitive value types per the MCP spec (`ElicitResult.content`).
  * The hook is a thin transport — the server-side zod schema at
- * `apps/api/src/routes/agent-stream-elicit.ts` is the authoritative
+ * `apps/server/src/routes/agent-stream-elicit.ts` is the authoritative
  * validator. We accept a wider input shape here so callers can pass
  * `Record<string, unknown>` from generic form serializers without
  * up-front narrowing; non-primitive values get rejected by the server.

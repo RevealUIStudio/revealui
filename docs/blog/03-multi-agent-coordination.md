@@ -31,7 +31,7 @@ _Last updated: 2026-03-07_
 | id | env | started | task | files | updated |
 |----|-----|---------|------|-------|---------|
 | conductor | terminal | 2026-03-07T02:24Z | run pnpm gate | .gitignore, README.md, packages/test/ | 2026-03-07T02:43Z |
-| zed-revealui | zed-acp | 2026-03-07T02:24Z | implement Phase 5.5 MCP marketplace | apps/api/src/routes/marketplace.ts, packages/db/src/schema/marketplace.ts | 2026-03-07T02:43Z |
+| zed-revealui | zed-acp | 2026-03-07T02:24Z | implement Phase 5.5 MCP marketplace | apps/server/src/routes/marketplace.ts, packages/db/src/schema/marketplace.ts | 2026-03-07T02:43Z |
 
 ## Recent
 - [2026-03-07 02:38] zed-revealui: Phase 5.5 marketplace routes complete
@@ -90,7 +90,7 @@ Every agent gets a stable identity across restarts.
 The conflict-prevention mechanism is file claiming. When an agent starts editing a set of files, it stamps its row in the workboard:
 
 ```
-| zed-revealui | ... | apps/api/src/routes/marketplace.ts, packages/db/src/schema/ | ... |
+| zed-revealui | ... | apps/server/src/routes/marketplace.ts, packages/db/src/schema/ | ... |
 ```
 
 A second agent, before editing `packages/db/src/schema/marketplace.ts`, reads the workboard and sees that `zed-revealui` has claimed that directory. It either waits, picks a different task, or asks the human to resolve the conflict.

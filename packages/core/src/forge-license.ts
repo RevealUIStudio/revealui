@@ -1,7 +1,7 @@
 /**
  * Forge per-customer license issuance.
  *
- * The Stripe webhook handler (apps/api/src/routes/webhooks.ts) issues licenses
+ * The Stripe webhook handler (apps/server/src/routes/webhooks.ts) issues licenses
  * for SaaS subscribers. This module is the analogous issuer for self-hosted
  * Forge customers — paid direct (source-license / sales) and stamped via
  * forge/stamp.sh.

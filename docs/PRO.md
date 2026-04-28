@@ -1194,7 +1194,7 @@ const paymentIntent = await createPaymentIntent({
 });
 ```
 
-Full checkout/portal/webhook route handlers are wired at the application layer (see `apps/api/src/routes/billing.ts` in the monorepo for the reference implementation). The `@revealui/services` package intentionally exposes only the low-level clients (`protectedStripe`, `getStripe`, `createPaymentIntent`) so that each app can implement its billing flow against its own license record.
+Full checkout/portal/webhook route handlers are wired at the application layer (see `apps/server/src/routes/billing.ts` in the monorepo for the reference implementation). The `@revealui/services` package intentionally exposes only the low-level clients (`protectedStripe`, `getStripe`, `createPaymentIntent`) so that each app can implement its billing flow against its own license record.
 
 ### Webhook environment
 

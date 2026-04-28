@@ -84,4 +84,4 @@ const data = await breaker.execute(() => callExternalAPI());
 ## Related Packages
 
 - `@revealui/core`  -  Uses resilience patterns for CMS API calls
-- `apps/api`  -  Applies circuit breakers to external service routes
+- `apps/server`  -  Applies circuit breakers to external service routes

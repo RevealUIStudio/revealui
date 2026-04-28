@@ -13,7 +13,7 @@
  * registerHandler('agent.dispatch', async (data, job) => { ... });
  * ```
  *
- * Worker loop (apps/api/src/routes/jobs/run.ts) — claims + dispatches.
+ * Worker loop (apps/server/src/routes/jobs/run.ts) — claims + dispatches.
  */
 
 export type { ClaimOptions, DbOverride, ReclaimedJob, RetryDecision } from './claim.js';

@@ -63,7 +63,7 @@ The server verifies the proof against the x402 facilitator at `https://x402.org/
 We wire x402 into the A2A task endpoints in RevealUI's API. The middleware runs after quota checking. If quota is exceeded and `X402_ENABLED` is true, we return 402 instead of 429:
 
 ```typescript
-// apps/api/src/middleware/x402.ts
+// apps/server/src/middleware/x402.ts
 
 export function buildPaymentRequired(
   resource: string,
@@ -227,7 +227,7 @@ X402_NETWORK=base               # or base-sepolia for testnet
 
 When disabled, the existing 429 quota behavior is unchanged. When enabled, quota exhaustion returns 402 with payment details instead.
 
-The full source is in [`apps/api/src/middleware/x402.ts`](https://github.com/RevealUIStudio/revealui/blob/main/apps/api/src/middleware/x402.ts) and the marketplace implementation in [`apps/api/src/routes/marketplace.ts`](https://github.com/RevealUIStudio/revealui/blob/main/apps/api/src/routes/marketplace.ts).
+The full source is in [`apps/server/src/middleware/x402.ts`](https://github.com/RevealUIStudio/revealui/blob/main/apps/server/src/middleware/x402.ts) and the marketplace implementation in [`apps/server/src/routes/marketplace.ts`](https://github.com/RevealUIStudio/revealui/blob/main/apps/server/src/routes/marketplace.ts).
 
 ---
 

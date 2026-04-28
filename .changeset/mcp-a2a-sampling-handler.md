@@ -17,7 +17,7 @@ against servers routing us to expensive models.
   exposes it to callers via `@revealui/mcp/remote-client`).
 
 **`api`:**
-- `apps/api/src/routes/agent-stream.ts` — per connected MCP server, build
+- `apps/server/src/routes/agent-stream.ts` — per connected MCP server, build
   a sampling handler via `aiMod.createSamplingHandler({ llm: llmClient,
   allowedModels, defaultModel, namespace: server, onEvent })` and pass
   to `buildRemoteMcpClient`. Same `onEvent` sink as A.1's tool adapters,

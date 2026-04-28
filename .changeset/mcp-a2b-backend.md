@@ -30,20 +30,20 @@ chunk before running the LLM for observability.
   Side-channel chunks are written directly by route-level handlers.
 
 **`api`:**
-- `apps/api/src/lib/agent-run-sessions.ts` (new) — process-local
+- `apps/server/src/lib/agent-run-sessions.ts` (new) — process-local
   registry of `(sessionId, elicitationId) → pending Promise<ElicitResult>`.
   Adapted from Stage 3.4's admin-side `call-sessions.ts`, scoped to
   agent-run lifecycle rather than per-tool-invocation. Exports:
   `createAgentRunSession`, `getAgentRunSession`, `awaitElicitationResponse`,
   `resolveElicitation`, `deleteAgentRunSession` (plus a test-only
   `_resetAgentRunSessions`).
-- `apps/api/src/routes/agent-stream-elicit.ts` (new) —
+- `apps/server/src/routes/agent-stream-elicit.ts` (new) —
   `POST /api/agent-stream/elicit` endpoint. Body
   `{ sessionId, elicitationId, action: 'accept'|'decline'|'cancel',
   content? }`. Enforces `session.userId === c.var.user.id`. 404 on
   unknown session or elicitation id; 403 on user mismatch; 401 on
   unauthenticated.
-- `apps/api/src/routes/agent-stream.ts` —
+- `apps/server/src/routes/agent-stream.ts` —
   - Create `runSession = createAgentRunSession(user.id)` before
     MCP-client construction; tear down in the streamSSE `finally`.
   - Declare `streamRef: { current: SSEStreamingApi | undefined }` as a
@@ -58,7 +58,7 @@ chunk before running the LLM for observability.
     bound or when the registry entry disappears mid-flight.
   - First SSE chunk is `session_info` so the client learns the
     `sessionId` to POST back to `/api/agent-stream/elicit`.
-- `apps/api/src/index.ts` — mount the new route at
+- `apps/server/src/index.ts` — mount the new route at
   `/api/agent-stream/elicit` (canonical + `/api/v1/…` alias), before
   the parent `/api/agent-stream` mount so the trie-based router matches
   the more-specific prefix first. CSRF (`writeProtected`) applied to

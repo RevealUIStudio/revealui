@@ -78,7 +78,7 @@ RevealUI implements the [A2A (Agent-to-Agent) protocol](https://a2a.dev) for mul
 
 ```typescript
 // See packages/ai/src/a2a/{card,handler,task-store}.ts for the current API
-// surface. The server side ships at apps/api/src/routes/a2a.ts.
+// surface. The server side ships at apps/server/src/routes/a2a.ts.
 ```
 
 ## Inference defaults
