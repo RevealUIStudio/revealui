@@ -45,7 +45,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountSubscriptions, unreconciledWebhooks, users } from '@revealui/db/schema';
 import { protectedStripe } from '@revealui/services';
-import { eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type Stripe from 'stripe';
 

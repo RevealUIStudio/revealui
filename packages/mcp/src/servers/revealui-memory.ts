@@ -50,7 +50,7 @@ export function setCredentials(creds: Record<string, string>): void {
 function getConfig(): { apiUrl: string; token: string } {
   const apiUrl = _credentialOverrides.REVEALUI_API_URL ?? process.env.REVEALUI_API_URL;
   const token = _credentialOverrides.REVEALUI_API_TOKEN ?? process.env.REVEALUI_API_TOKEN;
-  if (!apiUrl || !token) {
+  if (!(apiUrl && token)) {
     throw new Error('REVEALUI_API_URL and REVEALUI_API_TOKEN must be set');
   }
   return { apiUrl, token };

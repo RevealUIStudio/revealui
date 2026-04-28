@@ -69,6 +69,7 @@ import { enforceSiteLimit, enforceUserLimit } from './middleware/resource-limits
 import { requireTaskQuota } from './middleware/task-quota.js';
 import { tenantMiddleware } from './middleware/tenant.js';
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
+import adminInferenceConfigRoute from './routes/admin/inference-config.js';
 import adminObservabilityRoute from './routes/admin/observability.js';
 import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
@@ -175,6 +176,7 @@ assertDispatchFlagConfigured();
  * @returns Array of allowed CORS origins
  * @throws {Error} If CORS_ORIGIN is not set or empty in production
  */
+import { hydrateInferenceConfigs } from './lib/hydrate-inference-configs.js';
 import { setCorsConfigMissing } from './lib/startup-state.js';
 
 /** Known production origins  -  hardcoded fallback if CORS_ORIGIN env var is missing or unreadable */
@@ -733,6 +735,12 @@ app.use('/api/v1/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
 app.use('/api/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
 app.use('/api/v1/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
 
+// Per-site inference configuration is a Max+ tier feature ("aiInference" in
+// DEFAULT_FEATURES). Backed by workspace_inference_configs + the in-memory
+// WorkspaceProviderRegistry hydrated at boot (lib/hydrate-inference-configs.ts).
+app.use('/api/admin/inference/config*', requireFeature('aiInference', { mode: 'entitlements' }));
+app.use('/api/v1/admin/inference/config*', requireFeature('aiInference', { mode: 'entitlements' }));
+
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
@@ -1076,6 +1084,7 @@ app.route('/api/mcp/usage', mcpUsageRoute);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);
+app.route('/api/admin/inference/config', adminInferenceConfigRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
 app.route('/api/cron', cronDispatchRoute);
@@ -1133,6 +1142,7 @@ app.route('/api/v1/mcp/usage', mcpUsageRoute);
 app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);
+app.route('/api/v1/admin/inference/config', adminInferenceConfigRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
 app.route('/api/v1/cron', cronDispatchRoute);
@@ -1228,6 +1238,10 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     });
   initPriceOracle();
   initAlerting();
+  // Best-effort hydration of per-site LLM provider configs into the
+  // in-memory registry. Skipped silently if @revealui/ai not installed or DB
+  // unreachable; agents fall back to env-based config in those cases.
+  hydrateInferenceConfigs();
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
   const server = serve({ fetch: app.fetch, port });
   terminalWs.injectWebSocket(server);
@@ -1269,4 +1283,5 @@ if (process.env.NODE_ENV === 'production') {
     });
   initPriceOracle();
   initAlerting();
+  hydrateInferenceConfigs();
 }

@@ -170,8 +170,8 @@ POSTGRES_URL=postgresql://user:password@host:port/database
 import { LLMClient } from '@revealui/ai/llm/client'
 
 const client = new LLMClient({
-  provider: 'vultr',
-  apiKey: process.env.VULTR_API_KEY!,
+  provider: 'groq',
+  apiKey: process.env.GROQ_API_KEY!,
   enableSemanticCache: true,
   semanticCacheOptions: {
     similarityThreshold: 0.95,  // 95% similarity required (default)
@@ -232,7 +232,7 @@ const stats = client.getSemanticCacheStats()
 if (stats) {
   const savings = calculateSemanticCacheSavings(stats, {
     avgTokensPerQuery: 3500,  // Your average query size
-    costPerMTokens: 3.0,      // Vultr/OpenAI pricing
+    costPerMTokens: 3.0,      // Groq/OpenAI pricing
   })
 
   console.log(`Queries avoided: ${savings.queriesAvoided}`)
@@ -367,7 +367,7 @@ const flexibleCache = new SemanticCache({
 3. **Monitor hit rates** - Adjust threshold based on metrics
 4. **Warm cache on startup** - Pre-populate common queries
 5. **Use with other caching** - Combine with response + prompt caching
-6. **Enable for all providers** - Works with Vultr, OpenAI, Anthropic
+6. **Enable for all providers** - Works with Groq, OpenAI, Anthropic
 
 ### ❌ DON'T
 
@@ -513,7 +513,7 @@ Default: Ollama's `nomic-embed-text` model — local, free, 768 dimensions. The 
 Semantic caching provides:
 - Cost reduction on cache hits is 100% (no provider call). Real-world dollar savings depend on your duplicate-rate × hit-rate. Industry benchmarks (Redis blog, FAQ-style traffic) report ~65% hit rate / ~73% cost reduction; RevealUI ships the implementation, but those numbers are not measured RevealUI traffic.
 - ✅ Faster responses on cache hits (no provider round-trip)
-- ✅ Works with **all providers** (Vultr, OpenAI, Anthropic)
+- ✅ Works with **all providers** (Groq, OpenAI, Anthropic)
 - ✅ **Zero code changes** (environment variable only)
 - ✅ **Multi-tenant support** for SaaS applications
 - ✅ **Automatic cache management** (TTL-based expiration)

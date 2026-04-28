@@ -489,7 +489,7 @@ describe('OpenAPIHono', () => {
     });
 
     app.openapi(route, (c) => c.json({ ok: true }));
-    app.doc('/openapi.json', (c) => ({
+    app.doc('/openapi.json', (_c) => ({
       openapi: '3.0.0',
       info: { title: 'Dynamic', version: '1.0.0' },
     }));

@@ -139,7 +139,7 @@ export function createTerminalRoute(): {
       let closed = false;
 
       return {
-        onOpen(_event, ws) {
+        onOpen(_event, _ws) {
           // Subscribe to agent output by polling daemon
           // The daemon emits 'output' events  -  we poll via a long-lived connection
           // For now, use periodic RPC polling until daemon supports event streaming

@@ -6,7 +6,7 @@ Cache **complete LLM responses** at the application level — works with any pro
 
 ## Overview
 
-Response caching complements Anthropic's prompt caching by caching **complete LLM responses** at the application level. This works with **any provider** (Vultr, OpenAI, Anthropic, etc.); on a cache hit, no provider call is made (so the marginal cost is zero).
+Response caching complements Anthropic's prompt caching by caching **complete LLM responses** at the application level. This works with **any provider** (Groq, OpenAI, Anthropic, etc.); on a cache hit, no provider call is made (so the marginal cost is zero).
 
 ### Caching Comparison
 
@@ -28,7 +28,7 @@ Response caching complements Anthropic's prompt caching by caching **complete LL
 - ✅ Partial message matches
 
 **Response Caching** (application-level):
-- ✅ Use with Vultr, OpenAI, or any provider
+- ✅ Use with Groq, OpenAI, or any provider
 - ✅ Exact duplicate questions
 - ✅ FAQ-style interactions
 - ✅ Testing/development
@@ -88,8 +88,8 @@ RESPONSE_CACHE_ENABLED=true
 import { LLMClient } from '@revealui/ai/llm/client'
 
 const client = new LLMClient({
-  provider: 'vultr',
-  apiKey: process.env.VULTR_API_KEY!,
+  provider: 'groq',
+  apiKey: process.env.GROQ_API_KEY!,
   enableResponseCache: true,
   responseCacheOptions: {
     max: 1000,           // Maximum cached responses
@@ -181,7 +181,7 @@ if (stats) {
   const savings = calculateResponseCacheSavings(stats, {
     avgInputTokens: 3000,
     avgOutputTokens: 500,
-    inputCostPerM: 3.0,   // Vultr/OpenAI pricing
+    inputCostPerM: 3.0,   // Groq/OpenAI pricing
     outputCostPerM: 15.0,
   })
 
@@ -242,9 +242,9 @@ Testing the same prompts during development:
 
 **Savings**: 90% of test requests hit cache → massive cost reduction
 
-### Use Case 3: Vultr Production
+### Use Case 3: Groq Production
 
-Your current setup with Vultr:
+Your current setup with Groq:
 
 ```typescript
 // Request patterns in production:
@@ -318,8 +318,8 @@ async function chatWithSelectiveCache(
 ) {
   // Create client with caching enabled/disabled per request
   const client = new LLMClient({
-    provider: 'vultr',
-    apiKey: process.env.VULTR_API_KEY!,
+    provider: 'groq',
+    apiKey: process.env.GROQ_API_KEY!,
     enableResponseCache: shouldCache,
   })
 
@@ -337,7 +337,7 @@ await chatWithSelectiveCache(personalizedMessages, false)
 
 ### ✅ DO
 
-1. **Enable for Vultr/OpenAI** - They don't have prompt caching
+1. **Enable for Groq/OpenAI** - They don't have prompt caching
 2. **Enable for development** - Massive savings during testing
 3. **Use with Anthropic** - Get both prompt AND response caching
 4. **Monitor hit rates** - Track effectiveness
@@ -459,7 +459,7 @@ Stacking response cache (any provider) with Anthropic prompt caching (when you u
 
 Response caching provides:
 - ✅ Cache hits skip the provider call entirely (marginal cost zero)
-- ✅ Works with any provider (Vultr, OpenAI, Anthropic, Groq, Ollama, etc.)
+- ✅ Works with any provider (Groq, OpenAI, Anthropic, HuggingFace, Ollama, etc.)
 - ✅ Zero code changes (environment variable only)
 - ✅ Automatic cache management (LRU eviction)
 - ✅ Built-in statistics and monitoring
@@ -468,7 +468,7 @@ Response caching provides:
 
 **Best when**:
 - A measurable fraction of your queries are exact duplicates (FAQ traffic, scripted health checks, dev/test loops)
-- You're on a provider that doesn't ship prompt caching (Vultr, OpenAI today)
+- You're on a provider that doesn't ship prompt caching (Groq, OpenAI today)
 - You're stacking with Anthropic prompt caching for a multi-layer hit profile
 
 ---

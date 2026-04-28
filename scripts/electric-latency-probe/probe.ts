@@ -1,3 +1,5 @@
+// console-allowed
+
 /**
  * Electric Latency Probe — Local End-to-End Measurement
  *
@@ -58,7 +60,7 @@ const ELECTRIC_SERVICE_URL = revvault('revealui/dev/electric/service-url');
 // Cookie is either pre-stored in revvault or obtained via auto-sign-in below.
 let sessionCookie = revvault('revealui/dev/admin-session-cookie', { optional: true }) ?? '';
 
-const sessionCookie_NAME = 'revealui-session';
+const sessionCookieName = 'revealui-session';
 
 // Consistent user-agent for all requests. Session binding validates that the
 // user-agent matches between sign-in and subsequent requests — using a fixed
@@ -76,7 +78,7 @@ async function autoSignIn(): Promise<string> {
     try {
       const res = await fetch(`${ADMIN_BASE_URL}/api/auth/me`, {
         headers: {
-          cookie: `${sessionCookie_NAME}=${sessionCookie}`,
+          cookie: `${sessionCookieName}=${sessionCookie}`,
           'user-agent': PROBE_USER_AGENT,
         },
         signal: AbortSignal.timeout(5000),
@@ -120,7 +122,7 @@ FAIL: No valid session cookie and no admin password in revvault.
 
   const setCookies = res.headers.getSetCookie?.() ?? [];
   for (const c of setCookies) {
-    if (c.startsWith(`${sessionCookie_NAME}=`)) {
+    if (c.startsWith(`${sessionCookieName}=`)) {
       const token = c.split('=')[1]?.split(';')[0];
       if (token) return token;
     }
@@ -208,7 +210,7 @@ function subscribeToShape(onRow: (factId: string, ts: number) => void): () => vo
         const res = await fetch(url.toString(), {
           signal: controller.signal,
           headers: {
-            cookie: `${sessionCookie_NAME}=${sessionCookie}`,
+            cookie: `${sessionCookieName}=${sessionCookie}`,
             'user-agent': PROBE_USER_AGENT,
           },
         });
@@ -277,7 +279,7 @@ async function postOneFact(): Promise<{ factId: string; startMs: number; accepte
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      cookie: `${sessionCookie_NAME}=${sessionCookie}`,
+      cookie: `${sessionCookieName}=${sessionCookie}`,
       'user-agent': PROBE_USER_AGENT,
     },
     body: JSON.stringify({
@@ -332,7 +334,7 @@ async function checkHealth(): Promise<HealthInfo> {
     const res = await fetch(url.toString(), {
       signal: AbortSignal.timeout(5000),
       headers: {
-        cookie: `${sessionCookie_NAME}=${sessionCookie}`,
+        cookie: `${sessionCookieName}=${sessionCookie}`,
         'user-agent': PROBE_USER_AGENT,
       },
     });

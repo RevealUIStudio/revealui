@@ -28,7 +28,7 @@ RevealUI's core framework is **real and substantial**  -  auth, billing, runtime
 | Claim | Where | Actual | Fix |
 |-------|-------|--------|-----|
 | TypeScript 5.9 | README badge | **6.0.2** | Update badge |
-| 85 database tables | README, CLAUDE.md, QUICK_START | **76 pgTable declarations** | Update all references |
+| 86 database tables | README, CLAUDE.md, QUICK_START | **76 pgTable declarations** | Update all references |
 | ~~6 apps~~ | ~~README~~ | ~~**7** (revealcoin app undocumented)~~ | ✅ Fixed  -  revealcoin listed as experimental |
 | Node.js 24.0 | README/badges | **24.13.0** (.node-version) | Minor  -  acceptable |
 
@@ -135,7 +135,7 @@ Note: `npx create-revealui` scaffolds a working basic-blog from npm templates  -
 | Package | Docs claim | Actual state | Completeness |
 |---------|-----------|--------------|-------------|
 | `@revealui/ai` | AI agents, memory, LLM orchestration | 40+ files, 18 import subpaths, real agents | ~80% |
-| `@revealui/mcp` | 13 MCP servers | **13 server files** (plus adapters/utils) | ~90% |
+| `@revealui/mcp` | 12 MCP servers | **12 server files** (plus adapters/utils) | ~90% |
 | `@revealui/harnesses` | AI coordination, workboard | 196 tests, JSON-RPC 2.0, content layer | ~95% |
 | `@revealui/editors` | Editor config sync | 20+ files, 6 test files | ~70% |
 | `@revealui/services` | Stripe + Supabase integrations | 354 tests passing | ~85% |

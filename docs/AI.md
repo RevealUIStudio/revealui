@@ -141,7 +141,7 @@ import { createTask, getTask, cancelTask, appendArtifact } from "@revealui/ai/a2
 
 ## Open-Model Inference
 
-The default and recommended path is open-model inference: **Ollama** (any open source GGUF model) and **Canonical's Ubuntu Inference Snaps** (planned recommended path; Studio lifecycle pending). Cloud-compatible providers — Groq, Vultr, HuggingFace, OpenAI-compatible endpoints, and Anthropic (for prompt-caching) — are pluggable but opt-in via environment variables. There is no vendor lock-in: switch providers by changing `LLM_PROVIDER`.
+The default and recommended path is open-model inference: **Ollama** (any open source GGUF model) and **Canonical's Ubuntu Inference Snaps** (planned recommended path; Studio lifecycle pending). Cloud-compatible providers — Groq, HuggingFace, OpenAI-compatible endpoints, and Anthropic (for prompt-caching) — are pluggable but opt-in via environment variables. There is no vendor lock-in: switch providers by changing `LLM_PROVIDER`.
 
 For the planned recommended path (when you're ready to install + run a Canonical Inference Snap yourself):
 

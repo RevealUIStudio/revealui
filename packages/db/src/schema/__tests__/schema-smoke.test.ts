@@ -52,6 +52,7 @@ import { gdprBreaches, gdprConsents, gdprDeletionRequests } from '../gdpr.js';
 import { idempotencyKeys } from '../idempotency.js';
 // Import all tables and relations via the barrel export
 import * as schema from '../index.js';
+import { workspaceInferenceConfigs } from '../inference-configs.js';
 import { jobs } from '../jobs.js';
 import { licenses } from '../licenses.js';
 import { magicLinks } from '../magic-links.js';
@@ -140,6 +141,8 @@ const allTables = [
   { table: gdprBreaches, name: 'gdpr_breaches' },
   // idempotency.ts
   { table: idempotencyKeys, name: 'idempotency_keys' },
+  // inference-configs.ts
+  { table: workspaceInferenceConfigs, name: 'workspace_inference_configs' },
   // jobs.ts
   { table: jobs, name: 'jobs' },
   // licenses.ts
@@ -249,6 +252,10 @@ const allRelations = [
   { relation: schema.agentSkillsRelations, name: 'agentSkillsRelations' },
   { relation: schema.agentReviewsRelations, name: 'agentReviewsRelations' },
   { relation: schema.taskSubmissionsRelations, name: 'taskSubmissionsRelations' },
+  {
+    relation: schema.workspaceInferenceConfigsRelations,
+    name: 'workspaceInferenceConfigsRelations',
+  },
 ];
 
 describe('schema smoke tests', () => {

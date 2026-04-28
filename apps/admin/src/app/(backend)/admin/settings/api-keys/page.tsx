@@ -5,7 +5,7 @@ const SAVED_FEEDBACK_MS = 2_000;
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
-type Provider = 'ollama' | 'huggingface' | 'vultr' | 'inference-snaps';
+type Provider = 'groq' | 'huggingface' | 'inference-snaps' | 'ollama';
 
 interface ProviderInfo {
   id: Provider;
@@ -16,33 +16,33 @@ interface ProviderInfo {
 
 const PROVIDERS: ProviderInfo[] = [
   {
+    id: 'inference-snaps',
+    label: 'Inference Snaps (Ubuntu, recommended)',
+    placeholder: 'leave blank — runs locally',
+    docsUrl: 'https://snapcraft.io/search?q=inference',
+  },
+  {
     id: 'ollama',
-    label: 'Ollama',
-    placeholder: 'http://localhost:11434',
+    label: 'Ollama (local)',
+    placeholder: 'leave blank — runs locally',
     docsUrl: 'https://ollama.com/docs',
   },
   {
+    id: 'groq',
+    label: 'Groq (cloud, LPU silicon)',
+    placeholder: 'gsk_...',
+    docsUrl: 'https://console.groq.com/keys',
+  },
+  {
     id: 'huggingface',
-    label: 'Hugging Face',
+    label: 'Hugging Face (cloud)',
     placeholder: 'hf_...',
     docsUrl: 'https://huggingface.co/settings/tokens',
-  },
-  {
-    id: 'vultr',
-    label: 'Vultr Inference',
-    placeholder: 'your-vultr-api-key',
-    docsUrl: 'https://www.vultr.com/docs/vultr-inference/',
-  },
-  {
-    id: 'inference-snaps',
-    label: 'Inference Snaps',
-    placeholder: 'your-inference-snaps-key',
-    docsUrl: 'https://inferencesnaps.com/docs',
   },
 ];
 
 export default function ApiKeysPage() {
-  const [provider, setProvider] = useState<Provider>('ollama');
+  const [provider, setProvider] = useState<Provider>('inference-snaps');
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
