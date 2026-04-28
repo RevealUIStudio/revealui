@@ -31,6 +31,7 @@ import {
   buildPaymentMethods,
   buildPaymentRequired,
   encodePaymentRequired,
+  getX402Config,
   verifyPayment,
 } from '../middleware/x402.js';
 
@@ -1059,7 +1060,18 @@ a2a.openapi(
       if (paymentPayload) {
         const baseUrl = getBaseUrl(c.req.raw);
         const resource = `${baseUrl}${new URL(c.req.url).pathname}`;
-        const verification = await verifyPayment(paymentPayload, resource);
+        // Build the RVUI safeguards context. userId comes from the auth
+        // session; amountUsd comes from the agent's per-call pricing
+        // (registered via AgentDefinitionSchema.pricing) with a fallback
+        // to the global X402_PRICE_PER_TASK. USDC verification ignores
+        // the context; RVUI uses it for replay-protection + caps.
+        const userId = (c.get('user') as UserContext | undefined)?.id ?? '';
+        const agentDef = agentId ? aiMod.agentCardRegistry.getDef(agentId) : undefined;
+        const amountUsd = agentDef?.pricing?.usdc ?? getX402Config().pricePerTask;
+        const verification = await verifyPayment(paymentPayload, resource, {
+          userId,
+          amountUsd,
+        });
         if (verification.valid) {
           paymentVerified = true;
         } else {

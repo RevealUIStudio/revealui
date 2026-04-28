@@ -444,7 +444,9 @@ describe('RVUI payment verification', () => {
     mockVerifyRvuiPayment.mockReset();
   });
 
-  it('dispatches solana-spl scheme to RVUI verifier', async () => {
+  const validContext = { userId: 'user-test-1', amountUsd: '0.05' };
+
+  it('dispatches solana-spl scheme to RVUI verifier with safeguards context', async () => {
     mockVerifyRvuiPayment.mockResolvedValue({ valid: true });
 
     const payload = {
@@ -455,9 +457,12 @@ describe('RVUI payment verification', () => {
     };
     const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
 
-    const result = await verifyPayment(encoded, 'https://example.com/test');
+    const result = await verifyPayment(encoded, 'https://example.com/test', validContext);
     expect(result.valid).toBe(true);
-    expect(mockVerifyRvuiPayment).toHaveBeenCalledWith('abc123sig', 800n, 'SolanaTestWallet123');
+    expect(mockVerifyRvuiPayment).toHaveBeenCalledWith('abc123sig', 800n, 'SolanaTestWallet123', {
+      userId: 'user-test-1',
+      amountUsd: '0.05',
+    });
   });
 
   it('returns invalid when RVUI verification fails', async () => {
@@ -474,7 +479,7 @@ describe('RVUI payment verification', () => {
     };
     const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
 
-    const result = await verifyPayment(encoded, 'https://example.com/test');
+    const result = await verifyPayment(encoded, 'https://example.com/test', validContext);
     expect(result.valid).toBe(false);
     if (!result.valid) {
       expect(result.error).toContain('Insufficient payment');
@@ -492,11 +497,48 @@ describe('RVUI payment verification', () => {
     };
     const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
 
-    const result = await verifyPayment(encoded, 'https://example.com/test');
+    const result = await verifyPayment(encoded, 'https://example.com/test', validContext);
     expect(result.valid).toBe(false);
     if (!result.valid) {
       expect(result.error).toContain('not enabled');
     }
+  });
+
+  it('rejects RVUI payments when PaymentContext is missing (GAP-159 wiring)', async () => {
+    const payload = {
+      x402Version: 1,
+      scheme: 'solana-spl',
+      network: 'solana:devnet',
+      payload: { txSignature: 'sigNoCtx', amount: '1000' },
+    };
+    const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+
+    const result = await verifyPayment(encoded, 'https://example.com/test'); // no context
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toMatch(/authenticated user|userId/i);
+    }
+    expect(mockVerifyRvuiPayment).not.toHaveBeenCalled();
+  });
+
+  it('rejects RVUI payments when PaymentContext.userId is empty', async () => {
+    const payload = {
+      x402Version: 1,
+      scheme: 'solana-spl',
+      network: 'solana:devnet',
+      payload: { txSignature: 'sigEmptyUser', amount: '1000' },
+    };
+    const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
+
+    const result = await verifyPayment(encoded, 'https://example.com/test', {
+      userId: '',
+      amountUsd: '0.05',
+    });
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.error).toMatch(/authenticated user|userId/i);
+    }
+    expect(mockVerifyRvuiPayment).not.toHaveBeenCalled();
   });
 
   it('rejects when txSignature is missing', async () => {
@@ -508,7 +550,7 @@ describe('RVUI payment verification', () => {
     };
     const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
 
-    const result = await verifyPayment(encoded, 'https://example.com/test');
+    const result = await verifyPayment(encoded, 'https://example.com/test', validContext);
     expect(result.valid).toBe(false);
     if (!result.valid) {
       expect(result.error).toContain('txSignature');
@@ -524,14 +566,14 @@ describe('RVUI payment verification', () => {
     };
     const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
 
-    const result = await verifyPayment(encoded, 'https://example.com/test');
+    const result = await verifyPayment(encoded, 'https://example.com/test', validContext);
     expect(result.valid).toBe(false);
     if (!result.valid) {
       expect(result.error).toContain('amount');
     }
   });
 
-  it('still routes EVM payments to facilitator when both enabled', async () => {
+  it('still routes EVM payments to facilitator when both enabled (no context required for USDC)', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ isValid: true }),
@@ -546,6 +588,7 @@ describe('RVUI payment verification', () => {
     };
     const encoded = Buffer.from(JSON.stringify(payload), 'utf-8').toString('base64');
 
+    // No PaymentContext passed — USDC path ignores it.
     const result = await verifyPayment(encoded, 'https://example.com/test');
     expect(result.valid).toBe(true);
     expect(mockFetch).toHaveBeenCalledTimes(1);
