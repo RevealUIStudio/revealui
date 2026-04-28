@@ -76,6 +76,7 @@ vi.mock('../../middleware/x402.js', () => ({
   buildPaymentRequired: vi.fn(() => ({})),
   encodePaymentRequired: vi.fn(() => ''),
   verifyPayment: vi.fn(async () => ({ valid: false })),
+  getAdvertisedCurrencyLabel: vi.fn(() => 'usdc-only'),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({
