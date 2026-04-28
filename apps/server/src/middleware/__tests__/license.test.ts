@@ -29,6 +29,7 @@ vi.mock('../x402.js', () => ({
   })),
   encodePaymentRequired: vi.fn(() => 'base64-encoded-payment-required'),
   verifyPayment: vi.fn(async () => ({ valid: false, error: 'Not verified' })),
+  getAdvertisedCurrencyLabel: vi.fn(() => 'usdc-only'),
 }));
 
 import { isFeatureEnabled } from '@revealui/core/features';
