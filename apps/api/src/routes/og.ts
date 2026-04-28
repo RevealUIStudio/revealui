@@ -3,7 +3,8 @@
  *
  * Renders a 1200×630 PNG with a title + description via satori (JSX → SVG)
  * and @resvg/resvg-wasm (SVG → PNG). Geist Regular + Bold are inlined into
- * the bundle via tsup's binary loader.
+ * the bundle via tsup's binary loader; the resvg WASM is read at runtime
+ * from node_modules.
  *
  * Used by marketing + (future) blog post OG meta tags:
  *   <meta property="og:image"
@@ -14,8 +15,9 @@
  * matching style branch when a consumer needs more visual variation.
  */
 
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
-import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm';
 import { Hono } from 'hono';
 import satori from 'satori';
 import GeistBold from '../assets/fonts/Geist-Bold.ttf';
@@ -24,10 +26,25 @@ import GeistRegular from '../assets/fonts/Geist-Regular.ttf';
 // One-time WASM init for resvg. The same serverless instance reuses the
 // initialised module across requests; the shared promise makes concurrent
 // first-requests safe.
+//
+// The WASM bytes are read at runtime from `@resvg/resvg-wasm/index_bg.wasm`
+// in node_modules and compiled via `WebAssembly.compile`. The earlier
+// approach of `import resvgWasm from '...wasm'` (inlined via tsup's binary
+// loader) works in Vercel Edge / Cloudflare Workers because WASM imports
+// are first-class there — but crashes in Node, where the experimental WASM
+// ESM loader tries to resolve the wasm-bindgen `wbg` glue from the .wasm's
+// import section and fails (no `wbg` npm package; it's expected to be the
+// companion `index_bg.js` glue, which is unreachable when the .wasm is
+// imported directly). Reading the bytes manually bypasses that path;
+// `initWasm` supplies the `wbg` bindings internally.
+//
+// `import.meta.resolve` is sync in Node 20.6+ (engines requires >=24.13).
 let wasmInitPromise: Promise<void> | null = null;
 function ensureWasm(): Promise<void> {
   if (!wasmInitPromise) {
-    wasmInitPromise = initWasm(resvgWasm);
+    const wasmUrl = import.meta.resolve('@resvg/resvg-wasm/index_bg.wasm');
+    const wasmBytes = readFileSync(fileURLToPath(wasmUrl));
+    wasmInitPromise = initWasm(WebAssembly.compile(wasmBytes));
   }
   return wasmInitPromise;
 }

@@ -11,15 +11,17 @@ export default defineConfig({
         find: '@revealui/security',
         replacement: path.resolve(__dirname, '../../packages/security/src/index.ts'),
       },
-      // tsup's binary loader inlines .ttf + .wasm into the production bundle,
-      // but vitest can't evaluate them as JS modules. Alias to a tiny stub so
-      // any test that transitively imports og.ts doesn't crash collection.
-      // The `^.+` anchor is critical: a bare `\.ttf$` would match only the
-      // extension substring and concatenate the replacement onto the rest of
-      // the path; anchoring matches the full module ID so the replacement
-      // takes over completely.
+      // tsup's binary loader inlines .ttf into the production bundle, but
+      // vitest can't evaluate the binary as a JS module. Alias to a tiny
+      // stub so any test that transitively imports og.ts doesn't crash
+      // collection. The `^.+` anchor is critical: a bare `\.ttf$` would
+      // match only the extension substring and concatenate the replacement
+      // onto the rest of the path; anchoring matches the full module ID so
+      // the replacement takes over completely.
+      //
+      // No `.wasm` alias needed — og.ts reads the resvg WASM at runtime via
+      // `readFileSync`, not via ESM import (see apps/api/src/routes/og.ts).
       { find: /^.+\.ttf$/, replacement: path.resolve(__dirname, './__tests__/binary-stub.ts') },
-      { find: /^.+\.wasm$/, replacement: path.resolve(__dirname, './__tests__/binary-stub.ts') },
     ],
   },
   test: {

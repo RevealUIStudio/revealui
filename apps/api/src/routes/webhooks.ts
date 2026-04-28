@@ -2796,6 +2796,65 @@ app.openapi(stripeWebhookRoute, async (c) => {
         break;
       }
 
+      case 'payment_intent.requires_action': {
+        // Customer's bank returned a 3D Secure / SCA authentication challenge
+        // on a one-time PaymentIntent (perpetual license, credit bundle,
+        // support renewal). Distinct from invoice.payment_action_required
+        // (which fires on subscription invoices); this handles the one-time
+        // charge variant. The payment has NOT failed yet  -  they need to
+        // complete authentication before Stripe's challenge expires (~24h).
+        //
+        // We do NOT modify any DB state here. The purchase hasn't completed,
+        // so there is no entitlement to freeze. The eventual outcome
+        // (`payment_intent.succeeded` via checkout.session.completed, or
+        // `payment_intent.payment_failed`) drives the state change.
+        const requiresActionIntent = event.data.object as Stripe.PaymentIntent;
+        const requiresActionCustomerId = resolveCustomerId(requiresActionIntent.customer);
+        if (!requiresActionCustomerId) break;
+
+        logger.info('PaymentIntent requires authentication (3DS/SCA, one-time charge)', {
+          customerId: requiresActionCustomerId,
+          paymentIntentId: requiresActionIntent.id,
+          nextActionType: requiresActionIntent.next_action?.type ?? null,
+        });
+
+        // Resolve tier for email personalization. For one-time charges the
+        // customer may not have an existing license tier; default to 'pro'.
+        let requiresActionTier = 'pro';
+        const [requiresActionTierRow] = await db
+          .select({ tier: licenses.tier })
+          .from(licenses)
+          .where(and(eq(licenses.customerId, requiresActionCustomerId), isNull(licenses.deletedAt)))
+          .orderBy(desc(licenses.updatedAt))
+          .limit(1);
+        if (requiresActionTierRow?.tier) {
+          requiresActionTier = requiresActionTierRow.tier;
+        }
+
+        // PaymentIntent does not carry customer_email; look up via users table.
+        const requiresActionEmail = await findUserEmailByCustomerId(db, requiresActionCustomerId);
+        if (requiresActionEmail) {
+          sendPaymentActionRequiredEmail(requiresActionEmail, requiresActionTier).catch(
+            (err: unknown) => {
+              logger.error(
+                'Failed to send payment-action-required email (PaymentIntent)',
+                undefined,
+                {
+                  detail: err instanceof Error ? err.message : 'unknown',
+                },
+              );
+            },
+          );
+        }
+
+        auditLicenseEvent(db, 'payment_intent.action_required', 'info', {
+          customerId: requiresActionCustomerId,
+          paymentIntentId: requiresActionIntent.id,
+          nextActionType: requiresActionIntent.next_action?.type ?? null,
+        });
+        break;
+      }
+
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         const failedCustomerId =
