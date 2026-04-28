@@ -177,7 +177,7 @@ describe('UpgradeDialog', () => {
     await dispatchUpgradeRequired();
     await waitFor(() => {
       const link = screen.getByText('View full pricing');
-      expect(link).toHaveAttribute('href', '/admin/upgrade');
+      expect(link).toHaveAttribute('href', '/upgrade');
     });
   });
 

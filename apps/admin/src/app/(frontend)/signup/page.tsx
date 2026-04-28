@@ -92,7 +92,7 @@ function SignupContent() {
       if (plan === 'pro') {
         router.push('/account/billing?upgrade=pro');
       } else if (result.user?.role === 'admin') {
-        router.push('/admin');
+        router.push('/');
       } else {
         router.push('/');
       }
@@ -124,13 +124,13 @@ function SignupContent() {
       if (result.backupCodes?.length) {
         setBackupCodes(result.backupCodes);
       } else {
-        router.push('/admin');
+        router.push('/');
       }
     }
   };
 
   const handleAcknowledgeCodes = () => {
-    router.push('/admin');
+    router.push('/');
   };
 
   if (backupCodes) {

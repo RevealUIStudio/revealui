@@ -4,42 +4,42 @@ import OnboardingChecklist from './OnboardingChecklist';
 
 const adminLinks = [
   {
-    href: '/admin/agents',
+    href: '/agents',
     label: 'Agents',
     description: 'A2A agent cards and MCP server integrations',
   },
   {
-    href: '/admin/agent-tasks',
+    href: '/agent-tasks',
     label: 'Agent Tasks',
     description: 'Task execution history across all AI agents',
   },
   {
-    href: '/admin/monitoring',
+    href: '/monitoring',
     label: 'Monitoring',
     description: 'System health and process metrics',
   },
   {
-    href: '/admin/logs',
+    href: '/logs',
     label: 'Logs',
     description: 'Application and audit logs',
   },
   {
-    href: '/admin/errors',
+    href: '/errors',
     label: 'Errors',
     description: 'Error tracking and diagnostics',
   },
   {
-    href: '/admin/audit',
+    href: '/audit',
     label: 'Audit Trail',
     description: 'Security and compliance audit log',
   },
   {
-    href: '/admin/webhooks',
+    href: '/webhooks',
     label: 'Webhooks',
     description: 'Webhook deliveries and event status',
   },
   {
-    href: '/admin/settings',
+    href: '/settings',
     label: 'Settings',
     description: 'Account, security, and preferences',
   },

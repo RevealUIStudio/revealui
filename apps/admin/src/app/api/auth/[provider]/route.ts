@@ -34,7 +34,7 @@ export async function GET(
     'http://localhost:4000';
 
   const redirectUri = `${baseUrl}/api/auth/callback/${provider}`;
-  const redirectTo = request.nextUrl.searchParams.get('redirectTo') ?? '/admin';
+  const redirectTo = request.nextUrl.searchParams.get('redirectTo') ?? '/';
   const linkConsent = request.nextUrl.searchParams.get('linkConsent') === 'true';
 
   const { state, cookieValue, codeChallenge } = generateOAuthState(provider, redirectTo, {

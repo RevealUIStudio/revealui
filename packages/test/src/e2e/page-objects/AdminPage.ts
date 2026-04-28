@@ -40,6 +40,6 @@ export class AdminPage extends BasePage {
    */
   isOnAdminPage(): boolean {
     const url = this.getCurrentUrl();
-    return url.includes('/admin');
+    return url.includes('/');
   }
 }

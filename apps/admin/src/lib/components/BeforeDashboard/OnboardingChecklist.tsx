@@ -16,17 +16,17 @@ const items: ChecklistItem[] = [
   {
     label: 'Create your first page',
     description: 'Add a homepage, about page, or blog post to get started.',
-    href: '/admin/pages',
+    href: '/pages',
   },
   {
     label: 'Add a product',
     description: 'Set up your first product with pricing and details.',
-    href: '/admin/products',
+    href: '/products',
   },
   {
     label: 'Configure settings',
     description: 'Set your site name, branding, and preferences.',
-    href: '/admin/settings',
+    href: '/settings',
   },
   {
     label: 'Explore the docs',

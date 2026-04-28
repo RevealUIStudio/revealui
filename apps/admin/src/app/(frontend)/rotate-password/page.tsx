@@ -58,7 +58,7 @@ export default function RotatePasswordPage() {
         return;
       }
 
-      router.push('/admin');
+      router.push('/');
     } catch {
       setError('An unexpected error occurred.');
     } finally {
