@@ -33,9 +33,14 @@ import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/str
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
 
-// Stripe is installed in packages/services  -  resolve from there
+// Stripe is installed in packages/services  -  resolve from there.
+// Stripe SDK 22.0.1+ shipped CJS as `module.exports = Stripe` directly
+// (no `.default` wrapper). Older versions exported `{ default: Stripe }`.
+// Defensive `default ?? module` handles both shapes so future SDK
+// upgrades don't re-break this require.
 const require = createRequire(resolve(import.meta.dirname, '../../packages/services/'));
-const StripeConstructor = require('stripe').default as typeof import('stripe').default;
+const stripeModule = require('stripe') as { default?: typeof Stripe } & typeof Stripe;
+const StripeConstructor = (stripeModule.default ?? stripeModule) as typeof Stripe;
 const rootDir = resolve(import.meta.dirname, '../..');
 const LOCAL_STRIPE_ENV_CACHE_PATH = resolve(rootDir, '.revealui/stripe-env.json');
 
@@ -882,7 +887,7 @@ async function main(): Promise<void> {
     log.info('DRY RUN  -  no changes will be made to Stripe');
   }
 
-  const stripe = new StripeConstructor(secretKey, { apiVersion: '2026-01-28.clover' });
+  const stripe = new StripeConstructor(secretKey, { apiVersion: StripeConstructor.API_VERSION });
 
   try {
     await stripe.balance.retrieve();

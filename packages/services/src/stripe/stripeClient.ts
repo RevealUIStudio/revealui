@@ -39,7 +39,10 @@ function getStripe(): Stripe {
   }
 
   _stripe = new Stripe(secretKey, {
-    apiVersion: '2026-03-25.dahlia',
+    // Auto-track the SDK's pinned API version (currently dahlia, ~2026-04-22).
+    // Stripe.API_VERSION is a literal-typed string — upgrading the SDK
+    // moves all sites in lock-step instead of leaving stale date stamps.
+    apiVersion: Stripe.API_VERSION,
   });
   return _stripe;
 }
