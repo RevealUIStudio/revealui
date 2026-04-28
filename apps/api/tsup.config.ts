@@ -17,12 +17,15 @@ export default defineConfig({
   // @revealui/ai and @revealui/services are optional Pro packages  -  keep external
   // so builds succeed without them installed.
   external: ['pg', 'pg-native', 'stripe', '@revealui/ai', '@revealui/services'],
-  // Inline binary assets (Geist TTFs for satori, resvg WASM for SVG→PNG) so the
-  // serverless function bundle is self-contained and doesn't depend on
-  // node_modules paths at runtime.
+  // Inline Geist TTFs into the bundle for satori. The resvg WASM is NOT
+  // inlined — it's read at runtime from node_modules via createRequire
+  // (see apps/api/src/routes/og.ts). The earlier inline approach via
+  // tsup's binary loader worked in Vercel Edge / CF Workers but crashes
+  // Node's experimental WASM ESM loader (the .wasm's import section
+  // declares a `wbg` import that has no resolution path when the .wasm
+  // is loaded as an ES module).
   loader: {
     '.ttf': 'binary',
-    '.wasm': 'binary',
   },
   // CJS packages bundled via the @revealui/* chain (e.g. dotenv) call require()
   // of Node.js built-ins like 'fs' and 'path'. In ESM bundles, require() is
