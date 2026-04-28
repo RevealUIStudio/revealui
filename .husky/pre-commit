@@ -22,9 +22,9 @@ if [ -n "$STAGED_TS_FILES" ]; then
 
   while IFS= read -r file; do
     if [ -f "$file" ]; then
-      node --import tsx scripts/validation/validate-code.ts "$file" > /dev/null 2>&1 || {
+      pnpm tsx scripts/validation/validate-code.ts "$file" > /dev/null 2>&1 || {
         echo "  ❌ $file (has code standard violations)"
-        node --import tsx scripts/validation/validate-code.ts "$file" 2>&1 | grep -A 1 "ERROR\|WARNING" | head -10
+        pnpm tsx scripts/validation/validate-code.ts "$file" 2>&1 | grep -A 1 "ERROR\|WARNING" | head -10
         VALIDATION_FAILED=true
       }
     fi

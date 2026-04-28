@@ -63,11 +63,6 @@
       ],
       "outputs": []
     },
-    "lint:biome": {
-      "cache": true,
-      "inputs": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.js", "src/**/*.jsx", "biome.json"],
-      "outputs": []
-    },
     "typecheck": {
       "cache": true,
       "dependsOn": ["^build"],

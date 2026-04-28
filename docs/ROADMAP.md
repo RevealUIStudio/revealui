@@ -121,6 +121,10 @@ Give users the ability to interact with an AI agent directly from the admin dash
 - RevKit agent coordination protocol extraction as `@revealui/workboard`  -  MIT standalone package. _Currently: implementation lives inside `@revealui/harnesses` (FSL-1.1-MIT Pro) at `packages/harnesses/src/workboard/`; extraction brings it in line with the PRO.md declaration that RevKit agent coordination is MIT-free._
 - Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
 
+#### Edge Cache + Encryption Helpers Integration
+- **`@revealui/cache`** edge-cache helpers (`getABTestVariant`, `addPreloadLinks`, `warmISRCache`, `setEdgeCacheHeaders`) — implemented in `packages/cache/src/edge-cache.ts` but not yet wired into `apps/marketing` or `apps/api` middleware. Not exported from the package barrel pending real consumer.
+- **`@revealui/security`** encryption + authorization helpers (`EncryptionSystem`, `FieldEncryption`, `KeyRotationManager`, `TokenGenerator`, `DataMasking`, `EnvelopeEncryption`, `PolicyBuilder`, `PermissionBuilder`) — implemented but not exported from the barrel. Production encryption today flows through KEK + revvault directly; these helpers are reserved for future consumer-facing surfaces.
+
 #### Developer Experience — [#535](https://github.com/RevealUIStudio/revealui/issues/535)
 - `create-revealui` template improvements (more starters, better defaults). _Currently: `@revealui/cli` ships 4 templates (`basic-blog`, `e-commerce`, `portfolio`, `starter`) at `packages/cli/templates/`; bullet covers template audit + one new opinionated-SaaS starter + smoother prompts + post-init onboarding._
 - Hot module reload improvements for admin development. _Currently: admin runs Next.js 16 with Turbopack configured; bullet covers baseline measurement + collection-definition HMR + RichText plugin HMR + dev-startup optimization._

@@ -842,7 +842,7 @@ Holster: "Here is the shared state where coordination happens"
 
 ---
 
-## §4.18: Legacy and Deprecation Sweep (Phase A in progress)
+## §4.18: Legacy and Deprecation Sweep (Phase A complete)
 
 **Initial sweep results (2026-04-15):**
 - Removed 6 deprecated exports with zero callers: `registerSession`/`unregisterSession` aliases, `WorkboardSession`/`WorkboardEntry` types, `deepMergeSimple`, `findAgentMemoryById`/`findAgentMemoriesByUserId`
@@ -860,15 +860,15 @@ Holster: "Here is the shared state where coordination happens"
 
 **Principle:** Users should never encounter deprecated APIs, backwards-compat shims, or dead code paths. If we change a public interface, we provide a codemod (via `@revealui/cli` or a standalone jscodeshift transform) that rewrites their code to the new pattern. No "legacy" mode, no "compat" wrappers, no soft deprecation.
 
-### Phase A: Exhaustive Codebase Audit
+### Phase A: Exhaustive Codebase Audit (complete 2026-04-27)
 
-- [ ] Automated scan for deprecated markers: `@deprecated` JSDoc, `legacy` in identifiers/filenames, `compat` shims, re-exports of removed APIs, `_old`/`_v1`/`_prev` suffixes
-- [ ] Audit all barrel exports (`index.ts`) for re-exported symbols that no longer have a primary consumer
-- [ ] Audit CLI for duplicate/alias commands (e.g. `shell` alias for `dev shell`) and decide: remove or keep with clear redirect messaging
-- [ ] Audit config formats for backwards-compat fields that can be dropped
-- [ ] Audit hook scripts for patterns that pre-date the current architecture
-- [ ] Audit test files for mocks of removed or renamed interfaces
-- [ ] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate)
+- [x] Automated scan for deprecated markers: `@deprecated` JSDoc, `legacy` in identifiers/filenames, `compat` shims, re-exports of removed APIs, `_old`/`_v1`/`_prev` suffixes
+- [x] Audit all barrel exports (`index.ts`) for re-exported symbols that no longer have a primary consumer
+- [x] Audit CLI for duplicate/alias commands (e.g. `shell` alias for `dev shell`) and decide: remove or keep with clear redirect messaging
+- [x] Audit config formats for backwards-compat fields that can be dropped
+- [x] Audit hook scripts for patterns that pre-date the current architecture
+- [x] Audit test files for mocks of removed or renamed interfaces
+- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — see `~/suite/.jv/docs/audits/legacy-sweep-2026-04-27.md` (62 findings, 6 categories, 17 actionable in Tier 1)
 
 ### Phase B: Codemod Infrastructure
 

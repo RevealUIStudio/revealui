@@ -9,7 +9,7 @@
 
 import type { Field, TabDefinition } from '@revealui/contracts/admin';
 import type { Block } from './fields/config/types.js';
-import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/legacy.js';
+import type { RevealUITraverseFieldsArgs, RevealUITraverseFieldsResult } from './types/internal.js';
 
 /**
  * Traversal mode determines how fields are processed
