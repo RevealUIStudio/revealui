@@ -200,6 +200,7 @@
     "validate:changesets": "tsx scripts/validate/mixed-changesets.ts",
     "validate:empty-catch": "tsx scripts/validate/empty-catch.ts",
     "validate:migrations": "tsx scripts/validate/migration-journal.ts",
+    "validate:prod-env": "tsx scripts/validate/prod-env.ts",
     "validate:raw-sql": "tsx scripts/validate/raw-sql.ts",
     "validate:stripe-client": "tsx scripts/validate/stripe-client.ts"
   },

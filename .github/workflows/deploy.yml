@@ -79,6 +79,42 @@ jobs:
           fi
           echo "No migration drift detected."
 
+      # ── Pre-deploy production env validation (api project) ─────────────
+      # Mirrors apps/api/src/lib/validate-startup.ts → validateStartup so
+      # presence + format errors fail the gate before deploy starts. The
+      # 2026-04-25 #540 incident root-cause was env config that the prior
+      # in-deploy bash grep missed: vars unset by name plus malformed
+      # values (sk_test_ in live mode, REVEALUI_CRON_SECRET <32 chars,
+      # missing REVEALUI_LICENSE_PRIVATE_KEY) — all of which throw in
+      # validateStartup at module init but were invisible to a name-only
+      # `vercel env ls | grep` check. Closes GAP-125.
+
+      - name: Install Vercel CLI
+        run: pnpm add -g vercel@latest
+
+      - name: Pull production env from Vercel (api project)
+        run: |
+          rm -rf .vercel
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          if [ ! -f .vercel/.env.production.local ]; then
+            echo "::error::vercel pull produced no .env.production.local"
+            exit 1
+          fi
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: prj_zk6EQijYXwd9L7BccuBssi436ktM # api
+
+      - name: Build @revealui/core (transitive dep of validate-startup)
+        # validateStartup imports validateLicenseKey from @revealui/core/license
+        # (top-level, used by the Forge-mode validateLicenseAtStartup branch).
+        # Build core's dist so the tsx invocation in validate:prod-env can
+        # resolve the import. Hosted-mode validation does not call into the
+        # license code, but the module-level import still needs to resolve.
+        run: pnpm turbo build --filter=@revealui/core
+
+      - name: Validate prod env (presence + format, mirrors validateStartup)
+        run: pnpm validate:prod-env
+
   # ---------------------------------------------------------------------------
   # Apply pending database migrations (additive-only by convention)
   # Runs after validation, before deploy — new schema must exist before new code.
@@ -297,58 +333,13 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_PROJECT_ID: ${{ matrix.project-id }}
 
-      - name: Validate critical environment variables
-        if: matrix.app == 'api' || matrix.app == 'admin'
-        run: |
-          echo "Checking critical env vars for ${{ matrix.app }}..."
-          ENV_OUTPUT=$(vercel env ls production --token="$VERCEL_TOKEN" 2>&1) || {
-            echo "::warning::vercel env ls failed — skipping validation"
-            echo "$ENV_OUTPUT"
-            exit 0
-          }
-          echo "::debug::vercel env ls output: $ENV_OUTPUT"
-          MISSING=0
-
-          # Core vars required by all server apps
-          CORE_VARS="POSTGRES_URL REVEALUI_SECRET REVEALUI_PUBLIC_SERVER_URL"
-
-          # API-specific: billing, email, webhooks, cron
-          API_VARS="STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET REVEALUI_CRON_SECRET REVEALUI_LICENSE_PRIVATE_KEY REVEALUI_KEK"
-
-          # Email: Gmail service account (primary) or Resend (fallback)
-          EMAIL_VARS="GOOGLE_SERVICE_ACCOUNT_EMAIL GOOGLE_PRIVATE_KEY"
-
-          REQUIRED="$CORE_VARS"
-          if [ "${{ matrix.app }}" = "api" ]; then
-            REQUIRED="$CORE_VARS $API_VARS"
-            # Check for at least one email provider
-            HAS_GMAIL=false
-            HAS_RESEND=false
-            if echo "$ENV_OUTPUT" | grep -q "GOOGLE_SERVICE_ACCOUNT_EMAIL" && echo "$ENV_OUTPUT" | grep -q "GOOGLE_PRIVATE_KEY"; then
-              HAS_GMAIL=true
-            fi
-            if echo "$ENV_OUTPUT" | grep -q "RESEND_API_KEY"; then
-              HAS_RESEND=true
-            fi
-            if [ "$HAS_GMAIL" = "false" ] && [ "$HAS_RESEND" = "false" ]; then
-              echo "::warning::No email provider configured — emails will be logged, not sent. Set GOOGLE_SERVICE_ACCOUNT_EMAIL + GOOGLE_PRIVATE_KEY when ready."
-            fi
-          fi
-
-          for VAR in $REQUIRED; do
-            if ! echo "$ENV_OUTPUT" | grep -q "$VAR"; then
-              echo "::error::Missing required env var: $VAR"
-              MISSING=1
-            fi
-          done
-          if [ "$MISSING" = "1" ]; then
-            echo "::error::Deploy blocked — set missing env vars in Vercel project settings"
-            exit 1
-          fi
-          echo "All critical env vars present."
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: ${{ matrix.project-id }}
+      # Critical env validation runs upstream in the `validate` job for the
+      # api project (mirrors validateStartup format + presence checks). The
+      # previous in-deploy bash grep against `vercel env ls` output covered
+      # name-presence only and missed every value-format rule — replaced
+      # here as part of GAP-125. Admin pre-deploy validation is tracked as
+      # a follow-up; today admin's instrumentation handles env validation
+      # at boot (gentler, failOnMissing: false).
 
       - name: Override Vercel project settings for CI
         run: |
