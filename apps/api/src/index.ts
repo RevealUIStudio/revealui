@@ -75,6 +75,7 @@ import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
 import agentStreamElicitRoute from './routes/agent-stream-elicit.js';
 import agentTasksRoute from './routes/agent-tasks.js';
+import analyticsRoute from './routes/analytics.js';
 import apiKeysRoute from './routes/api-keys.js';
 import authRoute from './routes/auth.js';
 import billingRoute from './routes/billing.js';
@@ -92,6 +93,7 @@ import cronPublishRoute from './routes/cron/publish-scheduled.js';
 import cronReconcileCustomersRoute from './routes/cron/reconcile-customers.js';
 import cronReconcileSubscriptionsRoute from './routes/cron/reconcile-subscriptions.js';
 import cronSweepGraceRoute from './routes/cron/sweep-grace-periods.js';
+import devkitRoute from './routes/devkit.js';
 import errorsRoute from './routes/errors.js';
 import gdprRoute from './routes/gdpr.js';
 import ghcrRoute from './routes/ghcr.js';
@@ -105,6 +107,7 @@ import mcpUsageRoute from './routes/mcp-usage.js';
 import pricingRoute from './routes/pricing.js';
 import ragIndexRoute from './routes/rag-index.js';
 import revmarketRoute from './routes/revmarket.js';
+import rotationRoute from './routes/rotation.js';
 import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
 import { createTerminalRoute } from './routes/terminal-ws.js';
@@ -744,6 +747,29 @@ app.use('/api/v1/admin/audit/export', requireFeature('auditLog', { mode: 'entitl
 app.use('/api/admin/inference/config*', requireFeature('aiInference', { mode: 'entitlements' }));
 app.use('/api/v1/admin/inference/config*', requireFeature('aiInference', { mode: 'entitlements' }));
 
+// Per-user DevKit profile selection is a Max+ tier feature ("devkitProfiles"
+// in DEFAULT_FEATURES). Only the PUT to set the active profile is gated;
+// GET /profiles (list) and GET /profile/active (read own selection) are
+// authenticated but free for all tiers.
+app.put('/api/devkit/profile/active', requireFeature('devkitProfiles', { mode: 'entitlements' }));
+app.put(
+  '/api/v1/devkit/profile/active',
+  requireFeature('devkitProfiles', { mode: 'entitlements' }),
+);
+
+// Analytics is a Pro+ tier feature ("analytics" in DEFAULT_FEATURES). All
+// analytics routes are read-only aggregations over usage_meters scoped to
+// the authenticated user's account; gate the entire surface.
+app.use('/api/analytics/*', requireFeature('analytics', { mode: 'entitlements' }));
+app.use('/api/v1/analytics/*', requireFeature('analytics', { mode: 'entitlements' }));
+
+// Credential rotation history is a Pro+ tier feature ("vaultRotation" in
+// DEFAULT_FEATURES). The rotate/create/revoke operations themselves stay
+// free for all tiers (the audit emission is just a side-effect); the
+// Pro-tier value is the queryable history surface at /api/rotation/*.
+app.use('/api/rotation/*', requireFeature('vaultRotation', { mode: 'entitlements' }));
+app.use('/api/v1/rotation/*', requireFeature('vaultRotation', { mode: 'entitlements' }));
+
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
@@ -1089,6 +1115,9 @@ app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);
 app.route('/api/admin/inference/config', adminInferenceConfigRoute);
+app.route('/api/analytics', analyticsRoute);
+app.route('/api/devkit', devkitRoute);
+app.route('/api/rotation', rotationRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
 app.route('/api/cron', cronDispatchRoute);
@@ -1148,6 +1177,9 @@ app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);
 app.route('/api/v1/admin/inference/config', adminInferenceConfigRoute);
+app.route('/api/v1/analytics', analyticsRoute);
+app.route('/api/v1/devkit', devkitRoute);
+app.route('/api/v1/rotation', rotationRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
 app.route('/api/v1/cron', cronDispatchRoute);

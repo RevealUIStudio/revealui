@@ -506,6 +506,19 @@ export {
 export { LLM_PROVIDERS, type LLMProvider } from './providers.js';
 
 // =============================================================================
+// DevKit Profiles (Max-tier paywall)
+// =============================================================================
+
+export {
+  DEVKIT_PROFILE_METADATA,
+  DEVKIT_PROFILES,
+  type DevkitProfileId,
+  type DevkitProfileKind,
+  type DevkitProfileMeta,
+  isDevkitProfileId,
+} from './devkit-profiles.js';
+
+// =============================================================================
 // Pricing
 // =============================================================================
 
