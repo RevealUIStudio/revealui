@@ -3,9 +3,9 @@ import '@fontsource-variable/geist-mono';
 import './index.css';
 
 import { Router, RouterProvider } from '@revealui/router';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { SpeedInsights } from '@vercel/speed-insights/react';
 import { App } from './App';
 
 const rootElement = document.getElementById('root');
