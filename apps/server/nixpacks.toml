@@ -9,7 +9,7 @@ nixPkgs = ["nodejs_24"]
 cmds = ["corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile"]
 
 [phases.build]
-cmds = ["pnpm turbo build --filter=api"]
+cmds = ["pnpm turbo build --filter=server"]
 
 [start]
-cmd = "node apps/api/dist/index.js"
+cmd = "node apps/server/dist/index.js"

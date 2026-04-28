@@ -421,7 +421,7 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
       - name: Start API server
-        run: pnpm --filter api start &
+        run: pnpm --filter server start &
         env:
           SKIP_ENV_VALIDATION: "true"
           NODE_ENV: "development"

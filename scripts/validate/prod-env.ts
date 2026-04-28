@@ -2,7 +2,7 @@
  * Pre-deploy environment validator for the api app.
  *
  * Pulls the production env from Vercel (`vercel pull`) and runs the same
- * `validateStartup()` that apps/api executes at module init. Any format /
+ * `validateStartup()` that apps/server executes at module init. Any format /
  * presence error fails the CI gate before deploy starts, instead of
  * surfacing as a FUNCTION_INVOCATION_FAILED crash loop after the
  * deployment is already live.
@@ -30,7 +30,7 @@ import {
   detectDeploymentMode,
   type EnvMap,
   validateStartup,
-} from '../../apps/api/src/lib/validate-startup';
+} from '../../apps/server/src/lib/validate-startup';
 
 export const ENV_FILE_DEFAULT = '.vercel/.env.production.local';
 

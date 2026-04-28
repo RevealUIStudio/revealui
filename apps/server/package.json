@@ -62,7 +62,7 @@
     "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "vercel-build": "cd ../.. && pnpm turbo build --filter=api"
+    "vercel-build": "cd ../.. && pnpm turbo build --filter=server"
   },
   "type": "module"
 }

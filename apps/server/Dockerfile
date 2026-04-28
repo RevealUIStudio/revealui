@@ -27,33 +27,33 @@ COPY packages/resilience/package.json ./packages/resilience/
 COPY packages/security/package.json ./packages/security/
 COPY packages/services/package.json ./packages/services/
 COPY packages/utils/package.json ./packages/utils/
-COPY apps/api/package.json ./apps/api/
+COPY apps/server/package.json ./apps/server/
 
 # Install dependencies with frozen lockfile
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --frozen-lockfile --filter api...
+    pnpm install --frozen-lockfile --filter server...
 
 # Builder stage
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules
 
 # Copy source code
 COPY turbo.json ./
 COPY tsconfig.json ./
 COPY packages ./packages
-COPY apps/api ./apps/api
+COPY apps/server ./apps/server
 
 # Build the application (tsup bundles workspace deps into dist/)
 ENV NODE_ENV=production
 ENV SKIP_ENV_VALIDATION=true
 
-RUN pnpm turbo run build --filter=api...
+RUN pnpm turbo run build --filter=server...
 
 # Create a self-contained deploy directory with only production deps
 # pnpm deploy resolves hoisted packages into a flat node_modules
-RUN pnpm --filter api deploy /app/api-deploy --prod --legacy
+RUN pnpm --filter server deploy /app/server-deploy --prod --legacy
 
 # Runner stage — minimal image with only the built bundle
 FROM node:24-alpine AS runner
@@ -65,11 +65,11 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 hono
 
 # Copy built application (tsup bundles workspace deps into dist/)
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/api-deploy/package.json ./
+COPY --from=builder /app/apps/server/dist ./dist
+COPY --from=builder /app/server-deploy/package.json ./
 
 # Copy production node_modules (pnpm deploy flattens hoisted deps)
-COPY --from=builder /app/api-deploy/node_modules ./node_modules
+COPY --from=builder /app/server-deploy/node_modules ./node_modules
 
 # Set ownership
 RUN chown -R hono:nodejs /app

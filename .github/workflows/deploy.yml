@@ -80,7 +80,7 @@ jobs:
           echo "No migration drift detected."
 
       # ── Pre-deploy production env validation (api project) ─────────────
-      # Mirrors apps/api/src/lib/validate-startup.ts → validateStartup so
+      # Mirrors apps/server/src/lib/validate-startup.ts → validateStartup so
       # presence + format errors fail the gate before deploy starts. The
       # 2026-04-25 #540 incident root-cause was env config that the prior
       # in-deploy bash grep missed: vars unset by name plus malformed
