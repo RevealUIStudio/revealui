@@ -47,10 +47,10 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **Billing stack**  -  Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/forge)
 - **UI components**  -  57 native React 19 components (Tailwind v4, zero external UI deps)
 - **Real-time sync**  -  ElectricSQL integration for editor/client/agent sync _(experimental  -  basic shape subscriptions, no offline-first)_
-- **Database**  -  85 tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
+- **Database**  -  86 tables via Drizzle ORM, dual-DB architecture (NeonDB + Supabase)
 - **CLI**  -  `npx create-revealui my-app` scaffolds a full project from npm
 - **AI agents**  -  A2A protocol, CRDT memory, open-model inference, streaming, tool execution
-- **MCP servers**  -  13 first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Supabase, Vercel, Playwright, Code Validator, Next.js DevTools, RevealUI Content / Email / Memory / Stripe, Vultr Test, plus the adapter base class)
+- **MCP servers**  -  12 first-party servers under `packages/mcp/src/servers/` (Stripe, Neon, Supabase, Vercel, Playwright, Code Validator, Next.js DevTools, RevealUI Content / Email / Memory / Stripe, plus the adapter base class)
 - **Desktop app (RevDev)**  -  Tauri 2 + React 19 native AI experience (agent hub, local inference, vault, tunnel) — ships in the separate [RevDev](https://github.com/RevealUIStudio/revdev) repo, not in the RevealUI monorepo
 - **Security**  -  CSP, CORS, HSTS, AES-256-GCM encryption, timing-safe TOTP, GDPR framework, 187 security tests
 - **CI/CD**  -  3-phase gate (lint + typecheck + test + build), CodeQL, Gitleaks, OIDC npm publishing
@@ -120,6 +120,10 @@ Give users the ability to interact with an AI agent directly from the admin dash
 - RevVault rotation engine as a Pro feature  -  automated credential lifecycle management. _Currently: 5 interactive rotation shell scripts ship at `~/suite/.jv/scripts/rotation/` (neon, revealui-secret, stripe-webhook, probe-current-values, probe-mcp-api-key); Rust workspace at `~/suite/revvault/` ready to absorb them as a first-class subsystem._
 - RevKit agent coordination protocol extraction as `@revealui/workboard`  -  MIT standalone package. _Currently: implementation lives inside `@revealui/harnesses` (FSL-1.1-MIT Pro) at `packages/harnesses/src/workboard/`; extraction brings it in line with the PRO.md declaration that RevKit agent coordination is MIT-free._
 - Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
+
+#### Edge Cache + Encryption Helpers Integration
+- **`@revealui/cache`** edge-cache helpers (`getABTestVariant`, `addPreloadLinks`, `warmISRCache`, `setEdgeCacheHeaders`) — implemented in `packages/cache/src/edge-cache.ts` but not yet wired into `apps/marketing` or `apps/api` middleware. Not exported from the package barrel pending real consumer.
+- **`@revealui/security`** encryption + authorization helpers (`EncryptionSystem`, `FieldEncryption`, `KeyRotationManager`, `TokenGenerator`, `DataMasking`, `EnvelopeEncryption`, `PolicyBuilder`, `PermissionBuilder`) — implemented but not exported from the barrel. Production encryption today flows through KEK + revvault directly; these helpers are reserved for future consumer-facing surfaces.
 
 #### Developer Experience — [#535](https://github.com/RevealUIStudio/revealui/issues/535)
 - `create-revealui` template improvements (more starters, better defaults). _Currently: `@revealui/cli` ships 4 templates (`basic-blog`, `e-commerce`, `portfolio`, `starter`) at `packages/cli/templates/`; bullet covers template audit + one new opinionated-SaaS starter + smoother prompts + post-init onboarding._

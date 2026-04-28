@@ -1,6 +1,6 @@
 # AI Stack Architecture
 
-RevealUI's AI subsystem lives in `@revealui/ai` (Pro, Fair Source FSL-1.1-MIT). It provides open-model inference, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime  -  all gated by tier. The default and recommended path is open-model inference (Ollama, Canonical Inference Snaps); cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic for prompt caching) are pluggable but opt-in via environment variables.
+RevealUI's AI subsystem lives in `@revealui/ai` (Pro, Fair Source FSL-1.1-MIT). It provides open-model inference, agent orchestration, CRDT-based memory, RAG ingestion, and streaming runtime  -  all gated by tier. The default and recommended path is open-model inference (Ollama, Canonical Inference Snaps); cloud-compatible providers (Groq, HuggingFace, OpenAI-compatible, Anthropic for prompt caching) are pluggable but opt-in via environment variables.
 
 ## Inference Abstraction
 

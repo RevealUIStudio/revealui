@@ -3,7 +3,10 @@
 /**
  * Test Response Caching
  *
- * Quick test to verify response caching is working
+ * Quick test to verify response caching is working. Defaults to Inference
+ * Snaps on Ubuntu (zero-config); override via INFERENCE_SNAPS_BASE_URL
+ * if the snap listens on a non-default port, or set LLM_PROVIDER + the
+ * matching env vars to use a different provider (groq, huggingface, ollama).
  */
 
 import { LLMClient } from './src/llm/client.js';
@@ -11,12 +14,13 @@ import { LLMClient } from './src/llm/client.js';
 async function testResponseCaching() {
   console.log('🧪 Testing Response Caching\n');
 
-  // Create client with response caching enabled
+  // Create client with response caching enabled. Inference Snaps is the
+  // canonical local provider — no API key required.
   const client = new LLMClient({
-    provider: 'vultr',
-    apiKey: process.env.VULTR_API_KEY || '',
-    model: process.env.LLM_MODEL || 'kimi-k2-instruct',
-    baseURL: process.env.VULTR_BASE_URL,
+    provider: 'inference-snaps',
+    apiKey: 'inference-snaps',
+    model: process.env.LLM_MODEL || 'gemma3',
+    baseURL: process.env.INFERENCE_SNAPS_BASE_URL,
     enableResponseCache: true,
     responseCacheOptions: {
       max: 100,
@@ -61,7 +65,6 @@ async function testResponseCaching() {
         `   - Request 2: ${duration2}ms (cache hit - ${Math.round((1 - duration2 / duration1) * 100)}% faster!)`,
       );
       console.log(`   - Hit rate: ${stats.hitRate}%`);
-      console.log(`   - Saved: 1 API call = ~$0.003`);
     } else {
       console.log('⚠️  WARNING: Cache hit not detected');
       console.log('   This might be normal if responses differ slightly');
@@ -85,6 +88,11 @@ async function testResponseCaching() {
     console.error('❌ Test failed:', error);
     if (error instanceof Error) {
       console.error('   Error:', error.message);
+      console.error(
+        '\n   Hint: Inference Snaps must be reachable at',
+        process.env.INFERENCE_SNAPS_BASE_URL ?? 'http://localhost:9090/v1',
+      );
+      console.error('   Install: sudo snap install gemma3 (or your model of choice).');
     }
     process.exit(1);
   }
@@ -94,12 +102,5 @@ async function testResponseCaching() {
 console.log('Response Caching Test');
 console.log('='.repeat(50));
 console.log();
-
-if (!process.env.VULTR_API_KEY) {
-  console.error('❌ Error: VULTR_API_KEY not set');
-  console.log('\nSet your API key:');
-  console.log('  export VULTR_API_KEY=your-key-here');
-  process.exit(1);
-}
 
 testResponseCaching();

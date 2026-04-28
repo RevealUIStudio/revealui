@@ -53,6 +53,7 @@ export * from './crdt-operations.js';
 export * from './error-events.js';
 export * from './gdpr.js';
 export * from './idempotency.js';
+export * from './inference-configs.js';
 export * from './jobs.js';
 export * from './licenses.js';
 export * from './magic-links.js';

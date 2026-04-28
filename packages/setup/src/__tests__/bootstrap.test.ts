@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BootstrapOptions, RevealUILike } from '../bootstrap/index.js';
+import type { RevealUILike } from '../bootstrap/index.js';
 import { bootstrap } from '../bootstrap/index.js';
 
 function createMockRevealUI(options?: { hasUsers?: boolean }): RevealUILike {

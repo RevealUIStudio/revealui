@@ -1,6 +1,6 @@
 # RevealUI Pro
 
-RevealUI Pro adds AI agents, MCP integrations, and inference orchestration on top of the open-source foundation. The default and recommended inference path is open-model (Ollama, Canonical Inference Snaps); cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible) are pluggable but opt-in.
+RevealUI Pro adds AI agents, MCP integrations, and inference orchestration on top of the open-source foundation. The default and recommended inference path is open-model (Ollama, Canonical Inference Snaps); cloud-compatible providers (Groq, HuggingFace, OpenAI-compatible) are pluggable but opt-in.
 
 ## What's included
 
@@ -10,7 +10,7 @@ RevealUI Pro adds AI agents, MCP integrations, and inference orchestration on to
 | [`@revealui/harnesses`](https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | Harness adapters, workboard coordination |
 | [`@revealui/mcp`](/pro/mcp) | MIT (free for any tier) | MCP hypervisor, adapter framework, 14 first-party server launchers |
 | [`@revealui/services`](https://github.com/RevealUIStudio/revealui/tree/main/packages/services) | MIT | Stripe + Supabase service integrations |
-| [Open-Model Inference](/pro/inference) | — | Default Ollama; Inference Snaps planned; Groq / Vultr / HuggingFace / OpenAI-compatible opt-in |
+| [Open-Model Inference](/pro/inference) | — | Default Ollama; Inference Snaps planned; Groq / HuggingFace / OpenAI-compatible opt-in |
 | [Editor Config Sync](/pro/editors) | — | Ships in the separate **RevCon** repo (not in this monorepo); not gated by Pro |
 
 ## License

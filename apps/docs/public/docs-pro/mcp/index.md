@@ -6,7 +6,7 @@ MCP (Model Context Protocol) servers for RevealUI. Connect your AI agents to Str
 
 ## Overview
 
-`@revealui/mcp` ships **13 first-party MCP server launchers** under `packages/mcp/src/servers/`. The full list lives in the source; a representative sample:
+`@revealui/mcp` ships **12 first-party MCP server launchers** under `packages/mcp/src/servers/`. The full list lives in the source; a representative sample:
 
 | Server | Launcher | Tools provided |
 |--------|----------|---------------|

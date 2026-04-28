@@ -70,6 +70,7 @@ import { auditLog } from './audit-log.js';
 import { codeProvenance, codeReviews } from './code-provenance.js';
 import { collabEdits } from './collab-edits.js';
 import { errorEvents } from './error-events.js';
+import { workspaceInferenceConfigs } from './inference-configs.js';
 import { licenses } from './licenses.js';
 import { magicLinks } from './magic-links.js';
 import { marketplaceServers, marketplaceTransactions } from './marketplace.js';
@@ -213,7 +214,19 @@ export const sitesRelations = relations(sites, ({ one, many }) => ({
   }),
   collaborators: many(siteCollaborators),
   pages: many(pages),
+  inferenceConfig: many(workspaceInferenceConfigs),
 }));
+
+// Workspace inference config relations
+export const workspaceInferenceConfigsRelations = relations(
+  workspaceInferenceConfigs,
+  ({ one }) => ({
+    site: one(sites, {
+      fields: [workspaceInferenceConfigs.workspaceId],
+      references: [sites.id],
+    }),
+  }),
+);
 
 // Site collaborator relations
 export const siteCollaboratorsRelations = relations(siteCollaborators, ({ one }) => ({
