@@ -576,6 +576,9 @@ importers:
       '@revealui/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@revealui/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@revealui/presentation':
         specifier: workspace:*
         version: link:../../packages/presentation
