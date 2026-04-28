@@ -35,9 +35,17 @@
   ],
   "redirects": [
     { "source": "/docs", "destination": "https://docs.revealui.com", "permanent": true },
-    { "source": "/docs/:path*", "destination": "https://docs.revealui.com/:path*", "permanent": true },
+    {
+      "source": "/docs/:path*",
+      "destination": "https://docs.revealui.com/:path*",
+      "permanent": true
+    },
     { "source": "/pro", "destination": "/pricing", "permanent": false },
-    { "source": "/community", "destination": "https://revnation.discourse.group", "permanent": false },
+    {
+      "source": "/community",
+      "destination": "https://revnation.discourse.group",
+      "permanent": false
+    },
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "community.revealui.com" }],
