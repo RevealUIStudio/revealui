@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const {
   mockGetTransaction,
   mockGetTokenAccountsByOwner,
+  mockGetTokenSupply,
   mockIsOpen,
   mockRecordSuccess,
   mockRecordFailure,
@@ -11,6 +12,7 @@ const {
 } = vi.hoisted(() => ({
   mockGetTransaction: vi.fn(),
   mockGetTokenAccountsByOwner: vi.fn(),
+  mockGetTokenSupply: vi.fn(),
   mockIsOpen: vi.fn().mockResolvedValue(false),
   mockRecordSuccess: vi.fn().mockResolvedValue(undefined),
   mockRecordFailure: vi.fn().mockResolvedValue(undefined),
@@ -25,6 +27,7 @@ vi.mock('@solana/kit', () => ({
     getTokenAccountsByOwner: (...args: unknown[]) => ({
       send: () => mockGetTokenAccountsByOwner(...args),
     }),
+    getTokenSupply: (...args: unknown[]) => ({ send: () => mockGetTokenSupply(...args) }),
   }),
 }));
 
@@ -64,11 +67,12 @@ vi.mock('../../stripe/db-circuit-breaker.js', () => ({
   },
 }));
 
-import { getRvuiBalance, verifyRvuiPayment } from '../client.js';
+import { getRvuiBalance, getRvuiSupply, verifyRvuiPayment } from '../client.js';
 
 function resetMocks(): void {
   mockGetTransaction.mockClear();
   mockGetTokenAccountsByOwner.mockClear();
+  mockGetTokenSupply.mockClear();
   mockIsOpen.mockClear();
   mockIsOpen.mockResolvedValue(false);
   mockRecordSuccess.mockClear();
@@ -249,5 +253,59 @@ describe('verifyRvuiPayment', () => {
     await expect(verifyRvuiPayment('tx', 1n, 'recipient')).rejects.toThrow(
       'circuit breaker is OPEN',
     );
+  });
+});
+
+describe('getRvuiSupply', () => {
+  beforeEach(() => {
+    resetMocks();
+  });
+
+  it('returns parsed token supply', async () => {
+    mockGetTokenSupply.mockResolvedValue({
+      context: { slot: 1 },
+      value: {
+        amount: '58906000000000000',
+        decimals: 6,
+        uiAmount: 58906000000,
+        uiAmountString: '58906000000',
+      },
+    });
+
+    const result = await getRvuiSupply();
+    expect(result.raw).toBe(58_906_000_000_000_000n);
+    expect(result.uiAmountString).toBe('58906000000');
+    expect(result.decimals).toBe(6);
+    expect(mockRecordSuccess).toHaveBeenCalled();
+  });
+
+  it('throws when circuit breaker is open', async () => {
+    mockIsOpen.mockResolvedValue(true);
+
+    await expect(getRvuiSupply()).rejects.toThrow('circuit breaker is OPEN');
+  });
+
+  it('retries on retryable RPC failure', async () => {
+    mockGetTokenSupply.mockRejectedValueOnce(new Error('timeout')).mockResolvedValueOnce({
+      context: { slot: 1 },
+      value: {
+        amount: '1000000',
+        decimals: 6,
+        uiAmount: 1,
+        uiAmountString: '1',
+      },
+    });
+
+    const result = await getRvuiSupply();
+    expect(result.raw).toBe(1_000_000n);
+    expect(mockGetTokenSupply).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry non-retryable errors', async () => {
+    mockGetTokenSupply.mockRejectedValue(new Error('Invalid mint address'));
+
+    await expect(getRvuiSupply()).rejects.toThrow('Invalid mint address');
+    expect(mockGetTokenSupply).toHaveBeenCalledTimes(1);
+    expect(mockRecordFailure).toHaveBeenCalled();
   });
 });

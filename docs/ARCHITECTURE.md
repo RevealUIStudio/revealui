@@ -69,7 +69,7 @@ RevealUI is a Postgres-primary stack with comprehensive type safety, optional si
 
 ### Core Systems
 
-1. **NeonDB (POSTGRES_URL — primary)**: Transactional REST API source. Houses 85 tables including `agent_memories` and other vector-typed tables (NeonDB supports `pgvector`). Source of truth for the application.
+1. **NeonDB (POSTGRES_URL — primary)**: Transactional REST API source. Houses 86 tables including `agent_memories` and other vector-typed tables (NeonDB supports `pgvector`). Source of truth for the application.
 2. **Supabase (SUPABASE_DATABASE_URL — optional RAG sidecar)**: Hosts `rag_chunks` and related embedding tables when an Ollama/cloud RAG path is wired. Phase 7 (in roadmap) consolidates RAG embeddings onto NeonDB pgvector and retires the Supabase sidecar; current usage is minimal.
 3. **ElectricSQL (optional sync layer)**: Real-time synchronization for agent contexts and conversations when enabled (env vars are off by default).
 4. **Vercel AI SDK**: Streaming AI completions with React hooks

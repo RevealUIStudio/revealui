@@ -3,7 +3,9 @@
 /**
  * Test Semantic Caching
  *
- * Quick test to verify semantic caching is working
+ * Quick test to verify semantic caching is working. Defaults to Inference
+ * Snaps on Ubuntu (zero-config). Requires POSTGRES_URL with pgvector for
+ * the embedding store.
  */
 
 import { LLMClient } from './src/llm/client.js';
@@ -11,12 +13,13 @@ import { LLMClient } from './src/llm/client.js';
 async function testSemanticCaching() {
   console.log('🧪 Testing Semantic Caching\n');
 
-  // Create client with semantic caching enabled
+  // Create client with semantic caching enabled. Inference Snaps is the
+  // canonical local provider — no API key required.
   const client = new LLMClient({
-    provider: 'vultr',
-    apiKey: process.env.VULTR_API_KEY || '',
-    model: process.env.LLM_MODEL || 'kimi-k2-instruct',
-    baseURL: process.env.VULTR_BASE_URL,
+    provider: 'inference-snaps',
+    apiKey: 'inference-snaps',
+    model: process.env.LLM_MODEL || 'gemma3',
+    baseURL: process.env.INFERENCE_SNAPS_BASE_URL,
     enableSemanticCache: true,
     semanticCacheOptions: {
       similarityThreshold: 0.95,
@@ -123,13 +126,6 @@ async function testSemanticCaching() {
 console.log('Semantic Caching Test');
 console.log('='.repeat(70));
 console.log();
-
-if (!process.env.VULTR_API_KEY) {
-  console.error('❌ Error: VULTR_API_KEY not set');
-  console.log('\nSet your API key:');
-  console.log('  export VULTR_API_KEY=your-key-here');
-  process.exit(1);
-}
 
 if (!process.env.POSTGRES_URL) {
   console.error('❌ Error: POSTGRES_URL not set');

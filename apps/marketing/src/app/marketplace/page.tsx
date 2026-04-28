@@ -94,12 +94,6 @@ const mcpServers: McpServer[] = [
     status: 'live',
   },
   {
-    name: 'Vultr Test',
-    description: 'Vultr GPU inference test harness for validating open-model endpoints.',
-    category: 'AI',
-    status: 'live',
-  },
-  {
     name: 'Email Provider',
     description: 'Shared helper surface powering the other email-capable MCP servers.',
     category: 'Communication',
@@ -214,7 +208,7 @@ export default function MarketplacePage() {
               Open Source
             </span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              13 MCP Servers
+              12 MCP Servers
             </h2>
             <p className="mt-4 text-lg text-gray-600">
               MCP servers included with RevealUI. Each server is rate-limited, audited, and governed

@@ -11,7 +11,7 @@ Centralized MCP server infrastructure, configuration, and documentation for Reve
 
 This package contains everything MCP-related:
 
-- **13 MCP Servers** — Code Validator, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Supabase, Vercel, Vultr Test, and an Email Provider helper. Ground-truth count is enforced by `pnpm validate:claims`.
+- **12 MCP Servers** — Code Validator, Neon, Next.js DevTools, Playwright, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Stripe, Supabase, Vercel, and an Email Provider helper. Ground-truth count is enforced by `pnpm validate:claims`.
 - **Configuration Templates** - For Claude Code / Claude Desktop
 - **Utilities** - Config management, database adapters
 - **Documentation** - Complete guides and per-server docs
@@ -57,7 +57,7 @@ packages/mcp/
 ├── src/
 │   ├── servers/          # MCP server implementations (run `ls packages/mcp/src/servers/` for the current list)
 │   │   ├── code-validator.ts   ← AI code standards enforcer
-│   │   └── …                   ← Neon, Next.js DevTools, Playwright, RevealUI-*, Stripe, Supabase, Vercel, Vultr Test
+│   │   └── …                   ← Neon, Next.js DevTools, Playwright, RevealUI-*, Stripe, Supabase, Vercel
 │   ├── config/           # Configuration utilities
 │   │   ├── index.ts
 │   │   ├── config.json
@@ -251,5 +251,5 @@ Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)
 ---
 
 **Status:** ✅ Consolidated and Active
-**Servers:** 13 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
+**Servers:** 12 available (ground truth: `pnpm validate:claims` — source of truth is `packages/mcp/src/servers/`)
 **Last Updated:** 2026-04-20

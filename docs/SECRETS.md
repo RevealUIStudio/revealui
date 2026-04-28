@@ -131,7 +131,6 @@ revealui/license/public-key              # RS256 license verification key
 credentials/openai/api-key              # AI features + test setup
 credentials/groq/api-key                # Groq inference
 credentials/huggingface/token           # HF model access
-credentials/vultr/api-key               # Vultr inference
 credentials/tavily/api-key              # Tavily search
 credentials/exa/api-key                 # Exa search
 ```

@@ -13,7 +13,6 @@
     "src/__tests__",
     "**/*.test.ts",
     "**/*.spec.ts",
-    "src/servers/code-validator.ts",
-    "src/servers/vultr-test.ts"
+    "src/servers/code-validator.ts"
   ]
 }

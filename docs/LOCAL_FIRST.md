@@ -7,7 +7,7 @@ audience: developer
 
 # Local-First Setup
 
-Run RevealUI's AI inference and secrets layer entirely on your own hardware. Local-first is an **optional path** that swaps cloud LLM providers for Snaps/Ollama and remote secret managers for RevVault — the default RevealUI deployment still uses cloud services (Neon Postgres, Stripe, Vercel Blob storage). Cloud-compatible LLM providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic) are pluggable but opt-in via env vars.
+Run RevealUI's AI inference and secrets layer entirely on your own hardware. Local-first is an **optional path** that swaps cloud LLM providers for Snaps/Ollama and remote secret managers for RevVault — the default RevealUI deployment still uses cloud services (Neon Postgres, Stripe, Vercel Blob storage). Cloud-compatible LLM providers (Groq, HuggingFace, OpenAI-compatible, Anthropic) are pluggable but opt-in via env vars.
 
 ## Overview
 

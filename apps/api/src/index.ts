@@ -69,6 +69,7 @@ import { enforceSiteLimit, enforceUserLimit } from './middleware/resource-limits
 import { requireTaskQuota } from './middleware/task-quota.js';
 import { tenantMiddleware } from './middleware/tenant.js';
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
+import adminInferenceConfigRoute from './routes/admin/inference-config.js';
 import adminObservabilityRoute from './routes/admin/observability.js';
 import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
@@ -78,6 +79,7 @@ import apiKeysRoute from './routes/api-keys.js';
 import authRoute from './routes/auth.js';
 import billingRoute from './routes/billing.js';
 import provenanceRoute from './routes/code-provenance.js';
+import coinRoute from './routes/coin.js';
 import { createCollabRoute } from './routes/collab.js';
 import contentRoute from './routes/content/index.js';
 import cronBillingReadinessRoute from './routes/cron/billing-readiness.js';
@@ -175,6 +177,7 @@ assertDispatchFlagConfigured();
  * @returns Array of allowed CORS origins
  * @throws {Error} If CORS_ORIGIN is not set or empty in production
  */
+import { hydrateInferenceConfigs } from './lib/hydrate-inference-configs.js';
 import { setCorsConfigMissing } from './lib/startup-state.js';
 
 /** Known production origins  -  hardcoded fallback if CORS_ORIGIN env var is missing or unreadable */
@@ -183,6 +186,7 @@ const PRODUCTION_ORIGINS = [
   'https://revealui.com',
   'https://www.revealui.com',
   'https://marketing.revealui.com',
+  'https://revealcoin.revealui.com',
 ];
 
 export function getCorsOrigins(): string[] {
@@ -192,6 +196,7 @@ export function getCorsOrigins(): string[] {
     return [
       'http://localhost:3000',
       'http://localhost:3001',
+      'http://localhost:3005',
       'http://localhost:4000',
       'http://localhost:5173',
     ];
@@ -733,6 +738,12 @@ app.use('/api/v1/mcp/usage*', requireFeature('mcp', { mode: 'entitlements' }));
 app.use('/api/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
 app.use('/api/v1/admin/audit/export', requireFeature('auditLog', { mode: 'entitlements' }));
 
+// Per-site inference configuration is a Max+ tier feature ("aiInference" in
+// DEFAULT_FEATURES). Backed by workspace_inference_configs + the in-memory
+// WorkspaceProviderRegistry hydrated at boot (lib/hydrate-inference-configs.ts).
+app.use('/api/admin/inference/config*', requireFeature('aiInference', { mode: 'entitlements' }));
+app.use('/api/v1/admin/inference/config*', requireFeature('aiInference', { mode: 'entitlements' }));
+
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
@@ -1057,6 +1068,7 @@ app.route('/api/logs', logsRoute);
 app.route('/api/license', licenseRoute);
 app.route('/api/auth', authRoute);
 app.route('/api/billing', billingRoute);
+app.route('/api/coin', coinRoute);
 // Webhooks are rate-limited to prevent replay abuse and resource exhaustion.
 // Stripe's DB-backed idempotency handles dedup; this limits request volume.
 app.use('/api/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
@@ -1076,6 +1088,7 @@ app.route('/api/mcp/usage', mcpUsageRoute);
 app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);
+app.route('/api/admin/inference/config', adminInferenceConfigRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
 app.route('/api/cron', cronDispatchRoute);
@@ -1122,6 +1135,7 @@ app.route('/api/v1/logs', logsRoute);
 app.route('/api/v1/license', licenseRoute);
 app.route('/api/v1/auth', authRoute);
 app.route('/api/v1/billing', billingRoute);
+app.route('/api/v1/coin', coinRoute);
 app.use('/api/v1/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
 app.route('/api/v1/webhooks', webhooksRoute);
 app.route('/api/v1/provenance', provenanceRoute);
@@ -1133,6 +1147,7 @@ app.route('/api/v1/mcp/usage', mcpUsageRoute);
 app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);
+app.route('/api/v1/admin/inference/config', adminInferenceConfigRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
 app.route('/api/v1/cron', cronDispatchRoute);
@@ -1228,6 +1243,10 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
     });
   initPriceOracle();
   initAlerting();
+  // Best-effort hydration of per-site LLM provider configs into the
+  // in-memory registry. Skipped silently if @revealui/ai not installed or DB
+  // unreachable; agents fall back to env-based config in those cases.
+  hydrateInferenceConfigs();
   const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
   const server = serve({ fetch: app.fetch, port });
   terminalWs.injectWebSocket(server);
@@ -1269,4 +1288,5 @@ if (process.env.NODE_ENV === 'production') {
     });
   initPriceOracle();
   initAlerting();
+  hydrateInferenceConfigs();
 }

@@ -92,6 +92,7 @@ import type {
   userDevices,
   users,
   waitlist,
+  workspaceInferenceConfigs,
   yjsDocumentPatches,
   yjsDocuments,
 } from '../schema/index.js'
@@ -515,6 +516,11 @@ export type WaitlistRow = typeof waitlist.$inferSelect
 export type WaitlistInsert = typeof waitlist.$inferInsert
 export type WaitlistUpdate = Partial<WaitlistInsert>
 
+// Workspace Inference Configs
+export type WorkspaceInferenceConfigsRow = typeof workspaceInferenceConfigs.$inferSelect
+export type WorkspaceInferenceConfigsInsert = typeof workspaceInferenceConfigs.$inferInsert
+export type WorkspaceInferenceConfigsUpdate = Partial<WorkspaceInferenceConfigsInsert>
+
 // Yjs Document Patches
 export type YjsDocumentPatchesRow = typeof yjsDocumentPatches.$inferSelect
 export type YjsDocumentPatchesInsert = typeof yjsDocumentPatches.$inferInsert
@@ -632,6 +638,7 @@ export type DatabaseRelationships = {
   userDevices: Relationship[]
   users: Relationship[]
   waitlist: Relationship[]
+  workspaceInferenceConfigs: Relationship[]
   yjsDocumentPatches: Relationship[]
   yjsDocuments: Relationship[]
 }
@@ -974,6 +981,11 @@ export const usersRelationships: readonly Relationship[] = []
 
 // Waitlist relationships
 export const waitlistRelationships: readonly Relationship[] = []
+
+// WorkspaceInferenceConfigs relationships
+export const workspaceInferenceConfigsRelationships = [
+  { foreignKeyName: 'workspace_inference_configs_workspace_id_sites_id_fk', columns: ['workspace_id'], isOneToOne: true, referencedRelation: 'sites', referencedColumns: ['id'] },
+] as const satisfies readonly Relationship[]
 
 // YjsDocumentPatches relationships
 export const yjsDocumentPatchesRelationships: readonly Relationship[] = []
@@ -1515,6 +1527,12 @@ export type Database = {
         Insert: WaitlistInsert
         Update: WaitlistUpdate
         Relationships: typeof waitlistRelationships
+      }
+      workspace_inference_configs: {
+        Row: WorkspaceInferenceConfigsRow
+        Insert: WorkspaceInferenceConfigsInsert
+        Update: WorkspaceInferenceConfigsUpdate
+        Relationships: typeof workspaceInferenceConfigsRelationships
       }
       yjs_document_patches: {
         Row: YjsDocumentPatchesRow

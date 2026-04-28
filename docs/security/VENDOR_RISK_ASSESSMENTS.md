@@ -65,7 +65,7 @@ Each vendor is evaluated against the following criteria:
 | Backup/Recovery | Continuous PITR (Point-in-Time Recovery) | RPO: near-zero, RTO: minutes |
 
 **Data shared with Neon:**
-- All relational data across 85 tables (users, content, products, sessions, payments metadata)
+- All relational data across 86 tables (users, content, products, sessions, payments metadata)
 - Connection metadata and query execution logs
 
 **Compensating controls:**

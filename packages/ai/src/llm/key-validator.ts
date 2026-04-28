@@ -47,24 +47,6 @@ export async function validateProviderKey(
         return { valid: false, error: `Groq validation failed: HTTP ${res.status}` };
       }
 
-      case 'anthropic': {
-        // Anthropic has no free read endpoint. Validate by key format only.
-        // Valid Anthropic keys start with "sk-ant-api".
-        if (!apiKey.startsWith('sk-ant-api')) {
-          return { valid: false, error: 'Anthropic API key must start with "sk-ant-api"' };
-        }
-        return { valid: true };
-      }
-
-      case 'openai': {
-        // Validate by format  -  keys start with "sk-"
-        // (Per LLM policy, OpenAI API calls are blocked until we have revenue.)
-        if (!apiKey.startsWith('sk-')) {
-          return { valid: false, error: 'OpenAI API key must start with "sk-"' };
-        }
-        return { valid: true };
-      }
-
       case 'huggingface': {
         const res = await probeFetch('https://huggingface.co/api/whoami-v2', {
           headers: { Authorization: `Bearer ${apiKey}` },
@@ -74,16 +56,6 @@ export async function validateProviderKey(
           return { valid: false, error: 'Invalid HuggingFace token' };
         }
         return { valid: false, error: `HuggingFace validation failed: HTTP ${res.status}` };
-      }
-
-      case 'vultr': {
-        // Vultr Serverless Inference API (OpenAI-compatible)
-        const res = await probeFetch('https://api.vultrinference.com/v1/models', {
-          headers: { Authorization: `Bearer ${apiKey}` },
-        });
-        if (res.ok) return { valid: true };
-        if (res.status === 401) return { valid: false, error: 'Invalid Vultr API key' };
-        return { valid: false, error: `Vultr validation failed: HTTP ${res.status}` };
       }
 
       case 'ollama': {

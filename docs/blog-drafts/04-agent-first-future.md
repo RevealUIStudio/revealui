@@ -108,7 +108,7 @@ Four protocols converge to create the agent-first web. Each solves a different p
 | Protocol | Created by | Governed by | Purpose | RevealUI implementation |
 |---|---|---|---|---|
 | **A2A** (Agent-to-Agent) | Google | Linux Foundation (Agentic AI Foundation) | Agents discover and delegate work to other agents | Full A2A 1.0: Agent Cards, JSON-RPC task lifecycle (`tasks/send`, `tasks/get`, `tasks/cancel`), SSE streaming |
-| **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 13 MCP servers: Stripe, Supabase, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Vultr Test, Email Provider |
+| **MCP** (Model Context Protocol) | Anthropic | Open standard | Agents use tools exposed by MCP servers | 12 MCP servers: Stripe, Supabase, Neon, Vercel, Code Validator, Playwright, Next.js DevTools, RevealUI Content, RevealUI Email, RevealUI Memory, RevealUI Stripe, Email Provider |
 | **x402** (HTTP 402 Payment Required) | Coinbase | Open standard | Internet-native micropayments for machine-to-machine commerce | Per-call USDC payments on Base, Coinbase facilitator verification, marketplace payment proxy |
 | **OpenAPI** | OpenAPI Initiative | Linux Foundation | Machine-readable API descriptions | Auto-generated from Hono route definitions with Zod schemas |
 

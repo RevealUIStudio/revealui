@@ -1,6 +1,8 @@
 export {
   getRvuiBalance,
+  getRvuiSupply,
   type RvuiBalance,
+  type RvuiSupply,
   verifyRvuiPayment,
 } from './client.js';
 export {
