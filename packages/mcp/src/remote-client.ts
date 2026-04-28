@@ -88,7 +88,7 @@ export class RemoteServerNotConnectedError extends Error {
   ) {
     super(
       `No OAuth meta found for mcp/${tenant}/${server}. ` +
-        'Re-authorize the server via /admin/mcp/connect.',
+        'Re-authorize the server via /mcp/connect.',
     );
     this.name = 'RemoteServerNotConnectedError';
   }

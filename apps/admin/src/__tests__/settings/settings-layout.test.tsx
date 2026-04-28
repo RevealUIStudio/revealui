@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 // Mock usePathname to return the account page path
-const mockPathname = vi.fn(() => '/admin/settings/account');
+const mockPathname = vi.fn(() => '/settings/account');
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
@@ -27,7 +27,7 @@ vi.mock('next/link', () => ({
   ),
 }));
 
-import SettingsLayout from '../../app/(backend)/admin/settings/layout';
+import SettingsLayout from '../../app/(backend)/settings/layout';
 
 describe('SettingsLayout', () => {
   it('renders sidebar with navigation links', () => {
@@ -63,10 +63,10 @@ describe('SettingsLayout', () => {
 
     const sidebar = screen.getByRole('complementary');
     const backLink = within(sidebar).getByText('Back to Admin');
-    expect(backLink.closest('a')).toHaveAttribute('href', '/admin');
+    expect(backLink.closest('a')).toHaveAttribute('href', '/');
   });
 
-  it('links Account to /admin/settings/account', () => {
+  it('links Account to /settings/account', () => {
     render(
       <SettingsLayout>
         <div>Content</div>
@@ -75,10 +75,10 @@ describe('SettingsLayout', () => {
 
     const sidebar = screen.getByRole('complementary');
     const accountLink = within(sidebar).getByText('Account');
-    expect(accountLink.closest('a')).toHaveAttribute('href', '/admin/settings/account');
+    expect(accountLink.closest('a')).toHaveAttribute('href', '/settings/account');
   });
 
-  it('links API Keys to /admin/settings/api-keys', () => {
+  it('links API Keys to /settings/api-keys', () => {
     render(
       <SettingsLayout>
         <div>Content</div>
@@ -87,11 +87,11 @@ describe('SettingsLayout', () => {
 
     const sidebar = screen.getByRole('complementary');
     const apiKeysLink = within(sidebar).getByText('API Keys');
-    expect(apiKeysLink.closest('a')).toHaveAttribute('href', '/admin/settings/api-keys');
+    expect(apiKeysLink.closest('a')).toHaveAttribute('href', '/settings/api-keys');
   });
 
   it('highlights active Account link', () => {
-    mockPathname.mockReturnValue('/admin/settings/account');
+    mockPathname.mockReturnValue('/settings/account');
 
     render(
       <SettingsLayout>
@@ -106,7 +106,7 @@ describe('SettingsLayout', () => {
   });
 
   it('highlights active API Keys link', () => {
-    mockPathname.mockReturnValue('/admin/settings/api-keys');
+    mockPathname.mockReturnValue('/settings/api-keys');
 
     render(
       <SettingsLayout>

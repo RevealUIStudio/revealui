@@ -19,7 +19,7 @@ import { waitForNetworkIdle } from './utils/test-helpers';
 test.describe('Visual Snapshots - Admin Application', () => {
   test.describe('Admin Panel', () => {
     test('admin login page should match snapshot', async ({ page }) => {
-      await page.goto('/admin/login');
+      await page.goto('/login');
       await waitForNetworkIdle(page);
       await page.waitForLoadState('networkidle');
 
@@ -29,7 +29,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
     });
 
     test('admin dashboard should match snapshot', async ({ page }) => {
-      await page.goto('/admin');
+      await page.goto('/');
       await waitForNetworkIdle(page);
       await page.waitForLoadState('networkidle');
 
@@ -39,7 +39,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
     });
 
     test('admin collections page should match snapshot', async ({ page }) => {
-      await page.goto('/admin/collections');
+      await page.goto('/collections');
       await waitForNetworkIdle(page);
       await page.waitForLoadState('networkidle');
 
@@ -49,7 +49,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
     });
 
     test('admin globals page should match snapshot', async ({ page }) => {
-      await page.goto('/admin/globals');
+      await page.goto('/globals');
       await waitForNetworkIdle(page);
       await page.waitForLoadState('networkidle');
 
@@ -114,7 +114,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
 
     test('admin login on mobile viewport should match snapshot', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
-      await page.goto('/admin/login');
+      await page.goto('/login');
       await waitForNetworkIdle(page);
 
       await expect(page).toHaveScreenshot('admin-login-mobile.png', {
@@ -134,7 +134,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
 
     test('admin dashboard on tablet viewport should match snapshot', async ({ page }) => {
       await page.setViewportSize({ width: 768, height: 1024 });
-      await page.goto('/admin');
+      await page.goto('/');
       await waitForNetworkIdle(page);
 
       await expect(page).toHaveScreenshot('admin-dashboard-tablet.png', {
@@ -166,7 +166,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
 
     test('admin login with dark color scheme should match snapshot', async ({ page }) => {
       await page.emulateMedia({ colorScheme: 'dark' });
-      await page.goto('/admin/login');
+      await page.goto('/login');
       await waitForNetworkIdle(page);
 
       await expect(page).toHaveScreenshot('admin-login-dark-mode.png', {
@@ -221,7 +221,7 @@ test.describe('Visual Snapshots - Admin Application', () => {
     });
 
     test('admin login should be visually consistent across browsers', async ({ page }) => {
-      await page.goto('/admin/login');
+      await page.goto('/login');
       await waitForNetworkIdle(page);
 
       await expect(page).toHaveScreenshot('cross-browser-admin-login.png', {

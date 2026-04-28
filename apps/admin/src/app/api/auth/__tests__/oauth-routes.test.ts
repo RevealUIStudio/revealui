@@ -221,7 +221,7 @@ describe('GET /api/auth/callback/[provider] (OAuth callback)', () => {
   function setupHappyPath(opts: { redirectTo?: string; userRole?: string } = {}) {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: opts.redirectTo ?? '/admin',
+      redirectTo: opts.redirectTo ?? '/',
     });
     mockExchangeCode.mockResolvedValue('access-token-123');
     mockFetchProviderUser.mockResolvedValue({
@@ -293,8 +293,10 @@ describe('GET /api/auth/callback/[provider] (OAuth callback)', () => {
       { params: Promise.resolve({ provider: 'github' }) },
     );
 
-    // Should redirect to /admin (safe default), not to evil.com
-    expect((res as MockRes).url).toContain('localhost:4000/admin');
+    // Should redirect to / (safe admin default), not to evil.com.
+    // The post-flatten admin home is at the subdomain root, so the redirect
+    // URL ends in '/' rather than '/admin'.
+    expect((res as MockRes).url).toMatch(/localhost:4000\/?$/);
     expect((res as MockRes).url).not.toContain('evil.com');
   });
 
@@ -311,7 +313,7 @@ describe('GET /api/auth/callback/[provider] (OAuth callback)', () => {
     );
 
     expect((res as MockRes).status).toBe(307);
-    expect((res as MockRes).url).toContain('/admin');
+    expect((res as MockRes).url).toContain('/');
     expect((res as MockRes).cookies.has('revealui-session')).toBe(true);
     expect((res as MockRes).cookies.get('revealui-session')?.value).toBe('session-token-abc');
     expect((res as MockRes).cookies.get('revealui-role')?.value).toBe('user');

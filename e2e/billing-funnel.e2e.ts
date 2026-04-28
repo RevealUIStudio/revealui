@@ -477,7 +477,7 @@ test.describe('License verification', () => {
     const { tier } = await signInViaApi(page);
     test.skip(tier === 'free' || !tier, 'Skipped: free tier does not have monitoring access');
 
-    await page.goto(`${ADMIN_BASE}/admin/monitoring`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${ADMIN_BASE}/monitoring`, { waitUntil: 'domcontentloaded' });
 
     // Should NOT show the UpgradePrompt  -  should show actual monitoring content
     await expect(page.getByText(/upgrade|requires pro/i)).not.toBeVisible({ timeout: 5_000 });

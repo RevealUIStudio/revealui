@@ -352,7 +352,7 @@ test.describe('Payment Processing Flows', () => {
 
     test('should process refund and update database', async ({ page }) => {
       // 1. Navigate to order (admin view)
-      await page.goto(`/admin/orders/${orderId}`);
+      await page.goto(`/orders/${orderId}`);
       await waitForNetworkIdle(page);
 
       // 2. Take screenshot of order details

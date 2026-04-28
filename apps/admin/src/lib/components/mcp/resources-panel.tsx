@@ -1,5 +1,5 @@
 /**
- * Resources panel for `/admin/mcp/inspect` (Stage 3.3).
+ * Resources panel for `/mcp/inspect` (Stage 3.3).
  *
  * Lists resources advertised by a connected remote MCP server and, on row
  * click, fetches the contents via `readResource` and renders a read-only

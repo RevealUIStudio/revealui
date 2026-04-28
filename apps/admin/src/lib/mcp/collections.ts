@@ -7,7 +7,7 @@
  *
  *   - `revealui-content` MCP server factory — filters on `mcpResource: true`
  *     to decide which collections to advertise as resources.
- *   - `/admin/mcp` page — renders the list (exposed + hidden) as the
+ *   - `/mcp` page — renders the list (exposed + hidden) as the
  *     read-only "Content exposure" section.
  */
 

@@ -2,7 +2,7 @@
  * Schema-driven elicitation form. Shared between Stage 3.4's
  * `StreamingToolCard` (where `elicitation/create` arrives during a tool
  * call to a single MCP server) and A.2b's
- * `/admin/agents/[agentId]/run` page (where it arrives mid-agent-run from
+ * `/agents/[agentId]/run` page (where it arrives mid-agent-run from
  * any of the connected servers).
  *
  * The form renders a JSON-Schema `requestedSchema` as a flat list of

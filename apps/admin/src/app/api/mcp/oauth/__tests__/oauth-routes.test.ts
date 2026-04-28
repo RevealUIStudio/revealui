@@ -299,7 +299,7 @@ describe('GET /api/mcp/oauth/callback', () => {
     );
     expect(res.status).toBe(302);
     const location = new URL(res.headers.get('location') as string);
-    expect(location.pathname).toBe('/admin/mcp/connect');
+    expect(location.pathname).toBe('/mcp/connect');
     expect(location.searchParams.get('error')).toBe('invalid_or_expired_state');
   });
 
@@ -407,7 +407,7 @@ describe('GET /api/mcp/oauth/callback', () => {
     );
     expect(cbRes.status).toBe(302);
     const result = new URL(cbRes.headers.get('location') as string);
-    expect(result.pathname).toBe('/admin/mcp/connect');
+    expect(result.pathname).toBe('/mcp/connect');
     expect(result.searchParams.get('connected')).toBe('linear');
 
     // Tokens landed under the documented layout.

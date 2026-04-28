@@ -82,7 +82,7 @@ function LoginContent() {
     if (result.success && 'requiresPasswordRotation' in result && result.requiresPasswordRotation) {
       router.push('/rotate-password');
     } else if (result.success) {
-      router.push('/admin');
+      router.push('/');
     } else if ('requiresMfa' in result && result.requiresMfa) {
       router.push('/mfa');
     } else {
@@ -95,7 +95,7 @@ function LoginContent() {
     setError(null);
     const success = await passkeySignIn();
     if (success) {
-      router.push('/admin');
+      router.push('/');
     }
   };
 

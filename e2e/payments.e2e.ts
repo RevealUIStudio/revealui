@@ -67,7 +67,7 @@ test.describe('Product management', () => {
 
   test('admin can create a product', async ({ page }) => {
     await signIn(page);
-    await page.goto(`${ADMIN_BASE}/admin/collections/products/create`, {
+    await page.goto(`${ADMIN_BASE}/collections/products/create`, {
       waitUntil: 'domcontentloaded',
     });
 
@@ -87,7 +87,7 @@ test.describe('Product management', () => {
 
   test('admin can add a price to a product', async ({ page }) => {
     await signIn(page);
-    await page.goto(`${ADMIN_BASE}/admin/collections/prices/create`, {
+    await page.goto(`${ADMIN_BASE}/collections/prices/create`, {
       waitUntil: 'domcontentloaded',
     });
 
