@@ -9,7 +9,7 @@ import {
   isConfigStructure,
   parseConfigStructure,
   validateConfigStructure,
-} from '../../admin/config-contract.js';
+} from '../admin/config-contract.js';
 
 describe('Config Contract', () => {
   describe('Validation', () => {
