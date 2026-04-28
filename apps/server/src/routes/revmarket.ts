@@ -2,9 +2,11 @@
  * RevMarket  -  Autonomous Agent Marketplace Routes (Phase 5.16)  -  PREVIEW
  *
  * ⚠️  PREVIEW: Agent task execution runs in-process without sandbox isolation.
- * x402 crypto payments are disabled by default (X402_ENABLED=false).
- * Use only with trusted agents. Full sandboxing and payment settlement
- * are planned for Phase B.
+ * x402 emission on POST /tasks is gated on `X402_ENABLED=true` (default off).
+ * When enabled, paid agents (basePriceUsdc > 0) require a verified payment
+ * proof before the task is queued; free agents are unaffected. Stripe
+ * Connect 80/20 split to the agent publisher is deferred to Phase B.
+ * Use only with trusted agents. Full sandboxing remains planned for Phase B.
  *
  * Extends the MCP Marketplace (Phase 5.5) with autonomous agent task execution.
  * Agents register with skills and pricing, users submit tasks, the system
@@ -25,6 +27,7 @@
  */
 
 import { logger } from '@revealui/core/observability/logger';
+import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { getClient } from '@revealui/db';
 import {
   agentReviews,
@@ -40,6 +43,13 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, ilike, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { authMiddleware } from '../middleware/auth.js';
+import {
+  buildPaymentRequired,
+  encodePaymentRequired,
+  getAdvertisedCurrencyLabel,
+  getX402Config,
+  verifyPayment,
+} from '../middleware/x402.js';
 import { getExecutorStatus, getTaskProgress } from '../services/revmarket-executor.js';
 
 // =============================================================================
@@ -604,6 +614,18 @@ app.openapi(
         },
         description: 'Unauthorized',
       },
+      402: {
+        content: {
+          'application/json': {
+            schema: z.object({
+              error: z.string(),
+              x402Version: z.number().optional(),
+              accepts: z.array(z.unknown()).optional(),
+            }),
+          },
+        },
+        description: 'Payment required (x402)',
+      },
       404: {
         content: {
           'application/json': { schema: z.object({ error: z.string() }) },
@@ -657,6 +679,45 @@ app.openapi(
       }
     }
 
+    // x402 payment gate: when X402_ENABLED=true and the matched agent has a
+    // non-zero basePriceUsdc, require a verified payment proof before the
+    // task is queued. Free agents (costUsdc null/0) and X402_ENABLED=false
+    // both pass through unchanged.
+    const x402 = getX402Config();
+    const requiresPayment = x402.enabled && costUsdc !== null && Number.parseFloat(costUsdc) > 0;
+    let resolvedPaymentMethod: string | null = data.paymentMethod ?? null;
+
+    if (requiresPayment && costUsdc !== null) {
+      const baseUrl = new URL(c.req.url).origin;
+      const resource = `${baseUrl}/api/revmarket/tasks`;
+      const paymentHeader = c.req.header('X-PAYMENT-PAYLOAD');
+
+      if (!paymentHeader) {
+        const paymentRequired = buildPaymentRequired(resource, costUsdc);
+        trackX402PaymentRequired('revmarket-task', getAdvertisedCurrencyLabel());
+        return c.json(
+          {
+            error: 'Payment required',
+            x402Version: 1,
+            accepts: paymentRequired.accepts,
+          },
+          402,
+          { 'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired) },
+        );
+      }
+
+      const verification = await verifyPayment(
+        paymentHeader,
+        resource,
+        { userId: user.id, amountUsd: costUsdc },
+        'revmarket-task',
+      );
+      if (!verification.valid) {
+        return c.json({ error: `Payment verification failed: ${verification.error}` }, 402);
+      }
+      resolvedPaymentMethod = 'x402-usdc';
+    }
+
     const taskId = generateId('task');
     const now = new Date();
 
@@ -668,7 +729,7 @@ app.openapi(
       input: data.input,
       priority: data.priority,
       costUsdc,
-      paymentMethod: data.paymentMethod ?? null,
+      paymentMethod: resolvedPaymentMethod,
       status: assignedAgentId ? 'queued' : 'pending',
       createdAt: now,
       updatedAt: now,
