@@ -1,35 +1,42 @@
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 export default defineConfig({
-  resolve: {
-    alias: {
-      '@': path.resolve(import.meta.dirname, 'src'),
-    },
-  },
+  plugins: [react()],
   test: {
     globals: true,
-    environment: 'node',
+    environment: 'jsdom',
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     pool: 'forks',
-    maxWorkers: 2,
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    maxWorkers: 1,
+    minWorkers: 1,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
       exclude: [
-        'node_modules/',
-        'dist/',
-        '.next/',
-        '**/*.test.ts',
-        '**/*.test.tsx',
+        'coverage/**',
+        'dist/**',
+        'node_modules/**',
         '**/__tests__/**',
+        '**/*.test.{ts,tsx}',
+        '**/*.spec.{ts,tsx}',
+        'vitest.config.ts',
       ],
       thresholds: {
-        statements: 20,
-        branches: 20,
-        functions: 20,
-        lines: 20,
+        lines: 60,
+        functions: 60,
+        branches: 55,
+        statements: 60,
       },
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './app'),
     },
   },
 });

@@ -1,66 +1,30 @@
-# RevealUI Marketing Site
+# marketing
 
-Marketing site for RevealUI  -  agentic business runtime. Users, content, products, payments, and AI, pre-wired and open source.
+Public marketing site for RevealUI — homepage, blog, pricing, fair-source, contact, etc. Lives at `revealui.com` (and the `community.revealui.com` host redirects to the Discourse forum via `vercel.json`).
 
-**Tagline:** "Build your business, not your boilerplate."
+## Stack
 
-## What's here
+- Vite + React 19
+- `@revealui/router` (file-based routing + SSR-capable, currently SPA mode)
+- `@revealui/presentation` (UI primitives + design tokens)
+- Tailwind CSS v4
+- Geist + Geist Mono via `@fontsource-variable`
+- `react-markdown` + `remark-gfm` for blog post rendering
+- `@vercel/speed-insights` (client-side runtime)
+- Cross-origin form posts to `apps/api` (no marketing-side API routes)
+- OG images from `https://api.revealui.com/api/og?...` (Satori-rendered in apps/api)
 
-- Hero: "Build your business, not your boilerplate." + five primitives subtitle
-- ValueProposition: "Stop stitching tools together"  -  Own Your Stack, AI Agents Built In, Production Stack Included
-- SocialProof: six capability cards
-- LeadCapture: waitlist form (posts to RevealUI API; storage and email handled server-side via Gmail API)
-- ProductMockup: illustrated browser chrome of the admin UI
-
-## Development
+## Develop
 
 ```bash
-pnpm dev        # Start dev server (port 3000)
-pnpm build      # Production build
-pnpm typecheck  # TypeScript check
+pnpm --filter marketing dev          # http://localhost:3000
+pnpm --filter marketing typecheck
+pnpm --filter marketing build
+pnpm --filter marketing preview
 ```
 
-## Deployment
+`apps/api` should run on port 3004 for `/api/og`, `/api/contact`, `/api/newsletter` to work cross-origin in dev.
 
-Auto-deploys to Vercel on push to `main` (project: `revealui-marketing`).
-The ignoreCommand skips builds when no `apps/marketing/**` files changed.
+## Deploy
 
-## Environment Variables
-
-The marketing site has no server-side secrets  -  it proxies form submissions to the RevealUI API, which handles storage and email.
-
-```env
-NEXT_PUBLIC_API_URL=     # RevealUI API base (default: https://api.revealui.com)
-NEXT_PUBLIC_ADMIN_URL=   # RevealUI admin URL (default: https://admin.revealui.com)
-```
-
-## API
-
-- `POST /api/waitlist`  -  Proxies waitlist signup to the RevealUI API (rate-limited; API handles storage + email)
-- `GET /api/waitlist`  -  410 Gone (removed for GDPR)
-
-## Routes
-
-- `/`  -  Landing page
-- `/pricing`  -  Pro/Forge pricing and commercial packaging
-- `/sponsor`  -  Sponsorship tiers
-- `/privacy`  -  Privacy policy
-- `/terms`  -  Terms of service
-
-## Commercial framing
-
-The marketing site should present RevealUI as:
-
-- platform software sold at the account or workspace level
-- metered agent execution for automation and paid AI work
-- optional commerce-linked fees where RevealUI participates in transactions
-- premium trust and governance controls for approval, audit, and compliance needs
-
-## Key Components
-
-- `src/components/HeroSection.tsx`  -  Headline + CTA + ProductMockup
-- `src/components/ProductMockup.tsx`  -  Illustrated admin UI (browser chrome)
-- `src/components/ValueProposition.tsx`  -  Three-column feature section
-- `src/components/SocialProof.tsx`  -  Six capability cards
-- `src/components/LeadCapture.tsx`  -  Waitlist form
-- `src/components/Footer.tsx`  -  Footer with nav links
+Vercel: push triggers preview, merge to `main` triggers production. Build configured in `vercel.json`. CF Pages-compatible by construction (Vite static + SPA fallback rewrites + redirect rules); CF Pages deployment not wired yet — defer per the existing CF posture.
