@@ -1,5 +1,6 @@
 import { Routes, useRouter } from '@revealui/router';
 import { useRef } from 'react';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { RootLayout } from './layouts/RootLayout';
 import { BlogIndexPage } from './routes/BlogIndexPage';
 import { BlogPostPage } from './routes/BlogPostPage';
@@ -8,6 +9,7 @@ import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
 import { HomePage } from './routes/HomePage';
 import { MarketplacePage } from './routes/MarketplacePage';
+import { NotFoundPage } from './routes/NotFoundPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
@@ -21,7 +23,7 @@ export function App() {
 
   // Register routes synchronously during the first render so <Routes /> can
   // match on the initial paint — avoids a 404 flash. The /*notfound wildcard
-  // is added in chunk 4 (after NotFoundPage ports).
+  // MUST be registered last so it only matches when no specific route does.
   if (!registered.current && router.getRoutes().length === 0) {
     router.registerRoutes([
       { path: '/', component: HomePage, meta: { title: 'RevealUI' } },
@@ -49,13 +51,16 @@ export function App() {
       { path: '/sponsor', component: SponsorPage, meta: { title: 'Sponsor — RevealUI' } },
       { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy — RevealUI' } },
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service — RevealUI' } },
+      { path: '/*notfound', component: NotFoundPage, meta: { title: '404 — RevealUI' } },
     ]);
     registered.current = true;
   }
 
   return (
-    <RootLayout>
-      <Routes />
-    </RootLayout>
+    <ErrorBoundary>
+      <RootLayout>
+        <Routes />
+      </RootLayout>
+    </ErrorBoundary>
   );
 }
