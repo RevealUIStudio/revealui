@@ -123,7 +123,11 @@ export const requireFeature = (
         const paymentHeader = c.req.header('x-payment-payload');
         if (paymentHeader) {
           const resource = new URL(c.req.url).pathname;
-          const result = await verifyPayment(paymentHeader, resource);
+          const userId = (c.get('user') as { id?: string } | undefined)?.id ?? '';
+          const result = await verifyPayment(paymentHeader, resource, {
+            userId,
+            amountUsd: x402.pricePerTask,
+          });
           if (result.valid) {
             await next();
             return;
@@ -358,7 +362,11 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
       const paymentHeader = c.req.header('x-payment-payload');
       if (paymentHeader) {
         const resource = new URL(c.req.url).pathname;
-        const result = await verifyPayment(paymentHeader, resource);
+        const userId = (c.get('user') as { id?: string } | undefined)?.id ?? '';
+        const result = await verifyPayment(paymentHeader, resource, {
+          userId,
+          amountUsd: x402.pricePerTask,
+        });
         if (result.valid) {
           await next();
           return;

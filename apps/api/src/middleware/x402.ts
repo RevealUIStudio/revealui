@@ -230,19 +230,40 @@ export function buildPaymentRequired(resource: string, customPrice?: string): Pa
 // =============================================================================
 
 /**
+ * Per-call context required to fully verify RVUI payments.
+ *
+ * The RVUI safeguards pipeline (replay protection, single-payment cap,
+ * wallet rate limit, monthly discount cap, TWAP circuit breaker) keys
+ * on `userId` (the FK on `revealcoinPayments`) and `amountUsd` (the
+ * negotiated USD price the agent agreed to pay, post-discount).
+ *
+ * USDC verification ignores this context — Coinbase's facilitator
+ * handles its own replay protection. Callers can omit it for USDC-only
+ * paths; the RVUI dispatch fails-closed when context is missing.
+ */
+export interface PaymentContext {
+  userId: string;
+  amountUsd: string;
+}
+
+/**
  * Verify a client's X-PAYMENT-PAYLOAD header value.
  *
  * Dispatches to the appropriate verifier based on the payment scheme:
- * - `exact` (EVM/USDC) → Coinbase facilitator
- * - `solana-spl` (Solana/RVUI) → on-chain Token-2022 transfer verification
+ * - `exact` (EVM/USDC) → Coinbase facilitator (replay protection in-house)
+ * - `solana-spl` (Solana/RVUI) → on-chain Token-2022 transfer verification +
+ *   the RVUI safeguards pipeline (`validatePayment` + `recordPayment`).
+ *   Requires `context` to be passed; fails-closed when missing.
  *
  * @param payloadHeader - Raw base64 value from X-PAYMENT-PAYLOAD header
  * @param resource      - Canonical resource URL (must match what was sent in 402)
+ * @param context       - Required for RVUI/solana-spl scheme; optional for USDC
  * @returns `{ valid: true }` or `{ valid: false, error: string }`
  */
 export async function verifyPayment(
   payloadHeader: string,
   resource: string,
+  context?: PaymentContext,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
   const config = getX402Config();
 
@@ -253,22 +274,32 @@ export async function verifyPayment(
 
   // Dispatch based on payment scheme
   if (paymentPayload.scheme === 'solana-spl') {
-    return verifySolanaPayment(paymentPayload, config);
+    return verifySolanaPayment(paymentPayload, config, context);
   }
 
-  // Default: EVM/USDC via Coinbase facilitator
+  // Default: EVM/USDC via Coinbase facilitator (handles replay in-house;
+  // PaymentContext is unused on this path).
   return verifyEvmPayment(paymentPayload, resource, config);
 }
 
 /**
- * Verify an RVUI payment on Solana by inspecting the on-chain transaction.
+ * Verify an RVUI payment on Solana by inspecting the on-chain transaction
+ * AND running the safeguards pipeline (GAP-159 wiring).
  */
 async function verifySolanaPayment(
   paymentPayload: PaymentPayloadV1,
   config: X402Config,
+  context: PaymentContext | undefined,
 ): Promise<{ valid: true } | { valid: false; error: string }> {
   if (!config.rvuiEnabled) {
     return { valid: false, error: 'RVUI payments are not enabled on this server' };
+  }
+
+  if (!(context && context.userId)) {
+    return {
+      valid: false,
+      error: 'RVUI payments require an authenticated user (PaymentContext.userId missing)',
+    };
   }
 
   const txSignature = paymentPayload.payload.txSignature;
@@ -283,7 +314,10 @@ async function verifySolanaPayment(
 
   // Dynamic import: @revealui/services is a Pro package  -  only load when RVUI payments are active
   const { verifyRvuiPayment } = await import('@revealui/services/revealcoin');
-  return verifyRvuiPayment(txSignature, BigInt(expectedAmount), config.rvuiReceivingAddress);
+  return verifyRvuiPayment(txSignature, BigInt(expectedAmount), config.rvuiReceivingAddress, {
+    userId: context.userId,
+    amountUsd: context.amountUsd,
+  });
 }
 
 /**

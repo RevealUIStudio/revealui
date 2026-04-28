@@ -32,6 +32,7 @@ const {
   mockBuildPaymentRequired,
   mockEncodePaymentRequired,
   mockVerifyPayment,
+  mockGetX402Config,
   mockRequireTaskQuota,
 } = vi.hoisted(() => ({
   mockGetCard: vi.fn(),
@@ -51,6 +52,19 @@ const {
   mockBuildPaymentRequired: vi.fn(),
   mockEncodePaymentRequired: vi.fn(),
   mockVerifyPayment: vi.fn(),
+  mockGetX402Config: vi.fn(() => ({
+    enabled: true,
+    receivingAddress: '0xTestWallet',
+    network: 'evm:base',
+    pricePerTask: '0.001',
+    usdcAsset: '0xUSDC',
+    facilitatorUrl: 'https://x402.org/facilitator',
+    maxTimeoutSeconds: 300,
+    rvuiEnabled: false,
+    rvuiReceivingAddress: '',
+    rvuiNetwork: 'solana:devnet',
+    rvuiAsset: '',
+  })),
   mockRequireTaskQuota: vi.fn(),
 }));
 
@@ -105,6 +119,7 @@ vi.mock('../../middleware/x402.js', () => ({
   buildPaymentRequired: mockBuildPaymentRequired,
   encodePaymentRequired: mockEncodePaymentRequired,
   verifyPayment: mockVerifyPayment,
+  getX402Config: mockGetX402Config,
 }));
 
 vi.mock('../../middleware/task-quota.js', () => ({
@@ -751,7 +766,11 @@ describe('POST /a2a  -  x402 pending-payment flow', () => {
     );
 
     expect(res.status).toBe(200);
-    expect(mockVerifyPayment).toHaveBeenCalledWith('valid-base64-proof', expect.any(String));
+    expect(mockVerifyPayment).toHaveBeenCalledWith(
+      'valid-base64-proof',
+      expect.any(String),
+      expect.objectContaining({ userId: expect.any(String), amountUsd: expect.any(String) }),
+    );
     const callArgs = mockHandleA2AJsonRpc.mock.calls[0];
     expect(callArgs?.[3]).toEqual({ paymentVerified: true });
   });

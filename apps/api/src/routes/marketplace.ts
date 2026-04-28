@@ -621,8 +621,16 @@ app.openapi(
       );
     }
 
+    // Resolve caller identity up-front so verifyPayment can run the RVUI
+    // safeguards pipeline (replay protection + caps) keyed on user + price.
+    // USDC verification ignores the context.
+    const callerId = (c.get('user') as UserContext | undefined)?.id ?? null;
+
     // Verify the payment proof against the facilitator
-    const verification = await verifyPayment(paymentHeader, resource);
+    const verification = await verifyPayment(paymentHeader, resource, {
+      userId: callerId ?? '',
+      amountUsd: server.pricePerCallUsdc,
+    });
     if (!verification.valid) {
       return c.json({ error: `Payment verification failed: ${verification.error}` }, 402);
     }
@@ -639,7 +647,6 @@ app.openapi(
     // Record transaction as pending before the call
     const split = computeSplit(server.pricePerCallUsdc);
     const txId = crypto.randomUUID();
-    const callerId = (c.get('user') as UserContext | undefined)?.id ?? null;
 
     const newTx: NewMarketplaceTransaction = {
       id: txId,
