@@ -59,6 +59,7 @@ vi.mock('../x402.js', () => ({
   })),
   encodePaymentRequired: vi.fn(() => 'encoded-payment-required'),
   verifyPayment: vi.fn(() => Promise.resolve({ valid: true })),
+  getAdvertisedCurrencyLabel: vi.fn(() => 'usdc-only'),
 }));
 
 import { getMaxAgentTasks } from '@revealui/core/license';

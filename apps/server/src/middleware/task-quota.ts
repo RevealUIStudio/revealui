@@ -18,6 +18,7 @@
 
 import { getMaxAgentTasks } from '@revealui/core/license';
 import { logger } from '@revealui/core/observability/logger';
+import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import { getClient } from '@revealui/db';
 import { agentCreditBalance, agentTaskUsage } from '@revealui/db/schema';
 import { and, eq, gt, sql } from 'drizzle-orm';
@@ -25,6 +26,7 @@ import type { Context, Next } from 'hono';
 import {
   buildPaymentRequired,
   encodePaymentRequired,
+  getAdvertisedCurrencyLabel,
   getX402Config,
   verifyPayment,
 } from './x402.js';
@@ -180,10 +182,12 @@ export async function requireTaskQuota(
 
       if (payloadHeader) {
         // Verify the payment proof the agent sent
-        const result = await verifyPayment(payloadHeader, resource, {
-          userId: user.id,
-          amountUsd: x402.pricePerTask,
-        });
+        const result = await verifyPayment(
+          payloadHeader,
+          resource,
+          { userId: user.id, amountUsd: x402.pricePerTask },
+          'task-quota',
+        );
 
         if (result.valid) {
           logger.info('x402 payment accepted  -  task quota bypassed', {
@@ -208,6 +212,7 @@ export async function requireTaskQuota(
 
       // No payment header  -  return 402 with x402 payment requirements
       const paymentRequired = buildPaymentRequired(resource);
+      trackX402PaymentRequired('task-quota', getAdvertisedCurrencyLabel());
       return c.json(
         {
           payment_required: true,

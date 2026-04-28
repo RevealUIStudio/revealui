@@ -13,11 +13,13 @@ import {
   getLicenseStatus,
   type LicenseTier,
 } from '@revealui/core/license';
+import { trackX402PaymentRequired } from '@revealui/core/observability/metrics';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 import {
   buildPaymentRequired,
   encodePaymentRequired,
+  getAdvertisedCurrencyLabel,
   getX402Config,
   verifyPayment,
 } from './x402.js';
@@ -124,10 +126,12 @@ export const requireFeature = (
         if (paymentHeader) {
           const resource = new URL(c.req.url).pathname;
           const userId = (c.get('user') as { id?: string } | undefined)?.id ?? '';
-          const result = await verifyPayment(paymentHeader, resource, {
-            userId,
-            amountUsd: x402.pricePerTask,
-          });
+          const result = await verifyPayment(
+            paymentHeader,
+            resource,
+            { userId, amountUsd: x402.pricePerTask },
+            'license-feature',
+          );
           if (result.valid) {
             await next();
             return;
@@ -136,6 +140,7 @@ export const requireFeature = (
 
         const resource = new URL(c.req.url).pathname;
         const paymentRequired = buildPaymentRequired(resource);
+        trackX402PaymentRequired('license-feature', getAdvertisedCurrencyLabel());
 
         return c.json(
           {
@@ -363,10 +368,12 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
       if (paymentHeader) {
         const resource = new URL(c.req.url).pathname;
         const userId = (c.get('user') as { id?: string } | undefined)?.id ?? '';
-        const result = await verifyPayment(paymentHeader, resource, {
-          userId,
-          amountUsd: x402.pricePerTask,
-        });
+        const result = await verifyPayment(
+          paymentHeader,
+          resource,
+          { userId, amountUsd: x402.pricePerTask },
+          'license-ai',
+        );
         if (result.valid) {
           await next();
           return;
@@ -375,6 +382,7 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
 
       const resource = new URL(c.req.url).pathname;
       const paymentRequired = buildPaymentRequired(resource);
+      trackX402PaymentRequired('license-ai', getAdvertisedCurrencyLabel());
 
       return c.json(
         {

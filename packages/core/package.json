@@ -249,6 +249,10 @@
       "types": "./dist/observability/logger.d.ts",
       "import": "./dist/observability/logger.js"
     },
+    "./observability/metrics": {
+      "types": "./dist/observability/metrics.d.ts",
+      "import": "./dist/observability/metrics.js"
+    },
     "./observability/alerts": {
       "types": "./dist/observability/alerts.d.ts",
       "import": "./dist/observability/alerts.js"

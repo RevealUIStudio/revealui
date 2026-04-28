@@ -24,6 +24,7 @@
 
 import { RVUI_MINT_ADDRESSES, RVUI_TOKEN_CONFIG, type SolanaNetwork } from '@revealui/contracts';
 import { logger } from '@revealui/core/observability/logger';
+import { trackX402PaymentVerify } from '@revealui/core/observability/metrics';
 
 // =============================================================================
 // Minimal x402 protocol types (subset of @x402/core types we need)
@@ -108,6 +109,18 @@ export interface X402Config {
   rvuiNetwork: string; // e.g. 'solana:devnet'
   /** RVUI mint address for the active network. */
   rvuiAsset: string;
+}
+
+/**
+ * Returns the currency-advertised label for the `x402_payment_required_total`
+ * counter. `'usdc-rvui'` when both currencies are accepted (RVUI gated by
+ * `RVUI_PAYMENTS_ENABLED` + receiving wallet); `'usdc-only'` otherwise.
+ */
+export function getAdvertisedCurrencyLabel(): 'usdc-only' | 'usdc-rvui' {
+  const config = getX402Config();
+  return config.rvuiEnabled && config.rvuiReceivingAddress && config.rvuiAsset
+    ? 'usdc-rvui'
+    : 'usdc-only';
 }
 
 /** Read x402 configuration from environment variables (lazy  -  never throws on missing). */
@@ -255,15 +268,22 @@ export interface PaymentContext {
  *   the RVUI safeguards pipeline (`validatePayment` + `recordPayment`).
  *   Requires `context` to be passed; fails-closed when missing.
  *
+ * Emits the `x402_payment_verify_total` counter and
+ * `x402_payment_verify_duration_seconds` histogram for every dispatched
+ * verification. Decode failures (malformed base64) are not counted —
+ * they're caller bugs, not verification outcomes.
+ *
  * @param payloadHeader - Raw base64 value from X-PAYMENT-PAYLOAD header
  * @param resource      - Canonical resource URL (must match what was sent in 402)
  * @param context       - Required for RVUI/solana-spl scheme; optional for USDC
+ * @param route         - Route label for metrics (e.g. 'a2a', 'marketplace')
  * @returns `{ valid: true }` or `{ valid: false, error: string }`
  */
 export async function verifyPayment(
   payloadHeader: string,
   resource: string,
   context?: PaymentContext,
+  route: string = 'unknown',
 ): Promise<{ valid: true } | { valid: false; error: string }> {
   const config = getX402Config();
 
@@ -272,14 +292,21 @@ export async function verifyPayment(
     return { valid: false, error: 'Could not decode X-PAYMENT-PAYLOAD (invalid base64 or JSON)' };
   }
 
-  // Dispatch based on payment scheme
-  if (paymentPayload.scheme === 'solana-spl') {
-    return verifySolanaPayment(paymentPayload, config, context);
+  const scheme: 'exact' | 'solana-spl' =
+    paymentPayload.scheme === 'solana-spl' ? 'solana-spl' : 'exact';
+  const start = Date.now();
+
+  let result: { valid: true } | { valid: false; error: string };
+  if (scheme === 'solana-spl') {
+    result = await verifySolanaPayment(paymentPayload, config, context);
+  } else {
+    // Default: EVM/USDC via Coinbase facilitator (handles replay in-house;
+    // PaymentContext is unused on this path).
+    result = await verifyEvmPayment(paymentPayload, resource, config);
   }
 
-  // Default: EVM/USDC via Coinbase facilitator (handles replay in-house;
-  // PaymentContext is unused on this path).
-  return verifyEvmPayment(paymentPayload, resource, config);
+  trackX402PaymentVerify(route, scheme, result.valid ? 'valid' : 'invalid', Date.now() - start);
+  return result;
 }
 
 /**
