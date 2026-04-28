@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 import app from '../src/index.js';
 
 /**
- * Integration Tests for apps/api
+ * Integration Tests for apps/server
  *
  * Covers:
  * 1. Health endpoint (/health)

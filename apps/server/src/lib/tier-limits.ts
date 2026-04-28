@@ -1,7 +1,7 @@
 /**
  * Hosted-tier resource limits — single source of truth for the four hosted tiers.
  *
- * Originally inlined in `apps/api/src/routes/webhooks.ts` where it was applied
+ * Originally inlined in `apps/server/src/routes/webhooks.ts` where it was applied
  * to `accountEntitlements` on subscription events. Extracted so the seat-count
  * guard in `./seat-count-guard.ts` and any future limit-driven paths can share
  * the same values without re-declaring them.

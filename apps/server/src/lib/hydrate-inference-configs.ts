@@ -2,7 +2,7 @@
  * Boot-time hydration of the in-memory `WorkspaceProviderRegistry` from
  * the `workspace_inference_configs` table.
  *
- * Loaded once at apps/api startup (see index.ts startup branches). After
+ * Loaded once at apps/server startup (see index.ts startup branches). After
  * this completes, agent runtime that calls
  * `workspaceProviderRegistry.createClientForWorkspace(siteId, fallback)`
  * will use the per-site config; the admin PUT route updates the registry

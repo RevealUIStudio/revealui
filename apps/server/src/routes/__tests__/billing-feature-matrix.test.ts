@@ -330,7 +330,7 @@ describe('Resource Limits Match Tier Definitions', () => {
   });
 
   it('documented resource limits match hosted tier definitions', () => {
-    // These must match the hosted limits in apps/api/src/lib/tier-limits.ts getHostedLimitsForTier()
+    // These must match the hosted limits in apps/server/src/lib/tier-limits.ts getHostedLimitsForTier()
     // and the license module getMaxSites/getMaxUsers/getMaxAgentTasks defaults
     expect(TIER_LIMITS.free).toEqual({ maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 });
     expect(TIER_LIMITS.pro).toEqual({ maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 });

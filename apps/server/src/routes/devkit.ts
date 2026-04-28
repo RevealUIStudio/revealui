@@ -23,7 +23,7 @@
  *                                          gate; Pro → 403, Max → 200)
  *
  * Mount with `requireFeature('devkitProfiles')` on PUT. See
- * apps/api/src/index.ts for the wiring.
+ * apps/server/src/index.ts for the wiring.
  */
 
 import { DEVKIT_PROFILE_METADATA, DEVKIT_PROFILES, isDevkitProfileId } from '@revealui/contracts';

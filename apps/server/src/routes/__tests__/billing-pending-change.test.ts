@@ -4,7 +4,7 @@
  * Closes Surface 7 / Gap B (GAP-124): the `pending_change` 409 mutex on
  * POST /upgrade and POST /downgrade had ZERO route-level test coverage
  * prior to this file. The in-memory mock in
- * `apps/api/src/__tests__/concurrency/billing-races.test.ts:304-379` does
+ * `apps/server/src/__tests__/concurrency/billing-races.test.ts:304-379` does
  * NOT exercise the real route's metadata-check path  -  it tests a separate
  * fake subscription manager.
  *

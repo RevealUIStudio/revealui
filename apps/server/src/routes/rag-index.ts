@@ -6,7 +6,7 @@
  * DELETE /api/rag/workspaces/:workspaceId/documents/:documentId
  * GET  /api/rag/workspaces/:workspaceId/status             → workspace RAG stats
  *
- * Requires requireFeature('ai', { mode: 'entitlements' })  -  applied in apps/api/src/index.ts.
+ * Requires requireFeature('ai', { mode: 'entitlements' })  -  applied in apps/server/src/index.ts.
  */
 
 import type { DatabaseClient } from '@revealui/db/client';

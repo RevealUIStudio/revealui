@@ -8,7 +8,7 @@
  * `.wasm` is intentionally NOT declared — the resvg WASM is read at runtime
  * via `readFileSync` + `createRequire.resolve` rather than imported directly,
  * because Node's WASM ESM loader can't resolve the wasm-bindgen `wbg` glue.
- * See apps/api/src/routes/og.ts for the load pattern.
+ * See apps/server/src/routes/og.ts for the load pattern.
  */
 
 declare module '*.ttf' {

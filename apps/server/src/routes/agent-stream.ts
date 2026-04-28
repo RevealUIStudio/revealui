@@ -243,7 +243,7 @@ app.openapi(agentStreamRoute, async (c) => {
       })
     : undefined;
   // Type of the Stage 6.1 event sink, derived from @revealui/ai via
-  // the lazy-imported aiMod so apps/api keeps zero static references to
+  // the lazy-imported aiMod so apps/server keeps zero static references to
   // the optional Pro package (enforced by scripts/validate/boundary.ts).
   type AiMod = NonNullable<typeof aiMod>;
   type McpEventSink = ReturnType<AiMod['createCoreLoggerSink']>;

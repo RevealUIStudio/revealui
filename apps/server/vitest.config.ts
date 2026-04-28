@@ -20,7 +20,7 @@ export default defineConfig({
       // the replacement takes over completely.
       //
       // No `.wasm` alias needed — og.ts reads the resvg WASM at runtime via
-      // `readFileSync`, not via ESM import (see apps/api/src/routes/og.ts).
+      // `readFileSync`, not via ESM import (see apps/server/src/routes/og.ts).
       { find: /^.+\.ttf$/, replacement: path.resolve(__dirname, './__tests__/binary-stub.ts') },
     ],
   },

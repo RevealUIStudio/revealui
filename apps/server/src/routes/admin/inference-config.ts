@@ -16,7 +16,7 @@
  *   DELETE /admin/inference/config?workspaceId=...    — revert to default
  *
  * Mount with `requireFeature('aiInference')` so Pro tier gets 403, Max+
- * gets through. See apps/api/src/index.ts for the gate wiring.
+ * gets through. See apps/server/src/index.ts for the gate wiring.
  */
 
 import crypto from 'node:crypto';

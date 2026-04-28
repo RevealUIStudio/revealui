@@ -7,7 +7,7 @@
  * constant is the last-resort display fallback for the admin MRR metrics
  * route — used only when both of the above are unavailable or null.
  *
- * Formerly named `CANONICAL_TIER_PRICES` in `apps/api/src/routes/billing.ts`
+ * Formerly named `CANONICAL_TIER_PRICES` in `apps/server/src/routes/billing.ts`
  * — the rename (CR8-P2-04) fixes a misleading label: this is not canonical;
  * Stripe is. The `billing-readiness` cron (`./cron/billing-readiness.ts`)
  * asserts drift by fetching each Stripe price on the `STRIPE_*_PRICE_ID` env

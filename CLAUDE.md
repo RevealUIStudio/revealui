@@ -39,7 +39,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 ### Apps (5)
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
-| api | 3004 | Hono | REST API (OpenAPI + Swagger) |
+| server | 3004 | Hono | REST API (OpenAPI + Swagger) |
 | admin | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
 | docs | 3002 | Vite/React | Documentation site |
 | marketing | 3000 | Next.js | Marketing + waitlist |

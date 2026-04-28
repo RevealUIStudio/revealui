@@ -104,7 +104,7 @@ const PRO_FEATURES = [
 const MAX_FEATURES = ['aiMemory', 'aiInference', 'auditLog'] as const;
 const ENTERPRISE_FEATURES = ['multiTenant', 'whiteLabel', 'sso'] as const;
 
-/** Hosted tier limits (must match getHostedLimitsForTier in apps/api/src/lib/tier-limits.ts) */
+/** Hosted tier limits (must match getHostedLimitsForTier in apps/server/src/lib/tier-limits.ts) */
 const HOSTED_LIMITS: Record<Tier, { maxSites: number; maxUsers: number; maxAgentTasks: number }> = {
   free: { maxSites: 1, maxUsers: 3, maxAgentTasks: 1_000 },
   pro: { maxSites: 5, maxUsers: 25, maxAgentTasks: 10_000 },

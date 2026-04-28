@@ -1,7 +1,7 @@
 /**
  * Durable-queue handler registration (CR8-P2-01 phase C).
  *
- * Imported for side-effect at module top-level in apps/api/src/index.ts
+ * Imported for side-effect at module top-level in apps/server/src/index.ts
  * so every Vercel invocation — including the worker route at
  * /api/jobs/run — has the handlers registered before any job is
  * claimed.

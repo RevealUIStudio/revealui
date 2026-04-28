@@ -2,7 +2,7 @@
  * Credential Rotation Routes — Pro-tier `vaultRotation` paywall.
  *
  * Read-only audit-history surface over `audit_log` for credential
- * lifecycle events emitted by `apps/api/src/routes/api-keys.ts`:
+ * lifecycle events emitted by `apps/server/src/routes/api-keys.ts`:
  *
  *   - credential:created   (POST   /api/api-keys)
  *   - credential:rotated   (POST   /api/api-keys/:id/rotate)

@@ -898,7 +898,7 @@ app.doc('/openapi.json', {
 
 // Self-hosted Swagger UI (no CDN, CSP-strict compatible).
 // `require` here is the CJS-style require injected by tsup's banner
-// (see apps/api/tsup.config.ts) so we don't import createRequire a second time.
+// (see apps/server/tsup.config.ts) so we don't import createRequire a second time.
 const swaggerCss = readFileSync(require.resolve('swagger-ui-dist/swagger-ui.css'), 'utf-8');
 const swaggerBundleJs = readFileSync(
   require.resolve('swagger-ui-dist/swagger-ui-bundle.js'),

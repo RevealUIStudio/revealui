@@ -1,5 +1,5 @@
 /**
- * Usage-meter writer for apps/api. Persists `usage_meters` rows produced
+ * Usage-meter writer for apps/server. Persists `usage_meters` rows produced
  * by `@revealui/ai/createUsageMeterSink` (agent-adapter boundary) and
  * `@revealui/mcp.MCPHypervisor.setUsageMeterSink()` (hypervisor boundary).
  *

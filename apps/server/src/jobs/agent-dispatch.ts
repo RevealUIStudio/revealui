@@ -3,7 +3,7 @@
  *
  * Registered at boot under `agent.dispatch` via register-handlers.ts.
  * Invoked by the queue worker when a ticket's POST handler enqueues a
- * dispatch job (see apps/api/src/routes/agent-tasks.ts).
+ * dispatch job (see apps/server/src/routes/agent-tasks.ts).
  *
  * Durability guarantees provided by the combination of:
  *   1. The queue's visibility timeout + retry-with-backoff (phase A).

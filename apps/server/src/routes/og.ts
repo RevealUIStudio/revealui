@@ -154,7 +154,7 @@ app.get('/', async (c) => {
 
   // satori's signature is typed against React's ReactNode. We construct a
   // ReactNode-compatible object tree manually to avoid a runtime React dep
-  // in apps/api.
+  // in apps/server.
   const svg = await satori(node as unknown as Parameters<typeof satori>[0], {
     width: WIDTH,
     height: HEIGHT,
