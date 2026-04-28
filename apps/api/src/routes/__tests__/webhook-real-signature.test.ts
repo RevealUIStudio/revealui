@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
 const TEST_SECRET = 'whsec_test_real_signature_verification_secret';
 
 describe('Stripe webhook  -  real signature verification', () => {
-  const stripe = new Stripe('sk_test_dummy', { apiVersion: '2025-03-31.basil' });
+  const stripe = new Stripe('sk_test_dummy', { apiVersion: Stripe.API_VERSION });
 
   it('verifies a correctly signed payload', () => {
     const payload = JSON.stringify({
