@@ -7,7 +7,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod/v4';
-import { createContract } from '../../foundation/contract.js';
+import { createContract } from '../foundation/contract.js';
 
 describe('Contract Runtime Validation', () => {
   describe('Basic Validation', () => {
