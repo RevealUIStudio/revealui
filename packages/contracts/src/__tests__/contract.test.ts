@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod/v4';
-import { type ContractType, contractRegistry, createContract } from '../../foundation/contract.js';
+import { type ContractType, contractRegistry, createContract } from '../foundation/contract.js';
 
 describe('Unified Contract System', () => {
   describe('createContract', () => {
