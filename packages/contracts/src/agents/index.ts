@@ -549,6 +549,34 @@ export const AgentDefinitionSchema = z.object({
       tokensPerMinute: z.number().int().positive().optional(),
     })
     .optional(),
+
+  /**
+   * Per-call pricing for x402-gated invocations. When set, the A2A handler
+   * emits a `pending-payment` task state on the first call without a valid
+   * `X-PAYMENT-PAYLOAD` header; the requester pays via x402 and re-submits
+   * with proof. Absent/null = the agent does not charge per call (license
+   * tier and quota apply instead). See GAP-149.
+   *
+   * String values to avoid float precision loss; consumers convert to
+   * atomic units (USDC = 6 decimals, RVUI = 6 decimals) at the x402
+   * emission boundary in `apps/api/src/middleware/x402.ts`.
+   */
+  pricing: z
+    .object({
+      /** USDC dollar amount per task invocation (e.g. "0.05"). */
+      usdc: z.string(),
+
+      /**
+       * Optional RVUI dollar-equivalent price per task invocation. When
+       * set, x402 emission advertises RVUI as an alternative settlement
+       * currency. Subject to the `RVUI_PAYMENTS_ENABLED` env flag plus
+       * the multi-sig + vesting unlock per the project_revealcoin_pre_
+       * launch_gates posture; in pre-launch this stays unset in prod and
+       * is exercised only on devnet/staging.
+       */
+      rvui: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>;
