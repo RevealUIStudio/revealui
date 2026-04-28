@@ -155,6 +155,18 @@ describe('a2a task store', () => {
     expect(cancelTask(task.id)).toBe(false);
     expect(getTask(task.id)?.status.state).toBe('completed');
   });
+
+  it('allows cancel from the pending-payment state (requester releases the slot)', () => {
+    const task = createTask({
+      id: trackTaskId('task-store-pending-payment-cancel'),
+      message: userMessage('Pay or cancel'),
+    });
+    updateTaskState(task.id, 'pending-payment');
+
+    expect(getTask(task.id)?.status.state).toBe('pending-payment');
+    expect(cancelTask(task.id)).toBe(true);
+    expect(getTask(task.id)?.status.state).toBe('canceled');
+  });
 });
 
 describe('a2a json-rpc handler', () => {
@@ -328,6 +340,86 @@ describe('a2a json-rpc handler', () => {
         code: -32001,
         message: "Task 'does-not-exist' not found",
       },
+    });
+  });
+
+  it('emits pending-payment when agent has pricing and payment is not verified', async () => {
+    const agentId = 'paid-test-agent-pending';
+    registeredAgentIds.push(agentId);
+    agentCardRegistry.register({
+      id: agentId,
+      version: 1,
+      name: 'Paid Agent',
+      description: 'Charges for tasks',
+      model: 'gpt-test',
+      systemPrompt: 'Charges per call',
+      tools: [],
+      capabilities: ['paid'],
+      temperature: 0.2,
+      maxTokens: 512,
+      pricing: { usdc: '0.05' },
+    });
+    trackTaskId('rpc-paid-pending');
+
+    const response = await handleA2AJsonRpc(
+      {
+        jsonrpc: '2.0',
+        id: 'rpc-paid-pending',
+        method: 'tasks/send',
+        params: {
+          id: 'rpc-paid-pending',
+          message: userMessage('Do paid work'),
+        },
+      },
+      agentId,
+    );
+
+    expect(response.error).toBeUndefined();
+    expect(response.result).toMatchObject({
+      id: 'rpc-paid-pending',
+      status: { state: 'pending-payment' },
+      metadata: { pricing: { usdc: '0.05' } },
+    });
+    expect(getTask('rpc-paid-pending')?.status.state).toBe('pending-payment');
+  });
+
+  it('falls through to execution when paymentVerified=true is passed via options', async () => {
+    const agentId = 'paid-test-agent-verified';
+    registeredAgentIds.push(agentId);
+    agentCardRegistry.register({
+      id: agentId,
+      version: 1,
+      name: 'Paid Agent Verified',
+      description: 'Charges for tasks',
+      model: 'gpt-test',
+      systemPrompt: 'Charges per call',
+      tools: [],
+      capabilities: ['paid'],
+      temperature: 0.2,
+      maxTokens: 512,
+      pricing: { usdc: '0.05' },
+    });
+    trackTaskId('rpc-paid-verified');
+
+    const response = await handleA2AJsonRpc(
+      {
+        jsonrpc: '2.0',
+        id: 'rpc-paid-verified',
+        method: 'tasks/send',
+        params: {
+          id: 'rpc-paid-verified',
+          message: userMessage('Paid work'),
+        },
+      },
+      agentId,
+      undefined,
+      { paymentVerified: true },
+    );
+
+    expect(response.error).toBeUndefined();
+    expect(response.result).toMatchObject({
+      id: 'rpc-paid-verified',
+      status: { state: 'completed' },
     });
   });
 });

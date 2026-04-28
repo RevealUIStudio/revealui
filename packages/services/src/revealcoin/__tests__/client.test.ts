@@ -9,6 +9,8 @@ const {
   mockRecordSuccess,
   mockRecordFailure,
   mockReset,
+  mockValidatePayment,
+  mockRecordPayment,
 } = vi.hoisted(() => ({
   mockGetTransaction: vi.fn(),
   mockGetTokenAccountsByOwner: vi.fn(),
@@ -17,6 +19,8 @@ const {
   mockRecordSuccess: vi.fn().mockResolvedValue(undefined),
   mockRecordFailure: vi.fn().mockResolvedValue(undefined),
   mockReset: vi.fn().mockResolvedValue(undefined),
+  mockValidatePayment: vi.fn(),
+  mockRecordPayment: vi.fn(),
 }));
 
 vi.mock('@solana/kit', () => ({
@@ -67,6 +71,11 @@ vi.mock('../../stripe/db-circuit-breaker.js', () => ({
   },
 }));
 
+vi.mock('../safeguards.js', () => ({
+  validatePayment: mockValidatePayment,
+  recordPayment: mockRecordPayment,
+}));
+
 import { getRvuiBalance, getRvuiSupply, verifyRvuiPayment } from '../client.js';
 
 function resetMocks(): void {
@@ -80,6 +89,56 @@ function resetMocks(): void {
   mockRecordFailure.mockClear();
   mockRecordFailure.mockResolvedValue(undefined);
   mockReset.mockClear();
+  mockValidatePayment.mockReset();
+  mockValidatePayment.mockResolvedValue({ allowed: true });
+  mockRecordPayment.mockReset();
+  mockRecordPayment.mockResolvedValue(undefined);
+}
+
+const validSafeguards = { userId: 'user-test-1', amountUsd: '0.05' };
+
+/** Build a tx with sender + recipient balance changes that pass on-chain check. */
+function txWithSenderAndRecipient(opts: {
+  mintAddress: string;
+  programId: string;
+  recipient: string;
+  sender: string;
+  amount: string;
+}) {
+  const { mintAddress, programId, recipient, sender, amount } = opts;
+  return {
+    meta: {
+      err: null,
+      preTokenBalances: [
+        {
+          mint: mintAddress,
+          owner: recipient,
+          programId,
+          uiTokenAmount: { amount: '0' },
+        },
+        {
+          mint: mintAddress,
+          owner: sender,
+          programId,
+          uiTokenAmount: { amount: amount },
+        },
+      ],
+      postTokenBalances: [
+        {
+          mint: mintAddress,
+          owner: recipient,
+          programId,
+          uiTokenAmount: { amount: amount },
+        },
+        {
+          mint: mintAddress,
+          owner: sender,
+          programId,
+          uiTokenAmount: { amount: '0' },
+        },
+      ],
+    },
+  };
 }
 
 /** Helper to create a mock getTokenAccountsByOwner response */
@@ -154,41 +213,68 @@ describe('verifyRvuiPayment', () => {
   const mintAddress = '4Ysb1gkz21FD2B9P8P5Pm8bHh4CAMKYU1L528e1MigPo';
   const programId = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 
-  it('returns valid for correct payment', async () => {
-    mockGetTransaction.mockResolvedValue({
-      meta: {
-        err: null,
-        preTokenBalances: [
-          {
-            mint: mintAddress,
-            owner: 'recipient-wallet',
-            programId,
-            uiTokenAmount: { amount: '0' },
-          },
-        ],
-        postTokenBalances: [
-          {
-            mint: mintAddress,
-            owner: 'recipient-wallet',
-            programId,
-            uiTokenAmount: { amount: '1000000' },
-          },
-        ],
-      },
-    });
+  it('returns valid for correct payment with safeguards passing', async () => {
+    mockGetTransaction.mockResolvedValue(
+      txWithSenderAndRecipient({
+        mintAddress,
+        programId,
+        recipient: 'recipient-wallet',
+        sender: 'sender-wallet',
+        amount: '1000000',
+      }),
+    );
 
-    const result = await verifyRvuiPayment('tx-sig-valid', 1_000_000n, 'recipient-wallet');
+    const result = await verifyRvuiPayment(
+      'tx-sig-valid',
+      1_000_000n,
+      'recipient-wallet',
+      validSafeguards,
+    );
     expect(result).toEqual({ valid: true });
+    // Safeguards pipeline ran with the extracted source wallet
+    expect(mockValidatePayment).toHaveBeenCalledWith({
+      walletAddress: 'sender-wallet',
+      userId: 'user-test-1',
+      txSignature: 'tx-sig-valid',
+      amountUsd: 0.05,
+    });
+    // Payment was recorded for future replay protection
+    expect(mockRecordPayment).toHaveBeenCalledTimes(1);
+    const recordCall = mockRecordPayment.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(recordCall).toMatchObject({
+      txSignature: 'tx-sig-valid',
+      walletAddress: 'sender-wallet',
+      userId: 'user-test-1',
+      amountRvui: '1000000',
+      amountUsd: 0.05,
+      // discount = 25% of paid (since paid is 80% of full at 20% discount)
+      discountUsd: 0.0125,
+      purpose: 'agent_task',
+    });
+  });
+
+  it('rejects immediately when safeguards.userId is empty (no on-chain fetch)', async () => {
+    const result = await verifyRvuiPayment('tx-sig-no-user', 1n, 'recipient', {
+      userId: '',
+      amountUsd: '0.05',
+    });
+    expect(result.valid).toBe(false);
+    expect((result as { error: string }).error).toMatch(/authenticated user|userId/i);
+    // Short-circuit: no Solana RPC call, no safeguards call
+    expect(mockGetTransaction).not.toHaveBeenCalled();
+    expect(mockValidatePayment).not.toHaveBeenCalled();
+    expect(mockRecordPayment).not.toHaveBeenCalled();
   });
 
   it('rejects when transaction not found', async () => {
     mockGetTransaction.mockResolvedValue(null);
 
-    const result = await verifyRvuiPayment('tx-sig-missing', 1n, 'recipient');
+    const result = await verifyRvuiPayment('tx-sig-missing', 1n, 'recipient', validSafeguards);
     expect(result).toEqual({
       valid: false,
       error: 'Transaction not found or not yet finalized',
     });
+    expect(mockValidatePayment).not.toHaveBeenCalled();
   });
 
   it('rejects failed transactions', async () => {
@@ -200,9 +286,10 @@ describe('verifyRvuiPayment', () => {
       },
     });
 
-    const result = await verifyRvuiPayment('tx-sig-failed', 1n, 'recipient');
+    const result = await verifyRvuiPayment('tx-sig-failed', 1n, 'recipient', validSafeguards);
     expect(result.valid).toBe(false);
     expect((result as { error: string }).error).toContain('Transaction failed');
+    expect(mockValidatePayment).not.toHaveBeenCalled();
   });
 
   it('rejects when recipient did not receive tokens', async () => {
@@ -214,9 +301,10 @@ describe('verifyRvuiPayment', () => {
       },
     });
 
-    const result = await verifyRvuiPayment('tx-sig-no-transfer', 1n, 'recipient');
+    const result = await verifyRvuiPayment('tx-sig-no-transfer', 1n, 'recipient', validSafeguards);
     expect(result.valid).toBe(false);
     expect((result as { error: string }).error).toContain('did not receive');
+    expect(mockValidatePayment).not.toHaveBeenCalled();
   });
 
   it('rejects insufficient payment amount', async () => {
@@ -242,15 +330,209 @@ describe('verifyRvuiPayment', () => {
       },
     });
 
-    const result = await verifyRvuiPayment('tx-sig-low', 1_000_000n, 'recipient');
+    const result = await verifyRvuiPayment('tx-sig-low', 1_000_000n, 'recipient', validSafeguards);
     expect(result.valid).toBe(false);
     expect((result as { error: string }).error).toContain('Insufficient payment');
+    expect(mockValidatePayment).not.toHaveBeenCalled();
+  });
+
+  it('rejects when source wallet cannot be identified', async () => {
+    // Recipient received tokens but no other account shows a balance
+    // decrease — pathological tx (mint or self-transfer).
+    mockGetTransaction.mockResolvedValue({
+      meta: {
+        err: null,
+        preTokenBalances: [
+          {
+            mint: mintAddress,
+            owner: 'recipient',
+            programId,
+            uiTokenAmount: { amount: '0' },
+          },
+        ],
+        postTokenBalances: [
+          {
+            mint: mintAddress,
+            owner: 'recipient',
+            programId,
+            uiTokenAmount: { amount: '1000' },
+          },
+        ],
+      },
+    });
+
+    const result = await verifyRvuiPayment(
+      'tx-sig-no-sender',
+      1_000n,
+      'recipient',
+      validSafeguards,
+    );
+    expect(result.valid).toBe(false);
+    expect((result as { error: string }).error).toMatch(/sender/i);
+    expect(mockValidatePayment).not.toHaveBeenCalled();
+  });
+
+  it('rejects when validatePayment returns disallowed (replay attack)', async () => {
+    mockGetTransaction.mockResolvedValue(
+      txWithSenderAndRecipient({
+        mintAddress,
+        programId,
+        recipient: 'recipient',
+        sender: 'sender',
+        amount: '1000',
+      }),
+    );
+    mockValidatePayment.mockResolvedValue({
+      allowed: false,
+      reason: 'Transaction signature already used',
+    });
+
+    const result = await verifyRvuiPayment('tx-sig-replay', 1_000n, 'recipient', validSafeguards);
+    expect(result.valid).toBe(false);
+    expect((result as { error: string }).error).toContain('signature already used');
+    // recordPayment must NOT be called when validatePayment rejects
+    expect(mockRecordPayment).not.toHaveBeenCalled();
+  });
+
+  it('rejects when validatePayment blocks for $500 single-payment cap', async () => {
+    mockGetTransaction.mockResolvedValue(
+      txWithSenderAndRecipient({
+        mintAddress,
+        programId,
+        recipient: 'recipient',
+        sender: 'sender',
+        amount: '600000000',
+      }),
+    );
+    mockValidatePayment.mockResolvedValue({
+      allowed: false,
+      reason: 'Payment exceeds maximum of $500 USD. Use fiat for larger amounts.',
+    });
+
+    const result = await verifyRvuiPayment('tx-sig-overpaid', 600_000_000n, 'recipient', {
+      userId: 'user-test-1',
+      amountUsd: '600',
+    });
+    expect(result.valid).toBe(false);
+    expect((result as { error: string }).error).toContain('$500');
+    expect(mockRecordPayment).not.toHaveBeenCalled();
+  });
+
+  it('rejects when wallet rate limit exceeded', async () => {
+    mockGetTransaction.mockResolvedValue(
+      txWithSenderAndRecipient({
+        mintAddress,
+        programId,
+        recipient: 'recipient',
+        sender: 'busy-wallet',
+        amount: '1000',
+      }),
+    );
+    mockValidatePayment.mockResolvedValue({
+      allowed: false,
+      reason: 'Wallet rate limit exceeded (max 3 payments/hour)',
+    });
+
+    const result = await verifyRvuiPayment(
+      'tx-sig-rate-limited',
+      1_000n,
+      'recipient',
+      validSafeguards,
+    );
+    expect(result.valid).toBe(false);
+    expect((result as { error: string }).error).toContain('rate limit');
+    expect(mockRecordPayment).not.toHaveBeenCalled();
+  });
+
+  it('rejects when monthly discount cap exceeded', async () => {
+    mockGetTransaction.mockResolvedValue(
+      txWithSenderAndRecipient({
+        mintAddress,
+        programId,
+        recipient: 'recipient',
+        sender: 'sender',
+        amount: '1000',
+      }),
+    );
+    mockValidatePayment.mockResolvedValue({
+      allowed: false,
+      reason: 'Monthly RVUI discount cap of $100 reached',
+    });
+
+    const result = await verifyRvuiPayment('tx-sig-cap', 1_000n, 'recipient', validSafeguards);
+    expect(result.valid).toBe(false);
+    expect((result as { error: string }).error).toContain('discount cap');
+    expect(mockRecordPayment).not.toHaveBeenCalled();
+  });
+
+  it('rejects when TWAP price circuit breaker is open', async () => {
+    mockGetTransaction.mockResolvedValue(
+      txWithSenderAndRecipient({
+        mintAddress,
+        programId,
+        recipient: 'recipient',
+        sender: 'sender',
+        amount: '1000',
+      }),
+    );
+    mockValidatePayment.mockResolvedValue({
+      allowed: false,
+      reason: 'RVUI payments temporarily disabled due to price volatility',
+    });
+
+    const result = await verifyRvuiPayment('tx-sig-circuit', 1_000n, 'recipient', validSafeguards);
+    expect(result.valid).toBe(false);
+    expect((result as { error: string }).error).toContain('volatility');
+    expect(mockRecordPayment).not.toHaveBeenCalled();
+  });
+
+  it('returns valid even when recordPayment throws (best-effort recording)', async () => {
+    mockGetTransaction.mockResolvedValue(
+      txWithSenderAndRecipient({
+        mintAddress,
+        programId,
+        recipient: 'recipient',
+        sender: 'sender',
+        amount: '1000',
+      }),
+    );
+    mockRecordPayment.mockRejectedValue(new Error('DB unavailable'));
+
+    const result = await verifyRvuiPayment(
+      'tx-sig-record-fail',
+      1_000n,
+      'recipient',
+      validSafeguards,
+    );
+    // The on-chain payment + safeguard checks all passed; refusing
+    // service after the customer paid is the worse failure mode.
+    expect(result.valid).toBe(true);
+  });
+
+  it('rejects when amountUsd is invalid (non-numeric or zero)', async () => {
+    mockGetTransaction.mockResolvedValue(
+      txWithSenderAndRecipient({
+        mintAddress,
+        programId,
+        recipient: 'recipient',
+        sender: 'sender',
+        amount: '1000',
+      }),
+    );
+
+    const result = await verifyRvuiPayment('tx-sig-bad-amount', 1_000n, 'recipient', {
+      userId: 'user-test-1',
+      amountUsd: 'not-a-number',
+    });
+    expect(result.valid).toBe(false);
+    expect((result as { error: string }).error).toMatch(/amountUsd/i);
+    expect(mockValidatePayment).not.toHaveBeenCalled();
   });
 
   it('throws when circuit breaker is open', async () => {
     mockIsOpen.mockResolvedValue(true);
 
-    await expect(verifyRvuiPayment('tx', 1n, 'recipient')).rejects.toThrow(
+    await expect(verifyRvuiPayment('tx', 1n, 'recipient', validSafeguards)).rejects.toThrow(
       'circuit breaker is OPEN',
     );
   });

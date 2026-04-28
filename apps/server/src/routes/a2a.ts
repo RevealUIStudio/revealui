@@ -27,7 +27,13 @@ import { desc, eq } from 'drizzle-orm';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/license.js';
 import { requireTaskQuota } from '../middleware/task-quota.js';
-import { buildPaymentMethods } from '../middleware/x402.js';
+import {
+  buildPaymentMethods,
+  buildPaymentRequired,
+  encodePaymentRequired,
+  getX402Config,
+  verifyPayment,
+} from '../middleware/x402.js';
 
 // JSON-RPC error codes (inlined  -  avoids static import of @revealui/ai)
 const RPC_INVALID_REQUEST = -32600;
@@ -1044,6 +1050,48 @@ a2a.openapi(
     // Extract optional agent ID from X-Agent-ID header
     const agentId = c.req.header('X-Agent-ID');
 
+    // x402 payment proof verification: when an X-PAYMENT-PAYLOAD header is
+    // present on an executable JSON-RPC method, verify it before calling
+    // the handler. Valid → set paymentVerified so the handler skips its
+    // pending-payment branch. Invalid → 402 with fresh requirements.
+    let paymentVerified = false;
+    if (executionMethods.has(req.method)) {
+      const paymentPayload = c.req.header('X-PAYMENT-PAYLOAD');
+      if (paymentPayload) {
+        const baseUrl = getBaseUrl(c.req.raw);
+        const resource = `${baseUrl}${new URL(c.req.url).pathname}`;
+        // Build the RVUI safeguards context. userId comes from the auth
+        // session; amountUsd comes from the agent's per-call pricing
+        // (registered via AgentDefinitionSchema.pricing) with a fallback
+        // to the global X402_PRICE_PER_TASK. USDC verification ignores
+        // the context; RVUI uses it for replay-protection + caps.
+        const userId = (c.get('user') as UserContext | undefined)?.id ?? '';
+        const agentDef = agentId ? aiMod.agentCardRegistry.getDef(agentId) : undefined;
+        const amountUsd = agentDef?.pricing?.usdc ?? getX402Config().pricePerTask;
+        const verification = await verifyPayment(paymentPayload, resource, {
+          userId,
+          amountUsd,
+        });
+        if (verification.valid) {
+          paymentVerified = true;
+        } else {
+          const paymentRequired = buildPaymentRequired(resource);
+          return c.json(
+            {
+              jsonrpc: '2.0',
+              id: req.id,
+              error: {
+                code: -32004,
+                message: `Payment verification failed: ${verification.error}`,
+              },
+            },
+            402,
+            { 'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired) },
+          );
+        }
+      }
+    }
+
     // Resolve LLM client from environment-configured open models
     let llmClient: unknown;
     try {
@@ -1063,13 +1111,34 @@ a2a.openapi(
       req,
       agentId ?? undefined,
       llmClient as HandleParams[2],
+      { paymentVerified },
     );
     const completedAt = Date.now();
 
+    // Inspect handler outcome up front — used by both the 402 branch and
+    // the agentActions audit log below.
+    const taskResult = result.result as {
+      id?: string;
+      status?: { state?: string };
+      metadata?: { pricing?: { usdc?: string } };
+    } | null;
+    const taskState = taskResult?.status?.state;
+
+    // Pending-payment tasks: convert to HTTP 402 with X-PAYMENT-REQUIRED.
+    // The route owns this protocol-layer wrapper because verifyPayment lives
+    // in apps/server middleware and must not leak into the @revealui/ai package.
+    if (taskState === 'pending-payment') {
+      const baseUrl = getBaseUrl(c.req.raw);
+      const resource = `${baseUrl}${new URL(c.req.url).pathname}`;
+      const paymentRequired = buildPaymentRequired(resource, taskResult?.metadata?.pricing?.usdc);
+      return c.json(result, 402, {
+        'X-PAYMENT-REQUIRED': encodePaymentRequired(paymentRequired),
+      });
+    }
+
     // Fire-and-forget: persist task execution record to agentActions
     if (executionMethods.has(req.method)) {
-      const taskResult = result.result as { status?: { state?: string } } | null;
-      const status = taskResult?.status?.state === 'failed' ? 'failed' : 'completed';
+      const status = taskState === 'failed' ? 'failed' : 'completed';
       void (async () => {
         try {
           const db = getClient();

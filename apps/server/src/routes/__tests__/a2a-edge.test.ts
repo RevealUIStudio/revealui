@@ -29,6 +29,10 @@ const {
   mockA2AJsonRpcSafeParse,
   mockGetClient,
   mockBuildPaymentMethods,
+  mockBuildPaymentRequired,
+  mockEncodePaymentRequired,
+  mockVerifyPayment,
+  mockGetX402Config,
   mockRequireTaskQuota,
 } = vi.hoisted(() => ({
   mockGetCard: vi.fn(),
@@ -45,6 +49,22 @@ const {
   mockA2AJsonRpcSafeParse: vi.fn((data: unknown) => ({ success: true, data })),
   mockGetClient: vi.fn(),
   mockBuildPaymentMethods: vi.fn(),
+  mockBuildPaymentRequired: vi.fn(),
+  mockEncodePaymentRequired: vi.fn(),
+  mockVerifyPayment: vi.fn(),
+  mockGetX402Config: vi.fn(() => ({
+    enabled: true,
+    receivingAddress: '0xTestWallet',
+    network: 'evm:base',
+    pricePerTask: '0.001',
+    usdcAsset: '0xUSDC',
+    facilitatorUrl: 'https://x402.org/facilitator',
+    maxTimeoutSeconds: 300,
+    rvuiEnabled: false,
+    rvuiReceivingAddress: '',
+    rvuiNetwork: 'solana:devnet',
+    rvuiAsset: '',
+  })),
   mockRequireTaskQuota: vi.fn(),
 }));
 
@@ -96,6 +116,10 @@ vi.mock('../../middleware/license.js', () => ({
 
 vi.mock('../../middleware/x402.js', () => ({
   buildPaymentMethods: mockBuildPaymentMethods,
+  buildPaymentRequired: mockBuildPaymentRequired,
+  encodePaymentRequired: mockEncodePaymentRequired,
+  verifyPayment: mockVerifyPayment,
+  getX402Config: mockGetX402Config,
 }));
 
 vi.mock('../../middleware/task-quota.js', () => ({
@@ -222,6 +246,9 @@ function resetMocks() {
   mockIsFeatureEnabled.mockReturnValue(true);
   mockHandleA2AJsonRpc.mockResolvedValue({ jsonrpc: '2.0', id: 1, result: { status: 'ok' } });
   mockBuildPaymentMethods.mockReturnValue(null);
+  mockBuildPaymentRequired.mockReturnValue({ x402Version: 1, accepts: [] });
+  mockEncodePaymentRequired.mockReturnValue('mock-encoded-payment-required');
+  mockVerifyPayment.mockResolvedValue({ valid: true });
   mockRequireTaskQuota.mockResolvedValue(undefined);
 
   // Default DB: hydration query (registeredAgents) returns []
@@ -667,5 +694,161 @@ describe('DELETE /a2a/agents/:id  -  edge cases', () => {
     expect(res.status).toBe(404);
     const body = (await res.json()) as { error: string };
     expect(body.error).toContain('not found');
+  });
+});
+
+// ─── PR 2 of GAP-149  -  x402 pending-payment flow ──────────────────────────
+
+describe('POST /a2a  -  x402 pending-payment flow', () => {
+  beforeEach(() => {
+    resetMocks();
+    mockA2AJsonRpcSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));
+    mockAgentDefinitionSafeParse.mockImplementation((data: unknown) => ({ success: true, data }));
+  });
+
+  it('returns 402 with X-PAYMENT-REQUIRED when handler emits pending-payment state', async () => {
+    mockHandleA2AJsonRpc.mockResolvedValue({
+      jsonrpc: '2.0',
+      id: 1,
+      result: {
+        id: 'task-pending-1',
+        status: { state: 'pending-payment', timestamp: '2026-04-28T00:00:00.000Z' },
+        metadata: { pricing: { usdc: '0.05' } },
+        history: [],
+      },
+    });
+    mockBuildPaymentRequired.mockReturnValue({
+      x402Version: 1,
+      accepts: [{ scheme: 'exact', network: 'evm:base', maxAmountRequired: '50000' }],
+    });
+    mockEncodePaymentRequired.mockReturnValue('encoded-payment-required-base64');
+
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    const res = await app.request(
+      post('/', {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tasks/send',
+        params: { id: 'paid-agent', message: { role: 'user', parts: [{ text: 'do work' }] } },
+      }),
+    );
+
+    expect(res.status).toBe(402);
+    expect(res.headers.get('X-PAYMENT-REQUIRED')).toBe('encoded-payment-required-base64');
+    expect(mockBuildPaymentRequired).toHaveBeenCalledWith(expect.any(String), '0.05');
+    expect(mockVerifyPayment).not.toHaveBeenCalled();
+  });
+
+  it('passes paymentVerified=true to handler when X-PAYMENT-PAYLOAD verifies', async () => {
+    mockVerifyPayment.mockResolvedValue({ valid: true });
+    mockHandleA2AJsonRpc.mockResolvedValue({
+      jsonrpc: '2.0',
+      id: 2,
+      result: {
+        id: 'task-completed-1',
+        status: { state: 'completed' },
+        history: [],
+      },
+    });
+
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    const res = await app.request(
+      post(
+        '/',
+        {
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tasks/send',
+          params: { id: 'paid-agent', message: { role: 'user', parts: [{ text: 'work' }] } },
+        },
+        { 'X-PAYMENT-PAYLOAD': 'valid-base64-proof' },
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockVerifyPayment).toHaveBeenCalledWith(
+      'valid-base64-proof',
+      expect.any(String),
+      expect.objectContaining({ userId: expect.any(String), amountUsd: expect.any(String) }),
+    );
+    const callArgs = mockHandleA2AJsonRpc.mock.calls[0];
+    expect(callArgs?.[3]).toEqual({ paymentVerified: true });
+  });
+
+  it('returns 402 immediately when X-PAYMENT-PAYLOAD fails verification', async () => {
+    mockVerifyPayment.mockResolvedValue({ valid: false, error: 'Invalid signature' });
+    mockBuildPaymentRequired.mockReturnValue({
+      x402Version: 1,
+      accepts: [{ scheme: 'exact', network: 'evm:base', maxAmountRequired: '1000' }],
+    });
+    mockEncodePaymentRequired.mockReturnValue('encoded-fresh-requirements');
+
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    const res = await app.request(
+      post(
+        '/',
+        {
+          jsonrpc: '2.0',
+          id: 3,
+          method: 'tasks/send',
+          params: { id: 'paid-agent', message: { role: 'user', parts: [{ text: 'work' }] } },
+        },
+        { 'X-PAYMENT-PAYLOAD': 'bad-base64-proof' },
+      ),
+    );
+
+    expect(res.status).toBe(402);
+    expect(res.headers.get('X-PAYMENT-REQUIRED')).toBe('encoded-fresh-requirements');
+    const body = (await res.json()) as {
+      jsonrpc: string;
+      id: number;
+      error: { code: number; message: string };
+    };
+    expect(body.error.code).toBe(-32004);
+    expect(body.error.message).toContain('Invalid signature');
+    expect(mockHandleA2AJsonRpc).not.toHaveBeenCalled();
+  });
+
+  it('does NOT verify payment for read-only methods (tasks/get)', async () => {
+    mockHandleA2AJsonRpc.mockResolvedValue({
+      jsonrpc: '2.0',
+      id: 4,
+      result: { id: 'task-1' },
+    });
+
+    const app = makeA2AApp({ id: 'user-1' });
+    const res = await app.request(
+      post(
+        '/',
+        { jsonrpc: '2.0', id: 4, method: 'tasks/get', params: { id: 'task-1' } },
+        { 'X-PAYMENT-PAYLOAD': 'irrelevant-for-read-only' },
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockVerifyPayment).not.toHaveBeenCalled();
+  });
+
+  it('passes paymentVerified=false to handler when no X-PAYMENT-PAYLOAD attached', async () => {
+    mockHandleA2AJsonRpc.mockResolvedValue({
+      jsonrpc: '2.0',
+      id: 5,
+      result: { id: 'task-x', status: { state: 'completed' }, history: [] },
+    });
+
+    const app = makeA2AApp({ id: 'user-1' }, { features: { ai: true } });
+    const res = await app.request(
+      post('/', {
+        jsonrpc: '2.0',
+        id: 5,
+        method: 'tasks/send',
+        params: { id: 'free-agent', message: { role: 'user', parts: [{ text: 'work' }] } },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(mockVerifyPayment).not.toHaveBeenCalled();
+    const callArgs = mockHandleA2AJsonRpc.mock.calls[0];
+    expect(callArgs?.[3]).toEqual({ paymentVerified: false });
   });
 });
