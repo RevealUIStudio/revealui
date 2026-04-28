@@ -619,7 +619,7 @@ describe('validateStartup — RVUI activation gate + GAP-159 warning', () => {
     );
   });
 
-  it('emits the GAP-159 banner when RVUI_PAYMENTS_ENABLED=true and wallet is set', () => {
+  it('emits the RVUI experimental banner when RVUI_PAYMENTS_ENABLED=true and wallet is set', () => {
     const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     validateStartup(
       validTestProdEnv({
@@ -629,20 +629,24 @@ describe('validateStartup — RVUI activation gate + GAP-159 warning', () => {
     );
 
     const messages = warnSpy.mock.calls.map((c) => String(c[0] ?? ''));
-    const rvuiBanner = messages.find((m) => m.includes('GAP-159'));
+    const rvuiBanner = messages.find((m) => m.includes('RVUI PAYMENTS'));
     expect(rvuiBanner).toBeDefined();
-    expect(rvuiBanner).toMatch(/replay-attack hole/);
+    expect(rvuiBanner).toMatch(/experimental/i);
+    // GAP-159 is referenced as historical closure context, not as an
+    // active gate (closed via revealui#648).
+    expect(rvuiBanner).toMatch(/GAP-159/);
+    expect(rvuiBanner).toMatch(/devnet/i);
   });
 
-  it('does NOT emit the GAP-159 banner when RVUI_PAYMENTS_ENABLED is unset', () => {
+  it('does NOT emit the RVUI experimental banner when RVUI_PAYMENTS_ENABLED is unset', () => {
     const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     validateStartup(validTestProdEnv());
 
     const messages = warnSpy.mock.calls.map((c) => String(c[0] ?? ''));
-    expect(messages.some((m) => m.includes('GAP-159'))).toBe(false);
+    expect(messages.some((m) => m.includes('RVUI PAYMENTS'))).toBe(false);
   });
 
-  it('emits both Stripe test-mode AND GAP-159 banners when both apply', () => {
+  it('emits both Stripe test-mode AND RVUI experimental banners when both apply', () => {
     const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     validateStartup(
       validTestProdEnv({
@@ -653,7 +657,7 @@ describe('validateStartup — RVUI activation gate + GAP-159 warning', () => {
 
     const messages = warnSpy.mock.calls.map((c) => String(c[0] ?? ''));
     expect(messages.some((m) => m.includes('STRIPE TEST MODE'))).toBe(true);
-    expect(messages.some((m) => m.includes('GAP-159'))).toBe(true);
+    expect(messages.some((m) => m.includes('RVUI PAYMENTS'))).toBe(true);
   });
 
   it('also enforces the RVUI gate in forge mode', () => {
@@ -678,15 +682,18 @@ describe('validateStartup — RVUI activation gate + GAP-159 warning', () => {
 });
 
 describe('emitRvuiSafeguardsWarning', () => {
-  it('writes a single banner naming GAP-159 + the replay-attack hole', () => {
+  it('writes a single banner naming RVUI as experimental with safeguards wired', () => {
     const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     emitRvuiSafeguardsWarning();
 
     expect(writeSpy).toHaveBeenCalledTimes(1);
     const message = String(writeSpy.mock.calls[0]?.[0] ?? '');
-    expect(message).toMatch(/GAP-159/);
-    expect(message).toMatch(/replay-attack hole/);
-    expect(message).toMatch(/safeguards pipeline/i);
+    expect(message).toMatch(/RVUI PAYMENTS/);
+    expect(message).toMatch(/experimental/i);
     expect(message).toMatch(/RVUI_PAYMENTS_ENABLED/);
+    // Historical closure context — banner names GAP-159 + the PR that closed it
+    // so an operator reading runtime logs can trace the safety story.
+    expect(message).toMatch(/GAP-159/);
+    expect(message).toMatch(/devnet/i);
   });
 });
