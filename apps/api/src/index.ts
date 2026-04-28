@@ -79,6 +79,7 @@ import apiKeysRoute from './routes/api-keys.js';
 import authRoute from './routes/auth.js';
 import billingRoute from './routes/billing.js';
 import provenanceRoute from './routes/code-provenance.js';
+import coinRoute from './routes/coin.js';
 import { createCollabRoute } from './routes/collab.js';
 import contentRoute from './routes/content/index.js';
 import cronBillingReadinessRoute from './routes/cron/billing-readiness.js';
@@ -185,6 +186,7 @@ const PRODUCTION_ORIGINS = [
   'https://revealui.com',
   'https://www.revealui.com',
   'https://marketing.revealui.com',
+  'https://revealcoin.revealui.com',
 ];
 
 export function getCorsOrigins(): string[] {
@@ -194,6 +196,7 @@ export function getCorsOrigins(): string[] {
     return [
       'http://localhost:3000',
       'http://localhost:3001',
+      'http://localhost:3005',
       'http://localhost:4000',
       'http://localhost:5173',
     ];
@@ -1065,6 +1068,7 @@ app.route('/api/logs', logsRoute);
 app.route('/api/license', licenseRoute);
 app.route('/api/auth', authRoute);
 app.route('/api/billing', billingRoute);
+app.route('/api/coin', coinRoute);
 // Webhooks are rate-limited to prevent replay abuse and resource exhaustion.
 // Stripe's DB-backed idempotency handles dedup; this limits request volume.
 app.use('/api/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
@@ -1131,6 +1135,7 @@ app.route('/api/v1/logs', logsRoute);
 app.route('/api/v1/license', licenseRoute);
 app.route('/api/v1/auth', authRoute);
 app.route('/api/v1/billing', billingRoute);
+app.route('/api/v1/coin', coinRoute);
 app.use('/api/v1/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
 app.route('/api/v1/webhooks', webhooksRoute);
 app.route('/api/v1/provenance', provenanceRoute);
