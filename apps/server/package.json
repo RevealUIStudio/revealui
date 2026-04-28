@@ -1,5 +1,5 @@
 {
-  "name": "api",
+  "name": "server",
   "version": "0.1.0",
   "description": "REST API server with OpenAPI spec and Swagger UI for RevealUI",
   "private": true,
