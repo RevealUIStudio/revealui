@@ -8,7 +8,7 @@
  *
  * Fallback path: advisory-lock + UPDATE for the Neon HTTP driver, which
  * does not support row-level locks across stateless HTTP calls. Mirrors
- * the pattern used in apps/api/src/lib/seat-count-guard.ts and
+ * the pattern used in apps/server/src/lib/seat-count-guard.ts and
  * ensureStripeCustomer. Lower throughput but correct.
  *
  * @see packages/db/src/jobs/enqueue.ts — producer side

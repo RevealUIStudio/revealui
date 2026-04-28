@@ -51,21 +51,21 @@
       "migrationPhase": null
     },
     {
-      "path": "apps/api/src/index.ts",
+      "path": "apps/server/src/index.ts",
       "rules": ["execute-sql-literal"],
       "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseAlert. SELECT 1 is the canonical idiomatic liveness check — it asks 'is the DB reachable and responding?' without coupling the probe to any specific application table (which would change the probe's semantic to 'is this particular table reachable?'). Permanent idiomatic raw SQL.",
       "migrationPhase": null
     },
     {
-      "path": "apps/api/src/routes/health.ts",
+      "path": "apps/server/src/routes/health.ts",
       "rules": ["execute-sql-literal"],
-      "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseHealthCheck. Same idiomatic-SELECT-1 rationale as apps/api/src/index.ts. Permanent.",
+      "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseHealthCheck. Same idiomatic-SELECT-1 rationale as apps/server/src/index.ts. Permanent.",
       "migrationPhase": null
     },
     {
       "path": "scripts/dev-tools/verify-test-setup.ts",
       "rules": ["execute-sql-literal"],
-      "reason": "Dev-tool that verifies test-harness DB state. Of its 7 raw-SQL calls, 3 are `SELECT 1` / `SELECT vector(...)` connectivity probes (same idiomatic-liveness rationale as apps/api/src/routes/health.ts) and 4 are information_schema / pg_indexes introspection queries that cannot go through Drizzle's query builder (Drizzle queries defined tables, not Postgres metadata). Permanent.",
+      "reason": "Dev-tool that verifies test-harness DB state. Of its 7 raw-SQL calls, 3 are `SELECT 1` / `SELECT vector(...)` connectivity probes (same idiomatic-liveness rationale as apps/server/src/routes/health.ts) and 4 are information_schema / pg_indexes introspection queries that cannot go through Drizzle's query builder (Drizzle queries defined tables, not Postgres metadata). Permanent.",
       "migrationPhase": null
     },
     {

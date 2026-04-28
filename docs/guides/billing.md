@@ -2,7 +2,7 @@
 
 RevealUI integrates with Stripe for checkout, subscriptions, and billing portal. The billing system uses account-level subscriptions with metered usage for AI and agent features.
 
-**API routes:** `apps/api/src/routes/billing.ts`, `apps/api/src/routes/webhooks.ts`
+**API routes:** `apps/server/src/routes/billing.ts`, `apps/server/src/routes/webhooks.ts`
 
 ---
 
@@ -347,7 +347,7 @@ The billing system uses these NeonDB tables:
 > **Pre-launch posture.** RevealUI runs Stripe in TEST mode in production by default. The live-mode flip (`STRIPE_LIVE_MODE=true` + `sk_live_*` keys) is gated on the internal billing-readiness audit. The checklist below verifies wire-up; flipping live mode requires the audit closing as well.
 
 - [ ] Switch from test keys (`sk_test_*`) to live keys (`sk_live_*`) — gated on the billing-readiness audit
-- [ ] Set `STRIPE_LIVE_MODE=true` in production env (off by default; see `apps/api/src/lib/validate-startup.ts`)
+- [ ] Set `STRIPE_LIVE_MODE=true` in production env (off by default; see `apps/server/src/lib/validate-startup.ts`)
 - [ ] Register the webhook endpoint in Stripe dashboard (not just CLI)
 - [ ] Configure the Customer Portal in Stripe settings
 - [ ] Create products and prices in Stripe that match your tiers

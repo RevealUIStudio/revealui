@@ -1,5 +1,5 @@
 /**
- * Thin fetch wrappers for the RevealCoin endpoints exposed by apps/api.
+ * Thin fetch wrappers for the RevealCoin endpoints exposed by apps/server.
  *
  * URL is resolved from VITE_API_URL at build time (set per Vercel
  * environment). Falls back to api.revealui.com in production builds and

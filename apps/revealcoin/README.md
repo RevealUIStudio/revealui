@@ -9,7 +9,7 @@ Public dashboard for RevealCoin (RVUI / RVC) — token info, allocations, vestin
 - `@revealui/presentation` (UI primitives)
 - Tailwind CSS v4
 - Geist + Geist Mono via `@fontsource-variable`
-- Calls `apps/api`'s `/api/coin/*` endpoints for on-chain data (no client-side Solana RPC)
+- Calls `apps/server`'s `/api/coin/*` endpoints for on-chain data (no client-side Solana RPC)
 
 ## Develop
 
@@ -20,7 +20,7 @@ pnpm --filter revealcoin build
 pnpm --filter revealcoin preview
 ```
 
-`apps/api` must be running on `http://localhost:3004` for `/coin/*` data fetches to succeed in dev. Override the API URL with `VITE_API_URL`.
+`apps/server` must be running on `http://localhost:3004` for `/coin/*` data fetches to succeed in dev. Override the API URL with `VITE_API_URL`.
 
 ## Deploy
 

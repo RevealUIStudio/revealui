@@ -8,7 +8,7 @@
  *
  * @see packages/db/src/schema/jobs.ts — the underlying table
  * @see packages/db/src/jobs/claim.ts — consumer side (SKIP LOCKED dequeue)
- * @see apps/api/src/routes/jobs/run.ts — worker route (HTTP wake target)
+ * @see apps/server/src/routes/jobs/run.ts — worker route (HTTP wake target)
  *
  * @example
  * ```typescript

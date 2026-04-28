@@ -1,0 +1,15 @@
+# Nixpacks build config for RevealUI API (Railway deployment)
+# Railway root dir must be set to the monorepo root (/).
+# Nixpacks runs from the repo root, so commands reference the full path.
+
+[phases.setup]
+nixPkgs = ["nodejs_24"]
+
+[phases.install]
+cmds = ["corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm turbo build --filter=server"]
+
+[start]
+cmd = "node apps/server/dist/index.js"

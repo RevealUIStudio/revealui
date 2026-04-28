@@ -7,7 +7,7 @@
  *
  * Migration: packages/db/migrations/0008_jobs_visibility_timeout.sql
  * Producer/claim modules: packages/db/src/jobs/
- * Worker route (not tested here): apps/api/src/routes/jobs/run.ts
+ * Worker route (not tested here): apps/server/src/routes/jobs/run.ts
  *
  * Uses the `{ db }` override on each primitive to inject PGlite's Drizzle
  * client instead of the singleton getClient(). See drizzle-test-db.ts for

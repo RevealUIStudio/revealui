@@ -52,7 +52,7 @@ const V1_FIXTURE = `# Workboard
 
 | id | env | started | task | files | updated |
 | --- | --- | --- | --- | --- | --- |
-| terminal-1 | WSL/bash | 2026-03-03T14:00Z | Phase 2.7 | apps/api/** | 2026-03-03T14:00Z |
+| terminal-1 | WSL/bash | 2026-03-03T14:00Z | Phase 2.7 | apps/server/** | 2026-03-03T14:00Z |
 | zed-1 | Zed/ACP | 2026-03-03T15:00Z | Phase 2.6 | packages/harnesses/** | 2026-03-03T15:00Z |
 
 ## Recent
@@ -320,10 +320,10 @@ describe('WorkboardManager', () => {
 
   describe('claimFiles / releaseFiles', () => {
     it('sets files on an agent', () => {
-      manager.claimFiles('agent-edit', ['apps/api/**', 'packages/core/**']);
+      manager.claimFiles('agent-edit', ['apps/server/**', 'packages/core/**']);
       const state = manager.read();
       const agent = state.agents.find((a) => a.id === 'agent-edit');
-      expect(agent?.files).toBe('apps/api/**, packages/core/**');
+      expect(agent?.files).toBe('apps/server/**, packages/core/**');
     });
 
     it('clears files on an agent', () => {

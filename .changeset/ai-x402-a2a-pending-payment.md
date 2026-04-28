@@ -4,7 +4,7 @@
 
 A2A handler now emits `pending-payment` task state when the resolved
 agent definition has a `pricing` field AND no payment proof was verified
-upstream by the route. The HTTP layer (`apps/api/src/routes/a2a.ts`)
+upstream by the route. The HTTP layer (`apps/server/src/routes/a2a.ts`)
 verifies `X-PAYMENT-PAYLOAD` headers before calling the handler, sets
 `{ paymentVerified: true }` on success, and converts `pending-payment`
 states into HTTP 402 responses with `X-PAYMENT-REQUIRED` headers (using

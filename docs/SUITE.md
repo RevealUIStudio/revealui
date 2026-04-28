@@ -54,7 +54,7 @@ The agentic business runtime in a single repo. Self-hostable, five primitives, M
 
 ### RevealUI + RevealCoin
 
-**Agent-priced commerce (planned).** MCP servers price each call in `RVC` via x402; agents pay other agents in tokens; an 80/20 platform/developer revenue split is the planned launch policy. Live payouts open with the billing-readiness audit. The marketplace endpoints, Stripe Connect onboarding, and x402 facilitator are wired in `apps/api/src/routes/marketplace.ts`; production payouts pending pre-launch gates.
+**Agent-priced commerce (planned).** MCP servers price each call in `RVC` via x402; agents pay other agents in tokens; an 80/20 platform/developer revenue split is the planned launch policy. Live payouts open with the billing-readiness audit. The marketplace endpoints, Stripe Connect onboarding, and x402 facilitator are wired in `apps/server/src/routes/marketplace.ts`; production payouts pending pre-launch gates.
 
 ### RevealUI + RevSkills
 

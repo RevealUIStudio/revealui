@@ -36,7 +36,7 @@ loses the work — that's the durability gap phase C exists to close.
   public URL.
 - The `agent.dispatch` handler is registered at boot (handled
   automatically by the side-effect import in
-  `apps/api/src/index.ts`).
+  `apps/server/src/index.ts`).
 
 ### Procedure
 
@@ -91,8 +91,8 @@ needs to consult the entitlement row.
 ## Related infrastructure
 
 - Phase A — queue primitive: `packages/db/src/jobs/`,
-  `apps/api/src/routes/jobs/run.ts`
-- Phase B — cron safety-net: `apps/api/src/routes/cron/jobs-safety-net.ts`
+  `apps/server/src/routes/jobs/run.ts`
+- Phase B — cron safety-net: `apps/server/src/routes/cron/jobs-safety-net.ts`
 - Design doc: `~/suite/.jv/docs/CR8-P2-01-native-queue-design.md`
 - Flag-removal follow-up: filed at PR-merge time, scheduled
   ≥ 2 weeks of clean prod operation before removal.

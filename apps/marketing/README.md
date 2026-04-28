@@ -11,8 +11,8 @@ Public marketing site for RevealUI — homepage, blog, pricing, fair-source, con
 - Geist + Geist Mono via `@fontsource-variable`
 - `react-markdown` + `remark-gfm` for blog post rendering
 - `@vercel/speed-insights` (client-side runtime)
-- Cross-origin form posts to `apps/api` (no marketing-side API routes)
-- OG images from `https://api.revealui.com/api/og?...` (Satori-rendered in apps/api)
+- Cross-origin form posts to `apps/server` (no marketing-side API routes)
+- OG images from `https://api.revealui.com/api/og?...` (Satori-rendered in apps/server)
 
 ## Develop
 
@@ -23,7 +23,7 @@ pnpm --filter marketing build
 pnpm --filter marketing preview
 ```
 
-`apps/api` should run on port 3004 for `/api/og`, `/api/contact`, `/api/newsletter` to work cross-origin in dev.
+`apps/server` should run on port 3004 for `/api/og`, `/api/contact`, `/api/newsletter` to work cross-origin in dev.
 
 ## Deploy
 

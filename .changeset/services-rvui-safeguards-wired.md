@@ -12,7 +12,7 @@ gated `RVUI_PAYMENTS_ENABLED=true` in any real-money environment.
 Signature change: `verifyRvuiPayment(txSignature, expectedAmountRaw,
 expectedRecipient, safeguards: { userId, amountUsd })` — the new 4th
 parameter is required because the safeguards pipeline keys on user +
-USD value. Pre-existing callers in `apps/api/src/middleware/x402.ts`
+USD value. Pre-existing callers in `apps/server/src/middleware/x402.ts`
 (`verifySolanaPayment`) and four other route surfaces are updated to
 thread the context.
 

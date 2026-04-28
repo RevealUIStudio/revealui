@@ -1,5 +1,5 @@
 /**
- * Cross-origin fetch helpers for apps/api endpoints used by marketing.
+ * Cross-origin fetch helpers for apps/server endpoints used by marketing.
  *
  * URL is resolved from VITE_API_URL at build time. Falls back to
  * api.revealui.com in production builds and localhost:3004 in dev.
@@ -44,7 +44,7 @@ export async function submitContact(payload: ContactPayload): Promise<string | n
       body: JSON.stringify({ ...payload, source: 'marketing-site' }),
     });
     if (res.ok) return null;
-    // empty-catch-ok: malformed JSON from apps/api shouldn't crash the form; falls back to a generic status-coded message below.
+    // empty-catch-ok: malformed JSON from apps/server shouldn't crash the form; falls back to a generic status-coded message below.
     const data = (await res.json().catch(() => ({}))) as { message?: string };
     return data.message ?? `Submission failed: ${res.status}`;
   } catch {
@@ -64,7 +64,7 @@ export async function submitNewsletter(payload: NewsletterPayload): Promise<stri
       body: JSON.stringify({ email: payload.email, source: 'marketing-site' }),
     });
     if (res.ok) return null;
-    // empty-catch-ok: malformed JSON from apps/api shouldn't crash the form; falls back to a generic status-coded message below.
+    // empty-catch-ok: malformed JSON from apps/server shouldn't crash the form; falls back to a generic status-coded message below.
     const data = (await res.json().catch(() => ({}))) as { message?: string };
     return data.message ?? `Subscription failed: ${res.status}`;
   } catch {
@@ -73,7 +73,7 @@ export async function submitNewsletter(payload: NewsletterPayload): Promise<stri
 }
 
 /**
- * Fetch published blog posts from apps/api's content endpoint. Returns the
+ * Fetch published blog posts from apps/server's content endpoint. Returns the
  * paginated list; static-post merging happens in the caller.
  */
 export async function fetchPosts(page = 1, limit = 12): Promise<BlogPost[]> {
@@ -92,7 +92,7 @@ export async function fetchPosts(page = 1, limit = 12): Promise<BlogPost[]> {
 
 /**
  * Fetch a single blog post by slug. Returns null when the post is missing or
- * apps/api is unreachable; the caller can fall back to the static registry.
+ * apps/server is unreachable; the caller can fall back to the static registry.
  */
 export async function fetchPostBySlug(slug: string): Promise<BlogPost | null> {
   try {

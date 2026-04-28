@@ -42,7 +42,7 @@ The `aiAccessMode` field on entitlements controls enforcement:
 
 ### Quota Enforcement
 
-Task quota middleware (`apps/api/src/middleware/task-quota.ts`) runs on every agent request:
+Task quota middleware (`apps/server/src/middleware/task-quota.ts`) runs on every agent request:
 
 1. Read current month's usage from `agent_task_usage` table
 2. If under quota, allow and increment atomically

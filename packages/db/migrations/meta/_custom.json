@@ -29,7 +29,7 @@
     },
     {
       "tag": "0007_account_membership_seat_limit",
-      "rationale": "PG PL/pgSQL trigger (enforce_account_membership_seat_limit) plus BEFORE INSERT / UPDATE OF status trigger on account_memberships — DB-level backstop for the app-level guard at apps/api/src/lib/seat-count-guard.ts. CR8-P2-03 defense-in-depth. Not expressible in Drizzle's schema DSL (no schema changes; trigger + function only).",
+      "rationale": "PG PL/pgSQL trigger (enforce_account_membership_seat_limit) plus BEFORE INSERT / UPDATE OF status trigger on account_memberships — DB-level backstop for the app-level guard at apps/server/src/lib/seat-count-guard.ts. CR8-P2-03 defense-in-depth. Not expressible in Drizzle's schema DSL (no schema changes; trigger + function only).",
       "missingSnapshot": true,
       "snapshotDebtNote": "Snapshot would be a copy of 0006's snapshot (this migration adds no Drizzle-modeled columns/tables), but is omitted to avoid confusion, matching the 0002_triggers_search_vectors precedent."
     },

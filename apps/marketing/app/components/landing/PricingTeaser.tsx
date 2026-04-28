@@ -3,7 +3,7 @@ import { Button, ButtonCVA } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 
 // Fallback used when /api/pricing is unreachable. Mirrors HARDCODED_SUBSCRIPTION_PRICES
-// in apps/api/src/routes/pricing.ts. The billing-readiness cron drift-checks the API
+// in apps/server/src/routes/pricing.ts. The billing-readiness cron drift-checks the API
 // hardcodes against Stripe; keep these in sync when that cron fires. Stripe Dashboard
 // is the canonical source of truth.
 const TEASER_FALLBACK_PRICE: Record<LicenseTierId, { price: string; period?: string }> = {

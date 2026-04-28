@@ -297,7 +297,7 @@ Payments are where business software earns its name. RevealUI integrates Stripe 
 Every Stripe API call goes through a circuit breaker. If Stripe returns 5 consecutive failures, the breaker opens and requests fail fast with a 503 for 30 seconds instead of piling up timeouts. After the cooldown, 2 successful requests close the breaker.
 
 ```typescript
-// apps/api/src/routes/billing.ts
+// apps/server/src/routes/billing.ts
 const stripeBreaker = new CircuitBreaker({
   failureThreshold: 5,
   resetTimeout: 30_000,
@@ -323,7 +323,7 @@ async function withStripe<T>(operation: (stripe: Stripe) => Promise<T>): Promise
 Stripe delivers webhooks at least once. In a multi-region deployment (Vercel edge), the same webhook can arrive at different instances simultaneously. RevealUI uses a `processed_webhook_events` table with an atomic INSERT to deduplicate:
 
 ```typescript
-// apps/api/src/routes/webhooks.ts
+// apps/server/src/routes/webhooks.ts
 async function checkAndMarkProcessed(
   db: Database,
   eventId: string,
@@ -376,7 +376,7 @@ The fifth primitive is AI. Not a chatbot bolted onto a sidebar, but an agent orc
 AI agent execution streams results in real-time using Server-Sent Events. The client posts an instruction, and the server streams execution events as they happen:
 
 ```typescript
-// apps/api/src/routes/agent-stream.ts
+// apps/server/src/routes/agent-stream.ts
 app.openapi(agentStreamRoute, async (c) => {
   const body = c.req.valid('json');
 

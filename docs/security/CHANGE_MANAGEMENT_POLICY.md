@@ -64,7 +64,7 @@ Changes to the following areas require additional scrutiny:
 
 | Area | Packages/Files | Additional Requirements |
 |------|---------------|----------------------|
-| Authentication | `@revealui/auth`, `apps/api/src/routes/auth*` | Review for bypass vulnerabilities, timing attacks |
+| Authentication | `@revealui/auth`, `apps/server/src/routes/auth*` | Review for bypass vulnerabilities, timing attacks |
 | Authorization | `@revealui/core` (RBAC/ABAC), `proxy.ts` | Verify role isolation tests pass (58 tests) |
 | Cryptography | `@revealui/security` (encryption, signing) | Review algorithm choices, key management |
 | Payments | `@revealui/services` (Stripe), webhook routes | Verify signature validation, rate limiting |

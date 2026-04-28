@@ -1,6 +1,6 @@
 /**
  * OG image URL helper. Builds a `https://api.revealui.com/api/og?...` URL
- * for the satori-based renderer in apps/api. Used by per-page route
+ * for the satori-based renderer in apps/server. Used by per-page route
  * components when they want a custom OG image; the global default lives in
  * `index.html`.
  */

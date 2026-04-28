@@ -13,7 +13,7 @@
  *                    into the output JSONB
  *
  * See packages/db/src/jobs/ for the producer + claim primitives and
- * apps/api/src/routes/jobs/run.ts for the worker route.
+ * apps/server/src/routes/jobs/run.ts for the worker route.
  */
 
 import { sql } from 'drizzle-orm';

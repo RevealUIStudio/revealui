@@ -26,7 +26,7 @@ import { expect, test } from '@playwright/test';
 import { checkAccessibilityCritical } from './utils/a11y-helper';
 
 // ---------------------------------------------------------------------------
-// API Health Checks (apps/api  -  port 3004)
+// API Health Checks (apps/server  -  port 3004)
 // ---------------------------------------------------------------------------
 
 test.describe('API health', () => {

@@ -122,7 +122,7 @@ Give users the ability to interact with an AI agent directly from the admin dash
 - Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
 
 #### Edge Cache + Encryption Helpers Integration
-- **`@revealui/cache`** edge-cache helpers (`getABTestVariant`, `addPreloadLinks`, `warmISRCache`, `setEdgeCacheHeaders`) — implemented in `packages/cache/src/edge-cache.ts` but not yet wired into `apps/marketing` or `apps/api` middleware. Not exported from the package barrel pending real consumer.
+- **`@revealui/cache`** edge-cache helpers (`getABTestVariant`, `addPreloadLinks`, `warmISRCache`, `setEdgeCacheHeaders`) — implemented in `packages/cache/src/edge-cache.ts` but not yet wired into `apps/marketing` or `apps/server` middleware. Not exported from the package barrel pending real consumer.
 - **`@revealui/security`** encryption + authorization helpers (`EncryptionSystem`, `FieldEncryption`, `KeyRotationManager`, `TokenGenerator`, `DataMasking`, `EnvelopeEncryption`, `PolicyBuilder`, `PermissionBuilder`) — implemented but not exported from the barrel. Production encryption today flows through KEK + revvault directly; these helpers are reserved for future consumer-facing surfaces.
 
 #### Developer Experience — [#535](https://github.com/RevealUIStudio/revealui/issues/535)
