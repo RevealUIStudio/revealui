@@ -536,3 +536,157 @@ describe('validateStartup — forge mode', () => {
     expect(() => validateStartup(env)).toThrow(/STARTUP VALIDATION FAILED \(forge mode\)/);
   });
 });
+
+// ─── x402 + RVUI activation gates (mode-agnostic) ──────────────────────
+import { emitRvuiSafeguardsWarning } from '../validate-startup.js';
+
+describe('validateStartup — x402 activation gate', () => {
+  const validUsdcAddr = `0x${'a'.repeat(40)}`;
+
+  beforeEach(() => {
+    // Suppress unrelated banners (Stripe test-mode) so test output stays clean.
+    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+  });
+
+  it('passes when X402_ENABLED is unset (default posture)', () => {
+    expect(() => validateStartup(validTestProdEnv())).not.toThrow();
+  });
+
+  it('throws when X402_ENABLED=true but X402_RECEIVING_ADDRESS is missing', () => {
+    expect(() => validateStartup(validTestProdEnv({ X402_ENABLED: 'true' }))).toThrow(
+      /X402_RECEIVING_ADDRESS/,
+    );
+  });
+
+  it('throws when X402_ENABLED=true and X402_RECEIVING_ADDRESS is malformed', () => {
+    expect(() =>
+      validateStartup(
+        validTestProdEnv({
+          X402_ENABLED: 'true',
+          X402_RECEIVING_ADDRESS: 'not-a-wallet',
+        }),
+      ),
+    ).toThrow(/0x-prefixed.*40-hex/);
+  });
+
+  it('throws on a 0x-prefixed address that is the wrong length', () => {
+    expect(() =>
+      validateStartup(
+        validTestProdEnv({
+          X402_ENABLED: 'true',
+          X402_RECEIVING_ADDRESS: `0x${'a'.repeat(39)}`,
+        }),
+      ),
+    ).toThrow(/0x-prefixed.*40-hex/);
+  });
+
+  it('accepts X402_ENABLED=true with a valid 0x40-hex EVM address', () => {
+    expect(() =>
+      validateStartup(
+        validTestProdEnv({
+          X402_ENABLED: 'true',
+          X402_RECEIVING_ADDRESS: validUsdcAddr,
+        }),
+      ),
+    ).not.toThrow();
+  });
+
+  it('treats any non-"true" value as disabled (e.g. "1", "false")', () => {
+    expect(() => validateStartup(validTestProdEnv({ X402_ENABLED: '1' }))).not.toThrow();
+    expect(() => validateStartup(validTestProdEnv({ X402_ENABLED: 'false' }))).not.toThrow();
+  });
+
+  it('also enforces the gate in forge mode (mode-agnostic)', () => {
+    expect(() => validateStartup(validForgeProdEnv({ X402_ENABLED: 'true' }))).toThrow(
+      /X402_RECEIVING_ADDRESS/,
+    );
+  });
+});
+
+describe('validateStartup — RVUI activation gate + GAP-159 warning', () => {
+  const validUsdcAddr = `0x${'a'.repeat(40)}`;
+  const validRvuiWallet = 'EFvaPJL7HpFvzG7g7CKyP1u4LpY9Wn8sBprS1Pw7tJM6'; // base58 placeholder
+
+  it('passes when RVUI_PAYMENTS_ENABLED is unset', () => {
+    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    expect(() => validateStartup(validTestProdEnv())).not.toThrow();
+  });
+
+  it('throws when RVUI_PAYMENTS_ENABLED=true but RVUI_RECEIVING_WALLET is missing', () => {
+    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    expect(() => validateStartup(validTestProdEnv({ RVUI_PAYMENTS_ENABLED: 'true' }))).toThrow(
+      /RVUI_RECEIVING_WALLET/,
+    );
+  });
+
+  it('emits the GAP-159 banner when RVUI_PAYMENTS_ENABLED=true and wallet is set', () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    validateStartup(
+      validTestProdEnv({
+        RVUI_PAYMENTS_ENABLED: 'true',
+        RVUI_RECEIVING_WALLET: validRvuiWallet,
+      }),
+    );
+
+    const messages = warnSpy.mock.calls.map((c) => String(c[0] ?? ''));
+    const rvuiBanner = messages.find((m) => m.includes('GAP-159'));
+    expect(rvuiBanner).toBeDefined();
+    expect(rvuiBanner).toMatch(/replay-attack hole/);
+  });
+
+  it('does NOT emit the GAP-159 banner when RVUI_PAYMENTS_ENABLED is unset', () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    validateStartup(validTestProdEnv());
+
+    const messages = warnSpy.mock.calls.map((c) => String(c[0] ?? ''));
+    expect(messages.some((m) => m.includes('GAP-159'))).toBe(false);
+  });
+
+  it('emits both Stripe test-mode AND GAP-159 banners when both apply', () => {
+    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    validateStartup(
+      validTestProdEnv({
+        RVUI_PAYMENTS_ENABLED: 'true',
+        RVUI_RECEIVING_WALLET: validRvuiWallet,
+      }),
+    );
+
+    const messages = warnSpy.mock.calls.map((c) => String(c[0] ?? ''));
+    expect(messages.some((m) => m.includes('STRIPE TEST MODE'))).toBe(true);
+    expect(messages.some((m) => m.includes('GAP-159'))).toBe(true);
+  });
+
+  it('also enforces the RVUI gate in forge mode', () => {
+    expect(() => validateStartup(validForgeProdEnv({ RVUI_PAYMENTS_ENABLED: 'true' }))).toThrow(
+      /RVUI_RECEIVING_WALLET/,
+    );
+  });
+
+  it('combines x402 + RVUI activation gates without conflict', () => {
+    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    expect(() =>
+      validateStartup(
+        validTestProdEnv({
+          X402_ENABLED: 'true',
+          X402_RECEIVING_ADDRESS: validUsdcAddr,
+          RVUI_PAYMENTS_ENABLED: 'true',
+          RVUI_RECEIVING_WALLET: validRvuiWallet,
+        }),
+      ),
+    ).not.toThrow();
+  });
+});
+
+describe('emitRvuiSafeguardsWarning', () => {
+  it('writes a single banner naming GAP-159 + the replay-attack hole', () => {
+    const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    emitRvuiSafeguardsWarning();
+
+    expect(writeSpy).toHaveBeenCalledTimes(1);
+    const message = String(writeSpy.mock.calls[0]?.[0] ?? '');
+    expect(message).toMatch(/GAP-159/);
+    expect(message).toMatch(/replay-attack hole/);
+    expect(message).toMatch(/safeguards pipeline/i);
+    expect(message).toMatch(/RVUI_PAYMENTS_ENABLED/);
+  });
+});

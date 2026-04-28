@@ -164,4 +164,4 @@ aiInference:     max      Open-model inference configuration (snaps, harness)
 | `OLLAMA_BASE_URL` | No | Ollama server URL (default: `http://localhost:11434/v1`) |
 | `LLM_PROVIDER` | No | Force specific inference path (overrides auto-detection) |
 | `LLM_MODEL` | No | Override default model for the selected inference path |
-| `X402_ENABLED` | No | Enable USDC payment fallback when quota exceeded |
+| `X402_ENABLED` | No | Enable x402 payments (USDC + optional RVUI). Activates 402 emission on quota exhaust + per-agent pricing. See [x402.md](./x402.md) for the full activation flow. |

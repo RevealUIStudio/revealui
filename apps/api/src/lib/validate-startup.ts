@@ -230,6 +230,41 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
     }
   }
 
+  // ── x402 native payment activation (mode-agnostic) ────────────────
+  // When operators flip X402_ENABLED=true, a non-empty receiving address
+  // must be configured — otherwise 402 responses would advertise an empty
+  // payTo and drop payments. See docs/architecture/x402.md for activation.
+  if (env.X402_ENABLED === 'true') {
+    const receivingAddress = env.X402_RECEIVING_ADDRESS ?? '';
+    if (!receivingAddress) {
+      errors.push(
+        'X402_ENABLED=true requires X402_RECEIVING_ADDRESS (USDC receiving wallet) to be set. ' +
+          'See docs/architecture/x402.md for activation steps.',
+      );
+    } else if (!/^0x[0-9a-f]{40}$/i.test(receivingAddress)) {
+      errors.push(
+        `X402_RECEIVING_ADDRESS must be a 0x-prefixed 40-hex EVM address. Got: ${JSON.stringify(receivingAddress)}.`,
+      );
+    }
+  }
+
+  // ── RVUI payment activation (mode-agnostic, gated on GAP-159) ────
+  // RVUI verification skips the safeguards pipeline (validatePayment +
+  // recordPayment + isDuplicateTransaction) — same on-chain signature can
+  // be replayed N times. Boot warns loudly when RVUI is enabled so the
+  // posture is unmistakable in runtime logs. The hard fix is GAP-159 in
+  // revealui-jv (wires safeguards into x402.verifySolanaPayment).
+  if (env.RVUI_PAYMENTS_ENABLED === 'true') {
+    const rvuiReceivingWallet = env.RVUI_RECEIVING_WALLET ?? '';
+    if (!rvuiReceivingWallet) {
+      errors.push(
+        'RVUI_PAYMENTS_ENABLED=true requires RVUI_RECEIVING_WALLET (Solana wallet) to be set. ' +
+          'See docs/architecture/x402.md for activation steps.',
+      );
+    }
+    emitRvuiSafeguardsWarning();
+  }
+
   if (errors.length > 0) {
     throw new Error(`STARTUP VALIDATION FAILED:\n  - ${errors.join('\n  - ')}`);
   }
@@ -330,5 +365,33 @@ export function emitStripeTestModeWarning(): void {
   // the project's noConsole lint rule. Semantically this is a warning,
   // and stderr is the canonical destination — Vercel captures it as a
   // runtime log identically to a higher-level warning facade.
+  process.stderr.write(banner);
+}
+
+/**
+ * Emitted once per cold start when running with `RVUI_PAYMENTS_ENABLED=true`.
+ * The RVUI verification path skips the safeguards pipeline today (replay
+ * attack hole tracked as GAP-159 in revealui-jv); the warning makes the
+ * posture unmistakable in runtime logs so an operator can't accidentally
+ * leave it on in an environment carrying real RVC value.
+ */
+export function emitRvuiSafeguardsWarning(): void {
+  const banner = [
+    '',
+    '⚠️  ╔══════════════════════════════════════════════════════════════════╗',
+    '⚠️  ║  RVUI PAYMENTS — replay-attack hole (GAP-159)                    ║',
+    '⚠️  ║                                                                  ║',
+    '⚠️  ║  RVUI_PAYMENTS_ENABLED=true and the RVUI safeguards pipeline    ║',
+    '⚠️  ║  (validatePayment + recordPayment + isDuplicateTransaction) is  ║',
+    '⚠️  ║  unwired upstream of verifyRvuiPayment. A single txSignature    ║',
+    '⚠️  ║  can be replayed N times across paid endpoints — all N pass.    ║',
+    '⚠️  ║                                                                  ║',
+    '⚠️  ║  Safe ONLY in devnet test environments. Do NOT enable in any    ║',
+    '⚠️  ║  environment carrying real RVC value until GAP-159 closes —     ║',
+    '⚠️  ║  wires safeguards into x402.verifySolanaPayment.                ║',
+    '⚠️  ╚══════════════════════════════════════════════════════════════════╝',
+    '',
+    '',
+  ].join('\n');
   process.stderr.write(banner);
 }
