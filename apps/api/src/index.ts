@@ -75,6 +75,7 @@ import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
 import agentStreamElicitRoute from './routes/agent-stream-elicit.js';
 import agentTasksRoute from './routes/agent-tasks.js';
+import analyticsRoute from './routes/analytics.js';
 import apiKeysRoute from './routes/api-keys.js';
 import authRoute from './routes/auth.js';
 import billingRoute from './routes/billing.js';
@@ -755,6 +756,12 @@ app.put(
   requireFeature('devkitProfiles', { mode: 'entitlements' }),
 );
 
+// Analytics is a Pro+ tier feature ("analytics" in DEFAULT_FEATURES). All
+// analytics routes are read-only aggregations over usage_meters scoped to
+// the authenticated user's account; gate the entire surface.
+app.use('/api/analytics/*', requireFeature('analytics', { mode: 'entitlements' }));
+app.use('/api/v1/analytics/*', requireFeature('analytics', { mode: 'entitlements' }));
+
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
@@ -1100,6 +1107,7 @@ app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);
 app.route('/api/admin/inference/config', adminInferenceConfigRoute);
+app.route('/api/analytics', analyticsRoute);
 app.route('/api/devkit', devkitRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
@@ -1160,6 +1168,7 @@ app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);
 app.route('/api/v1/admin/inference/config', adminInferenceConfigRoute);
+app.route('/api/v1/analytics', analyticsRoute);
 app.route('/api/v1/devkit', devkitRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
