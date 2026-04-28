@@ -92,6 +92,13 @@
       "when": 1777302887090,
       "tag": "0012_living_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1777338844908,
+      "tag": "0013_zippy_quentin_quire",
+      "breakpoints": true
     }
   ]
 }

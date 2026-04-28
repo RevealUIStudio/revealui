@@ -78,6 +78,12 @@ export const users = pgTable(
     // SSH terminal auth (Phase E  -  `ssh terminal.revealui.com`)
     sshKeyFingerprint: text('ssh_key_fingerprint'),
 
+    // Active DevKit profile (Max-tier `devkitProfiles` paywall). Null = no
+    // override; CLI/UI consumer falls back to its own default. Set via
+    // PUT /api/devkit/profile/active. CHECK constraint enumerates the
+    // allowed values from packages/contracts/src/devkit-profiles.ts.
+    devkitProfile: text('devkit_profile'),
+
     // User preferences (JSON blob)
     preferences: jsonb('preferences'),
 
@@ -114,6 +120,14 @@ export const users = pgTable(
     ),
     check('users_status_check', sql`status IN ('active', 'suspended', 'deleted', 'pending')`),
     check('users_type_check', sql`type IN ('human', 'agent', 'system')`),
+    // Mirrors DEVKIT_PROFILES in packages/contracts/src/devkit-profiles.ts.
+    // NULL is allowed (= no override; CLI/UI consumer applies its own
+    // default, which today is `revealui` per the recommended-flag in the
+    // metadata). Non-NULL must be one of the five IDs.
+    check(
+      'users_devkit_profile_check',
+      sql`devkit_profile IS NULL OR devkit_profile IN ('agents', 'claude', 'cursor', 'revealui', 'zed')`,
+    ),
   ],
 );
 

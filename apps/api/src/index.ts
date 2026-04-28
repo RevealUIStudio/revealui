@@ -71,6 +71,7 @@ import { tenantMiddleware } from './middleware/tenant.js';
 import { a2aRoutes, wellKnownRoutes } from './routes/a2a.js';
 import adminInferenceConfigRoute from './routes/admin/inference-config.js';
 import adminObservabilityRoute from './routes/admin/observability.js';
+import devkitRoute from './routes/devkit.js';
 import { createAgentCollabRoute } from './routes/agent-collab.js';
 import agentStreamRoute from './routes/agent-stream.js';
 import agentStreamElicitRoute from './routes/agent-stream-elicit.js';
@@ -744,6 +745,16 @@ app.use('/api/v1/admin/audit/export', requireFeature('auditLog', { mode: 'entitl
 app.use('/api/admin/inference/config*', requireFeature('aiInference', { mode: 'entitlements' }));
 app.use('/api/v1/admin/inference/config*', requireFeature('aiInference', { mode: 'entitlements' }));
 
+// Per-user DevKit profile selection is a Max+ tier feature ("devkitProfiles"
+// in DEFAULT_FEATURES). Only the PUT to set the active profile is gated;
+// GET /profiles (list) and GET /profile/active (read own selection) are
+// authenticated but free for all tiers.
+app.put('/api/devkit/profile/active', requireFeature('devkitProfiles', { mode: 'entitlements' }));
+app.put(
+  '/api/v1/devkit/profile/active',
+  requireFeature('devkitProfiles', { mode: 'entitlements' }),
+);
+
 // Write-protect mutation endpoints  -  these require authentication
 const writeProtected = authMiddleware({ required: true });
 
@@ -1089,6 +1100,7 @@ app.route('/api/content', contentRoute);
 app.route('/api/rag', ragIndexRoute);
 app.route('/api/admin', adminObservabilityRoute);
 app.route('/api/admin/inference/config', adminInferenceConfigRoute);
+app.route('/api/devkit', devkitRoute);
 app.route('/api/api-keys', apiKeysRoute);
 app.route('/api/cron', cronBillingReadinessRoute);
 app.route('/api/cron', cronDispatchRoute);
@@ -1148,6 +1160,7 @@ app.route('/api/v1/content', contentRoute);
 app.route('/api/v1/rag', ragIndexRoute);
 app.route('/api/v1/admin', adminObservabilityRoute);
 app.route('/api/v1/admin/inference/config', adminInferenceConfigRoute);
+app.route('/api/v1/devkit', devkitRoute);
 app.route('/api/v1/api-keys', apiKeysRoute);
 app.route('/api/v1/cron', cronBillingReadinessRoute);
 app.route('/api/v1/cron', cronDispatchRoute);
