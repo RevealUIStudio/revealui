@@ -201,8 +201,8 @@ ANTHROPIC_API_KEY=your-key-here
 # For OpenAI
 OPENAI_API_KEY=your-key-here
 
-# For Vultr
-VULTR_API_KEY=your-key-here
+# For Groq
+GROQ_API_KEY=gsk_your-key-here
 ```
 
 ### Agent seems confused

@@ -216,7 +216,7 @@ function checkEmptyCatch(file: FoundFile, content: string, allow: AllowlistMatch
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i] ?? '';
-    if (!EMPTY_BLOCK_CATCH.test(line) && !EMPTY_RETURN_CATCH.test(line)) continue;
+    if (!(EMPTY_BLOCK_CATCH.test(line) || EMPTY_RETURN_CATCH.test(line))) continue;
     const lineNo = i + 1;
     if (isAllowlisted(allow, file.rel, lineNo)) continue;
     if (isLineSuppressed(lines, i)) continue;

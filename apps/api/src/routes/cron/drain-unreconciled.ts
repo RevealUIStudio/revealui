@@ -85,7 +85,7 @@ app.post('/drain-unreconciled', async (c) => {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET;
 
-  if (!stripeSecretKey || !webhookSecret) {
+  if (!(stripeSecretKey && webhookSecret)) {
     return c.json(
       {
         error:

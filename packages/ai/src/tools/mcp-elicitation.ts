@@ -207,6 +207,6 @@ export function createElicitationHandler(
 
 /** Count the declared fields on a `requestedSchema.properties` record. */
 function countSchemaFields(schema: McpElicitRequestParams['requestedSchema']): number {
-  if (!(schema && schema.properties && typeof schema.properties === 'object')) return 0;
+  if (!(schema?.properties && typeof schema.properties === 'object')) return 0;
   return Object.keys(schema.properties).length;
 }

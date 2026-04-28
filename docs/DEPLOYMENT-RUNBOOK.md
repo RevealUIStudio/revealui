@@ -205,7 +205,7 @@ See [Section 5](#5-database-migration-steps) for details.
 
 - **Primary database**: NeonDB (PostgreSQL, Drizzle ORM)
 - **Secondary database**: Supabase (vectors, auth)
-- **Schema definitions**: `packages/db/src/schema/` (85 tables)
+- **Schema definitions**: `packages/db/src/schema/` (86 tables)
 - **Migration files**: `packages/db/migrations/`
 - **ORM config**: `packages/db/drizzle.config.ts`
 

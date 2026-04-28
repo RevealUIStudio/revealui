@@ -121,7 +121,7 @@ For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-0
 
 ## MCP Setup
 
-RevealUI ships **13 MCP servers** under `packages/mcp/src/servers/` for enhanced AI capabilities. Highlights:
+RevealUI ships **12 MCP servers** under `packages/mcp/src/servers/` for enhanced AI capabilities. Highlights:
 
 - **Code Validator MCP** - Static analysis and code quality checks
 - **Vercel MCP** - Deploy and manage Vercel projects
@@ -132,7 +132,6 @@ RevealUI ships **13 MCP servers** under `packages/mcp/src/servers/` for enhanced
 - **Next.js DevTools MCP** - Next.js 16+ runtime diagnostics and automation
 - **RevealUI Content MCP** - admin content collections via MCP
 - **RevealUI Email MCP** + **RevealUI Memory MCP** - first-party platform servers
-- **Vultr Test MCP** - inference provider test harness
 
 The full list lives at [`packages/mcp/src/servers/`](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp/src/servers); exports use launcher functions (`launchStripeMcp`, `launchSupabaseMcp`, etc.).
 
@@ -941,7 +940,6 @@ RevealUI AI runs exclusively on open source models. No proprietary cloud APIs, n
 |------|---------|-------|
 | **Ollama** | Local GGUF models | Any open source GGUF model. Default: `gemma4:e2b` |
 | **HuggingFace** | HuggingFace Inference API | Open models hosted on HuggingFace infrastructure |
-| **Vultr** | Vultr GPU Cloud | Open models on Vultr serverless inference |
 
 ### Planned (roadmap)
 
@@ -957,7 +955,7 @@ import { createLLMClientFromEnv } from "@revealui/ai/llm/client";
 // Auto-detects from environment in precedence order:
 //   INFERENCE_SNAPS_BASE_URL (if set — planned path, manual wiring)
 //   OLLAMA_BASE_URL (default local runtime)
-//   HUGGINGFACE_API_KEY / VULTR_API_KEY (hosted fallbacks)
+//   HUGGINGFACE_API_KEY (hosted fallback)
 const llm = createLLMClientFromEnv();
 
 const response = await llm.chat([{ role: "user", content: "Hello!" }]);
@@ -976,12 +974,8 @@ OLLAMA_BASE_URL=http://localhost:11434/v1
 # HuggingFace Inference API (open models)
 HUGGINGFACE_API_KEY=hf_xxxxx
 
-# Vultr GPU Cloud (open models, serverless inference)
-VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
-VULTR_BASE_URL=https://api.vultrinference.com/v1
-
 # Force specific inference path (overrides auto-detection)
-# Valid values: ollama, huggingface, vultr, inference-snaps (planned)
+# Valid values: ollama, huggingface, inference-snaps (planned)
 LLM_PROVIDER=ollama
 ```
 
@@ -996,7 +990,7 @@ LLM_PROVIDER=ollama
 ## Per-user provider keys
 
 For multi-tenant deployments, individual users can register their own keys for the
-**open-model** provider endpoints supported by RevealUI — Vultr, HuggingFace, Groq,
+**open-model** provider endpoints supported by RevealUI — HuggingFace, Groq,
 Ollama, and Ubuntu Inference Snaps. Proprietary "bring-your-own-key" paths
 (Anthropic, OpenAI, etc.) were removed on 2026-04-05 in the open-model-only pivot;
 `@revealui/ai` only ships providers for Apache-2.0 / Fair-Source open models.

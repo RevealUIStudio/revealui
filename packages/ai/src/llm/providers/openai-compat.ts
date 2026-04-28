@@ -2,7 +2,7 @@
  * OpenAI-Compatible Provider
  *
  * Base implementation for any LLM API that follows the OpenAI chat/completions
- * format. Used by: Ollama, Groq, Inference Snaps, Vultr.
+ * format. Used by: Ollama, Groq, Inference Snaps.
  * NOT for direct OpenAI usage  -  RevealUI uses open-source models only.
  */
 

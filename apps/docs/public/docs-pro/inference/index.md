@@ -1,6 +1,6 @@
 # Open-Model Inference
 
-RevealUI AI defaults to open-model inference (Snaps, Ollama). Cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible endpoints) are pluggable but opt-in via environment variables.
+RevealUI AI defaults to open-model inference (Snaps, Ollama). Cloud-compatible providers (Groq, HuggingFace, OpenAI-compatible endpoints) are pluggable but opt-in via environment variables.
 
 ## Planned: Ubuntu Inference Snaps
 
@@ -53,7 +53,6 @@ When `INFERENCE_SNAPS_BASE_URL` is set, the LLM client auto-detects it as the pr
 | **Ollama** (default) | Local GGUF models | Free (your hardware) | Flexible  -  any open source GGUF model (Gemma 4, Qwen, Mistral) |
 | **Ubuntu Inference Snaps** (planned) | Canonical snap runtime | Free (your hardware) | Local production  -  Gemma 3, Nemotron-Nano, DeepSeek-R1, Qwen-VL |
 | **HuggingFace** | HuggingFace Inference API | API usage costs | Open models hosted on HuggingFace infrastructure |
-| **Vultr** | Vultr GPU Cloud | API usage costs | Open models on Vultr serverless inference |
 
 ## Ollama (Open Source Models)
 
@@ -80,17 +79,6 @@ Configure:
 HUGGINGFACE_API_KEY=hf_xxxxx
 ```
 
-## Vultr GPU Cloud
-
-Open models on Vultr serverless GPU inference.
-
-Configure:
-
-```bash
-VULTR_API_KEY=VXUUC6WSXXXXXXXXXXXXXXXXXXXXXXXXXX
-VULTR_BASE_URL=https://api.vultrinference.com/v1
-```
-
 ## Auto-Detection
 
 The LLM client factory auto-detects your inference path in this order:
@@ -100,7 +88,6 @@ The LLM client factory auto-detects your inference path in this order:
 3. `GROQ_API_KEY`
 4. `OLLAMA_BASE_URL`
 5. `HUGGINGFACE_API_KEY`
-6. `VULTR_API_KEY`
 
 ## Server-side Usage
 
@@ -118,6 +105,6 @@ const response = await llm.chat([
 ## Security
 
 - Local providers (snaps, Ollama): no API keys leave your infrastructure
-- Cloud providers (Groq, HuggingFace, Vultr, OpenAI-compatible): data is sent to your chosen endpoint when API keys are configured. Picking only open-weights models is your choice; the package supports both.
+- Cloud providers (Groq, HuggingFace, OpenAI-compatible): data is sent to your chosen endpoint when API keys are configured. Picking only open-weights models is your choice; the package supports both.
 - Air-gap capability with Ollama (zero network required after model download). The default RevealUI deployment also depends on cloud services (Postgres / Stripe / Blob storage) — the local AI path is optional, not a guarantee that the whole stack runs offline.
 - Inference snaps are signed and verified by Canonical

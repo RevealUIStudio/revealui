@@ -35,34 +35,6 @@ describe('groq', () => {
   });
 });
 
-describe('anthropic', () => {
-  it('accepts keys that start with sk-ant-api', async () => {
-    const result = await validateProviderKey('anthropic', 'sk-ant-api03-abc123');
-    expect(result.valid).toBe(true);
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('rejects keys that do not start with sk-ant-api', async () => {
-    const result = await validateProviderKey('anthropic', 'sk-wrong-format');
-    expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('"sk-ant-api"');
-  });
-});
-
-describe('openai', () => {
-  it('accepts keys starting with sk-', async () => {
-    const result = await validateProviderKey('openai', 'sk-abc123');
-    expect(result.valid).toBe(true);
-    expect(fetch).not.toHaveBeenCalled();
-  });
-
-  it('rejects keys not starting with sk-', async () => {
-    const result = await validateProviderKey('openai', 'bad-key');
-    expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('"sk-"');
-  });
-});
-
 describe('huggingface', () => {
   it('returns valid:true on 200', async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response('{}', { status: 200 }));

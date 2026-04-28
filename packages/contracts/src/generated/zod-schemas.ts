@@ -2172,6 +2172,32 @@ export type WaitlistRow = z.infer<typeof WaitlistSelectSchema>
 export type WaitlistInsert = z.infer<typeof WaitlistInsertSchema>
 
 // =============================================================================
+// WorkspaceInferenceConfigs Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting workspaceInferenceConfigs rows from database
+ * Generated from Drizzle table definition: tables.workspaceInferenceConfigs
+ */
+export const WorkspaceInferenceConfigsSelectSchema = createSelectSchema(tables.workspaceInferenceConfigs)
+
+/**
+ * Zod schema for inserting workspaceInferenceConfigs rows to database
+ * Generated from Drizzle table definition: tables.workspaceInferenceConfigs
+ */
+export const WorkspaceInferenceConfigsInsertSchema = createInsertSchema(tables.workspaceInferenceConfigs)
+
+/**
+ * TypeScript type for workspaceInferenceConfigs row (Select)
+ */
+export type WorkspaceInferenceConfigsRow = z.infer<typeof WorkspaceInferenceConfigsSelectSchema>
+
+/**
+ * TypeScript type for workspaceInferenceConfigs insert
+ */
+export type WorkspaceInferenceConfigsInsert = z.infer<typeof WorkspaceInferenceConfigsInsertSchema>
+
+// =============================================================================
 // YjsDocumentPatches Schemas
 // =============================================================================
 

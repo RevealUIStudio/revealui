@@ -400,8 +400,6 @@ class StructureValidator {
       '.lighthouserc.json',
       '.size-limit.json',
       'skills-lock.json',
-      // Infrastructure
-      'vultr-inference.json',
       // Reports (consider moving to reports/ folder)
       'CODE-QUALITY-REPORT.json',
       'TYPE-USAGE-REPORT.json',

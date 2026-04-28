@@ -305,7 +305,6 @@ export async function POST(request: NextRequest) {
     try {
       logger.info('Creating LLM client from env', {
         provider: process.env.LLM_PROVIDER,
-        hasApiKey: !!process.env.VULTR_API_KEY,
         model: process.env.LLM_MODEL,
       });
       llmClient = aiDeps.createLLMClientFromEnv();

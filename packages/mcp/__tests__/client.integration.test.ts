@@ -233,7 +233,7 @@ describe('McpClient prompts', () => {
     expect(result.messages).toHaveLength(1);
     expect(result.messages[0]?.role).toBe('user');
     const content = result.messages[0]?.content;
-    expect(content && content.type).toBe('text');
+    expect(content?.type).toBe('text');
     if (content && content.type === 'text') {
       expect(content.text).toBe('Greet Joshua.');
     }

@@ -168,7 +168,7 @@ describe('McpClient cancellation', () => {
     );
 
     server.setRequestHandler(ListResourcesRequestSchema, async (_request, extra) => {
-      await new Promise<void>((resolve, reject) => {
+      await new Promise<void>((_resolve, reject) => {
         const onAbort = () => {
           extra.signal.removeEventListener('abort', onAbort);
           reject(new Error('server saw abort'));

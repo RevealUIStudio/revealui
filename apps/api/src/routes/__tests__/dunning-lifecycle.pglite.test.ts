@@ -24,9 +24,9 @@
  */
 
 import { accountEntitlements, accountMemberships, accounts } from '@revealui/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   createTestDb,
   seedTestUser,
