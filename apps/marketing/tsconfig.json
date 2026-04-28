@@ -1,33 +1,16 @@
 {
-  "extends": "../../packages/dev/src/ts/nextjs.json",
+  "extends": "../../packages/dev/src/ts/vite.json",
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "verbatimModuleSyntax": true,
-    "resolvePackageJsonExports": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowImportingTsExtensions": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["node", "vite/client"],
     "paths": {
-      "@/*": ["./src/*"]
-    },
-    "target": "ES2022"
+      "@/*": ["./app/*"]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
-  "typeAcquisition": {
-    "enable": false
-  },
-  "exclude": ["node_modules", ".next", "dist", ".turbo"]
+  "include": ["app"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
