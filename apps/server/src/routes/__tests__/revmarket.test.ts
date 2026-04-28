@@ -22,15 +22,37 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Hoisted mock factories ─────────────────────────────────────────────────
 
-const { mockDbSelect, mockDbInsert, mockDbUpdate, mockGetClient, mockLoggerInfo, mockSql } =
-  vi.hoisted(() => ({
-    mockDbSelect: vi.fn(),
-    mockDbInsert: vi.fn(),
-    mockDbUpdate: vi.fn(),
-    mockGetClient: vi.fn(),
-    mockLoggerInfo: vi.fn(),
-    mockSql: vi.fn().mockReturnValue(0),
-  }));
+const {
+  mockDbSelect,
+  mockDbInsert,
+  mockDbUpdate,
+  mockGetClient,
+  mockLoggerInfo,
+  mockSql,
+  mockGetX402Config,
+  mockBuildPaymentRequired,
+  mockEncodePaymentRequired,
+  mockVerifyPayment,
+} = vi.hoisted(() => ({
+  mockDbSelect: vi.fn(),
+  mockDbInsert: vi.fn(),
+  mockDbUpdate: vi.fn(),
+  mockGetClient: vi.fn(),
+  mockLoggerInfo: vi.fn(),
+  mockSql: vi.fn().mockReturnValue(0),
+  mockGetX402Config: vi.fn(() => ({
+    enabled: false,
+    receivingAddress: '',
+    network: 'evm:base',
+    pricePerTask: '0.001',
+  })),
+  mockBuildPaymentRequired: vi.fn(() => ({
+    x402Version: 1,
+    accepts: [{ scheme: 'exact', network: 'evm:base', maxAmountRequired: '500000' }],
+  })),
+  mockEncodePaymentRequired: vi.fn(() => 'mock-encoded-payment-required'),
+  mockVerifyPayment: vi.fn(async () => ({ valid: true as const })),
+}));
 
 // ─── Module mocks ──────────────────────────────────────────────────────────
 
@@ -42,6 +64,14 @@ vi.mock('../../middleware/auth.js', () => ({
   authMiddleware: vi.fn(
     (_opts?: unknown) => async (_c: unknown, next: () => Promise<void>) => next(),
   ),
+}));
+
+vi.mock('../../middleware/x402.js', () => ({
+  getX402Config: mockGetX402Config,
+  buildPaymentRequired: mockBuildPaymentRequired,
+  encodePaymentRequired: mockEncodePaymentRequired,
+  verifyPayment: mockVerifyPayment,
+  getAdvertisedCurrencyLabel: () => 'usdc-only',
 }));
 
 vi.mock('../../services/revmarket-executor.js', async (importOriginal) => {
@@ -391,6 +421,127 @@ describe('POST /tasks', () => {
     );
 
     expect(res.status).toBe(201);
+  });
+});
+
+describe('POST /tasks  -  x402 payment gate (X402_ENABLED=true)', () => {
+  beforeEach(() => {
+    // Default is X402_ENABLED=false (set in hoisted mock); flip on for these tests.
+    mockGetX402Config.mockReturnValue({
+      enabled: true,
+      receivingAddress: '0xTreasury',
+      network: 'evm:base',
+      pricePerTask: '0.001',
+    });
+    // Default verifier: accept proof. Tests can override.
+    mockVerifyPayment.mockResolvedValue({ valid: true });
+    // Reset call counters captured by the assertions below.
+    mockBuildPaymentRequired.mockClear();
+    mockEncodePaymentRequired.mockClear();
+    mockVerifyPayment.mockClear();
+  });
+
+  it('returns 402 with X-PAYMENT-REQUIRED when paid agent has no payment header', async () => {
+    selectResults = [[{ id: 'agent_paid', status: 'published', basePriceUsdc: '0.50' }]];
+
+    const app = createApp(testUser);
+    const res = await app.request(
+      post('/tasks', {
+        agentId: 'agent_paid',
+        skillName: 'code-review',
+        input: { code: 'function hello() {}' },
+      }),
+    );
+
+    expect(res.status).toBe(402);
+    expect(res.headers.get('X-PAYMENT-REQUIRED')).toBe('mock-encoded-payment-required');
+    // Price is forwarded from the agent's basePriceUsdc
+    expect(mockBuildPaymentRequired).toHaveBeenCalledWith(expect.any(String), '0.50');
+    // No insert happened — the task was rejected before creation
+    expect(mockVerifyPayment).not.toHaveBeenCalled();
+  });
+
+  it('verifies X-PAYMENT-PAYLOAD and creates task when payment is valid', async () => {
+    selectResults = [[{ id: 'agent_paid', status: 'published', basePriceUsdc: '0.50' }]];
+    const created = {
+      id: 'task_paid',
+      status: 'queued',
+      agentId: 'agent_paid',
+      paymentMethod: 'x402-usdc',
+    };
+    insertResults = [[created]];
+    mockVerifyPayment.mockResolvedValueOnce({ valid: true });
+
+    const app = createApp(testUser);
+    const res = await app.request(
+      new Request('http://localhost/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-PAYMENT-PAYLOAD': 'valid-base64-proof',
+        },
+        body: JSON.stringify({
+          agentId: 'agent_paid',
+          skillName: 'code-review',
+          input: { code: 'function hello() {}' },
+        }),
+      }),
+    );
+
+    expect(res.status).toBe(201);
+    expect(mockVerifyPayment).toHaveBeenCalledWith(
+      'valid-base64-proof',
+      expect.any(String),
+      expect.objectContaining({ userId: testUser.id, amountUsd: '0.50' }),
+      'revmarket-task',
+    );
+  });
+
+  it('returns 402 when X-PAYMENT-PAYLOAD verification fails', async () => {
+    selectResults = [[{ id: 'agent_paid', status: 'published', basePriceUsdc: '0.50' }]];
+    mockVerifyPayment.mockResolvedValueOnce({
+      valid: false,
+      error: 'Invalid signature',
+    });
+
+    const app = createApp(testUser);
+    const res = await app.request(
+      new Request('http://localhost/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-PAYMENT-PAYLOAD': 'bad-base64-proof',
+        },
+        body: JSON.stringify({
+          agentId: 'agent_paid',
+          skillName: 'code-review',
+          input: { code: 'function hello() {}' },
+        }),
+      }),
+    );
+
+    expect(res.status).toBe(402);
+    const body = (await res.json()) as { error: string };
+    expect(body.error).toContain('Invalid signature');
+  });
+
+  it('passes through without payment when agent has zero basePriceUsdc (free tier)', async () => {
+    selectResults = [[{ id: 'agent_free', status: 'published', basePriceUsdc: '0' }]];
+    const created = { id: 'task_free', status: 'queued', agentId: 'agent_free' };
+    insertResults = [[created]];
+
+    const app = createApp(testUser);
+    const res = await app.request(
+      post('/tasks', {
+        agentId: 'agent_free',
+        skillName: 'code-review',
+        input: { code: 'function hello() {}' },
+      }),
+    );
+
+    expect(res.status).toBe(201);
+    expect(mockBuildPaymentRequired).not.toHaveBeenCalled();
+    expect(mockVerifyPayment).not.toHaveBeenCalled();
   });
 });
 
