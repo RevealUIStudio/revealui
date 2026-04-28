@@ -26,12 +26,20 @@ function getKek(): Buffer {
   return Buffer.from(kekHex, 'hex');
 }
 
+// =============================================================================
+// Parameterized Helpers (used directly by KEK rotation tooling)
+// =============================================================================
+
 /**
- * Encrypt a plaintext API key using AES-256-GCM.
- * Returns a dot-separated base64url string: `<iv>.<authTag>.<ciphertext>`
+ * Encrypt with a caller-supplied 32-byte key.
+ * Used by KEK rotation tooling so OLD_KEK and NEW_KEK can coexist in one
+ * process without conflicting with the singleton `getKek()` reader. All
+ * production encrypt/decrypt fns below delegate here.
  */
-export function encryptApiKey(plaintext: string): string {
-  const kek = getKek();
+export function encryptWithKey(kek: Buffer, plaintext: string): string {
+  if (kek.length !== 32) {
+    throw new Error(`KEK buffer must be exactly 32 bytes, got ${kek.length}`);
+  }
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGORITHM, kek, iv);
   const ciphertext = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
@@ -41,6 +49,48 @@ export function encryptApiKey(plaintext: string): string {
     authTag.toString('base64url'),
     ciphertext.toString('base64url'),
   ].join('.');
+}
+
+/**
+ * Decrypt with a caller-supplied 32-byte key.
+ * Throws if tampered (GCM auth tag mismatch), if the envelope is malformed,
+ * or if the supplied key does not match the one used to encrypt. Auth-tag-
+ * mismatch is the signal KEK rotation tooling uses to detect "encrypted
+ * under a different key" — catch the throw, try the other key.
+ */
+export function decryptWithKey(kek: Buffer, encrypted: string): string {
+  if (kek.length !== 32) {
+    throw new Error(`KEK buffer must be exactly 32 bytes, got ${kek.length}`);
+  }
+  const parts = encrypted.split('.');
+  if (parts.length !== 3) {
+    throw new Error('Invalid encrypted format — expected <iv>.<authTag>.<ciphertext>');
+  }
+  const [ivB64, authTagB64, ciphertextB64] = parts as [string, string, string];
+  const iv = Buffer.from(ivB64, 'base64url');
+  const authTag = Buffer.from(authTagB64, 'base64url');
+  const ciphertext = Buffer.from(ciphertextB64, 'base64url');
+  if (iv.length !== IV_LENGTH) {
+    throw new Error(`Invalid IV length: expected ${IV_LENGTH} bytes, got ${iv.length}`);
+  }
+  if (authTag.length !== 16) {
+    throw new Error(`Invalid auth tag length: expected 16 bytes, got ${authTag.length}`);
+  }
+  const decipher = createDecipheriv(ALGORITHM, kek, iv);
+  decipher.setAuthTag(authTag);
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8');
+}
+
+// =============================================================================
+// Production Singletons (read REVEALUI_KEK from process.env)
+// =============================================================================
+
+/**
+ * Encrypt a plaintext API key using AES-256-GCM.
+ * Returns a dot-separated base64url string: `<iv>.<authTag>.<ciphertext>`
+ */
+export function encryptApiKey(plaintext: string): string {
+  return encryptWithKey(getKek(), plaintext);
 }
 
 /**
@@ -48,45 +98,15 @@ export function encryptApiKey(plaintext: string): string {
  * Throws if tampered (GCM auth tag mismatch) or if KEK is wrong.
  */
 export function decryptApiKey(encrypted: string): string {
-  const kek = getKek();
-  const parts = encrypted.split('.');
-  if (parts.length !== 3) {
-    throw new Error('Invalid encrypted key format  -  expected <iv>.<authTag>.<ciphertext>');
-  }
-  const [ivB64, authTagB64, ciphertextB64] = parts as [string, string, string];
-  const iv = Buffer.from(ivB64, 'base64url');
-  const authTag = Buffer.from(authTagB64, 'base64url');
-  const ciphertext = Buffer.from(ciphertextB64, 'base64url');
-  if (iv.length !== IV_LENGTH) {
-    throw new Error(`Invalid IV length: expected ${IV_LENGTH} bytes, got ${iv.length}`);
-  }
-  if (authTag.length !== 16) {
-    throw new Error(`Invalid auth tag length: expected 16 bytes, got ${authTag.length}`);
-  }
-  const decipher = createDecipheriv(ALGORITHM, kek, iv);
-  decipher.setAuthTag(authTag);
-  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8');
+  return decryptWithKey(getKek(), encrypted);
 }
-
-// =============================================================================
-// Generic Field Encryption (reusable for any sensitive column)
-// =============================================================================
 
 /**
  * Encrypt an arbitrary string field using AES-256-GCM.
  * Same algorithm as `encryptApiKey`; use for TOTP secrets, tokens, etc.
  */
 export function encryptField(plaintext: string): string {
-  const kek = getKek();
-  const iv = randomBytes(IV_LENGTH);
-  const cipher = createCipheriv(ALGORITHM, kek, iv);
-  const ciphertext = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-  const authTag = cipher.getAuthTag();
-  return [
-    iv.toString('base64url'),
-    authTag.toString('base64url'),
-    ciphertext.toString('base64url'),
-  ].join('.');
+  return encryptWithKey(getKek(), plaintext);
 }
 
 /**
@@ -94,24 +114,7 @@ export function encryptField(plaintext: string): string {
  * Throws on tamper (GCM auth tag mismatch) or wrong KEK.
  */
 export function decryptField(encrypted: string): string {
-  const kek = getKek();
-  const parts = encrypted.split('.');
-  if (parts.length !== 3) {
-    throw new Error('Invalid encrypted field format — expected <iv>.<authTag>.<ciphertext>');
-  }
-  const [ivB64, authTagB64, ciphertextB64] = parts as [string, string, string];
-  const iv = Buffer.from(ivB64, 'base64url');
-  const authTag = Buffer.from(authTagB64, 'base64url');
-  const ciphertext = Buffer.from(ciphertextB64, 'base64url');
-  if (iv.length !== IV_LENGTH) {
-    throw new Error(`Invalid IV length: expected ${IV_LENGTH} bytes, got ${iv.length}`);
-  }
-  if (authTag.length !== 16) {
-    throw new Error(`Invalid auth tag length: expected 16 bytes, got ${authTag.length}`);
-  }
-  const decipher = createDecipheriv(ALGORITHM, kek, iv);
-  decipher.setAuthTag(authTag);
-  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString('utf8');
+  return decryptWithKey(getKek(), encrypted);
 }
 
 /**

@@ -4,8 +4,10 @@ import {
   decryptApiKey,
   decryptField,
   decryptFieldOrPassthrough,
+  decryptWithKey,
   encryptApiKey,
   encryptField,
+  encryptWithKey,
   isEncryptedField,
   redactApiKey,
 } from '../crypto.js';
@@ -95,11 +97,11 @@ describe('crypto  -  API key encryption', () => {
     });
 
     it('throws on invalid format (missing parts)', () => {
-      expect(() => decryptApiKey('just-one-part')).toThrow('Invalid encrypted key format');
+      expect(() => decryptApiKey('just-one-part')).toThrow('Invalid encrypted format');
     });
 
     it('throws on invalid format (too many parts)', () => {
-      expect(() => decryptApiKey('a.b.c.d')).toThrow('Invalid encrypted key format');
+      expect(() => decryptApiKey('a.b.c.d')).toThrow('Invalid encrypted format');
     });
 
     it('throws on tampered ciphertext (GCM auth check)', () => {
@@ -345,6 +347,61 @@ describe('crypto  -  API key encryption', () => {
       process.env.REVEALUI_KEK = '';
       // Empty string is falsy in JS, so getKek() treats it as not set
       expect(() => encryptApiKey('sk-test')).toThrow();
+    });
+  });
+
+  describe('encryptWithKey / decryptWithKey (parameterized for rotation)', () => {
+    const KEY_A = randomBytes(32);
+    const KEY_B = randomBytes(32);
+
+    it('roundtrips with an explicit key (independent of process.env.REVEALUI_KEK)', () => {
+      delete process.env.REVEALUI_KEK;
+      const encrypted = encryptWithKey(KEY_A, 'rotation-payload');
+      expect(decryptWithKey(KEY_A, encrypted)).toBe('rotation-payload');
+    });
+
+    it('throws when decrypting with a key different from the encrypt key', () => {
+      const encrypted = encryptWithKey(KEY_A, 'secret');
+      expect(() => decryptWithKey(KEY_B, encrypted)).toThrow();
+    });
+
+    it('rejects key buffers of the wrong length on encrypt', () => {
+      const tooShort = randomBytes(16);
+      expect(() => encryptWithKey(tooShort, 'x')).toThrow('must be exactly 32 bytes');
+    });
+
+    it('rejects key buffers of the wrong length on decrypt', () => {
+      const encrypted = encryptWithKey(KEY_A, 'x');
+      const tooLong = randomBytes(64);
+      expect(() => decryptWithKey(tooLong, encrypted)).toThrow('must be exactly 32 bytes');
+    });
+
+    it('produces envelopes that the singleton decryptApiKey can read when key matches REVEALUI_KEK', () => {
+      const sharedKeyHex = KEY_A.toString('hex');
+      process.env.REVEALUI_KEK = sharedKeyHex;
+      const encrypted = encryptWithKey(KEY_A, 'shared-payload');
+      expect(decryptApiKey(encrypted)).toBe('shared-payload');
+    });
+
+    it('singleton encryptField produces envelopes that decryptWithKey can read with the same key', () => {
+      const keyHex = KEY_A.toString('hex');
+      process.env.REVEALUI_KEK = keyHex;
+      const encrypted = encryptField('totp-secret');
+      expect(decryptWithKey(KEY_A, encrypted)).toBe('totp-secret');
+    });
+
+    it('GCM auth tag mismatch throws on cross-key decrypt — the rotation idempotency signal', () => {
+      // Rotation idempotency relies on this: try decrypt with NEW first; if
+      // the auth tag verifies, the row is already under NEW. If it throws,
+      // try OLD. This test pins the contract.
+      const encrypted = encryptWithKey(KEY_A, 'value');
+      let threw = false;
+      try {
+        decryptWithKey(KEY_B, encrypted);
+      } catch {
+        threw = true;
+      }
+      expect(threw).toBe(true);
     });
   });
 });

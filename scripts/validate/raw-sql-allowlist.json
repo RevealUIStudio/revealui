@@ -73,6 +73,12 @@
       "rules": ["sql-file-outside-migrations"],
       "reason": "Supabase-side pgvector extension bootstrap (CREATE EXTENSION IF NOT EXISTS vector). Applied by scripts/setup/setup-dual-database.ts against getVectorClient(). drizzle-kit currently only tracks the Neon side of the dual-DB architecture; Supabase-side DDL lives outside drizzle-kit by necessity. Phase 7 (drizzle-consolidation-spec) evaluates standing up a second drizzle-kit pipeline for Supabase; until then, this file + setup-dual-database.ts are the canonical Supabase-side applier. See packages/db/src/supabase/README.md for the architectural rationale.",
       "migrationPhase": 7
+    },
+    {
+      "path": "scripts/security/rotate-kek.ts",
+      "rules": ["direct-import"],
+      "reason": "KEK rotation operational tool (GAP-126 Phase 2). One-off script that performs simple SELECT/UPDATE on the two KEK-encrypted columns (user_api_keys.encrypted_key + users.mfa_secret). Uses raw pg.Pool instead of @revealui/db/client to keep the rotation tool isolated from production DB-client lifecycle (singleton pools, retry policies, observability hooks). Operator-invoked; 2 surfaces, ~3 SQL ops total. Permanent.",
+      "migrationPhase": null
     }
   ]
 }
