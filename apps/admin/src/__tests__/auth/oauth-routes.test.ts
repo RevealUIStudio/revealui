@@ -172,7 +172,7 @@ describe('GET /api/auth/link/[provider]', () => {
 
     expect(res.status).toBe(307);
     const location = res.headers.get('location');
-    expect(location).toContain('/admin/settings');
+    expect(location).toContain('/settings');
     expect(location).toContain('error=');
   });
 
@@ -221,7 +221,7 @@ describe('GET /api/auth/link/callback/[provider]', () => {
 
     expect(res.status).toBe(307);
     const location = res.headers.get('location');
-    expect(location).toContain('/admin/settings');
+    expect(location).toContain('/settings');
     expect(location).toContain('unknown_provider');
   });
 
@@ -251,7 +251,7 @@ describe('GET /api/auth/link/callback/[provider]', () => {
 
   it('should link provider and redirect to settings on success', async () => {
     mockGetSession.mockResolvedValue(mockSession);
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin/settings' });
+    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/settings' });
     mockExchangeCode.mockResolvedValue('access-token-123');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-user-1',
@@ -276,7 +276,7 @@ describe('GET /api/auth/link/callback/[provider]', () => {
 
     expect(res.status).toBe(307);
     const location = res.headers.get('location');
-    expect(location).toContain('/admin/settings');
+    expect(location).toContain('/settings');
     expect(location).toContain('linked=github');
     expect(mockLinkOAuthAccount).toHaveBeenCalledWith('user-123', 'github', {
       id: 'gh-user-1',
@@ -288,7 +288,7 @@ describe('GET /api/auth/link/callback/[provider]', () => {
 
   it('should redirect with error when linkOAuthAccount throws', async () => {
     mockGetSession.mockResolvedValue(mockSession);
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin/settings' });
+    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/settings' });
     mockExchangeCode.mockResolvedValue('token');
     mockFetchProviderUser.mockResolvedValue({
       id: 'gh-user-1',
@@ -314,7 +314,7 @@ describe('GET /api/auth/link/callback/[provider]', () => {
 
     expect(res.status).toBe(307);
     const location = res.headers.get('location');
-    expect(location).toContain('/admin/settings');
+    expect(location).toContain('/settings');
     expect(location).toContain('error=');
     // Cookie should be cleaned up
     const cookies = res.headers.getSetCookie();
@@ -324,7 +324,7 @@ describe('GET /api/auth/link/callback/[provider]', () => {
 
   it('should redirect with error when code exchange fails', async () => {
     mockGetSession.mockResolvedValue(mockSession);
-    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/admin/settings' });
+    mockVerifyOAuthState.mockReturnValue({ provider: 'github', redirectTo: '/settings' });
     mockExchangeCode.mockRejectedValue(new Error('Invalid code'));
 
     const req = createRequest('/api/auth/link/callback/github?code=bad&state=s');

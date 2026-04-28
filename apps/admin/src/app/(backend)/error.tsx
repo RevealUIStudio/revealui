@@ -81,7 +81,7 @@ export default function BackendError({
           Try again
         </button>
         <Link
-          href="/admin"
+          href="/"
           className="rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
         >
           Go to dashboard

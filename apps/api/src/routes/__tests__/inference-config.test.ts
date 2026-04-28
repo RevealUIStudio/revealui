@@ -89,7 +89,7 @@ function createApp(user?: MockUser) {
       await next();
     });
   }
-  app.route('/admin/inference/config', inferenceConfigApp);
+  app.route('/inference/config', inferenceConfigApp);
   return app;
 }
 
@@ -159,7 +159,7 @@ beforeEach(() => {
 describe('requireAdmin', () => {
   it('returns 401 when no user is set', async () => {
     const app = createApp();
-    const res = await app.request('/admin/inference/config?workspaceId=site_xyz', {
+    const res = await app.request('/inference/config?workspaceId=site_xyz', {
       method: 'GET',
     });
     expect(res.status).toBe(401);
@@ -167,7 +167,7 @@ describe('requireAdmin', () => {
 
   it('returns 403 when user role is not admin', async () => {
     const app = createApp({ id: 'u1', role: 'editor' });
-    const res = await app.request('/admin/inference/config?workspaceId=site_xyz', {
+    const res = await app.request('/inference/config?workspaceId=site_xyz', {
       method: 'GET',
     });
     expect(res.status).toBe(403);
@@ -178,7 +178,7 @@ describe('requireAdmin', () => {
       select: vi.fn().mockReturnValue(makeSelectChain([])),
     } as never);
     const app = createApp({ id: 'u_super', role: 'super-admin' });
-    const res = await app.request('/admin/inference/config?workspaceId=site_xyz', {
+    const res = await app.request('/inference/config?workspaceId=site_xyz', {
       method: 'GET',
     });
     expect(res.status).toBe(200);
@@ -196,7 +196,7 @@ describe('GET /admin/inference/config', () => {
     } as never);
 
     const app = createApp(adminUser());
-    const res = await app.request('/admin/inference/config?workspaceId=site_no_config', {
+    const res = await app.request('/inference/config?workspaceId=site_no_config', {
       method: 'GET',
     });
 
@@ -217,7 +217,7 @@ describe('GET /admin/inference/config', () => {
     } as never);
 
     const app = createApp(adminUser());
-    const res = await app.request('/admin/inference/config?workspaceId=site_xyz', {
+    const res = await app.request('/inference/config?workspaceId=site_xyz', {
       method: 'GET',
     });
 
@@ -232,7 +232,7 @@ describe('GET /admin/inference/config', () => {
 
   it('rejects missing workspaceId param', async () => {
     const app = createApp(adminUser());
-    const res = await app.request('/admin/inference/config', { method: 'GET' });
+    const res = await app.request('/inference/config', { method: 'GET' });
     expect(res.status).toBe(400);
   });
 });
@@ -260,7 +260,7 @@ describe('PUT /admin/inference/config', () => {
     } as never);
 
     const app = createApp(adminUser());
-    const res = await app.request('/admin/inference/config', {
+    const res = await app.request('/inference/config', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -283,7 +283,7 @@ describe('PUT /admin/inference/config', () => {
 
   it('rejects keyless provider when apiKey is supplied (refinement enforces invariant)', async () => {
     const app = createApp(adminUser());
-    const res = await app.request('/admin/inference/config', {
+    const res = await app.request('/inference/config', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -297,7 +297,7 @@ describe('PUT /admin/inference/config', () => {
 
   it('rejects keyed provider when apiKey is missing (refinement enforces invariant)', async () => {
     const app = createApp(adminUser());
-    const res = await app.request('/admin/inference/config', {
+    const res = await app.request('/inference/config', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -321,7 +321,7 @@ describe('PUT /admin/inference/config', () => {
     } as never);
 
     const app = createApp(adminUser());
-    const res = await app.request('/admin/inference/config', {
+    const res = await app.request('/inference/config', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -357,7 +357,7 @@ describe('PUT /admin/inference/config', () => {
     } as never);
 
     const app = createApp(adminUser());
-    const res = await app.request('/admin/inference/config', {
+    const res = await app.request('/inference/config', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -385,7 +385,7 @@ describe('DELETE /admin/inference/config', () => {
     } as never);
 
     const app = createApp(adminUser());
-    const res = await app.request('/admin/inference/config?workspaceId=site_xyz', {
+    const res = await app.request('/inference/config?workspaceId=site_xyz', {
       method: 'DELETE',
     });
 
@@ -416,10 +416,10 @@ describe('requireFeature gate (integration)', () => {
       await next();
     });
     // Simulate Max-tier requireFeature: pass-through.
-    app.use('/admin/inference/config', async (_c, next) => next());
-    app.route('/admin/inference/config', inferenceConfigApp);
+    app.use('/inference/config', async (_c, next) => next());
+    app.route('/inference/config', inferenceConfigApp);
 
-    const res = await app.request('/admin/inference/config?workspaceId=site_xyz', {
+    const res = await app.request('/inference/config?workspaceId=site_xyz', {
       method: 'GET',
     });
     expect(res.status).toBe(200);
@@ -435,12 +435,12 @@ describe('requireFeature gate (integration)', () => {
     // Simulate Pro-tier requireFeature: 403. Standard Hono middleware
     // signature (c, next) — returning a Response without calling next()
     // short-circuits.
-    app.use('/admin/inference/config', async (c, _next) =>
+    app.use('/inference/config', async (c, _next) =>
       c.json({ error: 'Feature requires Max tier' }, 403),
     );
-    app.route('/admin/inference/config', inferenceConfigApp);
+    app.route('/inference/config', inferenceConfigApp);
 
-    const res = await app.request('/admin/inference/config?workspaceId=site_xyz', {
+    const res = await app.request('/inference/config?workspaceId=site_xyz', {
       method: 'GET',
     });
     expect(res.status).toBe(403);

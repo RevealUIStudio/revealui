@@ -71,14 +71,14 @@ test.describe('Accessibility', () => {
 
   test.describe('Settings page', () => {
     test('account settings page meets WCAG 2.1 AA standards', async ({ page }) => {
-      await page.goto(`${AdminBase}/admin/settings/account`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${AdminBase}/settings/account`, { waitUntil: 'domcontentloaded' });
       await checkAccessibility(page);
     });
   });
 
   test.describe('Content editor', () => {
     test('content list page meets WCAG 2.1 AA standards', async ({ page }) => {
-      await page.goto(`${AdminBase}/admin/collections/posts`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${AdminBase}/collections/posts`, { waitUntil: 'domcontentloaded' });
       // May redirect to login  -  scan whatever renders
       await checkAccessibility(page);
     });
@@ -86,7 +86,7 @@ test.describe('Accessibility', () => {
     test('content editor page meets WCAG 2.1 AA (critical/serious only)', async ({ page }) => {
       // Rich text editors often have minor a11y issues from contenteditable.
       // Check critical/serious only to avoid noise from editor internals.
-      await page.goto(`${AdminBase}/admin/collections/posts/create`, {
+      await page.goto(`${AdminBase}/collections/posts/create`, {
         waitUntil: 'domcontentloaded',
       });
       await checkAccessibilityCritical(page);
