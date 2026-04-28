@@ -17,13 +17,6 @@ export default defineConfig({
   // @revealui/ai and @revealui/services are optional Pro packages  -  keep external
   // so builds succeed without them installed.
   external: ['pg', 'pg-native', 'stripe', '@revealui/ai', '@revealui/services'],
-  // Inline binary assets (Geist TTFs for satori, resvg WASM for SVG→PNG) so the
-  // serverless function bundle is self-contained and doesn't depend on
-  // node_modules paths at runtime.
-  loader: {
-    '.ttf': 'binary',
-    '.wasm': 'binary',
-  },
   // CJS packages bundled via the @revealui/* chain (e.g. dotenv) call require()
   // of Node.js built-ins like 'fs' and 'path'. In ESM bundles, require() is
   // undefined and esbuild's CJS shim throws. This banner injects createRequire
