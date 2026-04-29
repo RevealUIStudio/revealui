@@ -39,18 +39,38 @@ jobs:
         run: pnpm gate:security
 
   # Secret scanning
+  #
+  # Uses the gitleaks CLI directly (not the gitleaks-action wrapper) so we can
+  # pass --baseline-path. The wrapper does not expose the baseline flag as of
+  # v2. Baseline at .gitleaks.baseline.json captures historical-leak
+  # fingerprints (rotated values, deleted files); new findings in PRs and
+  # scheduled scans still fail the job, baseline entries are suppressed.
+  #
+  # Refresh cadence + verification: docs/runbooks/gitleaks-baseline.md.
   gitleaks:
     name: Secret Scanning (Gitleaks)
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      GITLEAKS_VERSION: "8.30.0"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_CONFIG: .gitleaks.toml
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz -C /tmp gitleaks
+          sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+      - name: Run gitleaks (with baseline suppression)
+        run: |
+          gitleaks detect \
+            --no-banner \
+            --redact \
+            --config .gitleaks.toml \
+            --baseline-path .gitleaks.baseline.json
 
   # Static analysis
   codeql:

@@ -1,0 +1,42 @@
+[
+ {
+  "RuleID": "generic-api-key",
+  "Description": "Detected a Generic API Key, potentially exposing access to various services and sensitive operations.",
+  "StartLine": 15,
+  "EndLine": 15,
+  "StartColumn": 8,
+  "EndColumn": 51,
+  "Match": "password = 'REDACTED'",
+  "Secret": "REDACTED",
+  "File": "scripts/seed-admin.mjs",
+  "SymlinkFile": "",
+  "Commit": "38dd9b93b410cf01993807af2096961050f8a029",
+  "Entropy": 4.4782324,
+  "Author": "RevealUI Studio",
+  "Email": "founder@revealui.com",
+  "Date": "2026-02-22T10:52:55Z",
+  "Message": "feat(cms): auth gate, billing integration, and admin bootstrap\n\n- Add middleware auth gate protecting /admin routes (redirects to /login)\n- Check both revealui-session and revealui-token cookies for auth\n- Remove public / -\u003e /admin redirect (admin no longer default page)\n- Add login, signup, reset-password, and account pages\n- Add Stripe billing routes (checkout, portal, subscription) in CMS and API\n- Add webhook handler for Stripe events\n- Add LicenseProvider and UpgradePrompt components\n- Add license status enforcement middleware in API\n- Add stripe_customer_id column to users schema with migration\n- Add seed-admin.mjs script for bootstrapping production admin user\n- Fix landing pricing CTAs to link to CMS signup\n- Defer ElectricSQL integration to Phase 2 in master plan\n\nCo-Authored-By: Claude Opus 4.6 \u003cnoreply@anthropic.com\u003e",
+  "Tags": [],
+  "Fingerprint": "38dd9b93b410cf01993807af2096961050f8a029:scripts/seed-admin.mjs:generic-api-key:15"
+ },
+ {
+  "RuleID": "generic-api-key",
+  "Description": "Detected a Generic API Key, potentially exposing access to various services and sensitive operations.",
+  "StartLine": 327,
+  "EndLine": 327,
+  "StartColumn": 10,
+  "EndColumn": 51,
+  "Match": "apiKey: 'REDACTED'",
+  "Secret": "REDACTED",
+  "File": "packages/revealui/src/lexical/lexical-website/docusaurus.config.js",
+  "SymlinkFile": "",
+  "Commit": "3bcb2a6702c005ec3f070e35ebce6bde3b7f7127",
+  "Entropy": 3.503928,
+  "Author": "RevealUI Studio",
+  "Email": "founder@revealui.com",
+  "Date": "2026-01-01T06:30:25Z",
+  "Message": "lets go",
+  "Tags": [],
+  "Fingerprint": "3bcb2a6702c005ec3f070e35ebce6bde3b7f7127:packages/revealui/src/lexical/lexical-website/docusaurus.config.js:generic-api-key:327"
+ }
+]
