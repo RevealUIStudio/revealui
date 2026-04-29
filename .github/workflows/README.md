@@ -66,7 +66,7 @@ Legacy workflows in `.github/workflows-disabled/` are superseded by `deploy.yml`
 
 | File                    | Purpose                                           | Superseded by   |
 | ----------------------- | ------------------------------------------------- | ---------------- |
-| `deploy-staging.yml`    | Auto-deploy CMS to Vercel staging on push to main | `deploy.yml`     |
+| `deploy-staging.yml`    | Auto-deploy admin to Vercel staging on push to main | `deploy.yml`     |
 | `deploy-production.yml` | Manual production deploy via `workflow_dispatch`  | `deploy.yml`     |
 | `preview-pr.yml`        | Preview deploys on PRs                            | Vercel auto-preview |
 

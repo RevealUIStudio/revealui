@@ -2,7 +2,7 @@
   "name": "admin",
   "version": "0.0.1",
   "private": true,
-  "description": "RevealUI admin dashboard and content management",
+  "description": "RevealUI admin dashboard",
   "license": "MIT",
   "dependencies": {
     "@electric-sql/client": "^1.5.15",
