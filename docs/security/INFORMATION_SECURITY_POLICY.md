@@ -127,7 +127,7 @@ RevealUI does not store credit card numbers or payment method details. All payme
 All changes pass through the CI gate before reaching `test` or `main`:
 
 1. **Quality** (parallel): Biome lint (hard fail), security audits (warn), structure checks (warn)
-2. **Type checking** (serial): TypeScript strict mode across all 32 workspaces
+2. **Type checking** (serial): TypeScript strict mode across all 31 workspaces
 3. **Test + Build** (parallel): Vitest (full suite, hard fail), Turborepo build verification
 
 ### Branch Pipeline
