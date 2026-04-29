@@ -214,8 +214,6 @@ export {
   UpdatePageInputSchema,
 } from './page.js';
 export {
-  type RevisionBlock,
-  RevisionBlockSchema,
   CHANGE_TYPES,
   type ChangeType,
   calculateRevisionNumber,
@@ -254,6 +252,8 @@ export {
   pageRevisionToAgent,
   pageRevisionToHuman,
   REVISION_RETENTION,
+  type RevisionBlock,
+  RevisionBlockSchema,
   type SeoMetadata,
   SeoMetadataSchema,
 } from './page-revision.js';
