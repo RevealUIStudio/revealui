@@ -1,0 +1,16 @@
+{
+  "extends": "../../packages/dev/src/ts/vite.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowImportingTsExtensions": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["node", "vite/client"],
+    "paths": {
+      "@/*": ["./app/*"]
+    }
+  },
+  "include": ["app"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
