@@ -20,9 +20,7 @@
       ]
     }
   ],
-  "redirects": [
-    { "source": "/docs/:path*", "destination": "/:path*", "permanent": true }
-  ],
+  "redirects": [{ "source": "/docs/:path*", "destination": "/:path*", "permanent": true }],
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
