@@ -10,9 +10,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <h3 className="text-sm font-semibold text-gray-950">RevealUI Studio</h3>
-            <p className="mt-2 text-sm text-gray-600">
-              The agency that builds with RevealUI.
-            </p>
+            <p className="mt-2 text-sm text-gray-600">The agency that builds with RevealUI.</p>
             <PoweredByRevealUI className="mt-4" />
           </div>
           <div>
@@ -90,9 +88,7 @@ export function Footer() {
           <p className="text-xs text-gray-500">
             © {year} REVEALUI STUDIO L.L.C. All rights reserved.
           </p>
-          <p className="text-xs text-gray-500">
-            Tennessee LLC · founder@revealui.com
-          </p>
+          <p className="text-xs text-gray-500">Tennessee LLC · founder@revealui.com</p>
         </div>
       </div>
     </footer>

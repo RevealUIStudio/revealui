@@ -4,8 +4,8 @@ export function AboutPage() {
       <div className="mx-auto max-w-3xl px-6">
         <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-5xl">About</h1>
         <p className="mt-6 text-lg text-gray-600">
-          RevealUI Studio is a Tennessee software studio building agent-first business systems
-          on the open-source RevealUI runtime. We sell two things: stamped Forge deployments for
+          RevealUI Studio is a Tennessee software studio building agent-first business systems on
+          the open-source RevealUI runtime. We sell two things: stamped Forge deployments for
           customers who want a managed RevealUI instance, and bespoke engineering engagements for
           teams building something custom.
         </p>
@@ -13,8 +13,8 @@ export function AboutPage() {
           <h2 className="text-xl font-bold text-gray-950">Founder</h2>
           <p className="mt-3 text-gray-700">
             <strong>Joshua Vaughn</strong> — full-stack engineer, founder of RevealUI Studio. Built
-            the open-source RevealUI platform (~31 packages, 2,400+ commits) before standing up
-            the agency arm. Previously [bio placeholder — fill in].
+            the open-source RevealUI platform (~31 packages, 2,400+ commits) before standing up the
+            agency arm. Previously [bio placeholder — fill in].
           </p>
           <p className="mt-3 text-sm text-gray-600">
             Reach out at{' '}

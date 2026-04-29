@@ -16,8 +16,8 @@ export function HomePage() {
           </h2>
           <p className="mt-6 text-base text-gray-600">
             We start every engagement with a 30-minute discovery call to understand the system
-            you're trying to build and whether we're the right team for it. If we are, we scope
-            with a fixed-bid statement of work; if we aren't, we'll point you somewhere that is.
+            you're trying to build and whether we're the right team for it. If we are, we scope with
+            a fixed-bid statement of work; if we aren't, we'll point you somewhere that is.
           </p>
           <div className="mt-10">
             <a

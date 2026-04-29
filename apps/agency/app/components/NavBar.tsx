@@ -18,7 +18,10 @@ export function NavBar() {
           <ul className="flex items-center gap-6 text-sm">
             {navLinks.map((link) => (
               <li key={link.href}>
-                <Link to={link.href} className="text-gray-600 hover:text-gray-950 transition-colors">
+                <Link
+                  to={link.href}
+                  className="text-gray-600 hover:text-gray-950 transition-colors"
+                >
                   {link.label}
                 </Link>
               </li>

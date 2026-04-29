@@ -21,9 +21,7 @@ export function ContactPage() {
           </div>
           <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
             <h2 className="text-lg font-semibold text-gray-950">Discovery call</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              30-minute scoping call, no commitment.
-            </p>
+            <p className="mt-2 text-sm text-gray-600">30-minute scoping call, no commitment.</p>
             <p className="mt-3 text-sm text-gray-500">
               Booking link coming in Phase 2 — for now, email and we'll schedule manually.
             </p>
@@ -32,8 +30,8 @@ export function ContactPage() {
         <div className="mt-12 rounded-2xl border border-amber-200 bg-amber-50 p-6">
           <p className="text-sm font-semibold text-amber-900">Phase 1 placeholder</p>
           <p className="mt-2 text-sm text-amber-800">
-            The full contact form (Cal.com booking, topic-tagged inquiries, automated routing)
-            ships in Phase 2. For now, plain email is the fastest path.
+            The full contact form (Cal.com booking, topic-tagged inquiries, automated routing) ships
+            in Phase 2. For now, plain email is the fastest path.
           </p>
         </div>
       </div>
