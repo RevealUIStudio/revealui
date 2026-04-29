@@ -70,7 +70,17 @@ jobs:
             --no-banner \
             --redact \
             --config .gitleaks.toml \
-            --baseline-path .gitleaks.baseline.json
+            --baseline-path .gitleaks.baseline.json \
+            --report-path /tmp/gitleaks-report.json \
+            --report-format json
+      - name: Upload gitleaks report on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: gitleaks-report
+          path: /tmp/gitleaks-report.json
+          if-no-files-found: ignore
+          retention-days: 7
 
   # Static analysis
   codeql:
