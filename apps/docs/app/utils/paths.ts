@@ -2,6 +2,8 @@
  * Path resolution and sanitization utilities for documentation routes
  */
 
+import { SLUG_TO_PATH } from '../lib/slug-manifest';
+
 /**
  * Type-safe documentation section paths
  */
@@ -135,6 +137,32 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
       markdownPath: `${basePath}README.md`,
       displayPath: section,
       isIndex: true,
+    };
+  }
+
+  // CHIP-3 D2b: 'docs' section route paths are lowercase-kebab slugs.
+  // Resolve via the slug manifest to recover the original filename.
+  // The fetch URL still goes through `/docs/...` during Phase 2 — Phase 3
+  // flips the Vite docsCopyPlugin destination from `public/docs` to `public`
+  // at which point this should construct the flat URL instead.
+  if (section === 'docs') {
+    const slugKey = sanitized.replace(/\.(md|mdx)$/, '');
+    const original = SLUG_TO_PATH[slugKey];
+    if (original) {
+      return {
+        markdownPath: `/docs/${original}`,
+        displayPath: sanitized,
+        isIndex: false,
+      };
+    }
+    // Fallback: treat the path as-is for unmapped slugs (recently added
+    // docs not yet in the manifest, etc.). Surfaces 404 if the file
+    // doesn't exist; user can rerun `pnpm --filter docs build:slug-manifest`.
+    const withExt = sanitized.endsWith('.md') ? sanitized : `${sanitized}.md`;
+    return {
+      markdownPath: `/docs/${withExt}`,
+      displayPath: sanitized,
+      isIndex: false,
     };
   }
 

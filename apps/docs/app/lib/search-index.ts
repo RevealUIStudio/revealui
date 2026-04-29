@@ -6,6 +6,7 @@
  */
 
 import FlexSearch from 'flexsearch';
+import { filenameToSlug } from './slug';
 
 const { Document } = FlexSearch;
 
@@ -122,7 +123,9 @@ export async function buildSearchIndex(): Promise<void> {
             return null;
           }
           const content = await response.text();
-          const slug = filename.replace(/\.md$/, '');
+          // CHIP-3 D2b: use the lowercase-kebab slug so result.path matches
+          // the new flat URL space (e.g. ADMIN_GUIDE.md → admin-guide).
+          const slug = filenameToSlug(filename);
           return {
             filename: slug,
             content,
