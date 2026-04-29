@@ -6,9 +6,9 @@ Agentic business runtime. Users, content, products, payments, and AI  -  pre-wir
 **Phase 5  -  Agent-First Infrastructure** (post-Phase 4). See `docs/MASTER_PLAN.md` for the active 5.x tracks.
 
 ## Stack
-- React 19, Next.js 16, Node 24, TypeScript 6
+- React 19, Next.js 16 (admin), Vite (docs / marketing / agency / revealcoin), Hono (server), Node 24, TypeScript 6
 - pnpm 10, Turborepo, Biome 2, Vitest 4
-- Drizzle ORM (NeonDB + Supabase), Hono, Tailwind CSS v4
+- Drizzle ORM (NeonDB), Tailwind CSS v4
 - Lexical (rich text), ElectricSQL (sync), Stripe (payments)
 
 ## Git Identity
