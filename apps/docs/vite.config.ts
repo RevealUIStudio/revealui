@@ -1,8 +1,3 @@
-// console-allowed
-// (Vite build config — docsCopyPlugin uses console for DEBUG-gated plugin
-//  logging and error reporting. Should be exempt via the rule's `paths`
-//  glob `**/vite.config*.ts` but the validator's path-match isn't firing
-//  for this file in pre-commit; file-level exemption is reliable.)
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
