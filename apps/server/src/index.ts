@@ -83,6 +83,7 @@ import billingRoute from './routes/billing.js';
 import provenanceRoute from './routes/code-provenance.js';
 import coinRoute from './routes/coin.js';
 import { createCollabRoute } from './routes/collab.js';
+import contactRoute from './routes/contact.js';
 import contentRoute from './routes/content/index.js';
 import cronBillingReadinessRoute from './routes/cron/billing-readiness.js';
 import cronCleanupRoute from './routes/cron/cleanup.js';
@@ -621,6 +622,15 @@ const marketplaceConnectLimit = rateLimitMiddleware({
 app.use('/api/marketplace/connect/*', marketplaceConnectLimit);
 app.use('/api/v1/marketplace/connect/*', marketplaceConnectLimit);
 
+// Public contact form  -  tight limit (unauthenticated, sends email)
+const contactLimit = rateLimitMiddleware({
+  maxRequests: 5,
+  windowMs: 15 * 60_000,
+  keyPrefix: 'contact',
+});
+app.use('/api/contact', contactLimit);
+app.use('/api/v1/contact', contactLimit);
+
 // Populate session if present (non-blocking  -  sets user context for all API routes)
 const optionalAuth = authMiddleware({ required: false });
 app.use('/api/*', optionalAuth);
@@ -1097,6 +1107,8 @@ app.route('/api/license', licenseRoute);
 app.route('/api/auth', authRoute);
 app.route('/api/billing', billingRoute);
 app.route('/api/coin', coinRoute);
+app.route('/api/contact', contactRoute);
+app.route('/api/v1/contact', contactRoute);
 // Webhooks are rate-limited to prevent replay abuse and resource exhaustion.
 // Stripe's DB-backed idempotency handles dedup; this limits request volume.
 app.use('/api/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
