@@ -13,39 +13,12 @@
  */
 
 import type { Contract } from '../foundation/contract.js';
+import type { Database } from './types.js';
 
-/**
- * Generic Database type structure
- * Matches the structure of @revealui/db/types Database type
- * Used to avoid circular dependency between @revealui/contracts and @revealui/db
- *
- * @template T - The database tables structure
- */
-export type Database<
-  T extends {
-    public: {
-      Tables: Record<
-        string,
-        {
-          Row: unknown;
-          Insert: unknown;
-          Update: unknown;
-        }
-      >;
-    };
-  } = {
-    public: {
-      Tables: Record<
-        string,
-        {
-          Row: unknown;
-          Insert: unknown;
-          Update: unknown;
-        }
-      >;
-    };
-  },
-> = T;
+// Re-export the canonical `Database<T>` generic so existing consumers of
+// `@revealui/contracts/database/bridge` (or anyone importing `Database`
+// directly from this module) continue to work.
+export type { Database };
 
 /**
  * Convert a database row to a contract-validated entity
