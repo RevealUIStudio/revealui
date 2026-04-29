@@ -120,7 +120,7 @@ cd revealui
 pnpm install
 pnpm gate                # Run the full CI gate locally
 pnpm test                # Run the full test suite
-pnpm typecheck:all       # Typecheck all 31 workspaces
+pnpm typecheck:all       # Typecheck all 32 workspaces
 pnpm validate:claims     # Run the marketing/docs claim-drift gate
 ```
 

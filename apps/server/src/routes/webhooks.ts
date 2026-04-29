@@ -75,14 +75,32 @@ function getStripeClient(): typeof protectedStripe {
   return protectedStripe;
 }
 
-function getWebhookSecret(): string {
-  const secret = (
+/**
+ * Returns the active webhook secret pair for signature verification.
+ *
+ * `primary` is the current secret (must be set or boot fails).
+ * `secondary` is an optional transitional secret that supports zero-downtime
+ * webhook secret rotation: during a rotation window both secrets are valid
+ * verifiers. The signature handler tries `primary` first, falls back to
+ * `secondary` on auth-tag mismatch, and logs a warning when the fallback
+ * succeeds so operators can confirm the rotation transition is in flight.
+ *
+ * Operator flow:
+ *   1. Add new secret in Stripe Dashboard ("Roll secret"). Get the new value.
+ *   2. Set `STRIPE_WEBHOOK_SECRET_LIVE_PREVIOUS` to the OLD secret value.
+ *   3. Set `STRIPE_WEBHOOK_SECRET_LIVE` to the NEW secret value.
+ *   4. Wait for the rotation overlap window (24h is Stripe's default).
+ *   5. Unset `STRIPE_WEBHOOK_SECRET_LIVE_PREVIOUS`.
+ */
+function getWebhookSecret(): { primary: string; secondary?: string } {
+  const primary = (
     process.env.STRIPE_WEBHOOK_SECRET_LIVE || process.env.STRIPE_WEBHOOK_SECRET
   )?.trim();
-  if (!secret) {
+  if (!primary) {
     throw new Error('STRIPE_WEBHOOK_SECRET must be configured');
   }
-  return secret;
+  const secondary = process.env.STRIPE_WEBHOOK_SECRET_LIVE_PREVIOUS?.trim() || undefined;
+  return { primary, secondary };
 }
 
 /**
@@ -724,10 +742,10 @@ const stripeWebhookRoute = createRoute({
 });
 
 app.openapi(stripeWebhookRoute, async (c) => {
-  let webhookSecret: string;
+  let webhookSecrets: { primary: string; secondary?: string };
   let stripe: typeof protectedStripe;
   try {
-    webhookSecret = getWebhookSecret();
+    webhookSecrets = getWebhookSecret();
     stripe = getStripeClient();
   } catch (initErr) {
     const msg = initErr instanceof Error ? initErr.message : 'Unknown init error';
@@ -754,11 +772,33 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
   let event: Stripe.Event;
   try {
-    event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecret);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Unknown error';
-    logger.error('Webhook signature verification failed', undefined, { detail: msg });
-    return c.json({ error: 'Invalid webhook signature' }, 400);
+    event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecrets.primary);
+  } catch (primaryErr) {
+    // GAP-144: dual-secret rotation transition. If a secondary is configured,
+    // try it before rejecting. A successful secondary verification logs a
+    // warning so operators can confirm the rotation overlap is active.
+    if (!webhookSecrets.secondary) {
+      const msg = primaryErr instanceof Error ? primaryErr.message : 'Unknown error';
+      logger.error('Webhook signature verification failed', undefined, { detail: msg });
+      return c.json({ error: 'Invalid webhook signature' }, 400);
+    }
+    try {
+      event = await stripe.webhooks.constructEventAsync(body, sig, webhookSecrets.secondary);
+      logger.warn(
+        'Webhook secret rotation in flight: secondary signature verified  -  remove STRIPE_WEBHOOK_SECRET_LIVE_PREVIOUS once rotation overlap window ends',
+        {
+          eventType: 'rotation-transition',
+        },
+      );
+    } catch (_secondaryErr) {
+      const msg = primaryErr instanceof Error ? primaryErr.message : 'Unknown error';
+      logger.error(
+        'Webhook signature verification failed (both primary and secondary secrets rejected)',
+        undefined,
+        { detail: msg },
+      );
+      return c.json({ error: 'Invalid webhook signature' }, 400);
+    }
   }
 
   if (!relevantEvents.has(event.type)) {

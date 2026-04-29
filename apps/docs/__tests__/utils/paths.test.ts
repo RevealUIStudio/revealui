@@ -74,7 +74,7 @@ describe('resolveDocPath', () => {
   describe('guides section', () => {
     it('should resolve index path', () => {
       const result = resolveDocPath({ section: 'guides' });
-      expect(result.markdownPath).toBe('/docs/guides/README.md');
+      expect(result.markdownPath).toBe('/guides/README.md');
       expect(result.isIndex).toBe(true);
     });
 
@@ -83,7 +83,7 @@ describe('resolveDocPath', () => {
         section: 'guides',
         routePath: 'getting-started.md',
       });
-      expect(result.markdownPath).toBe('/docs/guides/getting-started.md');
+      expect(result.markdownPath).toBe('/guides/getting-started.md');
       expect(result.isIndex).toBe(false);
     });
 
@@ -92,7 +92,7 @@ describe('resolveDocPath', () => {
         section: 'guides',
         routePath: 'getting-started',
       });
-      expect(result.markdownPath).toBe('/docs/guides/getting-started.md');
+      expect(result.markdownPath).toBe('/guides/getting-started.md');
     });
 
     it('should handle nested paths', () => {
@@ -100,7 +100,7 @@ describe('resolveDocPath', () => {
         section: 'guides',
         routePath: 'deployment/vercel',
       });
-      expect(result.markdownPath).toBe('/docs/guides/deployment/vercel.md');
+      expect(result.markdownPath).toBe('/guides/deployment/vercel.md');
     });
 
     it('should sanitize dangerous paths', () => {
@@ -111,14 +111,14 @@ describe('resolveDocPath', () => {
       // Sanitization removes .. segments but preserves valid segments
       // So 'etc/passwd' remains, isIndex is false
       expect(result.isIndex).toBe(false);
-      expect(result.markdownPath).toBe('/docs/guides/etc/passwd.md');
+      expect(result.markdownPath).toBe('/guides/etc/passwd.md');
     });
   });
 
   describe('api section', () => {
     it('should resolve index path', () => {
       const result = resolveDocPath({ section: 'api' });
-      expect(result.markdownPath).toBe('/docs/api/README.md');
+      expect(result.markdownPath).toBe('/api/README.md');
       expect(result.isIndex).toBe(true);
     });
 
@@ -127,7 +127,7 @@ describe('resolveDocPath', () => {
         section: 'api',
         routePath: 'revealui-core',
       });
-      expect(result.markdownPath).toBe('/docs/api/revealui-core/README.md');
+      expect(result.markdownPath).toBe('/api/revealui-core/README.md');
     });
 
     it('should resolve nested path with extension', () => {
@@ -135,7 +135,7 @@ describe('resolveDocPath', () => {
         section: 'api',
         routePath: 'revealui-core/index',
       });
-      expect(result.markdownPath).toBe('/docs/api/revealui-core/index.md');
+      expect(result.markdownPath).toBe('/api/revealui-core/index.md');
     });
 
     it('should handle path with .md extension', () => {
@@ -143,14 +143,14 @@ describe('resolveDocPath', () => {
         section: 'api',
         routePath: 'revealui-core/index.md',
       });
-      expect(result.markdownPath).toBe('/docs/api/revealui-core/index.md');
+      expect(result.markdownPath).toBe('/api/revealui-core/index.md');
     });
   });
 
   describe('reference section', () => {
     it('should resolve index path', () => {
       const result = resolveDocPath({ section: 'reference' });
-      expect(result.markdownPath).toBe('/docs/reference/README.md');
+      expect(result.markdownPath).toBe('/reference/README.md');
       expect(result.isIndex).toBe(true);
     });
 
@@ -159,7 +159,7 @@ describe('resolveDocPath', () => {
         section: 'reference',
         routePath: 'config',
       });
-      expect(result.markdownPath).toBe('/docs/reference/config.md');
+      expect(result.markdownPath).toBe('/reference/config.md');
     });
   });
 });

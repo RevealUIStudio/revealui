@@ -112,12 +112,19 @@ export class CodeValidator {
   }
 
   /**
-   * Check if file path is exempted from rule
+   * Check if file path is exempted from rule.
+   *
+   * `dot: true` is required so that dot-prefixed path segments
+   * (e.g. `.wt/`, `.git/`, `.husky/`, `.next/`) don't silently
+   * defeat patterns like `**​/vite.config*.ts`. Without it,
+   * minimatch refuses to traverse dot-segments when matching
+   * `**`, which means git worktrees under `.wt/` fail every
+   * exemption regardless of the pattern.
    */
   private isPathExempted(filePath: string, rule: ValidationRule): boolean {
     if (!rule.exemptions?.paths) return false;
 
-    return rule.exemptions.paths.some((pattern) => minimatch(filePath, pattern));
+    return rule.exemptions.paths.some((pattern) => minimatch(filePath, pattern, { dot: true }));
   }
 
   /**
