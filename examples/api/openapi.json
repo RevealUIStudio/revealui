@@ -1126,7 +1126,7 @@
       "post": {
         "tags": ["errors"],
         "summary": "Capture client-side error",
-        "description": "Accepts structured error payloads from CMS client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.",
+        "description": "Accepts structured error payloads from admin client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4438,7 +4438,7 @@
       "post": {
         "tags": ["agent-tasks"],
         "summary": "Submit a natural language task for an agent to execute",
-        "description": "Creates a ticket from the instruction, dispatches an AI agent with CMS tools to resolve it, and returns the result.",
+        "description": "Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -5915,7 +5915,7 @@
                     "docs": {
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/User" },
-                      "description": "Alias for data (CMS admin compat)"
+                      "description": "Alias for data (admin dashboard compat)"
                     },
                     "totalDocs": { "type": "number" },
                     "totalPages": { "type": "number" },
@@ -6898,7 +6898,7 @@
     "/api/rag/workspaces/{workspaceId}/index/{collection}": {
       "post": {
         "tags": ["rag"],
-        "summary": "Trigger RAG indexing for a CMS collection",
+        "summary": "Trigger RAG indexing for an admin collection",
         "parameters": [
           {
             "schema": { "type": "string", "description": "Workspace ID" },
@@ -6908,9 +6908,9 @@
             "in": "path"
           },
           {
-            "schema": { "type": "string", "description": "CMS collection name" },
+            "schema": { "type": "string", "description": "admin collection name" },
             "required": true,
-            "description": "CMS collection name",
+            "description": "admin collection name",
             "name": "collection",
             "in": "path"
           }
@@ -6955,7 +6955,7 @@
             "content": { "application/json": { "schema": { "nullable": true } } }
           },
           "502": {
-            "description": "CMS fetch error",
+            "description": "admin fetch error",
             "content": { "application/json": { "schema": { "nullable": true } } }
           }
         }
@@ -7903,7 +7903,7 @@
       "post": {
         "tags": ["errors"],
         "summary": "Capture client-side error",
-        "description": "Accepts structured error payloads from CMS client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.",
+        "description": "Accepts structured error payloads from admin client-side and any other app that cannot write to the DB directly. Requires X-Internal-Token header.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -11215,7 +11215,7 @@
       "post": {
         "tags": ["agent-tasks"],
         "summary": "Submit a natural language task for an agent to execute",
-        "description": "Creates a ticket from the instruction, dispatches an AI agent with CMS tools to resolve it, and returns the result.",
+        "description": "Creates a ticket from the instruction, dispatches an AI agent with admin tools to resolve it, and returns the result.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -12692,7 +12692,7 @@
                     "docs": {
                       "type": "array",
                       "items": { "$ref": "#/components/schemas/User" },
-                      "description": "Alias for data (CMS admin compat)"
+                      "description": "Alias for data (admin dashboard compat)"
                     },
                     "totalDocs": { "type": "number" },
                     "totalPages": { "type": "number" },
@@ -13675,7 +13675,7 @@
     "/api/v1/rag/workspaces/{workspaceId}/index/{collection}": {
       "post": {
         "tags": ["rag"],
-        "summary": "Trigger RAG indexing for a CMS collection",
+        "summary": "Trigger RAG indexing for an admin collection",
         "parameters": [
           {
             "schema": { "type": "string", "description": "Workspace ID" },
@@ -13685,9 +13685,9 @@
             "in": "path"
           },
           {
-            "schema": { "type": "string", "description": "CMS collection name" },
+            "schema": { "type": "string", "description": "admin collection name" },
             "required": true,
-            "description": "CMS collection name",
+            "description": "admin collection name",
             "name": "collection",
             "in": "path"
           }
@@ -13732,7 +13732,7 @@
             "content": { "application/json": { "schema": { "nullable": true } } }
           },
           "502": {
-            "description": "CMS fetch error",
+            "description": "admin fetch error",
             "content": { "application/json": { "schema": { "nullable": true } } }
           }
         }
