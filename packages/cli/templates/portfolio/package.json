@@ -10,7 +10,7 @@
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "db:init": "revealui cms",
+    "db:init": "revealui db init",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/seed.ts"
   },
