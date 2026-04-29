@@ -15,9 +15,9 @@
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
     "@solana/kit": "^6.8.0",
-    "@vercel/node": "^5.7.12",
+    "@vercel/node": "^5.7.13",
     "drizzle-orm": "catalog:",
-    "jose": "^6.2.2",
+    "jose": "^6.2.3",
     "stripe": "^22.1.0"
   },
   "devDependencies": {
@@ -27,10 +27,10 @@
     "@vitest/coverage-v8": "^4.1.5",
     "@revealui/dev": "workspace:*",
     "dotenv": "catalog:",
-    "postcss": "^8.5.10",
+    "postcss": "^8.5.12",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "tailwindcss": "^4.2.2",
+    "tailwindcss": "^4.2.4",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "^4.1.5"
