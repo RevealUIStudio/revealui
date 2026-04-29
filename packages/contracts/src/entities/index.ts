@@ -214,8 +214,8 @@ export {
   UpdatePageInputSchema,
 } from './page.js';
 export {
-  type Block,
-  BlockSchema,
+  type RevisionBlock,
+  RevisionBlockSchema,
   CHANGE_TYPES,
   type ChangeType,
   calculateRevisionNumber,
