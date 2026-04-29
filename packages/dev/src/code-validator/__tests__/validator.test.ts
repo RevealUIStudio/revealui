@@ -111,6 +111,51 @@ describe('CodeValidator', () => {
     expect(result.stats.exemptionsApplied).toBe(1);
   });
 
+  it('respects path exemptions through dot-prefixed segments (worktree paths)', () => {
+    // Regression: git worktrees live under `.wt/<name>/...`, so absolute
+    // paths passed by `scripts/validation/validate-code.ts` from a worktree
+    // contain a `.wt/` segment. minimatch's default behavior refuses to
+    // traverse dot-prefixed segments under `**`, so without `{ dot: true }`
+    // every exemption pattern fails for worktree-resolved paths. This test
+    // pins that fix in place. (Discovered 2026-04-29 during CHIP-3 Phase 3.)
+    const rule0 = testStandards.rules[0];
+    if (!rule0) throw new Error('Rule 0 not found');
+
+    const standardsWithExemptions: CodeStandards = {
+      ...testStandards,
+      rules: [
+        {
+          ...rule0,
+          exemptions: {
+            paths: ['**/vite.config*.ts'],
+          },
+        },
+      ],
+    };
+
+    const validator = new CodeValidator(standardsWithExemptions);
+    const code = `console.log('test')`;
+
+    // Absolute path with .wt/ segment (the worktree case)
+    const wtResult = validator.validate(code, {
+      filePath: '/home/dev/suite/.wt/feature-branch/apps/docs/vite.config.ts',
+    });
+    expect(wtResult.valid).toBe(true);
+    expect(wtResult.violations).toHaveLength(0);
+    expect(wtResult.stats.exemptionsApplied).toBe(1);
+
+    // Also verify .git/, .next/, and .husky/ segments don't defeat matching
+    const gitResult = validator.validate(code, {
+      filePath: '/repo/.git/hooks/vite.config.ts',
+    });
+    expect(gitResult.stats.exemptionsApplied).toBe(1);
+
+    const nextResult = validator.validate(code, {
+      filePath: 'apps/admin/.next/cache/vite.config.ts',
+    });
+    expect(nextResult.stats.exemptionsApplied).toBe(1);
+  });
+
   it('respects comment exemptions', () => {
     const rule0 = testStandards.rules[0];
     if (!rule0) throw new Error('Rule 0 not found');
