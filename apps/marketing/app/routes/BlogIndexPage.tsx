@@ -147,25 +147,25 @@ export function BlogIndexPage() {
                   title: 'The Five Primitives',
                   description:
                     'A deep technical walkthrough of Users, Content, Products, Payments, and Intelligence.',
-                  href: 'https://docs.revealui.com/docs/blog/02-five-primitives',
+                  href: 'https://docs.revealui.com/blog/02-five-primitives',
                 },
                 {
                   title: 'HTTP 402 and the Future of Payments',
                   description:
                     'How the x402 protocol enables agent-native micropayments without accounts or subscriptions.',
-                  href: 'https://docs.revealui.com/docs/blog/02-http-402-payments',
+                  href: 'https://docs.revealui.com/blog/02-http-402-payments',
                 },
                 {
                   title: 'Multi-Agent Coordination',
                   description:
                     'How we coordinate multiple AI agents working on the same codebase without conflicts.',
-                  href: 'https://docs.revealui.com/docs/blog/03-multi-agent-coordination',
+                  href: 'https://docs.revealui.com/blog/03-multi-agent-coordination',
                 },
                 {
                   title: 'The Local-First AI Stack',
                   description:
                     'Building AI features that work offline with ElectricSQL sync and local model inference.',
-                  href: 'https://docs.revealui.com/docs/blog/04-local-first-ai-stack',
+                  href: 'https://docs.revealui.com/blog/04-local-first-ai-stack',
                 },
               ].map((post) => (
                 <a
