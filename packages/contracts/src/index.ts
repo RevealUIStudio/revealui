@@ -106,7 +106,7 @@ export {
   type UpdatePageInput,
   UpdatePageInputSchema,
 } from './entities/page.js';
-
+export { type Session, SessionSchema } from './entities/session.js';
 export {
   type CreateSiteInput,
   CreateSiteInputSchema,
@@ -129,14 +129,10 @@ export {
   type UpdateSiteInput,
   UpdateSiteInputSchema,
 } from './entities/site.js';
-
 export {
   type CreateUserInput,
   CreateUserInputSchema,
-  createSession,
   createUser,
-  type Session,
-  SessionSchema,
   type UpdateUserInput,
   UpdateUserInputSchema,
   USER_SCHEMA_VERSION,
