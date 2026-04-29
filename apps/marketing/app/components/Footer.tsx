@@ -142,6 +142,16 @@ export function Footer() {
                 </a>
               </li>
               <li>
+                <a
+                  href="https://revealuistudio.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-white transition-colors"
+                >
+                  Studio
+                </a>
+              </li>
+              <li>
                 <a href="/contact" className="hover:text-white transition-colors">
                   Contact
                 </a>
@@ -151,7 +161,18 @@ export function Footer() {
         </div>
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-400 text-sm">
           <div className="flex items-center gap-4">
-            <p>&copy; {currentYear} RevealUI Studio. All rights reserved.</p>
+            <p>
+              &copy; {currentYear}{' '}
+              <a
+                href="https://revealuistudio.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors underline-offset-4 hover:underline"
+              >
+                RevealUI Studio
+              </a>
+              . All rights reserved.
+            </p>
             <BuiltWithRevealUI size="sm" colorScheme="dark" />
           </div>
           <div className="flex gap-6">
