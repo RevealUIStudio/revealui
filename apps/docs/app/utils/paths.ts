@@ -2,6 +2,8 @@
  * Path resolution and sanitization utilities for documentation routes
  */
 
+import { SLUG_TO_PATH } from '../lib/slug-manifest';
+
 /**
  * Type-safe documentation section paths
  */
@@ -113,14 +115,15 @@ export function sanitizePath(input: string): string {
 export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath {
   const { section, routePath, requireExtension = true } = options;
 
-  // Base path for the section
-  // 'docs' section maps to root /docs/ directory (not /docs/docs/)
-  const basePath = section === 'docs' ? '/docs/' : `/docs/${section}/`;
+  // CHIP-3 D5a: docs files live at the root of /public, not under /public/docs.
+  // The 'docs' section therefore serves from /, and api/guides serve from
+  // /api/, /guides/.
+  const basePath = section === 'docs' ? '/' : `/${section}/`;
 
   // Handle empty/null route path (index)
   if (!routePath || routePath === '') {
     return {
-      markdownPath: section === 'docs' ? '/docs/INDEX.md' : `${basePath}README.md`,
+      markdownPath: section === 'docs' ? '/INDEX.md' : `${basePath}README.md`,
       displayPath: section,
       isIndex: true,
     };
@@ -135,6 +138,29 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
       markdownPath: `${basePath}README.md`,
       displayPath: section,
       isIndex: true,
+    };
+  }
+
+  // CHIP-3 D2b: 'docs' section route paths are lowercase-kebab slugs.
+  // Resolve via the slug manifest to recover the original filename.
+  if (section === 'docs') {
+    const slugKey = sanitized.replace(/\.(md|mdx)$/, '');
+    const original = SLUG_TO_PATH[slugKey];
+    if (original) {
+      return {
+        markdownPath: `/${original}`,
+        displayPath: sanitized,
+        isIndex: false,
+      };
+    }
+    // Fallback: treat the path as-is for unmapped slugs (recently added
+    // docs not yet in the manifest, etc.). Surfaces 404 if the file
+    // doesn't exist; user can rerun `pnpm --filter docs build:slug-manifest`.
+    const withExt = sanitized.endsWith('.md') ? sanitized : `${sanitized}.md`;
+    return {
+      markdownPath: `/${withExt}`,
+      displayPath: sanitized,
+      isIndex: false,
     };
   }
 

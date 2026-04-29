@@ -1707,7 +1707,7 @@ Migration files follow the pattern `NNNN_description.sql`. Run them in order aga
 
 - [`@revealui/auth`](/reference/auth)  -  Uses `users`, `sessions`, `passwordResetTokens`
 - [`@revealui/contracts`](/reference/contracts)  -  Zod schemas mapping to DB rows
-- [Database architecture](/docs/DATABASE)  -  Dual-DB design, schema overview
+- [Database architecture](/database)  -  Dual-DB design, schema overview
 
 ---
 
@@ -2709,7 +2709,7 @@ Behaviour-only versions of form controls  -  bring your own styles.
 ## Related
 
 - [`@revealui/core`](/reference/core)  -  Uses `presentation` for admin UI components
-- [Component catalog](/docs/COMPONENT_CATALOG)  -  Visual index of all 57 components
+- [Component catalog](/component-catalog)  -  Visual index of all 57 components
 
 ---
 
