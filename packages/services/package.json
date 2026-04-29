@@ -13,9 +13,11 @@
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
+    "@revealui/utils": "workspace:*",
     "@solana/kit": "^6.8.0",
     "@vercel/node": "^5.7.12",
     "drizzle-orm": "catalog:",
+    "jose": "^6.2.2",
     "stripe": "^22.1.0"
   },
   "devDependencies": {
@@ -44,6 +46,10 @@
     "./server": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./email": {
+      "types": "./dist/email/index.d.ts",
+      "import": "./dist/email/index.js"
     },
     "./stripe/payment-intent": {
       "types": "./dist/stripe/payment-intent.d.ts",
