@@ -40,19 +40,24 @@ jobs:
 
   # Secret scanning
   #
-  # Uses the gitleaks CLI directly (not the gitleaks-action wrapper) so we can
-  # pass --baseline-path. The wrapper does not expose the baseline flag as of
-  # v2. Baseline at .gitleaks.baseline.json captures historical-leak
-  # fingerprints (rotated values, deleted files); new findings in PRs and
-  # scheduled scans still fail the job, baseline entries are suppressed.
+  # Uses gitleaks CLI directly with `--log-opts="--since=YYYY-MM-DD"` to skip
+  # all commits before the post-#540 rotation cutoff. Every historical finding
+  # in the repo is dated before that cutoff and has been rotated; scanning
+  # them on every Monday produces alert fatigue and risks masking new leaks.
   #
-  # Refresh cadence + verification: docs/runbooks/gitleaks-baseline.md.
+  # The cutoff is a stable boundary: commit-SHA-based baselines (--baseline-path)
+  # are fragile across history rewrites — peer rebases / merge trains shift the
+  # ancestor SHAs of historical commits, breaking fingerprint matches. The date
+  # cutoff has no SHA dependency.
+  #
+  # Refresh cadence + how to bump the cutoff: docs/runbooks/gitleaks.md.
   gitleaks:
     name: Secret Scanning (Gitleaks)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
       GITLEAKS_VERSION: "8.30.0"
+      GITLEAKS_HISTORY_SINCE: "2026-04-25" # post-#540 rotation; raise after future credential rotations
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -64,13 +69,13 @@ jobs:
             | tar -xz -C /tmp gitleaks
           sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
           gitleaks version
-      - name: Run gitleaks (with baseline suppression)
+      - name: Run gitleaks (post-cutoff history only)
         run: |
           gitleaks detect \
             --no-banner \
             --redact \
             --config .gitleaks.toml \
-            --baseline-path .gitleaks.baseline.json \
+            --log-opts="--since=${GITLEAKS_HISTORY_SINCE}" \
             --report-path /tmp/gitleaks-report.json \
             --report-format json
       - name: Upload gitleaks report on failure
