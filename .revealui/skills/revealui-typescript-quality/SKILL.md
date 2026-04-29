@@ -423,21 +423,21 @@ const user = UserSchema.parse(data) // Throws if invalid
 
 ## Common Patterns in RevealUI
 
-### RevealUI CMS Collections
+### RevealUI Collections
 
 ```typescript
-// ✅ GOOD: Type RevealUI CMS operations
+// ✅ GOOD: Type RevealUI operations
 import type { RevealUI } from '@revealui/core'
 
 async function createPost(
-  cms: RevealUI,
+  revealui: RevealUI,
   data: {
     title: string
     content: string
     author: string
   }
 ) {
-  return await cms.create({
+  return await revealui.create({
     collection: 'posts',
     data,
   })

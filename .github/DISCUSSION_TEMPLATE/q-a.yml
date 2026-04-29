@@ -28,7 +28,7 @@ body:
       label: Area
       description: Which part of RevealUI does this relate to?
       options:
-        - CMS / Collections
+        - Content / Collections
         - Auth / Sessions
         - Database / Drizzle
         - UI Components

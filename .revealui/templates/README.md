@@ -32,7 +32,7 @@ Use for: Applications under `apps/` (Next.js or Vite-based)
 
 **Frameworks:** Next.js or Vite
 **Test Framework:** Vitest
-**Examples:** `cms`, `dashboard`, `docs`, `landing`, `web`
+**Examples:** `admin`, `docs`, `landing`, `web`
 
 **Next.js variant:**
 ```json
@@ -150,7 +150,7 @@ Example: `@revealui/presentation`
   "vercel-build": "next build"
 }
 ```
-Example: `cms`, `web`
+Example: `admin`, `web`
 
 #### Packages with Database Migrations
 ```json
