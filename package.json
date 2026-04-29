@@ -131,6 +131,8 @@
     "clean:install": "pnpm clean && pnpm install:clean",
     "admin:bootstrap": "tsx scripts/admin/bootstrap.ts",
     "coverage:check": "tsx scripts/gates/test-coverage-gate.ts",
+    "db:assert-migration-count": "tsx scripts/setup/assert-migration-count.ts",
+    "db:backfill-migrations": "tsx scripts/setup/backfill-migrations.ts",
     "db:generate-types": "tsx scripts/dev-tools/post-migration-types.ts",
     "db:init": "tsx scripts/setup/database.ts",
     "db:migrate": "pnpm --filter @revealui/db db:migrate",
