@@ -27,6 +27,18 @@
       "migrationPhase": null
     },
     {
+      "path": "scripts/setup/backfill-migrations.ts",
+      "rules": ["direct-import"],
+      "reason": "GAP-168 pre-migrate guard. Queries drizzle.__drizzle_migrations directly to detect tracking-row drift before drizzle-kit migrate runs. Cannot route through @revealui/db because (a) the schema isn't yet known to be in a consistent state — that's exactly what this script verifies — and (b) drizzle.__drizzle_migrations is drizzle's own tracking table, not part of the app schema. Permanent.",
+      "migrationPhase": null
+    },
+    {
+      "path": "scripts/setup/assert-migration-count.ts",
+      "rules": ["direct-import"],
+      "reason": "GAP-168 post-migrate guard. Counts rows in drizzle.__drizzle_migrations and asserts against _journal.json entry count. Same rationale as backfill-migrations.ts — drizzle.__drizzle_migrations is drizzle's own tracking table, not in the app schema. Permanent.",
+      "migrationPhase": null
+    },
+    {
       "path": "scripts/seed-admin.mjs",
       "rules": ["direct-import"],
       "reason": "Admin-user seed script. Queries Neon Auth's own schema (`neon_auth.\"user\"`), not the app's public.users table — that's a third-party schema provided by Neon Auth which Drizzle correctly does not track. Routing this through @revealui/db would require adding neon_auth tables to the schema, which would be misleading (they are not owned by this project). Permanent.",
