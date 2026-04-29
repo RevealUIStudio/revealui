@@ -21,7 +21,7 @@
 - **Codebase:** ~270,000 lines of TypeScript/Rust/Go across apps + packages
 - **History:** 2,410+ commits (Dec 30, 2025 – Apr 2026), solo developer
 - **Apps:** 5 (api, admin, docs, marketing, revealcoin)
-- **Packages:** 26 packages + 5 apps = 31 workspaces
+- **Packages:** 26 packages + 6 apps = 32 workspaces
 - **Tests:** extensive test suite across unit, integration, and E2E layers; all workspaces build and typecheck (run `pnpm test` for current count)
 - **Database:** 86 tables (Drizzle ORM, dual NeonDB + Supabase), 61 CHECK constraints enforced (migration 0001 applied 2026-04-15)
 - **UI Components:** 57 native components (Tailwind v4, zero external UI deps)

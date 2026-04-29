@@ -75,7 +75,7 @@ export function SearchBar() {
 
   const handleSelect = useCallback(
     (result: SearchResult) => {
-      void navigate(`/docs/${result.path}`);
+      void navigate(`/${result.path}`);
       setQuery('');
       setResults([]);
       setIsOpen(false);

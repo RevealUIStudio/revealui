@@ -194,6 +194,16 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
       errors.push('STRIPE_WEBHOOK_SECRET must start with "whsec_" in production.');
     }
 
+    // Optional dual-secret rotation transition (GAP-144). Only validated when
+    // present — empty/unset is the steady state. When set, must be a valid
+    // whsec_ secret since the webhook handler will use it as a fallback verifier.
+    const previousWebhookSecret = (env.STRIPE_WEBHOOK_SECRET_LIVE_PREVIOUS ?? '').trim();
+    if (previousWebhookSecret && !previousWebhookSecret.startsWith('whsec_')) {
+      errors.push(
+        'STRIPE_WEBHOOK_SECRET_LIVE_PREVIOUS must start with "whsec_" when set (transitional secret used during webhook signing-key rotation).',
+      );
+    }
+
     // HTTPS-only URLs (hosted mode runs on revealui.com).
     if (!publicUrl.startsWith('https://')) {
       errors.push('REVEALUI_PUBLIC_SERVER_URL must use HTTPS in production.');

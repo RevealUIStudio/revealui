@@ -174,6 +174,15 @@ jobs:
         # Forcing NO_COLOR + piping through `tr '\r' '\n'` converts each
         # spinner tick to its own line, leaving the trailing error visible.
         # PIPESTATUS preserves drizzle-kit's exit code through the pipe.
+        #
+        # GAP-168 defense-in-depth (sandwich the migrate with two guards):
+        #   1. db:backfill-migrations BEFORE — detects the 2026-04-20 incident
+        #      class (drizzle.__drizzle_migrations rows missing for journal
+        #      entries) and fails the deploy with a clear diagnostic before
+        #      drizzle-kit re-applies already-applied SQL.
+        #   2. db:assert-migration-count AFTER — asserts the post-migrate
+        #      tracking row count matches the journal entry count, catching
+        #      half-applied state regardless of which side drifted.
         env:
           NO_COLOR: "1"
           FORCE_COLOR: "0"
@@ -186,8 +195,20 @@ jobs:
             echo "::error::POSTGRES_URL not found in pulled Vercel env"
             exit 1
           fi
+          echo "::group::Backfill check (pre-migrate)"
+          pnpm db:backfill-migrations
+          echo "::endgroup::"
+          echo "::group::drizzle-kit migrate"
           pnpm --filter @revealui/db db:migrate 2>&1 | tr '\r' '\n'
-          exit "${PIPESTATUS[0]}"
+          MIGRATE_STATUS=${PIPESTATUS[0]}
+          echo "::endgroup::"
+          if [ "$MIGRATE_STATUS" -ne 0 ]; then
+            echo "::error::drizzle-kit migrate exited $MIGRATE_STATUS"
+            exit "$MIGRATE_STATUS"
+          fi
+          echo "::group::Migration count assertion (post-migrate)"
+          pnpm db:assert-migration-count
+          echo "::endgroup::"
 
   # ---------------------------------------------------------------------------
   # Detect which apps were affected by the merge

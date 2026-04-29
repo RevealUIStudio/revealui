@@ -19,4 +19,4 @@ Practical, step-by-step guides for building with RevealUI.
 
 For package-level API documentation, see the [API Reference](/api).
 
-For the full documentation index, see the [Documentation Home](/docs/INDEX).
+For the full documentation index, see the [Documentation Home](/index).
