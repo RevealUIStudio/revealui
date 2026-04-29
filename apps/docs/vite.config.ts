@@ -1,3 +1,8 @@
+// console-allowed
+// (Vite build config — docsCopyPlugin uses console for DEBUG-gated plugin
+//  logging and error reporting. Should be exempt via the rule's `paths`
+//  glob `**/vite.config*.ts` but the validator's path-match isn't firing
+//  for this file in pre-commit; file-level exemption is reliable.)
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
@@ -35,7 +40,9 @@ const INTERNAL_DOC_FILES = new Set([
 
 function docsCopyPlugin() {
   const docsSource = path.resolve(import.meta.dirname, '../../docs');
-  const docsDest = path.resolve(import.meta.dirname, 'public/docs');
+  // CHIP-3 D5a: docs are served from the public root (matches flat URL layout
+  // — `docs.revealui.com/admin-guide` resolves to `public/ADMIN_GUIDE.md`).
+  const docsDest = path.resolve(import.meta.dirname, 'public');
 
   // Debounce queue
   let debounceTimer: NodeJS.Timeout | null = null;

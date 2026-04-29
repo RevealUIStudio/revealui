@@ -29,7 +29,7 @@ describe('discoverFiles', () => {
 
     const result = await discoverFiles('guides');
 
-    expect(fetch).toHaveBeenCalledWith('/docs/guides/.manifest.json');
+    expect(fetch).toHaveBeenCalledWith('/guides/.manifest.json');
     expect(result).toEqual(manifestFiles);
   });
 

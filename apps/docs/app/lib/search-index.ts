@@ -107,18 +107,18 @@ export async function buildSearchIndex(): Promise<void> {
 
   buildPromise = (async () => {
     try {
-      // Fetch and parse the index
-      const indexResponse = await fetch('/docs/INDEX.md');
+      // Fetch and parse the index (CHIP-3 D5a: docs serve from root)
+      const indexResponse = await fetch('/INDEX.md');
       if (!indexResponse.ok) {
         return;
       }
       const indexContent = await indexResponse.text();
       const filenames = parseIndex(indexContent);
 
-      // Fetch all docs in parallel
+      // Fetch all docs in parallel (CHIP-3 D5a: docs serve from root)
       const fetchResults = await Promise.allSettled(
         filenames.map(async (filename) => {
-          const response = await fetch(`/docs/${filename}`);
+          const response = await fetch(`/${filename}`);
           if (!response.ok) {
             return null;
           }
