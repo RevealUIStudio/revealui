@@ -25,9 +25,8 @@
     "dist",
     "**/*.spec.ts",
     "**/*.test.ts",
-    "../studio",
     "../docs",
-    "../cms",
+    "../admin",
     "../marketing"
   ]
 }
