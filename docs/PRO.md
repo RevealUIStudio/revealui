@@ -1016,7 +1016,7 @@ Editor configuration sync — recommended extensions, workspace settings, and AI
 - Repo: [`RevealUIStudio/editor-configs`](https://github.com/RevealUIStudio/editor-configs)
 - CLI: `revcon sync`, `revcon diff`, `revcon pull`, `revcon push`
 
-RevCon is intentionally decoupled from the RevealUI runtime: editor profiles evolve on a different cadence than the CMS/API packages and are not gated by the Pro license. Install it standalone rather than adding it as a runtime dependency of your RevealUI app.
+RevCon is intentionally decoupled from the RevealUI runtime: editor profiles evolve on a different cadence than the core packages and are not gated by the Pro license. Install it standalone rather than adding it as a runtime dependency of your RevealUI app.
 
 ---
 

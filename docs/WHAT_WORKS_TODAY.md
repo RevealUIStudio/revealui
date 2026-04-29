@@ -88,7 +88,7 @@ Honest list of things that are not done, not deployed, or not verified.
 - **MCP marketplace is preview, not live.** Publish/list/invoke/onboard endpoints are wired; payouts open with the billing-readiness audit.
 - **No SSO / SCIM in code.** Roadmap items.
 - **No dunning logic.** Best-practice guidance only.
-- **No Prompts CMS collection.** admin ships Pages, Posts, Products, Contents, Videos, Tenants — no Prompts.
+- **No Prompts collection.** admin ships Pages, Posts, Products, Contents, Videos, Tenants — no Prompts.
 
 ---
 
