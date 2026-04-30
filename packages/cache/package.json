@@ -7,7 +7,7 @@
     "@revealui/security": "workspace:*"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.4",
+    "@electric-sql/pglite": "^0.4.5",
     "@types/node": "catalog:",
     "@revealui/dev": "workspace:*",
     "tsup": "catalog:",

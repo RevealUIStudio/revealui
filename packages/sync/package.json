@@ -4,7 +4,7 @@
   "description": "ElectricSQL sync utilities for RevealUI",
   "license": "MIT",
   "dependencies": {
-    "@electric-sql/react": "^1.0.44",
+    "@electric-sql/react": "^1.0.45",
     "@revealui/cache": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/db": "workspace:*",
