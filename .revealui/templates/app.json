@@ -35,15 +35,14 @@
       "nextjs": "Use dev:nextjs, build:nextjs, start:nextjs - rename to dev/build/start",
       "vite": "Use dev:vite, build:vite, start:vite - rename to dev/build/start",
       "port_assignment": {
-        "cms": "4000",
-        "dashboard": "3003",
+        "admin": "4000",
         "docs": "3001",
         "landing": "3000",
         "studio": "—"
       }
     },
     "vercel_build": {
-      "cms": "Uses pnpm run vercel-build",
+      "admin": "Uses pnpm run vercel-build",
       "studio": "Tauri desktop app (cargo tauri build)"
     },
     "optional_scripts": [

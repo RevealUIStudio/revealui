@@ -43,7 +43,7 @@ packages/
       └── vitest.config.ts
 
 apps/
-  └── cms/
+  └── admin/
       └── src/
           ├── __tests__/
           │   ├── auth/
