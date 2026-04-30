@@ -11,7 +11,7 @@ const PROD_RUNNER = fileURLToPath(new URL('../revmarket-task-runner.mjs', import
 function baseOpts(overrides: Partial<SandboxRunOptions> = {}): SandboxRunOptions {
   const controller = new AbortController();
   return {
-    taskId: 'test-task-' + Math.random().toString(36).slice(2, 10),
+    taskId: `test-task-${Math.random().toString(36).slice(2, 10)}`,
     agentId: 'test-agent',
     skillName: 'echo',
     input: { hello: 'world' },
@@ -67,7 +67,7 @@ describe('forkProvider — environment isolation', () => {
   });
 
   it('strips parent env to a safe minimum — no REVEALUI / STRIPE / POSTGRES leakage', async () => {
-    const provider = forkProvider({ runnerPath: TEST_RUNNERS + 'env-echo.mjs' });
+    const provider = forkProvider({ runnerPath: `${TEST_RUNNERS}env-echo.mjs` });
     const opts = baseOpts();
     const result = await provider.run(opts);
 
@@ -88,7 +88,7 @@ describe('forkProvider — environment isolation', () => {
 
 describe('forkProvider — memory cap enforcement', () => {
   it('kills the fork when allocations exceed --max-old-space-size', async () => {
-    const provider = forkProvider({ runnerPath: TEST_RUNNERS + 'memory-bomb.mjs' });
+    const provider = forkProvider({ runnerPath: `${TEST_RUNNERS}memory-bomb.mjs` });
     const result = await provider.run(baseOpts({ maxMemoryMb: 64, maxExecMs: 30_000 }));
 
     expect(result.success).toBe(false);
@@ -103,7 +103,7 @@ describe('forkProvider — memory cap enforcement', () => {
 describe('forkProvider — timeout escalation', () => {
   it('SIGTERMs then SIGKILLs an infinite-loop runner via the abort signal', async () => {
     const provider = forkProvider({
-      runnerPath: TEST_RUNNERS + 'infinite-loop.mjs',
+      runnerPath: `${TEST_RUNNERS}infinite-loop.mjs`,
       killGraceMs: 500,
     });
 
@@ -124,7 +124,7 @@ describe('forkProvider — timeout escalation', () => {
 
 describe('forkProvider — silent exit handling', () => {
   it('surfaces a failure when the runner exits 0 without sending a result', async () => {
-    const provider = forkProvider({ runnerPath: TEST_RUNNERS + 'silent-exit.mjs' });
+    const provider = forkProvider({ runnerPath: `${TEST_RUNNERS}silent-exit.mjs` });
     const result = await provider.run(baseOpts());
 
     expect(result.success).toBe(false);

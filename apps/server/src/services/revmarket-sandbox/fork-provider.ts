@@ -25,7 +25,7 @@
  * is updated to reflect this delta — fork isolation is real but not OS-level.
  */
 
-import { fork, type ChildProcess } from 'node:child_process';
+import { type ChildProcess, fork } from 'node:child_process';
 import { mkdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -117,9 +117,10 @@ async function runForked(
           REVMARKET_TASK_ID: opts.taskId,
         },
         execArgv: [`--max-old-space-size=${opts.maxMemoryMb}`],
-        // Don't inherit parent stdio — keep agent stdout/stderr captured for
-        // future telemetry. Pipe so we can drain if needed.
-        stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+        // Don't inherit parent stdio. Discard agent stdout/stderr at the OS
+        // level (no Node-side draining required). Future telemetry hook can
+        // switch to 'pipe' and attach a sink at that point.
+        stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
         serialization: 'json',
       });
     } catch (err) {
@@ -144,10 +145,6 @@ async function runForked(
       });
       return;
     }
-
-    // Drain stdout/stderr so the pipe doesn't fill up and block the runner.
-    proc.stdout?.on('data', () => {});
-    proc.stderr?.on('data', () => {});
 
     proc.on('message', (msg: RunnerOutboundMessage) => {
       if (msg && typeof msg === 'object' && msg.type === 'result') {

@@ -11,8 +11,8 @@
  * deployments can pick at boot time.
  */
 
-export { forkProvider, type ForkProviderOptions } from './fork-provider.js';
-export { noSandboxProvider, type NoSandboxProviderOptions } from './no-sandbox-provider.js';
+export { type ForkProviderOptions, forkProvider } from './fork-provider.js';
+export { type NoSandboxProviderOptions, noSandboxProvider } from './no-sandbox-provider.js';
 export type {
   RunnerInboundMessage,
   RunnerOutboundMessage,
