@@ -133,6 +133,18 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
     errors.push('REVEALUI_KEK must be exactly 64 hexadecimal characters (256 bits).');
   }
 
+  // Optional dual-key boot (zero-downtime KEK rotation). Only validated when
+  // present — empty/unset is the steady state. When set, must be 64 hex
+  // chars since the crypto layer uses it as the primary encrypt key + first
+  // decrypt attempt during the rotation window.
+  // See docs/runbooks/rotate-kek.md §Zero-downtime path.
+  const kekNext = (env.REVEALUI_KEK_NEXT ?? '').trim();
+  if (kekNext && !/^[0-9a-f]{64}$/i.test(kekNext)) {
+    errors.push(
+      'REVEALUI_KEK_NEXT must be exactly 64 hexadecimal characters when set (transitional key during dual-key rotation).',
+    );
+  }
+
   // Secret minimum length — required in both modes, so always set here.
   const secret = env.REVEALUI_SECRET ?? '';
   if (secret.length < 32) {
