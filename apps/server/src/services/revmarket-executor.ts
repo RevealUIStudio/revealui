@@ -1,22 +1,31 @@
 /**
- * RevMarket Task Executor (Phase 5.16-B)  -  PREVIEW
+ * RevMarket Task Executor (Phase 5.16-B)
  *
- * ⚠️  PREVIEW FEATURE: Task execution runs in-process with timeout enforcement
- * only. There is no process isolation, filesystem sandboxing, or memory limit
- * enforcement. Use only with trusted agents you control or have reviewed.
- * Full sandboxed execution (child process isolation) is planned for Phase B.
+ * Sandboxed execution shipped via GAP-161. Agent task code runs in a
+ * `child_process.fork()` per task with `--max-old-space-size` memory cap +
+ * SIGTERM/SIGKILL timeout escalation (the `forkProvider` in
+ * `./revmarket-sandbox/`). The PREVIEW caveat about "no process isolation"
+ * is closed; remaining caveats — no syscall-level sandbox (kernel shared with
+ * host), best-effort filesystem isolation (cwd is per-task tmpdir but absolute
+ * paths are still reachable), no network egress firewall — are deferred to
+ * Option D (containers / Vercel Sandbox) when polyglot or hostile-publisher
+ * scenarios arrive.
+ *
+ * Trusted-only deployments (forge customer kits running operator-reviewed
+ * agents) can swap in `noSandboxProvider()` via `configureExecutor` to skip
+ * the fork overhead. Hosted SaaS MUST use `forkProvider`.
  *
  * Manages the lifecycle of autonomous agent task execution:
  *   1. Task claiming  -  atomic claim with priority ordering
- *   2. Timeout enforcement  -  AbortController with configurable maxExecutionMs
+ *   2. Timeout enforcement  -  AbortController + sandbox-side SIGTERM/SIGKILL
  *   3. Progress reporting  -  status updates to task_submissions
  *   4. Output validation  -  schema-checked results
  *   5. Audit trail  -  append-only audit_log entries
  *
  * Architecture:
  *   - Uses the existing `jobs` table as a task queue bridge
- *   - Execution is in-process (not child-process) for Phase A
- *   - Resource limits enforced via timeout only (memory monitoring planned)
+ *   - Execution is forked (Option A — `child_process.fork` per task)
+ *   - Memory limit enforced via `--max-old-space-size`; timeout via SIGTERM→SIGKILL
  *   - All state transitions are atomic (single UPDATE with WHERE state = X)
  */
 
@@ -24,6 +33,8 @@ import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { agentSkills, auditLog, marketplaceAgents, taskSubmissions } from '@revealui/db/schema';
 import { and, eq, sql } from 'drizzle-orm';
+
+import { forkProvider, type SandboxProvider } from './revmarket-sandbox/index.js';
 
 // =============================================================================
 // Configuration
@@ -38,6 +49,13 @@ export interface ExecutorConfig {
   pollIntervalMs: number;
   /** Maximum memory per task in MB (default: 512) */
   maxMemoryMb: number;
+  /**
+   * Sandbox provider used to execute agent code per task. Defaults to
+   * `forkProvider()`. Override at boot for trusted-only deployments
+   * (forge customer kits) with `noSandboxProvider()`, or in tests with
+   * a mock provider.
+   */
+  sandboxProvider: SandboxProvider;
 }
 
 const DEFAULT_CONFIG: ExecutorConfig = {
@@ -45,12 +63,21 @@ const DEFAULT_CONFIG: ExecutorConfig = {
   maxConcurrent: 4,
   pollIntervalMs: 5_000,
   maxMemoryMb: 512,
+  sandboxProvider: forkProvider(),
 };
 
 let config: ExecutorConfig = { ...DEFAULT_CONFIG };
 
 export function configureExecutor(overrides: Partial<ExecutorConfig>): void {
   config = { ...DEFAULT_CONFIG, ...overrides };
+}
+
+/**
+ * Replace the active sandbox provider. Convenience over `configureExecutor`
+ * when only the provider needs to change (e.g. in tests).
+ */
+export function setSandboxProvider(provider: SandboxProvider): void {
+  config = { ...config, sandboxProvider: provider };
 }
 
 // =============================================================================
@@ -185,21 +212,34 @@ export async function executeTask(taskId: string): Promise<TaskResult> {
     outputSchema = skill?.outputSchema ?? null;
   }
 
-  // Execute with timeout
+  // Execute with timeout. The AbortController fires at maxExecMs; the sandbox
+  // provider is responsible for translating the abort into a SIGTERM-then-
+  // SIGKILL escalation (forkProvider) or cooperative cancellation (other
+  // providers). We don't wrap in try/catch because the provider contract
+  // requires it to surface failures as { success: false, error } rather than
+  // throwing — internal sandbox bugs are the only path to a thrown error.
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), maxExecMs);
 
   try {
-    // Phase A: Execution placeholder  -  the actual agent invocation
-    // will be wired to the harness spawner or A2A handler in Phase B.
-    // For now, we validate the pipeline and return a structured response.
-    const result = await runAgentTask(task, controller.signal);
+    const sandboxResult = await config.sandboxProvider.run({
+      taskId: task.id,
+      agentId: task.agentId ?? 'unassigned',
+      skillName: task.skillName,
+      input: (task.input as Record<string, unknown>) ?? {},
+      signal: controller.signal,
+      // TODO(GAP-161 Phase 2.5): honor `marketplace_agents.maxMemoryMb` per
+      // task once the per-agent override path is wired (resourceLimits +
+      // maxMemoryMb columns exist on the schema today as metadata-only).
+      maxMemoryMb: config.maxMemoryMb,
+      maxExecMs,
+    });
 
     clearTimeout(timeout);
 
-    // Validate output against skill schema if available
-    if (result.output && outputSchema) {
-      const validation = validateOutput(result.output, outputSchema);
+    // Validate output against skill schema if available.
+    if (sandboxResult.success && sandboxResult.output && outputSchema) {
+      const validation = validateOutput(sandboxResult.output, outputSchema);
       if (!validation.valid) {
         logger.warn('RevMarket task output failed schema validation', {
           taskId,
@@ -209,51 +249,24 @@ export async function executeTask(taskId: string): Promise<TaskResult> {
     }
 
     return {
-      ...result,
+      success: sandboxResult.success,
+      output: sandboxResult.output,
+      artifacts: [...sandboxResult.artifacts],
+      tokensUsed: sandboxResult.tokensUsed,
       durationMs: Date.now() - startTime,
+      ...(sandboxResult.error !== undefined ? { error: sandboxResult.error } : {}),
     };
   } catch (err) {
     clearTimeout(timeout);
-
-    const isTimeout = err instanceof DOMException && err.name === 'AbortError';
     return {
       success: false,
       output: null,
       artifacts: [],
       tokensUsed: 0,
       durationMs: Date.now() - startTime,
-      error: isTimeout
-        ? `Task timed out after ${maxExecMs}ms`
-        : err instanceof Error
-          ? err.message
-          : 'Unknown execution error',
+      error: err instanceof Error ? err.message : 'Sandbox provider crashed',
     };
   }
-}
-
-/**
- * Placeholder agent task runner. In Phase B, this will delegate to:
- * - SpawnerService for local inference
- * - A2A handler for remote agents
- * - Harness adapters for tool-equipped agents
- */
-async function runAgentTask(
-  task: { id: string; skillName: string; input: Record<string, unknown> },
-  _signal: AbortSignal,
-): Promise<Omit<TaskResult, 'durationMs'>> {
-  // Phase A: Return structured acknowledgment
-  // Full execution pipeline will be wired in Phase B
-  return {
-    success: true,
-    output: {
-      taskId: task.id,
-      skillName: task.skillName,
-      status: 'executed',
-      message: 'Task processed by RevMarket executor',
-    },
-    artifacts: [],
-    tokensUsed: 0,
-  };
 }
 
 // =============================================================================
