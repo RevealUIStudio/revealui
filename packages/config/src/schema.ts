@@ -59,6 +59,16 @@ const optionalSchema = z.object({
     .regex(/^[0-9a-f]{64}$/i, 'Must be exactly 64 hex characters')
     .optional(),
 
+  // Transitional encryption key for zero-downtime KEK rotation.
+  // When set: new encrypts use _NEXT, decrypts try _NEXT first then fall
+  // back to REVEALUI_KEK on GCM auth-tag mismatch. After the rotation tool
+  // re-encrypts every row, the operator promotes _NEXT → REVEALUI_KEK and
+  // removes _NEXT. See docs/runbooks/rotate-kek.md §Zero-downtime path.
+  REVEALUI_KEK_NEXT: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/i, 'Must be exactly 64 hex characters')
+    .optional(),
+
   // Cron endpoint authentication
   REVEALUI_CRON_SECRET: secretSchema.optional(),
 

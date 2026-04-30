@@ -145,6 +145,22 @@ describe('validateStartup — production format checks (live mode)', () => {
     expect(() => validateStartup(validLiveProdEnv({ REVEALUI_KEK: 'a'.repeat(63) }))).toThrow();
   });
 
+  it('accepts a valid REVEALUI_KEK_NEXT during dual-key rotation', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ REVEALUI_KEK_NEXT: 'b'.repeat(64) })),
+    ).not.toThrow();
+  });
+
+  it('rejects REVEALUI_KEK_NEXT with wrong length', () => {
+    expect(() => validateStartup(validLiveProdEnv({ REVEALUI_KEK_NEXT: 'b'.repeat(63) }))).toThrow(
+      /REVEALUI_KEK_NEXT must be exactly 64 hexadecimal characters/,
+    );
+  });
+
+  it('treats empty REVEALUI_KEK_NEXT as unset (steady state, no fallback)', () => {
+    expect(() => validateStartup(validLiveProdEnv({ REVEALUI_KEK_NEXT: '' }))).not.toThrow();
+  });
+
   it('rejects REVEALUI_ALERT_EMAIL without an @', () => {
     expect(() => validateStartup(validLiveProdEnv({ REVEALUI_ALERT_EMAIL: 'notanemail' }))).toThrow(
       /REVEALUI_ALERT_EMAIL/,
