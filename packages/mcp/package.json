@@ -15,10 +15,10 @@
     "@revealui/core": "workspace:*",
     "@revealui/security": "workspace:*",
     "dotenv": "catalog:",
-    "jose": "^6.2.2"
+    "jose": "^6.2.3"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.4",
+    "@electric-sql/pglite": "^0.4.5",
     "pg": "catalog:",
     "typescript": "catalog:",
     "vitest": "^4.1.5"
