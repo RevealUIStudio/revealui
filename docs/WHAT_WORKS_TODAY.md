@@ -88,7 +88,7 @@ Honest list of things that are not done, not deployed, or not verified.
 - **MCP marketplace is preview, not live.** Publish/list/invoke/onboard endpoints are wired; payouts open with the billing-readiness audit.
 - **No SSO / SCIM in code.** Roadmap items.
 - **No dunning logic.** Best-practice guidance only.
-- **No Prompts CMS collection.** admin ships Pages, Posts, Products, Contents, Videos, Tenants — no Prompts.
+- **No Prompts collection.** admin ships Pages, Posts, Products, Contents, Videos, Tenants — no Prompts.
 
 ---
 
@@ -120,7 +120,7 @@ cd revealui
 pnpm install
 pnpm gate                # Run the full CI gate locally
 pnpm test                # Run the full test suite
-pnpm typecheck:all       # Typecheck all 32 workspaces
+pnpm typecheck:all       # Typecheck all 31 workspaces
 pnpm validate:claims     # Run the marketing/docs claim-drift gate
 ```
 

@@ -1,10 +1,10 @@
-# Conversational CMS - User Guide
+# Conversational Dashboard - User Guide
 
-Your RevealUI CMS now has AI-powered conversational control! You can manage your entire CMS using natural language through text, speech, or images.
+Your RevealUI admin dashboard now has AI-powered conversational control! You can manage your entire admin using natural language through text, speech, or images.
 
 ## How It Works
 
-The chat interface connects to an AI agent with 19 CMS tools that can:
+The chat interface connects to an AI agent with 19 admin tools that can:
 - Create, read, update, and delete content
 - Manage globals (Header, Footer, Settings)
 - Handle media files
@@ -12,7 +12,7 @@ The chat interface connects to an AI agent with 19 CMS tools that can:
 
 ## Access the Chat Interface
 
-1. **Start the CMS dev server:**
+1. **Start the admin dev server:**
    ```bash
    pnpm dev:admin
    ```
@@ -34,7 +34,7 @@ The chat interface connects to an AI agent with 19 CMS tools that can:
 ```
 Creating page... ✓
 I've created a new "About Us" page with introductory content.
-The page is now available in your CMS for editing.
+The page is now available in your admin dashboard for editing.
 ```
 
 ### Updating Navigation
@@ -187,7 +187,7 @@ Upload screenshots or designs:
 ## Troubleshooting
 
 ### "Tool not found" error
-The CMS tools may not be initialized. Check server logs for tool registration errors.
+The admin tools may not be initialized. Check server logs for tool registration errors.
 
 ### "Authentication required" error
 Your session may have expired. Log in again at `/admin/login`.
@@ -239,21 +239,21 @@ The chat API is configured in `/apps/admin/src/app/api/chat/route.ts`:
 
 ## What's Next?
 
-The conversational CMS is ready to deploy! Future enhancements:
+The conversational dashboard is ready to deploy! Future enhancements:
 
 - [ ] Image input for visual design instructions
 - [ ] Batch operations UI with progress tracking
 - [ ] Workflow automation (scheduled tasks)
 - [ ] Multi-language support
-- [ ] Voice-only mode (hands-free CMS management)
+- [ ] Voice-only mode (hands-free admin management)
 
 ## Support
 
 If you encounter issues or have questions:
 1. Check the server logs for detailed error messages
-2. Review the tool definitions in `/packages/ai/src/tools/cms/`
+2. Review the tool definitions in `/packages/ai/src/tools/admin/`
 3. Test the chat API directly: `POST /api/chat` with sample messages
 
 ---
 
-**Congratulations!** 🎉 You now have a fully conversational CMS powered by AI. Manage your content naturally through chat, voice, or images!
+**Congratulations!** 🎉 You now have a fully conversational dashboard powered by AI. Manage your content naturally through chat, voice, or images!
