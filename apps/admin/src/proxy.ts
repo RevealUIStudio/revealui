@@ -19,9 +19,12 @@ const PUBLIC_PATHS = new Set([
   '/setup',
 ]);
 
-// Legacy /* paths from before the URL flatten — 301 to flat path.
-// Catches stale bookmarks and any external links we didn't update.
-const LEGACY_ADMIN_PREFIX = '';
+// Legacy `/admin/*` paths from before the chip-2 URL flatten (#644) — 301 to
+// flat path. Catches stale bookmarks and any external links written against
+// the pre-flatten URLs. MUST be `/admin` (the historical prefix); empty
+// string makes `pathname.startsWith('${PREFIX}/')` match every request and
+// `pathname.slice(0)` redirect to itself, causing ERR_TOO_MANY_REDIRECTS.
+const LEGACY_ADMIN_PREFIX = '/admin';
 
 // Next.js 16 proxy convention (src/proxy.ts)
 // NOTE: Rate limiting is handled per-route via withRateLimit() in API route handlers.
