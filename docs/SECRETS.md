@@ -119,6 +119,7 @@ revealcoin/devnet-addresses              # operational, not a keypair
 
 ```
 revdev/license-signing-key               # when Ed25519 format lands (see license.ts TODO)
+revdev/license-public-key                # paired with signing-key (license verification side, for future format)
 revdev/github-token                      # perpetual license GitHub provisioning
 ```
 
