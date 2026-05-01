@@ -71,7 +71,15 @@ export interface ValidateResult {
 export function validatePulledEnv(pulled: EnvMap): ValidateResult {
   const env: EnvMap = { ...pulled, NODE_ENV: 'production' };
 
-  const mode = detectDeploymentMode(env);
+  // Vercel-Sensitive vars pull as empty strings even though they're
+  // populated at runtime. Run validateStartup in lenient mode here so
+  // presence-by-name passes for sensitive vars and format checks skip
+  // on empty values (the runtime invocation in apps/server still runs
+  // strict and catches misconfig there). See validate-startup.ts
+  // ValidateOptions for the full rationale.
+  const opts = { lenient: true };
+
+  const mode = detectDeploymentMode(env, opts);
   const stripeLiveMode = env.STRIPE_LIVE_MODE === 'true';
 
   if (env.SKIP_ENV_VALIDATION === 'true') {
@@ -85,7 +93,7 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
   }
 
   try {
-    validateStartup(env);
+    validateStartup(env, opts);
     return {
       ok: true,
       mode,

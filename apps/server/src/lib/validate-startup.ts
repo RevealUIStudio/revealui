@@ -19,8 +19,45 @@ export type EnvMap = Record<string, string | undefined>;
  */
 export type DeploymentMode = 'forge' | 'hosted';
 
-export function detectDeploymentMode(env: EnvMap): DeploymentMode {
-  return env.REVEALUI_LICENSE_PRIVATE_KEY ? 'hosted' : 'forge';
+/**
+ * Options that change validation behavior across runtime vs pre-deploy contexts.
+ *
+ * - `lenient` (default false): treats empty-string values as "present, sensitive
+ *   — trust runtime" rather than "missing". Use this from the pre-deploy
+ *   `validate-prod-env` script where Vercel-Sensitive vars pull as empty
+ *   strings even though they're populated at runtime. The runtime caller
+ *   (apps/server boot) leaves it false so empty-string env vars are caught
+ *   as real misconfig, matching the semantics this validator was originally
+ *   designed for.
+ *
+ * Background: Vercel's Sensitive flag (default-on for new env vars in 2026)
+ * deliberately excludes values from `vercel pull`'s `.env.production.local`
+ * output. The names appear, the values don't. Strict validation fails on
+ * the empty values even though the runtime function reads them fine. The
+ * lenient flag tells the validator to accept presence-by-name and defer
+ * format checks for sensitive values to runtime (where they're available).
+ */
+export interface ValidateOptions {
+  lenient?: boolean;
+}
+
+/**
+ * Returns true when `key` is set in `env`. Strict semantics treat empty
+ * string as missing (so `KEY=""` in a .env file fails validation, matching
+ * the original runtime contract). Lenient semantics treat empty string as
+ * present (so Sensitive vars that pull empty pre-deploy don't trip the
+ * required-presence check).
+ */
+function isPresent(env: EnvMap, key: string, lenient: boolean): boolean {
+  if (lenient) return env[key] !== undefined;
+  return Boolean(env[key]);
+}
+
+export function detectDeploymentMode(
+  env: EnvMap,
+  { lenient = false }: ValidateOptions = {},
+): DeploymentMode {
+  return isPresent(env, 'REVEALUI_LICENSE_PRIVATE_KEY', lenient) ? 'hosted' : 'forge';
 }
 
 // Required-always env vars expressed as alias groups: each group is satisfied
@@ -110,12 +147,24 @@ const REQUIRED_IN_PRODUCTION_FORGE = [
  * Takes `env` as an argument (defaulted to `process.env`) so tests can pass
  * explicit fixtures without touching real process state.
  */
-export function validateStartup(env: EnvMap = process.env as EnvMap): void {
+export function validateStartup(
+  env: EnvMap = process.env as EnvMap,
+  { lenient = false }: ValidateOptions = {},
+): void {
   if (env.SKIP_ENV_VALIDATION === 'true') {
     return;
   }
 
-  const missingGroups = REQUIRED_ALWAYS_GROUPS.filter((group) => !group.some((key) => env[key]));
+  // Local helper: in lenient (pre-deploy) mode, skip format checks on empty
+  // values — those represent Vercel-Sensitive vars whose values are hidden
+  // from `vercel pull` but populated at runtime. The runtime call (lenient
+  // false) still validates format strictly so a misconfigured `KEY=""` in a
+  // .env file fails loudly.
+  const skipFormat = (value: string): boolean => lenient && value === '';
+
+  const missingGroups = REQUIRED_ALWAYS_GROUPS.filter(
+    (group) => !group.some((key) => isPresent(env, key, lenient)),
+  );
   if (missingGroups.length > 0) {
     const missingNames = missingGroups.map((group) =>
       group.length > 1 ? `${group.join(' or ')}` : group[0],
@@ -130,9 +179,9 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
     return;
   }
 
-  const mode = detectDeploymentMode(env);
+  const mode = detectDeploymentMode(env, { lenient });
   const required = mode === 'forge' ? REQUIRED_IN_PRODUCTION_FORGE : REQUIRED_IN_PRODUCTION_HOSTED;
-  const missingProd = required.filter((key) => !env[key]);
+  const missingProd = required.filter((key) => !isPresent(env, key, lenient));
   if (missingProd.length > 0) {
     throw new Error(
       `STARTUP VALIDATION FAILED (${mode} mode): Missing production-required env vars: ${missingProd.join(', ')}.`,
@@ -147,7 +196,7 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
   // both modes (hosted + forge), so missing-presence is caught by the
   // REQUIRED check above; we always run the format check here.
   const kek = env.REVEALUI_KEK ?? '';
-  if (!/^[0-9a-f]{64}$/i.test(kek)) {
+  if (!skipFormat(kek) && !/^[0-9a-f]{64}$/i.test(kek)) {
     errors.push('REVEALUI_KEK must be exactly 64 hexadecimal characters (256 bits).');
   }
 
@@ -165,7 +214,7 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
 
   // Secret minimum length — required in both modes, so always set here.
   const secret = env.REVEALUI_SECRET ?? '';
-  if (secret.length < 32) {
+  if (!skipFormat(secret) && secret.length < 32) {
     errors.push('REVEALUI_SECRET must be at least 32 characters.');
   }
 
@@ -185,18 +234,20 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
 
     // Stripe secret key — prefix depends on STRIPE_LIVE_MODE.
     const stripeSecretKey = env.STRIPE_SECRET_KEY ?? '';
-    if (stripeLiveMode) {
-      if (!stripeSecretKey.startsWith('sk_live_')) {
-        errors.push(
-          'STRIPE_SECRET_KEY must be a live key (sk_live_...) when STRIPE_LIVE_MODE=true.',
-        );
-      }
-    } else {
-      if (!stripeSecretKey.startsWith('sk_test_')) {
-        errors.push(
-          'STRIPE_SECRET_KEY must be a test key (sk_test_...) when STRIPE_LIVE_MODE is unset/false. ' +
-            'Set STRIPE_LIVE_MODE=true to use live keys (gated on the billing-readiness audit).',
-        );
+    if (!skipFormat(stripeSecretKey)) {
+      if (stripeLiveMode) {
+        if (!stripeSecretKey.startsWith('sk_live_')) {
+          errors.push(
+            'STRIPE_SECRET_KEY must be a live key (sk_live_...) when STRIPE_LIVE_MODE=true.',
+          );
+        }
+      } else {
+        if (!stripeSecretKey.startsWith('sk_test_')) {
+          errors.push(
+            'STRIPE_SECRET_KEY must be a test key (sk_test_...) when STRIPE_LIVE_MODE is unset/false. ' +
+              'Set STRIPE_LIVE_MODE=true to use live keys (gated on the billing-readiness audit).',
+          );
+        }
       }
     }
 
@@ -220,7 +271,7 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
 
     // Stripe webhook signing secret — `whsec_` prefix in both Stripe modes.
     const webhookSecret = env.STRIPE_WEBHOOK_SECRET ?? '';
-    if (!webhookSecret.startsWith('whsec_')) {
+    if (!skipFormat(webhookSecret) && !webhookSecret.startsWith('whsec_')) {
       errors.push('STRIPE_WEBHOOK_SECRET must start with "whsec_" in production.');
     }
 
@@ -235,38 +286,41 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
     }
 
     // HTTPS-only URLs (hosted mode runs on revealui.com).
-    if (!publicUrl.startsWith('https://')) {
+    if (!skipFormat(publicUrl) && !publicUrl.startsWith('https://')) {
       errors.push('REVEALUI_PUBLIC_SERVER_URL must use HTTPS in production.');
     }
-    if (!nextPublicUrl.startsWith('https://')) {
+    if (!skipFormat(nextPublicUrl) && !nextPublicUrl.startsWith('https://')) {
       errors.push('NEXT_PUBLIC_SERVER_URL must use HTTPS in production.');
     }
 
     // Cron secret length (hosted-only — Forge customers don't have crons
     // calling back into revealui.com).
     const cronSecret = env.REVEALUI_CRON_SECRET ?? '';
-    if (cronSecret.length < 32) {
+    if (!skipFormat(cronSecret) && cronSecret.length < 32) {
       errors.push('REVEALUI_CRON_SECRET must be at least 32 characters.');
     }
 
     // Alert email format (hosted-only — primary use is unreconciled Stripe
     // webhooks; Forge customers can configure but aren't required to).
     const alertEmail = env.REVEALUI_ALERT_EMAIL ?? '';
-    if (!alertEmail.includes('@')) {
+    if (!skipFormat(alertEmail) && !alertEmail.includes('@')) {
       errors.push(
         `REVEALUI_ALERT_EMAIL is not a valid email (got: ${JSON.stringify(alertEmail)}).`,
       );
     }
 
     // CORS_ORIGIN is comma-separated; every origin must be HTTPS in hosted prod.
-    const nonHttpsOrigins = (env.CORS_ORIGIN ?? '')
-      .split(',')
-      .map((o) => o.trim())
-      .filter((o) => o.length > 0 && !o.startsWith('https://'));
-    if (nonHttpsOrigins.length > 0) {
-      errors.push(
-        `CORS_ORIGIN must contain only HTTPS origins in production. Got non-HTTPS: ${nonHttpsOrigins.join(', ')}.`,
-      );
+    const corsOriginRaw = env.CORS_ORIGIN ?? '';
+    if (!skipFormat(corsOriginRaw)) {
+      const nonHttpsOrigins = corsOriginRaw
+        .split(',')
+        .map((o) => o.trim())
+        .filter((o) => o.length > 0 && !o.startsWith('https://'));
+      if (nonHttpsOrigins.length > 0) {
+        errors.push(
+          `CORS_ORIGIN must contain only HTTPS origins in production. Got non-HTTPS: ${nonHttpsOrigins.join(', ')}.`,
+        );
+      }
     }
   }
 
