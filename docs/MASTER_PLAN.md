@@ -354,7 +354,7 @@ Phase D  -  Edge + CDN caching audit (agent): ✅ COMPLETE (2026-04-05)
 - [x] Tag-based revalidation for admin content changes  -  already implemented (`revalidateTag()` + on-demand ISR)
 - [x] ISR strategy per route  -  marketing (5min blog, 1hr pricing), admin (on-demand via `/api/revalidate`)
 - [x] Cache-Control headers audit across API routes  -  22+ routes lacked headers
-- [x] Cache-Control middleware (`apps/api/src/middleware/cache-control.ts`):
+- [x] Cache-Control middleware (`apps/server/src/middleware/cache-control.ts`):
   - `noStoreCacheMiddleware`: auth, billing, webhooks, GDPR, license, api-keys, agent routes
   - `noCacheCacheMiddleware`: health, cron, maintenance routes
   - `publicCacheMiddleware`: ready for content/marketplace GET endpoints (follow-up)

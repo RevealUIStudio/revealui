@@ -102,7 +102,7 @@ export function AgentCard({ card, agentId }: AgentCardProps) {
       {/* Actions */}
       <div className="mt-auto flex gap-2 pt-1">
         <Link
-          href={`/admin/agents/${agentId}`}
+          href={`/agents/${agentId}`}
           className="flex-1 rounded-lg px-3 py-2 text-center text-sm font-medium transition-colors"
           style={{
             backgroundColor: 'var(--rvui-surface-2, oklch(0.22 0.008 222))',

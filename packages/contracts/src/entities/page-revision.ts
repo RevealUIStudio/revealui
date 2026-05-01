@@ -51,15 +51,16 @@ export const REVISION_RETENTION = {
 // =============================================================================
 
 /**
- * Block schema (simplified, matches Page blocks)
+ * Revision block schema (simplified shape for serializing into PageRevision rows;
+ * the canonical discriminated-union Block lives in `../content`).
  */
-export const BlockSchema = z.object({
+export const RevisionBlockSchema = z.object({
   id: z.string(),
   type: z.string(),
   data: z.record(z.string(), z.unknown()).optional(),
 });
 
-export type Block = z.infer<typeof BlockSchema>;
+export type RevisionBlock = z.infer<typeof RevisionBlockSchema>;
 
 /**
  * SEO metadata schema (matches Page seo)
@@ -88,7 +89,7 @@ export const PageRevisionObjectSchema = z.object({
   createdBy: z.string().nullable().optional(),
   revisionNumber: z.number().int().positive('Revision number must be positive'),
   title: z.string().min(1, 'Title is required'),
-  blocks: z.array(BlockSchema).default([]),
+  blocks: z.array(RevisionBlockSchema).default([]),
   seo: SeoMetadataSchema.nullable().optional(),
   changeDescription: z.string().nullable().optional(),
   createdAt: z.date(),
@@ -203,14 +204,14 @@ export function estimateWordCount(revision: PageRevision): number {
 /**
  * Get block by ID
  */
-export function getBlockById(revision: PageRevision, blockId: string): Block | undefined {
+export function getBlockById(revision: PageRevision, blockId: string): RevisionBlock | undefined {
   return revision.blocks.find((block) => block.id === blockId);
 }
 
 /**
  * Get blocks by type
  */
-export function getBlocksByType(revision: PageRevision, type: string): Block[] {
+export function getBlocksByType(revision: PageRevision, type: string): RevisionBlock[] {
   return revision.blocks.filter((block) => block.type === type);
 }
 
@@ -385,7 +386,7 @@ export function createPageRevisionInsert(
   pageId: string,
   revisionNumber: number,
   title: string,
-  blocks: Block[],
+  blocks: RevisionBlock[],
   options?: {
     id?: string;
     seo?: SeoMetadata | null;
@@ -414,7 +415,7 @@ export function createRevisionFromSnapshot(
   revisionNumber: number,
   snapshot: {
     title: string;
-    blocks: Block[];
+    blocks: RevisionBlock[];
     seo?: SeoMetadata | null;
   },
   options?: {

@@ -32,5 +32,6 @@ export function checkServicesLicense(): boolean {
 }
 
 // Re-export client (client-side) exports
+export * from './email/index.js';
 export * from './revealcoin/index.js';
 export * from './stripe/index.js';

@@ -8,8 +8,8 @@
  * and run the token exchange via the SDK's `auth()` helper. Tokens land in
  * `mcp/<tenant>/<server>/tokens` via the provider's `saveTokens`.
  *
- * On success: 302 to `/admin/mcp/connect?connected=<server>`.
- * On error:   302 to `/admin/mcp/connect?error=<reason>&server=<server>`.
+ * On success: 302 to `/mcp/connect?connected=<server>`.
+ * On error:   302 to `/mcp/connect?error=<reason>&server=<server>`.
  *
  * Stage 2 PR-2.2 of the MCP v1 plan.
  */
@@ -25,7 +25,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
 const PENDING_PATH_PREFIX = 'mcp/oauth/pending';
-const RESULT_PAGE = '/admin/mcp/connect';
+const RESULT_PAGE = '/mcp/connect';
 /** Reject pending records older than this — authorization code TTL is ~minutes per OAuth 2.1 §4.1.2. */
 const PENDING_MAX_AGE_MS = 10 * 60 * 1000;
 

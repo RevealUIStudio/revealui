@@ -47,7 +47,7 @@ A **non-monorepo, non-published convention bundle** that ships:
 
 ## Important: not gated by Pro license
 
-There is no `@revealui/editors` package inside the RevealUI monorepo. RevCon is intentionally decoupled from the RevealUI runtime — editor profiles evolve on a different cadence than the CMS/API packages and are not gated by the Pro license. Anyone can install RevCon against any project, paid tier or not.
+There is no `@revealui/editors` package inside the RevealUI monorepo. RevCon is intentionally decoupled from the RevealUI runtime — editor profiles evolve on a different cadence than the core packages and are not gated by the Pro license. Anyone can install RevCon against any project, paid tier or not.
 
 If a doc on this site says *"the `@revealui/editors` package"*, that's stale text — the canonical product is RevCon.
 

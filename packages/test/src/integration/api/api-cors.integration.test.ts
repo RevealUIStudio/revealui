@@ -41,7 +41,7 @@ describe('API CORS Configuration Integration Tests', () => {
 
       await expect(async () => {
         vi.resetModules();
-        await import('../../../../../apps/api/src/index.js');
+        await import('../../../../../apps/server/src/index.js');
       }).rejects.toThrow('CORS_ORIGIN environment variable must be set in production');
     });
 
@@ -51,7 +51,7 @@ describe('API CORS Configuration Integration Tests', () => {
 
       await expect(async () => {
         vi.resetModules();
-        await import('../../../../../apps/api/src/index.js');
+        await import('../../../../../apps/server/src/index.js');
       }).rejects.toThrow('CORS_ORIGIN environment variable must be set in production');
     });
 
@@ -61,7 +61,7 @@ describe('API CORS Configuration Integration Tests', () => {
 
       await expect(async () => {
         vi.resetModules();
-        await import('../../../../../apps/api/src/index.js');
+        await import('../../../../../apps/server/src/index.js');
       }).rejects.toThrow('CORS_ORIGIN environment variable must be set in production');
     });
 
@@ -71,7 +71,7 @@ describe('API CORS Configuration Integration Tests', () => {
 
       await expect(async () => {
         vi.resetModules();
-        await import('../../../../../apps/api/src/index.js');
+        await import('../../../../../apps/server/src/index.js');
       }).resolves.not.toThrow();
     });
 
@@ -81,7 +81,7 @@ describe('API CORS Configuration Integration Tests', () => {
 
       await expect(async () => {
         vi.resetModules();
-        await import('../../../../../apps/api/src/index.js');
+        await import('../../../../../apps/server/src/index.js');
       }).resolves.not.toThrow();
     });
   });
@@ -96,7 +96,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com,https://www.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       // Allowed origin
       const res1 = await prodApp.request('/health', {
@@ -122,7 +122,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', '  https://app.example.com  ,  https://www.example.com  ');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health', {
         headers: { Origin: 'https://app.example.com' },
@@ -136,7 +136,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health', {
         headers: { Origin: 'http://localhost:3000' },
@@ -150,7 +150,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health', {
         headers: { Origin: 'http://app.example.com' },
@@ -171,7 +171,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', undefined as unknown as string);
 
       vi.resetModules();
-      const { default: devApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: devApp } = await import('../../../../../apps/server/src/index.js');
 
       const res1 = await devApp.request('/health', {
         headers: { Origin: 'http://localhost:3000' },
@@ -195,7 +195,7 @@ describe('API CORS Configuration Integration Tests', () => {
 
       await expect(async () => {
         vi.resetModules();
-        await import('../../../../../apps/api/src/index.js');
+        await import('../../../../../apps/server/src/index.js');
       }).resolves.not.toThrow();
     });
 
@@ -204,7 +204,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', undefined as unknown as string);
 
       vi.resetModules();
-      const { default: devApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: devApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await devApp.request('/health', {
         headers: { Origin: 'https://malicious.com' },
@@ -224,7 +224,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', undefined as unknown as string);
 
       vi.resetModules();
-      const { default: testApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: testApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await testApp.request('/health', {
         headers: { Origin: 'http://localhost:3000' },
@@ -244,7 +244,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health', {
         headers: { Origin: 'https://app.example.com' },
@@ -264,7 +264,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health', {
         method: 'OPTIONS',
@@ -284,7 +284,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health', {
         method: 'OPTIONS',
@@ -308,7 +308,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health');
 
@@ -321,7 +321,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health', {
         headers: { Origin: 'https://APP.EXAMPLE.COM' },
@@ -336,7 +336,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com:8080');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health', {
         headers: { Origin: 'https://app.example.com:8080' },
@@ -350,7 +350,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res = await prodApp.request('/health', {
         headers: { Origin: 'https://app.example.com/path' },
@@ -365,7 +365,7 @@ describe('API CORS Configuration Integration Tests', () => {
       vi.stubEnv('CORS_ORIGIN', 'https://app.example.com,https://api.example.com');
 
       vi.resetModules();
-      const { default: prodApp } = await import('../../../../../apps/api/src/index.js');
+      const { default: prodApp } = await import('../../../../../apps/server/src/index.js');
 
       const res1 = await prodApp.request('/health', {
         headers: { Origin: 'https://app.example.com' },

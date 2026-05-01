@@ -32,9 +32,9 @@ RevealUI's licensing is a dual-model system:
 - `packages/core/src/license.ts`  -  JWT generation/validation, tier caching
 - `packages/core/src/features.ts`  -  Feature flag resolution per tier
 - `packages/db/src/schema/accounts.ts`  -  `licenses`, `account_entitlements` tables
-- `apps/api/src/routes/license.ts`  -  Verify + generate endpoints
-- `apps/api/src/middleware/license.ts`  -  Route guards (requireLicense, requireFeature)
-- `apps/api/src/middleware/entitlements.ts`  -  Account-level entitlement context
+- `apps/server/src/routes/license.ts`  -  Verify + generate endpoints
+- `apps/server/src/middleware/license.ts`  -  Route guards (requireLicense, requireFeature)
+- `apps/server/src/middleware/entitlements.ts`  -  Account-level entitlement context
 
 ## Options Evaluated
 

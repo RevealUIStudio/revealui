@@ -490,7 +490,7 @@ test.describe('Login Form Submission @auth @login', () => {
     const errorVisible = await errorBanner.isVisible().catch(() => false);
 
     // One of these outcomes must happen
-    const navigatedToAdmin = currentUrl.includes('/admin');
+    const navigatedToAdmin = currentUrl.includes('/');
     const navigatedToMfa = currentUrl.includes('/mfa');
     const showedError = errorVisible;
     expect(navigatedToAdmin || navigatedToMfa || showedError).toBe(true);
@@ -566,7 +566,7 @@ test.describe('Admin Dashboard Access @auth @admin', () => {
 
       // Should load the admin dashboard (not redirect to login)
       const currentUrl = page.url();
-      expect(currentUrl).toContain('/admin');
+      expect(currentUrl).toContain('/');
 
       // Dashboard should have the RevealUI Admin heading
       const heading = page.locator('text=RevealUI Admin');
@@ -618,7 +618,7 @@ test.describe('Admin Dashboard Access @auth @admin', () => {
       await page.waitForLoadState('networkidle');
 
       const currentUrl = page.url();
-      if (currentUrl.includes('/admin')) {
+      if (currentUrl.includes('/')) {
         // Verify dashboard UI elements
         const heading = page.locator('text=RevealUI Admin');
         await expect(heading).toBeVisible({ timeout: 15000 });
@@ -634,7 +634,7 @@ test.describe('Admin Dashboard Access @auth @admin', () => {
         await expect(signOutButton).toBeAttached({ timeout: 10000 });
 
         // Settings link should exist
-        const settingsLink = page.locator('a[href="/admin/settings"]');
+        const settingsLink = page.locator('a[href="/settings"]');
         await expect(settingsLink).toBeAttached();
       }
     } else {
@@ -666,7 +666,7 @@ test.describe('Admin Dashboard Access @auth @admin', () => {
 
     // Proxy redirects non-admin users to home
     const currentUrl = page.url();
-    expect(currentUrl).not.toContain('/admin');
+    expect(currentUrl).not.toContain('/');
   });
 });
 
@@ -756,7 +756,7 @@ test.describe('Full Signup to Dashboard Journey @auth @signup @login @admin', ()
 
     // Step 4: Navigate to login (may already be there if signup redirected)
     const afterSignupUrl = page.url();
-    if (afterSignupUrl.includes('/admin')) {
+    if (afterSignupUrl.includes('/')) {
       // First user was auto-promoted to admin  -  we're already at the dashboard
       const adminHeading = page.locator('text=RevealUI Admin');
       await expect(adminHeading).toBeVisible({ timeout: 15000 });
@@ -783,7 +783,7 @@ test.describe('Full Signup to Dashboard Journey @auth @signup @login @admin', ()
     const errorBanner = page.locator('.bg-red-50, [class*="bg-red"]');
     const errorVisible = await errorBanner.isVisible().catch(() => false);
 
-    if (afterLoginUrl.includes('/admin')) {
+    if (afterLoginUrl.includes('/')) {
       // Successfully reached admin dashboard
       const adminHeading = page.locator('text=RevealUI Admin');
       await expect(adminHeading).toBeVisible({ timeout: 15000 });

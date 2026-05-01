@@ -76,7 +76,7 @@ export function Footer() {
         </div>
 
         <div className="mt-12 border-t border-gray-800 pt-8 text-center text-xs">
-          <p>&copy; {new Date().getFullYear()} RevealUI Studio. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} RevealCoin · Operated by REVEALUI STUDIO L.L.C.</p>
         </div>
       </div>
     </footer>

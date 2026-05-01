@@ -133,7 +133,7 @@ What you do give up: the raw capability of a 70B+ cloud model. Smaller local mod
 
 ## Setup guide
 
-See [Local-First Setup](/docs/LOCAL_FIRST) for the step-by-step guide: hardware requirements, Nix setup, inference snaps / Ollama installation, connecting `@revealui/ai`, and configuring RevVault.
+See [Local-First Setup](/local-first) for the step-by-step guide: hardware requirements, Nix setup, inference snaps / Ollama installation, connecting `@revealui/ai`, and configuring RevVault.
 
 ---
 

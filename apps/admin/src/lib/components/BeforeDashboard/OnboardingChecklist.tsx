@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { SITE_NAME } from '@/lib/utilities/siteBranding';
 
 const DISMISSED_KEY = 'revealui-onboarding-dismissed';
 
@@ -16,17 +17,17 @@ const items: ChecklistItem[] = [
   {
     label: 'Create your first page',
     description: 'Add a homepage, about page, or blog post to get started.',
-    href: '/admin/pages',
+    href: '/pages',
   },
   {
     label: 'Add a product',
     description: 'Set up your first product with pricing and details.',
-    href: '/admin/products',
+    href: '/products',
   },
   {
     label: 'Configure settings',
     description: 'Set your site name, branding, and preferences.',
-    href: '/admin/settings',
+    href: '/settings',
   },
   {
     label: 'Explore the docs',
@@ -64,7 +65,7 @@ export default function OnboardingChecklist() {
         <div>
           <h2 className="text-lg font-semibold text-white">Getting Started</h2>
           <p className="mt-0.5 text-sm text-zinc-400">
-            Welcome to RevealUI. Here are a few things to get you going.
+            Welcome to {SITE_NAME}. Here are a few things to get you going.
           </p>
         </div>
         <button

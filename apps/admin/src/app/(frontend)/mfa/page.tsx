@@ -40,7 +40,7 @@ export default function MFAPage() {
     const success = useBackupCode ? await verifyBackupCode(code.trim()) : await verify(code.trim());
 
     if (success) {
-      router.push('/admin');
+      router.push('/');
     }
   };
 

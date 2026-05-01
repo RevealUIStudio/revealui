@@ -1,6 +1,6 @@
-# RevealUI CMS
+# RevealUI Dashboard
 
-Admin dashboard with content management, account billing, and system monitoring  -  powered by Next.js 16.
+Admin dashboard with content, account billing, and system monitoring  -  powered by Next.js 16.
 
 ## Features
 
@@ -56,7 +56,7 @@ pnpm test
 
 ## Commercial model
 
-The CMS should present billing and premium access as account-level entitlements first, with optional user or deployment licenses only where they are the actual product being sold.
+The dashboard should present billing and premium access as account-level entitlements first, with optional user or deployment licenses only where they are the actual product being sold.
 
 Target commercial layers:
 

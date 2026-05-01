@@ -29,7 +29,7 @@ export async function discoverFiles(
   section: 'guides' | 'api' | 'reference',
 ): Promise<DiscoveredFile[]> {
   // Try to load a manifest file first (if it exists)
-  const manifestPath = `/docs/${section}/.manifest.json`;
+  const manifestPath = `/${section}/.manifest.json`;
 
   try {
     const response = await fetch(manifestPath);
@@ -50,7 +50,7 @@ export async function discoverFiles(
 
     for (const file of guideFiles) {
       try {
-        const response = await fetch(`/docs/${section}/${file}.md`, {
+        const response = await fetch(`/${section}/${file}.md`, {
           method: 'HEAD',
         });
         if (response.ok) {
@@ -71,7 +71,7 @@ export async function discoverFiles(
 
     for (const pkg of apiPackages) {
       try {
-        const response = await fetch(`/docs/${section}/${pkg}/README.md`, {
+        const response = await fetch(`/${section}/${pkg}/README.md`, {
           method: 'HEAD',
         });
         if (response.ok) {

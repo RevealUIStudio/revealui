@@ -14,7 +14,7 @@ export async function register() {
   }
 
   // ── Forge boot license enforcement ─────────────────────────────────
-  // Mirrors apps/api/src/lib/validate-startup.ts → validateLicenseAtStartup.
+  // Mirrors apps/server/src/lib/validate-startup.ts → validateLicenseAtStartup.
   // Hosted SaaS (REVEALUI_LICENSE_PRIVATE_KEY present) is a no-op; self-
   // hosted Forge customer mode hard-fails the runtime on missing/invalid
   // license so Docker restart-loops instead of serving traffic without a

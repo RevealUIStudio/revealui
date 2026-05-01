@@ -1016,7 +1016,7 @@ Editor configuration sync — recommended extensions, workspace settings, and AI
 - Repo: [`RevealUIStudio/editor-configs`](https://github.com/RevealUIStudio/editor-configs)
 - CLI: `revcon sync`, `revcon diff`, `revcon pull`, `revcon push`
 
-RevCon is intentionally decoupled from the RevealUI runtime: editor profiles evolve on a different cadence than the CMS/API packages and are not gated by the Pro license. Install it standalone rather than adding it as a runtime dependency of your RevealUI app.
+RevCon is intentionally decoupled from the RevealUI runtime: editor profiles evolve on a different cadence than the core packages and are not gated by the Pro license. Install it standalone rather than adding it as a runtime dependency of your RevealUI app.
 
 ---
 
@@ -1194,7 +1194,7 @@ const paymentIntent = await createPaymentIntent({
 });
 ```
 
-Full checkout/portal/webhook route handlers are wired at the application layer (see `apps/api/src/routes/billing.ts` in the monorepo for the reference implementation). The `@revealui/services` package intentionally exposes only the low-level clients (`protectedStripe`, `getStripe`, `createPaymentIntent`) so that each app can implement its billing flow against its own license record.
+Full checkout/portal/webhook route handlers are wired at the application layer (see `apps/server/src/routes/billing.ts` in the monorepo for the reference implementation). The `@revealui/services` package intentionally exposes only the low-level clients (`protectedStripe`, `getStripe`, `createPaymentIntent`) so that each app can implement its billing flow against its own license record.
 
 ### Webhook environment
 

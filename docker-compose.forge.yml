@@ -52,7 +52,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile.forge
+      dockerfile: apps/server/Dockerfile.forge
       target: runner
     container_name: revealui-forge-api
     environment:

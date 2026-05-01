@@ -36,8 +36,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - app: api
-            dockerfile: apps/api/Dockerfile.forge
+          - app: server
+            dockerfile: apps/server/Dockerfile.forge
             image: revealui-api
           - app: admin
             dockerfile: apps/admin/Dockerfile.forge

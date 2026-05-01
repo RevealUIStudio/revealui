@@ -2,7 +2,7 @@
   "name": "@revealui/engines",
   "version": "0.2.0",
   "private": true,
-  "description": "Unified entry point for the five RevealUI business primitives: users, content, products, payments, intelligence",
+  "description": "Unified entry point for the five RevealUI business primitives — users, content, products, payments, intelligence.",
   "license": "FSL-1.1-MIT",
   "type": "module",
   "dependencies": {

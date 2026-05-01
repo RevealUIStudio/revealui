@@ -1,5 +1,5 @@
 /**
- * Prompts panel for `/admin/mcp/inspect` (Stage 3.3).
+ * Prompts panel for `/mcp/inspect` (Stage 3.3).
  *
  * Lists prompts advertised by a connected remote MCP server. Each prompt
  * can be resolved by filling in its string-valued arguments and submitting;

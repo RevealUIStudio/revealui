@@ -26,7 +26,7 @@ for (const envFile of [
   '.env.local',
   'apps/admin/.env.local',
   'apps/marketing/.env.local',
-  'apps/api/.env.vercel',
+  'apps/server/.env.vercel',
 ]) {
   config({ path: resolve(rootDir, envFile), override: false });
 }

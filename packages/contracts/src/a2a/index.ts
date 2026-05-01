@@ -187,9 +187,23 @@ export type A2AMessage = z.infer<typeof A2AMessageSchema>;
 
 /**
  * Task lifecycle states
+ *
+ * - `submitted`        — task created, not yet started
+ * - `pending-payment`  — task created, waiting for a valid x402 proof-of-
+ *                       payment header before transitioning to `working`.
+ *                       Emitted when the agent's `AgentDefinition.pricing`
+ *                       is set and no proof was supplied. RevealUI
+ *                       extension; not in the upstream Google A2A spec.
+ *                       See GAP-149 in revealui-jv for the wiring plan;
+ *                       PR 1 (schema-only) introduces the state, PR 2
+ *                       wires the handler to emit + accept it.
+ * - `working`          — actively running
+ * - `input-required`   — waiting for user input
+ * - terminal: `completed` | `canceled` | `failed` | `unknown`
  */
 export const A2ATaskStateSchema = z.enum([
   'submitted',
+  'pending-payment',
   'working',
   'input-required',
   'completed',

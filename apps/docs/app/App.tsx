@@ -3,8 +3,8 @@ import { lazy, Suspense, useRef } from 'react';
 import { DocLayout } from './components/DocLayout';
 import { LoadingSkeleton } from './components/LoadingSkeleton';
 
-const HomePage = lazy(async () =>
-  import('./routes/HomePage').then((mod) => ({ default: mod.HomePage })),
+const DocsIndexPage = lazy(async () =>
+  import('./routes/DocsIndexPage').then((mod) => ({ default: mod.DocsIndexPage })),
 );
 const ApiPage = lazy(async () =>
   import('./routes/ApiPage').then((mod) => ({ default: mod.ApiPage })),
@@ -78,16 +78,21 @@ export function App() {
         path: '/',
         component: () => (
           <Suspense fallback={<RouteFallback />}>
-            <HomePage />
+            <DocsIndexPage />
           </Suspense>
         ),
       },
-      { path: '/docs/*path', component: DocsRoute },
       { path: '/api/*path', component: ApiRoute },
       { path: '/guides/*path', component: GuidesRoute },
       { path: '/pro/*path', component: ProRoute },
       { path: '/showcase', component: ShowcaseRoute },
       { path: '/showcase/*path', component: ShowcaseRoute },
+      // Catch-all for the docs section. CHIP-3 D1a: docs lives at root
+      // (no `/docs/` prefix). Must be registered LAST so the explicit
+      // section routes above (`/api/*`, `/guides/*`, `/pro/*`, `/showcase`)
+      // win specificity. Slug → original filename resolution happens in
+      // paths.ts via the slug-manifest.
+      { path: '/*path', component: DocsRoute },
     ]);
     registered.current = true;
   }

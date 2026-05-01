@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mockSearchParams = new URLSearchParams();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
-  usePathname: () => '/admin/settings/account',
+  usePathname: () => '/settings/account',
   useSearchParams: () => mockSearchParams,
 }));
 
@@ -26,7 +26,7 @@ vi.mock('@revealui/presentation/client', () => ({
 }));
 
 // Must import AFTER the mock
-import AccountSettingsPage from '../../app/(backend)/admin/settings/account/page';
+import AccountSettingsPage from '../../app/(backend)/settings/account/page';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -344,7 +344,7 @@ describe('AccountSettingsPage', () => {
       expect(screen.getByText('GitHub account linked successfully.')).toBeInTheDocument();
     });
 
-    expect(mockReplaceState).toHaveBeenCalledWith(null, '', '/admin/settings/account');
+    expect(mockReplaceState).toHaveBeenCalledWith(null, '', '/settings/account');
   });
 
   it('shows error banner from OAuth error redirect', async () => {

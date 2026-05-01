@@ -34,7 +34,7 @@ export async function GET(
     'http://localhost:4000';
 
   const settingsUrl = (error?: string) => {
-    const url = new URL('/admin/settings', baseUrl);
+    const url = new URL('/settings', baseUrl);
     if (error) url.searchParams.set('error', error);
     return NextResponse.redirect(url);
   };
@@ -74,7 +74,7 @@ export async function GET(
     await linkOAuthAccount(sessionData.user.id, provider, providerUser);
 
     // Resolve redirectTo safely
-    let redirectTo = '/admin/settings';
+    let redirectTo = '/settings';
     try {
       const resolved = new URL(verified.redirectTo, baseUrl);
       const base = new URL(baseUrl);

@@ -304,6 +304,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
 
+      - name: Build packages (workspace coverage tests resolve some deps from dist/)
+        run: pnpm turbo build --filter='./packages/*'
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
       - name: Generate coverage reports
         run: pnpm test:coverage
         env:
@@ -421,7 +426,7 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
 
       - name: Start API server
-        run: pnpm --filter api start &
+        run: pnpm --filter server start &
         env:
           SKIP_ENV_VALIDATION: "true"
           NODE_ENV: "development"
@@ -436,21 +441,19 @@ jobs:
         run: pnpm --filter marketing start &
         env:
           SKIP_ENV_VALIDATION: "true"
-          PORT: "3002"
-          NEXT_PUBLIC_API_URL: "http://localhost:3004"
 
       - name: Wait for servers
         run: |
           for i in $(seq 1 80); do
             curl -sf http://localhost:3004/health/live > /dev/null 2>&1 && \
             curl -sf http://localhost:4000 > /dev/null 2>&1 && \
-            curl -sf http://localhost:3002 > /dev/null 2>&1 && \
+            curl -sf http://localhost:3000 > /dev/null 2>&1 && \
             echo "All three servers ready" && break || \
             echo "Waiting for servers... ($i/80)" && sleep 3
           done
           curl -sf http://localhost:3004/health/live > /dev/null 2>&1 && \
           curl -sf http://localhost:4000 > /dev/null 2>&1 && \
-          curl -sf http://localhost:3002 > /dev/null 2>&1 || \
+          curl -sf http://localhost:3000 > /dev/null 2>&1 || \
           (echo "::error::Servers failed to start within 240s" && exit 1)
 
       - name: Run E2E smoke tests
@@ -460,7 +463,7 @@ jobs:
           SKIP_ENV_VALIDATION: "true"
           API_BASE_URL: "http://localhost:3004"
           PLAYWRIGHT_BASE_URL: "http://localhost:4000"
-          MARKETING_BASE_URL: "http://localhost:3002"
+          MARKETING_BASE_URL: "http://localhost:3000"
 
       - name: Upload test results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -514,14 +517,12 @@ jobs:
         run: pnpm --filter marketing start &
         env:
           SKIP_ENV_VALIDATION: "true"
-          PORT: "3002"
-          NEXT_PUBLIC_API_URL: "http://localhost:3004"
 
       - name: Wait for servers
         run: |
           for i in $(seq 1 40); do
             curl -sf http://localhost:4000 > /dev/null 2>&1 && \
-            curl -sf http://localhost:3002 > /dev/null 2>&1 && \
+            curl -sf http://localhost:3000 > /dev/null 2>&1 && \
             echo "Both servers ready" && break || \
             echo "Waiting for servers... ($i/40)" && sleep 3
           done
@@ -532,7 +533,7 @@ jobs:
           CI: "true"
           SKIP_ENV_VALIDATION: "true"
           PLAYWRIGHT_BASE_URL: "http://localhost:4000"
-          MARKETING_BASE_URL: "http://localhost:3002"
+          MARKETING_BASE_URL: "http://localhost:3000"
 
       - name: Upload accessibility results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

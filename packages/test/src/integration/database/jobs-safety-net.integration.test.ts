@@ -2,7 +2,7 @@
  * Integration tests for the queue cron safety-net (CR8-P2-01 phase B).
  *
  * Exercises reclaimStalled() end-to-end against PGlite. The cron route
- * itself (apps/api/src/routes/cron/jobs-safety-net.ts) is a thin wrapper
+ * itself (apps/server/src/routes/cron/jobs-safety-net.ts) is a thin wrapper
  * over this primitive + countEligible + wakeWorker — it's covered by
  * the existing cleanup.ts route pattern and doesn't need its own
  * integration test beyond asserting the DB-layer behavior here.

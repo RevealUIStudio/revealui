@@ -152,15 +152,15 @@ export default function Error({ error, reset }: {
 
 ## RevealUI-Specific Patterns
 
-### Rule 7: CMS Collections Integration
+### Rule 7: Collections Integration
 
 ```tsx
-// ✅ GOOD: Use RevealUI CMS for data fetching
+// ✅ GOOD: Use RevealUI for data fetching
 import { getRevealUI } from '@revealui/core'
 
 export default async function PostsPage() {
-  const cms = await getRevealUI()
-  const posts = await cms.find({
+  const revealui = await getRevealUI()
+  const posts = await revealui.find({
     collection: 'posts',
     where: { _status: { equals: 'published' } },
   })
@@ -267,8 +267,8 @@ export default function Page() {
 "use server"
 export async function createPost(formData: FormData) {
   const title = formData.get('title')
-  const cms = await getRevealUI()
-  return await cms.create({
+  const revealui = await getRevealUI()
+  return await revealui.create({
     collection: 'posts',
     data: { title },
   })

@@ -26,7 +26,7 @@ import { expect, test } from '@playwright/test';
 import { checkAccessibilityCritical } from './utils/a11y-helper';
 
 // ---------------------------------------------------------------------------
-// API Health Checks (apps/api  -  port 3004)
+// API Health Checks (apps/server  -  port 3004)
 // ---------------------------------------------------------------------------
 
 test.describe('API health', () => {
@@ -129,17 +129,11 @@ test.describe('Marketing page', () => {
     expect(count).toBeGreaterThanOrEqual(2);
   });
 
-  test('Waitlist POST returns success', async ({ request }) => {
-    const response = await request.post(`${MarketingBase}/api/waitlist`, {
-      data: { email: `smoke-test-${Date.now()}@example.com`, source: 'smoke-test' },
-    });
-    // 201 (new signup), 200 (duplicate), or 410 (waitlist closed post-launch)
-    expect([200, 201, 410]).toContain(response.status());
-    if (response.status() !== 410) {
-      const body = (await response.json()) as Record<string, unknown>;
-      expect(body.success).toBe(true);
-    }
-  });
+  // The pre-launch waitlist signup (POST /api/waitlist) was a Next.js API route
+  // on the marketing app. It was removed in #639 (marketing → Vite migration);
+  // Vite has no API routes, and the waitlist itself is closed post-launch.
+  // No replacement endpoint exists on api.revealui.com. Test removed rather
+  // than repointed.
 
   test('Marketing homepage has no critical accessibility violations', async ({ page }) => {
     await page.goto(MarketingBase, { waitUntil: 'domcontentloaded' });

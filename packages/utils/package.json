@@ -1,7 +1,7 @@
 {
   "name": "@revealui/utils",
   "version": "0.3.4",
-  "description": "Shared utilities for RevealUI - logger, SSL config, and common helpers",
+  "description": "Shared utilities — logger, SSL config, validation helpers, and common helpers. Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
     "zod": "catalog:"

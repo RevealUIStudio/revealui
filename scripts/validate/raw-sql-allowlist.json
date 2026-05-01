@@ -27,6 +27,18 @@
       "migrationPhase": null
     },
     {
+      "path": "scripts/setup/backfill-migrations.ts",
+      "rules": ["direct-import"],
+      "reason": "GAP-168 pre-migrate guard. Queries drizzle.__drizzle_migrations directly to detect tracking-row drift before drizzle-kit migrate runs. Cannot route through @revealui/db because (a) the schema isn't yet known to be in a consistent state — that's exactly what this script verifies — and (b) drizzle.__drizzle_migrations is drizzle's own tracking table, not part of the app schema. Permanent.",
+      "migrationPhase": null
+    },
+    {
+      "path": "scripts/setup/assert-migration-count.ts",
+      "rules": ["direct-import"],
+      "reason": "GAP-168 post-migrate guard. Counts rows in drizzle.__drizzle_migrations and asserts against _journal.json entry count. Same rationale as backfill-migrations.ts — drizzle.__drizzle_migrations is drizzle's own tracking table, not in the app schema. Permanent.",
+      "migrationPhase": null
+    },
+    {
       "path": "scripts/seed-admin.mjs",
       "rules": ["direct-import"],
       "reason": "Admin-user seed script. Queries Neon Auth's own schema (`neon_auth.\"user\"`), not the app's public.users table — that's a third-party schema provided by Neon Auth which Drizzle correctly does not track. Routing this through @revealui/db would require adding neon_auth tables to the schema, which would be misleading (they are not owned by this project). Permanent.",
@@ -51,21 +63,21 @@
       "migrationPhase": null
     },
     {
-      "path": "apps/api/src/index.ts",
+      "path": "apps/server/src/index.ts",
       "rules": ["execute-sql-literal"],
       "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseAlert. SELECT 1 is the canonical idiomatic liveness check — it asks 'is the DB reachable and responding?' without coupling the probe to any specific application table (which would change the probe's semantic to 'is this particular table reachable?'). Permanent idiomatic raw SQL.",
       "migrationPhase": null
     },
     {
-      "path": "apps/api/src/routes/health.ts",
+      "path": "apps/server/src/routes/health.ts",
       "rules": ["execute-sql-literal"],
-      "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseHealthCheck. Same idiomatic-SELECT-1 rationale as apps/api/src/index.ts. Permanent.",
+      "reason": "db.execute(sql`SELECT 1`) database liveness probe inside createDatabaseHealthCheck. Same idiomatic-SELECT-1 rationale as apps/server/src/index.ts. Permanent.",
       "migrationPhase": null
     },
     {
       "path": "scripts/dev-tools/verify-test-setup.ts",
       "rules": ["execute-sql-literal"],
-      "reason": "Dev-tool that verifies test-harness DB state. Of its 7 raw-SQL calls, 3 are `SELECT 1` / `SELECT vector(...)` connectivity probes (same idiomatic-liveness rationale as apps/api/src/routes/health.ts) and 4 are information_schema / pg_indexes introspection queries that cannot go through Drizzle's query builder (Drizzle queries defined tables, not Postgres metadata). Permanent.",
+      "reason": "Dev-tool that verifies test-harness DB state. Of its 7 raw-SQL calls, 3 are `SELECT 1` / `SELECT vector(...)` connectivity probes (same idiomatic-liveness rationale as apps/server/src/routes/health.ts) and 4 are information_schema / pg_indexes introspection queries that cannot go through Drizzle's query builder (Drizzle queries defined tables, not Postgres metadata). Permanent.",
       "migrationPhase": null
     },
     {
@@ -73,6 +85,12 @@
       "rules": ["sql-file-outside-migrations"],
       "reason": "Supabase-side pgvector extension bootstrap (CREATE EXTENSION IF NOT EXISTS vector). Applied by scripts/setup/setup-dual-database.ts against getVectorClient(). drizzle-kit currently only tracks the Neon side of the dual-DB architecture; Supabase-side DDL lives outside drizzle-kit by necessity. Phase 7 (drizzle-consolidation-spec) evaluates standing up a second drizzle-kit pipeline for Supabase; until then, this file + setup-dual-database.ts are the canonical Supabase-side applier. See packages/db/src/supabase/README.md for the architectural rationale.",
       "migrationPhase": 7
+    },
+    {
+      "path": "scripts/security/rotate-kek.ts",
+      "rules": ["direct-import"],
+      "reason": "KEK rotation operational tool (GAP-126 Phase 2). One-off script that performs simple SELECT/UPDATE on the two KEK-encrypted columns (user_api_keys.encrypted_key + users.mfa_secret). Uses raw pg.Pool instead of @revealui/db/client to keep the rotation tool isolated from production DB-client lifecycle (singleton pools, retry policies, observability hooks). Operator-invoked; 2 surfaces, ~3 SQL ops total. Permanent.",
+      "migrationPhase": null
     }
   ]
 }

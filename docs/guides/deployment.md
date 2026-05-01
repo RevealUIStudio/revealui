@@ -42,7 +42,7 @@ pnpm add -g vercel
 
 ```bash
 cd apps/admin && vercel link
-cd apps/api && vercel link
+cd apps/server && vercel link
 cd apps/marketing && vercel link
 ```
 
@@ -86,7 +86,7 @@ The API app uses Hono and builds with tsup. Set the Vercel project framework to 
 | Setting | Value |
 |---------|-------|
 | Build Command | `pnpm build:api` |
-| Output Directory | `apps/api/dist` |
+| Output Directory | `apps/server/dist` |
 | Install Command | `pnpm install` |
 
 ### CI/CD Pipeline
@@ -144,7 +144,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: apps/server/Dockerfile
     ports:
       - '3004:3004'
     environment:
@@ -225,7 +225,7 @@ cd apps/admin
 node .next/standalone/server.js
 
 # API (Hono)
-cd apps/api
+cd apps/server
 node dist/index.js
 ```
 
@@ -235,7 +235,7 @@ Use a process manager like PM2 for production:
 
 ```bash
 pm2 start apps/admin/.next/standalone/server.js --name revealui-admin
-pm2 start apps/api/dist/index.js --name revealui-api
+pm2 start apps/server/dist/index.js --name revealui-api
 pm2 save
 pm2 startup
 ```

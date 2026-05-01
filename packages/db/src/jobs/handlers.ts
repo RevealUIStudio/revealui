@@ -11,7 +11,7 @@
  * failed with "no handler registered".
  *
  * @see packages/db/src/jobs/claim.ts — the worker-side claim + dispatch loop
- * @see apps/api/src/routes/jobs/run.ts — the HTTP worker route
+ * @see apps/server/src/routes/jobs/run.ts — the HTTP worker route
  */
 
 import type { Job } from '../schema/jobs.js';

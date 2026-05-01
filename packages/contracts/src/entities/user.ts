@@ -26,7 +26,6 @@ import {
 // =============================================================================
 
 export const USER_SCHEMA_VERSION = 1;
-export const SESSION_SCHEMA_VERSION = 1;
 
 // =============================================================================
 // User Types
@@ -263,70 +262,3 @@ export const UpdateUserInputSchema = z.object({
 });
 
 export type UpdateUserInput = z.infer<typeof UpdateUserInputSchema>;
-
-// =============================================================================
-// Session Schema
-// =============================================================================
-
-export const SessionSchema = z.object({
-  /** Session ID */
-  id: z.string(),
-
-  /** Schema version */
-  version: z.number().int().default(SESSION_SCHEMA_VERSION),
-
-  /** User who owns this session */
-  userId: z.string(),
-
-  /** Session token (hashed) */
-  tokenHash: z.string(),
-
-  /** When the session expires */
-  expiresAt: z.string().datetime(),
-
-  /** Device/client info */
-  userAgent: z.string().optional(),
-
-  /** IP address (for security) */
-  ipAddress: z.string().optional(),
-
-  /** Whether this is a long-lived session (remember me) */
-  persistent: z.boolean().default(false),
-
-  /** Creation timestamp */
-  createdAt: z.string().datetime(),
-
-  /** Last activity timestamp */
-  lastActivityAt: z.string().datetime(),
-});
-
-export type Session = z.infer<typeof SessionSchema>;
-
-/**
- * Creates a new session
- */
-export function createSession(
-  id: string,
-  userId: string,
-  tokenHash: string,
-  expiresAt: Date,
-  options?: {
-    userAgent?: string;
-    ipAddress?: string;
-    persistent?: boolean;
-  },
-): Session {
-  const now = new Date().toISOString();
-  return {
-    id,
-    version: SESSION_SCHEMA_VERSION,
-    userId,
-    tokenHash,
-    expiresAt: expiresAt.toISOString(),
-    userAgent: options?.userAgent,
-    ipAddress: options?.ipAddress,
-    persistent: options?.persistent ?? false,
-    createdAt: now,
-    lastActivityAt: now,
-  };
-}

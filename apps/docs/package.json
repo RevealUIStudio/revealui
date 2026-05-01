@@ -34,6 +34,7 @@
   },
   "scripts": {
     "build": "bash scripts/copy-docs.sh && vite build",
+    "build:slug-manifest": "tsx scripts/build-slug-manifest.ts",
     "clean": "rm -rf .next dist .turbo public/docs",
     "dev": "bash scripts/copy-docs.sh && vite dev",
     "lint": "biome check .",

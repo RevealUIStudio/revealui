@@ -42,7 +42,7 @@ The `aiAccessMode` field on entitlements controls enforcement:
 
 ### Quota Enforcement
 
-Task quota middleware (`apps/api/src/middleware/task-quota.ts`) runs on every agent request:
+Task quota middleware (`apps/server/src/middleware/task-quota.ts`) runs on every agent request:
 
 1. Read current month's usage from `agent_task_usage` table
 2. If under quota, allow and increment atomically
@@ -164,4 +164,4 @@ aiInference:     max      Open-model inference configuration (snaps, harness)
 | `OLLAMA_BASE_URL` | No | Ollama server URL (default: `http://localhost:11434/v1`) |
 | `LLM_PROVIDER` | No | Force specific inference path (overrides auto-detection) |
 | `LLM_MODEL` | No | Override default model for the selected inference path |
-| `X402_ENABLED` | No | Enable USDC payment fallback when quota exceeded |
+| `X402_ENABLED` | No | Enable x402 payments (USDC + optional RVUI). Activates 402 emission on quota exhaust + per-agent pricing. See [x402.md](./x402.md) for the full activation flow. |

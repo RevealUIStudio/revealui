@@ -164,3 +164,30 @@ The `migration-journal` validator in `scripts/validate/migration-journal.ts` run
 | `idempotency` | Per-`.sql`: unguarded `ADD CONSTRAINT` or `DROP CONSTRAINT` without `IF EXISTS` (2026-04-19 bug #1) |
 
 The deploy workflow's existing `Validate Migrations` job runs `drizzle-kit generate` against the current schema and fails if it produces any uncommitted output — i.e., if a TS schema edit landed without an accompanying generated migration. That gate plus `_custom.json` together close the hand-written-without-journal-entry loop: any new SQL file must either be drizzle-generated (caught by the parity check on schema drift) or explicitly declared in `_custom.json` (caught by the manifest-shape check at PR time).
+
+## Runtime Guards (deploy.yml)
+
+Defense-in-depth around the `drizzle-kit migrate` step in `.github/workflows/deploy.yml` — both run with `POSTGRES_URL` from the pulled Vercel env, sandwiching the migrate call:
+
+| Guard | When | Script | Catches |
+|---|---|---|---|
+| **`pnpm db:backfill-migrations`** | BEFORE migrate | `scripts/setup/backfill-migrations.ts` | drizzle.__drizzle_migrations row count drift relative to `_journal.json.entries.length` (2026-04-20 incident class). Detection-only; surfaces the diff and exits non-zero so the deploy fails loud rather than letting drizzle re-apply already-applied SQL and trip a `duplicate_object` error. `--apply` mode (auto-insert missing tracking rows with the correct hash) is intentionally not yet implemented; manual recovery is documented below. |
+| **`pnpm db:assert-migration-count`** | AFTER migrate | `scripts/setup/assert-migration-count.ts` | half-applied migrate state. If drizzle-kit migrate ran but the post-state row count diverges from journal entries (e.g. one migration succeeded, the next half-applied + the migrator still reported success), this asserts the count and fails loud. |
+
+Both scripts use `pg.Pool` directly with `POSTGRES_URL` (or `DATABASE_URL`); they do not depend on the Drizzle ORM. Both treat a not-yet-existing `drizzle.__drizzle_migrations` table as the first-migrate-run case (exit 0), so they're safe on virgin databases.
+
+### Recovery for backfill drift
+
+If `db:backfill-migrations` surfaces drift, do NOT just re-run `drizzle-kit migrate`. The migrator will see the missing tracking row and try to re-apply the SQL, which will likely fail with a `duplicate_object` / `relation already exists` / `column already exists` error.
+
+Recovery options, in order of safety:
+
+1. **Manually verify state.** Connect to the DB, inspect `drizzle.__drizzle_migrations` rows + `information_schema` for the actual schema state. Confirm which journal entries' SQL is already applied.
+2. **Compute the hash drizzle expects** for each missing tracking row from the SQL file's content (drizzle uses SHA256 of the file body — verify against drizzle-orm source for current version) and `INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES (...)` directly. Resume `drizzle-kit migrate`.
+3. **Restore from backup** if the drift is severe / hashes can't be computed safely. The Vercel + Neon backup pattern means the previous deploy's snapshot is recoverable.
+
+The `--apply` mode in `db:backfill-migrations` would automate option (2) but the hash computation must match drizzle exactly; until that's verified end-to-end, manual recovery is the only safe path.
+
+### Origin
+
+GAP-168, established as PR2b follow-up to PR1 (`#434`, the 2026-04-20 hotfix that fixed the unguarded `ADD CONSTRAINT` in 0005 + the out-of-order `when` on 0006). PR1 prevented the proximate failure; these guards prevent the next instance of the same drift class from reaching production.

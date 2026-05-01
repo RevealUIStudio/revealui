@@ -10,7 +10,7 @@
  *     collections to advertise as MCP resources. Curated `posts/pages/
  *     products/media` fallback still applies in standalone stdio mode when
  *     the admin endpoint is unreachable or credentials are not configured.
- *   - The `/admin/mcp` page renders the list (both exposed and hidden) in a
+ *   - The `/mcp` page renders the list (both exposed and hidden) in a
  *     read-only "Content exposure" section.
  *
  * Auth: accepts either an authenticated admin session (UI consumer) or a

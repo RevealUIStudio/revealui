@@ -324,7 +324,7 @@ const CATALOG: ProductDefinition[] = [
 ];
 
 // Canonical webhook events now sourced from `@revealui/contracts` so this
-// script and `apps/api/src/routes/webhooks.ts` cannot drift.
+// script and `apps/server/src/routes/webhooks.ts` cannot drift.
 // `satisfies` preserves type-checking: if any event name in the shared
 // constant is NOT a valid Stripe EnabledEvent (e.g. stripe SDK types
 // change), TypeScript errors here rather than silently accepting it.

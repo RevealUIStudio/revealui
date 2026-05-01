@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CMSLink } from '@/lib/components/Link/index';
 import { getCachedGlobal } from '@/lib/utilities/getGlobals';
+import { SITE_NAME, SITE_OPERATOR } from '@/lib/utilities/siteBranding';
 
 // Define the NavItem type with constrained type property
 export interface NavItem {
@@ -50,7 +51,9 @@ export async function Footer() {
         </nav>
       </div>
       <div className="container py-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-2 text-white/60 text-xs">
-        <p>&copy; {currentYear} RevealUI Studio. All rights reserved.</p>
+        <p>
+          &copy; {currentYear} {SITE_NAME} · Operated by {SITE_OPERATOR}
+        </p>
         <div className="flex gap-4">
           <a href="https://revealui.com/privacy" className="hover:text-white/70 transition-colors">
             Privacy Policy

@@ -33,7 +33,7 @@ test.describe('Smoke Tests', () => {
 
   test('admin panel is accessible @smoke', async ({ page }) => {
     // Navigate to admin panel
-    await page.goto('/admin');
+    await page.goto('/');
 
     // Should redirect to login or show admin interface
     await page.waitForLoadState('networkidle');

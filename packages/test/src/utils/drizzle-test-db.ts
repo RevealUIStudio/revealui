@@ -59,7 +59,7 @@ export interface CreateTestDbOptions {
 
 /**
  * Find the migrations directory relative to common locations.
- * Works from packages/test, apps/api, apps/admin, etc.
+ * Works from packages/test, apps/server, apps/admin, etc.
  */
 function findMigrationsDir(): string {
   // Walk up from this file to find the monorepo root, then into packages/db/migrations

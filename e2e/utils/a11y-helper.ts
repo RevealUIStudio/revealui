@@ -116,7 +116,7 @@ function buildViolationReport(formatted: FormattedViolation[]): string {
  *
  * // With exclusions for known issues:
  * test('dashboard is accessible', async ({ page }) => {
- *   await page.goto('/admin')
+ *   await page.goto('/')
  *   await checkAccessibility(page, {
  *     disableRules: ['color-contrast'],
  *     excludeSelectors: ['.third-party-widget'],

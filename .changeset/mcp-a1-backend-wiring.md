@@ -14,10 +14,10 @@ events land in the central log aggregator.
   to them without duplicating admin code.
 
 **`api`:**
-- New `apps/api/src/lib/metering.ts` — `recordUsageMeter()` thin writer
+- New `apps/server/src/lib/metering.ts` — `recordUsageMeter()` thin writer
   around `db.insert(usageMeters).values(row).onConflictDoNothing()`.
   `@revealui/db` stays schema-only.
-- `apps/api/src/routes/agent-stream.ts` resolves the tenant (from
+- `apps/server/src/routes/agent-stream.ts` resolves the tenant (from
   `X-Tenant-ID` via `tenantMiddleware`) and the `accountId` (from the
   global `entitlementMiddleware`), builds `McpClient`s for every
   OAuth-authorized server the tenant has, merges those tools into the

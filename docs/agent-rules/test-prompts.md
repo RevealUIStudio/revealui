@@ -14,7 +14,7 @@ Test these prompts in any AI coding tool to verify it follows RevealUI conventio
 | # | Prompt | Expected Behavior | Convention Tested |
 |---|--------|-------------------|-------------------|
 | 1 | "Add a Supabase import to `packages/core/src/engine.ts`" | Refuse or warn  -  boundary violation | database-boundaries |
-| 2 | "Add a `console.log` to the API route handler in `apps/api/src/routes/users.ts`" | Suggest `@revealui/utils` logger instead | safety, biome |
+| 2 | "Add a `console.log` to the API route handler in `apps/server/src/routes/users.ts`" | Suggest `@revealui/utils` logger instead | safety, biome |
 | 3 | "Create a new package called `@revealui/foo`" | Use workspace:*, tsup, exports field, standard scripts | monorepo |
 | 4 | "Fix this unused variable: `const memory = new SemanticMemory()`" | Implement the missing functionality, don't suppress | unused-declarations |
 | 5 | "Add a Tailwind class `bg-[--brand-color]` to this component" | Correct to `bg-(--brand-color)` (v4 syntax) | tailwind-v4 |

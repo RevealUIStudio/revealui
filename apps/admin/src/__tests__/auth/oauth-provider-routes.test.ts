@@ -171,7 +171,7 @@ describe('GET /api/auth/[provider]', () => {
     const req = createRequest('/api/auth/github');
     await handler(req, { params: Promise.resolve({ provider: 'github' }) });
 
-    expect(mockGenerateOAuthState).toHaveBeenCalledWith('github', '/admin', {
+    expect(mockGenerateOAuthState).toHaveBeenCalledWith('github', '/', {
       linkConsent: undefined,
     });
   });
@@ -401,7 +401,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should exchange code, upsert user, create session, and redirect', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('access-token-123');
@@ -427,7 +427,7 @@ describe('GET /api/auth/callback/[provider]', () => {
     const res = await handler(req, { params: Promise.resolve({ provider: 'github' }) });
 
     expect(res.status).toBe(307);
-    expect(getRedirectLocation(res)).toContain('/admin');
+    expect(getRedirectLocation(res)).toContain('/');
 
     expect(mockExchangeCode).toHaveBeenCalledWith(
       'github',
@@ -456,7 +456,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should set revealui-session cookie on success', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -492,7 +492,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should delete oauth_state cookie on success', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -526,7 +526,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should pass user-agent to createSession', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -558,7 +558,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should extract IP from x-forwarded-for header (last entry)', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -590,7 +590,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should fall back to x-real-ip when x-forwarded-for is absent', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -626,7 +626,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -646,7 +646,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
     const res = await handler(req, { params: Promise.resolve({ provider: 'github' }) });
     expect(res.status).toBe(307);
-    expect(getRedirectLocation(res)).toContain('/admin');
+    expect(getRedirectLocation(res)).toContain('/');
   });
 
   it('should block email not in OAUTH_ADMIN_EMAILS allowlist', async () => {
@@ -654,7 +654,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -683,7 +683,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -703,7 +703,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
     const res = await handler(req, { params: Promise.resolve({ provider: 'github' }) });
     expect(res.status).toBe(307);
-    expect(getRedirectLocation(res)).toContain('/admin');
+    expect(getRedirectLocation(res)).toContain('/');
 
     delete process.env.OAUTH_ADMIN_EMAILS;
   });
@@ -713,7 +713,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should redirect to /admin by default', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -735,7 +735,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
     const location = getRedirectLocation(res);
     const url = new URL(location);
-    expect(url.pathname).toBe('/admin');
+    expect(url.pathname).toBe('/');
   });
 
   it('should honor same-origin redirectTo from verified state', async () => {
@@ -792,7 +792,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
     const location = getRedirectLocation(res);
     const url = new URL(location);
-    expect(url.pathname).toBe('/admin');
+    expect(url.pathname).toBe('/');
     expect(url.hostname).toBe('localhost');
   });
 
@@ -801,7 +801,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should redirect with account_exists on OAuthAccountConflictError', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -829,7 +829,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should redirect with oauth_error on generic error during code exchange', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockRejectedValue(new Error('Token exchange failed'));
@@ -848,7 +848,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should redirect with oauth_error on generic error during user fetch', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -868,7 +868,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should redirect with oauth_error when session creation fails', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -898,7 +898,7 @@ describe('GET /api/auth/callback/[provider]', () => {
     it(`should process callback for "${provider}" provider`, async () => {
       mockVerifyOAuthState.mockReturnValue({
         provider,
-        redirectTo: '/admin',
+        redirectTo: '/',
         codeVerifier: 'test-verifier',
       });
       mockExchangeCode.mockResolvedValue('token');
@@ -936,7 +936,7 @@ describe('GET /api/auth/callback/[provider]', () => {
 
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');
@@ -969,7 +969,7 @@ describe('GET /api/auth/callback/[provider]', () => {
   it('should pass empty string when code query param is missing', async () => {
     mockVerifyOAuthState.mockReturnValue({
       provider: 'github',
-      redirectTo: '/admin',
+      redirectTo: '/',
       codeVerifier: 'test-verifier',
     });
     mockExchangeCode.mockResolvedValue('token');

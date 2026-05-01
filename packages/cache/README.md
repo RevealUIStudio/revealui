@@ -83,6 +83,6 @@ Optional peer dependency: `next` (>=14.0.0)  -  required for ISR helpers.
 
 ## Related Packages
 
-- `apps/api`  -  Applies cache headers to REST responses
+- `apps/server`  -  Applies cache headers to REST responses
 - `apps/marketing`  -  Uses ISR presets for marketing pages
 - `@revealui/core`  -  Triggers cache invalidation on content changes

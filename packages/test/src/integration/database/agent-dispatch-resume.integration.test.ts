@@ -8,10 +8,10 @@
  * memoized result instead of re-running the LLM. The customer is
  * billed for one LLM call across the whole crash-resume cycle.
  *
- * The handler in apps/api/src/jobs/agent-dispatch.ts is glue around
+ * The handler in apps/server/src/jobs/agent-dispatch.ts is glue around
  * `idempotentWrite` (the load-bearing primitive), so this test
  * exercises that primitive directly against PGlite. Testing the
- * handler end-to-end would require pulling apps/api into the test
+ * handler end-to-end would require pulling apps/server into the test
  * package's import graph, which the existing integration suite avoids.
  */
 

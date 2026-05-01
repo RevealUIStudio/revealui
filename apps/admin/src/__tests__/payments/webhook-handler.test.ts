@@ -12,7 +12,7 @@
  * - Idempotency patterns
  * - Error handling and security
  *
- * NOTE: The actual Hono webhook handler lives in apps/api/src/routes/webhooks.ts
+ * NOTE: The actual Hono webhook handler lives in apps/server/src/routes/webhooks.ts
  * and is tested there. These tests validate the admin-side validation schemas and
  * Stripe event structures used by the webhook system.
  */

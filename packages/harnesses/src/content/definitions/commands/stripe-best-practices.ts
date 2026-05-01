@@ -5,7 +5,7 @@ export const stripeBestPracticesCommand: Command = {
   tier: 'pro',
   name: 'Stripe Best Practices',
   description:
-    'Apply when working on Stripe billing, payments, webhooks, subscriptions, or checkout flows (apps/api/src/routes/billing.ts, packages/services).',
+    'Apply when working on Stripe billing, payments, webhooks, subscriptions, or checkout flows (apps/server/src/routes/billing.ts, packages/services).',
   disableModelInvocation: false,
   content: `Apply Stripe best practices when implementing or reviewing payment code in this project:
 
@@ -40,6 +40,6 @@ export const stripeBestPracticesCommand: Command = {
 ## RevealUI-Specific
 - Webhook endpoint: \`apps/admin\` at \`/api/webhooks/stripe\` (NOT the API endpoint)
 - Stripe service: \`packages/services/src/stripe/\`
-- Billing routes: \`apps/api/src/routes/billing.ts\`
+- Billing routes: \`apps/server/src/routes/billing.ts\`
 - Price IDs are managed via \`pnpm stripe:seed\`  -  see \`scripts/setup/seed-stripe.ts\``,
 };

@@ -1,5 +1,5 @@
 /**
- * Logs panel for `/admin/mcp/inspect` (Stage 3.4).
+ * Logs panel for `/mcp/inspect` (Stage 3.4).
  *
  * Opens a long-lived SSE connection to the remote MCP server's log stream
  * (`/api/mcp/remote-servers/[server]/log-stream`) and renders every

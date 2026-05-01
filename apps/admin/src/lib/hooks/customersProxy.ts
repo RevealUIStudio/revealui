@@ -156,7 +156,7 @@ export const customerProxy: RevealHandler = async (req: RevealRequest) => {
           // GAP-132 B-3 — look-up-first guard.
           //
           // The canonical user-initiated checkout flow at
-          // apps/api/src/routes/billing.ts:233 wraps customers.create in
+          // apps/server/src/routes/billing.ts:233 wraps customers.create in
           // ensureStripeCustomer, which uses a PostgreSQL advisory lock
           // (`pg_advisory_xact_lock`) on the customer-by-email key + a Stripe
           // idempotency-key header to serialize concurrent creations and

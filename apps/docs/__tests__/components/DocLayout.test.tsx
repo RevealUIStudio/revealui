@@ -12,7 +12,7 @@ vi.mock('@revealui/router', () => ({
       {children}
     </a>
   ),
-  useLocation: () => ({ pathname: '/docs/AUTH' }),
+  useLocation: () => ({ pathname: '/auth' }),
   useNavigate: () => vi.fn(),
 }));
 

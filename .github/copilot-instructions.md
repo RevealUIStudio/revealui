@@ -2,7 +2,7 @@
 
 Purpose: give an AI coding agent concise, actionable context to be productive in this monorepo.
 
-- Big picture: Next.js 16 + React 19 monorepo. Apps live in `apps/` (notably `apps/admin`, `apps/api`, `apps/marketing`) and shared code lives in `packages/` (core, `auth`, `services`, `mcp`).
+- Big picture: Next.js 16 + React 19 monorepo. Apps live in `apps/` (notably `apps/admin`, `apps/server`, `apps/marketing`) and shared code lives in `packages/` (core, `auth`, `services`, `mcp`).
 
 - Key integrations: NeonDB + Drizzle ORM (`docs/DATABASE.md`), Vercel (edge-ready), MCP adapters in `packages/mcp/src/servers/` (e.g. `neon.ts`). Third-party: Stripe, Supabase (`packages/services`).
 
@@ -34,7 +34,7 @@ Purpose: give an AI coding agent concise, actionable context to be productive in
   - `package.json` (root scripts)
   - `scripts/cli/*` (CLIs)
   - `packages/mcp/src/servers/neon.ts`
-  - `apps/admin`, `apps/api`
+  - `apps/admin`, `apps/server`
 
 Ask for human review when a change requires secrets/env values or DB snapshots (see `docs/ENVIRONMENT_VARIABLES_GUIDE.md`).
 

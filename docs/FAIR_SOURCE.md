@@ -65,11 +65,11 @@ The conversion is in the license text and self-executing — RevealUI Studio doe
 
 Source visibility ≠ free runtime access. The Pro tier is enforced at runtime via:
 
-- **License JWTs** — RS256-signed by the license server (`apps/api/src/routes/license/`). Validated on every Pro entry point.
+- **License JWTs** — RS256-signed by the license server (`apps/server/src/routes/license/`). Validated on every Pro entry point.
 - **Per-package feature gates** — each Pro feature checks `isFeatureEnabled('ai' | 'mcp' | 'aiMemory' | ...)` from `@revealui/core/features` before executing.
 - **Status checks every 5 minutes** — `checkLicenseStatus()` re-validates against the license server. Stale licenses are revoked at runtime.
 
-This is documented at [apps/api/src/routes/license/](https://github.com/RevealUIStudio/revealui/tree/main/apps/api/src/routes/license).
+This is documented at [apps/server/src/routes/license/](https://github.com/RevealUIStudio/revealui/tree/main/apps/server/src/routes/license).
 
 The legal protection (FSL non-compete) and the runtime enforcement (license JWTs) are independent layers. Even with the source, building a competing platform on top is the case the license addresses, with civil remedies. Cracking the runtime check is technically possible (the source is there) but commercializing the result lands you in scope of the non-compete.
 

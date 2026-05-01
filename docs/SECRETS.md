@@ -66,6 +66,8 @@ revealui/dev/admin/bootstrap/email       # CLI admin bootstrap
 revealui/dev/admin/bootstrap/password    # CLI admin bootstrap (≥12 chars)
 revealui/dev/admin/bootstrap/name        # optional, defaults to "Super Admin"
 revealui/dev/admin/bootstrap/force-rotate # optional, default true
+revealui/dev/x402/receiving-address      # Sepolia EVM USDC receiving wallet (testnet) — X402_RECEIVING_ADDRESS
+revealui/dev/rvui/receiving-wallet       # Solana devnet RVC receiving wallet — RVUI_RECEIVING_WALLET
 ```
 
 Production (what CI + Vercel pull from when deploying):
@@ -93,6 +95,8 @@ revealui/prod/google/private-key         # Gmail API service-account PKCS8 PEM
 revealui/prod/github/client-id
 revealui/prod/github/client-secret
 revealui/prod/sentry/auth-token          # CI/CD error tracking
+revealui/prod/x402/receiving-address     # Base mainnet EVM USDC receiving wallet — X402_RECEIVING_ADDRESS
+revealui/prod/rvui/receiving-wallet      # Solana mainnet RVC receiving wallet (post-launch) — RVUI_RECEIVING_WALLET
 ```
 
 ### Revealcoin

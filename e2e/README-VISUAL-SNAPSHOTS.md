@@ -1,6 +1,6 @@
 # Visual Snapshot Testing - Quick Reference
 
-**Updated for CMS Application** - Tests now target actual routes like `/admin/login` instead of fictional routes.
+**Updated for CMS Application** - Tests now target actual routes like `/login` instead of fictional routes.
 
 ## Commands
 
@@ -20,7 +20,7 @@
 
 ```typescript
 // Admin panel
-await page.goto('/admin/login')
+await page.goto('/login')
 await page.waitForLoadState('networkidle')
 await expect(page).toHaveScreenshot('admin-login.png', {
   fullPage: true,

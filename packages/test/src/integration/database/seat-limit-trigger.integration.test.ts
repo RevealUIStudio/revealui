@@ -3,7 +3,7 @@
  * (CR8-P2-03 defense-in-depth).
  *
  * Migration: packages/db/migrations/0007_account_membership_seat_limit.sql
- * App-level guard: apps/api/src/lib/seat-count-guard.ts (unit-tested separately).
+ * App-level guard: apps/server/src/lib/seat-count-guard.ts (unit-tested separately).
  *
  * This file exercises the DB-level enforcement — the trigger fires on direct
  * SQL inserts that bypass the app guard, which is the whole point of

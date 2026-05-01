@@ -324,7 +324,7 @@ On [vercel.com](https://vercel.com):
 
 Your API deploys separately:
 
-1. Import the same repo again → Root Directory: `apps/api`
+1. Import the same repo again → Root Directory: `apps/server`
 2. Add env vars
 3. Deploy
 

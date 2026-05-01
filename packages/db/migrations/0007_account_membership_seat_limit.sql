@@ -1,7 +1,7 @@
 -- Custom migration: DB-level enforcement of per-account seat limits
 -- (CR8-P2-03 defense-in-depth).
 --
--- App-level guard at apps/api/src/lib/seat-count-guard.ts enforces the same
+-- App-level guard at apps/server/src/lib/seat-count-guard.ts enforces the same
 -- rule before inserts in normal application paths. This trigger is the
 -- backstop for direct-SQL paths (admin scripts, manual fixes, future code
 -- that forgets to call the guard). Rule source of truth is

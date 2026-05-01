@@ -51,7 +51,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: apps/server/Dockerfile
     container_name: revealui-api
     env_file: .env
     environment:

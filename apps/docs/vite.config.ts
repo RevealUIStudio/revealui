@@ -35,7 +35,9 @@ const INTERNAL_DOC_FILES = new Set([
 
 function docsCopyPlugin() {
   const docsSource = path.resolve(import.meta.dirname, '../../docs');
-  const docsDest = path.resolve(import.meta.dirname, 'public/docs');
+  // CHIP-3 D5a: docs are served from the public root (matches flat URL layout
+  // — `docs.revealui.com/admin-guide` resolves to `public/ADMIN_GUIDE.md`).
+  const docsDest = path.resolve(import.meta.dirname, 'public');
 
   // Debounce queue
   let debounceTimer: NodeJS.Timeout | null = null;

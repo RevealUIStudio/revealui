@@ -1,10 +1,10 @@
 ---
-'api': patch
+'server': patch
 ---
 
-Extract `getHostedLimitsForTier` into `apps/api/src/lib/tier-limits.ts`.
+Extract `getHostedLimitsForTier` into `apps/server/src/lib/tier-limits.ts`.
 
-Pure refactor — no behavior change. The function (and its `HostedTierLimits` shape + `HostedTierId` union) moves out of `apps/api/src/routes/webhooks.ts` into a dedicated module so `seat-count-guard.ts` and future limit-driven paths can import the same canonical values without re-declaring the per-tier limits.
+Pure refactor — no behavior change. The function (and its `HostedTierLimits` shape + `HostedTierId` union) moves out of `apps/server/src/routes/webhooks.ts` into a dedicated module so `seat-count-guard.ts` and future limit-driven paths can import the same canonical values without re-declaring the per-tier limits.
 
 Completes the deferred follow-up called out in the seat-count-guard changeset (2026-04-19): the guard already takes `maxUsers` as a parameter so this extraction isn't a blocker for the guard, but having one source of truth for the four hosted tiers is a prerequisite for any future path that needs both the limit and the guard on the same `accountMemberships` insert.
 

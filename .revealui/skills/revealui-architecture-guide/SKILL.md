@@ -27,14 +27,14 @@ RevealUI uses **pnpm workspaces** for monorepo management with **Turborepo** for
 ```
 RevealUI/
 ├── apps/                    # Applications
-│   ├── cms/                # CMS application (Next.js 16)
+│   ├── admin/              # Admin application (Next.js 16)
 │   └── dashboard/          # Dashboard application
 ├── packages/               # Shared packages
 │   ├── ai/                 # AI/LLM integration
 │   ├── auth/               # Authentication
 │   ├── config/             # Configuration management
 │   ├── contracts/          # API contracts
-│   ├── core/               # Core CMS (Payload)
+│   ├── core/               # Core (admin engine)
 │   ├── db/                 # Database schemas (Drizzle)
 │   ├── dev/                # Development tooling
 │   ├── security/           # Security utilities
@@ -47,7 +47,7 @@ RevealUI/
 
 ### Core Packages
 
-**@revealui/core** - RevealUI CMS Core
+**@revealui/core** - RevealUI admin core
 - RevealUI singleton instance
 - Collection definitions (Users, Posts, Pages, etc.)
 - Global configurations (Header, Footer, etc.)
@@ -175,7 +175,7 @@ apps/admin
 
 1. **Core packages** (db, auth, config, contracts)
 2. **Feature packages** (ai, security, ui)
-3. **Applications** (cms, dashboard)
+3. **Applications** (admin)
 
 ### Commands
 
@@ -317,7 +317,7 @@ apps/admin/
 │   │   ├── (frontend)/    # Public pages
 │   │   ├── (backend)/     # Admin pages
 │   │   └── api/           # API routes
-│   ├── lib/               # CMS configuration
+│   ├── lib/               # admin configuration
 │   │   ├── collections/   # RevealUI collections
 │   │   ├── globals/       # RevealUI globals
 │   │   ├── blocks/        # Content blocks

@@ -124,7 +124,7 @@ function formatCreateError(err: unknown): void {
   logger.info('');
   logger.info('  Troubleshooting:');
   logger.info('    revealui doctor        -  diagnose your environment');
-  logger.info('    https://docs.revealui.com/docs/TROUBLESHOOTING');
+  logger.info('    https://docs.revealui.com/troubleshooting');
   logger.info('    support@revealui.com   -  we are here to help');
   logger.divider();
 }

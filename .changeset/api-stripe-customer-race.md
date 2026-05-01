@@ -1,5 +1,5 @@
 ---
-'api': patch
+'server': patch
 ---
 
 Fix Stripe customer dual-write race in `ensureStripeCustomer()` (closes #394).

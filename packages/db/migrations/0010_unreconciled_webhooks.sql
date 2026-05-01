@@ -4,7 +4,7 @@
 -- and appears in the Drizzle snapshots at `meta/0006_snapshot.json` and
 -- `meta/0009_snapshot.json`, but had NO corresponding `.sql` migration in
 -- 0000–0009 (verified 2026-04-22 via `grep -n "unreconciled" migrations/*.sql`
--- → zero hits). The table is actively written by `apps/api/src/routes/webhooks.ts`
+-- → zero hits). The table is actively written by `apps/server/src/routes/webhooks.ts`
 -- and queried by `scripts/commands/database/check-unreconciled.ts`, so
 -- production likely has it via an ad-hoc `drizzle-kit push` at some point.
 -- A freshly-migrated environment (new deploy, PGlite test DB) would fail

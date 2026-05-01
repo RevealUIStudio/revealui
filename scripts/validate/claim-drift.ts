@@ -622,10 +622,10 @@ const SUITE_ATTRIBUTION_QUALIFIER = new RegExp(
     String.raw`\bnot yet shipped\b`,
     // Forge tier / kit phrasings (Forge is both a product and a tier)
     String.raw`Forge \(Enterprise\)`,
-    String.raw`Forge tier`,
-    String.raw`Forge Edition`,
-    String.raw`Forge kit`,
-    String.raw`Forge guide`,
+    'Forge tier',
+    'Forge Edition',
+    'Forge kit',
+    'Forge guide',
   ].join('|'),
   'i',
 );

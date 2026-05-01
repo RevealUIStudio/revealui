@@ -94,7 +94,7 @@ export function UpgradeDialog() {
       </DialogBody>
       <DialogActions>
         <Link
-          href="/admin/upgrade"
+          href="/upgrade"
           className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
           onClick={handleClose}
         >

@@ -34,8 +34,9 @@ export function ValueProposition() {
             One token, three roles
           </h2>
           <p className="mt-4 text-lg leading-8 text-gray-600">
-            RevealCoin serves as the economic backbone of RevealUI - powering payments, governance,
-            and rewards across the entire ecosystem.
+            RevealCoin is a utility token built for agent-native economies — used for payments,
+            governance, and ecosystem rewards. The RevealUI platform is one of the systems that
+            integrates it.
           </p>
         </div>
 

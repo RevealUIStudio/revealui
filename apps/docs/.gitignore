@@ -2,8 +2,25 @@
 dist/
 .vinxi/
 
-# Public docs - these are copied from root docs/ directory
-public/docs/
+# CHIP-3 D5a: docs from suite-root /docs/ are copied into public/ at
+# build time (replaces the prior public/docs/ subdir convention).
+# Top-level .md files are docs entries.
+public/*.md
+# Subdirectories from suite-root docs/ get copied as-is.
+public/agent-rules/
+public/ai/
+public/api/
+public/architecture/
+public/blog/
+public/blog-drafts/
+public/checklists/
+public/decisions/
+public/features/
+public/guides/
+public/security/
+public/submodules/
+public/suite/
+public/system-tune/
 
 # Dependencies
 node_modules/

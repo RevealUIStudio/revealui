@@ -118,7 +118,7 @@ export async function GET(
 
     // Resolve redirectTo: reject cross-origin URLs to prevent open redirect.
     // startsWith('/') is insufficient  -  paths like /..//..//attacker.com pass.
-    let redirectTo = '/admin';
+    let redirectTo = '/';
     try {
       const resolved = new URL(verified.redirectTo, baseUrl);
       const base = new URL(baseUrl);

@@ -12,7 +12,7 @@
  * Inference Snaps (Canonical) and Ollama are keyless — `encryptedApiKey`
  * is NULL for those rows, paired by a CHECK constraint with `provider`.
  *
- * Loaded into `WorkspaceProviderRegistry` at apps/api boot.
+ * Loaded into `WorkspaceProviderRegistry` at apps/server boot.
  */
 
 import { sql } from 'drizzle-orm';

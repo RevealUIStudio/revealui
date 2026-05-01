@@ -16,7 +16,7 @@ Detect documentation drift  -  places where code has changed but docs haven't be
 ## Checks
 
 ### 1. API Route ↔ OpenAPI Spec
-- Compare \`apps/api/src/routes/\` route handlers against \`packages/openapi/\` spec
+- Compare \`apps/server/src/routes/\` route handlers against \`packages/openapi/\` spec
 - Flag routes that exist in code but not in spec (or vice versa)
 - Check that request/response schemas match \`@revealui/contracts\`
 
@@ -50,7 +50,7 @@ Report findings as a table:
 
 | Priority | Area | Issue | File(s) |
 |----------|------|-------|---------|
-| HIGH | API routes | POST /api/tickets not in OpenAPI spec | apps/api/src/routes/tickets.ts |
+| HIGH | API routes | POST /api/tickets not in OpenAPI spec | apps/server/src/routes/tickets.ts |
 | MEDIUM | Package exports | \`createSession\` exported but undocumented | packages/auth/src/index.ts |
 
 ## Rules

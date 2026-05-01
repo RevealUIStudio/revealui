@@ -1,7 +1,7 @@
 {
   "name": "@revealui/harnesses",
   "version": "0.1.10",
-  "description": "[Pro] AI harness integration system - adapters, daemon, workboard coordination, and JSON-RPC server",
+  "description": "[Pro] AI harness integration — adapters, daemon, workboard coordination, JSON-RPC server. Ships with RevealUI Pro.",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",

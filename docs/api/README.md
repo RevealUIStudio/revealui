@@ -1,6 +1,6 @@
 # API Reference
 
-RevealUI exposes a REST API built with [Hono](https://hono.dev/) and documented with OpenAPI. The API runs at `apps/api/` (default port 3004) and serves content, billing, auth, and agent endpoints.
+RevealUI exposes a REST API built with [Hono](https://hono.dev/) and documented with OpenAPI. The API runs at `apps/server/` (default port 3004) and serves content, billing, auth, and agent endpoints.
 
 ---
 

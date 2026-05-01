@@ -3,7 +3,7 @@
  *
  * This list is the single source of truth for BOTH sides of the webhook
  * contract:
- *   1. `apps/api/src/routes/webhooks.ts` — handler's `relevantEvents` Set,
+ *   1. `apps/server/src/routes/webhooks.ts` — handler's `relevantEvents` Set,
  *      which determines which events the handler processes (anything not
  *      listed is acked but skipped).
  *   2. `scripts/setup/seed-stripe.ts` — the webhook endpoint provisioning
@@ -17,7 +17,7 @@
  * **To add a new event:**
  *   1. Add the event name to this array (keep alphabetical within groups
  *      for diff-friendliness).
- *   2. Implement the handler branch in `apps/api/src/routes/webhooks.ts`.
+ *   2. Implement the handler branch in `apps/server/src/routes/webhooks.ts`.
  *   3. Re-run `pnpm stripe:seed` against the live Stripe account to
  *      register the new event on the existing webhook endpoint.
  *

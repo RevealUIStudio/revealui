@@ -4,8 +4,10 @@ import {
   decryptApiKey,
   decryptField,
   decryptFieldOrPassthrough,
+  decryptWithKey,
   encryptApiKey,
   encryptField,
+  encryptWithKey,
   isEncryptedField,
   redactApiKey,
 } from '../crypto.js';
@@ -95,11 +97,11 @@ describe('crypto  -  API key encryption', () => {
     });
 
     it('throws on invalid format (missing parts)', () => {
-      expect(() => decryptApiKey('just-one-part')).toThrow('Invalid encrypted key format');
+      expect(() => decryptApiKey('just-one-part')).toThrow('Invalid encrypted format');
     });
 
     it('throws on invalid format (too many parts)', () => {
-      expect(() => decryptApiKey('a.b.c.d')).toThrow('Invalid encrypted key format');
+      expect(() => decryptApiKey('a.b.c.d')).toThrow('Invalid encrypted format');
     });
 
     it('throws on tampered ciphertext (GCM auth check)', () => {
@@ -345,6 +347,230 @@ describe('crypto  -  API key encryption', () => {
       process.env.REVEALUI_KEK = '';
       // Empty string is falsy in JS, so getKek() treats it as not set
       expect(() => encryptApiKey('sk-test')).toThrow();
+    });
+  });
+
+  describe('encryptWithKey / decryptWithKey (parameterized for rotation)', () => {
+    const KEY_A = randomBytes(32);
+    const KEY_B = randomBytes(32);
+
+    it('roundtrips with an explicit key (independent of process.env.REVEALUI_KEK)', () => {
+      delete process.env.REVEALUI_KEK;
+      const encrypted = encryptWithKey(KEY_A, 'rotation-payload');
+      expect(decryptWithKey(KEY_A, encrypted)).toBe('rotation-payload');
+    });
+
+    it('throws when decrypting with a key different from the encrypt key', () => {
+      const encrypted = encryptWithKey(KEY_A, 'secret');
+      expect(() => decryptWithKey(KEY_B, encrypted)).toThrow();
+    });
+
+    it('rejects key buffers of the wrong length on encrypt', () => {
+      const tooShort = randomBytes(16);
+      expect(() => encryptWithKey(tooShort, 'x')).toThrow('must be exactly 32 bytes');
+    });
+
+    it('rejects key buffers of the wrong length on decrypt', () => {
+      const encrypted = encryptWithKey(KEY_A, 'x');
+      const tooLong = randomBytes(64);
+      expect(() => decryptWithKey(tooLong, encrypted)).toThrow('must be exactly 32 bytes');
+    });
+
+    it('produces envelopes that the singleton decryptApiKey can read when key matches REVEALUI_KEK', () => {
+      const sharedKeyHex = KEY_A.toString('hex');
+      process.env.REVEALUI_KEK = sharedKeyHex;
+      const encrypted = encryptWithKey(KEY_A, 'shared-payload');
+      expect(decryptApiKey(encrypted)).toBe('shared-payload');
+    });
+
+    it('singleton encryptField produces envelopes that decryptWithKey can read with the same key', () => {
+      const keyHex = KEY_A.toString('hex');
+      process.env.REVEALUI_KEK = keyHex;
+      const encrypted = encryptField('totp-secret');
+      expect(decryptWithKey(KEY_A, encrypted)).toBe('totp-secret');
+    });
+
+    it('GCM auth tag mismatch throws on cross-key decrypt — the rotation idempotency signal', () => {
+      // Rotation idempotency relies on this: try decrypt with NEW first; if
+      // the auth tag verifies, the row is already under NEW. If it throws,
+      // try OLD. This test pins the contract.
+      const encrypted = encryptWithKey(KEY_A, 'value');
+      let threw = false;
+      try {
+        decryptWithKey(KEY_B, encrypted);
+      } catch {
+        threw = true;
+      }
+      expect(threw).toBe(true);
+    });
+  });
+});
+
+// =============================================================================
+// Dual-key boot (GAP-158) — zero-downtime KEK rotation
+// =============================================================================
+
+describe('crypto  -  dual-key boot for KEK rotation', () => {
+  const KEY_OLD_HEX = randomBytes(32).toString('hex');
+  const KEY_NEW_HEX = randomBytes(32).toString('hex');
+  const KEY_OLD_BUF = Buffer.from(KEY_OLD_HEX, 'hex');
+  const KEY_NEW_BUF = Buffer.from(KEY_NEW_HEX, 'hex');
+
+  const originalKek = process.env.REVEALUI_KEK;
+  const originalKekNext = process.env.REVEALUI_KEK_NEXT;
+
+  function setEnv({ kek, next }: { kek?: string; next?: string }) {
+    if (kek === undefined) {
+      delete process.env.REVEALUI_KEK;
+    } else {
+      process.env.REVEALUI_KEK = kek;
+    }
+    if (next === undefined) {
+      delete process.env.REVEALUI_KEK_NEXT;
+    } else {
+      process.env.REVEALUI_KEK_NEXT = next;
+    }
+  }
+
+  afterEach(() => {
+    if (originalKek !== undefined) process.env.REVEALUI_KEK = originalKek;
+    else delete process.env.REVEALUI_KEK;
+    if (originalKekNext !== undefined) process.env.REVEALUI_KEK_NEXT = originalKekNext;
+    else delete process.env.REVEALUI_KEK_NEXT;
+  });
+
+  describe('env-var resolution', () => {
+    it('throws when neither REVEALUI_KEK nor REVEALUI_KEK_NEXT is set', () => {
+      setEnv({});
+      expect(() => encryptApiKey('x')).toThrow('REVEALUI_KEK environment variable is not set');
+    });
+
+    it('works with REVEALUI_KEK only (steady state)', () => {
+      setEnv({ kek: KEY_OLD_HEX });
+      const enc = encryptApiKey('steady');
+      expect(decryptApiKey(enc)).toBe('steady');
+    });
+
+    it('works with REVEALUI_KEK_NEXT only (post-promotion edge state)', () => {
+      // After the rotation tool completes and the operator promotes
+      // _NEXT → REVEALUI_KEK and removes _NEXT, the steady-state config is
+      // REVEALUI_KEK only. During the redeploy that drops _NEXT, the env
+      // may briefly read as _NEXT-only — this test pins that as a valid
+      // configuration (primary = NEXT, no fallback).
+      setEnv({ next: KEY_NEW_HEX });
+      const enc = encryptApiKey('post-promotion');
+      expect(decryptApiKey(enc)).toBe('post-promotion');
+    });
+
+    it('throws naming REVEALUI_KEK_NEXT when its length is wrong', () => {
+      setEnv({ kek: KEY_OLD_HEX, next: 'abc123' });
+      expect(() => encryptApiKey('x')).toThrow(/REVEALUI_KEK_NEXT must be exactly 64 hex/);
+    });
+
+    it('throws naming REVEALUI_KEK when KEK_NEXT is valid + KEK is wrong length', () => {
+      setEnv({ kek: 'abc123', next: KEY_NEW_HEX });
+      expect(() => encryptApiKey('x')).toThrow(
+        /REVEALUI_KEK must be exactly 64 hex characters .* when set as fallback/,
+      );
+    });
+
+    it('throws naming REVEALUI_KEK when KEK alone has wrong length', () => {
+      setEnv({ kek: 'abc123' });
+      expect(() => encryptApiKey('x')).toThrow(/REVEALUI_KEK must be exactly 64 hex/);
+    });
+  });
+
+  describe('encrypt routing (new encrypts go under primary)', () => {
+    it('encrypts under REVEALUI_KEK when only REVEALUI_KEK is set', () => {
+      setEnv({ kek: KEY_OLD_HEX });
+      const enc = encryptApiKey('routing-old');
+      // Independent verification: the parameterized helper using KEY_OLD_BUF
+      // must decrypt cleanly; KEY_NEW_BUF must not.
+      expect(decryptWithKey(KEY_OLD_BUF, enc)).toBe('routing-old');
+      expect(() => decryptWithKey(KEY_NEW_BUF, enc)).toThrow();
+    });
+
+    it('encrypts under REVEALUI_KEK_NEXT when both keys are set', () => {
+      setEnv({ kek: KEY_OLD_HEX, next: KEY_NEW_HEX });
+      const enc = encryptApiKey('routing-new');
+      // Primary is _NEXT, so the new-key buffer must decrypt and the old must not.
+      expect(decryptWithKey(KEY_NEW_BUF, enc)).toBe('routing-new');
+      expect(() => decryptWithKey(KEY_OLD_BUF, enc)).toThrow();
+    });
+
+    it('encrypts under REVEALUI_KEK_NEXT when only _NEXT is set', () => {
+      setEnv({ next: KEY_NEW_HEX });
+      const enc = encryptApiKey('routing-next-only');
+      expect(decryptWithKey(KEY_NEW_BUF, enc)).toBe('routing-next-only');
+    });
+
+    it('encryptField follows the same routing rule', () => {
+      setEnv({ kek: KEY_OLD_HEX, next: KEY_NEW_HEX });
+      const enc = encryptField('field-routing');
+      expect(decryptWithKey(KEY_NEW_BUF, enc)).toBe('field-routing');
+    });
+  });
+
+  describe('decrypt fallback', () => {
+    it('decrypts a primary-encrypted row without ever hitting fallback', () => {
+      setEnv({ kek: KEY_OLD_HEX, next: KEY_NEW_HEX });
+      const enc = encryptApiKey('primary-row'); // encrypted under _NEXT
+      expect(decryptApiKey(enc)).toBe('primary-row');
+    });
+
+    it('decrypts a fallback-encrypted row via the fallback path', () => {
+      // Simulate a row encrypted before rotation started:
+      // 1. Encrypt under KEK alone.
+      setEnv({ kek: KEY_OLD_HEX });
+      const enc = encryptApiKey('legacy-row');
+      // 2. Operator sets _NEXT — decrypt should still work via fallback to KEK.
+      setEnv({ kek: KEY_OLD_HEX, next: KEY_NEW_HEX });
+      expect(decryptApiKey(enc)).toBe('legacy-row');
+    });
+
+    it('throws when the row is unreadable under both primary and fallback', () => {
+      const ROGUE = randomBytes(32);
+      const enc = encryptWithKey(ROGUE, 'unreadable');
+      setEnv({ kek: KEY_OLD_HEX, next: KEY_NEW_HEX });
+      expect(() => decryptApiKey(enc)).toThrow();
+    });
+
+    it('throws when only primary is set and the row is encrypted under a different key (no fallback)', () => {
+      const ROGUE = randomBytes(32);
+      const enc = encryptWithKey(ROGUE, 'unreadable-no-fallback');
+      setEnv({ kek: KEY_OLD_HEX });
+      expect(() => decryptApiKey(enc)).toThrow();
+    });
+
+    it('decryptField also takes the fallback path', () => {
+      setEnv({ kek: KEY_OLD_HEX });
+      const enc = encryptField('field-legacy');
+      setEnv({ kek: KEY_OLD_HEX, next: KEY_NEW_HEX });
+      expect(decryptField(enc)).toBe('field-legacy');
+    });
+  });
+
+  describe('end-to-end rotation flow', () => {
+    it('encrypts, rotates, promotes — every path remains decryptable until the operator finalizes', () => {
+      // Phase 1 — pre-rotation. KEK = K1. Encrypt val under K1.
+      setEnv({ kek: KEY_OLD_HEX });
+      const encUnderOld = encryptApiKey('phase-1');
+
+      // Phase 2 — rotation start. KEK = K1, _NEXT = K2.
+      // Old rows decrypt via fallback; new rows encrypt under K2.
+      setEnv({ kek: KEY_OLD_HEX, next: KEY_NEW_HEX });
+      expect(decryptApiKey(encUnderOld)).toBe('phase-1'); // fallback hit
+      const encUnderNew = encryptApiKey('phase-2');
+      expect(decryptApiKey(encUnderNew)).toBe('phase-2'); // primary hit
+
+      // Phase 3 — operator promotes _NEXT → REVEALUI_KEK and removes _NEXT.
+      // Steady-state config: KEK = K2 only. Rows still under K1 are now
+      // unreachable — the rotation tool was supposed to re-encrypt them.
+      // This pins the contract that without the fallback they fail loud,
+      // not silently.
+      setEnv({ kek: KEY_NEW_HEX });
+      expect(decryptApiKey(encUnderNew)).toBe('phase-2');
+      expect(() => decryptApiKey(encUnderOld)).toThrow();
     });
   });
 });

@@ -1,0 +1,30 @@
+{
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "cd ../.. && pnpm --filter server run vercel-build",
+  "functions": {
+    "api/**": {
+      "memory": 512,
+      "maxDuration": 30
+    }
+  },
+  "crons": [{ "path": "/api/cron/dispatch", "schedule": "0 6 * * *" }],
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    },
+    {
+      "source": "/(.*).map",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex" },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}
