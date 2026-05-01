@@ -21,13 +21,13 @@
     "revealui": "./bin/revealui.js"
   },
   "dependencies": {
-    "@clack/prompts": "^1.2.0",
+    "@clack/prompts": "^1.3.0",
     "@revealui/config": "workspace:*",
     "@revealui/setup": "workspace:*",
     "commander": "^14.0.3",
     "execa": "^9.6.1",
-    "jose": "^6.2.2",
-    "ora": "^9.3.0",
+    "jose": "^6.2.3",
+    "ora": "^9.4.0",
     "semver": "^7.7.4",
     "tinyglobby": "^0.2.16"
   },
