@@ -56,9 +56,6 @@ const optional: string[] = [
   'REVEALUI_ADMIN_PASSWORD',
   'REVEALUI_CORS_ORIGINS',
   'REVEALUI_WHITELISTORIGINS', // Deprecated but still supported
-  'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-  'SUPABASE_DATABASE_URI',
   'NEXT_PUBLIC_ELECTRIC_SERVICE_URL',
   'ELECTRIC_SERVICE_URL',
   'NEXT_PUBLIC_SENTRY_DSN',
@@ -66,7 +63,6 @@ const optional: string[] = [
   'SENTRY_ORG',
   'SENTRY_PROJECT',
   'NEON_API_KEY',
-  'SUPABASE_SERVICE_ROLE_KEY',
   'STRIPE_PROXY',
   'SKIP_ONINIT',
 ];
@@ -75,7 +71,7 @@ const optional: string[] = [
 const namingConventions = {
   revealUI: /^REVEALUI_/, // RevealUI-specific server-side variables
   nextPublic: /^NEXT_PUBLIC_/, // Next.js client-side variables
-  standard: /^(STRIPE_|BLOB_|SENTRY_|SUPABASE_|NEON_|ELECTRIC_|SKIP_|NODE_)/, // Standard third-party prefixes
+  standard: /^(STRIPE_|BLOB_|SENTRY_|NEON_|ELECTRIC_|SKIP_|NODE_)/, // Standard third-party prefixes
 };
 
 async function validateEnvironment() {

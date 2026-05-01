@@ -1,7 +1,8 @@
 /**
  * Database Connection Factory
  *
- * Provides connection utilities for both Neon (REST) and Supabase (Vector) databases.
+ * Provides PostgreSQL connection utilities (NeonDB primary; backward-compatible
+ * with self-hosted Postgres via the same connection string).
  *
  * @dependencies
  * - scripts/lib/index.ts - Logger and database provider detection
@@ -87,51 +88,10 @@ export async function createConnection(config: ConnectionConfig): Promise<Databa
 }
 
 /**
- * Gets the REST database connection string from environment.
+ * Gets the database connection string from environment.
  */
 export function getRestConnectionString(): string | undefined {
   return process.env.POSTGRES_URL || process.env.DATABASE_URL;
-}
-
-/**
- * Gets the Vector database connection string from environment.
- */
-export function getVectorConnectionString(): string | undefined {
-  return (
-    process.env.SUPABASE_DATABASE_URL ||
-    process.env.DATABASE_URL ||
-    process.env.SUPABASE_DATABASE_URI
-  );
-}
-
-/**
- * Creates connections for both REST and Vector databases.
- */
-export async function createDualConnections(
-  options: { logger?: Logger } = {},
-): Promise<{ rest?: DatabaseConnection; vector?: DatabaseConnection }> {
-  const { logger = defaultLogger } = options;
-  const connections: { rest?: DatabaseConnection; vector?: DatabaseConnection } = {};
-
-  const restUrl = getRestConnectionString();
-  if (restUrl) {
-    connections.rest = await createConnection({
-      connectionString: restUrl,
-      type: 'rest',
-      logger,
-    });
-  }
-
-  const vectorUrl = getVectorConnectionString();
-  if (vectorUrl && vectorUrl !== restUrl) {
-    connections.vector = await createConnection({
-      connectionString: vectorUrl,
-      type: 'vector',
-      logger,
-    });
-  }
-
-  return connections;
 }
 
 /**
