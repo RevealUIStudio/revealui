@@ -1,0 +1,116 @@
+name: Regenerate Visual Snapshots
+
+# Manual workflow to regenerate Playwright visual snapshots.
+#
+# When admin UI changes intentionally (chip URL flattens, theme tweaks,
+# component refactors), the stored PNGs at e2e/__snapshots__/visual-snapshots.e2e.ts/
+# go stale and Visual Regression (E2E) starts failing on the test → main release
+# CI. Re-running them locally risks subtle environment mismatches (font hinting,
+# headless GPU compositing, OS rendering). This workflow runs the regen on the
+# same Ubuntu + Playwright/Chromium pinned versions that ci.yml's e2e-visual
+# uses, so the new baseline matches the environment that gates the release.
+#
+# Usage:
+#   1. Open Actions → "Regenerate Visual Snapshots" → "Run workflow"
+#   2. Pick a base branch (defaults to `test`).
+#   3. Workflow checks out, builds, starts admin, runs Playwright with
+#      --update-snapshots, and pushes any changed PNGs to a fresh branch
+#      `chore/snapshot-regen-<run_id>`.
+#   4. The workflow output prints the branch name and a `gh pr create` URL.
+#      Open the PR, eyeball the snapshot diffs, merge it into the base branch.
+#
+# The new branch is the merge target — branch protection on `test`/`main`
+# prevents direct push, and snapshot diffs deserve a human eyeball pass anyway.
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: 'Branch to regenerate snapshots from (and PR back to)'
+        required: true
+        default: 'test'
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 24
+  PNPM_VERSION: 10.28.2
+  PNPM_INSTALL_FLAGS: --frozen-lockfile
+
+jobs:
+  regen:
+    name: Regenerate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.base_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6.0.3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
+
+      - name: Install Playwright (chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Build apps
+        run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Start Admin server
+        run: pnpm --filter admin start &
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Wait for Admin
+        run: |
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:4000 > /dev/null 2>&1 && echo "Admin ready" && break || \
+            echo "Waiting for Admin... ($i/40)" && sleep 3
+          done
+          curl -sf http://localhost:4000 > /dev/null 2>&1 || \
+            (echo "::error::Admin failed to start within 120s" && exit 1)
+
+      - name: Regenerate visual snapshots
+        run: npx playwright test --project=chromium e2e/visual-snapshots.e2e.ts --update-snapshots
+        env:
+          CI: "true"
+          SKIP_ENV_VALIDATION: "true"
+        continue-on-error: true
+
+      - name: Push regenerated snapshots to a new branch
+        run: |
+          git config user.name "RevealUI Studio"
+          git config user.email "founder@revealui.com"
+          if [[ -z "$(git status --short e2e/__snapshots__/)" ]]; then
+            echo "::notice::No snapshot changes detected — visual baseline already matches CI rendering"
+            exit 0
+          fi
+          BRANCH="chore/snapshot-regen-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git add e2e/__snapshots__/
+          git -c core.fileMode=false commit -m "test(e2e): regenerate visual snapshots from ${{ inputs.base_branch }}"
+          git push origin "$BRANCH"
+          echo "::notice::Regenerated snapshots pushed to $BRANCH"
+          echo "::notice::Open a PR: gh pr create --base ${{ inputs.base_branch }} --head $BRANCH --title 'test(e2e): regenerate visual snapshots'"
+
+      - name: Upload snapshot artifact (always, for review)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: regenerated-snapshots
+          path: e2e/__snapshots__/
+          retention-days: 14
