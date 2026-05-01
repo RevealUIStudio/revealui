@@ -1,6 +1,6 @@
 # revealcoin
 
-Public dashboard for RevealCoin (RVUI / RVC) — token info, allocations, vesting, and whitepaper. Lives at `revealcoin.revealui.com`.
+Public dashboard for RevealCoin (RVC) — token info, allocations, vesting, and whitepaper. Lives at `revealcoin.revealui.com`.
 
 ## Stack
 

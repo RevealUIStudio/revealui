@@ -9,10 +9,10 @@ export function PrivacyPage() {
         <p className="text-sm text-gray-500">Last updated: {lastUpdated}</p>
 
         <p>
-          RevealUI Studio (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) operates the RevealUI
-          platform, including revealui.com, admin.revealui.com, api.revealui.com, and
-          docs.revealui.com (the &quot;Service&quot;). This Privacy Policy describes how we collect,
-          use, and protect your personal information.
+          The RevealUI platform (revealui.com, admin.revealui.com, api.revealui.com, and
+          docs.revealui.com — the &quot;Service&quot;) is operated by REVEALUI STUDIO L.L.C., a
+          Tennessee limited liability company (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;).
+          This Privacy Policy describes how we collect, use, and protect your personal information.
         </p>
 
         <h2>1. Information We Collect</h2>

@@ -1,7 +1,7 @@
 {
   "name": "@revealui/security",
   "version": "0.3.0",
-  "description": "Security infrastructure for RevealUI - headers, CORS, RBAC/ABAC, encryption, audit, GDPR",
+  "description": "Security primitives — CSP/CORS/HSTS headers, RBAC + ABAC policy engine, encryption helpers, audit logging, GDPR compliance. Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
     "@revealui/contracts": "workspace:*",
