@@ -120,13 +120,7 @@ const optionalSchema = z.object({
   REVEALUI_WHITELISTORIGINS: z.string().optional(), // Deprecated  -  use CORS_ORIGIN
 
   // Database
-  DATABASE_URL: postgresUrlSchema.optional(), // Fallback for POSTGRES_URL (REST) or SUPABASE_DATABASE_URL (vector)
-  SUPABASE_DATABASE_URL: postgresUrlSchema.optional(), // Preferred: Supabase vector database connection
-
-  // Supabase
-  NEXT_PUBLIC_SUPABASE_URL: urlSchema.optional(),
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
-  SUPABASE_DATABASE_URI: postgresUrlSchema.optional(),
+  DATABASE_URL: postgresUrlSchema.optional(), // Fallback for POSTGRES_URL
 
   // Electric
   NEXT_PUBLIC_ELECTRIC_SERVICE_URL: z.string().optional(),
@@ -144,7 +138,6 @@ const optionalSchema = z.object({
 
   // Dev Tools
   NEON_API_KEY: z.string().optional(),
-  SUPABASE_SECRET_KEY: z.string().optional(),
   STRIPE_PROXY: z.enum(['0', '1']).optional(),
   SKIP_ONINIT: z.enum(['true', 'false']).optional(),
 

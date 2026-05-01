@@ -42,7 +42,6 @@ import {
   getOptionalConfig,
   type OptionalConfig,
   type SentryConfig,
-  type SupabaseConfig,
 } from './modules/optional.js';
 import { getRevealConfig, type RevealConfig } from './modules/reveal.js';
 import { getStorageConfig, type StorageConfig } from './modules/storage.js';
@@ -344,7 +343,6 @@ export type {
   SentryConfig,
   StorageConfig,
   StripeConfig,
-  SupabaseConfig,
 };
 // Export validation functions
 export { formatValidationErrors, validateAndThrow, validateEnvVars };

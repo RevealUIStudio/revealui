@@ -10,8 +10,8 @@ export interface DatabaseConfig {
 }
 
 export function getDatabaseConfig(env: EnvConfig): DatabaseConfig {
-  // Accept POSTGRES_URL, DATABASE_URL (as fallback), or SUPABASE_DATABASE_URI
-  const url = env.POSTGRES_URL || env.DATABASE_URL || env.SUPABASE_DATABASE_URI || '';
+  // Accept POSTGRES_URL or DATABASE_URL (as fallback)
+  const url = env.POSTGRES_URL || env.DATABASE_URL || '';
 
   return {
     url,

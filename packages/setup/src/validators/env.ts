@@ -162,17 +162,6 @@ export const OPTIONAL_ENV_VARS: EnvVariable[] = [
     required: false,
   },
   {
-    name: 'NEXT_PUBLIC_SUPABASE_URL',
-    description: 'Supabase project URL',
-    required: false,
-    validator: validators.url,
-  },
-  {
-    name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-    description: 'Supabase publishable key (sb_publishable_...)',
-    required: false,
-  },
-  {
     name: 'REVEALUI_ADMIN_EMAIL',
     description: 'Initial admin email',
     required: false,
