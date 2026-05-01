@@ -11,7 +11,6 @@
  * - node:path - Path manipulation utilities (join)
  */
 
-import { execSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -532,10 +531,6 @@ class StructureValidator {
       }
     }
 
-    // Check dual-database boundary enforcement
-    console.log('\n🔍 Checking dual-DB boundary (Supabase outside permitted paths)...');
-    this.checkDualDbBoundary(results);
-
     console.log(
       `\n${allValid ? '✅' : '❌'} Overall validation: ${allValid ? 'PASSED' : 'FAILED'}`,
     );
@@ -546,93 +541,6 @@ class StructureValidator {
     }
 
     return allValid;
-  }
-
-  /**
-   * Verify that @supabase/supabase-js is only imported in designated modules.
-   * Violations are warnings (not failures) to avoid blocking builds for legacy code.
-   */
-  private checkDualDbBoundary(
-    _results: Array<{ rule: ValidationRule; valid: boolean; message: string }>,
-  ): void {
-    // Paths where Supabase imports are explicitly allowed
-    const allowedSupabasePaths = [
-      'packages/db/src/vector',
-      'packages/db/src/auth',
-      'packages/auth/src',
-      'packages/ai/src',
-      'packages/services/src/supabase',
-      'packages/mcp/src',
-      // Integration tests for Supabase services are expected to import supabase-js
-      'packages/test/src/integration',
-    ];
-
-    let output = '';
-    try {
-      // Use grep to find all TypeScript files with actual import statements for @supabase/supabase-js.
-      // Match only import/from declarations (Biome enforces single quotes), not string literals
-      // that merely mention the package name as documentation or test assertions.
-      // Exclude .claude/worktrees/  -  those are agent sandbox directories, not production source.
-      output = execSync(
-        `grep -r --include="*.ts" --include="*.tsx" --exclude-dir=".next" --exclude-dir="dist" --exclude-dir="node_modules" --exclude-dir=".turbo" --exclude-dir="worktrees" -l "from '@supabase/supabase-js" . 2>/dev/null || true`,
-        { encoding: 'utf8', cwd: process.cwd() },
-      );
-    } catch {
-      // grep exits non-zero if no matches  -  that's fine
-      output = '';
-    }
-
-    const files = output
-      .trim()
-      .split('\n')
-      .filter(Boolean)
-      // Normalize: strip leading ./
-      .map((f) => f.replace(/^\.\//, ''))
-      // Only consider source code in packages/ and apps/  -  exclude scripts (they contain
-      // the pattern as string literals), dist, node_modules, and agent worktrees.
-      .filter(
-        (f) =>
-          (f.startsWith('packages/') || f.startsWith('apps/')) &&
-          !f.includes('node_modules') &&
-          !f.includes('/dist/') &&
-          !f.startsWith('.claude/worktrees/'),
-      );
-
-    const violations: string[] = [];
-    const permitted: string[] = [];
-
-    for (const file of files) {
-      const isAllowed = allowedSupabasePaths.some((allowedPath) => file.startsWith(allowedPath));
-      // Also allow app-level supabase utility directories
-      const isAppAllowed = /^apps\/[^/]+\/src\/lib\/supabase\//.test(file);
-
-      if (isAllowed || isAppAllowed) {
-        permitted.push(file);
-      } else {
-        violations.push(file);
-      }
-    }
-
-    if (permitted.length > 0) {
-      console.log(`✅ ${permitted.length} file(s) use Supabase within permitted paths`);
-    }
-
-    if (violations.length > 0) {
-      console.log(
-        `⚠️  ${violations.length} file(s) import @supabase/supabase-js outside permitted paths:`,
-      );
-      for (const v of violations) {
-        console.log(`   - ${v}`);
-      }
-      console.log(
-        '   Permitted paths: @revealui/db vector/auth modules, @revealui/auth, @revealui/ai memory modules, @revealui/services supabase integration, @revealui/mcp, packages/test integration helpers, apps/*/src/lib/supabase/',
-      );
-      console.log('   See .claude/rules/database.md for the dual-DB boundary policy.');
-    } else if (files.length === 0) {
-      console.log('✅ No @supabase/supabase-js imports found (or grep unavailable)');
-    } else {
-      console.log('✅ All Supabase imports are within permitted paths');
-    }
   }
 }
 

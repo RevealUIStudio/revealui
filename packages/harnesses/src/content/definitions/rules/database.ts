@@ -4,63 +4,22 @@ export const databaseRule: Rule = {
   id: 'database',
   tier: 'oss',
   name: 'Database Conventions',
-  description: 'Dual-database architecture (NeonDB + Supabase) boundaries and query patterns',
+  description: 'NeonDB (PostgreSQL) primary store, Drizzle ORM, and migration discipline',
   scope: 'project',
   preambleTier: 2,
   tags: ['database', 'architecture', 'drizzle'],
   content: `# Database Conventions
 
-## Dual-Database Architecture
+## Primary Store: NeonDB (PostgreSQL)
 
-RevealUI uses **two databases with strictly separated responsibilities**:
+RevealUI uses **NeonDB as the primary store** via Drizzle ORM. The schema lives in \`packages/db/src/schema/\` (86 tables) and migrates via standard \`drizzle-kit migrate\`.
 
-| Database | Client | Purpose |
-|----------|--------|---------|
-| **NeonDB** (PostgreSQL) | \`@neondatabase/serverless\` | REST content: collections, users, sessions, orders, products |
-| **Supabase** | \`@supabase/supabase-js\` | Vector embeddings, real-time auth, AI memory storage |
-
-## Boundary Rule
-
-**\`@supabase/supabase-js\` must only be imported inside designated vector/auth modules:**
-
-### Allowed paths for Supabase imports
-- \`packages/db/src/vector/\`  -  vector schema and queries
-- \`packages/db/src/auth/\`  -  Supabase auth helpers
-- \`packages/auth/src/\`  -  authentication implementation
-- \`packages/ai/src/\`  -  AI memory and embedding storage
-- \`packages/services/src/supabase/\`  -  Supabase service integrations
-- \`apps/*/src/lib/supabase/\`  -  app-level Supabase utilities
-
-### Forbidden: Supabase imports in
-- \`packages/core/\`  -  admin engine must be DB-agnostic
-- \`packages/contracts/\`  -  contracts are schema-only
-- \`packages/config/\`  -  config must not hardcode DB client
-- \`apps/admin/src/collections/\`  -  collection hooks use Drizzle/Neon only
-- \`apps/admin/src/routes/\`  -  REST routes use Neon only
+Legacy \`@supabase/supabase-js\` code has been phased out from runtime — there are zero \`from '@supabase/supabase-js'\` imports left in \`packages/\` or \`apps/\`. **New features must not introduce a Supabase dependency.**
 
 ## Schema Organization
 
-\`\`\`
-packages/db/src/schema/
-├── accounts.ts       # NeonDB: user accounts
-├── agents.ts         # NeonDB: AI agent definitions
-├── api-keys.ts       # NeonDB: API key management
-├── admin.ts            # NeonDB: admin collections, media
-├── gdpr.ts           # NeonDB: GDPR consent, deletion
-├── licenses.ts       # NeonDB: license keys, tiers
-├── pages.ts          # NeonDB: pages, navigation
-├── sites.ts          # NeonDB: multi-tenant sites
-├── tickets.ts        # NeonDB: support tickets
-├── users.ts          # NeonDB: user management, sessions
-├── vector.ts         # Supabase: embeddings, AI memory
-├── rest.ts           # NeonDB: REST schema barrel
-├── index.ts          # Combined schema export
-└── ...               # 30+ schema files total
-\`\`\`
+Schemas live under \`packages/db/src/schema/\` — one file per logical domain (accounts, users, sites, posts, agents, RAG, billing, etc.). Use Drizzle ORM for all queries.
 
-## Query Patterns
-
-### NeonDB (Drizzle ORM)
 \`\`\`ts
 import { db } from '@revealui/db'
 import { posts } from '@revealui/db/schema'
@@ -68,28 +27,20 @@ import { posts } from '@revealui/db/schema'
 const results = await db.select().from(posts).where(eq(posts.status, 'published'))
 \`\`\`
 
-### Supabase (vector/auth only)
-\`\`\`ts
-// Only in designated modules (packages/db/src/vector/, packages/ai/src/)
-import { createSupabaseClient } from '@revealui/db/vector'
+## Vector / Embedding Storage
 
-const { data } = await supabase.rpc('match_documents', { query_embedding: embedding })
-\`\`\`
+Vector embeddings (RAG, AI memory) live in NeonDB on the \`pgvector\` extension. HNSW indexes are created in \`0002_triggers_search_vectors.sql\`. Tables: \`rag_documents\`, \`rag_chunks\`, \`agent_memories.embedding\`.
 
-## Enforcement
+## Customer-Facing Supabase MCP Adapter
 
-The \`pnpm validate:structure\` script checks for Supabase imports outside permitted paths.
-CI runs this as part of phase 1 (warn-only  -  violations are flagged but don't block builds).
+The Supabase MCP adapter at \`packages/mcp/src/servers/supabase.ts\` is **separate from internal usage** — it lets installer customers who chose Supabase as their backend point AI agents at their own database. It is not invoked by RevealUI's internal runtime and does not import \`@supabase/supabase-js\` into the app code.
 
-To check locally:
-\`\`\`bash
-pnpm validate:structure
-\`\`\`
+## Migration Discipline
 
-## Migration Guidance
-
-When adding new features:
-1. **Content/REST data** → add to \`packages/db/src/schema/\` + use Drizzle
-2. **AI/vector data** → add to \`packages/db/src/vector/\` + use Supabase client
-3. **Never mix** both DB clients in the same module`,
+See \`packages/db/docs/migrations-discipline.md\`. The \`pnpm validate:migrations\` static check enforces:
+- Every \`.sql\` file has a journal entry, and vice versa
+- Journal \`when\` values are strictly increasing
+- Every journal entry has a \`meta/<NNNN>_snapshot.json\` (or an explicit allowlist entry in \`meta/_custom.json\`)
+- \`ALTER TABLE ... ADD CONSTRAINT\` is wrapped in \`DO $$ BEGIN ... EXCEPTION ... END $$\` blocks for idempotency
+- \`DROP CONSTRAINT\` uses \`IF EXISTS\``,
 };

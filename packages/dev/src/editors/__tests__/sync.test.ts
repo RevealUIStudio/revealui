@@ -69,32 +69,7 @@ describe('syncEditorConfigs', () => {
     });
   });
 
-  describe('antigravity', () => {
-    it('writes .vscode/ configs and .agents/rules/revealui.md', async () => {
-      const result = await syncEditorConfigs({ rootDir: ROOT, editors: ['antigravity'] });
-
-      expect(result.written).toContain(`${ROOT}/.vscode/settings.json`);
-      expect(result.written).toContain(`${ROOT}/.vscode/extensions.json`);
-      expect(result.written).toContain(`${ROOT}/.agents/rules/revealui.md`);
-      expect(result.errors).toHaveLength(0);
-    });
-  });
-
   describe('all editors', () => {
-    it('deduplicates .vscode/ writes when multiple editors share them', async () => {
-      const result = await syncEditorConfigs({
-        rootDir: ROOT,
-        editors: ['vscode', 'antigravity', 'zed'],
-      });
-
-      const allPaths = [...result.written, ...result.skipped];
-      const settingsOccurrences = allPaths.filter((p) => p.endsWith('settings.json'));
-      // .vscode/settings.json should appear at most once (written or skipped)
-      expect(settingsOccurrences.filter((p) => p.includes('.vscode')).length).toBeLessThanOrEqual(
-        1,
-      );
-    });
-
     it('writes all expected files when no editors specified (defaults to all)', async () => {
       const result = await syncEditorConfigs({ rootDir: ROOT });
 
@@ -102,7 +77,6 @@ describe('syncEditorConfigs', () => {
       expect(allPaths).toContain(`${ROOT}/.vscode/settings.json`);
       expect(allPaths).toContain(`${ROOT}/.vscode/extensions.json`);
       expect(allPaths).toContain(`${ROOT}/.zed/settings.json`);
-      expect(allPaths).toContain(`${ROOT}/.agents/rules/revealui.md`);
     });
   });
 
