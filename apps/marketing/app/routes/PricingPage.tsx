@@ -41,12 +41,7 @@ const faqs = [
   {
     question: 'How does AI inference work?',
     answer:
-      'RevealUI runs AI on open models only (Apache 2.0). No proprietary cloud APIs, no vendor lock-in, no API bills. The recommended path is Ubuntu Inference Snaps from Canonical: run "sudo snap install gemma3 --beta" for instant local inference. Also supported: Ollama (local, any GGUF model), and cloud-hosted open models via the RevealUI harness (Pro+). Studio manages snap lifecycle, model switching, and multi-agent coordination.',
-  },
-  {
-    question: 'What is Studio?',
-    answer:
-      'Studio is the native AI experience: a Tauri desktop app that orchestrates agents, manages Ubuntu Inference Snaps and local models, and provides a visual dashboard for multi-agent coordination. Available on Pro tier and above.',
+      'RevealUI runs AI on open models only (Apache 2.0). No proprietary cloud APIs, no vendor lock-in, no API bills. The recommended path is Ubuntu Inference Snaps from Canonical: run "sudo snap install gemma3 --beta" for instant local inference. Also supported: Ollama (local, any GGUF model), and cloud-hosted open models via the RevealUI harness (Pro+).',
   },
   {
     question: 'What does "full source code access" mean?',

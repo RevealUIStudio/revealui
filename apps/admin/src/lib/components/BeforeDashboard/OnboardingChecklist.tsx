@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { SITE_NAME } from '@/lib/utilities/siteBranding';
 
 const DISMISSED_KEY = 'revealui-onboarding-dismissed';
 
@@ -64,7 +65,7 @@ export default function OnboardingChecklist() {
         <div>
           <h2 className="text-lg font-semibold text-white">Getting Started</h2>
           <p className="mt-0.5 text-sm text-zinc-400">
-            Welcome to RevealUI. Here are a few things to get you going.
+            Welcome to {SITE_NAME}. Here are a few things to get you going.
           </p>
         </div>
         <button
