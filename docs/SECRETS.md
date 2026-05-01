@@ -54,6 +54,7 @@ revealui/dev/stripe/webhook-secret
 revealui/dev/stripe/publishable-key      # pk_test_*
 revealui/dev/revealui-secret             # JWT/session, ≥32 chars
 revealui/dev/revealui-admin-api-key      # API admin auth
+revealui/dev/founder-license-key         # RVUI-<tier>-<32hex>; founder dev license consumed by revdev daemon (revdev/packages/daemon/src/license.ts)
 revealui/dev/blob/read-write-token       # Vercel Blob file uploads
 revealui/dev/google/client-id            # OAuth SSO
 revealui/dev/google/client-secret
