@@ -8,7 +8,7 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
-    "api",
+    "server",
     "admin",
     "docs",
     "marketing",
