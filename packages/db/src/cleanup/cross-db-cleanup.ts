@@ -1,14 +1,17 @@
 /**
- * Cross-Database Cleanup Utility
+ * Vector / RAG Cleanup Utility
  *
- * Removes orphaned vector data (Supabase) when the owning site has been
- * soft-deleted in NeonDB. PostgreSQL FK cascades cannot span separate
- * database instances, so this utility bridges the gap.
+ * Removes orphaned vector data (agent memories + RAG documents/chunks) for
+ * sites that have been soft-deleted in NeonDB. Runs against a single NeonDB
+ * connection — historical "cross-DB" framing referred to a dual-DB (NeonDB +
+ * Supabase) architecture that is being phased out; these tables now live on
+ * the same database, but the soft-delete fanout is still needed because sites
+ * use soft-delete (`deletedAt`) rather than hard-delete.
  *
- * Affected Supabase tables:
- * - agentMemories.siteId       -> sites.id (NeonDB)
- * - ragDocuments.workspaceId   -> sites.id (NeonDB)
- * - ragChunks.workspaceId      -> sites.id (NeonDB)
+ * Affected tables:
+ * - agentMemories.siteId       -> sites.id
+ * - ragDocuments.workspaceId   -> sites.id
+ * - ragChunks.workspaceId      -> sites.id
  *
  * Safe to run multiple times (idempotent). Supports dry-run mode and
  * configurable batch sizes via `configureCleanup()`.
@@ -77,25 +80,20 @@ export interface CleanupResult {
 // =============================================================================
 
 /**
- * Removes orphaned vector data from Supabase for sites that have been
- * soft-deleted in NeonDB (sites.deletedAt IS NOT NULL).
+ * Removes orphaned vector data (agent memories + RAG documents/chunks) for
+ * sites that have been soft-deleted (sites.deletedAt IS NOT NULL).
  *
  * Steps:
- * 1. Query NeonDB for soft-deleted site IDs.
- * 2. Query Supabase for agentMemories / ragDocuments / ragChunks referencing
- *    those site IDs.
+ * 1. Query for soft-deleted site IDs.
+ * 2. Find agentMemories / ragDocuments / ragChunks referencing those site IDs.
  * 3. Delete the orphaned records in batches.
  *
- * @param restDb  - Drizzle client connected to NeonDB (REST database)
- * @param vectorDb - Drizzle client connected to Supabase (vector database)
+ * @param db - Drizzle client connected to NeonDB
  * @returns Summary of what was cleaned up
  */
-export async function cleanupOrphanedVectorData(
-  restDb: DrizzleClient,
-  vectorDb: DrizzleClient,
-): Promise<CleanupResult> {
-  // 1. Find all soft-deleted site IDs in NeonDB
-  const deletedSiteRows = await restDb
+export async function cleanupOrphanedVectorData(db: DrizzleClient): Promise<CleanupResult> {
+  // 1. Find all soft-deleted site IDs
+  const deletedSiteRows = await db
     .select({ id: sites.id })
     .from(sites)
     .where(isNotNull(sites.deletedAt));
@@ -112,17 +110,17 @@ export async function cleanupOrphanedVectorData(
     };
   }
 
-  // 2. Find orphaned records in Supabase (one query per table)
-  const orphanedMemoryIds = await findOrphanedMemoryIds(vectorDb, deletedSiteIds);
-  const orphanedDocumentIds = await findOrphanedDocumentIds(vectorDb, deletedSiteIds);
-  const orphanedChunkIds = await findOrphanedChunkIds(vectorDb, deletedSiteIds);
+  // 2. Find orphaned records (one query per table)
+  const orphanedMemoryIds = await findOrphanedMemoryIds(db, deletedSiteIds);
+  const orphanedDocumentIds = await findOrphanedDocumentIds(db, deletedSiteIds);
+  const orphanedChunkIds = await findOrphanedChunkIds(db, deletedSiteIds);
 
   // 3. Delete orphaned records (unless dry-run)
   if (!config.dryRun) {
-    await deleteMemoriesById(vectorDb, orphanedMemoryIds);
+    await deleteMemoriesById(db, orphanedMemoryIds);
     // Delete chunks before documents to respect FK ordering (chunks -> documents)
-    await deleteChunksById(vectorDb, orphanedChunkIds);
-    await deleteDocumentsById(vectorDb, orphanedDocumentIds);
+    await deleteChunksById(db, orphanedChunkIds);
+    await deleteDocumentsById(db, orphanedDocumentIds);
   }
 
   return {
@@ -139,13 +137,13 @@ export async function cleanupOrphanedVectorData(
 // =============================================================================
 
 async function findOrphanedMemoryIds(
-  vectorDb: DrizzleClient,
+  db: DrizzleClient,
   deletedSiteIds: string[],
 ): Promise<string[]> {
   const allIds: string[] = [];
   for (let i = 0; i < deletedSiteIds.length; i += config.batchSize) {
     const batch = deletedSiteIds.slice(i, i + config.batchSize);
-    const rows = await vectorDb
+    const rows = await db
       .select({ id: agentMemories.id })
       .from(agentMemories)
       .where(inArray(agentMemories.siteId, batch));
@@ -157,13 +155,13 @@ async function findOrphanedMemoryIds(
 }
 
 async function findOrphanedDocumentIds(
-  vectorDb: DrizzleClient,
+  db: DrizzleClient,
   deletedSiteIds: string[],
 ): Promise<string[]> {
   const allIds: string[] = [];
   for (let i = 0; i < deletedSiteIds.length; i += config.batchSize) {
     const batch = deletedSiteIds.slice(i, i + config.batchSize);
-    const rows = await vectorDb
+    const rows = await db
       .select({ id: ragDocuments.id })
       .from(ragDocuments)
       .where(inArray(ragDocuments.workspaceId, batch));
@@ -175,13 +173,13 @@ async function findOrphanedDocumentIds(
 }
 
 async function findOrphanedChunkIds(
-  vectorDb: DrizzleClient,
+  db: DrizzleClient,
   deletedSiteIds: string[],
 ): Promise<string[]> {
   const allIds: string[] = [];
   for (let i = 0; i < deletedSiteIds.length; i += config.batchSize) {
     const batch = deletedSiteIds.slice(i, i + config.batchSize);
-    const rows = await vectorDb
+    const rows = await db
       .select({ id: ragChunks.id })
       .from(ragChunks)
       .where(inArray(ragChunks.workspaceId, batch));
@@ -196,24 +194,24 @@ async function findOrphanedChunkIds(
 // Per-table delete helpers
 // =============================================================================
 
-async function deleteMemoriesById(vectorDb: DrizzleClient, ids: string[]): Promise<void> {
+async function deleteMemoriesById(db: DrizzleClient, ids: string[]): Promise<void> {
   for (let i = 0; i < ids.length; i += config.batchSize) {
     const batch = ids.slice(i, i + config.batchSize);
-    await vectorDb.delete(agentMemories).where(inArray(agentMemories.id, batch));
+    await db.delete(agentMemories).where(inArray(agentMemories.id, batch));
   }
 }
 
-async function deleteDocumentsById(vectorDb: DrizzleClient, ids: string[]): Promise<void> {
+async function deleteDocumentsById(db: DrizzleClient, ids: string[]): Promise<void> {
   for (let i = 0; i < ids.length; i += config.batchSize) {
     const batch = ids.slice(i, i + config.batchSize);
-    await vectorDb.delete(ragDocuments).where(inArray(ragDocuments.id, batch));
+    await db.delete(ragDocuments).where(inArray(ragDocuments.id, batch));
   }
 }
 
-async function deleteChunksById(vectorDb: DrizzleClient, ids: string[]): Promise<void> {
+async function deleteChunksById(db: DrizzleClient, ids: string[]): Promise<void> {
   for (let i = 0; i < ids.length; i += config.batchSize) {
     const batch = ids.slice(i, i + config.batchSize);
-    await vectorDb.delete(ragChunks).where(inArray(ragChunks.id, batch));
+    await db.delete(ragChunks).where(inArray(ragChunks.id, batch));
   }
 }
 
@@ -222,21 +220,20 @@ async function deleteChunksById(vectorDb: DrizzleClient, ids: string[]): Promise
 // =============================================================================
 
 /**
- * Removes all vector data (agent memories + RAG) for a single site from
- * the Supabase vector database. Designed to be called fire-and-forget
- * after a site is soft-deleted in NeonDB.
+ * Removes all vector data (agent memories + RAG) for a single site. Designed
+ * to be called fire-and-forget after a site is soft-deleted.
  *
  * Deletion order respects FK constraints:
  * 1. ragChunks     (references ragDocuments.id)
  * 2. ragDocuments  (references sites.id via workspaceId)
  * 3. agentMemories (references sites.id via siteId)
  *
- * @param vectorDb - Drizzle client connected to Supabase (vector database)
- * @param siteId   - The site ID whose vector data should be removed
+ * @param db     - Drizzle client connected to NeonDB
+ * @param siteId - The site ID whose vector data should be removed
  * @returns Summary of what was cleaned up
  */
 export async function cleanupVectorDataForSite(
-  vectorDb: DrizzleClient,
+  db: DrizzleClient,
   siteId: string,
 ): Promise<{
   agentMemoriesDeleted: number;
@@ -244,19 +241,19 @@ export async function cleanupVectorDataForSite(
   ragDocumentsDeleted: number;
 }> {
   // 1. RAG chunks (child of ragDocuments)
-  const deletedChunks = await vectorDb
+  const deletedChunks = await db
     .delete(ragChunks)
     .where(eq(ragChunks.workspaceId, siteId))
     .returning();
 
   // 2. RAG documents
-  const deletedDocs = await vectorDb
+  const deletedDocs = await db
     .delete(ragDocuments)
     .where(eq(ragDocuments.workspaceId, siteId))
     .returning();
 
   // 3. Agent memories
-  const deletedMemories = await vectorDb
+  const deletedMemories = await db
     .delete(agentMemories)
     .where(eq(agentMemories.siteId, siteId))
     .returning();

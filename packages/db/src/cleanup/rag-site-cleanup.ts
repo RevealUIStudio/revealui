@@ -1,11 +1,11 @@
 /**
  * RAG Site Cleanup  -  Cascade delete for a single site
  *
- * When a site is deleted from NeonDB, the cross-database FK cascades to
- * Supabase are NOT enforced at the DB level. This function immediately
- * removes all RAG data belonging to a specific site from the vector DB.
+ * Sites use soft-delete (`sites.deletedAt`) rather than hard-delete, so FK
+ * cascades don't fire automatically. This function immediately removes all
+ * RAG data belonging to a specific site so dangling rows don't accumulate.
  *
- * Affected Supabase tables (deleted in FK-safe order):
+ * Affected tables (deleted in FK-safe order):
  * 1. rag_chunks      (workspaceId -> sites.id)
  * 2. rag_documents   (workspaceId -> sites.id)
  * 3. rag_workspaces  (id = sites.id)
@@ -56,38 +56,37 @@ export interface CleanupLogger {
 // =============================================================================
 
 /**
- * Deletes all RAG data (chunks, documents, workspace) for a single site
- * from the Supabase vector database.
+ * Deletes all RAG data (chunks, documents, workspace) for a single site.
  *
- * Deletion order respects FK constraints within Supabase:
+ * Deletion order respects FK constraints:
  * 1. rag_chunks  (references rag_documents.id)
  * 2. rag_documents (references sites.id via workspaceId)
  * 3. rag_workspaces (id = site.id)
  *
- * @param vectorDb - Drizzle client connected to Supabase (vector database)
- * @param siteId   - The site ID whose RAG data should be removed
- * @param logger   - Optional logger for observability
+ * @param db     - Drizzle client connected to NeonDB
+ * @param siteId - The site ID whose RAG data should be removed
+ * @param logger - Optional logger for observability
  * @returns Summary of what was cleaned up
  */
 export async function cleanupRagDataForSite(
-  vectorDb: DrizzleClient,
+  db: DrizzleClient,
   siteId: string,
   logger?: CleanupLogger,
 ): Promise<RagSiteCleanupResult> {
   // 1. Delete all chunks belonging to this site
-  const deletedChunks = await vectorDb
+  const deletedChunks = await db
     .delete(ragChunks)
     .where(eq(ragChunks.workspaceId, siteId))
     .returning();
 
   // 2. Delete all documents belonging to this site
-  const deletedDocs = await vectorDb
+  const deletedDocs = await db
     .delete(ragDocuments)
     .where(eq(ragDocuments.workspaceId, siteId))
     .returning();
 
   // 3. Delete the workspace row (id = siteId)
-  const deletedWorkspace = await vectorDb
+  const deletedWorkspace = await db
     .delete(ragWorkspaces)
     .where(eq(ragWorkspaces.id, siteId))
     .returning();

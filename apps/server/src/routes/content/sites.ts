@@ -281,18 +281,12 @@ app.openapi(
     }
     await siteQueries.deleteSite(db, id);
 
-    // Fire-and-forget: clean up orphaned vector data in Supabase.
-    // Cross-DB FK cascades don't span separate database instances.
-    try {
-      const { getVectorClient } = await import('@revealui/db');
-      const vectorDb = getVectorClient();
-      cleanupVectorDataForSite(vectorDb, id).catch(() => {
-        // Swallowed  -  vector cleanup is best-effort.
-        // The batch cleanup cron handles missed deletions.
-      });
-    } catch {
-      // Vector DB not configured  -  skip cleanup
-    }
+    // Fire-and-forget: cascade delete the site's vector / RAG rows. Sites
+    // soft-delete instead of hard-delete, so FK cascades don't fire — the
+    // batch cleanup cron also handles missed deletions if this throws.
+    cleanupVectorDataForSite(db, id).catch(() => {
+      // Swallowed  -  vector cleanup is best-effort.
+    });
 
     return c.json({ success: true as const, message: 'Site deleted' }, 200);
   },

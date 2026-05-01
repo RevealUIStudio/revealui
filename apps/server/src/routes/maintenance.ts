@@ -1,13 +1,14 @@
 /**
- * Maintenance Routes  -  Cross-DB orphan cleanup cron endpoint
+ * Maintenance Routes  -  Soft-delete fanout cleanup cron endpoint
  *
- * Removes orphaned vector data (Supabase) for sites that have been
- * soft-deleted in NeonDB. Called by a Vercel cron job or external scheduler.
- * Protected by X-Cron-Secret header (REVEALUI_CRON_SECRET env var).
+ * Removes orphaned vector / RAG data on NeonDB for sites that have been
+ * soft-deleted (sites.deletedAt IS NOT NULL). Called by a Vercel cron job
+ * or external scheduler. Protected by X-Cron-Secret header
+ * (REVEALUI_CRON_SECRET env var).
  */
 
 import { logger } from '@revealui/core/observability/logger';
-import { getRestClient, getVectorClient } from '@revealui/db';
+import { getRestClient } from '@revealui/db';
 import { cleanupOrphanedVectorData } from '@revealui/db/cleanup';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { HTTPException } from 'hono/http-exception';
@@ -79,12 +80,10 @@ app.openapi(cleanupOrphansRoute, async (c) => {
   }
 
   try {
-    const restDb = getRestClient();
-    const vectorDb = getVectorClient();
+    const db = getRestClient();
+    const result = await cleanupOrphanedVectorData(db);
 
-    const result = await cleanupOrphanedVectorData(restDb, vectorDb);
-
-    logger.info('Cross-DB orphan cleanup completed', {
+    logger.info('Orphan vector cleanup completed', {
       agentMemoriesDeleted: result.agentMemoriesDeleted,
       ragDocumentsDeleted: result.ragDocumentsDeleted,
       ragChunksDeleted: result.ragChunksDeleted,
@@ -95,8 +94,8 @@ app.openapi(cleanupOrphansRoute, async (c) => {
     return c.json(result, 200);
   } catch (err) {
     const error = err instanceof Error ? err : new Error(String(err));
-    logger.error('Cross-DB orphan cleanup failed', error);
-    return c.json({ error: 'Cross-DB orphan cleanup failed' }, 500);
+    logger.error('Orphan vector cleanup failed', error);
+    return c.json({ error: 'Orphan vector cleanup failed' }, 500);
   }
 });
 
