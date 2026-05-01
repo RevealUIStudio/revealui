@@ -7,7 +7,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@revealui/db', () => ({
   getRestClient: vi.fn(),
-  getVectorClient: vi.fn(),
 }));
 
 vi.mock('@revealui/db/cleanup', () => ({
@@ -18,13 +17,12 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn() },
 }));
 
-import { getRestClient, getVectorClient } from '@revealui/db';
+import { getRestClient } from '@revealui/db';
 import { cleanupOrphanedVectorData } from '@revealui/db/cleanup';
 import maintenanceApp from '../maintenance.js';
 
 const mockedCleanup = vi.mocked(cleanupOrphanedVectorData);
 const mockedGetRestClient = vi.mocked(getRestClient);
-const mockedGetVectorClient = vi.mocked(getVectorClient);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -68,7 +66,6 @@ describe('POST /cleanup-orphans  -  auth', () => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
     mockedGetRestClient.mockReturnValue({} as never);
-    mockedGetVectorClient.mockReturnValue({} as never);
     mockedCleanup.mockResolvedValue(defaultResult);
   });
 
@@ -112,7 +109,6 @@ describe('POST /cleanup-orphans  -  valid request', () => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
     mockedGetRestClient.mockReturnValue({} as never);
-    mockedGetVectorClient.mockReturnValue({} as never);
     mockedCleanup.mockResolvedValue(defaultResult);
   });
 
@@ -128,17 +124,15 @@ describe('POST /cleanup-orphans  -  valid request', () => {
     expect(body.dryRun).toBe(false);
   });
 
-  it('calls cleanupOrphanedVectorData with rest and vector clients', async () => {
-    const fakeRest = { type: 'rest' };
-    const fakeVector = { type: 'vector' };
-    mockedGetRestClient.mockReturnValue(fakeRest as never);
-    mockedGetVectorClient.mockReturnValue(fakeVector as never);
+  it('calls cleanupOrphanedVectorData with the rest client (single-DB)', async () => {
+    const fakeDb = { type: 'rest' };
+    mockedGetRestClient.mockReturnValue(fakeDb as never);
 
     const app = createApp();
     await app.request(makeRequest(VALID_SECRET));
 
     expect(mockedCleanup).toHaveBeenCalledOnce();
-    expect(mockedCleanup).toHaveBeenCalledWith(fakeRest, fakeVector);
+    expect(mockedCleanup).toHaveBeenCalledWith(fakeDb);
   });
 
   it('returns dryRun:true when cleanup reports a dry run', async () => {
@@ -171,7 +165,6 @@ describe('POST /cleanup-orphans  -  error handling', () => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
     mockedGetRestClient.mockReturnValue({} as never);
-    mockedGetVectorClient.mockReturnValue({} as never);
   });
 
   it('returns 500 when cleanup throws', async () => {
@@ -186,7 +179,7 @@ describe('POST /cleanup-orphans  -  error handling', () => {
     const app = createApp();
     const res = await app.request(makeRequest(VALID_SECRET));
     const body = await res.json();
-    expect(body.error).toBe('Cross-DB orphan cleanup failed');
+    expect(body.error).toBe('Orphan vector cleanup failed');
   });
 
   it('handles non-Error thrown values gracefully', async () => {
@@ -207,7 +200,6 @@ describe('POST /cleanup-orphans  -  logging', () => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
     mockedGetRestClient.mockReturnValue({} as never);
-    mockedGetVectorClient.mockReturnValue({} as never);
     // Override the logger mock with local spies for this suite
     mockLoggerInfo.mockReset();
     mockLoggerError.mockReset();
@@ -222,7 +214,7 @@ describe('POST /cleanup-orphans  -  logging', () => {
     const res = await app.request(makeRequest(VALID_SECRET));
     expect(res.status).toBe(500);
     const body = await res.json();
-    expect(body.error).toBe('Cross-DB orphan cleanup failed');
+    expect(body.error).toBe('Orphan vector cleanup failed');
   });
 
   it('handles large deletedSiteIds array correctly', async () => {
@@ -243,47 +235,6 @@ describe('POST /cleanup-orphans  -  logging', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Vector client failure
-// ---------------------------------------------------------------------------
-
-describe('POST /cleanup-orphans  -  vector client failure', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
-    mockedGetRestClient.mockReturnValue({} as never);
-  });
-
-  it('returns 500 when getVectorClient throws', async () => {
-    mockedGetVectorClient.mockImplementation(() => {
-      throw new Error('Vector client unavailable');
-    });
-    mockedCleanup.mockResolvedValue(defaultResult);
-
-    const app = createApp();
-    const res = await app.request(makeRequest(VALID_SECRET));
-    expect(res.status).toBe(500);
-    const body = await res.json();
-    expect(body.error).toBe('Cross-DB orphan cleanup failed');
-  });
-
-  it('returns 500 when both DB clients throw', async () => {
-    mockedGetRestClient.mockImplementation(() => {
-      throw new Error('REST unavailable');
-    });
-    mockedGetVectorClient.mockImplementation(() => {
-      throw new Error('Vector unavailable');
-    });
-
-    const app = createApp();
-    const res = await app.request(makeRequest(VALID_SECRET));
-    expect(res.status).toBe(500);
-    // First error thrown (REST) is the one caught
-    const body = await res.json();
-    expect(body.error).toBe('Cross-DB orphan cleanup failed');
-  });
-});
-
-// ---------------------------------------------------------------------------
 // Logger verification
 // ---------------------------------------------------------------------------
 
@@ -292,7 +243,6 @@ describe('POST /cleanup-orphans  -  logger verification', () => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
     mockedGetRestClient.mockReturnValue({} as never);
-    mockedGetVectorClient.mockReturnValue({} as never);
   });
 
   it('logs success info after cleanup completes', async () => {
@@ -303,7 +253,7 @@ describe('POST /cleanup-orphans  -  logger verification', () => {
     await app.request(makeRequest(VALID_SECRET));
 
     expect(logger.info).toHaveBeenCalledWith(
-      'Cross-DB orphan cleanup completed',
+      'Orphan vector cleanup completed',
       expect.objectContaining({
         agentMemoriesDeleted: 3,
         ragDocumentsDeleted: 1,
@@ -322,7 +272,7 @@ describe('POST /cleanup-orphans  -  logger verification', () => {
     const app = createApp();
     await app.request(makeRequest(VALID_SECRET));
 
-    expect(logger.error).toHaveBeenCalledWith('Cross-DB orphan cleanup failed', error);
+    expect(logger.error).toHaveBeenCalledWith('Orphan vector cleanup failed', error);
   });
 
   it('logs deletedSiteIds count (not the full array) on success', async () => {
@@ -334,7 +284,7 @@ describe('POST /cleanup-orphans  -  logger verification', () => {
     await app.request(makeRequest(VALID_SECRET));
 
     expect(logger.info).toHaveBeenCalledWith(
-      'Cross-DB orphan cleanup completed',
+      'Orphan vector cleanup completed',
       expect.objectContaining({ deletedSiteIds: 100 }),
     );
   });
@@ -349,7 +299,6 @@ describe('POST /cleanup-orphans  -  method and path edge cases', () => {
     vi.clearAllMocks();
     process.env.REVEALUI_CRON_SECRET = VALID_SECRET;
     mockedGetRestClient.mockReturnValue({} as never);
-    mockedGetVectorClient.mockReturnValue({} as never);
     mockedCleanup.mockResolvedValue(defaultResult);
   });
 

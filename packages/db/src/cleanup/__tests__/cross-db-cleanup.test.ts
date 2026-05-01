@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { agentMemories } from '../../schema/agents.js';
+import { ragChunks, ragDocuments } from '../../schema/rag.js';
+import { sites } from '../../schema/sites.js';
 import { cleanupOrphanedVectorData, configureCleanup } from '../cross-db-cleanup.js';
 
 // =============================================================================
@@ -31,18 +34,18 @@ function createDeleteChain() {
 }
 
 /**
- * Creates a mock Drizzle DB client with select and delete methods.
- * Accepts a map of table references -> results for select queries,
- * so different tables return different data.
+ * Creates a mock Drizzle DB client whose `select().from(table)` returns the
+ * rows configured for that table reference (and empty otherwise). One client
+ * handles BOTH the sites query and the per-table orphan queries — the dual-DB
+ * branching that this module historically had collapsed into single-DB
+ * NeonDB during the Supabase phase-out.
  */
 function createMockDb(selectResults: Map<unknown, unknown[]> = new Map()) {
   const selectMock = vi.fn().mockImplementation(() => {
-    // Default empty chain; caller overrides via `fromMock`
     const chain = createSelectChain([]);
     chain.from.mockImplementation((table: unknown) => {
       const result = selectResults.get(table) ?? [];
-      const innerChain = createSelectChain(result);
-      return innerChain;
+      return createSelectChain(result);
     });
     return chain;
   });
@@ -61,32 +64,24 @@ type MockDb = ReturnType<typeof createMockDb>;
 // Tests
 // =============================================================================
 
-describe('cleanupOrphanedVectorData', () => {
-  let restDb: MockDb;
-  let vectorDb: MockDb;
+describe('cleanupOrphanedVectorData (single-DB)', () => {
+  let db: MockDb;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset config to defaults before each test
     configureCleanup({});
   });
 
   afterEach(() => {
-    // Reset config after each test
     configureCleanup({});
   });
 
   // ---- No deleted sites ---------------------------------------------------
 
   it('returns zero counts when no sites are deleted', async () => {
-    // REST DB: sites query returns no rows with deletedAt
-    restDb = createMockDb();
-    vectorDb = createMockDb();
+    db = createMockDb(new Map([[sites, []]]));
 
-    // Override select to return empty for sites
-    restDb.select.mockReturnValue(createSelectChain([]));
-
-    const result = await cleanupOrphanedVectorData(restDb as never, vectorDb as never);
+    const result = await cleanupOrphanedVectorData(db as never);
 
     expect(result).toEqual({
       agentMemoriesDeleted: 0,
@@ -105,27 +100,16 @@ describe('cleanupOrphanedVectorData', () => {
     const orphanedDocuments = [{ id: 'doc-1' }];
     const orphanedChunks = [{ id: 'chunk-1' }, { id: 'chunk-2' }];
 
-    // REST DB: returns deleted sites
-    restDb = createMockDb();
-    restDb.select.mockReturnValue(createSelectChain(deletedSites));
+    db = createMockDb(
+      new Map<unknown, unknown[]>([
+        [sites, deletedSites],
+        [agentMemories, orphanedMemories],
+        [ragDocuments, orphanedDocuments],
+        [ragChunks, orphanedChunks],
+      ]),
+    );
 
-    // Vector DB: returns orphaned records per table
-    // We need to track which table is queried by intercepting .from()
-    let vectorSelectCallCount = 0;
-    const vectorResults = [orphanedMemories, orphanedDocuments, orphanedChunks];
-
-    vectorDb = createMockDb();
-    vectorDb.select.mockImplementation(() => {
-      const chain = createSelectChain([]);
-      chain.from.mockImplementation(() => {
-        const idx = vectorSelectCallCount++;
-        const result = vectorResults[idx] ?? [];
-        return createSelectChain(result);
-      });
-      return chain;
-    });
-
-    const result = await cleanupOrphanedVectorData(restDb as never, vectorDb as never);
+    const result = await cleanupOrphanedVectorData(db as never);
 
     expect(result.agentMemoriesDeleted).toBe(3);
     expect(result.ragDocumentsDeleted).toBe(1);
@@ -134,7 +118,7 @@ describe('cleanupOrphanedVectorData', () => {
     expect(result.dryRun).toBe(false);
 
     // Verify delete was called 3 times (one per table with orphans)
-    expect(vectorDb.delete).toHaveBeenCalledTimes(3);
+    expect(db.delete).toHaveBeenCalledTimes(3);
   });
 
   // ---- Dry-run mode -------------------------------------------------------
@@ -142,28 +126,16 @@ describe('cleanupOrphanedVectorData', () => {
   it('reports counts without deleting in dry-run mode', async () => {
     configureCleanup({ dryRun: true });
 
-    const deletedSites = [{ id: 'site-1' }];
-    const orphanedMemories = [{ id: 'mem-1' }];
-    const orphanedDocuments: unknown[] = [];
-    const orphanedChunks = [{ id: 'chunk-1' }];
+    db = createMockDb(
+      new Map<unknown, unknown[]>([
+        [sites, [{ id: 'site-1' }]],
+        [agentMemories, [{ id: 'mem-1' }]],
+        [ragDocuments, []],
+        [ragChunks, [{ id: 'chunk-1' }]],
+      ]),
+    );
 
-    restDb = createMockDb();
-    restDb.select.mockReturnValue(createSelectChain(deletedSites));
-
-    let vectorSelectCallCount = 0;
-    const vectorResults = [orphanedMemories, orphanedDocuments, orphanedChunks];
-
-    vectorDb = createMockDb();
-    vectorDb.select.mockImplementation(() => {
-      const chain = createSelectChain([]);
-      chain.from.mockImplementation(() => {
-        const idx = vectorSelectCallCount++;
-        return createSelectChain(vectorResults[idx] ?? []);
-      });
-      return chain;
-    });
-
-    const result = await cleanupOrphanedVectorData(restDb as never, vectorDb as never);
+    const result = await cleanupOrphanedVectorData(db as never);
 
     expect(result.agentMemoriesDeleted).toBe(1);
     expect(result.ragDocumentsDeleted).toBe(0);
@@ -171,44 +143,36 @@ describe('cleanupOrphanedVectorData', () => {
     expect(result.dryRun).toBe(true);
 
     // No deletes should have occurred
-    expect(vectorDb.delete).not.toHaveBeenCalled();
+    expect(db.delete).not.toHaveBeenCalled();
   });
 
   // ---- Idempotency --------------------------------------------------------
 
   it('is idempotent when run multiple times', async () => {
     // First run: has orphans
-    const deletedSites = [{ id: 'site-1' }];
+    db = createMockDb(
+      new Map<unknown, unknown[]>([
+        [sites, [{ id: 'site-1' }]],
+        [agentMemories, [{ id: 'mem-1' }]],
+        [ragDocuments, []],
+        [ragChunks, []],
+      ]),
+    );
 
-    restDb = createMockDb();
-    restDb.select.mockReturnValue(createSelectChain(deletedSites));
-
-    let firstRunCallCount = 0;
-    vectorDb = createMockDb();
-    vectorDb.select.mockImplementation(() => {
-      const chain = createSelectChain([]);
-      chain.from.mockImplementation(() => {
-        const idx = firstRunCallCount++;
-        const results = [[{ id: 'mem-1' }], [], []];
-        return createSelectChain(results[idx] ?? []);
-      });
-      return chain;
-    });
-
-    const result1 = await cleanupOrphanedVectorData(restDb as never, vectorDb as never);
+    const result1 = await cleanupOrphanedVectorData(db as never);
     expect(result1.agentMemoriesDeleted).toBe(1);
 
     // Second run: no more orphans (already cleaned up)
-    vectorDb = createMockDb();
-    vectorDb.select.mockImplementation(() => {
-      const chain = createSelectChain([]);
-      chain.from.mockImplementation(() => {
-        return createSelectChain([]);
-      });
-      return chain;
-    });
+    db = createMockDb(
+      new Map<unknown, unknown[]>([
+        [sites, [{ id: 'site-1' }]],
+        [agentMemories, []],
+        [ragDocuments, []],
+        [ragChunks, []],
+      ]),
+    );
 
-    const result2 = await cleanupOrphanedVectorData(restDb as never, vectorDb as never);
+    const result2 = await cleanupOrphanedVectorData(db as never);
 
     expect(result2.agentMemoriesDeleted).toBe(0);
     expect(result2.ragDocumentsDeleted).toBe(0);
@@ -220,119 +184,104 @@ describe('cleanupOrphanedVectorData', () => {
   it('respects batch size configuration', async () => {
     configureCleanup({ batchSize: 2 });
 
-    // 3 deleted sites should require 2 batches (2 + 1)
+    // 3 deleted sites should require 2 batches (2 + 1) per orphan table
     const deletedSites = [{ id: 'site-1' }, { id: 'site-2' }, { id: 'site-3' }];
 
-    restDb = createMockDb();
-    restDb.select.mockReturnValue(createSelectChain(deletedSites));
-
-    // Track select calls to verify batching
-    let vectorSelectCallCount = 0;
-    vectorDb = createMockDb();
-    vectorDb.select.mockImplementation(() => {
+    let orphanQueryCount = 0;
+    db = createMockDb();
+    db.select.mockImplementation(() => {
       const chain = createSelectChain([]);
-      chain.from.mockImplementation(() => {
-        vectorSelectCallCount++;
+      chain.from.mockImplementation((table: unknown) => {
+        if (table === sites) {
+          return createSelectChain(deletedSites);
+        }
+        // Orphan queries (agentMemories / ragDocuments / ragChunks)
+        orphanQueryCount++;
         return createSelectChain([]);
       });
       return chain;
     });
 
-    await cleanupOrphanedVectorData(restDb as never, vectorDb as never);
+    await cleanupOrphanedVectorData(db as never);
 
-    // With batchSize=2 and 3 sites, each table should be queried twice (2 batches)
-    // 3 tables x 2 batches = 6 select->from calls
-    expect(vectorSelectCallCount).toBe(6);
+    // With batchSize=2 and 3 sites, each of 3 orphan tables runs 2 batches
+    // → 3 tables × 2 batches = 6 from() calls for orphan queries
+    expect(orphanQueryCount).toBe(6);
   });
 
   // ---- configureCleanup ---------------------------------------------------
 
-  it('configureCleanup merges with defaults', () => {
+  it('configureCleanup merges with defaults', async () => {
     configureCleanup({ batchSize: 100 });
-    // dryRun should still be false (default)
-    // We verify by running a cleanup and checking the result
-    restDb = createMockDb();
-    restDb.select.mockReturnValue(createSelectChain([]));
-    vectorDb = createMockDb();
+    db = createMockDb(new Map([[sites, []]]));
 
-    return cleanupOrphanedVectorData(restDb as never, vectorDb as never).then((result) => {
-      expect(result.dryRun).toBe(false);
-    });
+    const result = await cleanupOrphanedVectorData(db as never);
+    expect(result.dryRun).toBe(false);
   });
 
-  it('configureCleanup resets to defaults when called with empty object', () => {
+  it('configureCleanup resets to defaults when called with empty object', async () => {
     configureCleanup({ batchSize: 1, dryRun: true });
     configureCleanup({});
 
-    restDb = createMockDb();
-    restDb.select.mockReturnValue(createSelectChain([]));
-    vectorDb = createMockDb();
+    db = createMockDb(new Map([[sites, []]]));
 
-    return cleanupOrphanedVectorData(restDb as never, vectorDb as never).then((result) => {
-      expect(result.dryRun).toBe(false);
-    });
+    const result = await cleanupOrphanedVectorData(db as never);
+    expect(result.dryRun).toBe(false);
   });
 
   // ---- Error propagation --------------------------------------------------
 
-  it('propagates REST DB errors', async () => {
-    restDb = createMockDb();
+  it('propagates DB errors from the sites query', async () => {
+    db = createMockDb();
     const failChain = createSelectChain();
     failChain.from.mockReturnValue(failChain);
     failChain.then = (_resolve: unknown, reject: (e: Error) => void) =>
       reject(new Error('NeonDB connection refused'));
-    restDb.select.mockReturnValue(failChain);
+    db.select.mockReturnValue(failChain);
 
-    vectorDb = createMockDb();
-
-    await expect(cleanupOrphanedVectorData(restDb as never, vectorDb as never)).rejects.toThrow(
+    await expect(cleanupOrphanedVectorData(db as never)).rejects.toThrow(
       'NeonDB connection refused',
     );
   });
 
-  it('propagates vector DB select errors', async () => {
-    const deletedSites = [{ id: 'site-1' }];
-    restDb = createMockDb();
-    restDb.select.mockReturnValue(createSelectChain(deletedSites));
-
-    vectorDb = createMockDb();
-    vectorDb.select.mockImplementation(() => {
-      const chain = createSelectChain();
-      chain.from.mockImplementation(() => {
-        const errorChain = createSelectChain();
-        errorChain.then = (_resolve: unknown, reject: (e: Error) => void) =>
-          reject(new Error('Supabase timeout'));
-        return errorChain;
+  it('propagates DB errors from orphan select queries', async () => {
+    db = createMockDb();
+    let orphanCallCount = 0;
+    db.select.mockImplementation(() => {
+      const chain = createSelectChain([]);
+      chain.from.mockImplementation((table: unknown) => {
+        if (table === sites) {
+          return createSelectChain([{ id: 'site-1' }]);
+        }
+        // First orphan query fails
+        if (orphanCallCount++ === 0) {
+          const errorChain = createSelectChain();
+          errorChain.then = (_resolve: unknown, reject: (e: Error) => void) =>
+            reject(new Error('orphan query failed'));
+          return errorChain;
+        }
+        return createSelectChain([]);
       });
       return chain;
     });
 
-    await expect(cleanupOrphanedVectorData(restDb as never, vectorDb as never)).rejects.toThrow(
-      'Supabase timeout',
-    );
+    await expect(cleanupOrphanedVectorData(db as never)).rejects.toThrow('orphan query failed');
   });
 
-  it('propagates vector DB delete errors', async () => {
-    const deletedSites = [{ id: 'site-1' }];
-    restDb = createMockDb();
-    restDb.select.mockReturnValue(createSelectChain(deletedSites));
-
-    let vectorSelectCallCount = 0;
-    vectorDb = createMockDb();
-    vectorDb.select.mockImplementation(() => {
-      const chain = createSelectChain([]);
-      chain.from.mockImplementation(() => {
-        const idx = vectorSelectCallCount++;
-        const results = [[{ id: 'mem-1' }], [], []];
-        return createSelectChain(results[idx] ?? []);
-      });
-      return chain;
-    });
-    vectorDb.delete.mockImplementation(() => ({
+  it('propagates DB delete errors', async () => {
+    db = createMockDb(
+      new Map<unknown, unknown[]>([
+        [sites, [{ id: 'site-1' }]],
+        [agentMemories, [{ id: 'mem-1' }]],
+        [ragDocuments, []],
+        [ragChunks, []],
+      ]),
+    );
+    db.delete.mockImplementation(() => ({
       where: vi.fn().mockRejectedValue(new Error('delete permission denied')),
     }));
 
-    await expect(cleanupOrphanedVectorData(restDb as never, vectorDb as never)).rejects.toThrow(
+    await expect(cleanupOrphanedVectorData(db as never)).rejects.toThrow(
       'delete permission denied',
     );
   });
