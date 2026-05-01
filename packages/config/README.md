@@ -79,12 +79,9 @@ BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
 # Neon
 NEON_API_KEY=neon_...
-
-# Supabase
-SUPABASE_URL=https://....supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
+
+> **Note:** prior versions of this list included a `SUPABASE_*` block. Those env vars are not validated by `@revealui/config` and were a stale leak from the customer-facing Supabase MCP adapter (which lives at `packages/mcp/src/servers/supabase.ts` and documents its own env vars in `packages/mcp/README.md`). If you're configuring the Supabase MCP server for customer use, see the MCP README; this package validates only the runtime env that `@revealui/server` and `@revealui/admin` actually read.
 
 ## File Loading Priority
 
