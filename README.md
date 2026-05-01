@@ -64,18 +64,22 @@ Six principles that give you a tested starting point for every architectural dec
 | **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |
 | **Adaptive** | AI agents, MCP servers, and workflows are built into the foundation. Open-model inference, sovereign by design, evolving with your business. |
 
-## Ecosystem
+## RevealUI Studio Suite
 
-RevealUI is the runtime at the center of a four-project ecosystem:
+RevealUI is the runtime at the center of the RevealUI Studio Suite. Companion products extend specific parts of the lifecycle:
 
-| Project        | Purpose                                          | License           |
-| -------------- | ------------------------------------------------ | ----------------- |
-| **RevealUI**   | Agentic business runtime (this repo)             | MIT + Commercial  |
-| **RevVault**   | Age-encrypted secret vault (Rust CLI + desktop)  | MIT + Pro         |
-| **RevKit**     | Portable dev environment toolkit (WSL, Docker)   | MIT + Max         |
-| **RevealCoin** | Solana token for x402 agent micropayments        | Forge             |
+| Product        | Purpose                                                  | License           |
+| -------------- | -------------------------------------------------------- | ----------------- |
+| **RevealUI**   | Agentic business runtime (this repo)                     | MIT + Fair Source |
+| **RevVault**   | Age-encrypted secret vault (Rust CLI + desktop)          | MIT + Pro         |
+| **RevDev**     | AI engineering harness — multi-agent coordination        | MIT (early)       |
+| **RevCon**     | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
+| **RevKit**     | Portable WSL dev environment toolkit                     | Pro               |
+| **RevealCoin** | Solana Token-2022 for x402 agent micropayments           | Forge tier        |
+| **RevSkills**  | Claude Code skills library                               | MIT               |
+| **Forge**      | White-label / enterprise deployment of RevealUI          | Forge tier        |
 
-Each project stands alone. Together, they cover the full lifecycle of building, securing, coordinating, and monetizing software, for you and for your agents.
+Each product stands alone. Together, they cover the full lifecycle of building, securing, coordinating, and monetizing software, for you and for your agents.
 
 ## Define your business data
 
@@ -123,7 +127,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | Tier           | Price     | What you get                                                       |
 | -------------- | --------- | ------------------------------------------------------------------ |
 | **Free**       | $0        | Full OSS core: users, content, products, payments, admin             |
-| **Pro**        | $49/mo    | Studio desktop app, AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
+| **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
 | **Max**        | $149/mo   | Full AI memory, audit log, higher limits, RevKit environment provisioning         |
 | **Forge**      | $299/mo   | Multi-tenant, SSO (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked, RevealCoin x402 agent payments       |
 
@@ -131,13 +135,13 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 
 | App          | Framework        | Purpose                                      |
 | ------------ | ---------------- | -------------------------------------------- |
-| `api`        | Hono             | REST API with OpenAPI + Swagger              |
+| `server`     | Hono             | REST API with OpenAPI + Swagger              |
 | `admin`      | Next.js 16       | Admin dashboard + content management         |
 | `docs`       | Vite + React     | Documentation site                           |
-| `marketing`  | Next.js          | Marketing site + waitlist                    |
-| `studio`     | Tauri 2 + React  | Native AI experience: agent coordination hub, local inference management, visual agent dashboard |
-| `terminal`   | Go (Bubble Tea)  | TUI client (API integration, QR checkout)    |
-| `revealcoin` | Next.js          | RevealCoin token explorer (experimental)     |
+| `marketing`  | Vite + React     | Marketing site (revealui.com)                |
+| `revealcoin` | Vite + React     | RevealCoin token dashboard                   |
+
+The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/agency](https://github.com/RevealUIStudio/agency) — separate repo, consumes `@revealui/{router,presentation,core,contracts}` via npm.
 
 ## Packages
 
@@ -249,15 +253,13 @@ Open in VS Code or GitHub Codespaces. The `.devcontainer/` config handles everyt
 ```
 revealui/
 ├── apps/
-│   ├── api/        # Hono REST API (port 3004)
+│   ├── server/     # Hono REST API (port 3004)
 │   ├── admin/      # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
-│   ├── marketing/  # Marketing site (port 3000)
-│   ├── revealcoin/ # RevealCoin token explorer (experimental)
-│   ├── studio/     # Native AI experience (Tauri 2)
-│   └── terminal/   # TUI client (Go)
-├── packages/       # 18 OSS + 5 Pro packages
-├── docs/           # 25 guides
+│   ├── marketing/  # revealui.com marketing site (port 3000)
+│   └── revealcoin/ # RevealCoin token dashboard (port 3005)
+├── packages/       # 25 OSS + 2 Pro packages
+├── docs/           # guides + reference
 └── scripts/        # CI gates, release tooling, dev tools
 ```
 
@@ -315,6 +317,6 @@ For commercial licensing alternatives or licensing questions: founder@revealui.c
 
 <div align="center">
 
-Built by [RevealUI Studio](https://revealui.com)
+Built by [RevealUI Studio](https://revealuistudio.com) — the agency. Operated by REVEALUI STUDIO L.L.C. (Tennessee).
 
 </div>

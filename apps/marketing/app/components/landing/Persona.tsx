@@ -52,8 +52,8 @@ export function Persona() {
           <p className="mt-8 text-center text-sm text-gray-500">
             Also a fit for <span className="font-medium text-gray-700">indie founders</span>{' '}
             shipping their first SaaS, and{' '}
-            <span className="font-medium text-gray-700">agencies</span> building agent-augmented
-            MVPs.
+            <span className="font-medium text-gray-700">internal platform teams</span> building
+            agent-augmented tools.
           </p>
         </div>
       </div>

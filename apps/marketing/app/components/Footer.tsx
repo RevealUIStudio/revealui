@@ -70,11 +70,6 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="/services" className="hover:text-white transition-colors">
-                  Services
-                </a>
-              </li>
-              <li>
                 <a href="/marketplace" className="hover:text-white transition-colors">
                   Marketplace
                 </a>
@@ -148,7 +143,7 @@ export function Footer() {
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
-                  Studio
+                  Studio (agency) →
                 </a>
               </li>
               <li>
@@ -162,16 +157,16 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-400 text-sm">
           <div className="flex items-center gap-4">
             <p>
-              &copy; {currentYear}{' '}
+              &copy; {currentYear} RevealUI is operated by{' '}
               <a
                 href="https://revealuistudio.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white transition-colors underline-offset-4 hover:underline"
               >
-                RevealUI Studio
-              </a>
-              . All rights reserved.
+                REVEALUI STUDIO L.L.C.
+              </a>{' '}
+              (Tennessee). All rights reserved.
             </p>
             <BuiltWithRevealUI size="sm" colorScheme="dark" />
           </div>

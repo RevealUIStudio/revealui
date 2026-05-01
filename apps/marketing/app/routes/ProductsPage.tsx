@@ -168,7 +168,6 @@ const primitives: Primitive[] = [
       'CRDT-based agent memory (working + episodic + vector)',
       '11 production MCP servers',
       'A2A agent-to-agent protocol',
-      'Studio desktop app (Tauri)',
       'Multi-agent coordination and orchestration',
     ],
   },

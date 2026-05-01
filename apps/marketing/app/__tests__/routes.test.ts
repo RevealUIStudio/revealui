@@ -11,7 +11,6 @@ import { NotFoundPage } from '../routes/NotFoundPage';
 import { PricingPage } from '../routes/PricingPage';
 import { PrivacyPage } from '../routes/PrivacyPage';
 import { ProductsPage } from '../routes/ProductsPage';
-import { ServicesPage } from '../routes/ServicesPage';
 import { SponsorPage } from '../routes/SponsorPage';
 import { TermsPage } from '../routes/TermsPage';
 
@@ -21,7 +20,6 @@ describe('marketing route registry', () => {
     router.registerRoutes([
       { path: '/', component: HomePage },
       { path: '/products', component: ProductsPage },
-      { path: '/services', component: ServicesPage },
       { path: '/marketplace', component: MarketplacePage },
       { path: '/pricing', component: PricingPage },
       { path: '/blog', component: BlogIndexPage },
@@ -41,7 +39,6 @@ describe('marketing route registry', () => {
     const advertisedPaths = [
       '/',
       '/products',
-      '/services',
       '/marketplace',
       '/pricing',
       '/blog',

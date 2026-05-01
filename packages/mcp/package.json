@@ -1,7 +1,7 @@
 {
   "name": "@revealui/mcp",
   "version": "0.2.0",
-  "description": "Model Context Protocol integrations for RevealUI — adapter framework, hypervisor, and MCP contracts",
+  "description": "Model Context Protocol framework — MCP server hypervisor, adapter pattern, tool discovery, and adapters for Stripe, Supabase, and Vercel.",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",

@@ -13,7 +13,6 @@ import { NotFoundPage } from './routes/NotFoundPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
-import { ServicesPage } from './routes/ServicesPage';
 import { SponsorPage } from './routes/SponsorPage';
 import { TermsPage } from './routes/TermsPage';
 
@@ -28,7 +27,6 @@ export function App() {
     router.registerRoutes([
       { path: '/', component: HomePage, meta: { title: 'RevealUI' } },
       { path: '/products', component: ProductsPage, meta: { title: 'Products — RevealUI' } },
-      { path: '/services', component: ServicesPage, meta: { title: 'Services — RevealUI' } },
       {
         path: '/marketplace',
         component: MarketplacePage,

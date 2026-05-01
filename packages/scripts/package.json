@@ -2,7 +2,7 @@
   "name": "@revealui/scripts",
   "version": "0.1.2",
   "private": true,
-  "description": "Shared utilities for RevealUI scripts",
+  "description": "Shared utilities for monorepo scripts — file glob, JSON parsing, conventional logging. Internal to RevealUI.",
   "dependencies": {
     "@revealui/contracts": "workspace:*",
     "@revealui/core": "workspace:*",

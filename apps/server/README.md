@@ -95,19 +95,6 @@ pnpm test:coverage
 | ------ | ------------------- | -------------------------------------------- |
 | GET    | `/license/validate` | Validate perpetual or deployment license key |
 
-## Commercial model
-
-The API should converge on an account or workspace billing model, not a pure per-user license model.
-
-Target commercial layers:
-
-- platform subscriptions for account access
-- metered agent execution and paid API usage
-- optional commerce-linked fees for transaction paths
-- trust and governance controls as premium commercial features
-
-Per-user or perpetual licenses remain valid for narrowly scoped products, but hosted premium access should resolve through account entitlements.
-
 ### Observability
 
 | Method | Path          | Purpose                |

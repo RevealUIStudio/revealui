@@ -1,7 +1,7 @@
 {
   "name": "@revealui/services",
   "version": "0.4.0",
-  "description": "External service integrations for RevealUI — Stripe, Solana, and Vercel",
+  "description": "External service integrations — Stripe (billing + circuit breaker), Solana (RVC token), Vercel (deploy + DNS). Ships with RevealUI.",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
