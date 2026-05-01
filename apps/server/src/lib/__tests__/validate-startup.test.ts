@@ -53,8 +53,22 @@ afterEach(() => {
 });
 
 describe('validateStartup — always-required presence', () => {
-  it('throws when POSTGRES_URL is missing', () => {
-    expect(() => validateStartup({ NODE_ENV: 'development' })).toThrow(/POSTGRES_URL/);
+  it('throws when neither POSTGRES_URL nor DATABASE_URL is set', () => {
+    expect(() => validateStartup({ NODE_ENV: 'development' })).toThrow(
+      /POSTGRES_URL or DATABASE_URL/,
+    );
+  });
+
+  it('passes when only POSTGRES_URL is set (legacy/Vercel-default name)', () => {
+    expect(() =>
+      validateStartup({ NODE_ENV: 'development', POSTGRES_URL: 'postgresql://x' }),
+    ).not.toThrow();
+  });
+
+  it('passes when only DATABASE_URL is set (Neon-driver-aliased name)', () => {
+    expect(() =>
+      validateStartup({ NODE_ENV: 'development', DATABASE_URL: 'postgresql://x' }),
+    ).not.toThrow();
   });
 
   it('throws when NODE_ENV is missing', () => {
@@ -68,7 +82,9 @@ describe('validateStartup — SKIP_ENV_VALIDATION', () => {
   });
 
   it('does not short-circuit for other truthy values', () => {
-    expect(() => validateStartup({ SKIP_ENV_VALIDATION: '1' } as EnvMap)).toThrow(/POSTGRES_URL/);
+    expect(() => validateStartup({ SKIP_ENV_VALIDATION: '1' } as EnvMap)).toThrow(
+      /POSTGRES_URL or DATABASE_URL/,
+    );
   });
 });
 
@@ -711,5 +727,109 @@ describe('emitRvuiSafeguardsWarning', () => {
     // so an operator reading runtime logs can trace the safety story.
     expect(message).toMatch(/GAP-159/);
     expect(message).toMatch(/devnet/i);
+  });
+});
+
+// ─── Lenient mode (pre-deploy validation against vercel-pulled env) ───
+//
+// Mirrors how scripts/validate/prod-env.ts invokes validateStartup against
+// a `.env.production.local` produced by `vercel pull`. Vercel-Sensitive vars
+// pull as empty strings even though they're populated at runtime, so the
+// validator must accept presence-by-name and skip format checks on empties
+// when called in lenient mode. The runtime caller continues to use the
+// strict default — empty-string env vars in process.env still represent
+// real misconfig there.
+describe('validateStartup — lenient mode (Vercel-Sensitive var handling)', () => {
+  /**
+   * Production fixture matching what `vercel pull` returns for a project
+   * with every credential-shaped var marked Sensitive: each name appears,
+   * each value is empty. POSTGRES_URL, NEXT_PUBLIC_SERVER_URL, and
+   * REVEALUI_PUBLIC_SERVER_URL are populated as non-Sensitive (Vercel's
+   * actual posture for the revealui-api project at the time this was
+   * written) so URL-parity-style checks have data to operate on.
+   */
+  function sensitivePulledEnv(overrides: EnvMap = {}): EnvMap {
+    return {
+      NODE_ENV: 'production',
+      POSTGRES_URL: 'postgresql://user:pw@host/db',
+      REVEALUI_PUBLIC_SERVER_URL: 'https://api.revealui.com',
+      NEXT_PUBLIC_SERVER_URL: 'https://api.revealui.com',
+      CORS_ORIGIN: 'https://revealui.com',
+      // Hosted-mode signals — non-empty (would be sensitive in real Vercel,
+      // but their PRESENCE is what mode detection cares about; the value is
+      // empty in real pulls).
+      REVEALUI_LICENSE_PRIVATE_KEY: '',
+      REVEALUI_SECRET: '',
+      REVEALUI_KEK: '',
+      REVEALUI_CRON_SECRET: '',
+      REVEALUI_ALERT_EMAIL: '',
+      STRIPE_SECRET_KEY: '',
+      STRIPE_WEBHOOK_SECRET: '',
+      STRIPE_LIVE_MODE: '',
+      ...overrides,
+    };
+  }
+
+  it('detectDeploymentMode treats empty REVEALUI_LICENSE_PRIVATE_KEY as hosted in lenient mode', () => {
+    expect(detectDeploymentMode({ REVEALUI_LICENSE_PRIVATE_KEY: '' }, { lenient: true })).toBe(
+      'hosted',
+    );
+  });
+
+  it('detectDeploymentMode strict mode (default) treats empty REVEALUI_LICENSE_PRIVATE_KEY as forge', () => {
+    // Original semantic — runtime contract is unchanged.
+    expect(detectDeploymentMode({ REVEALUI_LICENSE_PRIVATE_KEY: '' })).toBe('forge');
+  });
+
+  it('always-required presence: POSTGRES_URL set as empty string passes in lenient mode', () => {
+    expect(() =>
+      validateStartup({ NODE_ENV: 'development', POSTGRES_URL: '' }, { lenient: true }),
+    ).not.toThrow();
+  });
+
+  it('always-required presence: POSTGRES_URL set as empty string FAILS in strict mode', () => {
+    // Backward-compat — preserves original runtime semantic where empty
+    // string in process.env represents real misconfig.
+    expect(() => validateStartup({ NODE_ENV: 'development', POSTGRES_URL: '' })).toThrow(
+      /POSTGRES_URL or DATABASE_URL/,
+    );
+  });
+
+  it('passes a fully-Sensitive hosted production env (every required var present-but-empty)', () => {
+    expect(() => validateStartup(sensitivePulledEnv(), { lenient: true })).not.toThrow();
+  });
+
+  it('still catches missing-by-name vars in lenient mode (key absent from env entirely)', () => {
+    // If a name is missing entirely (not just empty), that's still a
+    // real config bug — the runtime won't have it either.
+    const env = sensitivePulledEnv();
+    delete env.REVEALUI_LICENSE_PRIVATE_KEY; // mode detection now sees forge
+    delete env.REVEALUI_LICENSE_KEY; // forge-required, absent
+    expect(() => validateStartup(env, { lenient: true })).toThrow(
+      /forge mode.*REVEALUI_LICENSE_KEY/,
+    );
+  });
+
+  it('skips format checks for empty values in lenient mode', () => {
+    // KEK regex would normally fail on empty string; lenient skips it.
+    const env = sensitivePulledEnv({ REVEALUI_KEK: '' });
+    expect(() => validateStartup(env, { lenient: true })).not.toThrow();
+  });
+
+  it('still enforces format checks on non-empty values in lenient mode (defense in depth)', () => {
+    // If Vercel pull DOES include a value for a sensitive var (e.g.
+    // operator unset Sensitive), the format check still runs — lenient
+    // only skips the empty case.
+    const env = sensitivePulledEnv({ REVEALUI_KEK: 'not-64-hex' });
+    expect(() => validateStartup(env, { lenient: true })).toThrow(
+      /REVEALUI_KEK must be exactly 64/,
+    );
+  });
+
+  it('still enforces non-HTTPS rejection on populated CORS_ORIGIN in lenient mode', () => {
+    const env = sensitivePulledEnv({ CORS_ORIGIN: 'http://example.com' });
+    expect(() => validateStartup(env, { lenient: true })).toThrow(
+      /CORS_ORIGIN must contain only HTTPS/,
+    );
   });
 });
