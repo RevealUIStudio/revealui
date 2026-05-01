@@ -1,6 +1,6 @@
 {
-  "id": "d1a5b0e1-6e34-457d-bfa3-0ca6bc5be1e7",
-  "prevId": "f4525e27-297b-466c-bbd3-64d9f529cbeb",
+  "id": "695f26f6-14be-4080-9836-8be751b31888",
+  "prevId": "060350e4-52d7-45fd-b101-5f6c148f7405",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -460,32 +460,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "scope": {
-          "name": "scope",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'private'"
-        },
-        "session_scope": {
-          "name": "session_scope",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "source_facts": {
-          "name": "source_facts",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
-        },
-        "reconciled_at": {
-          "name": "reconciled_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -575,36 +549,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "agent_memories_scope_idx": {
-          "name": "agent_memories_scope_idx",
-          "columns": [
-            {
-              "expression": "scope",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "agent_memories_session_scope_idx": {
-          "name": "agent_memories_session_scope_idx",
-          "columns": [
-            {
-              "expression": "session_scope",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -642,10 +586,6 @@
         "agent_memories_type_check": {
           "name": "agent_memories_type_check",
           "value": "type IN ('fact', 'preference', 'decision', 'feedback', 'example', 'correction', 'skill', 'warning')"
-        },
-        "agent_memories_scope_check": {
-          "name": "agent_memories_scope_check",
-          "value": "scope IN ('private', 'shared', 'reconciled')"
         }
       },
       "isRLSEnabled": false
@@ -8082,148 +8022,6 @@
       },
       "isRLSEnabled": false
     },
-    "public.shared_facts": {
-      "name": "shared_facts",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "session_id": {
-          "name": "session_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "agent_id": {
-          "name": "agent_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fact_type": {
-          "name": "fact_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "confidence": {
-          "name": "confidence",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 1
-        },
-        "tags": {
-          "name": "tags",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
-        },
-        "source_ref": {
-          "name": "source_ref",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "superseded_by": {
-          "name": "superseded_by",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "shared_facts_session_id_idx": {
-          "name": "shared_facts_session_id_idx",
-          "columns": [
-            {
-              "expression": "session_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "shared_facts_agent_id_idx": {
-          "name": "shared_facts_agent_id_idx",
-          "columns": [
-            {
-              "expression": "agent_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "shared_facts_fact_type_idx": {
-          "name": "shared_facts_fact_type_idx",
-          "columns": [
-            {
-              "expression": "fact_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "shared_facts_created_at_idx": {
-          "name": "shared_facts_created_at_idx",
-          "columns": [
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "shared_facts_fact_type_check": {
-          "name": "shared_facts_fact_type_check",
-          "value": "fact_type IN ('discovery', 'bug', 'decision', 'warning', 'question', 'answer')"
-        }
-      },
-      "isRLSEnabled": false
-    },
     "public.site_collaborators": {
       "name": "site_collaborators",
       "schema": "",
@@ -10294,125 +10092,6 @@
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.yjs_document_patches": {
-      "name": "yjs_document_patches",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "document_id": {
-          "name": "document_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "agent_id": {
-          "name": "agent_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "patch_type": {
-          "name": "patch_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "path": {
-          "name": "path",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "applied": {
-          "name": "applied",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "yjs_document_patches_doc_applied_idx": {
-          "name": "yjs_document_patches_doc_applied_idx",
-          "columns": [
-            {
-              "expression": "document_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "applied",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "yjs_document_patches_created_at_idx": {
-          "name": "yjs_document_patches_created_at_idx",
-          "columns": [
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "yjs_document_patches_document_id_yjs_documents_id_fk": {
-          "name": "yjs_document_patches_document_id_yjs_documents_id_fk",
-          "tableFrom": "yjs_document_patches",
-          "tableTo": "yjs_documents",
-          "columnsFrom": [
-            "document_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {
-        "yjs_document_patches_type_check": {
-          "name": "yjs_document_patches_type_check",
-          "value": "patch_type IN ('append_section', 'append_item', 'replace_section', 'set_key')"
-        }
-      },
       "isRLSEnabled": false
     },
     "public.yjs_documents": {
