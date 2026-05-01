@@ -1,6 +1,6 @@
 {
-  "id": "d1a5b0e1-6e34-457d-bfa3-0ca6bc5be1e7",
-  "prevId": "f4525e27-297b-466c-bbd3-64d9f529cbeb",
+  "id": "b330f397-b278-4d48-b4f5-3b936c881096",
+  "prevId": "ccd61c78-256c-4c3b-81e7-7cb4f83fd844",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -460,32 +460,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "scope": {
-          "name": "scope",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'private'"
-        },
-        "session_scope": {
-          "name": "session_scope",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "source_facts": {
-          "name": "source_facts",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
-        },
-        "reconciled_at": {
-          "name": "reconciled_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -575,36 +549,6 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
-        },
-        "agent_memories_scope_idx": {
-          "name": "agent_memories_scope_idx",
-          "columns": [
-            {
-              "expression": "scope",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "agent_memories_session_scope_idx": {
-          "name": "agent_memories_session_scope_idx",
-          "columns": [
-            {
-              "expression": "session_scope",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
         }
       },
       "foreignKeys": {
@@ -642,10 +586,6 @@
         "agent_memories_type_check": {
           "name": "agent_memories_type_check",
           "value": "type IN ('fact', 'preference', 'decision', 'feedback', 'example', 'correction', 'skill', 'warning')"
-        },
-        "agent_memories_scope_check": {
-          "name": "agent_memories_scope_check",
-          "value": "scope IN ('private', 'shared', 'reconciled')"
         }
       },
       "isRLSEnabled": false
