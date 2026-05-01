@@ -23,7 +23,22 @@ export function detectDeploymentMode(env: EnvMap): DeploymentMode {
   return env.REVEALUI_LICENSE_PRIVATE_KEY ? 'hosted' : 'forge';
 }
 
-const REQUIRED_ALWAYS = ['POSTGRES_URL', 'NODE_ENV'] as const;
+// Required-always env vars expressed as alias groups: each group is satisfied
+// when AT LEAST ONE of its names is set. This handles the Postgres connection
+// string having two equally-valid names in the codebase: `POSTGRES_URL` is the
+// historical Vercel-default name (used by validateStartup since the api app
+// was scaffolded), while `DATABASE_URL` is the name read by drizzle-orm's
+// rate-limit middleware path and several @neondatabase/serverless integrations.
+// Either is acceptable as long as ONE of them is set; the runtime resolves the
+// connection string from whichever is present. Treating them as aliases also
+// papers over the Vercel `vercel pull` quirk where Sensitive-marked vars
+// (POSTGRES_URL became sensitive on 2026-05-01) are excluded from the pulled
+// `.env.production.local` even though they're available at runtime — see the
+// 2026-05-01 deploy.yml validate-prod-env failure.
+const REQUIRED_ALWAYS_GROUPS: ReadonlyArray<readonly string[]> = [
+  ['POSTGRES_URL', 'DATABASE_URL'],
+  ['NODE_ENV'],
+] as const;
 
 const REQUIRED_IN_PRODUCTION_HOSTED = [
   'REVEALUI_SECRET',
@@ -100,10 +115,13 @@ export function validateStartup(env: EnvMap = process.env as EnvMap): void {
     return;
   }
 
-  const missing = REQUIRED_ALWAYS.filter((key) => !env[key]);
-  if (missing.length > 0) {
+  const missingGroups = REQUIRED_ALWAYS_GROUPS.filter((group) => !group.some((key) => env[key]));
+  if (missingGroups.length > 0) {
+    const missingNames = missingGroups.map((group) =>
+      group.length > 1 ? `${group.join(' or ')}` : group[0],
+    );
     throw new Error(
-      `STARTUP VALIDATION FAILED: Missing required environment variables: ${missing.join(', ')}. ` +
+      `STARTUP VALIDATION FAILED: Missing required environment variables: ${missingNames.join(', ')}. ` +
         'Check your .env file or deployment configuration.',
     );
   }

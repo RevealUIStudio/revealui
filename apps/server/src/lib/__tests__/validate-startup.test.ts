@@ -53,8 +53,22 @@ afterEach(() => {
 });
 
 describe('validateStartup — always-required presence', () => {
-  it('throws when POSTGRES_URL is missing', () => {
-    expect(() => validateStartup({ NODE_ENV: 'development' })).toThrow(/POSTGRES_URL/);
+  it('throws when neither POSTGRES_URL nor DATABASE_URL is set', () => {
+    expect(() => validateStartup({ NODE_ENV: 'development' })).toThrow(
+      /POSTGRES_URL or DATABASE_URL/,
+    );
+  });
+
+  it('passes when only POSTGRES_URL is set (legacy/Vercel-default name)', () => {
+    expect(() =>
+      validateStartup({ NODE_ENV: 'development', POSTGRES_URL: 'postgresql://x' }),
+    ).not.toThrow();
+  });
+
+  it('passes when only DATABASE_URL is set (Neon-driver-aliased name)', () => {
+    expect(() =>
+      validateStartup({ NODE_ENV: 'development', DATABASE_URL: 'postgresql://x' }),
+    ).not.toThrow();
   });
 
   it('throws when NODE_ENV is missing', () => {
@@ -68,7 +82,9 @@ describe('validateStartup — SKIP_ENV_VALIDATION', () => {
   });
 
   it('does not short-circuit for other truthy values', () => {
-    expect(() => validateStartup({ SKIP_ENV_VALIDATION: '1' } as EnvMap)).toThrow(/POSTGRES_URL/);
+    expect(() => validateStartup({ SKIP_ENV_VALIDATION: '1' } as EnvMap)).toThrow(
+      /POSTGRES_URL or DATABASE_URL/,
+    );
   });
 });
 
