@@ -29,13 +29,11 @@ revealui dev up --include mcp
 
 ### Advanced Database Scripts
 
-| Script                     | Purpose                                        |
-| -------------------------- | ---------------------------------------------- |
-| `setup-dual-database.ts`   | Configure both REST and Vector databases       |
-| `setup-vector-database.ts` | Set up Supabase vector database for embeddings |
-| `migrate-vector-data.ts`   | Migrate data to vector database                |
+| Script                   | Purpose                                  |
+| ------------------------ | ---------------------------------------- |
+| `setup-dual-database.ts` | Configure both REST and Vector databases |
 
-**Note**: Test database utilities have been moved to `scripts/dev-tools/`
+**Note**: Test database utilities have been moved to `scripts/dev-tools/`. Earlier `setup-vector-database.ts` and `migrate-vector-data.ts` scripts were Supabase-vector-specific and were removed during the GAP-129 Supabase phase-out — Postgres-native vector setup runs through the standard `pnpm db:migrate` path against Neon's `pgvector` extension.
 
 ### Database Maintenance
 
@@ -64,8 +62,6 @@ POSTGRES_URL=postgresql://...
 
 # Authentication
 REVEALUI_SECRET=<32-char-secret>
-SUPABASE_URL=https://...
-SUPABASE_ANON_KEY=...
 
 # Optional
 STRIPE_SECRET_KEY=sk_...      # For payment features
