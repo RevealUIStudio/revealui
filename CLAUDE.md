@@ -55,7 +55,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (86 tables), dual-DB (Neon + Supabase) |
+| @revealui/db | Drizzle ORM schema (86 tables) on NeonDB (Postgres) — legacy Supabase code remains in tree during phase-out |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |
@@ -72,7 +72,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
 | @revealui/editors | Editor config sync (Zed, VS Code, Cursor) |
 | @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
-| @revealui/services | Stripe + Supabase integrations |
+| @revealui/services | Stripe (billing + circuit breaker), Solana (RVC), Vercel (deploy + DNS) |
 
 ### Pro Packages (Fair Source  -  FSL-1.1-MIT, converts to MIT after 2 years)
 | Package | Purpose |
@@ -166,7 +166,7 @@ Collections are defined in `apps/admin/src/collections/` with access control, ho
 Pro features use `isLicensed('pro')` and `isFeatureEnabled('ai')` from `@revealui/core`. Tiers: free, pro, max, enterprise (code string for Forge).
 
 ### Database Schema
-Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. Dual-database: NeonDB (REST) + Supabase (vectors/auth).
+Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. NeonDB (Postgres) is the primary store. Legacy Supabase code (vectors, some auth flows) remains in tree during phase-out — **new features must not depend on Supabase-specific behavior**. The Supabase MCP adapter at `packages/mcp/src/servers/supabase.ts` is intentionally retained as an adapter for customers who use Supabase, separate from internal usage.
 
 ### Testing
 - Unit/integration: Vitest (`*.test.ts`)
@@ -205,7 +205,7 @@ Biome, boundary, claim-drift, typecheck, tests, and build all block pushes. Audi
 - Encryption keys: non-extractable by default (configurable via `extractable` option)
 - Rich text: isSafeUrl() blocks javascript:/vbscript:/data: in Lexical link/image rendering
 - Webhook rate limiting: 100 req/min on /api/webhooks
-- Cross-DB cleanup: `@revealui/db/cleanup` for orphaned Supabase data after site deletion
+- Cross-DB cleanup: `@revealui/db/cleanup` for orphaned legacy-Supabase data after site deletion (relevant during migration; will retire once phase-out completes)
 - RBAC + ABAC policy engine in core (enforcement tests in `packages/core/src/__tests__/auth/` and `packages/core/src/collections/operations/__tests__/access-enforcement.test.ts` prove role isolation)
 - GDPR compliance framework (consent, deletion, anonymization)
 - AI memory validation: prototype pollution prevention, depth/size limits
