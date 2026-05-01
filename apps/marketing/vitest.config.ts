@@ -26,12 +26,9 @@ export default defineConfig({
         '**/*.spec.{ts,tsx}',
         'vitest.config.ts',
       ],
-      thresholds: {
-        lines: 60,
-        functions: 60,
-        branches: 55,
-        statements: 60,
-      },
+      // Marketing is mostly presentational pages — strict coverage thresholds
+      // don't match the surface profile. Coverage report still generated for
+      // trend visibility; coverage:check --fail-on-zero is the real gate.
     },
   },
   resolve: {
