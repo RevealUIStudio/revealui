@@ -36,7 +36,7 @@ const POST_METADATA: PostMeta[] = [
     excerpt:
       'Build a complete business application with auth, content, and payments, faster than you can order lunch.',
     publishedAt: '2026-03-27T12:00:00.000Z',
-    author: 'RevealUI Studio',
+    author: 'RevealUI Team',
     file: '08-getting-started.md',
   },
   {
@@ -45,7 +45,7 @@ const POST_METADATA: PostMeta[] = [
     excerpt:
       'The web was built for browsers. The next web is being built for agents. How RevealUI is designed for both.',
     publishedAt: '2026-03-26T12:00:00.000Z',
-    author: 'RevealUI Studio',
+    author: 'RevealUI Team',
     file: '07-agent-first-future.md',
   },
   {
@@ -54,7 +54,7 @@ const POST_METADATA: PostMeta[] = [
     excerpt:
       'What is free, what is paid, and why. A transparent breakdown of the RevealUI business model.',
     publishedAt: '2026-03-25T12:00:00.000Z',
-    author: 'RevealUI Studio',
+    author: 'RevealUI Team',
     file: '06-open-source-and-pro.md',
   },
   {
@@ -63,7 +63,7 @@ const POST_METADATA: PostMeta[] = [
     excerpt:
       'A deep technical walkthrough of Users, Content, Products, Payments, and Intelligence: the building blocks every software company needs.',
     publishedAt: '2026-03-24T12:00:00.000Z',
-    author: 'RevealUI Studio',
+    author: 'RevealUI Team',
     file: '05-five-primitives.md',
   },
   {
@@ -72,7 +72,7 @@ const POST_METADATA: PostMeta[] = [
     excerpt:
       'Your secrets in your own vault, your AI running locally, your dev environment reproducible from a single command.',
     publishedAt: '2026-03-23T12:00:00.000Z',
-    author: 'RevealUI Studio',
+    author: 'RevealUI Team',
     file: '04-local-first-ai-stack.md',
   },
   {
@@ -81,7 +81,7 @@ const POST_METADATA: PostMeta[] = [
     excerpt:
       'How we coordinate multiple Claude Code instances working on the same monorepo without stepping on each other.',
     publishedAt: '2026-03-22T12:00:00.000Z',
-    author: 'RevealUI Studio',
+    author: 'RevealUI Team',
     file: '03-multi-agent-coordination.md',
   },
   {
@@ -90,7 +90,7 @@ const POST_METADATA: PostMeta[] = [
     excerpt:
       'How the x402 protocol enables agent-native micropayments without accounts or subscriptions.',
     publishedAt: '2026-03-21T12:00:00.000Z',
-    author: 'RevealUI Studio',
+    author: 'RevealUI Team',
     file: '02-http-402-payments.md',
   },
   {
@@ -98,7 +98,7 @@ const POST_METADATA: PostMeta[] = [
     title: 'Why We Built RevealUI',
     excerpt: 'The origin story: why another business runtime, and what makes RevealUI different.',
     publishedAt: '2026-03-20T12:00:00.000Z',
-    author: 'RevealUI Studio',
+    author: 'RevealUI Team',
     file: '01-why-we-built-revealui.md',
   },
 ];

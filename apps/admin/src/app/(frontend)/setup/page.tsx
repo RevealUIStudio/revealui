@@ -15,6 +15,7 @@ import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { BrandedAuthLayout } from '@/lib/components/BrandedAuthLayout';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { SITE_NAME } from '@/lib/utilities/siteBranding';
 
 export default function SetupPage() {
   const router = useRouter();
@@ -83,7 +84,7 @@ export default function SetupPage() {
     <BrandedAuthLayout>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Welcome to RevealUI</CardTitle>
+          <CardTitle>Welcome to {SITE_NAME}</CardTitle>
           <CardDescription>Create your admin account to get started.</CardDescription>
         </CardHeader>
         <CardContent>

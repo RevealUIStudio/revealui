@@ -10,8 +10,9 @@ export function TermsPage() {
 
         <p>
           These Terms of Service (&quot;Terms&quot;) govern your use of the RevealUI platform
-          provided by RevealUI Studio (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;). By creating
-          an account or using the Service, you agree to these Terms.
+          provided by REVEALUI STUDIO L.L.C., a Tennessee limited liability company (&quot;we&quot;,
+          &quot;us&quot;, &quot;our&quot;). By creating an account or using the Service, you agree
+          to these Terms.
         </p>
 
         <h2>1. Service Description</h2>
@@ -106,7 +107,7 @@ export function TermsPage() {
 
         <h2>9. Limitation of Liability</h2>
         <p>
-          To the maximum extent permitted by law, RevealUI Studio shall not be liable for any
+          To the maximum extent permitted by law, REVEALUI STUDIO L.L.C. shall not be liable for any
           indirect, incidental, special, consequential, or punitive damages, including but not
           limited to loss of profits, data, or business opportunities. Our total liability under
           these Terms shall not exceed the amount paid by you to us in the 12 months preceding the
@@ -122,8 +123,9 @@ export function TermsPage() {
 
         <h2>11. Governing Law</h2>
         <p>
-          These Terms are governed by the laws of the United States. Any disputes shall be resolved
-          in the courts of the state where RevealUI Studio is incorporated.
+          These Terms are governed by the laws of the State of Tennessee, United States, without
+          regard to its conflict-of-laws provisions. Any disputes shall be resolved in the state or
+          federal courts located in Tennessee.
         </p>
 
         <h2>12. Contact</h2>

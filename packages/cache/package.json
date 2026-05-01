@@ -1,7 +1,7 @@
 {
   "name": "@revealui/cache",
   "version": "0.1.4",
-  "description": "Caching infrastructure for RevealUI - CDN config, edge cache, ISR presets, revalidation",
+  "description": "CDN config, edge cache, ISR presets, and revalidation helpers for Vercel and Hono. Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
     "@revealui/security": "workspace:*"

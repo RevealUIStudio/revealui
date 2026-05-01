@@ -52,11 +52,11 @@ export function HeroSection() {
         </h1>
 
         <p className="mx-auto mt-6 max-w-2xl text-xl font-semibold leading-8 text-gray-700">
-          The native token of the RevealUI ecosystem.
+          A Solana Token-2022 utility token for agent-native micropayments.
         </p>
         <p className="mx-auto mt-3 max-w-2xl text-lg leading-8 text-gray-500">
-          Utility payments, governance voting, and ecosystem rewards - built on Solana Token-2022
-          with {TOTAL_SUPPLY_DISPLAY} fixed supply.
+          {TOTAL_SUPPLY_DISPLAY} fixed supply. Used for utility payments, governance voting, and
+          ecosystem rewards — including across the RevealUI platform.
         </p>
 
         {/* Pre-launch disclaimer — token deployed but gated */}

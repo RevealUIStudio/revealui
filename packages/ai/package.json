@@ -1,7 +1,7 @@
 {
   "name": "@revealui/ai",
   "version": "0.3.0",
-  "description": "[Pro] AI system for RevealUI - memory, LLM, orchestration, and tools",
+  "description": "[Pro] AI runtime for agent-driven products — agents, memory, LLM providers (Inference Snaps, Ollama, OpenAI-compatible), tools, and orchestration. Anthropic-SDK-free.",
   "keywords": [
     "agent",
     "ai",

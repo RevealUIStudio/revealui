@@ -98,16 +98,8 @@ const sections: NavSection[] = [
     ],
   },
   {
-    title: 'RevealUI Studio Suite',
-    items: [
-      { label: 'Suite Overview', path: '/suite' },
-      { label: 'RevDev — Studio + Console', path: '/suite/revdev' },
-      { label: 'RevVault — Secret Vault', path: '/suite/revvault' },
-      { label: 'RevCon — Editor Sync', path: '/suite/revcon' },
-      { label: 'RevealCoin — RVC Token', path: '/suite/revealcoin' },
-      { label: 'RevSkills — Agent Skills', path: '/suite/revskills' },
-      { label: 'RevKit — WSL Workstation', path: '/suite/revkit' },
-    ],
+    title: 'Suite (companion products)',
+    items: [{ label: 'Other RevealUI Studio products →', path: '/suite' }],
   },
   {
     title: 'Blog',
@@ -284,7 +276,7 @@ function SidebarContent({ isHome, onNavigate }: { isHome: boolean; onNavigate?: 
             </a>
           </div>
           <p className="mt-1.5 text-[0.75rem] text-text-muted">
-            &copy; {currentYear} RevealUI Studio
+            &copy; {currentYear} RevealUI · Operated by REVEALUI STUDIO L.L.C.
           </p>
         </div>
       </div>
