@@ -1011,7 +1011,7 @@ User-level inference configuration takes precedence over server defaults.
 
 # RevCon (editor config sync)
 
-Editor configuration sync — recommended extensions, workspace settings, and AI rules for VS Code, Zed, Cursor, and Antigravity — lives in **RevCon**, a sibling repository published separately from this monorepo.
+Editor configuration sync — recommended extensions, workspace settings, and AI rules for VS Code, Zed, and Cursor — lives in **RevCon**, a sibling repository published separately from this monorepo.
 
 - Repo: [`RevealUIStudio/editor-configs`](https://github.com/RevealUIStudio/editor-configs)
 - CLI: `revcon sync`, `revcon diff`, `revcon pull`, `revcon push`
