@@ -28,14 +28,15 @@ Follow these rules for ALL code changes in the RevealUI monorepo.
 
 ## Import Boundaries
 
-\`@supabase/supabase-js\` is ONLY allowed in:
+Do NOT add new \`@supabase/*\` imports to any package. RevealUI uses NeonDB as the
+primary database; legacy Supabase code remains in tree during the Supabase phase-out
+and is being progressively removed. The only intentional Supabase touch-point is the
+customer-extensible MCP adapter at \`packages/mcp/src/servers/supabase.ts\`.
 
-- \`packages/db/src/vector/\`, \`packages/db/src/auth/\`
-- \`packages/auth/src/\`, \`packages/ai/src/\`
-- \`packages/services/src/supabase/\`
-- \`apps/*/src/lib/supabase/\`
-
-FORBIDDEN in: \`packages/core/\`, \`packages/contracts/\`, \`packages/config/\`, \`apps/admin/src/collections/\`, \`apps/admin/src/routes/\`
+If you find yourself wanting to import \`@supabase/*\`, instead:
+- Use Drizzle + NeonDB for content/REST data
+- Use NeonDB + pgvector for vector embeddings (already installed)
+- Expose customer-bring-your-own DB via a new MCP adapter in \`@revealui/mcp\`
 
 ## Code Quality
 

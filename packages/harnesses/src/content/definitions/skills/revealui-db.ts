@@ -5,7 +5,7 @@ export const revealuiDbSkill: Skill = {
   tier: 'pro',
   name: 'RevealUI Database',
   description:
-    'RevealUI database conventions for any task involving database, schema, query, migration,\nDrizzle ORM, Supabase, NeonDB, PostgreSQL, vectors, embeddings, or data modeling.\nEnforces dual-database architecture boundaries and import restrictions.',
+    'RevealUI database conventions for any task involving database, schema, query, migration,\nDrizzle ORM, NeonDB, PostgreSQL, pgvector, embeddings, or data modeling. Reflects the\nNeon-primary architecture (legacy Supabase phase-out in flight).',
   disableModelInvocation: false,
   skipFrontmatter: false,
   filePatterns: [],
@@ -13,49 +13,36 @@ export const revealuiDbSkill: Skill = {
   references: {},
   content: `# Database Conventions
 
-## Dual-Database Architecture
+## Architecture
 
-RevealUI uses **two databases with strictly separated responsibilities**:
+RevealUI uses **NeonDB (PostgreSQL via \`@neondatabase/serverless\`)** as the primary
+database for all internal usage: collections, users, sessions, orders, products, AI
+memory, and vector embeddings (via pgvector).
 
-| Database | Client | Purpose |
-|----------|--------|---------|
-| **NeonDB** (PostgreSQL) | \`@neondatabase/serverless\` | REST content: collections, users, sessions, orders, products |
-| **Supabase** | \`@supabase/supabase-js\` | Vector embeddings, real-time auth, AI memory storage |
+Legacy Supabase code remains in tree during the Supabase phase-out and is being
+progressively removed. **Do not add new \`@supabase/*\` imports to any package** — new
+features must depend on NeonDB only.
 
-## Boundary Rule
+## Customer-extensible MCP adapter (intentionally retained)
 
-**\`@supabase/supabase-js\` must only be imported inside designated vector/auth modules:**
-
-### Allowed paths for Supabase imports
-- \`packages/db/src/vector/\`  -  vector schema and queries
-- \`packages/db/src/auth/\`  -  Supabase auth helpers
-- \`packages/auth/src/\`  -  authentication implementation
-- \`packages/ai/src/\`  -  AI memory and embedding storage
-- \`packages/services/src/supabase/\`  -  Supabase service integrations
-- \`apps/*/src/lib/supabase/\`  -  app-level Supabase utilities
-
-### Forbidden: Supabase imports in
-- \`packages/core/\`  -  admin engine must be DB-agnostic
-- \`packages/contracts/\`  -  contracts are schema-only
-- \`packages/config/\`  -  config must not hardcode DB client
-- \`apps/admin/src/collections/\`  -  collection hooks use Drizzle/Neon only
-- \`apps/admin/src/routes/\`  -  REST routes use Neon only
+The Supabase MCP adapter at \`packages/mcp/src/servers/supabase.ts\` is intentionally
+retained as an OSS adapter for customers who run their own Supabase. It is exported
+from \`@revealui/mcp\` (\`launchSupabaseMcp\`) and documented in the Pro MCP docs. This is
+a customer-extensibility surface, separate from RevealUI's own database stack.
 
 ## Schema Organization
 
 \`\`\`
 packages/db/src/schema/
-├── collections/    # NeonDB: content collections
-├── users/          # NeonDB: user management
-├── commerce/       # NeonDB: products, orders, pricing
-├── sessions/       # NeonDB: auth sessions
-├── vector/         # Supabase: embeddings, similarity search
-└── auth/           # Supabase: auth state
+├── accounts/, users/, sessions/  # auth + identity (NeonDB)
+├── collections/                  # content collections (NeonDB)
+├── commerce/                     # products, orders, pricing (NeonDB)
+├── rag/                          # rag_documents, rag_chunks, rag_workspaces (NeonDB + pgvector)
+└── ...                           # 30+ schema files total
 \`\`\`
 
-## Query Patterns
+## Query Pattern
 
-### NeonDB (Drizzle ORM)
 \`\`\`ts
 import { db } from '@revealui/db'
 import { posts } from '@revealui/db/schema'
@@ -63,28 +50,12 @@ import { posts } from '@revealui/db/schema'
 const results = await db.select().from(posts).where(eq(posts.status, 'published'))
 \`\`\`
 
-### Supabase (vector/auth only)
-\`\`\`ts
-// Only in designated modules (packages/db/src/vector/, packages/ai/src/)
-import { createSupabaseClient } from '@revealui/db/vector'
-
-const { data } = await supabase.rpc('match_documents', { query_embedding: embedding })
-\`\`\`
-
-## Enforcement
-
-The \`pnpm validate:structure\` script checks for Supabase imports outside permitted paths.
-CI runs this as part of phase 1 (warn-only  -  violations are flagged but don't block builds).
-
-To check locally:
-\`\`\`bash
-pnpm validate:structure
-\`\`\`
-
 ## Migration Guidance
 
 When adding new features:
-1. **Content/REST data** → add to \`packages/db/src/schema/\` + use Drizzle
-2. **AI/vector data** → add to \`packages/db/src/vector/\` + use Supabase client
-3. **Never mix** both DB clients in the same module`,
+1. **Content/REST data** → add to \`packages/db/src/schema/\` + use Drizzle on NeonDB
+2. **Vector data / AI memory** → add to NeonDB with pgvector (already installed)
+3. **Customer-bring-your-own DB** → expose via a new MCP adapter in \`@revealui/mcp\`
+   following the pattern in \`packages/mcp/src/servers/supabase.ts\`; do not import the
+   target DB's client directly into product packages`,
 };

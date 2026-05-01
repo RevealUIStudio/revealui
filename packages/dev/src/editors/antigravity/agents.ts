@@ -10,7 +10,7 @@ Package manager: pnpm 10 (\`workspace:*\` for internal deps).
 ## Key Packages
 
 - \`@revealui/core\`  -  Runtime engine, collections, access control, hooks
-- \`@revealui/db\`  -  Drizzle schema (NeonDB) + vector schema (Supabase)
+- \`@revealui/db\`  -  Drizzle schema on NeonDB (primary store; vectors via pgvector)
 - \`@revealui/auth\`  -  session auth, bcrypt, rate limiting
 - \`@revealui/contracts\`  -  Zod schemas (canonical source of truth)
 - \`@revealui/presentation\`  -  UI components (Tailwind v4)
@@ -28,8 +28,10 @@ Package manager: pnpm 10 (\`workspace:*\` for internal deps).
 
 ## Database Rules
 
-- NeonDB (Drizzle ORM): all REST content (users, sessions, posts, media, etc.)
-- Supabase: vector embeddings only (\`packages/db/src/vector/\`)
-- Never import \`@supabase/supabase-js\` outside designated vector/auth modules
+- NeonDB (Drizzle ORM): primary database for all internal usage
+- Vector embeddings: NeonDB + pgvector (already installed)
+- Do NOT add new \`@supabase/*\` imports — legacy Supabase phase-out in flight; the
+  customer-facing Supabase MCP adapter at \`packages/mcp/src/servers/supabase.ts\` is
+  intentionally retained, separate from internal usage
 `.trimEnd();
 }

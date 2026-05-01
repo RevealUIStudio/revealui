@@ -27,11 +27,12 @@ describe('generateAntigravityRules', () => {
     expect(rules).toContain('typecheck');
   });
 
-  it('specifies the dual-DB boundary rule', () => {
+  it('specifies the Neon-primary database posture', () => {
     const rules = generateAntigravityRules();
     expect(rules).toContain('NeonDB');
-    expect(rules).toContain('Supabase');
-    expect(rules).toContain('@supabase/supabase-js');
+    expect(rules).toContain('pgvector');
+    expect(rules).toContain('Do NOT add new');
+    expect(rules).not.toContain('@supabase/supabase-js');
   });
 
   it('mentions soft-delete convention', () => {
