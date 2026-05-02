@@ -13,16 +13,16 @@ export {
 } from './use-field-context.js';
 export { useFocusTrap } from './use-focus-trap.js';
 export {
+  LayoutGroup,
+  LayoutIndicator,
+  useLayoutAnimation,
+} from './use-layout-animation.js';
+export {
   type LinkBehavior,
   LinkBehaviorProvider,
   type LinkBehaviorProviderProps,
   useLinkBehavior,
 } from './use-link-behavior.js';
-export {
-  LayoutGroup,
-  LayoutIndicator,
-  useLayoutAnimation,
-} from './use-layout-animation.js';
 export { usePopover } from './use-popover.js';
 export { useRovingTabindex } from './use-roving-tabindex.js';
 export { useScrollLock } from './use-scroll-lock.js';
