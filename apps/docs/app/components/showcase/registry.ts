@@ -153,6 +153,12 @@ export const showcaseEntries: ShowcaseEntry[] = [
     loader: () => import('../../showcase/link.showcase.js'),
   },
   {
+    slug: 'linkbutton',
+    name: 'LinkButton',
+    category: 'component',
+    loader: () => import('../../showcase/linkbutton.showcase.js'),
+  },
+  {
     slug: 'listbox',
     name: 'Listbox',
     category: 'component',
