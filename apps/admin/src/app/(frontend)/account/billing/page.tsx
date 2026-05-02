@@ -495,7 +495,7 @@ function BillingContent() {
             {tier === 'max' && (
               <div className="space-y-3">
                 <p className="text-sm text-zinc-600">
-                  Upgrade to Forge for unlimited projects and users, SSO, white-label branding,
+                  Upgrade to Enterprise for unlimited projects and users, SSO, white-label branding,
                   multi-tenant isolation, and self-hosted deployment.
                 </p>
                 <Button
@@ -506,8 +506,8 @@ function BillingContent() {
                   {actionLoading
                     ? 'Upgrading...'
                     : upgradeSuccess
-                      ? 'Upgraded to Forge'
-                      : `Upgrade to Forge — ${getPrice('enterprise')}`}
+                      ? 'Upgraded to Enterprise'
+                      : `Upgrade to Enterprise — ${getPrice('enterprise')}`}
                 </Button>
                 <Button
                   onClick={handleManageBilling}
@@ -560,7 +560,7 @@ function BillingContent() {
             <CardTitle>Agent Task Usage</CardTitle>
             <CardDescription>
               {usage.quota === -1
-                ? 'Unlimited agent tasks (Forge tier).'
+                ? 'Unlimited agent tasks (Enterprise tier).'
                 : `${usage.quota.toLocaleString()} tasks included per month. Resets ${new Date(usage.resetAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`}
             </CardDescription>
           </CardHeader>
