@@ -45,7 +45,7 @@ export const TIER_LABELS: Record<LicenseTierId, string> = {
   free: 'Free (OSS)',
   pro: 'Pro',
   max: 'Max',
-  enterprise: 'Forge (Enterprise)',
+  enterprise: 'Enterprise',
 };
 
 export const TIER_COLORS: Record<LicenseTierId, string> = {
@@ -182,7 +182,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   },
   {
     id: 'enterprise',
-    name: 'Forge',
+    name: 'Enterprise',
     description: 'Full ecosystem access with scale, compliance, and agent payments.',
     features: [
       'Everything in Max',
@@ -199,7 +199,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Full source code access',
     ],
     cta: 'Contact Sales',
-    ctaHref: 'mailto:support@revealui.com?subject=Forge%20Inquiry',
+    ctaHref: 'mailto:support@revealui.com?subject=Enterprise%20Tier%20Inquiry',
     highlighted: false,
   },
 ];
@@ -386,18 +386,18 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
     comingSoon: false,
   },
   {
-    name: 'Forge Perpetual',
-    description: 'Full self-hosted Forge with unlimited deployments.',
+    name: 'Enterprise Perpetual',
+    description: 'Full self-hosted Enterprise tier with unlimited deployments.',
     features: [
-      'All Forge tier features',
+      'All Enterprise tier features',
       'License key  -  never expires',
       'Unlimited self-hosted deployments',
       '1 year priority support included',
-      'All Forge updates released during support period',
+      'All Enterprise tier updates released during support period',
       'Private GitHub repo + Docker image access',
     ],
     cta: 'Contact Sales',
-    ctaHref: 'mailto:support@revealui.com?subject=Forge%20Perpetual%20License%20Inquiry',
+    ctaHref: 'mailto:support@revealui.com?subject=Enterprise%20Perpetual%20License%20Inquiry',
     comingSoon: false,
   },
 ];
