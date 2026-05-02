@@ -33,7 +33,7 @@ pnpm add @revealui/ai
 Install a model via Ubuntu Inference Snaps (canonical default — install + run yourself today; Studio lifecycle pending):
 
 ```bash
-sudo snap install nemotron-nano   # general-purpose, low resource
+sudo snap install nemotron-3-nano   # general-purpose, low resource
 # or: sudo snap install gemma3      # general + vision
 ```
 
@@ -103,7 +103,7 @@ const memory = {
 
 | Snap | Type | Use Case |
 | ---- | ---- | -------- |
-| `nemotron-nano` | General (reasoning + non-reasoning) | **Free tier default**  -  lightweight, fast |
+| `nemotron-3-nano` | General (reasoning + non-reasoning) | **Free tier default**  -  lightweight, fast |
 | `gemma3` | General + vision | Image understanding, multimodal tasks |
 | `deepseek-r1` | Reasoning | Complex analysis, chain-of-thought |
 | `qwen-vl` | Vision-language | Document parsing, visual Q&A |
@@ -147,10 +147,10 @@ For the planned recommended path (when you're ready to install + run a Canonical
 
 ```bash
 # Install your first model (free tier default)
-sudo snap install nemotron-nano
+sudo snap install nemotron-3-nano
 
 # Check status
-nemotron-nano status
+nemotron-3-nano status
 ```
 
 ```typescript

@@ -48,10 +48,10 @@ RevealUI's AI agents run on open source models locally. The recommended path is 
 
 ```bash
 # Install a model (one command)
-sudo snap install nemotron-nano
+sudo snap install nemotron-3-nano
 
 # Check status
-nemotron-nano status
+nemotron-3-nano status
 ```
 
 Each snap serves an OpenAI-compatible API locally. The `@revealui/ai` package auto-detects the running snap and routes agent calls to it. The same agent orchestration, memory system, and MCP integrations work with any supported inference path  -  because they all expose OpenAI-compatible `/v1/chat/completions` endpoints.
@@ -76,7 +76,7 @@ cd RevealUI
 direnv allow        # Nix builds and activates the full dev environment
 
 # Install a model via inference snaps (recommended)
-sudo snap install nemotron-nano
+sudo snap install nemotron-3-nano
 
 # Or use Ollama
 ollama pull gemma4:e2b
@@ -96,7 +96,7 @@ flake.nix
 └── devShell
     └── nodejs, pnpm, biome          # Standard RevealUI toolchain
 
-sudo snap install nemotron-nano    # Or: ollama pull gemma4:e2b
+sudo snap install nemotron-3-nano    # Or: ollama pull gemma4:e2b
 └── OpenAI-compatible API served locally
 
 @revealui/ai                         # Agent orchestration routes to local model

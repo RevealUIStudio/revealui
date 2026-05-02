@@ -60,13 +60,13 @@ The Nix flake activates: Node 24, pnpm 10, Biome, and all build dependencies are
 Inference snaps are the canonical local-AI path for RevealUI. Canonical's snap-packaged model serving provides hardware-aware engine selection, signed packages, and zero configuration. Today, you install + run the snap yourself; Studio lifecycle management (start / stop / health / model discovery) is on the roadmap.
 
 ```bash
-sudo snap install nemotron-nano   # general-purpose, low resource
+sudo snap install nemotron-3-nano   # general-purpose, low resource
 # or: sudo snap install gemma3      # general + vision
 ```
 
 Verify the snap is running:
 ```bash
-nemotron-nano status
+nemotron-3-nano status
 ```
 
 Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.

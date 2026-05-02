@@ -8,13 +8,13 @@ RevealUI AI defaults to open-model inference (Snaps, Ollama). Cloud-compatible p
 
 ```bash
 # Install the free tier default model
-sudo snap install nemotron-nano
+sudo snap install nemotron-3-nano
 
 # Check status and endpoint
-nemotron-nano status
+nemotron-3-nano status
 
 # Optional: change the HTTP port (default 9090)
-nemotron-nano set http.port=9090
+nemotron-3-nano set http.port=9090
 ```
 
 The snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`  -  the RevealUI AI provider uses this directly with zero additional configuration.
@@ -23,7 +23,7 @@ The snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`  -  the
 
 | Snap | Type | RAM | Use Case |
 |------|------|-----|----------|
-| `nemotron-nano` | General (reasoning + non-reasoning) | ~4 GB | **Free tier default**  -  fast, lightweight |
+| `nemotron-3-nano` | General (reasoning + non-reasoning) | ~4 GB | **Free tier default**  -  fast, lightweight |
 | `gemma3` | General + vision | ~8 GB | Image understanding, multimodal tasks |
 | `deepseek-r1` | Reasoning | ~16 GB | Complex analysis, chain-of-thought |
 | `qwen-vl` | Vision-language | ~8 GB | Document parsing, visual Q&A |
