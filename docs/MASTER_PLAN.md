@@ -30,7 +30,7 @@
 - **Infrastructure:** Nix flakes, direnv, Biome 2 (sole linter), Turborepo, pnpm 10
 - **Security:** 7 audit rounds complete. 0 CodeQL alerts, 0 Dependabot alerts, 0 avoidable `any` types, 0 production console statements. AES-256-GCM encryption, bcrypt passwords, RBAC+ABAC, timing-safe TOTP. AST-based code-pattern analyzer (execSync injection, TOCTOU, ReDoS). Pre-push gate runs affected tests on protected branches. SOC2 audit track documented with pentest RFP template.
 - **Entity:** REVEALUI STUDIO L.L.C. (Tennessee, formed 2026-04-28; EIN issued). DE flip deferred until SoloFounders acceptance or first outside raise.
-- **Token symbology:** internal codename `$RVUI` (used in code constants, env vars, route paths); on-chain Token-2022 symbol `RVC` (customer-facing). Both correct in their respective contexts.
+- **On-chain token:** Token-2022 symbol `RVC` (customer-facing).
 
 ### What Works
 
