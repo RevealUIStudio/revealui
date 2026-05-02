@@ -1,4 +1,4 @@
-import { ButtonCVA } from '@revealui/presentation';
+import { LinkButton } from '@revealui/presentation';
 import { useState } from 'react';
 
 const navLinks = [
@@ -51,9 +51,7 @@ export function NavBar() {
           >
             Log in
           </a>
-          <ButtonCVA asChild>
-            <a href="https://admin.revealui.com/signup">Get Started</a>
-          </ButtonCVA>
+          <LinkButton href="https://admin.revealui.com/signup">Get Started</LinkButton>
 
           {/* Hamburger - mobile only */}
           <button
@@ -126,11 +124,13 @@ export function NavBar() {
             >
               Log in
             </a>
-            <ButtonCVA asChild className="w-full">
-              <a href="https://admin.revealui.com/signup" onClick={() => setOpen(false)}>
-                Get Started
-              </a>
-            </ButtonCVA>
+            <LinkButton
+              href="https://admin.revealui.com/signup"
+              onClick={() => setOpen(false)}
+              className="w-full"
+            >
+              Get Started
+            </LinkButton>
           </div>
         </div>
       )}
