@@ -1,5 +1,46 @@
 # @revealui/presentation
 
+## 0.5.0
+
+### Minor Changes
+
+- Add `LinkButton` component + `LinkBehaviorProvider` / `useLinkBehavior` hook for routing-library-agnostic styled CTAs.
+
+  `LinkButton` is a button-styled element that renders as an anchor by default. It eliminates the `<ButtonCVA asChild><Link/></ButtonCVA>` composition footgun (where `asChild` + custom Link components could silently lose styling or produce nested-interactive a11y violations) and gives consumers a one-line API for "styled button that navigates."
+
+  **Default usage** (renders `<a href>` — SSR-safe, zero deps):
+
+  ```tsx
+  import { LinkButton } from '@revealui/presentation';
+
+  <LinkButton href="/contact">Book a call</LinkButton>
+  <LinkButton href="https://docs.revealui.com" external>Docs ↗</LinkButton>
+  <LinkButton href="/contact" variant="outline" size="lg">Talk to founder</LinkButton>
+  ```
+
+  **App-level routing wiring** — wrap once at the root, every downstream `LinkButton` routes via your custom Link:
+
+  ```tsx
+  import { LinkBehaviorProvider, LinkButton } from '@revealui/presentation';
+  import { Link } from '@revealui/router';
+
+  <LinkBehaviorProvider component={Link} hrefProp="to">
+    <App />  {/* every <LinkButton href="/x"> uses @revealui/router */}
+  </LinkBehaviorProvider>
+  ```
+
+  **Per-instance polymorphic override** — escape hatch for one-off cases:
+
+  ```tsx
+  <LinkButton as={Link} to="/contact">Book a call</LinkButton>
+  ```
+
+  Supports all standard `Button` variants (`variant`, `size`, `isLoading`, `disabled`, `external`). Disabled state preserves the anchor's `href` and uses `aria-disabled="true"` + `tabIndex={-1}` + `onClick` preventDefault to enforce the disabled semantics without changing the underlying anchor contract. Loading state shows a spinner + `aria-busy="true"` + `pointer-events:none`.
+
+  Spec: [`docs/specs/linkbutton-primitive.md`](https://github.com/RevealUIStudio/revealui-jv) (revealui-jv).
+
+  Zero new runtime dependencies. The `LinkBehaviorProvider` is a tiny React context — `@revealui/presentation` continues to ship with React/ReactDOM as the only peer deps.
+
 ## 0.4.1
 
 ### Patch Changes

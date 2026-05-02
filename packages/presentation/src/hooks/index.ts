@@ -13,6 +13,12 @@ export {
 } from './use-field-context.js';
 export { useFocusTrap } from './use-focus-trap.js';
 export {
+  type LinkBehavior,
+  LinkBehaviorProvider,
+  type LinkBehaviorProviderProps,
+  useLinkBehavior,
+} from './use-link-behavior.js';
+export {
   LayoutGroup,
   LayoutIndicator,
   useLayoutAnimation,

@@ -68,6 +68,12 @@ export { Input, InputGroup } from './input-headless.js';
 export { Kbd, KbdShortcut } from './kbd.js';
 export { Label, type LabelProps } from './Label.js';
 export { Link } from './link.js';
+export {
+  type LinkBehavior,
+  LinkButton,
+  type LinkButtonOwnProps,
+  type LinkButtonProps,
+} from './LinkButton.js';
 export { Listbox, ListboxDescription, ListboxLabel, ListboxOption } from './listbox.js';
 export {
   Navbar,
