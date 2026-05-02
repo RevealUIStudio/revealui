@@ -148,22 +148,22 @@ describe('Config Integration Tests', () => {
   });
 
   describe('Optional Config Usage Pattern', () => {
-    it('should handle optional Supabase config', () => {
+    it('should handle optional Sentry config', () => {
       Object.assign(process.env, validEnv);
-      process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+      process.env.NEXT_PUBLIC_SENTRY_DSN = 'https://test@sentry.io/123';
       resetConfig();
 
-      const supabaseUrl = config.optional.supabase?.url;
-      expect(supabaseUrl).toBe('https://test.supabase.co');
+      const sentryDsn = config.optional.sentry?.dsn;
+      expect(sentryDsn).toBe('https://test@sentry.io/123');
     });
 
     it('should handle missing optional config gracefully', () => {
       Object.assign(process.env, validEnv);
       resetConfig();
 
-      // Optional configs should be falsy (undefined or empty string) when not set
-      const supabaseUrl = config.optional.supabase?.url;
-      expect(supabaseUrl || undefined).toBeUndefined();
+      // Optional configs should be undefined when not set
+      const sentryDsn = config.optional.sentry?.dsn;
+      expect(sentryDsn || undefined).toBeUndefined();
     });
   });
 

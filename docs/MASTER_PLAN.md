@@ -3,7 +3,7 @@
 > **AGENTS:** This is the PUBLIC snapshot. The canonical, up-to-date version lives in the internal planning hub.
 > Always read and update the internal version. This file is synced periodically.
 
-**Last Updated:** 2026-03-30 (Refactored  -  split into MASTER_PLAN + ARCHITECTURE + archive)
+**Last Updated:** 2026-05-01 (Current Reality block refreshed; numbering aligned to Phase 5)
 **Status:** Public snapshot  -  canonical version in revealui-jv
 **Owner:** RevealUI Studio
 
@@ -14,20 +14,23 @@
 
 ---
 
-## Current Reality (as of 2026-04-15)
+## Current Reality (as of 2026-05-01)
 
 ### What Exists
 
 - **Codebase:** ~270,000 lines of TypeScript/Rust/Go across apps + packages
-- **History:** 2,410+ commits (Dec 30, 2025 – Apr 2026), solo developer
-- **Apps:** 5 (api, admin, docs, marketing, revealcoin)
+- **History:** 2,400+ commits (Dec 30, 2025 – May 2026), solo developer
+- **Apps:** 5 (server, admin, docs, marketing, revealcoin) — `apps/api` was renamed to `apps/server` in CHIP-4 (revealui#649, 2026-04-28); `marketing` migrated from Next.js to Vite (2026-04-28); the agency site (revealuistudio.com) extracted into a separate repo (2026-04-29)
 - **Packages:** 26 packages + 5 apps = 31 workspaces
 - **Tests:** extensive test suite across unit, integration, and E2E layers; all workspaces build and typecheck (run `pnpm test` for current count)
-- **Database:** 86 tables (Drizzle ORM, dual NeonDB + Supabase), 61 CHECK constraints enforced (migration 0001 applied 2026-04-15)
+- **Database:** 86 tables (Drizzle ORM on **Neon** — primary). Supabase phase-out is in flight: GAP-129 PR-A/B/D shipped (2026-05-01); PR-C (dual-DB client collapse) is the remaining work. RAG tables (`ragDocuments`, `ragChunks`) and the legacy Supabase MCP server adapter remain in-tree during the transition. 61 CHECK constraints enforced (migration 0001 applied 2026-04-15).
 - **UI Components:** 57 native components (Tailwind v4, zero external UI deps)
+- **Branch pipeline:** `feature/* → test → main` — `test` is the default PR target; production deploys are auto on push to `main` only.
 - **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml, system-tune-snapshot.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks
 - **Infrastructure:** Nix flakes, direnv, Biome 2 (sole linter), Turborepo, pnpm 10
 - **Security:** 7 audit rounds complete. 0 CodeQL alerts, 0 Dependabot alerts, 0 avoidable `any` types, 0 production console statements. AES-256-GCM encryption, bcrypt passwords, RBAC+ABAC, timing-safe TOTP. AST-based code-pattern analyzer (execSync injection, TOCTOU, ReDoS). Pre-push gate runs affected tests on protected branches. SOC2 audit track documented with pentest RFP template.
+- **Entity:** REVEALUI STUDIO L.L.C. (Tennessee, formed 2026-04-28; EIN issued). DE flip deferred until SoloFounders acceptance or first outside raise.
+- **On-chain token:** Token-2022 symbol `RVC` (customer-facing).
 
 ### What Works
 
@@ -150,7 +153,8 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded  -  separ
 - [x] Stripe overage billing via Billing Meter API  -  already uses `stripe.billing.meterEvents.create()` (billing.ts:1439). **Owner prerequisite remains:** create Stripe Billing Meter + metered Price in dashboard + set `STRIPE_AGENT_METER_EVENT_NAME` env var.
 
 #### 5.2 Track B  -  x402 Native Payments
-- [ ] **Owner action:** Set X402_RECEIVING_ADDRESS (Base USDC wallet) + X402_ENABLED=true on revealui-api Vercel project
+- **Posture (2026-04-29):** x402 staging activation is **DEFERRED indefinitely until Stripe flips test→live.** Code-complete and gated; do not propose wallet provisioning or staging activation until the Stripe live flip lands. See GAP-149 (closed) and GAP-162 (open: refund + dispute flow).
+- [ ] **Owner action (deferred):** Set X402_RECEIVING_ADDRESS (Base USDC wallet) + X402_ENABLED=true on revealui-server Vercel project — only after Stripe live
 
 #### 5.3 Track C  -  Perpetual License Infrastructure
 - [x] All 3 perpetual tiers enabled (`comingSoon: false`)  -  2026-04-05
@@ -163,7 +167,8 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded  -  separ
 - [x] Renewal catalog entries (`renewal:pro`, `renewal:max`, `renewal:enterprise`)  -  2026-04-05
 - [x] Stripe seed script: 3 renewal products with env key mappings  -  2026-04-05
 - [x] Stripe products seeded in test mode: Pro/Agency/Forge Perpetual + 3 renewal products  -  `seed-stripe.ts` ran 2026-04-05 (9 products created, 21 prices configured)
-- [ ] **Owner action:** Switch Stripe to live mode and re-run `seed-stripe.ts`, or verify products in Stripe dashboard
+- **Stripe live-mode flip is BLOCKED on GAP-124 (billing audit closure).** Pre-launch posture is "TEST mode in production with loud warning"; do not propose flipping `STRIPE_LIVE_MODE=true` or rotating to `sk_live_*` until the GAP-124 billing audit closes. See `~/suite/.jv/docs/billing-audit/READINESS.md` (12 surfaces signed off CLEAN, awaiting owner sign-off).
+- [ ] **Owner action (gated on GAP-124):** Switch Stripe to live mode and re-run `seed-stripe.ts`, or verify products in Stripe dashboard
 
 #### 5.4 Forge Self-Hosted Delivery
 - [x] GHCR access gated by license key  -  POST /verify webhook + GET /status endpoint (ghcr.ts, 9 tests)  -  2026-03-31
@@ -727,27 +732,6 @@ product, not an extension of RevealUI.
 
 ---
 
-## Scope Freeze Policy
-
-**Until Phase 0 is complete:**
-- No new packages
-- No new apps
-- No new CI workflows
-- No new Claude rules or coordination protocols
-- No new external UI dependencies (native implementations complete)
-- No architecture changes
-
-**The only acceptable work is:**
-1. Deploying what exists
-2. Fixing what's broken
-3. Verifying integrations
-4. Writing tests for deployed features
-
-Phase 5 items from the previous plan (native UI components, native animation library, MCP UI) are deferred indefinitely. They are optimization of code that hasn't proven its value yet.
-
----
-
-
 ## Deferred Tasks (invoke manually)
 
 These tasks are removed from the phase schedule. Call upon them explicitly when ready.
@@ -781,7 +765,7 @@ Rotate all credentials exposed during the Revvault plaintext migration (the old 
 
 ---
 
-## §4.17: RevHolster  -  Agent Coordination System (Sessions 137-140, 2026-03-30)
+## §5.20: RevHolster  -  Agent Coordination System (Sessions 137-140, 2026-03-30)
 
 **Status:** VAUGHN protocol spec complete. Holster v2 foundation operational. Implementation next.
 
@@ -842,7 +826,7 @@ Holster: "Here is the shared state where coordination happens"
 
 ---
 
-## §4.18: Legacy and Deprecation Sweep (Phase A complete)
+## §5.21: Legacy and Deprecation Sweep (Phase A complete)
 
 **Initial sweep results (2026-04-15):**
 - Removed 6 deprecated exports with zero callers: `registerSession`/`unregisterSession` aliases, `WorkboardSession`/`WorkboardEntry` types, `deepMergeSimple`, `findAgentMemoryById`/`findAgentMemoriesByUserId`
@@ -888,7 +872,7 @@ Holster: "Here is the shared state where coordination happens"
 
 ---
 
-## §4.19: Messaging, Guides, and Documentation Accuracy (Pending)
+## §5.22: Messaging, Guides, and Documentation Accuracy (Pending)
 
 **Goal:** Every user-facing message, guide, and doc page reflects the current codebase. Users should never hit a stale instruction, a misleading error message, or a guide that references code that no longer exists.
 

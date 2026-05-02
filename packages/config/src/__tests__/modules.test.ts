@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getBrandingConfig } from '../modules/branding';
 import { getDatabaseConfig } from '../modules/database';
-import { getDevToolsConfig, getSentryConfig, getSupabaseConfig } from '../modules/optional';
+import { getDevToolsConfig, getSentryConfig } from '../modules/optional';
 import { getRevealConfig } from '../modules/reveal';
 import { getStorageConfig } from '../modules/storage';
 import { getStripeConfig } from '../modules/stripe';
@@ -73,14 +73,6 @@ describe('config modules', () => {
       (env as Record<string, unknown>).DATABASE_URL = 'postgresql://fallback:5432/db';
       const config = getDatabaseConfig(env);
       expect(config.url).toBe('postgresql://fallback:5432/db');
-    });
-
-    it('falls back to SUPABASE_DATABASE_URI', () => {
-      const env = makeEnv();
-      delete (env as Record<string, unknown>).POSTGRES_URL;
-      (env as Record<string, unknown>).SUPABASE_DATABASE_URI = 'postgresql://supabase:5432/db';
-      const config = getDatabaseConfig(env);
-      expect(config.url).toBe('postgresql://supabase:5432/db');
     });
 
     it('returns empty string when no DB URL set', () => {
@@ -193,42 +185,6 @@ describe('config modules', () => {
     it('returns undefined when not set', () => {
       const config = getStorageConfig(makeEnv());
       expect(config.blobToken).toBeUndefined();
-    });
-  });
-
-  describe('getSupabaseConfig', () => {
-    it('returns all Supabase fields when set', () => {
-      const config = getSupabaseConfig(
-        makeEnv({
-          NEXT_PUBLIC_SUPABASE_URL: 'https://abc.supabase.co',
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
-          SUPABASE_SECRET_KEY: 'secret-key',
-          SUPABASE_DATABASE_URI: 'postgresql://supabase:5432/db',
-        }),
-      );
-      expect(config.url).toBe('https://abc.supabase.co');
-      expect(config.publishableKey).toBe('publishable-key');
-      expect(config.secretKey).toBe('secret-key');
-      expect(config.databaseUri).toBe('postgresql://supabase:5432/db');
-    });
-
-    it('returns undefined for unset fields', () => {
-      const config = getSupabaseConfig(makeEnv());
-      expect(config.url).toBeUndefined();
-      expect(config.publishableKey).toBeUndefined();
-      expect(config.secretKey).toBeUndefined();
-      expect(config.databaseUri).toBeUndefined();
-    });
-
-    it('treats empty strings as undefined', () => {
-      const config = getSupabaseConfig(
-        makeEnv({
-          NEXT_PUBLIC_SUPABASE_URL: '',
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '',
-        }),
-      );
-      expect(config.url).toBeUndefined();
-      expect(config.publishableKey).toBeUndefined();
     });
   });
 

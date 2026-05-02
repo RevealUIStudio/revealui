@@ -26,16 +26,11 @@ Follow these rules for ALL code changes in the RevealUI monorepo.
 - Windows host mounts (typically \`/mnt/c/\`) and the LTS backup mount (\`$LTS_ROOT\`, typically \`/mnt/e/\`)  -  read-only
 - System/credential directories: \`/etc/\`, \`~/.ssh/\`, \`~/.gnupg/\`, \`~/.aws/\`
 
-## Import Boundaries
+## Database Imports
 
-\`@supabase/supabase-js\` is ONLY allowed in:
+\`@supabase/supabase-js\` has been phased out from internal runtime — do not reintroduce it as a runtime dependency. NeonDB (via \`@revealui/db\` + Drizzle) is the primary store.
 
-- \`packages/db/src/vector/\`, \`packages/db/src/auth/\`
-- \`packages/auth/src/\`, \`packages/ai/src/\`
-- \`packages/services/src/supabase/\`
-- \`apps/*/src/lib/supabase/\`
-
-FORBIDDEN in: \`packages/core/\`, \`packages/contracts/\`, \`packages/config/\`, \`apps/admin/src/collections/\`, \`apps/admin/src/routes/\`
+The customer-facing Supabase MCP adapter at \`packages/mcp/src/servers/supabase.ts\` is a separate concern (it spawns the customer's \`supabase-mcp\` package for installer customers using Supabase) and does not import \`@supabase/supabase-js\` into the app.
 
 ## Code Quality
 

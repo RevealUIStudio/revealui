@@ -1,9 +1,10 @@
 /**
- * Cross-Database Cleanup Utilities
+ * Cleanup Utilities
  *
- * Bridges the gap between NeonDB (REST) and Supabase (vector) databases
- * by cleaning up orphaned records that FK cascades cannot reach across
- * separate database instances.
+ * Soft-delete fanout cleanup for sites and their dependent vector / RAG /
+ * log / token rows on NeonDB. Sites use soft-delete (`deletedAt`) rather
+ * than hard-delete, so FK cascades don't fire automatically — these helpers
+ * remove orphaned rows in batches with idempotent dry-run support.
  */
 
 export {

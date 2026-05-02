@@ -97,16 +97,16 @@ const ENV_VAR_SPECS: EnvVarSpec[] = [
       message: 'Must start with whsec_',
     }),
   },
-  // Supabase
+  // Customer-facing Supabase MCP adapter (optional — only set if running pnpm mcp:supabase)
   {
     key: 'NEXT_PUBLIC_SUPABASE_URL',
-    label: 'Supabase URL',
+    label: 'Customer Supabase MCP URL',
     required: false,
     validate: validateSupabaseUrl,
   },
   {
     key: 'SUPABASE_SERVICE_ROLE_KEY',
-    label: 'Supabase service role key',
+    label: 'Customer Supabase MCP service role key',
     required: false,
     validate: (v) => ({
       valid: v.startsWith('eyJ'),
