@@ -60,7 +60,7 @@ Every framework is a set of opinions. Here are ours:
 
 **Lexical over ProseMirror.** Lexical's data model is JSON, not a custom AST. Server-side rendering works without a browser. XSS prevention is structural: every URL is validated before rendering.
 
-**Tailwind over CSS-in-JS.** No runtime cost. No hydration mismatch. The entire component library (57 components) uses only Tailwind utilities, clsx, and CVA. Zero external UI dependencies.
+**Tailwind over CSS-in-JS.** No runtime cost. No hydration mismatch. The entire component library (58 components) uses only Tailwind utilities, clsx, and CVA. Zero external UI dependencies.
 
 **Biome over ESLint + Prettier.** One tool instead of two. Faster. No plugin ecosystem to manage. The formatter and linter share a single AST parse.
 
@@ -72,7 +72,7 @@ RevealUI launched with:
 
 - **26 npm packages** published to the public registry
 - **86 database tables** via Drizzle ORM (NeonDB + Supabase)
-- **57 UI components** with zero external dependencies
+- **58 UI components** with zero external dependencies
 - **12 MCP servers** for AI tool access (all MIT)
 - **Extensive test coverage** across unit, integration, and E2E layers
 - **4 GitHub template repos** for different starting points
