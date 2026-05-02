@@ -7,9 +7,9 @@ audience: developer
 
 # RevealUI Component Catalog
 
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-05-02
 **Packages:** `@revealui/presentation`, `@revealui/core`
-**Total Components:** 78 across both packages — **57 in `@revealui/presentation`** (the standalone UI library) plus 21 admin / richtext components in `@revealui/core`.
+**Total Components:** 80 across both packages — **59 in `@revealui/presentation`** (the standalone UI library) plus 21 admin / richtext components in `@revealui/core`.
 
 ---
 
@@ -17,7 +17,7 @@ audience: developer
 
 ### Presentation Components (@revealui/presentation)
 1. [Primitives](#primitives) (6 components)
-2. [Form Controls](#form-controls) (13 components)
+2. [Form Controls](#form-controls) (14 components)
 3. [Data Display](#data-display) (8 components)
 4. [Navigation](#navigation) (4 components)
 5. [Feedback](#feedback) (3 components)
@@ -220,6 +220,71 @@ import { Button } from '@revealui/presentation'
   <a href="/link">Link Button</a>
 </Button>
 ```
+
+---
+
+### LinkButton
+
+Button-styled element that renders as an anchor by default. Pairs with `LinkBehaviorProvider` to route through any framework `Link` component (e.g. `@revealui/router`, Next.js `next/link`, react-router `Link`) without coupling `@revealui/presentation` to a specific routing library. Available from `0.5.0`.
+
+**Props:**
+```typescript
+interface LinkButtonOwnProps {
+  /** URL the button navigates to. Required for normal usage. */
+  href?: string
+  /** External link — adds `target="_blank" rel="noopener noreferrer"` and renders a native <a> regardless of provider. */
+  external?: boolean
+  variant?: 'default' | 'destructive' | 'ghost' | 'link' | 'outline' | 'primary' | 'secondary'
+  size?: 'default' | 'sm' | 'lg' | 'icon' | 'clear'
+  /** Show a loading spinner and disable interaction. Sets aria-busy="true". */
+  isLoading?: boolean
+  /** Visually disabled + ARIA-disabled. Anchor href preserved; click prevented; tabIndex=-1. */
+  disabled?: boolean
+  className?: string
+  children?: React.ReactNode
+}
+
+// Polymorphic — render as a different component for this single instance
+type LinkButtonProps<T extends React.ElementType = 'a'> = LinkButtonOwnProps & { as?: T } & ...
+```
+
+**Usage:**
+```tsx
+import { LinkButton, LinkBehaviorProvider } from '@revealui/presentation/client'
+import { Link } from '@revealui/router'
+
+// 1. App-level wiring (recommended): one Provider at root, every LinkButton routes through MyLink
+<LinkBehaviorProvider component={Link} hrefProp="to">
+  <App />
+</LinkBehaviorProvider>
+
+// 2. Default usage — renders <a href="/contact"> via the provider Link
+<LinkButton href="/contact">Book a call</LinkButton>
+
+// 3. External link — opts out of provider, always native <a target="_blank">
+<LinkButton href="https://docs.revealui.com" external variant="outline">
+  Read the docs ↗
+</LinkButton>
+
+// 4. Per-instance polymorphic override (escape hatch)
+<LinkButton as="a" href="#anchor" variant="ghost">Jump to section</LinkButton>
+```
+
+**Behavior matrix:**
+
+| Author writes | Without provider | With `<LinkBehaviorProvider component={MyLink} hrefProp="to">` |
+|---|---|---|
+| `<LinkButton href="/x">…</LinkButton>` | `<a href="/x">…</a>` | `<MyLink to="/x">…</MyLink>` |
+| `<LinkButton href="/x" external>…</LinkButton>` | `<a href="/x" target="_blank" rel="noopener noreferrer">…</a>` | same — `external` always opts out of provider |
+| `<LinkButton as={X} href="/x">…</LinkButton>` | `<X href="/x">…</X>` (per-instance override drops provider) | `<X href="/x">…</X>` |
+
+**Why use it instead of `<ButtonCVA asChild><Link/></ButtonCVA>`:** the asChild pattern is fragile (forgetting `asChild` produces `<button><a>` interactive-nesting violations), and per-instance Link wiring is repetitive across a CTA-heavy marketing surface. `LinkButton` collapses the two-component composition into a single primitive and lets one `LinkBehaviorProvider` at the app root wire every CTA in the tree.
+
+**Accessibility:**
+- Disabled anchors get `aria-disabled="true"` + `tabIndex={-1}` + `pointer-events: none` (anchor `href` preserved — semantics unchanged).
+- External links auto-add `rel="noopener noreferrer"` for tab-nap protection.
+- Loading state sets `aria-busy="true"`.
+- Children wrapped in `TouchTarget` for ≥44×44 mobile tap area, matching `Button`.
 
 ---
 
@@ -1476,9 +1541,9 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ## Component Summary by Package
 
-### @revealui/presentation (58 components)
+### @revealui/presentation (59 components)
 - 6 Primitives (Box, Flex, Grid, Text, Heading, Slot)
-- 13 Form Controls (Button, Input, Textarea, Select, Checkbox, Radio, etc.)
+- 14 Form Controls (Button, LinkButton, Input, Textarea, Select, Checkbox, Radio, etc.)
 - 8 Data Display (Card, Table, Avatar, Badge, etc.)
 - 4 Navigation (Link, Navbar, Sidebar, Pagination)
 - 3 Feedback (Alert, Dialog, Toast)
@@ -1503,5 +1568,5 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ---
 
-**Last Updated:** 2026-03-03
-**Packages:** `@revealui/presentation` (58 components), `@revealui/core` (21 components)
+**Last Updated:** 2026-05-02
+**Packages:** `@revealui/presentation` (59 components), `@revealui/core` (21 components)

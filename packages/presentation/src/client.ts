@@ -77,6 +77,11 @@ export {
 export { Heading, Subheading } from './components/heading.js';
 export { Input, InputGroup } from './components/input-headless.js';
 export { Kbd, KbdShortcut } from './components/kbd.js';
+export {
+  LinkButton,
+  type LinkButtonOwnProps,
+  type LinkButtonProps,
+} from './components/LinkButton.js';
 export { Link } from './components/link.js';
 export {
   Listbox,
@@ -170,4 +175,10 @@ export { Textarea } from './components/textarea-headless.js';
 export { Timeline, TimelineItem } from './components/timeline.js';
 export { ToastProvider, useToast } from './components/toast.js';
 export { Tooltip } from './components/tooltip.js';
+export {
+  type LinkBehavior,
+  LinkBehaviorProvider,
+  type LinkBehaviorProviderProps,
+  useLinkBehavior,
+} from './hooks/use-link-behavior.js';
 export { type ResolvedTheme, type Theme, useTheme } from './hooks/use-theme.js';
