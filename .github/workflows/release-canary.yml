@@ -89,6 +89,18 @@ jobs:
         if: steps.changesets.outputs.count != '0'
         run: pnpm validate:artifacts
 
+      - name: Skip manually-bumped packages from canary publish
+        # See scripts/canary/skip-manual-bumps.mjs for the why. In short:
+        # `changeset version --snapshot canary` only rewrites versions for
+        # packages with a pending changeset; manual `package.json` bumps
+        # without a changeset would otherwise publish their actual semver
+        # version under the `canary` dist-tag and silently break `latest`
+        # resolution for consumers. Mark such packages private so the
+        # publish step skips them — they'll publish via `release.yml` on
+        # main under `latest` as intended.
+        if: steps.changesets.outputs.count != '0'
+        run: node scripts/canary/skip-manual-bumps.mjs
+
       - name: Publish canary to npm
         if: steps.changesets.outputs.count != '0'
         # --no-git-checks was removed in @changesets/cli 2.x; publish no
