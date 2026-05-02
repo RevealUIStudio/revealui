@@ -1,5 +1,13 @@
 # @revealui/presentation
 
+## 0.4.1
+
+### Patch Changes
+
+- Fix `Slot` primitive to clone children unconditionally when the child is a valid React element, instead of gating on the (often-not-forwarded) `asChild` prop. The 0.4.0 build of `Slot` only cloned when `asChild` was passed in — but `Button`/`ButtonCVA` do not forward `asChild` to `Slot` after destructuring it locally. Result: `<ButtonCVA asChild><AnyComponent /></ButtonCVA>` rendered the child unstyled inside a wrapping `<div>` carrying the button classes, instead of merging the classes onto the child as intended. This fix restores the documented `asChild` composition pattern across all CVA-styled components in the package.
+
+  No public API change. The fix is already on `main`/`test` (Slot's runtime behavior changed to "always clone if children is a valid element"); this release just publishes that runtime to npm.
+
 ## 0.4.0
 
 ### Minor Changes
