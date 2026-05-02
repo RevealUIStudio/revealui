@@ -16,7 +16,7 @@ Full content management engine with collections, access control, hooks, field ty
 and a REST API. The heart of RevealUI and the most mature part of the codebase.
 
 ### UI component library
-**57 native React components** in `packages/presentation/src/components/`, built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
+**58 native React components** in `packages/presentation/src/components/`, built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
 **86 PostgreSQL tables** with Drizzle ORM, **61 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
@@ -100,7 +100,7 @@ Honest list of things that are not done, not deployed, or not verified.
 | Apps | 5 (`admin`, `api`, `docs`, `marketing`, `revealcoin`) | Yes |
 | OSS packages (MIT) | 22 | Yes |
 | Pro packages (FSL-1.1-MIT) | 3 (`ai`, `harnesses`, `engines`) | Yes |
-| UI components (`@revealui/presentation`) | 57 | Yes |
+| UI components 58 | Yes |
 | Database tables | 85 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
 | MCP servers (`packages/mcp/src/servers/`) | 13 | Yes |
 | Test cases | run `pnpm test` for current count | Reproducible |
