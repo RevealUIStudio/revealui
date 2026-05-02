@@ -73,7 +73,7 @@ packages/
 ├── contracts/      # Zod schemas & TypeScript types
 ├── db/             # Database (Drizzle ORM, 86 tables)
 ├── auth/           # Authentication system
-├── presentation/   # 57 UI components (Tailwind v4)
+├── presentation/   # 58 UI components (Tailwind v4)
 ├── router/         # File-based router with SSR
 ├── config/         # Type-safe env config (Zod)
 ├── utils/          # Logger, DB helpers, validation

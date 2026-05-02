@@ -35,7 +35,7 @@ You have:
 - **Content management:** define collections in TypeScript, get a full REST API, admin UI, and MCP tools instantly
 - **Billing:** Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard:** manage users, content, billing, and settings out of the box
-- **57 UI components:** built with Tailwind CSS v4, zero external UI dependencies
+- **58 UI components:** built with Tailwind CSS v4, zero external UI dependencies
 - **12 MCP servers:** agents discover and use your business data through the same API humans use
 - **Type-safe throughout:** Zod schemas shared between client, server, database, and agent tools
 
@@ -153,7 +153,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/contracts`](packages/contracts)             | Zod schemas + TypeScript types (single source)    |
 | [`@revealui/db`](packages/db)                           | Drizzle ORM schema (86 tables), dual-DB client     |
 | [`@revealui/auth`](packages/auth)                       | Session auth, password reset, rate limiting       |
-| [`@revealui/presentation`](packages/presentation)       | 57 UI components (Tailwind v4, zero ext deps)     |
+| [`@revealui/presentation`](packages/presentation)       | 58 UI components (Tailwind v4, zero ext deps)     |
 | [`@revealui/openapi`](packages/openapi)                 | OpenAPI route helpers and Swagger generation       |
 | [`@revealui/router`](packages/router)                   | Lightweight file-based router with SSR            |
 | [`@revealui/config`](packages/config)                   | Type-safe environment configuration               |

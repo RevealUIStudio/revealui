@@ -3,8 +3,8 @@
 import type React from 'react';
 import { type LinkBehavior, useLinkBehavior } from '../hooks/use-link-behavior.js';
 import { cn } from '../utils/cn.js';
-import { TouchTarget } from './button-headless.js';
 import { type ButtonProps, buttonVariants } from './Button.js';
+import { TouchTarget } from './button-headless.js';
 
 /**
  * LinkButton — a button-styled element that renders as an anchor by default,
@@ -128,5 +128,5 @@ function LinkButton<T extends React.ElementType = 'a'>({
   );
 }
 
-export { LinkButton };
 export type { LinkBehavior };
+export { LinkButton };
