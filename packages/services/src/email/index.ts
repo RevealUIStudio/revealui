@@ -74,6 +74,32 @@ export function sanitizeEmailHeader(value: string): string {
   return value.replace(/[\r\n]/g, '');
 }
 
+/**
+ * RFC 2047 encoded-word for header values that may contain non-ASCII.
+ *
+ * Pure-ASCII (printable + space) input is returned unchanged. Anything
+ * with a byte outside U+0020..U+007E is sanitized for CR/LF, then UTF-8
+ * + base64 encoded and wrapped in `=?UTF-8?B?...?=` so MIME-aware mail
+ * clients render it as the original Unicode rather than mojibake.
+ *
+ * Use on values that legitimately carry user-visible text (Subject,
+ * display names). Do NOT use on bare email addresses — those follow
+ * RFC 5322 escaping rules and this codebase emits them as raw
+ * `local@domain` strings without display names.
+ *
+ * Edge-compatible: uses TextEncoder + btoa, no Node Buffer.
+ */
+export function encodeHeaderValue(value: string): string {
+  const sanitized = sanitizeEmailHeader(value);
+  if (/^[\x20-\x7E]*$/.test(sanitized)) return sanitized;
+  const bytes = new TextEncoder().encode(sanitized);
+  let binary = '';
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return `=?UTF-8?B?${btoa(binary)}?=`;
+}
+
 // ---------------------------------------------------------------------------
 // Gmail REST API provider (edge-compatible)
 // ---------------------------------------------------------------------------
@@ -131,7 +157,7 @@ export class GmailProvider implements EmailProvider {
     const lines = [
       `From: ${this.delegateEmail}`,
       `To: ${sanitizeEmailHeader(options.to)}`,
-      `Subject: ${sanitizeEmailHeader(options.subject)}`,
+      `Subject: ${encodeHeaderValue(options.subject)}`,
       'MIME-Version: 1.0',
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
     ];
