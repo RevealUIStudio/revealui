@@ -38,7 +38,7 @@
 |---------|--------|------------|
 | admin engine (core) | Built | High  -  237 files, deep implementation |
 | AI agent system | Built | Medium  -  untested in production |
-| UI components 58) | Built | High  -  native hooks, no external deps |
+| UI components (58) | Built | High  -  native hooks, no external deps |
 | Database schema (86 tables) | Built | High  -  migration 0001 applied, 61 CHECK constraints enforced |
 | Auth (sessions, rate limiting) | Built | Medium  -  code exists, no production verification |
 | Stripe integration | Built | Medium  -  DB-backed circuit breaker (circuit_breaker_state table) |
