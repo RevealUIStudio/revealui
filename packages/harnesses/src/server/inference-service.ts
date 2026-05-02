@@ -39,7 +39,7 @@ export interface SnapModel {
 // ── Configuration ───────────────────────────────────────────────────
 
 const KNOWN_SNAPS: Array<[string, string]> = [
-  ['nemotron-3-nano', 'General (reasoning + non-reasoning)  -  free tier default'],
+  ['nemotron-nano', 'General (reasoning + non-reasoning)  -  free tier default'],
   ['gemma3', 'General + vision  -  image understanding, multimodal'],
   ['deepseek-r1', 'Reasoning  -  complex analysis, chain-of-thought'],
   ['qwen-vl', 'Vision-language  -  document parsing, visual Q&A'],

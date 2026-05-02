@@ -30,10 +30,10 @@ pnpm add @revealui/ai
 
 ## Quick start
 
-Install a model via Ubuntu Inference Snaps (recommended):
+Install a model via Ubuntu Inference Snaps (canonical default — install + run yourself today; Studio lifecycle pending):
 
 ```bash
-sudo snap install nemotron-3-nano   # general-purpose, low resource
+sudo snap install nemotron-nano   # general-purpose, low resource
 # or: sudo snap install gemma3      # general + vision
 ```
 
@@ -96,14 +96,14 @@ const memory = {
 
 | Path | Chat | Embeddings | Notes |
 | ---- | ---- | ---------- | ----- |
-| **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install, OpenAI-compatible API |
+| **Ubuntu Inference Snaps** (canonical default — Studio lifecycle pending) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install, OpenAI-compatible API |
 | Ollama | Yes | Yes | Any open source GGUF model, local inference. Default chat: `gemma4:e2b`, embed: `nomic-embed-text` |
 
 ### Inference Snaps Models
 
 | Snap | Type | Use Case |
 | ---- | ---- | -------- |
-| `nemotron-3-nano` | General (reasoning + non-reasoning) | **Free tier default**  -  lightweight, fast |
+| `nemotron-nano` | General (reasoning + non-reasoning) | **Free tier default**  -  lightweight, fast |
 | `gemma3` | General + vision | Image understanding, multimodal tasks |
 | `deepseek-r1` | Reasoning | Complex analysis, chain-of-thought |
 | `qwen-vl` | Vision-language | Document parsing, visual Q&A |
