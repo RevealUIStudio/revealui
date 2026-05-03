@@ -104,7 +104,7 @@ const story: ShowcaseStory = {
               { tier: 'Free', sites: '1', users: '3', rate: '200/min' },
               { tier: 'Pro', sites: '5', users: '25', rate: '300/min' },
               { tier: 'Max', sites: '15', users: '100', rate: '600/min' },
-              { tier: 'Forge', sites: 'Unlimited', users: 'Unlimited', rate: 'Unlimited' },
+              { tier: 'Enterprise', sites: 'Unlimited', users: 'Unlimited', rate: 'Unlimited' },
             ].map((row) => (
               <TableRow key={row.tier}>
                 <TableCell className="font-medium">{row.tier}</TableCell>
