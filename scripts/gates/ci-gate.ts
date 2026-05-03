@@ -315,6 +315,11 @@ async function gate(): Promise<void> {
         args: ['validate:stripe-client'],
       },
       {
+        name: 'Contracts OpenAPI mirror drift (hard fail)',
+        command: 'pnpm',
+        args: ['--filter', '@revealui/openapi', 'check:contracts'],
+      },
+      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],

@@ -1,7 +1,7 @@
 {
   "name": "@revealui/openapi",
   "version": "0.2.3",
-  "description": "Type-safe OpenAPI 3.x integration for Hono — route definitions, Zod validation middleware, and automatic spec generation with Swagger UI support",
+  "description": "Type-safe OpenAPI 3.x integration for Hono — route definitions, Zod validation middleware, automatic spec generation with Swagger UI support, and contracts-mirror codegen pipeline (F8 Phase 3)",
   "keywords": [
     "api",
     "hono",
@@ -17,8 +17,10 @@
   "devDependencies": {
     "@types/node": "catalog:",
     "@revealui/dev": "workspace:*",
+    "@revealui/mcp": "workspace:*",
     "hono": "4.12.14",
     "tsup": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "zod": "catalog:"
@@ -33,6 +35,7 @@
     }
   },
   "files": [
+    "contracts.openapi.json",
     "dist"
   ],
   "main": "./dist/index.js",
@@ -48,6 +51,8 @@
     "build": "tsup",
     "clean": "rm -rf dist",
     "dev": "tsup --watch",
+    "emit:contracts": "tsx scripts/emit-from-mcp.ts",
+    "check:contracts": "tsx scripts/emit-from-mcp.ts --check",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "vitest run",
