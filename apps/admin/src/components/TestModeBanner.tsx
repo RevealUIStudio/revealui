@@ -27,10 +27,9 @@ export function TestModeBanner({ className = '' }: { className?: string }) {
     >
       <p className="font-medium">Stripe is in test mode</p>
       <p className="mt-1 text-xs leading-relaxed">
-        No card will be charged. Live billing is gated on the internal
-        billing-readiness audit; this surface uses Stripe test mode in
-        production until that lands. Trial flows, checkout sessions, and
-        webhooks all run end-to-end against the test environment.
+        No card will be charged. Live billing is gated on the internal billing-readiness audit; this
+        surface uses Stripe test mode in production until that lands. Trial flows, checkout
+        sessions, and webhooks all run end-to-end against the test environment.
       </p>
     </div>
   );
