@@ -406,7 +406,7 @@ Production deployments of RevealUI earn ongoing RVC rewards:
 - **Activation reward**: One-time RVC bonus for first production deployment
 - **Activity reward**: Monthly RVC based on active users and API calls (with privacy-preserving reporting)
 - **Milestone rewards**: RVC bonuses at user count milestones (1K, 10K, 100K users)
-- **Upgrade incentive**: RVC bonus for upgrading to Pro, Max, or Enterprise tiers
+- **Upgrade incentive**: RVC bonus for upgrading to Pro, Max, or Forge tiers
 
 ---
 
