@@ -39,6 +39,10 @@
       "types": "./dist/contracts.d.ts",
       "import": "./dist/contracts.js"
     },
+    "./contracts-server": {
+      "types": "./dist/servers/factories/contracts.d.ts",
+      "import": "./dist/servers/factories/contracts.js"
+    },
     "./hypervisor": {
       "types": "./dist/hypervisor.d.ts",
       "import": "./dist/hypervisor.js"

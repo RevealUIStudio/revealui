@@ -430,7 +430,7 @@ Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict r
 
 ### MCP servers
 
-RevealUI ships **12 MCP (Model Context Protocol) servers**, open source under MIT. The most commonly used:
+RevealUI ships **13 MCP (Model Context Protocol) servers**, open source under MIT. The most commonly used:
 
 | Server | Purpose |
 |--------|---------|
