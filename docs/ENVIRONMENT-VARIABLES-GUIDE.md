@@ -327,8 +327,8 @@ Phase 5.4, enterprise tier. Only required when running RevealUI Forge on your ow
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
-| `FORGE_LICENSE_KEY` | For Forge | None | Enterprise license key issued at checkout. | HIGH (server-only) | forge |
-| `FORGE_LICENSED_DOMAIN` | For Forge | None | Domain this Forge instance is licensed to serve (e.g., `admin.acme.com`). Requests from other hosts receive HTTP 403. | MEDIUM | forge |
+| `REVFORGE_LICENSE_KEY` | For Forge | None | Enterprise license key issued at checkout. | HIGH (server-only) | forge |
+| `REVFORGE_LICENSED_DOMAIN` | For Forge | None | Domain this Forge instance is licensed to serve (e.g., `admin.acme.com`). Requests from other hosts receive HTTP 403. | MEDIUM | forge |
 
 ---
 

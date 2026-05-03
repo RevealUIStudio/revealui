@@ -25,21 +25,21 @@ export async function register() {
   // runtime". process.exit(1) is the *intentional* kill, distinct from
   // accidental crashes that the surrounding try/catch swallows.
   //
-  // TODO: extract this block to @revealui/core/forge-license-boot once
+  // TODO: extract this block to @revealui/core/revforge-license-boot once
   // the same pattern is needed in a third app. Today (api + admin) the
   // ~25-line duplication is preferable to a new package boundary.
   if (process.env.SKIP_ENV_VALIDATION !== 'true' && !process.env.REVEALUI_LICENSE_PRIVATE_KEY) {
     const failures: string[] = [];
     if (!process.env.REVEALUI_LICENSE_KEY) {
       failures.push(
-        'REVEALUI_LICENSE_KEY is required for Forge deployments. ' +
+        'REVEALUI_LICENSE_KEY is required for RevForge deployments. ' +
           'Run bin/revvault-bootstrap.sh to materialize docker/.env from revvault, ' +
           'or contact the operator who stamped this kit.',
       );
     }
     if (!process.env.REVEALUI_LICENSE_PUBLIC_KEY) {
       failures.push(
-        'REVEALUI_LICENSE_PUBLIC_KEY is required for Forge deployments. ' +
+        'REVEALUI_LICENSE_PUBLIC_KEY is required for RevForge deployments. ' +
           'Stamped kits embed this value in docker/.env.example.',
       );
     }

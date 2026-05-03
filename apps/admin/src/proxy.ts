@@ -33,9 +33,9 @@ const LEGACY_ADMIN_PREFIX = '/admin';
 export default async function proxy(request: NextRequest): Promise<NextResponse | Response> {
   const { pathname } = request.nextUrl;
 
-  // Forge domain-lock: when FORGE_LICENSED_DOMAIN is set, reject requests from
-  // unlicensed domains. Skipped entirely when not running in Forge mode.
-  const licensedDomain = process.env.FORGE_LICENSED_DOMAIN?.trim().toLowerCase();
+  // RevForge domain-lock: when REVFORGE_LICENSED_DOMAIN is set, reject requests from
+  // unlicensed domains. Skipped entirely when not running in RevForge mode.
+  const licensedDomain = process.env.REVFORGE_LICENSED_DOMAIN?.trim().toLowerCase();
   if (licensedDomain) {
     const host = (request.headers.get('host') ?? '').toLowerCase().split(':')[0] ?? '';
     const allowed =
@@ -45,7 +45,7 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       host === '127.0.0.1';
     if (!allowed) {
       return new NextResponse(
-        JSON.stringify({ error: 'This Forge instance is not licensed for this domain.' }),
+        JSON.stringify({ error: 'This RevForge instance is not licensed for this domain.' }),
         { status: 403, headers: { 'content-type': 'application/json' } },
       );
     }

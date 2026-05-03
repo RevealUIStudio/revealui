@@ -339,7 +339,7 @@ describe('validateLicenseAtStartup', () => {
         // No REVEALUI_LICENSE_PRIVATE_KEY → Forge mode
         // No REVEALUI_LICENSE_KEY → should throw
       }),
-    ).rejects.toThrow(/REVEALUI_LICENSE_KEY is required for Forge/);
+    ).rejects.toThrow(/REVEALUI_LICENSE_KEY is required for RevForge/);
   });
 
   it('throws in Forge mode when REVEALUI_LICENSE_PUBLIC_KEY is missing', async () => {
@@ -347,7 +347,7 @@ describe('validateLicenseAtStartup', () => {
       validateLicenseAtStartup({
         REVEALUI_LICENSE_KEY: 'doesnt-matter-no-pubkey-to-verify',
       }),
-    ).rejects.toThrow(/REVEALUI_LICENSE_PUBLIC_KEY is required for Forge/);
+    ).rejects.toThrow(/REVEALUI_LICENSE_PUBLIC_KEY is required for RevForge/);
   });
 
   it('throws when the JWT is malformed', async () => {
