@@ -45,7 +45,7 @@ echo 'for f in ~/.revealui/wsl/bashrc.d/*.sh; do source "$f"; done' >> ~/.bashrc
 - **Boot optimization** — `setup-wsl-boot.sh` masks 23 hardware/desktop services, disables Docker/snap auto-start (sockets preserved); cuts cold-boot time materially
 - **Editor configs** — portable Zed settings (and integrates with RevCon for the rest)
 - **PowerShell module** — `RevealUI.RevStation` for Windows-side helpers (`Sync-AllRepos`, `Mount-WSLDev`, etc.)
-- **Forge drive support** — optional ext4 USB mount at `/mnt/forge` for offloading Docker data, models, databases, caches off the C: drive
+- **Sandbox drive support** — optional ext4 USB mount at `/mnt/sandbox` for offloading Docker data, models, databases, caches off the C: drive (renamed from "Forge drive" via revkit#13 MERGED 2026-05-02)
 
 ## How it composes with RevealUI
 

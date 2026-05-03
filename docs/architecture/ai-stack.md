@@ -32,7 +32,7 @@ Revenue tiers control AI access via runtime feature gating:
 | **Free** | Local only (Ollama / snaps) | 1,000/mo | Read-only | `INFERENCE_SNAPS_BASE_URL` or `OLLAMA_BASE_URL` |
 | **Pro** | Local + cloud harness | 10,000/mo | Full | Snaps, Ollama, RevealUI cloud |
 | **Max** | Local + cloud + advanced config | 50,000/mo | Full + memory | Snaps, Ollama, RevealUI cloud |
-| **Forge (Enterprise)** | Unlimited | Metered | Full + memory + multi-tenant | All open models |
+| **Enterprise** | Unlimited | Metered | Full + memory + multi-tenant | All open models |
 
 ### Access Modes
 

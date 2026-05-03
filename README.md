@@ -75,9 +75,9 @@ RevealUI is the runtime at the center of the RevealUI Studio Suite. Companion pr
 | **RevDev**     | AI engineering harness — multi-agent coordination        | MIT (early)       |
 | **RevCon**     | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
 | **RevKit**     | Portable WSL dev environment toolkit                     | Pro               |
-| **RevealCoin** | Solana Token-2022 for x402 agent micropayments           | Forge tier        |
+| **RevealCoin** | Solana Token-2022 for x402 agent micropayments           | Enterprise tier   |
 | **RevSkills**  | Claude Code skills library                               | MIT               |
-| **Forge**      | White-label / enterprise deployment of RevealUI          | Forge tier        |
+| **Forge**      | White-label / enterprise deployment of RevealUI          | Enterprise tier   |
 
 Each product stands alone. Together, they cover the full lifecycle of building, securing, coordinating, and monetizing software, for you and for your agents.
 
