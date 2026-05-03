@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 /**
- * Issue a per-customer Forge license JWT.
+ * Issue a per-customer RevForge license JWT.
  *
- * Thin CLI wrapper around `@revealui/core/forge-license`. Reads the studio's
+ * Thin CLI wrapper around `@revealui/core/revforge-license`. Reads the studio's
  * RSA keypair from REVEALUI_LICENSE_PRIVATE_KEY / REVEALUI_LICENSE_PUBLIC_KEY,
  * parses argv, prints the signed JWT (or full JSON metadata with --json).
  *
@@ -11,7 +11,7 @@
  *   REVEALUI_LICENSE_PUBLIC_KEY    RS256 PEM
  *
  * Usage:
- *   revvault export-env -- pnpm tsx scripts/setup/issue-forge-license.ts \
+ *   revvault export-env -- pnpm tsx scripts/setup/issue-revforge-license.ts \
  *     --slug allevia --tier enterprise --expires-in-days 30
  *
  *   # Perpetual (one-time purchase), full JSON output
@@ -20,15 +20,15 @@
 
 import { parseArgs } from 'node:util';
 import {
-  type ForgeTier,
-  type IssueForgeLicenseOptions,
-  issueForgeLicense,
-  VALID_FORGE_TIERS,
-} from '@revealui/core/forge-license';
+  type IssueRevForgeLicenseOptions,
+  issueRevForgeLicense,
+  type RevForgeTier,
+  VALID_REVFORGE_TIERS,
+} from '@revealui/core/revforge-license';
 
 interface ParsedCli {
   json: boolean;
-  options: IssueForgeLicenseOptions;
+  options: IssueRevForgeLicenseOptions;
 }
 
 export function parseCliArgs(argv: string[]): ParsedCli {
@@ -59,15 +59,15 @@ export function parseCliArgs(argv: string[]): ParsedCli {
   if (!values.tier) {
     throw new Error('Missing required --tier.');
   }
-  if (!VALID_FORGE_TIERS.includes(values.tier as ForgeTier)) {
+  if (!VALID_REVFORGE_TIERS.includes(values.tier as RevForgeTier)) {
     throw new Error(
-      `Invalid --tier "${values.tier}": must be one of ${VALID_FORGE_TIERS.join(', ')}.`,
+      `Invalid --tier "${values.tier}": must be one of ${VALID_REVFORGE_TIERS.join(', ')}.`,
     );
   }
 
-  const options: IssueForgeLicenseOptions = {
+  const options: IssueRevForgeLicenseOptions = {
     slug: values.slug,
-    tier: values.tier as ForgeTier,
+    tier: values.tier as RevForgeTier,
     perpetual: values.perpetual === true,
   };
 
@@ -103,7 +103,7 @@ export function parseCliArgs(argv: string[]): ParsedCli {
 }
 
 function printUsage(): void {
-  process.stdout.write(`Usage: tsx scripts/setup/issue-forge-license.ts --slug <slug> --tier <tier> [options]
+  process.stdout.write(`Usage: tsx scripts/setup/issue-revforge-license.ts --slug <slug> --tier <tier> [options]
 
 Required:
   --slug SLUG               Customer slug (becomes customerId in the JWT;
@@ -126,11 +126,11 @@ Required env (source from revvault):
 
 Examples:
   # 30-day trial license for Allevia
-  revvault export-env -- pnpm tsx scripts/setup/issue-forge-license.ts \\
+  revvault export-env -- pnpm tsx scripts/setup/issue-revforge-license.ts \\
     --slug allevia --tier enterprise --expires-in-days 30
 
   # Perpetual enterprise license, full JSON output
-  revvault export-env -- pnpm tsx scripts/setup/issue-forge-license.ts \\
+  revvault export-env -- pnpm tsx scripts/setup/issue-revforge-license.ts \\
     --slug bigcorp --tier enterprise --perpetual --json
 `);
 }
@@ -167,7 +167,7 @@ async function main(): Promise<void> {
   }
 
   try {
-    const result = await issueForgeLicense(parsed.options, { privateKey, publicKey });
+    const result = await issueRevForgeLicense(parsed.options, { privateKey, publicKey });
     if (parsed.json) {
       process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
     } else {
