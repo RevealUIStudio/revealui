@@ -7,7 +7,7 @@ audience: enterprise
 
 # RevealUI Forge  -  Self-Hosted Deployment
 
-> **⚠️ Preview status — Forge Docker images are not yet published to GHCR.** The `docker/` stack, stamp scripts, source tree, and licensing flow are production-ready, but the images this guide references (`ghcr.io/revealuistudio/revealui-api`, `ghcr.io/revealuistudio/revealui-admin`) have not been published yet. The `docker pull` commands below will fail with `manifest unknown` until images publish. Until then, build from source at the [revealui repo](https://github.com/RevealUIStudio/revealui) or use the [Forge kit's source tree](https://github.com/RevealUIStudio/forge). License-key issuance and welcome emails go live when Stripe billing-readiness sign-off lands.
+> **⚠️ Preview status — Forge Docker images are not yet published to GHCR.** The `docker/` stack, stamp scripts, source tree, and licensing flow are production-ready, but the images this guide references (`ghcr.io/revealuistudio/revealui-api`, `ghcr.io/revealuistudio/revealui-admin`) have not been published yet. The `docker pull` commands below will fail with `manifest unknown` until images publish. Until then, build from source at the [revealui repo](https://github.com/RevealUIStudio/revealui) or use the [RevForge kit's source tree](https://github.com/RevealUIStudio/revforge). License-key issuance and welcome emails go live when Stripe billing-readiness sign-off lands.
 
 Forge is the enterprise tier of RevealUI. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
 
