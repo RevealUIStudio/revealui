@@ -25,7 +25,11 @@ const story: ShowcaseStory = {
       { title: 'Beta release', date: 'Mar 1', description: 'Public beta with 50+ components' },
       { title: 'v1.0 Launch', date: 'Mar 20', description: 'Production release on npm' },
       { title: 'Community milestone', date: 'Apr 5', description: '1,000 GitHub stars' },
-      { title: 'Enterprise tier', date: 'May 1', description: 'Enterprise tier with unlimited sites' },
+      {
+        title: 'Enterprise tier',
+        date: 'May 1',
+        description: 'Enterprise tier with unlimited sites',
+      },
     ].slice(0, count);
 
     return (
