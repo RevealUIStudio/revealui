@@ -66,7 +66,7 @@ Architecture and security are genuinely strong (auth 9/10, crypto done right). C
 
 ## Business Context
 
-**Model:** Open Core (MIT core + paid Pro / Max / Forge tiers)
+**Model:** Open Core (MIT core + paid Pro / Max / Enterprise tiers)
 **Target Market:** TypeScript-first agencies, SaaS builders, enterprise teams
 **Revenue:** SaaS subscriptions  -  Track A: Free / Pro $49/mo / Max $149/mo / Forge $299/mo; Track B: agent task credits ($0.001/task); Track C: perpetual licenses ($299–$1,999 one-time + annual support renewals); Track D: professional services (architecture review, migration assist, launch package, consulting)
 **Planned Launch:** OSS core Q3 2026, Pro tier Q4 2026
@@ -657,7 +657,7 @@ Phase D  -  Agent publisher tools (agent):
 
 ### Phase 6: SOC2 Type II Compliance (post-Phase 5, enterprise prerequisite)
 
-**Goal:** Achieve SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required to close enterprise (Forge) deals.
+**Goal:** Achieve SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required to close Enterprise tier deals.
 
 **Gap file:** `docs/gaps/GAP-047.yml`
 

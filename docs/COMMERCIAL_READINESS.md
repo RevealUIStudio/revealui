@@ -241,7 +241,7 @@ Everything else in this doc makes the business more durable but isn't blocking t
 
 ## Deliberately *not* blocking (do later)
 
-- SOC2 Type II — required for enterprise (Forge) deals, not for SMB Pro. Phase 6 of MASTER_PLAN
+- SOC2 Type II — required for Enterprise tier deals, not for SMB Pro. Phase 6 of MASTER_PLAN
   already tracks this.
 - ISO 27001 — same as above.
 - 24×7 support — not credible or necessary for a solo-operator Pro tier.

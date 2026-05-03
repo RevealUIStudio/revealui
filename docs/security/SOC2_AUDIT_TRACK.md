@@ -9,7 +9,7 @@ last-updated: 2026-04-15
 
 ## Overview
 
-This document tracks progress toward SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required for enterprise (Forge) customers.
+This document tracks progress toward SOC2 Type II certification covering the Common Criteria (Security) Trust Service Criteria. Required for Enterprise tier customers.
 
 ## Prerequisites (Complete)
 

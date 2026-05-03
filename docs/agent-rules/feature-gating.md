@@ -9,7 +9,7 @@ Rules for managing Pro/OSS tier boundaries in the RevealUI monorepo.
 | Free | `'free'` | MIT, open source |
 | Pro | `'pro'` | Fair Source (FSL-1.1-MIT), converts to MIT after 2 years |
 | Max | `'max'` | Extended Pro features |
-| Enterprise (Forge) | `'enterprise'` | White-label (planned), multi-tenant, self-hosted |
+| Enterprise | `'enterprise'` | White-label (planned), multi-tenant, self-hosted |
 
 ## Runtime Checks
 
