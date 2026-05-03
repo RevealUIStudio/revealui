@@ -1,0 +1,40 @@
+# RevealUI
+
+> The agentic business runtime. Five primitives — users, content, products, payments, AI — pre-wired for humans and AI agents to build businesses together. Open source (MIT) + Fair Source (FSL-1.1-MIT) Pro packages. Self-hostable. No vendor lock-in.
+
+## Documentation
+
+- [Documentation home](https://docs.revealui.com): Architecture, primitives, deployment, agent integration
+- [What works today](https://docs.revealui.com/WHAT_WORKS_TODAY): Honest pre-launch status — what's tested, what's stub, what's not yet wired
+- [Architecture](https://docs.revealui.com/ARCHITECTURE): Five primitives, 5 apps (admin, server, docs, marketing, revealcoin), 22 packages on npm + 3 internal
+- [Meet the Fleet](https://docs.revealui.com/SUITE): Eight products that compose **RevFleet**: RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), **RevealUI Fleet** (self-host runtime kit, deployed via the **RevForge** stamping tool — formerly RevealUI Forge), RevSkills (skills), RevKit (WSL toolkit)
+
+## Getting started
+
+- [Quick start](https://docs.revealui.com/QUICK_START): `npx create-revealui@latest my-app` — local stack in 60 seconds
+- [Local-first](https://docs.revealui.com/LOCAL_FIRST): Run the entire stack on your machine
+
+## Source code
+
+- [GitHub](https://github.com/RevealUIStudio/revealui): All code lives in the public repo. OSS subset under MIT; Pro packages (`@revealui/ai`, `@revealui/harnesses`, `@revealui/engines`) under FSL-1.1-MIT (Fair Source — source-visible, JWT-gated, auto-converts to MIT after 2 years).
+- [Fair Source explainer](https://docs.revealui.com/FAIR_SOURCE): What FSL-1.1-MIT means in practice
+
+## Pricing
+
+- [Pricing page](https://revealui.com/pricing): Free, Pro, Max, Enterprise tiers; perpetual licenses; professional services
+- Stripe billing currently runs in **TEST mode** in production. Live mode is gated on an internal billing-readiness audit. No customer cards are charged today.
+
+## For agents
+
+- [AI integration](https://docs.revealui.com/AI): How agents talk to a RevealUI runtime via MCP, A2A, and harness coordination
+- [Agent rules](https://docs.revealui.com/agent-rules/): Conventions agents follow when contributing to a RevealUI codebase
+- [REST API](https://docs.revealui.com/api/): Hono + OpenAPI endpoints
+
+## Status (honest, pre-launch)
+
+- Zero paying customers. Code grade: A- (8.7/10) on internal honest assessment.
+- **Stripe live mode** gated on billing-readiness audit. Test mode is current production posture.
+- **RevealUI Fleet runtime kit** (formerly RevealUI Forge — renamed per ADR `2026-05-03-revfleet-rename`; deployed via the RevForge stamping tool) is preview — Docker images not yet on GHCR; stack runs from source today.
+- **Ubuntu Inference Snaps** integration is in progress; **Ollama** is the working open-model path today.
+- **RevealCoin (RVC)** is on Solana mainnet; public trading + Raydium pool gate on multi-sig + on-chain vesting.
+- **Supabase** is being phased out in favor of NeonDB + ElectricSQL.

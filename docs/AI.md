@@ -30,11 +30,14 @@ pnpm add @revealui/ai
 
 ## Quick start
 
-Install a model via Ubuntu Inference Snaps (recommended):
+Install a model via Ubuntu Inference Snaps (canonical default — install + run yourself today; Studio lifecycle pending):
 
 ```bash
-sudo snap install nemotron-3-nano   # general-purpose, low resource
-# or: sudo snap install gemma3      # general + vision
+sudo snap install gemma3             # default — general + vision (~8 GB, Apache 2.0)
+# or: sudo snap install deepseek-r1            # reasoning, chain-of-thought
+# or: sudo snap install qwen-vl                # vision-language, document parsing
+# or: sudo snap install nemotron-3-nano        # text-only, lightweight (~4 GB)
+# or: sudo snap install nemotron-3-nano-omni   # multimodal — text/image/video/audio in, text out
 ```
 
 ```typescript
@@ -96,17 +99,18 @@ const memory = {
 
 | Path | Chat | Embeddings | Notes |
 | ---- | ---- | ---------- | ----- |
-| **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install, OpenAI-compatible API |
+| **Ubuntu Inference Snaps** (canonical default — Studio lifecycle pending) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install, OpenAI-compatible API |
 | Ollama | Yes | Yes | Any open source GGUF model, local inference. Default chat: `gemma4:e2b`, embed: `nomic-embed-text` |
 
 ### Inference Snaps Models
 
 | Snap | Type | Use Case |
 | ---- | ---- | -------- |
-| `nemotron-3-nano` | General (reasoning + non-reasoning) | **Free tier default**  -  lightweight, fast |
-| `gemma3` | General + vision | Image understanding, multimodal tasks |
+| `gemma3` | General + vision | **Default**  -  vision-capable, Apache 2.0 (~8 GB) |
 | `deepseek-r1` | Reasoning | Complex analysis, chain-of-thought |
 | `qwen-vl` | Vision-language | Document parsing, visual Q&A |
+| `nemotron-3-nano` | General (text-only) | Lightweight alternative for low-resource hosts (~4 GB) |
+| `nemotron-3-nano-omni` | Multimodal | Text/image/video/audio in, text out |
 
 Install: `sudo snap install <name>`. Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.
 
@@ -146,11 +150,11 @@ The default and recommended path is open-model inference: **Ollama** (any open s
 For the planned recommended path (when you're ready to install + run a Canonical Inference Snap yourself):
 
 ```bash
-# Install your first model (free tier default)
-sudo snap install nemotron-nano
+# Install your first model (default)
+sudo snap install gemma3
 
 # Check status
-nemotron-nano status
+gemma3 status
 ```
 
 ```typescript

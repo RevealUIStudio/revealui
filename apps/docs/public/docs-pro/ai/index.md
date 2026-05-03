@@ -30,7 +30,7 @@ ollama pull gemma4:e2b
 ollama pull nomic-embed-text
 
 # OR planned path (run + manage the snap yourself for now)
-sudo snap install nemotron-nano
+sudo snap install gemma3
 ```
 
 ```typescript

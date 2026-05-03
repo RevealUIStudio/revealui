@@ -51,7 +51,7 @@ This guide covers the full Pro surface area, not just MCP setup:
 - MCP servers and developer tooling
 - Open-model inference (Ollama shipped; Ubuntu Inference Snaps on roadmap)
 - editor and harness workflows
-- Stripe, Supabase, and x402 payment features
+- Stripe and x402 payment features
 - marketplace monetization
 - perpetual and Forge licensing
 
@@ -75,7 +75,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 - Pro packages (Fair Source / FSL-1.1-MIT): `@revealui/ai`, `@revealui/harnesses`
 - MCP servers and developer tooling
 - Open-model inference configuration per deployment
-- Stripe and Supabase service integrations
+- Stripe service integrations
 - x402 micropayments and paid API support
 - Marketplace and self-hosted commercial deployment options
 
@@ -1156,11 +1156,11 @@ syncConfig("claude-code", "push");
 
 # @revealui/services
 
-Stripe payment processing and Supabase client integrations for RevealUI Pro.
+Stripe payment processing for RevealUI Pro.
 
 ## Overview
 
-`@revealui/services` provides pre-wired Stripe and Supabase integrations with auth-aware clients, webhook handlers, and billing flow helpers.
+`@revealui/services` provides pre-wired Stripe integrations with auth-aware clients, webhook handlers, and billing flow helpers. Also exports Solana (RevealCoin / RVC) and Vercel (deploy + DNS) helpers.
 
 **Requires a Pro or Forge license** (`isFeatureEnabled('payments')`).
 
@@ -1204,58 +1204,6 @@ Full checkout/portal/webhook route handlers are wired at the application layer (
 STRIPE_SECRET_KEY=sk_test_...   # Use sk_live_... once billing-readiness sign-off lands
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_ID=price_...       # Your Pro tier price
-```
-
-## Supabase
-
-### Server client (Next.js App Router)
-
-```typescript
-import { createServerClient } from "@revealui/services";
-import { cookies } from "next/headers";
-
-// In a Server Component or Route Handler
-const supabase = createServerClient(cookies());
-const { data } = await supabase.from("profiles").select("*");
-```
-
-### Browser client
-
-```typescript
-import { createBrowserClient } from "@revealui/services";
-
-// In a Client Component
-const supabase = createBrowserClient();
-const {
-  data: { session },
-} = await supabase.auth.getSession();
-```
-
-### Request client (Hono / Edge)
-
-```typescript
-import { createServerClientFromRequest } from "@revealui/services";
-
-// In a Hono handler
-app.get("/me", async (c) => {
-  const supabase = createServerClientFromRequest(c.req.raw);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return c.json({ user });
-});
-```
-
-### Resilience wrapper
-
-Wraps any Supabase operation with automatic retry on transient errors:
-
-```typescript
-import { withSupabaseResilience } from "@revealui/services";
-
-const data = await withSupabaseResilience(() =>
-  supabase.from("posts").select("*").limit(10),
-);
 ```
 
 ## Environment configuration

@@ -1,0 +1,57 @@
+# RevealUI Documentation
+
+> Documentation for RevealUI — the agentic business runtime. Architecture, primitives, deployment, fleet composition, and agent integration. Honest status throughout.
+
+## Start here
+
+- [Index](https://docs.revealui.com/INDEX): Top-level documentation map
+- [Quick start](https://docs.revealui.com/QUICK_START): `npx create-revealui@latest my-app` — local stack in 60 seconds
+- [Architecture](https://docs.revealui.com/ARCHITECTURE): Five primitives, app + package map, package boundaries
+- [What works today](https://docs.revealui.com/WHAT_WORKS_TODAY): Honest tested-vs-stub-vs-absent status
+
+## The five primitives
+
+- [Auth](https://docs.revealui.com/AUTH): Session-only auth, bcrypt 12 rounds, OAuth, passkeys (license JWT is a separate surface, RS256)
+- [AI](https://docs.revealui.com/AI): LLM providers, MCP, A2A, agents, RAG, memory layers
+- [Database](https://docs.revealui.com/DATABASE): Drizzle ORM on NeonDB; legacy Supabase code remaining in tree during phase-out
+- [Billing (Stripe)](https://docs.revealui.com/PRO#billing): Stripe webhooks, circuit breaker, metered billing
+- [Local-first](https://docs.revealui.com/LOCAL_FIRST): The whole stack runs on your machine
+
+## The fleet
+
+- [RevFleet](https://docs.revealui.com/SUITE): The eight-product Studio family, what each does, how they compose
+- [Pro packages](https://docs.revealui.com/PRO): `@revealui/ai`, `@revealui/harnesses`, `@revealui/engines` (FSL-1.1-MIT — source-visible, JWT-gated, auto-MIT after 2 years)
+- [RevealUI Fleet runtime](https://docs.revealui.com/FORGE): Self-hosted Enterprise-tier deployment kit (formerly RevealUI Forge — renamed per ADR `2026-05-03-revfleet-rename`; deployed via the RevForge stamping tool; preview status)
+- [Component catalog](https://docs.revealui.com/COMPONENT_CATALOG): UI components shipped in `@revealui/presentation`
+- [Examples](https://docs.revealui.com/EXAMPLES): Code examples
+
+## Agents
+
+- [AI integration](https://docs.revealui.com/AI): How agents talk to a RevealUI runtime
+- [Agent rules](https://docs.revealui.com/agent-rules/): Conventions for agents working in a RevealUI codebase
+- [REST API](https://docs.revealui.com/api/): Hono + OpenAPI endpoints
+
+## Operations
+
+- [Deployment runbook](https://docs.revealui.com/DEPLOYMENT-RUNBOOK): Production deploy procedures
+- [Environment variables](https://docs.revealui.com/ENVIRONMENT-VARIABLES-GUIDE): Full env reference
+- [Credential rotation](https://docs.revealui.com/CREDENTIAL-ROTATION-RUNBOOK): Rotation runbook for every secret type
+
+## Reference
+
+- [Reference index](https://docs.revealui.com/REFERENCE): Type-checked reference
+- [Architecture decisions](https://docs.revealui.com/decisions/): Internal ADRs
+- [Audit status](https://docs.revealui.com/AUDIT_STATUS): Pre-launch audit posture
+
+## Source
+
+- [GitHub](https://github.com/RevealUIStudio/revealui)
+- [Issue tracker](https://github.com/RevealUIStudio/revealui/issues)
+
+## Status (honest, pre-launch)
+
+- 0 paying customers; A- (8.7/10) on internal honest grading
+- **Stripe** runs in TEST mode in production; live mode gated on billing-readiness audit (see `WHAT_WORKS_TODAY`)
+- **RevealUI Fleet** (formerly RevealUI Forge) Docker images not yet on GHCR (preview status — runs from source today)
+- **Ubuntu Inference Snaps** integration in progress; **Ollama** is the shipped open-model path
+- **Supabase** being phased out in favor of NeonDB + ElectricSQL (vector store consolidation in flight)

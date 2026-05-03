@@ -56,12 +56,12 @@ const faqs = [
   {
     question: 'Do you offer custom pricing for large teams?',
     answer:
-      'Yes! If you need more than what the Forge tier offers, contact us at support@revealui.com to discuss custom pricing and SLAs.',
+      'Yes! If you need more than what the Enterprise tier offers, contact us at support@revealui.com to discuss custom pricing and SLAs.',
   },
   {
     question: 'What is the RevealUI ecosystem?',
     answer:
-      'RevealUI is part of a four-project ecosystem. RevVault provides age-encrypted secret management (CLI free, desktop app Pro). RevKit provides portable dev environment provisioning (agent coordination protocol free, full provisioning Max). RevealCoin enables agent-native micropayments via the x402 protocol (Forge). Each project works independently. Together they cover building, securing, and monetizing agentic software.',
+      'RevealUI is part of a four-project ecosystem. RevVault provides age-encrypted secret management (CLI free, desktop app Pro). RevKit provides portable dev environment provisioning (agent coordination protocol free, full provisioning Max). RevealCoin enables agent-native micropayments via the x402 protocol (Enterprise tier). Each project works independently. Together they cover building, securing, and monetizing agentic software.',
   },
 ];
 
