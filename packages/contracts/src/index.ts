@@ -595,6 +595,34 @@ export {
 } from './actions/index.js';
 
 // =============================================================================
+// Secrets (revvault path convention + rotation + audit events)
+// =============================================================================
+
+export {
+  createRotationEvent,
+  createSecretAuditEvent,
+  isSecretPath,
+  parseSecretPath,
+  type RotationEvent,
+  RotationEventContract,
+  RotationEventSchema,
+  type RotationReason,
+  RotationReasonSchema,
+  SECRETS_SCHEMA_VERSION,
+  type SecretActor,
+  SecretActorSchema,
+  type SecretActorType,
+  SecretActorTypeSchema,
+  type SecretAuditEvent,
+  SecretAuditEventContract,
+  SecretAuditEventSchema,
+  type SecretAuditEventType,
+  SecretAuditEventTypeSchema,
+  type SecretPath,
+  SecretPathSchema,
+} from './secrets/index.js';
+
+// =============================================================================
 // Security
 // =============================================================================
 
