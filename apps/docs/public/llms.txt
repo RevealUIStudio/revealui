@@ -19,9 +19,9 @@
 
 ## The fleet
 
-- [The RevealUI Studio Fleet](https://docs.revealui.com/SUITE): All eight products, what each does, how they compose
+- [RevFleet](https://docs.revealui.com/SUITE): The eight-product Studio family, what each does, how they compose
 - [Pro packages](https://docs.revealui.com/PRO): `@revealui/ai`, `@revealui/harnesses`, `@revealui/engines` (FSL-1.1-MIT — source-visible, JWT-gated, auto-MIT after 2 years)
-- [Revfleet runtime](https://docs.revealui.com/FORGE): Self-hosted enterprise deployment kit (formerly Forge — rename in flight per ADR `2026-05-01-forge-naming`; preview status)
+- [RevealUI Fleet runtime](https://docs.revealui.com/FORGE): Self-hosted Enterprise-tier deployment kit (formerly RevealUI Forge — renamed per ADR `2026-05-03-revfleet-rename`; deployed via the RevForge stamping tool; preview status)
 - [Component catalog](https://docs.revealui.com/COMPONENT_CATALOG): UI components shipped in `@revealui/presentation`
 - [Examples](https://docs.revealui.com/EXAMPLES): Code examples
 
@@ -52,6 +52,6 @@
 
 - 0 paying customers; A- (8.7/10) on internal honest grading
 - **Stripe** runs in TEST mode in production; live mode gated on billing-readiness audit (see `WHAT_WORKS_TODAY`)
-- **Revfleet** (formerly Forge) Docker images not yet on GHCR (preview status — runs from source today)
+- **RevealUI Fleet** (formerly RevealUI Forge) Docker images not yet on GHCR (preview status — runs from source today)
 - **Ubuntu Inference Snaps** integration in progress; **Ollama** is the shipped open-model path
 - **Supabase** being phased out in favor of NeonDB + ElectricSQL (vector store consolidation in flight)
