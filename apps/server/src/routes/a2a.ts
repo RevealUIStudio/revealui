@@ -318,6 +318,51 @@ app.openapi(
   },
 );
 
+/**
+ * MCP server discovery manifest.
+ * GET /.well-known/mcp.json
+ *
+ * Returns the MCP servers exposed by this RevealUI deployment so agents
+ * can enumerate available tool surfaces without prior knowledge.
+ *
+ * Public  -  no auth, no license gating; the response describes what
+ * exists, not what the caller is licensed to invoke. Per-server
+ * licensing is enforced at the tool-invocation layer.
+ *
+ * Closes suite-messaging audit N4 ("agent-native pitch ships zero
+ * agent affordances") at the discovery layer; complement to the
+ * /llms.txt prose layer (PR #720) and the /.well-known/agent.json
+ * A2A discovery layer.
+ */
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/mcp.json',
+    tags: ['a2a'],
+    summary: 'MCP server discovery manifest',
+    responses: {
+      200: {
+        content: { 'application/json': { schema: z.unknown() } },
+        description: 'MCP server manifest',
+      },
+    },
+  }),
+  (c) => {
+    // WIP-skeleton  -  full manifest builder lands in the implementation commit.
+    return c.json(
+      {
+        version: '1.0',
+        servers: [],
+      },
+      200,
+      {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'public, max-age=300',
+      },
+    );
+  },
+);
+
 // =============================================================================
 // A2A task API  -  /a2a/*
 // =============================================================================
