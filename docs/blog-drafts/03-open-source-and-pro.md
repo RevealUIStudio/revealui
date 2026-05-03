@@ -54,7 +54,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 
 ## The Pricing Philosophy
 
-| | Free (OSS) | Pro | Max | Forge (Enterprise) |
+| | Free (OSS) | Pro | Max | Enterprise |
 |---|---|---|---|---|
 | **Price** | $0 | $49/mo | $149/mo | $299/mo |
 | **Sites** | 1 | 5 | 15 | Unlimited |
