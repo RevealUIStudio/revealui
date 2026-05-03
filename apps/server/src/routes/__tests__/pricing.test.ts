@@ -792,10 +792,17 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
           revealui_price_note: 'one-time',
           revealui_renewal: '$199/yr',
         }),
-        makeStripeProduct('Enterprise Perpetual', 'perpetual', 'enterprise_perpetual', 199900, undefined, {
-          revealui_price_note: 'one-time',
-          revealui_renewal: '$499/yr',
-        }),
+        makeStripeProduct(
+          'Enterprise Perpetual',
+          'perpetual',
+          'enterprise_perpetual',
+          199900,
+          undefined,
+          {
+            revealui_price_note: 'one-time',
+            revealui_renewal: '$499/yr',
+          },
+        ),
       ],
     });
 
@@ -807,7 +814,9 @@ describe('GET /api/pricing  -  metadata defaults and edge cases', () => {
     expect(pro.price).toBe('$299');
     const agency = data.perpetual.find((t: { name: string }) => t.name === 'Agency Perpetual');
     expect(agency.price).toBe('$799');
-    const enterprise = data.perpetual.find((t: { name: string }) => t.name === 'Enterprise Perpetual');
+    const enterprise = data.perpetual.find(
+      (t: { name: string }) => t.name === 'Enterprise Perpetual',
+    );
     expect(enterprise.price).toBe('$1999');
   });
 
