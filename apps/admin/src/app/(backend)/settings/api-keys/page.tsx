@@ -17,7 +17,7 @@ interface ProviderInfo {
 const PROVIDERS: ProviderInfo[] = [
   {
     id: 'inference-snaps',
-    label: 'Inference Snaps (Ubuntu, recommended)',
+    label: 'Inference Snaps (Ubuntu, canonical default)',
     placeholder: 'leave blank — runs locally',
     docsUrl: 'https://snapcraft.io/search?q=inference',
   },

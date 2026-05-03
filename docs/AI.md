@@ -30,7 +30,7 @@ pnpm add @revealui/ai
 
 ## Quick start
 
-Install a model via Ubuntu Inference Snaps (recommended):
+Install a model via Ubuntu Inference Snaps (canonical default — install + run yourself today; Studio lifecycle pending):
 
 ```bash
 sudo snap install nemotron-3-nano   # general-purpose, low resource
@@ -96,7 +96,7 @@ const memory = {
 
 | Path | Chat | Embeddings | Notes |
 | ---- | ---- | ---------- | ----- |
-| **Ubuntu Inference Snaps** (recommended) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install, OpenAI-compatible API |
+| **Ubuntu Inference Snaps** (canonical default — Studio lifecycle pending) | Yes | Depends on model | Canonical snap runtime  -  hardware-aware, single command install, OpenAI-compatible API |
 | Ollama | Yes | Yes | Any open source GGUF model, local inference. Default chat: `gemma4:e2b`, embed: `nomic-embed-text` |
 
 ### Inference Snaps Models
@@ -147,10 +147,10 @@ For the planned recommended path (when you're ready to install + run a Canonical
 
 ```bash
 # Install your first model (free tier default)
-sudo snap install nemotron-nano
+sudo snap install nemotron-3-nano
 
 # Check status
-nemotron-nano status
+nemotron-3-nano status
 ```
 
 ```typescript

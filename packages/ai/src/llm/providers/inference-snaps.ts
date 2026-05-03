@@ -4,11 +4,13 @@
  * Local inference via Canonical's inference-snaps OpenAI-compatible API.
  * No API key required. Zero cost, fully offline, hardware-optimized.
  *
- * Supported models (snaps):
- *   gemma3          -  general LLM + vision (text/image in, text out)
- *   deepseek-r1     -  reasoning LLM
- *   qwen-vl         -  vision-language model (image + text)
- *   nemotron-nano   -  general LLM (reasoning + non-reasoning)
+ * Supported models (snaps), per Canonical's official catalog at
+ * https://documentation.ubuntu.com/inference-snaps/reference/snaps/ :
+ *   gemma3                 -  general LLM + vision (text/image in, text out)
+ *   deepseek-r1            -  reasoning LLM (chat completions)
+ *   qwen-vl                -  vision-language model (image + text)
+ *   nemotron-3-nano        -  general LLM (reasoning + non-reasoning, text only)
+ *   nemotron-3-nano-omni   -  multimodal (text/image/video/audio in, text out)
  *
  * Install a model:
  *   sudo snap install gemma3
