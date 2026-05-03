@@ -299,6 +299,101 @@ describe('GET /.well-known/agents/:id/agent.json', () => {
   });
 });
 
+// ─── GET /.well-known/mcp.json ────────────────────────────────────────────────
+
+describe('GET /.well-known/mcp.json', () => {
+  beforeEach(resetMocks);
+
+  it('returns the MCP discovery manifest with required top-level fields', async () => {
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/mcp.json'));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      version: string;
+      platform: string;
+      documentationUrl: string;
+      servers: unknown[];
+    };
+    expect(body.version).toBe('1.0');
+    expect(body.platform).toBe('revealui');
+    expect(body.documentationUrl).toContain('packages/mcp/README.md');
+    expect(Array.isArray(body.servers)).toBe(true);
+  });
+
+  it('lists exactly 13 MCP servers (matches packages/mcp/README.md ground truth)', async () => {
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/mcp.json'));
+    const body = (await res.json()) as { servers: unknown[] };
+    expect(body.servers).toHaveLength(13);
+  });
+
+  it('serves the manifest as public — no auth, no Pro license required', async () => {
+    // Per audit N4 / protocol-pyramid framing, discovery must be public.
+    // Even when isFeatureEnabled returns false, the route must succeed.
+    mockIsFeatureEnabled.mockReturnValue(false);
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/mcp.json'));
+    expect(res.status).toBe(200);
+  });
+
+  it('sets Cache-Control: public, max-age=300', async () => {
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/mcp.json'));
+    expect(res.headers.get('Cache-Control')).toBe('public, max-age=300');
+  });
+
+  it('lists the contracts server as not Pro-gated (the public exception)', async () => {
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/mcp.json'));
+    const body = (await res.json()) as {
+      servers: Array<{ id: string; proGated: boolean; category: string }>;
+    };
+    const contracts = body.servers.find((s) => s.id === 'contracts');
+    expect(contracts).toBeDefined();
+    expect(contracts?.proGated).toBe(false);
+    expect(contracts?.category).toBe('introspection');
+  });
+
+  it('every server entry declares required fields with correct shapes', async () => {
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/mcp.json'));
+    const body = (await res.json()) as {
+      servers: Array<{
+        id: string;
+        name: string;
+        description: string;
+        category: string;
+        transport: string;
+        modulePath: string;
+        license: string;
+        proGated: unknown;
+        requiresCredentials: unknown;
+      }>;
+    };
+    for (const server of body.servers) {
+      expect(server.id).toBeTruthy();
+      expect(server.name).toBeTruthy();
+      expect(server.description).toBeTruthy();
+      expect(['introspection', 'platform', 'integration', 'development', 'helper']).toContain(
+        server.category,
+      );
+      expect(server.transport).toBe('stdio');
+      expect(server.modulePath).toContain('@revealui/mcp');
+      expect(server.license).toBe('MIT');
+      expect(typeof server.proGated).toBe('boolean');
+      expect(typeof server.requiresCredentials).toBe('boolean');
+    }
+  });
+
+  it('server ids are unique', async () => {
+    const app = makeWellKnownApp();
+    const res = await app.request(get('/mcp.json'));
+    const body = (await res.json()) as { servers: Array<{ id: string }> };
+    const ids = body.servers.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
 // ─── GET /agents ──────────────────────────────────────────────────────────────
 
 describe('GET /agents', () => {
