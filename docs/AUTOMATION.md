@@ -539,7 +539,7 @@ The agent has access to extensive automation scripts in `/scripts`:
 
 ### Configured MCP Servers
 
-The agent has access to **12 MCP servers** configured specifically for RevealUI:
+The agent has access to **13 MCP servers** configured specifically for RevealUI:
 
 1. **Code Validator MCP** (`mcp-code-validator`)
    - Static analysis and code quality checks
