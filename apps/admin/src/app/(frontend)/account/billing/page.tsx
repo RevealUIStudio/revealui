@@ -18,6 +18,7 @@ import {
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { TestModeBanner } from '@/components/TestModeBanner';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
@@ -256,6 +257,8 @@ function BillingContent() {
   return (
     <div className="mx-auto max-w-2xl space-y-6 py-12">
       <h1 className="text-2xl font-bold">Billing</h1>
+
+      <TestModeBanner />
 
       {subscription?.status === 'trialing' && subscription.expiresAt && (
         <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
