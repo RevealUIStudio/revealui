@@ -35,7 +35,7 @@ export function PrivacyPage() {
         <h3>Content Data</h3>
         <p>
           Any content you create through the admin (posts, pages, media) is stored in your database.
-          For hosted plans, this data is stored in NeonDB (PostgreSQL) and Supabase.
+          For hosted plans, this data is stored in NeonDB (PostgreSQL).
         </p>
 
         <h2>2. How We Use Your Information</h2>

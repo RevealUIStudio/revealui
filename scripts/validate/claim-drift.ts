@@ -719,6 +719,11 @@ const RVUI_LEAK_ALLOWLIST = new Set<string>([
   // The REST API reference cites the internal route slug (`rvui-payment`)
   // and provides the explicit RVUI-vs-RVC boundary note customers need.
   'docs/api/rest-api/README.md',
+  // The canonical Fleet glossary's Internal-only codenames section is
+  // by design the place that documents the `$RVUI` (codename) vs `RVC`
+  // (customer-facing ticker) boundary; it must mention both to fulfil
+  // its purpose as the cross-cutting vocabulary source of truth.
+  'docs/glossary.md',
 ]);
 
 function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {

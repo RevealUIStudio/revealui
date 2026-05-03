@@ -110,7 +110,10 @@
     "revealui",
     "services",
     "stripe",
-    "supabase",
+    "solana",
+    "revealcoin",
+    "vercel",
+    "gmail",
     "integrations"
   ]
 }
