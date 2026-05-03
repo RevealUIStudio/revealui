@@ -1,14 +1,27 @@
 /**
  * @revealui/contracts/revealcoin
  *
- * Single source of truth for RevealCoin (RVUI) token parameters, addresses,
- * and discount rates within the RevealUI ecosystem.
+ * Single source of truth for RevealCoin (RVUI) token parameters and
+ * discount rates within the RevealUI ecosystem. On-chain truth (mint
+ * addresses, mint authority, allocation wallets) is derived from
+ * `@revealui/revealcoin-manifest` per the layer split documented in
+ * `docs/decisions/2026-05-03-revealcoin-manifest-transport.md`.
  *
  * Token: Solana Token-2022 (Token Extensions)  -  MetadataPointer + TokenMetadata
  * Supply: 58,906,000,000 RVUI  -  US currency in circulation, August 14, 1971
  *
  * @packageDocumentation
  */
+
+import {
+  getAllocationManifest,
+  REVEALCOIN_MANIFEST,
+  type SolanaNetwork,
+} from '@revealui/revealcoin-manifest';
+
+// Re-export the network union from the manifest so consumers of
+// `@revealui/contracts` continue to import `SolanaNetwork` from here.
+export type { SolanaNetwork };
 
 // =============================================================================
 // Token Configuration
@@ -37,30 +50,36 @@ export const RVUI_TOKEN_CONFIG: RvuiTokenConfig = {
 };
 
 // =============================================================================
-// Network Addresses
+// Network Addresses (derived from @revealui/revealcoin-manifest)
 // =============================================================================
-
-export type SolanaNetwork = 'devnet' | 'testnet' | 'mainnet-beta';
 
 /** Token-2022 program ID (same across all networks). */
 export const RVUI_TOKEN_PROGRAM = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 
+function deriveNetworkRecord(key: 'mintAddress' | 'mintAuthority'): Record<SolanaNetwork, string> {
+  const partial: Partial<Record<SolanaNetwork, string>> = {};
+  for (const entry of REVEALCOIN_MANIFEST.networks) {
+    partial[entry.network] = entry[key];
+  }
+  // Ensure every network in the union has an entry; missing → empty string
+  // (matches the prior contract for undeployed networks).
+  return {
+    devnet: partial.devnet ?? '',
+    testnet: partial.testnet ?? '',
+    'mainnet-beta': partial['mainnet-beta'] ?? '',
+  };
+}
+
 /** RVUI mint addresses per Solana network. */
-export const RVUI_MINT_ADDRESSES: Record<SolanaNetwork, string> = {
-  devnet: '4Ysb1gkz21FD2B9P8P5Pm8bHh4CAMKYU1L528e1MigPo',
-  testnet: '', // not deployed
-  'mainnet-beta': '4Ysb1gkz21FD2B9P8P5Pm8bHh4CAMKYU1L528e1MigPo',
-};
+export const RVUI_MINT_ADDRESSES: Record<SolanaNetwork, string> =
+  deriveNetworkRecord('mintAddress');
 
 /** Mint authority (controls minting + metadata updates). */
-export const RVUI_MINT_AUTHORITY: Record<SolanaNetwork, string> = {
-  devnet: 'BzFDXRj56QkizrhAfNLTTUuKwNbv5krCfcRMgTUSMpw4',
-  testnet: '',
-  'mainnet-beta': 'BzFDXRj56QkizrhAfNLTTUuKwNbv5krCfcRMgTUSMpw4',
-};
+export const RVUI_MINT_AUTHORITY: Record<SolanaNetwork, string> =
+  deriveNetworkRecord('mintAuthority');
 
 // =============================================================================
-// Distribution Wallets (Devnet  -  White Paper Section 5.1)
+// Distribution Wallets (White Paper Section 5.1)
 // =============================================================================
 
 export interface RvuiAllocation {
@@ -71,57 +90,82 @@ export interface RvuiAllocation {
   vestingDescription: string;
 }
 
-export const RVUI_ALLOCATIONS: RvuiAllocation[] = [
+/**
+ * Human-decided allocation parameters (name, percentage, amount,
+ * vestingDescription). The `wallet` field is chain-derived from
+ * `@revealui/revealcoin-manifest` `allocations[]` by `name` match.
+ *
+ * Drift between the two surfaces (e.g. renaming an allocation in one
+ * without the other) surfaces at module-load time via
+ * `walletForAllocation`'s throw.
+ */
+interface AllocationParams {
+  name: string;
+  percentage: number;
+  amount: bigint;
+  vestingDescription: string;
+}
+
+const ALLOCATION_PARAMS: readonly AllocationParams[] = [
   {
     name: 'Ecosystem Rewards',
     percentage: 30,
     amount: 17_671_800_000_000_000n,
-    wallet: 'HRpDTX76PSRiXpgct2aTPbCfzoSzoJs9XyhY3SZEkx93',
     vestingDescription: '5-year front-loaded emission schedule',
   },
   {
     name: 'Protocol Treasury',
     percentage: 25,
     amount: 14_726_500_000_000_000n,
-    wallet: '9ezxfrDTXgJVeuzwLDKAeKs6wurb2DQkP1HuMeRgazzU',
     vestingDescription: 'DAO-managed after governance launch',
   },
   {
     name: 'Team & Founders',
     percentage: 15,
     amount: 8_835_900_000_000_000n,
-    wallet: '2EiJT4dMPTgEzAr2Q3wWJL7E967o6rNWjEBZckhvpSbN',
     vestingDescription: '12-month cliff, 4-year linear vest',
   },
   {
     name: 'Community Governance',
     percentage: 10,
     amount: 5_890_600_000_000_000n,
-    wallet: '5d16DX9c69e11vPsmEwKn9qL6rysD4n21q21SEft3dM8',
     vestingDescription: 'Unlocked for staking and voting',
   },
   {
     name: 'Liquidity Provision',
     percentage: 10,
     amount: 5_890_600_000_000_000n,
-    wallet: 'HjR2WZAFGVYfguRGFPqGMDTWS17U9PvLKhLTsvwSPTcB',
     vestingDescription: '6-month lockup, then gradual release',
   },
   {
     name: 'Strategic Partners',
     percentage: 5,
     amount: 2_945_300_000_000_000n,
-    wallet: '3TFazumEiq5wyx3R2THApCPyX4o9AS5N241k8HNkT2UC',
     vestingDescription: '6-month cliff, 2-year linear vest',
   },
   {
     name: 'Public Distribution',
     percentage: 5,
     amount: 2_945_300_000_000_000n,
-    wallet: '73M1FBCQCTo2ysmdjegtmvVGbFa3Wg9FMZnXxrTnX7qx',
     vestingDescription: 'Airdrops, bounties, hackathons',
   },
 ];
+
+function walletForAllocation(name: string): string {
+  const entry = getAllocationManifest(name);
+  if (!entry) {
+    throw new Error(
+      `RVUI allocation "${name}" missing from @revealui/revealcoin-manifest — ` +
+        `contracts/manifest drift; update revealcoin/keys/ + re-emit, or update ALLOCATION_PARAMS.`,
+    );
+  }
+  return entry.wallet;
+}
+
+export const RVUI_ALLOCATIONS: RvuiAllocation[] = ALLOCATION_PARAMS.map((params) => ({
+  ...params,
+  wallet: walletForAllocation(params.name),
+}));
 
 // =============================================================================
 // Discount Rates (White Paper Section 6.1)
