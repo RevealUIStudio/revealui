@@ -7,7 +7,7 @@
 - [Documentation home](https://docs.revealui.com): Architecture, primitives, deployment, agent integration
 - [What works today](https://docs.revealui.com/WHAT_WORKS_TODAY): Honest pre-launch status — what's tested, what's stub, what's not yet wired
 - [Architecture](https://docs.revealui.com/ARCHITECTURE): Five primitives, 5 apps (admin, server, docs, marketing, revealcoin), 22 packages on npm + 3 internal
-- [Meet the Suite](https://docs.revealui.com/SUITE): Eight products that compose: RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), Forge (self-host kit), RevSkills (skills), RevKit (WSL toolkit)
+- [Meet the Fleet](https://docs.revealui.com/SUITE): Eight products that compose the RevealUI Studio Fleet: RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), Revfleet (self-host kit, formerly Forge), RevSkills (skills), RevKit (WSL toolkit)
 
 ## Getting started
 
@@ -34,7 +34,7 @@
 
 - Zero paying customers. Code grade: A- (8.7/10) on internal honest assessment.
 - **Stripe live mode** gated on billing-readiness audit. Test mode is current production posture.
-- **Forge runtime kit** is preview — Docker images not yet on GHCR; stack runs from source today.
+- **Revfleet runtime kit** (formerly Forge — rename in flight per ADR `2026-05-01-forge-naming`) is preview — Docker images not yet on GHCR; stack runs from source today.
 - **Ubuntu Inference Snaps** integration is in progress; **Ollama** is the working open-model path today.
 - **RevealCoin (RVC)** is on Solana mainnet; public trading + Raydium pool gate on multi-sig + on-chain vesting.
 - **Supabase** is being phased out in favor of NeonDB + ElectricSQL.

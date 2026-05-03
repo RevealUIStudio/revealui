@@ -1,6 +1,6 @@
 # RevealUI Documentation
 
-> Documentation for RevealUI — the agentic business runtime. Architecture, primitives, deployment, suite composition, and agent integration. Honest status throughout.
+> Documentation for RevealUI — the agentic business runtime. Architecture, primitives, deployment, fleet composition, and agent integration. Honest status throughout.
 
 ## Start here
 
@@ -17,11 +17,11 @@
 - [Billing (Stripe)](https://docs.revealui.com/PRO#billing): Stripe webhooks, circuit breaker, metered billing
 - [Local-first](https://docs.revealui.com/LOCAL_FIRST): The whole stack runs on your machine
 
-## The suite
+## The fleet
 
-- [The RevealUI Studio Suite](https://docs.revealui.com/SUITE): All eight products, what each does, how they compose
+- [The RevealUI Studio Fleet](https://docs.revealui.com/SUITE): All eight products, what each does, how they compose
 - [Pro packages](https://docs.revealui.com/PRO): `@revealui/ai`, `@revealui/harnesses`, `@revealui/engines` (FSL-1.1-MIT — source-visible, JWT-gated, auto-MIT after 2 years)
-- [Forge runtime](https://docs.revealui.com/FORGE): Self-hosted enterprise deployment kit (preview status)
+- [Revfleet runtime](https://docs.revealui.com/FORGE): Self-hosted enterprise deployment kit (formerly Forge — rename in flight per ADR `2026-05-01-forge-naming`; preview status)
 - [Component catalog](https://docs.revealui.com/COMPONENT_CATALOG): UI components shipped in `@revealui/presentation`
 - [Examples](https://docs.revealui.com/EXAMPLES): Code examples
 
@@ -52,6 +52,6 @@
 
 - 0 paying customers; A- (8.7/10) on internal honest grading
 - **Stripe** runs in TEST mode in production; live mode gated on billing-readiness audit (see `WHAT_WORKS_TODAY`)
-- **Forge** Docker images not yet on GHCR (preview status — runs from source today)
+- **Revfleet** (formerly Forge) Docker images not yet on GHCR (preview status — runs from source today)
 - **Ubuntu Inference Snaps** integration in progress; **Ollama** is the shipped open-model path
 - **Supabase** being phased out in favor of NeonDB + ElectricSQL (vector store consolidation in flight)
