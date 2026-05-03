@@ -93,7 +93,7 @@ The white-label self-hosted runtime kit — Docker Compose stack + domain lock +
 
 ## RevForge
 
-The stamping tool repo (formerly `~/suite/forge/` / `RevealUIStudio/forge`; Phase B rename to `~/suite/revforge/` / `RevealUIStudio/revforge` pending — gated on revealui#719+#721 merge). Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) deployment by substituting `{{COMPANY_NAME}}` / `{{SLUG}}` template tokens, generating per-customer secrets, issuing a license JWT (via `@revealui/core/forge-license`, post-Phase-B `revforge-license`), writing secrets to revvault under `forge/customers/<slug>/` (post-Phase-B `revforge/customers/<slug>/`), and outputting a self-contained customer kit. Operator-only; never customer-facing. Per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 3.
+The stamping tool repo at [`RevealUIStudio/revforge`](https://github.com/RevealUIStudio/revforge) (GitHub repo renamed from `RevealUIStudio/forge` 2026-05-03 via Phase B PR-B1 + operator action; local clone path `~/suite/forge/` until Phase A filesystem rename `~/suite/` → `~/revfleet/`). Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) deployment by substituting `{{COMPANY_NAME}}` / `{{SLUG}}` template tokens, generating per-customer secrets, issuing a license JWT (via `@revealui/core/revforge-license`), writing secrets to revvault under `forge/customers/<slug>/` (revvault path stays until operator-side rotation — see `secrets.md`), and outputting a self-contained customer kit. Operator-only; never customer-facing. Per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 3.
 
 ## RVC
 
