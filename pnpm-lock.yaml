@@ -1239,6 +1239,9 @@ importers:
       '@revealui/dev':
         specifier: workspace:*
         version: link:../dev
+      '@revealui/mcp':
+        specifier: workspace:*
+        version: link:../mcp
       '@types/node':
         specifier: 'catalog:'
         version: 25.6.0
@@ -1248,6 +1251,9 @@ importers:
       tsup:
         specifier: 'catalog:'
         version: 8.5.1(@microsoft/api-extractor@7.58.2(@types/node@25.6.0))(@swc/core@1.15.21(@swc/helpers@0.5.20))(jiti@2.6.1)(postcss@8.5.10)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3)
+      tsx:
+        specifier: 'catalog:'
+        version: 4.21.0
       typescript:
         specifier: 'catalog:'
         version: 6.0.3

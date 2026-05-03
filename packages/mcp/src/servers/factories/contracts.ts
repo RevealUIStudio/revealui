@@ -465,6 +465,13 @@ const SCHEMA_REGISTRY = {
 
 type CategoryName = keyof typeof SCHEMA_REGISTRY;
 
+/**
+ * Public alias for the literal-union of registered category names. Consumers
+ * (e.g. `@revealui/openapi`'s `emit-from-mcp.ts`) can use this for strict
+ * keying of catalog operations; loose `string` is also accepted everywhere.
+ */
+export type ContractCategoryName = CategoryName;
+
 const CATEGORIES = Object.keys(SCHEMA_REGISTRY) as CategoryName[];
 
 // Constant exports for tests + runtime introspection.
@@ -476,17 +483,40 @@ export const REVEALCOIN_TOKEN_DEFAULT = RVUI_TOKEN_CONFIG;
 // JSON Schema cache (computed once at server creation)
 // ---------------------------------------------------------------------------
 
-interface CategoryJsonSchemas {
+/**
+ * Public shape of a single category entry in the contracts catalog. Used by
+ * downstream consumers — most notably `@revealui/openapi`'s `emit-from-mcp.ts`
+ * generator, which consumes the catalog at build-time to materialize an
+ * OpenAPI 3.1 `components.schemas` map.
+ */
+export interface ContractCategorySchemas {
   /** Stable JSON Schemas keyed by schema name within the category. */
   schemas: Record<string, unknown>;
-  /** The primary schema name. */
+  /** The primary schema name (default for `validate_<category>` when no `schema` argument is given). */
   primary: string;
   /** Human description of the category. */
   description: string;
 }
 
-function buildJsonSchemaCache(): Record<CategoryName, CategoryJsonSchemas> {
-  const out: Record<string, CategoryJsonSchemas> = {};
+/**
+ * Build the contracts catalog: a snapshot of every registered category's
+ * JSON Schemas (computed via Zod v4's built-in `z.toJSONSchema()`), keyed
+ * first by category name, then by schema name within the category.
+ *
+ * Pure (no side effects, no external state). Safe to call multiple times;
+ * each call recomputes from `SCHEMA_REGISTRY`. Cheap enough that callers
+ * who want a long-lived snapshot (e.g. the MCP server's per-instance cache)
+ * can call once and memoize the result themselves.
+ *
+ * Some Zod constructs (e.g. discriminated unions with overlapping
+ * discriminators, recursive schemas without lazy guards, custom transforms)
+ * cannot be serialized to JSON Schema. For those entries, the catalog
+ * surfaces a placeholder `{ $comment: "JSON Schema serialization failed: ..." }`
+ * so the schema name still appears in the catalog; runtime validation
+ * (via `validatePayload`) is unaffected.
+ */
+export function getContractsCatalog(): Record<ContractCategoryName, ContractCategorySchemas> {
+  const out: Record<string, ContractCategorySchemas> = {};
   for (const cat of CATEGORIES) {
     const entry = SCHEMA_REGISTRY[cat];
     const schemaJson: Record<string, unknown> = {};
@@ -494,10 +524,6 @@ function buildJsonSchemaCache(): Record<CategoryName, CategoryJsonSchemas> {
       try {
         schemaJson[name] = z.toJSONSchema(zodSchema);
       } catch (err) {
-        // Some Zod constructs (e.g. discriminated unions with overlapping
-        // discriminators, recursive schemas without lazy guards) cannot be
-        // serialized to JSON Schema. Surface a placeholder so the catalog
-        // still lists the schema name; tools fall back to runtime parse.
         schemaJson[name] = {
           $comment: `JSON Schema serialization failed: ${err instanceof Error ? err.message : String(err)}`,
         };
@@ -509,7 +535,7 @@ function buildJsonSchemaCache(): Record<CategoryName, CategoryJsonSchemas> {
       description: entry.description,
     };
   }
-  return out as Record<CategoryName, CategoryJsonSchemas>;
+  return out as Record<ContractCategoryName, ContractCategorySchemas>;
 }
 
 // ---------------------------------------------------------------------------
@@ -753,7 +779,7 @@ export function createContractsServer(options?: CreateContractsServerOptions): S
     { capabilities: { tools: {}, resources: {} } },
   );
 
-  const jsonSchemaCache = buildJsonSchemaCache();
+  const jsonSchemaCache = getContractsCatalog();
   const toolList = buildToolList();
   const resourceList = buildResourceList();
 

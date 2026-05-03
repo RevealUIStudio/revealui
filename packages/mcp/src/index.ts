@@ -186,8 +186,11 @@ export {
 } from './servers/adapter.js';
 // Contracts introspection server (F8 Phase 1 — protocol-pyramid ADR L2-MCP)
 export {
+  type ContractCategoryName,
+  type ContractCategorySchemas,
   type CreateContractsServerOptions,
   createContractsServer,
+  getContractsCatalog,
   REGISTERED_CATEGORIES,
   REVEALCOIN_TOKEN_DEFAULT,
   validatePayload,
