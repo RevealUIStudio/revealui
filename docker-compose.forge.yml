@@ -13,8 +13,8 @@
 #   docker compose -f docker-compose.forge.yml --env-file .env.forge up -d
 #
 # Required .env.forge variables:
-#   FORGE_LICENSE_KEY         — enterprise license key (required)
-#   FORGE_LICENSED_DOMAIN     — domain this instance serves (e.g. admin.acme.com)
+#   REVFORGE_LICENSE_KEY         — enterprise license key (required)
+#   REVFORGE_LICENSED_DOMAIN     — domain this instance serves (e.g. admin.acme.com)
 #   POSTGRES_PASSWORD         — secure database password
 #   REVEALUI_SECRET           — 32+ char random secret (openssl rand -hex 32)
 #   JWT_SECRET                — 32+ char random secret (openssl rand -hex 32)
@@ -59,9 +59,9 @@ services:
       NODE_ENV: production
       PORT: "3004"
 
-      # Forge license enforcement
-      FORGE_LICENSE_KEY: ${FORGE_LICENSE_KEY:?FORGE_LICENSE_KEY is required}
-      FORGE_LICENSED_DOMAIN: ${FORGE_LICENSED_DOMAIN:?FORGE_LICENSED_DOMAIN is required}
+      # RevForge license enforcement
+      REVFORGE_LICENSE_KEY: ${REVFORGE_LICENSE_KEY:?REVFORGE_LICENSE_KEY is required}
+      REVFORGE_LICENSED_DOMAIN: ${REVFORGE_LICENSED_DOMAIN:?REVFORGE_LICENSED_DOMAIN is required}
 
       # Database
       POSTGRES_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}
@@ -123,9 +123,9 @@ services:
       HOSTNAME: "0.0.0.0"
       NEXT_TELEMETRY_DISABLED: "1"
 
-      # Forge license enforcement
-      FORGE_LICENSE_KEY: ${FORGE_LICENSE_KEY}
-      FORGE_LICENSED_DOMAIN: ${FORGE_LICENSED_DOMAIN}
+      # RevForge license enforcement
+      REVFORGE_LICENSE_KEY: ${REVFORGE_LICENSE_KEY}
+      REVFORGE_LICENSED_DOMAIN: ${REVFORGE_LICENSED_DOMAIN}
 
       # Database
       POSTGRES_URL: postgresql://${POSTGRES_USER:-revealui}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-revealui}

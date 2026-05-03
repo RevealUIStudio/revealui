@@ -70,8 +70,8 @@ POSTGRES_URL=postgresql://user:pass@db:5432/revealui
 REVEALUI_SECRET=<32+ char random string>
 
 # Forge license
-FORGE_LICENSE_KEY=rui_forge_...
-FORGE_LICENSED_DOMAIN=admin.acme.com
+REVFORGE_LICENSE_KEY=rui_forge_...
+REVFORGE_LICENSED_DOMAIN=admin.acme.com
 
 # admin URL (used by API for redirects)
 ADMIN_URL=https://admin.acme.com
@@ -115,8 +115,8 @@ All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT-VA
 
 | Variable                       | Required | Description                                          |
 | ------------------------------ | -------- | ---------------------------------------------------- |
-| `FORGE_LICENSE_KEY`            | Yes      | Your Forge license JWT (`rui_forge_...`)             |
-| `FORGE_LICENSED_DOMAIN`        | Yes      | The domain this instance is locked to                |
+| `REVFORGE_LICENSE_KEY`            | Yes      | Your Forge license JWT (`rui_forge_...`)             |
+| `REVFORGE_LICENSED_DOMAIN`        | Yes      | The domain this instance is locked to                |
 | `POSTGRES_URL`                 | Yes      | PostgreSQL 16 connection URL                         |
 | `REVEALUI_SECRET`              | Yes      | 32+ char application secret (session signing, CSRF, HMAC operations) |
 | `ADMIN_URL`                      | Yes      | Full URL of your admin (e.g. `https://admin.acme.com`) |
@@ -130,11 +130,11 @@ All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT-VA
 
 ## Domain lock
 
-The API enforces `FORGE_LICENSED_DOMAIN` at the middleware level. Every incoming request is checked against the `Host` header:
+The API enforces `REVFORGE_LICENSED_DOMAIN` at the middleware level. Every incoming request is checked against the `Host` header:
 
 - Requests from the licensed domain: allowed
 - Requests from any other host: `HTTP 403 Forbidden`
-- Missing `FORGE_LICENSED_DOMAIN` at startup: process exits with a clear error
+- Missing `REVFORGE_LICENSED_DOMAIN` at startup: process exits with a clear error
 
 To change your licensed domain, contact support to reissue your license key.
 
@@ -258,13 +258,13 @@ export REVEALUI_LICENSE_PUBLIC_KEY="$(cat public.pem)"
 
 ## Troubleshooting
 
-### `FORGE_LICENSED_DOMAIN mismatch` on startup
+### `REVFORGE_LICENSED_DOMAIN mismatch` on startup
 
-The domain in your license key does not match `FORGE_LICENSED_DOMAIN`. Contact support to reissue the license for the correct domain.
+The domain in your license key does not match `REVFORGE_LICENSED_DOMAIN`. Contact support to reissue the license for the correct domain.
 
 ### API returns 403 on all requests
 
-`Host` header does not match `FORGE_LICENSED_DOMAIN`. Check your reverse proxy is forwarding the correct `Host` header and is not rewriting it.
+`Host` header does not match `REVFORGE_LICENSED_DOMAIN`. Check your reverse proxy is forwarding the correct `Host` header and is not rewriting it.
 
 ### Database connection refused
 

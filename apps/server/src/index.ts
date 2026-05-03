@@ -53,7 +53,7 @@ import { requirePermission } from './middleware/authorization.js';
 import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { dbMiddleware } from './middleware/db.js';
-import { domainLockMiddleware, validateForgeConfig } from './middleware/domain-lock.js';
+import { domainLockMiddleware, validateRevForgeConfig } from './middleware/domain-lock.js';
 import { entitlementMiddleware } from './middleware/entitlements.js';
 import { errorHandler } from './middleware/error.js';
 import {
@@ -168,8 +168,8 @@ async function gracefulShutdown(signal: string): Promise<void> {
 process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Validate Forge config at startup  -  exits if FORGE_* env vars are inconsistent
-validateForgeConfig();
+// Validate RevForge config at startup  -  exits if REVFORGE_* env vars are inconsistent
+validateRevForgeConfig();
 
 // Validate durable-dispatch flag config (CR8-P2-01 phase C) — if the
 // flag is on, the wake secret must be set, or every dispatch silently

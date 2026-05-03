@@ -1411,7 +1411,7 @@ Forge is the enterprise tier of RevealUI. Deploy the entire stack on your own in
 See **[FORGE.md](./FORGE.md)** for the complete deployment guide, including:
 
 - Docker Compose stack (API + admin + PostgreSQL)
-- Environment variables (`FORGE_LICENSE_KEY`, `FORGE_LICENSED_DOMAIN`, etc.)
+- Environment variables (`REVFORGE_LICENSE_KEY`, `REVFORGE_LICENSED_DOMAIN`, etc.)
 - Domain lock enforcement
 - Reverse proxy configuration (Caddy + Nginx examples)
 - Database migrations and upgrade procedure

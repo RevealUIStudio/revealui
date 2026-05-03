@@ -13,7 +13,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
 // ---------------------------------------------------------------------------
 
 // We need to re-import the module for each test group since it reads
-// process.env.FORGE_LICENSED_DOMAIN at import time (middleware factory closure).
+// process.env.REVFORGE_LICENSED_DOMAIN at import time (middleware factory closure).
 // Use vi.resetModules() + dynamic import to test different env configurations.
 async function importFresh() {
   vi.resetModules();
@@ -34,9 +34,9 @@ describe('domainLockMiddleware', () => {
     process.env = { ...originalEnv };
   });
 
-  describe('when FORGE_LICENSED_DOMAIN is not set', () => {
+  describe('when REVFORGE_LICENSED_DOMAIN is not set', () => {
     it('passes all requests through (no-op)', async () => {
-      delete process.env.FORGE_LICENSED_DOMAIN;
+      delete process.env.REVFORGE_LICENSED_DOMAIN;
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -52,9 +52,9 @@ describe('domainLockMiddleware', () => {
     });
   });
 
-  describe('when FORGE_LICENSED_DOMAIN is set', () => {
+  describe('when REVFORGE_LICENSED_DOMAIN is set', () => {
     it('allows exact domain match', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = 'example.com';
+      process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -70,7 +70,7 @@ describe('domainLockMiddleware', () => {
     });
 
     it('allows subdomain of licensed domain', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = 'example.com';
+      process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -86,7 +86,7 @@ describe('domainLockMiddleware', () => {
     });
 
     it('allows deeply nested subdomains', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = 'example.com';
+      process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -102,7 +102,7 @@ describe('domainLockMiddleware', () => {
     });
 
     it('allows localhost', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = 'example.com';
+      process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -118,7 +118,7 @@ describe('domainLockMiddleware', () => {
     });
 
     it('allows 127.0.0.1', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = 'example.com';
+      process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -134,7 +134,7 @@ describe('domainLockMiddleware', () => {
     });
 
     it('rejects unlicensed domain with 403', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = 'example.com';
+      process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -152,7 +152,7 @@ describe('domainLockMiddleware', () => {
     });
 
     it('rejects similar but non-matching domains', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = 'example.com';
+      process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -168,7 +168,7 @@ describe('domainLockMiddleware', () => {
     });
 
     it('is case-insensitive for domain matching', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = 'Example.COM';
+      process.env.REVFORGE_LICENSED_DOMAIN = 'Example.COM';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -184,7 +184,7 @@ describe('domainLockMiddleware', () => {
     });
 
     it('strips port from host header', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = 'example.com';
+      process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -199,8 +199,8 @@ describe('domainLockMiddleware', () => {
       expect(res.status).toBe(200);
     });
 
-    it('trims whitespace from FORGE_LICENSED_DOMAIN', async () => {
-      process.env.FORGE_LICENSED_DOMAIN = '  example.com  ';
+    it('trims whitespace from REVFORGE_LICENSED_DOMAIN', async () => {
+      process.env.REVFORGE_LICENSED_DOMAIN = '  example.com  ';
 
       const { domainLockMiddleware } = await importFresh();
       const app = new Hono();
@@ -218,9 +218,9 @@ describe('domainLockMiddleware', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Tests  -  validateForgeConfig
+// Tests  -  validateRevForgeConfig
 // ---------------------------------------------------------------------------
-describe('validateForgeConfig', () => {
+describe('validateRevForgeConfig', () => {
   const originalEnv = { ...process.env };
 
   afterEach(() => {
@@ -228,44 +228,44 @@ describe('validateForgeConfig', () => {
   });
 
   it('does nothing when neither env var is set', async () => {
-    delete process.env.FORGE_LICENSED_DOMAIN;
-    delete process.env.FORGE_LICENSE_KEY;
+    delete process.env.REVFORGE_LICENSED_DOMAIN;
+    delete process.env.REVFORGE_LICENSE_KEY;
 
-    const { validateForgeConfig } = await importFresh();
-    expect(() => validateForgeConfig()).not.toThrow();
+    const { validateRevForgeConfig } = await importFresh();
+    expect(() => validateRevForgeConfig()).not.toThrow();
   });
 
-  it('throws when FORGE_LICENSE_KEY is set but FORGE_LICENSED_DOMAIN is missing', async () => {
-    delete process.env.FORGE_LICENSED_DOMAIN;
-    process.env.FORGE_LICENSE_KEY = 'key-123';
+  it('throws when REVFORGE_LICENSE_KEY is set but REVFORGE_LICENSED_DOMAIN is missing', async () => {
+    delete process.env.REVFORGE_LICENSED_DOMAIN;
+    process.env.REVFORGE_LICENSE_KEY = 'key-123';
 
-    const { validateForgeConfig } = await importFresh();
-    expect(() => validateForgeConfig()).toThrow('FORGE_LICENSED_DOMAIN is missing');
+    const { validateRevForgeConfig } = await importFresh();
+    expect(() => validateRevForgeConfig()).toThrow('REVFORGE_LICENSED_DOMAIN is missing');
   });
 
-  it('throws when FORGE_LICENSED_DOMAIN is set but FORGE_LICENSE_KEY is missing', async () => {
-    process.env.FORGE_LICENSED_DOMAIN = 'example.com';
-    delete process.env.FORGE_LICENSE_KEY;
+  it('throws when REVFORGE_LICENSED_DOMAIN is set but REVFORGE_LICENSE_KEY is missing', async () => {
+    process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
+    delete process.env.REVFORGE_LICENSE_KEY;
 
-    const { validateForgeConfig } = await importFresh();
-    expect(() => validateForgeConfig()).toThrow('FORGE_LICENSE_KEY is missing');
+    const { validateRevForgeConfig } = await importFresh();
+    expect(() => validateRevForgeConfig()).toThrow('REVFORGE_LICENSE_KEY is missing');
   });
 
   it('does not throw when both env vars are set', async () => {
-    process.env.FORGE_LICENSED_DOMAIN = 'example.com';
-    process.env.FORGE_LICENSE_KEY = 'key-123';
+    process.env.REVFORGE_LICENSED_DOMAIN = 'example.com';
+    process.env.REVFORGE_LICENSE_KEY = 'key-123';
 
-    const { validateForgeConfig } = await importFresh();
-    expect(() => validateForgeConfig()).not.toThrow();
+    const { validateRevForgeConfig } = await importFresh();
+    expect(() => validateRevForgeConfig()).not.toThrow();
   });
 
   it('treats whitespace-only values as empty strings (not missing)', async () => {
-    process.env.FORGE_LICENSED_DOMAIN = '   ';
-    process.env.FORGE_LICENSE_KEY = 'key-123';
+    process.env.REVFORGE_LICENSED_DOMAIN = '   ';
+    process.env.REVFORGE_LICENSE_KEY = 'key-123';
 
-    const { validateForgeConfig } = await importFresh();
+    const { validateRevForgeConfig } = await importFresh();
     // '   '.trim() = ''  -  nullish coalescing (??) treats '' as valid (not null/undefined),
-    // so isForgeMode = Boolean('') = false, and the function returns early.
-    expect(() => validateForgeConfig()).not.toThrow();
+    // so isRevForgeMode = Boolean('') = false, and the function returns early.
+    expect(() => validateRevForgeConfig()).not.toThrow();
   });
 });
