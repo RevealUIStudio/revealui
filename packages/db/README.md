@@ -8,7 +8,7 @@ Database schemas and Drizzle ORM integration for RevealUI.
 
 - **Drizzle ORM**: Type-safe database queries with Drizzle
 - **Schema Management**: Database schema definitions for all RevealUI tables
-- **Multiple Providers**: Works with Neon, Supabase, and Vercel Postgres
+- **Postgres-compatible**: NeonDB primary; works with any Postgres provider via Drizzle
 - **Type Generation**: Auto-generate TypeScript types from database schema
 - **Migrations**: Database migration management with Drizzle Kit
 - **Type-safe**: Full TypeScript support with inferred types
