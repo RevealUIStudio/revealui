@@ -347,9 +347,9 @@ describe('PERPETUAL_TIERS  -  comingSoon status', () => {
     expect(agency?.comingSoon).toBe(false);
   });
 
-  it('Forge Perpetual is not coming soon', () => {
-    const forge = PERPETUAL_TIERS.find((t) => t.name === 'Forge Perpetual');
-    expect(forge).toBeDefined();
-    expect(forge?.comingSoon).toBe(false);
+  it('Enterprise Perpetual is not coming soon', () => {
+    const enterprise = PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual');
+    expect(enterprise).toBeDefined();
+    expect(enterprise?.comingSoon).toBe(false);
   });
 });

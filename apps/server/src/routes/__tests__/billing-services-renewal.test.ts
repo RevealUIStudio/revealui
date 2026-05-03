@@ -193,12 +193,12 @@ describe('Perpetual tiers  -  launch enabled', () => {
     expect(agency!.ctaHref).toBeTruthy();
   });
 
-  it('Forge Perpetual is purchasable', () => {
-    const forge = PERPETUAL_TIERS.find((t) => t.name === 'Forge Perpetual');
-    expect(forge).toBeDefined();
-    expect(forge!.comingSoon).toBe(false);
-    expect(forge!.cta).toBeTruthy();
-    expect(forge!.ctaHref).toBeTruthy();
+  it('Enterprise Perpetual is purchasable', () => {
+    const enterprise = PERPETUAL_TIERS.find((t) => t.name === 'Enterprise Perpetual');
+    expect(enterprise).toBeDefined();
+    expect(enterprise!.comingSoon).toBe(false);
+    expect(enterprise!.cta).toBeTruthy();
+    expect(enterprise!.ctaHref).toBeTruthy();
   });
 });
 
