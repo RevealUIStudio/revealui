@@ -25,6 +25,7 @@ import { getClient } from '@revealui/db';
 import { agentActions, marketplaceServers, registeredAgents } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { desc, eq } from 'drizzle-orm';
+import { buildMcpManifest } from '../lib/mcp-manifest.js';
 import { authMiddleware } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/license.js';
 import { requireTaskQuota } from '../middleware/task-quota.js';
@@ -348,18 +349,10 @@ app.openapi(
     },
   }),
   (c) => {
-    // WIP-skeleton  -  full manifest builder lands in the implementation commit.
-    return c.json(
-      {
-        version: '1.0',
-        servers: [],
-      },
-      200,
-      {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=300',
-      },
-    );
+    return c.json(buildMcpManifest(), 200, {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=300',
+    });
   },
 );
 
