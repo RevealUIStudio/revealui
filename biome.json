@@ -43,7 +43,8 @@
       "!test-results",
       "!e2e/.auth",
       "!opensrc",
-      "!packages/db/migrations/meta"
+      "!packages/db/migrations/meta",
+      "!packages/openapi/contracts.openapi.json"
     ],
     "ignoreUnknown": true
   },

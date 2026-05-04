@@ -36,7 +36,7 @@ You have:
 - **Billing:** Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard:** manage users, content, billing, and settings out of the box
 - **58 UI components:** built with Tailwind CSS v4, zero external UI dependencies
-- **12 MCP servers:** agents discover and use your business data through the same API humans use
+- **13 MCP servers:** agents discover and use your business data through the same API humans use
 - **Type-safe throughout:** Zod schemas shared between client, server, database, and agent tools
 
 No assembly required. Define your data once. Humans manage it through the dashboard, agents operate on it through MCP. Same permissions, same audit trail.
@@ -49,7 +49,7 @@ No assembly required. Define your data once. Humans manage it through the dashbo
 | **Content**      | Collections, rich text (Lexical), media, draft/live, REST API    | Collections auto-exposed as MCP tools. No integration step.  |
 | **Products**     | Product catalog, pricing tiers, usage tracking                   | Feature gates control which agent capabilities unlock.       |
 | **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal         | x402 micropayments via RevealCoin. Agents transact natively. |
-| **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 12 MCP servers.                   |
+| **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 13 MCP servers.                   |
 
 ## The JOSHUA Stack
 
@@ -75,9 +75,9 @@ RevealUI is the runtime at the center of the RevealUI Studio Suite. Companion pr
 | **RevDev**     | AI engineering harness — multi-agent coordination        | MIT (early)       |
 | **RevCon**     | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
 | **RevKit**     | Portable WSL dev environment toolkit                     | Pro               |
-| **RevealCoin** | Solana Token-2022 for x402 agent micropayments           | Forge tier        |
+| **RevealCoin** | Solana Token-2022 for x402 agent micropayments           | Enterprise tier   |
 | **RevSkills**  | Claude Code skills library                               | MIT               |
-| **Forge**      | White-label / enterprise deployment of RevealUI          | Forge tier        |
+| **Forge**      | White-label / enterprise deployment of RevealUI          | Enterprise tier   |
 
 Each product stands alone. Together, they cover the full lifecycle of building, securing, coordinating, and monetizing software, for you and for your agents.
 
@@ -116,7 +116,7 @@ The [Pro tier](https://revealui.com/pro) adds AI agents and automation that work
 
 - **AI agent system** _(beta — works in staging, production usage is early)_: build and deploy purpose-built agents for your workflows
 - **MCP framework:** hypervisor, adapter framework, and tool discovery for connecting agents to external services
-- **Open-model inference:** Ubuntu Inference Snaps (recommended), Ollama, and open source models via the RevealUI harness. `sudo snap install nemotron-3-nano` for instant local AI. No proprietary APIs, no vendor lock-in, zero API bills
+- **Open-model inference:** Ubuntu Inference Snaps (canonical default — Studio lifecycle pending), Ollama, and open source models via the RevealUI harness. `sudo snap install gemma3` for instant local AI (or any of `deepseek-r1`, `qwen-vl`, `nemotron-3-nano`, `nemotron-3-nano-omni`). No proprietary APIs, no vendor lock-in, zero API bills
 - **Task history:** every agent action logged, auditable, and visible in the dashboard
 - **Editor config sync:** generate and sync settings for Zed, VS Code, Cursor, and Antigravity
 

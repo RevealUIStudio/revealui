@@ -11,7 +11,7 @@
     "STRIPE_*",
     "RESEND_*",
     "EMAIL_FROM",
-    "FORGE_LICENSED_DOMAIN",
+    "REVFORGE_LICENSED_DOMAIN",
     "VERCEL",
     "VERCEL_ENV"
   ],

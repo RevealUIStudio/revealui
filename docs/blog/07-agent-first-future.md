@@ -124,7 +124,7 @@ RevealUI implements the full A2A 1.0 task lifecycle. An external agent can:
 4. **Check status** via `tasks/get`
 5. **Cancel** a running task via `tasks/cancel`
 
-Task execution is gated behind the `ai` feature flag -- you need a Pro or Forge license for agents to actually run tasks. But discovery is always public. Any agent on the internet can find your RevealUI instance and understand what it offers.
+Task execution is gated behind the `ai` feature flag -- you need a Pro or Enterprise license for agents to actually run tasks. But discovery is always public. Any agent on the internet can find your RevealUI instance and understand what it offers.
 
 ```bash
 # An agent discovers your RevealUI instance

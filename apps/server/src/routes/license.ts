@@ -365,6 +365,12 @@ app.openapi(generateRoute, async (c) => {
     throw new HTTPException(500, { message: 'License signing not configured' });
   }
 
+  // Unescape literal \n sequences  -  Vercel stores multi-line PEM keys
+  // with \n escaped in the .env format; the runtime preserves the literal
+  // \n chars, so we must convert them to real newlines for jose/importPKCS8.
+  // Matches the unescape pattern at routes/webhooks.ts:1009, 1229, 1847, 2391.
+  const normalizedKey = privateKey.replaceAll('\\n', '\n');
+
   const { tier, customerId, domains, maxSites, maxUsers, expiresInDays } = c.req.valid('json');
 
   const payload: Omit<LicensePayload, 'iat' | 'exp'> = {
@@ -376,7 +382,7 @@ app.openapi(generateRoute, async (c) => {
   };
 
   const expiresInSeconds = (expiresInDays ?? 365) * 24 * 60 * 60;
-  const licenseKey = await generateLicenseKey(payload, privateKey, expiresInSeconds);
+  const licenseKey = await generateLicenseKey(payload, normalizedKey, expiresInSeconds);
 
   logger.info('License key generated', { tier, customerId });
 

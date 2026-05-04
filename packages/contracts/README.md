@@ -40,6 +40,9 @@ import { dbRowToContract, contractToDbInsert } from '@revealui/contracts/databas
 
 // Actions (action validation)
 import { validateAction, checkConstraints } from '@revealui/contracts/actions'
+
+// Secrets (revvault path convention, rotation events, audit log entries)
+import { SecretPathSchema, RotationEventSchema, SecretAuditEventSchema } from '@revealui/contracts/secrets'
 ```
 
 ## Quick Start

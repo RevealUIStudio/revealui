@@ -1,13 +1,13 @@
 /**
- * Forge per-customer license issuance.
+ * RevForge per-customer license issuance.
  *
  * The Stripe webhook handler (apps/server/src/routes/webhooks.ts) issues licenses
  * for SaaS subscribers. This module is the analogous issuer for self-hosted
- * Forge customers — paid direct (source-license / sales) and stamped via
+ * RevForge customers — paid direct (source-license / sales) and stamped via
  * forge/stamp.sh.
  *
- * Pure function: takes options + RSA keys, returns a signed JWT plus
- * descriptive metadata. The CLI wrapper (scripts/setup/issue-forge-license.ts)
+ * Pure function: takes options + Ed25519 keys, returns a signed JWT plus
+ * descriptive metadata. The CLI wrapper (scripts/setup/issue-revforge-license.ts)
  * handles argv parsing and reading keys from the environment.
  */
 
@@ -15,14 +15,14 @@ import { generateLicenseKey, type LicensePayload } from './license.js';
 
 export const SLUG_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
 
-export const VALID_FORGE_TIERS = ['pro', 'max', 'enterprise'] as const;
-export type ForgeTier = (typeof VALID_FORGE_TIERS)[number];
+export const VALID_REVFORGE_TIERS = ['pro', 'max', 'enterprise'] as const;
+export type RevForgeTier = (typeof VALID_REVFORGE_TIERS)[number];
 
-export interface IssueForgeLicenseOptions {
+export interface IssueRevForgeLicenseOptions {
   /** Customer slug; becomes the JWT customerId. Must match SLUG_PATTERN. */
   slug: string;
   /** Paid tier the license unlocks. */
-  tier: ForgeTier;
+  tier: RevForgeTier;
   /** JWT expiry in days. Omit for the 365-day default. Mutually exclusive with `perpetual`. */
   expiresInDays?: number;
   /** One-time purchase: omit `exp` claim entirely. Mutually exclusive with `expiresInDays`. */
@@ -35,13 +35,13 @@ export interface IssueForgeLicenseOptions {
   domains?: string[];
 }
 
-export interface IssueForgeLicenseResult {
-  /** Signed RS256 JWT — the license key the customer installs. */
+export interface IssueRevForgeLicenseResult {
+  /** Signed EdDSA JWT — the license key the customer installs. */
   licenseKey: string;
   /** Customer identifier embedded in the JWT (the slug). */
   customerId: string;
   /** Tier embedded in the JWT. */
-  tier: ForgeTier;
+  tier: RevForgeTier;
   /** Whether this is a perpetual license (no exp claim). */
   perpetual: boolean;
   /** ISO-8601 timestamp of issuance. */
@@ -53,24 +53,24 @@ export interface IssueForgeLicenseResult {
 }
 
 /**
- * Issue a signed Forge license JWT for a paying customer.
+ * Issue a signed RevForge license JWT for a paying customer.
  *
  * @throws Error on invalid slug, invalid tier, mutually-exclusive flag combos,
  * or non-positive numeric overrides. The error message names the offending
  * field so callers can surface it directly to the operator.
  */
-export async function issueForgeLicense(
-  opts: IssueForgeLicenseOptions,
+export async function issueRevForgeLicense(
+  opts: IssueRevForgeLicenseOptions,
   keys: { privateKey: string; publicKey: string },
-): Promise<IssueForgeLicenseResult> {
+): Promise<IssueRevForgeLicenseResult> {
   if (!SLUG_PATTERN.test(opts.slug)) {
     throw new Error(
       `Invalid --slug "${opts.slug}": must match ^[a-z0-9][a-z0-9-]*$ (kebab-case, start with letter or digit).`,
     );
   }
-  if (!VALID_FORGE_TIERS.includes(opts.tier)) {
+  if (!VALID_REVFORGE_TIERS.includes(opts.tier)) {
     throw new Error(
-      `Invalid --tier "${opts.tier}": must be one of ${VALID_FORGE_TIERS.join(', ')}.`,
+      `Invalid --tier "${opts.tier}": must be one of ${VALID_REVFORGE_TIERS.join(', ')}.`,
     );
   }
   if (opts.perpetual && opts.expiresInDays !== undefined) {

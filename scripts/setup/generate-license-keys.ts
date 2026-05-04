@@ -1,8 +1,8 @@
 #!/usr/bin/env tsx
 /**
- * Generate RSA Key Pair for License Signing
+ * Generate Ed25519 Key Pair for License Signing
  *
- * Generates RSA-2048 keys used by the webhook handler to sign JWT license keys
+ * Generates Ed25519 keys used by the webhook handler to sign JWT license keys
  * and by the API to verify them.
  *
  * Usage:
@@ -26,7 +26,7 @@ function main(): void {
   const writeToEnv = process.argv.includes('--write');
   const envPath = resolve(import.meta.dirname, '../../.env');
 
-  log.header('RSA License Key Generator');
+  log.header('Ed25519 License Key Generator');
 
   // Check if keys already exist in .env
   try {
@@ -46,10 +46,9 @@ function main(): void {
     // .env doesn't exist  -  that's fine
   }
 
-  log.info('Generating RSA-2048 key pair...');
+  log.info('Generating Ed25519 key pair...');
 
-  const { publicKey, privateKey } = generateKeyPairSync('rsa', {
-    modulusLength: 2048,
+  const { publicKey, privateKey } = generateKeyPairSync('ed25519', {
     publicKeyEncoding: { type: 'spki', format: 'pem' },
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
   });

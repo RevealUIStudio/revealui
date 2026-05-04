@@ -26,6 +26,12 @@ const ROOT = join(import.meta.dirname, '..', '..');
 // Pro packages are gitignored in the public repo  -  use ^x.y.z, not workspace:*
 const PRO_PACKAGES = new Set(['@revealui/ai', '@revealui/harnesses']);
 
+// External @revealui/* packages published from other repos  -  use ^x.y.z, NOT workspace:*.
+// These are NOT in the local pnpm workspace; their source of truth is a separate repo.
+// Per docs/decisions/2026-05-03-revealcoin-manifest-transport.md §Phase 4, the manifest
+// package lives in ~/suite/revealcoin/packages/manifest/ and is consumed cross-repo via npm.
+const EXTERNAL_REVEALUI_PACKAGES = new Set(['@revealui/revealcoin-manifest']);
+
 interface Violation {
   file: string;
   rule: string;
@@ -110,11 +116,23 @@ function checkPackage(pkgPath: string): void {
         }
       }
 
+      // Rule 2b: External @revealui/* packages must use caret ranges (they're not in this workspace).
+      if (EXTERNAL_REVEALUI_PACKAGES.has(dep)) {
+        if (!range.startsWith('^')) {
+          violations.push({
+            file: rel,
+            rule: 'external-use-range',
+            detail: `${dep} = "${range}" — external @revealui/* packages must use ^x.y.z (cross-repo, not workspace)`,
+          });
+        }
+      }
+
       // Rule 1 (informational): internal OSS deps should use workspace:*
       // This is primarily enforced by syncpack, but we flag it here too
       if (
         dep.startsWith('@revealui/') &&
         !PRO_PACKAGES.has(dep) &&
+        !EXTERNAL_REVEALUI_PACKAGES.has(dep) &&
         depType !== 'peerDependencies' &&
         range !== 'workspace:*'
       ) {

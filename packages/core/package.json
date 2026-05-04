@@ -53,9 +53,9 @@
       "types": "./dist/license.d.ts",
       "import": "./dist/license.js"
     },
-    "./forge-license": {
-      "types": "./dist/forge-license.d.ts",
-      "import": "./dist/forge-license.js"
+    "./revforge-license": {
+      "types": "./dist/revforge-license.d.ts",
+      "import": "./dist/revforge-license.js"
     },
     "./features": {
       "types": "./dist/features.d.ts",

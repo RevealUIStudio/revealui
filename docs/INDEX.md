@@ -16,6 +16,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 - [Quick Start](./QUICK_START.md): get a local dev stack running
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
+- [Glossary](./glossary.md): Canonical vocabulary across the RevealUI Studio Fleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, RVC, x402. Single source of truth for cross-cutting terminology.
 
 ## Core Guides
 

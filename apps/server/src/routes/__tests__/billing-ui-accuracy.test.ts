@@ -181,7 +181,7 @@ describe('Billing UI Accuracy  -  admin Billing Page vs API + Contracts', () => 
     });
   });
 
-  describe('Forge "What\'s Included" matches contracts', () => {
+  describe('Enterprise "What\'s Included" matches contracts', () => {
     it('enterprise sites are unlimited (null in contracts)', () => {
       expect(TIER_LIMITS.enterprise.sites).toBeNull();
       expect(UI_ENTERPRISE_CLAIMS.unlimitedSites).toBe(true);
@@ -274,7 +274,7 @@ describe('Billing UI Accuracy  -  admin Billing Page vs API + Contracts', () => 
   });
 
   describe('Usage display correctness', () => {
-    it('quota of -1 means unlimited (Forge tier)', () => {
+    it('quota of -1 means unlimited (Enterprise tier)', () => {
       // The billing page treats usage.quota === -1 as unlimited
       const isUnlimited = (quota: number) => quota === -1;
       expect(isUnlimited(-1)).toBe(true);

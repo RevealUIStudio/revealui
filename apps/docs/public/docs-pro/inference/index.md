@@ -7,14 +7,14 @@ RevealUI AI defaults to open-model inference (Snaps, Ollama). Cloud-compatible p
 **Inference Snaps** from Canonical are the planned recommended path for local AI with RevealUI. Today, you install + run the snap yourself, then point RevealUI at it via `INFERENCE_SNAPS_BASE_URL`. Studio lifecycle management (start / stop / health / model discovery) is on the roadmap; until that ships, treat Snap operations as standalone (Ollama is the practical default for most users today).
 
 ```bash
-# Install the free tier default model
-sudo snap install nemotron-nano
+# Install the default model
+sudo snap install gemma3
 
 # Check status and endpoint
-nemotron-nano status
+gemma3 status
 
 # Optional: change the HTTP port (default 9090)
-nemotron-nano set http.port=9090
+gemma3 set http.port=9090
 ```
 
 The snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`  -  the RevealUI AI provider uses this directly with zero additional configuration.
@@ -23,10 +23,11 @@ The snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`  -  the
 
 | Snap | Type | RAM | Use Case |
 |------|------|-----|----------|
-| `nemotron-nano` | General (reasoning + non-reasoning) | ~4 GB | **Free tier default**  -  fast, lightweight |
-| `gemma3` | General + vision | ~8 GB | Image understanding, multimodal tasks |
+| `gemma3` | General + vision | ~8 GB | **Default**  -  vision-capable, Apache 2.0 |
 | `deepseek-r1` | Reasoning | ~16 GB | Complex analysis, chain-of-thought |
 | `qwen-vl` | Vision-language | ~8 GB | Document parsing, visual Q&A |
+| `nemotron-3-nano` | General (text-only) | ~4 GB | Lightweight alternative for low-resource hosts |
+| `nemotron-3-nano-omni` | Multimodal | ~4 GB | Text/image/video/audio in, text out |
 
 ### Configuration
 

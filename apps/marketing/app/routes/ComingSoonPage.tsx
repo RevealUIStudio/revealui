@@ -42,7 +42,7 @@ const upcoming: Feature[] = [
   {
     name: 'Perpetual Licenses (Track C)',
     description:
-      'One-time purchase for lifetime access to Pro, Max, or Forge tier features. No subscription required. Includes 1 year of priority support and updates.',
+      'One-time purchase for lifetime access to Pro, Max, or Enterprise tier features. No subscription required. Includes 1 year of priority support and updates.',
     status: 'Coming soon',
     category: 'Billing',
   },

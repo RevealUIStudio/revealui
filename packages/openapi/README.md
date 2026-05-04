@@ -63,8 +63,24 @@ app.openapi(route, (c) => c.json({ id: '1', name: 'test' }, 201));
 - **Orthogonal**: Decoupled from business logic  -  validates at the boundary, not inside handlers
 - **Hermetic**: Request validation happens before handler execution, preventing invalid data from leaking through
 
+## Contracts mirror — cross-language codegen pipeline (F8 Phase 3)
+
+The package also ships a build-time emitter that mirrors every `@revealui/contracts` Zod schema as an OpenAPI 3.1 doc, suitable for `oapi-codegen` (Go) and `progenitor` (Rust) consumers.
+
+```bash
+pnpm --filter @revealui/openapi emit:contracts        # write contracts.openapi.json
+pnpm --filter @revealui/openapi check:contracts       # exit non-zero on drift (CI gate)
+```
+
+The committed `contracts.openapi.json` is the single source of truth — Go and Rust clients regenerate type bindings from it, replacing per-language hand-mirrors with codegen from the canonical contracts. The CI gate `Contracts OpenAPI mirror drift` re-runs the emitter and fails if the regenerated output differs from the committed reference, ensuring the file stays in sync with `@revealui/contracts` schema changes.
+
+The emitter consumes `@revealui/mcp/contracts-server`'s `getContractsCatalog()` helper (added in the same PR) so the schema list is single-sourced via the contracts MCP server's registry — no risk of the OpenAPI mirror drifting from the MCP server's resource list.
+
+See [`docs/decisions/2026-05-03-contracts-protocol-pyramid.md`](https://github.com/RevealUIStudio/revealui-jv) §"Phase 3" in the internal `revealui-jv` repo for the full L3-OpenAPI rationale within the protocol-pyramid (L1 Zod → L2 MCP+A2A → L3 OpenAPI).
+
 ## Related
 
 - Pairs well with `@revealui/contracts` for shared Zod schemas between API and clients
 - Built on `@asteasolutions/zod-to-openapi` for Zod → OpenAPI schema generation
 - Supports OpenAPI 3.0 and 3.1 spec output
+- Contracts mirror consumes `@revealui/mcp/contracts-server` (F8 Phase 1 of the protocol-pyramid ADR)

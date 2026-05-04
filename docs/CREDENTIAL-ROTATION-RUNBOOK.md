@@ -11,8 +11,8 @@ Cross-reference `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for env var details.
 |---------|------------|
 | **90 days** | REVEALUI_SECRET, REVEALUI_KEK*, REVEALUI_LICENSE_ENCRYPTION_KEY*, REVEALUI_CRON_SECRET, REVEALUI_PUBLIC_DRAFT_SECRET, REVEALUI_REVALIDATION_KEY, REVEALUI_ADMIN_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, TAVILY_API_KEY, HF_TOKEN, VERCEL_API_KEY, RESEND_API_KEY, NEON_API_KEY, MCP_API_KEY |
 | **Quarterly** | STRIPE_SECRET_KEY, GOOGLE_CLIENT_SECRET, GOOGLE_PRIVATE_KEY, GITHUB_CLIENT_SECRET, REVEALUI_GITHUB_TOKEN, SENTRY_AUTH_TOKEN, SUPABASE_SERVICE_ROLE_KEY, ELECTRIC_API_KEY, ELECTRIC_DATABASE_URL (password) |
-| **Annually** | REVEALUI_LICENSE_PRIVATE_KEY (RSA pair), GOOGLE_CLIENT_ID, GITHUB_CLIENT_ID, VERCEL_CLIENT_ID, YOUTUBE_API_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY |
-| **As-needed** | STRIPE_WEBHOOK_SECRET (endpoint change), FORGE_LICENSE_KEY (renewal), X402_RECEIVING_ADDRESS (wallet change), POSTGRES_URL (provider migration) |
+| **Annually** | REVEALUI_LICENSE_PRIVATE_KEY (Ed25519 pair), GOOGLE_CLIENT_ID, GITHUB_CLIENT_ID, VERCEL_CLIENT_ID, YOUTUBE_API_KEY, NEXT_PUBLIC_SUPABASE_ANON_KEY |
+| **As-needed** | STRIPE_WEBHOOK_SECRET (endpoint change), REVFORGE_LICENSE_KEY (renewal), X402_RECEIVING_ADDRESS (wallet change), POSTGRES_URL (provider migration) |
 
 \* Requires data re-encryption migration. Schedule maintenance window.
 
@@ -32,12 +32,12 @@ Used by: `@revealui/db/crypto` for API keys, TOTP secrets, and any `encryptField
 
 **Risk:** All encrypted data becomes unreadable if a naive rotate-without-rekey is attempted. This is why the tooling gate exists.
 
-#### REVEALUI_LICENSE_PRIVATE_KEY (RSA-2048 license signing)
+#### REVEALUI_LICENSE_PRIVATE_KEY (Ed25519 license signing)
 
 ```bash
 # 1. Generate new key pair
-openssl genrsa -out private.pem 2048
-openssl rsa -in private.pem -pubout -out public.pem
+openssl genpkey -algorithm Ed25519 -out private.pem
+openssl pkey -in private.pem -pubout -out public.pem
 
 # 2. Convert to single-line PEM for env vars
 PRIV=$(awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' private.pem)

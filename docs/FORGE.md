@@ -7,7 +7,7 @@ audience: enterprise
 
 # RevealUI Forge  -  Self-Hosted Deployment
 
-> **⚠️ Preview status — Forge Docker images are not yet published to GHCR.** The `docker/` stack, stamp scripts, source tree, and licensing flow are production-ready, but the images this guide references (`ghcr.io/revealuistudio/revealui-api`, `ghcr.io/revealuistudio/revealui-admin`) have not been published yet. The `docker pull` commands below will fail with `manifest unknown` until images publish. Until then, build from source at the [revealui repo](https://github.com/RevealUIStudio/revealui) or use the [Forge kit's source tree](https://github.com/RevealUIStudio/forge). License-key issuance and welcome emails go live when Stripe billing-readiness sign-off lands.
+> **⚠️ Preview status — Forge Docker images are not yet published to GHCR.** The `docker/` stack, stamp scripts, source tree, and licensing flow are production-ready, but the images this guide references (`ghcr.io/revealuistudio/revealui-api`, `ghcr.io/revealuistudio/revealui-admin`) have not been published yet. The `docker pull` commands below will fail with `manifest unknown` until images publish. Until then, build from source at the [revealui repo](https://github.com/RevealUIStudio/revealui) or use the [RevForge kit's source tree](https://github.com/RevealUIStudio/revforge). License-key issuance and welcome emails go live when Stripe billing-readiness sign-off lands.
 
 Forge is the enterprise tier of RevealUI. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
 
@@ -70,8 +70,8 @@ POSTGRES_URL=postgresql://user:pass@db:5432/revealui
 REVEALUI_SECRET=<32+ char random string>
 
 # Forge license
-FORGE_LICENSE_KEY=rui_forge_...
-FORGE_LICENSED_DOMAIN=admin.acme.com
+REVFORGE_LICENSE_KEY=rui_forge_...
+REVFORGE_LICENSED_DOMAIN=admin.acme.com
 
 # admin URL (used by API for redirects)
 ADMIN_URL=https://admin.acme.com
@@ -82,8 +82,8 @@ CORS_ORIGIN=https://admin.acme.com
 # Stripe (for billing features)
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-REVEALUI_LICENSE_PRIVATE_KEY=<RSA private key PEM>
-REVEALUI_LICENSE_PUBLIC_KEY=<RSA public key PEM>
+REVEALUI_LICENSE_PRIVATE_KEY=<Ed25519 private key PEM>
+REVEALUI_LICENSE_PUBLIC_KEY=<Ed25519 public key PEM>
 ```
 
 ### 3. Start the stack
@@ -115,26 +115,26 @@ All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT-VA
 
 | Variable                       | Required | Description                                          |
 | ------------------------------ | -------- | ---------------------------------------------------- |
-| `FORGE_LICENSE_KEY`            | Yes      | Your Forge license JWT (`rui_forge_...`)             |
-| `FORGE_LICENSED_DOMAIN`        | Yes      | The domain this instance is locked to                |
+| `REVFORGE_LICENSE_KEY`            | Yes      | Your Forge license JWT (`rui_forge_...`)             |
+| `REVFORGE_LICENSED_DOMAIN`        | Yes      | The domain this instance is locked to                |
 | `POSTGRES_URL`                 | Yes      | PostgreSQL 16 connection URL                         |
 | `REVEALUI_SECRET`              | Yes      | 32+ char application secret (session signing, CSRF, HMAC operations) |
 | `ADMIN_URL`                      | Yes      | Full URL of your admin (e.g. `https://admin.acme.com`) |
 | `CORS_ORIGIN`                  | Yes      | Comma-separated allowed origins                      |
 | `STRIPE_SECRET_KEY`            | Billing  | Stripe secret key                                    |
 | `STRIPE_WEBHOOK_SECRET`        | Billing  | Stripe webhook signing secret                        |
-| `REVEALUI_LICENSE_PRIVATE_KEY` | Billing  | RSA-2048 private key PEM for license JWTs            |
-| `REVEALUI_LICENSE_PUBLIC_KEY`  | Billing  | RSA-2048 public key PEM                              |
+| `REVEALUI_LICENSE_PRIVATE_KEY` | Billing  | Ed25519 private key PEM for license JWTs             |
+| `REVEALUI_LICENSE_PUBLIC_KEY`  | Billing  | Ed25519 public key PEM                               |
 
 ---
 
 ## Domain lock
 
-The API enforces `FORGE_LICENSED_DOMAIN` at the middleware level. Every incoming request is checked against the `Host` header:
+The API enforces `REVFORGE_LICENSED_DOMAIN` at the middleware level. Every incoming request is checked against the `Host` header:
 
 - Requests from the licensed domain: allowed
 - Requests from any other host: `HTTP 403 Forbidden`
-- Missing `FORGE_LICENSED_DOMAIN` at startup: process exits with a clear error
+- Missing `REVFORGE_LICENSED_DOMAIN` at startup: process exits with a clear error
 
 To change your licensed domain, contact support to reissue your license key.
 
@@ -240,14 +240,14 @@ server {
 
 ---
 
-## Generating RSA keys
+## Generating Ed25519 keys
 
 Required for license JWT signing:
 
 ```bash
 # Generate key pair
-openssl genrsa -out private.pem 2048
-openssl rsa -in private.pem -pubout -out public.pem
+openssl genpkey -algorithm Ed25519 -out private.pem
+openssl pkey -in private.pem -pubout -out public.pem
 
 # Set as env vars (escape newlines)
 export REVEALUI_LICENSE_PRIVATE_KEY="$(cat private.pem)"
@@ -258,13 +258,13 @@ export REVEALUI_LICENSE_PUBLIC_KEY="$(cat public.pem)"
 
 ## Troubleshooting
 
-### `FORGE_LICENSED_DOMAIN mismatch` on startup
+### `REVFORGE_LICENSED_DOMAIN mismatch` on startup
 
-The domain in your license key does not match `FORGE_LICENSED_DOMAIN`. Contact support to reissue the license for the correct domain.
+The domain in your license key does not match `REVFORGE_LICENSED_DOMAIN`. Contact support to reissue the license for the correct domain.
 
 ### API returns 403 on all requests
 
-`Host` header does not match `FORGE_LICENSED_DOMAIN`. Check your reverse proxy is forwarding the correct `Host` header and is not rewriting it.
+`Host` header does not match `REVFORGE_LICENSED_DOMAIN`. Check your reverse proxy is forwarding the correct `Host` header and is not rewriting it.
 
 ### Database connection refused
 

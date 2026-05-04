@@ -65,7 +65,7 @@ Content Security Policy headers, CORS, HSTS, rate limiting, webhook rate limitin
 **Security has been audited internally multiple times. A professional penetration test is on the pre-launch checklist; KEK rotation tooling is tracked as an open gap (GAP-126) — until that ships, KEK rotation requires a coordinated maintenance window.**
 
 ### License enforcement
-JWT-based licensing (RS256, server-side only — distinct from user-facing auth which is session-only) with tier checks (free / pro / max / enterprise), feature gating, grace periods (3-day subscription, 30-day perpetual, 7-day infrastructure), and revocation via DB status checks. Perpetual and subscription models supported.
+JWT-based licensing (EdDSA/Ed25519, server-side only — distinct from user-facing auth which is session-only) with tier checks (free / pro / max / enterprise), feature gating, grace periods (3-day subscription, 30-day perpetual, 7-day infrastructure), and revocation via DB status checks. Perpetual and subscription models supported.
 **License generation and enforcement work in tests. Not yet tested with paying customers.**
 
 ---

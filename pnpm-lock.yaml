@@ -926,6 +926,9 @@ importers:
 
   packages/contracts:
     dependencies:
+      '@revealui/revealcoin-manifest':
+        specifier: ^0.1.0
+        version: 0.1.0
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -1239,6 +1242,9 @@ importers:
       '@revealui/dev':
         specifier: workspace:*
         version: link:../dev
+      '@revealui/mcp':
+        specifier: workspace:*
+        version: link:../mcp
       '@types/node':
         specifier: 'catalog:'
         version: 25.6.0
@@ -1248,6 +1254,9 @@ importers:
       tsup:
         specifier: 'catalog:'
         version: 8.5.1(@microsoft/api-extractor@7.58.2(@types/node@25.6.0))(@swc/core@1.15.21(@swc/helpers@0.5.20))(jiti@2.6.1)(postcss@8.5.10)(tsx@4.21.0)(typescript@6.0.3)(yaml@2.8.3)
+      tsx:
+        specifier: 'catalog:'
+        version: 4.21.0
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -3271,6 +3280,10 @@ packages:
   '@resvg/resvg-wasm@2.6.2':
     resolution: {integrity: sha512-FqALmHI8D4o6lk/LRWDnhw95z5eO+eAa6ORjVg09YRR7BkcM6oPHU9uyC0gtQG5vpFLvgpeU4+zEAz2H8APHNw==}
     engines: {node: '>= 10'}
+
+  '@revealui/revealcoin-manifest@0.1.0':
+    resolution: {integrity: sha512-MYTzlTccSh77awMKhnC/IXMbYMBpH3W4urx5u6CAeV3D0onoRJANuK8jfRqnr+rsj1akEqfojzkirsZsW9dS8Q==}
+    engines: {node: '>=22.0.0'}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.1':
     resolution: {integrity: sha512-He6ZoCfv5D7dlRbrhNBkuMVIHd0GDnjJwbICE1OWpG7G3S2gmJ+eXkcNLJjzjNDpeI2aRy56ou39AJM9AD8YFA==}
@@ -10859,6 +10872,8 @@ snapshots:
   '@renovatebot/pep440@4.2.1': {}
 
   '@resvg/resvg-wasm@2.6.2': {}
+
+  '@revealui/revealcoin-manifest@0.1.0': {}
 
   '@rolldown/binding-android-arm64@1.0.0-rc.1':
     optional: true

@@ -3,13 +3,14 @@
 > **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
 
 
-External service integrations for RevealUI  -  Stripe, Supabase, and Vercel.
+External service integrations for RevealUI  -  Stripe (billing + circuit breaker), Solana (RVC token), Vercel (deploy + DNS), and Gmail API (transactional email).
 
 ## Features
 
-- **Stripe Integration**: Payment processing and billing operations
-- **Supabase Integration**: Database and auth client utilities
-- **Vercel Integration**: Blob storage and deployment management
+- **Stripe Integration**: Payment processing and billing operations with circuit breaker
+- **Solana / RevealCoin (RVC)**: Token-2022 helpers for the customer-facing on-chain ticker
+- **Vercel Integration**: Deploy + DNS helpers
+- **Gmail API**: Transactional email via Google Workspace
 - **Type-safe**: Full TypeScript support
 - **Server & Client**: Separate exports for server-side and client-side usage
 
@@ -31,36 +32,14 @@ const customer = await stripeClient.customers.create({
 })
 ```
 
-### Client-side
-
-```typescript
-import { createSupabaseClient } from '@revealui/services/client'
-
-const supabase = createSupabaseClient()
-
-// Query data
-const { data, error } = await supabase
-  .from('posts')
-  .select('*')
-  .eq('published', true)
-```
-
 ## Available Exports
 
-### `@revealui/services/server`
+Server-side integrations (Node.js / Hono routes):
 
-Server-side integrations (Node.js/Next.js API routes only):
-
-- Stripe client
-- Supabase admin client
-- Vercel API client
-
-### `@revealui/services/client`
-
-Client-side integrations (browser-safe):
-
-- Supabase client factory
-- Browser-compatible utilities
+- Stripe client (`./stripe/stripeClient`)
+- Stripe payment intents (`./stripe/payment-intent`)
+- RevealCoin / Solana helpers (`./revealcoin`)
+- Gmail API helpers (`./email`)
 
 ## Stripe Integration
 
@@ -86,38 +65,6 @@ const subscription = await stripeClient.subscriptions.create({
 })
 ```
 
-## Supabase Integration
-
-```typescript
-import { createSupabaseClient } from '@revealui/services/client'
-
-const supabase = createSupabaseClient()
-
-// Query data
-const { data: posts } = await supabase
-  .from('posts')
-  .select('*')
-  .order('created_at', { ascending: false })
-
-// Insert data
-const { data: newPost } = await supabase
-  .from('posts')
-  .insert({ title: 'New Post', content: 'Content here' })
-  .select()
-  .single()
-
-// Real-time subscription
-const channel = supabase
-  .channel('posts-changes')
-  .on('postgres_changes', {
-    event: '*',
-    schema: 'public',
-    table: 'posts'
-  }, (payload) => {
-    console.log('Change detected:', payload)
-  })
-  .subscribe()
-```
 
 ## Environment Variables
 

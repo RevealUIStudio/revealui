@@ -54,7 +54,7 @@ Your infrastructure, your data, your rules. Deploy anywhere. Fork anything. No v
 **Evidence:**
 - MIT license on the 22 OSS packages; 3 Pro packages (`@revealui/ai`, `@revealui/harnesses`, `@revealui/engines`) are Fair Source (FSL-1.1-MIT, MIT after 2 years)
 - No vendor-specific APIs in core (Vercel adapters are optional, in `@revealui/cache`)
-- Dual-database architecture: NeonDB (primary) + Supabase (vectors)  -  both replaceable
+- NeonDB (Postgres) is the primary store via vendor-agnostic Drizzle ORM  -  replaceable with any Postgres provider
 - Open-model AI default: Ubuntu Inference Snaps, Ollama, and open source models. Cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic for prompt caching) are pluggable but opt-in via env vars — there is no vendor lock-in
 - Self-hostable: Docker Compose, Railway, bare metal  -  documented in CI/CD guide
 - Stripe is the only commercial dependency in the billing path, and it's behind an interface

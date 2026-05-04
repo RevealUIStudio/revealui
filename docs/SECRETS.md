@@ -128,8 +128,8 @@ revdev/github-token                      # perpetual license GitHub provisioning
 
 ```
 revealui/env/license                     # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY (consumed by ~/suite/revealui/.envrc via `revvault export-env`)
-revealui/prod/license/private-key        # RS256 license signing key (production; mirrored to Vercel `revealui-api` + `revealui-admin`)
-revealui/prod/license/public-key         # RS256 license verification key (production; mirrored to Vercel `revealui-api` + `revealui-admin`)
+revealui/prod/license/private-key        # Ed25519 license signing key (production; mirrored to Vercel `revealui-api` + `revealui-admin`) — migrated RS256 → Ed25519 via CR8-P0-01 Phase D 2026-05-04
+revealui/prod/license/public-key         # Ed25519 license verification key (production; mirrored to Vercel `revealui-api` + `revealui-admin`) — migrated RS256 → Ed25519 via CR8-P0-01 Phase D 2026-05-04
 ```
 
 ### LLM / AI providers

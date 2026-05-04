@@ -184,6 +184,17 @@ export {
   StripeAdapter,
   VercelAdapter,
 } from './servers/adapter.js';
+// Contracts introspection server (F8 Phase 1 — protocol-pyramid ADR L2-MCP)
+export {
+  type ContractCategoryName,
+  type ContractCategorySchemas,
+  type CreateContractsServerOptions,
+  createContractsServer,
+  getContractsCatalog,
+  REGISTERED_CATEGORIES,
+  REVEALCOIN_TOKEN_DEFAULT,
+  validatePayload,
+} from './servers/factories/contracts.js';
 // First-party server factories (Stage 1 PR-1.2 — dual-mode template)
 export {
   createRevealuiContentServer,

@@ -249,7 +249,7 @@ This is used as middleware in the API. AI routes check `requireFeature('ai')`. M
 RevealUI supports three billing models simultaneously:
 
 1. **Subscriptions** -- Monthly recurring charges via Stripe. Standard for SaaS.
-2. **Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Forge is unlimited. Overage is reported to Stripe Billing Meters.
+2. **Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Enterprise is unlimited. Overage is reported to Stripe Billing Meters.
 3. **Perpetual licenses** -- One-time purchase, own forever, with an optional annual support renewal. The license JWT has no expiration, and the system tracks `supportExpiresAt` separately from the license validity.
 
 ### License verification API
@@ -430,7 +430,7 @@ Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict r
 
 ### MCP servers
 
-RevealUI ships **12 MCP (Model Context Protocol) servers**, open source under MIT. The most commonly used:
+RevealUI ships **13 MCP (Model Context Protocol) servers**, open source under MIT. The most commonly used:
 
 | Server | Purpose |
 |--------|---------|
@@ -466,7 +466,7 @@ AI is not free. RevealUI tracks task usage per billing cycle:
 | Free | 1,000 tasks |
 | Pro | 10,000 tasks |
 | Max | 50,000 tasks |
-| Forge      | Unlimited |
+| Enterprise | Unlimited |
 
 Overage beyond the quota is tracked in the `agent_task_usage` table and reported to Stripe Billing Meters at the end of each cycle via a cron job. This enables usage-based pricing without blocking execution in real-time.
 

@@ -86,9 +86,9 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
       }
     });
 
-    it('enterprise is labeled "Forge" in subscription tiers', () => {
+    it('enterprise is labeled "Enterprise" in subscription tiers', () => {
       const enterprise = SUBSCRIPTION_TIERS.find((t) => t.id === 'enterprise');
-      expect(enterprise?.name).toBe('Forge');
+      expect(enterprise?.name).toBe('Enterprise');
     });
   });
 
@@ -289,7 +289,7 @@ describe('Pricing Accuracy  -  Contracts vs Code Enforcement', () => {
       expect(getTierLabel('free')).toBe('Free (OSS)');
       expect(getTierLabel('pro')).toBe('Pro');
       expect(getTierLabel('max')).toBe('Max');
-      expect(getTierLabel('enterprise')).toBe('Forge (Enterprise)');
+      expect(getTierLabel('enterprise')).toBe('Enterprise');
     });
   });
 

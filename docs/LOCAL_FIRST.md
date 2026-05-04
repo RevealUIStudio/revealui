@@ -55,18 +55,21 @@ The Nix flake activates: Node 24, pnpm 10, Biome, and all build dependencies are
 
 ## Step 2  -  Local inference (inference snaps or Ollama)
 
-**Option A: Ubuntu Inference Snaps (recommended)**
+**Option A: Ubuntu Inference Snaps (canonical default — Studio lifecycle pending)**
 
-Inference snaps are the primary recommended path for local AI. Canonical's snap-packaged model serving provides hardware-aware engine selection, signed packages, and zero configuration:
+Inference snaps are the canonical local-AI path for RevealUI. Canonical's snap-packaged model serving provides hardware-aware engine selection, signed packages, and zero configuration. Today, you install + run the snap yourself; Studio lifecycle management (start / stop / health / model discovery) is on the roadmap.
 
 ```bash
-sudo snap install nemotron-nano   # general-purpose, low resource
-# or: sudo snap install gemma3      # general + vision
+sudo snap install gemma3             # default — general + vision (~8 GB, Apache 2.0)
+# or: sudo snap install deepseek-r1            # reasoning
+# or: sudo snap install qwen-vl                # vision-language
+# or: sudo snap install nemotron-3-nano        # text-only, lightweight (~4 GB)
+# or: sudo snap install nemotron-3-nano-omni   # multimodal — text/image/video/audio
 ```
 
 Verify the snap is running:
 ```bash
-nemotron-nano status
+gemma3 status
 ```
 
 Each snap serves an OpenAI-compatible API at `http://localhost:<port>/v1`.

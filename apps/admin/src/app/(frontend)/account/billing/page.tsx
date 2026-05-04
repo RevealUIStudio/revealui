@@ -18,6 +18,7 @@ import {
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { TestModeBanner } from '@/components/TestModeBanner';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
@@ -257,6 +258,8 @@ function BillingContent() {
     <div className="mx-auto max-w-2xl space-y-6 py-12">
       <h1 className="text-2xl font-bold">Billing</h1>
 
+      <TestModeBanner />
+
       {subscription?.status === 'trialing' && subscription.expiresAt && (
         <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
           Your Pro trial ends on{' '}
@@ -495,7 +498,7 @@ function BillingContent() {
             {tier === 'max' && (
               <div className="space-y-3">
                 <p className="text-sm text-zinc-600">
-                  Upgrade to Forge for unlimited projects and users, SSO, white-label branding,
+                  Upgrade to Enterprise for unlimited projects and users, SSO, white-label branding,
                   multi-tenant isolation, and self-hosted deployment.
                 </p>
                 <Button
@@ -506,8 +509,8 @@ function BillingContent() {
                   {actionLoading
                     ? 'Upgrading...'
                     : upgradeSuccess
-                      ? 'Upgraded to Forge'
-                      : `Upgrade to Forge — ${getPrice('enterprise')}`}
+                      ? 'Upgraded to Enterprise'
+                      : `Upgrade to Enterprise — ${getPrice('enterprise')}`}
                 </Button>
                 <Button
                   onClick={handleManageBilling}
@@ -560,7 +563,7 @@ function BillingContent() {
             <CardTitle>Agent Task Usage</CardTitle>
             <CardDescription>
               {usage.quota === -1
-                ? 'Unlimited agent tasks (Forge tier).'
+                ? 'Unlimited agent tasks (Enterprise tier).'
                 : `${usage.quota.toLocaleString()} tasks included per month. Resets ${new Date(usage.resetAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.`}
             </CardDescription>
           </CardHeader>

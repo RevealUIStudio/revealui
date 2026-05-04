@@ -1,14 +1,13 @@
 import { generateKeyPairSync } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { issueForgeLicense } from '../forge-license.js';
 import { validateLicenseKey } from '../license.js';
+import { issueRevForgeLicense } from '../revforge-license.js';
 
 let privateKey: string;
 let publicKey: string;
 
 beforeAll(() => {
-  const pair = generateKeyPairSync('rsa', {
-    modulusLength: 2048,
+  const pair = generateKeyPairSync('ed25519', {
     publicKeyEncoding: { type: 'spki', format: 'pem' },
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
   });
@@ -16,9 +15,9 @@ beforeAll(() => {
   publicKey = pair.publicKey;
 });
 
-describe('issueForgeLicense', () => {
+describe('issueRevForgeLicense', () => {
   it('issues a JWT with the expected shape and metadata', async () => {
-    const result = await issueForgeLicense(
+    const result = await issueRevForgeLicense(
       { slug: 'allevia', tier: 'pro' },
       { privateKey, publicKey },
     );
@@ -33,7 +32,7 @@ describe('issueForgeLicense', () => {
   });
 
   it('round-trips: issued JWT validates back to the same payload', async () => {
-    const result = await issueForgeLicense(
+    const result = await issueRevForgeLicense(
       {
         slug: 'bigcorp',
         tier: 'enterprise',
@@ -55,7 +54,7 @@ describe('issueForgeLicense', () => {
   });
 
   it('omits exp claim for perpetual licenses', async () => {
-    const result = await issueForgeLicense(
+    const result = await issueRevForgeLicense(
       { slug: 'forever', tier: 'enterprise', perpetual: true },
       { privateKey, publicKey },
     );
@@ -72,7 +71,7 @@ describe('issueForgeLicense', () => {
 
   it('honors expiresInDays', async () => {
     const before = Date.now();
-    const result = await issueForgeLicense(
+    const result = await issueRevForgeLicense(
       { slug: 'trial', tier: 'enterprise', expiresInDays: 30 },
       { privateKey, publicKey },
     );
@@ -86,25 +85,25 @@ describe('issueForgeLicense', () => {
 
   it('rejects invalid slugs', async () => {
     await expect(
-      issueForgeLicense({ slug: 'BadSlug', tier: 'pro' }, { privateKey, publicKey }),
+      issueRevForgeLicense({ slug: 'BadSlug', tier: 'pro' }, { privateKey, publicKey }),
     ).rejects.toThrow(/Invalid --slug/);
 
     await expect(
-      issueForgeLicense({ slug: '-leading-dash', tier: 'pro' }, { privateKey, publicKey }),
+      issueRevForgeLicense({ slug: '-leading-dash', tier: 'pro' }, { privateKey, publicKey }),
     ).rejects.toThrow(/Invalid --slug/);
 
     await expect(
-      issueForgeLicense({ slug: 'has space', tier: 'pro' }, { privateKey, publicKey }),
+      issueRevForgeLicense({ slug: 'has space', tier: 'pro' }, { privateKey, publicKey }),
     ).rejects.toThrow(/Invalid --slug/);
 
     await expect(
-      issueForgeLicense({ slug: '', tier: 'pro' }, { privateKey, publicKey }),
+      issueRevForgeLicense({ slug: '', tier: 'pro' }, { privateKey, publicKey }),
     ).rejects.toThrow(/Invalid --slug/);
   });
 
   it('rejects invalid tier (including free, which has no commercial license)', async () => {
     await expect(
-      issueForgeLicense(
+      issueRevForgeLicense(
         // biome-ignore lint/suspicious/noExplicitAny: invalid tier on purpose
         { slug: 'allevia', tier: 'free' as any },
         { privateKey, publicKey },
@@ -114,7 +113,7 @@ describe('issueForgeLicense', () => {
 
   it('rejects perpetual + expiresInDays combined', async () => {
     await expect(
-      issueForgeLicense(
+      issueRevForgeLicense(
         { slug: 'allevia', tier: 'pro', perpetual: true, expiresInDays: 30 },
         { privateKey, publicKey },
       ),
@@ -123,14 +122,14 @@ describe('issueForgeLicense', () => {
 
   it('rejects non-positive expiresInDays', async () => {
     await expect(
-      issueForgeLicense(
+      issueRevForgeLicense(
         { slug: 'allevia', tier: 'pro', expiresInDays: 0 },
         { privateKey, publicKey },
       ),
     ).rejects.toThrow(/positive integer/);
 
     await expect(
-      issueForgeLicense(
+      issueRevForgeLicense(
         { slug: 'allevia', tier: 'pro', expiresInDays: -1 },
         { privateKey, publicKey },
       ),
@@ -139,16 +138,22 @@ describe('issueForgeLicense', () => {
 
   it('rejects non-positive maxSites / maxUsers', async () => {
     await expect(
-      issueForgeLicense({ slug: 'allevia', tier: 'pro', maxSites: 0 }, { privateKey, publicKey }),
+      issueRevForgeLicense(
+        { slug: 'allevia', tier: 'pro', maxSites: 0 },
+        { privateKey, publicKey },
+      ),
     ).rejects.toThrow(/--max-sites/);
 
     await expect(
-      issueForgeLicense({ slug: 'allevia', tier: 'pro', maxUsers: -5 }, { privateKey, publicKey }),
+      issueRevForgeLicense(
+        { slug: 'allevia', tier: 'pro', maxUsers: -5 },
+        { privateKey, publicKey },
+      ),
     ).rejects.toThrow(/--max-users/);
   });
 
   it('omits optional fields from the payload when not provided', async () => {
-    const result = await issueForgeLicense(
+    const result = await issueRevForgeLicense(
       { slug: 'minimal', tier: 'pro' },
       { privateKey, publicKey },
     );

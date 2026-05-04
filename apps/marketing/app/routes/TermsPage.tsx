@@ -19,7 +19,7 @@ export function TermsPage() {
         <p>
           RevealUI is an open-source agentic business runtime for software companies. It includes a
           content engine, authentication, billing integration, AI agents, and UI components. The
-          Service is available in four tiers: Free (OSS), Pro, Max, and Forge.
+          Service is available in four tiers: Free (OSS), Pro, Max, and Enterprise.
         </p>
 
         <h2>2. Accounts</h2>

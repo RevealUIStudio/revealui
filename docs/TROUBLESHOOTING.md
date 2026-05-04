@@ -359,7 +359,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 
 ### Session Errors
 
-> Per [ADR-004](./architecture/ADR-004-session-only-auth.md), user-facing auth is session-only — there are no JWTs in the session cookie. JWT is used for license validation (`REVEALUI_LICENSE_PRIVATE_KEY` / RS256), which is a separate surface.
+> Per [ADR-004](./architecture/ADR-004-session-only-auth.md), user-facing auth is session-only — there are no JWTs in the session cookie. JWT is used for license validation (`REVEALUI_LICENSE_PRIVATE_KEY` / EdDSA), which is a separate surface.
 
 **Symptoms**: "Invalid session", "Session expired"
 
@@ -380,7 +380,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 
 4. **License JWT errors (separate)**
    - If you see "Invalid license" / "License signature failed", check `REVEALUI_LICENSE_PUBLIC_KEY` matches the private key that signed the token
-   - License JWTs use RS256; public/private keys must be a matched pair
+   - License JWTs use EdDSA (Ed25519); public/private keys must be a matched pair
 
 **See Also**: [Auth Guide](./AUTH.md), [ADR-004](./architecture/ADR-004-session-only-auth.md)
 

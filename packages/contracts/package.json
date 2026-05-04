@@ -12,6 +12,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@revealui/revealcoin-manifest": "^0.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -101,6 +102,26 @@
     "./security": {
       "types": "./dist/security/index.d.ts",
       "import": "./dist/security/index.js"
+    },
+    "./secrets": {
+      "types": "./dist/secrets/index.d.ts",
+      "import": "./dist/secrets/index.js"
+    },
+    "./a2a": {
+      "types": "./dist/a2a/index.d.ts",
+      "import": "./dist/a2a/index.js"
+    },
+    "./api/auth": {
+      "types": "./dist/api/auth.d.ts",
+      "import": "./dist/api/auth.js"
+    },
+    "./api/chat": {
+      "types": "./dist/api/chat.d.ts",
+      "import": "./dist/api/chat.js"
+    },
+    "./api/gdpr": {
+      "types": "./dist/api/gdpr.d.ts",
+      "import": "./dist/api/gdpr.js"
     }
   },
   "files": [

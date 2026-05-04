@@ -15,7 +15,7 @@ RevealUI defines four pricing tiers:
 | Free | `free` | 1 | 3 | 200 req/min |
 | Pro | `pro` | 5 | 25 | 300 req/min |
 | Max | `max` | 15 | 100 | 600 req/min |
-| Enterprise (Forge) | `enterprise` | Unlimited | Unlimited | Custom |
+| Enterprise | `enterprise` | Unlimited | Unlimited | Custom |
 
 Tier definitions and feature flags live in `@revealui/contracts`. Dollar amounts are **not hardcoded** -- they are fetched at runtime from the Stripe Products API via `GET /api/pricing`, with fallback values used when Stripe is unavailable.
 

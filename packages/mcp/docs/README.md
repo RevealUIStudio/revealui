@@ -21,9 +21,10 @@ Complete guide for setting up and using Model Context Protocol (MCP) servers in 
 
 ## Overview
 
-RevealUI includes 12 MCP servers for enhanced AI capabilities (ground-truth count enforced by `pnpm validate:claims`):
+RevealUI includes 13 MCP servers for enhanced AI capabilities (ground-truth count enforced by `pnpm validate:claims`):
 
 - **Code Validator MCP** — Static analysis and code quality checks
+- **Contracts Introspection MCP** — Read-only catalog of every `@revealui/contracts` category as MCP resources + per-category `validate_*` tools (F8 Phase 1 of the protocol-pyramid ADR; not Pro-gated)
 - **Neon MCP** — NeonDB database operations and SQL queries
 - **Next.js DevTools MCP** — Next.js 16+ runtime diagnostics and automation
 - **Playwright MCP** — Browser automation and web scraping

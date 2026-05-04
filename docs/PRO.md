@@ -51,7 +51,7 @@ This guide covers the full Pro surface area, not just MCP setup:
 - MCP servers and developer tooling
 - Open-model inference (Ollama shipped; Ubuntu Inference Snaps on roadmap)
 - editor and harness workflows
-- Stripe, Supabase, and x402 payment features
+- Stripe and x402 payment features
 - marketplace monetization
 - perpetual and Forge licensing
 
@@ -75,7 +75,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 - Pro packages (Fair Source / FSL-1.1-MIT): `@revealui/ai`, `@revealui/harnesses`
 - MCP servers and developer tooling
 - Open-model inference configuration per deployment
-- Stripe and Supabase service integrations
+- Stripe service integrations
 - x402 micropayments and paid API support
 - Marketplace and self-hosted commercial deployment options
 
@@ -115,13 +115,13 @@ RevealUI publishes every package to npm from the same public repo. There are two
 - You can use the Pro packages commercially as long as your product isn't a substantially similar developer platform competing with RevealUI. Building a SaaS product on top of the AI primitives, agents, editors, harnesses, or MCP marketplace is fine. Publishing a competing "platform software sold at the account or workspace level" isn't.
 - Every Pro release has a scheduled MIT-conversion date two years out. You can see the history in the package's changelog, and today's FSL source becomes tomorrow's MIT source.
 
-The Pro tier gate isn't enforced by the license — it's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are RS256-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
+The Pro tier gate isn't enforced by the license — it's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are Ed25519-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
 
 For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-003-fair-source-licensing.md). The root `LICENSE` file (MIT) and per-package `LICENSE` files inside `packages/ai/`, `packages/harnesses/`, and `packages/engines/` (FSL-1.1-MIT) describe the terms verbatim.
 
 ## MCP Setup
 
-RevealUI ships **12 MCP servers** under `packages/mcp/src/servers/` for enhanced AI capabilities. Highlights:
+RevealUI ships **13 MCP servers** under `packages/mcp/src/servers/` for enhanced AI capabilities. Highlights:
 
 - **Code Validator MCP** - Static analysis and code quality checks
 - **Vercel MCP** - Deploy and manage Vercel projects
@@ -1156,11 +1156,11 @@ syncConfig("claude-code", "push");
 
 # @revealui/services
 
-Stripe payment processing and Supabase client integrations for RevealUI Pro.
+Stripe payment processing for RevealUI Pro.
 
 ## Overview
 
-`@revealui/services` provides pre-wired Stripe and Supabase integrations with auth-aware clients, webhook handlers, and billing flow helpers.
+`@revealui/services` provides pre-wired Stripe integrations with auth-aware clients, webhook handlers, and billing flow helpers. Also exports Solana (RevealCoin / RVC) and Vercel (deploy + DNS) helpers.
 
 **Requires a Pro or Forge license** (`isFeatureEnabled('payments')`).
 
@@ -1204,58 +1204,6 @@ Full checkout/portal/webhook route handlers are wired at the application layer (
 STRIPE_SECRET_KEY=sk_test_...   # Use sk_live_... once billing-readiness sign-off lands
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_ID=price_...       # Your Pro tier price
-```
-
-## Supabase
-
-### Server client (Next.js App Router)
-
-```typescript
-import { createServerClient } from "@revealui/services";
-import { cookies } from "next/headers";
-
-// In a Server Component or Route Handler
-const supabase = createServerClient(cookies());
-const { data } = await supabase.from("profiles").select("*");
-```
-
-### Browser client
-
-```typescript
-import { createBrowserClient } from "@revealui/services";
-
-// In a Client Component
-const supabase = createBrowserClient();
-const {
-  data: { session },
-} = await supabase.auth.getSession();
-```
-
-### Request client (Hono / Edge)
-
-```typescript
-import { createServerClientFromRequest } from "@revealui/services";
-
-// In a Hono handler
-app.get("/me", async (c) => {
-  const supabase = createServerClientFromRequest(c.req.raw);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return c.json({ user });
-});
-```
-
-### Resilience wrapper
-
-Wraps any Supabase operation with automatic retry on transient errors:
-
-```typescript
-import { withSupabaseResilience } from "@revealui/services";
-
-const data = await withSupabaseResilience(() =>
-  supabase.from("posts").select("*").limit(10),
-);
 ```
 
 ## Environment configuration
@@ -1463,7 +1411,7 @@ Forge is the enterprise tier of RevealUI. Deploy the entire stack on your own in
 See **[FORGE.md](./FORGE.md)** for the complete deployment guide, including:
 
 - Docker Compose stack (API + admin + PostgreSQL)
-- Environment variables (`FORGE_LICENSE_KEY`, `FORGE_LICENSED_DOMAIN`, etc.)
+- Environment variables (`REVFORGE_LICENSE_KEY`, `REVFORGE_LICENSED_DOMAIN`, etc.)
 - Domain lock enforcement
 - Reverse proxy configuration (Caddy + Nginx examples)
 - Database migrations and upgrade procedure

@@ -929,7 +929,7 @@ Required tables:
 
 ## Migration from Legacy JWT (historical)
 
-RevealUI today is **session-only** for user-facing auth ([ADR-004](./architecture/ADR-004-session-only-auth.md)). JWT is used only for license validation (RS256, server-side), not for session cookies.
+RevealUI today is **session-only** for user-facing auth ([ADR-004](./architecture/ADR-004-session-only-auth.md)). JWT is used only for license validation (EdDSA/Ed25519, server-side), not for session cookies.
 
 If you are running a legacy fork that still issued user JWTs in `revealui-token` cookies, the migration is one-time:
 
