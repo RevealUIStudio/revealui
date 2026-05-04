@@ -265,6 +265,30 @@ describe('POST /generate', () => {
     expect(res.status).toBe(401);
   });
 
+  it('unescapes literal \\n in REVEALUI_LICENSE_PRIVATE_KEY before signing', async () => {
+    // Vercel stores multi-line PEM with \n escaped in the .env format.
+    // The route must convert literal \n back to real newlines before passing
+    // the key to jose.importPKCS8 — same unescape pattern as the webhook
+    // handlers at apps/server/src/routes/webhooks.ts:1009, 1229, 1847, 2391.
+    process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
+    process.env.REVEALUI_LICENSE_PRIVATE_KEY =
+      '-----BEGIN PRIVATE KEY-----\\nMC4CAQA\\n-----END PRIVATE KEY-----';
+    mockedGenerate.mockClear();
+    mockedGenerate.mockResolvedValue('jwt.token');
+
+    const app = createApp();
+    const res = await app.request(
+      '/generate',
+      post('/generate', { tier: 'pro', customerId: 'cus_unesc' }, { 'X-Admin-API-Key': ADMIN_KEY }),
+    );
+    expect(res.status).toBe(201);
+
+    // generateLicenseKey must receive REAL newlines, not literal \n
+    const [, normalizedKey] = mockedGenerate.mock.calls[0]!;
+    expect(normalizedKey).toContain('\n');
+    expect(normalizedKey).not.toContain('\\n');
+  });
+
   it('generates a max tier license', async () => {
     process.env.REVEALUI_ADMIN_API_KEY = ADMIN_KEY;
     process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'priv-key';
