@@ -297,8 +297,7 @@ let testPublicKey: string;
 let mismatchedPublicKey: string;
 
 beforeAll(() => {
-  const pair = generateKeyPairSync('rsa', {
-    modulusLength: 2048,
+  const pair = generateKeyPairSync('ed25519', {
     publicKeyEncoding: { type: 'spki', format: 'pem' },
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
   });
@@ -306,8 +305,7 @@ beforeAll(() => {
   testPublicKey = pair.publicKey;
 
   // Second keypair to test signature mismatch detection.
-  const otherPair = generateKeyPairSync('rsa', {
-    modulusLength: 2048,
+  const otherPair = generateKeyPairSync('ed25519', {
     publicKeyEncoding: { type: 'spki', format: 'pem' },
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
   });
