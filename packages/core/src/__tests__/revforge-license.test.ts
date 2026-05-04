@@ -7,8 +7,7 @@ let privateKey: string;
 let publicKey: string;
 
 beforeAll(() => {
-  const pair = generateKeyPairSync('rsa', {
-    modulusLength: 2048,
+  const pair = generateKeyPairSync('ed25519', {
     publicKeyEncoding: { type: 'spki', format: 'pem' },
     privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
   });
