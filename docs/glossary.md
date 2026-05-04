@@ -54,7 +54,7 @@ Canonical's silicon-optimized snap-packaged LLMs running on Ubuntu. The **canoni
 
 Used in two distinct contexts. **Do not conflate**:
 
-1. **License JWT (RS256):** Pro-package runtime license enforcement. Validated at startup + every 60 seconds against the license server. See [`./PRO`](./PRO.md) and `apps/server/src/lib/license.ts`.
+1. **License JWT (EdDSA/Ed25519):** Pro-package runtime license enforcement. Validated at startup + every 60 seconds against the license server. See [`./PRO`](./PRO.md) and `apps/server/src/lib/license.ts`.
 2. **Session cookies:** RevealUI uses **session-only auth** (bcrypt 12 rounds, sameSite=lax, httpOnly). **No JWT for user-facing auth** per ADR-004. The cookie is a session id, not a JWT.
 
 If a doc says "JWT" without qualifying which one, default to the license JWT.

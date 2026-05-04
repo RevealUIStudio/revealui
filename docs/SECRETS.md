@@ -125,8 +125,8 @@ revdev/github-token                      # perpetual license GitHub provisioning
 ### Licensing (RevealUI)
 
 ```
-revealui/license/private-key             # RS256 license signing key
-revealui/license/public-key              # RS256 license verification key
+revealui/license/private-key             # Ed25519 license signing key
+revealui/license/public-key              # Ed25519 license verification key
 ```
 
 ### LLM / AI providers

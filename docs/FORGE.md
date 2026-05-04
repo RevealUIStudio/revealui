@@ -82,8 +82,8 @@ CORS_ORIGIN=https://admin.acme.com
 # Stripe (for billing features)
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-REVEALUI_LICENSE_PRIVATE_KEY=<RSA private key PEM>
-REVEALUI_LICENSE_PUBLIC_KEY=<RSA public key PEM>
+REVEALUI_LICENSE_PRIVATE_KEY=<Ed25519 private key PEM>
+REVEALUI_LICENSE_PUBLIC_KEY=<Ed25519 public key PEM>
 ```
 
 ### 3. Start the stack
@@ -123,8 +123,8 @@ All Forge-specific variables. See [Environment Variables Guide](./ENVIRONMENT-VA
 | `CORS_ORIGIN`                  | Yes      | Comma-separated allowed origins                      |
 | `STRIPE_SECRET_KEY`            | Billing  | Stripe secret key                                    |
 | `STRIPE_WEBHOOK_SECRET`        | Billing  | Stripe webhook signing secret                        |
-| `REVEALUI_LICENSE_PRIVATE_KEY` | Billing  | RSA-2048 private key PEM for license JWTs            |
-| `REVEALUI_LICENSE_PUBLIC_KEY`  | Billing  | RSA-2048 public key PEM                              |
+| `REVEALUI_LICENSE_PRIVATE_KEY` | Billing  | Ed25519 private key PEM for license JWTs             |
+| `REVEALUI_LICENSE_PUBLIC_KEY`  | Billing  | Ed25519 public key PEM                               |
 
 ---
 
@@ -240,14 +240,14 @@ server {
 
 ---
 
-## Generating RSA keys
+## Generating Ed25519 keys
 
 Required for license JWT signing:
 
 ```bash
 # Generate key pair
-openssl genrsa -out private.pem 2048
-openssl rsa -in private.pem -pubout -out public.pem
+openssl genpkey -algorithm Ed25519 -out private.pem
+openssl pkey -in private.pem -pubout -out public.pem
 
 # Set as env vars (escape newlines)
 export REVEALUI_LICENSE_PRIVATE_KEY="$(cat private.pem)"

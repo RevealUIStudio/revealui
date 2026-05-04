@@ -6,7 +6,7 @@
  * RevForge customers — paid direct (source-license / sales) and stamped via
  * forge/stamp.sh.
  *
- * Pure function: takes options + RSA keys, returns a signed JWT plus
+ * Pure function: takes options + Ed25519 keys, returns a signed JWT plus
  * descriptive metadata. The CLI wrapper (scripts/setup/issue-revforge-license.ts)
  * handles argv parsing and reading keys from the environment.
  */
@@ -36,7 +36,7 @@ export interface IssueRevForgeLicenseOptions {
 }
 
 export interface IssueRevForgeLicenseResult {
-  /** Signed RS256 JWT — the license key the customer installs. */
+  /** Signed EdDSA JWT — the license key the customer installs. */
   licenseKey: string;
   /** Customer identifier embedded in the JWT (the slug). */
   customerId: string;

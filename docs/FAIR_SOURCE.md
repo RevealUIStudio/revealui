@@ -65,7 +65,7 @@ The conversion is in the license text and self-executing — RevealUI Studio doe
 
 Source visibility ≠ free runtime access. The Pro tier is enforced at runtime via:
 
-- **License JWTs** — RS256-signed by the license server (`apps/server/src/routes/license/`). Validated on every Pro entry point.
+- **License JWTs** — Ed25519-signed by the license server (`apps/server/src/routes/license/`). Validated on every Pro entry point.
 - **Per-package feature gates** — each Pro feature checks `isFeatureEnabled('ai' | 'mcp' | 'aiMemory' | ...)` from `@revealui/core/features` before executing.
 - **Status checks every 5 minutes** — `checkLicenseStatus()` re-validates against the license server. Stale licenses are revoked at runtime.
 

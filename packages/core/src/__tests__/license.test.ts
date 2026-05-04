@@ -2,10 +2,11 @@
  * License module tests  -  validates key generation, JWT verification,
  * tier checking, limits enforcement, perpetual licenses, and expiration.
  *
- * Uses real RSA key pair (generated in beforeAll) for authentic JWT operations.
+ * Uses real Ed25519 key pair (generated in beforeAll) for authentic JWT operations.
  */
 
-import { decodeProtectedHeader } from 'jose';
+import { generateKeyPairSync } from 'node:crypto';
+import { decodeProtectedHeader, importPKCS8, SignJWT } from 'jose';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   computeKeyId,
@@ -33,23 +34,13 @@ import {
 let publicKeyPem: string;
 let privateKeyPem: string;
 
-beforeAll(async () => {
-  // Generate a real RSA key pair for testing
-  const keyPair = await crypto.subtle.generateKey(
-    {
-      name: 'RSASSA-PKCS1-v1_5',
-      modulusLength: 2048,
-      publicExponent: new Uint8Array([1, 0, 1]),
-      hash: 'SHA-256',
-    },
-    true,
-    ['sign', 'verify'],
-  );
-  const pubDer = await crypto.subtle.exportKey('spki', keyPair.publicKey);
-  const privDer = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
-
-  publicKeyPem = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(pubDer).toString('base64')}\n-----END PUBLIC KEY-----`;
-  privateKeyPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(privDer).toString('base64')}\n-----END PRIVATE KEY-----`;
+beforeAll(() => {
+  const { publicKey, privateKey } = generateKeyPairSync('ed25519', {
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  });
+  publicKeyPem = publicKey;
+  privateKeyPem = privateKey;
 });
 
 afterEach(() => {
@@ -178,24 +169,60 @@ describe('validateLicenseKey', () => {
   });
 
   it('returns null for key signed with different private key', async () => {
-    // Generate a different key pair
-    const otherKeyPair = await crypto.subtle.generateKey(
-      {
-        name: 'RSASSA-PKCS1-v1_5',
-        modulusLength: 2048,
-        publicExponent: new Uint8Array([1, 0, 1]),
-        hash: 'SHA-256',
-      },
-      true,
-      ['sign', 'verify'],
-    );
-    const otherPrivDer = await crypto.subtle.exportKey('pkcs8', otherKeyPair.privateKey);
-    const otherPrivPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(otherPrivDer).toString('base64')}\n-----END PRIVATE KEY-----`;
-
+    const { privateKey: otherPrivPem } = generateKeyPairSync('ed25519', {
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
     const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_wrong' }, otherPrivPem);
-    // Verify with the original public key  -  should fail
+    // Verify with the original public key — should fail
     const result = await validateLicenseKey(jwt, publicKeyPem);
     expect(result).toBeNull();
+  });
+
+  it('rejects an RS256-signed JWT (algorithm mismatch)', async () => {
+    // Mint an RS256 JWT directly — simulates the pre-migration API issuer
+    const rsaKeyPair = generateKeyPairSync('rsa', {
+      modulusLength: 2048,
+      publicKeyEncoding: { type: 'spki', format: 'pem' },
+      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+    const rsaPrivKey = await importPKCS8(rsaKeyPair.privateKey, 'RS256');
+    const rs256Jwt = await new SignJWT({ tier: 'pro', customerId: 'cus_legacy' })
+      .setProtectedHeader({ alg: 'RS256' })
+      .setIssuedAt()
+      .setIssuer('revealui-license-server')
+      .setAudience('revealui-runtime')
+      .setExpirationTime('1y')
+      .sign(rsaPrivKey);
+    // Ed25519 public key must reject an RS256 JWT
+    const result = await validateLicenseKey(rs256Jwt, publicKeyPem);
+    expect(result).toBeNull();
+  });
+
+  it('round-trips a rich payload signed with Ed25519', async () => {
+    const jwt = await generateLicenseKey(
+      {
+        tier: 'enterprise',
+        customerId: 'cus_rich',
+        domains: ['app.acme.com', 'admin.acme.com'],
+        maxSites: 50,
+        maxUsers: 500,
+        perpetual: false,
+      },
+      privateKeyPem,
+      365 * 24 * 60 * 60,
+      publicKeyPem,
+    );
+    const header = decodeProtectedHeader(jwt);
+    expect(header.alg).toBe('EdDSA');
+    const payload = await validateLicenseKey(jwt, publicKeyPem);
+    expect(payload).not.toBeNull();
+    expect(payload?.tier).toBe('enterprise');
+    expect(payload?.customerId).toBe('cus_rich');
+    expect(payload?.domains).toEqual(['app.acme.com', 'admin.acme.com']);
+    expect(payload?.maxSites).toBe(50);
+    expect(payload?.maxUsers).toBe(500);
+    expect(payload?.perpetual).toBe(false);
   });
 
   it('returns null for malformed public key', async () => {
