@@ -115,7 +115,7 @@ RevealUI publishes every package to npm from the same public repo. There are two
 - You can use the Pro packages commercially as long as your product isn't a substantially similar developer platform competing with RevealUI. Building a SaaS product on top of the AI primitives, agents, editors, harnesses, or MCP marketplace is fine. Publishing a competing "platform software sold at the account or workspace level" isn't.
 - Every Pro release has a scheduled MIT-conversion date two years out. You can see the history in the package's changelog, and today's FSL source becomes tomorrow's MIT source.
 
-The Pro tier gate isn't enforced by the license — it's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are RS256-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
+The Pro tier gate isn't enforced by the license — it's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are Ed25519-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
 
 For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-003-fair-source-licensing.md). The root `LICENSE` file (MIT) and per-package `LICENSE` files inside `packages/ai/`, `packages/harnesses/`, and `packages/engines/` (FSL-1.1-MIT) describe the terms verbatim.
 

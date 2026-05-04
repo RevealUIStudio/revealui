@@ -343,7 +343,7 @@ interface RevealDeleteOptions {
 
 ### `revealui.login(options)`
 
-Authenticates a user and returns a session token. Sessions are server-stored and identified by an opaque random hex string in the `revealui-session` cookie (HttpOnly, Secure, SameSite=Lax). There is no JWT in the session cookie — see [ADR-004: Session-Only Auth](./architecture/ADR-004-session-only-auth.md). License JWTs (RS256) are a separate surface.
+Authenticates a user and returns a session token. Sessions are server-stored and identified by an opaque random hex string in the `revealui-session` cookie (HttpOnly, Secure, SameSite=Lax). There is no JWT in the session cookie — see [ADR-004: Session-Only Auth](./architecture/ADR-004-session-only-auth.md). License JWTs (EdDSA/Ed25519) are a separate surface.
 
 ```ts
 const { user, token } = await revealui.login({
@@ -678,7 +678,7 @@ Returns the max number of active users allowed: free=3, pro=25 (or payload value
 
 ### `validateLicenseKey(licenseKey: string, publicKey: string): Promise<LicensePayload | null>`
 
-Verifies a license JWT using RS256/ES256. Returns the decoded payload or `null` if invalid/expired.
+Verifies a license JWT using EdDSA (Ed25519). Returns the decoded payload or `null` if invalid/expired.
 
 ### `generateLicenseKey(payload, privateKey, expiresInSeconds?): Promise<string>`
 

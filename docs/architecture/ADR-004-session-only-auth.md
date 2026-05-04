@@ -21,7 +21,7 @@ Most modern web frameworks default to JWT-based auth. JWTs are stateless and sca
 
 ### What JWTs ARE used for
 
-JWTs are used only for **license validation** (RS256, asymmetric), not for user authentication. The license JWT is verified at the API layer to gate Pro features  -  it is not a session token.
+JWTs are used only for **license validation** (EdDSA/Ed25519, asymmetric), not for user authentication. The license JWT is verified at the API layer to gate Pro features  -  it is not a session token.
 
 ## Alternatives Considered
 

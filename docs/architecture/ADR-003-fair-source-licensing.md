@@ -19,7 +19,7 @@ All source code lives in the public repo. No gitignored packages. No private rep
 ### Runtime enforcement
 
 Pro features are gated at runtime, not at the source level:
-- JWT RS256 license validation (`initializeLicense()`)
+- JWT EdDSA (Ed25519) license validation (`initializeLicense()`)
 - 6-layer middleware: tier check, feature check, AI access check, domain lock, revocation check, support expiry
 - `checkAIFeatureGate()` at every Pro API entry point
 - License tiers: `free | pro | max | enterprise`
