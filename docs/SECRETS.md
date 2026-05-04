@@ -54,6 +54,7 @@ revealui/dev/stripe/webhook-secret
 revealui/dev/stripe/publishable-key      # pk_test_*
 revealui/dev/revealui-secret             # JWT/session, ≥32 chars
 revealui/dev/revealui-admin-api-key      # API admin auth
+revealui/dev/founder-license-key         # RVUI-<tier>-<32hex>; founder dev license consumed by revdev daemon (revdev/packages/daemon/src/license.ts)
 revealui/dev/blob/read-write-token       # Vercel Blob file uploads
 revealui/dev/google/client-id            # OAuth SSO
 revealui/dev/google/client-secret
@@ -119,14 +120,16 @@ revealcoin/devnet-addresses              # operational, not a keypair
 
 ```
 revdev/license-signing-key               # when Ed25519 format lands (see license.ts TODO)
+revdev/license-public-key                # paired with signing-key (license verification side, for future format)
 revdev/github-token                      # perpetual license GitHub provisioning
 ```
 
 ### Licensing (RevealUI)
 
 ```
-revealui/license/private-key             # Ed25519 license signing key
-revealui/license/public-key              # Ed25519 license verification key
+revealui/env/license                     # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY (consumed by ~/suite/revealui/.envrc via `revvault export-env`)
+revealui/prod/license/private-key        # Ed25519 license signing key (production; mirrored to Vercel `revealui-api` + `revealui-admin`) — migrated RS256 → Ed25519 via CR8-P0-01 Phase D 2026-05-04
+revealui/prod/license/public-key         # Ed25519 license verification key (production; mirrored to Vercel `revealui-api` + `revealui-admin`) — migrated RS256 → Ed25519 via CR8-P0-01 Phase D 2026-05-04
 ```
 
 ### LLM / AI providers
