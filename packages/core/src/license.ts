@@ -249,11 +249,11 @@ export async function validateLicenseKey(
       );
     }
 
-    const key = await jose.importSPKI(publicKey, 'RS256');
+    const key = await jose.importSPKI(publicKey, 'EdDSA');
     // Accept tokens expired within the subscription grace window so the
     // payload is available for grace-period calculations in isLicensed().
     const { payload } = await jose.jwtVerify(licenseKey, key, {
-      algorithms: ['RS256'],
+      algorithms: ['EdDSA'],
       clockTolerance: graceConfig.subscriptionDays * 86_400,
       issuer: LICENSE_ISSUER,
       audience: LICENSE_AUDIENCE,
@@ -511,10 +511,10 @@ export function getMaxAgentTasks(): number {
  * `jose.importPKCS8` and `SignJWT` both run on Web Crypto.
  *
  * @param payload - License payload (tier, customerId, limits, perpetual flag)
- * @param privateKey - RS256 private key (PEM format)
+ * @param privateKey - Ed25519 private key (PEM format)
  * @param expiresInSeconds - JWT expiration in seconds. Pass null for perpetual
  *   licenses (no exp claim). Defaults to 1 year for subscription licenses.
- * @param publicKey - RS256 public key (PEM format). When provided, a `kid`
+ * @param publicKey - Ed25519 public key (PEM format). When provided, a `kid`
  *   claim is added to the JWT header for forward-compatible key rotation.
  * @returns Signed JWT string
  */
@@ -525,9 +525,9 @@ export async function generateLicenseKey(
   publicKey?: string,
 ): Promise<string> {
   const jose = await getJose();
-  const key = await jose.importPKCS8(privateKey, 'RS256');
+  const key = await jose.importPKCS8(privateKey, 'EdDSA');
   const kid = publicKey ? await computeKeyId(publicKey) : undefined;
-  const header: { alg: string; kid?: string } = { alg: 'RS256' };
+  const header: { alg: string; kid?: string } = { alg: 'EdDSA' };
   if (kid) {
     header.kid = kid;
   }
