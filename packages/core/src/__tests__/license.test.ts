@@ -5,8 +5,8 @@
  * Uses real Ed25519 key pair (generated in beforeAll) for authentic JWT operations.
  */
 
-import { SignJWT, importPKCS8, decodeProtectedHeader } from 'jose';
 import { generateKeyPairSync } from 'node:crypto';
+import { decodeProtectedHeader, importPKCS8, SignJWT } from 'jose';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   computeKeyId,
