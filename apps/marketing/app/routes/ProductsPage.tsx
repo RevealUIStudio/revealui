@@ -104,7 +104,7 @@ const primitives: Primitive[] = [
         'Upgrade a customer and their agents get smarter. One product catalog, one billing system, one set of feature gates, applied consistently to every user and every agent.',
     },
     features: [
-      'Four pricing tracks (subscription, credits, perpetual, services)',
+      'Three pricing tracks (subscription, perpetual, services)',
       'Feature gating with tier enforcement',
       'Usage tracking and limit enforcement',
       'License key management',
@@ -139,7 +139,6 @@ const primitives: Primitive[] = [
       'Customer billing portal',
       'x402 agent-to-agent micropayments',
       'RevealCoin integration (Solana)',
-      'Credit bundle purchasing',
     ],
   },
   {
