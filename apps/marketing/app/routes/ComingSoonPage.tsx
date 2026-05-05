@@ -22,13 +22,6 @@ const shipped: Feature[] = [
     status: 'Shipped',
     category: 'Docs',
   },
-  {
-    name: 'Agent Credits (Track B)',
-    description:
-      'Pay-per-task billing for AI agent execution. Buy credit bundles that never expire and stack with your monthly subscription allowance.',
-    status: 'Coming Soon',
-    category: 'Billing',
-  },
 ];
 
 const upcoming: Feature[] = [
