@@ -29,6 +29,7 @@ import { protectedStripe } from '@revealui/services';
 import { and, inArray, isNotNull } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type Stripe from 'stripe';
+import { sendCronFailureAlert } from '../../lib/webhook-emails.js';
 
 const app = new Hono();
 
@@ -202,6 +203,20 @@ app.post('/reconcile-subscriptions', async (c) => {
           undefined,
           { ...report },
         );
+        sendCronFailureAlert(process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com', {
+          jobName: 'reconcile-subscriptions',
+          error: report.detail ?? 'missing-in-stripe',
+          severity: 'critical',
+          details: {
+            accountId: report.accountId,
+            stripeSubscriptionId: report.stripeSubscriptionId,
+            localStatus: report.local.status,
+          },
+        }).catch((err: unknown) => {
+          logger.error('[reconcile-subscriptions] failed to send cron failure alert', undefined, {
+            alertError: err instanceof Error ? err.message : String(err),
+          });
+        });
         continue;
       }
 
@@ -269,6 +284,21 @@ app.post('/reconcile-subscriptions', async (c) => {
           undefined,
           { ...report },
         );
+        sendCronFailureAlert(process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com', {
+          jobName: 'reconcile-subscriptions',
+          error: `status drift ${row.status}→${stripeStatus ?? 'unknown'} for account ${row.accountId}`,
+          severity: 'critical',
+          details: {
+            accountId: report.accountId,
+            stripeSubscriptionId: report.stripeSubscriptionId,
+            localStatus: report.local.status,
+            stripeStatus: report.stripe?.status ?? 'unknown',
+          },
+        }).catch((err: unknown) => {
+          logger.error('[reconcile-subscriptions] failed to send cron failure alert', undefined, {
+            alertError: err instanceof Error ? err.message : String(err),
+          });
+        });
       } else {
         logger.warn(`[reconcile-subscriptions] status drift ${row.status}→${stripeStatus}`, {
           ...report,

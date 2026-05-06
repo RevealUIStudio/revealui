@@ -558,6 +558,53 @@ ${context.customerId ? `<p><strong>Customer ID:</strong> <code>${escapeHtml(cont
   });
 }
 
+export async function sendCronFailureAlert(
+  email: string,
+  ctx: {
+    jobName: string;
+    error: string;
+    severity?: 'critical' | 'warning';
+    details?: Record<string, string | number>;
+  },
+): Promise<void> {
+  const level = ctx.severity ?? 'critical';
+  const prefix = level === 'critical' ? '[CRITICAL]' : '[WARNING]';
+  const detailRows =
+    ctx.details && Object.keys(ctx.details).length > 0
+      ? Object.entries(ctx.details)
+          .map(
+            ([k, v]) =>
+              `<tr><td style="padding:4px 8px;font-weight:bold;">${escapeHtml(k)}</td><td style="padding:4px 8px;">${escapeHtml(String(v))}</td></tr>`,
+          )
+          .join('')
+      : '';
+  const detailTable = detailRows
+    ? `<table style="border-collapse:collapse;margin-top:8px;">${detailRows}</table>`
+    : '';
+
+  await sendEmail({
+    to: email,
+    subject: `${prefix} RevealUI cron job ${ctx.jobName} failure`,
+    html: emailShell(
+      'Cron Job Failure',
+      `<h1 style="color: #dc2626;">Cron Job Failure</h1>
+<p><strong>Job:</strong> <code>${escapeHtml(ctx.jobName)}</code></p>
+<p><strong>Severity:</strong> ${escapeHtml(level.toUpperCase())}</p>
+<p><strong>Error:</strong> ${escapeHtml(ctx.error)}</p>
+<p><strong>Time:</strong> ${escapeHtml(new Date().toISOString())}</p>
+${detailTable ? `<p><strong>Context:</strong></p>${detailTable}` : ''}
+<p style="margin-top:16px;"><a href="${adminUrl()}/ops/cron" style="color:#2563eb;">Review in admin dashboard →</a></p>`,
+    ),
+    text: `${prefix} RevealUI cron job failure\n\nJob: ${ctx.jobName}\nSeverity: ${level.toUpperCase()}\nError: ${ctx.error}\nTime: ${new Date().toISOString()}${
+      ctx.details
+        ? `\n\nContext:\n${Object.entries(ctx.details)
+            .map(([k, v]) => `  ${k}: ${v}`)
+            .join('\n')}`
+        : ''
+    }\n\nReview at ${adminUrl()}/ops/cron`,
+  });
+}
+
 // =============================================================================
 // GitHub team provisioning  -  side-effect triggered by webhook events
 // =============================================================================

@@ -12,6 +12,7 @@ const hoisted = vi.hoisted(() => ({
   updateMock: vi.fn(),
   getClientMock: vi.fn(),
   replayMock: vi.fn(),
+  sendCronFailureAlert: vi.fn().mockResolvedValue(undefined),
 }));
 const loggerMock = hoisted.logger;
 const selectMock = hoisted.selectMock;
@@ -61,6 +62,10 @@ vi.mock('@revealui/services', () => ({
     events: { retrieve: vi.fn() },
     webhooks: { generateTestHeaderStringAsync: vi.fn() },
   },
+}));
+
+vi.mock('../../lib/webhook-emails.js', () => ({
+  sendCronFailureAlert: (...args: unknown[]) => hoisted.sendCronFailureAlert(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -289,5 +294,74 @@ describe('drain-unreconciled failures', () => {
     expect(body.replayed).toBe(0);
     // No resolved-by update for unresolved replay failures.
     expect(setMock).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// sendCronFailureAlert wiring
+// ---------------------------------------------------------------------------
+describe('drain-unreconciled cron alert wiring', () => {
+  const CRON_SECRET = 'test-cron-secret-xxxxxxxxxxxxxxxxxxx';
+
+  it('calls sendCronFailureAlert with severity critical when a >24h event replay fails', async () => {
+    const { db } = buildDbMock([
+      {
+        eventId: 'evt_alert_critical',
+        eventType: 'customer.subscription.deleted',
+        createdAt: new Date(Date.now() - 30 * 60 * 60 * 1000),
+      },
+    ]);
+    getClientMock.mockReturnValue(db);
+    replayMock.mockResolvedValueOnce({
+      kind: 'handler-error',
+      status: 500,
+      body: { error: 'still broken' },
+    });
+
+    await invokeDrain(CRON_SECRET);
+
+    expect(hoisted.sendCronFailureAlert).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        jobName: 'drain-unreconciled',
+        severity: 'critical',
+        details: expect.objectContaining({
+          eventId: 'evt_alert_critical',
+          eventType: 'customer.subscription.deleted',
+        }),
+      }),
+    );
+  });
+
+  it('does NOT call sendCronFailureAlert when a replay failure is not yet critical (<24h)', async () => {
+    const { db } = buildDbMock([
+      {
+        eventId: 'evt_young_fail',
+        eventType: 'invoice.payment_failed',
+        createdAt: new Date(Date.now() - 60_000),
+      },
+    ]);
+    getClientMock.mockReturnValue(db);
+    replayMock.mockResolvedValueOnce({ kind: 'handler-error', status: 500, body: null });
+
+    await invokeDrain(CRON_SECRET);
+
+    expect(hoisted.sendCronFailureAlert).not.toHaveBeenCalled();
+  });
+
+  it('completes without throwing when sendCronFailureAlert rejects (fail-safe)', async () => {
+    hoisted.sendCronFailureAlert.mockRejectedValueOnce(new Error('smtp down'));
+    const { db } = buildDbMock([
+      {
+        eventId: 'evt_alert_failsafe',
+        eventType: 'charge.refunded',
+        createdAt: new Date(Date.now() - 30 * 60 * 60 * 1000),
+      },
+    ]);
+    getClientMock.mockReturnValue(db);
+    replayMock.mockResolvedValueOnce({ kind: 'handler-error', status: 502, body: null });
+
+    const res = await invokeDrain(CRON_SECRET);
+    expect(res.status).toBe(200);
   });
 });

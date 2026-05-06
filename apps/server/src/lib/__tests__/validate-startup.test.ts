@@ -19,6 +19,7 @@ function validLiveProdEnv(overrides: EnvMap = {}): EnvMap {
     REVEALUI_KEK: HEX_64,
     REVEALUI_PUBLIC_SERVER_URL: HTTPS_URL,
     NEXT_PUBLIC_SERVER_URL: HTTPS_URL,
+    SENTRY_DSN: 'https://abc123@o123456.ingest.sentry.io/789',
     STRIPE_SECRET_KEY: 'sk_live_deadbeef',
     STRIPE_WEBHOOK_SECRET: 'whsec_deadbeef',
     REVEALUI_LICENSE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----',
@@ -120,6 +121,12 @@ describe('validateStartup — production presence', () => {
       /REVEALUI_ALERT_EMAIL.*REVEALUI_CRON_SECRET|REVEALUI_CRON_SECRET.*REVEALUI_ALERT_EMAIL/,
     );
   });
+
+  it('rejects missing SENTRY_DSN in production hosted env', () => {
+    const env = validLiveProdEnv();
+    delete env.SENTRY_DSN;
+    expect(() => validateStartup(env)).toThrow(/SENTRY_DSN/);
+  });
 });
 
 describe('validateStartup — production format checks (live mode)', () => {
@@ -180,6 +187,12 @@ describe('validateStartup — production format checks (live mode)', () => {
   it('rejects REVEALUI_ALERT_EMAIL without an @', () => {
     expect(() => validateStartup(validLiveProdEnv({ REVEALUI_ALERT_EMAIL: 'notanemail' }))).toThrow(
       /REVEALUI_ALERT_EMAIL/,
+    );
+  });
+
+  it('rejects malformed SENTRY_DSN (no :// scheme separator)', () => {
+    expect(() => validateStartup(validLiveProdEnv({ SENTRY_DSN: 'not-a-dsn' }))).toThrow(
+      /SENTRY_DSN/,
     );
   });
 
@@ -484,6 +497,10 @@ describe('validateStartup — forge mode', () => {
     expect(() => validateStartup(validForgeProdEnv())).not.toThrow();
   });
 
+  it('does NOT require SENTRY_DSN in forge mode', () => {
+    expect(() => validateStartup(validForgeProdEnv())).not.toThrow();
+  });
+
   it('does NOT enforce HTTPS on REVEALUI_PUBLIC_SERVER_URL in forge mode', () => {
     // Forge default stack uses http://localhost — must not throw.
     expect(() =>
@@ -759,6 +776,7 @@ describe('validateStartup — lenient mode (Vercel-Sensitive var handling)', () 
       REVEALUI_LICENSE_PRIVATE_KEY: '',
       REVEALUI_SECRET: '',
       REVEALUI_KEK: '',
+      SENTRY_DSN: '',
       REVEALUI_CRON_SECRET: '',
       REVEALUI_ALERT_EMAIL: '',
       STRIPE_SECRET_KEY: '',
