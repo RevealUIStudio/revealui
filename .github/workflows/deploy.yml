@@ -51,7 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6.0.3
+      - uses: pnpm/action-setup@8912a9102ac27614460f54aedde9e1e7f9aec20d # v6.0.5
         with:
           version: ${{ env.PNPM_VERSION }}
 
@@ -128,7 +128,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6.0.3
+      - uses: pnpm/action-setup@8912a9102ac27614460f54aedde9e1e7f9aec20d # v6.0.5
         with:
           version: ${{ env.PNPM_VERSION }}
 
@@ -140,24 +140,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Vercel CLI
-        run: pnpm add -g vercel@latest
-
       - name: Build DB package
         run: pnpm turbo build --filter=@revealui/db
-
-      - name: Pull POSTGRES_URL from Vercel (API project is DB owner)
-        # Single source of truth: Vercel project env. Avoids maintaining
-        # POSTGRES_URL as a separate GitHub secret that can drift on rotation.
-        run: |
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-          if [ ! -f .vercel/.env.production.local ]; then
-            echo "::error::vercel pull produced no .env.production.local"
-            exit 1
-          fi
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_PROJECT_ID: prj_zk6EQijYXwd9L7BccuBssi436ktM # api
 
       - name: Run migrations
         # Runs drizzle-kit migrate (non-interactive, applies pending SQL
@@ -186,13 +170,15 @@ jobs:
         env:
           NO_COLOR: "1"
           FORCE_COLOR: "0"
+          # PROD_POSTGRES_URL mirrors Vercel revealui-api POSTGRES_URL (Sensitive),
+          # because `vercel env pull` returns empty strings for Sensitive vars and
+          # this step needs the actual value to run drizzle-kit migrate. Long-term:
+          # revvault-vercel-sync Phase 5 replaces this mirror with revvault as
+          # the canonical source for both Vercel + this secret.
+          POSTGRES_URL: ${{ secrets.PROD_POSTGRES_URL }}
         run: |
-          set -a
-          # shellcheck disable=SC1091
-          . .vercel/.env.production.local
-          set +a
           if [ -z "${POSTGRES_URL:-}" ]; then
-            echo "::error::POSTGRES_URL not found in pulled Vercel env"
+            echo "::error::PROD_POSTGRES_URL secret not set on the repo"
             exit 1
           fi
           echo "::group::Backfill check (pre-migrate)"
@@ -333,7 +319,7 @@ jobs:
         with:
           ref: ${{ needs.detect.outputs.sha }}
 
-      - uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6.0.3
+      - uses: pnpm/action-setup@8912a9102ac27614460f54aedde9e1e7f9aec20d # v6.0.5
         with:
           version: ${{ env.PNPM_VERSION }}
 
@@ -400,7 +386,7 @@ jobs:
       # this setup, the rollback fails with `pnpm: command not found`
       # before it can install vercel CLI, which leaves a broken deploy
       # live (precedent: 2026-04-25 #540 incident, GAP-122).
-      - uses: pnpm/action-setup@903f9c1a6ebcba6cf41d87230be49611ac97822e # v6.0.3
+      - uses: pnpm/action-setup@8912a9102ac27614460f54aedde9e1e7f9aec20d # v6.0.5
         with:
           version: ${{ env.PNPM_VERSION }}
 

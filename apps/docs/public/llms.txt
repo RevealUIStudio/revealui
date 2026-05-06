@@ -11,7 +11,7 @@
 
 ## The five primitives
 
-- [Auth](https://docs.revealui.com/AUTH): Session-only auth, bcrypt 12 rounds, OAuth, passkeys (license JWT is a separate surface, RS256)
+- [Auth](https://docs.revealui.com/AUTH): Session-only auth, bcrypt 12 rounds, OAuth, passkeys (license JWT is a separate surface, Ed25519)
 - [AI](https://docs.revealui.com/AI): LLM providers, MCP, A2A, agents, RAG, memory layers
 - [Database](https://docs.revealui.com/DATABASE): Drizzle ORM on NeonDB; legacy Supabase code remaining in tree during phase-out
 - [Billing (Stripe)](https://docs.revealui.com/PRO#billing): Stripe webhooks, circuit breaker, metered billing

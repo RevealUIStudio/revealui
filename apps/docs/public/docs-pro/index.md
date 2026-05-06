@@ -15,7 +15,7 @@ RevealUI Pro adds AI agents, MCP integrations, and inference orchestration on to
 
 ## License
 
-The two Pro packages (`@revealui/ai`, `@revealui/harnesses`) are **Fair Source (FSL-1.1-MIT)** — source is visible in the public repo, the package is installable from npm, and each release converts to plain MIT after 2 years. Runtime feature gates verify your Pro / Forge / perpetual license via JWT (RS256).
+The two Pro packages (`@revealui/ai`, `@revealui/harnesses`) are **Fair Source (FSL-1.1-MIT)** — source is visible in the public repo, the package is installable from npm, and each release converts to plain MIT after 2 years. Runtime feature gates verify your Pro / Forge / perpetual license via JWT (Ed25519).
 
 `@revealui/mcp` and `@revealui/services` are MIT — free for any tier, including the Free plan.
 
