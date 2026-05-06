@@ -196,9 +196,9 @@ Content is authored by Users (the `authorId` foreign key). Premium content can b
 
 Products are what turns your software from a project into a business. RevealUI's product primitive covers the catalog, license generation, and runtime feature gating.
 
-### License keys: RSA-signed JWTs
+### License keys: Ed25519-signed JWTs
 
-License keys are JWT tokens signed with RS256 (RSA + SHA-256). The payload contains the tier, customer ID, domain restrictions, site and user limits, and an optional perpetual flag. The private key signs; the public key verifies. This means license verification can happen offline, without calling home to a license server.
+License keys are JWT tokens signed with EdDSA (Ed25519). The payload contains the tier, customer ID, domain restrictions, site and user limits, and an optional perpetual flag. The private key signs; the public key verifies. This means license verification can happen offline, without calling home to a license server.
 
 ```typescript
 // packages/core/src/license.ts
@@ -350,7 +350,7 @@ If the INSERT succeeds, this is the first time we have seen this event. If it hi
 
 The webhook handler covers the full subscription lifecycle:
 
-- **`checkout.session.completed`** -- Creates the Stripe customer record, generates an RSA-signed license key, inserts it into the licenses table, and sends the activation email.
+- **`checkout.session.completed`** -- Creates the Stripe customer record, generates an Ed25519-signed license key, inserts it into the licenses table, and sends the activation email.
 - **`customer.subscription.updated`** -- Handles tier upgrades (new license key at the higher tier) and reactivation (payment recovered after a failed charge). On successful payment recovery, the license is re-activated and the user gets a recovery notification.
 - **`customer.subscription.deleted`** -- Revokes the license and downgrades to free.
 - **`invoice.payment_failed`** -- Sends a payment failure notification with a link to update billing details.

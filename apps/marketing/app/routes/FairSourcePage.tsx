@@ -82,7 +82,7 @@ const faqs = [
   },
   {
     q: 'How is the Pro tier enforced if the source is visible?',
-    a: 'License enforcement is at runtime, not at the source level. Pro packages check RS256-signed license JWTs, gate features per entry point, and validate against the license server every five minutes. FSL is the legal backstop; runtime enforcement is the real protection. Cracking the license is technically possible (you have the source) — but doing so commercially is exactly what the FSL non-compete clause prohibits, with civil remedies available.',
+    a: 'License enforcement is at runtime, not at the source level. Pro packages check Ed25519-signed license JWTs, gate features per entry point, and validate against the license server every five minutes. FSL is the legal backstop; runtime enforcement is the real protection. Cracking the license is technically possible (you have the source) — but doing so commercially is exactly what the FSL non-compete clause prohibits, with civil remedies available.',
   },
   {
     q: 'What about the rest of the RevealUI packages?',
