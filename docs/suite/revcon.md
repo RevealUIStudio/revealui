@@ -57,6 +57,6 @@ Active.
 
 ## See also
 
-- [Suite overview](../SUITE) — how RevCon relates to the rest of the suite
+- [Suite overview](../SUITE) — how RevCon relates to the rest of RevFleet
 - [`/pro/editors`](/pro/editors) — Pro-docs page that points back to RevCon
 - [RevCon README](https://github.com/RevealUIStudio/revcon/blob/main/README.md) — canonical product docs

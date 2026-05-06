@@ -50,7 +50,7 @@ echo 'for f in ~/.revealui/wsl/bashrc.d/*.sh; do source "$f"; done' >> ~/.bashrc
 ## How it composes with RevealUI
 
 - **New contributor onboarding**: Joshua's standing pattern — plug a USB into a Windows host, boot WSL, run the RevKit bootstrap, you have the studio's full environment in minutes instead of hours.
-- **Reproducibility**: every dev workstation in the suite builds from the same RevKit profile, so behaviour is consistent (Nix version, Node version, pnpm version, shell aliases, PATH order).
+- **Reproducibility**: every dev workstation in RevFleet builds from the same RevKit profile, so behaviour is consistent (Nix version, Node version, pnpm version, shell aliases, PATH order).
 - **Pairs with RevVault**: RevKit sets up the age-identity mount path RevVault expects (`~/.age-identity/keys.txt`); RevVault provides the secrets RevKit's CI tasks need.
 
 ## Status
@@ -59,6 +59,6 @@ Active.
 
 ## See also
 
-- [Suite overview](../SUITE) — how RevKit relates to the rest of the suite
+- [Suite overview](../SUITE) — how RevKit relates to the rest of RevFleet
 - [Local-first setup](../LOCAL_FIRST) — running RevealUI itself locally (separate concern; RevKit is the *workstation*, LOCAL_FIRST is the *runtime*)
 - [RevKit README](https://github.com/RevealUIStudio/revkit/blob/main/README.md) — canonical product docs

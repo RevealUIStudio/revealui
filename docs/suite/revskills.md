@@ -57,7 +57,7 @@ Active.
 
 ## See also
 
-- [Suite overview](../SUITE) — how RevSkills relates to the rest of the suite
+- [Suite overview](../SUITE) — how RevSkills relates to the rest of RevFleet
 - [RevCon](./revcon) — symlink machinery for editor configs and agent rules
 - [RevSkills README](https://github.com/RevealUIStudio/revskills/blob/main/README.md) — canonical product docs
 - [agentskills.io](https://agentskills.io) — the upstream Agent Skills standard
