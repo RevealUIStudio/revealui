@@ -61,7 +61,7 @@ const faqs = [
   {
     question: 'What is the RevealUI ecosystem?',
     answer:
-      'RevealUI is part of a four-project ecosystem. RevVault provides age-encrypted secret management (CLI free, desktop app Pro). RevKit provides portable dev environment provisioning (agent coordination protocol free, full provisioning Max). RevealCoin enables agent-native micropayments via the x402 protocol (Enterprise tier). Each project works independently. Together they cover building, securing, and monetizing agentic software.',
+      'RevealUI is part of a four-project ecosystem. RevVault provides age-encrypted secret management (CLI free, desktop app Pro). RevKit provides portable dev environment provisioning (agent coordination protocol free, full provisioning Max). RevealCoin (RVC) is the Token-2022 on Solana designed for x402 agent micropayments — currently a pre-launch devnet proof-of-concept; public distribution is gated on on-chain vesting and multi-sig. See the roadmap for current status. Each project works independently. Together they cover building, securing, and monetizing agentic software.',
   },
 ];
 
@@ -95,14 +95,14 @@ export function PricingPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Three ways to use
+            Two ways to use
             <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               RevealUI
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Subscribe monthly, buy a perpetual license, or book expert services. Start free. Upgrade
-            when you need to.
+            Subscribe monthly or book expert services. Perpetual licenses coming soon. Start free.
+            Upgrade when you need to.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-medium">
             <a
@@ -341,7 +341,8 @@ export function PricingPage() {
                   No accounts, no subscriptions. Pay exactly for what you use.
                 </p>
                 <p className="mt-3 text-xs text-gray-400">
-                  $0.001 per agent task · First 1,000/month free · Powered by RevealCoin
+                  Pricing model: per-call, paid in RVC. Final pricing locked when RevealCoin mainnet
+                  launches.
                 </p>
               </div>
 
@@ -364,7 +365,7 @@ export function PricingPage() {
                 </div>
                 <h3 className="text-base font-semibold text-white">MCP Servers</h3>
                 <p className="mt-2 text-sm text-gray-400">
-                  11 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
+                  12 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
                   Next.js DevTools, content management, and email. Marketplace discovery coming
                   soon.
                 </p>
