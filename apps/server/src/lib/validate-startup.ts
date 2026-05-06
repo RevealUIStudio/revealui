@@ -82,6 +82,7 @@ const REQUIRED_IN_PRODUCTION_HOSTED = [
   'REVEALUI_KEK',
   'REVEALUI_PUBLIC_SERVER_URL',
   'NEXT_PUBLIC_SERVER_URL',
+  'SENTRY_DSN',
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
   'REVEALUI_LICENSE_PRIVATE_KEY',
@@ -306,6 +307,17 @@ export function validateStartup(
     if (!(skipFormat(alertEmail) || alertEmail.includes('@'))) {
       errors.push(
         `REVEALUI_ALERT_EMAIL is not a valid email (got: ${JSON.stringify(alertEmail)}).`,
+      );
+    }
+
+    // Sentry DSN format (hosted-only — Forge customers run self-hosted without
+    // Sentry). A missing DSN silently disables all Sentry capture including the
+    // checkout-route HTTPException path; requiring it forces the operator to
+    // explicitly set it before booting in production.
+    const sentryDsn = env.SENTRY_DSN ?? '';
+    if (!(skipFormat(sentryDsn) || sentryDsn.includes('://'))) {
+      errors.push(
+        `SENTRY_DSN must be a valid DSN URL (e.g. https://<key>@<host>/<project>). Got: ${JSON.stringify(sentryDsn)}.`,
       );
     }
 

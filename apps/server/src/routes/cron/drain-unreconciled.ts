@@ -37,6 +37,7 @@ import { unreconciledWebhooks } from '@revealui/db/schema';
 import { protectedStripe } from '@revealui/services';
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { sendCronFailureAlert } from '../../lib/webhook-emails.js';
 import { replayStripeEvent } from '../../lib/webhook-replay.js';
 import webhooksApp from '../webhooks.js';
 
@@ -213,6 +214,20 @@ app.post('/drain-unreconciled', async (c) => {
         undefined,
         { eventId: row.eventId, eventType: row.eventType, ageMs, detail },
       );
+      sendCronFailureAlert(process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com', {
+        jobName: 'drain-unreconciled',
+        error: detail ?? 'replay failed',
+        severity: 'critical',
+        details: {
+          eventId: row.eventId,
+          eventType: row.eventType,
+          ageHours: Math.floor(ageMs / (60 * 60 * 1000)),
+        },
+      }).catch((err: unknown) => {
+        logger.error('[drain-unreconciled] failed to send cron failure alert', undefined, {
+          alertError: err instanceof Error ? err.message : String(err),
+        });
+      });
     } else {
       logger.warn(`[drain-unreconciled] replay failed for ${row.eventId}`, {
         eventType: row.eventType,
