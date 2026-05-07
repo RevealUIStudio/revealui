@@ -129,17 +129,44 @@ export function Hero() {
             Local dev stack in 60 seconds. No credit card.
           </p>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-gray-500">
-            {[
-              { label: 'OSS (MIT)', href: undefined },
-              { label: 'Pro is Fair Source', href: '/fair-source' },
-              { label: 'Self-hostable', href: undefined },
-              { label: 'No vendor lock-in', href: undefined },
-            ].map((item) => {
-              const inner = (
-                <>
+          <div className="mt-16 border-t border-gray-100 pt-10">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 mb-6">
+              What ships today
+            </h2>
+            <dl className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
+              {[
+                {
+                  metric: '21 npm packages',
+                  detail:
+                    '20 under @revealui/* plus create-revealui — browse npmjs.com/org/revealui.',
+                },
+                {
+                  metric: '86 database tables',
+                  detail:
+                    'Drizzle ORM over NeonDB across 5 schemas. Source at packages/db/src/schema/.',
+                },
+                {
+                  metric: '13 first-party MCP servers',
+                  detail: 'Every one stdio-launchable. Source at packages/mcp/src/servers/.',
+                },
+                {
+                  metric: 'EdDSA-signed Pro license JWTs',
+                  detail:
+                    'Verified every 5 minutes against the license server. Source at packages/core/src/license.ts.',
+                },
+                {
+                  metric: 'FSL-1.1-MIT on 2 Pro packages',
+                  detail:
+                    'Source-visible, non-compete. Auto-converts to MIT 2 years after each release.',
+                },
+                {
+                  metric: 'Vite + Hono + ElectricSQL browser sync',
+                  detail: 'No Next.js, no community router, no Supabase in the production path.',
+                },
+              ].map((item) => (
+                <div key={item.metric} className="flex gap-3">
                   <svg
-                    className="h-4 w-4 text-emerald-500"
+                    className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                     aria-hidden="true"
@@ -151,23 +178,13 @@ export function Hero() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  {item.label}
-                </>
-              );
-              return item.href ? (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="flex items-center gap-2 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-700"
-                >
-                  {inner}
-                </a>
-              ) : (
-                <div key={item.label} className="flex items-center gap-2">
-                  {inner}
+                  <div>
+                    <dt className="text-sm font-medium text-gray-900">{item.metric}</dt>
+                    <dd className="mt-0.5 text-sm text-gray-500">{item.detail}</dd>
+                  </div>
                 </div>
-              );
-            })}
+              ))}
+            </dl>
           </div>
         </div>
       </div>

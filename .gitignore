@@ -85,6 +85,7 @@ TYPE-USAGE-REPORT.json
 
 # Claude Code
 skills-lock.json
+.claude/
 
 # TypeScript
 *.tsbuildinfo
