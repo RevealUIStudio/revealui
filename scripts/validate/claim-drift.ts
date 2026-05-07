@@ -154,9 +154,37 @@ interface ClaimMatch {
   metricName: string;
 }
 
+/**
+ * Throw with a descriptive error if any configured scan-dir does not exist
+ * on disk. Closes GAP-179 — the validator silently exempted marketing-app
+ * stat-block claims since #639 (Vite migration moved apps/marketing/src/
+ * to apps/marketing/app/) because the consumer loops use try/catch + skip.
+ *
+ * Calling this at validator entry surfaces stale SCAN_DIRS as a fatal error
+ * so future tree refactors cannot silently re-introduce the same exemption.
+ */
+function assertScanDirsExist(scanDirs: string[], arrayName: string): void {
+  for (const dir of scanDirs) {
+    const full = path.join(ROOT, dir);
+    try {
+      const stat = fs.statSync(full);
+      if (!(stat.isFile() || stat.isDirectory())) {
+        throw new Error(`claim-drift ${arrayName} entry is neither file nor directory: ${dir}`);
+      }
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      throw new Error(
+        `claim-drift ${arrayName} entry does not exist on disk: ${dir}. ` +
+          `Likely cause: source tree refactored without updating ${arrayName} in scripts/validate/claim-drift.ts. ` +
+          `Update the array and re-run. (${reason})`,
+      );
+    }
+  }
+}
+
 const SCAN_DIRS = [
   'docs',
-  'apps/marketing/src',
+  'apps/marketing/app',
   'README.md',
   'CLAUDE.md',
   'CONTRIBUTING.md',
@@ -239,6 +267,7 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
     }
   }
 
+  assertScanDirsExist(SCAN_DIRS, 'SCAN_DIRS');
   for (const p of SCAN_DIRS) {
     scanPath(p);
   }
@@ -346,8 +375,8 @@ interface AspirationalMatch {
 /** Files scanned for aspirational features without qualifiers. */
 const ASPIRATIONAL_SCAN_FILES = [
   // Marketing surfaces (existing — marketing-claims-2026-04-25)
-  'apps/marketing/src/components/landing',
-  'apps/marketing/src/components/GetStarted.tsx',
+  'apps/marketing/app/components/landing',
+  'apps/marketing/app/components/GetStarted.tsx',
   // Docs surfaces (PR-D continuation, docs-claims-2026-04-26)
   // High-visibility orientation + tutorial pages where the same blocklist applies.
   // Deeper technical docs (AI.md, DATABASE.md, etc.) are tuned in a follow-up.
@@ -498,17 +527,14 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
     }
   }
 
+  assertScanDirsExist(ASPIRATIONAL_SCAN_FILES, 'ASPIRATIONAL_SCAN_FILES');
   for (const rel of ASPIRATIONAL_SCAN_FILES) {
     const full = path.join(ROOT, rel);
-    try {
-      const stat = fs.statSync(full);
-      if (stat.isFile()) {
-        scanFile(full);
-      } else if (stat.isDirectory()) {
-        walk(full);
-      }
-    } catch {
-      // path missing, skip
+    const stat = fs.statSync(full);
+    if (stat.isFile()) {
+      scanFile(full);
+    } else if (stat.isDirectory()) {
+      walk(full);
     }
   }
 
