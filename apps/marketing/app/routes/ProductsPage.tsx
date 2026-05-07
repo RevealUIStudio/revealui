@@ -316,10 +316,10 @@ export function ProductsPage() {
           </div>
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {[
-              { stat: '26', label: 'npm packages' },
+              { stat: '26', label: 'workspace packages' },
               { stat: '86', label: 'Database tables' },
               { stat: '187+', label: 'Security tests' },
-              { stat: '12', label: 'MCP servers' },
+              { stat: '12', label: 'first-party MCP servers' },
             ].map((item) => (
               <div key={item.label} className="text-center">
                 <p className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
