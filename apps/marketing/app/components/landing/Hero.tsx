@@ -130,10 +130,10 @@ export function Hero() {
           </p>
 
           <div className="mt-16 border-t border-gray-100 pt-10">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400 mb-6">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-600 mb-6">
               What ships today
             </h2>
-            <dl className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3 list-none">
               {[
                 {
                   metric: '21 npm packages',
@@ -164,7 +164,7 @@ export function Hero() {
                   detail: 'No Next.js, no community router, no Supabase in the production path.',
                 },
               ].map((item) => (
-                <div key={item.metric} className="flex gap-3">
+                <li key={item.metric} className="flex gap-3">
                   <svg
                     className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
                     fill="currentColor"
@@ -179,12 +179,12 @@ export function Hero() {
                     />
                   </svg>
                   <div>
-                    <dt className="text-sm font-medium text-gray-900">{item.metric}</dt>
-                    <dd className="mt-0.5 text-sm text-gray-500">{item.detail}</dd>
+                    <p className="text-sm font-medium text-gray-900">{item.metric}</p>
+                    <p className="mt-0.5 text-sm text-gray-500">{item.detail}</p>
                   </div>
-                </div>
+                </li>
               ))}
-            </dl>
+            </ul>
           </div>
         </div>
       </div>
