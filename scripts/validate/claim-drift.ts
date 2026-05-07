@@ -168,7 +168,7 @@ function assertScanDirsExist(scanDirs: string[], arrayName: string): void {
     const full = path.join(ROOT, dir);
     try {
       const stat = fs.statSync(full);
-      if (!stat.isFile() && !stat.isDirectory()) {
+      if (!(stat.isFile() || stat.isDirectory())) {
         throw new Error(`claim-drift ${arrayName} entry is neither file nor directory: ${dir}`);
       }
     } catch (err) {
