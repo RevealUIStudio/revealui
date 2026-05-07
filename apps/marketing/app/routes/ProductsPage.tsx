@@ -179,14 +179,11 @@ export function ProductsPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-blue-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Five primitives.
-            <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Built for you. Accessible to your agents.
-            </span>
+            Five primitives. One runtime.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Users, content, products, payments, and intelligence, pre-wired, open source, and ready
-            to deploy. Every primitive works for human builders and AI agents alike.
+            Users, content, products, payments, and intelligence — pre-wired and exposed to your
+            agents via MCP.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 text-sm font-medium">
             {primitives.map((p) => (
