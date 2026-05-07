@@ -136,9 +136,9 @@ export function Hero() {
             <ul className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3 list-none">
               {[
                 {
-                  metric: '26 workspace packages',
+                  metric: '26 packages',
                   detail:
-                    '21 published on npm (20 under @revealui/* plus create-revealui — browse npmjs.com/org/revealui) + 5 private. Source at packages/.',
+                    '21 published on npm (20 under @revealui/* plus create-revealui — browse npmjs.com/org/revealui) + 5 private workspace packages. Source at packages/.',
                 },
                 {
                   metric: '86 database tables',
