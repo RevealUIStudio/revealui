@@ -1,7 +1,7 @@
 ---
 name: revealui-typescript-quality
 description: TypeScript best practices to eliminate 267 any types and improve code quality
-version: "1.0.0"
+version: "0.1.0"
 author: RevealUI Team
 tags:
   - typescript

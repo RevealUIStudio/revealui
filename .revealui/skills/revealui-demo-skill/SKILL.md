@@ -1,7 +1,7 @@
 ---
 name: revealui-demo-skill
 description: Demo skill showcasing RevealUI's skills system integration
-version: "1.0.0"
+version: "0.1.0"
 author: RevealUI Team
 tags:
   - demo
