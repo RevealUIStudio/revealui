@@ -29,7 +29,6 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '@revealui/core/observability/logger';
-import { checkMcpLicense } from '../index.js';
 import { type EmailPayload, sendEmail, sendEmailBatch } from './_email-provider.js';
 
 // ---------------------------------------------------------------------------
@@ -241,12 +240,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
 });
 
 async function main() {
-  const allowed = await checkMcpLicense();
-  if (!allowed) {
-    logger.warn('revealui-email MCP server requires a Pro license');
-    process.exit(0);
-  }
-
   const transport = new StdioServerTransport();
   await server.connect(transport);
   logger.info('revealui-email MCP server running (Gmail REST API)');

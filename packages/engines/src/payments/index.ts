@@ -31,7 +31,6 @@ export {
 } from '@revealui/db';
 // ── Services: Stripe + RevealCoin payments ──────────────────────────────────
 export {
-  checkServicesLicense,
   configurePriceOracle,
   configureRevealCoin,
   configureSafeguards,
