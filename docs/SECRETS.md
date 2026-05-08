@@ -2,7 +2,7 @@
 
 ## One-sentence summary
 
-**All secrets in the RevealUI Suite live in revvault, encrypted by an
+**All secrets in RevFleet live in revvault, encrypted by an
 age identity that doesn't leave the developer's machine.**
 
 If that sentence ever becomes false — even for one secret — we have a

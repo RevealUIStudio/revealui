@@ -17,7 +17,7 @@ Part of the [RevealUI monorepo](https://github.com/RevealUIStudio/revealui)  -  
 - **GDPR Compliance**  -  Consent management, data export, deletion, anonymization, breach reporting
 - **Observability**  -  Structured logging, process health monitoring, alert system, graceful shutdown
 - **Plugins**  -  Extensible plugin system (form builder, nested docs, redirects)
-- **Feature Gating**  -  Tier-based licensing (free, pro, max, enterprise/Forge) with JWT license keys
+- **Feature Gating**  -  Tier-based licensing (free, pro, max, enterprise) with JWT license keys
 - **Database**  -  PostgreSQL adapters (NeonDB + PGlite for testing), connection pooling, SSL/TLS
 - **Storage**  -  Pluggable storage interface (Vercel Blob adapter included)
 
