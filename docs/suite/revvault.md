@@ -1,6 +1,6 @@
 ---
 title: "RevVault"
-description: "Age-encrypted secret vault. CLI plus Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in the RevealUI Studio Suite."
+description: "Age-encrypted secret vault. CLI plus Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in RevFleet."
 category: suite
 audience: developer
 ---
@@ -9,7 +9,7 @@ audience: developer
 
 **Age-encrypted secret vault with CLI and Tauri desktop app. 100% [passage](https://github.com/FiloSottile/passage)-compatible.**
 
-> RevVault is a separate suite product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revvault](https://github.com/RevealUIStudio/revvault). This page summarises what RevVault is and how it composes with RevealUI; the canonical product README lives in the RevVault repo.
+> RevVault is a separate RevFleet product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revvault](https://github.com/RevealUIStudio/revvault). This page summarises what RevVault is and how it composes with RevealUI; the canonical product README lives in the RevVault repo.
 
 ## What RevVault is
 
@@ -25,7 +25,7 @@ audience: developer
 
 RevealUI's [secrets convention](https://github.com/RevealUIStudio/revealui/blob/main/.claude/rules/secrets.md) is hard-rule:
 
-> Every secret the RevealUI Suite depends on lives in RevVault. Full stop.
+> Every secret RevFleet depends on lives in RevVault. Full stop.
 
 That includes API keys, database URLs, webhook secrets, JWT/session secrets, signing keys, Solana keypairs, license keys, Vercel tokens, Railway tokens, Supabase credentials, Stripe keys, OAuth client secrets, age identities, SSH keys — anything else.
 
