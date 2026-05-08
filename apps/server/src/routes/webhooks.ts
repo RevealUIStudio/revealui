@@ -28,10 +28,10 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { protectedStripe } from '@revealui/services';
 import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
+import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import {
   provisionGitHubAccess,
@@ -67,12 +67,19 @@ type DbExecutor = Pick<Database, 'select' | 'insert' | 'update' | 'delete'>;
  * single API-version pin). The wrapper's `.webhooks` getter exposes the
  * raw Stripe webhooks object for signature verification — that operation
  * is offline (HMAC verify) and does not need breaker protection.
+ *
+ * Lazy-loads the package per the optional-peer Pro boundary (8c19db537).
+ * Throws when unavailable so the webhook handler can return 503.
  */
-function getStripeClient(): typeof protectedStripe {
+async function getStripeClient(): Promise<ProtectedStripe> {
   if (!process.env.STRIPE_SECRET_KEY?.trim()) {
     throw new Error('STRIPE_SECRET_KEY not configured');
   }
-  return protectedStripe;
+  const services = await getServices();
+  if (!services) {
+    throw new Error('@revealui/services not installed');
+  }
+  return services.protectedStripe;
 }
 
 /**
@@ -743,10 +750,10 @@ const stripeWebhookRoute = createRoute({
 
 app.openapi(stripeWebhookRoute, async (c) => {
   let webhookSecrets: { primary: string; secondary?: string };
-  let stripe: typeof protectedStripe;
+  let stripe: ProtectedStripe;
   try {
     webhookSecrets = getWebhookSecret();
-    stripe = getStripeClient();
+    stripe = await getStripeClient();
   } catch (initErr) {
     const msg = initErr instanceof Error ? initErr.message : 'Unknown init error';
     logger.error(

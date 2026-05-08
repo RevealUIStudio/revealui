@@ -21,10 +21,10 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { protectedStripe } from '@revealui/services';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
+import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../lib/tier-pricing.js';
 import {
   sendDowngradeConfirmationEmail,
@@ -92,12 +92,21 @@ const app = new OpenAPIHono<BillingEnv>();
  *
  * All billing routes use this single entry point — one Stripe instance,
  * one circuit breaker, shared state across serverless instances via DB.
+ *
+ * Lazy-loads @revealui/services per the optional-peer Pro boundary
+ * (8c19db537). Returns 503 when the package is unavailable.
  */
 async function withStripe<T>(
-  operation: (stripe: typeof protectedStripe) => Promise<T>,
+  operation: (stripe: ProtectedStripe) => Promise<T>,
 ): Promise<T> {
+  const services = await getServices();
+  if (!services) {
+    throw new HTTPException(503, {
+      message: 'Payment service not available. Please try again shortly.',
+    });
+  }
   try {
-    return await operation(protectedStripe);
+    return await operation(services.protectedStripe);
   } catch (error) {
     // DB-backed circuit breaker throws with "circuit breaker is OPEN" message
     if (
@@ -242,6 +251,15 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
   if (user?.stripeCustomerId) {
     return user.stripeCustomerId;
   }
+
+  // Slow paths below need protectedStripe — load lazily and 503 if absent.
+  const services = await getServices();
+  if (!services) {
+    throw new HTTPException(503, {
+      message: 'Payment service not available. Please try again shortly.',
+    });
+  }
+  const protectedStripe = services.protectedStripe;
 
   // Slow path: need to create a Stripe customer. This is the race-prone
   // section that issue #394 tracks. Two kinds of race exist:
@@ -1861,6 +1879,14 @@ app.openapi(reportOverageRoute, async (c) => {
   if (!process.env.STRIPE_AGENT_METER_EVENT_NAME) {
     logger.warn('STRIPE_AGENT_METER_EVENT_NAME not set  -  using default "agent_task_overage"');
   }
+
+  const services = await getServices();
+  if (!services) {
+    throw new HTTPException(503, {
+      message: 'Payment service not available. Please try again shortly.',
+    });
+  }
+  const protectedStripe = services.protectedStripe;
 
   const db = getClient();
   // GAP-131: `billing.meterEvents.create` is now wrapped by protectedStripe;
