@@ -357,6 +357,31 @@ const PRICE_SERVER_ENV_KEYS: Record<string, string> = {
   revealui_credits_scale: 'STRIPE_CREDITS_SCALE_PRICE_ID',
 };
 
+// ─── Stripe Billing Meter (Track B agent task overage) ──────────────────────
+// The runtime emits meter events at apps/server/src/routes/billing.ts:1894
+// using STRIPE_AGENT_METER_EVENT_NAME (fallback 'agent_task_overage'). The
+// meter must exist BEFORE meter events can land — this seed creates it
+// idempotently. Track B per MASTER_PLAN §5.1.
+const AGENT_METER_EVENT_NAME = 'agent_task_overage';
+const AGENT_METER_DISPLAY_NAME = 'Agent task overage';
+
+// ─── Stripe Tax categories ──────────────────────────────────────────────────
+// Stripe Tax requires explicit tax categories on every product/price before
+// account-level Tax can be enabled cleanly.
+//
+// Per Stripe Tax Code Lookup (https://stripe.com/docs/tax/tax-codes):
+//   txcd_10103000 = "Software as a Service (SaaS)" — RevealUI's product class.
+//
+// tax_behavior: 'exclusive' = tax added on top (B2B norm). NOTE: tax_behavior
+// is IMMUTABLE on Stripe prices once set to a non-'unspecified' value —
+// choose carefully. Owner cross-checks both at dry-run BEFORE the live run.
+const PRODUCT_TAX_CODE = 'txcd_10103000';
+const PRICE_TAX_BEHAVIOR: Stripe.PriceCreateParams.TaxBehavior = 'exclusive';
+
+function productTaxCode(p: Stripe.Product): string | null {
+  return typeof p.tax_code === 'string' ? p.tax_code : (p.tax_code?.id ?? null);
+}
+
 // ─── Logger ─────────────────────────────────────────────────────────────────
 
 const log = {
@@ -379,6 +404,43 @@ function isLocalWebhookUrl(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+// ─── Billing Meter ──────────────────────────────────────────────────────────
+
+async function ensureBillingMeter(
+  stripe: Stripe,
+  dryRun: boolean,
+): Promise<Stripe.Billing.Meter | null> {
+  log.info('');
+  log.info(`Meter event name: ${AGENT_METER_EVENT_NAME}`);
+
+  const existing = await stripe.billing.meters.list({ limit: 100, status: 'active' });
+  const match = existing.data.find((m) => m.event_name === AGENT_METER_EVENT_NAME);
+
+  if (match) {
+    log.success(`Meter exists: ${match.id} (${match.event_name})`);
+    return match;
+  }
+
+  if (dryRun) {
+    log.info(`Would create meter: ${AGENT_METER_EVENT_NAME} (${AGENT_METER_DISPLAY_NAME})`);
+    return null;
+  }
+
+  const meter = await stripe.billing.meters.create({
+    display_name: AGENT_METER_DISPLAY_NAME,
+    event_name: AGENT_METER_EVENT_NAME,
+    default_aggregation: { formula: 'sum' },
+    customer_mapping: {
+      type: 'by_id',
+      event_payload_key: 'stripe_customer_id',
+    },
+    value_settings: { event_payload_key: 'value' },
+  });
+
+  log.success(`Created meter: ${meter.id} (${meter.event_name})`);
+  return meter;
 }
 
 // ─── Products & Prices ───────────────────────────────────────────────────────
@@ -413,7 +475,8 @@ async function syncCatalog(
         existingProduct.metadata?.revealui_track !== productDef.billingModel ||
         existingProduct.metadata?.revealui_tier !== productDef.tier ||
         existingProduct.metadata?.revealui_price_note !== productDef.priceNote ||
-        existingProduct.metadata?.revealui_renewal !== productDef.renewal
+        existingProduct.metadata?.revealui_renewal !== productDef.renewal ||
+        productTaxCode(existingProduct) !== PRODUCT_TAX_CODE
       ) {
         if (dryRun) {
           log.info(`Would update product: ${existingProduct.id}`);
@@ -422,6 +485,7 @@ async function syncCatalog(
           product = await stripe.products.update(existingProduct.id, {
             name: productDef.name,
             description: productDef.description,
+            tax_code: PRODUCT_TAX_CODE,
             metadata: {
               revealui_product_key: productDef.key,
               revealui_track: productDef.billingModel,
@@ -444,6 +508,7 @@ async function syncCatalog(
       product = await stripe.products.create({
         name: productDef.name,
         description: productDef.description,
+        tax_code: PRODUCT_TAX_CODE,
         metadata: {
           revealui_product_key: productDef.key,
           revealui_track: productDef.billingModel,
@@ -520,6 +585,7 @@ async function syncCatalog(
         unit_amount: priceDef.unitAmount,
         currency: priceDef.currency,
         metadata: { revealui_price_key: priceDef.key },
+        tax_behavior: PRICE_TAX_BEHAVIOR,
       };
 
       if (priceDef.mode === 'subscription') {
@@ -897,9 +963,14 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // ── Stripe Billing Meter (Track B agent task overage)
+  log.header('Stripe Billing Meter');
+  await ensureBillingMeter(stripe, dryRun);
+
   // ── Products & prices
   log.header('Products & Prices');
   const { envVars, subscriptionProducts, catalogEntries } = await syncCatalog(stripe, dryRun);
+  envVars.STRIPE_AGENT_METER_EVENT_NAME = AGENT_METER_EVENT_NAME;
 
   await writeLocalStripeEnvCache(envVars, catalogEntries, dryRun);
 
