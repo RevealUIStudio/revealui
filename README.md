@@ -64,20 +64,20 @@ Six principles that give you a tested starting point for every architectural dec
 | **Unified** | One Zod schema defines the truth. Types, validation, and API flow from database to server to UI with zero drift. |
 | **Adaptive** | AI agents, MCP servers, and workflows are built into the foundation. Open-model inference, sovereign by design, evolving with your business. |
 
-## RevealUI Studio Suite
+## RevFleet
 
-RevealUI is the runtime at the center of the RevealUI Studio Suite. Companion products extend specific parts of the lifecycle:
+RevealUI is the runtime at the center of RevFleet — the RevealUI Studio product family. Companion products extend specific parts of the lifecycle:
 
-| Product        | Purpose                                                  | License           |
-| -------------- | -------------------------------------------------------- | ----------------- |
-| **RevealUI**   | Agentic business runtime (this repo)                     | MIT + Fair Source |
-| **RevVault**   | Age-encrypted secret vault (Rust CLI + desktop)          | MIT + Pro         |
-| **RevDev**     | AI engineering harness — multi-agent coordination        | MIT (early)       |
-| **RevCon**     | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
-| **RevKit**     | Portable WSL dev environment toolkit                     | Pro               |
-| **RevealCoin** | Solana Token-2022 for x402 agent micropayments           | Enterprise tier   |
-| **RevSkills**  | Claude Code skills library                               | MIT               |
-| **Forge**      | White-label / enterprise deployment of RevealUI          | Enterprise tier   |
+| Product              | Purpose                                                  | License           |
+| -------------------- | -------------------------------------------------------- | ----------------- |
+| **RevealUI**         | Agentic business runtime (this repo)                     | MIT + Fair Source |
+| **RevVault**         | Age-encrypted secret vault (Rust CLI + desktop)          | MIT + Pro         |
+| **RevDev**           | AI engineering harness — multi-agent coordination        | MIT (early)       |
+| **RevCon**           | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
+| **RevKit**           | Portable WSL dev environment toolkit                     | Pro               |
+| **RevealCoin**       | Solana Token-2022 for x402 agent micropayments           | Enterprise tier   |
+| **RevSkills**        | Claude Code skills library                               | MIT               |
+| **RevealUI Fleet**   | White-label / enterprise deployment kit for RevealUI     | Enterprise tier   |
 
 Each product stands alone. Together, they cover the full lifecycle of building, securing, coordinating, and monetizing software, for you and for your agents.
 
@@ -129,7 +129,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | **Free**       | $0        | Full OSS core: users, content, products, payments, admin             |
 | **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
 | **Max**        | $149/mo   | Full AI memory, audit log, higher limits, RevKit environment provisioning         |
-| **Forge**      | $299/mo   | Multi-tenant, SSO (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked, RevealCoin x402 agent payments       |
+| **Enterprise** | $299/mo   | Multi-tenant, SSO (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked, RevealCoin x402 agent payments       |
 
 ## Apps
 
@@ -183,7 +183,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | --------- | ------------------------------------------- |
 | Frontend  | React 19, Tailwind CSS v4                   |
 | Backend   | Node.js 24, Hono, REST + OpenAPI            |
-| Database  | NeonDB (Postgres) + Supabase, Drizzle ORM  |
+| Database  | NeonDB (Postgres), Drizzle ORM             |
 | Auth      | Session-based, bcrypt, RBAC + ABAC          |
 | Rich Text | Lexical editor                              |
 | Sync      | ElectricSQL _(experimental)_                |
