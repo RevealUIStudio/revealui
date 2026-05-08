@@ -676,6 +676,9 @@ importers:
       lib0:
         specifier: ^0.2.117
         version: 0.2.117
+      pg:
+        specifier: 'catalog:'
+        version: 8.20.0
       satori:
         specifier: ^0.26.0
         version: 0.26.0
