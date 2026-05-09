@@ -15,8 +15,8 @@ import {
 import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling';
 import { logger } from '@revealui/core/observability/logger';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { protectedStripe } from '@revealui/services';
 import type Stripe from 'stripe';
+import { getServices } from '../lib/services-loader.js';
 
 const app = new OpenAPIHono();
 
@@ -143,9 +143,13 @@ interface StripeProductMap {
 async function fetchStripePrices(): Promise<StripeProductMap | null> {
   if (!isStripeConfigured()) return null;
 
+  // @revealui/services is an optional peer; missing package == fallback prices.
+  const services = await getServices();
+  if (!services) return null;
+
   try {
     const result = await pricingBreaker.execute(async () => {
-      const products = await protectedStripe.products.list({
+      const products = await services.protectedStripe.products.list({
         active: true,
         expand: ['data.default_price'],
         limit: 100,
