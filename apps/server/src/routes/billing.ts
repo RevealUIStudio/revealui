@@ -606,6 +606,9 @@ app.openapi(checkoutRoute, async (c) => {
 
   const discountConfig = getEarlyAdopterDiscount(resolvedTier);
 
+  const meterPriceId = process.env.STRIPE_AGENT_OVERAGE_PRICE_ID;
+  const includeMeter = meterPriceId && (resolvedTier === 'pro' || resolvedTier === 'max');
+
   // 10-minute idempotency window: prevents duplicate checkout sessions from
   // double-clicks or network retries while allowing a fresh attempt after 10 min.
   const idempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
@@ -619,7 +622,10 @@ app.openapi(checkoutRoute, async (c) => {
         tax_id_collection: { enabled: true },
         automatic_tax: { enabled: true },
         ...discountConfig,
-        line_items: [{ price: resolvedPriceId, quantity: 1 }],
+        line_items: [
+          { price: resolvedPriceId, quantity: 1 },
+          ...(includeMeter ? [{ price: meterPriceId }] : []),
+        ],
         subscription_data: {
           trial_period_days: TRIAL_PERIOD_DAYS,
           metadata: { tier: resolvedTier, revealui_user_id: user.id },
