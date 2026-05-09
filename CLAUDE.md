@@ -163,7 +163,7 @@ pnpm --filter admin dev                # Dev one app
 Collections are defined in `apps/admin/src/collections/` with access control, hooks, and field definitions. Use `@revealui/contracts` for type schemas.
 
 ### Feature Gating
-Pro features use `isLicensed('pro')` and `isFeatureEnabled('ai')` from `@revealui/core`. Tiers: free, pro, max, enterprise (code string for Forge).
+Pro features use `isLicensed('pro')` and `isFeatureEnabled('ai')` from `@revealui/core`. Tiers: free, pro, max, enterprise.
 
 ### Database Schema
 Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. NeonDB (Postgres) is the primary store. Legacy Supabase code (vectors, some auth flows) remains in tree during phase-out — **new features must not depend on Supabase-specific behavior**. The Supabase MCP adapter at `packages/mcp/src/servers/supabase.ts` is intentionally retained as an adapter for customers who use Supabase, separate from internal usage.
@@ -173,6 +173,17 @@ Schemas are in `packages/db/src/schema/`. Use Drizzle ORM for queries. NeonDB (P
 - E2E: Playwright (`*.e2e.ts`)
 - Test helpers: `@revealui/test` package
 - Database tests use PGlite (in-memory PostgreSQL)
+
+## Engineering Posture
+
+Key postures — full definitions in `docs/methodology.md`.
+
+- **Audit-first SDLC (M5):** every meaningful change starts with an audit of existing state (file paths + line numbers + intentional-vs-accidental classification). Audit precedes proposal, always.
+- **No-regex (M2):** zero regex authored in the fleet. Use AST walkers, typed predicates, `Set`/`Map` lookups, `Intl.Segmenter`, and built-in parsers (`URL`, `JSON.parse`, `Date.parse`). Third-party regex-string config marked `// REGEX-CONFIG-BOUNDARY` and minimized.
+- **Revvault-first (M4):** all secrets live in `revvault`. No `.env` primary. No plaintext on disk. See `docs/SECRETS.md`.
+- **Per-session beacons + note.js (M9):** `session-note` SKILL + `note.js` CLI provide handoff continuity across Claude Code sessions. Context beacon written on stop.
+- **Workboard automation (M10):** `workboard-check.js` (read-only drift detector, fires on session-start) + `workboard-sweep.js` (idempotent cleanup, agent reviews diff + commits manually). Hooks never write to the workboard by design.
+- **Charge-readiness (M11):** subscription billing 3 days from live; Stripe LIVE_MODE owner-gated. RevealCoin parked until 2026-Q4. Pro-package gates being removed via Path A (FSL-1.1-MIT normalization).
 
 ## Build & Security Status
 - All workspaces build and typecheck clean (run `pnpm build` and `pnpm typecheck:all`)

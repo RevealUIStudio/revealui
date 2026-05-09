@@ -222,7 +222,6 @@ screenshots/
 # Terminal app — compiled binary and SSH keys
 apps/terminal/terminal
 apps/terminal/.ssh/
-AGENTS.md
 
 # editor-configs (symlinked)
 .cursor/

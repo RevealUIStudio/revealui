@@ -102,7 +102,7 @@ Inside `0.x`, any meaningful behavior change or breaking API change bumps **mino
 
 ## Where to ask
 
-- Suite-wide questions → root CONTRIBUTING.md, then `#dev` in the project Discussions
+- RevFleet-wide questions → root CONTRIBUTING.md, then `#dev` in the project Discussions
 - Design-system-specific decisions (token shape, accessibility tradeoffs, naming) → file an issue with the `package: presentation` label
 
 ## Quick checklist before opening a PR

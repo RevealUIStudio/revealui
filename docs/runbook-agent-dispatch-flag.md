@@ -93,6 +93,6 @@ needs to consult the entitlement row.
 - Phase A — queue primitive: `packages/db/src/jobs/`,
   `apps/server/src/routes/jobs/run.ts`
 - Phase B — cron safety-net: `apps/server/src/routes/cron/jobs-safety-net.ts`
-- Design doc: `~/suite/.jv/docs/CR8-P2-01-native-queue-design.md`
+- Design doc: `~/revfleet/.jv/docs/CR8-P2-01-native-queue-design.md`
 - Flag-removal follow-up: filed at PR-merge time, scheduled
   ≥ 2 weeks of clean prod operation before removal.
