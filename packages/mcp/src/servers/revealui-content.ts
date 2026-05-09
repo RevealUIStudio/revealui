@@ -19,15 +19,11 @@
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { logger } from '@revealui/core/observability/logger';
-import { checkMcpLicense } from '../index.js';
 import { createRevealuiContentServer } from './factories/revealui-content.js';
 
 export { setCredentials } from './factories/revealui-content.js';
 
 async function main(): Promise<void> {
-  if (!(await checkMcpLicense())) {
-    process.exit(1);
-  }
   const server = createRevealuiContentServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
