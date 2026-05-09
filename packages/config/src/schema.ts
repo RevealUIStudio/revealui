@@ -150,6 +150,15 @@ const optionalSchema = z.object({
     .optional(),
   REVEALUI_SHOW_POWERED_BY: z.enum(['true', 'false']).optional(),
 
+  // Fleet-kit branding aliases — stamped kits use these names; they resolve to
+  // REVEALUI_BRAND_NAME and REVEALUI_BRAND_PRIMARY_COLOR when the canonical vars
+  // are absent.
+  REVEALUI_TENANT_NAME: z.string().optional(),
+  REVEALUI_TENANT_BRAND: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{3,8}$/, 'Must be a hex color (e.g. #1a56db)')
+    .optional(),
+
   // License
   REVEALUI_LICENSE_KEY: z.string().optional(),
 });
