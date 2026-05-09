@@ -93,7 +93,8 @@ PASSKEY_RP_ID          = "revealui/prod/passkey/rp-id"
 PASSKEY_RP_NAME        = "revealui/prod/passkey/rp-name"
 SESSION_COOKIE_DOMAIN  = "revealui/prod/session-cookie-domain"
 CORS_ORIGIN            = "revealui/prod/cors-origin"
-REVEALUI_CORS_ORIGINS  = "revealui/prod/cors-origins"
+# REVEALUI_CORS_ORIGINS dropped 2026-05-09: code falls back to CORS_ORIGIN
+# when unset. Re-add when admin/api actually need separate cross-origin config.
 
 # Marketplace
 MARKETPLACE_CONNECT_RETURN_URL = "revealui/prod/marketplace-connect-return-url"
@@ -204,10 +205,11 @@ skip = [
 # Mode flags + public URLs (canonical paths shared with admin/api)
 NEXT_PUBLIC_IS_LIVE        = "revealui/prod/public/is-live"
 NEXT_PUBLIC_API_URL        = "revealui/prod/public/api-url"
-NEXT_PUBLIC_ADMIN_URL      = "revealui/prod/public/admin-url"
 REVEALUI_API_URL           = "revealui/prod/public/api-url"
 NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
 REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
+# NEXT_PUBLIC_ADMIN_URL dropped 2026-05-09: not used in apps/marketing yet.
+# Re-add when CMS_URL → ADMIN_URL rename ships.
 
 
 # ── revealui-docs ───────────────────────────────────────────────────────────
