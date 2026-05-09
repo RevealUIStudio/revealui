@@ -3245,7 +3245,18 @@ For questions or issues:
 - Review [ARCHITECTURE.md](./ARCHITECTURE.md)
 - Open an issue in the repository
 
+## Fleet Methodology Alignment
+
+This codebase follows the RevFleet engineering postures defined in [`docs/methodology.md`](./methodology.md). Three postures directly affect code standards:
+
+**No-regex (M2):** No regex literals authored in fleet code. Replace with AST walkers, typed predicates, `Set`/`Map` lookups, `Intl.Segmenter`, or built-in parsers (`URL`, `JSON.parse`, `Date.parse`). Third-party config that requires a regex string must be marked `// REGEX-CONFIG-BOUNDARY`. Biome cannot enforce this today — it is enforced via code review and the AST-based pattern analyzer (`pnpm audit:any` catches the worst offenders).
+
+**Audit-first SDLC (M5):** Before proposing any meaningful change to this codebase, audit the existing state — file paths, line numbers, intentional vs accidental duplication. A standards change without an audit of current deviations is not a complete proposal.
+
+**Pre-1.0 versioning (M6):** Every new package starts at `0.1.0`. Do not ship `1.0.0` until there are real external consumers and a stable contract across at least one release cycle. See `docs/methodology.md` for the full rule and the `@revealui/contracts` grandfathering note.
+
 ## Related Documentation
 
 - [Database Schema Guide](./DATABASE.md)
 - [Package Reference](./REFERENCE.md)
+- [Fleet Methodology](./methodology.md)

@@ -166,7 +166,7 @@ Once set up, the full local-first stack starts with:
 pnpm dev:app
 ```
 
-Or use [Studio](./suite/revdev.md) — a separate [RevDev](https://github.com/RevealUIStudio/revdev) product (Tauri desktop app) that gives you a native interface for managing services, agents, and local inference against your RevealUI install.
+Or use [Studio](https://github.com/RevealUIStudio/revdev) — a separate [RevDev](https://github.com/RevealUIStudio/revdev) product (Tauri desktop app) that gives you a native interface for managing services, agents, and local inference against your RevealUI install.
 
 ## Verifying local inference
 

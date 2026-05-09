@@ -36,7 +36,7 @@ Purpose: give an AI coding agent concise, actionable context to be productive in
   - `packages/mcp/src/servers/neon.ts`
   - `apps/admin`, `apps/server`
 
-Ask for human review when a change requires secrets/env values or DB snapshots (see `docs/ENVIRONMENT_VARIABLES_GUIDE.md`).
+Ask for human review when a change requires secrets/env values or DB snapshots (see `docs/ENVIRONMENT-VARIABLES-GUIDE.md`).
 
 If you want, I can expand this with concrete examples for a package (for example `packages/mcp`).
 
