@@ -9,7 +9,7 @@ audience: developer
 
 **Hybrid utility / governance / reward token for the RevealUI ecosystem, built on Solana's Token-2022 program.**
 
-> RevealCoin is a separate suite product. The repo is at [RevealUIStudio/revealcoin](https://github.com/RevealUIStudio/revealcoin). The customer-facing landing page is [revealcoin.revealui.com](https://revealcoin.revealui.com), deployed from `apps/revealcoin` in the RevealUI monorepo.
+> RevealCoin is a separate RevFleet product. The repo is at [RevealUIStudio/revealcoin](https://github.com/RevealUIStudio/revealcoin). The customer-facing landing page is [revealcoin.revealui.com](https://revealcoin.revealui.com), deployed from `apps/revealcoin` in the RevealUI monorepo.
 
 ## Token spec
 
@@ -61,7 +61,7 @@ None of this is live yet. Treat any doc that says *"agents can pay in `RVC` toda
 
 ## Status
 
-Pre-launch (mainnet mint deployed, public distribution gated).
+Devnet preview; mainnet pending 2026-Q4 per charge-readiness audit. Mint is deployed on Mainnet-Beta but public distribution is gated (vesting + multi-sig + Raydium pool not yet open).
 
 ## See also
 
