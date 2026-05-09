@@ -50,7 +50,7 @@ function getKekPair(): { primary: Buffer; fallback?: Buffer } {
   const nextHex = (process.env.REVEALUI_KEK_NEXT ?? '').trim();
   const kekHex = (process.env.REVEALUI_KEK ?? '').trim();
 
-  if (!nextHex && !kekHex) {
+  if (!(nextHex || kekHex)) {
     throw new Error('REVEALUI_KEK environment variable is not set');
   }
 

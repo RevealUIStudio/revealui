@@ -322,7 +322,7 @@ async function verifySolanaPayment(
     return { valid: false, error: 'RVUI payments are not enabled on this server' };
   }
 
-  if (!(context && context.userId)) {
+  if (!context?.userId) {
     return {
       valid: false,
       error: 'RVUI payments require an authenticated user (PaymentContext.userId missing)',
