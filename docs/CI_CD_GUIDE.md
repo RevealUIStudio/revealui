@@ -410,18 +410,11 @@ This job runs every migration against a fresh Postgres. Catches DDL errors PGlit
 
 ---
 
-## Aspirational scaffolding (NOT live)
+## Why no Kubernetes manifests in this repo
 
-The following exist in the repo but are **not the live production path** today. They are starter scaffolds for a possible future Kubernetes deploy; production runs on Vercel.
+RevealUI ships two deployment paths and only two: Vercel for hosted SaaS (via [`deploy.yml`](../.github/workflows/deploy.yml)) and Forge Docker images via [`docker.yml`](../.github/workflows/docker.yml) → GHCR for self-hosted enterprise customers (consumed by [`docker-compose.forge.yml`](../docker-compose.forge.yml)). Kubernetes is not a supported target.
 
-| Path | Status |
-|------|--------|
-| [`infrastructure/k8s/`](../infrastructure/k8s/) (`admin.yaml`, `dashboard.yaml`, `postgres.yaml`, `ingress.yaml`, `namespace.yaml`, `secrets.yaml.example`) | Starter scaffold; references a `revealui-dashboard` deployment but `apps/dashboard/` does not exist (artifact drift). Do not treat as ready-to-apply. |
-| [`scripts/deploy.sh`](../scripts/deploy.sh), [`scripts/rollback.sh`](../scripts/rollback.sh) | kubectl-based scripts that reference `docker/Dockerfile.admin` / `docker/Dockerfile.dashboard` paths that do not exist (actual paths are `apps/<app>/Dockerfile`). Stale; do not use. |
-| [`infrastructure/docker-compose/production.yml`](../infrastructure/docker-compose/production.yml) | Self-hosted Docker stack; superseded for Forge customers by [`docker-compose.forge.yml`](../docker-compose.forge.yml) at the repo root. |
-| [`infrastructure/scripts/deployment/staging-deploy.sh`](../infrastructure/scripts/deployment/staging-deploy.sh) | Older shell-script deploy path; superseded by `deploy-test.yml` (workflow_dispatch). |
-
-If you reach a point where Kubernetes becomes the live production path, the manifests under `infrastructure/k8s/` would be the starting point — but expect the `dashboard` artifacts to need removal and the `admin`/`postgres` manifests to need a refresh.
+Earlier scaffolding under `infrastructure/k8s/`, `scripts/{deploy,rollback}.sh`, `infrastructure/docker-compose/production.yml`, and `infrastructure/scripts/deployment/staging-deploy.sh` was aspirational and never wired to production. It was removed alongside this guide's shrink — see [`docs/decisions/2026-05-08-deployment-target-vercel-not-k8s.md`](./decisions/2026-05-08-deployment-target-vercel-not-k8s.md) for the full decision record, including the recovery path if a future Kubernetes pivot becomes necessary.
 
 ---
 

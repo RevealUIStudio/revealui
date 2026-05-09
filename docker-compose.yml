@@ -121,30 +121,6 @@ services:
       - revealui
     restart: unless-stopped
 
-  # ---------------------------------------------------------------------------
-  # Nginx Reverse Proxy (optional — for HTTPS termination)
-  # ---------------------------------------------------------------------------
-  # Uncomment if self-hosting behind nginx. Requires:
-  #   - infrastructure/docker/nginx/nginx.conf
-  #   - infrastructure/docker/nginx/conf.d/
-  #
-  # nginx:
-  #   image: nginx:alpine
-  #   container_name: revealui-nginx
-  #   volumes:
-  #     - ./infrastructure/docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-  #     - ./infrastructure/docker/nginx/conf.d:/etc/nginx/conf.d:ro
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   depends_on:
-  #     - api
-  #     - admin
-  #     - marketing
-  #   networks:
-  #     - revealui
-  #   restart: unless-stopped
-
 networks:
   revealui:
     driver: bridge
