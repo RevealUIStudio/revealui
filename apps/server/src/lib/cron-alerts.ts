@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/node';
 import { logger } from '@revealui/core/observability/logger';
+import * as Sentry from '@sentry/node';
 import { sendEmail } from './email.js';
 
 export interface CronFailureContext {

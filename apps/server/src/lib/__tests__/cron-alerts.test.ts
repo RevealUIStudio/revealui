@@ -34,10 +34,10 @@ vi.mock('../email.js', () => ({
 // Imports after mocks
 // ---------------------------------------------------------------------------
 
-import * as Sentry from '@sentry/node';
 import { logger } from '@revealui/core/observability/logger';
-import { sendEmail } from '../email.js';
+import * as Sentry from '@sentry/node';
 import { sendCronFailureAlert } from '../cron-alerts.js';
+import { sendEmail } from '../email.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
