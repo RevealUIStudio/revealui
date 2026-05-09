@@ -11,7 +11,6 @@
 
 import { spawn } from 'node:child_process';
 import { config } from 'dotenv';
-import { checkMcpLicense } from '../index.js';
 import { createLauncherLogger, ExitCode } from './_launcher-utils.js';
 
 const logger = createLauncherLogger();
@@ -83,9 +82,6 @@ async function startNeonMCP() {
  * Exported for programmatic use by the Hypervisor.
  */
 export async function launchNeonMcp(): Promise<void> {
-  if (!(await checkMcpLicense())) {
-    throw new Error('MCP license check failed');
-  }
   await startNeonMCP();
 }
 

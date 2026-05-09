@@ -11,7 +11,7 @@
  *   coordinate [--print]             Print current workboard state
  *   coordinate --init <path>         Register this session in the workboard and start daemon
  *
- * License: Pro tier required (isFeatureEnabled("harnesses"))
+ * License: FSL-1.1-MIT
  */
 
 import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
@@ -27,7 +27,6 @@ import {
   validateManifest,
 } from './content/index.js';
 import { HarnessCoordinator } from './coordinator.js';
-import { checkHarnessesLicense } from './index.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
 const DATA_DIR = join(homedir(), '.local', 'share', 'revealui');
@@ -287,18 +286,6 @@ async function handleContentCommand(subcommand: string | undefined, args: string
         process.exit(1);
       }
 
-      // Pro tier requires a valid license
-      const needsLicense = tierFilter === 'pro' || tierFilter === 'all';
-      if (needsLicense) {
-        const licensed = await checkHarnessesLicense();
-        if (!licensed) {
-          process.stderr.write(
-            'Pro rules require a valid license key. Visit https://revealui.com/pricing\n',
-          );
-          process.exit(1);
-        }
-      }
-
       const baseUrl =
         args[args.indexOf('--url') + 1] ??
         process.env.REVEALUI_RULES_URL ??
@@ -381,22 +368,11 @@ async function handleContentCommand(subcommand: string | undefined, args: string
 }
 
 async function main() {
-  // Developer tooling commands  -  no license required
-  // content: canonical content management
-  // start/coordinate/health: daemon coordination (multi-agent developer workflow)
-  const unlicensedCommands = new Set(['content', 'start', 'coordinate', 'health']);
   if (command === 'content') {
     const [subcommand] = args;
     const contentArgs = args.slice(1);
     await handleContentCommand(subcommand, contentArgs);
     return;
-  }
-
-  if (!(unlicensedCommands.has(command ?? '') || (await checkHarnessesLicense()))) {
-    process.stderr.write(
-      '⚠  @revealui/harnesses requires a Pro license. Visit https://revealui.com/pricing\n',
-    );
-    process.exit(2);
   }
 
   switch (command) {

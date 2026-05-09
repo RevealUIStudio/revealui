@@ -16,27 +16,6 @@
  * @packageDocumentation
  */
 
-import { isFeatureEnabled } from '@revealui/core/features';
-import { initializeLicense } from '@revealui/core/license';
-import { logger } from '@revealui/core/observability/logger';
-
-/**
- * Check if the MCP package is licensed for use.
- * Initializes the license cache from environment variables, then checks the tier.
- * Returns false with a warning log if no Pro/Enterprise license is active.
- */
-export async function checkMcpLicense(): Promise<boolean> {
-  await initializeLicense();
-  if (!isFeatureEnabled('mcp')) {
-    logger.warn(
-      '[@revealui/mcp] MCP server integration requires a Pro or Enterprise license. ' +
-        'Visit https://revealui.com/pricing for details.',
-    );
-    return false;
-  }
-  return true;
-}
-
 // Database adapter
 export {
   connectPglite,

@@ -4,28 +4,8 @@
  * Adapters, registry, workboard coordination, and JSON-RPC server for
  * integrating native AI agents into the RevealUI development workflow.
  *
- * Pro tier feature: gated behind isFeatureEnabled("ai").
- *
  * @packageDocumentation
  */
-
-import { isFeatureEnabled } from '@revealui/core/features';
-import { initializeLicense } from '@revealui/core/license';
-import { logger } from '@revealui/core/observability/logger';
-
-/** Check whether the harnesses feature is licensed for this installation. */
-export async function checkHarnessesLicense(): Promise<boolean> {
-  await initializeLicense();
-  if (!isFeatureEnabled('ai')) {
-    logger.warn(
-      '[@revealui/harnesses] AI harness integration requires a Pro or Enterprise license. ' +
-        'Visit https://revealui.com/pricing for details.',
-      { feature: 'ai' },
-    );
-    return false;
-  }
-  return true;
-}
 
 // Config
 export {
