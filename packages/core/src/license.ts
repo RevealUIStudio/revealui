@@ -96,8 +96,10 @@ export function configureGracePeriods(overrides: Partial<GracePeriodConfig>): vo
 const licensePayloadSchema = z.object({
   /** License tier */
   tier: z.enum(['pro', 'max', 'enterprise']),
-  /** Organization or customer ID */
-  customerId: z.string(),
+  /** Organization or customer ID — must be non-empty; used to bind the token to a specific customer */
+  customerId: z.string().min(1),
+  /** JWT ID — used for per-token revocation; every issued token must carry one */
+  jti: z.string().min(1),
   /** Licensed domain(s) */
   domains: z.array(z.string()).optional(),
   /** Maximum number of sites allowed */
@@ -232,10 +234,22 @@ export async function computeKeyId(publicKeyPem: string): Promise<string> {
 /**
  * Validates a license key JWT and returns the decoded payload.
  * Returns null if the key is invalid, expired, or missing.
+ *
+ * Phase 1 audit B-2: when `expectedCustomerId` is supplied, the JWT's
+ * `customerId` claim must match exactly — otherwise the token is rejected
+ * even when the signature + iss + aud + exp are all valid. This binds a
+ * license to its purchaser. Forge mode uses this against the env-configured
+ * `REVEALUI_LICENSED_CUSTOMER_ID`. Hosted mode (where the deployment IS the
+ * customer) leaves it undefined.
+ *
+ * Note: `nbf` and `exp` are enforced automatically by jose.jwtVerify against
+ * `currentDate` (defaults to now). `iss` and `aud` are enforced via the
+ * options below. Signature is enforced via the public key.
  */
 export async function validateLicenseKey(
   licenseKey: string,
   publicKey: string,
+  expectedCustomerId?: string,
 ): Promise<LicensePayload | null> {
   try {
     const jose = await getJose();
@@ -261,6 +275,19 @@ export async function validateLicenseKey(
 
     const result = licensePayloadSchema.safeParse(payload);
     if (!result.success) {
+      return null;
+    }
+
+    // Phase 1 audit B-2: customerId binding. If the caller supplied an
+    // expectation, the JWT's customerId must match exactly. This prevents
+    // a leaked JWT from one customer being used to license another's
+    // deployment (Forge customer-binding) or a leaked stamping-time JWT
+    // being replayed against a deployment expecting a different customer.
+    if (expectedCustomerId !== undefined && result.data.customerId !== expectedCustomerId) {
+      logger.warn(
+        `License customerId mismatch: token has "${result.data.customerId}", ` +
+          `deployment expects "${expectedCustomerId}". Token rejected.`,
+      );
       return null;
     }
 
@@ -519,7 +546,7 @@ export function getMaxAgentTasks(): number {
  * @returns Signed JWT string
  */
 export async function generateLicenseKey(
-  payload: Omit<LicensePayload, 'iat' | 'exp'>,
+  payload: Omit<LicensePayload, 'iat' | 'exp' | 'jti'> & { jti?: string },
   privateKey: string,
   expiresInSeconds: number | null = 365 * 24 * 60 * 60,
   publicKey?: string,
@@ -531,9 +558,20 @@ export async function generateLicenseKey(
   if (kid) {
     header.kid = kid;
   }
-  const builder = new jose.SignJWT({ ...payload })
+  // Phase 1 audit B-2: every issued token carries a `jti` so it can be
+  // individually revoked without rotating the vendor key. Auto-generate
+  // when caller doesn't supply one (the common case).
+  const jti = payload.jti ?? crypto.randomUUID();
+  // Strip the optional jti from the spread so jose.setJti() is the single
+  // source of the claim (avoids a duplicate field in the payload).
+  const { jti: _ignoredJti, ...rest } = payload;
+  const builder = new jose.SignJWT({ ...rest })
     .setProtectedHeader(header)
     .setIssuedAt()
+    // Phase 1 audit B-2: enforce nbf so tokens cannot be replayed pre-issue
+    // by a clock-skewed client.
+    .setNotBefore('0s')
+    .setJti(jti)
     .setIssuer(LICENSE_ISSUER)
     .setAudience(LICENSE_AUDIENCE);
   if (expiresInSeconds !== null) {
