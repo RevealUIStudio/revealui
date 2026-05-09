@@ -9,25 +9,18 @@
 -- the owning user is deleted. The license remains queryable by id, customerId,
 -- subscriptionId, and licenseKey for audit and dispute purposes.
 --
--- SAFETY: This migration uses ALTER TABLE … ALTER COLUMN / DROP CONSTRAINT /
--- ADD CONSTRAINT — no data is modified, no rows are deleted. The two DDL
--- operations each take a brief ACCESS EXCLUSIVE lock but release it immediately
--- (no table scan required for a FK change). Safe under live traffic.
+-- SAFETY: No data is modified, no rows are deleted. The DDL operations each
+-- take a brief ACCESS EXCLUSIVE lock but release immediately (no table scan
+-- required for a FK change). Safe under live traffic.
 --
--- IDEMPOTENCY: The DO $$ blocks swallow "does not exist" and "already exists"
--- errors so this migration can be re-run safely.
+-- IDEMPOTENCY: Step 2 uses IF EXISTS; Step 3 uses DO $$ EXCEPTION.
 
 -- Step 1: Drop the NOT NULL constraint on user_id so SET NULL can fire.
 ALTER TABLE "licenses" ALTER COLUMN "user_id" DROP NOT NULL;
 --> statement-breakpoint
 
--- Step 2: Drop the existing CASCADE foreign key constraint (name may vary by
--- deployment; the DO block handles both the Drizzle-generated name and any
--- custom name that might exist from a prior drizzle-kit push).
-DO $$ BEGIN
-  ALTER TABLE "licenses" DROP CONSTRAINT IF EXISTS "licenses_user_id_users_id_fk";
-EXCEPTION WHEN undefined_object THEN NULL;
-END $$;
+-- Step 2: Drop the existing CASCADE foreign key constraint if it exists.
+ALTER TABLE "licenses" DROP CONSTRAINT IF EXISTS "licenses_user_id_users_id_fk";
 --> statement-breakpoint
 
 -- Step 3: Add the new FK with ON DELETE SET NULL.

@@ -26,6 +26,18 @@
       "rationale": "A.3 of the post-v1 MCP arc — adds two nullable columns (`duration_ms` bigint, `errored` boolean) to `usage_meters` so the new `/admin/mcp` Usage tab can plot p50/p95 duration buckets + success/error rate per meterName. Hand-written with `ADD COLUMN IF NOT EXISTS` so it's idempotent against any prod environment that already applied an ad-hoc `drizzle-kit push` for the schema change. drizzle-kit produces functionally equivalent SQL (`ALTER TABLE ... ADD COLUMN ...` without the IF NOT EXISTS guard), but the descriptive tag + idempotency match the 0010 precedent for this kind of small column-addition migration.",
       "missingSnapshot": true,
       "snapshotDebtNote": "Same regen path as 0003/0004/0005/0008/0010: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Drizzle schema change at packages/db/src/schema/accounts.ts already adds the columns at the type level; consumers query via Drizzle, not raw SQL, so the type contract is intact."
+    },
+    {
+      "tag": "0014_licenses_userid_set_null",
+      "rationale": "I-1 from Phase 1 payment audit: licenses.user_id had ON DELETE CASCADE, silently destroying license rows (billing audit evidence) when a user was deleted. drizzle-kit generate cannot express a FK-mode change (CASCADE → SET NULL) without dropping and re-adding the constraint, which it does non-idempotently. Hand-written to use bare DROP CONSTRAINT IF EXISTS + DO $$ ADD CONSTRAINT ... EXCEPTION WHEN duplicate_object for full idempotency. Companion Drizzle schema change at packages/db/src/schema/licenses.ts changes the FK option and makes userId nullable.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries: `pnpm --filter @revealui/db db:generate` against a clean DB once the broader snapshot-debt backfill happens. Drizzle schema change at licenses.ts already reflects the nullable userId + SET NULL FK so type consumers are correct."
+    },
+    {
+      "tag": "0015_users_stripe_deletion_status",
+      "rationale": "I-2 from Phase 1 payment audit: GDPR Article 17 erasure path never called stripe.customers.del, leaving EU PII in Stripe. Adds stripe_deletion_status (text, CHECK IN ('deleted','failed')) and stripe_deletion_at (timestamptz) to users table to record Stripe-side erasure outcome. Hand-written with ADD COLUMN IF NOT EXISTS + DO $$ CHECK CONSTRAINT ... EXCEPTION WHEN duplicate_object for idempotency. drizzle-kit generates ADD COLUMN without IF NOT EXISTS guard; the idempotency requirement mandates the hand-written form per the 0011 precedent.",
+      "missingSnapshot": true,
+      "snapshotDebtNote": "Same regen path as prior entries. Drizzle schema change at packages/db/src/schema/users.ts adds stripeDeletionStatus and stripeDeletionAt columns at the type level; consumers query via Drizzle ORM."
     }
   ]
 }
