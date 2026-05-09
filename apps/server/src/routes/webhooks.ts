@@ -1386,31 +1386,23 @@ app.openapi(stripeWebhookRoute, async (c) => {
         resetLicenseState();
         resetDbStatusCache();
 
-        // Best-effort: also store in Stripe subscription metadata for easy retrieval.
-        // Non-critical  -  license is already persisted in NeonDB above.
-        // Retrieve the key from DB — it was generated inside the saga step.
-        const [checkoutLicense] = await db
-          .select({ licenseKey: licenses.licenseKey })
-          .from(licenses)
-          .where(
-            and(
-              eq(licenses.customerId, customerId),
-              eq(licenses.subscriptionId, subscriptionId),
-              isNull(licenses.deletedAt),
-            ),
-          )
-          .limit(1);
-        if (checkoutLicense) {
-          try {
-            await stripe.subscriptions.update(subscriptionId, {
-              metadata: { license_key: checkoutLicense.licenseKey, license_tier: tier },
-            });
-          } catch (stripeErr) {
-            logger.warn('Failed to write license key to Stripe subscription metadata', {
-              subscriptionId,
-              error: stripeErr instanceof Error ? stripeErr.message : 'unknown',
-            });
-          }
+        // Best-effort: store the license ROW ID in Stripe subscription metadata
+        // for cross-system traceability. Phase 1 audit G-P0-1 (2026-05-09):
+        // we previously wrote the full JWT here ("license_key") for "easy
+        // retrieval", but JWTs are bearer credentials with no revocation —
+        // landing them in Stripe's audit-trail surface (dashboard exports,
+        // GDPR exports, future webhook endpoints) was a credential leak.
+        // The ID alone is opaque; consumers look up the JWT (or revocation
+        // status) via the local `licenses` table.
+        try {
+          await stripe.subscriptions.update(subscriptionId, {
+            metadata: { license_id: licenseId, license_tier: tier },
+          });
+        } catch (stripeErr) {
+          logger.warn('Failed to write license id to Stripe subscription metadata', {
+            subscriptionId,
+            error: stripeErr instanceof Error ? stripeErr.message : 'unknown',
+          });
         }
 
         // Best-effort: tag early adopter in Stripe customer metadata so their
