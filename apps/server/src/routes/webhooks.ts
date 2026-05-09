@@ -48,6 +48,7 @@ import {
   sendPerpetualLicenseRevokedEmail,
   sendRefundProcessedEmail,
   sendSupportRenewalConfirmationEmail,
+  sendLivemodeMismatchAlert,
   sendTierFallbackAlert,
   sendTrialEndingEmail,
   sendTrialExpiredEmail,
@@ -811,6 +812,37 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
   if (!relevantEvents.has(event.type)) {
     return c.json({ received: true as const }, 200);
+  }
+
+  // D.1 / L.4: Cross-check event.livemode against the server's deployment mode.
+  // A signed event with the wrong livemode flag must never mutate customer state —
+  // it indicates either a misconfigured endpoint or a cross-mode replay attempt.
+  const expectLive = process.env.STRIPE_LIVE_MODE === 'true';
+  if (event.livemode !== expectLive) {
+    const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
+    logger.error('CRITICAL: webhook livemode mismatch — refusing to process', undefined, {
+      eventId: event.id,
+      eventType: event.type,
+      eventLivemode: event.livemode,
+      serverExpectsLive: expectLive,
+    });
+    // TODO: swap to sendCronFailureAlert after PR #787 merges to test
+    sendLivemodeMismatchAlert(alertEmail, {
+      eventId: event.id,
+      eventType: event.type,
+      eventLivemode: event.livemode,
+      serverExpectsLive: expectLive,
+    }).catch((alertErr: unknown) => {
+      logger.error('Failed to send livemode mismatch alert email', undefined, {
+        detail: alertErr instanceof Error ? alertErr.message : String(alertErr),
+      });
+    });
+    return c.json(
+      {
+        error: `Webhook livemode mismatch: server expects live=${String(expectLive)}, event has live=${String(event.livemode)}`,
+      },
+      400,
+    );
   }
 
   // NOTE: We intentionally do NOT enforce a timestamp freshness window here.
