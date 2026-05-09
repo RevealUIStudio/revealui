@@ -42,7 +42,8 @@ skip = [
 STRIPE_SECRET_KEY              = "revealui/prod/stripe/secret-key"
 STRIPE_WEBHOOK_SECRET          = "revealui/prod/stripe/webhook-secret"
 STRIPE_WEBHOOK_SECRET_LIVE     = "revealui/prod/stripe/webhook-secret-live"
-STRIPE_WEBHOOK_SECRET_PREVIOUS = "revealui/prod/stripe/webhook-secret-previous"
+# STRIPE_WEBHOOK_SECRET_PREVIOUS deferred — rotation slot, populated only
+# during webhook-secret rotation. Re-add to manifest at that time.
 STRIPE_AGENT_METER_EVENT_NAME  = "revealui/prod/stripe/agent-meter-event-name"
 
 # Stripe — price IDs (literal, low-secrecy)
@@ -67,7 +68,8 @@ DATABASE_URL = "revealui/prod/db/postgres-url"
 
 # Encryption + signing
 REVEALUI_KEK                = "revealui/prod/kek"
-REVEALUI_KEK_NEXT           = "revealui/prod/kek-next"
+# REVEALUI_KEK_NEXT deferred — rotation slot, populated only during KEK
+# rotation. Re-add to manifest at that time.
 REVEALUI_LICENSE_PRIVATE_KEY = "revealui/prod/license/private-key"
 REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/prod/license/public-key"
 REVEALUI_AUDIT_HMAC_SECRET   = "revealui/prod/audit-hmac-secret"
