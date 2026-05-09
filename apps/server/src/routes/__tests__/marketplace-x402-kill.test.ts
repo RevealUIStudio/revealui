@@ -100,7 +100,10 @@ function createApp(): Hono {
   return app;
 }
 
-function invokeRequest(id: string): Request {
+// Valid marketplace ID: 'mcp_' + exactly 12 word chars (matches route param schema)
+const VALID_SERVER_ID = 'mcp_abc123def456';
+
+function invokeRequest(id: string = VALID_SERVER_ID): Request {
   return new Request(`http://localhost/servers/${id}/invoke`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -125,7 +128,7 @@ describe('K-1 — Marketplace X402_ENABLED kill switch', () => {
       mockGetX402Config.mockReturnValue({ enabled: false });
 
       const app = createApp();
-      const res = await app.request(invokeRequest('mcp_abc123'));
+      const res = await app.request(invokeRequest());
 
       expect(res.status).toBe(503);
     });
@@ -134,7 +137,7 @@ describe('K-1 — Marketplace X402_ENABLED kill switch', () => {
       mockGetX402Config.mockReturnValue({ enabled: false });
 
       const app = createApp();
-      const res = await app.request(invokeRequest('mcp_abc123'));
+      const res = await app.request(invokeRequest());
 
       expect(res.status).toBe(503);
     });
@@ -143,7 +146,7 @@ describe('K-1 — Marketplace X402_ENABLED kill switch', () => {
       mockGetX402Config.mockReturnValue({ enabled: false });
 
       const app = createApp();
-      await app.request(invokeRequest('mcp_abc123'));
+      await app.request(invokeRequest());
 
       expect(mockDbSelect).not.toHaveBeenCalled();
     });
@@ -152,7 +155,7 @@ describe('K-1 — Marketplace X402_ENABLED kill switch', () => {
       mockGetX402Config.mockReturnValue({ enabled: false });
 
       const app = createApp();
-      await app.request(invokeRequest('mcp_abc123'));
+      await app.request(invokeRequest());
 
       expect(mockStripeTransfersCreate).not.toHaveBeenCalled();
     });
@@ -161,7 +164,7 @@ describe('K-1 — Marketplace X402_ENABLED kill switch', () => {
       mockGetX402Config.mockReturnValue({ enabled: false });
 
       const app = createApp();
-      await app.request(invokeRequest('mcp_abc123'));
+      await app.request(invokeRequest());
 
       expect(mockVerifyPayment).not.toHaveBeenCalled();
     });
@@ -186,7 +189,7 @@ describe('K-1 — Marketplace X402_ENABLED kill switch', () => {
       // Server exists with a price
       mockSelectChain.limit.mockResolvedValueOnce([
         {
-          id: 'mcp_abc123',
+          id: VALID_SERVER_ID,
           status: 'active',
           pricePerCallUsdc: '0.01',
           name: 'Test Server',
@@ -200,7 +203,7 @@ describe('K-1 — Marketplace X402_ENABLED kill switch', () => {
       mockBuildPaymentRequired.mockReturnValue({ accepts: [] });
 
       const app = createApp();
-      const res = await app.request(invokeRequest('mcp_abc123'));
+      const res = await app.request(invokeRequest());
 
       expect(res.status).not.toBe(503);
     });
