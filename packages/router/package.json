@@ -16,15 +16,15 @@
   "dependencies": {
     "@hono/node-server": "^1.19.14",
     "@revealui/utils": "workspace:*",
-    "hono": "4.12.14"
+    "hono": "4.12.18"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "tsup": "^8.5.1",
     "typescript": "catalog:"
   },
