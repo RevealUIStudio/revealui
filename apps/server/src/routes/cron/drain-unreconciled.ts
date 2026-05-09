@@ -36,6 +36,7 @@ import { getClient } from '@revealui/db';
 import { unreconciledWebhooks } from '@revealui/db/schema';
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
 import { getServices } from '../../lib/services-loader.js';
 import { replayStripeEvent } from '../../lib/webhook-replay.js';
 import webhooksApp from '../webhooks.js';
@@ -217,6 +218,17 @@ app.post('/drain-unreconciled', async (c) => {
         undefined,
         { eventId: row.eventId, eventType: row.eventType, ageMs, detail },
       );
+      void sendCronFailureAlert({
+        jobName: 'drain-unreconciled',
+        error: new Error(`CRITICAL: event ${row.eventId} unresolved >24h and replay failed`),
+        severity: 'error',
+        metadata: {
+          eventId: row.eventId,
+          eventType: row.eventType,
+          ageMs,
+          detail: detail ?? 'unknown',
+        },
+      });
     } else {
       logger.warn(`[drain-unreconciled] replay failed for ${row.eventId}`, {
         eventType: row.eventType,

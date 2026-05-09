@@ -91,6 +91,13 @@ const REQUIRED_IN_PRODUCTION_HOSTED = [
   // signals. Without it, ops email falls back to a hard-coded default; making
   // this required forces an explicit decision per environment.
   'REVEALUI_ALERT_EMAIL',
+  // Sentry DSN for error capture. The Sentry init in apps/server/src/index.ts
+  // is guarded by `if (process.env.SENTRY_DSN)`, so a missing value silently
+  // drops all Sentry coverage with no boot-time failure. Making this required
+  // ensures we never boot a hosted production deployment without Sentry wired —
+  // the checkout-route HTTPException capture and sendCronFailureAlert Sentry
+  // path both depend on it. GAP-S1 / Phase 1 audit J-P0-1.
+  'SENTRY_DSN',
 ] as const;
 
 const REQUIRED_IN_PRODUCTION_FORGE = [
@@ -307,6 +314,27 @@ export function validateStartup(
       errors.push(
         `REVEALUI_ALERT_EMAIL is not a valid email (got: ${JSON.stringify(alertEmail)}).`,
       );
+    }
+
+    // Sentry DSN format — must be a valid URL. Sentry DSNs follow the shape
+    // https://<key>@<org>.ingest.sentry.io/<projectId>. Rather than encoding
+    // that shape as a regex (no-regex-authored rule), we parse with the URL
+    // constructor: any valid DSN is also a valid HTTPS URL, and anything that
+    // fails URL parsing is definitely wrong. GAP-S1 / Phase 1 audit J-P0-1.
+    const sentryDsn = env.SENTRY_DSN ?? '';
+    if (!skipFormat(sentryDsn)) {
+      let sentryDsnValid = false;
+      try {
+        const parsed = new URL(sentryDsn);
+        sentryDsnValid = parsed.protocol === 'https:';
+      } catch {
+        sentryDsnValid = false;
+      }
+      if (!sentryDsnValid) {
+        errors.push(
+          `SENTRY_DSN must be a valid HTTPS URL (e.g. https://<key>@<org>.ingest.sentry.io/<projectId>). Got: ${JSON.stringify(sentryDsn)}.`,
+        );
+      }
     }
 
     // CORS_ORIGIN is comma-separated; every origin must be HTTPS in hosted prod.
