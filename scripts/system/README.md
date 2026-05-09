@@ -95,7 +95,7 @@ Based on latest verification:
 
 4. Test the project:
    ```bash
-   cd ~/projects/RevealUI
+   cd ~/revfleet/revealui
    pnpm install --frozen-lockfile
    pnpm typecheck:all
    pnpm dev
