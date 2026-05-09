@@ -1,5 +1,12 @@
 import { Badge, ButtonCVA } from '@revealui/presentation';
-import { EXPLORER_URL, MINT_ADDRESS, TOTAL_SUPPLY_DISPLAY, truncateAddress } from '@/lib/constants';
+import {
+  ACTIVE_NETWORK,
+  EXPLORER_URL,
+  MINT_ADDRESS,
+  NETWORK_LABEL,
+  TOTAL_SUPPLY_DISPLAY,
+  truncateAddress,
+} from '@/lib/constants';
 
 const badges = [
   { label: 'Token-2022', color: 'violet' as const },
@@ -12,7 +19,10 @@ const stats = [
   { label: 'Total Supply', value: TOTAL_SUPPLY_DISPLAY },
   { label: 'Allocations', value: '7 Categories' },
   { label: 'Token Program', value: 'Token-2022' },
-  { label: 'Mint Address', value: truncateAddress(MINT_ADDRESS, 6) },
+  {
+    label: ACTIVE_NETWORK === 'mainnet-beta' ? 'Mint Address' : `${NETWORK_LABEL} Mint`,
+    value: truncateAddress(MINT_ADDRESS, 6),
+  },
 ];
 
 export function HeroSection() {
@@ -41,7 +51,9 @@ export function HeroSection() {
           className="mb-6 gap-2 rounded-full px-4 py-1.5 ring-1 ring-violet-200/80"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
-          Deployed on Solana Mainnet · Pre-launch
+          {ACTIVE_NETWORK === 'mainnet-beta'
+            ? 'Deployed on Solana Mainnet · Pre-launch'
+            : 'Devnet preview · Mainnet not yet deployed'}
         </Badge>
 
         <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
@@ -59,14 +71,17 @@ export function HeroSection() {
           ecosystem rewards — including across the RevealUI platform.
         </p>
 
-        {/* Pre-launch disclaimer — token deployed but gated */}
+        {/* Pre-launch disclaimer — devnet preview only */}
         <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-900">
-          <p className="font-semibold">Public trading is not yet live.</p>
+          <p className="font-semibold">
+            {ACTIVE_NETWORK === 'mainnet-beta'
+              ? 'Public trading is not yet live.'
+              : 'Devnet preview only — no public trading, no real value.'}
+          </p>
           <p className="mt-1 leading-relaxed">
-            The token is deployed on mainnet, but distribution and Raydium liquidity are gated
-            behind two pre-launch commitments: on-chain vesting migration (replacing the current
-            custodial vesting model) and multi-sig on the mint authority. Watch the roadmap below
-            for progress on both.
+            {ACTIVE_NETWORK === 'mainnet-beta'
+              ? 'The token is deployed on mainnet, but distribution and Raydium liquidity are gated behind two pre-launch commitments: on-chain vesting migration (replacing the current custodial vesting model) and multi-sig on the mint authority. Watch the roadmap below for progress on both.'
+              : 'The token has not yet been deployed to Solana mainnet. The address shown below is the devnet preview deployment used for development and demo. Mainnet deploy is gated on on-chain vesting migration (replacing the current custodial vesting model), multi-sig on the mint authority, a third-party audit, and securities-counsel sign-off. Watch the roadmap below for progress.'}
           </p>
         </div>
 
