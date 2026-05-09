@@ -436,18 +436,11 @@ describe('@revealui/engines', () => {
       const { payments } = await import('../index.js');
 
       expect(typeof payments.configureSafeguards).toBe('function');
-      expect(typeof payments.checkServicesLicense).toBe('function');
       expect(typeof payments.validatePayment).toBe('function');
     });
   });
 
   describe('intelligence', () => {
-    it('exports AI license check', async () => {
-      const { intelligence } = await import('../index.js');
-
-      expect(typeof intelligence.checkAiLicense).toBe('function');
-    });
-
     it('exports all agent db tables', async () => {
       const { intelligence } = await import('../index.js');
 

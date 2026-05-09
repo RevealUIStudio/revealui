@@ -12,7 +12,6 @@
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { config } from 'dotenv';
-import { checkMcpLicense } from '../index.js';
 import { createLauncherLogger, ExitCode } from './_launcher-utils.js';
 
 const logger = createLauncherLogger();
@@ -141,9 +140,6 @@ async function startSupabaseMCP() {
  * Exported for programmatic use by the Hypervisor.
  */
 export async function launchSupabaseMcp(): Promise<void> {
-  if (!(await checkMcpLicense())) {
-    throw new Error('MCP license check failed');
-  }
   await startSupabaseMCP();
 }
 

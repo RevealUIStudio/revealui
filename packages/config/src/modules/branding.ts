@@ -24,9 +24,9 @@ export interface BrandingConfig {
 
 export function getBrandingConfig(env: EnvConfig): BrandingConfig {
   return {
-    name: env.REVEALUI_BRAND_NAME ?? 'RevealUI',
+    name: env.REVEALUI_BRAND_NAME ?? env.REVEALUI_TENANT_NAME ?? 'RevealUI',
     logoUrl: env.REVEALUI_BRAND_LOGO_URL,
-    primaryColor: env.REVEALUI_BRAND_PRIMARY_COLOR,
+    primaryColor: env.REVEALUI_BRAND_PRIMARY_COLOR ?? env.REVEALUI_TENANT_BRAND,
     showPoweredBy: env.REVEALUI_SHOW_POWERED_BY !== 'false',
   };
 }

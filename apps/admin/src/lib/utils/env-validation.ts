@@ -31,6 +31,8 @@ export function validateRequiredEnvVars(
 } {
   const { failOnMissing = false, environment } = options;
 
+  const isFleetMode = Boolean(process.env.REVEALUI_FLEET_MODE);
+
   // Base required variables
   const baseRequired: string[] = ['REVEALUI_SECRET', 'REVEALUI_PUBLIC_SERVER_URL', 'POSTGRES_URL'];
 
@@ -77,8 +79,10 @@ export function validateRequiredEnvVars(
     }
   }
 
-  // Production-specific validations
-  if (environment === 'production') {
+  // Production-specific validations — skipped in Fleet mode. Fleet deployments
+  // run NODE_ENV=production (required by Next.js) but are not RevealUI Studio
+  // SaaS: no self-billing flow, and http://localhost behind customer TLS is correct.
+  if (environment === 'production' && !isFleetMode) {
     if (
       process.env.REVEALUI_PUBLIC_SERVER_URL &&
       !process.env.REVEALUI_PUBLIC_SERVER_URL.startsWith('https://')

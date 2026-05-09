@@ -35,6 +35,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 
 # Builder stage
 FROM base AS builder
+COPY --from=deps /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/.npmrc ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY --from=deps /app/apps/server/node_modules ./apps/server/node_modules

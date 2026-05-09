@@ -25,10 +25,10 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountSubscriptions } from '@revealui/db/schema';
-import { protectedStripe } from '@revealui/services';
 import { and, inArray, isNotNull } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type Stripe from 'stripe';
+import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
 
@@ -120,11 +120,15 @@ app.post('/reconcile-subscriptions', async (c) => {
     Number.parseInt(process.env.RECONCILE_DURATION_BUDGET_MS ?? '', 10) ||
     DEFAULT_DURATION_BUDGET_MS;
 
+  const services = await getServices();
+  if (!services) {
+    return c.json({ error: 'Reconciler disabled — @revealui/services not installed.' }, 503);
+  }
   const db = getClient();
   // Stripe access goes through the shared protectedStripe wrapper:
   // single API-version pin, single DB-backed circuit breaker, single retry
   // policy across all consumers (GAP-131).
-  const stripe = protectedStripe;
+  const stripe = services.protectedStripe;
 
   // Only reconcile rows that believe they are live AND have a Stripe sub id
   // to compare against. Perpetual-license rows and credit-bundle-only
