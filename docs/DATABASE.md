@@ -1320,4 +1320,4 @@ setInterval(() => {
 ---
 
 **Last Updated**: 2026-04-26
-**Version**: 0.2 (working draft — pre-1.0 per the suite-wide [versioning convention](../CONTRIBUTING.md#versioning))
+**Version**: 0.2 (working draft — pre-1.0 per the fleet-wide [versioning convention](../CONTRIBUTING.md#versioning))

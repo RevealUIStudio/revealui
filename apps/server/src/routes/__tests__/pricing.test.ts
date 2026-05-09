@@ -73,7 +73,7 @@ function makeStripeProduct(
 
 // ---------------------------------------------------------------------------
 // Stripe active tests run FIRST so that cachedStripe is a live MockStripe
-// instance before the fallback suite runs. The fallback suite's beforeEach
+// instance before the fallback suite runs. The fallback RevFleet's beforeEach
 // then stubs mockProductsList to return [] so no products match and all
 // tiers fall back to static prices  -  regardless of the cached client.
 // ---------------------------------------------------------------------------

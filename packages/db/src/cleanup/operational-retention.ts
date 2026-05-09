@@ -5,7 +5,7 @@
  * tables past their retention windows. Keeps hot tables lean; no PII
  * concerns (these are internal operational state, not user data).
  *
- * See ~/suite/.jv/docs/cr8-p3-02-retention-design.md for the decision
+ * See ~/revfleet/.jv/docs/cr8-p3-02-retention-design.md for the decision
  * record. Part of the CR8-P3-02 arc:
  *   - PR1 (revealui#495): app_logs + error_events retention
  *   - PR2 (revealui#499): jobs + processed_webhook_events retention

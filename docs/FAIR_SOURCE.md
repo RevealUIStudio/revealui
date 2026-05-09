@@ -11,7 +11,7 @@ The narrative version of this page lives at [revealui.com/fair-source](https://r
 
 ## What's licensed how
 
-Two RevealUI packages ship under **FSL-1.1-MIT** (Fair Source). Every other package in the suite is plain MIT.
+Two RevealUI packages ship under **FSL-1.1-MIT** (Fair Source). Every other package in RevFleet is plain MIT.
 
 | Package | License | Source | npm |
 |---------|---------|--------|-----|

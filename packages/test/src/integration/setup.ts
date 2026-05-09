@@ -55,7 +55,7 @@ afterAll(async () => {
  */
 afterEach(async () => {
   // Only cleanup data that was created during the test itself
-  // Don't cleanup data created in beforeAll - that should persist for all tests in the suite
+  // Don't cleanup data created in beforeAll - that should persist for all tests in RevFleet
   // Track which suite we're in and only cleanup test-specific data
   await cleanupTestData();
 });

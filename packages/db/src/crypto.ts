@@ -22,7 +22,7 @@
  *   operator promotes `REVEALUI_KEK_NEXT` → `REVEALUI_KEK` and removes
  *   `REVEALUI_KEK_NEXT`. No downtime.
  *
- * See `~/suite/.jv/docs/runbooks/rotate-kek.md` §Zero-downtime path for the
+ * See `~/revfleet/.jv/docs/runbooks/rotate-kek.md` §Zero-downtime path for the
  * operator flow.
  */
 
@@ -50,7 +50,7 @@ function getKekPair(): { primary: Buffer; fallback?: Buffer } {
   const nextHex = (process.env.REVEALUI_KEK_NEXT ?? '').trim();
   const kekHex = (process.env.REVEALUI_KEK ?? '').trim();
 
-  if (!nextHex && !kekHex) {
+  if (!(nextHex || kekHex)) {
     throw new Error('REVEALUI_KEK environment variable is not set');
   }
 

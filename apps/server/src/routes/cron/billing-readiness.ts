@@ -18,6 +18,7 @@ import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
 import { Hono } from 'hono';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
 import { getServices } from '../../lib/services-loader.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS, type SubscriptionTierId } from '../../lib/tier-pricing.js';
 
@@ -214,6 +215,15 @@ app.post('/billing-readiness', async (c) => {
     logger.error('Billing readiness check failed', undefined, {
       failureCount: failures.length,
       failures: failures.map((f) => `${f.check}: ${f.detail}`),
+    });
+    void sendCronFailureAlert({
+      jobName: 'billing-readiness',
+      error: new Error(`Billing readiness check failed: ${failures.length} issue(s)`),
+      severity: 'error',
+      metadata: {
+        failureCount: failures.length,
+        failures: failures.map((f) => `${f.check}: ${f.detail}`).join('; '),
+      },
     });
 
     // Send alert email (fire-and-forget, don't fail the cron)
