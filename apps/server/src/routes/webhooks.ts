@@ -45,6 +45,7 @@ import {
   sendPaymentReceiptEmail,
   sendPaymentRecoveredEmail,
   sendPerpetualLicenseActivatedEmail,
+  sendPerpetualLicenseRevokedEmail,
   sendRefundProcessedEmail,
   sendSupportRenewalConfirmationEmail,
   sendTierFallbackAlert,
@@ -3028,10 +3029,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
           typeof charge.payment_intent === 'string'
             ? charge.payment_intent
             : (charge.payment_intent?.id ?? null);
+        let refundPi: Stripe.PaymentIntent | null = null;
         if (paymentIntentId) {
-          let pi: Stripe.PaymentIntent | null = null;
           try {
-            pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+            refundPi = await stripe.paymentIntents.retrieve(paymentIntentId);
           } catch (err) {
             logger.warn('Failed to retrieve PaymentIntent for refund — skipping credit-debit', {
               customerId,
@@ -3040,7 +3041,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
               detail: err instanceof Error ? err.message : 'unknown',
             });
           }
-          if (pi?.metadata?.credits_bundle) {
+          if (refundPi?.metadata?.credits_bundle) {
+            const pi = refundPi;
             const bundleTasks = Number.parseInt(pi.metadata.credits_tasks ?? '0', 10);
             // Prorate credit debit by the refund ratio so partial $ refunds
             // debit a proportional number of credits. Full refunds debit the
@@ -3100,9 +3102,71 @@ app.openapi(stripeWebhookRoute, async (c) => {
         }
 
         if (isFullRefund) {
+          // B-1 fix: Revoke perpetual licenses when the originating charge is
+          // fully refunded. Identify the perpetual purchase via the PaymentIntent
+          // metadata set at checkout (payment_intent_data.metadata.perpetual='true').
+          // Match by both customerId AND the specific licenseId stored in PI metadata
+          // so concurrent perpetual purchases for the same customer are not
+          // collateral-revoked.
+          if (refundPi?.metadata?.perpetual === 'true') {
+            const perpetualLicenseId = refundPi.metadata.license_id ?? null;
+            const perpetualTier = refundPi.metadata.tier ?? 'pro';
+
+            const revokeWhere = perpetualLicenseId
+              ? and(
+                  eq(licenses.id, perpetualLicenseId),
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.perpetual, true),
+                  isNull(licenses.deletedAt),
+                )
+              : and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.perpetual, true),
+                  isNull(licenses.deletedAt),
+                );
+
+            await db
+              .update(licenses)
+              .set({ status: 'revoked', updatedAt: new Date() })
+              .where(revokeWhere);
+
+            resetLicenseState();
+            resetDbStatusCache();
+
+            logger.warn('Perpetual license revoked: full refund issued', {
+              customerId,
+              chargeId: charge.id,
+              perpetualLicenseId,
+              tier: perpetualTier,
+              amountRefunded: charge.amount_refunded,
+            });
+            auditLicenseEvent(db, 'license.perpetual.revoked.refund', 'warn', {
+              customerId,
+              chargeId: charge.id,
+              perpetualLicenseId,
+              tier: perpetualTier,
+              amountRefunded: charge.amount_refunded,
+            });
+
+            const perpetualEmail =
+              charge.billing_details?.email ??
+              charge.receipt_email ??
+              (await findUserEmailByCustomerId(db, customerId));
+            if (perpetualEmail) {
+              sendPerpetualLicenseRevokedEmail(perpetualEmail, {
+                tier: perpetualTier,
+                amountRefunded: charge.amount_refunded,
+                currency: charge.currency,
+              }).catch((err) => {
+                logger.error('Failed to send perpetual license revoked email', undefined, {
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
+              });
+            }
+          }
+
           // Only revoke NON-PERPETUAL licenses. Perpetual licenses represent
-          // a separate one-time purchase and must never be revoked by a
-          // subscription charge refund.
+          // a separate one-time purchase handled above.
           await db
             .update(licenses)
             .set({ status: 'revoked', updatedAt: new Date() })
