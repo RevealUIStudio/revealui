@@ -12,7 +12,6 @@
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { config } from 'dotenv';
-import { checkMcpLicense } from '../index.js';
 import { createLauncherLogger, ExitCode } from './_launcher-utils.js';
 
 const logger = createLauncherLogger();
@@ -214,9 +213,6 @@ async function startNextDevToolsMCP() {
  * Exported for programmatic use by the Hypervisor.
  */
 export async function launchNextDevtoolsMcp(): Promise<void> {
-  if (!(await checkMcpLicense())) {
-    throw new Error('MCP license check failed');
-  }
   await startNextDevToolsMCP();
 }
 

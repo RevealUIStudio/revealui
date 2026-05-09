@@ -5,11 +5,17 @@
  * `revealcoin.revealui.com`. All on-chain queries go through
  * `@revealui/services/revealcoin`, which provides circuit breaker
  * + retry + timeout protection on top of the Solana RPC.
+ *
+ * Pro boundary: `@revealui/services` is an optional peer dep, so the
+ * subpath is loaded via cached dynamic import (per 8c19db537). Routes
+ * return 502 when the package is unavailable — same status used for
+ * Solana RPC failures, so callers see a uniform "upstream unavailable"
+ * signal regardless of whether the cause is missing-package or RPC-down.
  */
 
 import { RVUI_ALLOCATIONS } from '@revealui/contracts';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { getRvuiBalance, getRvuiSupply } from '@revealui/services/revealcoin';
+import { getServicesRevealcoin } from '../lib/services-loader.js';
 
 const app = new OpenAPIHono();
 
@@ -84,8 +90,12 @@ const supplyRoute = createRoute({
 });
 
 app.openapi(supplyRoute, async (c) => {
+  const revealcoin = await getServicesRevealcoin();
+  if (!revealcoin) {
+    return c.json({ error: '@revealui/services not installed' }, 502);
+  }
   try {
-    const supply = await getRvuiSupply();
+    const supply = await revealcoin.getRvuiSupply();
     return c.json(
       {
         totalSupply: supply.uiAmountString,
@@ -145,10 +155,14 @@ const allocationsRoute = createRoute({
 });
 
 app.openapi(allocationsRoute, async (c) => {
+  const revealcoin = await getServicesRevealcoin();
+  if (!revealcoin) {
+    return c.json({ error: '@revealui/services not installed' }, 502);
+  }
   try {
     const balances = await Promise.all(
       RVUI_ALLOCATIONS.map(async (alloc) => {
-        const balance = await getRvuiBalance(alloc.wallet);
+        const balance = await revealcoin.getRvuiBalance(alloc.wallet);
         const totalHuman = Number(alloc.amount / 1_000_000n);
         return {
           name: alloc.name,
