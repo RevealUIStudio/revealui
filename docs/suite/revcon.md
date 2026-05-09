@@ -21,19 +21,19 @@ A **non-monorepo, non-published convention bundle** that ships:
 
 ```bash
 # Link into a project with the revealui profile
-./link.sh --target ~/projects/RevealUI --profile revealui
+./link.sh --target ~/revfleet/revealui --profile revealui
 
 # Link base configs only (no profile)
 ./link.sh --target ~/projects/RevealCoin
 
 # Link a single editor
-./link.sh --target ~/projects/RevealUI --profile revealui --editor zed
+./link.sh --target ~/revfleet/revealui --profile revealui --editor zed
 
 # Preview without changes
-./link.sh --dry-run --target ~/projects/RevealUI --profile revealui
+./link.sh --dry-run --target ~/revfleet/revealui --profile revealui
 
 # Remove symlinks
-./unlink.sh --target ~/projects/RevealUI
+./unlink.sh --target ~/revfleet/revealui
 
 # List available profiles
 ./link.sh --list
@@ -42,7 +42,7 @@ A **non-monorepo, non-published convention bundle** that ships:
 ## How it composes with RevealUI
 
 - **New contributor flow**: clone RevealUI, then `pnpm dlx revcon sync` (or run RevCon's `link.sh` against the checkout). They get the team's editing posture, agent rules, and convention files. No drift.
-- **Cross-suite consistency**: the same RevCon profile installs Claude Code rules into RevealUI, RevDev, RevVault, RevealCoin, and Forge. One source of truth for *"how do agents behave in our codebases."*
+- **Cross-fleet consistency**: the same RevCon profile installs Claude Code rules into RevealUI, RevDev, RevVault, RevealCoin, and RevForge. One source of truth for *"how do agents behave in our codebases."*
 - **Symlinks, not copies**: edits to RevCon master files propagate to every linked project on filesystem refresh — no per-repo PRs to keep configs in sync.
 
 ## Important: not gated by Pro license
