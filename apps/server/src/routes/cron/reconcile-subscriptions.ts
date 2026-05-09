@@ -28,6 +28,7 @@ import { accountSubscriptions } from '@revealui/db/schema';
 import { and, inArray, isNotNull } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type Stripe from 'stripe';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
 import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
@@ -206,6 +207,16 @@ app.post('/reconcile-subscriptions', async (c) => {
           undefined,
           { ...report },
         );
+        void sendCronFailureAlert({
+          jobName: 'reconcile-subscriptions',
+          error: new Error(`CRITICAL: missing-in-stripe for account ${row.accountId}`),
+          severity: 'error',
+          metadata: {
+            accountId: row.accountId,
+            stripeSubscriptionId: row.stripeSubscriptionId,
+            drift: 'missing-in-stripe',
+          },
+        });
         continue;
       }
 
@@ -273,6 +284,20 @@ app.post('/reconcile-subscriptions', async (c) => {
           undefined,
           { ...report },
         );
+        void sendCronFailureAlert({
+          jobName: 'reconcile-subscriptions',
+          error: new Error(
+            `CRITICAL: status drift ${row.status}→${stripeStatus} for account ${row.accountId}`,
+          ),
+          severity: 'error',
+          metadata: {
+            accountId: row.accountId,
+            stripeSubscriptionId: row.stripeSubscriptionId,
+            localStatus: row.status,
+            stripeStatus: stripeStatus ?? 'null',
+            drift: 'status-mismatch',
+          },
+        });
       } else {
         logger.warn(`[reconcile-subscriptions] status drift ${row.status}→${stripeStatus}`, {
           ...report,
