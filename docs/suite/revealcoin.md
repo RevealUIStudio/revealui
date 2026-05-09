@@ -65,7 +65,7 @@ Devnet preview; mainnet pending 2026-Q4 per charge-readiness audit. Mint is depl
 
 ## See also
 
-- [Suite overview](../SUITE) — how RevealCoin relates to the rest of the suite
+- [Suite overview](../SUITE) — how RevealCoin relates to the rest of RevFleet
 - [Marketplace](../MARKETPLACE) — where RVC pricing flows in once public distribution opens
 - [HTTP 402 Payments blog post](../blog/02-http-402-payments) — payment-protocol context
 - [RevealCoin README](https://github.com/RevealUIStudio/revealcoin/blob/main/README.md) — canonical product docs

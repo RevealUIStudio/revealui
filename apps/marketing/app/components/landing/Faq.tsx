@@ -20,7 +20,7 @@ const faqs = [
     a: 'Built behind a full CI gate: Biome lint, Vitest unit and integration, Playwright E2E, CodeQL, Gitleaks, dependency auditing. The full feature set is covered by the test suite, and every PR runs the gate before it can land. Used in production by the team that maintains it.',
   },
   {
-    q: "What's the rest of the suite?",
+    q: "What's the rest of RevFleet?",
     a: 'RevealUI is the runtime. RevVault handles secrets. RevKit is the portable dev environment. RevDev is the AI engineering harness. Forge is a portable demo lab. You can use RevealUI without any of the others — they ship and version independently.',
   },
 ];

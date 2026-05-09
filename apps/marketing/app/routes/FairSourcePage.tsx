@@ -216,7 +216,7 @@ export function FairSourcePage() {
               Which RevealUI packages are Fair Source.
             </h2>
             <p className="mt-6 text-base leading-7 text-gray-600">
-              Two packages today. Every other package in the suite is plain MIT — no non-compete, no
+              Two packages today. Every other package in RevFleet is plain MIT — no non-compete, no
               time limit, fully open source.
             </p>
           </div>

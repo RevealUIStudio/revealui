@@ -9,14 +9,14 @@ audience: developer
 
 **Centralized editor configurations for RevealUI projects.**
 
-> RevCon is a separate suite product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revcon](https://github.com/RevealUIStudio/revcon) (its package historically shipped under the name `editor-configs`). This page summarises what RevCon is; the canonical product README lives in the RevCon repo.
+> RevCon is a separate fleet product, not part of the RevealUI monorepo. The repo is at [RevealUIStudio/revcon](https://github.com/RevealUIStudio/revcon) (its package historically shipped under the name `editor-configs`). This page summarises what RevCon is; the canonical product README lives in the RevCon repo.
 
 ## What RevCon is
 
 A **non-monorepo, non-published convention bundle** that ships:
 
 - **Editor configs** for Zed, VS Code, and Cursor — symlinked into target projects so edits propagate instantly without commits to the target repo.
-- **Profiles** — per-project rule packs (e.g. `revealui` profile applies the suite's Claude Code rules + Cursor rules + agent skill files).
+- **Profiles** — per-project rule packs (e.g. `revealui` profile applies RevFleet's Claude Code rules + Cursor rules + agent skill files).
 - **`link.sh` / `unlink.sh`** — installer + remover. Supports `--target`, `--profile`, `--editor`, and `--dry-run`.
 
 ```bash
@@ -57,6 +57,6 @@ Active.
 
 ## See also
 
-- [Suite overview](../SUITE) — how RevCon relates to the rest of the suite
+- [Suite overview](../SUITE) — how RevCon relates to the rest of RevFleet
 - [`/pro/editors`](/pro/editors) — Pro-docs page that points back to RevCon
 - [RevCon README](https://github.com/RevealUIStudio/revcon/blob/main/README.md) — canonical product docs

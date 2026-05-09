@@ -22,7 +22,7 @@
  *   operator promotes `REVEALUI_KEK_NEXT` → `REVEALUI_KEK` and removes
  *   `REVEALUI_KEK_NEXT`. No downtime.
  *
- * See `~/suite/.jv/docs/runbooks/rotate-kek.md` §Zero-downtime path for the
+ * See `~/revfleet/.jv/docs/runbooks/rotate-kek.md` §Zero-downtime path for the
  * operator flow.
  */
 

@@ -8,7 +8,7 @@
  * established Claude / Cursor / Zed workflows.
  *
  * A "profile" is a bundle of editor / agent configuration that lives in
- * the sibling `revcon` repo at `~/suite/revcon/profiles/revealui/<id>/`
+ * the sibling `revcon` repo at `~/revfleet/revcon/profiles/revealui/<id>/`
  * (with the exception of `revealui`, whose config IS the native runtime
  * itself — no external bundle needed). The RevealUI runtime doesn't
  * ship the profile content; it just stores the user's choice and

@@ -3,7 +3,7 @@
  *
  * Read-only endpoints exposing the multi-agent fleet view backed by the
  * coordination_* tables in Neon. The daemon at
- * ~/suite/revdev/packages/daemon writes to these tables via best-effort
+ * ~/revfleet/revdev/packages/daemon writes to these tables via best-effort
  * dual-write (see GAP-154 Phase 2/3); this surface is the admin
  * dashboard's read side.
  *

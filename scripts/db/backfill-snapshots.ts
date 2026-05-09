@@ -30,7 +30,7 @@
  * stays green; full migration replay against PGlite applies cleanly.
  *
  * Usage:
- *   cd ~/suite/revealui
+ *   cd ~/revfleet/revealui
  *   pnpm tsx scripts/db/backfill-snapshots.ts
  *
  * Idempotent only in result-set sense: re-running mints fresh UUIDs and

@@ -1,5 +1,5 @@
 /**
- * Suite-wide bootstrap primitive for RevealUI.
+ * Fleet-wide bootstrap primitive for RevealUI.
  *
  * Creates the first admin user and seeds minimal content.
  * Designed for three consumers (in priority order):

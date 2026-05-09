@@ -62,7 +62,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 
 ## RevFleet
 
-RevealUI is one product in a suite of eight that compose into an agent-first SDLC platform. See [Suite Overview](./SUITE.md) for the full table and composition story.
+RevealUI is one product in a fleet of eight that compose into an agent-first SDLC platform. See [Suite Overview](./SUITE.md) for the full table and composition story.
 
 - [RevDev](./suite/revdev.md) — Studio (Tauri 2 desktop) + Console (Go SSH TUI) + harness daemon
 - [RevVault](./suite/revvault.md) — age-encrypted secret vault, source of truth for every suite secret

@@ -117,7 +117,7 @@ Give users the ability to interact with an AI agent directly from the admin dash
 
 #### Ecosystem Integration — [#528](https://github.com/RevealUIStudio/revealui/issues/528)
 - RevVault desktop app integration in Studio _(already built: `VaultPanel.tsx` connects via Tauri to RevVault)_
-- RevVault rotation engine as a Pro feature  -  automated credential lifecycle management. _Currently: 5 interactive rotation shell scripts ship at `~/suite/.jv/scripts/rotation/` (neon, revealui-secret, stripe-webhook, probe-current-values, probe-mcp-api-key); Rust workspace at `~/suite/revvault/` ready to absorb them as a first-class subsystem._
+- RevVault rotation engine as a Pro feature  -  automated credential lifecycle management. _Currently: 5 interactive rotation shell scripts ship at `~/revfleet/.jv/scripts/rotation/` (neon, revealui-secret, stripe-webhook, probe-current-values, probe-mcp-api-key); Rust workspace at `~/revfleet/revvault/` ready to absorb them as a first-class subsystem._
 - RevKit agent coordination protocol extraction as `@revealui/workboard`  -  MIT standalone package. _Currently: implementation lives inside `@revealui/harnesses` (FSL-1.1-MIT Pro) at `packages/harnesses/src/workboard/`; extraction brings it in line with the PRO.md declaration that RevKit agent coordination is MIT-free._
 - Unified ecosystem messaging across marketing, docs, and pricing surfaces _(drift-control work, not a new feature)_
 
