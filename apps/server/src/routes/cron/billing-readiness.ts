@@ -17,8 +17,8 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
-import { protectedStripe } from '@revealui/services';
 import { Hono } from 'hono';
+import { getServices } from '../../lib/services-loader.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS, type SubscriptionTierId } from '../../lib/tier-pricing.js';
 
 const app = new Hono();
@@ -146,12 +146,23 @@ app.post('/billing-readiness', async (c) => {
   //    We skip tiers whose env var is missing (earlier check already flags
   //    that) to avoid double-alerting. Stripe errors (network, permission,
   //    deleted price) surface as check failures so they page someone.
+  // GAP-131: shared protectedStripe wrapper. Load once for the whole loop;
+  // when @revealui/services isn't installed, surface a single check failure
+  // rather than N per-tier failures.
+  const services = await getServices();
+  if (!services) {
+    results.push({
+      check: 'stripe:price-parity',
+      ok: false,
+      detail: '@revealui/services not installed — Stripe price-parity check skipped',
+    });
+  }
   for (const { tier, priceEnvVar } of SUBSCRIPTION_TIERS) {
+    if (!services) break;
     const priceId = process.env[priceEnvVar]?.trim();
     if (!priceId) continue; // env-var absence already flagged by section 1
     try {
-      // GAP-131: shared protectedStripe wrapper.
-      const price = await protectedStripe.prices.retrieve(priceId);
+      const price = await services.protectedStripe.prices.retrieve(priceId);
       const expected = MRR_TIER_PRICE_FALLBACK_CENTS[tier];
       if (price.unit_amount === null) {
         results.push({

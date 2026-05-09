@@ -34,9 +34,9 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { unreconciledWebhooks } from '@revealui/db/schema';
-import { protectedStripe } from '@revealui/services';
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { getServices } from '../../lib/services-loader.js';
 import { replayStripeEvent } from '../../lib/webhook-replay.js';
 import webhooksApp from '../webhooks.js';
 
@@ -99,11 +99,15 @@ app.post('/drain-unreconciled', async (c) => {
   const durationBudgetMs =
     Number.parseInt(process.env.DRAIN_DURATION_BUDGET_MS ?? '', 10) || DEFAULT_DURATION_BUDGET_MS;
 
+  const services = await getServices();
+  if (!services) {
+    return c.json({ error: 'Drainer disabled — @revealui/services not installed.' }, 503);
+  }
   const db = getClient();
   // GAP-131: shared protectedStripe wrapper. The events.retrieve surface
   // is structurally compatible with replayStripeEvent's ReplayDeps.stripe
   // (StripeEventsClient).
-  const stripe = protectedStripe;
+  const stripe = services.protectedStripe;
 
   // Oldest unresolved first — they are most at risk of escalating past the
   // 24h critical threshold.

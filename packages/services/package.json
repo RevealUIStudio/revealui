@@ -1,13 +1,13 @@
 {
   "name": "@revealui/services",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "External service integrations — Stripe (billing + circuit breaker), Solana (RVC token), Vercel (deploy + DNS). Ships with RevealUI.",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
     "directory": "packages/services"
   },
-  "license": "MIT",
+  "license": "FSL-1.1-MIT",
   "dependencies": {
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
@@ -65,7 +65,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "funding": {
     "type": "commercial",

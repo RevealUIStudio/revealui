@@ -145,11 +145,13 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
         process.env.NODE_ENV === 'production'
           ? (() => {
               if (!process.env.SESSION_COOKIE_DOMAIN) {
-                throw new Error(
-                  'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth',
-                );
+                if (!process.env.REVEALUI_FLEET_MODE) {
+                  throw new Error(
+                    'SESSION_COOKIE_DOMAIN env var is required in production for cross-subdomain auth',
+                  );
+                }
               }
-              return process.env.SESSION_COOKIE_DOMAIN;
+              return process.env.SESSION_COOKIE_DOMAIN || undefined;
             })()
           : undefined,
     });
