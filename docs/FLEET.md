@@ -418,4 +418,4 @@ Contact support for assistance with large migrations or custom data transformati
 - [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md)
 - [Auth & Security](./AUTH.md)
 - [Pro overview](./PRO.md)
-- [Suite overview](./SUITE.md)
+- [RevFleet overview](./REVFLEET.md)

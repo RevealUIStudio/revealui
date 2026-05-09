@@ -52,5 +52,5 @@ Active. Pre-launch (no published binaries). The harness daemon is documented in 
 ## See also
 
 - [RevealUI Pro overview](../PRO) — what the Pro tier unlocks (including Studio's Pro features)
-- [Suite overview](../SUITE) — how RevDev relates to the rest of the suite
+- [RevFleet overview](../REVFLEET) — how RevDev relates to the rest of RevFleet
 - [RevDev README](https://github.com/RevealUIStudio/revdev/blob/main/README.md) — canonical product docs

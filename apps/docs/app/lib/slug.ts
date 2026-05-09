@@ -2,7 +2,7 @@
  * Slug derivation for docs URL flatten (chip 3 / GAP unfiled).
  *
  * Per CHIP-3 plan D2b: lowercase-kebab slug normalization on docs URLs.
- * Filenames in suite-root `docs/` use a mix of conventions:
+ * Filenames in fleet-root `docs/` use a mix of conventions:
  *   - SCREAMING_SNAKE: ADMIN_GUIDE.md, QUICK_START.md
  *   - kebab-case: 02-x402-payments.md, agent-rules/test-prompts.md
  *   - mixed (rare): RevealUIDocs.md (none today, but the regex handles it)
@@ -46,7 +46,7 @@ export function filenameToSlug(filename: string): string {
  * Examples:
  *   ADMIN_GUIDE.md                     → admin-guide
  *   blog/02-x402-payments.md           → blog/02-x402-payments
- *   suite/revvault.md                  → suite/revvault
+ *   fleet/revvault.md                  → fleet/revvault
  *   ai/PROMPT_CACHING.md               → ai/prompt-caching
  */
 export function pathToSlug(relPath: string): string {

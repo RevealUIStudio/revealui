@@ -23,7 +23,7 @@ audience: developer
 | 6 | **AlleviaFleet** | First customer-stamped Fleet instance (Allevia Technology). | Allevia (first customer) |
 | 7 | (future stamps) | Customer-stamped Fleet instances per the Tier 4 model. | Future enterprise customers |
 
-**Naming drift to avoid:** "Suite", "the Suite", "RevealUI Suite" → use **RevFleet**. Bare "Forge" is ambiguous — use RevForge (the tool), RevealUI Fleet (the kit), or Enterprise (the tier) per context.
+**Naming drift to avoid:** "Suite", "RevFleet", "RevFleet" → use **RevFleet**. Bare "Forge" is ambiguous — use RevForge (the tool), RevealUI Fleet (the kit), or Enterprise (the tier) per context.
 
 ---
 

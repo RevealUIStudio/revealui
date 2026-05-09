@@ -29,7 +29,7 @@ const PRO_PACKAGES = new Set(['@revealui/ai', '@revealui/harnesses']);
 // External @revealui/* packages published from other repos  -  use ^x.y.z, NOT workspace:*.
 // These are NOT in the local pnpm workspace; their source of truth is a separate repo.
 // Per docs/decisions/2026-05-03-revealcoin-manifest-transport.md §Phase 4, the manifest
-// package lives in ~/suite/revealcoin/packages/manifest/ and is consumed cross-repo via npm.
+// package lives in ~/revfleet/revealcoin/packages/manifest/ and is consumed cross-repo via npm.
 const EXTERNAL_REVEALUI_PACKAGES = new Set(['@revealui/revealcoin-manifest']);
 
 interface Violation {

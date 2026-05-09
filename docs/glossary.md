@@ -32,7 +32,7 @@ Formerly displayed as **"Forge"** or **"Forge (Enterprise)"** — renamed 2026-0
 
 ## RevFleet
 
-The umbrella brand for the eight-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2. See [`./SUITE`](./SUITE.md) (the page name is preserved as a redirect; content reflects "RevFleet" terminology). Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
+The umbrella brand for the eight-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) (the page name is preserved as a redirect; content reflects "RevFleet" terminology). Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
 
 ## Forge
 
@@ -44,7 +44,7 @@ The four customer-facing pricing tiers, ordered by capability. Free is OSS-only 
 
 ## Harness
 
-A coordination layer that lets multiple AI coding tools (Claude Code, Cursor, Aider, etc.) work safely on the same codebase in parallel. Ships as `@revealui/harnesses` (Pro package). See [`./AI`](./AI.md) and `~/suite/revdev` for the daemon implementation.
+A coordination layer that lets multiple AI coding tools (Claude Code, Cursor, Aider, etc.) work safely on the same codebase in parallel. Ships as `@revealui/harnesses` (Pro package). See [`./AI`](./AI.md) and `~/revfleet/revdev` for the daemon implementation.
 
 ## Inference Snaps
 
@@ -61,7 +61,7 @@ If a doc says "JWT" without qualifying which one, default to the license JWT.
 
 ## Keypair
 
-A Solana Token-2022 keypair used by [RevealCoin](#revealcoin). Stored in [RevVault](#revvault) under the `revealcoin/` namespace; materialized to tmpfs by `scripts/keys-restore.sh` for the duration of a command, then shredded. **Never** committed to source control. See `~/suite/revealcoin/README.md` for the full key-management policy.
+A Solana Token-2022 keypair used by [RevealCoin](#revealcoin). Stored in [RevVault](#revvault) under the `revealcoin/` namespace; materialized to tmpfs by `scripts/keys-restore.sh` for the duration of a command, then shredded. **Never** committed to source control. See `~/revfleet/revealcoin/README.md` for the full key-management policy.
 
 ## License
 
@@ -93,11 +93,11 @@ The white-label self-hosted runtime kit — Docker Compose stack + domain lock +
 
 ## RevForge
 
-The stamping tool repo at [`RevealUIStudio/revforge`](https://github.com/RevealUIStudio/revforge) (GitHub repo renamed from `RevealUIStudio/forge` 2026-05-03 via Phase B PR-B1 + operator action; local clone path `~/suite/forge/` until Phase A filesystem rename `~/suite/` → `~/revfleet/`). Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) deployment by substituting `{{COMPANY_NAME}}` / `{{SLUG}}` template tokens, generating per-customer secrets, issuing a license JWT (via `@revealui/core/revforge-license`), writing secrets to revvault under `forge/customers/<slug>/` (revvault path stays until operator-side rotation — see `secrets.md`), and outputting a self-contained customer kit. Operator-only; never customer-facing. Per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 3.
+The stamping tool repo at [`RevealUIStudio/revforge`](https://github.com/RevealUIStudio/revforge) (GitHub repo renamed from `RevealUIStudio/forge` 2026-05-03 via Phase B PR-B1 + operator action; local clone path `~/revfleet/forge/` until Phase A filesystem rename `~/revfleet/` → `~/revfleet/`). Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) deployment by substituting `{{COMPANY_NAME}}` / `{{SLUG}}` template tokens, generating per-customer secrets, issuing a license JWT (via `@revealui/core/revforge-license`), writing secrets to revvault under `forge/customers/<slug>/` (revvault path stays until operator-side rotation — see `secrets.md`), and outputting a self-contained customer kit. Operator-only; never customer-facing. Per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 3.
 
 ## RVC
 
-**The customer-facing on-chain ticker** for the [RevealCoin](#revealcoin) Token-2022 mint on Solana. 6 decimals, 58.906 B fixed supply, freeze authority renounced. Use **RVC** in all customer-facing copy. See `~/suite/revealcoin/README.md` for the canonical risk-disclosure block.
+**The customer-facing on-chain ticker** for the [RevealCoin](#revealcoin) Token-2022 mint on Solana. 6 decimals, 58.906 B fixed supply, freeze authority renounced. Use **RVC** in all customer-facing copy. See `~/revfleet/revealcoin/README.md` for the canonical risk-disclosure block.
 
 ## RevealCoin
 
@@ -105,13 +105,13 @@ The on-chain token product. Hybrid utility/governance/reward token. Built on Sol
 
 ## RevVault
 
-Age-encrypted secret vault. CLI (`revvault get/set/list/search/export-env`) + Tauri 2 desktop app. 100% [passage](https://github.com/FiloSottile/passage)-compatible. **Source of truth for every secret in [RevFleet](#revfleet)** per the suite-wide secrets rule. See `~/suite/revvault/README.md`.
+Age-encrypted secret vault. CLI (`revvault get/set/list/search/export-env`) + Tauri 2 desktop app. 100% [passage](https://github.com/FiloSottile/passage)-compatible. **Source of truth for every secret in [RevFleet](#revfleet)** per the fleet-wide secrets rule. See `~/revfleet/revvault/README.md`.
 
 ## Runtime
 
 A deployed RevealUI instance — the running stack that serves users, processes payments, runs agents, etc. Distinguish:
 
-- **The RevealUI runtime** (the agentic business runtime): the code in `~/suite/revealui` that you deploy.
+- **The RevealUI runtime** (the agentic business runtime): the code in `~/revfleet/revealui` that you deploy.
 - **The [RevealUI Fleet](#revealui-fleet) runtime kit**: the self-host wrapper around the RevealUI runtime that customers deploy on their own infrastructure ([Enterprise](#enterprise-tier) tier). Produced by [RevForge](#revforge).
 - **A specific runtime instance**: e.g., `revealui.com` is one runtime instance; `[customer].com` running a RevealUI Fleet stack is another.
 
@@ -125,14 +125,14 @@ A logical content workspace inside a RevealUI runtime — synonyms: *project*, *
 
 Overloaded — disambiguate every time:
 
-1. **Studio (Tauri app, in `~/suite/revdev`)** — desktop AI editor + agent dashboard. Talks to the RevDev daemon over JSON-RPC. Ships per RevDev's release cadence.
-2. **`studio` (RevKit CLI command, in `~/suite/revkit`)** — a binary in the RevKit toolkit (`studio help`, `studio validate`). Distinct from the Tauri app above.
+1. **Studio (Tauri app, in `~/revfleet/revdev`)** — desktop AI editor + agent dashboard. Talks to the RevDev daemon over JSON-RPC. Ships per RevDev's release cadence.
+2. **`studio` (RevKit CLI command, in `~/revfleet/revkit`)** — a binary in the RevKit toolkit (`studio help`, `studio validate`). Distinct from the Tauri app above.
 
 When writing docs, lead with the qualifier (*"the RevDev Studio app"* or *"the RevKit `studio` CLI"*) and never use "Studio" bare.
 
 ## Suite
 
-**Deprecated as the umbrella name.** Renamed [RevFleet](#revfleet) per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2 (originally directed 2026-05-02). References to "the Suite" / "RevealUI Studio Suite" / interim "Fleet" in older copy mean the same thing as the current "RevFleet."
+**Deprecated as the umbrella name.** Renamed [RevFleet](#revfleet) per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2 (originally directed 2026-05-02). References to "RevFleet" / "RevFleet" / interim "Fleet" in older copy mean the same thing as the current "RevFleet."
 
 ## Tenant
 

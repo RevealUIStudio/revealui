@@ -6,7 +6,7 @@
  *
  * Retention window comes from `REVEALUI_LOG_RETENTION_DAYS` (default 90).
  * See docs/security/ for the privacy-policy-facing commitment and
- * ~/suite/.jv/docs/cr8-p3-02-retention-design.md for the decision record.
+ * ~/revfleet/.jv/docs/cr8-p3-02-retention-design.md for the decision record.
  *
  * Audit logs (`audit_log`) are intentionally excluded — they are
  * append-only by design with tamper-evident hash chains, retained

@@ -4,7 +4,7 @@
  * Per-user selection of which DevKit profile (RevealUI native, agent
  * skills bundle, or external editor: claude / cursor / zed) the user's
  * tooling should apply. The CLI / admin UI fetches the user's setting
- * and applies the matching bundle from `~/suite/revcon/profiles/
+ * and applies the matching bundle from `~/revfleet/revcon/profiles/
  * revealui/<id>/`.
  *
  * The platform leans **RevealUI native** as the recommended default;

@@ -57,7 +57,7 @@ We support safe harbor for security researchers who:
 
 When using RevealUI, we recommend:
 
-1. **Secrets live in revvault**: Every secret the RevealUI Suite depends on lives in `~/.revealui/passage-store/` (revvault). Secrets live in revvault, encrypted by an age identity that doesn't leave the developer's machine. Environment variables are a session-scoped cache materialised from revvault via `revvault export-env` — not the source of truth. See [`docs/SECRETS.md`](docs/SECRETS.md) for canonical paths and the hard rule.
+1. **Secrets live in revvault**: Every secret RevFleet depends on lives in `~/.revealui/passage-store/` (revvault). Secrets live in revvault, encrypted by an age identity that doesn't leave the developer's machine. Environment variables are a session-scoped cache materialised from revvault via `revvault export-env` — not the source of truth. See [`docs/SECRETS.md`](docs/SECRETS.md) for canonical paths and the hard rule.
 2. **Keep dependencies updated**: Run `pnpm update` regularly
 3. **Enable CSP headers**: Configure Content Security Policy in your deployment
 4. **Use HTTPS**: Always use HTTPS in production

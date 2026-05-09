@@ -5,7 +5,7 @@
  * served at GET /.well-known/mcp.json so agents can enumerate available
  * tool surfaces without prior knowledge.
  *
- * Closes suite-messaging audit N4 ("agent-native pitch ships zero agent
+ * Closes fleet-messaging audit N4 ("agent-native pitch ships zero agent
  * affordances") at the discovery layer; complement to the /llms.txt prose
  * layer (revealui#720) and the existing /.well-known/agent.json A2A layer.
  *
@@ -218,7 +218,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     id: 'email-provider',
     name: 'Email Provider',
     description:
-      'Internal helper for resolving email provider credentials and routing decisions across the suite.',
+      'Internal helper for resolving email provider credentials and routing decisions across RevFleet.',
     category: 'helper',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/_email-provider.js',
