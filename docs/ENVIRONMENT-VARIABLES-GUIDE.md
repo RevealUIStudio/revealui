@@ -460,13 +460,15 @@ Validation enforces:
 
 ## Env File Loading Order
 
-The `@revealui/config` loader (`packages/config/src/loader.ts`) determines which files to read based on `NODE_ENV`.
+All secrets live in revvault (`~/.revealui/passage-store/`). Use `revvault export-env` to materialise them as environment variables for a session. Per [`docs/SECRETS.md`](SECRETS.md): revvault is the source of truth; env files are a convenience cache, gitignored, regenerated per session. Adding a new secret? See `docs/SECRETS.md` §When adding a NEW secret — the revvault path comes first; the env-var binding is downstream.
+
+The `@revealui/config` loader (`packages/config/src/loader.ts`) determines which materialised cache files to read based on `NODE_ENV`.
 
 ### Development (`NODE_ENV=development` or unset)
 
 Files are tried in this order. The first file found is loaded; the rest are skipped:
 
-1. `.env.development.local` (recommended: put your secrets here)
+1. `.env.development.local` (gitignored convenience cache — materialise with `revvault export-env`, do not put secrets here directly)
 2. `.env.local`
 3. `.env`
 
@@ -526,7 +528,7 @@ Rotate these secrets every 90 days:
 
 | Secret | Rotation Steps |
 |--------|---------------|
-| `REVEALUI_SECRET` | Generate new value, update `.env.development.local`, update Vercel, redeploy. Active sessions will be invalidated. |
+| `REVEALUI_SECRET` | `revvault set revealui/dev/admin-session-cookie`, re-run `revvault export-env`, update Vercel, redeploy. Active sessions will be invalidated. |
 | `STRIPE_WEBHOOK_SECRET` | Create new webhook endpoint in Stripe Dashboard, update the secret, delete the old endpoint. |
 | `REVEALUI_KEK` | Re-encrypt all field-level encrypted data before rotating. Coordinate with a maintenance window. |
 | `SENTRY_AUTH_TOKEN` | Regenerate in Sentry Dashboard, update CI secrets. |
