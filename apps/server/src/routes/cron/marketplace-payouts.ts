@@ -21,6 +21,7 @@ import { getClient } from '@revealui/db/client';
 import { marketplaceServers, marketplaceTransactions } from '@revealui/db/schema';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
 import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
@@ -177,6 +178,12 @@ app.post('/marketplace-payouts', async (c) => {
           idempotencyKey,
           error: message,
         });
+        void sendCronFailureAlert({
+          jobName: 'marketplace-payouts',
+          error: err instanceof Error ? err : new Error(message),
+          severity: 'error',
+          metadata: { stripeAccountId, developerCents, transactionCount: payout.transactionCount },
+        });
         results.push({
           stripeAccountId,
           developerCents,
@@ -216,6 +223,12 @@ app.post('/marketplace-payouts', async (c) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     logger.error('Marketplace payout cron failed', undefined, { error: message });
+    void sendCronFailureAlert({
+      jobName: 'marketplace-payouts',
+      error: err instanceof Error ? err : new Error(message),
+      severity: 'fatal',
+      metadata: { phase: 'cron-outer' },
+    });
     return c.json({ error: 'Internal error during marketplace payout processing' }, 500);
   }
 });
