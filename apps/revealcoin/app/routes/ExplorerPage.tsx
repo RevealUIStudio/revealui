@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { Footer } from '../components/Footer';
 import { type CoinAllocation, fetchCoinAllocations, fetchCoinSupply } from '../lib/api';
 import {
+  ACTIVE_NETWORK,
   DEPLOY_DATE,
   EXPLORER_URL,
   formatNumber,
   MINT_ADDRESS,
+  NETWORK_LABEL,
   RVUI_ALLOCATIONS,
   TOTAL_SUPPLY_DISPLAY,
   truncateAddress,
@@ -48,7 +50,9 @@ export function ExplorerPage() {
               On-Chain Data
             </h1>
             <p className="mt-4 text-lg leading-8 text-gray-600">
-              Live token data from Solana mainnet.
+              {ACTIVE_NETWORK === 'mainnet-beta'
+                ? 'Live token data from Solana mainnet.'
+                : `Live token data from Solana ${NETWORK_LABEL.toLowerCase()}. The mainnet token has not yet been deployed.`}
             </p>
           </div>
 
@@ -60,12 +64,16 @@ export function ExplorerPage() {
               loading={loading}
             />
             <StatCard
-              label="Mint Address"
+              label={ACTIVE_NETWORK === 'mainnet-beta' ? 'Mint Address' : `${NETWORK_LABEL} Mint`}
               value={truncateAddress(MINT_ADDRESS, 6)}
               mono
               loading={false}
             />
-            <StatCard label="Deployed" value={DEPLOY_DATE} loading={false} />
+            <StatCard
+              label={ACTIVE_NETWORK === 'mainnet-beta' ? 'Deployed' : `Devnet Deploy`}
+              value={DEPLOY_DATE ?? '—'}
+              loading={false}
+            />
             <StatCard label="Program" value="Token-2022" loading={false} />
           </div>
 

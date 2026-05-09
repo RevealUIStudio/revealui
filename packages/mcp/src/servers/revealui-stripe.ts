@@ -26,7 +26,6 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '@revealui/core/observability/logger';
-import { checkMcpLicense } from '../index.js';
 
 // ---------------------------------------------------------------------------
 // Credential overrides (set by Hypervisor before tool invocations)
@@ -294,9 +293,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
 });
 
 async function main() {
-  if (!(await checkMcpLicense())) {
-    process.exit(1);
-  }
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }

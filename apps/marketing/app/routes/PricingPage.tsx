@@ -51,7 +51,7 @@ const faqs = [
   {
     question: 'What is Fair Source (FSL-1.1-MIT)?',
     answer:
-      "Fair Source is a middle path between closed commercial and plain open-source. Our Pro packages (@revealui/ai and @revealui/harnesses) are source-visible on GitHub, installable from npm, and legally usable in commercial products — with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. The Pro tier gate is enforced at runtime (Ed25519-signed license JWTs, 6-layer middleware, per-entry-point feature checks), not at the source level — so FSL is the legal backstop, and runtime enforcement is the real protection. Full explainer at /fair-source.",
+      "Fair Source is a middle path between closed commercial and plain open-source. Our Pro packages (@revealui/ai and @revealui/harnesses) are source-visible on GitHub, installable from npm, and legally usable in commercial products — with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro plan = hosted infra + support, not npm-level enforcement. Full explainer at /fair-source.",
   },
   {
     question: 'Do you offer custom pricing for large teams?',
