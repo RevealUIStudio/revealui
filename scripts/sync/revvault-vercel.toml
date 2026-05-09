@@ -1,0 +1,231 @@
+# revvault → Vercel sync manifest
+#
+# Drives `revvault sync vercel --manifest scripts/sync/revvault-vercel.toml`
+# (default path; the pnpm scripts in package.json point at this file).
+#
+# Schema:
+#   - [projects.<slug>]       — one block per Vercel project
+#   - project_id              — Vercel project ID (prj_...)
+#   - vault_prefix            — fallback vault path namespace; vars not listed
+#                               in [projects.<slug>.vars] are read from
+#                               <vault_prefix>/<VAR_NAME>
+#   - targets                 — Vercel envs to sync; production-only in v1
+#                               per Q4 (preview + development deferred)
+#   - skip                    — Vercel var names sync intentionally never touches
+#                               (e.g. STRIPE_LIVE_MODE per Q3 — Vercel-direct
+#                               deployment toggle, not a credential)
+#   - [projects.<slug>.vars]  — per-var path overrides (UPPER_SNAKE → vault path);
+#                               lets multiple Vercel vars feed from one canonical
+#                               kebab path (e.g. POSTGRES_URL + DATABASE_URL both
+#                               read from revealui/prod/db/postgres-url)
+#
+# Owner-ratified conventions: see ~/revfleet/.jv/docs/vercel-env-canonical-mapping.md
+# Design doc: ~/revfleet/.jv/docs/revvault-vercel-sync.md
+# Requires revvault binary with PR #40 (per-var path overrides via `vars` table)
+
+# Personal account — no team_id needed (Vercel team is implicit via the token)
+
+# ── revealui-api ────────────────────────────────────────────────────────────
+[projects.revealui-api]
+project_id = "prj_zk6EQijYXwd9L7BccuBssi436ktM"
+vault_prefix = "revealui/vercel/api"
+targets = ["production"]
+skip = [
+  # NODE_ENV is platform-managed, never user-touched
+  "NODE_ENV",
+  # STRIPE_LIVE_MODE is a Vercel-direct deployment toggle (Q3 owner exception)
+  "STRIPE_LIVE_MODE",
+]
+
+[projects.revealui-api.vars]
+# Stripe — keys + secrets
+STRIPE_SECRET_KEY              = "revealui/prod/stripe/secret-key"
+STRIPE_WEBHOOK_SECRET          = "revealui/prod/stripe/webhook-secret"
+STRIPE_WEBHOOK_SECRET_LIVE     = "revealui/prod/stripe/webhook-secret-live"
+# STRIPE_WEBHOOK_SECRET_PREVIOUS deferred — rotation slot, populated only
+# during webhook-secret rotation. Re-add to manifest at that time.
+STRIPE_AGENT_METER_EVENT_NAME  = "revealui/prod/stripe/agent-meter-event-name"
+
+# Stripe — price IDs (literal, low-secrecy)
+STRIPE_PRO_PRICE_ID                  = "revealui/prod/stripe/pro-price-id"
+STRIPE_MAX_PRICE_ID                  = "revealui/prod/stripe/max-price-id"
+STRIPE_ENTERPRISE_PRICE_ID           = "revealui/prod/stripe/enterprise-price-id"
+STRIPE_PERPETUAL_PRO_PRICE_ID        = "revealui/prod/stripe/perpetual-pro-price-id"
+STRIPE_PERPETUAL_MAX_PRICE_ID        = "revealui/prod/stripe/perpetual-max-price-id"
+STRIPE_PERPETUAL_ENTERPRISE_PRICE_ID = "revealui/prod/stripe/perpetual-enterprise-price-id"
+STRIPE_CREDITS_STARTER_PRICE_ID      = "revealui/prod/stripe/credits-starter-price-id"
+STRIPE_CREDITS_STANDARD_PRICE_ID     = "revealui/prod/stripe/credits-standard-price-id"
+STRIPE_CREDITS_SCALE_PRICE_ID        = "revealui/prod/stripe/credits-scale-price-id"
+STRIPE_AGENT_OVERAGE_PRICE_ID        = "revealui/prod/stripe/agent-overage-price-id"
+STRIPE_MAX_ANNUAL_PRICE_ID           = "revealui/prod/stripe/max-annual-price-id"
+
+# Admin API key (parity with admin)
+REVEALUI_ADMIN_API_KEY = "revealui/prod/admin/api-key"
+
+# Database
+POSTGRES_URL = "revealui/prod/db/postgres-url"
+DATABASE_URL = "revealui/prod/db/postgres-url"
+
+# Encryption + signing
+REVEALUI_KEK                = "revealui/prod/kek"
+# REVEALUI_KEK_NEXT deferred — rotation slot, populated only during KEK
+# rotation. Re-add to manifest at that time.
+REVEALUI_LICENSE_PRIVATE_KEY = "revealui/prod/license/private-key"
+REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/prod/license/public-key"
+REVEALUI_AUDIT_HMAC_SECRET   = "revealui/prod/audit-hmac-secret"
+REVEALUI_SECRET              = "revealui/prod/secret"
+
+# Cron + alerting
+REVEALUI_CRON_SECRET = "revealui/prod/cron-secret"
+REVEALUI_ALERT_EMAIL = "revealui/prod/alert-email"
+
+# Storage + CI tokens
+BLOB_READ_WRITE_TOKEN = "revealui/prod/blob/read-write-token"
+REVEALUI_NPM_TOKEN    = "revealui/prod/api-keys/npm-automation-token"
+
+# Email transport (Gmail SA)
+GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"
+GOOGLE_PRIVATE_KEY            = "revealui/prod/google/private-key"
+EMAIL_FROM                    = "revealui/prod/email/from"
+EMAIL_REPLY_TO                = "revealui/prod/email/reply-to"
+
+# Auth + session
+PASSKEY_ORIGIN         = "revealui/prod/passkey/origin"
+PASSKEY_RP_ID          = "revealui/prod/passkey/rp-id"
+PASSKEY_RP_NAME        = "revealui/prod/passkey/rp-name"
+SESSION_COOKIE_DOMAIN  = "revealui/prod/session-cookie-domain"
+CORS_ORIGIN            = "revealui/prod/cors-origin"
+# REVEALUI_CORS_ORIGINS dropped 2026-05-09: code falls back to CORS_ORIGIN
+# when unset. Re-add when admin/api actually need separate cross-origin config.
+
+# Marketplace
+MARKETPLACE_CONNECT_RETURN_URL = "revealui/prod/marketplace-connect-return-url"
+
+# Electric (real-time sync)
+ELECTRIC_SERVICE_URL = "revealui/prod/electric/service-url"
+ELECTRIC_SECRET      = "revealui/prod/electric/secret"
+
+# Public (bundled into client; not secret, kept canonical for reproducibility)
+NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
+REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
+
+
+# ── revealui-admin ──────────────────────────────────────────────────────────
+[projects.revealui-admin]
+project_id = "prj_7sEFDg4MH6C26nJPjrukK86QdwfG"
+vault_prefix = "revealui/vercel/admin"
+targets = ["production"]
+skip = [
+  "NODE_ENV",
+  # Next.js telemetry opt-out — platform-managed, not a credential
+  "NEXT_TELEMETRY_DISABLED",
+  # Drop in Q7 — the third "is live" synonym; admin code migrating to
+  # NEXT_PUBLIC_IS_LIVE. Keeping in skip means existing Vercel value is
+  # not tracked by sync and will surface as an Orphan until removed.
+  "REVEALUI_PUBLIC_STRIPE_IS_TEST_KEY",
+]
+
+[projects.revealui-admin.vars]
+# Stripe — keys (parity with api)
+STRIPE_SECRET_KEY     = "revealui/prod/stripe/secret-key"
+STRIPE_WEBHOOK_SECRET = "revealui/prod/stripe/webhook-secret"
+
+# Stripe — publishable key (admin-side client SDK)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "revealui/prod/stripe/publishable-key"
+
+# Stripe — price IDs (parity twins; same canonical paths as api)
+NEXT_PUBLIC_STRIPE_PRO_PRICE_ID        = "revealui/prod/stripe/pro-price-id"
+NEXT_PUBLIC_STRIPE_MAX_PRICE_ID        = "revealui/prod/stripe/max-price-id"
+NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID = "revealui/prod/stripe/enterprise-price-id"
+NEXT_PUBLIC_STRIPE_MAX_ANNUAL_PRICE_ID = "revealui/prod/stripe/max-annual-price-id"
+# Bare versions on admin (server-side reads in Next.js api routes; same values)
+STRIPE_MAX_PRICE_ID        = "revealui/prod/stripe/max-price-id"
+STRIPE_MAX_ANNUAL_PRICE_ID = "revealui/prod/stripe/max-annual-price-id"
+
+# Database
+POSTGRES_URL  = "revealui/prod/db/postgres-url"
+NEON_API_KEY  = "revealui/prod/db/neon-api-key"
+
+# Encryption + signing (parity with api — same license keypair + session secret)
+REVEALUI_LICENSE_PRIVATE_KEY = "revealui/prod/license/private-key"
+REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/prod/license/public-key"
+REVEALUI_SECRET              = "revealui/prod/secret"
+
+# Cron + alerting (parity with api)
+REVEALUI_CRON_SECRET = "revealui/prod/cron-secret"
+
+# Storage
+BLOB_READ_WRITE_TOKEN = "revealui/prod/blob/read-write-token"
+
+# Email transport (parity with api — same Gmail SA credentials)
+EMAIL_FROM                   = "revealui/prod/email/from"
+EMAIL_REPLY_TO               = "revealui/prod/email/reply-to"
+GOOGLE_PRIVATE_KEY           = "revealui/prod/google/private-key"
+GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"
+
+# Auth + session (parity with api)
+SESSION_COOKIE_DOMAIN = "revealui/prod/session-cookie-domain"
+
+# Electric (parity with api — same realtime sync infrastructure)
+ELECTRIC_SECRET      = "revealui/prod/electric/secret"
+ELECTRIC_SERVICE_URL = "revealui/prod/electric/service-url"
+
+# Mode flags (canonical pair — kept post-Q7)
+NEXT_PUBLIC_IS_LIVE = "revealui/prod/public/is-live"
+
+# Public URLs (parity twins across api/admin/marketing)
+NEXT_PUBLIC_API_URL        = "revealui/prod/public/api-url"
+REVEALUI_API_URL           = "revealui/prod/public/api-url"
+NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
+REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
+
+# CMS bootstrap creds (canonical paths under cms/)
+CMS_ADMIN_EMAIL    = "revealui/prod/cms/admin-email"
+CMS_ADMIN_PASSWORD = "revealui/prod/cms/admin-password"
+
+# Admin-specific (no parity — kebab paths under admin/ for consistency with secrets.md)
+REVEALUI_ADMIN_EMAIL         = "revealui/prod/admin/email"
+REVEALUI_ADMIN_PASSWORD      = "revealui/prod/admin/password"
+REVEALUI_ADMIN_API_KEY       = "revealui/prod/admin/api-key"
+REVEALUI_REVALIDATION_KEY    = "revealui/prod/admin/revalidation-key"
+REVEALUI_PUBLIC_DRAFT_SECRET = "revealui/prod/admin/draft-secret"
+
+
+# ── revealui-marketing ──────────────────────────────────────────────────────
+[projects.revealui-marketing]
+project_id = "prj_frTIYlnONVPLNIjKnQpINiGb5lm0"
+vault_prefix = "revealui/vercel/marketing"
+targets = ["production"]
+skip = [
+  "NODE_ENV",
+  # Audit-flagged dead vars — verify-then-drop in Phase 4 cleanup
+  "POSTGRES_URL",
+  "REVEALUI_SECRET",
+]
+
+[projects.revealui-marketing.vars]
+# Mode flags + public URLs (canonical paths shared with admin/api)
+NEXT_PUBLIC_IS_LIVE        = "revealui/prod/public/is-live"
+NEXT_PUBLIC_API_URL        = "revealui/prod/public/api-url"
+REVEALUI_API_URL           = "revealui/prod/public/api-url"
+NEXT_PUBLIC_SERVER_URL     = "revealui/prod/public/server-url"
+REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
+# NEXT_PUBLIC_ADMIN_URL dropped 2026-05-09: not used in apps/marketing yet.
+# Re-add when CMS_URL → ADMIN_URL rename ships.
+
+
+# ── revealui-docs ───────────────────────────────────────────────────────────
+[projects.revealui-docs]
+project_id = "prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1"
+vault_prefix = "revealui/vercel/docs"
+targets = ["production"]
+# docs site has zero prod env vars at audit time (2026-05-09); preview env
+# carries REVEALUI_API_URL — caught by parity-twin override below
+
+[projects.revealui-docs.vars]
+REVEALUI_API_URL = "revealui/prod/public/api-url"
+
+
+# ── Future projects ─────────────────────────────────────────────────────────
+# revealcoin (prj_XDiPXngciRytGA8j0vNIDz7hENRM)   — 0 env vars, deferred
+# revealui-agency (prj_GoWIj5g7TsBp4CLmzBSk5CwXG2So) — separate repo, deferred
