@@ -19,9 +19,9 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { marketplaceServers, marketplaceTransactions } from '@revealui/db/schema';
-import { protectedStripe } from '@revealui/services';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
 
@@ -90,8 +90,15 @@ app.post('/marketplace-payouts', async (c) => {
       );
     }
 
+    const services = await getServices();
+    if (!services) {
+      return c.json(
+        { error: 'Marketplace payouts disabled — @revealui/services not installed.' },
+        503,
+      );
+    }
     // GAP-131: shared protectedStripe wrapper (DB-backed circuit breaker + retry)
-    const stripe = protectedStripe;
+    const stripe = services.protectedStripe;
     const results: PayoutResult[] = [];
 
     for (const payout of pendingPayouts) {

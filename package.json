@@ -206,7 +206,12 @@
     "validate:prod-env": "tsx scripts/validate/prod-env.ts",
     "validate:raw-sql": "tsx scripts/validate/raw-sql.ts",
     "validate:stripe-client": "tsx scripts/validate/stripe-client.ts",
-    "kek:rotate": "tsx scripts/security/rotate-kek.ts"
+    "kek:rotate": "tsx scripts/security/rotate-kek.ts",
+    "vercel:sync": "revvault sync vercel --manifest scripts/sync/revvault-vercel.toml",
+    "vercel:sync:apply": "revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --apply",
+    "vercel:sync:pull": "revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --pull",
+    "vercel:sync:pull:apply": "revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --pull --apply",
+    "vercel:drift-check": "revvault sync vercel --manifest scripts/sync/revvault-vercel.toml --json"
   },
   "type": "module"
 }
