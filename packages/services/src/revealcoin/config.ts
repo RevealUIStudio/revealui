@@ -3,6 +3,15 @@
  *
  * Parameterized configuration for Solana RPC connections and payment
  * verification. All thresholds are overridable for testing.
+ *
+ * PARKED-PRODUCT NOTICE (2026-05-08):
+ *   `enabled` MUST stay `false` (the env-var default) until the prerequisites
+ *   in `apps/revealcoin/app/lib/parked-config.ts` land — Anchor vesting
+ *   program audit, hardware-wallet multisig mint authority, securities
+ *   counsel sign-off. Setting `RVUI_PAYMENTS_ENABLED=true` while RevealCoin
+ *   is parked accepts real value against undeployed mainnet token. Don't.
+ *   See ~/revfleet/.jv/docs/audits/2026-05-08-charge-readiness-deep-audit.md
+ *   §5 Phase 4 for the resumption decision tree.
  */
 
 import type { SolanaNetwork } from '@revealui/contracts';
