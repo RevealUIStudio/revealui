@@ -47,6 +47,7 @@ import { accountSubscriptions, unreconciledWebhooks, users } from '@revealui/db/
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type Stripe from 'stripe';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
 import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
@@ -236,6 +237,16 @@ app.post('/reconcile-customers', async (c) => {
           createdUnix: customer.created,
         },
       );
+      void sendCronFailureAlert({
+        jobName: 'reconcile-customers',
+        error: new Error(`CRITICAL: orphaned Stripe customer ${customer.id}`),
+        severity: 'error',
+        metadata: {
+          customerId: customer.id,
+          email: customer.email ?? null,
+          createdUnix: customer.created,
+        },
+      });
       results.push({
         customerId: customer.id,
         email: customer.email ?? null,
