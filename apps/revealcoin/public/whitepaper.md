@@ -1,6 +1,6 @@
 # RevealCoin (RVC): A Hybrid Utility, Governance, and Reward Token for the RevealUI Ecosystem
 
-**Version 0.1.0  -  May 2026**
+**Version 1.0  -  March 2026**
 **RevealUI Studio | founder@revealui.com**
 
 ---
