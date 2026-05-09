@@ -384,7 +384,7 @@ const ASPIRATIONAL_SCAN_FILES = [
   'docs/BUILD_YOUR_BUSINESS.md',
   'docs/EXAMPLES.md',
   'docs/QUICK_START.md',
-  'docs/SUITE.md',
+  'docs/FLEET.md',
   // Pro tier surface (paying-customer eyes)
   'apps/docs/public/docs-pro/index.md',
   'apps/docs/public/docs-pro/ai/index.md',
@@ -548,7 +548,7 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
 // RevVault, RevCon, RevealCoin, Forge, RevSkills, RevKit). When a docs
 // page that belongs to RevealUI itself names another fleet product, it
 // must either:
-//   - link to /docs/SUITE or /docs/suite/<name> (canonical fleet map)
+//   - link to /docs/FLEET or /docs/fleet/<name> (canonical fleet map)
 //   - include explicit "(separate product …)" / "RevealUIStudio/<repo>"
 //     attribution on the same line
 //   - live in an allowlisted file (the fleet map itself, the per-product
@@ -592,12 +592,12 @@ const FLEET_ATTRIBUTION_SCAN_FILES = [
  * the attribution.
  */
 const FLEET_ATTRIBUTION_ALLOWLIST = new Set<string>([
-  'docs/SUITE.md',
+  'docs/FLEET.md',
   'docs/FORGE.md', // canonical Forge product page
 ]);
 
-/** Per-product pages all live under `docs/suite/`. Allowlist by prefix. */
-const FLEET_ATTRIBUTION_ALLOWLIST_PREFIXES = ['docs/suite/'];
+/** Per-product pages all live under `docs/fleet/`. Allowlist by prefix. */
+const FLEET_ATTRIBUTION_ALLOWLIST_PREFIXES = ['docs/fleet/'];
 
 /**
  * Product tokens. The pattern matches each as a standalone word (case-
@@ -740,8 +740,9 @@ const RVUI_LEAK_PATTERN = /\$RVUI\b/;
  * ticker.
  */
 const RVUI_LEAK_ALLOWLIST = new Set<string>([
-  'docs/SUITE.md',
-  'docs/suite/revealcoin.md',
+  'docs/REVFLEET.md',
+  'docs/FLEET.md',
+  'docs/fleet/revealcoin.md',
   // The REST API reference cites the internal route slug (`rvui-payment`)
   // and provides the explicit RVUI-vs-RVC boundary note customers need.
   'docs/api/rest-api/README.md',
@@ -756,7 +757,7 @@ function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
   const matches: RvuiLeakMatch[] = [];
 
   function isAllowlisted(rel: string): boolean {
-    return RVUI_LEAK_ALLOWLIST.has(rel) || rel.startsWith('docs/suite/revealcoin');
+    return RVUI_LEAK_ALLOWLIST.has(rel) || rel.startsWith('docs/fleet/revealcoin');
   }
 
   function scanFile(filePath: string): void {
@@ -973,7 +974,7 @@ function run(): void {
       console.log(`    ${c.text.substring(0, 140)}`);
     }
     console.log(
-      '\nEach fleet-product mention must either link to /docs/SUITE or /docs/suite/<name>, name the source repo (RevealUIStudio/<repo>), or include a "(separate product)" attribution. The fleet map and per-product pages under /docs/suite/ are allowlisted.',
+      '\nEach fleet-product mention must either link to /docs/FLEET or /docs/fleet/<name>, name the source repo (RevealUIStudio/<repo>), or include a "(separate product)" attribution. The fleet map and per-product pages under /docs/fleet/ are allowlisted.',
     );
   }
 

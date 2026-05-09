@@ -59,6 +59,6 @@ Active.
 
 ## See also
 
-- [Suite overview](../SUITE) — how RevKit relates to the rest of RevFleet
+- [RevFleet overview](../REVFLEET) — how RevKit relates to the rest of RevFleet
 - [Local-first setup](../LOCAL_FIRST) — running RevealUI itself locally (separate concern; RevKit is the *workstation*, LOCAL_FIRST is the *runtime*)
 - [RevKit README](https://github.com/RevealUIStudio/revkit/blob/main/README.md) — canonical product docs

@@ -46,7 +46,7 @@ export function filenameToSlug(filename: string): string {
  * Examples:
  *   ADMIN_GUIDE.md                     → admin-guide
  *   blog/02-x402-payments.md           → blog/02-x402-payments
- *   suite/revvault.md                  → suite/revvault
+ *   fleet/revvault.md                  → suite/revvault
  *   ai/PROMPT_CACHING.md               → ai/prompt-caching
  */
 export function pathToSlug(relPath: string): string {

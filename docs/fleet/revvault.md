@@ -47,6 +47,6 @@ Active. Production-grade for personal / studio use; commercial offering wraps ex
 
 ## See also
 
-- [Suite overview](../SUITE) — how RevVault relates to the rest of RevFleet
+- [RevFleet overview](../REVFLEET) — how RevVault relates to the rest of RevFleet
 - [Credential rotation runbook](../CREDENTIAL-ROTATION-RUNBOOK) — RevVault paths per credential type
 - [RevVault README](https://github.com/RevealUIStudio/revvault/blob/main/README.md) — canonical product docs

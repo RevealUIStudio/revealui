@@ -32,7 +32,7 @@ Formerly displayed as **"Forge"** or **"Forge (Enterprise)"** — renamed 2026-0
 
 ## RevFleet
 
-The umbrella brand for the eight-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2. See [`./SUITE`](./SUITE.md) (the page name is preserved as a redirect; content reflects "RevFleet" terminology). Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
+The umbrella brand for the eight-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) (the page name is preserved as a redirect; content reflects "RevFleet" terminology). Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
 
 ## Forge
 
