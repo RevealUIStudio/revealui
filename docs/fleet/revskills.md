@@ -9,7 +9,7 @@ audience: developer
 
 **Curated [Agent Skills](https://agentskills.io) for modern web development. Built by RevealUI Studio.**
 
-> RevSkills is a separate suite product. The repo is at [RevealUIStudio/revskills](https://github.com/RevealUIStudio/revskills). This page summarises what RevSkills is; the canonical product README lives in the RevSkills repo.
+> RevSkills is a separate fleet product. The repo is at [RevealUIStudio/revskills](https://github.com/RevealUIStudio/revskills). This page summarises what RevSkills is; the canonical product README lives in the RevSkills repo.
 
 ## What RevSkills is
 
@@ -19,7 +19,7 @@ A curated collection of **`SKILL.md`-format Agent Skills** packaged for distribu
 - **Cursor** — same SKILL.md format
 - **Any tool** supporting the Agent Skills standard at [agentskills.io](https://agentskills.io)
 
-Each skill is independently versioned (per the suite-wide pre-1.0 SemVer rule) and reviewed before publication.
+Each skill is independently versioned (per the fleet-wide pre-1.0 SemVer rule) and reviewed before publication.
 
 ## Install
 
@@ -48,7 +48,7 @@ The RevSkills repo organises skills by surface area. Representative entries (the
 ## How it composes with RevealUI
 
 - **Agents working inside RevealUI repos** inherit consistent behaviour by loading the relevant RevSkills entries — no per-developer skill duplication.
-- **Cross-suite consistency**: the same skills are loaded into RevealUI, RevDev, RevVault, Forge etc. when an agent works against any suite product.
+- **Cross-suite consistency**: the same skills are loaded into RevealUI, RevDev, RevVault, Forge etc. when an agent works against any fleet product.
 - **Pairs with RevCon**: RevCon ships the *symlink mechanism* for editor configs and rule files; RevSkills ships the *content* of agent skills. Together they give a new contributor the full agent posture in one bootstrap.
 
 ## Status
@@ -57,7 +57,7 @@ Active.
 
 ## See also
 
-- [Suite overview](../SUITE) — how RevSkills relates to the rest of the suite
+- [RevFleet overview](../REVFLEET) — how RevSkills relates to the rest of RevFleet
 - [RevCon](./revcon) — symlink machinery for editor configs and agent rules
 - [RevSkills README](https://github.com/RevealUIStudio/revskills/blob/main/README.md) — canonical product docs
 - [agentskills.io](https://agentskills.io) — the upstream Agent Skills standard

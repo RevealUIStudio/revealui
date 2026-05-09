@@ -2,7 +2,7 @@
 /**
  * Build the slug-manifest for chip 3 docs URL flatten.
  *
- * Walks suite-root `docs/**\/*.md`, applies the same exclusions as
+ * Walks fleet-root `docs/**\/*.md`, applies the same exclusions as
  * the Vite docsCopyPlugin (INTERNAL_DOC_FILES + ignored dirs), and
  * writes a deterministic `app/lib/slug-manifest.ts` containing a
  * SLUG_TO_PATH map.

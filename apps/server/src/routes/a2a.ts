@@ -330,7 +330,7 @@ app.openapi(
  * exists, not what the caller is licensed to invoke. Per-server
  * licensing is enforced at the tool-invocation layer.
  *
- * Closes suite-messaging audit N4 ("agent-native pitch ships zero
+ * Closes fleet-messaging audit N4 ("agent-native pitch ships zero
  * agent affordances") at the discovery layer; complement to the
  * /llms.txt prose layer (PR #720) and the /.well-known/agent.json
  * A2A discovery layer.

@@ -13,7 +13,7 @@ import { Fragment, type JSX } from 'react';
 export type { SerializedEditorState };
 
 // URL sanitization is owned by @revealui/security (single source of truth
-// for every untrusted-string sink across the Suite). Re-exported here so
+// for every untrusted-string sink across RevFleet). Re-exported here so
 // existing consumers keep working.
 export { isSafeUrl, sanitizeUrl };
 

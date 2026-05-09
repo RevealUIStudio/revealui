@@ -167,7 +167,7 @@ See `business/BUSINESS_PLAN.md` for full business plan (not superseded  -  separ
 - [x] Renewal catalog entries (`renewal:pro`, `renewal:max`, `renewal:enterprise`)  -  2026-04-05
 - [x] Stripe seed script: 3 renewal products with env key mappings  -  2026-04-05
 - [x] Stripe products seeded in test mode: Pro/Agency/Forge Perpetual + 3 renewal products  -  `seed-stripe.ts` ran 2026-04-05 (9 products created, 21 prices configured)
-- **Stripe live-mode flip is BLOCKED on GAP-124 (billing audit closure).** Pre-launch posture is "TEST mode in production with loud warning"; do not propose flipping `STRIPE_LIVE_MODE=true` or rotating to `sk_live_*` until the GAP-124 billing audit closes. See `~/suite/.jv/docs/billing-audit/READINESS.md` (12 surfaces signed off CLEAN, awaiting owner sign-off).
+- **Stripe live-mode flip is BLOCKED on GAP-124 (billing audit closure).** Pre-launch posture is "TEST mode in production with loud warning"; do not propose flipping `STRIPE_LIVE_MODE=true` or rotating to `sk_live_*` until the GAP-124 billing audit closes. See `~/revfleet/.jv/docs/billing-audit/READINESS.md` (12 surfaces signed off CLEAN, awaiting owner sign-off).
 - [ ] **Owner action (gated on GAP-124):** Switch Stripe to live mode and re-run `seed-stripe.ts`, or verify products in Stripe dashboard
 
 #### 5.4 Forge Self-Hosted Delivery
@@ -544,11 +544,11 @@ Phase D  -  Agent publisher tools (agent):
 
 **Exit criteria:** Users can browse agents by skill, submit tasks, and receive results without writing code. Agent publishers can list, price, and monitor their agents. Billing works via both Stripe metering and x402 RevealCoin. Task execution is sandboxed with audit trail.
 
-#### 5.17 Hardware-Aware Auto-Config (cross-platform, Suite-wide)
+#### 5.17 Hardware-Aware Auto-Config (cross-platform, Fleet-wide)
 
 **Origin:** 2026-04-13. WSL repeatedly crashed on a 7.3 GB host because default `.wslconfig` let the VM claim ~6 GB, starving Windows. The fix (memory=4GB, vmIdleTimeout=-1, autoMemoryReclaim off, tuned earlyoom, docker off-by-default) was hand-authored from a crash post-mortem. No new user should have to debug that.
 
-**What it is:** A Suite-wide abstraction that, on first install **and** on demand, scans the host's hardware + platform and applies a tuned, safe-by-default dev configuration. Invoked by the Studio first-run wizard, by the CLI (`revealui system tune`), and by Forge during self-hosted provisioning.
+**What it is:** A Fleet-wide abstraction that, on first install **and** on demand, scans the host's hardware + platform and applies a tuned, safe-by-default dev configuration. Invoked by the Studio first-run wizard, by the CLI (`revealui system tune`), and by Forge during self-hosted provisioning.
 
 **Detect:**
 - OS / distro / kernel, architecture (x64 / arm64), platform class (native Linux, macOS, Windows, WSL2, Docker, cloud VM)
@@ -603,9 +603,9 @@ Phase D  -  Agent publisher tools (agent):
 
 ---
 
-#### 5.18 Universal Sanitization (Suite-wide, lives in `@revealui/security`)
+#### 5.18 Universal Sanitization (Fleet-wide, lives in `@revealui/security`)
 
-**Goal:** One audited, reusable sanitization surface for every untrusted-string sink across the Suite — terminal banners, HTML rendering, shell-argument construction, SQL identifier interpolation, log redaction, URL normalisation. No per-app one-offs. No re-implementations.
+**Goal:** One audited, reusable sanitization surface for every untrusted-string sink across RevFleet — terminal banners, HTML rendering, shell-argument construction, SQL identifier interpolation, log redaction, URL normalisation. No per-app one-offs. No re-implementations.
 
 **Why:** Control-sequence injection is the same class of bug in every language and every sink. Founder's direction: "a perfected sanitization process that we can apply everywhere it is useful" for "any data type implementation that could potentially be an attack surface." Today the studio's `TerminalView.welcome` is the first caller (shipped in revdev PR #4). Tomorrow it's admin rich-text render, api request logging, forge install scripts, and beyond.
 
@@ -632,20 +632,20 @@ Phase D  -  Agent publisher tools (agent):
 - forge install scripts depend on `@revealui/security` for `escapeShellArg`.
 - No `.gitmodules`. No filesystem symlinks across repos. Only published-dep consumption.
 
-**Exit criteria:** Every untrusted-string sink in the Suite (studio banners, admin HTML render, api log output, forge shell builder, revcoin UI) goes through a named `@revealui/security` sanitizer. CI enforces no ad-hoc per-app sanitizers. Attack corpus grows with every new sink added.
+**Exit criteria:** Every untrusted-string sink in RevFleet (studio banners, admin HTML render, api log output, forge shell builder, revcoin UI) goes through a named `@revealui/security` sanitizer. CI enforces no ad-hoc per-app sanitizers. Attack corpus grows with every new sink added.
 
 ---
 
-#### 5.19 Suite-Wide Submodule Audit (one-off + recurring CI check)
+#### 5.19 Fleet-Wide Submodule Audit (one-off + recurring CI check)
 
-**Goal:** Confirm zero git submodules exist across any Suite repo, and add a CI guard that fails any PR introducing one.
+**Goal:** Confirm zero git submodules exist across any RevFleet repo, and add a CI guard that fails any PR introducing one.
 
 **Why:** Founder has a permanent "no git submodules, ever" policy (cross-repo deps publish to npm / workspace). An exhaustive sweep catches anything that may have been created accidentally by tooling, a template, or an imported project. Guard prevents future drift.
 
-**Scope of the sweep:** every repo under `~/suite/` and every in-active repo under `~/projects/`, plus `RevealUIStudio/*` on GitHub — not just root `.gitmodules`, but also stale `.git/modules/` directories, `git config --list | grep submodule`, and tree-object gitlinks (mode 160000) from past history.
+**Scope of the sweep:** every repo under `~/revfleet/` and every in-active repo under `~/projects/`, plus `RevealUIStudio/*` on GitHub — not just root `.gitmodules`, but also stale `.git/modules/` directories, `git config --list | grep submodule`, and tree-object gitlinks (mode 160000) from past history.
 
 **Deliverables:**
-- [x] Initial sweep completed 2026-04-13 — no `.gitmodules` found anywhere in `~/suite/`
+- [x] Initial sweep completed 2026-04-13 — no `.gitmodules` found anywhere in `~/revfleet/`
 - [x] Scripted audit: `scripts/audit-no-submodules.sh` — runs the four checks (root file, `.git/modules/`, `git config`, tree gitlinks) and exits non-zero on any hit (2026-04-15)
 - [x] GitHub Actions workflow `no-submodules.yml` — runs on every PR + push to main/test + weekly Sunday 6 AM UTC cron (2026-04-15)
 - [x] Policy + remediation doc: `docs/submodules/POLICY.md` — no submodules rule, CI enforcement, conversion runbook (2026-04-15)
@@ -725,7 +725,7 @@ RevealUI's first Forge prospect. The workflow to build it is the proto-Crucible 
 product, not an extension of RevealUI.
 
 - [ ] Define Crucible product spec (target customer, bundle types, delivery formats)
-- [ ] Bootstrap as new project (`~/suite/crucible`)
+- [ ] Bootstrap as new project (`~/revfleet/crucible`)
 - [ ] Extract Allevia kit workflow into repeatable pipeline steps
 - [ ] Build template library (pitch deck, SOW, install guide, pricing sheet)
 - [ ] Build bundle assembly CLI / UI
@@ -852,7 +852,7 @@ Holster: "Here is the shared state where coordination happens"
 - [x] Audit config formats for backwards-compat fields that can be dropped
 - [x] Audit hook scripts for patterns that pre-date the current architecture
 - [x] Audit test files for mocks of removed or renamed interfaces
-- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — see `~/suite/.jv/docs/audits/legacy-sweep-2026-04-27.md` (62 findings, 6 categories, 17 actionable in Tier 1)
+- [x] Document every finding in a tracking issue with file paths and recommended action (remove, codemod, or consolidate) — see `~/revfleet/.jv/docs/audits/legacy-sweep-2026-04-27.md` (62 findings, 6 categories, 17 actionable in Tier 1)
 
 ### Phase B: Codemod Infrastructure
 
