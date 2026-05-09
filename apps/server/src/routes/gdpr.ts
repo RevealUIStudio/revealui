@@ -7,9 +7,12 @@ import {
   createDataDeletionSystem,
 } from '@revealui/core/security';
 import { getClient } from '@revealui/db';
-import { anonymizeUser } from '@revealui/db/queries/users';
+import { anonymizeUser, updateUserStripeDeletion } from '@revealui/db/queries/users';
+import { users } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { getServices } from '../lib/services-loader.js';
 import { DrizzleBreachStorage, DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
 
 interface UserContext {
@@ -343,12 +346,59 @@ app.openapi(
     // Process the deletion immediately  -  anonymize PII and revoke sessions
     await deletionSystem.processDeletion(request.id, async (userId, categories) => {
       const db = getClient();
+
+      // Read stripeCustomerId before anonymization overwrites the user row
+      const [userRow] = await db
+        .select({ stripeCustomerId: users.stripeCustomerId })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
       const anonymized = await anonymizeUser(db, userId);
       if (!anonymized) {
         throw new Error(`User ${userId} not found for anonymization`);
       }
 
       await deleteAllUserSessions(userId);
+
+      // I-2: GDPR Article 17 — delete the Stripe customer so Stripe purges PII
+      // (name, email, billing address, payment methods). This is irreversible.
+      // Do NOT roll back the local anonymization if Stripe fails — the erasure
+      // has started and must complete; ops must follow up on 'failed' status.
+      const stripeCustomerId = userRow?.stripeCustomerId ?? null;
+      if (stripeCustomerId) {
+        const services = await getServices();
+        if (services) {
+          try {
+            await services.protectedStripe.customers.del(stripeCustomerId);
+            await updateUserStripeDeletion(db, userId, 'deleted');
+            logger.info('GDPR: Stripe customer deleted', { userId, stripeCustomerId });
+          } catch (stripeErr) {
+            const detail = stripeErr instanceof Error ? stripeErr.message : String(stripeErr);
+            logger.error(
+              'GDPR: stripe.customers.del failed — manual follow-up required',
+              undefined,
+              {
+                userId,
+                stripeCustomerId,
+                detail,
+              },
+            );
+            // TODO: swap to sendCronFailureAlert after PR #787 merges to test
+            await updateUserStripeDeletion(db, userId, 'failed');
+          }
+        } else {
+          logger.error(
+            'GDPR: Stripe service unavailable during erasure — stripeDeletionStatus=failed',
+            undefined,
+            {
+              userId,
+              stripeCustomerId,
+            },
+          );
+          await updateUserStripeDeletion(db, userId, 'failed');
+        }
+      }
 
       logger.info('GDPR deletion processed', {
         userId,
