@@ -96,9 +96,7 @@ const app = new OpenAPIHono<BillingEnv>();
  * Lazy-loads @revealui/services per the optional-peer Pro boundary
  * (8c19db537). Returns 503 when the package is unavailable.
  */
-async function withStripe<T>(
-  operation: (stripe: ProtectedStripe) => Promise<T>,
-): Promise<T> {
+async function withStripe<T>(operation: (stripe: ProtectedStripe) => Promise<T>): Promise<T> {
   const services = await getServices();
   if (!services) {
     throw new HTTPException(503, {

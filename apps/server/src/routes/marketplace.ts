@@ -27,8 +27,8 @@ import {
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { authMiddleware } from '../middleware/auth.js';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
+import { authMiddleware } from '../middleware/auth.js';
 import {
   buildPaymentRequired,
   encodePaymentRequired,

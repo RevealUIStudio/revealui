@@ -13,8 +13,7 @@
  */
 
 let servicesPromise: Promise<typeof import('@revealui/services') | null> | null = null;
-let servicesEmailPromise: Promise<typeof import('@revealui/services/email') | null> | null =
-  null;
+let servicesEmailPromise: Promise<typeof import('@revealui/services/email') | null> | null = null;
 let servicesRevealcoinPromise: Promise<
   typeof import('@revealui/services/revealcoin') | null
 > | null = null;
