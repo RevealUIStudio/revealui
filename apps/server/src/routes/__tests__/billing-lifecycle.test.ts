@@ -88,6 +88,7 @@ vi.mock('../../lib/webhook-emails.js', () => ({
   sendGracePeriodStartedEmail: vi.fn().mockResolvedValue(undefined),
   sendCancellationConfirmationEmail: (...args: unknown[]) =>
     mockSendCancellationConfirmationEmail(...args),
+  sendLivemodeMismatchAlert: vi.fn().mockResolvedValue(undefined),
   provisionGitHubAccess: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -325,6 +326,7 @@ describe('Billing lifecycle integration', () => {
 
       const checkoutEvent = {
         id: 'evt_lifecycle_checkout_1',
+        livemode: false,
         type: 'checkout.session.completed',
         data: {
           object: {

@@ -256,6 +256,7 @@ vi.mock('../../lib/webhook-emails.js', () => ({
   sendDowngradeConfirmationEmail: (...args: unknown[]) =>
     mockSendDowngradeConfirmationEmail(...args),
   provisionGitHubAccess: (...args: unknown[]) => mockProvisionGitHubAccess(...args),
+  sendLivemodeMismatchAlert: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../middleware/license.js', () => ({
