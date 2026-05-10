@@ -75,6 +75,17 @@ vi.mock('../../middleware/x402.js', () => ({
   encodePaymentRequired: mockEncodePaymentRequired,
   verifyPayment: mockVerifyPayment,
   getAdvertisedCurrencyLabel: () => 'usdc-only',
+  getX402Config: () => ({ enabled: true }),
+}));
+
+vi.mock('../../lib/services-loader.js', () => ({
+  getServices: vi.fn().mockResolvedValue({
+    protectedStripe: {
+      accounts: { create: mockStripeAccountsCreate },
+      accountLinks: { create: mockStripeAccountLinksCreate },
+      transfers: { create: mockStripeTransfersCreate },
+    },
+  }),
 }));
 
 vi.mock('stripe', () => ({

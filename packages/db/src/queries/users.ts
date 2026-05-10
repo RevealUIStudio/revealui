@@ -202,6 +202,19 @@ export async function countActiveUsers(db: Database): Promise<number> {
   return result[0]?.total ?? 0;
 }
 
+/** Record the outcome of a Stripe-side GDPR erasure attempt on a user row.
+ * Called after stripe.customers.del succeeds or fails so the audit trail is complete. */
+export async function updateUserStripeDeletion(
+  db: Database,
+  id: string,
+  status: 'deleted' | 'failed',
+): Promise<void> {
+  await db
+    .update(users)
+    .set({ stripeDeletionStatus: status, stripeDeletionAt: new Date(), updatedAt: new Date() })
+    .where(eq(users.id, id));
+}
+
 /** Look up a user by their email verification token hash (non-expired only) */
 export async function getUserByVerificationToken(db: Database, tokenHash: string) {
   const result = await db

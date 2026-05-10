@@ -33,6 +33,7 @@ import {
   buildPaymentRequired,
   encodePaymentRequired,
   getAdvertisedCurrencyLabel,
+  getX402Config,
   verifyPayment,
 } from '../middleware/x402.js';
 
@@ -600,6 +601,13 @@ app.openapi(
     },
   }),
   async (c) => {
+    // K-1: Honor the X402_ENABLED kill switch. Marketplace invoke is x402-gated
+    // unconditionally, so an explicit disabled check must fire before any Stripe
+    // customer creation, transfer prep, or DB write.
+    if (!getX402Config().enabled) {
+      throw new HTTPException(503, { message: 'Marketplace temporarily unavailable' });
+    }
+
     const { id } = c.req.valid('param');
 
     const db = getClient();

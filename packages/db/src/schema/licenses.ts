@@ -20,10 +20,10 @@ export const licenses = pgTable(
     /** Unique license ID (UUID) */
     id: text('id').primaryKey(),
 
-    /** User who owns this license */
-    userId: text('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
+    /** User who owns this license. Nullable so that GDPR user deletion sets this
+     * to NULL rather than cascade-deleting the license row. License records must
+     * never be hard-deleted (audit trail invariant). */
+    userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
 
     /** The signed JWT license key */
     licenseKey: text('license_key').notNull(),

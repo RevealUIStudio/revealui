@@ -451,12 +451,14 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
       process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder';
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key';
+      process.env.STRIPE_LIVE_MODE = 'false';
     });
 
     it('logs the dispute and audits it without revoking license', async () => {
       const event = {
         id: 'evt_dispute_created_1',
         type: 'charge.dispute.created',
+        livemode: false,
         data: {
           object: {
             id: 'dp_test_1',
@@ -501,6 +503,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const event = {
         id: 'evt_dispute_created_email_1',
         type: 'charge.dispute.created',
+        livemode: false,
         data: {
           object: {
             id: 'dp_email_1',
@@ -538,12 +541,14 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
       process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder';
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key';
+      process.env.STRIPE_LIVE_MODE = 'false';
     });
 
     it('restores license when dispute is won', async () => {
       const event = {
         id: 'evt_dispute_won_1',
         type: 'charge.dispute.closed',
+        livemode: false,
         data: {
           object: {
             id: 'dp_won_1',
@@ -573,6 +578,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const event = {
         id: 'evt_dispute_lost_1',
         type: 'charge.dispute.closed',
+        livemode: false,
         data: {
           object: {
             id: 'dp_lost_1',
@@ -613,6 +619,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const event = {
         id: 'evt_dispute_pending_1',
         type: 'charge.dispute.closed',
+        livemode: false,
         data: {
           object: {
             id: 'dp_pending_1',
@@ -649,12 +656,14 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
       process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder';
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key';
+      process.env.STRIPE_LIVE_MODE = 'false';
     });
 
     it('revokes license on full refund', async () => {
       const event = {
         id: 'evt_refund_full_1',
         type: 'charge.refunded',
+        livemode: false,
         data: {
           object: {
             id: 'ch_refund_1',
@@ -694,6 +703,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const event = {
         id: 'evt_refund_partial_1',
         type: 'charge.refunded',
+        livemode: false,
         data: {
           object: {
             id: 'ch_partial_1',
@@ -728,6 +738,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const event = {
         id: 'evt_refund_nocust_1',
         type: 'charge.refunded',
+        livemode: false,
         data: {
           object: {
             id: 'ch_nocust_1',
@@ -762,12 +773,14 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
       process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder';
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key';
+      process.env.STRIPE_LIVE_MODE = 'false';
     });
 
     it('logs payment failure and creates audit entry', async () => {
       const event = {
         id: 'evt_payment_failed_1',
         type: 'payment_intent.payment_failed',
+        livemode: false,
         data: {
           object: {
             id: 'pi_failed_1',
@@ -804,6 +817,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const event = {
         id: 'evt_payment_failed_norevoke_1',
         type: 'payment_intent.payment_failed',
+        livemode: false,
         data: {
           object: {
             id: 'pi_norevoke_1',
@@ -844,12 +858,14 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
       process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder';
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key';
+      process.env.STRIPE_LIVE_MODE = 'false';
     });
 
     it('revokes license when subscription reaches incomplete_expired', async () => {
       const event = {
         id: 'evt_incomplete_expired_1',
         type: 'customer.subscription.updated',
+        livemode: false,
         data: {
           object: {
             id: 'sub_incomplete_expired',
@@ -892,12 +908,14 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
       process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder';
       process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key';
+      process.env.STRIPE_LIVE_MODE = 'false';
     });
 
     it('warns but does not revoke license when subscription is incomplete', async () => {
       const event = {
         id: 'evt_incomplete_1',
         type: 'customer.subscription.updated',
+        livemode: false,
         data: {
           object: {
             id: 'sub_incomplete',
