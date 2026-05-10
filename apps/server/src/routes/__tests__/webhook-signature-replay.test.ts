@@ -82,6 +82,7 @@ vi.mock('../../lib/webhook-emails.js', () => ({
   sendTrialEndingEmail: vi.fn().mockResolvedValue(undefined),
   sendWebhookFailureAlert: vi.fn().mockResolvedValue(undefined),
   sendDisputeLostEmail: vi.fn().mockResolvedValue(undefined),
+  sendLivemodeMismatchAlert: vi.fn().mockResolvedValue(undefined),
   provisionGitHubAccess: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -256,6 +257,7 @@ describe('POST /stripe webhook  -  signature timing & replay protection', () => 
       };
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_valid_sig',
+        livemode: false,
         type: 'checkout.session.completed',
         data: {
           object: {
@@ -288,6 +290,7 @@ describe('POST /stripe webhook  -  signature timing & replay protection', () => 
       const sig = 't=1234567890,v1=abc123';
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_args_check',
+        livemode: false,
         type: 'unknown.event',
         data: { object: {} },
       });
@@ -716,6 +719,7 @@ describe('POST /stripe webhook  -  signature timing & replay protection', () => 
     it('returns 200 for unrecognized event types', async () => {
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_unknown_type',
+        livemode: false,
         type: 'balance.available',
         data: { object: {} },
       });
@@ -733,6 +737,7 @@ describe('POST /stripe webhook  -  signature timing & replay protection', () => 
     it('does not attempt idempotency check for irrelevant events', async () => {
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_irrelevant_no_db',
+        livemode: false,
         type: 'payment_method.attached',
         data: { object: {} },
       });
@@ -748,6 +753,7 @@ describe('POST /stripe webhook  -  signature timing & replay protection', () => 
     it('does not log a warning for gracefully ignored events', async () => {
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_graceful_ignore',
+        livemode: false,
         type: 'source.chargeable',
         data: { object: {} },
       });
@@ -816,6 +822,7 @@ describe('POST /stripe webhook  -  signature timing & replay protection', () => 
 
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_live_secret',
+        livemode: false,
         type: 'payment_intent.created',
         data: { object: {} },
       });

@@ -101,6 +101,14 @@ export const users = pgTable(
     // GDPR anonymization: null = not anonymized, timestamp = when PII was wiped
     anonymizedAt: timestamp('anonymized_at', { withTimezone: true }),
 
+    // GDPR Article 17 — Stripe-side erasure tracking.
+    // 'deleted' = stripe.customers.del completed successfully.
+    // 'failed'  = call was attempted but Stripe rejected it (e.g. active dispute);
+    //             local anonymization still completed; requires manual ops follow-up.
+    // null      = no erasure request submitted yet.
+    stripeDeletionStatus: text('stripe_deletion_status'),
+    stripeDeletionAt: timestamp('stripe_deletion_at', { withTimezone: true }),
+
     _json: jsonb('_json').default('{}'),
   },
   (table) => [

@@ -666,3 +666,31 @@ export async function provisionGitHubAccess(githubUsername: string, db?: Databas
     logger.info('GitHub team access provisioned', { githubUsername, state: body.state });
   }
 }
+
+export async function sendLivemodeMismatchAlert(
+  email: string,
+  context: {
+    eventId: string;
+    eventType: string;
+    eventLivemode: boolean;
+    serverExpectsLive: boolean;
+  },
+): Promise<void> {
+  const received = context.eventLivemode ? 'LIVE' : 'TEST';
+  const expected = context.serverExpectsLive ? 'LIVE' : 'TEST';
+  await sendEmail({
+    to: email,
+    subject: `[SECURITY] RevealUI: Webhook livemode mismatch — received ${received}, expected ${expected}`,
+    html: emailShell(
+      'Webhook Livemode Mismatch',
+      `<h1 style="color: #dc2626;">Security Alert: Webhook Livemode Mismatch</h1>
+<p>A Stripe webhook event was rejected because its <code>livemode</code> flag does not match the server's deployment mode. The event was NOT processed.</p>
+<p><strong>Event ID:</strong> <code>${escapeHtml(context.eventId)}</code></p>
+<p><strong>Event Type:</strong> <code>${escapeHtml(context.eventType)}</code></p>
+<p><strong>Event livemode:</strong> ${received}</p>
+<p><strong>Server expects:</strong> ${expected}</p>
+<p style="color: #dc2626; font-weight: bold;">This may indicate a misconfigured Stripe webhook endpoint, a routing error, or an attempted cross-mode replay. Investigate immediately.</p>`,
+    ),
+    text: `Security Alert: Webhook livemode mismatch.\n\nEvent ID: ${context.eventId}\nEvent Type: ${context.eventType}\nEvent livemode: ${received}\nServer expects: ${expected}\n\nThe event was NOT processed. Investigate immediately.`,
+  });
+}

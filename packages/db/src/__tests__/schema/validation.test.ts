@@ -362,11 +362,14 @@ describe('licenses table', () => {
     expect(userFk?.tableTo).toBe('users');
   });
 
-  it('enforces NOT NULL on user_id, license_key, tier, customer_id', () => {
-    expect(isNotNull(licenses, 'user_id')).toBe(true);
+  it('enforces NOT NULL on license_key, tier, customer_id', () => {
     expect(isNotNull(licenses, 'license_key')).toBe(true);
     expect(isNotNull(licenses, 'tier')).toBe(true);
     expect(isNotNull(licenses, 'customer_id')).toBe(true);
+  });
+
+  it('allows nullable user_id for GDPR SET NULL cascade', () => {
+    expect(isNotNull(licenses, 'user_id')).toBe(false);
   });
 
   it('allows nullable expires_at for perpetual licenses', () => {
