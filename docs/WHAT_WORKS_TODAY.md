@@ -77,8 +77,8 @@ Honest list of things that are not done, not deployed, or not verified.
 - **Zero paying customers.** Pre-launch posture. The admin account exists for the studio's own use.
 - **Marketing site is live but external traffic is near-zero.** Deployed at [revealui.com](https://revealui.com); near-zero outside-the-team traffic to date.
 - **Docs site is live but external traffic is near-zero.** Deployed at [docs.revealui.com](https://docs.revealui.com); same caveat.
-- **No managed hosting service.** RevealUI Studio's own marketing site runs on Vercel; we do not (today) offer to host customer instances. Self-host (Vercel, Railway, Docker, Forge kit when GHCR images publish) is the path.
-- **Forge Docker images not yet published to GHCR.** The `docker/` stack and stamp scripts are production-ready, but the images at `ghcr.io/revealuistudio/revealui-{api,admin}` have not yet been published. Until then, Forge customers build from source.
+- **No managed hosting service.** RevealUI Studio's own marketing site runs on Vercel; we do not (today) offer to host customer instances. Self-host (Vercel, Cloudflare, Railway, Hetzner, Docker, Fleet kit when GHCR images publish) is the path. Vercel and Cloudflare are friendly deploy targets, not competitors.
+- **Fleet Docker images not yet published to GHCR.** The `docker/` stack and stamp scripts are production-ready, but the images at `ghcr.io/revealuistudio/revealui-{api,admin}` have not yet been published. Until then, Fleet customers build from source.
 - **Stripe is in TEST MODE in production.** No real money has been processed. The live-mode flip is gated on the billing-readiness audit (GAP-124) closing.
 - **REVEALUI_KEK rotation tooling is not yet built** (GAP-126 open). KEK rotation requires a coordinated maintenance window with manual data re-encryption today.
 - **No status page publicly advertised.** Uptime monitoring is configured.
