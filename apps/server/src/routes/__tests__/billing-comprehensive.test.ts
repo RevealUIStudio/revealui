@@ -1090,11 +1090,17 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
     it('allows valid upgrade from lower to higher tier', async () => {
       queueSelectResults(
         [{ stripePriceId: 'price_enterprise_server' }],
-        [],
         [{ stripeCustomerId: 'cus_existing' }],
+        [{ stripePriceId: 'price_pro_server' }],
       );
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
+        data: [
+          {
+            id: 'sub_pro',
+            status: 'active',
+            items: { data: [{ id: 'si_pro', price: { id: 'price_pro_server' } }] },
+          },
+        ],
       });
       mockSubscriptionsUpdate.mockResolvedValue({
         id: 'sub_pro',
@@ -1113,11 +1119,17 @@ describe('Billing Route Tests  -  Comprehensive Coverage', { timeout: 60_000 }, 
     it('allows a trialing subscription to upgrade to a paid tier', async () => {
       queueSelectResults(
         [{ stripePriceId: 'price_pro_server' }],
-        [],
         [{ stripeCustomerId: 'cus_trial' }],
+        [{ stripePriceId: 'price_trial_server' }],
       );
       mockSubscriptionsList.mockResolvedValue({
-        data: [{ id: 'sub_trial', status: 'trialing', items: { data: [{ id: 'si_trial' }] } }],
+        data: [
+          {
+            id: 'sub_trial',
+            status: 'trialing',
+            items: { data: [{ id: 'si_trial', price: { id: 'price_trial_server' } }] },
+          },
+        ],
       });
       mockSubscriptionsUpdate.mockResolvedValue({
         id: 'sub_trial',
