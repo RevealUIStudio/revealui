@@ -28,7 +28,7 @@ import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-post
 import { Pool } from 'pg';
 import * as schema from '../schema/index.js'; // Full schema for backward compatibility
 import * as restSchema from '../schema/rest.js';
-import * as vectorSchema from '../schema/vector.js';
+import type * as vectorSchema from '../schema/vector.js';
 
 // Monitoring integration is handled by the application layer to avoid
 // circular dependency (db <-> core)
