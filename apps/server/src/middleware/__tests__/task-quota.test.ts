@@ -7,16 +7,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockInsert = vi.fn();
 const mockSelect = vi.fn();
+const mockUpdate = vi.fn();
 const mockOnConflictDoUpdate = vi.fn();
 const mockValues = vi.fn();
 const mockFrom = vi.fn();
 const mockWhere = vi.fn();
 const mockLimit = vi.fn();
+const mockSet = vi.fn();
+const mockUpdateWhere = vi.fn();
+const mockReturning = vi.fn();
 
 vi.mock('@revealui/db', () => ({
   getClient: vi.fn(() => ({
     insert: mockInsert,
     select: mockSelect,
+    update: mockUpdate,
   })),
 }));
 
@@ -27,12 +32,21 @@ vi.mock('@revealui/db/schema', () => ({
     count: 'count',
     overage: 'overage',
   },
+  agentCreditBalance: {
+    userId: 'agentCreditBalance.userId',
+    balance: 'agentCreditBalance.balance',
+    updatedAt: 'agentCreditBalance.updatedAt',
+  },
 }));
 
 vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => args),
   eq: vi.fn((col: unknown, val: unknown) => ({ col, val })),
-  sql: vi.fn(),
+  gt: vi.fn((col: unknown, val: unknown) => ({ col, val, op: 'gt' })),
+  sql: Object.assign(
+    vi.fn((...args: unknown[]) => args),
+    { join: vi.fn() },
+  ),
 }));
 
 vi.mock('@revealui/core/license', () => ({
@@ -110,6 +124,21 @@ function setupSelectMock(count: number | null): void {
   mockSelect.mockReturnValue({ from: mockFrom });
 }
 
+/**
+ * Set up the mock chain for the C-1 atomic credit decrement
+ * `db.update(agentCreditBalance).set(...).where(...).returning()`.
+ * `decremented=true` simulates a row updated (credit consumed → next()).
+ * `decremented=false` (default) simulates no row updated (out of credit →
+ * fall through to quota enforcement / 429).
+ */
+function setupCreditMock(decremented = false): void {
+  const rows = decremented ? [{ balance: 0 }] : [];
+  mockReturning.mockResolvedValue(rows);
+  mockUpdateWhere.mockReturnValue({ returning: mockReturning });
+  mockSet.mockReturnValue({ where: mockUpdateWhere });
+  mockUpdate.mockReturnValue({ set: mockSet });
+}
+
 function createApp(user?: UserContext, entitlements?: { limits?: { maxAgentTasks?: number } }) {
   const app = new Hono<{
     Variables: {
@@ -141,6 +170,7 @@ describe('requireTaskQuota', () => {
     vi.clearAllMocks();
     setupInsertMock();
     setupSelectMock(0);
+    setupCreditMock(false);
     mockedGetMaxAgentTasks.mockReturnValue(1_000);
     mockedGetX402Config.mockReturnValue({
       enabled: false,
