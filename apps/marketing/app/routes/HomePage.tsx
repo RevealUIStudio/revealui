@@ -8,6 +8,7 @@ import { PricingTeaser } from '../components/landing/PricingTeaser';
 import { Primitives } from '../components/landing/Primitives';
 import { Problem } from '../components/landing/Problem';
 import { Proof } from '../components/landing/Proof';
+import { WhatsShipped } from '../components/landing/WhatsShipped';
 
 export function HomePage() {
   return (
@@ -16,6 +17,7 @@ export function HomePage() {
       <Problem />
       <Demo />
       <Primitives />
+      <WhatsShipped />
       <Persona />
       <Proof />
       <PricingTeaser />

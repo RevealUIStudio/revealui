@@ -124,22 +124,32 @@ export function FairSourcePage() {
             License contract for the Pro packages
           </p>
           <h1 className="text-5xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl">
-            Fair Source.
+            24 of 26 MIT.
+            <span className="block text-emerald-700">Forever.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600 sm:text-2xl">
-            Source-visible. Commercially usable. MIT in two years.
+          <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-gray-600 sm:text-2xl">
+            The 2 commercial packages convert to MIT after 2 years.
           </p>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">
-            Two RevealUI packages ship under{' '}
+            {/* COUNT: packages-mit = 24 (of 26 total — see /packages/ in repo) */}
+            Twenty-four RevealUI packages ship under plain MIT and stay that way. The two Pro
+            packages (
+            <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-sm text-gray-900">
+              @revealui/ai
+            </code>{' '}
+            and{' '}
+            <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-sm text-gray-900">
+              @revealui/harnesses
+            </code>
+            ) ship under{' '}
             <a
               href="https://fsl.software/"
               className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
             >
               FSL-1.1-MIT
             </a>{' '}
-            instead of plain MIT. The source is on GitHub, commercial use is permitted, and every
-            release auto-converts to plain MIT two years after publish. Here is what that means in
-            practice.
+            &mdash; source-visible, commercially usable, and each release auto-converts to plain MIT
+            two years after publish. Same license model used by Sentry, GitButler, and Keygen.
           </p>
         </div>
       </section>
