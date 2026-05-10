@@ -15,7 +15,7 @@ AI agents, LLM providers, CRDT memory, and the A2A protocol for RevealUI Pro.
 
 - **Agents**  -  long-running task agents with persistent state
 - **Memory**  -  four-store cognitive memory (episodic, working, semantic, procedural)
-- **Open-model inference**  -  Ubuntu snaps, Ollama, and open source models via the harness
+- **Bring your own model**  -  default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) via Ubuntu Inference Snaps or Ollama so the inference bill does not scale with usage; switch to Claude, GPT, or any provider in one config line
 - **Streaming**  -  SSE-based token streaming via `StreamingAgentRuntime` and `useAgentStream`
 - **Orchestration**  -  multi-agent coordination with the A2A protocol
 - **MCP integration**  -  tool use via Model Context Protocol

@@ -63,7 +63,7 @@ Open `.env.development.local` and fill in:
 
 ```env
 # Generate a 32+ character random secret
-REVEALUI_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+REVEALUI_SECRET=$(bash scripts/generate-secret.sh)
 
 # Server URLs (defaults work for local dev)
 REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
@@ -125,7 +125,7 @@ During Next.js builds, set `SKIP_ENV_VALIDATION=true` to defer validation to run
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
-| `REVEALUI_SECRET` | Yes | None | Application secret for session signing, CSRF tokens, and HMAC operations. Must be 32+ characters. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. | HIGH (server-only) | admin, api |
+| `REVEALUI_SECRET` | Yes | None | Application secret for session signing, CSRF tokens, and HMAC operations. Must be 32+ characters. Generate with `bash scripts/generate-secret.sh`. | HIGH (server-only) | admin, api |
 | `REVEALUI_PUBLIC_SERVER_URL` | Yes | None | Public URL of the admin server. `http://localhost:4000` for local dev, `https://admin.yourdomain.com` for production. | LOW (client-safe) | admin, marketing |
 | `NEXT_PUBLIC_SERVER_URL` | Yes | None | Same as `REVEALUI_PUBLIC_SERVER_URL`. Must match exactly; validation warns if they differ. | LOW (client-safe) | admin |
 | `NEXT_PUBLIC_API_URL` | No | `http://localhost:3004` | Public URL of the Hono API server. | LOW (client-safe) | marketing, docs |
@@ -189,7 +189,7 @@ During Next.js builds, set `SKIP_ENV_VALIDATION=true` to defer validation to run
 | `STRIPE_WEBHOOK_SECRET_LIVE` | No | None | Separate webhook secret for live mode (if using distinct endpoints). | HIGH (server-only) | admin, api |
 | `NEXT_PUBLIC_STRIPE_PRO_PRICE_ID` | No | None | Stripe Price ID for Pro tier. Created by `pnpm stripe:seed`. | LOW (client-safe) | admin |
 | `NEXT_PUBLIC_STRIPE_MAX_PRICE_ID` | No | None | Stripe Price ID for Max tier. | LOW (client-safe) | admin |
-| `NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID` | No | None | Stripe Price ID for Enterprise/Forge tier. | LOW (client-safe) | admin |
+| `NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID` | No | None | Stripe Price ID for Enterprise tier (formerly labeled "Forge" — the SaaS billing tier was renamed to "Enterprise" via [revealui#719](https://github.com/RevealUIStudio/revealui/pull/719) + [#721](https://github.com/RevealUIStudio/revealui/pull/721)). | LOW (client-safe) | admin |
 | `STRIPE_RENEWAL_PRO_PRICE_ID` | No | None | Annual support renewal price for perpetual Pro licenses. | HIGH (server-only) | api |
 | `STRIPE_RENEWAL_MAX_PRICE_ID` | No | None | Annual support renewal price for perpetual Max licenses. | HIGH (server-only) | api |
 | `STRIPE_RENEWAL_ENTERPRISE_PRICE_ID` | No | None | Annual support renewal price for perpetual Enterprise licenses. | HIGH (server-only) | api |
@@ -273,7 +273,7 @@ Enterprise tier feature. Controls the look and feel of admin UI and transactiona
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
 | `REVEALUI_LICENSE_KEY` | No | None | RevealUI Pro/Enterprise license key. Unlocks commercial features. Format: `rui_live_...`. | MEDIUM | admin, api |
-| `REVEALUI_LICENSE_ENCRYPTION_KEY` | No | None | AES-256-GCM encryption key for license keys at rest. 32-byte hex (64 chars). Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. | HIGH (server-only) | api |
+| `REVEALUI_LICENSE_ENCRYPTION_KEY` | No | None | AES-256-GCM encryption key for license keys at rest. 32-byte hex (64 chars). Generate with `bash scripts/generate-secret.sh`. | HIGH (server-only) | api |
 | `LICENSE_CACHE_TTL_MS` | No | `15000` | License cache TTL in milliseconds. Lower values detect revocations faster; higher values reduce DB pressure. | LOW | api |
 
 ---
@@ -321,14 +321,14 @@ Phase 5.3 Track C. Required for perpetual license GitHub team provisioning and s
 
 ---
 
-### Forge Self-Hosted
+### Fleet Self-Hosted
 
-Phase 5.4, enterprise tier. Only required when running RevealUI Forge on your own infrastructure.
+Phase 5.4, enterprise tier. Only required when running RevealUI Fleet (the self-hosted runtime kit produced by RevForge) on your own infrastructure.
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
-| `REVFORGE_LICENSE_KEY` | For Forge | None | Enterprise license key issued at checkout. | HIGH (server-only) | forge |
-| `REVFORGE_LICENSED_DOMAIN` | For Forge | None | Domain this Forge instance is licensed to serve (e.g., `admin.acme.com`). Requests from other hosts receive HTTP 403. | MEDIUM | forge |
+| `REVFORGE_LICENSE_KEY` | For Fleet | None | Enterprise license key issued at checkout. (Env var keeps the `REVFORGE_` prefix per ADR Tier 3 — RevForge is the operator-side stamping tool that produces the Fleet kit.) | HIGH (server-only) | fleet |
+| `REVFORGE_LICENSED_DOMAIN` | For Fleet | None | Domain this Fleet instance is licensed to serve (e.g., `admin.acme.com`). Requests from other hosts receive HTTP 403. | MEDIUM | fleet |
 
 ---
 
@@ -666,7 +666,7 @@ cp .env.template .env.development.local
 Your `REVEALUI_SECRET` is too short. Generate a proper secret:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+bash scripts/generate-secret.sh
 ```
 
 ### "Must be a PostgreSQL connection string"

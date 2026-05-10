@@ -39,7 +39,7 @@ cp .env.template .env.development.local
 Set the required variables:
 
 ```env
-REVEALUI_SECRET=<generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
+REVEALUI_SECRET=<generate with: bash scripts/generate-secret.sh>
 REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
