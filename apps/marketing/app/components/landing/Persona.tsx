@@ -1,8 +1,9 @@
 const checklist = [
-  'Drop in user accounts and orgs in five lines of config',
-  'Wire Stripe billing without writing a single webhook handler',
-  'Configure agents and edit content through a real admin UI',
-  'Every primitive ships with a matching MCP server, so agents work day one',
+  'Hash-chained audit log of every action by every human and every agent — provable, not just observable',
+  'One RBAC + ABAC policy plane covering humans, agents, and service accounts',
+  'GDPR consent + deletion + anonymization scaffolded into the data model',
+  'Stripe webhook reconciliation that catches the events most apps lose silently',
+  'Source-visible Pro packages on Fair Source — auditable for procurement and security review',
 ];
 
 export function Persona() {
@@ -14,18 +15,19 @@ export function Persona() {
             Who it&apos;s for
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-            AI product teams shipping their first paid tier.
+            Founders shipping AI products who need governance from day one.
           </h2>
         </div>
 
         <div className="mx-auto mt-16 max-w-3xl">
           <div className="rounded-2xl bg-white p-10 ring-1 ring-gray-950/5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
-              What this team is dealing with
+              What this team needs before they can charge customers
             </p>
             <p className="mt-4 text-xl leading-8 italic text-gray-700">
-              You have a working agent demo. Now you need accounts, billing, configurable agents,
-              and an admin UI &mdash; without spending Q2 on plumbing.
+              You have a working agent demo. Now your first procurement review wants audit trails,
+              identity gates, and a story for who can revoke an agent at 3am &mdash; without
+              rebuilding the runtime to get there.
             </p>
 
             <ul className="mt-10 space-y-4">
@@ -50,10 +52,13 @@ export function Persona() {
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500">
-            Also a fit for <span className="font-medium text-gray-700">indie founders</span>{' '}
-            shipping their first SaaS, and{' '}
-            <span className="font-medium text-gray-700">internal platform teams</span> building
-            agent-augmented tools.
+            Also a fit for{' '}
+            <span className="font-medium text-gray-700">
+              teams escaping backend-platform sprawl
+            </span>{' '}
+            (Convex + Supabase + Clerk + Trigger), and{' '}
+            <span className="font-medium text-gray-700">studios + consultancies</span>{' '}
+            white-labeling one runtime across N customers without re-licensing N SaaS stacks.
           </p>
         </div>
       </div>

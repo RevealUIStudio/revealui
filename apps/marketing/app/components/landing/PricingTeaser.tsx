@@ -35,12 +35,12 @@ const TEASER_TIERS: TeaserTier[] = [
     id: 'free',
     name: 'Free',
     description:
-      'OSS packages, MIT-licensed. No telemetry. Pro packages are Fair Source (FSL), source-visible and convert to MIT after two years.',
+      '24 of 26 packages MIT — forever. The 2 Pro packages are Fair Source (FSL) and convert to MIT after two years. No telemetry.',
     features: [
       'Full primitive stack',
       'Admin dashboard + API',
       'Self-host on any infra',
-      'Community support',
+      'Bring your own model (open-weight default)',
     ],
     cta: 'Start free',
     href: 'https://admin.revealui.com/signup',
@@ -53,7 +53,7 @@ const TEASER_TIERS: TeaserTier[] = [
     features: [
       'Everything in Free',
       '10,000 agent tasks / month included',
-      'Pro AI features (agents, MCP, memory)',
+      'Pro AI features (agents, MCP, memory) — beta in production',
       'Priority support',
     ],
     cta: 'See Pro pricing',
@@ -204,6 +204,13 @@ export function PricingTeaser() {
           <Button plain href="/pricing" className="text-sm font-medium">
             See full pricing &rarr;
           </Button>
+          <p className="mt-6 text-xs leading-5 text-gray-500">
+            Deploys to Vercel, Cloudflare, Railway, Hetzner, or self-host.{' '}
+            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700">
+              pnpm build
+            </code>{' '}
+            produces a standard Node bundle &mdash; no vendor-specific edge runtimes.
+          </p>
         </div>
       </div>
     </section>

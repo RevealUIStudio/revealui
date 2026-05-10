@@ -1,13 +1,50 @@
-export function Problem() {
-  const without = [
-    'Auth, sessions, RBAC',
-    'Stripe billing + webhooks',
-    'A CMS for your team',
-    'An admin dashboard',
-    'Reliable webhook delivery',
-    'Agent glue for every endpoint',
-  ];
+interface Row {
+  capability: string;
+  sprawl: string;
+  agentOnly: string;
+  revealui: string;
+}
 
+const rows: Row[] = [
+  {
+    capability: 'Auth + RBAC + sessions',
+    sprawl: 'Clerk Pro ($25/seat)',
+    agentOnly: 'Bring your own',
+    revealui: 'Built in',
+  },
+  {
+    capability: 'CMS + admin UI',
+    sprawl: 'Payload + your team',
+    agentOnly: 'Bring your own',
+    revealui: 'Built in',
+  },
+  {
+    capability: 'Stripe billing + webhooks',
+    sprawl: 'Stripe + your code',
+    agentOnly: 'Bring your own',
+    revealui: 'Built in (with reconciliation)',
+  },
+  {
+    capability: 'MCP tools for every API',
+    sprawl: 'Per-collection plugin',
+    agentOnly: 'Tool registry only',
+    revealui: 'Auto-exposed, RBAC-governed',
+  },
+  {
+    capability: 'Tamper-evident audit log',
+    sprawl: 'Datadog + custom hashing',
+    agentOnly: 'Logs only',
+    revealui: 'Hash-chained, in DB',
+  },
+  {
+    capability: 'Cost (5 devs, mid-startup)',
+    sprawl: '~$1,200 / mo',
+    agentOnly: '~$300 / mo + infra',
+    revealui: '$49 / mo + infra',
+  },
+];
+
+export function Problem() {
   return (
     <section className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -16,78 +53,58 @@ export function Problem() {
             The problem
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-            Every SaaS rebuilds the same plumbing.
+            Vendor sprawl, or framework-only. Pick neither.
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Then AI apps bolt agents on top with brittle glue. RevealUI ships the stack already
-            wired &mdash; and exposes every primitive as a tool your agents can call.
+            Most AI teams glue together a half-dozen SaaS backends. Some pick a thin agent framework
+            and rebuild auth, billing, and content from scratch. RevealUI is the third option:
+            everything wired in, governed by one policy, owned by you.
           </p>
         </div>
 
-        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 lg:max-w-5xl lg:grid-cols-2">
-          {/* Without RevealUI */}
-          <div className="rounded-2xl bg-gray-50 p-8 ring-1 ring-gray-950/5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
-              Without RevealUI
-            </p>
-            <h3 className="mt-2 text-xl font-semibold text-gray-950">Six months of plumbing</h3>
-            <ul className="mt-6 space-y-3">
-              {without.map((item) => (
-                <li key={item} className="flex items-start gap-3 text-sm text-gray-700">
-                  <svg
-                    className="mt-0.5 h-4 w-4 flex-shrink-0 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
+        <div className="mx-auto mt-16 max-w-6xl overflow-hidden rounded-2xl ring-1 ring-gray-950/10 shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="bg-gray-50 text-xs font-semibold uppercase tracking-widest text-gray-500">
+                  <th scope="col" className="px-4 py-3 sm:px-6 sm:py-4">
+                    Capability
+                  </th>
+                  <th scope="col" className="px-4 py-3 sm:px-6 sm:py-4">
+                    Vendor sprawl
+                  </th>
+                  <th scope="col" className="px-4 py-3 sm:px-6 sm:py-4">
+                    Agent framework only
+                  </th>
+                  <th
+                    scope="col"
+                    className="bg-emerald-50 px-4 py-3 text-emerald-800 sm:px-6 sm:py-4"
                   >
-                    <title>Build it yourself</title>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* With RevealUI */}
-          <div className="rounded-2xl bg-gray-950 p-8 ring-1 ring-gray-950/5 text-white">
-            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
-              With RevealUI
-            </p>
-            <h3 className="mt-2 text-xl font-semibold">One command</h3>
-
-            <div className="mt-6 rounded-xl bg-black/40 px-5 py-4 font-mono text-sm ring-1 ring-white/10">
-              <div className="flex items-center gap-2">
-                <span className="select-none text-gray-500">$</span>
-                <span className="text-emerald-400">npx</span>
-                <span className="text-white">create-revealui</span>
-                <span className="text-blue-300">my-app</span>
-              </div>
-              <div className="mt-3 space-y-1 text-xs leading-5 text-gray-400">
-                <div>
-                  <span className="text-emerald-400">&#x2713;</span> Auth + sessions + RBAC
-                </div>
-                <div>
-                  <span className="text-emerald-400">&#x2713;</span> Stripe billing + webhooks
-                </div>
-                <div>
-                  <span className="text-emerald-400">&#x2713;</span> Content collections + admin UI
-                </div>
-                <div>
-                  <span className="text-emerald-400">&#x2713;</span> REST API + MCP tools
-                </div>
-                <div>
-                  <span className="text-emerald-400">&#x2713;</span> Agent-ready from first deploy
-                </div>
-              </div>
-            </div>
-
-            <p className="mt-6 text-sm leading-6 text-gray-300">
-              Skip the integration tax. Ship product instead.
-            </p>
+                    RevealUI
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {rows.map((r) => (
+                  <tr key={r.capability} className="hover:bg-gray-50/60 transition">
+                    <td className="px-4 py-4 font-medium text-gray-950 sm:px-6">{r.capability}</td>
+                    <td className="px-4 py-4 text-gray-600 sm:px-6">{r.sprawl}</td>
+                    <td className="px-4 py-4 text-gray-600 sm:px-6">{r.agentOnly}</td>
+                    <td className="bg-emerald-50/40 px-4 py-4 font-medium text-emerald-900 sm:px-6">
+                      {r.revealui}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
+
+        <p className="mx-auto mt-6 max-w-3xl text-center text-xs text-gray-500">
+          Sprawl prices reflect typical mid-startup invoices. RevealUI Pro is $49/mo + your own
+          infrastructure. Vercel and Cloudflare are deploy targets, not competitors &mdash; RevealUI
+          runs on both.
+        </p>
       </div>
     </section>
   );
