@@ -1,8 +1,9 @@
 /**
- * Dual Database Client Tests
+ * Single Database Client Tests
  *
- * Tests that getClient('rest') and getClient('vector') return
- * separate clients with correct schemas.
+ * Tests that getClient('rest') and getClient('vector') both return the same
+ * single Neon-primary client, and that getVectorClient() is a deprecated alias
+ * for getRestClient().
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -28,69 +29,72 @@ vi.mock('drizzle-orm/neon-http', () => ({
   })),
 }));
 
-describe('Dual Database Client', () => {
+describe('Single Database Client (post-Supabase removal)', () => {
   beforeEach(() => {
     resetClient();
-    // Set up environment variables
     process.env.POSTGRES_URL = 'postgresql://rest-db';
-    process.env.SUPABASE_DATABASE_URL = 'postgresql://vector-db';
   });
 
   afterEach(() => {
     Reflect.deleteProperty(process.env, 'POSTGRES_URL');
-    Reflect.deleteProperty(process.env, 'SUPABASE_DATABASE_URL');
     Reflect.deleteProperty(process.env, 'DATABASE_URL');
   });
 
-  it('should return separate clients for rest and vector', () => {
+  it('getClient("vector") returns the same client as getClient("rest")', () => {
+    const restClient = getClient('rest');
+    const vectorClient = getClient('vector');
+
+    expect(restClient).toBeDefined();
+    expect(vectorClient).toBeDefined();
+    expect(restClient).toBe(vectorClient);
+  });
+
+  it('getVectorClient() is a deprecated alias that equals getRestClient()', () => {
     const restClient = getRestClient();
     const vectorClient = getVectorClient();
 
     expect(restClient).toBeDefined();
     expect(vectorClient).toBeDefined();
-    expect(restClient).not.toBe(vectorClient);
+    expect(restClient).toBe(vectorClient);
   });
 
-  it('should return same client instance for same type', () => {
+  it('returns same client instance for same type (singleton)', () => {
     const client1 = getClient('rest');
     const client2 = getClient('rest');
 
     expect(client1).toBe(client2);
   });
 
-  it('should default to rest client when no type specified', () => {
+  it('defaults to rest client when no type specified', () => {
     const defaultClient = getClient();
     const restClient = getRestClient();
 
     expect(defaultClient).toBe(restClient);
   });
 
-  it('should throw error if SUPABASE_DATABASE_URL not set for vector client', () => {
-    resetClient(); // Reset cached client to force re-initialization
-    Reflect.deleteProperty(process.env, 'SUPABASE_DATABASE_URL');
-
-    expect(() => getVectorClient()).toThrow('SUPABASE_DATABASE_URL');
-  });
-
-  it('should throw error if POSTGRES_URL not set for rest client', () => {
-    resetClient(); // Reset cached client to force re-initialization
+  it('throws error if POSTGRES_URL not set for rest client', () => {
+    resetClient();
     Reflect.deleteProperty(process.env, 'POSTGRES_URL');
     Reflect.deleteProperty(process.env, 'DATABASE_URL');
 
     expect(() => getRestClient()).toThrow('POSTGRES_URL');
   });
 
-  it('should reset both clients', () => {
-    const restClient1 = getRestClient();
-    const vectorClient1 = getVectorClient();
+  it('throws error if POSTGRES_URL not set for vector client (alias of rest)', () => {
+    resetClient();
+    Reflect.deleteProperty(process.env, 'POSTGRES_URL');
+    Reflect.deleteProperty(process.env, 'DATABASE_URL');
+
+    expect(() => getVectorClient()).toThrow('POSTGRES_URL');
+  });
+
+  it('resets client so a new instance is created after reset', () => {
+    const client1 = getRestClient();
 
     resetClient();
 
-    const restClient2 = getRestClient();
-    const vectorClient2 = getVectorClient();
+    const client2 = getRestClient();
 
-    // New instances should be created
-    expect(restClient1).not.toBe(restClient2);
-    expect(vectorClient1).not.toBe(vectorClient2);
+    expect(client1).not.toBe(client2);
   });
 });
