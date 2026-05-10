@@ -359,6 +359,7 @@ describe('Webhook Lifecycle Complete', () => {
     function makeCheckoutEvent(id: string, tier = 'pro') {
       return {
         id,
+        livemode: false,
         type: 'checkout.session.completed',
         data: {
           object: {
@@ -413,6 +414,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('returns 500 when tier metadata is missing (misconfigured Stripe product)', async () => {
       const event = {
         id: 'evt_checkout_no_tier',
+        livemode: false,
         type: 'checkout.session.completed',
         data: {
           object: {
@@ -440,6 +442,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('creates perpetual license with no expiry and 1-year support', async () => {
       const event = {
         id: 'evt_checkout_perp_1',
+        livemode: false,
         type: 'checkout.session.completed',
         data: {
           object: {
@@ -471,6 +474,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('syncs hosted subscription state without generating license', async () => {
       const event = {
         id: 'evt_sub_created_1',
+        livemode: false,
         type: 'customer.subscription.created',
         data: {
           object: {
@@ -494,6 +498,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('is idempotent on re-delivery', async () => {
       const event = {
         id: 'evt_sub_created_idem',
+        livemode: false,
         type: 'customer.subscription.created',
         data: {
           object: {
@@ -526,6 +531,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('sets license to expired when status is past_due', async () => {
       const event = {
         id: 'evt_sub_pastdue',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: { object: { id: 'sub_pd', customer: 'cus_pd', status: 'past_due' } },
       };
@@ -543,6 +549,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('updates tier and regenerates license key when subscription is active', async () => {
       const event = {
         id: 'evt_sub_active',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: {
           object: {
@@ -565,6 +572,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('revokes license when subscription is canceled', async () => {
       const event = {
         id: 'evt_sub_canceled',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: {
           object: {
@@ -588,6 +596,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('handles trialing status without license changes', async () => {
       const event = {
         id: 'evt_sub_trialing',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: {
           object: {
@@ -609,6 +618,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('is idempotent on re-delivery', async () => {
       const event = {
         id: 'evt_sub_updated_idem',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: {
           object: {
@@ -641,6 +651,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('revokes license and sends cancellation email', async () => {
       const event = {
         id: 'evt_sub_deleted_1',
+        livemode: false,
         type: 'customer.subscription.deleted',
         data: { object: { id: 'sub_del', customer: 'cus_del' } },
       };
@@ -663,6 +674,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('is idempotent on re-delivery', async () => {
       const event = {
         id: 'evt_sub_deleted_idem',
+        livemode: false,
         type: 'customer.subscription.deleted',
         data: { object: { id: 'sub_del_idem', customer: 'cus_del_idem' } },
       };
@@ -688,6 +700,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('revokes all licenses for the customer', async () => {
       const event = {
         id: 'evt_cust_deleted_1',
+        livemode: false,
         type: 'customer.deleted',
         data: { object: { id: 'cus_gone' } },
       };
@@ -705,6 +718,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('is idempotent on re-delivery', async () => {
       const event = {
         id: 'evt_cust_deleted_idem',
+        livemode: false,
         type: 'customer.deleted',
         data: { object: { id: 'cus_gone_idem' } },
       };
@@ -737,6 +751,7 @@ describe('Webhook Lifecycle Complete', () => {
     ) {
       return {
         id,
+        livemode: false,
         type: 'invoice.payment_failed',
         data: {
           object: {
@@ -794,6 +809,7 @@ describe('Webhook Lifecycle Complete', () => {
     function makePaymentSucceededEvent(id: string, customerId = 'cus_success') {
       return {
         id,
+        livemode: false,
         type: 'invoice.payment_succeeded',
         data: {
           object: {
@@ -853,6 +869,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('logs for observability and returns 200 (no state change)', async () => {
       const event = {
         id: 'evt_pi_fail_1',
+        livemode: false,
         type: 'payment_intent.payment_failed',
         data: {
           object: {
@@ -875,6 +892,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('is idempotent on re-delivery', async () => {
       const event = {
         id: 'evt_pi_fail_idem',
+        livemode: false,
         type: 'payment_intent.payment_failed',
         data: {
           object: {
@@ -906,6 +924,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('returns 200 (sends reminder email)', async () => {
       const event = {
         id: 'evt_trial_end_1',
+        livemode: false,
         type: 'customer.subscription.trial_will_end',
         data: {
           object: {
@@ -927,6 +946,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('is idempotent on re-delivery', async () => {
       const event = {
         id: 'evt_trial_end_idem',
+        livemode: false,
         type: 'customer.subscription.trial_will_end',
         data: {
           object: {
@@ -959,6 +979,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('logs dispute and returns 200 (no license revocation)', async () => {
       const event = {
         id: 'evt_dispute_created_1',
+        livemode: false,
         type: 'charge.dispute.created',
         data: {
           object: {
@@ -980,6 +1001,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('is idempotent on re-delivery', async () => {
       const event = {
         id: 'evt_dispute_created_idem',
+        livemode: false,
         type: 'charge.dispute.created',
         data: {
           object: {
@@ -1012,6 +1034,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('restores licenses when dispute is won', async () => {
       const event = {
         id: 'evt_dispute_won',
+        livemode: false,
         type: 'charge.dispute.closed',
         data: {
           object: {
@@ -1033,6 +1056,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('revokes licenses when dispute is lost (chargeback)', async () => {
       const event = {
         id: 'evt_dispute_lost',
+        livemode: false,
         type: 'charge.dispute.closed',
         data: {
           object: {
@@ -1054,6 +1078,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('is idempotent on re-delivery', async () => {
       const event = {
         id: 'evt_dispute_closed_idem',
+        livemode: false,
         type: 'charge.dispute.closed',
         data: {
           object: { id: 'dp_idem', charge: 'ch_idem', status: 'won' },
@@ -1082,6 +1107,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('revokes licenses on full refund', async () => {
       const event = {
         id: 'evt_refund_full',
+        livemode: false,
         type: 'charge.refunded',
         data: {
           object: {
@@ -1103,6 +1129,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('retains license on partial refund', async () => {
       const event = {
         id: 'evt_refund_partial',
+        livemode: false,
         type: 'charge.refunded',
         data: {
           object: {
@@ -1125,6 +1152,7 @@ describe('Webhook Lifecycle Complete', () => {
     it('is idempotent on re-delivery', async () => {
       const event = {
         id: 'evt_refund_idem',
+        livemode: false,
         type: 'charge.refunded',
         data: {
           object: {
@@ -1157,11 +1185,13 @@ describe('Webhook Lifecycle Complete', () => {
     const auditableEvents = [
       {
         id: 'evt_audit_sub_deleted',
+        livemode: false,
         type: 'customer.subscription.deleted',
         data: { object: { id: 'sub_audit', customer: 'cus_audit' } },
       },
       {
         id: 'evt_audit_cust_deleted',
+        livemode: false,
         type: 'customer.deleted',
         data: { object: { id: 'cus_audit_del' } },
       },

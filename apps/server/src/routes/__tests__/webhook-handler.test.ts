@@ -246,6 +246,7 @@ describe('POST /stripe webhook  -  handler tests', () => {
       };
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_sig',
+        livemode: false,
         type: 'unknown.event',
         data: { object: {} },
       });

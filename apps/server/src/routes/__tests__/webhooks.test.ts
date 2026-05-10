@@ -309,6 +309,7 @@ describe('POST /stripe webhook', () => {
     it('returns 200 for irrelevant event types', async () => {
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_irrelevant',
+        livemode: false,
         type: 'payment_intent.created',
         data: { object: {} },
       });

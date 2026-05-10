@@ -364,6 +364,7 @@ describe('Billing lifecycle integration', () => {
 
       const checkoutEvent = {
         id: 'evt_lifecycle_checkout_sync_1',
+        livemode: false,
         type: 'checkout.session.completed',
         data: {
           object: {
@@ -390,6 +391,7 @@ describe('Billing lifecycle integration', () => {
     it('syncs entitlements on customer.subscription.created', async () => {
       const subCreatedEvent = {
         id: 'evt_lifecycle_sub_created_1',
+        livemode: false,
         type: 'customer.subscription.created',
         data: {
           object: {
@@ -424,6 +426,7 @@ describe('Billing lifecycle integration', () => {
     it('degrades license to expired and entitlements to past_due on past_due subscription', async () => {
       const pastDueEvent = {
         id: 'evt_lifecycle_pastdue_1',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: {
           object: {
@@ -459,6 +462,7 @@ describe('Billing lifecycle integration', () => {
     it('writes license.grace_period audit entry on past_due', async () => {
       const pastDueAuditEvent = {
         id: 'evt_lifecycle_pastdue_audit_1',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: {
           object: {
@@ -515,6 +519,7 @@ describe('Billing lifecycle integration', () => {
 
       const paymentSucceededEvent = {
         id: 'evt_lifecycle_payment_recovery_1',
+        livemode: false,
         type: 'invoice.payment_succeeded',
         data: {
           object: {
@@ -557,6 +562,7 @@ describe('Billing lifecycle integration', () => {
     it('revokes license on customer.subscription.deleted', async () => {
       const deletedEvent = {
         id: 'evt_lifecycle_deleted_1',
+        livemode: false,
         type: 'customer.subscription.deleted',
         data: {
           object: {
@@ -584,6 +590,7 @@ describe('Billing lifecycle integration', () => {
     it('syncs entitlements to revoked status on subscription deletion', async () => {
       const deletedSyncEvent = {
         id: 'evt_lifecycle_deleted_sync_1',
+        livemode: false,
         type: 'customer.subscription.deleted',
         data: {
           object: {
@@ -609,6 +616,7 @@ describe('Billing lifecycle integration', () => {
     it('writes license.revoked audit entry on deletion', async () => {
       const deletedAuditEvent = {
         id: 'evt_lifecycle_deleted_audit_1',
+        livemode: false,
         type: 'customer.subscription.deleted',
         data: {
           object: {
@@ -646,6 +654,7 @@ describe('Billing lifecycle integration', () => {
 
       const deletedEmailEvent = {
         id: 'evt_lifecycle_deleted_email_1',
+        livemode: false,
         type: 'customer.subscription.deleted',
         data: {
           object: {
@@ -685,6 +694,7 @@ describe('Billing lifecycle integration', () => {
     it('clears pending_change metadata when subscription is active with pending_change flag', async () => {
       const upgradeEvent = {
         id: 'evt_lifecycle_upgrade_1',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: {
           object: {
@@ -718,6 +728,7 @@ describe('Billing lifecycle integration', () => {
     it('updates license tier to the new tier on active subscription update', async () => {
       const upgradeUpdateEvent = {
         id: 'evt_lifecycle_upgrade_tier_1',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: {
           object: {
@@ -746,6 +757,7 @@ describe('Billing lifecycle integration', () => {
     it('does not call subscriptions.update when pending_change is absent', async () => {
       const noPendingEvent = {
         id: 'evt_lifecycle_no_pending_1',
+        livemode: false,
         type: 'customer.subscription.updated',
         data: {
           object: {
@@ -787,6 +799,7 @@ describe('Billing lifecycle integration', () => {
 
       const checkoutFailEvent = {
         id: 'evt_lifecycle_checkout_fail_1',
+        livemode: false,
         type: 'checkout.session.completed',
         data: {
           object: {
@@ -812,6 +825,7 @@ describe('Billing lifecycle integration', () => {
 
       const checkoutCleanupEvent = {
         id: 'evt_lifecycle_checkout_cleanup_1',
+        livemode: false,
         type: 'checkout.session.completed',
         data: {
           object: {
