@@ -67,10 +67,11 @@ export type DatabaseType = 'rest' | 'vector';
  * Database client type (Drizzle ORM client)
  *
  * This is the actual database client returned by createClient/getClient.
- * For the centralized Database type matching Supabase structure, see @revealui/db/types
+ * For the centralized Database type, see @revealui/db/types
  *
- * Note: This is a union type to support both Neon (REST) and Postgres (Vector) drivers.
- * The actual type will be NeonHttpDatabase for REST and PgDatabase for Vector.
+ * Note: This is a union type to support both Neon (cloud) and Postgres (localhost dev) drivers.
+ * The actual type is NeonHttpDatabase for cloud Neon connections and NodePgDatabase for
+ * localhost connections (where the pg driver is used for transaction support).
  */
 export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>;
 
