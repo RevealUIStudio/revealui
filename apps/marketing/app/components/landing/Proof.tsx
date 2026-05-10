@@ -131,6 +131,111 @@ export function Proof() {
           </div>
         </div>
 
+        {/* Trust: verifiable in three places */}
+        <div className="mx-auto mt-16 max-w-5xl">
+          <div className="text-center">
+            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">Trust</p>
+            <h3 className="mt-3 text-2xl font-bold tracking-tight text-gray-950 sm:text-3xl">
+              Verifiable in three places.
+            </h3>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="rounded-2xl bg-emerald-50/40 p-6 ring-1 ring-emerald-200">
+              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-800">
+                In the repo
+              </p>
+              <h4 className="mt-3 text-base font-semibold text-gray-950">
+                24 of 26 packages MIT &mdash; forever.
+              </h4>
+              <p className="mt-2 text-sm leading-6 text-gray-700">
+                The 2 Pro packages ship under Fair Source (FSL-1.1-MIT) and auto-convert to MIT two
+                years after each release. View the{' '}
+                <a
+                  href="https://github.com/RevealUIStudio/revealui/blob/main/LICENSE"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+                >
+                  LICENSE
+                </a>{' '}
+                or the{' '}
+                <a
+                  href="/fair-source"
+                  className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+                >
+                  Fair Source explainer
+                </a>
+                .
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-gray-950 p-6 ring-1 ring-gray-950/10 text-white">
+              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
+                In the schema
+              </p>
+              <h4 className="mt-3 text-base font-semibold">
+                Every mutation signs into a hash chain.
+              </h4>
+              <pre className="mt-3 overflow-x-auto rounded-lg bg-black/40 px-3 py-2 font-mono text-[11px] leading-5 text-gray-300 ring-1 ring-white/10">
+                {`signature:        text('signature').notNull(),
+previousSignature: text('previous_signature'),
+hashAlgorithm:    text('hash_algorithm')
+  .notNull().default('sha256-hmac'),`}
+              </pre>
+              <p className="mt-3 text-xs leading-5 text-gray-400">
+                <a
+                  href="https://github.com/RevealUIStudio/revealui/blob/main/packages/db/src/schema/audit-log.ts"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-emerald-400 underline decoration-emerald-700 underline-offset-4 hover:text-emerald-300"
+                >
+                  packages/db/src/schema/audit-log.ts
+                </a>{' '}
+                &mdash; tampering breaks the chain.
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-emerald-50/40 p-6 ring-1 ring-emerald-200">
+              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-800">
+                In production
+              </p>
+              <h4 className="mt-3 text-base font-semibold text-gray-950">
+                This site runs on RevealUI.
+              </h4>
+              <p className="mt-2 text-sm leading-6 text-gray-700">
+                The marketing site you are reading and the agency site at{' '}
+                <a
+                  href="https://revealuistudio.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+                >
+                  revealuistudio.com
+                </a>{' '}
+                both run on{' '}
+                <code className="rounded bg-white px-1 py-0.5 font-mono text-xs text-gray-900 ring-1 ring-emerald-200">
+                  @revealui/router
+                </code>{' '}
+                +{' '}
+                <code className="rounded bg-white px-1 py-0.5 font-mono text-xs text-gray-900 ring-1 ring-emerald-200">
+                  @revealui/presentation
+                </code>
+                . View the{' '}
+                <a
+                  href="https://github.com/RevealUIStudio/revealui/tree/main/apps/marketing"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+                >
+                  marketing app source
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="mt-12 text-center">
           <Button
             plain
