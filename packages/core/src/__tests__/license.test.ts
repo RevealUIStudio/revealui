@@ -230,6 +230,68 @@ describe('validateLicenseKey', () => {
     const result = await validateLicenseKey(jwt, 'not-a-pem-key');
     expect(result).toBeNull();
   });
+
+  // ── Phase 1 audit B-2: customerId-binding + jti claim ─────────────────────
+
+  it('B-2: token carries a jti claim (auto-generated when not supplied)', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_jti' }, privateKeyPem);
+    const payload = await validateLicenseKey(jwt, publicKeyPem);
+    expect(payload).not.toBeNull();
+    expect(payload?.jti).toBeDefined();
+    expect(payload?.jti).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+  });
+
+  it('B-2: token carries a jti claim (caller-supplied when given)', async () => {
+    const supplied = '00000000-0000-0000-0000-000000000001';
+    const jwt = await generateLicenseKey(
+      { tier: 'pro', customerId: 'cus_jti2', jti: supplied },
+      privateKeyPem,
+    );
+    const payload = await validateLicenseKey(jwt, publicKeyPem);
+    expect(payload?.jti).toBe(supplied);
+  });
+
+  it('B-2: token carries a nbf claim (set to issuance time)', async () => {
+    const before = Math.floor(Date.now() / 1000) - 1;
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_nbf' }, privateKeyPem);
+    // Decode the jose payload directly to check nbf — validateLicenseKey
+    // strips nbf from the typed payload but it's enforced at verify time.
+    const parts = jwt.split('.');
+    const decoded = JSON.parse(Buffer.from(parts[1]!, 'base64url').toString());
+    expect(decoded.nbf).toBeDefined();
+    expect(decoded.nbf).toBeGreaterThanOrEqual(before);
+  });
+
+  it('B-2: customerId binding accepts when expectation matches', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_bind' }, privateKeyPem);
+    const payload = await validateLicenseKey(jwt, publicKeyPem, 'cus_bind');
+    expect(payload).not.toBeNull();
+    expect(payload?.customerId).toBe('cus_bind');
+  });
+
+  it('B-2: customerId binding rejects when expectation mismatches', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_a' }, privateKeyPem);
+    // Same valid signature + iss + aud + exp, but expected customerId differs.
+    const payload = await validateLicenseKey(jwt, publicKeyPem, 'cus_b');
+    expect(payload).toBeNull();
+  });
+
+  it('B-2: customerId binding skipped when expectation is undefined (back-compat)', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_any' }, privateKeyPem);
+    const payload = await validateLicenseKey(jwt, publicKeyPem);
+    expect(payload).not.toBeNull();
+    expect(payload?.customerId).toBe('cus_any');
+  });
+
+  it('B-2: customerId binding rejects empty string expectation as mismatch', async () => {
+    const jwt = await generateLicenseKey({ tier: 'pro', customerId: 'cus_x' }, privateKeyPem);
+    // An empty-string env var coalesces to undefined at the call site
+    // (env.X || undefined), so this case shouldn't actually reach the
+    // mismatch branch. But if it does: reject — never accept a token
+    // claiming a customer id that the deployment didn't authorize.
+    const payload = await validateLicenseKey(jwt, publicKeyPem, '');
+    expect(payload).toBeNull();
+  });
 });
 
 // =============================================================================
