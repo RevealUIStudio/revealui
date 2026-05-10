@@ -52,7 +52,7 @@ cp .env.template .env.development.local
 You need these variables set before the dev server will start:
 
 ```env
-# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# Generate with: bash scripts/generate-secret.sh
 REVEALUI_SECRET=your_32_char_hex_secret
 
 # Leave as-is for local dev
@@ -81,7 +81,7 @@ STRIPE_WEBHOOK_SECRET=whsec_XXXXX
 **REVEALUI_SECRET**  -  generate locally:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+bash scripts/generate-secret.sh
 ```
 
 **POSTGRES_URL**  -  [console.neon.tech](https://console.neon.tech) → New project → Connection string (include `?sslmode=require`)
@@ -149,7 +149,7 @@ RevealUI is moving toward account-level subscriptions plus metered agent and com
 **`ConfigValidationError: REVEALUI_SECRET`**  -  your secret is missing or under 32 characters. Regenerate it:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+bash scripts/generate-secret.sh
 ```
 
 **`Connection refused` on POSTGRES_URL**  -  check the connection string includes `?sslmode=require` and that your NeonDB project is active (free tier projects pause after inactivity).
