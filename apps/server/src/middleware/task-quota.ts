@@ -111,34 +111,22 @@ export async function requireTaskQuota(
   const current = row?.count ?? 0;
 
   if (current >= quota) {
-    // Check prepaid credit balance before blocking (Track B)
+    // C-1 fix: atomic credit decrement via a single UPDATE … WHERE balance >= 1
+    // RETURNING. A non-atomic read-then-write allows concurrent requests to both
+    // observe a positive balance and both decrement, enabling free tasks under load.
+    // If the WHERE clause's balance >= 1 condition fails, 0 rows are returned and
+    // we fall through to normal quota enforcement.
     try {
-      const [creditRow] = await db
-        .select({ balance: agentCreditBalance.balance })
-        .from(agentCreditBalance)
+      const [decremented] = await db
+        .update(agentCreditBalance)
+        .set({
+          balance: sql`${agentCreditBalance.balance} - 1`,
+          updatedAt: new Date(),
+        })
         .where(and(eq(agentCreditBalance.userId, user.id), gt(agentCreditBalance.balance, 0)))
-        .limit(1);
+        .returning();
 
-      if (creditRow && creditRow.balance > 0) {
-        // Decrement one credit  -  awaited because a silent failure means free tasks
-        try {
-          await db
-            .update(agentCreditBalance)
-            .set({
-              balance: sql`${agentCreditBalance.balance} - 1`,
-              updatedAt: new Date(),
-            })
-            .where(eq(agentCreditBalance.userId, user.id));
-        } catch (err) {
-          // Credit deduction failed  -  block the request to prevent free usage
-          logger.error(
-            'Credit deduction failed  -  blocking task',
-            err instanceof Error ? err : undefined,
-            { userId: user.id },
-          );
-          return c.json({ error: 'Billing error  -  please retry.' }, 503);
-        }
-
+      if (decremented !== undefined) {
         // Increment usage count for metering (fire-and-forget  -  credit already deducted)
         void db
           .insert(agentTaskUsage)
@@ -155,8 +143,14 @@ export async function requireTaskQuota(
 
         return next();
       }
-    } catch {
-      // Credit check failed  -  fall through to normal quota enforcement
+    } catch (err) {
+      // Atomic decrement failed — block to prevent free usage
+      logger.error(
+        'Credit deduction failed  -  blocking task',
+        err instanceof Error ? err : undefined,
+        { userId: user.id },
+      );
+      return c.json({ error: 'Billing error  -  please retry.' }, 503);
     }
 
     // Track overage for billing reports (fire-and-forget)

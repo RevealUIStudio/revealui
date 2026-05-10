@@ -374,6 +374,29 @@ ${supportFooter('If you believe this is an error, contact')}`,
   });
 }
 
+export async function sendPerpetualLicenseRevokedEmail(
+  to: string,
+  opts: { tier: string; amountRefunded: number; currency: string },
+): Promise<void> {
+  const support = supportEmail();
+  const amountStr = formatStripeAmount(opts.amountRefunded, opts.currency);
+  const currencyUpper = opts.currency.toUpperCase();
+  const label = tierLabel(opts.tier);
+  await sendEmail({
+    to,
+    subject: 'Your RevealUI perpetual license has been revoked',
+    html: emailShell(
+      'Perpetual License Revoked',
+      `<h1 style="color: #dc2626;">Perpetual License Revoked</h1>
+<p>A full refund of <strong>${amountStr} ${escapeHtml(currencyUpper)}</strong> has been issued for your RevealUI ${escapeHtml(label)} Perpetual License.</p>
+<p>Because the purchase has been fully refunded, your perpetual license has been revoked and access has been removed.</p>
+<p>If you believe this was issued in error, please contact us at <a href="mailto:${support}">${support}</a> and we will be happy to assist.</p>
+${supportFooter('If you have questions about this revocation, contact')}`,
+    ),
+    text: `A full refund of ${amountStr} ${currencyUpper} has been issued for your RevealUI ${label} Perpetual License. Your license has been revoked. Contact ${support} if you believe this was issued in error.`,
+  });
+}
+
 export async function sendDisputeLostEmail(to: string): Promise<void> {
   const portal = billingUrl();
   const support = supportEmail();

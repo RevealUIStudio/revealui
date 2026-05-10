@@ -126,19 +126,31 @@ app.post('/marketplace-payouts', async (c) => {
         continue;
       }
 
-      try {
-        const transfer = await stripe.transfers.create({
-          amount: developerCents,
-          currency: 'usd',
-          destination: stripeAccountId,
-          metadata: {
-            batch_payout: 'true',
-            transaction_count: String(payout.transactionCount),
-            total_usdc: payout.totalDeveloperUsdc,
-          },
-        });
+      // K-2 fix: deterministic idempotency key derived from sorted transaction IDs.
+      // Stripe returns the same transfer object when the same key is re-used, so
+      // a cron crash between transfers.create and the DB update is safe to retry —
+      // the second run receives the existing transfer ID and writes it to the DB.
+      const sortedIds = payout.transactionIds.slice().sort();
+      const idempotencyKey = `marketplace-payout-${stripeAccountId}-${sortedIds.join(':')}`;
 
-        // Mark all transactions in this batch with the transfer ID
+      try {
+        const transfer = await stripe.transfers.create(
+          {
+            amount: developerCents,
+            currency: 'usd',
+            destination: stripeAccountId,
+            metadata: {
+              batch_payout: 'true',
+              transaction_count: String(payout.transactionCount),
+              total_usdc: payout.totalDeveloperUsdc,
+            },
+          },
+          { idempotencyKey },
+        );
+
+        // Mark all transactions in this batch with the transfer ID.
+        // Even if transfers.create returned an existing transfer (idempotent retry),
+        // writing the transfer ID here is safe and correct.
         await db
           .update(marketplaceTransactions)
           .set({ stripeTransferId: transfer.id })
@@ -163,6 +175,7 @@ app.post('/marketplace-payouts', async (c) => {
         logger.error('Marketplace payout transfer failed', undefined, {
           stripeAccountId,
           developerCents,
+          idempotencyKey,
           error: message,
         });
         void sendCronFailureAlert({
