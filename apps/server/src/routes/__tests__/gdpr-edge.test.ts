@@ -32,25 +32,32 @@ const {
   mockGetRequest,
   mockAnonymizeUser,
   mockDeleteAllUserSessions,
+  mockUpdateUserStripeDeletion,
   mockGetClient,
-} = vi.hoisted(() => ({
-  mockGrantConsent: vi.fn().mockResolvedValue({ id: 'consent-1', type: 'analytics' }),
-  mockRevokeConsent: vi.fn().mockResolvedValue(undefined),
-  mockGetUserConsents: vi.fn().mockResolvedValue([]),
-  mockHasConsent: vi.fn().mockResolvedValue(true),
-  mockGetStatistics: vi.fn().mockResolvedValue({ total: 0 }),
-  mockRequestDeletion: vi
-    .fn()
-    .mockResolvedValue({ id: 'del-1', userId: 'user-1', status: 'pending' }),
-  mockProcessDeletion: vi.fn().mockImplementation(async (_id: string, cb: Function) => {
-    await cb('user-1', ['personal']);
-  }),
-  mockGetUserRequests: vi.fn().mockResolvedValue([]),
-  mockGetRequest: vi.fn().mockResolvedValue(null),
-  mockAnonymizeUser: vi.fn().mockResolvedValue({ id: 'user-1' }),
-  mockDeleteAllUserSessions: vi.fn().mockResolvedValue(undefined),
-  mockGetClient: vi.fn().mockReturnValue({}),
-}));
+  mockDbSelect,
+} = vi.hoisted(() => {
+  const _dbSelect = vi.fn();
+  return {
+    mockGrantConsent: vi.fn().mockResolvedValue({ id: 'consent-1', type: 'analytics' }),
+    mockRevokeConsent: vi.fn().mockResolvedValue(undefined),
+    mockGetUserConsents: vi.fn().mockResolvedValue([]),
+    mockHasConsent: vi.fn().mockResolvedValue(true),
+    mockGetStatistics: vi.fn().mockResolvedValue({ total: 0 }),
+    mockRequestDeletion: vi
+      .fn()
+      .mockResolvedValue({ id: 'del-1', userId: 'user-1', status: 'pending' }),
+    mockProcessDeletion: vi.fn().mockImplementation(async (_id: string, cb: Function) => {
+      await cb('user-1', ['personal']);
+    }),
+    mockGetUserRequests: vi.fn().mockResolvedValue([]),
+    mockGetRequest: vi.fn().mockResolvedValue(null),
+    mockAnonymizeUser: vi.fn().mockResolvedValue({ id: 'user-1' }),
+    mockDeleteAllUserSessions: vi.fn().mockResolvedValue(undefined),
+    mockUpdateUserStripeDeletion: vi.fn().mockResolvedValue(undefined),
+    mockGetClient: vi.fn().mockReturnValue({ select: _dbSelect }),
+    mockDbSelect: _dbSelect,
+  };
+});
 
 vi.mock('@revealui/auth/server', () => ({
   deleteAllUserSessions: mockDeleteAllUserSessions,
@@ -83,6 +90,19 @@ vi.mock('@revealui/db', () => ({
 
 vi.mock('@revealui/db/queries/users', () => ({
   anonymizeUser: mockAnonymizeUser,
+  updateUserStripeDeletion: mockUpdateUserStripeDeletion,
+}));
+
+vi.mock('@revealui/db/schema', () => ({
+  users: { id: 'id', stripeCustomerId: 'stripe_customer_id' },
+}));
+
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+}));
+
+vi.mock('../../lib/services-loader.js', () => ({
+  getServices: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('../../lib/drizzle-gdpr-storage.js', () => ({
@@ -91,6 +111,29 @@ vi.mock('../../lib/drizzle-gdpr-storage.js', () => ({
 }));
 
 import gdprApp from '../gdpr.js';
+
+// ---------------------------------------------------------------------------
+// DB select chain setup
+// Default: user has no stripeCustomerId (no Stripe call needed in tests)
+// ---------------------------------------------------------------------------
+
+function makeSelectChain(result: unknown[] = [{ stripeCustomerId: null }]) {
+  const chain = {
+    from: vi.fn(),
+    where: vi.fn(),
+    limit: vi.fn(),
+    then(
+      onFulfilled?: (value: unknown[]) => unknown,
+      onRejected?: (reason: unknown) => unknown,
+    ): Promise<unknown> {
+      return Promise.resolve(result).then(onFulfilled, onRejected);
+    },
+  };
+  chain.from.mockReturnValue(chain);
+  chain.where.mockReturnValue(chain);
+  chain.limit.mockReturnValue(chain);
+  return chain;
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -148,6 +191,8 @@ beforeEach(() => {
   });
   mockAnonymizeUser.mockResolvedValue({ id: 'user-1' });
   mockHasConsent.mockResolvedValue(true);
+  mockDbSelect.mockImplementation(() => makeSelectChain());
+  mockGetClient.mockReturnValue({ select: mockDbSelect });
 });
 
 // ---------------------------------------------------------------------------
