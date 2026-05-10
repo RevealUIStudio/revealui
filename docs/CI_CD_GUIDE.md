@@ -1,13 +1,13 @@
 ---
 title: "CI/CD & Deployment"
-description: "GitHub Actions workflows, Vercel deploy pipeline, Forge Docker stack, rollback"
+description: "GitHub Actions workflows, Vercel deploy pipeline, Fleet self-hosted Docker stack, rollback"
 category: operations
 audience: maintainer
 ---
 
 # RevealUI CI/CD & Deployment Guide
 
-**Scope:** how the live CI gates and production deploy actually work in this monorepo, plus the Forge self-hosted Docker path. For env-var details see [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md). For local dev see [Quick Start](./QUICK_START.md).
+**Scope:** how the live CI gates and production deploy actually work in this monorepo, plus the Fleet self-hosted Docker path (the runtime kit RevForge produces). For env-var details see [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md). For local dev see [Quick Start](./QUICK_START.md).
 
 > **Secrets policy:** revvault is the source of truth for every credential. `.env.development.local` is acceptable as a developer convenience populated from `revvault export-env`; never as a primary store. CI mirrors revvault into GitHub Actions secrets at deploy time. See [`SECURITY.md`](../SECURITY.md) and [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) for detail.
 
@@ -48,7 +48,7 @@ All workflows live in [`.github/workflows/`](../.github/workflows/).
 | [`deploy-test.yml`](../.github/workflows/deploy-test.yml) | workflow_dispatch | On-demand QA preview deploys (Vercel preview env, manual only) |
 | [`release.yml`](../.github/workflows/release.yml) | workflow_dispatch | OSS npm publish via OIDC trusted publishing (SLSA Build Level 2 provenance) |
 | [`release-canary.yml`](../.github/workflows/release-canary.yml) | push to `test` | Canary npm snapshot releases (Changesets snapshot mode, ephemeral) |
-| [`docker.yml`](../.github/workflows/docker.yml) | workflow_dispatch | Build & push Forge Docker images (`server` + `admin`) to GHCR |
+| [`docker.yml`](../.github/workflows/docker.yml) | workflow_dispatch | Build & push Fleet self-hosted Docker images (`server` + `admin`) to GHCR |
 | [`db-backup.yml`](../.github/workflows/db-backup.yml) | scheduled | NeonDB-side backup hooks (PITR coordination) |
 | [`reconciliation-crons.yml`](../.github/workflows/reconciliation-crons.yml) | scheduled | Stripe + RVC reconciliation jobs |
 | [`webhook-reconciliation.yml`](../.github/workflows/webhook-reconciliation.yml) | scheduled | Stripe webhook event-replay safety net |
@@ -131,7 +131,7 @@ Each app's `vercel-build` script lives in `apps/<app>/package.json`. Output dire
 
 ### Standalone output (admin)
 
-[`apps/admin/next.config.mjs`](../apps/admin/next.config.mjs) sets `output: 'standalone'` so the production image bundles only required dependencies. The Forge Dockerfile relies on this path layout.
+[`apps/admin/next.config.mjs`](../apps/admin/next.config.mjs) sets `output: 'standalone'` so the production image bundles only required dependencies. The `Dockerfile.forge` build (which produces the Fleet self-hosted image) relies on this path layout.
 
 ### Manual deploy / promote
 
@@ -171,9 +171,7 @@ STRIPE_WEBHOOK_SECRET=whsec_xxx
 Generate `REVEALUI_SECRET`:
 
 ```bash
-openssl rand -hex 32
-# or
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+bash scripts/generate-secret.sh
 ```
 
 `POSTGRES_URL` MUST include `sslmode=require` for production (NeonDB requires SSL). The `validate:prod-env` gate fails the deploy if any required var is missing or malformed.
@@ -251,7 +249,7 @@ NeonDB provides point-in-time recovery (7 days free, 30 days Pro). Restore via t
 
 ---
 
-## Forge self-hosted Docker stack
+## Fleet self-hosted Docker stack
 
 `docker.yml` (workflow_dispatch) builds two images and pushes them to `ghcr.io/revealuistudio`:
 
@@ -412,7 +410,7 @@ This job runs every migration against a fresh Postgres. Catches DDL errors PGlit
 
 ## Why no Kubernetes manifests in this repo
 
-RevealUI ships two deployment paths and only two: Vercel for hosted SaaS (via [`deploy.yml`](../.github/workflows/deploy.yml)) and Forge Docker images via [`docker.yml`](../.github/workflows/docker.yml) → GHCR for self-hosted enterprise customers (consumed by [`docker-compose.forge.yml`](../docker-compose.forge.yml)). Kubernetes is not a supported target.
+RevealUI ships two deployment paths and only two: Vercel for hosted SaaS (via [`deploy.yml`](../.github/workflows/deploy.yml)) and Fleet self-hosted Docker images via [`docker.yml`](../.github/workflows/docker.yml) → GHCR for enterprise customers (consumed by [`docker-compose.forge.yml`](../docker-compose.forge.yml); filename keeps the `forge` prefix because RevForge is the operator-side stamping tool that produces the Fleet kit). Vercel and Cloudflare are friendly deploy targets — RevealUI runs on both. Kubernetes is not a supported target.
 
 Earlier scaffolding under `infrastructure/k8s/`, `scripts/{deploy,rollback}.sh`, `infrastructure/docker-compose/production.yml`, and `infrastructure/scripts/deployment/staging-deploy.sh` was aspirational and never wired to production. It was removed alongside this guide's shrink — see [`docs/decisions/2026-05-08-deployment-target-vercel-not-k8s.md`](./decisions/2026-05-08-deployment-target-vercel-not-k8s.md) for the full decision record, including the recovery path if a future Kubernetes pivot becomes necessary.
 

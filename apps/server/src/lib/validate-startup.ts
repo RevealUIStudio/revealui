@@ -449,11 +449,18 @@ export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvM
   // Restore real newlines if the public key landed as a single-line PEM
   // (the .env-encoded format that stamp.sh produces).
   const publicKey = env.REVEALUI_LICENSE_PUBLIC_KEY.replace(/\\n/g, '\n');
-  const payload = await validateLicenseKey(env.REVEALUI_LICENSE_KEY, publicKey);
+  // Phase 1 audit B-2: bind the license to a specific customer when the
+  // operator has provided REVEALUI_LICENSED_CUSTOMER_ID. Without this, a
+  // leaked JWT from one customer would license another customer's
+  // deployment. Hosted mode does not set this — the deployment IS the
+  // customer. Forge stamping should set it (revforge#NN tracking).
+  const expectedCustomerId = env.REVEALUI_LICENSED_CUSTOMER_ID || undefined;
+  const payload = await validateLicenseKey(env.REVEALUI_LICENSE_KEY, publicKey, expectedCustomerId);
   if (!payload) {
     throw new Error(
       'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_KEY is invalid, expired beyond grace, ' +
-        'or signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY. ' +
+        'signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY, or its ' +
+        'customerId does not match REVEALUI_LICENSED_CUSTOMER_ID (if set). ' +
         'Contact the operator who stamped this kit to re-issue the license.',
     );
   }

@@ -48,8 +48,8 @@ export interface IssueRevForgeLicenseResult {
   issuedAt: string;
   /** ISO-8601 expiry, or null for perpetual licenses. */
   expiresAt: string | null;
-  /** The payload that was signed (without iat/exp; those live inside the JWT). */
-  payload: Omit<LicensePayload, 'iat' | 'exp'>;
+  /** The payload that was signed (without iat/exp/jti; those live inside the JWT). */
+  payload: Omit<LicensePayload, 'iat' | 'exp' | 'jti'>;
 }
 
 /**
@@ -90,7 +90,10 @@ export async function issueRevForgeLicense(
     throw new Error(`Invalid --max-users "${opts.maxUsers}": must be a positive integer.`);
   }
 
-  const payload: Omit<LicensePayload, 'iat' | 'exp'> = {
+  // jti is auto-generated inside generateLicenseKey when not supplied (per
+  // Phase 1 audit B-2 — every issued token carries a unique JWT ID for
+  // forward-compatible per-token revocation).
+  const payload: Omit<LicensePayload, 'iat' | 'exp' | 'jti'> = {
     tier: opts.tier,
     customerId: opts.slug,
     ...(opts.perpetual ? { perpetual: true } : {}),
