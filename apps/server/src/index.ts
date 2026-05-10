@@ -1339,4 +1339,19 @@ if (process.env.NODE_ENV === 'production') {
   initPriceOracle();
   initAlerting();
   hydrateInferenceConfigs();
+  // Bind the HTTP listener. Mirrors the dev branch shape above so a Fleet
+  // Docker container (NODE_ENV=production) actually starts answering
+  // requests instead of initializing-everything-but-never-listening.
+  // The previous shape ran every initializer (validateLicenseAtStartup,
+  // initPriceOracle, initAlerting, hydrateInferenceConfigs) but never
+  // called serve(), so containers came up, passed liveness, and silently
+  // hung pre-listen. Diagnosed in
+  // .jv/docs/HANDOFF-2026-05-10-1245Z-strategy-arc-session-archive.md
+  // §"API startup hang root cause identified".
+  const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
+  const server = serve({ fetch: app.fetch, port });
+  terminalWs.injectWebSocket(server);
+  logger.info(`🚀 API server running on http://localhost:${port}`);
+  logger.info(`📚 API documentation available at http://localhost:${port}/docs`);
+  logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`);
 }
