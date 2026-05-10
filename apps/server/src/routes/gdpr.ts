@@ -12,8 +12,8 @@ import { users } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { eq } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
-import { getServices } from '../lib/services-loader.js';
 import { DrizzleBreachStorage, DrizzleGDPRStorage } from '../lib/drizzle-gdpr-storage.js';
+import { getServices } from '../lib/services-loader.js';
 
 interface UserContext {
   id: string;
