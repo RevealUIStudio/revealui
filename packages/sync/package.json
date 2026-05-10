@@ -4,7 +4,7 @@
   "description": "Real-time sync layer wrapping ElectricSQL and Yjs CRDT — offline queue, shape cache, conflict resolution, collaborative documents. Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
-    "@electric-sql/react": "^1.0.44",
+    "@electric-sql/react": "^1.0.45",
     "@revealui/cache": "workspace:*",
     "@revealui/contracts": "workspace:*",
     "@revealui/db": "workspace:*",
@@ -20,8 +20,8 @@
     "@vitest/coverage-v8": "catalog:",
     "@revealui/dev": "workspace:*",
     "jsdom": "catalog:",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
