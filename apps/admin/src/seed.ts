@@ -83,17 +83,17 @@ const pages = [
           {
             size: 'full',
             richText: richTextDoc(
-              heading('Build for Humans. Ready for Agents.'),
+              heading('Stop building the backend. Ship the AI business.'),
               paragraph(
-                'RevealUI is an agentic business runtime. Users, content, products, payments, and intelligence: five primitives for you and your AI agents, pre-wired into one deployable stack.',
+                'Auth, billing, content, and agents - wired, audited, yours. Five primitives for you and your AI agents, governed by one RBAC + ABAC policy and signed into one tamper-evident audit chain.',
               ),
               heading('Why RevealUI?', 'h3'),
               paragraph(
-                'You define your business data once. The admin UI, REST API, and MCP tools all appear simultaneously. Humans manage through the dashboard. Agents operate through the same API. Same permissions, same audit trail.',
+                'You define your business data once. The admin UI, REST API, and MCP tools all appear simultaneously. Humans manage through the dashboard. Agents operate through the same API. Same permissions, same audit trail, same policy plane.',
               ),
               heading('Get Started', 'h3'),
               paragraph(
-                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. Your agents can discover and use everything you build from day one.',
+                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 24 of 26 packages are MIT - forever; the 2 Pro packages convert to MIT after 2 years.',
               ),
             ),
           },
@@ -170,9 +170,9 @@ const sampleContent = {
         'Static dashboards and manual workflows are finished. What replaces them are adaptive runtimes: products where humans and agents work on the same data, the same permissions, and the same business logic. RevealUI is the runtime for that transition.',
     },
     {
-      name: 'Five Primitives, One Stack',
+      name: 'Five Primitives. One Audit Log. One Policy Plane.',
       description:
-        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them for humans and agents alike. Define once, both layers operate immediately.',
+        'Users. Content. Products. Payments. Intelligence. Every action by every human and every agent is RBAC-gated, ABAC-checked, and signed into a tamper-evident audit chain. Define once; both audiences operate immediately.',
     },
   ],
   cards: [
@@ -217,26 +217,26 @@ const sampleContent = {
       title: 'VISION',
       name: 'Agentic Business Runtime',
       description:
-        'You build the product. Agents extend it. Neither is locked to any vendor. RevealUI ships with AI agents that operate on your business data through the same API humans use, all running on open-source models.',
+        'You build the product. Agents extend it. Bring your own model: default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) so the inference bill does not scale with usage; switch to Claude or GPT in one config line. The runtime is provider-agnostic.',
       alt: 'RevealUI agentic vision',
     },
   ],
   banners: [
     {
-      heading: 'Build for Humans. Ready for Agents.',
-      subheading: 'Agentic Business Runtime',
+      heading: 'Stop building the backend. Ship the AI business.',
+      subheading: 'Open-source. Self-hostable. Audit-grade.',
       description:
-        'Five primitives for you and your AI agents: users, content, products, payments, and intelligence. One runtime, one deployment.',
+        'Auth, billing, content, and agents - wired, audited, yours. Five primitives, one audit log, one policy plane. From npx create-revealui to first paying customer in a weekend.',
       cta: 'Get Started',
       highlight: 'Open Source',
       punctuation: '.',
       alt: 'RevealUI banner',
       link: { href: '/getting-started', text: 'Start Building' },
       stats: [
-        { label: 'Packages', value: '22' },
-        { label: 'Tests', value: '20,000+' },
-        { label: 'License', value: 'MIT' },
-        { label: 'AI Agents', value: 'Pro' },
+        { label: 'Packages', value: '26' },
+        { label: 'MCP Servers', value: '13' },
+        { label: 'UI Components', value: '58' },
+        { label: 'MIT', value: '24/26' },
       ],
     },
   ],

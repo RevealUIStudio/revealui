@@ -1,27 +1,35 @@
 const faqs = [
   {
-    q: 'How is this different from Supabase, Convex, or T3?',
-    a: 'Those give you a database, an auth primitive, or a starter template. RevealUI is a complete runtime: CMS, billing, admin UI, and agent layer all wired together. Drop in a single package, or scaffold the whole stack with one command.',
+    q: 'How is this different from Supabase, Convex, Clerk, or Trigger?',
+    a: 'Convex gives you real-time DB + functions. Supabase gives you Postgres + auth. Clerk gives you sessions. Trigger runs background jobs. Each one is a slice. RevealUI is the whole runtime — auth, content, billing, admin UI, and an agent layer governed by one RBAC policy and one tamper-evident audit chain. Self-hosted at every tier. (Vercel and Cloudflare are deploy targets, not competitors — RevealUI runs on both.)',
   },
   {
     q: 'Can I self-host?',
-    a: 'Yes. Every open-source package is MIT-licensed. The Pro packages are Fair Source (FSL-1.1-MIT) and convert to MIT after two years. Self-host the entire stack on your own infra at any tier — no vendor-specific edge runtimes, no proprietary database.',
+    a: 'Yes. 24 of 26 packages are MIT and stay MIT — forever. The 2 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infra at any tier — no vendor-specific edge runtimes, no proprietary database.',
   },
   {
     q: 'What does "agent-native" actually mean in code?',
-    a: 'Every collection, mutation, and admin action is exposed as an MCP tool. Your agent reads users, creates invoices, edits CMS content, and refunds subscriptions through the same APIs your app uses. No glue layer, no separate "AI endpoints" to maintain.',
+    a: 'Every collection is an MCP tool AND a REST endpoint AND a typed SDK call — gated by the same RBAC + ABAC policy. Agents are first-class principals: scope one to a collection, give it a budget, watch every action sign into the audit chain, revoke when done. The runtime is the contract, not a glue layer.',
   },
   {
     q: "What's the lock-in story?",
-    a: 'Open standards, end-to-end. OAuth, JWT, Stripe webhooks, MCP, OpenAPI. Postgres for data. Deploy anywhere Next.js and Hono run. Your data, your code, your infra — RevealUI is the runtime, not the prison.',
+    a: 'Open standards, end-to-end. OAuth, JWT, Stripe webhooks, MCP, OpenAPI. Postgres for data. Deploy anywhere Next.js and Hono run — Vercel, Cloudflare, Railway, Hetzner, your own metal. Your data, your code, your infra. RevealUI is the runtime, not the prison.',
   },
   {
     q: 'Production-ready?',
-    a: 'Built behind a full CI gate: Biome lint, Vitest unit and integration, Playwright E2E, CodeQL, Gitleaks, dependency auditing. The full feature set is covered by the test suite, and every PR runs the gate before it can land. Used in production by the team that maintains it.',
+    a: 'Behind a 3-phase CI gate: Biome lint, Vitest unit + integration, Playwright E2E, CodeQL, Gitleaks, claim-drift validator. Every PR runs the gate before it can land. The marketing site you are reading runs on @revealui/router and @revealui/presentation; the agency site at revealuistudio.com runs on the same packages. View the source on GitHub.',
   },
   {
     q: "What's the rest of RevFleet?",
-    a: 'RevealUI is the runtime. RevVault handles secrets. RevKit is the portable dev environment. RevDev is the AI engineering harness. Forge is a portable demo lab. You can use RevealUI without any of the others — they ship and version independently.',
+    a: 'RevFleet is the umbrella. RevealUI is the runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness (multi-agent coordination across Claude / Cursor / Copilot). RevCon syncs editor configs. RevSkills is the skills library. RevForge is the operator-side stamping tool that produces white-label trial kits. RevealCoin is x402-compatible payments — deployed on Solana mainnet but pre-launch (see RevealCoin README for blockers). RevKit is the portable WSL dev environment. Use RevealUI standalone, or compose what you need.',
+  },
+  {
+    q: 'How does AI inference work?',
+    a: 'Bring your own model. Default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) via Ollama or Ubuntu Inference Snaps — your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
+  },
+  {
+    q: 'How do agent payments work?',
+    a: "x402-native. RevealUI implements the HTTP 402 payment protocol — compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP. RevealCoin is one optional Solana implementation; the protocol is what is load-bearing. RevealCoin itself is pre-launch — see the RevealCoin README for the open prerequisites.",
   },
 ];
 

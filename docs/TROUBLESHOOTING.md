@@ -136,7 +136,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 2. **Generate required secrets**
    ```bash
    # Generate REVEALUI_SECRET (32+ characters)
-   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   bash scripts/generate-secret.sh
    ```
 
 3. **Check variable names**
@@ -161,7 +161,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 1. **Ensure secret is 32+ characters**
    ```bash
    # Generate new secret
-   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   bash scripts/generate-secret.sh
    ```
 
 2. **Check for special characters**

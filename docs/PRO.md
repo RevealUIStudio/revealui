@@ -357,7 +357,7 @@ The `MCP_API_KEY` is **NOT** a Supabase key - it's a key you generate yourself t
 
 - **Auto-generated**: If not set, the script will auto-generate a secure random key (shown in console)
 - **Recommended**: Copy the auto-generated key to your `.env` file to persist it across restarts
-- **Manual generation**: Run `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` to generate a 64-character hex string
+- **Manual generation**: Run `bash scripts/generate-secret.sh` to generate a 64-character hex string
 - **Purpose**: Authenticates requests to the MCP server HTTP endpoint (prevents unauthorized access)
 
 **Example:**
