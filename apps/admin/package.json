@@ -48,7 +48,7 @@
     "@vitest/ui": "catalog:",
     "@revealui/dev": "workspace:*",
     "dotenv": "catalog:",
-    "postcss": "^8.5.10",
+    "postcss": "^8.5.11",
     "rimraf": "^6.1.3",
     "stripe": "^22.1.0",
     "tailwindcss": "^4.2.2",
