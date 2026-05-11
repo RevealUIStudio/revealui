@@ -54,11 +54,70 @@ export function parseDotenv(content: string): EnvMap {
   return env;
 }
 
+/**
+ * Detect Vercel's v2 encryption envelope.
+ *
+ * Around 2026-05-05/06 Vercel rolled out a change where `vercel pull`
+ * returns ciphertext for `encrypted`-type env vars (previously plaintext).
+ * The value comes back as base64 of `{"v":"v2","c":"<ciphertext>","k":[...]}`
+ * — server-side decryption happens at runtime in the Vercel platform, not
+ * client-side in the CLI. Every revealui main Deploy from 2026-05-06
+ * onward failed `validate:prod-env` because the validator tried to URL-
+ * parse and HTTPS-check what is actually opaque ciphertext.
+ *
+ * This helper detects the envelope so the CI gate can treat such values
+ * as opaque (skip format checks; presence-by-name still passes). The
+ * apps/server runtime continues to receive decrypted plaintext from
+ * Vercel and runs strict validateStartup() there, so the real production
+ * gate is unaffected.
+ *
+ * The prefix `eyJ2IjoidjIi` is the base64 encoding of `{"v":"v2"` — a
+ * 12-char marker with ~10^17 entropy; accidental collision with a real
+ * env value is impossible in practice. We additionally JSON-decode and
+ * check for `v: 'v2'` + a `c` field to eliminate any residual ambiguity.
+ */
+export function isVercelEncryptedBlob(value: string): boolean {
+  if (!value.startsWith('eyJ2IjoidjIi')) return false;
+  try {
+    const decoded = Buffer.from(value, 'base64').toString('utf8');
+    const parsed: unknown = JSON.parse(decoded);
+    if (typeof parsed !== 'object' || parsed === null) return false;
+    if (!('v' in parsed) || !('c' in parsed)) return false;
+    return (parsed as { v: unknown }).v === 'v2';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Scrub Vercel v2 encryption envelopes from a pulled env map. Each opaque
+ * value is replaced with an empty string so the lenient validator skips
+ * format checks (same path Vercel-Sensitive vars already take). Returns
+ * the new map plus a list of keys that were scrubbed (for diagnostics).
+ */
+export function scrubVercelEncryptedBlobs(env: EnvMap): {
+  env: EnvMap;
+  scrubbedKeys: string[];
+} {
+  const scrubbedKeys: string[] = [];
+  const result: EnvMap = {};
+  for (const [key, value] of Object.entries(env)) {
+    if (isVercelEncryptedBlob(value)) {
+      result[key] = '';
+      scrubbedKeys.push(key);
+    } else {
+      result[key] = value;
+    }
+  }
+  return { env: result, scrubbedKeys };
+}
+
 export interface ValidateResult {
   ok: boolean;
   message: string;
   mode: 'forge' | 'hosted';
   stripeLiveMode: boolean;
+  scrubbedBlobKeys: string[];
 }
 
 /**
@@ -69,7 +128,14 @@ export interface ValidateResult {
  * a production env that contains the bypass flag is itself a config bug.
  */
 export function validatePulledEnv(pulled: EnvMap): ValidateResult {
-  const env: EnvMap = { ...pulled, NODE_ENV: 'production' };
+  // Vercel rolled out v2 envelope encryption for `encrypted`-type env
+  // vars around 2026-05-06. The CLI pull now returns ciphertext; treat
+  // these as opaque so format checks skip on them (presence still passes).
+  // The apps/server runtime still receives decrypted values from Vercel
+  // and runs strict validateStartup() there. See isVercelEncryptedBlob
+  // for the detection contract.
+  const { env: scrubbed, scrubbedKeys } = scrubVercelEncryptedBlobs(pulled);
+  const env: EnvMap = { ...scrubbed, NODE_ENV: 'production' };
 
   // Vercel-Sensitive vars pull as empty strings even though they're
   // populated at runtime. Run validateStartup in lenient mode here so
@@ -87,6 +153,7 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
       ok: false,
       mode,
       stripeLiveMode,
+      scrubbedBlobKeys: scrubbedKeys,
       message:
         'pulled env contains SKIP_ENV_VALIDATION=true. This bypasses every check at runtime; remove it from Vercel before deploying.',
     };
@@ -98,6 +165,7 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
       ok: true,
       mode,
       stripeLiveMode,
+      scrubbedBlobKeys: scrubbedKeys,
       message: 'all production env presence + format checks satisfied.',
     };
   } catch (err) {
@@ -105,6 +173,7 @@ export function validatePulledEnv(pulled: EnvMap): ValidateResult {
       ok: false,
       mode,
       stripeLiveMode,
+      scrubbedBlobKeys: scrubbedKeys,
       message: err instanceof Error ? err.message : String(err),
     };
   }
@@ -127,6 +196,12 @@ function main(): void {
   process.stdout.write(
     `validate:prod-env mode=${result.mode} STRIPE_LIVE_MODE=${result.stripeLiveMode}\n`,
   );
+
+  if (result.scrubbedBlobKeys.length > 0) {
+    process.stdout.write(
+      `validate:prod-env note: ${result.scrubbedBlobKeys.length} Vercel v2 encryption envelope(s) treated as opaque (presence checked, format skipped — runtime gets decrypted values). Keys: ${result.scrubbedBlobKeys.join(', ')}\n`,
+    );
+  }
 
   if (!result.ok) {
     process.stderr.write(`validate:prod-env FAIL\n${result.message}\n`);
