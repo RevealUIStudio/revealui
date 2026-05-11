@@ -121,6 +121,12 @@ describe('validateStartup — production presence', () => {
       /REVEALUI_ALERT_EMAIL.*REVEALUI_CRON_SECRET|REVEALUI_CRON_SECRET.*REVEALUI_ALERT_EMAIL/,
     );
   });
+
+  it('rejects missing SENTRY_DSN in production hosted env', () => {
+    const env = validLiveProdEnv();
+    delete env.SENTRY_DSN;
+    expect(() => validateStartup(env)).toThrow(/SENTRY_DSN/);
+  });
 });
 
 describe('validateStartup — production format checks (live mode)', () => {
@@ -181,6 +187,12 @@ describe('validateStartup — production format checks (live mode)', () => {
   it('rejects REVEALUI_ALERT_EMAIL without an @', () => {
     expect(() => validateStartup(validLiveProdEnv({ REVEALUI_ALERT_EMAIL: 'notanemail' }))).toThrow(
       /REVEALUI_ALERT_EMAIL/,
+    );
+  });
+
+  it('rejects malformed SENTRY_DSN (no :// scheme separator)', () => {
+    expect(() => validateStartup(validLiveProdEnv({ SENTRY_DSN: 'not-a-dsn' }))).toThrow(
+      /SENTRY_DSN/,
     );
   });
 
@@ -508,6 +520,10 @@ describe('validateStartup — forge mode', () => {
   });
 
   it('does NOT require REVEALUI_ALERT_EMAIL in forge mode', () => {
+    expect(() => validateStartup(validForgeProdEnv())).not.toThrow();
+  });
+
+  it('does NOT require SENTRY_DSN in forge mode', () => {
     expect(() => validateStartup(validForgeProdEnv())).not.toThrow();
   });
 

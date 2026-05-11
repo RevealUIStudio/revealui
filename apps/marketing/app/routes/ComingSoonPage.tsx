@@ -22,13 +22,6 @@ const shipped: Feature[] = [
     status: 'Shipped',
     category: 'Docs',
   },
-  {
-    name: 'Agent Credits (Track B)',
-    description:
-      'Pay-per-task billing for AI agent execution. Buy credit bundles that never expire and stack with your monthly subscription allowance.',
-    status: 'Coming Soon',
-    category: 'Billing',
-  },
 ];
 
 const upcoming: Feature[] = [
@@ -49,29 +42,29 @@ const upcoming: Feature[] = [
   {
     name: 'MCP Marketplace',
     description:
-      'A registry where developers publish and discover MCP servers and AI agent capabilities. 80% revenue share for developers. Discoverable via Smithery, mcpt, and the RevealUI marketplace.',
-    status: 'Planned: Q3 2026',
+      'A registry where developers publish and discover MCP servers and AI agent capabilities. Revenue share model for developers. Discoverable via Smithery, mcpt, and the RevealUI registry.',
+    status: 'Planned — in design',
     category: 'AI',
   },
   {
-    name: 'Self-Hosted Docker Images (Forge)',
+    name: 'Self-Hosted Docker Images (RevealUI Fleet)',
     description:
       'Official Docker images published to GitHub Container Registry for fully self-hosted deployment. Domain-locked licensing, air-gap capable.',
-    status: 'Planned: Q3 2026',
+    status: 'Planned — designed, not built',
     category: 'Infrastructure',
   },
   {
     name: 'Visual Builder',
     description:
       'A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.',
-    status: 'Planned: Q4 2026+',
+    status: 'Planned — backlog',
     category: 'Product',
   },
   {
     name: 'Enterprise SSO / SAML',
     description:
       'Single sign-on via SAML for enterprise customers. Advanced audit logging, custom RBAC policy editor, and multi-region deployment support.',
-    status: 'Planned: Q3 2026',
+    status: 'Planned — designed, not built',
     category: 'Enterprise',
   },
 ];

@@ -104,12 +104,12 @@ const primitives: Primitive[] = [
         'Upgrade a customer and their agents get smarter. One product catalog, one billing system, one set of feature gates, applied consistently to every user and every agent.',
     },
     features: [
-      'Four pricing tracks (subscription, credits, perpetual, services)',
+      'Two pricing tracks (subscription, services). Perpetual licenses coming soon.',
       'Feature gating with tier enforcement',
       'Usage tracking and limit enforcement',
       'License key management',
       'Upgrade prompts and billing portal',
-      'Agent task allowances per tier',
+      'Agent task billing in development — unlimited during early access',
     ],
   },
   {
@@ -124,22 +124,21 @@ const primitives: Primitive[] = [
         'Stripe checkout, subscription management, webhooks, and a customer billing portal. Products, prices, and webhooks are wired up. You configure your Stripe keys and start charging.',
     },
     forAgents: {
-      headline: 'x402 protocol enables agent-to-agent micropayments',
+      headline: 'x402 protocol design — coming with RevealCoin mainnet',
       description:
-        'Agents pay per task via the HTTP 402 payment protocol using RevealCoin on Solana. No accounts, no subscriptions, no human intervention required for agent transactions.',
+        'The x402 design routes agent payments via HTTP 402 using RevealCoin on Solana. This is in development and gated on RevealCoin mainnet launch. See the roadmap for current status.',
     },
     together: {
       headline: 'Humans monetize. Agents transact. One billing infrastructure.',
       description:
-        'Human customers pay through Stripe. Agents pay through x402. Both flows settle into the same revenue system. One business, two payment rails.',
+        'Human customers pay through Stripe. Agent payments via x402 are in development. Both flows are designed to settle into the same revenue system.',
     },
     features: [
       'Stripe checkout and subscriptions',
       'Webhook handling and event processing',
       'Customer billing portal',
-      'x402 agent-to-agent micropayments',
-      'RevealCoin integration (Solana)',
-      'Credit bundle purchasing',
+      'x402 agent payments (in development)',
+      'RevealCoin on Solana (pre-launch)',
     ],
   },
   {
@@ -156,7 +155,7 @@ const primitives: Primitive[] = [
     forAgents: {
       headline: 'A2A protocol, CRDT memory, and MCP servers',
       description:
-        'Agent-to-agent communication, persistent memory with working, episodic, and vector layers, and 11 production MCP servers. Agents discover capabilities, remember context, and coordinate autonomously.',
+        'Agent-to-agent communication, persistent memory with working, episodic, and vector layers, and 12 production MCP servers. Agents discover capabilities, remember context, and coordinate autonomously.',
     },
     together: {
       headline: 'Build one business. Agents extend it. Neither locked to any vendor.',
@@ -166,7 +165,7 @@ const primitives: Primitive[] = [
     features: [
       'Open-model inference (Snaps, Ollama)',
       'CRDT-based agent memory (working + episodic + vector)',
-      '11 production MCP servers',
+      '12 production MCP servers',
       'A2A agent-to-agent protocol',
       'Multi-agent coordination and orchestration',
     ],
@@ -180,14 +179,11 @@ export function ProductsPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-blue-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Five primitives.
-            <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              Built for you. Accessible to your agents.
-            </span>
+            Five primitives. One runtime.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Users, content, products, payments, and intelligence, pre-wired, open source, and ready
-            to deploy. Every primitive works for human builders and AI agents alike.
+            Users, content, products, payments, and intelligence — pre-wired and exposed to your
+            agents via MCP.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 text-sm font-medium">
             {primitives.map((p) => (
@@ -320,10 +316,10 @@ export function ProductsPage() {
           </div>
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {[
-              { stat: '57', label: 'UI components' },
-              { stat: '81', label: 'Database tables' },
-              { stat: '20,000+', label: 'Tests' },
-              { stat: '11', label: 'MCP servers' },
+              { stat: '26', label: 'workspace packages' },
+              { stat: '86', label: 'Database tables' },
+              { stat: '187+', label: 'Security tests' },
+              { stat: '12', label: 'first-party MCP servers' },
             ].map((item) => (
               <div key={item.label} className="text-center">
                 <p className="text-4xl font-bold tracking-tight text-white sm:text-5xl">

@@ -82,6 +82,7 @@ const REQUIRED_IN_PRODUCTION_HOSTED = [
   'REVEALUI_KEK',
   'REVEALUI_PUBLIC_SERVER_URL',
   'NEXT_PUBLIC_SERVER_URL',
+  'SENTRY_DSN',
   'STRIPE_SECRET_KEY',
   'STRIPE_WEBHOOK_SECRET',
   'REVEALUI_LICENSE_PRIVATE_KEY',
@@ -320,7 +321,10 @@ export function validateStartup(
     // https://<key>@<org>.ingest.sentry.io/<projectId>. Rather than encoding
     // that shape as a regex (no-regex-authored rule), we parse with the URL
     // constructor: any valid DSN is also a valid HTTPS URL, and anything that
-    // fails URL parsing is definitely wrong. GAP-S1 / Phase 1 audit J-P0-1.
+    // fails URL parsing is definitely wrong. Hosted-only — Forge customers run
+    // self-hosted without Sentry. Required so a missing DSN doesn't silently
+    // disable Sentry capture (incl. checkout-route HTTPException path).
+    // GAP-S1 / Phase 1 audit J-P0-1; hotfix #744 (hosted requirement).
     const sentryDsn = env.SENTRY_DSN ?? '';
     if (!skipFormat(sentryDsn)) {
       let sentryDsnValid = false;

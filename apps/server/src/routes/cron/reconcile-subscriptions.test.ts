@@ -8,6 +8,7 @@ const hoisted = vi.hoisted(() => ({
   selectMock: vi.fn(),
   getClientMock: vi.fn(),
   retrieveMock: vi.fn(),
+  sendCronFailureAlert: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@revealui/core/observability/logger', () => ({ logger: hoisted.logger }));
@@ -38,6 +39,10 @@ vi.mock('@revealui/services', () => ({
   protectedStripe: {
     subscriptions: { retrieve: hoisted.retrieveMock },
   },
+}));
+
+vi.mock('../../lib/cron-alerts.js', () => ({
+  sendCronFailureAlert: (...args: unknown[]) => hoisted.sendCronFailureAlert(...args),
 }));
 
 import reconcileApp from './reconcile-subscriptions.js';
@@ -296,5 +301,68 @@ describe('reconcile-subscriptions drift detection', () => {
     // deny service; classify as WARN not CRITICAL.
     expect(body.critical).toBe(0);
     expect(hoisted.logger.error).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// sendCronFailureAlert wiring
+// ---------------------------------------------------------------------------
+describe('reconcile-subscriptions cron alert wiring', () => {
+  const activeLocal: LocalRow = {
+    accountId: 'acct_alert_1',
+    stripeSubscriptionId: 'sub_alert_1',
+    status: 'active',
+    currentPeriodEnd: new Date('2026-05-01T00:00:00Z'),
+    cancelAtPeriodEnd: false,
+  };
+
+  it('calls sendCronFailureAlert with severity error on missing-in-stripe', async () => {
+    hoisted.getClientMock.mockReturnValue(buildDbMock([activeLocal]));
+    const err = new Error('No such subscription') as Error & { statusCode: number };
+    err.statusCode = 404;
+    hoisted.retrieveMock.mockRejectedValueOnce(err);
+
+    await invoke(GOOD_SECRET);
+
+    expect(hoisted.sendCronFailureAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jobName: 'reconcile-subscriptions',
+        severity: 'error',
+        error: expect.any(Error),
+        metadata: expect.objectContaining({ accountId: 'acct_alert_1' }),
+      }),
+    );
+  });
+
+  it('calls sendCronFailureAlert with severity error on entitlement-ending status drift', async () => {
+    hoisted.getClientMock.mockReturnValue(buildDbMock([activeLocal]));
+    hoisted.retrieveMock.mockResolvedValueOnce(
+      fakeStripeSub({ status: 'canceled', currentPeriodEndUnix: 1 }),
+    );
+
+    await invoke(GOOD_SECRET);
+
+    expect(hoisted.sendCronFailureAlert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jobName: 'reconcile-subscriptions',
+        severity: 'error',
+        error: expect.any(Error),
+      }),
+    );
+  });
+
+  it('does NOT call sendCronFailureAlert on non-critical drift (period-end only)', async () => {
+    hoisted.getClientMock.mockReturnValue(buildDbMock([activeLocal]));
+    hoisted.retrieveMock.mockResolvedValueOnce(
+      fakeStripeSub({
+        status: 'active',
+        currentPeriodEndUnix:
+          Math.floor(activeLocal.currentPeriodEnd!.getTime() / 1000) + 30 * 86400,
+      }),
+    );
+
+    await invoke(GOOD_SECRET);
+
+    expect(hoisted.sendCronFailureAlert).not.toHaveBeenCalled();
   });
 });
