@@ -311,16 +311,24 @@ test.describe('Billing page  -  success banner', () => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
-  test('billing page shows activation success banner after checkout', async ({ page }) => {
-    // Verifies the ?success=true query param produces the correct UI.
-    // Does not require a Stripe key  -  just navigates to the billing page with the param.
+  test('welcome page shows activation success banner after checkout', async ({ page }) => {
+    // Subscription checkout (apps/server/src/routes/billing.ts:643) returns
+    // to /welcome?success=true&tier=<tier>. Verifies the welcome page
+    // renders the post-purchase banner + the three first-action CTAs.
+    // Does not require a Stripe key  -  just navigates to the welcome page
+    // with the param. Perpetual / renewal / credits flows still land on
+    // /account/billing; this test specifically covers the subscription
+    // post-purchase landing.
     await signIn(page);
-    await page.goto(`${ADMIN_BASE}/account/billing?success=true`, {
+    await page.goto(`${ADMIN_BASE}/welcome?success=true&tier=pro`, {
       waitUntil: 'domcontentloaded',
     });
-    await expect(
-      page.getByText(/subscription activated|pro features are now available/i),
-    ).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(/welcome to revealui|subscription is active/i)).toBeVisible({
+      timeout: 8_000,
+    });
+    await expect(page.getByText(/install the cli/i)).toBeVisible();
+    await expect(page.getByText(/clone the source/i)).toBeVisible();
+    await expect(page.getByText(/read the quick-start/i)).toBeVisible();
   });
 });
 
