@@ -8,6 +8,24 @@
  */
 
 export async function register() {
+  // Sentry initialization — load runtime-specific config FIRST so server
+  // actions / RSC / route handlers / middleware are instrumented before
+  // any other module runs. Pattern per getsentry/sentry-for-ai
+  // skills/sentry-nextjs-sdk/SKILL.md. Wrapped in try/catch: the
+  // instrumentation.ts contract is "never throw — it kills the runtime".
+  try {
+    if (process.env.NEXT_RUNTIME === 'nodejs') {
+      await import('../sentry.server.config');
+    }
+    if (process.env.NEXT_RUNTIME === 'edge') {
+      await import('../sentry.edge.config');
+    }
+  } catch (err) {
+    process.stderr.write(
+      `Sentry init failed (non-fatal): ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+  }
+
   // Only run in the Node.js runtime  -  Edge loads this file during build analysis.
   if ('EdgeRuntime' in globalThis) {
     return;
@@ -194,3 +212,8 @@ export async function register() {
     void error;
   }
 }
+
+// Auto-capture server-side request errors (server actions, RSC, route
+// handlers, middleware). Requires @sentry/nextjs >= 8.28.0; we have ^10.49.0.
+// Pattern per getsentry/sentry-for-ai skills/sentry-nextjs-sdk/SKILL.md.
+export { captureRequestError as onRequestError } from '@sentry/nextjs';
