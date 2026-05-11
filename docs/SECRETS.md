@@ -95,7 +95,12 @@ revealui/prod/google/service-account-from # From address (Workspace user w/ doma
 revealui/prod/google/private-key         # Gmail API service-account PKCS8 PEM
 revealui/prod/github/client-id
 revealui/prod/github/client-secret
-revealui/prod/sentry/auth-token          # CI/CD error tracking
+revealui/prod/sentry/dsn                 # server SENTRY_DSN (apps/server, Hono); required by validate-startup.ts in REQUIRED_IN_PRODUCTION_HOSTED
+revealui/prod/sentry/dsn-admin           # admin NEXT_PUBLIC_SENTRY_DSN (apps/admin, Next.js); enables withSentryConfig wrapper
+revealui/prod/sentry/auth-token          # CI/CD source-map upload (admin build) + error tracking
+revealui/prod/sentry/org                 # Sentry org slug, e.g. revealui-studio (SENTRY_ORG)
+revealui/prod/sentry/project-server      # server project slug, e.g. revealui-server
+revealui/prod/sentry/project-admin       # admin project slug, e.g. revealui-admin (SENTRY_PROJECT)
 revealui/prod/x402/receiving-address     # Base mainnet EVM USDC receiving wallet — X402_RECEIVING_ADDRESS
 revealui/prod/rvui/receiving-wallet      # Solana mainnet RVC receiving wallet (post-launch) — RVUI_RECEIVING_WALLET
 ```
