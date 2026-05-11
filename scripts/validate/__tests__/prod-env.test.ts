@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseDotenv, validatePulledEnv } from '../prod-env';
+import {
+  isVercelEncryptedBlob,
+  parseDotenv,
+  scrubVercelEncryptedBlobs,
+  validatePulledEnv,
+} from '../prod-env';
 
 const VALID_KEK = 'a'.repeat(64);
 const VALID_SECRET = 's'.repeat(32);
@@ -13,6 +18,7 @@ function validHostedEnv(overrides: Record<string, string | undefined> = {}) {
     REVEALUI_KEK: VALID_KEK,
     REVEALUI_PUBLIC_SERVER_URL: 'https://api.revealui.com',
     NEXT_PUBLIC_SERVER_URL: 'https://api.revealui.com',
+    SENTRY_DSN: 'https://abcdef0123456789@o123456.ingest.sentry.io/4505123456789012',
     STRIPE_SECRET_KEY: 'sk_test_abc',
     STRIPE_WEBHOOK_SECRET: 'whsec_xyz',
     REVEALUI_LICENSE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nAAA\n-----END PRIVATE KEY-----',
@@ -22,6 +28,14 @@ function validHostedEnv(overrides: Record<string, string | undefined> = {}) {
     ...overrides,
   };
 }
+
+/**
+ * A real-world Vercel v2 encryption envelope shape, base64 of
+ * `{"v":"v2","c":"<ciphertext>","k":[...]}`. Used to verify the blob
+ * detector — must NOT be confused with a regular env value.
+ */
+const SAMPLE_V2_BLOB = 'eyJ2IjoidjIiLCJjIjoiYWJjZGVmZ2hpamtsbW5vcCIsImsiOlsxLDIsM119';
+// Decoded: {"v":"v2","c":"abcdefghijklmnop","k":[1,2,3]}
 
 describe('parseDotenv', () => {
   it('parses simple KEY=value pairs', () => {
@@ -168,5 +182,121 @@ describe('validatePulledEnv', () => {
     const result = validatePulledEnv(validHostedEnv({ REVEALUI_SECRET: 'short' }));
     expect(result.ok).toBe(false);
     expect(result.message).toContain('REVEALUI_SECRET must be at least 32 characters');
+  });
+});
+
+describe('isVercelEncryptedBlob', () => {
+  it('detects a Vercel v2 envelope by prefix + JSON structure', () => {
+    expect(isVercelEncryptedBlob(SAMPLE_V2_BLOB)).toBe(true);
+  });
+
+  it('rejects plaintext values that happen to be valid HTTPS URLs', () => {
+    expect(isVercelEncryptedBlob('https://api.revealui.com')).toBe(false);
+  });
+
+  it('rejects comma-separated origin lists', () => {
+    expect(isVercelEncryptedBlob('https://revealui.com,https://admin.revealui.com')).toBe(false);
+  });
+
+  it('rejects empty strings', () => {
+    expect(isVercelEncryptedBlob('')).toBe(false);
+  });
+
+  it('rejects the v2 prefix without valid JSON body', () => {
+    // Prefix-only collision — must NOT pass detection.
+    expect(isVercelEncryptedBlob('eyJ2IjoidjIimalformed')).toBe(false);
+  });
+
+  it('rejects valid base64 JSON with the wrong version', () => {
+    // {"v":"v1","c":"..."} — Vercel's older format; our scrub is targeted at v2 only.
+    const v1 = Buffer.from('{"v":"v1","c":"xyz"}').toString('base64');
+    expect(isVercelEncryptedBlob(v1)).toBe(false);
+  });
+
+  it('rejects valid base64 JSON missing the c (ciphertext) field', () => {
+    const noCiphertext = Buffer.from('{"v":"v2"}').toString('base64');
+    expect(isVercelEncryptedBlob(noCiphertext)).toBe(false);
+  });
+
+  it('rejects valid base64 of a non-object (defensive)', () => {
+    const arrayShape = Buffer.from('["v2"]').toString('base64');
+    expect(isVercelEncryptedBlob(arrayShape)).toBe(false);
+  });
+});
+
+describe('scrubVercelEncryptedBlobs', () => {
+  it('replaces encrypted blob values with empty strings', () => {
+    const { env, scrubbedKeys } = scrubVercelEncryptedBlobs({
+      CORS_ORIGIN: SAMPLE_V2_BLOB,
+      OTHER: 'plaintext',
+    });
+    expect(env.CORS_ORIGIN).toBe('');
+    expect(env.OTHER).toBe('plaintext');
+    expect(scrubbedKeys).toEqual(['CORS_ORIGIN']);
+  });
+
+  it('leaves plaintext values untouched', () => {
+    const input = {
+      POSTGRES_URL: 'postgresql://example.com/prod',
+      CORS_ORIGIN: 'https://revealui.com',
+      SENTRY_DSN: 'https://abc@o123.ingest.sentry.io/456',
+    };
+    const { env, scrubbedKeys } = scrubVercelEncryptedBlobs(input);
+    expect(env).toEqual(input);
+    expect(scrubbedKeys).toEqual([]);
+  });
+
+  it('returns an empty key list when no blobs are present', () => {
+    const { scrubbedKeys } = scrubVercelEncryptedBlobs({ FOO: 'bar' });
+    expect(scrubbedKeys).toEqual([]);
+  });
+
+  it('handles an env with multiple blobs', () => {
+    const { env, scrubbedKeys } = scrubVercelEncryptedBlobs({
+      A: SAMPLE_V2_BLOB,
+      B: 'plaintext',
+      C: SAMPLE_V2_BLOB,
+    });
+    expect(env.A).toBe('');
+    expect(env.B).toBe('plaintext');
+    expect(env.C).toBe('');
+    expect(scrubbedKeys.sort()).toEqual(['A', 'C']);
+  });
+});
+
+describe('validatePulledEnv (Vercel v2 envelope integration)', () => {
+  it('passes when CORS_ORIGIN is a v2 envelope (treated as opaque; runtime decrypts)', () => {
+    // This is the 2026-05-11 regression: Vercel CLI started returning
+    // ciphertext for `encrypted`-type vars, breaking every main Deploy.
+    // After the scrub fix, the CI gate skips format check (presence still
+    // counts) and lets deploy proceed; runtime validateStartup() catches
+    // any real misconfig with decrypted values.
+    const result = validatePulledEnv(validHostedEnv({ CORS_ORIGIN: SAMPLE_V2_BLOB }));
+    expect(result.ok).toBe(true);
+    expect(result.scrubbedBlobKeys).toEqual(['CORS_ORIGIN']);
+  });
+
+  it('lists every scrubbed key so CI logs can report the platform-encrypted footprint', () => {
+    const result = validatePulledEnv(
+      validHostedEnv({
+        CORS_ORIGIN: SAMPLE_V2_BLOB,
+        REVEALUI_PUBLIC_SERVER_URL: SAMPLE_V2_BLOB,
+        NEXT_PUBLIC_SERVER_URL: SAMPLE_V2_BLOB,
+      }),
+    );
+    expect(result.ok).toBe(true);
+    expect(result.scrubbedBlobKeys.sort()).toEqual([
+      'CORS_ORIGIN',
+      'NEXT_PUBLIC_SERVER_URL',
+      'REVEALUI_PUBLIC_SERVER_URL',
+    ]);
+  });
+
+  it('still fails on missing required vars even with blobs present (presence > format)', () => {
+    const env = validHostedEnv({ CORS_ORIGIN: SAMPLE_V2_BLOB });
+    delete (env as Record<string, string | undefined>).REVEALUI_ALERT_EMAIL;
+    const result = validatePulledEnv(env);
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/REVEALUI_ALERT_EMAIL/);
   });
 });
