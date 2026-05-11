@@ -99,6 +99,7 @@ vi.mock('../../lib/webhook-emails.js', () => ({
   sendRefundProcessedEmail: vi.fn().mockResolvedValue(undefined),
   sendSupportRenewalConfirmationEmail: vi.fn().mockResolvedValue(undefined),
   sendWebhookFailureAlert: vi.fn().mockResolvedValue(undefined),
+  sendLivemodeMismatchAlert: vi.fn().mockResolvedValue(undefined),
   provisionGitHubAccess: vi.fn().mockResolvedValue(undefined),
 }));
 

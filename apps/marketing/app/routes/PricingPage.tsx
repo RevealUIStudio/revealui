@@ -41,7 +41,7 @@ const faqs = [
   {
     question: 'How does AI inference work?',
     answer:
-      'RevealUI runs AI on open models only (Apache 2.0). No proprietary cloud APIs, no vendor lock-in, no API bills. The recommended path is Ubuntu Inference Snaps from Canonical: run "sudo snap install gemma3 --beta" for instant local inference. Also supported: Ollama (local, any GGUF model), and cloud-hosted open models via the RevealUI harness (Pro+).',
+      'Bring your own model. The default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default — Studio lifecycle pending) — your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
   },
   {
     question: 'What does "full source code access" mean?',
@@ -51,7 +51,7 @@ const faqs = [
   {
     question: 'What is Fair Source (FSL-1.1-MIT)?',
     answer:
-      "Fair Source is a middle path between closed commercial and plain open-source. Our Pro packages (@revealui/ai and @revealui/harnesses) are source-visible on GitHub, installable from npm, and legally usable in commercial products — with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. The Pro tier gate is enforced at runtime (Ed25519-signed license JWTs, 6-layer middleware, per-entry-point feature checks), not at the source level — so FSL is the legal backstop, and runtime enforcement is the real protection. Full explainer at /fair-source.",
+      "Fair Source is a middle path between closed commercial and plain open-source. Our Pro packages (@revealui/ai and @revealui/harnesses) are source-visible on GitHub, installable from npm, and legally usable in commercial products — with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro plan = hosted infra + support, not npm-level enforcement. Full explainer at /fair-source.",
   },
   {
     question: 'Do you offer custom pricing for large teams?',
@@ -59,9 +59,9 @@ const faqs = [
       'Yes! If you need more than what the Enterprise tier offers, contact us at support@revealui.com to discuss custom pricing and SLAs.',
   },
   {
-    question: 'What is the RevealUI ecosystem?',
+    question: 'What is RevFleet?',
     answer:
-      'RevealUI is part of a four-project ecosystem. RevVault provides age-encrypted secret management (CLI free, desktop app Pro). RevKit provides portable dev environment provisioning (agent coordination protocol free, full provisioning Max). RevealCoin (RVC) is the Token-2022 on Solana designed for x402 agent micropayments — currently a pre-launch devnet proof-of-concept; public distribution is gated on on-chain vesting and multi-sig. See the roadmap for current status. Each project works independently. Together they cover building, securing, and monetizing agentic software.',
+      'RevFleet is the RevealUI Studio product family — eight products that compose around the RevealUI runtime. RevealUI is the agentic business runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness for multi-agent coordination across Claude, Cursor, and Copilot (Studio + Console MIT, Daemon Fair Source). RevCon syncs editor configs (MIT). RevSkills is the Claude Code skills library (MIT). RevForge is the operator-side stamping tool that produces white-label trial kits (operator-only). RevKit is the portable WSL dev environment toolkit (Pro). RevealCoin is x402-compatible agent payments — deployed on Solana mainnet but pre-launch (multisig migration + on-chain vesting gating; see RevealCoin README for the open prerequisites). Use RevealUI standalone, or compose what you need.',
   },
 ];
 
@@ -141,6 +141,69 @@ export function PricingPage() {
               Monthly subscriptions with a task allowance included. 7-day free trial on Pro and Max.
             </p>
           </div>
+
+          {/* CFO comparison panel — replacing-what reframe */}
+          <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 p-8 ring-1 ring-blue-200">
+            <p className="text-sm font-semibold uppercase tracking-widest text-blue-700">
+              Replacing what?
+            </p>
+            <h3 className="mt-3 text-2xl font-bold tracking-tight text-gray-950">
+              A typical 5-dev startup pays $800&ndash;$1,000/mo for the backend layer alone.
+            </h3>
+            <ul className="mt-6 grid grid-cols-1 gap-2 text-sm text-gray-700 sm:grid-cols-2">
+              <li className="flex items-baseline gap-2">
+                <span className="text-gray-500">&bull;</span>
+                <span>
+                  <span className="font-semibold text-gray-900">Convex Team:</span> $125/mo (5 ×
+                  $25)
+                </span>
+              </li>
+              <li className="flex items-baseline gap-2">
+                <span className="text-gray-500">&bull;</span>
+                <span>
+                  <span className="font-semibold text-gray-900">Supabase Team:</span> $599/mo
+                </span>
+              </li>
+              <li className="flex items-baseline gap-2">
+                <span className="text-gray-500">&bull;</span>
+                <span>
+                  <span className="font-semibold text-gray-900">Trigger.dev Pro:</span> $50/mo
+                </span>
+              </li>
+              <li className="flex items-baseline gap-2">
+                <span className="text-gray-500">&bull;</span>
+                <span>
+                  <span className="font-semibold text-gray-900">Clerk Pro:</span> $25/mo
+                </span>
+              </li>
+              <li className="flex items-baseline gap-2 sm:col-span-2">
+                <span className="text-gray-500">&bull;</span>
+                <span>
+                  <span className="font-semibold text-gray-900">Stripe + observability:</span>{' '}
+                  ~$50/mo+
+                </span>
+              </li>
+            </ul>
+
+            <div className="mt-6 rounded-xl bg-white p-5 ring-1 ring-blue-200">
+              <p className="text-sm leading-6 text-gray-700">
+                Total backend-platform spend:{' '}
+                <span className="font-semibold">~$800&ndash;$1,000 / mo</span> + per-event API
+                costs.
+              </p>
+              <p className="mt-3 text-base font-semibold text-emerald-800">
+                RevealUI Pro is $49/mo + your own infrastructure. You own the runtime.
+              </p>
+            </div>
+
+            <p className="mt-4 text-xs leading-5 text-gray-600">
+              <em>
+                Deploy targets like Vercel, Cloudflare, Railway, and Hetzner are unchanged &mdash;
+                RevealUI runs on all of them. We replace the backend platforms, not where you ship.
+              </em>
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {tiers.map((tier) => (
               <div
@@ -335,14 +398,24 @@ export function PricingPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold text-white">x402 Per-Call Payments</h3>
+                <h3 className="text-base font-semibold text-white">x402-Native Payments</h3>
                 <p className="mt-2 text-sm text-gray-400">
-                  Agents pay per task with RevealCoin on Solana via the HTTP 402 payment protocol.
-                  No accounts, no subscriptions. Pay exactly for what you use.
+                  RevealUI implements the HTTP 402 payment protocol. Compatible with Amazon Bedrock
+                  AgentCore Payments, Coinbase, and Cloudflare&rsquo;s x402 Foundation. Agents pay
+                  agents over standard HTTP &mdash; no accounts, no subscriptions.
                 </p>
                 <p className="mt-3 text-xs text-gray-400">
-                  Pricing model: per-call, paid in RVC. Final pricing locked when RevealCoin mainnet
-                  launches.
+                  RevealCoin is one optional Solana implementation &mdash; deployed on mainnet but
+                  pre-launch (see{' '}
+                  <a
+                    href="https://github.com/RevealUIStudio/revealcoin#pre-launch-risk-disclosure"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline"
+                  >
+                    RevealCoin README
+                  </a>{' '}
+                  for the open prerequisites).
                 </p>
               </div>
 
@@ -365,7 +438,8 @@ export function PricingPage() {
                 </div>
                 <h3 className="text-base font-semibold text-white">MCP Servers</h3>
                 <p className="mt-2 text-sm text-gray-400">
-                  12 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
+                  {/* COUNT: mcp-servers = 13 (verified at packages/mcp/src/servers/, excluding _-prefixed helpers) */}
+                  13 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
                   Next.js DevTools, content management, and email. Marketplace discovery coming
                   soon.
                 </p>

@@ -19,9 +19,10 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db/client';
 import { marketplaceServers, marketplaceTransactions } from '@revealui/db/schema';
-import { protectedStripe } from '@revealui/services';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
 
@@ -90,8 +91,15 @@ app.post('/marketplace-payouts', async (c) => {
       );
     }
 
+    const services = await getServices();
+    if (!services) {
+      return c.json(
+        { error: 'Marketplace payouts disabled — @revealui/services not installed.' },
+        503,
+      );
+    }
     // GAP-131: shared protectedStripe wrapper (DB-backed circuit breaker + retry)
-    const stripe = protectedStripe;
+    const stripe = services.protectedStripe;
     const results: PayoutResult[] = [];
 
     for (const payout of pendingPayouts) {
@@ -118,19 +126,31 @@ app.post('/marketplace-payouts', async (c) => {
         continue;
       }
 
-      try {
-        const transfer = await stripe.transfers.create({
-          amount: developerCents,
-          currency: 'usd',
-          destination: stripeAccountId,
-          metadata: {
-            batch_payout: 'true',
-            transaction_count: String(payout.transactionCount),
-            total_usdc: payout.totalDeveloperUsdc,
-          },
-        });
+      // K-2 fix: deterministic idempotency key derived from sorted transaction IDs.
+      // Stripe returns the same transfer object when the same key is re-used, so
+      // a cron crash between transfers.create and the DB update is safe to retry —
+      // the second run receives the existing transfer ID and writes it to the DB.
+      const sortedIds = payout.transactionIds.slice().sort();
+      const idempotencyKey = `marketplace-payout-${stripeAccountId}-${sortedIds.join(':')}`;
 
-        // Mark all transactions in this batch with the transfer ID
+      try {
+        const transfer = await stripe.transfers.create(
+          {
+            amount: developerCents,
+            currency: 'usd',
+            destination: stripeAccountId,
+            metadata: {
+              batch_payout: 'true',
+              transaction_count: String(payout.transactionCount),
+              total_usdc: payout.totalDeveloperUsdc,
+            },
+          },
+          { idempotencyKey },
+        );
+
+        // Mark all transactions in this batch with the transfer ID.
+        // Even if transfers.create returned an existing transfer (idempotent retry),
+        // writing the transfer ID here is safe and correct.
         await db
           .update(marketplaceTransactions)
           .set({ stripeTransferId: transfer.id })
@@ -155,7 +175,14 @@ app.post('/marketplace-payouts', async (c) => {
         logger.error('Marketplace payout transfer failed', undefined, {
           stripeAccountId,
           developerCents,
+          idempotencyKey,
           error: message,
+        });
+        void sendCronFailureAlert({
+          jobName: 'marketplace-payouts',
+          error: err instanceof Error ? err : new Error(message),
+          severity: 'error',
+          metadata: { stripeAccountId, developerCents, transactionCount: payout.transactionCount },
         });
         results.push({
           stripeAccountId,
@@ -196,6 +223,12 @@ app.post('/marketplace-payouts', async (c) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     logger.error('Marketplace payout cron failed', undefined, { error: message });
+    void sendCronFailureAlert({
+      jobName: 'marketplace-payouts',
+      error: err instanceof Error ? err : new Error(message),
+      severity: 'fatal',
+      metadata: { phase: 'cron-outer' },
+    });
     return c.json({ error: 'Internal error during marketplace payout processing' }, 500);
   }
 });

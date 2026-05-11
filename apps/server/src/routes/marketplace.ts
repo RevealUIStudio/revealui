@@ -25,14 +25,15 @@ import {
   type NewMarketplaceTransaction,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { protectedStripe } from '@revealui/services';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
+import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { authMiddleware } from '../middleware/auth.js';
 import {
   buildPaymentRequired,
   encodePaymentRequired,
   getAdvertisedCurrencyLabel,
+  getX402Config,
   verifyPayment,
 } from '../middleware/x402.js';
 
@@ -142,12 +143,19 @@ function computeSplit(priceUsdc: string): {
 /**
  * GAP-131: Stripe access goes through the shared protectedStripe wrapper
  * (DB-backed circuit breaker + retry, single API-version pin).
+ *
+ * Lazy-loads @revealui/services per the optional-peer Pro boundary
+ * (8c19db537). Throws when unavailable so callers can return 503.
  */
-function getStripeClient(): typeof protectedStripe {
+async function getStripeClient(): Promise<ProtectedStripe> {
   if (!process.env.STRIPE_SECRET_KEY?.trim()) {
     throw new Error('STRIPE_SECRET_KEY not configured');
   }
-  return protectedStripe;
+  const services = await getServices();
+  if (!services) {
+    throw new Error('@revealui/services not installed');
+  }
+  return services.protectedStripe;
 }
 
 // =============================================================================
@@ -593,6 +601,13 @@ app.openapi(
     },
   }),
   async (c) => {
+    // K-1: Honor the X402_ENABLED kill switch. Marketplace invoke is x402-gated
+    // unconditionally, so an explicit disabled check must fire before any Stripe
+    // customer creation, transfer prep, or DB write.
+    if (!getX402Config().enabled) {
+      throw new HTTPException(503, { message: 'Marketplace temporarily unavailable' });
+    }
+
     const { id } = c.req.valid('param');
 
     const db = getClient();
@@ -757,7 +772,7 @@ app.openapi(
       if (callSucceeded && server.stripeAccountId) {
         const developerCents = Math.round(Number.parseFloat(split.developerAmount) * 100);
         if (developerCents >= 50) {
-          const stripe = getStripeClient();
+          const stripe = await getStripeClient();
           const transfer = await stripe.transfers.create({
             amount: developerCents,
             currency: 'usd',
@@ -837,7 +852,7 @@ app.openapi(
       process.env.ADMIN_URL ??
       'https://admin.revealui.com';
 
-    const stripe = getStripeClient();
+    const stripe = await getStripeClient();
     const db = getClient();
 
     // Check if developer already has a server with a Connect account

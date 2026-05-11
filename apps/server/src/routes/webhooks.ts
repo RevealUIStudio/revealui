@@ -28,10 +28,10 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { protectedStripe } from '@revealui/services';
 import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
+import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import {
   provisionGitHubAccess,
@@ -40,11 +40,13 @@ import {
   sendDisputeReceivedEmail,
   sendGracePeriodStartedEmail,
   sendLicenseActivatedEmail,
+  sendLivemodeMismatchAlert,
   sendPaymentActionRequiredEmail,
   sendPaymentFailedEmail,
   sendPaymentReceiptEmail,
   sendPaymentRecoveredEmail,
   sendPerpetualLicenseActivatedEmail,
+  sendPerpetualLicenseRevokedEmail,
   sendRefundProcessedEmail,
   sendSupportRenewalConfirmationEmail,
   sendTierFallbackAlert,
@@ -67,12 +69,19 @@ type DbExecutor = Pick<Database, 'select' | 'insert' | 'update' | 'delete'>;
  * single API-version pin). The wrapper's `.webhooks` getter exposes the
  * raw Stripe webhooks object for signature verification — that operation
  * is offline (HMAC verify) and does not need breaker protection.
+ *
+ * Lazy-loads the package per the optional-peer Pro boundary (8c19db537).
+ * Throws when unavailable so the webhook handler can return 503.
  */
-function getStripeClient(): typeof protectedStripe {
+async function getStripeClient(): Promise<ProtectedStripe> {
   if (!process.env.STRIPE_SECRET_KEY?.trim()) {
     throw new Error('STRIPE_SECRET_KEY not configured');
   }
-  return protectedStripe;
+  const services = await getServices();
+  if (!services) {
+    throw new Error('@revealui/services not installed');
+  }
+  return services.protectedStripe;
 }
 
 /**
@@ -743,10 +752,10 @@ const stripeWebhookRoute = createRoute({
 
 app.openapi(stripeWebhookRoute, async (c) => {
   let webhookSecrets: { primary: string; secondary?: string };
-  let stripe: typeof protectedStripe;
+  let stripe: ProtectedStripe;
   try {
     webhookSecrets = getWebhookSecret();
-    stripe = getStripeClient();
+    stripe = await getStripeClient();
   } catch (initErr) {
     const msg = initErr instanceof Error ? initErr.message : 'Unknown init error';
     logger.error(
@@ -803,6 +812,37 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
   if (!relevantEvents.has(event.type)) {
     return c.json({ received: true as const }, 200);
+  }
+
+  // D.1 / L.4: Cross-check event.livemode against the server's deployment mode.
+  // A signed event with the wrong livemode flag must never mutate customer state —
+  // it indicates either a misconfigured endpoint or a cross-mode replay attempt.
+  const expectLive = process.env.STRIPE_LIVE_MODE === 'true';
+  if (event.livemode !== expectLive) {
+    const alertEmail = process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com';
+    logger.error('CRITICAL: webhook livemode mismatch — refusing to process', undefined, {
+      eventId: event.id,
+      eventType: event.type,
+      eventLivemode: event.livemode,
+      serverExpectsLive: expectLive,
+    });
+    // TODO: swap to sendCronFailureAlert after PR #787 merges to test
+    sendLivemodeMismatchAlert(alertEmail, {
+      eventId: event.id,
+      eventType: event.type,
+      eventLivemode: event.livemode,
+      serverExpectsLive: expectLive,
+    }).catch((alertErr: unknown) => {
+      logger.error('Failed to send livemode mismatch alert email', undefined, {
+        detail: alertErr instanceof Error ? alertErr.message : String(alertErr),
+      });
+    });
+    return c.json(
+      {
+        error: `Webhook livemode mismatch: server expects live=${String(expectLive)}, event has live=${String(event.livemode)}`,
+      },
+      400,
+    );
   }
 
   // NOTE: We intentionally do NOT enforce a timestamp freshness window here.
@@ -1379,31 +1419,23 @@ app.openapi(stripeWebhookRoute, async (c) => {
         resetLicenseState();
         resetDbStatusCache();
 
-        // Best-effort: also store in Stripe subscription metadata for easy retrieval.
-        // Non-critical  -  license is already persisted in NeonDB above.
-        // Retrieve the key from DB — it was generated inside the saga step.
-        const [checkoutLicense] = await db
-          .select({ licenseKey: licenses.licenseKey })
-          .from(licenses)
-          .where(
-            and(
-              eq(licenses.customerId, customerId),
-              eq(licenses.subscriptionId, subscriptionId),
-              isNull(licenses.deletedAt),
-            ),
-          )
-          .limit(1);
-        if (checkoutLicense) {
-          try {
-            await stripe.subscriptions.update(subscriptionId, {
-              metadata: { license_key: checkoutLicense.licenseKey, license_tier: tier },
-            });
-          } catch (stripeErr) {
-            logger.warn('Failed to write license key to Stripe subscription metadata', {
-              subscriptionId,
-              error: stripeErr instanceof Error ? stripeErr.message : 'unknown',
-            });
-          }
+        // Best-effort: store the license ROW ID in Stripe subscription metadata
+        // for cross-system traceability. Phase 1 audit G-P0-1 (2026-05-09):
+        // we previously wrote the full JWT here ("license_key") for "easy
+        // retrieval", but JWTs are bearer credentials with no revocation —
+        // landing them in Stripe's audit-trail surface (dashboard exports,
+        // GDPR exports, future webhook endpoints) was a credential leak.
+        // The ID alone is opaque; consumers look up the JWT (or revocation
+        // status) via the local `licenses` table.
+        try {
+          await stripe.subscriptions.update(subscriptionId, {
+            metadata: { license_id: licenseId, license_tier: tier },
+          });
+        } catch (stripeErr) {
+          logger.warn('Failed to write license id to Stripe subscription metadata', {
+            subscriptionId,
+            error: stripeErr instanceof Error ? stripeErr.message : 'unknown',
+          });
         }
 
         // Best-effort: tag early adopter in Stripe customer metadata so their
@@ -3021,10 +3053,10 @@ app.openapi(stripeWebhookRoute, async (c) => {
           typeof charge.payment_intent === 'string'
             ? charge.payment_intent
             : (charge.payment_intent?.id ?? null);
+        let refundPi: Stripe.PaymentIntent | null = null;
         if (paymentIntentId) {
-          let pi: Stripe.PaymentIntent | null = null;
           try {
-            pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+            refundPi = await stripe.paymentIntents.retrieve(paymentIntentId);
           } catch (err) {
             logger.warn('Failed to retrieve PaymentIntent for refund — skipping credit-debit', {
               customerId,
@@ -3033,7 +3065,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
               detail: err instanceof Error ? err.message : 'unknown',
             });
           }
-          if (pi?.metadata?.credits_bundle) {
+          if (refundPi?.metadata?.credits_bundle) {
+            const pi = refundPi;
             const bundleTasks = Number.parseInt(pi.metadata.credits_tasks ?? '0', 10);
             // Prorate credit debit by the refund ratio so partial $ refunds
             // debit a proportional number of credits. Full refunds debit the
@@ -3093,9 +3126,71 @@ app.openapi(stripeWebhookRoute, async (c) => {
         }
 
         if (isFullRefund) {
+          // B-1 fix: Revoke perpetual licenses when the originating charge is
+          // fully refunded. Identify the perpetual purchase via the PaymentIntent
+          // metadata set at checkout (payment_intent_data.metadata.perpetual='true').
+          // Match by both customerId AND the specific licenseId stored in PI metadata
+          // so concurrent perpetual purchases for the same customer are not
+          // collateral-revoked.
+          if (refundPi?.metadata?.perpetual === 'true') {
+            const perpetualLicenseId = refundPi.metadata.license_id ?? null;
+            const perpetualTier = refundPi.metadata.tier ?? 'pro';
+
+            const revokeWhere = perpetualLicenseId
+              ? and(
+                  eq(licenses.id, perpetualLicenseId),
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.perpetual, true),
+                  isNull(licenses.deletedAt),
+                )
+              : and(
+                  eq(licenses.customerId, customerId),
+                  eq(licenses.perpetual, true),
+                  isNull(licenses.deletedAt),
+                );
+
+            await db
+              .update(licenses)
+              .set({ status: 'revoked', updatedAt: new Date() })
+              .where(revokeWhere);
+
+            resetLicenseState();
+            resetDbStatusCache();
+
+            logger.warn('Perpetual license revoked: full refund issued', {
+              customerId,
+              chargeId: charge.id,
+              perpetualLicenseId,
+              tier: perpetualTier,
+              amountRefunded: charge.amount_refunded,
+            });
+            auditLicenseEvent(db, 'license.perpetual.revoked.refund', 'warn', {
+              customerId,
+              chargeId: charge.id,
+              perpetualLicenseId,
+              tier: perpetualTier,
+              amountRefunded: charge.amount_refunded,
+            });
+
+            const perpetualEmail =
+              charge.billing_details?.email ??
+              charge.receipt_email ??
+              (await findUserEmailByCustomerId(db, customerId));
+            if (perpetualEmail) {
+              sendPerpetualLicenseRevokedEmail(perpetualEmail, {
+                tier: perpetualTier,
+                amountRefunded: charge.amount_refunded,
+                currency: charge.currency,
+              }).catch((err) => {
+                logger.error('Failed to send perpetual license revoked email', undefined, {
+                  detail: err instanceof Error ? err.message : 'unknown',
+                });
+              });
+            }
+          }
+
           // Only revoke NON-PERPETUAL licenses. Perpetual licenses represent
-          // a separate one-time purchase and must never be revoked by a
-          // subscription charge refund.
+          // a separate one-time purchase handled above.
           await db
             .update(licenses)
             .set({ status: 'revoked', updatedAt: new Date() })

@@ -384,7 +384,7 @@ const ASPIRATIONAL_SCAN_FILES = [
   'docs/BUILD_YOUR_BUSINESS.md',
   'docs/EXAMPLES.md',
   'docs/QUICK_START.md',
-  'docs/SUITE.md',
+  'docs/FLEET.md',
   // Pro tier surface (paying-customer eyes)
   'apps/docs/public/docs-pro/index.md',
   'apps/docs/public/docs-pro/ai/index.md',
@@ -542,16 +542,16 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
 }
 
 // ---------------------------------------------------------------------------
-// Suite-product attribution gate (PR-D, docs-claims-2026-04-26)
+// Fleet-product attribution gate (PR-D, docs-claims-2026-04-26)
 //
-// The RevealUI Studio Suite is eight separate products (RevealUI, RevDev,
+// RevFleet is eight separate products (RevealUI, RevDev,
 // RevVault, RevCon, RevealCoin, Forge, RevSkills, RevKit). When a docs
-// page that belongs to RevealUI itself names another suite product, it
+// page that belongs to RevealUI itself names another fleet product, it
 // must either:
-//   - link to /docs/SUITE or /docs/suite/<name>
+//   - link to /docs/FLEET or /docs/fleet/<name> (canonical fleet map)
 //   - include explicit "(separate product …)" / "RevealUIStudio/<repo>"
 //     attribution on the same line
-//   - live in an allowlisted file (the suite map itself, the per-product
+//   - live in an allowlisted file (the fleet map itself, the per-product
 //     pages, FORGE.md which is the canonical Forge page).
 //
 // Without this, mentions of "Studio" / "RevVault" / "RevCon" / etc. across
@@ -559,7 +559,7 @@ function scanForAspirationalFeatures(): AspirationalMatch[] {
 // of RevealUI" framing, when in reality they're shipped from sibling repos.
 // ---------------------------------------------------------------------------
 
-interface SuiteProductMatch {
+interface FleetProductMatch {
   file: string;
   line: number;
   product: string;
@@ -567,7 +567,7 @@ interface SuiteProductMatch {
 }
 
 /**
- * Files in scope for the suite-attribution gate. Initial coverage is
+ * Files in scope for the fleet-attribution gate. Initial coverage is
  * deliberately narrow — tutorial pages + the rewritten Pro MCP page
  * where existing attribution is clean enough that the gate doesn't
  * trip on legacy text.
@@ -576,10 +576,10 @@ interface SuiteProductMatch {
  * docs-pro/{ai,inference,editors}/index.md, ROADMAP.md, blog posts,
  * VAUGHN.md, SECRETS.md, REST API reference) is queued for follow-up
  * PRs after the remaining attribution in those files is tightened.
- * The honesty audit at `~/suite/.jv/docs/audits/docs-claims-2026-04-26.md`
+ * The honesty audit at `~/revfleet/.jv/docs/audits/docs-claims-2026-04-26.md`
  * tracks the coverage queue.
  */
-const SUITE_ATTRIBUTION_SCAN_FILES = [
+const FLEET_ATTRIBUTION_SCAN_FILES = [
   'docs/BUILD_YOUR_BUSINESS.md',
   'docs/EXAMPLES.md',
   'docs/QUICK_START.md',
@@ -587,17 +587,17 @@ const SUITE_ATTRIBUTION_SCAN_FILES = [
 ];
 
 /**
- * Files that ARE the canonical home for naming suite products. They can
+ * Files that ARE the canonical home for naming fleet products. They can
  * mention products without per-line attribution because the whole file is
  * the attribution.
  */
-const SUITE_ATTRIBUTION_ALLOWLIST = new Set<string>([
-  'docs/SUITE.md',
+const FLEET_ATTRIBUTION_ALLOWLIST = new Set<string>([
+  'docs/FLEET.md',
   'docs/FORGE.md', // canonical Forge product page
 ]);
 
-/** Per-product pages all live under `docs/suite/`. Allowlist by prefix. */
-const SUITE_ATTRIBUTION_ALLOWLIST_PREFIXES = ['docs/suite/'];
+/** Per-product pages all live under `docs/fleet/`. Allowlist by prefix. */
+const FLEET_ATTRIBUTION_ALLOWLIST_PREFIXES = ['docs/fleet/'];
 
 /**
  * Product tokens. The pattern matches each as a standalone word (case-
@@ -610,25 +610,25 @@ const SUITE_ATTRIBUTION_ALLOWLIST_PREFIXES = ['docs/suite/'];
  * desktop-app references typically appear as "Studio desktop app",
  * "Studio dashboard", "Studio (Tauri)", etc.
  */
-const SUITE_PRODUCTS: { token: RegExp; label: string }[] = [
+const FLEET_PRODUCTS: { token: RegExp; label: string }[] = [
   { token: /(?<!RevealUI\s)\bStudio\b/, label: 'Studio (lives in RevDev, not the company name)' },
-  { token: /\bRevVault\b/, label: 'RevVault (separate suite product)' },
-  { token: /\bRevCon\b/, label: 'RevCon (separate suite product)' },
-  { token: /\bRevealCoin\b/, label: 'RevealCoin (separate suite product)' },
-  { token: /\bRevDev\b/, label: 'RevDev (separate suite product)' },
-  { token: /\bRevSkills\b/, label: 'RevSkills (separate suite product)' },
-  { token: /\bRevKit\b/, label: 'RevKit (separate suite product)' },
+  { token: /\bRevVault\b/, label: 'RevVault (separate fleet product)' },
+  { token: /\bRevCon\b/, label: 'RevCon (separate fleet product)' },
+  { token: /\bRevealCoin\b/, label: 'RevealCoin (separate fleet product)' },
+  { token: /\bRevDev\b/, label: 'RevDev (separate fleet product)' },
+  { token: /\bRevSkills\b/, label: 'RevSkills (separate fleet product)' },
+  { token: /\bRevKit\b/, label: 'RevKit (separate fleet product)' },
   { token: /@revealui\/editors\b/, label: '@revealui/editors (does not exist; ships in RevCon)' },
 ];
 
 /**
- * A line is allowed if it cites the suite map, links to a per-product
+ * A line is allowed if it cites the fleet map, links to a per-product
  * page, names the source repo, or includes an explicit attribution
  * phrase. Multiple acceptance patterns — order doesn't matter.
  */
-const SUITE_ATTRIBUTION_QUALIFIER = new RegExp(
+const FLEET_ATTRIBUTION_QUALIFIER = new RegExp(
   [
-    // Direct links to suite map or per-product pages (absolute or relative)
+    // Direct links to fleet map or per-product pages (absolute or relative)
     String.raw`\/docs\/SUITE`,
     String.raw`\/docs\/suite\/`,
     String.raw`\.\/SUITE\.md\b`,
@@ -638,12 +638,12 @@ const SUITE_ATTRIBUTION_QUALIFIER = new RegExp(
     // Source-repo mentions (canonical attribution)
     String.raw`RevealUIStudio\/(revvault|revcon|revealcoin|revdev|revskills|revkit|forge|editor-configs)`,
     // Explicit attribution phrases (non-greedy spans permit markdown bold etc.)
-    String.raw`\bseparate.{0,30}(?:product|repo|suite|kit|app)\b`,
-    String.raw`\bships in.{0,40}(?:product|repo|suite|kit|app|RevDev|RevVault|RevCon|RevealCoin|RevSkills|RevKit|Forge)\b`,
+    String.raw`\bseparate.{0,30}(?:product|repo|suite|fleet|kit|app)\b`,
+    String.raw`\bships in.{0,40}(?:product|repo|suite|fleet|kit|app|RevDev|RevVault|RevCon|RevealCoin|RevSkills|RevKit|Forge|RevFleet)\b`,
     String.raw`\bcompanion product`,
-    String.raw`\bRevealUI Studio Suite`,
-    String.raw`\blives in.{0,30}(?:RevDev|RevVault|RevCon|RevealCoin|RevSkills|RevKit|Forge|monorepo|repo)\b`,
-    String.raw`\bsee (?:\[|\*\*)?(?:RevDev|RevVault|RevCon|RevealCoin|RevSkills|RevKit|Forge|Suite)`,
+    String.raw`\bRevFleet`,
+    String.raw`\blives in.{0,30}(?:RevDev|RevVault|RevCon|RevealCoin|RevSkills|RevKit|Forge|RevFleet|monorepo|repo)\b`,
+    String.raw`\bsee (?:\[|\*\*)?(?:RevDev|RevVault|RevCon|RevealCoin|RevSkills|RevKit|Forge|RevFleet|Fleet)`,
     String.raw`\bintentionally decoupled\b`,
     String.raw`\bnot yet shipped\b`,
     // Forge tier / kit phrasings (Forge is both a product and a tier)
@@ -656,12 +656,12 @@ const SUITE_ATTRIBUTION_QUALIFIER = new RegExp(
   'i',
 );
 
-function scanForSuiteProductLeaks(): SuiteProductMatch[] {
-  const matches: SuiteProductMatch[] = [];
+function scanForFleetProductLeaks(): FleetProductMatch[] {
+  const matches: FleetProductMatch[] = [];
 
   function isAllowlisted(rel: string): boolean {
-    if (SUITE_ATTRIBUTION_ALLOWLIST.has(rel)) return true;
-    return SUITE_ATTRIBUTION_ALLOWLIST_PREFIXES.some((prefix) => rel.startsWith(prefix));
+    if (FLEET_ATTRIBUTION_ALLOWLIST.has(rel)) return true;
+    return FLEET_ATTRIBUTION_ALLOWLIST_PREFIXES.some((prefix) => rel.startsWith(prefix));
   }
 
   function scanFile(filePath: string): void {
@@ -688,9 +688,9 @@ function scanForSuiteProductLeaks(): SuiteProductMatch[] {
       // — frontmatter is not customer-visible prose
       if (i < 20 && (line === '---' || /^[a-zA-Z_][a-zA-Z0-9_-]*:\s/.test(line))) continue;
 
-      for (const product of SUITE_PRODUCTS) {
+      for (const product of FLEET_PRODUCTS) {
         if (!product.token.test(line)) continue;
-        if (SUITE_ATTRIBUTION_QUALIFIER.test(line)) continue;
+        if (FLEET_ATTRIBUTION_QUALIFIER.test(line)) continue;
         matches.push({
           file: rel,
           line: i + 1,
@@ -701,7 +701,7 @@ function scanForSuiteProductLeaks(): SuiteProductMatch[] {
     }
   }
 
-  for (const rel of SUITE_ATTRIBUTION_SCAN_FILES) {
+  for (const rel of FLEET_ATTRIBUTION_SCAN_FILES) {
     const full = path.join(ROOT, rel);
     try {
       const stat = fs.statSync(full);
@@ -740,8 +740,9 @@ const RVUI_LEAK_PATTERN = /\$RVUI\b/;
  * ticker.
  */
 const RVUI_LEAK_ALLOWLIST = new Set<string>([
-  'docs/SUITE.md',
-  'docs/suite/revealcoin.md',
+  'docs/REVFLEET.md',
+  'docs/FLEET.md',
+  'docs/fleet/revealcoin.md',
   // The REST API reference cites the internal route slug (`rvui-payment`)
   // and provides the explicit RVUI-vs-RVC boundary note customers need.
   'docs/api/rest-api/README.md',
@@ -756,7 +757,7 @@ function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
   const matches: RvuiLeakMatch[] = [];
 
   function isAllowlisted(rel: string): boolean {
-    return RVUI_LEAK_ALLOWLIST.has(rel) || rel.startsWith('docs/suite/revealcoin');
+    return RVUI_LEAK_ALLOWLIST.has(rel) || rel.startsWith('docs/fleet/revealcoin');
   }
 
   function scanFile(filePath: string): void {
@@ -928,8 +929,8 @@ function run(): void {
   // Aspirational-feature blocklist for high-visibility landing + docs copy
   const aspirationalClaims = scanForAspirationalFeatures();
 
-  // Suite-product attribution gate (PR-D)
-  const suiteLeaks = scanForSuiteProductLeaks();
+  // Fleet-product attribution gate (PR-D)
+  const fleetLeaks = scanForFleetProductLeaks();
 
   // $RVUI internal-ticker leak guard (PR-D)
   const rvuiLeaks = scanForRvuiTickerLeaks();
@@ -941,7 +942,7 @@ function run(): void {
   console.log(`Unlinked future-tense markers: ${futureClaims.length}`);
   console.log(`Aspirational-feature scan files: ${ASPIRATIONAL_SCAN_FILES.length}`);
   console.log(`Unqualified aspirational features: ${aspirationalClaims.length}`);
-  console.log(`Unattributed suite-product mentions: ${suiteLeaks.length}`);
+  console.log(`Unattributed fleet-product mentions: ${fleetLeaks.length}`);
   console.log(`Internal $RVUI ticker leaks: ${rvuiLeaks.length}`);
 
   if (futureClaims.length > 0) {
@@ -966,14 +967,14 @@ function run(): void {
     );
   }
 
-  if (suiteLeaks.length > 0) {
-    console.log('\nSuite-product mentions without attribution:');
-    for (const c of suiteLeaks) {
+  if (fleetLeaks.length > 0) {
+    console.log('\nFleet-product mentions without attribution:');
+    for (const c of fleetLeaks) {
       console.log(`  ${c.file}:${c.line}  ${c.product}`);
       console.log(`    ${c.text.substring(0, 140)}`);
     }
     console.log(
-      '\nEach suite-product mention must either link to /docs/SUITE or /docs/suite/<name>, name the source repo (RevealUIStudio/<repo>), or include a "(separate product)" attribution. The Suite Map and per-product pages under /docs/suite/ are allowlisted.',
+      '\nEach fleet-product mention must either link to /docs/FLEET or /docs/fleet/<name>, name the source repo (RevealUIStudio/<repo>), or include a "(separate product)" attribution. The fleet map and per-product pages under /docs/fleet/ are allowlisted.',
     );
   }
 
@@ -992,7 +993,7 @@ function run(): void {
     mismatches > 0 ||
     futureClaims.length > 0 ||
     aspirationalClaims.length > 0 ||
-    suiteLeaks.length > 0 ||
+    fleetLeaks.length > 0 ||
     rvuiLeaks.length > 0;
 
   if (anyFailures) {
@@ -1008,8 +1009,8 @@ function run(): void {
     if (aspirationalClaims.length > 0) {
       console.log('\nFailed: unqualified aspirational features.');
     }
-    if (suiteLeaks.length > 0) {
-      console.log('\nFailed: suite-product mentions without attribution.');
+    if (fleetLeaks.length > 0) {
+      console.log('\nFailed: fleet-product mentions without attribution.');
     }
     if (rvuiLeaks.length > 0) {
       console.log('\nFailed: $RVUI internal-codename leaks in public docs.');
@@ -1017,7 +1018,7 @@ function run(): void {
     process.exit(1);
   } else {
     console.log(
-      '\nAll claims match codebase reality, future-tense markers are tracked, aspirational features are qualified, suite products are attributed, and no $RVUI ticker leaks were found.',
+      '\nAll claims match codebase reality, future-tense markers are tracked, aspirational features are qualified, fleet products are attributed, and no $RVUI ticker leaks were found.',
     );
   }
 }

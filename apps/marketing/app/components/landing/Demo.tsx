@@ -38,26 +38,15 @@ export function Demo() {
           <div className="relative rounded-3xl bg-gray-950 p-2 ring-1 ring-gray-950/10 shadow-2xl">
             <div className="relative overflow-hidden rounded-2xl bg-white">
               <ProductMockup />
-              {/* Play button overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-950/30 backdrop-blur-[1px]">
-                <button
-                  type="button"
-                  aria-label="Play 90-second demo"
-                  className="group flex h-20 w-20 items-center justify-center rounded-full bg-white/95 shadow-xl ring-1 ring-white/40 transition hover:scale-105 hover:bg-white"
-                >
-                  <svg
-                    className="h-8 w-8 translate-x-0.5 text-gray-950"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <title>Play</title>
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </button>
-              </div>
             </div>
           </div>
-          <p className="mt-3 text-center text-xs text-gray-500">Recording coming soon.</p>
+          <p className="mt-3 text-center text-xs text-gray-500">
+            Local screenshot from a fresh{' '}
+            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700">
+              npx create-revealui
+            </code>
+            . The three beats below describe the steps.
+          </p>
         </div>
 
         <div className="mx-auto mt-20 grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-3">

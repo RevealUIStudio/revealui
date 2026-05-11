@@ -92,6 +92,13 @@ const REQUIRED_IN_PRODUCTION_HOSTED = [
   // signals. Without it, ops email falls back to a hard-coded default; making
   // this required forces an explicit decision per environment.
   'REVEALUI_ALERT_EMAIL',
+  // Sentry DSN for error capture. The Sentry init in apps/server/src/index.ts
+  // is guarded by `if (process.env.SENTRY_DSN)`, so a missing value silently
+  // drops all Sentry coverage with no boot-time failure. Making this required
+  // ensures we never boot a hosted production deployment without Sentry wired —
+  // the checkout-route HTTPException capture and sendCronFailureAlert Sentry
+  // path both depend on it. GAP-S1 / Phase 1 audit J-P0-1.
+  'SENTRY_DSN',
 ] as const;
 
 const REQUIRED_IN_PRODUCTION_FORGE = [
@@ -310,15 +317,28 @@ export function validateStartup(
       );
     }
 
-    // Sentry DSN format (hosted-only — Forge customers run self-hosted without
-    // Sentry). A missing DSN silently disables all Sentry capture including the
-    // checkout-route HTTPException path; requiring it forces the operator to
-    // explicitly set it before booting in production.
+    // Sentry DSN format — must be a valid URL. Sentry DSNs follow the shape
+    // https://<key>@<org>.ingest.sentry.io/<projectId>. Rather than encoding
+    // that shape as a regex (no-regex-authored rule), we parse with the URL
+    // constructor: any valid DSN is also a valid HTTPS URL, and anything that
+    // fails URL parsing is definitely wrong. Hosted-only — Forge customers run
+    // self-hosted without Sentry. Required so a missing DSN doesn't silently
+    // disable Sentry capture (incl. checkout-route HTTPException path).
+    // GAP-S1 / Phase 1 audit J-P0-1; hotfix #744 (hosted requirement).
     const sentryDsn = env.SENTRY_DSN ?? '';
-    if (!(skipFormat(sentryDsn) || sentryDsn.includes('://'))) {
-      errors.push(
-        `SENTRY_DSN must be a valid DSN URL (e.g. https://<key>@<host>/<project>). Got: ${JSON.stringify(sentryDsn)}.`,
-      );
+    if (!skipFormat(sentryDsn)) {
+      let sentryDsnValid = false;
+      try {
+        const parsed = new URL(sentryDsn);
+        sentryDsnValid = parsed.protocol === 'https:';
+      } catch {
+        sentryDsnValid = false;
+      }
+      if (!sentryDsnValid) {
+        errors.push(
+          `SENTRY_DSN must be a valid HTTPS URL (e.g. https://<key>@<org>.ingest.sentry.io/<projectId>). Got: ${JSON.stringify(sentryDsn)}.`,
+        );
+      }
     }
 
     // CORS_ORIGIN is comma-separated; every origin must be HTTPS in hosted prod.
@@ -433,11 +453,18 @@ export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvM
   // Restore real newlines if the public key landed as a single-line PEM
   // (the .env-encoded format that stamp.sh produces).
   const publicKey = env.REVEALUI_LICENSE_PUBLIC_KEY.replace(/\\n/g, '\n');
-  const payload = await validateLicenseKey(env.REVEALUI_LICENSE_KEY, publicKey);
+  // Phase 1 audit B-2: bind the license to a specific customer when the
+  // operator has provided REVEALUI_LICENSED_CUSTOMER_ID. Without this, a
+  // leaked JWT from one customer would license another customer's
+  // deployment. Hosted mode does not set this — the deployment IS the
+  // customer. Forge stamping should set it (revforge#NN tracking).
+  const expectedCustomerId = env.REVEALUI_LICENSED_CUSTOMER_ID || undefined;
+  const payload = await validateLicenseKey(env.REVEALUI_LICENSE_KEY, publicKey, expectedCustomerId);
   if (!payload) {
     throw new Error(
       'LICENSE VALIDATION FAILED: REVEALUI_LICENSE_KEY is invalid, expired beyond grace, ' +
-        'or signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY. ' +
+        'signed with a key that does not match REVEALUI_LICENSE_PUBLIC_KEY, or its ' +
+        'customerId does not match REVEALUI_LICENSED_CUSTOMER_ID (if set). ' +
         'Contact the operator who stamped this kit to re-issue the license.',
     );
   }

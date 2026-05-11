@@ -374,6 +374,29 @@ ${supportFooter('If you believe this is an error, contact')}`,
   });
 }
 
+export async function sendPerpetualLicenseRevokedEmail(
+  to: string,
+  opts: { tier: string; amountRefunded: number; currency: string },
+): Promise<void> {
+  const support = supportEmail();
+  const amountStr = formatStripeAmount(opts.amountRefunded, opts.currency);
+  const currencyUpper = opts.currency.toUpperCase();
+  const label = tierLabel(opts.tier);
+  await sendEmail({
+    to,
+    subject: 'Your RevealUI perpetual license has been revoked',
+    html: emailShell(
+      'Perpetual License Revoked',
+      `<h1 style="color: #dc2626;">Perpetual License Revoked</h1>
+<p>A full refund of <strong>${amountStr} ${escapeHtml(currencyUpper)}</strong> has been issued for your RevealUI ${escapeHtml(label)} Perpetual License.</p>
+<p>Because the purchase has been fully refunded, your perpetual license has been revoked and access has been removed.</p>
+<p>If you believe this was issued in error, please contact us at <a href="mailto:${support}">${support}</a> and we will be happy to assist.</p>
+${supportFooter('If you have questions about this revocation, contact')}`,
+    ),
+    text: `A full refund of ${amountStr} ${currencyUpper} has been issued for your RevealUI ${label} Perpetual License. Your license has been revoked. Contact ${support} if you believe this was issued in error.`,
+  });
+}
+
 export async function sendDisputeLostEmail(to: string): Promise<void> {
   const portal = billingUrl();
   const support = supportEmail();
@@ -689,4 +712,32 @@ export async function provisionGitHubAccess(githubUsername: string, db?: Databas
   } else {
     logger.info('GitHub team access provisioned', { githubUsername, state: body.state });
   }
+}
+
+export async function sendLivemodeMismatchAlert(
+  email: string,
+  context: {
+    eventId: string;
+    eventType: string;
+    eventLivemode: boolean;
+    serverExpectsLive: boolean;
+  },
+): Promise<void> {
+  const received = context.eventLivemode ? 'LIVE' : 'TEST';
+  const expected = context.serverExpectsLive ? 'LIVE' : 'TEST';
+  await sendEmail({
+    to: email,
+    subject: `[SECURITY] RevealUI: Webhook livemode mismatch — received ${received}, expected ${expected}`,
+    html: emailShell(
+      'Webhook Livemode Mismatch',
+      `<h1 style="color: #dc2626;">Security Alert: Webhook Livemode Mismatch</h1>
+<p>A Stripe webhook event was rejected because its <code>livemode</code> flag does not match the server's deployment mode. The event was NOT processed.</p>
+<p><strong>Event ID:</strong> <code>${escapeHtml(context.eventId)}</code></p>
+<p><strong>Event Type:</strong> <code>${escapeHtml(context.eventType)}</code></p>
+<p><strong>Event livemode:</strong> ${received}</p>
+<p><strong>Server expects:</strong> ${expected}</p>
+<p style="color: #dc2626; font-weight: bold;">This may indicate a misconfigured Stripe webhook endpoint, a routing error, or an attempted cross-mode replay. Investigate immediately.</p>`,
+    ),
+    text: `Security Alert: Webhook livemode mismatch.\n\nEvent ID: ${context.eventId}\nEvent Type: ${context.eventType}\nEvent livemode: ${received}\nServer expects: ${expected}\n\nThe event was NOT processed. Investigate immediately.`,
+  });
 }

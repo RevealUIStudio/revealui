@@ -125,13 +125,13 @@ describe('slug-manifest', () => {
     // Spot-check a few well-known docs to catch wholesale regressions.
     expect(SLUG_TO_PATH['admin-guide']).toBe('ADMIN_GUIDE.md');
     expect(SLUG_TO_PATH['quick-start']).toBe('QUICK_START.md');
-    expect(SLUG_TO_PATH['architecture']).toBe('ARCHITECTURE.md');
+    expect(SLUG_TO_PATH.architecture).toBe('ARCHITECTURE.md');
     expect(SLUG_TO_PATH['blog/02-http-402-payments']).toBe('blog/02-http-402-payments.md');
     expect(SLUG_TO_PATH['ai/prompt-caching']).toBe('ai/PROMPT_CACHING.md');
   });
 
   it('Vite plugin INTERNAL_DOC_FILES are NOT in the manifest', () => {
-    // These files exist in suite-root docs/ but are excluded from public serving.
+    // These files exist in fleet-root docs/ but are excluded from public serving.
     // The manifest must mirror the same exclusion or external links would 404.
     const internal = [
       'MASTER_PLAN.md',

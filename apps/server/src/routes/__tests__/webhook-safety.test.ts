@@ -926,8 +926,12 @@ describe('Webhook Safety  -  money-critical paths', () => {
         // #4: ensureHostedAccount → users by id (user not found → returns null)
         // #5: resolveHostedAccountId → accountSubscriptions (no subscription)
         // #6: resolveHostedAccountId → users by stripeCustomerId (no user → returns null)
-        // #7: post-saga license key retrieval for Stripe metadata
-        // #8: findUserEmailByCustomerId → users (returns email for fallback)
+        // #7: findUserEmailByCustomerId → users (returns email for fallback)
+        //
+        // (Phase 1 audit G-P0-1, 2026-05-09: the previous post-saga
+        // license-key retrieval for Stripe metadata was removed — Stripe
+        // metadata now stores license_id from in-scope variable, no DB
+        // round-trip. The mock chain is one shorter accordingly.)
         mockDbSelectChain.limit
           .mockResolvedValueOnce([{ id: 'user_fallback' }])
           .mockResolvedValueOnce([])
@@ -935,7 +939,6 @@ describe('Webhook Safety  -  money-critical paths', () => {
           .mockResolvedValueOnce([])
           .mockResolvedValueOnce([])
           .mockResolvedValueOnce([])
-          .mockResolvedValueOnce([{ licenseKey: 'rv-license-key-safety-test' }])
           .mockResolvedValueOnce([{ email: 'dbuser@test.com' }]);
 
         const event = {

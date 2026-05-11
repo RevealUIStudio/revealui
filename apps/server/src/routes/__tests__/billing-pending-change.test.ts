@@ -271,12 +271,17 @@ function post(path: string, body: unknown) {
 function makeStripeSubscription(opts: {
   id: string;
   itemId?: string;
+  priceId?: string;
   metadata?: Record<string, string>;
 }) {
   return {
     id: opts.id,
     status: 'active',
-    items: { data: [{ id: opts.itemId ?? `si_${opts.id}` }] },
+    items: {
+      data: [
+        { id: opts.itemId ?? `si_${opts.id}`, price: { id: opts.priceId ?? `price_${opts.id}` } },
+      ],
+    },
     metadata: { ...(opts.metadata ?? {}) },
     cancel_at: null,
     cancel_at_period_end: false,
@@ -300,8 +305,12 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
       [{ stripePriceId: 'price_enterprise_server' }],
       [],
       [{ stripeCustomerId: 'cus_solo' }],
+      [{ stripePriceId: 'price_enterprise_server' }],
     );
-    const subscription = makeStripeSubscription({ id: 'sub_solo' });
+    const subscription = makeStripeSubscription({
+      id: 'sub_solo',
+      priceId: 'price_enterprise_server',
+    });
     mockSubscriptionsList.mockResolvedValue({ data: [subscription] });
     mockSubscriptionsUpdate.mockImplementation(
       async (_id: string, args: { metadata?: Record<string, string> }) => {
@@ -329,17 +338,22 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
       [{ stripePriceId: 'price_enterprise_server' }],
       [],
       [{ stripeCustomerId: 'cus_dual' }],
+      [{ stripePriceId: 'price_enterprise_server' }],
       // Second request select chain
       [{ stripePriceId: 'price_enterprise_server' }],
       [],
       [{ stripeCustomerId: 'cus_dual' }],
+      [{ stripePriceId: 'price_enterprise_server' }],
     );
 
     // Shared subscription state. After the first .update, the metadata
     // contains pending_change/pending_change_at; the second .list returns
     // the same object with that metadata populated  -  same pattern Stripe
     // exhibits on a real second concurrent webhook delivery.
-    const subscription = makeStripeSubscription({ id: 'sub_dual' });
+    const subscription = makeStripeSubscription({
+      id: 'sub_dual',
+      priceId: 'price_enterprise_server',
+    });
     mockSubscriptionsList.mockResolvedValue({ data: [subscription] });
     mockSubscriptionsUpdate.mockImplementation(
       async (_id: string, args: { metadata?: Record<string, string> }) => {
@@ -379,12 +393,17 @@ describe('POST /upgrade  -  pending_change mutex (R5-H10)', () => {
       [],
       [{ stripeCustomerId: 'cus_alice' }],
       [{ stripePriceId: 'price_enterprise_server' }],
+      [{ stripePriceId: 'price_enterprise_server' }],
       [],
       [{ stripeCustomerId: 'cus_bob' }],
+      [{ stripePriceId: 'price_enterprise_server' }],
     );
 
-    const subAlice = makeStripeSubscription({ id: 'sub_alice' });
-    const subBob = makeStripeSubscription({ id: 'sub_bob' });
+    const subAlice = makeStripeSubscription({
+      id: 'sub_alice',
+      priceId: 'price_enterprise_server',
+    });
+    const subBob = makeStripeSubscription({ id: 'sub_bob', priceId: 'price_enterprise_server' });
 
     // Stripe.subscriptions.list returns the matching customer's subscription.
     // Each list call sees fresh metadata for that customer; mutex on Alice's

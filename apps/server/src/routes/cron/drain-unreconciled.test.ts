@@ -64,7 +64,7 @@ vi.mock('@revealui/services', () => ({
   },
 }));
 
-vi.mock('../../lib/webhook-emails.js', () => ({
+vi.mock('../../lib/cron-alerts.js', () => ({
   sendCronFailureAlert: (...args: unknown[]) => hoisted.sendCronFailureAlert(...args),
 }));
 
@@ -303,7 +303,7 @@ describe('drain-unreconciled failures', () => {
 describe('drain-unreconciled cron alert wiring', () => {
   const CRON_SECRET = 'test-cron-secret-xxxxxxxxxxxxxxxxxxx';
 
-  it('calls sendCronFailureAlert with severity critical when a >24h event replay fails', async () => {
+  it('calls sendCronFailureAlert with severity error when a >24h event replay fails', async () => {
     const { db } = buildDbMock([
       {
         eventId: 'evt_alert_critical',
@@ -321,11 +321,11 @@ describe('drain-unreconciled cron alert wiring', () => {
     await invokeDrain(CRON_SECRET);
 
     expect(hoisted.sendCronFailureAlert).toHaveBeenCalledWith(
-      expect.any(String),
       expect.objectContaining({
         jobName: 'drain-unreconciled',
-        severity: 'critical',
-        details: expect.objectContaining({
+        severity: 'error',
+        error: expect.any(Error),
+        metadata: expect.objectContaining({
           eventId: 'evt_alert_critical',
           eventType: 'customer.subscription.deleted',
         }),

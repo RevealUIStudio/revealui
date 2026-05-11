@@ -2,7 +2,7 @@
 
 ## One-sentence summary
 
-**All secrets in the RevealUI Suite live in revvault, encrypted by an
+**All secrets in RevFleet live in revvault, encrypted by an
 age identity that doesn't leave the developer's machine.**
 
 If that sentence ever becomes false — even for one secret — we have a
@@ -16,7 +16,7 @@ lives in a `.env`, a `.env.local`, a CI environment variable as its
 primary store, a password manager as its primary store, or committed
 config. Revvault is canonical; everything downstream is a mirror.
 
-Full cross-suite rule: see `~/.claude/rules/secrets.md`.
+Full cross-fleet rule: see `~/.claude/rules/secrets.md`.
 
 ## What counts as a secret
 
@@ -127,7 +127,7 @@ revdev/github-token                      # perpetual license GitHub provisioning
 ### Licensing (RevealUI)
 
 ```
-revealui/env/license                     # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY (consumed by ~/suite/revealui/.envrc via `revvault export-env`)
+revealui/env/license                     # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY (consumed by ~/revfleet/revealui/.envrc via `revvault export-env`)
 revealui/prod/license/private-key        # Ed25519 license signing key (production; mirrored to Vercel `revealui-api` + `revealui-admin`) — migrated RS256 → Ed25519 via CR8-P0-01 Phase D 2026-05-04
 revealui/prod/license/public-key         # Ed25519 license verification key (production; mirrored to Vercel `revealui-api` + `revealui-admin`) — migrated RS256 → Ed25519 via CR8-P0-01 Phase D 2026-05-04
 ```
@@ -248,7 +248,7 @@ revvault export-env --prefix revealui/prod | vercel env import --environment pro
 
 The revvault store is unlocked by a single X25519 age identity at
 `$HOME/.age-identity/keys.txt` (or `REVVAULT_IDENTITY`). Losing that
-file means losing every secret in the suite.
+file means losing every secret in RevFleet.
 
 Backup policy for the age identity is documented in
 [`SECURITY.md`](./SECURITY.md#age-identity-backup). Summary:

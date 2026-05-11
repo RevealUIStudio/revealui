@@ -76,17 +76,17 @@ const pages = [
           {
             size: 'full',
             richText: richTextDoc(
-              heading('Build Your Business, Not Your Boilerplate'),
+              heading('Stop building the backend. Ship the AI business.'),
               paragraph(
-                'RevealUI is an agentic business runtime. Users, content, products, payments, and intelligence  -  five primitives, pre-wired into one deployable stack. Ship in days what used to take months.',
+                'Auth, billing, content, and agents - wired, audited, yours. Five primitives, one audit log, one policy plane. From npx create-revealui to first paying customer in a weekend.',
               ),
               heading('Why RevealUI?', 'h3'),
               paragraph(
-                'Customers expect adaptive, intelligent products  -  not static dashboards with manual workflows. RevealUI gives you the runtime to build what comes next: products that learn, adapt, and act on behalf of your users.',
+                'Every action by every human and every agent is RBAC-gated, ABAC-checked, and signed into a tamper-evident audit chain. The same primitives the runtime exposes to your team are auto-exposed to your agents via MCP. One contract, two audiences.',
               ),
               heading('Get Started', 'h3'),
               paragraph(
-                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. Everything works out of the box.',
+                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 24 of 26 packages are MIT - forever; the 2 Pro packages convert to MIT after 2 years.',
               ),
             ),
           },
@@ -160,12 +160,12 @@ const sampleContent = {
     {
       name: 'The Adaptive Runtime Playbook',
       description:
-        'Static dashboards and manual workflows are finished. What replaces them are adaptive runtimes  -  products that ship with intelligence built in, not bolted on. RevealUI is the runtime for that transition.',
+        'Static dashboards and manual workflows are finished. What replaces them are adaptive runtimes where humans and agents work on the same data, the same permissions, and the same business logic. RevealUI is the runtime for that transition.',
     },
     {
-      name: 'Five Primitives, One Stack',
+      name: 'Five Primitives. One Audit Log. One Policy Plane.',
       description:
-        'Users. Content. Products. Payments. Intelligence. Every business application needs these five primitives. RevealUI pre-wires them into a single deployable stack  -  authenticated, tested, and wired together from day one.',
+        'Users. Content. Products. Payments. Intelligence. Every action by every human and every agent is RBAC-gated, ABAC-checked, and signed into a tamper-evident audit chain. Define once; both audiences operate immediately.',
     },
   ],
   cards: [
@@ -210,26 +210,26 @@ const sampleContent = {
       title: 'VISION',
       name: 'Agentic Business Runtime',
       description:
-        'Subscription software taught us recurring revenue. The next era teaches us adaptive intelligence. RevealUI ships with AI agents that learn from your data, automate your workflows, and act on behalf of your users  -  all running on open-source models.',
+        'You build the product. Agents extend it. Bring your own model: default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) so the inference bill does not scale with usage; switch to Claude or GPT in one config line. The runtime is provider-agnostic.',
       alt: 'RevealUI agentic vision',
     },
   ],
   banners: [
     {
-      heading: 'Build Your Business, Not Your Boilerplate',
-      subheading: 'Agentic Business Runtime',
+      heading: 'Stop building the backend. Ship the AI business.',
+      subheading: 'Open-source. Self-hostable. Audit-grade.',
       description:
-        'Users, content, products, payments, and intelligence  -  five primitives, one runtime. Ship in days what used to take months.',
+        'Auth, billing, content, and agents - wired, audited, yours. Five primitives, one audit log, one policy plane. From npx create-revealui to first paying customer in a weekend.',
       cta: 'Get Started',
       highlight: 'Open Source',
       punctuation: '.',
       alt: 'RevealUI banner',
       link: { href: '/getting-started', text: 'Start Building' },
       stats: [
-        { label: 'Packages', value: '22' },
-        { label: 'Tests', value: '20,000+' },
-        { label: 'License', value: 'MIT' },
-        { label: 'AI Agents', value: 'Pro' },
+        { label: 'Packages', value: '26' },
+        { label: 'MCP Servers', value: '13' },
+        { label: 'UI Components', value: '58' },
+        { label: 'MIT', value: '24/26' },
       ],
     },
   ],

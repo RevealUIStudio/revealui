@@ -16,6 +16,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { Hono } from 'hono';
+import billingApp from '../billing.js';
 import billingReadinessApp from './billing-readiness.js';
 import cleanupApp from './cleanup.js';
 import drainUnreconciledApp from './drain-unreconciled.js';
@@ -66,6 +67,12 @@ const JOBS = [
   { name: 'cleanup', app: cleanupApp, path: '/cleanup' },
   { name: 'uptime-check', app: uptimeCheckApp, path: '/uptime-check' },
   { name: 'jobs-safety-net', app: jobsSafetyNetApp, path: '/jobs-safety-net' },
+  // report-agent-overage emits previous-cycle agent_task_overage to Stripe
+  // Billing Meters via protectedStripe.billing.meterEvents.create. Idempotent
+  // per (userId, prevCycle) so daily firings collapse to one charge per cycle.
+  // No-op until STRIPE_AGENT_OVERAGE_PRICE_ID + STRIPE_AGENT_METER_EVENT_NAME
+  // are set AND active subscriptions carry the metered item.
+  { name: 'report-agent-overage', app: billingApp, path: '/report-agent-overage' },
 ];
 
 app.post('/dispatch', async (c) => {

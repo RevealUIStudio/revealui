@@ -1,7 +1,7 @@
 ---
 name: revealui-react-nextjs-patterns
 description: React 19 and Next.js 16 best practices for RevealUI development
-version: "1.0.0"
+version: "0.1.0"
 author: RevealUI Team
 tags:
   - react

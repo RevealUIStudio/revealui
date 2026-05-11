@@ -227,6 +227,7 @@ function makeSubscriptionDeletedEvent(id: string) {
   return {
     id,
     type: 'customer.subscription.deleted',
+    livemode: false,
     data: { object: { id: 'sub_test', customer: 'cus_test' } },
   };
 }
@@ -275,6 +276,7 @@ describe('POST /stripe webhook', () => {
     process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
     process.env.STRIPE_WEBHOOK_SECRET = 'whsec_placeholder';
     process.env.REVEALUI_LICENSE_PRIVATE_KEY = 'fake-private-key';
+    process.env.STRIPE_LIVE_MODE = 'false';
   });
 
   describe('Request validation', () => {
@@ -307,6 +309,7 @@ describe('POST /stripe webhook', () => {
     it('returns 200 for irrelevant event types', async () => {
       mockConstructEvent.mockReturnValueOnce({
         id: 'evt_irrelevant',
+        livemode: false,
         type: 'payment_intent.created',
         data: { object: {} },
       });
@@ -384,6 +387,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_updated_pastdue_2',
         type: 'customer.subscription.updated',
+        livemode: false,
         data: { object: { id: 'sub_test', customer: 'cus_test', status: 'past_due' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -401,6 +405,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_updated_unpaid_2',
         type: 'customer.subscription.updated',
+        livemode: false,
         data: { object: { id: 'sub_test', customer: 'cus_test', status: 'unpaid' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -417,6 +422,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_updated_active_2',
         type: 'customer.subscription.updated',
+        livemode: false,
         data: {
           object: {
             id: 'sub_test',
@@ -441,6 +447,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_updated_pastdue_audit_2',
         type: 'customer.subscription.updated',
+        livemode: false,
         data: { object: { id: 'sub_test', customer: 'cus_test', status: 'past_due' } },
       };
       mockConstructEvent.mockReturnValueOnce(event);
@@ -460,6 +467,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_checkout_payment_2',
         type: 'checkout.session.completed',
+        livemode: false,
         data: {
           object: { mode: 'payment', subscription: null, customer: 'cus_test', metadata: {} },
         },
@@ -480,6 +488,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_checkout_nouser_2',
         type: 'checkout.session.completed',
+        livemode: false,
         data: {
           object: {
             mode: 'subscription',
@@ -512,6 +521,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_checkout_trial_1',
         type: 'checkout.session.completed',
+        livemode: false,
         data: {
           object: {
             mode: 'subscription',
@@ -542,6 +552,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_checkout_retrieve_fail_1',
         type: 'checkout.session.completed',
+        livemode: false,
         data: {
           object: {
             mode: 'subscription',
@@ -568,6 +579,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_checkout_success_2',
         type: 'checkout.session.completed',
+        livemode: false,
         data: {
           object: {
             mode: 'subscription',
@@ -599,6 +611,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_checkout_missing_tier_1',
         type: 'checkout.session.completed',
+        livemode: false,
         data: {
           object: {
             mode: 'subscription',
@@ -643,6 +656,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_checkout_bad_tier_1',
         type: 'checkout.session.completed',
+        livemode: false,
         data: {
           object: {
             mode: 'subscription',
@@ -685,6 +699,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_checkout_email_fail_1',
         type: 'checkout.session.completed',
+        livemode: false,
         data: {
           object: {
             mode: 'subscription',
@@ -718,6 +733,7 @@ describe('POST /stripe webhook', () => {
       const event = {
         id: 'evt_checkout_retry_recover_1',
         type: 'checkout.session.completed',
+        livemode: false,
         data: {
           object: {
             mode: 'subscription',
@@ -745,6 +761,7 @@ describe('POST /stripe webhook', () => {
       return {
         id,
         type: 'invoice.payment_succeeded',
+        livemode: false,
         created: 1700000000,
         data: {
           object: {
@@ -979,6 +996,7 @@ describe('POST /stripe webhook', () => {
       return {
         id,
         type: 'invoice.payment_failed',
+        livemode: false,
         data: {
           object: {
             id: 'in_fail_test',

@@ -34,10 +34,10 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { unreconciledWebhooks } from '@revealui/db/schema';
-import { protectedStripe } from '@revealui/services';
 import { and, asc, eq, isNull } from 'drizzle-orm';
 import { Hono } from 'hono';
-import { sendCronFailureAlert } from '../../lib/webhook-emails.js';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { getServices } from '../../lib/services-loader.js';
 import { replayStripeEvent } from '../../lib/webhook-replay.js';
 import webhooksApp from '../webhooks.js';
 
@@ -100,11 +100,15 @@ app.post('/drain-unreconciled', async (c) => {
   const durationBudgetMs =
     Number.parseInt(process.env.DRAIN_DURATION_BUDGET_MS ?? '', 10) || DEFAULT_DURATION_BUDGET_MS;
 
+  const services = await getServices();
+  if (!services) {
+    return c.json({ error: 'Drainer disabled — @revealui/services not installed.' }, 503);
+  }
   const db = getClient();
   // GAP-131: shared protectedStripe wrapper. The events.retrieve surface
   // is structurally compatible with replayStripeEvent's ReplayDeps.stripe
   // (StripeEventsClient).
-  const stripe = protectedStripe;
+  const stripe = services.protectedStripe;
 
   // Oldest unresolved first — they are most at risk of escalating past the
   // 24h critical threshold.
@@ -214,19 +218,16 @@ app.post('/drain-unreconciled', async (c) => {
         undefined,
         { eventId: row.eventId, eventType: row.eventType, ageMs, detail },
       );
-      sendCronFailureAlert(process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com', {
+      void sendCronFailureAlert({
         jobName: 'drain-unreconciled',
-        error: detail ?? 'replay failed',
-        severity: 'critical',
-        details: {
+        error: new Error(`CRITICAL: event ${row.eventId} unresolved >24h and replay failed`),
+        severity: 'error',
+        metadata: {
           eventId: row.eventId,
           eventType: row.eventType,
-          ageHours: Math.floor(ageMs / (60 * 60 * 1000)),
+          ageMs,
+          detail: detail ?? 'unknown',
         },
-      }).catch((err: unknown) => {
-        logger.error('[drain-unreconciled] failed to send cron failure alert', undefined, {
-          alertError: err instanceof Error ? err.message : String(err),
-        });
       });
     } else {
       logger.warn(`[drain-unreconciled] replay failed for ${row.eventId}`, {

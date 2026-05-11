@@ -715,7 +715,7 @@ describe('POST /upgrade', () => {
 
     expect(res.status).toBe(400);
     const body = (await res.json()) as Record<string, unknown>;
-    expect(body.error as string).toContain('no items');
+    expect(body.error as string).toContain('no recognized flat-tier item');
   });
 
   it('returns success with subscriptionId on valid upgrade', async () => {
@@ -723,9 +723,16 @@ describe('POST /upgrade', () => {
       [{ stripePriceId: 'price_enterprise_server' }],
       [],
       [{ stripeCustomerId: 'cus_existing' }],
+      [{ stripePriceId: 'price_enterprise_server' }],
     );
     mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
+      data: [
+        {
+          id: 'sub_pro',
+          status: 'active',
+          items: { data: [{ id: 'si_pro', price: { id: 'price_enterprise_server' } }] },
+        },
+      ],
     });
     mockSubscriptionsUpdate.mockResolvedValue({ id: 'sub_pro' });
 
@@ -788,9 +795,16 @@ describe('POST /upgrade', () => {
     queueSelectResults(
       [{ stripePriceId: 'price_enterprise_server' }],
       [{ stripeCustomerId: 'cus_account_ctx' }],
+      [{ stripePriceId: 'price_enterprise_server' }],
     );
     mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
+      data: [
+        {
+          id: 'sub_pro',
+          status: 'active',
+          items: { data: [{ id: 'si_pro', price: { id: 'price_enterprise_server' } }] },
+        },
+      ],
     });
 
     const app = createApp(MOCK_USER, {
@@ -805,7 +819,7 @@ describe('POST /upgrade', () => {
       status: 'all',
       limit: 10,
     });
-    expect(mockDb.select).toHaveBeenCalledTimes(2);
+    expect(mockDb.select).toHaveBeenCalledTimes(3);
   });
 
   it('updates subscription with new price, tier metadata, and prorations', async () => {
@@ -813,9 +827,16 @@ describe('POST /upgrade', () => {
       [{ stripePriceId: 'price_enterprise_server' }],
       [],
       [{ stripeCustomerId: 'cus_existing' }],
+      [{ stripePriceId: 'price_enterprise_server' }],
     );
     mockSubscriptionsList.mockResolvedValue({
-      data: [{ id: 'sub_pro', status: 'active', items: { data: [{ id: 'si_pro' }] } }],
+      data: [
+        {
+          id: 'sub_pro',
+          status: 'active',
+          items: { data: [{ id: 'si_pro', price: { id: 'price_enterprise_server' } }] },
+        },
+      ],
     });
 
     const app = createApp();

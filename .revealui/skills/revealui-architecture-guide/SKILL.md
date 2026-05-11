@@ -1,7 +1,7 @@
 ---
 name: revealui-architecture-guide
 description: RevealUI monorepo architecture and package organization guide
-version: "1.0.0"
+version: "0.1.0"
 author: RevealUI Team
 tags:
   - architecture

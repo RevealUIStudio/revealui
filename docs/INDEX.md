@@ -48,29 +48,29 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 - [Component Catalog](./COMPONENT_CATALOG.md): 58 native UI components
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/harnesses`), MCP integration, open-model inference, x402, marketplace
-- [RevealUI Studio Suite](./SUITE.md): Companion products (RevDev, RevVault, RevCon, RevealCoin, Forge, RevSkills, RevKit) — what each does and how they compose
+- [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, RevealCoin, Forge, RevSkills, RevKit) — what each does and how they compose
 
 ## Agent Coordination
 
 - [The VAUGHN Protocol](./VAUGHN.md): Agent normalization, capability model, lifecycle events, and multi-tool coordination
 - [Blog: Three AI Agents, One Codebase](./blog/03-multi-agent-coordination.md): The problem that led to the Holster
 
-## Pro & Forge
+## Pro & Enterprise
 
 - [MCP Marketplace](./MARKETPLACE.md): Publish MCP servers with agent-commerce pricing and revenue-share options
-- [Forge](./FORGE.md): Self-hosted enterprise deployment (Docker Compose, domain lock, unlimited users)
+- [Enterprise](./FORGE.md): Self-hosted enterprise deployment (Docker Compose, domain lock, unlimited users)
 
-## RevealUI Studio Suite
+## RevFleet
 
-RevealUI is one product in a suite of eight that compose into an agent-first SDLC platform. See [Suite Overview](./SUITE.md) for the full table and composition story.
+RevealUI is one product in a fleet of eight that compose into an agent-first SDLC platform. See [RevFleet overview](./REVFLEET.md) for the full table and composition story.
 
-- [RevDev](./suite/revdev.md) — Studio (Tauri 2 desktop) + Console (Go SSH TUI) + harness daemon
-- [RevVault](./suite/revvault.md) — age-encrypted secret vault, source of truth for every suite secret
-- [RevCon](./suite/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
-- [RevealCoin](./suite/revealcoin.md) — `RVC` token on Solana Token-2022, mainnet mint deployed
+- [RevDev](./fleet/revdev.md) — Studio (Tauri 2 desktop) + Console (Go SSH TUI) + harness daemon
+- [RevVault](./fleet/revvault.md) — age-encrypted secret vault, source of truth for every suite secret
+- [RevCon](./fleet/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
+- [RevealCoin](./fleet/revealcoin.md) — `RVC` token on Solana Token-2022, mainnet mint deployed
 - [Forge](./FORGE.md) — self-hosted enterprise deployment kit
-- [RevSkills](./suite/revskills.md) — curated Agent Skills for Claude Code / Cursor
-- [RevKit](./suite/revkit.md) — portable WSL workstation toolkit
+- [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude Code / Cursor
+- [RevKit](./fleet/revkit.md) — portable WSL workstation toolkit
 
 ## Legal
 

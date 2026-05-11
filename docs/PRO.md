@@ -36,7 +36,7 @@ Per-user or perpetual licenses can still exist for narrowly scoped products, but
 - [x402 Micropayments](#x402-micropayments)
 - [Perpetual Licenses](#perpetual-licenses)
 - [MCP Marketplace](#mcp-marketplace)
-- [Forge](#forge-enterprise-perpetual)
+- [Enterprise tier](#enterprise-tier)
 - [Related Documentation](#related-documentation)
 
 ---
@@ -53,7 +53,7 @@ This guide covers the full Pro surface area, not just MCP setup:
 - editor and harness workflows
 - Stripe and x402 payment features
 - marketplace monetization
-- perpetual and Forge licensing
+- perpetual and Enterprise licensing
 
 ## Commercial Model
 
@@ -68,7 +68,7 @@ This is the model the product and billing architecture should converge on from 2
 
 ## What Pro Includes
 
-RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime — Pro packages, Pro APIs, Pro feature gates. It also unlocks features in *companion products* across the RevealUI Studio Suite.
+RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime — Pro packages, Pro APIs, Pro feature gates. It also unlocks features in *companion products* across RevFleet.
 
 **In the RevealUI runtime (this monorepo):**
 
@@ -79,7 +79,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 - x402 micropayments and paid API support
 - Marketplace and self-hosted commercial deployment options
 
-**Unlocked in companion products (separate repos in the [RevealUI Studio Suite](https://github.com/RevealUIStudio)):**
+**Unlocked in companion products (separate repos in [RevFleet](https://github.com/RevealUIStudio)):**
 
 - **Studio** desktop app (lives in [RevDev](https://github.com/RevealUIStudio/revdev), Tauri) — agent coordination hub, local inference management, visual agent dashboard. Studio talks to your RevealUI runtime; the Pro tier unlocks Studio's commercial features.
 - **RevVault** desktop app (lives in [RevVault](https://github.com/RevealUIStudio/revvault), Tauri) — age-encrypted secret management
@@ -89,7 +89,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 
 RevealUI is part of a four-project ecosystem. Each project has features distributed across tiers:
 
-| Feature | Free | Pro | Max | Forge |
+| Feature | Free | Pro | Max | Enterprise |
 |---------|------|-----|-----|-------|
 | Studio desktop app | | Yes | Yes | Yes |
 | Studio agent dashboard | | Yes | Yes | Yes |
@@ -357,7 +357,7 @@ The `MCP_API_KEY` is **NOT** a Supabase key - it's a key you generate yourself t
 
 - **Auto-generated**: If not set, the script will auto-generate a secure random key (shown in console)
 - **Recommended**: Copy the auto-generated key to your `.env` file to persist it across restarts
-- **Manual generation**: Run `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` to generate a 64-character hex string
+- **Manual generation**: Run `bash scripts/generate-secret.sh` to generate a 64-character hex string
 - **Purpose**: Authenticates requests to the MCP server HTTP endpoint (prevents unauthorized access)
 
 **Example:**
@@ -1028,7 +1028,7 @@ AI harness adapters, workboard coordination, and JSON-RPC server. Integrates Cla
 
 `@revealui/harnesses` connects AI coding tools to each other and to your project's shared workboard. Multiple AI sessions  -  across editors, terminals, and CI  -  register themselves and claim file ownership to prevent conflicts.
 
-**Requires a Pro or Forge license.**
+**Requires a Pro or Enterprise license.**
 
 ## Quick start
 
@@ -1362,9 +1362,9 @@ Content-Type: application/json
 }
 ```
 
-## Forge (enterprise perpetual)
+## Enterprise (perpetual)
 
-Forge licenses follow the same perpetual model but are scoped to self-hosted deployments with domain lock. See [Forge](./FORGE.md) for the full self-hosted deployment guide.
+Enterprise licenses follow the same perpetual model but are scoped to self-hosted Fleet deployments with domain lock. See [RevealUI Fleet](./FLEET.md) for the full self-hosted deployment guide.
 
 ---
 
@@ -1404,24 +1404,31 @@ GET /.well-known/marketplace.json
 
 ---
 
-# Forge  -  Self-Hosted Deployment
+# Enterprise tier
 
-Forge is the enterprise tier of RevealUI. Deploy the entire stack on your own infrastructure with domain lock and unlimited users.
+Customers buy the Enterprise tier of RevealUI ($299/mo); the RevealUI Fleet kit (produced by RevForge) is what they deploy. Two paths:
 
-See **[FORGE.md](./FORGE.md)** for the complete deployment guide, including:
+- **Hosted Enterprise** — RevealUI Studio manages infrastructure. You get a dedicated instance on `revealui.com` infrastructure, domain-configured for your organization.
+- **Self-hosted Fleet** — You deploy the Docker Compose stack (API + admin + PostgreSQL) on your own infrastructure, domain-locked via `REVFORGE_LICENSED_DOMAIN`.
+
+Both paths use the same Enterprise license tier and the same `REVFORGE_LICENSE_KEY` format (`rui_forge_...`). The difference is where the stack runs.
+
+## RevealUI Fleet — Self-Hosted Deployment
+
+See **[FLEET.md](./FLEET.md)** for the complete deployment guide, including:
 
 - Docker Compose stack (API + admin + PostgreSQL)
 - Environment variables (`REVFORGE_LICENSE_KEY`, `REVFORGE_LICENSED_DOMAIN`, etc.)
 - Domain lock enforcement
 - Reverse proxy configuration (Caddy + Nginx examples)
 - Database migrations and upgrade procedure
-- RSA key generation for license JWT signing
+- Ed25519 key generation for license JWT signing
 - Troubleshooting
 
 ### Quick reference
 
 ```bash
-# Pull images (requires GHCR token from Forge welcome email)
+# Pull images (requires GHCR token from Fleet welcome email)
 echo "$GHCR_TOKEN" | docker login ghcr.io -u revealuistudio --password-stdin
 docker pull ghcr.io/revealuistudio/revealui-api:latest
 docker pull ghcr.io/revealuistudio/revealui-admin:latest

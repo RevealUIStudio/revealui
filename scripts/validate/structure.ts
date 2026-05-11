@@ -117,22 +117,12 @@ const VALIDATION_RULES: ValidationRule[] = [
   },
 
   // Infrastructure structure
+  // Holds .dockerignore + infrastructure/docker-compose/services/{electric,test}.yml.
+  // Per docs/decisions/2026-05-08-deployment-target-vercel-not-k8s.md, no k8s subdir.
   {
     path: 'infrastructure',
     type: 'directory',
     description: 'Infrastructure root',
-    required: true,
-  },
-  {
-    path: 'infrastructure/docker',
-    type: 'directory',
-    description: 'Docker configurations',
-    required: true,
-  },
-  {
-    path: 'infrastructure/k8s',
-    type: 'directory',
-    description: 'Kubernetes configurations',
     required: true,
   },
 
@@ -449,33 +439,6 @@ class StructureValidator {
       allValid = false;
     } else {
       console.log('✅ Only authorized markdown files in root');
-    }
-
-    // Check infrastructure structure
-    const infrastructureDir = 'infrastructure';
-    const RequiredInfrastructureSubdirs = ['docker', 'k8s'];
-
-    if (existsSync(infrastructureDir)) {
-      console.log('\n🔍 Checking infrastructure structure...');
-      for (const subdir of RequiredInfrastructureSubdirs) {
-        const subdirPath = join(infrastructureDir, subdir);
-        if (!existsSync(subdirPath)) {
-          console.log(`❌ Missing ${subdirPath}`);
-          allValid = false;
-        } else {
-          console.log(`✅ ${subdirPath} exists`);
-        }
-      }
-    }
-
-    // Check that k8s/ and docker/ are not in root
-    if (existsSync('k8s')) {
-      console.log('\n❌ k8s/ found in root - should be in infrastructure/');
-      allValid = false;
-    }
-    if (existsSync('docker')) {
-      console.log('\n❌ docker/ found in root - should be in infrastructure/');
-      allValid = false;
     }
 
     // Check that package-templates is not in root

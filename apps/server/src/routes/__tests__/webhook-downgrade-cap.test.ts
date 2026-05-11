@@ -105,6 +105,7 @@ vi.mock('../../lib/webhook-emails.js', () => ({
   sendTrialEndingEmail: vi.fn().mockResolvedValue(undefined),
   sendTrialExpiredEmail: vi.fn().mockResolvedValue(undefined),
   sendWebhookFailureAlert: vi.fn().mockResolvedValue(undefined),
+  sendLivemodeMismatchAlert: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../middleware/license.js', () => ({

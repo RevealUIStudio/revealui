@@ -25,11 +25,11 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountSubscriptions } from '@revealui/db/schema';
-import { protectedStripe } from '@revealui/services';
 import { and, inArray, isNotNull } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type Stripe from 'stripe';
-import { sendCronFailureAlert } from '../../lib/webhook-emails.js';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
 
@@ -121,11 +121,15 @@ app.post('/reconcile-subscriptions', async (c) => {
     Number.parseInt(process.env.RECONCILE_DURATION_BUDGET_MS ?? '', 10) ||
     DEFAULT_DURATION_BUDGET_MS;
 
+  const services = await getServices();
+  if (!services) {
+    return c.json({ error: 'Reconciler disabled — @revealui/services not installed.' }, 503);
+  }
   const db = getClient();
   // Stripe access goes through the shared protectedStripe wrapper:
   // single API-version pin, single DB-backed circuit breaker, single retry
   // policy across all consumers (GAP-131).
-  const stripe = protectedStripe;
+  const stripe = services.protectedStripe;
 
   // Only reconcile rows that believe they are live AND have a Stripe sub id
   // to compare against. Perpetual-license rows and credit-bundle-only
@@ -203,19 +207,15 @@ app.post('/reconcile-subscriptions', async (c) => {
           undefined,
           { ...report },
         );
-        sendCronFailureAlert(process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com', {
+        void sendCronFailureAlert({
           jobName: 'reconcile-subscriptions',
-          error: report.detail ?? 'missing-in-stripe',
-          severity: 'critical',
-          details: {
-            accountId: report.accountId,
-            stripeSubscriptionId: report.stripeSubscriptionId,
-            localStatus: report.local.status,
+          error: new Error(`CRITICAL: missing-in-stripe for account ${row.accountId}`),
+          severity: 'error',
+          metadata: {
+            accountId: row.accountId,
+            stripeSubscriptionId: row.stripeSubscriptionId,
+            drift: 'missing-in-stripe',
           },
-        }).catch((err: unknown) => {
-          logger.error('[reconcile-subscriptions] failed to send cron failure alert', undefined, {
-            alertError: err instanceof Error ? err.message : String(err),
-          });
         });
         continue;
       }
@@ -284,20 +284,19 @@ app.post('/reconcile-subscriptions', async (c) => {
           undefined,
           { ...report },
         );
-        sendCronFailureAlert(process.env.REVEALUI_ALERT_EMAIL || 'founder@revealui.com', {
+        void sendCronFailureAlert({
           jobName: 'reconcile-subscriptions',
-          error: `status drift ${row.status}→${stripeStatus ?? 'unknown'} for account ${row.accountId}`,
-          severity: 'critical',
-          details: {
-            accountId: report.accountId,
-            stripeSubscriptionId: report.stripeSubscriptionId,
-            localStatus: report.local.status,
-            stripeStatus: report.stripe?.status ?? 'unknown',
+          error: new Error(
+            `CRITICAL: status drift ${row.status}→${stripeStatus} for account ${row.accountId}`,
+          ),
+          severity: 'error',
+          metadata: {
+            accountId: row.accountId,
+            stripeSubscriptionId: row.stripeSubscriptionId,
+            localStatus: row.status,
+            stripeStatus: stripeStatus ?? 'null',
+            drift: 'status-mismatch',
           },
-        }).catch((err: unknown) => {
-          logger.error('[reconcile-subscriptions] failed to send cron failure alert', undefined, {
-            alertError: err instanceof Error ? err.message : String(err),
-          });
         });
       } else {
         logger.warn(`[reconcile-subscriptions] status drift ${row.status}→${stripeStatus}`, {

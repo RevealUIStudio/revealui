@@ -91,10 +91,9 @@ cd revealui
 # Install dependencies
 pnpm install
 
-# Set up environment variables
-cp .env.template .env.development.local
-# Edit .env.development.local with your credentials
-# See docs/ENVIRONMENT_VARIABLES_GUIDE.md for details
+# Set up environment variables (revvault is the source of truth — see docs/SECRETS.md)
+revvault export-env
+# If revvault is not yet configured, see docs/SECRETS.md for setup instructions
 
 # Start development
 pnpm dev
@@ -105,18 +104,18 @@ pnpm dev
 ```
 revealui/
 ├── apps/
-│   ├── api/            # Hono REST API (OpenAPI + Swagger)
-│   ├── admin/          # Next.js 16 admin dashboard + content management
-│   ├── docs/           # Documentation site (Vite + React)
-│   ├── marketing/      # Marketing + waitlist (Next.js)
-│   └── studio/         # Native AI experience (Tauri 2 + React 19)
+│   ├── server/         # Hono REST API (port 3004, OpenAPI + Swagger)
+│   ├── admin/          # Next.js 16 admin dashboard + content management (port 4000)
+│   ├── docs/           # Documentation site (Vite + React, port 3002)
+│   ├── marketing/      # Marketing site (Vite + React, port 3000)
+│   └── revealcoin/     # RevealCoin token dashboard (Vite + React, port 3005)
 ├── packages/
 │   ├── auth/           # Session auth, rate limiting
 │   ├── cli/            # create-revealui scaffolding
 │   ├── config/         # Type-safe env config (Zod)
 │   ├── contracts/      # Zod schemas + TypeScript types
 │   ├── core/           # Runtime engine, REST API, plugins
-│   ├── db/             # Drizzle ORM schema (86 tables, dual-DB)
+│   ├── db/             # Drizzle ORM schema (86 tables, NeonDB)
 │   ├── dev/            # Shared configs (Biome, TS, Tailwind)
 │   ├── presentation/   # 58 UI components (Tailwind v4)
 │   ├── router/         # File-based router with SSR
@@ -193,17 +192,17 @@ Every future-tense claim in docs — "coming soon", "(planned)", "will ship", "r
 Acceptable forms:
 
 ```markdown
-- **Multi-tenant SSO** (planned — [#123](https://github.com/RevealUIStudio/revealui/issues/123))
-- **Forge self-hosted artifact** (roadmap — tracked in [milestone: Forge v1](https://github.com/RevealUIStudio/revealui/milestones))
-- Studio binary release (CI in progress — see `studio-release.yml`)
+- **Multi-tenant SSO** (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449))
+- **RevealUI Fleet self-hosted kit** (roadmap — tracked in [#123](https://github.com/RevealUIStudio/revealui/issues/123))
+- RevealCoin mainnet launch (parked until 2026-Q4 — [#456](https://github.com/RevealUIStudio/revealui/issues/456))
 ```
 
 Not acceptable:
 
 ```markdown
-- **Multi-tenant SSO** (coming soon)          ← no issue link, no date
-- Forge self-hosted artifact (planned)         ← no tracking reference
-- Studio binary release (TBD)                  ← same
+- **Multi-tenant SSO** (coming soon)              ← no issue link, no date
+- RevealUI Fleet self-hosted kit (planned)         ← no tracking reference
+- RevealCoin mainnet (TBD)                         ← same
 ```
 
 Why: every unlinked "coming soon" either ages into a broken promise or becomes load-bearing for a reader making a purchase / adoption decision. The pattern already hit us once — see MASTER_PLAN §CR-8 and §CR-9 for the audit that surfaced it. If the feature is real, it has a tracked issue; if it doesn't, it shouldn't be surfaced as "coming soon" in the first place.

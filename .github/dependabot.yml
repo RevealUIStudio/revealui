@@ -26,18 +26,63 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      # Group all production dependencies together
-      production:
+      # Production deps split into reviewable groups so a single weekly run
+      # produces ~5 tractable PRs instead of one 43-update mega-PR (see #785/
+      # #795/#797 — closed/recreated three times because the batch was too
+      # large to fix the one inevitable broken test without owner triage).
+      production-frontend:
         patterns:
-          - "*"
-        exclude-patterns:
-          - "@types/*"
-          - "@testing-library/*"
-          - "@vitest/*"
-          - "vitest"
-          - "@biomejs/*"
-          - "typescript"
-          - "tsx"
+          - "react"
+          - "react-dom"
+          - "next"
+          - "@next/*"
+          - "lexical"
+          - "@lexical/*"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "vite"
+          - "@vitejs/*"
+          - "postcss"
+          - "framer-motion"
+          - "three"
+        update-types:
+          - "minor"
+          - "patch"
+      production-server:
+        patterns:
+          - "hono"
+          - "@hono/*"
+          - "drizzle-orm"
+          - "@neondatabase/*"
+          - "pg"
+          - "jose"
+          - "lru-cache"
+        update-types:
+          - "minor"
+          - "patch"
+      production-billing-and-observability:
+        patterns:
+          - "stripe"
+          - "@sentry/*"
+          - "swagger-ui-dist"
+        update-types:
+          - "minor"
+          - "patch"
+      production-tooling:
+        patterns:
+          - "turbo"
+          - "syncpack"
+          - "semver"
+          - "zod"
+          - "ora"
+          - "@clack/*"
+          - "react-hook-form"
+        update-types:
+          - "minor"
+          - "patch"
+      production-electric-sql:
+        patterns:
+          - "@electric-sql/*"
         update-types:
           - "minor"
           - "patch"

@@ -2,7 +2,7 @@
 
 ## Rule
 
-**No git submodules are permitted in any RevealUI Suite repository.** This policy is permanent and applies to all repos under the `RevealUIStudio` GitHub org.
+**No git submodules are permitted in any RevFleet repository.** This policy is permanent and applies to all repos under the `RevealUIStudio` GitHub org.
 
 ## Why
 

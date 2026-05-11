@@ -185,6 +185,7 @@ vi.mock('../../lib/email.js', () => ({
 vi.mock('../../lib/webhook-emails.js', () => ({
   sendDowngradeConfirmationEmail: vi.fn().mockResolvedValue(undefined),
   sendUpgradeConfirmationEmail: vi.fn().mockResolvedValue(undefined),
+  sendLivemodeMismatchAlert: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../../middleware/license.js', () => ({

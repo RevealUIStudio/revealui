@@ -21,10 +21,10 @@ import {
   users,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { protectedStripe } from '@revealui/services';
 import { and, count, countDistinct, desc, eq, gt, gte, isNull, lt, lte, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import Stripe from 'stripe';
+import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { MRR_TIER_PRICE_FALLBACK_CENTS } from '../lib/tier-pricing.js';
 import {
   sendDowngradeConfirmationEmail,
@@ -45,20 +45,21 @@ const SUPPORT_RENEWAL_WINDOW_MS =
  *
  * Stripe Billing Meters require event timestamps to fall within the billing period
  * they are associated with. Since we report overage for the *previous* calendar month,
- * the timestamp must be within that month  -  not in the current month when the cron runs.
+ * the timestamp must be within that month — not in the current month when the cron runs.
  *
- * We take the cycle start (1st of the previous month at 00:00 UTC), add ~30 days
- * (one calendar-month approximation), then subtract 1 second to land on the last
- * second of that cycle. This ensures the meter event is attributed to the correct
- * billing period even if months vary between 28-31 days, because Stripe only checks
- * that the timestamp falls within the subscription's billing interval.
+ * We use proper calendar arithmetic: advance cycleStart by one month to get the first
+ * instant of the next cycle, then subtract one second. This correctly handles months
+ * of any length (Feb 28/29, Apr/Jun/Sep/Nov 30, and 31-day months) without any
+ * fixed-day approximation.
  *
  * @param cycleStart - The first day of the billing cycle (UTC midnight)
- * @returns Unix timestamp (seconds) for the last second of the approximate cycle
+ * @returns Unix timestamp (seconds) for the last second of that cycle
  */
 function getMeterEventTimestamp(cycleStart: Date): number {
-  const SecondsIn30Days = 30 * 24 * 60 * 60;
-  return Math.floor(cycleStart.getTime() / 1000 + SecondsIn30Days - 1);
+  const nextCycleStart = new Date(
+    Date.UTC(cycleStart.getUTCFullYear(), cycleStart.getUTCMonth() + 1, 1),
+  );
+  return Math.floor(nextCycleStart.getTime() / 1000) - 1;
 }
 
 interface UserContext {
@@ -92,12 +93,19 @@ const app = new OpenAPIHono<BillingEnv>();
  *
  * All billing routes use this single entry point — one Stripe instance,
  * one circuit breaker, shared state across serverless instances via DB.
+ *
+ * Lazy-loads @revealui/services per the optional-peer Pro boundary
+ * (8c19db537). Returns 503 when the package is unavailable.
  */
-async function withStripe<T>(
-  operation: (stripe: typeof protectedStripe) => Promise<T>,
-): Promise<T> {
+async function withStripe<T>(operation: (stripe: ProtectedStripe) => Promise<T>): Promise<T> {
+  const services = await getServices();
+  if (!services) {
+    throw new HTTPException(503, {
+      message: 'Payment service not available. Please try again shortly.',
+    });
+  }
   try {
-    return await operation(protectedStripe);
+    return await operation(services.protectedStripe);
   } catch (error) {
     // DB-backed circuit breaker throws with "circuit breaker is OPEN" message
     if (
@@ -243,6 +251,15 @@ async function ensureStripeCustomer(userId: string, email: string): Promise<stri
     return user.stripeCustomerId;
   }
 
+  // Slow paths below need protectedStripe — load lazily and 503 if absent.
+  const services = await getServices();
+  if (!services) {
+    throw new HTTPException(503, {
+      message: 'Payment service not available. Please try again shortly.',
+    });
+  }
+  const protectedStripe = services.protectedStripe;
+
   // Slow path: need to create a Stripe customer. This is the race-prone
   // section that issue #394 tracks. Two kinds of race exist:
   //
@@ -387,6 +404,15 @@ async function resolveCatalogPriceId(
   }
 
   return resolvedPriceId;
+}
+
+async function getAllCatalogSubscriptionPriceIds(): Promise<Set<string>> {
+  const db = getClient();
+  const rows = await db
+    .select({ stripePriceId: billingCatalog.stripePriceId })
+    .from(billingCatalog)
+    .where(and(eq(billingCatalog.billingModel, 'subscription'), eq(billingCatalog.active, true)));
+  return new Set(rows.map((r) => r.stripePriceId).filter((id): id is string => id !== null));
 }
 
 async function getHostedSubscriptionSnapshot(userId: string): Promise<{
@@ -590,6 +616,9 @@ app.openapi(checkoutRoute, async (c) => {
 
   const discountConfig = getEarlyAdopterDiscount(resolvedTier);
 
+  const meterPriceId = process.env.STRIPE_AGENT_OVERAGE_PRICE_ID;
+  const includeMeter = meterPriceId && (resolvedTier === 'pro' || resolvedTier === 'max');
+
   // 10-minute idempotency window: prevents duplicate checkout sessions from
   // double-clicks or network retries while allowing a fresh attempt after 10 min.
   const idempotencyWindow = Math.floor(Date.now() / (10 * 60 * 1000));
@@ -603,7 +632,10 @@ app.openapi(checkoutRoute, async (c) => {
         tax_id_collection: { enabled: true },
         automatic_tax: { enabled: true },
         ...discountConfig,
-        line_items: [{ price: resolvedPriceId, quantity: 1 }],
+        line_items: [
+          { price: resolvedPriceId, quantity: 1 },
+          ...(includeMeter ? [{ price: meterPriceId }] : []),
+        ],
         subscription_data: {
           trial_period_days: TRIAL_PERIOD_DAYS,
           metadata: { tier: resolvedTier, revealui_user_id: user.id },
@@ -927,9 +959,17 @@ app.openapi(upgradeRoute, async (c) => {
     });
   }
 
-  const item = subscription.items.data[0];
-  if (!item) {
-    throw new HTTPException(400, { message: 'Subscription has no items.' });
+  // A.1 fix: resolve items by price ID, not by index. Index [0] is not
+  // guaranteed stable across SDK versions or after portal-side modifications.
+  const catalogFlatPriceIds = await getAllCatalogSubscriptionPriceIds();
+  const flatItem = subscription.items.data.find((i) => catalogFlatPriceIds.has(i.price.id));
+  const meterPriceId = process.env.STRIPE_AGENT_OVERAGE_PRICE_ID ?? null;
+  const meterItem = meterPriceId
+    ? subscription.items.data.find((i) => i.price.id === meterPriceId)
+    : undefined;
+
+  if (!flatItem) {
+    throw new HTTPException(400, { message: 'Subscription has no recognized flat-tier item.' });
   }
 
   // R5-H10: Reject concurrent subscription modifications (with 15-min staleness expiry)
@@ -948,13 +988,28 @@ app.openapi(upgradeRoute, async (c) => {
     });
   }
 
+  // Build the desired item set explicitly:
+  //   - always swap the flat-tier price
+  //   - remove the meter item when upgrading to Enterprise (no overage on Enterprise)
+  //   - add the meter item if upgrading to Pro/Max and it isn't already present
+  //   - leave the meter item unchanged when switching between Pro and Max (same SKU)
+  const includeMeter = meterPriceId && (targetTier === 'pro' || targetTier === 'max');
+  const upgradeItems: Stripe.SubscriptionUpdateParams.Item[] = [
+    { id: flatItem.id, price: resolvedPriceId },
+  ];
+  if (meterItem && !includeMeter) {
+    upgradeItems.push({ id: meterItem.id, deleted: true });
+  } else if (!meterItem && includeMeter) {
+    upgradeItems.push({ price: meterPriceId });
+  }
+
   // Swap the price and set tier metadata so the webhook can detect the upgrade.
   // Idempotency key prevents duplicate mutations from concurrent requests (M-13).
   await withStripe((stripe) =>
     stripe.subscriptions.update(
       subscription.id,
       {
-        items: [{ id: item.id, price: resolvedPriceId }],
+        items: upgradeItems,
         metadata: {
           tier: targetTier,
           revealui_user_id: user.id,
@@ -1862,9 +1917,17 @@ app.openapi(reportOverageRoute, async (c) => {
     logger.warn('STRIPE_AGENT_METER_EVENT_NAME not set  -  using default "agent_task_overage"');
   }
 
+  const services = await getServices();
+  if (!services) {
+    throw new HTTPException(503, {
+      message: 'Payment service not available. Please try again shortly.',
+    });
+  }
+  const protectedStripe = services.protectedStripe;
+
   const db = getClient();
   // GAP-131: `billing.meterEvents.create` is now wrapped by protectedStripe;
-  // every Stripe call across the suite shares one circuit breaker.
+  // every Stripe call across RevFleet shares one circuit breaker.
 
   // Previous billing cycle = last calendar month
   const now = new Date();

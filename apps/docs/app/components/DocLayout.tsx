@@ -98,8 +98,8 @@ const sections: NavSection[] = [
     ],
   },
   {
-    title: 'Suite (companion products)',
-    items: [{ label: 'Other RevealUI Studio products →', path: '/suite' }],
+    title: 'RevFleet (companion products)',
+    items: [{ label: 'Other RevealUI Studio products →', path: '/revfleet' }],
   },
   {
     title: 'Blog',

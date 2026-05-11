@@ -44,10 +44,11 @@ import { timingSafeEqual } from 'node:crypto';
 import { logger } from '@revealui/core/observability/logger';
 import { getClient } from '@revealui/db';
 import { accountSubscriptions, unreconciledWebhooks, users } from '@revealui/db/schema';
-import { protectedStripe } from '@revealui/services';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type Stripe from 'stripe';
+import { sendCronFailureAlert } from '../../lib/cron-alerts.js';
+import { getServices } from '../../lib/services-loader.js';
 
 const app = new Hono();
 
@@ -92,13 +93,20 @@ app.post('/reconcile-customers', async (c) => {
     DEFAULT_LOOKBACK_DAYS;
   const lookbackUnix = Math.floor((Date.now() - lookbackDays * 24 * 60 * 60 * 1000) / 1000);
 
+  const services = await getServices();
+  if (!services) {
+    return c.json(
+      { error: 'Reconcile-customers disabled — @revealui/services not installed.' },
+      503,
+    );
+  }
   const db = getClient();
   // GAP-131: every Stripe consumer must go through `protectedStripe` (DB-backed
   // circuit breaker + retry + single API-version pin). The cron originally landed
   // before #581's consolidation guard merged; this migration fixes the validator
   // miss without changing behavior — `protectedStripe.customers.list` routes
   // through the same SDK call wrapped by `callWithResilience`.
-  const stripe = protectedStripe;
+  const stripe = services.protectedStripe;
 
   // ── pull Stripe customers in window ───────────────────────────────────
   // Bounded: a single page of up to `batchSize`. We DO check `has_more`
@@ -229,6 +237,16 @@ app.post('/reconcile-customers', async (c) => {
           createdUnix: customer.created,
         },
       );
+      void sendCronFailureAlert({
+        jobName: 'reconcile-customers',
+        error: new Error(`CRITICAL: orphaned Stripe customer ${customer.id}`),
+        severity: 'error',
+        metadata: {
+          customerId: customer.id,
+          email: customer.email ?? null,
+          createdUnix: customer.created,
+        },
+      });
       results.push({
         customerId: customer.id,
         email: customer.email ?? null,

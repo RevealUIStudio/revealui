@@ -34,6 +34,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     return classNames.filter(Boolean).join(' ');
   }
 
+  const primaryColor =
+    process.env.REVEALUI_BRAND_PRIMARY_COLOR ?? process.env.REVEALUI_TENANT_BRAND;
+
   try {
     return (
       <html
@@ -56,6 +59,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
             rel="stylesheet"
           />
+          {primaryColor ? (
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: inline <style> takes a string; primaryColor is server-validated hex from tenant settings (no user-html injection surface)
+            <style
+              dangerouslySetInnerHTML={{
+                __html: `:root { --tenant-brand: ${primaryColor}; --primary: var(--tenant-brand); }`,
+              }}
+            />
+          ) : null}
         </head>
         <body>
           <Providers>
@@ -97,15 +108,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   }
 }
 
-export const metadata: Metadata = {
-  title: {
-    default: 'RevealUI admin',
-    template: '%s | RevealUI admin',
-  },
-  metadataBase: new URL((process.env.NEXT_PUBLIC_SERVER_URL || 'https://revealui.com').trim()),
-  openGraph: mergeOpenGraph(),
-  twitter: {
-    card: 'summary_large_image',
-    creator: '@RevealUI',
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const name = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
+  const adminLabel = `${name} admin`;
+  return {
+    title: {
+      default: adminLabel,
+      template: `%s | ${adminLabel}`,
+    },
+    metadataBase: new URL((process.env.NEXT_PUBLIC_SERVER_URL || 'https://revealui.com').trim()),
+    openGraph: mergeOpenGraph(),
+    twitter: {
+      card: 'summary_large_image',
+      creator: '@RevealUI',
+    },
+  };
+}

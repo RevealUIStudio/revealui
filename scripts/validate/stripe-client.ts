@@ -3,7 +3,7 @@
 /**
  * Stripe-Client Consolidation Validator (GAP-131)
  *
- * Enforces that the only place in the suite that instantiates `new Stripe(...)`
+ * Enforces that the only place in RevFleet that instantiates `new Stripe(...)`
  * is the canonical `protectedStripe` wrapper at
  * `packages/services/src/stripe/stripeClient.ts`.
  *

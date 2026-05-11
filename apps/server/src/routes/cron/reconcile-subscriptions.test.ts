@@ -41,7 +41,7 @@ vi.mock('@revealui/services', () => ({
   },
 }));
 
-vi.mock('../../lib/webhook-emails.js', () => ({
+vi.mock('../../lib/cron-alerts.js', () => ({
   sendCronFailureAlert: (...args: unknown[]) => hoisted.sendCronFailureAlert(...args),
 }));
 
@@ -316,7 +316,7 @@ describe('reconcile-subscriptions cron alert wiring', () => {
     cancelAtPeriodEnd: false,
   };
 
-  it('calls sendCronFailureAlert with severity critical on missing-in-stripe', async () => {
+  it('calls sendCronFailureAlert with severity error on missing-in-stripe', async () => {
     hoisted.getClientMock.mockReturnValue(buildDbMock([activeLocal]));
     const err = new Error('No such subscription') as Error & { statusCode: number };
     err.statusCode = 404;
@@ -325,16 +325,16 @@ describe('reconcile-subscriptions cron alert wiring', () => {
     await invoke(GOOD_SECRET);
 
     expect(hoisted.sendCronFailureAlert).toHaveBeenCalledWith(
-      expect.any(String),
       expect.objectContaining({
         jobName: 'reconcile-subscriptions',
-        severity: 'critical',
-        details: expect.objectContaining({ accountId: 'acct_alert_1' }),
+        severity: 'error',
+        error: expect.any(Error),
+        metadata: expect.objectContaining({ accountId: 'acct_alert_1' }),
       }),
     );
   });
 
-  it('calls sendCronFailureAlert with severity critical on entitlement-ending status drift', async () => {
+  it('calls sendCronFailureAlert with severity error on entitlement-ending status drift', async () => {
     hoisted.getClientMock.mockReturnValue(buildDbMock([activeLocal]));
     hoisted.retrieveMock.mockResolvedValueOnce(
       fakeStripeSub({ status: 'canceled', currentPeriodEndUnix: 1 }),
@@ -343,10 +343,10 @@ describe('reconcile-subscriptions cron alert wiring', () => {
     await invoke(GOOD_SECRET);
 
     expect(hoisted.sendCronFailureAlert).toHaveBeenCalledWith(
-      expect.any(String),
       expect.objectContaining({
         jobName: 'reconcile-subscriptions',
-        severity: 'critical',
+        severity: 'error',
+        error: expect.any(Error),
       }),
     );
   });

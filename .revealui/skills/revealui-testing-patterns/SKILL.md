@@ -1,7 +1,7 @@
 ---
 name: revealui-testing-patterns
 description: Testing patterns and best practices for RevealUI with Vitest
-version: "1.0.0"
+version: "0.1.0"
 author: RevealUI Team
 tags:
   - testing

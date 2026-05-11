@@ -41,6 +41,12 @@ ENV SKIP_ENV_VALIDATION=true
 
 RUN pnpm turbo run build --filter=server...
 
+# Create a self-contained deploy directory with only production deps.
+# pnpm deploy resolves workspace symlinks (e.g. @revealui/services) into
+# a flat, real node_modules — required because tsup's bundle leaves
+# external workspace deps unbundled.
+RUN pnpm --filter server deploy /app/server-deploy --prod --legacy
+
 # ---------------------------------------------------------------------------
 # Runtime stage — minimal image, production only
 # ---------------------------------------------------------------------------
@@ -55,10 +61,13 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 hono
 
-# Copy only the built output and production node_modules
-COPY --from=build --chown=hono:nodejs /app/apps/server/dist        ./dist
-COPY --from=build --chown=hono:nodejs /app/apps/server/node_modules ./node_modules
-COPY --from=build --chown=hono:nodejs /app/node_modules          ./node_modules_root
+# Copy built output and the deploy-flattened node_modules.
+# Copying apps/server/node_modules directly would carry pnpm's workspace
+# symlinks into a stage that has no packages/ to point them at, so Node
+# fails ESM resolution on workspace imports at startup.
+COPY --from=build --chown=hono:nodejs /app/apps/server/dist          ./dist
+COPY --from=build --chown=hono:nodejs /app/server-deploy/package.json ./
+COPY --from=build --chown=hono:nodejs /app/server-deploy/node_modules ./node_modules
 
 # Health check (no curl in hardened image — use node)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \

@@ -6,7 +6,7 @@
  * Used by the markdown resolver to translate flat URLs
  * (docs.revealui.com/admin-guide) into file fetches
  * (/admin-guide.md served from public/).
- * Generated: 105 entries.
+ * Generated: 111 entries.
  */
 
 export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
@@ -60,13 +60,23 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'core-stability': 'CORE_STABILITY.md',
   'credential-rotation-runbook': 'CREDENTIAL-ROTATION-RUNBOOK.md',
   database: 'DATABASE.md',
+  'decisions/2026-05-08-deployment-target-vercel-not-k8s':
+    'decisions/2026-05-08-deployment-target-vercel-not-k8s.md',
   'decisions/licensing-platform-evaluation': 'decisions/licensing-platform-evaluation.md',
   'deployment-runbook': 'DEPLOYMENT-RUNBOOK.md',
   'documentation-assessment': 'DOCUMENTATION_ASSESSMENT.md',
   'environment-variables-guide': 'ENVIRONMENT-VARIABLES-GUIDE.md',
   examples: 'EXAMPLES.md',
   'fair-source': 'FAIR_SOURCE.md',
+  fleet: 'FLEET.md',
+  'fleet/revcon': 'fleet/revcon.md',
+  'fleet/revdev': 'fleet/revdev.md',
+  'fleet/revealcoin': 'fleet/revealcoin.md',
+  'fleet/revkit': 'fleet/revkit.md',
+  'fleet/revskills': 'fleet/revskills.md',
+  'fleet/revvault': 'fleet/revvault.md',
   forge: 'FORGE.md',
+  glossary: 'glossary.md',
   'guides/authentication': 'guides/authentication.md',
   'guides/billing': 'guides/billing.md',
   'guides/collections': 'guides/collections.md',
@@ -80,13 +90,17 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'local-first': 'LOCAL_FIRST.md',
   logging: 'LOGGING.md',
   marketplace: 'MARKETPLACE.md',
+  methodology: 'methodology.md',
   performance: 'PERFORMANCE.md',
   pro: 'PRO.md',
   publishing: 'PUBLISHING.md',
   'quick-start': 'QUICK_START.md',
   reference: 'REFERENCE.md',
+  revfleet: 'REVFLEET.md',
   roadmap: 'ROADMAP.md',
   'runbook-agent-dispatch-flag': 'runbook-agent-dispatch-flag.md',
+  'runbooks/gitleaks': 'runbooks/gitleaks.md',
+  'runbooks/vercel-env-sync': 'runbooks/vercel-env-sync.md',
   'script-management': 'SCRIPT_MANAGEMENT.md',
   secrets: 'SECRETS.md',
   'security/access-review-policy': 'security/ACCESS_REVIEW_POLICY.md',
@@ -100,13 +114,6 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'security/templates/pentest-rfp': 'security/templates/pentest-rfp.md',
   'security/vendor-risk-assessments': 'security/VENDOR_RISK_ASSESSMENTS.md',
   'submodules/policy': 'submodules/POLICY.md',
-  suite: 'SUITE.md',
-  'suite/revcon': 'suite/revcon.md',
-  'suite/revdev': 'suite/revdev.md',
-  'suite/revealcoin': 'suite/revealcoin.md',
-  'suite/revkit': 'suite/revkit.md',
-  'suite/revskills': 'suite/revskills.md',
-  'suite/revvault': 'suite/revvault.md',
   'system-tune/crash-postmortems': 'system-tune/CRASH-POSTMORTEMS.md',
   'system-tune/profiles': 'system-tune/PROFILES.md',
   testing: 'TESTING.md',
