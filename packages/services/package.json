@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",
-    "@types/node": "^25.6.0",
+    "@types/node": "^25.6.2",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.5",
     "@revealui/dev": "workspace:*",
