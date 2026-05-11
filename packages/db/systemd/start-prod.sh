@@ -17,6 +17,17 @@ set -euo pipefail
 ENV_FILE="$HOME/.config/drizzle-studio/env"
 REVVAULT_PATH="${REVVAULT_PATH:-revealui/prod/neon/postgres-url}"
 
+# Locate revvault — required because this script may be invoked from a
+# non-interactive shell where ~/.cargo/bin is not on PATH (systemctl,
+# pnpm, etc. inherit a minimal env).
+REVVAULT_BIN="${REVVAULT_BIN:-$(command -v revvault || true)}"
+[ -n "$REVVAULT_BIN" ] || REVVAULT_BIN="$HOME/.cargo/bin/revvault"
+if [ ! -x "$REVVAULT_BIN" ]; then
+  echo "✗ revvault not found on PATH or at $HOME/.cargo/bin/revvault" >&2
+  echo "  Install revvault (cargo install revvault) or set REVVAULT_BIN=/path/to/revvault" >&2
+  exit 4
+fi
+
 # 1. Confirm the unit is installed.
 if ! systemctl --user list-unit-files drizzle-studio.service >/dev/null 2>&1; then
   echo "✗ drizzle-studio.service not installed. Run packages/db/systemd/install.sh first." >&2
@@ -27,10 +38,12 @@ fi
 #    output when stdin/stdout aren't a TTY).
 TMP_RAW="$(mktemp)"
 trap 'rm -f "$TMP_RAW"' EXIT
-script -qc "revvault get $REVVAULT_PATH" "$TMP_RAW" >/dev/null 2>&1
+script -qc "$REVVAULT_BIN get $REVVAULT_PATH" "$TMP_RAW" >/dev/null 2>&1 || true
+# pipefail + an empty grep match would kill the script via set -e; allow
+# the grep to return empty by tolerating its exit code.
 POSTGRES_URL="$(
   sed 's/\x1b\[[0-9;]*[a-zA-Z]//g; s/\r//g' "$TMP_RAW" | \
-  grep -oE 'postgresql://[^[:space:]]+' | head -1
+  grep -oE 'postgresql://[^[:space:]]+' | head -1 || true
 )"
 
 if [ -z "$POSTGRES_URL" ]; then

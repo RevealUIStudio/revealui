@@ -32,7 +32,15 @@ EnvironmentFile=%h/.config/drizzle-studio/env
 # Windows-side browser without exposing the DB to the LAN. Studio's
 # proxy must be on a known port for the local.drizzle.studio frontend
 # to find it.
-ExecStart=%h/revfleet/revealui/packages/db/node_modules/.bin/drizzle-kit studio --host 127.0.0.1 --port 4983
+#
+# Invoke node directly (rather than node_modules/.bin/drizzle-kit) to
+# avoid PATH issues — systemd-user units inherit a minimal env, and the
+# .bin/drizzle-kit wrapper script execs `node` which fails when fnm's
+# install dir isn't on PATH. ~/.local/bin/node is an fnm symlink to
+# the currently-aliased version — version-resilient. drizzle-kit's
+# bin.cjs is the actual JS entrypoint, reached via pnpm's stable
+# package symlink (also version-resilient).
+ExecStart=%h/.local/bin/node %h/revfleet/revealui/packages/db/node_modules/drizzle-kit/bin.cjs studio --host 127.0.0.1 --port 4983
 
 # Restart on crash with a brief backoff. drizzle-kit studio has been
 # observed to exit unexpectedly under certain shell/PTY conditions
