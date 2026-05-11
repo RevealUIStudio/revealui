@@ -178,6 +178,7 @@ export function Proof() {
                 Every mutation signs into a hash chain.
               </h4>
               <pre
+                // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable code region — axe-core scrollable-region-focusable requires tabIndex=0 so keyboard users can scroll horizontally
                 tabIndex={0}
                 className="mt-3 overflow-x-auto rounded-lg bg-black/40 px-3 py-2 font-mono text-[11px] leading-5 text-gray-300 ring-1 ring-white/10"
               >
