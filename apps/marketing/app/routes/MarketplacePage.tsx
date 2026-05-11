@@ -77,9 +77,9 @@ const mcpServers: McpServer[] = [
     status: 'live',
   },
   {
-    name: 'Email Provider',
-    description: 'Shared helper surface powering the other email-capable MCP servers.',
-    category: 'Communication',
+    name: 'Contracts',
+    description: 'Validate pricing contracts, check OpenAPI mirror drift, and inspect schema.',
+    category: 'Development',
     status: 'live',
   },
 ];
@@ -102,14 +102,14 @@ export function MarketplacePage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-violet-50 via-white to-purple-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Agent-commerce
+            MCP server
             <span className="block bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-              ecosystem
+              catalog
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Agents discover tools via MCP. Developers publish capabilities. Revenue flows
-            automatically through x402 micropayments and RevealCoin.
+            12 first-party MCP servers, RBAC-scoped and audit-logged. Agents discover tools via MCP.
+            RevealUI implements MCP natively.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a
@@ -119,23 +119,17 @@ export function MarketplacePage() {
               MCP Servers
             </a>
             <a
-              href="#publish"
+              href="#discovery"
               className="rounded-full bg-purple-100 px-4 py-1.5 text-sm font-medium text-purple-700 hover:bg-purple-200 transition-colors"
             >
-              Publish
-            </a>
-            <a
-              href="#payments"
-              className="rounded-full bg-amber-100 px-4 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-200 transition-colors"
-            >
-              Agent Payments
+              How agents discover tools
             </a>
           </div>
         </div>
       </section>
 
       {/* How agents discover tools */}
-      <section className="py-24 sm:py-32">
+      <section id="discovery" className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -152,7 +146,7 @@ export function MarketplacePage() {
                 step: '1',
                 title: 'Discover',
                 description:
-                  'Agents find available tools through the MCP hypervisor. Each server advertises its capabilities, required permissions, and pricing.',
+                  'Agents find available tools through the MCP hypervisor. Each server advertises its capabilities and required permissions.',
               },
               {
                 step: '2',
@@ -229,127 +223,42 @@ export function MarketplacePage() {
         </div>
       </section>
 
-      {/* Publish capabilities */}
-      <section id="publish" className="py-24 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Publish your capabilities
-              </h2>
-              <p className="mt-4 text-lg text-gray-600">
-                Build an MCP server. Publish it to the marketplace. Earn revenue every time an agent
-                uses it.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div className="rounded-2xl bg-white p-8 shadow-lg ring-1 ring-gray-200">
-                <h3 className="text-lg font-bold text-gray-900">For developers</h3>
-                <ul className="mt-4 space-y-3">
-                  {[
-                    'Build MCP servers with the RevealUI adapter framework',
-                    'Publish to the marketplace with a single command',
-                    'Set your own pricing per tool call',
-                    'Discoverable via Smithery, mcpt, and the RevealUI registry',
-                    'Analytics dashboard for usage and revenue',
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-sm text-gray-600">
-                      <svg
-                        className="mt-0.5 h-4 w-4 shrink-0 text-violet-500"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        role="img"
-                        aria-label="Included"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-8 shadow-lg">
-                <h3 className="text-lg font-bold text-white">Revenue share</h3>
-                <p className="mt-4 text-5xl font-bold text-white">80/20</p>
-                <p className="mt-2 text-sm text-gray-400">
-                  You keep 80% of every transaction. RevealUI takes 20% for infrastructure,
-                  discovery, and payment processing.
-                </p>
-                <div className="mt-6 rounded-lg bg-white/5 px-4 py-3 ring-1 ring-white/10">
-                  <p className="text-xs text-gray-400">
-                    Revenue settles daily via Stripe Connect or RevealCoin. No minimum payout
-                    threshold.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Agent payments */}
-      <section id="payments" className="bg-gray-950 py-24 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center mb-16">
-            <span className="text-sm font-semibold tracking-wide text-amber-400 uppercase">
-              Agent-Native Payments
+      {/* Publishing & monetization — coming soon callout */}
+      <section className="py-24 sm:py-32">
+        <div className="mx-auto max-w-3xl px-6 lg:px-8">
+          <div className="rounded-2xl bg-violet-50 ring-1 ring-violet-200 p-10 text-center">
+            <span className="inline-block text-xs font-semibold text-violet-700 bg-violet-100 px-3 py-1 rounded-full ring-1 ring-violet-200 mb-4">
+              Coming after marketplace v1
             </span>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              x402 protocol + RevealCoin
+            <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+              Publishing and monetization
             </h2>
-            <p className="mt-4 text-lg text-gray-400">
-              Agents pay per task via the HTTP 402 payment protocol. No accounts, no subscriptions -
-              micropayments that settle on Solana.
-            </p>
-            <span className="mt-3 inline-block text-xs font-semibold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full ring-1 ring-amber-400/20">
-              Coming soon
-            </span>
-          </div>
-          <div className="mx-auto max-w-4xl grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <div className="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-6">
-              <h3 className="text-base font-semibold text-white">HTTP 402</h3>
-              <p className="mt-2 text-sm text-gray-400">
-                Standard HTTP status code for payment required. Agents receive a 402 response with
-                payment instructions, pay, and retry, all programmatically.
-              </p>
-            </div>
-            <div className="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-6">
-              <h3 className="text-base font-semibold text-white">RevealCoin (RVUI)</h3>
-              <p className="mt-2 text-sm text-gray-400">
-                SPL token on Solana optimized for agent-to-agent micropayments. Sub-cent
-                transactions with near-instant settlement. Subscribers get a 15% discount when
-                paying with RVUI.
-              </p>
-            </div>
-            <div className="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-6">
-              <h3 className="text-base font-semibold text-white">Agent Card</h3>
-              <p className="mt-2 text-sm text-gray-400">
-                Agents discover RevealUI via a standard Agent Card at /.well-known/agent.json.
-                Capabilities, skills, and pricing are all machine-readable.
-              </p>
-            </div>
-          </div>
-          <div className="mt-10 text-center">
-            <p className="text-sm text-gray-400">
-              $0.001 per agent task. First 1,000 tasks/month free on every plan.
+            <p className="mt-4 text-base text-gray-600">
+              Third-party MCP server publishing, developer earnings, and marketplace discovery are
+              planned for a future release. See the{' '}
+              <a
+                href="https://github.com/RevealUIStudio/revealui/blob/main/docs/ROADMAP.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-violet-700 underline hover:text-violet-600"
+              >
+                public roadmap
+              </a>{' '}
+              for current status — listed under "Agent Marketplace" in the Mid-Term section.
             </p>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-24 sm:py-32">
+      <section className="bg-gray-50 py-24 sm:py-32">
         <div className="mx-auto max-w-2xl px-6 text-center lg:px-8">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Build for the marketplace
+            Start with the MCP server catalog
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Start with the MCP adapter framework. Publish your first server. Earn revenue from every
-            agent that uses it.
+            12 first-party servers ship with every RevealUI install. Read the MCP docs to wire your
+            agents.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a

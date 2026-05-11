@@ -39,6 +39,7 @@
       ],
       "inputs": [
         "src/**",
+        "app/**",
         "package.json",
         "tsconfig.json",
         "tsup.config.ts",

@@ -143,7 +143,7 @@ export function Footer() {
                   rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
-                  Studio (agency) →
+                  RevealUI Studio (agency) →
                 </a>
               </li>
               <li>

@@ -45,8 +45,7 @@ const tiers = [
       'All Gold Sponsor benefits',
       'Logo with link on landing page',
       'Dedicated Discourse channel',
-      'Direct input on architecture decisions',
-      'Custom feature development priority',
+      'Direct line to the founder for prioritized feature requests — implementation scoped separately via RevealUI Studio engagements',
     ],
   },
 ];
