@@ -1,7 +1,17 @@
+---
+type: master-plan
+repo: revealui
+last-updated: 2026-05-01
+owner: RevealUI Studio
+staleness-status: STALE
+note: public snapshot — canonical version at revealui-jv/docs/MASTER_PLAN.md (last updated 2026-05-10). Quarterly refresh cadence per ADR revealui-jv:docs/decisions/2026-05-11-master-plan-public-quarterly-snapshot.md.
+---
+
 # RevealUI Master Plan
 
-> **AGENTS:** This is the PUBLIC snapshot. The canonical, up-to-date version lives in the internal planning hub.
-> Always read and update the internal version. This file is synced periodically.
+> **AGENTS:** This is the PUBLIC SNAPSHOT. The canonical, day-to-day version lives in the internal planning hub.
+> **Cadence:** quarterly refresh (Mar 11 / Jun 11 / Sep 11 / Dec 11) per ADR `revealui-jv:docs/decisions/2026-05-11-master-plan-public-quarterly-snapshot.md`. For current state, see public RevealUI signals: blog posts, release notes, GitHub Issues, and `pnpm validate:claims` output.
+> Always read and update the internal version. Do NOT update this file outside the quarterly refresh.
 
 **Last Updated:** 2026-05-01 (Current Reality block refreshed; numbering aligned to Phase 5)
 **Status:** Public snapshot  -  canonical version in revealui-jv
