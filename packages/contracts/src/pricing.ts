@@ -71,8 +71,8 @@ export const FEATURE_LABELS: Record<FeatureFlagKey, string> = {
   analytics: 'Analytics & Tracking',
   aiInference: 'Open-Model Inference (Snaps, Ollama, Harness)',
   auditLog: 'Audit Logging',
-  multiTenant: 'Multi-tenant Management',
-  whiteLabel: 'White-label Branding (Coming Soon)',
+  multiTenant: 'Multi-site Content Management',
+  whiteLabel: 'White-label Branding (managed setup via revforge)',
   sso: 'SSO/SAML Authentication (Coming Soon)',
   vaultDesktop: 'RevVault Desktop App',
   vaultRotation: 'RevVault Rotation Engine',
@@ -191,8 +191,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Session-based auth + OAuth (SSO/SAML coming soon)',
       'Full inference suite (all open models)',
       'RevealCoin x402 agent payments',
-      'Multi-tenant architecture',
-      'White-label branding (coming soon)',
+      'RevealUI Fleet license — branded white-label deployment for your own customers (managed setup)',
       'Unlimited agent tasks',
       'Slack support (4h SLA)',
       'Annual pricing available',
@@ -372,7 +371,8 @@ export const PERPETUAL_TIERS: PerpetualTier[] = [
   },
   {
     name: 'Agency Perpetual',
-    description: 'Deploy for multiple clients without per-site subscriptions.',
+    description:
+      'RevealUI Fleet license for agencies. Sell branded RevealUI to your clients without per-site subscriptions.',
     features: [
       'All Max tier features',
       'License key  -  never expires',

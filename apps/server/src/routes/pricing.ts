@@ -9,7 +9,7 @@ import {
   CREDIT_BUNDLES,
   PERPETUAL_TIERS,
   type PricingResponse,
-  SERVICE_OFFERINGS,
+  type ServiceOffering,
   SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 import { CircuitBreaker, CircuitBreakerOpenError } from '@revealui/core/error-handling';
@@ -233,10 +233,15 @@ function buildPricingResponse(stripePrices: StripeProductMap | null): PricingRes
     return { ...tier, ...(stripePrice ?? fallback) };
   });
 
-  const services = SERVICE_OFFERINGS.map((service) => {
-    const stripePrice = stripePrices?.services.get(service.id);
-    return { ...service, ...(stripePrice ?? {}) };
-  });
+  // Services intentionally returned as empty array pending fulfillment infrastructure.
+  // SERVICE_OFFERINGS still exports 4 offerings from @revealui/contracts, but they are NOT
+  // exposed on the public pricing API because (a) no Stripe products exist for them,
+  // (b) no `service` track exists in `billing_model` CHECK constraint, (c) no booking
+  // automation fires when a customer hits the cal.com link. Services are available via
+  // direct outreach to founder@revealui.com. To re-enable, build the 'service' billing
+  // track end-to-end first: seed-stripe.ts entries + schema CHECK update + service_engagements
+  // table + cal.com webhook receiver + Stripe Invoicing flow. Tracked in OWNER_ACTIONS.md.
+  const services: ServiceOffering[] = [];
 
   return { subscriptions, credits, perpetual, services };
 }
