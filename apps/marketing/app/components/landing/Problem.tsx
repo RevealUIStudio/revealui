@@ -63,7 +63,12 @@ export function Problem() {
         </div>
 
         <div className="mx-auto mt-16 max-w-6xl overflow-hidden rounded-2xl ring-1 ring-gray-950/10 shadow-sm">
-          <div className="overflow-x-auto">
+          <section
+            // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable comparison table — axe-core scrollable-region-focusable requires tabIndex=0 so keyboard users can scroll horizontally on narrow viewports
+            tabIndex={0}
+            aria-label="Vendor sprawl vs agent-framework vs RevealUI comparison"
+            className="overflow-x-auto"
+          >
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="bg-gray-50 text-xs font-semibold uppercase tracking-widest text-gray-500">
@@ -97,7 +102,7 @@ export function Problem() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </section>
         </div>
 
         <p className="mx-auto mt-6 max-w-3xl text-center text-xs text-gray-500">
