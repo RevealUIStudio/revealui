@@ -640,7 +640,15 @@ app.openapi(checkoutRoute, async (c) => {
           trial_period_days: TRIAL_PERIOD_DAYS,
           metadata: { tier: resolvedTier, revealui_user_id: user.id },
         },
-        success_url: `${adminUrl}/account/billing?success=true`,
+        // First-time subscribers land on /welcome (3 concrete first actions:
+        // install CLI / clone source / read quick-start). Existing customers
+        // upgrading also see it — the page reads "Welcome" only when
+        // ?success=true, which Stripe appends here. See
+        // apps/admin/src/app/(backend)/welcome/page.tsx. Perpetual + renewal +
+        // credits success_urls (further down this file) intentionally stay on
+        // /account/billing — those flows are for known returning customers
+        // buying additional things, not first-action onboarding.
+        success_url: `${adminUrl}/welcome?success=true&tier=${resolvedTier}`,
         cancel_url: `${adminUrl}/account/billing`,
       },
       { idempotencyKey: `checkout-sub-${user.id}-${resolvedTier}-${idempotencyWindow}` },
