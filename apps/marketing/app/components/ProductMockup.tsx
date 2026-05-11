@@ -161,7 +161,7 @@ export function ProductMockup() {
           {codeLines.map((line, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: static display list, no reordering
             <div key={i} className="flex">
-              <span className="select-none w-6 shrink-0 text-gray-600 text-right mr-4">
+              <span className="select-none w-6 shrink-0 text-gray-400 text-right mr-4">
                 {i + 1}
               </span>
               <span>
