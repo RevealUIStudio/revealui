@@ -89,13 +89,19 @@ export async function fetchUser(accessToken: string): Promise<ProviderUser> {
   const data = (await response.json()) as {
     sub: string;
     email?: string;
+    email_verified?: boolean;
     name?: string;
     picture?: string;
   };
 
   return {
     id: data.sub,
-    email: data.email ?? null,
+    // Per revealui#832: require email_verified === true. Google's userinfo
+    // includes the email_verified claim; an unverified email is just
+    // whatever the user typed during Google signup and is not proof of
+    // ownership. Returning null forces the callback's signup gate to
+    // reject the request (verified_email_required).
+    email: data.email_verified === true ? (data.email ?? null) : null,
     name: data.name ?? 'Google User',
     avatarUrl: data.picture ?? null,
   };
