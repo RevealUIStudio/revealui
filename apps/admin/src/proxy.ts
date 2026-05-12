@@ -1,5 +1,23 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { generateCsrfToken, validateCsrfToken } from './lib/utils/csrf-token';
+
+const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+const CSRF_EXEMPT_PREFIXES = [
+  '/api/webhooks/',
+  '/api/cron/',
+  '/api/health',
+  '/api/setup',
+  '/api/logs',
+  '/api/auth/password-reset',
+  '/.well-known/',
+  '/a2a/',
+] as const;
+
+function isCsrfExempt(pathname: string): boolean {
+  return CSRF_EXEMPT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
 
 // Define allowed origins for CORS
 const allowedOrigins = process.env.REVEALUI_CORS_ORIGINS
@@ -180,6 +198,34 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     // Handle preflight (OPTIONS) requests
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: response.headers });
+    }
+
+    const sessionValue = request.cookies.get('revealui-session')?.value;
+    const csrfCookieValue = request.cookies.get('revealui-csrf')?.value;
+    const secret = process.env.REVEALUI_SECRET;
+
+    if (sessionValue && secret) {
+      if (UNSAFE_METHODS.has(request.method) && !isCsrfExempt(pathname)) {
+        const tokenHeader = request.headers.get('X-CSRF-Token');
+        if (!tokenHeader) {
+          return NextResponse.json({ error: 'CSRF token missing' }, { status: 403 });
+        }
+        const valid = await validateCsrfToken(tokenHeader, sessionValue, secret);
+        if (!valid) {
+          return NextResponse.json({ error: 'CSRF token invalid' }, { status: 403 });
+        }
+      }
+
+      if (!csrfCookieValue) {
+        const token = await generateCsrfToken(sessionValue, secret);
+        response.cookies.set('revealui-csrf', token, {
+          httpOnly: false,
+          sameSite: 'strict',
+          secure: process.env.NODE_ENV !== 'development',
+          path: '/',
+          maxAge: 60 * 60 * 24,
+        });
+      }
     }
 
     return response;
