@@ -28,9 +28,9 @@
     "@revealui/dev": "workspace:*",
     "dotenv": "catalog:",
     "postcss": "^8.5.11",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "tailwindcss": "^4.2.2",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwindcss": "^4.3.0",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "^4.1.5"
