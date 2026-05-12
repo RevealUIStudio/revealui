@@ -31,6 +31,7 @@ import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, desc, eq, isNull, lt, sql } from 'drizzle-orm';
 import type Stripe from 'stripe';
 import { capResourcesOnDowngrade, isDowngrade } from '../lib/downgrade-cap.js';
+import { assertSeatAvailable } from '../lib/seat-count-guard.js';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
 import { getHostedLimitsForTier } from '../lib/tier-limits.js';
 import {
@@ -366,6 +367,7 @@ async function ensureHostedAccount(
   tx: DbExecutor,
   userId: string,
   customerId: string,
+  maxUsers?: number | null,
 ): Promise<string | null> {
   const [membership] = await tx
     .select({ accountId: accountMemberships.accountId })
@@ -395,6 +397,7 @@ async function ensureHostedAccount(
     updatedAt: now,
   });
 
+  await assertSeatAvailable(tx, accountId, maxUsers ?? null);
   await tx.insert(accountMemberships).values({
     id: crypto.randomUUID(),
     accountId,
@@ -418,9 +421,10 @@ async function resolveHostedAccountId(
   db: DbExecutor,
   customerId: string,
   userId?: string | null,
+  maxUsers?: number | null,
 ): Promise<string | null> {
   if (userId) {
-    const accountId = await ensureHostedAccount(db, userId, customerId);
+    const accountId = await ensureHostedAccount(db, userId, customerId, maxUsers);
     if (accountId) return accountId;
   }
 
@@ -439,7 +443,7 @@ async function resolveHostedAccountId(
     .limit(1);
 
   if (!user?.id) return null;
-  return ensureHostedAccount(db, user.id, customerId);
+  return ensureHostedAccount(db, user.id, customerId, maxUsers);
 }
 
 /**
@@ -470,7 +474,13 @@ async function syncHostedSubscriptionState(
     eventTimestamp?: Date;
   },
 ): Promise<void> {
-  const accountId = await resolveHostedAccountId(db, params.customerId, params.userId ?? null);
+  const maxUsers = params.tier ? (getHostedLimitsForTier(params.tier).maxUsers ?? null) : null;
+  const accountId = await resolveHostedAccountId(
+    db,
+    params.customerId,
+    params.userId ?? null,
+    maxUsers,
+  );
   if (!accountId) {
     logger.warn('Hosted entitlement sync skipped because no account could be resolved', {
       customerId: params.customerId,

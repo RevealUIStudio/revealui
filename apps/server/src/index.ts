@@ -455,7 +455,7 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'terminal-auth': { maxRequests: 5, windowMs: ONE_MINUTE },
     'terminal-sessions': { maxRequests: 10, windowMs: ONE_MINUTE },
     maintenance: { maxRequests: 1, windowMs: ONE_MINUTE },
-    webhook: { maxRequests: 100, windowMs: ONE_MINUTE },
+    webhook: { maxRequests: 500, windowMs: ONE_MINUTE },
   },
 };
 
