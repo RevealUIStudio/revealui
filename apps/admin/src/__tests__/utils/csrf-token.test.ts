@@ -30,7 +30,7 @@ describe('CSRF token', () => {
 
   it('rejects a tampered token', async () => {
     const token = await generateCsrfToken(SESSION, SECRET);
-    const tampered = token.slice(0, -4) + 'ffff';
+    const tampered = `${token.slice(0, -4)}ffff`;
     await expect(validateCsrfToken(tampered, SESSION, SECRET)).resolves.toBe(false);
   });
 
