@@ -1,7 +1,7 @@
 'use client';
 
-import { getFeaturesForTier, type FeatureFlags } from '@revealui/core/features';
 import { FEATURE_LABELS, SUBSCRIPTION_TIERS, TIER_LIMITS } from '@revealui/contracts/pricing';
+import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import { PricingTable } from '@revealui/presentation/client';
 import { useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
