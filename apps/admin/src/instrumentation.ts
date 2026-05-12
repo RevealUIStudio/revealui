@@ -126,6 +126,23 @@ export async function register() {
       if (!result.valid) {
         const message = `Missing required environment variables: ${result.missing.join(', ')}`;
         logger.error('Environment validation failed', new Error(message));
+
+        // Per revealui#836: missing critical env vars (notably REVEALUI_KEK)
+        // in production MUST fail-fast so the deploy surfaces the error in
+        // Vercel deploy logs rather than booting into a broken state (e.g.
+        // encryptApiKey throws on first request to /api/user/api-keys/value).
+        // SKIP_ENV_VALIDATION=true is the documented escape hatch and
+        // matches the RevForge license-validation block above.
+        //
+        // process.exit(1) is the *intentional* kill (vs throw, which the
+        // surrounding try/catch swallows per Next.js instrumentation
+        // contract — "never throw, it kills the runtime").
+        if (environment === 'production' && process.env.SKIP_ENV_VALIDATION !== 'true') {
+          process.stderr.write(
+            `ENV VALIDATION FAILED in production:\n  - ${result.missing.join('\n  - ')}\n`,
+          );
+          process.exit(1);
+        }
       }
 
       if (result.warnings.length > 0) {
