@@ -6,7 +6,7 @@ function toHex(bytes: Uint8Array): string {
   return hex;
 }
 
-function hexToBytes(hex: string): Uint8Array | null {
+function hexToBytes(hex: string): Uint8Array<ArrayBuffer> | null {
   if (hex.length % 2 !== 0) return null;
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length; i += 2) {
