@@ -26,6 +26,7 @@ function validLiveProdEnv(overrides: EnvMap = {}): EnvMap {
     CORS_ORIGIN: 'https://app.revealui.com,https://admin.revealui.com',
     REVEALUI_ALERT_EMAIL: 'ops@revealui.com',
     SENTRY_DSN: 'https://abc123@o123456.ingest.sentry.io/456789',
+    REVEALUI_BILLING_PORTAL_CONFIG_ID: 'bpc_test_fixture',
     ...overrides,
   };
 }
