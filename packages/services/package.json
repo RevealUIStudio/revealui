@@ -18,7 +18,7 @@
     "@vercel/node": "^5.7.12",
     "drizzle-orm": "catalog:",
     "jose": "^6.2.3",
-    "stripe": "^22.1.0"
+    "stripe": "^22.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",
