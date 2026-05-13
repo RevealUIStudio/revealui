@@ -120,13 +120,13 @@ describe('client/index  -  pool management', () => {
       expect(drizzleNeon).toHaveBeenCalled();
     });
 
-    it('creates a pg Pool client for Supabase connection strings', () => {
+    it('uses Neon driver for non-localhost connection strings (e.g. Neon cloud)', () => {
       const db = createClient({
-        connectionString: 'postgresql://user:pass@db.project.supabase.co:5432/postgres',
+        connectionString: 'postgresql://user:pass@ep-cool.neon.tech/neondb',
       });
 
       expect(db).toBeDefined();
-      expect(drizzlePg).toHaveBeenCalled();
+      expect(drizzleNeon).toHaveBeenCalled();
     });
 
     it('creates a pg Pool client for localhost connection strings', () => {
@@ -162,9 +162,9 @@ describe('client/index  -  pool management', () => {
 
   describe('getPoolMetrics', () => {
     it('returns metrics for active pools', () => {
-      // Create a Supabase client to register a pool
+      // Create a localhost client to register a pool (only localhost uses pg Pool)
       createClient({
-        connectionString: 'postgresql://user:pass@db.project.supabase.co:5432/postgres',
+        connectionString: 'postgresql://user:pass@localhost:5432/postgres',
       });
 
       const metrics = getPoolMetrics();
@@ -177,7 +177,7 @@ describe('client/index  -  pool management', () => {
     });
 
     it('returns empty array when no pools are active', () => {
-      // Before creating any Supabase/localhost clients, there may be no pools
+      // Before creating any localhost clients, there may be no pools
       // (Neon HTTP clients do not create pools)
       const metrics = getPoolMetrics();
       expect(Array.isArray(metrics)).toBe(true);
@@ -234,10 +234,11 @@ describe('client/index  -  pool management', () => {
       expect(() => getClient('rest')).toThrow('Database connection string not provided');
     });
 
-    it('throws when no connection string is available for vector', () => {
+    it('throws when no connection string is available for vector (aliased to rest)', () => {
+      delete process.env.POSTGRES_URL;
       delete process.env.DATABASE_URL;
 
-      expect(() => getClient('vector')).toThrow('DATABASE_URL environment variable is required');
+      expect(() => getClient('vector')).toThrow('Database connection string not provided');
     });
 
     it('defaults to rest when called without arguments', () => {

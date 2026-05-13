@@ -311,16 +311,24 @@ test.describe('Billing page  -  success banner', () => {
     test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
   });
 
-  test('billing page shows activation success banner after checkout', async ({ page }) => {
-    // Verifies the ?success=true query param produces the correct UI.
-    // Does not require a Stripe key  -  just navigates to the billing page with the param.
+  test('welcome page shows activation success banner after checkout', async ({ page }) => {
+    // Subscription checkout (apps/server/src/routes/billing.ts:643) returns
+    // to /welcome?success=true&tier=<tier>. Verifies the welcome page
+    // renders the post-purchase banner + the three first-action CTAs.
+    // Does not require a Stripe key  -  just navigates to the welcome page
+    // with the param. Perpetual / renewal / credits flows still land on
+    // /account/billing; this test specifically covers the subscription
+    // post-purchase landing.
     await signIn(page);
-    await page.goto(`${ADMIN_BASE}/account/billing?success=true`, {
+    await page.goto(`${ADMIN_BASE}/welcome?success=true&tier=pro`, {
       waitUntil: 'domcontentloaded',
     });
-    await expect(
-      page.getByText(/subscription activated|pro features are now available/i),
-    ).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByText(/welcome to revealui|subscription is active/i)).toBeVisible({
+      timeout: 8_000,
+    });
+    await expect(page.getByText(/install the cli/i)).toBeVisible();
+    await expect(page.getByText(/clone the source/i)).toBeVisible();
+    await expect(page.getByText(/read the quick-start/i)).toBeVisible();
   });
 });
 
@@ -570,5 +578,141 @@ test.describe('Billing portal', () => {
     await page.getByRole('button', { name: /manage billing/i }).click();
     await navigationPromise;
     expect(page.url()).toContain('billing.stripe.com');
+  });
+});
+
+// ─── Mobile viewport — Pricing → Signup → Billing redirect chain ──────────────
+//
+// Audit §5 Phase 1.8 requires Playwright mobile-viewport coverage of the
+// customer-facing checkout chain before live-mode flip. A mobile-first
+// customer hitting a tier-card CTA that's clipped, a Stripe redirect that
+// fails silently, or a welcome page that overflows the viewport produces
+// the worst kind of failure: silent abandonment with no error to debug.
+//
+// These tests run at iPhone 14 dimensions (390 × 844). They cover three
+// proof points:
+//   1. /upgrade renders without horizontal overflow + all tier cards visible
+//   2. /welcome renders the three first-action CTAs at mobile width
+//   3. Clicking the Pro CTA initiates a checkout request (mocked Stripe
+//      response so the test does not require a Stripe secret key)
+//
+// The marketing pricing page at revealui.com/pricing is intentionally NOT
+// covered here — it lives in a separate dev server (port 3000) and would
+// require a second webServer in playwright.config.ts. /upgrade in the
+// admin app renders the same SUBSCRIPTION_TIERS data from @revealui/contracts
+// and exercises the same CTA flow, so admin-side mobile coverage is a
+// proxy for the marketing-side rendering of the same tier definitions.
+
+test.describe('Billing flow — mobile viewport (iPhone 14)', () => {
+  // iPhone 14 dimensions. Smaller than Pixel 5 (393 × 851) but representative
+  // of the broad iOS-mobile-Safari class. Explicit viewport overrides any
+  // project-level device emulation so the test runs consistently across
+  // `chromium` and `mobile-chrome` Playwright projects.
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test.beforeEach(async () => {
+    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
+  });
+
+  test('/upgrade renders without horizontal overflow + all tier cards visible at mobile width', async ({
+    page,
+  }) => {
+    await signIn(page);
+    await page.goto(`${ADMIN_BASE}/upgrade`, { waitUntil: 'domcontentloaded' });
+
+    // No horizontal scroll on the body — content must fit the viewport.
+    // 20px tolerance covers scrollbar widths + sub-pixel rounding across
+    // engines (matches the existing user-flows.e2e.ts mobile pattern).
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+    const viewport = page.viewportSize();
+    expect(bodyWidth).toBeLessThanOrEqual((viewport?.width ?? 390) + 20);
+
+    // All 4 tier names render at this viewport (no card clipped off-screen).
+    for (const tierName of ['Free', 'Pro', 'Max', 'Enterprise']) {
+      await expect(page.getByText(tierName, { exact: false }).first()).toBeVisible({
+        timeout: 8_000,
+      });
+    }
+
+    // At least one tier-select CTA is visible. The upgrade page renders one
+    // button per tier; if any is clipped or hidden by an overlay at mobile
+    // width, this assertion catches it.
+    const cta = page
+      .getByRole('button', {
+        name: /upgrade|select|start free trial|contact sales|get started/i,
+      })
+      .first();
+    await expect(cta).toBeVisible({ timeout: 8_000 });
+  });
+
+  test('/welcome renders three first-action CTAs at mobile width (no overflow, all reachable)', async ({
+    page,
+  }) => {
+    await signIn(page);
+    await page.goto(`${ADMIN_BASE}/welcome?success=true&tier=pro`, {
+      waitUntil: 'domcontentloaded',
+    });
+
+    // No horizontal scroll
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+    const viewport = page.viewportSize();
+    expect(bodyWidth).toBeLessThanOrEqual((viewport?.width ?? 390) + 20);
+
+    // Post-purchase banner renders (the lg:grid-cols-3 layout must stack
+    // cleanly on mobile — Tailwind defaults to single-column at <1024px)
+    await expect(page.getByText(/welcome to revealui|subscription is active/i)).toBeVisible({
+      timeout: 8_000,
+    });
+
+    // All three first-action CTAs render without clipping
+    await expect(page.getByText(/install the cli/i)).toBeVisible();
+    await expect(page.getByText(/clone the source/i)).toBeVisible();
+    await expect(page.getByText(/read the quick-start/i)).toBeVisible();
+
+    // Copy-to-clipboard button is reachable at mobile width (not pushed
+    // behind a sticky element, not requiring horizontal scroll).
+    const copyButton = page.getByRole('button', { name: /copy command to clipboard/i });
+    await expect(copyButton).toBeVisible();
+
+    // Account-management footer links are reachable
+    await expect(page.getByRole('link', { name: /billing portal/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /admin dashboard/i })).toBeVisible();
+  });
+
+  test('clicking a tier CTA on /upgrade initiates a checkout request at mobile width (Stripe mocked)', async ({
+    page,
+  }) => {
+    const { tier } = await signInViaApi(page);
+    test.skip(tier !== 'free', 'Skipped: user is not free tier; cannot test upgrade flow');
+
+    // Intercept the checkout call so this test does not require a real
+    // Stripe secret key. We're testing the CLICK + REQUEST shape at mobile
+    // viewport — the request reaching the API proves the button is
+    // actually clickable at this width (not just visible-but-occluded).
+    let checkoutRequestSeen = false;
+    await page.route(`${API_BASE}/api/billing/checkout`, async (route) => {
+      checkoutRequestSeen = true;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          url: 'https://checkout.stripe.com/c/pay/cs_test_mock_mobile',
+        }),
+      });
+    });
+
+    await page.goto(`${ADMIN_BASE}/upgrade`, { waitUntil: 'domcontentloaded' });
+
+    // Find the Pro tier's select button. UpgradePage renders one button per
+    // tier; getByRole + text match avoids depending on test-id selectors
+    // that may not exist on the production PricingTable component.
+    const proButton = page
+      .getByRole('button', { name: /pro/i })
+      .or(page.getByText(/select pro|upgrade to pro|start.*pro/i).first());
+    await proButton.first().click({ timeout: 8_000 });
+
+    // The button click should trigger a POST /api/billing/checkout call
+    // (visible because we intercepted it above).
+    await expect.poll(() => checkoutRequestSeen, { timeout: 8_000 }).toBe(true);
   });
 });

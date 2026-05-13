@@ -2,7 +2,7 @@
  * Transaction Implementation Test - Critical Fix #1 Verification
  *
  * Verifies that withTransaction():
- * 1. Works correctly with pg Pool driver (Supabase/localhost)
+ * 1. Works correctly with pg Pool driver (localhost dev/test)
  * 2. Throws clear error with Neon HTTP driver (no transaction support)
  *
  * This prevents data corruption in multi-step operations.
@@ -39,7 +39,7 @@ describe('Critical Fix #1: Transaction Implementation', () => {
         await withTransaction(neonMockDb, async () => ({ success: true }));
         expect.fail('Should have thrown');
       } catch (error) {
-        expect((error as Error).message).toContain('Supabase / localhost');
+        expect((error as Error).message).toContain('withSaga()');
       }
     });
 

@@ -642,18 +642,6 @@ describe('database connection failures', () => {
       expect(drizzlePgMod.drizzle).toHaveBeenCalled();
     });
 
-    it('uses pg Pool for Supabase connections', async () => {
-      const drizzlePgMod = await import('drizzle-orm/node-postgres');
-      const { createClient } = await import('../../client/index.js');
-
-      createClient({
-        connectionString:
-          'postgresql://user:pass@aws-0-us-east-1.pooler.supabase.com:6543/postgres',
-      });
-
-      expect(drizzlePgMod.drizzle).toHaveBeenCalled();
-    });
-
     it('uses Neon driver for NeonDB connections (no pool)', async () => {
       const { neon } = await import('@neondatabase/serverless');
       const { createClient } = await import('../../client/index.js');
@@ -681,14 +669,15 @@ describe('database connection failures', () => {
       expect(() => getClient('rest')).toThrow('Database connection string not provided');
     });
 
-    it('throws when DATABASE_URL is missing for vector client', async () => {
+    it('throws when no connection string is available for vector client (aliased to rest)', async () => {
+      Reflect.deleteProperty(process.env, 'POSTGRES_URL');
       Reflect.deleteProperty(process.env, 'DATABASE_URL');
 
       vi.resetModules();
       const { getClient, resetClient } = await import('../../client/index.js');
       resetClient();
 
-      expect(() => getClient('vector')).toThrow('DATABASE_URL');
+      expect(() => getClient('vector')).toThrow('Database connection string not provided');
     });
   });
 });

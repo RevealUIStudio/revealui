@@ -8,6 +8,24 @@
  */
 
 export async function register() {
+  // Sentry initialization — load runtime-specific config FIRST so server
+  // actions / RSC / route handlers / middleware are instrumented before
+  // any other module runs. Pattern per getsentry/sentry-for-ai
+  // skills/sentry-nextjs-sdk/SKILL.md. Wrapped in try/catch: the
+  // instrumentation.ts contract is "never throw — it kills the runtime".
+  try {
+    if (process.env.NEXT_RUNTIME === 'nodejs') {
+      await import('../sentry.server.config');
+    }
+    if (process.env.NEXT_RUNTIME === 'edge') {
+      await import('../sentry.edge.config');
+    }
+  } catch (err) {
+    process.stderr.write(
+      `Sentry init failed (non-fatal): ${err instanceof Error ? err.message : String(err)}\n`,
+    );
+  }
+
   // Only run in the Node.js runtime  -  Edge loads this file during build analysis.
   if ('EdgeRuntime' in globalThis) {
     return;
@@ -108,6 +126,23 @@ export async function register() {
       if (!result.valid) {
         const message = `Missing required environment variables: ${result.missing.join(', ')}`;
         logger.error('Environment validation failed', new Error(message));
+
+        // Per revealui#836: missing critical env vars (notably REVEALUI_KEK)
+        // in production MUST fail-fast so the deploy surfaces the error in
+        // Vercel deploy logs rather than booting into a broken state (e.g.
+        // encryptApiKey throws on first request to /api/user/api-keys/value).
+        // SKIP_ENV_VALIDATION=true is the documented escape hatch and
+        // matches the RevForge license-validation block above.
+        //
+        // process.exit(1) is the *intentional* kill (vs throw, which the
+        // surrounding try/catch swallows per Next.js instrumentation
+        // contract — "never throw, it kills the runtime").
+        if (environment === 'production' && process.env.SKIP_ENV_VALIDATION !== 'true') {
+          process.stderr.write(
+            `ENV VALIDATION FAILED in production:\n  - ${result.missing.join('\n  - ')}\n`,
+          );
+          process.exit(1);
+        }
       }
 
       if (result.warnings.length > 0) {
@@ -194,3 +229,8 @@ export async function register() {
     void error;
   }
 }
+
+// Auto-capture server-side request errors (server actions, RSC, route
+// handlers, middleware). Requires @sentry/nextjs >= 8.28.0; we have ^10.49.0.
+// Pattern per getsentry/sentry-for-ai skills/sentry-nextjs-sdk/SKILL.md.
+export { captureRequestError as onRequestError } from '@sentry/nextjs';

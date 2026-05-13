@@ -143,7 +143,7 @@ const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
 };
 ```
 
-Free tier gets the full runtime engine, auth, and REST API. Pro unlocks payments, AI, sync, and monitoring. Max adds AI memory, advanced inference configuration, and compliance tooling. Enterprise adds multi-tenant architecture, white-labeling (planned), and SSO (planned).
+Free tier gets the full runtime engine, auth, and REST API. Pro unlocks payments, AI, sync, and monitoring. Max adds AI memory, advanced inference configuration, and compliance tooling. Enterprise adds RevealUI Fleet — branded white-label deployment for your own customers (managed setup via revforge), domain-locked licensing, and SSO (planned).
 
 ### Pricing served from Stripe, not hardcoded
 

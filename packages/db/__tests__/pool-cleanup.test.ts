@@ -5,9 +5,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { closeAllPools, getPoolMetrics, resetClient } from '../src/client/index';
 
-// Mock environment variables for testing
-process.env.DATABASE_URL = 'postgresql://test:test@test.supabase.co:6543/postgres';
-process.env.SUPABASE_DATABASE_URL = 'postgresql://test:test@test.supabase.co:6543/postgres';
+// Use a localhost URL so isLocalhostConnection returns true and a pg Pool is created.
+// Without a pool (Neon HTTP path), pool metrics would always be empty.
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/postgres';
 
 describe('Database Pool Cleanup', () => {
   beforeEach(() => {
@@ -23,8 +23,8 @@ describe('Database Pool Cleanup', () => {
     // Import the client creation (this will create a pool)
     const { getClient } = await import('../src/client/index');
 
-    // Get a client (which creates a pool)
-    getClient('vector');
+    // Get a client (which creates a pool for localhost URLs)
+    getClient('rest');
 
     // Get pool metrics
     const metrics = getPoolMetrics();
@@ -37,7 +37,7 @@ describe('Database Pool Cleanup', () => {
     const { getClient } = await import('../src/client/index');
 
     // Get a client
-    getClient('vector');
+    getClient('rest');
 
     // Get pool metrics
     const metrics = getPoolMetrics();
@@ -54,8 +54,8 @@ describe('Database Pool Cleanup', () => {
   it('should close all pools on closeAllPools', async () => {
     const { getClient } = await import('../src/client/index');
 
-    // Create a client (which creates a pool)
-    getClient('vector');
+    // Create a client (which creates a pool for localhost URLs)
+    getClient('rest');
 
     // Verify pool exists
     let metrics = getPoolMetrics();
@@ -73,13 +73,13 @@ describe('Database Pool Cleanup', () => {
     const { getClient } = await import('../src/client/index');
 
     // Create a client
-    const _client1 = getClient('vector');
+    const _client1 = getClient('rest');
 
     // Close all pools
     await closeAllPools();
 
     // Get client again - should be a new instance
-    const client2 = getClient('vector');
+    const client2 = getClient('rest');
 
     // Note: We can't directly compare instances, but we can verify
     // that we can still get a client after closing

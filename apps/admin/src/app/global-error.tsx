@@ -1,5 +1,6 @@
 'use client';
 
+import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -11,7 +12,13 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Fire-and-forget  -  never let capture failure affect the error UI
+    // Send to Sentry (client SDK; uses NEXT_PUBLIC_SENTRY_DSN). Pattern
+    // per getsentry/sentry-for-ai skills/sentry-nextjs-sdk/SKILL.md.
+    // Fire-and-forget; the SDK handles transport + retry internally.
+    Sentry.captureException(error);
+
+    // Also POST to admin's server-side log transport (separate from Sentry).
+    // Fire-and-forget  -  never let capture failure affect the error UI.
     // Route through the admin server-side proxy (same origin) which adds the
     // X-Internal-Token header. Sending REVEALUI_SECRET from the client would
     // expose it in the browser bundle.
