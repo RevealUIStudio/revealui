@@ -24,7 +24,7 @@
     "@vercel/blob": "^2.3.3",
     "bcryptjs": "catalog:",
     "dataloader": "^2.2.3",
-    "jose": "^6.2.2",
+    "jose": "^6.2.3",
     "lexical": "^0.44.0",
     "pg": "catalog:",
     "yjs": "^13.6.30",
