@@ -1,0 +1,64 @@
+[Unit]
+# Drizzle Studio (database browser for @revealui/db).
+#
+# Installed by packages/db/systemd/install.sh as a systemd-user unit.
+# Manage with:
+#   systemctl --user start  drizzle-studio
+#   systemctl --user status drizzle-studio
+#   systemctl --user stop   drizzle-studio
+#   journalctl  --user -u drizzle-studio -f
+#
+# The service does NOT auto-start on boot (no `WantedBy` in [Install] →
+# default.target only). Drizzle Studio is on-demand by design — prod
+# DB access should be intentional and time-bounded, not a service
+# that's always reachable on localhost.
+#
+# Mirrors the revdev daemon's pattern at packages/daemon/systemd/.
+Description=Drizzle Studio — @revealui/db browser
+Documentation=https://orm.drizzle.team/docs/drizzle-kit-studio
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/revfleet/revealui/packages/db
+
+# POSTGRES_URL (or DATABASE_URL) must be set in this file. The file is
+# user-owned, mode 0600, and is intentionally NOT committed to git.
+# For prod recovery, the start-prod.sh wrapper script populates this
+# automatically from revvault.
+EnvironmentFile=%h/.config/drizzle-studio/env
+
+# Bound to 127.0.0.1 so WSL2 NAT localhostForwarding bridges to the
+# Windows-side browser without exposing the DB to the LAN. Studio's
+# proxy must be on a known port for the local.drizzle.studio frontend
+# to find it.
+#
+# Invoke node directly (rather than node_modules/.bin/drizzle-kit) to
+# avoid PATH issues — systemd-user units inherit a minimal env, and the
+# .bin/drizzle-kit wrapper script execs `node` which fails when fnm's
+# install dir isn't on PATH. ~/.local/bin/node is an fnm symlink to
+# the currently-aliased version — version-resilient. drizzle-kit's
+# bin.cjs is the actual JS entrypoint, reached via pnpm's stable
+# package symlink (also version-resilient).
+ExecStart=%h/.local/bin/node %h/revfleet/revealui/packages/db/node_modules/drizzle-kit/bin.cjs studio --host 127.0.0.1 --port 4983
+
+# Restart on crash with a brief backoff. drizzle-kit studio has been
+# observed to exit unexpectedly under certain shell/PTY conditions
+# (2026-05-11 dogfood); systemd-user provides the proper supervision.
+Restart=on-failure
+RestartSec=2
+StartLimitInterval=60
+StartLimitBurst=5
+
+StandardOutput=journal
+StandardError=journal
+
+# Minimal hardening — drizzle-kit is a Node process that needs broad
+# filesystem access (reads schema files, writes journals) but doesn't
+# need new privileges.
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+# Deliberately omitting `WantedBy=default.target` — Studio is on-demand.
+# Run `systemctl --user start drizzle-studio` when needed.
