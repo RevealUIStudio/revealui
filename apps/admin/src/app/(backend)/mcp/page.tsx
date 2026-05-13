@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card';
 import { UsageDashboard } from '@/lib/components/mcp/usage-dashboard';
 import type { CollectionMcpSummary } from '@/lib/mcp/collections';
+import { apiFetch } from '@/lib/utils/csrf';
 
 interface RemoteServerSummary {
   tenant: string;
@@ -111,12 +112,15 @@ export default function McpCatalogPage() {
       return;
     }
     try {
-      const res = await fetch(`/api/mcp/remote-servers/${encodeURIComponent(server)}/disconnect`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ tenant: activeTenant }),
-      });
+      const res = await apiFetch(
+        `/api/mcp/remote-servers/${encodeURIComponent(server)}/disconnect`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ tenant: activeTenant }),
+        },
+      );
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string }; // empty-catch-ok: non-JSON error body — res.status is surfaced below
         throw new Error(body.error ?? `HTTP ${res.status}`);

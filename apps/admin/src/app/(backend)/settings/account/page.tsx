@@ -11,6 +11,7 @@ import {
 } from '@revealui/presentation/client';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 import { PasswordChangeForm } from './PasswordChangeForm';
 
 // =============================================================================
@@ -200,7 +201,7 @@ function AccountSettingsContent() {
     setError(null);
 
     try {
-      const res = await fetch('/api/auth/unlink', {
+      const res = await apiFetch('/api/auth/unlink', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider }),

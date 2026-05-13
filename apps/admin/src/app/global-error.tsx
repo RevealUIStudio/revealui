@@ -2,6 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { useEffect } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 
 export default function GlobalError({
   error,
@@ -21,7 +22,7 @@ export default function GlobalError({
     // Route through the admin server-side proxy (same origin) which adds the
     // X-Internal-Token header. Sending REVEALUI_SECRET from the client would
     // expose it in the browser bundle.
-    fetch('/api/capture-error', {
+    apiFetch('/api/capture-error', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
