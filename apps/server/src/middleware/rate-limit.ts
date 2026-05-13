@@ -3,10 +3,17 @@
  *
  * Adapts the existing checkRateLimit from @revealui/auth for use with Hono.
  * Sets standard rate limit headers and returns 429 when exceeded.
+ *
+ * Client IP extraction uses `getClientIp` from `@revealui/security`
+ * (trusted-proxy-aware). Configured globally at boot via
+ * `configureClientIp({ trustedProxyCount: 1 })` in `apps/server/src/index.ts`.
+ * See revealui#838 — earlier left-most-XFF extraction was trivially
+ * spoofable behind Vercel's edge.
  */
 
 import { checkRateLimit } from '@revealui/auth/server';
 import { getCurrentTier, type LicenseTier } from '@revealui/core/license';
+import { getClientIp } from '@revealui/security';
 import type { MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
@@ -30,30 +37,9 @@ export interface TieredRateLimitOptions {
   failOpen?: boolean;
 }
 
-/**
- * Extract the client IP from request headers.
- *
- * Priority:
- * 1. X-Real-IP  -  set by the edge proxy (Vercel/Cloudflare) to the true client IP
- * 2. X-Forwarded-For  -  first (leftmost) entry is the originating client IP
- * 3. Falls back to 'unknown' when no IP headers are present
- */
-function extractTrustedIp(c: { req: { header: (name: string) => string | undefined } }): string {
-  const realIp = c.req.header('x-real-ip');
-  if (realIp) return realIp.trim();
-
-  const xff = c.req.header('x-forwarded-for');
-  if (xff) {
-    const first = xff.split(',')[0]?.trim();
-    if (first) return first;
-  }
-
-  return 'unknown';
-}
-
 export const rateLimitMiddleware = (options: RateLimitOptions): MiddlewareHandler => {
   return async (c, next) => {
-    const ip = extractTrustedIp(c);
+    const ip = getClientIp(c.req.raw);
     const key = `${options.keyPrefix || 'api'}:${ip}`;
 
     try {
@@ -94,7 +80,7 @@ export const tieredRateLimitMiddleware = (options: TieredRateLimitOptions): Midd
     const tier = getCurrentTier();
     const config = options.tiers[tier] ?? options.tiers.free;
 
-    const ip = extractTrustedIp(c);
+    const ip = getClientIp(c.req.raw);
     const key = `${options.keyPrefix || 'api'}:${tier}:${ip}`;
 
     try {

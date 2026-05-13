@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock dependencies
@@ -14,6 +14,7 @@ vi.mock('@revealui/core/license', () => ({
 
 import { checkRateLimit } from '@revealui/auth/server';
 import { getCurrentTier } from '@revealui/core/license';
+import { configureClientIp, resetClientIpConfig } from '@revealui/security';
 import { rateLimitMiddleware, tieredRateLimitMiddleware } from '../rate-limit.js';
 
 const mockedCheckRateLimit = vi.mocked(checkRateLimit);
@@ -22,6 +23,12 @@ const mockedGetCurrentTier = vi.mocked(getCurrentTier);
 beforeEach(() => {
   vi.clearAllMocks();
   mockedGetCurrentTier.mockReturnValue('free');
+  // Match production wiring at apps/server/src/index.ts:1326.
+  configureClientIp({ trustedProxyCount: 1 });
+});
+
+afterEach(() => {
+  resetClientIpConfig();
 });
 
 // ---------------------------------------------------------------------------
@@ -115,8 +122,12 @@ describe('rateLimitMiddleware', () => {
     expect(retryAfter).toBeLessThanOrEqual(30);
   });
 
-  describe('IP extraction', () => {
-    it('uses leftmost X-Forwarded-For entry (client IP)', async () => {
+  describe('IP extraction (trusted-proxy-aware, post-revealui#838)', () => {
+    it('uses the entry written by the trusted edge proxy (X-Forwarded-For)', async () => {
+      // With trustedProxyCount=1 and parts=[1.1.1.1, 2.2.2.2, 3.3.3.3],
+      // the rightmost entry (3.3.3.3) is what our trusted proxy wrote — the
+      // IP of whoever connected to it. The leftmost two entries are
+      // untrusted (could be a client-set spoof + an untrusted upstream).
       mockedCheckRateLimit.mockResolvedValue(allowedResult());
 
       const app = new Hono();
@@ -128,10 +139,36 @@ describe('rateLimitMiddleware', () => {
       });
 
       const key = mockedCheckRateLimit.mock.calls[0]![0];
-      expect(key).toBe('api:1.1.1.1');
+      expect(key).toBe('api:3.3.3.3');
     });
 
-    it('prefers X-Real-IP over X-Forwarded-For', async () => {
+    it('rejects a crafted X-Forwarded-For prefix (spoof bypass attempt)', async () => {
+      // Attacker sets X-Forwarded-For: "9.9.9.9" before the request hits
+      // the trusted proxy. The trusted proxy appends the attacker's TCP
+      // peer IP (5.5.5.5). With trustedProxyCount=1, getClientIp returns
+      // 5.5.5.5 — the real attacker IP, not the spoofed 9.9.9.9.
+      // Per revealui#838 acceptance criterion.
+      mockedCheckRateLimit.mockResolvedValue(allowedResult());
+
+      const app = new Hono();
+      app.use('*', rateLimitMiddleware({ maxRequests: 100, windowMs: 60_000 }));
+      app.get('/test', (c) => c.json({ ok: true }));
+
+      await app.request('/test', {
+        headers: { 'x-forwarded-for': '9.9.9.9, 5.5.5.5' },
+      });
+
+      const key = mockedCheckRateLimit.mock.calls[0]![0];
+      expect(key).toBe('api:5.5.5.5');
+      expect(key).not.toBe('api:9.9.9.9');
+    });
+
+    it('uses X-Forwarded-For over X-Real-IP when both present (trusted-proxy strategy)', async () => {
+      // Behavior change vs the pre-revealui#838 middleware (which preferred
+      // X-Real-IP unconditionally). The trusted-proxy strategy treats
+      // X-Forwarded-For as the canonical source when present, since it
+      // encodes the full proxy chain we can apply trustedProxyCount to.
+      // X-Real-IP is only a fallback when XFF is absent.
       mockedCheckRateLimit.mockResolvedValue(allowedResult());
 
       const app = new Hono();
@@ -146,7 +183,7 @@ describe('rateLimitMiddleware', () => {
       });
 
       const key = mockedCheckRateLimit.mock.calls[0]![0];
-      expect(key).toBe('api:9.9.9.9');
+      expect(key).toBe('api:2.2.2.2');
     });
 
     it('falls back to X-Real-IP when X-Forwarded-For is absent', async () => {

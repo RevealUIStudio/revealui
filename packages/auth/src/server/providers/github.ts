@@ -4,8 +4,12 @@
  * Uses native fetch  -  no additional npm dependencies.
  * Scopes: read:user user:email
  *
- * Note: GitHub may return null email if user has set it private.
- * In that case we fetch from /user/emails and pick the primary verified one.
+ * The email returned by GET /user is NOT verified — it's any value the
+ * user typed into Settings → Public profile email. We always query
+ * /user/emails and pick the `primary && verified` entry. See revealui#832
+ * for the account-takeover vector that motivated this: an attacker could
+ * set their public profile email to a victim's address and create a
+ * RevealUI account under that email before the victim signed up.
  */
 
 import type { ProviderUser } from '../oauth.js';
@@ -102,20 +106,20 @@ export async function fetchUser(accessToken: string): Promise<ProviderUser> {
     avatar_url?: string;
   };
 
-  let email: string | null = user.email ?? null;
-
-  // Fetch emails if not public
-  if (!email) {
-    const emailsResponse = await fetch('https://api.github.com/user/emails', { headers });
-    if (emailsResponse.ok) {
-      const emails = (await emailsResponse.json()) as Array<{
-        email: string;
-        primary: boolean;
-        verified: boolean;
-      }>;
-      const primary = emails.find((e) => e.primary && e.verified);
-      email = primary?.email ?? null;
-    }
+  // Per revealui#832: always query /user/emails and require primary +
+  // verified. We do NOT trust user.email from /user — that field is
+  // user-editable in GitHub's Settings → Public profile and is not
+  // verified by GitHub.
+  let email: string | null = null;
+  const emailsResponse = await fetch('https://api.github.com/user/emails', { headers });
+  if (emailsResponse.ok) {
+    const emails = (await emailsResponse.json()) as Array<{
+      email: string;
+      primary: boolean;
+      verified: boolean;
+    }>;
+    const primary = emails.find((e) => e.primary && e.verified);
+    email = primary?.email ?? null;
   }
 
   return {
