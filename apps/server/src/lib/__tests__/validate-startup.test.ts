@@ -875,3 +875,178 @@ describe('validateStartup — lenient mode (Vercel-Sensitive var handling)', () 
     );
   });
 });
+
+// ─── validateBillingCatalogAtStartup ────────────────────────────────────
+import {
+  type BillingCatalogRow,
+  EXPECTED_LIVE_PLAN_IDS_FOR_TEST,
+  validateBillingCatalogAtStartup,
+} from '../validate-startup.js';
+
+/**
+ * Full row set every expected plan with a populated stripe_price_id.
+ * Tests use this as the happy-path baseline and remove/null specific
+ * rows to exercise failure modes.
+ */
+function fullCatalogRows(): BillingCatalogRow[] {
+  return EXPECTED_LIVE_PLAN_IDS_FOR_TEST.map((planId, i) => ({
+    planId,
+    stripePriceId: `price_test_${i}`,
+  }));
+}
+
+describe('validateBillingCatalogAtStartup — short-circuits', () => {
+  it('no-ops when SKIP_ENV_VALIDATION=true', async () => {
+    const fetchRows = vi.fn(() => Promise.resolve(fullCatalogRows()));
+    await expect(
+      validateBillingCatalogAtStartup({ SKIP_ENV_VALIDATION: 'true' }, fetchRows),
+    ).resolves.toBeUndefined();
+    expect(fetchRows).not.toHaveBeenCalled();
+  });
+
+  it('no-ops when NODE_ENV is not production (dev)', async () => {
+    const fetchRows = vi.fn(() => Promise.resolve([]));
+    await expect(
+      validateBillingCatalogAtStartup({ NODE_ENV: 'development' }, fetchRows),
+    ).resolves.toBeUndefined();
+    expect(fetchRows).not.toHaveBeenCalled();
+  });
+
+  it('no-ops when NODE_ENV is not production (test)', async () => {
+    const fetchRows = vi.fn(() => Promise.resolve([]));
+    await expect(
+      validateBillingCatalogAtStartup({ NODE_ENV: 'test' }, fetchRows),
+    ).resolves.toBeUndefined();
+    expect(fetchRows).not.toHaveBeenCalled();
+  });
+
+  it('no-ops in production Forge mode (no signing key → no Stripe → no catalog)', async () => {
+    const fetchRows = vi.fn(() => Promise.resolve([]));
+    await expect(
+      validateBillingCatalogAtStartup(
+        { NODE_ENV: 'production', STRIPE_LIVE_MODE: 'true' },
+        fetchRows,
+      ),
+    ).resolves.toBeUndefined();
+    expect(fetchRows).not.toHaveBeenCalled();
+  });
+
+  it('no-ops in production hosted mode when STRIPE_LIVE_MODE is unset', async () => {
+    const fetchRows = vi.fn(() => Promise.resolve([]));
+    await expect(
+      validateBillingCatalogAtStartup(
+        { NODE_ENV: 'production', REVEALUI_LICENSE_PRIVATE_KEY: 'present' },
+        fetchRows,
+      ),
+    ).resolves.toBeUndefined();
+    expect(fetchRows).not.toHaveBeenCalled();
+  });
+
+  it('no-ops in production hosted mode when STRIPE_LIVE_MODE is "false"', async () => {
+    const fetchRows = vi.fn(() => Promise.resolve([]));
+    await expect(
+      validateBillingCatalogAtStartup(
+        {
+          NODE_ENV: 'production',
+          REVEALUI_LICENSE_PRIVATE_KEY: 'present',
+          STRIPE_LIVE_MODE: 'false',
+        },
+        fetchRows,
+      ),
+    ).resolves.toBeUndefined();
+    expect(fetchRows).not.toHaveBeenCalled();
+  });
+});
+
+describe('validateBillingCatalogAtStartup — live-mode validation', () => {
+  const liveModeEnv: EnvMap = {
+    NODE_ENV: 'production',
+    REVEALUI_LICENSE_PRIVATE_KEY: 'present',
+    STRIPE_LIVE_MODE: 'true',
+  };
+
+  it('passes when all expected plans are present with stripe_price_id', async () => {
+    const fetchRows = vi.fn(() => Promise.resolve(fullCatalogRows()));
+    await expect(validateBillingCatalogAtStartup(liveModeEnv, fetchRows)).resolves.toBeUndefined();
+    expect(fetchRows).toHaveBeenCalledOnce();
+  });
+
+  it('throws when subscription:pro row is missing', async () => {
+    const rows = fullCatalogRows().filter((r) => r.planId !== 'subscription:pro');
+    await expect(
+      validateBillingCatalogAtStartup(liveModeEnv, () => Promise.resolve(rows)),
+    ).rejects.toThrow(/missing rows: subscription:pro/);
+  });
+
+  it('throws when multiple rows are missing — names them all in the error', async () => {
+    const rows = fullCatalogRows().filter(
+      (r) => r.planId !== 'subscription:enterprise' && r.planId !== 'credits:scale',
+    );
+    await expect(
+      validateBillingCatalogAtStartup(liveModeEnv, () => Promise.resolve(rows)),
+    ).rejects.toThrow(
+      /subscription:enterprise.*credits:scale|credits:scale.*subscription:enterprise/,
+    );
+  });
+
+  it('throws when a row exists but has null stripe_price_id', async () => {
+    const rows = fullCatalogRows().map((r) =>
+      r.planId === 'subscription:max' ? { ...r, stripePriceId: null } : r,
+    );
+    await expect(
+      validateBillingCatalogAtStartup(liveModeEnv, () => Promise.resolve(rows)),
+    ).rejects.toThrow(/null stripe_price_id: subscription:max/);
+  });
+
+  it('throws when both missing and incomplete rows exist — reports both categories', async () => {
+    const rows = fullCatalogRows()
+      .filter((r) => r.planId !== 'perpetual:enterprise')
+      .map((r) => (r.planId === 'subscription:pro' ? { ...r, stripePriceId: null } : r));
+    const err = await validateBillingCatalogAtStartup(liveModeEnv, () =>
+      Promise.resolve(rows),
+    ).then(
+      () => null,
+      (e: unknown) => (e instanceof Error ? e.message : String(e)),
+    );
+    expect(err).toMatch(/missing rows: perpetual:enterprise/);
+    expect(err).toMatch(/null stripe_price_id: subscription:pro/);
+  });
+
+  it('error message points operator at the seed-billing fix', async () => {
+    const rows = fullCatalogRows().filter((r) => r.planId !== 'subscription:pro');
+    await expect(
+      validateBillingCatalogAtStartup(liveModeEnv, () => Promise.resolve(rows)),
+    ).rejects.toThrow(/seed-billing\.ts/);
+  });
+
+  it('ignores extra rows that are not in the expected list (forward-compatible)', async () => {
+    const rows = [
+      ...fullCatalogRows(),
+      { planId: 'subscription:future-tier', stripePriceId: 'price_future' },
+    ];
+    await expect(
+      validateBillingCatalogAtStartup(liveModeEnv, () => Promise.resolve(rows)),
+    ).resolves.toBeUndefined();
+  });
+});
+
+describe('EXPECTED_LIVE_PLAN_IDS — sync with billing-readiness cron', () => {
+  it("matches the cron file's EXPECTED_PLAN_IDS list exactly", () => {
+    // Snapshot of EXPECTED_PLAN_IDS at apps/server/src/routes/cron/billing-readiness.ts.
+    // If this test fails, one of the two lists drifted. Pick the canonical source
+    // (likely the cron file — it's the more-mature surface), update the other to
+    // match, and ensure both lists are equal here.
+    const cronExpected = [
+      'subscription:pro',
+      'subscription:max',
+      'subscription:enterprise',
+      'perpetual:pro',
+      'perpetual:max',
+      'perpetual:enterprise',
+      'credits:starter',
+      'credits:standard',
+      'credits:scale',
+    ];
+    expect([...EXPECTED_LIVE_PLAN_IDS_FOR_TEST]).toEqual(cronExpected);
+  });
+});

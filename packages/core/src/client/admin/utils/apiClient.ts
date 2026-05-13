@@ -131,8 +131,23 @@ export class APIClient {
    * Make an authenticated API request
    */
   private async request<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const Unsafe = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+    const method = (options.method ?? 'GET').toUpperCase();
+    let csrfToken: string | undefined;
+    if (Unsafe.has(method) && typeof document !== 'undefined') {
+      for (const part of document.cookie.split(';')) {
+        const eqIdx = part.indexOf('=');
+        if (eqIdx === -1) continue;
+        if (part.slice(0, eqIdx).trim() === 'revealui-csrf') {
+          csrfToken = part.slice(eqIdx + 1).trim() || undefined;
+          break;
+        }
+      }
+    }
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
+      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
       ...options.headers,
     };
 
@@ -142,7 +157,7 @@ export class APIClient {
       const response = await fetch(url, {
         ...options,
         headers,
-        credentials: 'include', // Include cookies for authentication
+        credentials: 'include',
       });
 
       // Handle authentication errors

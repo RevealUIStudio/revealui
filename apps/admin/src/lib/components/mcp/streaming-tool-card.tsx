@@ -20,6 +20,7 @@
 'use client';
 
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 import {
   ArgumentField,
   ElicitationForm,
@@ -202,7 +203,7 @@ export function StreamingToolCard({ tool, tenant, server }: StreamingToolCardPro
     const sessionId = sessionIdRef.current;
     if (!(elicitation && sessionId)) return;
     setPendingElicitation(null);
-    await fetch(`/api/mcp/remote-servers/${encodeURIComponent(server)}/elicitation-respond`, {
+    await apiFetch(`/api/mcp/remote-servers/${encodeURIComponent(server)}/elicitation-respond`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

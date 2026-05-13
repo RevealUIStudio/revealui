@@ -101,7 +101,7 @@ export async function sendLicenseActivatedEmail(to: string, tier: string): Promi
   const label = tierLabel(tier);
   const featureList =
     tier === 'enterprise'
-      ? ' multi-tenant architecture, white-label branding, SSO, and'
+      ? ' multi-tenant architecture, and'
       : tier === 'max'
         ? ' AI memory, advanced inference, audit log, and'
         : '';

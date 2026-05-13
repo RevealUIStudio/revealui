@@ -20,6 +20,7 @@
  */
 import { cleanupStaleTokens } from '@revealui/db/cleanup';
 import { type NextRequest, NextResponse } from 'next/server';
+import { sendCronFailureAlert } from '@/lib/utils/cron-alert';
 import { verifyCronAuth } from '@/lib/utils/cron-auth';
 
 export const dynamic = 'force-dynamic';
@@ -44,7 +45,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const err = error instanceof Error ? error : new Error(String(error));
+    await sendCronFailureAlert({
+      jobName: 'admin:cleanup-all',
+      error: err,
+      severity: 'error',
+    });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
