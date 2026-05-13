@@ -1,6 +1,39 @@
 import { validateLicenseKey } from '@revealui/core/license';
+import { getClient } from '@revealui/db/client';
+import { billingCatalog } from '@revealui/db/schema';
 
 export type EnvMap = Record<string, string | undefined>;
+
+/**
+ * Row shape returned by the billing_catalog lookup. Exported so tests can
+ * construct fake rows without depending on @revealui/db's inferred types.
+ */
+export interface BillingCatalogRow {
+  planId: string;
+  stripePriceId: string | null;
+}
+
+/**
+ * All `billing_catalog` plan IDs that must exist with `stripe_price_id`
+ * populated when running hosted live-mode (`STRIPE_LIVE_MODE=true`). Format:
+ * `<billing_model>:<tier>`.
+ *
+ * This list is duplicated in `apps/server/src/routes/cron/billing-readiness.ts`
+ * (`EXPECTED_PLAN_IDS`) — the lib layer must not import from routes, so the
+ * two lists are intentionally separate. A test in
+ * `__tests__/validate-startup.test.ts` asserts they stay in sync.
+ */
+const EXPECTED_LIVE_PLAN_IDS = [
+  'subscription:pro',
+  'subscription:max',
+  'subscription:enterprise',
+  'perpetual:pro',
+  'perpetual:max',
+  'perpetual:enterprise',
+  'credits:starter',
+  'credits:standard',
+  'credits:scale',
+] as const;
 
 /**
  * Where this RevealUI deployment runs.
@@ -469,6 +502,92 @@ export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvM
     );
   }
 }
+
+/**
+ * Default fetcher: queries `billing_catalog` via the shared Drizzle client.
+ * Extracted so `validateBillingCatalogAtStartup` can take an injectable
+ * fetcher in tests (avoids mocking the DB module).
+ */
+async function defaultFetchBillingCatalogRows(): Promise<BillingCatalogRow[]> {
+  const db = getClient();
+  return db
+    .select({
+      planId: billingCatalog.planId,
+      stripePriceId: billingCatalog.stripePriceId,
+    })
+    .from(billingCatalog);
+}
+
+/**
+ * Validate that the `billing_catalog` table is fully seeded for live mode.
+ *
+ * Runs only when ALL of:
+ *   - `NODE_ENV === 'production'`
+ *   - mode === 'hosted' (skip Forge — no Stripe, no catalog)
+ *   - `STRIPE_LIVE_MODE === 'true'` (skip test mode — catalog can be
+ *     partially seeded before the live-key cutover)
+ *
+ * Throws if any expected plan is missing OR has null `stripe_price_id`.
+ * This prevents the failure mode where a customer's checkout reaches the
+ * Stripe price lookup at runtime, can't find a row, and 500s mid-customer-
+ * transaction. The daily billing-readiness cron at
+ * `apps/server/src/routes/cron/billing-readiness.ts` already detects this
+ * and emails an alert, but that's after-the-fact; this validator fails
+ * boot so a misconfigured deploy never accepts traffic.
+ *
+ * `fetchRows` is injectable so tests can pass fixture data without
+ * mocking the DB module. The production caller relies on the default.
+ *
+ * Honors `SKIP_ENV_VALIDATION=true` so Docker-build and other build-only
+ * contexts can compile without a live DB connection. Takes `env` as an
+ * argument so tests can pass explicit fixtures.
+ */
+export async function validateBillingCatalogAtStartup(
+  env: EnvMap = process.env as EnvMap,
+  fetchRows: () => Promise<BillingCatalogRow[]> = defaultFetchBillingCatalogRows,
+): Promise<void> {
+  if (env.SKIP_ENV_VALIDATION === 'true') return;
+  if (env.NODE_ENV !== 'production') return;
+  if (detectDeploymentMode(env) !== 'hosted') return;
+  if (env.STRIPE_LIVE_MODE !== 'true') return;
+
+  const rows = await fetchRows();
+  const byPlanId = new Map<string, string | null>(rows.map((r) => [r.planId, r.stripePriceId]));
+
+  const missing: string[] = [];
+  const incomplete: string[] = [];
+  for (const planId of EXPECTED_LIVE_PLAN_IDS) {
+    if (!byPlanId.has(planId)) {
+      missing.push(planId);
+    } else if (!byPlanId.get(planId)) {
+      incomplete.push(planId);
+    }
+  }
+
+  if (missing.length === 0 && incomplete.length === 0) return;
+
+  const details: string[] = [];
+  if (missing.length > 0) {
+    details.push(`missing rows: ${missing.join(', ')}`);
+  }
+  if (incomplete.length > 0) {
+    details.push(`null stripe_price_id: ${incomplete.join(', ')}`);
+  }
+
+  throw new Error(
+    'BILLING CATALOG VALIDATION FAILED (live mode): ' +
+      `${details.join('; ')}. ` +
+      'Run `pnpm tsx scripts/setup/seed-billing.ts` against the live Stripe account ' +
+      'to populate billing_catalog with real stripe_price_id values, then redeploy.',
+  );
+}
+
+/**
+ * Exposed so tests can assert this list stays in sync with the cron file.
+ * Not meant for runtime callers — they should treat the validator's
+ * behavior (throws on missing/incomplete) as the contract.
+ */
+export const EXPECTED_LIVE_PLAN_IDS_FOR_TEST = EXPECTED_LIVE_PLAN_IDS;
 
 /**
  * Emitted once per cold start when running in production with

@@ -46,7 +46,11 @@ import { logger as honoLogger } from 'hono/logger';
 import { assertDispatchFlagConfigured } from './jobs/register-handlers.js';
 import { queryBillingStatusByCustomerId, querySupportExpiry } from './lib/billing-status.js';
 import { PostgresAuditStorage } from './lib/postgres-audit-storage.js';
-import { validateLicenseAtStartup, validateStartup } from './lib/validate-startup.js';
+import {
+  validateBillingCatalogAtStartup,
+  validateLicenseAtStartup,
+  validateStartup,
+} from './lib/validate-startup.js';
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
@@ -1279,14 +1283,21 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   // present); in self-hosted Forge mode it throws on missing/invalid license,
   // which we surface as process.exit(1) so a stamped kit refuses to serve
   // traffic without a valid studio-issued JWT.
+  //
+  // validateBillingCatalogAtStartup is a no-op outside production-hosted-live
+  // (the dev branch is NODE_ENV !== 'production' so it short-circuits
+  // immediately); kept in the chain for symmetry with the production block
+  // below, where it fails boot if `billing_catalog` isn't seeded for live
+  // mode (prevents mid-customer-transaction 500s).
   validateLicenseAtStartup()
+    .then(() => validateBillingCatalogAtStartup())
     .then(() => initializeLicense())
     .then((tier) => {
       logger.info(`License tier: ${tier}`);
     })
     .catch((err: unknown) => {
       logger.error(
-        'License validation failed; exiting',
+        'Startup validation failed; exiting',
         err instanceof Error ? err : new Error(String(err)),
       );
       process.exit(1);
@@ -1324,14 +1335,23 @@ if (process.env.NODE_ENV === 'production') {
   // REVEALUI_LICENSE_KEY but no signing key. validateLicenseAtStartup
   // throws on invalid/expired/missing license; process.exit(1) makes the
   // container restart-loop instead of silently degrading to free tier.
+  //
+  // validateBillingCatalogAtStartup runs only in hosted mode with
+  // STRIPE_LIVE_MODE=true. It queries the billing_catalog table and fails
+  // boot if any expected plan is missing or has null stripe_price_id —
+  // preventing the failure mode where a customer checkout 500s
+  // mid-transaction because seed-billing.ts wasn't run after the live-key
+  // flip. Forge mode short-circuits (no Stripe); hosted test mode
+  // short-circuits (catalog can be partial pre-flip).
   validateLicenseAtStartup()
+    .then(() => validateBillingCatalogAtStartup())
     .then(() => initializeLicense())
     .then((tier) => {
       logger.info(`License tier: ${tier}`);
     })
     .catch((err: unknown) => {
       logger.error(
-        'License validation failed; exiting',
+        'Startup validation failed; exiting',
         err instanceof Error ? err : new Error(String(err)),
       );
       process.exit(1);

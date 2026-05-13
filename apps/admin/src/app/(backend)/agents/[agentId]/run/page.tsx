@@ -163,6 +163,7 @@ export default function AgentRunPage({ params }: PageProps) {
             <h2 className="text-sm font-medium text-zinc-300">Event log</h2>
             <ol className="space-y-2">
               {stream.chunks.map((chunk, idx) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: streaming chunks are append-only, never reordered
                 <ChunkRow key={idx} chunk={chunk} index={idx} />
               ))}
             </ol>

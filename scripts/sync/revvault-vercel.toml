@@ -59,6 +59,10 @@ STRIPE_CREDITS_SCALE_PRICE_ID        = "revealui/prod/stripe/credits-scale-price
 STRIPE_AGENT_OVERAGE_PRICE_ID        = "revealui/prod/stripe/agent-overage-price-id"
 STRIPE_MAX_ANNUAL_PRICE_ID           = "revealui/prod/stripe/max-annual-price-id"
 
+# Observability — Sentry (server-side error capture; required by validate-startup.ts
+# REQUIRED_IN_PRODUCTION_HOSTED per revealui#787)
+SENTRY_DSN = "revealui/prod/sentry/dsn"
+
 # Admin API key (parity with admin)
 REVEALUI_ADMIN_API_KEY = "revealui/prod/admin/api-key"
 
@@ -182,6 +186,13 @@ REVEALUI_PUBLIC_SERVER_URL = "revealui/prod/public/server-url"
 # CMS bootstrap creds (canonical paths under cms/)
 CMS_ADMIN_EMAIL    = "revealui/prod/cms/admin-email"
 CMS_ADMIN_PASSWORD = "revealui/prod/cms/admin-password"
+
+# Observability — Sentry (Next.js admin; DSN is client-bundled via NEXT_PUBLIC_,
+# auth-token + org + project are build-time for source-map upload via withSentryConfig)
+NEXT_PUBLIC_SENTRY_DSN = "revealui/prod/sentry/dsn-admin"
+SENTRY_AUTH_TOKEN      = "revealui/prod/sentry/auth-token"
+SENTRY_ORG             = "revealui/prod/sentry/org"
+SENTRY_PROJECT         = "revealui/prod/sentry/project-admin"
 
 # Admin-specific (no parity — kebab paths under admin/ for consistency with secrets.md)
 REVEALUI_ADMIN_EMAIL         = "revealui/prod/admin/email"

@@ -21,7 +21,7 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 - [ ] Verify: redirects to Stripe Checkout with correct amount ($49/mo)
 - [ ] Verify: 7-day trial shown (if REVEALUI_TRIAL_DAYS=7)
 - [ ] Complete payment with test card
-- [ ] Verify: redirected to `/account/billing?success=true`
+- [ ] Verify: redirected to `/welcome?success=true&tier=<tier>` (three first-action CTAs render: install CLI, clone source, read quick-start)
 - [ ] Verify: `checkout.session.completed` webhook received (check Stripe CLI output)
 - [ ] Verify: license created in DB (`SELECT * FROM licenses WHERE user_id = ...`)
 - [ ] Verify: user tier shows "pro" in admin dashboard
