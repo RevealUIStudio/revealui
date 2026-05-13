@@ -4,6 +4,7 @@ import type React from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { apiFetch } from '@/lib/utils/csrf';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -533,7 +534,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
     async (role: string, content: string) => {
       if (!activeConversationId) return;
       try {
-        await fetch(`/api/conversations/${activeConversationId}/messages`, {
+        await apiFetch(`/api/conversations/${activeConversationId}/messages`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ role, content }),
@@ -551,7 +552,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       if (activeConversationId) return activeConversationId;
       try {
         const title = firstMessage.slice(0, 60) + (firstMessage.length > 60 ? '...' : '');
-        const res = await fetch('/api/conversations', {
+        const res = await apiFetch('/api/conversations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ title }),
@@ -638,7 +639,7 @@ export default function AgentChat({ conversationId, onConversationCreated }: Age
       const chatMessages = allMessages.map(({ role, content }) => ({ role, content }));
 
       try {
-        const res = await fetch('/api/chat', {
+        const res = await apiFetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

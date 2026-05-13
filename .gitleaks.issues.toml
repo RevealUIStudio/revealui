@@ -1,0 +1,93 @@
+# Issue/PR/comment-body gitleaks config for RevealUI.
+#
+# REGEX-CONFIG-BOUNDARY — this file contains gitleaks rule patterns per the
+# project no-regex rule (M2). gitleaks is the third-party regex engine; we
+# box its config strings here under the documented boundary exception.
+#
+# Consumer: .github/workflows/issue-leak-scan.yml only.
+# Code-side scanning continues to use .gitleaks.toml (default rules + repo
+# allowlists). This file extends those defaults with patterns that catch
+# the leak classes the 2026-05-11 issue-audit found across the open
+# issue corpus — Stripe object IDs, internal subdomains, private-repo
+# path refs, founder home paths, Sentry DSNs, DB connection strings,
+# EVM wallets, personal-domain emails.
+#
+# Pairs with memory `reference_issue_leak_scan_workflow.md` and the audit
+# punch list at §Pre-Flip Moral Readiness in the internal master plan.
+
+title = "RevealUI issue/PR body leak scan"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "revealui-stripe-customer-correlation"
+description = "Stripe customer / subscription / invoice / charge / payment-intent IDs (correlation risk in public issues)"
+regex = '''\b(cus|sub|in|ch|pi|seti|ba|src|tok)_(test_|live_)?[A-Za-z0-9]{14,}\b'''
+keywords = ["cus_", "sub_", "in_", "ch_", "pi_", "seti_", "ba_", "src_", "tok_"]
+tags = ["pii", "stripe", "boundary-config"]
+
+[[rules]]
+id = "revealui-stripe-account-and-catalog"
+description = "Stripe account / product / price / plan / billing-portal / webhook-endpoint / meter IDs (operator catalog disclosure)"
+regex = '''\b(acct|prod|price|plan|bpc|we|mtr|mtr_test|mtr_live)_(test_|live_)?[A-Za-z0-9_]{14,}\b'''
+keywords = ["acct_", "prod_", "price_", "plan_", "bpc_", "we_", "mtr_"]
+tags = ["operator", "stripe", "boundary-config"]
+
+[[rules]]
+id = "revealui-internal-subdomain"
+description = "Internal RevealUI dev/test/staging/internal API subdomains"
+regex = '''https?://(dev|test|staging|internal|preview)\.api\.revealui\.com'''
+keywords = ["dev.api.revealui", "test.api.revealui", "staging.api.revealui", "internal.api.revealui", "preview.api.revealui"]
+tags = ["internal-url", "boundary-config"]
+
+[[rules]]
+id = "revealui-private-repo-path"
+description = "References to revealui-jv private repo paths or .jv/ trees under fleet"
+regex = '''(revealui-jv/(business|docs/audits|docs/gaps|docs/decisions|\.claude)|~/(revfleet|suite)/\.jv/|/home/joshua-v-dev/(revfleet|suite)/\.jv/)'''
+keywords = ["revealui-jv/", ".jv/", "~/revfleet/.jv", "~/suite/.jv"]
+tags = ["private-repo", "boundary-config"]
+
+[[rules]]
+id = "revealui-founder-home-path"
+description = "Founder absolute filesystem paths (WSL or Windows host)"
+regex = '''(/home/joshua-v-dev/|\\\\wsl\.localhost\\Ubuntu\\home\\joshua-v-dev|C:\\Users\\joshu\\)'''
+keywords = ["/home/joshua-v-dev", "joshua-v-dev", "wsl.localhost\\Ubuntu", "C:\\Users\\joshu"]
+tags = ["pii", "founder-path", "boundary-config"]
+
+[[rules]]
+id = "revealui-sentry-dsn"
+description = "Sentry DSN URL (sender spoof + project disclosure)"
+regex = '''https://[a-f0-9]{32}@[a-z0-9.-]+\.ingest\.(us\.|de\.)?sentry\.io/[0-9]+'''
+keywords = ["ingest.sentry.io", "ingest.us.sentry.io", "ingest.de.sentry.io"]
+tags = ["sentry", "boundary-config"]
+
+[[rules]]
+id = "revealui-postgres-connection-with-credentials"
+description = "Postgres / MySQL / Mongo connection string with embedded credentials"
+regex = '''\b(postgres(ql)?|mysql|mongodb(\+srv)?)://[^/\s:]+:[^@\s]+@'''
+keywords = ["postgres://", "postgresql://", "mysql://", "mongodb://", "mongodb+srv://"]
+tags = ["secret", "boundary-config"]
+
+[[rules]]
+id = "revealui-evm-wallet-address"
+description = "EVM wallet address (e.g. Coinbase x402 receiving wallet)"
+regex = '''\b0x[a-fA-F0-9]{40}\b'''
+keywords = ["0x"]
+tags = ["wallet", "boundary-config"]
+
+[[rules]]
+id = "revealui-personal-domain-email"
+description = "Personal-domain email (customer / staff PII; allowlist covers our public mailboxes)"
+regex = '''\b[A-Za-z0-9._%+-]+@(gmail|hotmail|yahoo|outlook|protonmail|icloud)\.com\b'''
+keywords = ["@gmail.com", "@hotmail.com", "@yahoo.com", "@outlook.com", "@protonmail.com", "@icloud.com"]
+tags = ["pii", "boundary-config"]
+
+[allowlist]
+description = "Public email addresses + canonical zero/null/placeholder values"
+regexes = [
+  '''(founder|support|security|no-reply|noreply|press|hello|admin|legal|privacy)@revealui\.com''',
+  '''0x0{40}''',
+  '''(acct|prod|price|cus|sub|ch|pi|seti|in|ba|src|tok|bpc|we|mtr)_(TEST|REDACTED|PLACEHOLDER|EXAMPLE|REDACTED_[A-Za-z0-9_]+)''',
+  '''(postgres(ql)?|mysql|mongodb)://(user|USER|<user>|REDACTED):(pass|password|<password>|REDACTED)@''',
+]

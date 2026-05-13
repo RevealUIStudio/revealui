@@ -18,6 +18,9 @@ const mockCreateSession = vi.fn();
 const mockGetClient = vi.fn();
 const mockInitializeLicense = vi.fn();
 const mockGetMaxUsers = vi.fn();
+const mockIsSignupAllowed = vi.fn().mockReturnValue(true);
+const mockGetOAuthAccountByProviderUser = vi.fn().mockResolvedValue(null);
+const mockCountActiveUsers = vi.fn().mockResolvedValue(0);
 
 class MockOAuthAccountConflictError extends Error {
   constructor(msg: string) {
@@ -35,7 +38,19 @@ vi.mock('@revealui/auth/server', () => ({
   upsertOAuthUser: (...args: unknown[]) => mockUpsertOAuthUser(...args),
   createSession: (...args: unknown[]) => mockCreateSession(...args),
   rotateSession: (...args: unknown[]) => mockCreateSession(...args),
+  // Default: signup allowed. Tests can override via
+  // mockIsSignupAllowed.mockReturnValueOnce(false) to exercise the
+  // revealui#833 closed-signup gate.
+  isSignupAllowed: (...args: unknown[]) => mockIsSignupAllowed(...args),
   OAuthAccountConflictError: MockOAuthAccountConflictError,
+}));
+
+vi.mock('@revealui/db/queries/oauth-accounts', () => ({
+  getOAuthAccountByProviderUser: (...args: unknown[]) => mockGetOAuthAccountByProviderUser(...args),
+}));
+
+vi.mock('@revealui/db/queries/users', () => ({
+  countActiveUsers: (...args: unknown[]) => mockCountActiveUsers(...args),
 }));
 
 vi.mock('@revealui/core/license', () => ({

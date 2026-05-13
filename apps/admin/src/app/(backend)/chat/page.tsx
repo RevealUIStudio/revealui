@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import AgentChat from '@/lib/components/Agent';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { apiFetch } from '@/lib/utils/csrf';
 
 interface Conversation {
   id: string;
@@ -48,7 +49,7 @@ export default function ChatPage() {
 
   const handleDeleteConversation = async (id: string) => {
     try {
-      await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
+      await apiFetch(`/api/conversations/${id}`, { method: 'DELETE' });
       setConversations((prev) => prev.filter((c) => c.id !== id));
       if (activeId === id) setActiveId(null);
     } catch {
