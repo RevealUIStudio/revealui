@@ -147,69 +147,66 @@ describe('GitHub provider', () => {
   // -----------------------------------------------------------------------
 
   describe('fetchUser', () => {
-    it('returns mapped user with public email', async () => {
+    it('always queries /user/emails and uses the primary verified entry', async () => {
+      // Per revealui#832 — even when /user returns an email in the public
+      // profile field, we ignore it and use /user/emails. GitHub does not
+      // verify the public-profile email field.
       fetchSpy.mockResolvedValueOnce(
         jsonResponse({
           id: 42,
           login: 'octocat',
           name: 'The Octocat',
-          email: 'octocat@github.com',
+          email: 'spoofed@victim.com', // user-editable, untrusted
           avatar_url: 'https://avatars.githubusercontent.com/u/42',
         }),
+      );
+      fetchSpy.mockResolvedValueOnce(
+        jsonResponse([
+          { email: 'noreply@github.com', primary: false, verified: true },
+          { email: 'real@octocat.dev', primary: true, verified: true },
+        ]),
       );
 
       const user = await github.fetchUser('token-123');
 
       expect(user).toEqual({
         id: '42',
-        email: 'octocat@github.com',
+        email: 'real@octocat.dev', // from /user/emails, NOT the profile field
         name: 'The Octocat',
         avatarUrl: 'https://avatars.githubusercontent.com/u/42',
       });
+
+      // Verify both fetches happened — /user/emails is mandatory now.
+      expect(fetchSpy).toHaveBeenCalledTimes(2);
+      expect(fetchSpy.mock.calls[1][0]).toBe('https://api.github.com/user/emails');
 
       // Verify auth header
       const headers = fetchSpy.mock.calls[0][1]?.headers as Record<string, string>;
       expect(headers.Authorization).toBe('Bearer token-123');
     });
 
-    it('falls back to login when name is null', async () => {
+    it('rejects spoofed public-profile email (account-takeover prevention)', async () => {
+      // Attacker sets their public profile email to a victim's address.
+      // GitHub does not verify this field. /user/emails returns only the
+      // attacker's verified email — that's what we trust.
       fetchSpy.mockResolvedValueOnce(
-        jsonResponse({ id: 1, login: 'ghost', name: null, email: 'a@b.com' }),
+        jsonResponse({
+          id: 100,
+          login: 'attacker',
+          name: 'Attacker',
+          email: 'victim@example.com', // spoofed
+        }),
+      );
+      fetchSpy.mockResolvedValueOnce(
+        jsonResponse([{ email: 'attacker@gmail.com', primary: true, verified: true }]),
       );
 
       const user = await github.fetchUser('tok');
-      expect(user.name).toBe('ghost');
+      expect(user.email).toBe('attacker@gmail.com');
+      expect(user.email).not.toBe('victim@example.com');
     });
 
-    it('fetches email from /user/emails when public email is null', async () => {
-      // First call: /user (no email)
-      fetchSpy.mockResolvedValueOnce(
-        jsonResponse({ id: 99, login: 'private-user', name: 'Private', email: null }),
-      );
-      // Second call: /user/emails
-      fetchSpy.mockResolvedValueOnce(
-        jsonResponse([
-          { email: 'noreply@github.com', primary: false, verified: true },
-          { email: 'real@example.com', primary: true, verified: true },
-        ]),
-      );
-
-      const user = await github.fetchUser('tok');
-
-      expect(user.email).toBe('real@example.com');
-      expect(fetchSpy).toHaveBeenCalledTimes(2);
-      expect(fetchSpy.mock.calls[1][0]).toBe('https://api.github.com/user/emails');
-    });
-
-    it('returns null email when /user/emails fails', async () => {
-      fetchSpy.mockResolvedValueOnce(jsonResponse({ id: 1, login: 'x', name: 'X', email: null }));
-      fetchSpy.mockResolvedValueOnce(errorResponse(403));
-
-      const user = await github.fetchUser('tok');
-      expect(user.email).toBeNull();
-    });
-
-    it('returns null email when no primary verified email exists', async () => {
+    it('returns null email when /user/emails has no verified primary', async () => {
       fetchSpy.mockResolvedValueOnce(jsonResponse({ id: 1, login: 'x', name: 'X', email: null }));
       fetchSpy.mockResolvedValueOnce(
         jsonResponse([{ email: 'unverified@example.com', primary: true, verified: false }]),
@@ -217,6 +214,26 @@ describe('GitHub provider', () => {
 
       const user = await github.fetchUser('tok');
       expect(user.email).toBeNull();
+    });
+
+    it('returns null email when /user/emails request fails', async () => {
+      fetchSpy.mockResolvedValueOnce(jsonResponse({ id: 1, login: 'x', name: 'X', email: null }));
+      fetchSpy.mockResolvedValueOnce(errorResponse(403));
+
+      const user = await github.fetchUser('tok');
+      expect(user.email).toBeNull();
+    });
+
+    it('falls back to login when name is null', async () => {
+      fetchSpy.mockResolvedValueOnce(
+        jsonResponse({ id: 1, login: 'ghost', name: null, email: 'a@b.com' }),
+      );
+      fetchSpy.mockResolvedValueOnce(
+        jsonResponse([{ email: 'a@b.com', primary: true, verified: true }]),
+      );
+
+      const user = await github.fetchUser('tok');
+      expect(user.name).toBe('ghost');
     });
 
     it('throws on non-OK /user response', async () => {
@@ -229,12 +246,15 @@ describe('GitHub provider', () => {
       fetchSpy.mockResolvedValueOnce(
         jsonResponse({ id: 1, login: 'x', name: 'X', email: 'a@b.com' }),
       );
+      fetchSpy.mockResolvedValueOnce(
+        jsonResponse([{ email: 'a@b.com', primary: true, verified: true }]),
+      );
 
       const user = await github.fetchUser('tok');
       expect(user.avatarUrl).toBeNull();
     });
 
-    it('throws on network failure', async () => {
+    it('throws on network failure on /user', async () => {
       fetchSpy.mockImplementationOnce(networkError);
 
       await expect(github.fetchUser('tok')).rejects.toThrow('fetch failed');
@@ -334,11 +354,12 @@ describe('Google provider', () => {
   // -----------------------------------------------------------------------
 
   describe('fetchUser', () => {
-    it('returns mapped user data', async () => {
+    it('returns email when email_verified is true', async () => {
       fetchSpy.mockResolvedValueOnce(
         jsonResponse({
           sub: '1234567890',
           email: 'user@gmail.com',
+          email_verified: true,
           name: 'Test User',
           picture: 'https://lh3.googleusercontent.com/photo.jpg',
         }),
@@ -359,8 +380,43 @@ describe('Google provider', () => {
       expect(headers.Authorization).toBe('Bearer ya29.token');
     });
 
+    it('returns null email when email_verified is false (revealui#832)', async () => {
+      // Per revealui#832 — Google's userinfo can return an unverified email
+      // (just whatever the user typed during Google signup). We require
+      // email_verified === true; null forces the callback's signup gate
+      // to reject the request.
+      fetchSpy.mockResolvedValueOnce(
+        jsonResponse({
+          sub: '1234567890',
+          email: 'unverified@example.com',
+          email_verified: false,
+          name: 'Test User',
+        }),
+      );
+
+      const user = await google.fetchUser('tok');
+      expect(user.email).toBeNull();
+      expect(user.id).toBe('1234567890');
+      expect(user.name).toBe('Test User');
+    });
+
+    it('returns null email when email_verified is missing (treat as unverified)', async () => {
+      // Defense in depth — if Google ever omits the claim, treat as
+      // unverified rather than trusting the email.
+      fetchSpy.mockResolvedValueOnce(
+        jsonResponse({
+          sub: '1',
+          email: 'present-but-unverified@example.com',
+          name: 'X',
+        }),
+      );
+
+      const user = await google.fetchUser('tok');
+      expect(user.email).toBeNull();
+    });
+
     it('defaults name to "Google User" when missing', async () => {
-      fetchSpy.mockResolvedValueOnce(jsonResponse({ sub: '1' }));
+      fetchSpy.mockResolvedValueOnce(jsonResponse({ sub: '1', email_verified: true }));
 
       const user = await google.fetchUser('tok');
       expect(user.name).toBe('Google User');

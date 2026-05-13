@@ -12,6 +12,7 @@
 import {
   exchangeCode,
   fetchProviderUser,
+  isSignupAllowed,
   OAuthAccountConflictError,
   rotateSession,
   upsertOAuthUser,
@@ -66,6 +67,30 @@ export async function GET(
     );
     const providerUser = await fetchProviderUser(provider, accessToken);
 
+    // Look up the OAuth account once — reused for the closed-signup gate
+    // (revealui#833) and the user-limit check (CR5-2) below. A DB failure
+    // here propagates to the outer catch which returns oauth_error; that
+    // is the right failure mode (refuse rather than skip the signup gate).
+    const db = getClient();
+    const existingOAuth = await getOAuthAccountByProviderUser(db, provider, providerUser.id);
+
+    // Closed-signup gate for new OAuth signups (revealui#833). Pre-fix:
+    // the OAuth callback bypassed isSignupAllowed entirely, silently
+    // violating the default-closed contract from #787. New OAuth accounts
+    // must pass the same allowlist check as local signups.
+    if (!existingOAuth && providerUser.email && !isSignupAllowed(providerUser.email)) {
+      return loginUrl('signup_restricted');
+    }
+
+    // Reject providers that returned no verified email for a new signup
+    // (revealui#832). github.ts / google.ts return null when the email is
+    // unverified — without this gate, upsertOAuthUser would create an
+    // account with a null email which is unworkable for password reset,
+    // notifications, etc.
+    if (!existingOAuth && !providerUser.email) {
+      return loginUrl('verified_email_required');
+    }
+
     // Allowlist check  -  leave OAUTH_ADMIN_EMAILS empty to allow any authenticated user
     const allowedEmails = (process.env.OAUTH_ADMIN_EMAILS ?? '')
       .split(',')
@@ -81,16 +106,10 @@ export async function GET(
     try {
       await initializeLicense();
       const maxUsers = getMaxUsers();
-      if (maxUsers !== Infinity) {
-        const db = getClient();
-        const existingOAuth = await getOAuthAccountByProviderUser(db, provider, providerUser.id);
-
-        if (!existingOAuth) {
-          // New user via OAuth  -  check limit
-          const activeCount = await countActiveUsers(db);
-          if (activeCount >= maxUsers) {
-            return loginUrl('user_limit_reached');
-          }
+      if (maxUsers !== Infinity && !existingOAuth) {
+        const activeCount = await countActiveUsers(db);
+        if (activeCount >= maxUsers) {
+          return loginUrl('user_limit_reached');
         }
       }
     } catch (limitError) {
