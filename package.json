@@ -7,7 +7,7 @@
     "@axe-core/playwright": "^4.11.2",
     "@biomejs/biome": "catalog:",
     "@changesets/cli": "^2.31.0",
-    "@electric-sql/pglite": "^0.4.4",
+    "@electric-sql/pglite": "^0.4.5",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@playwright/test": "catalog:",
     "@size-limit/file": "^12.1.0",
