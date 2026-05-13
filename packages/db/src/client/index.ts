@@ -1,22 +1,20 @@
 /**
  * @revealui/db - Database Client
  *
- * Provides a configured Drizzle ORM client for PostgreSQL databases.
- * Supports dual database architecture:
- * - REST Database (NeonDB): Uses @neondatabase/serverless with drizzle-orm/neon-http
- * - Vector Database (Supabase): Uses postgres-js with drizzle-orm/postgres-js
+ * Provides a configured Drizzle ORM client for a single PostgreSQL database (Neon-primary).
+ * Uses @neondatabase/serverless with drizzle-orm/neon-http for Neon connections.
+ * Uses node-postgres (pg Pool) with drizzle-orm/node-postgres for localhost / 127.0.0.1
+ * connections (development and test environments).
  *
- * This dual-driver approach avoids the Neon driver's compatibility issue with Supabase,
- * where it incorrectly transforms Supabase hostnames (aws-0-*.pooler.supabase.com → api.pooler.supabase.com).
+ * The 'vector' database type is a deprecated alias for 'rest' following Supabase removal
+ * per docs/decisions/2026-05-01-supabase-removal.md (GAP-129 PR-C). See getVectorClient().
  *
  * Connection String Format:
  * - NeonDB: postgresql://...@neon.tech/...
- * - Supabase: postgresql://...@*.supabase.co:6543/postgres (transaction pooler)
- * - Supabase: postgresql://...@*.supabase.co:5432/postgres (direct/session pooler)
+ * - Localhost (dev/test): postgresql://...@localhost:5432/...
  *
  * Reference:
  * - Neon: https://orm.drizzle.team/docs/connect-neon
- * - Supabase: https://orm.drizzle.team/docs/tutorials/drizzle-with-supabase
  */
 
 import { neon } from '@neondatabase/serverless';
@@ -30,7 +28,7 @@ import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-post
 import { Pool } from 'pg';
 import * as schema from '../schema/index.js'; // Full schema for backward compatibility
 import * as restSchema from '../schema/rest.js';
-import * as vectorSchema from '../schema/vector.js';
+import type * as vectorSchema from '../schema/vector.js';
 
 // Monitoring integration is handled by the application layer to avoid
 // circular dependency (db <-> core)
@@ -53,16 +51,15 @@ export interface PoolMetrics {
 // =============================================================================
 
 let restSupportsTransactions = false;
-let vectorSupportsTransactions = false;
 
 // =============================================================================
 // Types
 // =============================================================================
 
 /**
- * Database type selector for dual database architecture
- * - 'rest': NeonDB for transactional REST API operations
- * - 'vector': Supabase for vector search operations
+ * Database type selector.
+ * - 'rest': Neon-primary Postgres connection
+ * - 'vector': deprecated alias for 'rest'; will be removed after 1-2 release cycles (GAP-129 PR-C)
  */
 export type DatabaseType = 'rest' | 'vector';
 
@@ -70,10 +67,11 @@ export type DatabaseType = 'rest' | 'vector';
  * Database client type (Drizzle ORM client)
  *
  * This is the actual database client returned by createClient/getClient.
- * For the centralized Database type matching Supabase structure, see @revealui/db/types
+ * For the centralized Database type, see @revealui/db/types
  *
- * Note: This is a union type to support both Neon (REST) and Postgres (Vector) drivers.
- * The actual type will be NeonHttpDatabase for REST and PgDatabase for Vector.
+ * Note: This is a union type to support both Neon (cloud) and Postgres (localhost dev) drivers.
+ * The actual type is NeonHttpDatabase for cloud Neon connections and NodePgDatabase for
+ * localhost connections (where the pg driver is used for transaction support).
  */
 export type Database = NeonHttpDatabase<typeof schema> | NodePgDatabase<typeof schema>;
 
@@ -87,62 +85,23 @@ export interface DatabaseConfig {
 // =============================================================================
 
 /**
- * Creates a Drizzle database client for Neon Postgres.
- *
- * Uses the official Drizzle pattern for neon-http driver:
- * https://orm.drizzle.team/docs/connect-neon
- *
- * @param config - Database configuration
- * @param dbSchema - Optional schema to use (defaults to full schema for backward compatibility)
- *
- * @example
- * ```typescript
- * import { createClient } from '@revealui/db/client'
- *
- * const db = createClient({
- *   connectionString: process.env.POSTGRES_URL!,
- * })
- *
- * // Query users
- * const users = await db.query.users.findMany()
- * ```
+ * Detects if a connection string targets localhost / 127.0.0.1.
+ * Returns true only for local development / test connections.
+ * These use node-postgres (pg Pool) because the Neon HTTP driver requires a Neon endpoint.
  */
-/**
- * Detects if a connection string requires node-postgres driver.
- * Returns true for Supabase connections and localhost/test connections.
- * Supabase connection strings contain '.supabase.co' or 'pooler.supabase.com'.
- * Localhost connections are used for testing and development.
- */
-function isSupabaseConnection(connectionString: string): boolean {
+function isLocalhostConnection(connectionString: string): boolean {
   try {
     const host = new URL(connectionString).hostname;
-    return (
-      host.endsWith('.supabase.co') ||
-      host === 'supabase.co' ||
-      host.endsWith('.supabase.com') ||
-      host === 'supabase.com' ||
-      host === 'localhost' ||
-      host === '127.0.0.1'
-    );
+    return host === 'localhost' || host === '127.0.0.1';
   } catch {
-    // Fallback for non-URL connection strings (e.g., plain host:port format)
-    return (
-      connectionString.includes('.supabase.co') ||
-      connectionString.includes('pooler.supabase.com') ||
-      connectionString.includes('localhost') ||
-      connectionString.includes('127.0.0.1')
-    );
+    return connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
   }
 }
 
 /**
  * Creates a Drizzle database client, automatically selecting the appropriate driver:
- * - Supabase/localhost connections: Uses node-postgres with drizzle-orm/node-postgres
- * - NeonDB connections: Uses @neondatabase/serverless with drizzle-orm/neon-http
- *
- * This dual-driver approach fixes the Neon driver's compatibility issue with Supabase,
- * where it incorrectly transforms Supabase hostnames. It also enables local testing
- * with localhost PostgreSQL databases.
+ * - Localhost connections: Uses node-postgres with drizzle-orm/node-postgres (dev/test)
+ * - All other connections: Uses @neondatabase/serverless with drizzle-orm/neon-http (Neon-primary)
  *
  * @param config - Database configuration
  * @param dbSchema - Optional schema to use (defaults to full schema for backward compatibility)
@@ -150,11 +109,6 @@ function isSupabaseConnection(connectionString: string): boolean {
  * @example
  * ```typescript
  * import { createClient } from '@revealui/db/client'
- *
- * // Automatically uses node-postgres for Supabase
- * const supabaseDb = createClient({
- *   connectionString: process.env.DATABASE_URL!, // Supabase URL
- * })
  *
  * // Automatically uses node-postgres for localhost (testing)
  * const testDb = createClient({
@@ -171,11 +125,10 @@ export function createClient(
   config: DatabaseConfig,
   dbSchema: typeof restSchema | typeof vectorSchema | typeof schema = schema,
 ): Database {
-  const isSupabase = isSupabaseConnection(config.connectionString);
+  const isLocalhost = isLocalhostConnection(config.connectionString);
 
-  if (isSupabase) {
-    // Use pg for Supabase connections
-    // This avoids the Neon driver's hostname transformation bug
+  if (isLocalhost) {
+    // Use pg for localhost connections — Neon HTTP driver requires a Neon endpoint
     const poolMax = parseInt(process.env.DB_POOL_MAX || '10', 10);
     const poolIdleTimeout = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10);
 
@@ -214,7 +167,6 @@ export function createClient(
 // =============================================================================
 
 let restClient: Database | null = null;
-let vectorClient: Database | null = null;
 
 // The REST pool, stored for sharing with the CMS adapter (universal-postgres).
 // When the admin app passes this pool to universalPostgresAdapter({ pool }),
@@ -241,24 +193,20 @@ function registerPoolCleanup() {
 }
 
 /**
- * Gets or creates a global database client.
- * Supports dual database architecture with separate clients for REST and Vector operations.
+ * Gets or creates a global database client (single Neon-primary Postgres connection).
  * Uses config module if available, otherwise falls back to process.env for backward compatibility.
  *
- * @param typeOrConnectionString - Database type ('rest' | 'vector') or connection string (legacy API)
+ * @param typeOrConnectionString - Database type ('rest') or connection string (legacy API).
+ *   'vector' is a deprecated alias for 'rest' (GAP-129 PR-C); prefer 'rest' in new code.
  * @returns Database client instance
  *
  * @example
  * ```typescript
  * import { getClient } from '@revealui/db/client'
  *
- * // New API: Specify database type
- * const restDb = getClient('rest')
- * const vectorDb = getClient('vector')
- *
- * // Legacy API: Still supported for backward compatibility
- * const db = getClient() // defaults to 'rest'
- * const db2 = getClient('postgresql://...') // uses provided connection string as 'rest'
+ * const db = getClient('rest')
+ * const db2 = getClient() // defaults to 'rest'
+ * const db3 = getClient('postgresql://...') // legacy: connection string as 'rest'
  * ```
  */
 // Note: DatabaseType | string union is intentional for backward compatibility (allows both type strings and connection strings)
@@ -286,29 +234,12 @@ export function getClient(typeOrConnectionString?: DatabaseType | string): Datab
 }
 
 /**
- * Internal function to get client by type
+ * Internal function to get client by type.
+ * 'vector' is aliased to 'rest' (Supabase removed per GAP-129 PR-C).
  */
 function getClientByType(type: DatabaseType): Database {
   if (type === 'vector') {
-    if (!vectorClient) {
-      const url = process.env.SUPABASE_DATABASE_URL;
-      if (!url && process.env.DATABASE_URL) {
-        throw new Error(
-          'SUPABASE_DATABASE_URL is not set but DATABASE_URL is. Vector queries require a ' +
-            'dedicated Supabase connection — falling back to DATABASE_URL would silently route ' +
-            'vector data to NeonDB. Set SUPABASE_DATABASE_URL explicitly.',
-        );
-      }
-      if (!url || typeof url !== 'string') {
-        throw new Error(
-          'SUPABASE_DATABASE_URL environment variable is required for vector database. ' +
-            'Set SUPABASE_DATABASE_URL to your Supabase connection string.',
-        );
-      }
-      vectorClient = createClient({ connectionString: url }, vectorSchema);
-      vectorSupportsTransactions = isSupabaseConnection(url);
-    }
-    return vectorClient;
+    return getClientByType('rest');
   }
 
   // type === 'rest'
@@ -335,9 +266,9 @@ function getClientByType(type: DatabaseType): Database {
       );
     }
 
-    // For pg-backed connections (Supabase, localhost), create the pool
+    // For pg-backed connections (localhost), create the pool
     // externally so it can be shared with the CMS adapter via getRestPool().
-    if (isSupabaseConnection(url)) {
+    if (isLocalhostConnection(url)) {
       const poolMax = parseInt(process.env.DB_POOL_MAX || '10', 10);
       const poolIdleTimeout = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10);
       const pool = new Pool({
@@ -359,7 +290,7 @@ function getClientByType(type: DatabaseType): Database {
     } else {
       restClient = createClient({ connectionString: url }, restSchema);
     }
-    restSupportsTransactions = isSupabaseConnection(url);
+    restSupportsTransactions = isLocalhostConnection(url);
   }
   return restClient;
 }
@@ -381,31 +312,28 @@ export function getRestClient(): Database {
 }
 
 /**
- * Gets or creates the Vector database client (Supabase).
- * Convenience function for accessing the vector database.
+ * @deprecated Use getClient('rest') or getRestClient().
+ * The 'vector' database type is collapsed in the Supabase removal (GAP-129 PR-C).
+ * This alias will be removed after 1-2 release cycles.
  *
  * @example
  * ```typescript
- * import { getVectorClient } from '@revealui/db/client'
- *
- * const db = getVectorClient()
- * const memories = await db.query.agentMemories.findMany()
+ * // Preferred replacement
+ * import { getRestClient } from '@revealui/db/client'
+ * const db = getRestClient()
  * ```
  */
 export function getVectorClient(): Database {
-  return getClient('vector');
+  return getClient('rest');
 }
 
 /**
- * Resets the global clients (useful for testing).
- * Clears both REST and Vector client instances.
+ * Resets the global client (useful for testing).
  */
 export function resetClient(): void {
   restClient = null;
-  vectorClient = null;
   restPool = null;
   restSupportsTransactions = false;
-  vectorSupportsTransactions = false;
 }
 
 /**
@@ -497,9 +425,8 @@ export async function closeAllPools(): Promise<void> {
   await Promise.all(closePromises);
   activePools.clear();
 
-  // Reset global clients
+  // Reset global client
   restClient = null;
-  vectorClient = null;
 }
 
 // =============================================================================
@@ -507,66 +434,46 @@ export async function closeAllPools(): Promise<void> {
 // =============================================================================
 
 /**
+ * Asserts that the database supports transactions. Call at app startup to fail fast.
+ *
+ * @param dbType - Database type to check ('rest', or deprecated 'vector' alias)
+ * @throws {Error} If the database driver does not support transactions
+ *
+ * @example
+ * ```typescript
+ * // At app startup
+ * requiresTransactions('rest') // throws if DB is Neon HTTP
+ * ```
+ */
+export function requiresTransactions(dbType: DatabaseType = 'rest'): void {
+  // Force client creation so we know the driver type
+  getClient(dbType);
+  if (!restSupportsTransactions) {
+    throw new Error(
+      `Transaction support required but not available for '${dbType}' database. ` +
+        'The Neon HTTP driver does not support transactions. ' +
+        'Use a localhost pg driver for transaction support.',
+    );
+  }
+}
+
+/**
  * Execute a database transaction with automatic BEGIN/COMMIT/ROLLBACK.
  *
  * ⚠️ IMPORTANT: Transaction support depends on the database driver:
- * - ✅ Supabase/localhost (pg Pool): Full transaction support
+ * - ✅ Localhost (pg Pool): Full transaction support (dev/test)
  * - ❌ NeonDB (HTTP driver): Transactions NOT supported
  *
  * The Neon HTTP driver (@neondatabase/serverless with neon-http) does not support
  * transactions because it uses stateless HTTP requests. Each query is independent.
- *
- * For transaction support, use:
- * 1. Supabase with connection pooling (recommended for production)
- * 2. Localhost PostgreSQL (for development/testing)
- * 3. Neon with WebSocket driver (coming in future versions)
+ * Use withSaga() for NeonDB-safe multi-step writes.
  *
  * @param db - Database client (must be created with pg Pool driver)
  * @param fn - Transaction callback that receives a transaction context
  * @returns Result from the transaction callback
  * @throws {Error} If using Neon HTTP driver (no transaction support)
  * @throws {Error} If transaction fails (automatic ROLLBACK is performed)
- *
- * @example
- * ```typescript
- * // ✅ Works with Supabase/localhost (pg Pool driver)
- * const supabaseDb = getClient('vector') // Uses pg Pool
- * const result = await withTransaction(supabaseDb, async (tx) => {
- *   const site = await tx.insert(sites).values({ ... }).returning()
- *   await tx.insert(pages).values({ siteId: site[0].id, ... })
- *   return site[0]
- * })
- *
- * // ❌ Throws error with NeonDB (HTTP driver)
- * const neonDb = getClient('rest') // Uses Neon HTTP
- * await withTransaction(neonDb, async (tx) => { ... }) // Error!
- * ```
  */
-/**
- * Asserts that a database type supports transactions. Call at app startup to fail fast.
- *
- * @param dbType - Database type to check ('rest' or 'vector')
- * @throws {Error} If the database driver does not support transactions
- *
- * @example
- * ```typescript
- * // At app startup
- * requiresTransactions('rest') // throws if REST DB is Neon HTTP
- * ```
- */
-export function requiresTransactions(dbType: DatabaseType = 'rest'): void {
-  // Force client creation so we know the driver type
-  getClient(dbType);
-  const supports = dbType === 'vector' ? vectorSupportsTransactions : restSupportsTransactions;
-  if (!supports) {
-    throw new Error(
-      `Transaction support required but not available for '${dbType}' database. ` +
-        'The Neon HTTP driver does not support transactions. ' +
-        'Switch to Supabase pooler or pg driver for transaction support.',
-    );
-  }
-}
-
 export async function withTransaction<T>(
   db: Database,
   fn: (tx: Database) => Promise<T>,
@@ -574,14 +481,8 @@ export async function withTransaction<T>(
   // Early check: fail fast with clear message based on tracked driver type
   if (db === restClient && !restSupportsTransactions) {
     throw new Error(
-      'Transaction not supported: REST database is using Neon HTTP driver. ' +
-        'Use withSaga() for NeonDB-safe multi-step writes, or switch to Supabase pooler / pg driver for transaction support.',
-    );
-  }
-  if (db === vectorClient && !vectorSupportsTransactions) {
-    throw new Error(
-      'Transaction not supported: Vector database is using Neon HTTP driver. ' +
-        'Use withSaga() for NeonDB-safe multi-step writes, or switch to Supabase pooler / pg driver for transaction support.',
+      'Transaction not supported: database is using Neon HTTP driver. ' +
+        'Use withSaga() for NeonDB-safe multi-step writes, or use a localhost pg driver for transaction support.',
     );
   }
 
@@ -590,8 +491,8 @@ export async function withTransaction<T>(
 
   if (!hasPgTransaction) {
     throw new Error(
-      'Transaction not supported: Database client is using Neon HTTP driver which does not support transactions. ' +
-        'Use withSaga() for NeonDB-safe multi-step writes, or configure your database with Supabase / localhost connection string. ' +
+      'Transaction not supported: database client is using Neon HTTP driver which does not support transactions. ' +
+        'Use withSaga() for NeonDB-safe multi-step writes, or use a localhost pg driver. ' +
         'Neon HTTP driver uses stateless requests and cannot maintain transaction state.',
     );
   }

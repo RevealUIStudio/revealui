@@ -46,6 +46,11 @@ export function PrivacyPage() {
             To send transactional emails (password resets, billing notifications, license delivery)
           </li>
           <li>To detect and prevent fraud, abuse, and security incidents</li>
+          <li>
+            To diagnose application errors using error telemetry (Sentry). When an error occurs, a
+            partial session recording of the moments preceding the crash may be captured to aid
+            debugging. No proactive or continuous session recording is performed.
+          </li>
           <li>To respond to support requests</li>
         </ul>
         <p>We do not sell your personal information. We do not use your data for advertising.</p>
@@ -68,6 +73,12 @@ export function PrivacyPage() {
           <li>
             <strong>Google Workspace</strong>: transactional email delivery via Gmail API (
             <a href="https://policies.google.com/privacy">Google Privacy Policy</a>)
+          </li>
+          <li>
+            <strong>Sentry</strong>: application error tracking and crash-replay diagnostics (
+            <a href="https://sentry.io/privacy/">Sentry Privacy Policy</a>). Error data may include
+            browser context, page URL, and a partial session recording captured at the time of an
+            error. No continuous session recording is performed.
           </li>
         </ul>
 

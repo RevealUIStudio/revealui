@@ -309,14 +309,25 @@ function isVercelPreviewOrigin(origin: string): boolean {
 /**
  * Check if origin is a trusted desktop-app client (RevealUI Studio).
  *
- * Tauri webviews issue requests from `tauri://localhost` (Linux/Windows) or
- * `https://tauri.localhost` (macOS/Windows HTTPS mode). The Studio app ships
- * signed binaries and talks to the public API on behalf of authenticated
- * users, so its origin is allow-listed here rather than via CORS_ORIGIN env
- * (which is reserved for HTTPS web clients).
+ * Tauri 2 webviews issue requests from one of three origins depending on
+ * platform and scheme registration:
+ *   - `tauri://localhost`        — Linux + macOS (custom scheme)
+ *   - `https://tauri.localhost`  — Windows when HTTPS asset protocol enabled
+ *   - `http://tauri.localhost`   — Windows WebView2 default (HTTP asset protocol)
+ *
+ * The third was missing originally (2026-05-10 discovery via Windows Studio
+ * dogfood — CORS preflight returned no Allow-Origin → `TypeError: Failed to
+ * fetch` for every request). The Studio app ships signed binaries and talks
+ * to the public API on behalf of authenticated users, so its origin is
+ * allow-listed here rather than via CORS_ORIGIN env (which is reserved for
+ * HTTPS web clients).
  */
 function isDesktopClientOrigin(origin: string): boolean {
-  return origin === 'tauri://localhost' || origin === 'https://tauri.localhost';
+  return (
+    origin === 'tauri://localhost' ||
+    origin === 'https://tauri.localhost' ||
+    origin === 'http://tauri.localhost'
+  );
 }
 
 /** Check if origin matches test/dev subdomain: https://(dev|test).(admin.|api.|docs.)?revealui.com */

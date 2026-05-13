@@ -31,6 +31,8 @@ class MockOAuthAccountConflictError extends Error {
   }
 }
 
+const mockIsSignupAllowed = vi.fn().mockReturnValue(true);
+
 vi.mock('@revealui/auth/server', () => ({
   generateOAuthState: (...args: unknown[]) => mockGenerateOAuthState(...args),
   buildAuthUrl: (...args: unknown[]) => mockBuildAuthUrl(...args),
@@ -40,6 +42,10 @@ vi.mock('@revealui/auth/server', () => ({
   upsertOAuthUser: (...args: unknown[]) => mockUpsertOAuthUser(...args),
   createSession: (...args: unknown[]) => mockCreateSession(...args),
   rotateSession: (...args: unknown[]) => mockCreateSession(...args),
+  // Default: signup allowed. Specific tests can override via
+  // mockIsSignupAllowed.mockReturnValueOnce(false) to exercise the
+  // revealui#833 closed-signup gate.
+  isSignupAllowed: (...args: unknown[]) => mockIsSignupAllowed(...args),
   OAuthAccountConflictError: MockOAuthAccountConflictError,
 }));
 

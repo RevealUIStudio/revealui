@@ -12,6 +12,7 @@ import {
 } from '@revealui/presentation/client';
 import { QRCodeSVG } from 'qrcode.react';
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 
 // =============================================================================
 // Types
@@ -163,7 +164,7 @@ function SecuritySettingsContent() {
     setRevokingId(sessionId);
     setError(null);
     try {
-      const res = await fetch(`/api/auth/sessions/${encodeURIComponent(sessionId)}`, {
+      const res = await apiFetch(`/api/auth/sessions/${encodeURIComponent(sessionId)}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -231,7 +232,7 @@ function SecuritySettingsContent() {
 
     setDisabling(true);
     try {
-      const res = await fetch('/api/auth/mfa/disable', {
+      const res = await apiFetch('/api/auth/mfa/disable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -259,7 +260,7 @@ function SecuritySettingsContent() {
   async function handleRegenerateCodes() {
     setRegenerating(true);
     try {
-      const res = await fetch('/api/auth/mfa/regenerate', {
+      const res = await apiFetch('/api/auth/mfa/regenerate', {
         method: 'POST',
         credentials: 'include',
       });
@@ -308,7 +309,7 @@ function SecuritySettingsContent() {
     if (!renameValue.trim()) return;
 
     try {
-      const res = await fetch(`/api/auth/passkey/${id}`, {
+      const res = await apiFetch(`/api/auth/passkey/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -350,7 +351,7 @@ function SecuritySettingsContent() {
     setDeletingId(id);
 
     try {
-      const res = await fetch(`/api/auth/passkey/${id}`, {
+      const res = await apiFetch(`/api/auth/passkey/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });

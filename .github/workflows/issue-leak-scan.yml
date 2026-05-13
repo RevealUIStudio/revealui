@@ -1,0 +1,139 @@
+name: Issue + PR Body Leak Scan
+
+on:
+  issues:
+    types: [opened, edited]
+  pull_request_target:
+    types: [opened, edited]
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+concurrency:
+  group: leak-scan-${{ github.event.issue.number || github.event.pull_request.number }}-${{ github.event.action }}
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    name: Scan body via gitleaks
+    # Skip bot-authored events to avoid loops on our own remediation comments.
+    if: >-
+      github.actor != 'github-actions[bot]'
+      && github.actor != 'dependabot[bot]'
+      && github.actor != 'chatgpt-codex-connector[bot]'
+      && (github.event.comment == null || github.event.comment.user.type != 'Bot')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      GITLEAKS_VERSION: "8.30.0"
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar -xz -C /tmp gitleaks
+          sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      - name: Scan + comment + label on findings
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v8.0.0
+        with:
+          script: |
+            const fs = require('node:fs/promises');
+            const { spawnSync } = require('node:child_process');
+            const path = require('node:path');
+
+            // Read body via context API — no shell interpolation of user input.
+            const body =
+              context.payload.comment?.body
+              ?? context.payload.issue?.body
+              ?? context.payload.pull_request?.body
+              ?? '';
+            const issueNumber =
+              context.payload.issue?.number
+              ?? context.payload.pull_request?.number;
+
+            if (!body || !issueNumber) {
+              core.info('No body or issue number — nothing to scan.');
+              return;
+            }
+
+            const scanDir = '/tmp/scan-payload';
+            await fs.mkdir(scanDir, { recursive: true });
+            await fs.writeFile(path.join(scanDir, 'body.txt'), body, 'utf8');
+
+            const result = spawnSync('gitleaks', [
+              'detect',
+              '--no-banner',
+              '--redact',
+              '--no-git',
+              '--config', '.gitleaks.issues.toml',
+              '--source', scanDir,
+              '--report-format', 'json',
+              '--report-path', '/tmp/scan-report.json',
+            ], { encoding: 'utf8' });
+
+            core.info(`gitleaks exit: ${result.status}`);
+            if (result.stderr) {
+              core.info(result.stderr.slice(0, 4000));
+            }
+
+            let findings = [];
+            try {
+              const txt = await fs.readFile('/tmp/scan-report.json', 'utf8');
+              findings = JSON.parse(txt || '[]');
+            } catch (_) {
+              findings = [];
+            }
+
+            if (findings.length === 0) {
+              core.info('No findings.');
+              return;
+            }
+
+            const rules = [...new Set(findings.map(f => f.RuleID))].slice(0, 8);
+            const commentBody = [
+              '> [!CAUTION]',
+              '> **Possible sensitive content detected.**',
+              '',
+              `Gitleaks flagged \`${findings.length}\` match(es) across rule(s): \`${rules.join('`, `')}\`.`,
+              '',
+              '**Action required:**',
+              '1. If this contains a **real secret** (`sk_*`, `whsec_*`, password, token, DB URL with credentials, wallet private key): **rotate it now** — editing the body does NOT remove it from GitHub edit history.',
+              '2. Edit the body and replace the sensitive content with placeholders (e.g. `acct_REDACTED`, `<dev-api>`, `<private design doc>`).',
+              '3. To erase the original from edit history entirely, delete + recreate the issue/comment.',
+              '4. Once cleaned, remove the `contains-sensitive-content` label.',
+              '',
+              '_Triggered by `.github/workflows/issue-leak-scan.yml` (rules in `.gitleaks.issues.toml`)._',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: commentBody,
+            });
+
+            // Best-effort label add; idempotent — repeated runs won't duplicate.
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                labels: ['contains-sensitive-content'],
+              });
+            } catch (err) {
+              core.warning(`addLabels failed: ${err.message}`);
+            }
+
+            core.setFailed(`${findings.length} sensitive match(es) flagged. Body/comment labelled.`);

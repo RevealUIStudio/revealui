@@ -101,8 +101,19 @@ export function PricingPage() {
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Subscribe monthly or book expert services. Perpetual licenses coming soon. Start free.
-            Upgrade when you need to.
+            Subscribe monthly or buy a perpetual license. Start free. Upgrade when you need to.
+          </p>
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-gray-500">
+            All plans run as self-hosted installations under your license — managed deployment
+            available as a service add-on. Want to deploy a branded version for your own customers?
+            See{' '}
+            <a
+              href="#track-c"
+              className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+            >
+              Agency Perpetual
+            </a>{' '}
+            for RevealUI Fleet licensing.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-medium">
             <a
@@ -116,12 +127,6 @@ export function PricingPage() {
               className="rounded-full bg-emerald-100 px-4 py-1.5 text-emerald-700 hover:bg-emerald-200 transition-colors"
             >
               Track C: Perpetual Licenses
-            </a>
-            <a
-              href="#track-d"
-              className="rounded-full bg-amber-100 px-4 py-1.5 text-amber-700 hover:bg-amber-200 transition-colors"
-            >
-              Track D: Services
             </a>
           </div>
         </div>

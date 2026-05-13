@@ -24,6 +24,7 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 
 /**
  * Mirror of `AgentStreamChunk` in
@@ -151,7 +152,7 @@ export function useAgentStream(): UseAgentStreamReturn {
     setState({ ...INITIAL_STATE, isStreaming: true });
 
     try {
-      const response = await fetch(apiBase, {
+      const response = await apiFetch(apiBase, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(request),
@@ -232,7 +233,7 @@ export function useAgentStream(): UseAgentStreamReturn {
       const body: Record<string, unknown> = { sessionId, elicitationId, action };
       if (action === 'accept' && content) body.content = content;
 
-      const response = await fetch('/api/agent-stream/elicit', {
+      const response = await apiFetch('/api/agent-stream/elicit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

@@ -6,6 +6,21 @@
  */
 
 /**
+ * Literal hex-set check (no regex). Returns true when value is exactly 64
+ * characters and every character is in [0-9a-fA-F]. Mirrors the format
+ * check in `apps/server/src/lib/validate-startup.ts:240-242` but uses a
+ * Set lookup instead of regex per the project no-regex rule (M2).
+ */
+const HEX_CHARS = new Set('0123456789abcdefABCDEF');
+function isHex64(value: string): boolean {
+  if (value.length !== 64) return false;
+  for (const char of value) {
+    if (!HEX_CHARS.has(char)) return false;
+  }
+  return true;
+}
+
+/**
  * Validate required environment variables
  *
  * @param options - Validation options
@@ -33,8 +48,19 @@ export function validateRequiredEnvVars(
 
   const isFleetMode = Boolean(process.env.REVEALUI_FLEET_MODE);
 
-  // Base required variables
-  const baseRequired: string[] = ['REVEALUI_SECRET', 'REVEALUI_PUBLIC_SERVER_URL', 'POSTGRES_URL'];
+  // Base required variables — apply in all environments (hosted + Fleet).
+  //
+  // REVEALUI_KEK encrypts API keys + MFA secrets via AES-256-GCM
+  // (packages/db/src/crypto.ts). Missing KEK = silent encryption failure
+  // on the first encryptApiKey/decryptApiKey call. Per revealui#836,
+  // admin must validate at startup parity with apps/server's
+  // validate-startup.ts:240-242.
+  const baseRequired: string[] = [
+    'REVEALUI_SECRET',
+    'REVEALUI_PUBLIC_SERVER_URL',
+    'POSTGRES_URL',
+    'REVEALUI_KEK',
+  ];
 
   const missing: string[] = [];
   const warnings: string[] = [];
@@ -77,6 +103,24 @@ export function validateRequiredEnvVars(
         warnings.push(`${key} should start with http:// or https://`);
       }
     }
+  }
+
+  // REVEALUI_KEK — 64 hex characters (32 bytes / 256 bits). Required in
+  // both hosted + Fleet modes (missing-presence is caught above). When
+  // set but malformed, surface as missing-equivalent (set-but-unusable).
+  // Mirrors apps/server/src/lib/validate-startup.ts:240-242.
+  if (process.env.REVEALUI_KEK && !isHex64(process.env.REVEALUI_KEK)) {
+    missing.push('REVEALUI_KEK (must be exactly 64 hexadecimal characters)');
+  }
+
+  // REVEALUI_KEK_NEXT — optional dual-key boot for zero-downtime KEK
+  // rotation. Format-when-present; empty/unset is the steady state. See
+  // docs/runbooks/rotate-kek.md §Zero-downtime path.
+  const kekNext = (process.env.REVEALUI_KEK_NEXT ?? '').trim();
+  if (kekNext && !isHex64(kekNext)) {
+    warnings.push(
+      'REVEALUI_KEK_NEXT must be exactly 64 hexadecimal characters when set (transitional key during dual-key rotation).',
+    );
   }
 
   // Production-specific validations — skipped in Fleet mode. Fleet deployments

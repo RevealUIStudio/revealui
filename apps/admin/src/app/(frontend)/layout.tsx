@@ -60,6 +60,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             rel="stylesheet"
           />
           {primaryColor ? (
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: inline <style> takes a string; primaryColor is server-validated hex from tenant settings (no user-html injection surface)
             <style
               dangerouslySetInnerHTML={{
                 __html: `:root { --tenant-brand: ${primaryColor}; --primary: var(--tenant-brand); }`,
