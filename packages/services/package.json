@@ -14,11 +14,11 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@solana/kit": "^6.8.0",
+    "@solana/kit": "^6.9.0",
     "@vercel/node": "^5.7.12",
     "drizzle-orm": "catalog:",
-    "jose": "^6.2.2",
-    "stripe": "^22.1.0"
+    "jose": "^6.2.3",
+    "stripe": "^22.1.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",
@@ -28,9 +28,9 @@
     "@revealui/dev": "workspace:*",
     "dotenv": "catalog:",
     "postcss": "^8.5.11",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "tailwindcss": "^4.2.2",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwindcss": "^4.3.0",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "^4.1.5"

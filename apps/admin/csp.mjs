@@ -16,13 +16,12 @@ if (serverUrl) {
 }
 
 // Build dynamic script-src origins
-// 'unsafe-eval' is required only for Next.js/Turbopack HMR in dev — not in production.
-// Stripe.js and Lexical do not require eval in production builds.
+// Both 'unsafe-inline' and 'unsafe-eval' are required only for Next.js/Turbopack HMR in dev.
+// Stripe.js and Lexical do not require either in production builds.
 const isProduction = process.env.VERCEL_ENV === 'production';
 const scriptOrigins = [
   "'self'",
-  "'unsafe-inline'",
-  ...(isProduction ? [] : ["'unsafe-eval'"]),
+  ...(isProduction ? [] : ["'unsafe-inline'", "'unsafe-eval'"]),
   'https://checkout.stripe.com',
   'https://js.stripe.com',
   'https://maps.googleapis.com',
