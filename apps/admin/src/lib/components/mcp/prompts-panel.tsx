@@ -11,6 +11,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 
 interface PromptArgument {
   name: string;
@@ -125,12 +126,15 @@ function PromptCard({ prompt, tenant, server }: PromptCardProps) {
         const v = values[a.name];
         if (v !== undefined && v !== '') resolved[a.name] = v;
       }
-      const res = await fetch(`/api/mcp/remote-servers/${encodeURIComponent(server)}/get-prompt`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ tenant, name: prompt.name, arguments: resolved }),
-      });
+      const res = await apiFetch(
+        `/api/mcp/remote-servers/${encodeURIComponent(server)}/get-prompt`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ tenant, name: prompt.name, arguments: resolved }),
+        },
+      );
       // empty-catch-ok: non-JSON error body — res.status surfaces below
       const body = (await res.json().catch(() => ({}))) as {
         result?: GetPromptResult;

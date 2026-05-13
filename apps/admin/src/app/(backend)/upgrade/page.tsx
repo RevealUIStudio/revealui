@@ -1,12 +1,7 @@
 'use client';
 
-import {
-  FEATURE_LABELS,
-  type LicenseTierId,
-  SUBSCRIPTION_TIERS,
-  TIER_LIMITS,
-} from '@revealui/contracts/pricing';
-import type { FeatureFlags } from '@revealui/core/features';
+import { FEATURE_LABELS, SUBSCRIPTION_TIERS, TIER_LIMITS } from '@revealui/contracts/pricing';
+import { type FeatureFlags, getFeaturesForTier } from '@revealui/core/features';
 import { PricingTable } from '@revealui/presentation/client';
 import { useState } from 'react';
 import { TestModeBanner } from '@/components/TestModeBanner';
@@ -186,7 +181,7 @@ export default function UpgradePage() {
                       {label}
                     </td>
                     {SUBSCRIPTION_TIERS.map((t) => {
-                      const enabled = isFeatureInTier(key, t.id);
+                      const enabled = getFeaturesForTier(t.id)[key];
                       return (
                         <td key={t.id} className="py-3 px-4 text-center">
                           {enabled ? (
@@ -214,34 +209,4 @@ export default function UpgradePage() {
       </div>
     </div>
   );
-}
-
-/** Simple tier rank check  -  mirrors @revealui/core/features logic */
-function isFeatureInTier(feature: keyof FeatureFlags, tier: LicenseTierId): boolean {
-  const tierRank: Record<LicenseTierId, number> = {
-    free: 0,
-    pro: 1,
-    max: 2,
-    enterprise: 3,
-  };
-  const featureMinTier: Record<keyof FeatureFlags, LicenseTierId> = {
-    aiLocal: 'free',
-    ai: 'pro',
-    mcp: 'pro',
-    payments: 'pro',
-    advancedSync: 'pro',
-    dashboard: 'pro',
-    customDomain: 'pro',
-    analytics: 'pro',
-    aiMemory: 'max',
-    aiInference: 'max',
-    auditLog: 'max',
-    multiTenant: 'enterprise',
-    whiteLabel: 'enterprise',
-    sso: 'enterprise',
-    vaultDesktop: 'pro',
-    vaultRotation: 'pro',
-    devkitProfiles: 'max',
-  };
-  return tierRank[tier] >= tierRank[featureMinTier[feature]];
 }
