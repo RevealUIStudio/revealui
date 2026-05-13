@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+import { apiFetch } from '@/lib/utils/csrf';
 
 interface SpeechRecognitionEvent {
   results: {
@@ -67,7 +68,7 @@ export function useChat(): {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await apiFetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

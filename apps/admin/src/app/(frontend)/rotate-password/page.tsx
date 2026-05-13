@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { type FormEvent, useState } from 'react';
 import { BrandedAuthLayout } from '@/lib/components/BrandedAuthLayout';
 import { PasswordInput } from '@/lib/components/PasswordInput';
+import { apiFetch } from '@/lib/utils/csrf';
 
 export default function RotatePasswordPage() {
   const router = useRouter();
@@ -42,7 +43,7 @@ export default function RotatePasswordPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/change-password', {
+      const response = await apiFetch('/api/auth/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

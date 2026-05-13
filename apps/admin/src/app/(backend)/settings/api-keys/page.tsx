@@ -4,6 +4,7 @@ const SAVED_FEEDBACK_MS = 2_000;
 
 import { useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
+import { apiFetch } from '@/lib/utils/csrf';
 
 type Provider = 'groq' | 'huggingface' | 'inference-snaps' | 'ollama';
 
@@ -69,7 +70,7 @@ export default function ApiKeysPage() {
     if (!apiKey.trim()) return;
     setSaveError(null);
     try {
-      const res = await fetch('/api/user/api-keys', {
+      const res = await apiFetch('/api/user/api-keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider, key: apiKey.trim() }),
@@ -96,7 +97,7 @@ export default function ApiKeysPage() {
   async function handleClear() {
     setSaveError(null);
     try {
-      await fetch('/api/user/api-keys', { method: 'DELETE' });
+      await apiFetch('/api/user/api-keys', { method: 'DELETE' });
       setApiKey('');
       setCurrentProvider(null);
       setCurrentKeyHint(null);

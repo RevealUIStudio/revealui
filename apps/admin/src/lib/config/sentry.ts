@@ -19,9 +19,10 @@ export const sentryConfig: Parameters<typeof Sentry.init>[0] = {
   // We recommend adjusting this value in production
   tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
 
-  // Capture Replay for 10% of all sessions,
-  // plus for 100% of sessions with an error
-  replaysSessionSampleRate: 0.1,
+  // No proactive session recording — privacy policy §7 discloses essential cookies only.
+  // Error-triggered replay is kept (replaysOnErrorSampleRate: 1.0) for crash diagnosis;
+  // this is disclosed in §2 and §3 of the privacy policy. (#834)
+  replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: 1.0,
 
   // Debug mode in development
