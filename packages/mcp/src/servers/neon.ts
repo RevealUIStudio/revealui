@@ -59,7 +59,7 @@ async function startNeonMCP() {
 
   const withRestart = process.argv.includes('--restart');
   logger.header('Starting NeonDB MCP Server (Local)');
-  logger.info(`   API Key: ${neonApiKey.substring(0, 12)}...`);
+  logger.info('   API Key: [configured]');
   if (withRestart) logger.info('   Restart mode: enabled (up to 3 attempts)');
 
   let attempt = 0;

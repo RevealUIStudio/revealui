@@ -415,8 +415,10 @@ async function ensureBillingMeter(
   log.info('');
   log.info(`Meter event name: ${AGENT_METER_EVENT_NAME}`);
 
-  const existing = await stripe.billing.meters.list({ limit: 100, status: 'active' });
-  const match = existing.data.find((m) => m.event_name === AGENT_METER_EVENT_NAME);
+  const allMeters = await stripe.billing.meters
+    .list({ status: 'active' })
+    .autoPagingToArray({ limit: 10_000 });
+  const match = allMeters.find((m) => m.event_name === AGENT_METER_EVENT_NAME);
 
   if (match) {
     log.success(`Meter exists: ${match.id} (${match.event_name})`);
@@ -461,8 +463,10 @@ async function syncCatalog(
     log.info('');
     log.info(`Processing: ${productDef.name} (${productDef.key})`);
 
-    const existing = await stripe.products.list({ limit: 100, active: true });
-    const existingProduct = existing.data.find(
+    const allProducts = await stripe.products
+      .list({ active: true })
+      .autoPagingToArray({ limit: 10_000 });
+    const existingProduct = allProducts.find(
       (p) => p.metadata.revealui_product_key === productDef.key,
     );
 
@@ -520,18 +524,16 @@ async function syncCatalog(
       log.success(`Created product: ${product.id}`);
     }
 
-    const existingPrices = await stripe.prices.list({
-      product: product.id,
-      active: true,
-      limit: 100,
-    });
+    const existingPrices = await stripe.prices
+      .list({ product: product.id, active: true })
+      .autoPagingToArray({ limit: 10_000 });
     let defaultPriceId = product.default_price;
     const subscriptionPriceIds: string[] = [];
     const currentDefaultPriceId =
       typeof product.default_price === 'string' ? product.default_price : product.default_price?.id;
 
     for (const priceDef of productDef.prices) {
-      const matchingPrice = existingPrices.data.find(
+      const matchingPrice = existingPrices.find(
         (p) =>
           p.metadata.revealui_price_key === priceDef.key &&
           p.unit_amount === priceDef.unitAmount &&
@@ -561,9 +563,7 @@ async function syncCatalog(
       }
 
       // Archive stale price with same key but different amount/interval
-      const stalePrice = existingPrices.data.find(
-        (p) => p.metadata.revealui_price_key === priceDef.key,
-      );
+      const stalePrice = existingPrices.find((p) => p.metadata.revealui_price_key === priceDef.key);
       if (stalePrice) {
         if (dryRun) {
           log.info(`  Would archive stale price: ${stalePrice.id}`);
@@ -663,8 +663,8 @@ async function setupWebhookEndpoint(
   log.info('');
   log.info(`Webhook URL: ${url}`);
 
-  const existing = await stripe.webhookEndpoints.list({ limit: 100 });
-  const match = existing.data.find((e) => e.url === url);
+  const allEndpoints = await stripe.webhookEndpoints.list().autoPagingToArray({ limit: 10_000 });
+  const match = allEndpoints.find((e) => e.url === url);
 
   if (match) {
     const currentEvents = new Set(match.enabled_events);
@@ -722,9 +722,11 @@ async function setupBillingPortal(
   log.info('');
   log.info('Setting up billing portal configuration...');
 
-  const existing = await stripe.billingPortal.configurations.list({ limit: 100 });
-  const seedCreated = existing.data.find((c) => c.metadata?.revealui_portal === 'true');
-  const currentDefault = existing.data.find((c) => c.is_default === true);
+  const allConfigs = await stripe.billingPortal.configurations
+    .list()
+    .autoPagingToArray({ limit: 10_000 });
+  const seedCreated = allConfigs.find((c) => c.metadata?.revealui_portal === 'true');
+  const currentDefault = allConfigs.find((c) => c.is_default === true);
 
   // Drift detection: warn if the current default is NOT the seed-managed one.
   // This was the CR-8 audit finding  -  a non-seed-managed config was default

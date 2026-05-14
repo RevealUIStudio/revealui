@@ -132,6 +132,11 @@ const REQUIRED_IN_PRODUCTION_HOSTED = [
   // the checkout-route HTTPException capture and sendCronFailureAlert Sentry
   // path both depend on it. GAP-S1 / Phase 1 audit J-P0-1.
   'SENTRY_DSN',
+  // Billing portal configuration ID controls which plans customers can switch
+  // to and which cancellation flows are offered. Without it the portal falls
+  // back to Stripe's default (all plans visible, no flow customisation).
+  // Required here so we never flip live-mode without the portal wired. (#827)
+  'REVEALUI_BILLING_PORTAL_CONFIG_ID',
 ] as const;
 
 const REQUIRED_IN_PRODUCTION_FORGE = [

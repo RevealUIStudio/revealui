@@ -36,6 +36,12 @@ import { resetDbStatusCache, resetSupportExpiryCache } from '../middleware/licen
 /** Default trial period for new subscriptions (overridable via env) */
 const TRIAL_PERIOD_DAYS = Number.parseInt(process.env.REVEALUI_TRIAL_DAYS ?? '7', 10);
 
+/** Gate automatic_tax on Stripe Tax being active in this account (#828) */
+const isStripeTaxEnabled = process.env.STRIPE_TAX_ENABLED === 'true';
+
+/** Billing portal configuration ID — controls plan-switching options shown in the portal (#827) */
+const billingPortalConfigId = process.env.REVEALUI_BILLING_PORTAL_CONFIG_ID ?? null;
+
 /** How far ahead to look for expiring support contracts (overridable via env, default 30 days) */
 const SUPPORT_RENEWAL_WINDOW_MS =
   Number.parseInt(process.env.REVEALUI_SUPPORT_RENEWAL_DAYS ?? '30', 10) * 24 * 60 * 60 * 1000;
@@ -630,7 +636,7 @@ app.openapi(checkoutRoute, async (c) => {
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
-        automatic_tax: { enabled: true },
+        automatic_tax: { enabled: isStripeTaxEnabled },
         ...discountConfig,
         line_items: [
           { price: resolvedPriceId, quantity: 1 },
@@ -702,6 +708,7 @@ app.openapi(portalRoute, async (c) => {
     stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${adminUrl}/account/billing`,
+      ...(billingPortalConfigId && { configuration: billingPortalConfigId }),
     }),
   );
 
@@ -1398,7 +1405,7 @@ app.openapi(perpetualCheckoutRoute, async (c) => {
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
-        automatic_tax: { enabled: true },
+        automatic_tax: { enabled: isStripeTaxEnabled },
         allow_promotion_codes: true,
         line_items: [{ price: resolvedPriceId, quantity: 1 }],
         payment_intent_data: {
@@ -1522,7 +1529,7 @@ app.openapi(supportRenewalCheckoutRoute, async (c) => {
         payment_method_types: ['card'],
         billing_address_collection: 'required',
         tax_id_collection: { enabled: true },
-        automatic_tax: { enabled: true },
+        automatic_tax: { enabled: isStripeTaxEnabled },
         allow_promotion_codes: true,
         line_items: [{ price: resolvedPriceId, quantity: 1 }],
         payment_intent_data: {
@@ -1654,7 +1661,7 @@ app.openapi(creditCheckoutRoute, async (c) => {
         customer: customerId,
         mode: 'payment',
         payment_method_types: ['card'],
-        automatic_tax: { enabled: true },
+        automatic_tax: { enabled: isStripeTaxEnabled },
         allow_promotion_codes: true,
         line_items: [{ price: resolvedPriceId, quantity: 1 }],
         payment_intent_data: {

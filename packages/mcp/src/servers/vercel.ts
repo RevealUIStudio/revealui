@@ -56,7 +56,7 @@ async function startVercelMCP() {
 
   const withRestart = process.argv.includes('--restart');
   logger.header('Starting Vercel MCP Server');
-  logger.info(`   API Key: ${vercelApiKey.substring(0, 8)}...`);
+  logger.info('   API Key: [configured]');
   if (withRestart) logger.info('   Restart mode: enabled (up to 3 attempts)');
 
   let attempt = 0;

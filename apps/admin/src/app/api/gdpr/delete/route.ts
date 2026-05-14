@@ -2,7 +2,7 @@ export const runtime = 'nodejs';
 
 import { getSession } from '@revealui/auth/server';
 import { getClient } from '@revealui/db';
-import { users } from '@revealui/db/schema';
+import { appLogs, errorEvents, users } from '@revealui/db/schema';
 import { logger } from '@revealui/utils/logger';
 import { eq } from 'drizzle-orm';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -109,6 +109,32 @@ async function gdprDeleteHandler(request: NextRequest) {
       );
     }
 
+    // -------------------------------------------------------------------------
+    // SQL cascade: delete app_logs and error_events rows for this user.
+    // These tables carry no FK constraint on users (logs outlive users by
+    // design for debugging), but they retain PII: userId, email in messages,
+    // and IP address via requestId lineage. Must purge before the user row is
+    // removed. Blocking — orphaned PII is worse than a failed delete. (#837)
+    // -------------------------------------------------------------------------
+    const db = getClient();
+    try {
+      await db.delete(appLogs).where(eq(appLogs.userId, userIdToDelete));
+      await db.delete(errorEvents).where(eq(errorEvents.userId, userIdToDelete));
+    } catch (dbCascadeErr) {
+      const message = dbCascadeErr instanceof Error ? dbCascadeErr.message : String(dbCascadeErr);
+      logger.error('SQL log cascade failed during GDPR delete — aborting to prevent orphaned PII', {
+        userId: userIdToDelete,
+        error: message,
+      });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Log cascade deletion failed — user record preserved to prevent orphaned PII',
+        },
+        { status: 500 },
+      );
+    }
+
     // Clean up Stripe customer record (GDPR: remove PII from third-party systems)
     //
     // GAP-131: Stripe access goes through the shared `protectedStripe` wrapper
@@ -159,6 +185,46 @@ async function gdprDeleteHandler(request: NextRequest) {
         error: message,
         action: 'manual-cleanup-required',
       });
+    }
+
+    // Scrub Sentry user data (GDPR: anonymize captured events in remote error tracker)
+    //
+    // Non-blocking — same pattern as Stripe cleanup above. Requires SENTRY_AUTH_TOKEN,
+    // SENTRY_ORG, and SENTRY_PROJECT env vars. When missing, logs an actionable warning
+    // so an operator can manually trigger the scrub from the Sentry dashboard. (#837)
+    if (process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT) {
+      try {
+        const ident = encodeURIComponent(session.user.email ?? userIdToDelete);
+        const res = await fetch(
+          `https://sentry.io/api/0/projects/${process.env.SENTRY_ORG}/${process.env.SENTRY_PROJECT}/users/${ident}/forget/`,
+          {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${process.env.SENTRY_AUTH_TOKEN}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+        if (!res.ok) {
+          logger.warn('Sentry user-data scrub returned non-2xx during GDPR delete', {
+            userId: userIdToDelete,
+            status: res.status,
+            action: 'manual-sentry-scrub-required',
+          });
+        }
+      } catch (sentryErr) {
+        const message = sentryErr instanceof Error ? sentryErr.message : String(sentryErr);
+        logger.error('Sentry user-data scrub failed during GDPR delete', {
+          userId: userIdToDelete,
+          error: message,
+          action: 'manual-sentry-scrub-required',
+        });
+      }
+    } else {
+      logger.warn(
+        'Sentry user-data scrub skipped — SENTRY_AUTH_TOKEN/SENTRY_ORG/SENTRY_PROJECT not configured',
+        { userId: userIdToDelete, action: 'manual-sentry-scrub-required' },
+      );
     }
 
     // Delete the user record itself (only after all cascades succeeded)

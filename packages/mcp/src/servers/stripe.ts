@@ -55,7 +55,7 @@ async function startStripeMCP() {
 
   const withRestart = process.argv.includes('--restart');
   logger.header('Starting Stripe MCP Server');
-  logger.info(`   Secret Key: ${stripeSecretKey.substring(0, 12)}...`);
+  logger.info('   Secret Key: [configured]');
   if (withRestart) logger.info('   Restart mode: enabled (up to 3 attempts)');
 
   let attempt = 0;
