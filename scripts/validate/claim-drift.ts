@@ -185,6 +185,9 @@ function assertScanDirsExist(scanDirs: string[], arrayName: string): void {
 const SCAN_DIRS = [
   'docs',
   'apps/marketing/app',
+  'apps/marketing/public/llms.txt',
+  'apps/docs/public/docs-pro',
+  'apps/docs/public/llms.txt',
   'README.md',
   'CLAUDE.md',
   'CONTRIBUTING.md',
@@ -238,7 +241,10 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
       const stat = fs.statSync(full);
       if (
         stat.isFile() &&
-        (full.endsWith('.md') || full.endsWith('.ts') || full.endsWith('.tsx'))
+        (full.endsWith('.md') ||
+          full.endsWith('.ts') ||
+          full.endsWith('.tsx') ||
+          full.endsWith('.txt'))
       ) {
         scanFile(full);
       } else if (stat.isDirectory()) {
@@ -261,7 +267,12 @@ function scanForClaims(metrics: Metric[]): ClaimMatch[] {
       const full = path.join(dir, e.name);
       if (e.isDirectory()) {
         walkAndScan(full);
-      } else if (e.name.endsWith('.md') || e.name.endsWith('.ts') || e.name.endsWith('.tsx')) {
+      } else if (
+        e.name.endsWith('.md') ||
+        e.name.endsWith('.ts') ||
+        e.name.endsWith('.tsx') ||
+        e.name.endsWith('.txt')
+      ) {
         scanFile(full);
       }
     }
@@ -840,7 +851,8 @@ function run(): void {
       claimPatterns: [
         // "21 packages" or "21 npm packages" but not "14 packages patched" or "3 packages"
         /\b(1\d|2\d|3\d)\s*(?:npm\s+)?packages?\b(?!\s+patched)/i,
-        /\b(\d+)\s*packages?\s+(?:published|on npm)/i,
+        // (no "N packages published/on-npm" pattern — it conflated the
+        //  npm-published subset with the total package count this metric tracks)
       ],
     },
     {
