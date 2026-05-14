@@ -43,6 +43,21 @@ vi.mock('@/lib/utilities/gdpr-audit', () => ({
   writeGDPRAuditEntry: (...args: unknown[]) => mockWriteGDPRAuditEntry(...args),
 }));
 
+// Mock @revealui/db so getClient() doesn't attempt a real database connection.
+// The GDPR delete route calls db.delete(appLogs/errorEvents) (blocking SQL
+// cascade) and db.select().from(users) (Stripe customer ID lookup) — both
+// must resolve cleanly for the success-path tests to pass.
+vi.mock('@revealui/db', () => ({
+  getClient: vi.fn(() => ({
+    delete: vi.fn(() => ({ where: vi.fn().mockResolvedValue(undefined) })),
+    select: vi.fn(() => ({
+      from: vi.fn(() => ({
+        where: vi.fn().mockResolvedValue([]),
+      })),
+    })),
+  })),
+}));
+
 vi.mock('next/server', () => {
   class MockNextResponse {
     body: unknown;
