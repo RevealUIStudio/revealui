@@ -809,6 +809,7 @@ describe('validateStartup — lenient mode (Vercel-Sensitive var handling)', () 
       STRIPE_SECRET_KEY: '',
       STRIPE_WEBHOOK_SECRET: '',
       STRIPE_LIVE_MODE: '',
+      REVEALUI_BILLING_PORTAL_CONFIG_ID: '',
       ...overrides,
     };
   }
