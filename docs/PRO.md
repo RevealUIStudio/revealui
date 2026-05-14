@@ -1162,7 +1162,7 @@ Stripe payment processing for RevealUI Pro.
 
 `@revealui/services` provides pre-wired Stripe integrations with auth-aware clients, webhook handlers, and billing flow helpers. Also exports Solana (RevealCoin / RVC) and Vercel (deploy + DNS) helpers.
 
-**Requires a Pro or Forge license** (`isFeatureEnabled('payments')`).
+**Requires a Pro or Enterprise license** (`isFeatureEnabled('payments')`).
 
 ## Stripe
 

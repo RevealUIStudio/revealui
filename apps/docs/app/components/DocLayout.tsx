@@ -93,7 +93,7 @@ const sections: NavSection[] = [
     title: 'Pro & Enterprise',
     items: [
       { label: 'Pro (AI, MCP, Inference)', path: '/pro' },
-      { label: 'Forge (Enterprise)', path: '/forge' },
+      { label: 'Enterprise', path: '/forge' },
       { label: 'Local-First Setup', path: '/local-first' },
     ],
   },

@@ -1,6 +1,6 @@
 # Contributing to RevealUI
 
-First off, thank you for considering contributing to RevealUI! It's people like you that make RevealUI such a great framework.
+First off, thank you for considering contributing to RevealUI! It's people like you that make RevealUI such a great agentic business runtime.
 
 ## Code of Conduct
 
