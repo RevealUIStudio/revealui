@@ -42,7 +42,7 @@ const TEASER_TIERS: TeaserTier[] = [
       'Self-host on any infra',
       'Bring your own model (open-weight default)',
     ],
-    cta: 'Start free',
+    cta: 'Get started free',
     href: 'https://admin.revealui.com/signup',
     highlight: false,
   },

@@ -219,6 +219,24 @@ export function SponsorPage() {
         </div>
       </section>
 
+      <div className="py-8 text-center text-sm text-gray-500">
+        Looking for the product? See{' '}
+        <a
+          href="/products"
+          className="font-medium text-gray-700 hover:text-gray-900 transition-colors"
+        >
+          Products
+        </a>{' '}
+        or{' '}
+        <a
+          href="https://docs.revealui.com"
+          className="font-medium text-gray-700 hover:text-gray-900 transition-colors"
+        >
+          read the docs
+        </a>
+        .
+      </div>
+
       <Footer />
     </div>
   );
