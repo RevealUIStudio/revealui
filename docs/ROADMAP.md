@@ -15,14 +15,14 @@ This roadmap reflects our current priorities and planned direction. It is update
 
 ---
 
-## Suite Product Maturity
+## RevFleet Product Maturity
 
 Honest labels for every product in the RevealUI ecosystem. Updated 2026-04-10.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
 | **RevealUI** (monorepo) | Beta | Deployed, 26 npm packages, extensive test suite. No paying users yet. |
-| **Forge** (self-hosted) | Beta | Docker stack complete, license enforcement built. No external customers. |
+| **RevealUI Fleet** (self-hosted) | Beta | Docker stack complete, license enforcement built. No external customers. |
 | **RevVault** (secrets) | Beta | Rust CLI + desktop app, age-encrypted vault. Not published to crates.io. |
 | **Studio** (desktop) | Alpha | Tauri 2 + React 19, agent coordination UI. No published binaries. |
 | **Terminal** (TUI) | Alpha | Go SSH server + Bubble Tea. Functional, not deployed. |
@@ -139,14 +139,14 @@ A registry where developers can publish and discover MCP servers and AI agent ca
 #### Multi-User Collaboration — [#514](https://github.com/RevealUIStudio/revealui/issues/514)
 Real-time multi-user editing powered by ElectricSQL. Currently basic shape subscriptions and Yjs CRDT foundation exist (experimental). Full conflict resolution, presence indicators, and collaborative workflows are planned.
 
-#### Forge Features — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
+#### RevealUI Fleet Features — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
 - SSO/SAML authentication — tracked separately in [#449](https://github.com/RevealUIStudio/revealui/issues/449)
 - Advanced audit logging
 - Custom RBAC policy editor
 - Multi-region deployment support
 - SLA guarantees
 
-#### Self-Hosted (Forge Edition) — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
+#### Self-Hosted (RevealUI Fleet) — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
 Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap capable. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
 
 ### Long-Term (Q4 2026+)
@@ -155,7 +155,7 @@ Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap
 A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.
 
 #### SOC2 Type II Compliance — [#516](https://github.com/RevealUIStudio/revealui/issues/516)
-Forge security certification for teams that require it.
+RevealUI Fleet security certification for teams that require it.
 
 #### RevealCoin + x402 Agent Payments
 Native cryptocurrency micropayments powered by RevealCoin on the Solana blockchain. Agents discover, authenticate, and pay per task via the HTTP 402 payment protocol  -  no accounts, no subscriptions.

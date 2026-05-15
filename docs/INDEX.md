@@ -16,7 +16,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 - [Quick Start](./QUICK_START.md): get a local dev stack running
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
-- [Glossary](./glossary.md): Canonical vocabulary across the RevealUI Studio Fleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, RVC, x402. Single source of truth for cross-cutting terminology.
+- [Glossary](./glossary.md): Canonical vocabulary across RevFleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, RVC, x402. Single source of truth for cross-cutting terminology.
 
 ## Core Guides
 
@@ -58,17 +58,17 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 ## Pro & Enterprise
 
 - [MCP Marketplace](./MARKETPLACE.md): Publish MCP servers with agent-commerce pricing and revenue-share options
-- [Enterprise](./FORGE.md): Self-hosted enterprise deployment (Docker Compose, domain lock, unlimited users)
+- [Enterprise](./FLEET.md): Self-hosted enterprise deployment (Docker Compose, domain lock, unlimited users)
 
 ## RevFleet
 
 RevealUI is one product in a fleet of eight that compose into an agent-first SDLC platform. See [RevFleet overview](./REVFLEET.md) for the full table and composition story.
 
 - [RevDev](./fleet/revdev.md) — Studio (Tauri 2 desktop) + Console (Go SSH TUI) + harness daemon
-- [RevVault](./fleet/revvault.md) — age-encrypted secret vault, source of truth for every suite secret
+- [RevVault](./fleet/revvault.md) — age-encrypted secret vault, source of truth for every RevFleet secret
 - [RevCon](./fleet/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
 - [RevealCoin](./fleet/revealcoin.md) — `RVC` token on Solana Token-2022, mainnet mint deployed
-- [Forge](./FORGE.md) — self-hosted enterprise deployment kit
+- [RevealUI Fleet](./FLEET.md) — self-hosted enterprise deployment kit
 - [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude Code / Cursor
 - [RevKit](./fleet/revkit.md) — portable WSL workstation toolkit
 

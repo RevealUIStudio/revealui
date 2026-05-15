@@ -20,7 +20,7 @@
 ## The fleet
 
 - [RevFleet](https://docs.revealui.com/SUITE): The eight-product Studio family, what each does, how they compose
-- [Pro packages](https://docs.revealui.com/PRO): `@revealui/ai`, `@revealui/harnesses`, `@revealui/engines` (FSL-1.1-MIT — source-visible, JWT-gated, auto-MIT after 2 years)
+- [Pro packages](https://docs.revealui.com/PRO): `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services` (FSL-1.1-MIT — source-visible, auto-MIT after 2 years)
 - [RevealUI Fleet runtime](https://docs.revealui.com/FORGE): Self-hosted Enterprise-tier deployment kit (formerly RevealUI Forge — renamed per ADR `2026-05-03-revfleet-rename`; deployed via the RevForge stamping tool; preview status)
 - [Component catalog](https://docs.revealui.com/COMPONENT_CATALOG): UI components shipped in `@revealui/presentation`
 - [Examples](https://docs.revealui.com/EXAMPLES): Code examples
