@@ -59,6 +59,10 @@
       "types": "./dist/database/index.d.ts",
       "import": "./dist/database/index.js"
     },
+    "./marketing-voice": {
+      "types": "./dist/marketing-voice/index.d.ts",
+      "import": "./dist/marketing-voice/index.js"
+    },
     "./actions": {
       "types": "./dist/actions/index.d.ts",
       "import": "./dist/actions/index.js"
