@@ -1,5 +1,19 @@
 # @revealui/contracts
 
+## 0.4.0
+
+### Retroactive demotion: 1.4.0 → 0.4.0
+
+This package never met the 1.0.0 promotion criteria laid out in `docs/methodology.md` versioning conventions (real external consumers, stable contract across multiple release cycles, breaking-change discipline). It should have stayed pre-1.0 like every other `@revealui/*` package (`@revealui/core` at 0.6.0, `@revealui/db` at 0.4.0, etc.).
+
+Per the April 2026 precedent (`revealui-doctor` / `-handoff` / `-sync-lts` demoted from `2.0.0` to `0.2.0`), the iteration count is preserved as the minor: `1.4.0` → `0.4.0`.
+
+**Action required for npm consumers:**
+
+- Published `1.x` versions on npm have been deprecated.
+- Install `^0.4.0` going forward.
+- API surface is unchanged — this is a version-string fix, not a behavior change.
+
 ## 1.4.0
 
 ### Patch Changes
