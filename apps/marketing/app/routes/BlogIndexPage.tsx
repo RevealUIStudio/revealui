@@ -136,57 +136,6 @@ export function BlogIndexPage() {
             </div>
           )}
 
-          {/* Engineering blog links */}
-          <div className="mx-auto mt-24 max-w-4xl">
-            <h2 className="text-center text-2xl font-bold tracking-tight text-gray-900 mb-8">
-              More from the engineering blog
-            </h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {[
-                {
-                  title: 'The Five Primitives',
-                  description:
-                    'A deep technical walkthrough of Users, Content, Products, Payments, and Intelligence.',
-                  href: 'https://docs.revealui.com/blog/02-five-primitives',
-                },
-                {
-                  title: 'HTTP 402 and the Future of Payments',
-                  description:
-                    'How the x402 protocol enables agent-native micropayments without accounts or subscriptions.',
-                  href: 'https://docs.revealui.com/blog/02-http-402-payments',
-                },
-                {
-                  title: 'Multi-Agent Coordination',
-                  description:
-                    'How we coordinate multiple AI agents working on the same codebase without conflicts.',
-                  href: 'https://docs.revealui.com/blog/03-multi-agent-coordination',
-                },
-                {
-                  title: 'The Local-First AI Stack',
-                  description:
-                    'Building AI features that work offline with ElectricSQL sync and local model inference.',
-                  href: 'https://docs.revealui.com/blog/04-local-first-ai-stack',
-                },
-              ].map((post) => (
-                <a
-                  key={post.title}
-                  href={post.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-2xl bg-white p-6 shadow-lg ring-1 ring-gray-200 hover:ring-blue-300 transition-all group"
-                >
-                  <h3 className="text-lg font-bold tracking-tight text-gray-900 group-hover:text-blue-600 transition-colors">
-                    {post.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-gray-600">{post.description}</p>
-                  <span className="mt-4 inline-block text-sm font-semibold text-blue-600 group-hover:text-blue-500 transition-colors">
-                    Read on docs site &rarr;
-                  </span>
-                </a>
-              ))}
-            </div>
-          </div>
-
           {/* Newsletter capture */}
           <div className="mx-auto mt-16 max-w-2xl rounded-2xl bg-gray-50 p-8 text-center ring-1 ring-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">Get notified when we publish</h3>
