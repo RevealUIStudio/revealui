@@ -1,7 +1,7 @@
 ---
 title: "RevCon"
 description: "Centralized editor configurations and agent-rule sync for RevealUI projects. Symlinks edit propagate instantly without committing downstream."
-category: suite
+category: fleet
 audience: developer
 ---
 

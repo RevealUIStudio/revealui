@@ -1,7 +1,7 @@
 ---
 title: "RevSkills"
 description: "Curated Agent Skills for modern web development. Compatible with Claude Code, Cursor, and any tool supporting the Agent Skills standard."
-category: suite
+category: fleet
 audience: developer
 ---
 
@@ -48,7 +48,7 @@ The RevSkills repo organises skills by surface area. Representative entries (the
 ## How it composes with RevealUI
 
 - **Agents working inside RevealUI repos** inherit consistent behaviour by loading the relevant RevSkills entries — no per-developer skill duplication.
-- **Cross-suite consistency**: the same skills are loaded into RevealUI, RevDev, RevVault, Forge etc. when an agent works against any fleet product.
+- **Cross-suite consistency**: the same skills are loaded into RevealUI, RevDev, RevVault, RevForge etc. when an agent works against any fleet product.
 - **Pairs with RevCon**: RevCon ships the *symlink mechanism* for editor configs and rule files; RevSkills ships the *content* of agent skills. Together they give a new contributor the full agent posture in one bootstrap.
 
 ## Status
