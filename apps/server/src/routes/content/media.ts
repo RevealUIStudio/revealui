@@ -56,7 +56,8 @@ app.openapi(
         content: {
           'multipart/form-data': {
             schema: z.object({
-              file: z.any().openapi({ type: 'string', format: 'binary' }),
+              // z.any() is non-optional-when-absent in zod 4.4+; the handler owns the real "no file" 400
+              file: z.any().optional().openapi({ type: 'string', format: 'binary' }),
               alt: z.string().max(500).optional(),
             }),
           },

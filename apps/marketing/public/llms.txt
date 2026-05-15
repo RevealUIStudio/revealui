@@ -16,7 +16,7 @@
 
 ## Source code
 
-- [GitHub](https://github.com/RevealUIStudio/revealui): All code lives in the public repo. OSS subset under MIT; Pro packages (`@revealui/ai`, `@revealui/harnesses`, `@revealui/engines`) under FSL-1.1-MIT (Fair Source — source-visible, JWT-gated, auto-converts to MIT after 2 years).
+- [GitHub](https://github.com/RevealUIStudio/revealui): All code lives in the public repo. OSS subset under MIT; Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) under FSL-1.1-MIT (Fair Source — source-visible, auto-converts to MIT after 2 years).
 - [Fair Source explainer](https://docs.revealui.com/FAIR_SOURCE): What FSL-1.1-MIT means in practice
 
 ## Pricing
