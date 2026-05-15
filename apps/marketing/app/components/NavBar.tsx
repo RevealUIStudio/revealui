@@ -51,7 +51,7 @@ export function NavBar() {
           >
             Log in
           </a>
-          <LinkButton href="https://admin.revealui.com/signup">Get Started</LinkButton>
+          <LinkButton href="https://admin.revealui.com/signup">Get started free</LinkButton>
 
           {/* Hamburger - mobile only */}
           <button
@@ -129,7 +129,7 @@ export function NavBar() {
               onClick={() => setOpen(false)}
               className="w-full"
             >
-              Get Started
+              Get started free
             </LinkButton>
           </div>
         </div>

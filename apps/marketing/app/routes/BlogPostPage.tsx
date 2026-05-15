@@ -146,6 +146,31 @@ export function BlogPostPage() {
         </div>
       </article>
 
+      <section className="border-t border-gray-100 bg-gray-50 py-16 sm:py-20">
+        <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-950 sm:text-3xl">
+            Ready to build?
+          </h2>
+          <p className="mt-4 text-base leading-7 text-gray-600">
+            Users, content, products, payments, and AI, pre-wired. Start locally in minutes.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href="https://admin.revealui.com/signup"
+              className="rounded-md bg-gray-950 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 transition-colors"
+            >
+              Get started free
+            </a>
+            <a
+              href="https://docs.revealui.com"
+              className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              Read the docs
+            </a>
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );

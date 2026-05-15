@@ -189,6 +189,15 @@ export function ComingSoonPage() {
               Join the discussion
             </a>
           </div>
+          <p className="mt-8 text-sm text-gray-500">
+            See what's shipped today &rarr;{' '}
+            <a
+              href="/products"
+              className="font-medium text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              Products
+            </a>
+          </p>
         </div>
       </section>
 

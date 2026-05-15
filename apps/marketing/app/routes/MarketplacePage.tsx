@@ -4,7 +4,6 @@ interface McpServer {
   name: string;
   description: string;
   category: string;
-  status: 'live' | 'planned';
 }
 
 const mcpServers: McpServer[] = [
@@ -12,75 +11,63 @@ const mcpServers: McpServer[] = [
     name: 'Stripe',
     description: 'Manage products, prices, subscriptions, and payment intents through MCP.',
     category: 'Payments',
-    status: 'live',
   },
   {
     name: 'RevealUI Stripe',
     description:
       'RevealUI-specific Stripe operations: billing portal, webhook management, tier enforcement.',
     category: 'Payments',
-    status: 'live',
   },
   {
     name: 'Neon',
     description: 'Query and manage Neon PostgreSQL databases: branches, roles, and SQL execution.',
     category: 'Database',
-    status: 'live',
   },
   {
     name: 'Supabase',
     description: 'Interact with Supabase for vector storage, auth, and real-time subscriptions.',
     category: 'Database',
-    status: 'live',
   },
   {
     name: 'Vercel',
     description: 'Deploy, manage environment variables, inspect deployments, and view logs.',
     category: 'Infrastructure',
-    status: 'live',
   },
   {
     name: 'Playwright',
     description: 'Run browser automation, take screenshots, and execute end-to-end test flows.',
     category: 'Testing',
-    status: 'live',
   },
   {
     name: 'Next.js DevTools',
     description: 'Inspect routes, middleware, server components, and build output in development.',
     category: 'Development',
-    status: 'live',
   },
   {
     name: 'RevealUI Content',
     description: 'Create, query, and manage collections and documents through the content API.',
     category: 'Content',
-    status: 'live',
   },
   {
     name: 'RevealUI Email',
     description: 'Send transactional emails, manage templates, and track delivery status.',
     category: 'Communication',
-    status: 'live',
   },
   {
     name: 'Code Validator',
     description: 'Validate TypeScript, lint with Biome, and run type checks on code snippets.',
     category: 'Development',
-    status: 'live',
   },
   {
     name: 'RevealUI Memory',
     description:
       'Read and write the agent memory store (episodic, semantic, and procedural layers).',
     category: 'Content',
-    status: 'live',
   },
   {
     name: 'Contracts',
     description: 'Validate pricing contracts, check OpenAPI mirror drift, and inspect schema.',
     category: 'Development',
-    status: 'live',
   },
 ];
 
@@ -202,17 +189,9 @@ export function MarketplacePage() {
                     >
                       {server.category}
                     </span>
-                    <span
-                      className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-                        server.status === 'live'
-                          ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200'
-                          : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'
-                      }`}
-                    >
-                      {server.status === 'live' && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                      )}
-                      {server.status === 'live' ? 'Live' : 'Planned'}
+                    <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Live
                     </span>
                   </div>
                 </div>
