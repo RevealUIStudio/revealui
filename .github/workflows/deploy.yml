@@ -428,6 +428,15 @@ jobs:
         # roll back, we must pass the previous-good deployment URL. This
         # step pre-fetches it via `vercel ls --prod` and rolls the alias
         # explicitly, then verifies the alias moved.
+        #
+        # Team scope: VERCEL_ORG_ID (team ID secret) is intentionally
+        # cleared here. `vercel rollback <url>` validates the deployment
+        # against the team from VERCEL_ORG_ID, but if the secret holds a
+        # value that doesn't match the team that owns the deployments it
+        # produces "Deployment belongs to a different team" (2026-05-15
+        # incident). The deploy step works because it uses VERCEL_PROJECT_ID
+        # directly and doesn't go through the same team-scope validation.
+        # Fix: route via --scope (team slug) instead of VERCEL_ORG_ID (team ID).
         run: |
           set -uo pipefail
           echo "::warning::Smoke test failed — rolling back affected apps"
@@ -450,7 +459,8 @@ jobs:
 
             # 1. List recent production deployments. Take the second-most-
             #    recent READY one — the most recent IS the broken deploy.
-            DEPLOY_LIST=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod --token="$VERCEL_TOKEN" 2>&1 || true)
+            DEPLOY_LIST=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod \
+              --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" 2>&1 || true)
             PREV_URL=$(printf '%s\n' "$DEPLOY_LIST" \
               | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
               | sed -n '2p')
@@ -464,7 +474,8 @@ jobs:
             echo "Previous good deploy: $PREV_URL"
 
             # 2. Roll the alias explicitly to that URL.
-            if ! VERCEL_PROJECT_ID="$PID" vercel rollback "$PREV_URL" --token="$VERCEL_TOKEN" --yes 2>&1; then
+            if ! VERCEL_PROJECT_ID="$PID" vercel rollback "$PREV_URL" \
+              --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" --yes 2>&1; then
               echo "::warning::vercel rollback command failed for $app"
               ROLLBACK_FAILED=$((ROLLBACK_FAILED+1))
               continue
@@ -474,7 +485,8 @@ jobs:
             #    project's current production deploy. Wait briefly for
             #    propagation.
             sleep 5
-            CURRENT_URL=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod --token="$VERCEL_TOKEN" 2>&1 \
+            CURRENT_URL=$(VERCEL_PROJECT_ID="$PID" vercel ls --prod \
+              --token="$VERCEL_TOKEN" --scope="$VERCEL_TEAM_SLUG" 2>&1 \
               | grep -oE 'https://[a-z0-9.-]+\.vercel\.app' \
               | head -n 1)
 
@@ -503,7 +515,8 @@ jobs:
           exit 1
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_ORG_ID: ""
+          VERCEL_TEAM_SLUG: ${{ vars.TURBO_TEAM || 'revealuistudio' }}
 
   # ---------------------------------------------------------------------------
   # Summary
