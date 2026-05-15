@@ -22,7 +22,7 @@ The `@revealui/editors` listing in earlier versions of this docs site referred t
 ## Quick start
 
 ```bash
-# From any repo where you want suite-aligned editor configs
+# From any repo where you want RevFleet-aligned editor configs
 pnpm dlx revcon sync
 
 # Or, if RevCon is checked out alongside this repo

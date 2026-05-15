@@ -32,7 +32,7 @@ Formerly displayed as **"Forge"** or **"Forge (Enterprise)"** — renamed 2026-0
 
 ## RevFleet
 
-The umbrella brand for the eight-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) (the page name is preserved as a redirect; content reflects "RevFleet" terminology). Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
+The umbrella brand for the eight-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) — the RevFleet architecture & 7-tier integration guide. Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
 
 ## Forge
 
@@ -132,7 +132,7 @@ When writing docs, lead with the qualifier (*"the RevDev Studio app"* or *"the R
 
 ## Suite
 
-**Deprecated as the umbrella name.** Renamed [RevFleet](#revfleet) per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2 (originally directed 2026-05-02). References to "RevFleet" / "RevFleet" / interim "Fleet" in older copy mean the same thing as the current "RevFleet."
+**Deprecated as the umbrella name.** Renamed [RevFleet](#revfleet) per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2 (originally directed 2026-05-02). References to "Suite" / "RevealUI Studio Fleet" / interim "Fleet" in older copy mean the same thing as the current "RevFleet."
 
 ## Tenant
 

@@ -40,6 +40,8 @@ export default defineConfig({
     pool: 'forks',
     maxWorkers: 2,
     testTimeout: 15000,
+    // hookTimeout > testTimeout: PGlite createTestDb() bootstrap in beforeAll runs all migrations (9-19s observed)
+    hookTimeout: 30000,
     env: {
       NODE_ENV: 'test',
       // Force in-memory storage by unsetting database URLs that may leak from direnv/nix shell

@@ -86,7 +86,7 @@ export function Hero() {
             <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-base text-gray-900">
               npx create-revealui
             </code>{' '}
-            to first paying customer in a weekend.
+            to a deployed product in a weekend.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -162,7 +162,7 @@ export function Hero() {
                     'Verified every 5 minutes against the license server. Source at packages/core/src/license.ts.',
                 },
                 {
-                  metric: 'FSL-1.1-MIT on 2 Pro packages',
+                  metric: 'FSL-1.1-MIT on 5 Pro packages',
                   detail:
                     'Source-visible, non-compete. Auto-converts to MIT 2 years after each release.',
                 },

@@ -71,14 +71,15 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/dev | Shared configs (Biome, TS, Tailwind) |
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
 | @revealui/editors | Editor config sync (Zed, VS Code, Cursor) |
-| @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
-| @revealui/services | Stripe (billing + circuit breaker), Solana (RVC), Vercel (deploy + DNS) |
 
 ### Pro Packages (Fair Source  -  FSL-1.1-MIT, converts to MIT after 2 years)
 | Package | Purpose |
 |---------|---------|
 | @revealui/ai | AI agents, CRDT memory, LLM providers, orchestration |
+| @revealui/engines | Unified entry point for the five business primitives (private workspace package) |
 | @revealui/harnesses | AI harness adapters, workboard coordination, JSON-RPC |
+| @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
+| @revealui/services | Stripe (billing + circuit breaker), Solana (RVC), Vercel (deploy + DNS) |
 
 ## Common Commands
 

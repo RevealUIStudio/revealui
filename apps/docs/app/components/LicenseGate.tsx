@@ -68,7 +68,8 @@ export function LicenseGate({ children }: LicenseGateProps) {
           <div className="mb-3 text-3xl">🔒</div>
           <h2 className="mb-2 text-xl font-semibold">Pro docs</h2>
           <p className="text-sm opacity-60">
-            Enter your RevealUI Pro license key to access this documentation.
+            Enter your RevealUI Pro license key to load the Pro documentation. These pages are also
+            source-visible in the public repo.
           </p>
         </div>
 

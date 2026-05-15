@@ -257,7 +257,7 @@ These need explicit answers from the founder before the tracks above can resolve
 
 | Decision | Why it matters | Default if not decided |
 |----------|----------------|------------------------|
-| First product to charge for (Pro subscription? Perpetual license? Forge Docker? Track D services?) | Determines which legal / billing surfaces must be live first | Pro subscription is lowest-overhead |
+| First product to charge for (Pro subscription? Perpetual license? RevealUI Fleet Docker? Track D services?) | Determines which legal / billing surfaces must be live first | Pro subscription is lowest-overhead |
 | Published SLA at each tier | Sets the refund / credit obligation | Free: none; Pro: 99% monthly; Max: 99.5% monthly |
 | License-check fail mode (open vs closed) | Customer-visible behaviour during outage | Fail-open with a short grace window |
 | EU customers yes/no at launch | Triggers GDPR / DPA / VAT-OSS overhead | Delay EU until DPA is lawyer-reviewed |

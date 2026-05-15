@@ -126,7 +126,7 @@ I'm not going to share revenue projections here. That's not the point. The point
 
 ## The Ecosystem Play
 
-RevealUI isn't just a framework you install. It's a platform with an ecosystem strategy.
+RevealUI isn't just a framework you install. It's an agentic business runtime with an ecosystem strategy.
 
 **MCP Marketplace.** Developers can publish MCP servers -- tools that AI agents use to interact with external services -- with per-call pricing via the x402 payment protocol. Server authors earn 80% of revenue. We handle discovery, billing, and the agent routing infrastructure. The goal is a self-sustaining marketplace where developers build specialized integrations and get paid for their work.
 
