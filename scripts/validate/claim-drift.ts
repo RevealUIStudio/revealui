@@ -440,11 +440,10 @@ function scanForLicenseMembershipDrift(map: PackageLicenseMap): MembershipMatch[
       if (/^#{1,6}\s/.test(line)) continue; // skip headings
       const hasFSL = FSL_LABEL_PATTERN.test(line);
       const hasMIT = MIT_LABEL_PATTERN.test(line) && !hasFSL;
-      if (!hasMIT && !hasFSL) continue;
+      if (!(hasMIT || hasFSL)) continue;
       const pkgRegex = /@revealui\/([a-z][a-z0-9-]*)\b/g;
-      let m: RegExpExecArray | null;
-      while ((m = pkgRegex.exec(line)) !== null) {
-        const pkgName = m[0];
+      for (const match of line.matchAll(pkgRegex)) {
+        const pkgName = match[0];
         let actual: 'MIT' | 'FSL-1.1-MIT' | 'internal/none' | null;
         if (map.mit.has(pkgName)) actual = 'MIT';
         else if (map.fsl.has(pkgName)) actual = 'FSL-1.1-MIT';
