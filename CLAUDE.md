@@ -50,7 +50,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 > via npm rather than via workspace links — same brand surface, decoupled
 > repo + deploy cadence.
 
-### OSS Packages (MIT)
+### OSS Packages (MIT) — 21
 | Package | Purpose |
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
@@ -68,11 +68,14 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/resilience | Circuit breaker, retry, bulkhead patterns |
 | @revealui/security | Headers, CORS, RBAC/ABAC, encryption, audit, GDPR |
 | create-revealui | `npm create revealui` initializer |
-| @revealui/dev | Shared configs (Biome, TS, Tailwind) |
+| revealui | Meta-installer that proxies to `create-revealui` (unpublished — npm name collision) |
+| @revealui/dev | Shared configs (Biome, TS, Tailwind, Vite) + editor config sync (Zed, VS Code) |
 | @revealui/test | E2E specs (Playwright), integration tests, fixtures, mocks, test utilities |
-| @revealui/editors | Editor config sync (Zed, VS Code, Cursor) |
+| @revealui/scripts | Shared utilities for monorepo scripts — logging, paths, exec, workflow state, validation (internal) |
+| @revealui/openapi | Type-safe OpenAPI 3.x for Hono — route definitions, Zod validation, spec generation + Swagger UI |
+| @revealui/paywall | Runtime license enforcement, feature gating, and upgrade UI (Stripe + x402) |
 
-### Pro Packages (Fair Source  -  FSL-1.1-MIT, converts to MIT after 2 years)
+### Pro Packages (Fair Source  -  FSL-1.1-MIT, converts to MIT after 2 years) — 5
 | Package | Purpose |
 |---------|---------|
 | @revealui/ai | AI agents, CRDT memory, LLM providers, orchestration |

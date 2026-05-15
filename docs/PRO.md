@@ -106,8 +106,8 @@ The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free f
 
 RevealUI publishes every package to npm from the same public repo. There are two source licenses in play:
 
-- **OSS packages (MIT):** `@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/security`, `@revealui/utils`, `@revealui/config`, `@revealui/cache`, `@revealui/resilience`, `@revealui/openapi`, `@revealui/sync`, `@revealui/mcp`, and the rest of the public infrastructure. Use them however you want — commercial products, forks, SaaS, whatever.
-- **Pro packages (Fair Source, FSL-1.1-MIT):** `@revealui/ai` and `@revealui/harnesses`. Source-visible in the public repo, installable from npm like any other package, with one legal constraint: you can't build a product that competes directly with RevealUI on top of them. Two years after each release the license on that release automatically converts to plain MIT. FSL-1.1 is the same license used by Sentry, GitButler, and Keygen.
+- **OSS packages (MIT):** `@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/security`, `@revealui/utils`, `@revealui/config`, `@revealui/cache`, `@revealui/resilience`, `@revealui/openapi`, `@revealui/sync`, `@revealui/paywall`, and the rest of the public infrastructure. Use them however you want — commercial products, forks, SaaS, whatever.
+- **Pro packages (Fair Source, FSL-1.1-MIT):** `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services` (note: `@revealui/engines` is `"private": true` and not published on npm). Source-visible in the public repo, installable from npm like any other package, with one legal constraint: you can't build a product that competes directly with RevealUI on top of them. Two years after each release the license on that release automatically converts to plain MIT. FSL-1.1 is the same license used by Sentry, GitButler, and Keygen.
 
 **What this means in practice:**
 

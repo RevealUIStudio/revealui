@@ -6,7 +6,6 @@
       "dependencies": [
         "@revealui/ai",
         "@revealui/mcp",
-        "@revealui/editors",
         "@revealui/services",
         "@revealui/harnesses"
       ],

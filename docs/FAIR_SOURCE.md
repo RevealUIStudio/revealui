@@ -11,13 +11,16 @@ The narrative version of this page lives at [revealui.com/fair-source](https://r
 
 ## What's licensed how
 
-Two RevealUI packages ship under **FSL-1.1-MIT** (Fair Source). Every other package in RevFleet is plain MIT.
+Five RevealUI packages ship under **FSL-1.1-MIT** (Fair Source). Every other package in RevFleet is plain MIT.
 
 | Package | License | Source | npm |
 |---------|---------|--------|-----|
 | `@revealui/ai` | FSL-1.1-MIT | [packages/ai](https://github.com/RevealUIStudio/revealui/tree/main/packages/ai) | [npm](https://www.npmjs.com/package/@revealui/ai) |
+| `@revealui/engines` | FSL-1.1-MIT | [packages/engines](https://github.com/RevealUIStudio/revealui/tree/main/packages/engines) | _private — not published_ |
 | `@revealui/harnesses` | FSL-1.1-MIT | [packages/harnesses](https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses) | [npm](https://www.npmjs.com/package/@revealui/harnesses) |
-| Everything else (`@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/presentation`, `@revealui/router`, `@revealui/security`, `@revealui/utils`, `@revealui/cache`, `@revealui/resilience`, `@revealui/sync`, `@revealui/cli`, `@revealui/setup`, `@revealui/dev`, `@revealui/test`, `@revealui/editors`, `@revealui/mcp`, `@revealui/services`, `@revealui/openapi`, `@revealui/config`, `create-revealui`) | MIT | [packages/](https://github.com/RevealUIStudio/revealui/tree/main/packages) | [npm registry](https://www.npmjs.com/org/revealui) |
+| `@revealui/mcp` | FSL-1.1-MIT | [packages/mcp](https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp) | [npm](https://www.npmjs.com/package/@revealui/mcp) |
+| `@revealui/services` | FSL-1.1-MIT | [packages/services](https://github.com/RevealUIStudio/revealui/tree/main/packages/services) | [npm](https://www.npmjs.com/package/@revealui/services) |
+| Everything else (`@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/presentation`, `@revealui/router`, `@revealui/security`, `@revealui/utils`, `@revealui/cache`, `@revealui/resilience`, `@revealui/sync`, `@revealui/cli`, `@revealui/setup`, `@revealui/dev`, `@revealui/test`, `@revealui/openapi`, `@revealui/config`, `@revealui/paywall`, `create-revealui`) | MIT | [packages/](https://github.com/RevealUIStudio/revealui/tree/main/packages) | [npm registry](https://www.npmjs.com/org/revealui) |
 
 To verify any package's license:
 
