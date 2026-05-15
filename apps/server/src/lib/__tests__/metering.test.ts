@@ -6,8 +6,9 @@
 
 import { accounts, type NewUsageMeter, usageMeters } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
+  cleanTables,
   createTestDb,
   type TestDb,
 } from '../../../../../packages/test/src/utils/drizzle-test-db.js';
@@ -50,12 +51,16 @@ function makeRow(overrides: Partial<NewUsageMeter> = {}): NewUsageMeter {
 }
 
 describe('recordUsageMeter', () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
     testDb = await createTestDb();
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await testDb.close();
+  });
+
+  afterEach(async () => {
+    await cleanTables(testDb.drizzle, ['usage_meters', 'accounts']);
   });
 
   it('persists a usage_meters row', async () => {
