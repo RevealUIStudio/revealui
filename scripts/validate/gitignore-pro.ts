@@ -3,9 +3,16 @@
 /**
  * Pro Package License Validation
  *
- * Verifies that Pro packages (ai, harnesses) have valid FSL-1.1-MIT
- * license files. Pro packages are Fair Source  -  source visible in the
- * public repo, commercially licensed, converting to MIT after 2 years.
+ * Verifies that every Pro (FSL-1.1-MIT) package has a valid LICENSE file
+ * and matching package.json license field. Pro packages are Fair Source  -
+ * source visible in the public repo, commercially licensed, converting to
+ * plain MIT two years after each release.
+ *
+ * The Pro set is derived from packages/*\/package.json `license` field at
+ * runtime (rather than hardcoded here) so this gate auto-tracks future
+ * license rebalances. Precedent: until 2026-05-14 this script hardcoded
+ * `[ai, harnesses]` and silently skipped engines/mcp/services after they
+ * were promoted to FSL-1.1-MIT — the discovery walk closes that drift class.
  *
  * Previously this script validated gitignore entries (Issue #100).
  * After the Fair Source migration (April 2026), Pro source is public
@@ -16,15 +23,45 @@
  *   1  -  one or more license files missing
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const REPO_ROOT = join(import.meta.dirname, '..', '..');
 
-const PRO_PACKAGES = [
-  { name: '@revealui/ai', dir: 'packages/ai' },
-  { name: '@revealui/harnesses', dir: 'packages/harnesses' },
-];
+interface ProPackage {
+  name: string;
+  dir: string;
+}
+
+/**
+ * Walk packages/*\/package.json and select every package whose `license`
+ * field references FSL. Source of truth = the package.json files
+ * themselves, so license rebalances are picked up automatically.
+ */
+function discoverProPackages(): ProPackage[] {
+  const pkgRoot = join(REPO_ROOT, 'packages');
+  const out: ProPackage[] = [];
+  for (const entry of readdirSync(pkgRoot, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const pjPath = join(pkgRoot, entry.name, 'package.json');
+    if (!existsSync(pjPath)) continue;
+    try {
+      const pj = JSON.parse(readFileSync(pjPath, 'utf8')) as { name?: string; license?: string };
+      if (typeof pj.license === 'string' && pj.license.includes('FSL')) {
+        out.push({
+          name: pj.name ?? `@revealui/${entry.name}`,
+          dir: `packages/${entry.name}`,
+        });
+      }
+    } catch {
+      // skip unreadable / malformed package.json
+    }
+  }
+  // Stable ordering keeps log output deterministic across runs
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+const PRO_PACKAGES: ProPackage[] = discoverProPackages();
 
 function validateProLicenses(): boolean {
   const Sep = '='.repeat(60);

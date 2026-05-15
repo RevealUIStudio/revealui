@@ -143,6 +143,331 @@ function countDbTables(): number {
 }
 
 // ---------------------------------------------------------------------------
+// License-split collector (added 2026-05-14 — closes a fleet drift class)
+//
+// Walks `packages/*/package.json` and groups by the `license` field. The
+// fleet's licensing posture is:
+//   - MIT for OSS packages
+//   - FSL-1.1-MIT for Pro packages (Fair Source; converts to MIT after 2y)
+//   - Internal `"private": true` packages may have no `license` field
+//
+// Docs have historically drifted from package.json reality — the 2026-05-14
+// audit found `mcp`, `services`, `engines` stated as OSS in CLAUDE.md and
+// MASTER_PLAN while their package.json files carry FSL-1.1-MIT. Codifying
+// the split here closes that drift class for the canonical doc shape
+// "N OSS (MIT)" / "N Pro (FSL...)" / "N internal".
+// ---------------------------------------------------------------------------
+
+interface LicenseSplit {
+  mit: number;
+  fsl: number;
+  internal: number;
+}
+
+function countLicenseSplit(): LicenseSplit {
+  const split: LicenseSplit = { mit: 0, fsl: 0, internal: 0 };
+  const pkgDir = path.join(ROOT, 'packages');
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(pkgDir, { withFileTypes: true });
+  } catch {
+    return split;
+  }
+  for (const e of entries) {
+    if (!e.isDirectory()) continue;
+    const pj = path.join(pkgDir, e.name, 'package.json');
+    let content: string;
+    try {
+      content = fs.readFileSync(pj, 'utf8');
+    } catch {
+      continue;
+    }
+    let parsed: { license?: string };
+    try {
+      parsed = JSON.parse(content);
+    } catch {
+      continue;
+    }
+    const lic = parsed.license;
+    if (lic === 'MIT') split.mit++;
+    else if (lic === 'FSL-1.1-MIT') split.fsl++;
+    else split.internal++; // missing or unknown license -> internal bucket
+  }
+  return split;
+}
+
+// ---------------------------------------------------------------------------
+// Package-license inventory (used by phantom + membership detectors below).
+//
+// Built once per run from packages/*/package.json — the audit-first source
+// of truth — so the gates auto-track future license changes.
+// ---------------------------------------------------------------------------
+
+interface PackageLicenseMap {
+  mit: Set<string>;
+  fsl: Set<string>;
+  internal: Set<string>;
+  all: Set<string>;
+}
+
+function buildPackageLicenseMap(): PackageLicenseMap {
+  const map: PackageLicenseMap = {
+    mit: new Set(),
+    fsl: new Set(),
+    internal: new Set(),
+    all: new Set(),
+  };
+  const pkgDir = path.join(ROOT, 'packages');
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(pkgDir, { withFileTypes: true });
+  } catch {
+    return map;
+  }
+  for (const e of entries) {
+    if (!e.isDirectory()) continue;
+    const pj = path.join(pkgDir, e.name, 'package.json');
+    let parsed: { name?: string; license?: string };
+    try {
+      parsed = JSON.parse(fs.readFileSync(pj, 'utf8'));
+    } catch {
+      continue;
+    }
+    const name = parsed.name ?? `@revealui/${e.name}`;
+    map.all.add(name);
+    const lic = parsed.license;
+    if (lic === 'MIT') map.mit.add(name);
+    else if (lic === 'FSL-1.1-MIT') map.fsl.add(name);
+    else map.internal.add(name);
+  }
+  return map;
+}
+
+// ---------------------------------------------------------------------------
+// Shared walker for the phantom + membership detectors.
+//
+// Scope: docs/, apps/marketing/app/, apps/docs/public/, root-level
+// CLAUDE.md / README.md / CONTRIBUTING.md / .syncpackrc.json, scripts/,
+// and packages/ (README .md only — source code is out of scope for license-
+// drift checks; packages/* is huge and would slow the gate).
+// ---------------------------------------------------------------------------
+
+const LICENSE_SCAN_ROOTS = [
+  'docs',
+  'apps/marketing/app',
+  'apps/docs/public',
+  'README.md',
+  'CLAUDE.md',
+  'CONTRIBUTING.md',
+  '.syncpackrc.json',
+  'scripts',
+  'packages',
+];
+
+const LICENSE_SCAN_EXTENSIONS_FULL = ['.md', '.txt', '.ts', '.tsx', '.json', '.sh'];
+const LICENSE_SCAN_EXTENSIONS_PACKAGES = ['.md']; // packages/* is huge; restrict to docs
+
+function walkLicenseScanFiles(callback: (filePath: string, rel: string) => void): void {
+  function walk(dir: string): void {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const e of entries) {
+      if (e.name === 'node_modules' || e.name === 'dist' || e.name === '.git') continue;
+      const full = path.join(dir, e.name);
+      const rel = path.relative(ROOT, full).replace(/\\/g, '/');
+      if (e.isDirectory()) {
+        walk(full);
+      } else {
+        const inPackages = rel.startsWith('packages/');
+        const exts = inPackages ? LICENSE_SCAN_EXTENSIONS_PACKAGES : LICENSE_SCAN_EXTENSIONS_FULL;
+        if (exts.some((ext) => e.name.endsWith(ext))) {
+          callback(full, rel);
+        }
+      }
+    }
+  }
+  for (const root of LICENSE_SCAN_ROOTS) {
+    const full = path.join(ROOT, root);
+    try {
+      const stat = fs.statSync(full);
+      const rel = path.relative(ROOT, full).replace(/\\/g, '/');
+      if (stat.isFile()) callback(full, rel);
+      else if (stat.isDirectory()) walk(full);
+    } catch {
+      // path missing, skip
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phantom-package detector
+//
+// Catches mentions of packages that don't live in this monorepo. The known
+// phantom is @revealui/editors — editor config sync ships as RevCon (a
+// separate fleet repo), but historical docs sometimes describe a phantom
+// in-monorepo package. Allowlist: files whose purpose is the redirect.
+//
+// REGEX-CONFIG-BOUNDARY — pre-existing convention in this file; AST refactor
+// queued under GAP-192.
+// ---------------------------------------------------------------------------
+
+interface PhantomMatch {
+  file: string;
+  line: number;
+  pkg: string;
+  hint: string;
+  text: string;
+}
+
+interface PhantomPackage {
+  pattern: RegExp;
+  pkg: string;
+  hint: string;
+  allowlist: Set<string>;
+}
+
+const PHANTOM_PACKAGES: PhantomPackage[] = [
+  {
+    pattern: /@revealui\/editors\b/,
+    pkg: '@revealui/editors',
+    hint: 'package does not exist in this monorepo; editor sync ships as RevCon (separate fleet repo)',
+    allowlist: new Set([
+      // Canonical pages that exist precisely to document the redirect:
+      'apps/docs/public/docs-pro/editors/index.md',
+      'docs/fleet/revcon.md',
+      'docs/REVFLEET.md',
+      // Synced copies of the canonical pages above
+      // (apps/docs/scripts/copy-docs.sh mirrors docs/* → apps/docs/public/*):
+      'apps/docs/public/REVFLEET.md',
+      'apps/docs/public/fleet/revcon.md',
+      // The validator itself — its FLEET_PRODUCTS table lists the phantom
+      // by design (as the regex token to detect leaks elsewhere):
+      'scripts/validate/claim-drift.ts',
+    ]),
+  },
+];
+
+function scanForPhantomPackages(): PhantomMatch[] {
+  const matches: PhantomMatch[] = [];
+  walkLicenseScanFiles((filePath, rel) => {
+    let content: string;
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+    } catch {
+      return;
+    }
+    const lines = content.split('\n');
+    for (const phantom of PHANTOM_PACKAGES) {
+      if (phantom.allowlist.has(rel)) continue;
+      for (let i = 0; i < lines.length; i++) {
+        if (phantom.pattern.test(lines[i])) {
+          matches.push({
+            file: rel,
+            line: i + 1,
+            pkg: phantom.pkg,
+            hint: phantom.hint,
+            text: lines[i].trim(),
+          });
+        }
+      }
+    }
+  });
+  return matches;
+}
+
+// ---------------------------------------------------------------------------
+// License-membership detector
+//
+// Same-line check: when a line names a @revealui/<pkg> alongside a license
+// label, verify the named package's actual license matches the claimed one.
+// Catches "MIT: ..., @revealui/mcp, ..." when mcp is FSL-1.1-MIT.
+//
+// Heuristics by design — table headers in adjacent rows and prior-line
+// section context are out of scope to keep false positives low. Headings are
+// skipped. Bare package names (e.g. "core" without the @revealui/ prefix)
+// are out of scope; this catches the >90% of fleet doc shapes that use the
+// scoped form.
+//
+// REGEX-CONFIG-BOUNDARY — pre-existing convention; AST refactor under GAP-192.
+// ---------------------------------------------------------------------------
+
+interface MembershipMatch {
+  file: string;
+  line: number;
+  pkg: string;
+  claimedLicense: 'MIT' | 'FSL-1.1-MIT';
+  actualLicense: 'MIT' | 'FSL-1.1-MIT' | 'internal/none';
+  text: string;
+}
+
+// Strict label shapes — tight enough to dodge "MIT-licensed" / "MIT-style"
+// / general prose, broad enough to catch table cells, bold labels, prefix
+// colons, and parentheticals.
+//
+// FSL pattern intentionally rejects bare `Fair Source` / `Pro packages` /
+// `FSL-1.1-MIT` mentions without a label structure — that shape appears in
+// explanatory prose like "Pro packages (@revealui/ai, @revealui/harnesses)
+// ship under Fair Source (FSL-1.1-MIT)" where treating the line as a single-
+// license claim produces false positives for the MIT-licensed packages
+// named earlier on the same line. Requires `**bold**`, `| table-cell |`,
+// `colon:` suffix, or `Pro packages (FSL...` prefix to fire.
+//
+// Table-cell variants accept extra content inside the cell (e.g.
+// `| MIT (free for any tier) |`, `| Fair Source (FSL-1.1-MIT, MIT after 2 years) |`)
+// — common in customer-facing docs that annotate the license with a note.
+const MIT_LABEL_PATTERN = /\*\*MIT\*\*|\|\s*MIT\b[^|]*\||\bMIT:|\(MIT\)/;
+const FSL_LABEL_PATTERN =
+  /\*\*FSL[-\s]?1\.1[-\s]?MIT\*\*|\|\s*(?:FSL[-\s]?1\.1[-\s]?MIT|Fair[-\s]?Source)\b[^|]*\||\bFSL[-\s]?1\.1[-\s]?MIT:|\bPro packages?:|\bPro packages? \(FSL/i;
+
+function scanForLicenseMembershipDrift(map: PackageLicenseMap): MembershipMatch[] {
+  const matches: MembershipMatch[] = [];
+  walkLicenseScanFiles((filePath, rel) => {
+    // Skip the validator itself — its own pattern definitions are not claims
+    if (rel === 'scripts/validate/claim-drift.ts') return;
+    let content: string;
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+    } catch {
+      return;
+    }
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (/^#{1,6}\s/.test(line)) continue; // skip headings
+      const hasFSL = FSL_LABEL_PATTERN.test(line);
+      const hasMIT = MIT_LABEL_PATTERN.test(line) && !hasFSL;
+      if (!hasMIT && !hasFSL) continue;
+      const pkgRegex = /@revealui\/([a-z][a-z0-9-]*)\b/g;
+      let m: RegExpExecArray | null;
+      while ((m = pkgRegex.exec(line)) !== null) {
+        const pkgName = m[0];
+        let actual: 'MIT' | 'FSL-1.1-MIT' | 'internal/none' | null;
+        if (map.mit.has(pkgName)) actual = 'MIT';
+        else if (map.fsl.has(pkgName)) actual = 'FSL-1.1-MIT';
+        else if (map.internal.has(pkgName)) actual = 'internal/none';
+        else continue; // phantom — handled by phantom detector
+        const claimed: 'MIT' | 'FSL-1.1-MIT' = hasMIT ? 'MIT' : 'FSL-1.1-MIT';
+        if (actual !== claimed) {
+          matches.push({
+            file: rel,
+            line: i + 1,
+            pkg: pkgName,
+            claimedLicense: claimed,
+            actualLicense: actual,
+            text: line.trim(),
+          });
+        }
+      }
+    }
+  });
+  return matches;
+}
+
+// ---------------------------------------------------------------------------
 // Claim scanner
 // ---------------------------------------------------------------------------
 
@@ -833,6 +1158,7 @@ function run(): void {
   const uiComponents = countUIComponents();
   const mcpServers = countMCPServers();
   const dbTables = countDbTables();
+  const licenseSplit = countLicenseSplit();
 
   console.log('Actual metrics:');
   console.log(`  Packages:      ${packages}`);
@@ -842,6 +1168,9 @@ function run(): void {
   console.log(`  UI components: ${uiComponents}`);
   console.log(`  MCP servers:   ${mcpServers}`);
   console.log(`  DB tables:     ${dbTables}`);
+  console.log(
+    `  License split: ${licenseSplit.mit} MIT | ${licenseSplit.fsl} FSL-1.1-MIT | ${licenseSplit.internal} internal/none`,
+  );
   console.log();
 
   const metrics: Metric[] = [
@@ -892,6 +1221,24 @@ function run(): void {
         // "Schema (85 tables)" parenthetical
         /\(\s*([1-9]\d{1,2})\s+tables?\s*\)/i,
       ],
+    },
+    // License-split metrics (REGEX-CONFIG-BOUNDARY — pre-existing convention
+    // in this file; AST-refactor pending GAP-192). Patterns target the
+    // canonical fleet doc shape: "N OSS (MIT)" / "N Pro (FSL...)" / "N internal".
+    {
+      name: 'MIT packages',
+      actual: licenseSplit.mit,
+      claimPatterns: [/\b([1-9]\d?)\s+OSS\s*\(MIT\)/],
+    },
+    {
+      name: 'FSL packages',
+      actual: licenseSplit.fsl,
+      claimPatterns: [/\b([1-9]\d?)\s+Pro\s*\(\s*(?:Fair\s+Source\s+)?FSL/],
+    },
+    {
+      name: 'internal packages',
+      actual: licenseSplit.internal,
+      claimPatterns: [/\b([1-9]\d?)\s+internal\s*\(/i],
     },
   ];
 
@@ -947,6 +1294,11 @@ function run(): void {
   // $RVUI internal-ticker leak guard (PR-D)
   const rvuiLeaks = scanForRvuiTickerLeaks();
 
+  // License-membership gates (added 2026-05-14)
+  const pkgMap = buildPackageLicenseMap();
+  const phantomMatches = scanForPhantomPackages();
+  const membershipMatches = scanForLicenseMembershipDrift(pkgMap);
+
   console.log('====================');
   console.log(`Claims scanned: ${claims.length}`);
   console.log(`Mismatches:     ${mismatches}`);
@@ -956,6 +1308,8 @@ function run(): void {
   console.log(`Unqualified aspirational features: ${aspirationalClaims.length}`);
   console.log(`Unattributed fleet-product mentions: ${fleetLeaks.length}`);
   console.log(`Internal $RVUI ticker leaks: ${rvuiLeaks.length}`);
+  console.log(`Phantom-package mentions: ${phantomMatches.length}`);
+  console.log(`License-membership mismatches: ${membershipMatches.length}`);
 
   if (futureClaims.length > 0) {
     console.log('\nUnlinked future-tense claims (convention: CONTRIBUTING.md):');
@@ -1001,12 +1355,38 @@ function run(): void {
     );
   }
 
+  if (phantomMatches.length > 0) {
+    console.log('\nPhantom-package mentions (package does not live in this monorepo):');
+    for (const c of phantomMatches) {
+      console.log(`  ${c.file}:${c.line}  ${c.pkg} — ${c.hint}`);
+      console.log(`    ${c.text.substring(0, 140)}`);
+    }
+    console.log(
+      '\nRemove the reference, replace with a pointer to the canonical location, or add the file to PHANTOM_PACKAGES allowlist if it explicitly documents the redirect.',
+    );
+  }
+
+  if (membershipMatches.length > 0) {
+    console.log('\nLicense-membership mismatches (package listed under wrong license):');
+    for (const c of membershipMatches) {
+      console.log(
+        `  ${c.file}:${c.line}  ${c.pkg}: claims ${c.claimedLicense}, actually ${c.actualLicense}`,
+      );
+      console.log(`    ${c.text.substring(0, 140)}`);
+    }
+    console.log(
+      '\nEach line that names a @revealui/<pkg> alongside a license label must match the package.json license. Move the package to the correct license section or remove the claim.',
+    );
+  }
+
   const anyFailures =
     mismatches > 0 ||
     futureClaims.length > 0 ||
     aspirationalClaims.length > 0 ||
     fleetLeaks.length > 0 ||
-    rvuiLeaks.length > 0;
+    rvuiLeaks.length > 0 ||
+    phantomMatches.length > 0 ||
+    membershipMatches.length > 0;
 
   if (anyFailures) {
     if (mismatches > 0) {
@@ -1027,10 +1407,16 @@ function run(): void {
     if (rvuiLeaks.length > 0) {
       console.log('\nFailed: $RVUI internal-codename leaks in public docs.');
     }
+    if (phantomMatches.length > 0) {
+      console.log('\nFailed: phantom-package mentions in docs.');
+    }
+    if (membershipMatches.length > 0) {
+      console.log('\nFailed: license-membership mismatches in docs.');
+    }
     process.exit(1);
   } else {
     console.log(
-      '\nAll claims match codebase reality, future-tense markers are tracked, aspirational features are qualified, fleet products are attributed, and no $RVUI ticker leaks were found.',
+      '\nAll claims match codebase reality, future-tense markers are tracked, aspirational features are qualified, fleet products are attributed, no $RVUI ticker leaks were found, no phantom-package mentions were found, and license membership matches package.json reality.',
     );
   }
 }

@@ -33,10 +33,13 @@ if (isFeatureEnabled('ai')) {
 - `@revealui/core`, `@revealui/contracts`, `@revealui/db`, `@revealui/auth`
 - `@revealui/presentation`, `@revealui/router`, `@revealui/config`, `@revealui/utils`
 - `@revealui/cli`, `@revealui/setup`, `@revealui/sync`, `@revealui/dev`, `@revealui/test`
+- `@revealui/cache`, `@revealui/resilience`, `@revealui/security`, `@revealui/openapi`, `@revealui/paywall`
 
-### Pro Packages (Commercial)
-- `@revealui/ai`, `@revealui/mcp`, `@revealui/editors`
-- `@revealui/services`, `@revealui/harnesses`
+### Pro Packages (Commercial — FSL-1.1-MIT)
+- `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`
+- `@revealui/mcp`, `@revealui/services`
+
+> Editor config sync ships as [**RevCon**](https://github.com/RevealUIStudio/revcon), a separate fleet repo — not gated by Pro, not in this monorepo.
 
 ## Rules
 
