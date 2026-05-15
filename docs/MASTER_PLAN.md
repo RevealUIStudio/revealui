@@ -409,7 +409,7 @@ Phase B  -  Implementation (agent):
 - [x] Audit log integration (`rotation-log.jsonl`)  -  append_audit_log() JSONL entries  -  2026-04-07
 
 Phase C  -  Migration (owner):
-- [ ] `revvault sync vercel --pull` to import existing Vercel vars
+- [ ] Bootstrap vault from existing Vercel vars  -  one-shot manual `revvault set` per path (`--pull` was removed in revvault 0.2.0; `sync` is one-way vault → Vercel)
 - [ ] Clean up vault (remove dead vars, consolidate duplicates)
 - [ ] `revvault sync vercel --apply` to push clean state
 - [ ] All future env changes go through vault first, then sync

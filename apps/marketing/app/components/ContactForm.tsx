@@ -90,6 +90,12 @@ export function ContactForm() {
         <p className="mt-2 text-sm text-gray-600">
           We will get back to you within 1-2 business days.
         </p>
+        <a
+          href="https://docs.revealui.com"
+          className="mt-4 inline-block text-sm font-semibold text-emerald-700 hover:text-emerald-600 transition-colors"
+        >
+          Explore the docs &rarr;
+        </a>
       </div>
     );
   }

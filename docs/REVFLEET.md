@@ -23,17 +23,17 @@ audience: developer
 | 6 | **AlleviaFleet** | First customer-stamped Fleet instance (Allevia Technology). | Allevia (first customer) |
 | 7 | (future stamps) | Customer-stamped Fleet instances per the Tier 4 model. | Future enterprise customers |
 
-**Naming drift to avoid:** "Suite", "RevFleet", "RevFleet" → use **RevFleet**. Bare "Forge" is ambiguous — use RevForge (the tool), RevealUI Fleet (the kit), or Enterprise (the tier) per context.
+**Naming drift to avoid:** "Suite", "RevealUI Studio Fleet", bare "Fleet" → use **RevFleet**. Bare "Forge" is ambiguous — use RevForge (the tool), RevealUI Fleet (the kit), or Enterprise (the tier) per context.
 
 ---
 
 ## Products in detail
 
-Each of the eight products in RevFleet ships in its own repo. The table below orients new contributors and customer engineers; per-product pages live under [`/docs/suite/`](./suite/).
+Each of the eight products in RevFleet ships in its own repo. The table below orients new contributors and customer engineers; per-product pages live under [`/docs/fleet/`](./fleet/).
 
 | Product | Repo | What it is | License |
 |---|---|---|---|
-| **RevealUI** | [revealui](https://github.com/RevealUIStudio/revealui) | The agent-first business runtime. Five primitives — users, content, products, payments, AI. The platform everything else composes against. | MIT (OSS) + FSL-1.1-MIT (Pro packages) |
+| **RevealUI** | [revealui](https://github.com/RevealUIStudio/revealui) | The agentic business runtime. Five primitives — users, content, products, payments, AI — pre-wired and ready to compose against. | MIT (OSS) + FSL-1.1-MIT (Pro packages) |
 | **RevForge** | [revforge](https://github.com/RevealUIStudio/revforge) | Operator-side stamping tool. Generates a branded RevealUI Fleet kit per customer — domain lock, unlimited users, Docker Compose stack. | per-product LICENSE |
 | **RevDev** | [revdev](https://github.com/RevealUIStudio/revdev) | Native developer tools: Studio (Tauri 2 desktop AI editor + agent dashboard) and Console (Go SSH TUI). Both talk to a shared harness daemon that coordinates agents and routes tools to the RevealUI API. | per-product LICENSE |
 | **RevVault** | [revvault](https://github.com/RevealUIStudio/revvault) | Age-encrypted secret vault. CLI + Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in RevFleet per the fleet-wide secrets rule. | per-product LICENSE |
@@ -44,7 +44,7 @@ Each of the eight products in RevFleet ships in its own repo. The table below or
 
 ### RevealUI (the runtime)
 
-RevealUI is the platform. Five primitives — users, content, products, payments, AI — are pre-wired in the monorepo. OSS packages ship MIT; Pro packages (`@revealui/ai`, `@revealui/harnesses`) are Fair Source FSL-1.1-MIT (source-visible, non-compete, auto-converts to MIT after 2 years).
+RevealUI is the agentic business runtime. Five primitives — users, content, products, payments, AI — are pre-wired in the monorepo. OSS packages ship MIT; Pro packages (`@revealui/ai`, `@revealui/harnesses`) are Fair Source FSL-1.1-MIT (source-visible, non-compete, auto-converts to MIT after 2 years).
 
 Status: pre-launch (0 paying customers). Enterprise tier at $299/mo hosted; RevealUI Fleet for self-hosting via RevForge.
 
@@ -97,4 +97,4 @@ See [`docs/methodology.md`](methodology.md) for the canonical M2-M12 statement �
 - Methodology: [`docs/methodology.md`](methodology.md)
 - Internal glossary (private): `RevealUIStudio/revealui-jv/docs/glossary.md`
 - ADR for rename: `RevealUIStudio/revealui-jv/docs/decisions/2026-05-03-revfleet-rename.md`
-- Per-product pages: [`docs/suite/`](./suite/)
+- Per-product pages: [`docs/fleet/`](./fleet/)

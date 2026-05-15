@@ -231,7 +231,7 @@ This table reflects what has been exercised against production infrastructure (a
 | Feature | Verified in Production | Notes |
 |---------|----------------------|-------|
 | Config validation (`buildConfig`) | ✅ Yes | admin startup on every Vercel deploy |
-| Collection CRUD operations | ✅ Yes | admin admin dashboard operations |
+| Collection CRUD operations | ✅ Yes | admin dashboard operations |
 | Session auth (login, logout, session) | ✅ Yes | Full flow verified manually + E2E |
 | Password reset (email via Gmail) | ✅ Yes | Real email delivery verified |
 | Rate limiting (IP + brute force) | ✅ Yes | Confirmed: 5 attempts → 429, brute force lockout |

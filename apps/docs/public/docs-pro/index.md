@@ -8,30 +8,24 @@ RevealUI Pro adds AI agents, MCP integrations, and inference orchestration on to
 |---------|---------|-------------|
 | [`@revealui/ai`](/pro/ai) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | AI agents, open-model inference, CRDT memory, A2A protocol |
 | [`@revealui/harnesses`](https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | Harness adapters, workboard coordination |
-| [`@revealui/mcp`](/pro/mcp) | MIT (free for any tier) | MCP hypervisor, adapter framework, 14 first-party server launchers |
-| [`@revealui/services`](https://github.com/RevealUIStudio/revealui/tree/main/packages/services) | MIT | Stripe + Supabase service integrations |
+| [`@revealui/mcp`](/pro/mcp) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | MCP hypervisor, adapter framework, 13 first-party server launchers |
+| [`@revealui/services`](https://github.com/RevealUIStudio/revealui/tree/main/packages/services) | Fair Source (FSL-1.1-MIT, MIT after 2 years) | Stripe, Solana (RVC), and Vercel integrations |
 | [Open-Model Inference](/pro/inference) | — | Default Ollama; Inference Snaps planned; Groq / HuggingFace / OpenAI-compatible opt-in |
 | [Editor Config Sync](/pro/editors) | — | Ships in the separate **RevCon** repo (not in this monorepo); not gated by Pro |
 
 ## License
 
-The two Pro packages (`@revealui/ai`, `@revealui/harnesses`) are **Fair Source (FSL-1.1-MIT)** — source is visible in the public repo, the package is installable from npm, and each release converts to plain MIT after 2 years. Runtime feature gates verify your Pro / Forge / perpetual license via JWT (Ed25519).
-
-`@revealui/mcp` and `@revealui/services` are MIT — free for any tier, including the Free plan.
+Five RevealUI packages ship under **Fair Source (FSL-1.1-MIT)** — `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services`. Source is visible in the public repo; the four published packages install from npm (`@revealui/engines` is a private workspace package), and each release converts to plain MIT after 2 years. The non-compete clause is the only restriction. Runtime feature gates on the hosted product verify your Pro / Enterprise / perpetual license via JWT (Ed25519).
 
 - [View pricing](https://revealui.com/pricing)
 - [Manage your license](https://admin.revealui.com)
 
 ## Installation
 
-Install only the packages you need. `@revealui/mcp` is free; `@revealui/ai` requires a Pro license at runtime.
+The Fair Source packages install from npm like any other. Source is visible and use is free — the non-compete clause is the only restriction. Some features check a license at runtime on the hosted product.
 
 ```bash
-# OSS (free)
-pnpm add @revealui/mcp
-
-# Pro (Fair Source — installable from npm; runtime requires a license)
-pnpm add @revealui/ai
+pnpm add @revealui/ai @revealui/mcp
 ```
 
 Set your license key in the environment:
