@@ -43,6 +43,20 @@ const packages = [
     repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses',
     npm: 'https://www.npmjs.com/package/@revealui/harnesses',
   },
+  {
+    name: '@revealui/mcp',
+    purpose: 'MCP framework — server hypervisor, adapter pattern, tool discovery',
+    license: 'FSL-1.1-MIT',
+    repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp',
+    npm: 'https://www.npmjs.com/package/@revealui/mcp',
+  },
+  {
+    name: '@revealui/services',
+    purpose: 'External service integrations — Stripe, Solana (RVC), Vercel',
+    license: 'FSL-1.1-MIT',
+    repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/services',
+    npm: 'https://www.npmjs.com/package/@revealui/services',
+  },
 ];
 
 const peers = [
@@ -82,11 +96,11 @@ const faqs = [
   },
   {
     q: 'How is the Pro tier enforced if the source is visible?',
-    a: 'License enforcement is at runtime, not at the source level. Pro packages check Ed25519-signed license JWTs, gate features per entry point, and validate against the license server every five minutes. FSL is the legal backstop; runtime enforcement is the real protection. Cracking the license is technically possible (you have the source) — but doing so commercially is exactly what the FSL non-compete clause prohibits, with civil remedies available.',
+    a: 'License enforcement is at runtime in the hosted product, not baked into the npm packages. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection — the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
   },
   {
     q: 'What about the rest of the RevealUI packages?',
-    a: 'Every other RevealUI package is plain MIT — no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, MCP framework, presentation system, etc.). Fair Source applies only to @revealui/ai and @revealui/harnesses today.',
+    a: 'Every other RevealUI package is plain MIT — no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
   },
 ];
 
@@ -124,24 +138,16 @@ export function FairSourcePage() {
             License contract for the Pro packages
           </p>
           <h1 className="text-5xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl">
-            24 of 26 MIT.
+            21 of 26 MIT.
             <span className="block text-emerald-700">Forever.</span>
           </h1>
           <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-gray-600 sm:text-2xl">
-            The 2 commercial packages convert to MIT after 2 years.
+            The 5 commercial packages convert to MIT after 2 years.
           </p>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">
-            {/* COUNT: packages-mit = 24 (of 26 total — see /packages/ in repo) */}
-            Twenty-four RevealUI packages ship under plain MIT and stay that way. The two Pro
-            packages (
-            <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-sm text-gray-900">
-              @revealui/ai
-            </code>{' '}
-            and{' '}
-            <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-sm text-gray-900">
-              @revealui/harnesses
-            </code>
-            ) ship under{' '}
+            {/* COUNT: packages-fsl = 5, packages-mit = 21 (of 26 total — see /packages/ in repo) */}
+            Twenty-one RevealUI packages ship under plain MIT and stay that way. Five packages ship
+            under{' '}
             <a
               href="https://fsl.software/"
               className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
@@ -226,8 +232,13 @@ export function FairSourcePage() {
               Which RevealUI packages are Fair Source.
             </h2>
             <p className="mt-6 text-base leading-7 text-gray-600">
-              Two packages today. Every other package in RevFleet is plain MIT — no non-compete, no
-              time limit, fully open source.
+              Five packages carry FSL-1.1-MIT — the four published to npm are listed below, plus the
+              private{' '}
+              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-sm text-gray-900">
+                @revealui/engines
+              </code>{' '}
+              workspace package. Every other RevealUI package is plain MIT — no non-compete, no time
+              limit, fully open source.
             </p>
           </div>
 

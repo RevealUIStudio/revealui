@@ -146,10 +146,10 @@ export function Proof() {
                 In the repo
               </p>
               <h4 className="mt-3 text-base font-semibold text-gray-950">
-                24 of 26 packages MIT &mdash; forever.
+                21 of 26 packages MIT &mdash; forever.
               </h4>
               <p className="mt-2 text-sm leading-6 text-gray-700">
-                The 2 Pro packages ship under Fair Source (FSL-1.1-MIT) and auto-convert to MIT two
+                The 5 Pro packages ship under Fair Source (FSL-1.1-MIT) and auto-convert to MIT two
                 years after each release. View the{' '}
                 <a
                   href="https://github.com/RevealUIStudio/revealui/blob/main/LICENSE"

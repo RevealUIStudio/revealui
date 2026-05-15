@@ -37,12 +37,12 @@ export function TermsPage() {
           features (1 site, 3 users, community support).
         </p>
 
-        <h2>4. Paid Tiers (Pro, Max &amp; Forge)</h2>
+        <h2>4. Paid Tiers (Pro, Max &amp; Enterprise)</h2>
         <h3>Billing</h3>
         <ul>
           <li>Pro: $49/month, billed monthly. Includes a 7-day free trial.</li>
           <li>Max: $149/month, billed monthly. Includes a 7-day free trial.</li>
-          <li>Forge: $299/month, billed monthly. Contact sales for annual pricing.</li>
+          <li>Enterprise: $299/month, billed monthly. Contact sales for annual pricing.</li>
           <li>All prices are in USD and exclude applicable taxes.</li>
           <li>Payment is processed by Stripe. You agree to Stripe&apos;s terms of service.</li>
         </ul>
@@ -79,7 +79,7 @@ export function TermsPage() {
           <li>Attempt to gain unauthorized access to the Service or its infrastructure</li>
           <li>Distribute malware, spam, or harmful content through the Service</li>
           <li>Exceed reasonable usage limits or abuse API rate limits</li>
-          <li>Resell Pro/Max/Forge features without a valid license</li>
+          <li>Resell Pro/Max/Enterprise features without a valid license</li>
           <li>Reverse-engineer, decompile, or circumvent license key validation</li>
         </ul>
         <p>We reserve the right to suspend or terminate accounts that violate these terms.</p>

@@ -50,7 +50,7 @@ See the [Quick Start guide](/quick-start) for the full walkthrough, or browse th
 
 ### Pro & Enterprise
 - [Pro documentation](/pro)  -  MCP servers, open-model inference, editor integrations
-- [Forge (Enterprise)](/forge)  -  Unlimited sites, users, and AI tasks
+- [Enterprise](/forge)  -  Unlimited sites, users, and AI tasks
 - [Local-First Setup](/local-first)  -  Inference Snaps + RevVault + Nix: run the full stack on your own hardware
 
 ### Blog

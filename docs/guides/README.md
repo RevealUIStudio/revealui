@@ -6,7 +6,7 @@ Practical, step-by-step guides for building with RevealUI.
 
 ## Getting Started
 
-- [Quick Start](./quick-start.md) -- Get RevealUI running locally in 15 minutes
+- [Quick Start](../QUICK_START.md) -- Get RevealUI running locally in 15 minutes
 
 ## Core Guides
 

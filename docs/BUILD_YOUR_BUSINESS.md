@@ -141,7 +141,7 @@ import { collections } from '@revealui/db/schema'
 const products = [
   { name: 'Starter', price: 0, status: 'active', description: 'Get started for free.' },
   { name: 'Pro', price: 29, status: 'active', description: 'Everything you need to grow.' },
-  { name: 'Forge', price: 299, status: 'active', description: 'For serious teams.' },
+  { name: 'Enterprise', price: 299, status: 'active', description: 'For serious teams.' },
 ]
 
 for (const product of products) {
