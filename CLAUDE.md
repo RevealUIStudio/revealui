@@ -194,7 +194,7 @@ Key postures — full definitions in `docs/methodology.md`.
 - Extensive test suite across unit, integration, and E2E layers (run `pnpm test` for current count)
 - Pinned overrides enforce minimum safe versions for transitive deps (see `pnpm.overrides` block in root `package.json`)
 - React 19.2.4 (CVE-2025-55182 React2Shell patched)
-- GitHub security alerts (CodeQL + Dependabot) monitored via the Security tab; open warnings tracked in [revealui#509](https://github.com/RevealUIStudio/revealui/issues/509)
+- GitHub security alerts (CodeQL + Dependabot) monitored via the Security tab; future triage trackers land in the private `revealui-jv` repo per the issue-redaction convention
 - AST-based code-pattern analyzer: execSync injection, TOCTOU, ReDoS (ret parser + contracts schemas)
 - Pre-push gate runs affected tests on protected branches
 - Run `pnpm audit:any` and `pnpm audit:console` for current any/console counts (warn-only)
