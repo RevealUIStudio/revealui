@@ -1,21 +1,21 @@
-import { describe, it, expect } from 'vitest';
-import type { Token } from '../tokenize.js';
+import { describe, expect, it } from 'vitest';
 import {
-  stripCommas,
-  isDollarShape,
-  isPercentShape,
-  isUsdShape,
-  isEngagementUnit,
-  isPositiveIntegerToken,
-  isIntegerWithCommas,
-  isTrackerToken,
-  isRepoLinkToken,
-  isAdrFilename,
-  isAdrCitePath,
-  isPricingTierSourceBlock,
   ENGAGEMENT_UNITS,
+  isAdrCitePath,
+  isAdrFilename,
+  isDollarShape,
+  isEngagementUnit,
+  isIntegerWithCommas,
+  isPercentShape,
+  isPositiveIntegerToken,
+  isPricingTierSourceBlock,
+  isRepoLinkToken,
+  isTrackerToken,
+  isUsdShape,
   PRICING_TIER_BLOCK_KINDS,
+  stripCommas,
 } from '../predicates.js';
+import type { Token } from '../tokenize.js';
 
 function word(text: string, offset = 0): Token {
   return { text, kind: 'word', offset };

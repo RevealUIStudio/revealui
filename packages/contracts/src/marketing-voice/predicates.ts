@@ -89,9 +89,7 @@ export function isAdrFilename(filename: string): boolean {
   const rest = parts.slice(3);
   if (yyyy.length !== 4 || mm.length !== 2 || dd.length !== 2) return false;
   if (
-    !Number.isFinite(Number(yyyy)) ||
-    !Number.isFinite(Number(mm)) ||
-    !Number.isFinite(Number(dd))
+    !(Number.isFinite(Number(yyyy)) && Number.isFinite(Number(mm)) && Number.isFinite(Number(dd)))
   )
     return false;
   if (Number.isNaN(Date.parse(`${yyyy}-${mm}-${dd}`))) return false;

@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { tokenize } from '../tokenize.js';
+import { describe, expect, it } from 'vitest';
 import { checkRule, runTier1, walkLexicalAst } from '../check-rule.js';
 import type { Rule } from '../rules.js';
+import { tokenize } from '../tokenize.js';
 
 describe('checkRule — banned-tokens', () => {
   it('flags a banned word (case-sensitive match)', () => {

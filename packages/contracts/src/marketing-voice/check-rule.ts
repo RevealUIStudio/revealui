@@ -1,5 +1,5 @@
+import type { Rule, ValidationResult, Violation } from './rules.js';
 import type { Token } from './tokenize.js';
-import type { Rule, Violation, ValidationResult } from './rules.js';
 
 export interface CheckContext {
   blockType?: string;
