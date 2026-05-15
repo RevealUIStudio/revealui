@@ -6,8 +6,9 @@
 
 import { accounts, usageMeters } from '@revealui/db/schema';
 import { Hono } from 'hono';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
+  cleanTables,
   createTestDb,
   type TestDb,
 } from '../../../../../packages/test/src/utils/drizzle-test-db.js';
@@ -79,12 +80,16 @@ async function seedRow(opts: {
   });
 }
 
-beforeEach(async () => {
+beforeAll(async () => {
   testDb = await createTestDb();
 });
 
-afterEach(async () => {
+afterAll(async () => {
   await testDb.close();
+});
+
+afterEach(async () => {
+  await cleanTables(testDb.drizzle, ['usage_meters', 'accounts']);
 });
 
 describe('GET /api/mcp/usage', () => {
