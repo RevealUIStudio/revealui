@@ -67,11 +67,11 @@ Prerequisites (one-time setup per package on npmjs.org):
    - Environment: `npm-publish`
 
 Packages that need this configured:
-`@revealui/animations`, `@revealui/auth`, `@revealui/cache`, `@revealui/cli`,
+`@revealui/ai`, `@revealui/auth`, `@revealui/cache`, `@revealui/cli`,
 `@revealui/config`, `@revealui/contracts`, `@revealui/core`, `@revealui/db`,
-`@revealui/editors`, `@revealui/mcp`, `@revealui/openapi`, `@revealui/presentation`,
-`@revealui/resilience`, `@revealui/router`, `@revealui/security`, `@revealui/services`,
-`@revealui/setup`, `@revealui/sync`, `@revealui/utils`, `create-revealui`
+`@revealui/harnesses`, `@revealui/mcp`, `@revealui/openapi`, `@revealui/paywall`,
+`@revealui/presentation`, `@revealui/resilience`, `@revealui/router`, `@revealui/security`,
+`@revealui/services`, `@revealui/setup`, `@revealui/sync`, `@revealui/utils`, `create-revealui`
 
 ### Local
 

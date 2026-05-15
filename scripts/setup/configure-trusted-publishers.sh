@@ -19,7 +19,6 @@ PACKAGES=(
   "@revealui/contracts"
   "@revealui/core"
   "@revealui/db"
-  "@revealui/editors"
   "@revealui/mcp"
   "@revealui/openapi"
   "@revealui/presentation"

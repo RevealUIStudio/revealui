@@ -86,8 +86,8 @@ See [`docs/methodology.md`](methodology.md) for the canonical M2-M12 statement �
 
 ## Licensing
 
-- **MIT**: `@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/presentation`, `@revealui/router`, `@revealui/config`, `@revealui/utils`, `@revealui/cli`, `@revealui/setup`, `@revealui/sync`, `@revealui/cache`, `@revealui/resilience`, `@revealui/security`, `@revealui/mcp`, `@revealui/services`, `@revealui/editors`, and all other OSS packages
-- **FSL-1.1-MIT**: `@revealui/ai`, `@revealui/harnesses` — source-visible, non-compete, converts to MIT after 2 years per release
+- **MIT**: `@revealui/core`, `@revealui/auth`, `@revealui/db`, `@revealui/contracts`, `@revealui/presentation`, `@revealui/router`, `@revealui/config`, `@revealui/utils`, `@revealui/cli`, `@revealui/setup`, `@revealui/sync`, `@revealui/cache`, `@revealui/resilience`, `@revealui/security`, `@revealui/openapi`, `@revealui/paywall`, and all other OSS packages
+- **FSL-1.1-MIT**: `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services` — source-visible, non-compete, converts to MIT after 2 years per release (`@revealui/engines` is `"private": true` and not published on npm)
 
 ---
 

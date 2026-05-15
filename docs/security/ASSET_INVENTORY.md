@@ -49,7 +49,6 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | PKG-014 | @revealui/security | Headers, CORS, RBAC/ABAC, encryption, audit, GDPR | npm | Public |
 | PKG-015 | @revealui/dev | Shared configs (Biome, TS, Tailwind) | npm | Public |
 | PKG-016 | @revealui/test | E2E specs, integration tests, fixtures, mocks | npm | Public |
-| PKG-017 | @revealui/editors | Editor config sync (Zed, VS Code, Cursor) | npm | Public |
 | PKG-018 | @revealui/mcp | MCP hypervisor, adapter framework, tool discovery | npm | Public |
 | PKG-019 | @revealui/services | Stripe + Supabase integrations | npm | Public |
 | PKG-020 | create-revealui | `npm create revealui` initializer | npm | Public |

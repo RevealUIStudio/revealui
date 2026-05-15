@@ -139,7 +139,7 @@ This package is named `dev` (unscoped) in the monorepo workspace. Use `dev/...` 
 - You want consistent formatting and linting rules across all workspaces
 - You need a base Vite config with common aliases and build settings
 - **Not** for runtime configuration  -  use `@revealui/config` for environment variables
-- **Not** for editor-specific settings  -  use `@revealui/editors` for VS Code, Zed, and Cursor configs
+- **Not** for editor-specific settings  -  see [RevCon](https://github.com/RevealUIStudio/revcon) (separate fleet repo) for VS Code, Zed, and Cursor configs
 
 ## JOSHUA Alignment
 
