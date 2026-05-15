@@ -56,18 +56,19 @@ pnpm vercel:sync:apply
 # 4. Redeploy
 ```
 
-### Backfill (import existing Vercel vars into revvault)
+### Backfill (bootstrap a fresh vault from existing Vercel vars)
 
-Use this to seed revvault when a Vercel project has secrets revvault doesn't yet know about — typically a one-time bootstrap.
+There is **no `--pull` command.** `revvault sync` is strictly one-way —
+vault → Vercel — as of revvault 0.2.0. The reverse direction was removed
+in the durable redesign after the 2026-05-09 corruption incident, where a
+Vercel API change caused `--pull` to overwrite canonical vault paths with
+ciphertext/empty values. See the revvault `CHANGELOG.md` for the rationale.
 
-```bash
-# Dry-run shows what'd be imported and to which paths
-pnpm vercel:sync:pull
-
-# Apply — writes to <vault_prefix>/<VAR_NAME> by default,
-# OR to override paths if a [projects.<slug>.vars] entry exists
-pnpm vercel:sync:pull:apply
-```
+Seeding a fresh vault from secrets that currently only exist on Vercel is a
+deliberate **one-shot manual operation**, not a recurring sync command — for
+each var, read the value out of Vercel and `revvault set` it at its canonical
+path. Once the vault holds the value, `pnpm vercel:sync:apply` keeps Vercel in
+sync from then on.
 
 ### Drift check (read-only)
 
