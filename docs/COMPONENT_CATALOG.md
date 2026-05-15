@@ -943,11 +943,11 @@ import { StackedLayout } from '@revealui/presentation'
 
 ## Admin Dashboard Components
 
-Components for the RevealUI admin admin interface (packages/core/src/client/admin/components/).
+Components for the RevealUI admin interface (packages/core/src/client/admin/components/).
 
 ### AdminDashboard
 
-Main admin admin dashboard component.
+Main admin dashboard component.
 
 **Package:** `@revealui/core/client/admin`
 
@@ -1047,7 +1047,7 @@ import { DocumentForm } from '@revealui/core/client/admin'
 
 ## Admin UI Components
 
-Form components for the admin admin interface (packages/core/src/client/ui/).
+Form components for the admin interface (packages/core/src/client/ui/).
 
 **Package:** `@revealui/core/client/ui`
 

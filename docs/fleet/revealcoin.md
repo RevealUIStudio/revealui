@@ -1,7 +1,7 @@
 ---
 title: "RevealCoin (RVC)"
 description: "Hybrid utility/governance/reward token on Solana Token-2022. RVC is the customer-facing on-chain ticker."
-category: suite
+category: fleet
 audience: developer
 ---
 

@@ -638,11 +638,11 @@ Returns `true` if the current license meets or exceeds `requiredTier`.
 import { isLicensed } from "@revealui/core";
 
 if (isLicensed("pro")) {
-  // Pro, Max, and Forge only
+  // Pro, Max, and Enterprise only
 }
 ```
 
-**Tier ranking:** `free (0) < pro (1) < max (2) < enterprise/forge (3)`
+**Tier ranking:** `free (0) < pro (1) < max (2) < enterprise (3)`
 
 ### `getCurrentTier(): LicenseTier`
 
@@ -723,7 +723,7 @@ interface FeatureFlags {
   aiMemory: boolean;
   aiInference: boolean;
   auditLog: boolean;
-  // Forge (enterprise) features
+  // Enterprise features
   multiTenant: boolean;
   whiteLabel: boolean;
   sso: boolean;

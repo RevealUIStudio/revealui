@@ -1,7 +1,7 @@
 ---
 title: "RevVault"
 description: "Age-encrypted secret vault. CLI plus Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in RevFleet."
-category: suite
+category: fleet
 audience: developer
 ---
 
