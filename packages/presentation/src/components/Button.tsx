@@ -12,10 +12,10 @@ const buttonVariants = cva(
     variants: {
       size: {
         clear: '',
-        default: 'h-10 px-4 py-2',
-        icon: 'size-10',
-        lg: 'h-11 rounded px-8',
-        sm: 'h-9 rounded px-3',
+        default: 'h-11 px-4 py-2.5',
+        icon: 'size-11',
+        lg: 'h-12 rounded px-8 py-3',
+        sm: 'h-10 rounded px-3 py-2',
       },
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md',
