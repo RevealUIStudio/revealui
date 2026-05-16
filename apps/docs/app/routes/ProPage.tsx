@@ -1,7 +1,6 @@
 import { logger } from '@revealui/core/observability/logger';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { LicenseGate } from '../components/LicenseGate';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { useWildcardPath } from '../hooks/useWildcardPath';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
@@ -75,9 +74,5 @@ Document not found at \`${filePath}\`.
 }
 
 export function ProPage() {
-  return (
-    <LicenseGate>
-      <ProContent />
-    </LicenseGate>
-  );
+  return <ProContent />;
 }
