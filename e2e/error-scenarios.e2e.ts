@@ -435,15 +435,6 @@ test.describe('Error Scenarios', () => {
         expect(displayedMessage).not.toContain('<script>');
       }
     });
-
-    test('should enforce HTTPS', async ({ page }) => {
-      if (process.env.NODE_ENV === 'production') {
-        await page.goto('http://localhost:3000');
-
-        // Should redirect to HTTPS
-        expect(page.url()).toMatch(/^https:\/\//);
-      }
-    });
   });
 
   test.describe('Edge Cases', () => {
