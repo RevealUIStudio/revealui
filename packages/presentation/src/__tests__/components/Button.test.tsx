@@ -149,46 +149,51 @@ describe('Button', () => {
   // -------------------------------------------------------------------------
 
   describe('Sizes', () => {
+    // Size contract — see packages/presentation/src/components/Button.tsx
+    // (kept in lockstep with the design-system breathing-room bump).
     it('applies "default" size when no size is specified', () => {
       render(<Button>Default</Button>);
-      // default size: h-10 px-4 py-2
-      expect(screen.getByRole('button')).toHaveClass('h-10');
+      // default size: h-11 px-4 py-2.5
+      expect(screen.getByRole('button')).toHaveClass('h-11');
       expect(screen.getByRole('button')).toHaveClass('px-4');
+      expect(screen.getByRole('button')).toHaveClass('py-2.5');
     });
 
     it('applies "default" size explicitly', () => {
       render(<Button size="default">Default</Button>);
-      expect(screen.getByRole('button')).toHaveClass('h-10');
+      expect(screen.getByRole('button')).toHaveClass('h-11');
     });
 
     it('applies "sm" size', () => {
       render(<Button size="sm">Small</Button>);
-      // sm: h-9 rounded px-3
-      expect(screen.getByRole('button')).toHaveClass('h-9');
+      // sm: h-10 rounded px-3 py-2
+      expect(screen.getByRole('button')).toHaveClass('h-10');
       expect(screen.getByRole('button')).toHaveClass('px-3');
+      expect(screen.getByRole('button')).toHaveClass('py-2');
     });
 
     it('applies "lg" size', () => {
       render(<Button size="lg">Large</Button>);
-      // lg: h-11 rounded px-8
-      expect(screen.getByRole('button')).toHaveClass('h-11');
+      // lg: h-12 rounded px-8 py-3
+      expect(screen.getByRole('button')).toHaveClass('h-12');
       expect(screen.getByRole('button')).toHaveClass('px-8');
+      expect(screen.getByRole('button')).toHaveClass('py-3');
     });
 
     it('applies "icon" size', () => {
       render(<Button size="icon">X</Button>);
-      // icon: size-10 (width + height = 10)
-      expect(screen.getByRole('button')).toHaveClass('size-10');
+      // icon: size-11 (square, matches default height for inline alignment)
+      expect(screen.getByRole('button')).toHaveClass('size-11');
     });
 
     it('applies "clear" size (no padding classes)', () => {
       render(<Button size="clear">Clear</Button>);
-      // clear: '' (empty string  -  no size classes added)
-      // Should NOT have h-10 or h-9
+      // clear: '' (empty string — no size classes added).
+      // Should NOT have any of the size-table fixed heights (h-10/h-11/h-12).
       const btn = screen.getByRole('button');
       expect(btn).not.toHaveClass('h-10');
-      expect(btn).not.toHaveClass('h-9');
       expect(btn).not.toHaveClass('h-11');
+      expect(btn).not.toHaveClass('h-12');
     });
   });
 
