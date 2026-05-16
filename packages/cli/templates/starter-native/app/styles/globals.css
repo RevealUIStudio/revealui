@@ -1,0 +1,27 @@
+@import 'tailwindcss';
+
+/*
+  Tailwind v4 ships with a sensible default theme. Customize via @theme directive
+  if needed. See https://tailwindcss.com/docs/theme for full token reference.
+
+  Example:
+  @theme {
+    --color-brand-500: oklch(0.723 0.177 163);
+  }
+*/
+
+html,
+body,
+#root {
+  min-height: 100vh;
+  background-color: #f9fafb;
+  color: #111827;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
