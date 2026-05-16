@@ -26,6 +26,8 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '@revealui/core/observability/logger';
+import { z } from 'zod/v4';
+import { validateToolArgs } from '../validate-tool-args.js';
 
 // ---------------------------------------------------------------------------
 // Credential overrides (set by Hypervisor before tool invocations)
@@ -85,6 +87,42 @@ async function stripePost(path: string, secretKey: string, data: Record<string, 
 }
 
 // ---------------------------------------------------------------------------
+// Tool argument schemas (Zod 4)
+// ---------------------------------------------------------------------------
+
+const CreatePaymentIntentSchema = z
+  .object({
+    amount: z.number().int().positive(),
+    currency: z.string().min(3).max(3).optional(),
+    customer_id: z.string().optional(),
+    description: z.string().optional(),
+  })
+  .strict();
+
+const ListCustomersSchema = z
+  .object({
+    email: z.string().optional(),
+    limit: z.number().int().min(1).max(100).optional(),
+  })
+  .strict();
+
+const GetCustomerSchema = z
+  .object({
+    customer_id: z.string().min(1),
+  })
+  .strict();
+
+const ListSubscriptionsSchema = z
+  .object({
+    customer_id: z.string().optional(),
+    status: z
+      .enum(['active', 'canceled', 'past_due', 'trialing', 'all', 'unpaid', 'incomplete'])
+      .optional(),
+    limit: z.number().int().min(1).max(100).optional(),
+  })
+  .strict();
+
+// ---------------------------------------------------------------------------
 // Server
 // ---------------------------------------------------------------------------
 
@@ -99,71 +137,23 @@ const TOOLS: Tool[] = [
     description:
       'Create a Stripe PaymentIntent for a one-time charge in RevealUI. ' +
       'Amount is in the smallest currency unit (cents for USD).',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        amount: {
-          type: 'number',
-          description: 'Amount in smallest currency unit (e.g. 2999 = $29.99)',
-        },
-        currency: {
-          type: 'string',
-          description: 'ISO 4217 currency code (default: usd)',
-          default: 'usd',
-        },
-        customer_id: { type: 'string', description: 'Stripe customer ID to attach the payment to' },
-        description: { type: 'string', description: 'Human-readable description of the charge' },
-      },
-      required: ['amount'],
-    },
+    inputSchema: z.toJSONSchema(CreatePaymentIntentSchema) as Tool['inputSchema'],
   },
   {
     name: 'stripe_list_customers',
     description: 'List Stripe customers in the RevealUI account. Optionally filter by email.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        email: { type: 'string', description: 'Filter by exact email address' },
-        limit: {
-          type: 'number',
-          description: 'Number of results (1-100, default: 20)',
-          default: 20,
-        },
-      },
-    },
+    inputSchema: z.toJSONSchema(ListCustomersSchema) as Tool['inputSchema'],
   },
   {
     name: 'stripe_get_customer',
     description:
       'Fetch a Stripe customer by ID, including their active RevealUI subscription tier.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        customer_id: { type: 'string', description: 'Stripe customer ID (cus_...)' },
-      },
-      required: ['customer_id'],
-    },
+    inputSchema: z.toJSONSchema(GetCustomerSchema) as Tool['inputSchema'],
   },
   {
     name: 'stripe_list_subscriptions',
     description: 'List Stripe subscriptions for RevealUI. Can filter by customer and/or status.',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        customer_id: { type: 'string', description: 'Filter to a specific customer (cus_...)' },
-        status: {
-          type: 'string',
-          description:
-            'Filter by status: active, canceled, past_due, trialing, all (default: active)',
-          default: 'active',
-        },
-        limit: {
-          type: 'number',
-          description: 'Number of results (1-100, default: 20)',
-          default: 20,
-        },
-      },
-    },
+    inputSchema: z.toJSONSchema(ListSubscriptionsSchema) as Tool['inputSchema'],
   },
 ];
 
@@ -186,17 +176,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
 
     switch (toolName) {
       case 'stripe_create_payment_intent': {
-        const {
-          amount,
-          currency = 'usd',
-          customer_id,
-          description,
-        } = request.params.arguments as {
-          amount: number;
-          currency?: string;
-          customer_id?: string;
-          description?: string;
-        };
+        const parsed = validateToolArgs(
+          CreatePaymentIntentSchema,
+          request.params.arguments,
+          toolName,
+        );
+        if (!parsed.ok) return parsed.error;
+        const { amount, currency = 'usd', customer_id, description } = parsed.value;
         const body: Record<string, string> = {
           amount: String(Math.round(amount)),
           currency,
@@ -209,10 +195,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
       }
 
       case 'stripe_list_customers': {
-        const { email, limit = 20 } = request.params.arguments as {
-          email?: string;
-          limit?: number;
-        };
+        const parsed = validateToolArgs(ListCustomersSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error;
+        const { email, limit = 20 } = parsed.value;
         const params: Record<string, string> = { limit: String(Math.min(limit, 100)) };
         if (email) params.email = email;
 
@@ -221,7 +206,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
       }
 
       case 'stripe_get_customer': {
-        const { customer_id } = request.params.arguments as { customer_id: string };
+        const parsed = validateToolArgs(GetCustomerSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error;
+        const { customer_id } = parsed.value;
         const [customer, subscriptions] = await Promise.all([
           stripeGet(`/customers/${customer_id}`, secretKey),
           stripeGet('/subscriptions', secretKey, {
@@ -236,15 +223,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
       }
 
       case 'stripe_list_subscriptions': {
-        const {
-          customer_id,
-          status = 'active',
-          limit = 20,
-        } = request.params.arguments as {
-          customer_id?: string;
-          status?: string;
-          limit?: number;
-        };
+        const parsed = validateToolArgs(
+          ListSubscriptionsSchema,
+          request.params.arguments,
+          toolName,
+        );
+        if (!parsed.ok) return parsed.error;
+        const { customer_id, status = 'active', limit = 20 } = parsed.value;
         const params: Record<string, string> = {
           limit: String(Math.min(limit, 100)),
           status,
