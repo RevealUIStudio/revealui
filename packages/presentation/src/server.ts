@@ -7,6 +7,11 @@
 
 // Layout Components - Server Safe
 export { AuthLayout, type AuthLayoutProps } from './components/auth-layout.js';
+export {
+  SplitAuthLayout,
+  type SplitAuthLayoutProps,
+} from './components/split-auth-layout.js';
+export { BuiltWithRevealUI } from './components/BuiltWithRevealUI.js';
 
 // CVA Components - Server Safe
 export {
@@ -102,6 +107,15 @@ export {
   IconUsers,
   IconXCircle,
 } from './components/icon.js';
+// OAuth provider + passkey icons - Server Safe
+export {
+  GitHubIcon,
+  GoogleIcon,
+  LinkedInIcon,
+  PasskeyIcon,
+  VercelIcon,
+} from './icons/providers.js';
+
 // Primitives - Server Safe
 export { Box, type BoxProps } from './primitives/Box.js';
 export { Flex, type FlexProps } from './primitives/Flex.js';

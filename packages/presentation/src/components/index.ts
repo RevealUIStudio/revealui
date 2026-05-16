@@ -11,6 +11,10 @@ export { Accordion, AccordionItem } from './accordion.js';
 export { Alert, AlertActions, AlertBody, AlertDescription, AlertTitle } from './alert.js';
 // Layout components
 export { AuthLayout, type AuthLayoutProps } from './auth-layout.js';
+export {
+  SplitAuthLayout,
+  type SplitAuthLayoutProps,
+} from './split-auth-layout.js';
 export { Avatar, AvatarButton } from './avatar.js';
 export { AvatarGroup } from './avatar-group.js';
 export { BuiltWithRevealUI } from './BuiltWithRevealUI.js';
