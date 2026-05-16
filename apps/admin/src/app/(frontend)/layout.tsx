@@ -36,6 +36,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   const primaryColor =
     process.env.REVEALUI_BRAND_PRIMARY_COLOR ?? process.env.REVEALUI_TENANT_BRAND;
+  // Foreground color to use ON the brand color (e.g. for text in a brand-coloured panel).
+  // Customers with light brand colours must override this with a dark value (e.g. '#0f172a')
+  // to maintain WCAG contrast — there is no automatic contrast computation by design.
+  const brandOnColor = process.env.REVEALUI_TENANT_BRAND_ON ?? 'white';
+  // Optional tenant font family — must already be loaded as a stylesheet (see <link> tags below).
+  // Built-in supported values today: 'Inter', 'Mona Sans', 'Geist'. Unset → falls back to Geist.
+  const tenantFont = process.env.REVEALUI_TENANT_FONT?.trim();
+  // Fleet kits hide the RevealUI-branded Header/Footer by default. Customer-side
+  // navigation/footer is out of scope for v1; future work can expose a tenant
+  // header-block + footer-block via env or admin settings.
+  const isFleetMode = process.env.REVEALUI_FLEET_MODE === 'true';
 
   try {
     return (
@@ -59,11 +70,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
             rel="stylesheet"
           />
-          {primaryColor ? (
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: inline <style> takes a string; primaryColor is server-validated hex from tenant settings (no user-html injection surface)
+          {primaryColor || tenantFont ? (
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: inline <style> takes a string; both values are server-side env vars (no user-html injection surface)
             <style
               dangerouslySetInnerHTML={{
-                __html: `:root { --tenant-brand: ${primaryColor}; --primary: var(--tenant-brand); }`,
+                __html: [
+                  ':root {',
+                  primaryColor ? `--tenant-brand: ${primaryColor};` : '',
+                  primaryColor ? '--primary: var(--tenant-brand);' : '',
+                  primaryColor ? `--tenant-brand-on: ${brandOnColor};` : '',
+                  tenantFont ? `--tenant-font: '${tenantFont}';` : '',
+                  '}',
+                  tenantFont
+                    ? `body { font-family: var(--tenant-font), system-ui, -apple-system, sans-serif; }`
+                    : '',
+                ]
+                  .filter(Boolean)
+                  .join(' '),
               }}
             />
           ) : null}
@@ -78,9 +101,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               />
               <LivePreviewListener />
 
-              <Header />
+              {isFleetMode ? null : <Header />}
               <main>{children}</main>
-              <Footer />
+              {isFleetMode ? null : <Footer />}
             </ErrorBoundary>
           </Providers>
           {/* Vercel Speed Insights for performance monitoring */}
