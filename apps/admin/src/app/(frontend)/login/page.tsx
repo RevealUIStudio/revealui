@@ -14,7 +14,12 @@ import { LoginForm, type OAuthProvider } from './LoginForm';
  * OAuth row entirely.
  */
 
-const SUPPORTED_PROVIDERS = ['github', 'google', 'vercel', 'linkedin'] as const satisfies readonly OAuthProvider[];
+const SUPPORTED_PROVIDERS = [
+  'github',
+  'google',
+  'vercel',
+  'linkedin',
+] as const satisfies readonly OAuthProvider[];
 
 function parseProviders(raw: string | undefined): OAuthProvider[] {
   if (!raw) return [];

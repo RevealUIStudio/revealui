@@ -11,10 +11,6 @@ export { Accordion, AccordionItem } from './accordion.js';
 export { Alert, AlertActions, AlertBody, AlertDescription, AlertTitle } from './alert.js';
 // Layout components
 export { AuthLayout, type AuthLayoutProps } from './auth-layout.js';
-export {
-  SplitAuthLayout,
-  type SplitAuthLayoutProps,
-} from './split-auth-layout.js';
 export { Avatar, AvatarButton } from './avatar.js';
 export { AvatarGroup } from './avatar-group.js';
 export { BuiltWithRevealUI } from './BuiltWithRevealUI.js';
@@ -146,6 +142,10 @@ export {
 export { SidebarLayout } from './sidebar-layout.js';
 export { Skeleton, SkeletonCard, SkeletonText } from './skeleton.js';
 export { Slider } from './slider.js';
+export {
+  SplitAuthLayout,
+  type SplitAuthLayoutProps,
+} from './split-auth-layout.js';
 export { StackedLayout } from './stacked-layout.js';
 export { Stat, StatGroup } from './stat.js';
 export { Stepper, type StepperStep } from './stepper.js';

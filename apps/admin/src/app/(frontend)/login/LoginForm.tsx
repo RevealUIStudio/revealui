@@ -30,15 +30,13 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   unknown_provider: 'Unknown sign-in provider. Please try again.',
 };
 
-const OAUTH_META: Record<
-  OAuthProvider,
-  { label: string; href: string; Icon: typeof GitHubIcon }
-> = {
-  github: { label: 'GitHub', href: '/api/auth/github', Icon: GitHubIcon },
-  google: { label: 'Google', href: '/api/auth/google', Icon: GoogleIcon },
-  vercel: { label: 'Vercel', href: '/api/auth/vercel', Icon: VercelIcon },
-  linkedin: { label: 'LinkedIn', href: '/api/auth/linkedin', Icon: LinkedInIcon },
-};
+const OAUTH_META: Record<OAuthProvider, { label: string; href: string; Icon: typeof GitHubIcon }> =
+  {
+    github: { label: 'GitHub', href: '/api/auth/github', Icon: GitHubIcon },
+    google: { label: 'Google', href: '/api/auth/google', Icon: GoogleIcon },
+    vercel: { label: 'Vercel', href: '/api/auth/vercel', Icon: VercelIcon },
+    linkedin: { label: 'LinkedIn', href: '/api/auth/linkedin', Icon: LinkedInIcon },
+  };
 
 interface LoginFormProps {
   /** OAuth providers to render; empty array suppresses the OAuth row entirely. */
@@ -198,12 +196,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
             {oauthProviders.map((provider) => {
               const { label, href, Icon } = OAUTH_META[provider];
               return (
-                <Button
-                  key={provider}
-                  variant="outline"
-                  className="justify-start gap-2"
-                  asChild
-                >
+                <Button key={provider} variant="outline" className="justify-start gap-2" asChild>
                   <a href={href}>
                     <Icon className="size-4 shrink-0" />
                     <span>{label}</span>

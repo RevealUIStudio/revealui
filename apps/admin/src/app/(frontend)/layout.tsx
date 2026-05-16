@@ -71,8 +71,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             rel="stylesheet"
           />
           {primaryColor || tenantFont ? (
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: inline <style> takes a string; both values are server-side env vars (no user-html injection surface)
             <style
+              // biome-ignore lint/security/noDangerouslySetInnerHtml: inline <style> takes a string; both values are server-side env vars, no user-html injection surface
               dangerouslySetInnerHTML={{
                 __html: [
                   ':root {',
