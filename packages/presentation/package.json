@@ -1,7 +1,7 @@
 {
   "name": "@revealui/presentation",
   "version": "0.5.0",
-  "description": "Native React UI components built on Tailwind v4 — zero external UI dependencies (only clsx + CVA). Buttons, forms, dialogs, navigation, and more.",
+  "description": "Native React UI components built on Tailwind v4. Buttons, forms, dialogs, navigation, and more.",
   "keywords": [
     "components",
     "presentation",
