@@ -1,12 +1,13 @@
 import { Button } from '@revealui/presentation';
 
 const stack = [
-  { label: 'Next.js', kind: 'Frontend + edge' },
+  { label: 'Vite', kind: 'Marketing + docs frontends' },
+  { label: 'Next.js 16', kind: 'Admin frontend' },
   { label: 'React 19', kind: 'UI runtime' },
   { label: 'PostgreSQL', kind: 'Database' },
   { label: 'Drizzle', kind: 'ORM' },
   { label: 'Stripe', kind: 'Payments' },
-  { label: 'Hono', kind: 'API' },
+  { label: 'Hono', kind: 'API + edge' },
   { label: 'MCP', kind: 'Agent protocol' },
   { label: 'Tailwind', kind: 'Design system' },
 ];
@@ -113,8 +114,8 @@ export function Proof() {
             </p>
             <h3 className="mt-2 text-xl font-semibold">Standards your team already knows</h3>
             <p className="mt-3 text-sm leading-6 text-gray-300">
-              No proprietary runtime, no vendor-specific edge functions. Deploy where Next.js and
-              Hono run. Take your data with you.
+              No proprietary runtime, no vendor-specific edge functions. Deploys to Vercel,
+              Cloudflare, Railway, Hetzner, or your own infra. Take your data with you.
             </p>
 
             <ul className="mt-6 grid grid-cols-2 gap-3">
