@@ -25,7 +25,10 @@ const TSC_BIN = path.resolve(__dirname, '../../../node_modules/.bin/tsc');
 // Shared scaffolding helper
 // ---------------------------------------------------------------------------
 
-function baseConfig(template: 'basic-blog' | 'e-commerce' | 'portfolio', projectPath: string) {
+function baseConfig(
+  template: 'basic-blog' | 'e-commerce' | 'portfolio' | 'starter-native',
+  projectPath: string,
+) {
   return {
     project: {
       projectName: `test-${template}`,
@@ -196,7 +199,7 @@ describe('package.json integrity after scaffolding', () => {
 // ---------------------------------------------------------------------------
 
 describe('tsconfig.json validity', () => {
-  const templates = ['basic-blog', 'e-commerce', 'portfolio', 'starter'] as const;
+  const templates = ['basic-blog', 'e-commerce', 'portfolio', 'starter', 'starter-native'] as const;
 
   for (const template of templates) {
     it(`${template}: tsconfig.json is valid JSON with include field`, async () => {
@@ -279,4 +282,105 @@ describe('TypeScript syntax  -  template source files', () => {
       ).toHaveLength(0);
     });
   }
+
+  // starter-native has a Vite shape (app/ + src/), not the Next.js shape (src/app/).
+  // Scan both directories for syntax errors.
+  it('starter-native: no syntax errors in app/ + src/ .ts/.tsx files', async () => {
+    const templateDir = path.join(TEMPLATES_DIR, 'starter-native');
+    const appFiles = await collectTsFiles(path.join(templateDir, 'app'));
+    const srcFiles = await collectTsFiles(path.join(templateDir, 'src'));
+    const files = [...appFiles, ...srcFiles];
+    expect(files.length).toBeGreaterThan(0);
+
+    const syntaxErrors = collectSyntaxErrors(files);
+    expect(
+      syntaxErrors,
+      `Syntax errors in starter-native template:\n${syntaxErrors.join('\n')}`,
+    ).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// starter-native: file structure (differs from Next.js templates — has app/
+// + vite.config.ts + index.html instead of src/app/ + next.config.mjs)
+// ---------------------------------------------------------------------------
+
+describe('Template file structure  -  starter-native (Vite + @revealui/router)', () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'revealui-struct-native-'));
+  });
+
+  afterEach(async () => {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it('copies required root files (Vite shape, no next.config.mjs)', async () => {
+    const projectPath = path.join(tmpDir, 'native');
+    await createProject(baseConfig('starter-native', projectPath));
+
+    const files = await fs.readdir(projectPath);
+    expect(files).toContain('package.json');
+    expect(files).toContain('tsconfig.json');
+    expect(files).toContain('vite.config.ts');
+    expect(files).toContain('vitest.config.ts');
+    expect(files).toContain('index.html');
+    expect(files).toContain('.env.local'); // CLI-generated
+    expect(files).toContain('README.md'); // CLI-generated
+    expect(files).toContain('app');
+    expect(files).toContain('src');
+    expect(files).not.toContain('next.config.mjs');
+  });
+
+  it('has .gitignore (renamed from _gitignore)', async () => {
+    const projectPath = path.join(tmpDir, 'native-gi');
+    await createProject(baseConfig('starter-native', projectPath));
+
+    const files = await fs.readdir(projectPath);
+    expect(files).toContain('.gitignore');
+    expect(files).not.toContain('_gitignore');
+  });
+
+  it('app/ contains App.tsx, main.tsx, routes/, layouts/, styles/', async () => {
+    const projectPath = path.join(tmpDir, 'native-app');
+    await createProject(baseConfig('starter-native', projectPath));
+
+    const appFiles = await fs.readdir(path.join(projectPath, 'app'));
+    expect(appFiles).toContain('App.tsx');
+    expect(appFiles).toContain('main.tsx');
+    expect(appFiles).toContain('routes');
+    expect(appFiles).toContain('layouts');
+    expect(appFiles).toContain('styles');
+  });
+
+  it('package.json declares @revealui/router and not next', async () => {
+    const projectPath = path.join(tmpDir, 'native-deps');
+    await createProject(baseConfig('starter-native', projectPath));
+
+    const pkg = JSON.parse(await fs.readFile(path.join(projectPath, 'package.json'), 'utf-8')) as {
+      name?: string;
+      dependencies?: Record<string, string>;
+    };
+
+    expect(pkg.name).toBe('test-starter-native');
+    expect(pkg.dependencies?.['@revealui/router']).toBeDefined();
+    expect(pkg.dependencies?.['@revealui/core']).toBeDefined();
+    expect(pkg.dependencies?.next).toBeUndefined();
+  });
+
+  it('package.json has Vite scripts (dev/build/preview/typecheck/test)', async () => {
+    const projectPath = path.join(tmpDir, 'native-scripts');
+    await createProject(baseConfig('starter-native', projectPath));
+
+    const pkg = JSON.parse(await fs.readFile(path.join(projectPath, 'package.json'), 'utf-8')) as {
+      scripts?: Record<string, string>;
+    };
+
+    expect(pkg.scripts?.dev).toMatch(/vite/);
+    expect(pkg.scripts?.build).toMatch(/vite build/);
+    expect(pkg.scripts?.preview).toMatch(/vite preview/);
+    expect(typeof pkg.scripts?.typecheck).toBe('string');
+    expect(typeof pkg.scripts?.test).toBe('string');
+  });
 });
