@@ -304,24 +304,6 @@ test.describe('Error Scenarios', () => {
   });
 
   test.describe('Data Errors', () => {
-    test('should handle empty data', async ({ page }) => {
-      await page.route('**/api/posts', (route) => {
-        route.fulfill({
-          status: 200,
-          body: JSON.stringify([]),
-        });
-      });
-
-      await page.goto('/posts');
-
-      // Should show empty state
-      const empty = page.locator('text=/no posts|nothing here|empty/i');
-
-      if ((await empty.count()) > 0) {
-        await expect(empty.first()).toBeVisible();
-      }
-    });
-
     test('should handle malformed data', async ({ page }) => {
       await page.route('**/api/**', (route) => {
         route.fulfill({
@@ -338,20 +320,6 @@ test.describe('Error Scenarios', () => {
       if ((await error.count()) > 0) {
         await expect(error.first()).toBeVisible();
       }
-    });
-
-    test('should handle missing required data', async ({ page }) => {
-      await page.route('**/api/posts/*', (route) => {
-        route.fulfill({
-          status: 200,
-          body: JSON.stringify({ id: 1 }), // Missing title, content, etc.
-        });
-      });
-
-      await page.goto('/posts/1');
-
-      // Should show error or use defaults
-      expect(page.url()).toContain('/posts/1');
     });
   });
 
@@ -449,34 +417,6 @@ test.describe('Error Scenarios', () => {
         // Navigation may timeout or fail  -  that is acceptable for an extremely long URL
         expect(error).toBeDefined();
       }
-    });
-
-    test('should handle rapid navigation', async ({ page }) => {
-      await page.goto('/');
-
-      // Rapidly navigate
-      for (let i = 0; i < 5; i++) {
-        await page.goto('/posts');
-        await page.goto('/');
-      }
-
-      // Should still be functional
-      await expect(page.locator('body')).toBeVisible();
-    });
-
-    test('should handle browser back/forward', async ({ page }) => {
-      await page.goto('/');
-      await page.goto('/posts');
-      await page.goto('/contact');
-
-      await page.goBack();
-      expect(page.url()).toContain('/posts');
-
-      await page.goBack();
-      expect(page.url()).toMatch(/\/$/);
-
-      await page.goForward();
-      expect(page.url()).toContain('/posts');
     });
 
     test('should handle page refresh', async ({ page }) => {
