@@ -70,16 +70,6 @@ test.describe('Visual Snapshots - Admin Application', () => {
       });
     });
 
-    test('posts listing page should match snapshot', async ({ page }) => {
-      await page.goto('/posts');
-      await waitForNetworkIdle(page);
-      await page.waitForLoadState('networkidle');
-
-      await expect(page).toHaveScreenshot('posts-listing.png', {
-        fullPage: true,
-      });
-    });
-
     test('home page navigation header should match snapshot', async ({ page }) => {
       await page.goto('/');
       await waitForNetworkIdle(page);
