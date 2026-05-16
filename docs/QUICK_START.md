@@ -170,7 +170,7 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 ## Next Steps
 
 - [Full documentation](./INDEX.md)
-- [Component catalog](./COMPONENT_CATALOG.md)  -  58 native UI components
+- [Component catalog](./COMPONENT_CATALOG.md)  -  59 native UI components
 - [Example projects](./EXAMPLES.md)  -  blog, subscription starter, storefront
 - [Deployment guide](./CI_CD_GUIDE.md)  -  Vercel, environment variables, production checklist
 - [AI agents](./AI.md)  -  agent orchestration, open-model inference, MCP framework (Pro)

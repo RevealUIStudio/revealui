@@ -9,7 +9,7 @@ audience: developer
 
 **Last Updated:** 2026-05-02
 **Packages:** `@revealui/presentation`, `@revealui/core`
-**Total Components:** 79 across both packages — **58 in `@revealui/presentation`** (the standalone UI library) plus 21 admin / richtext components in `@revealui/core`.
+**Total Components:** 80 across both packages — **59 in `@revealui/presentation`** (the standalone UI library) plus 21 admin / richtext components in `@revealui/core`.
 
 ---
 
@@ -1541,7 +1541,7 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 
 ## Component Summary by Package
 
-### @revealui/presentation (58 components)
+### @revealui/presentation (59 components)
 - 6 Primitives (Box, Flex, Grid, Text, Heading, Slot)
 - 14 Form Controls (Button, LinkButton, Input, Textarea, Select, Checkbox, Radio, etc.)
 - 8 Data Display (Card, Table, Avatar, Badge, etc.)
@@ -1569,4 +1569,4 @@ Components like Dialog, Combobox, and Listbox use native RevealUI hooks for buil
 ---
 
 **Last Updated:** 2026-05-02
-**Packages:** `@revealui/presentation` (58 components), `@revealui/core` (21 components)
+**Packages:** `@revealui/presentation` (59 components), `@revealui/core` (21 components)
