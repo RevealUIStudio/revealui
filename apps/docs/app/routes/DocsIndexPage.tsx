@@ -65,6 +65,14 @@ See the [Quick Start guide](/quick-start) for the full walkthrough, or browse th
 
 ---
 
+## Ready to ship?
+
+RevealUI ships as code you run — and as a hosted product you can sign up for in minutes.
+
+[**Start free**](https://admin.revealui.com/signup) · [See pricing](https://revealui.com/pricing)
+
+---
+
 ## Contributing
 
 Found an issue or want to improve the docs? See our [Contributing Guide](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md).
