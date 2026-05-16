@@ -1,5 +1,18 @@
 # @revealui/setup
 
+## 0.4.0
+
+### Minor Changes
+
+- 12ef757: Bootstrap first user as `owner` role; rename admin roles to `super-admin` and `admin`.
+
+  The first user created via the setup bootstrap now receives the `owner` role (hard-capped at 3 via app-layer soft cap). Existing `admin`-role checks should be reviewed — the former flat `admin` tier has been split into `super-admin` (full access) and `admin` (scoped).
+
+### Patch Changes
+
+- Updated dependencies [37952d2]
+  - @revealui/config@0.4.1
+
 ## 0.3.6
 
 ### Patch Changes

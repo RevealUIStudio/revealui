@@ -3,7 +3,7 @@
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "info": {
     "title": "RevealUI Contracts (Types Mirror)",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "OpenAPI 3.1 mirror of `@revealui/contracts` Zod schemas, emitted by `@revealui/openapi`'s `scripts/emit-from-mcp.ts` from the MCP contracts catalog. Drives cross-language codegen (Go via `oapi-codegen`, Rust via `progenitor`) so per-language consumers replace hand-mirrors with generated types from a single source of truth. See `docs/decisions/2026-05-03-contracts-protocol-pyramid.md` §Phase 3 in the revealui-jv repo.",
     "license": {
       "name": "MIT",
