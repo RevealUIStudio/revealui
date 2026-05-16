@@ -53,7 +53,7 @@
 
 ### Minor Changes
 
-- 0e459ca: **`@revealui/presentation`** — expose 4 Catalyst-style components from the main barrel:
+- 0e459ca: **`@revealui/presentation`** — expose 4 typography + table components from the main barrel:
 
   - `Heading`, `Subheading` (from `./components/heading`)
   - `Link` (from `./components/link`)
