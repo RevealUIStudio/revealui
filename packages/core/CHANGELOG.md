@@ -34,7 +34,7 @@
   No behavior changes.
 
 - f6ba434: Add tiered license fail-mode with grace periods. New `getLicenseStatus()` returns `LicenseCheckResult` with mode (active/grace/read-only/expired/invalid/missing), grace remaining, and read-only flag. Configurable grace windows: 3-day subscription, 30-day perpetual, 7-day infra-unreachable. Add iss/aud claims to license JWTs for cross-environment replay prevention. Remove ES256 from allowed JWT algorithms (only RS256 is issued).
-- 0e459ca: **`@revealui/presentation`** — expose 4 Catalyst-style components from the main barrel:
+- 0e459ca: **`@revealui/presentation`** — expose 4 typography + table components from the main barrel:
 
   - `Heading`, `Subheading` (from `./components/heading`)
   - `Link` (from `./components/link`)
