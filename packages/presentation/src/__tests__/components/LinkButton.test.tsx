@@ -45,7 +45,8 @@ describe('LinkButton', () => {
           Large
         </LinkButton>,
       );
-      expect(screen.getByRole('link')).toHaveClass('h-11');
+      // lg: h-12 (kept in lockstep with Button's design-system size contract)
+      expect(screen.getByRole('link')).toHaveClass('h-12');
     });
 
     it('applies variant class', () => {

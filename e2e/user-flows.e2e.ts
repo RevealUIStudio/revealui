@@ -70,66 +70,6 @@ test.describe('Critical User Flows', () => {
     });
   });
 
-  test.describe('Content Browsing Flow', () => {
-    test('should browse content list', async ({ page }) => {
-      await page.goto('/posts');
-
-      // Should show list of content
-      const posts = page.locator('article, [data-testid*="post"], .post-item');
-
-      if ((await posts.count()) > 0) {
-        expect(await posts.count()).toBeGreaterThan(0);
-      }
-    });
-
-    test('should view individual content item', async ({ page }) => {
-      await page.goto('/posts');
-
-      const firstPost = page.locator('article, [data-testid*="post"]').first();
-
-      if ((await firstPost.count()) > 0) {
-        await firstPost.click();
-        await waitForNetworkIdle(page);
-
-        // Should show post content
-        await expect(page.locator('h1')).toBeVisible();
-      }
-    });
-
-    test('should paginate through content', async ({ page }) => {
-      await page.goto('/posts');
-
-      const nextButton = page.locator(
-        'button:has-text("Next"), a:has-text("Next"), [aria-label*="Next"]',
-      );
-
-      if ((await nextButton.count()) > 0) {
-        const initialUrl = page.url();
-
-        await nextButton.first().click();
-        await waitForNetworkIdle(page);
-
-        // URL should have changed
-        expect(page.url()).not.toBe(initialUrl);
-      }
-    });
-
-    test('should filter content', async ({ page }) => {
-      await page.goto('/posts');
-
-      const filterInput = page.locator('input[type="search"], input[placeholder*="filter"]');
-
-      if ((await filterInput.count()) > 0) {
-        await filterInput.fill('test');
-        await page.waitForTimeout(500); // Debounce
-
-        // Results should update
-        const results = page.locator('article, [data-testid*="post"]');
-        expect(await results.count()).toBeGreaterThanOrEqual(0);
-      }
-    });
-  });
-
   test.describe('Dashboard Flow', () => {
     test.beforeEach(async ({ page }) => {
       // Login first

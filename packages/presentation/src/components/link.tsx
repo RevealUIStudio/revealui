@@ -5,9 +5,6 @@
  * For framework-specific implementations:
  * - Next.js: Use Next.js Link component (see apps/admin/src/lib/components/Link)
  * - Other frameworks: Wrap this component with your framework's Link
- *
- * See Catalyst documentation for framework-specific examples:
- * https://catalyst.tailwindui.com/docs#client-side-router-integration
  */
 
 import type React from 'react';

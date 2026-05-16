@@ -1,6 +1,6 @@
 # @revealui/presentation
 
-57 native UI components for RevealUI  -  built with React 19, Tailwind CSS v4, and CVA. Zero external UI library dependencies (only clsx + class-variance-authority).
+57 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. Zero external UI library dependencies.
 
 ## Features
 
