@@ -107,6 +107,11 @@ if (pgliteAvailable) {
   const { PGlite } = await import('@electric-sql/pglite');
   const { PGliteCacheStore } = await import('../adapters/pglite.js');
 
+  // Timeout bumped from the 5s vitest default to 30s: each test does
+  // `new PGlite()`, an in-memory Postgres cold-start that takes 2-4s in
+  // isolation but pushes past 5s under parallel-load pre-push gate runs on
+  // RAM-constrained hosts. 30s gives plenty of headroom without masking
+  // real regressions (tests still complete in <5s when nothing else competes).
   describe('PGliteCacheStore  -  closeOnDestroy:true', () => {
     it('calls db.close() when closeOnDestroy is true', async () => {
       const db = new PGlite();
@@ -116,7 +121,7 @@ if (pgliteAvailable) {
       await store.close();
 
       expect(closeSpy).toHaveBeenCalledOnce();
-    });
+    }, 30_000);
 
     it('does not call db.close() when closeOnDestroy is false', async () => {
       const db = new PGlite();
@@ -127,7 +132,7 @@ if (pgliteAvailable) {
 
       expect(closeSpy).not.toHaveBeenCalled();
       await db.close();
-    });
+    }, 30_000);
   });
 
   describe('PGliteCacheStore  -  delete with zero keys', () => {
@@ -146,7 +151,7 @@ if (pgliteAvailable) {
       expect(querySpy).not.toHaveBeenCalled();
 
       await store.close();
-    });
+    }, 30_000);
   });
 } else {
   describe.skip('PGliteCacheStore supplemental (skipped  -  @electric-sql/pglite not available)', () => {
