@@ -77,16 +77,27 @@ export function Hero() {
           </p>
 
           <h1 className="text-5xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl">
-            <span className="block">Stop building the backend.</span>
-            <span className="block">Ship the AI business.</span>
+            The open runtime for AI-native businesses.
           </h1>
 
           <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Auth, billing, content, and agents &mdash; wired, audited, yours. From{' '}
+            <strong className="text-gray-900">Yours to install. Ours to build for you.</strong>{' '}
+            Auth, content, products, payments, and intelligence &mdash; five primitives, one policy
+            plane, one hash-chained audit log. For founders shipping AI products who need audit
+            trails and unified governance from day one &mdash; whether you build with{' '}
             <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-base text-gray-900">
               npx create-revealui
             </code>{' '}
-            to a deployed product in a weekend.
+            or hire{' '}
+            <a
+              href="https://revealuistudio.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-emerald-700 hover:underline"
+            >
+              RevealUI Studio
+            </a>{' '}
+            to build it for you.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -125,6 +136,18 @@ export function Hero() {
             </ButtonCVA>
           </div>
 
+          <p className="mt-6 text-sm text-gray-600">
+            Want it built for you?{' '}
+            <a
+              href="https://revealuistudio.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-emerald-700 hover:underline"
+            >
+              RevealUI Studio builds AI businesses on RevealUI &rarr;
+            </a>
+          </p>
+
           <div className="mt-10 inline-flex items-center gap-3 rounded-xl bg-gray-950 px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-white/10">
             <span className="select-none text-gray-400">$</span>
             <span className="text-emerald-400">npx</span>
@@ -162,7 +185,7 @@ export function Hero() {
                     'Verified every 5 minutes against the license server. Source at packages/core/src/license.ts.',
                 },
                 {
-                  metric: 'FSL-1.1-MIT on 5 Pro packages',
+                  metric: 'FSL-1.1-MIT on 5 Fair Source packages',
                   detail:
                     'Source-visible, non-compete. Auto-converts to MIT 2 years after each release.',
                 },
