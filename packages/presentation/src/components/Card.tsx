@@ -9,7 +9,9 @@ function Card({
   return (
     <div
       className={cn(
-        'rounded-lg border bg-card text-card-foreground shadow-sm hover:shadow-md',
+        // Bare `border` previously fell through to currentColor — visible bug.
+        // Lighter than field borders (cards sit one tier behind interactive fields).
+        'rounded-lg border border-zinc-200 dark:border-zinc-700 bg-card text-card-foreground shadow-sm hover:shadow-md',
         className,
       )}
       style={{

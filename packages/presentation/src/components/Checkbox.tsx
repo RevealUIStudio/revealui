@@ -74,7 +74,22 @@ function Checkbox({
         }}
         onChange={handleChange}
         className={cn(
-          'peer h-4 w-4 shrink-0 rounded border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground',
+          // Layout
+          'peer h-4 w-4 shrink-0 rounded-[var(--rvui-radius-sm,6px)] border',
+          // Default (neutral at rest — fixes prior brand-at-rest semantic bug where
+          // unchecked boxes read as "selected")
+          'border-zinc-300 dark:border-zinc-700',
+          // Hover affordance
+          'hover:border-zinc-400 dark:hover:border-zinc-600',
+          // Focus
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--tenant-brand,var(--ring))] focus-visible:ring-offset-2 ring-offset-background',
+          // Error state
+          'aria-invalid:border-red-500 aria-invalid:focus-visible:ring-red-500',
+          // Disabled state
+          'disabled:cursor-not-allowed disabled:opacity-50',
+          // Checked + indeterminate use tenant brand
+          'data-[state=checked]:bg-[var(--tenant-brand,var(--ring))] data-[state=checked]:border-[var(--tenant-brand,var(--ring))] data-[state=checked]:text-primary-foreground',
+          'data-[state=indeterminate]:bg-[var(--tenant-brand,var(--ring))] data-[state=indeterminate]:border-[var(--tenant-brand,var(--ring))]',
           className,
         )}
         data-state={

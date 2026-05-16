@@ -183,7 +183,7 @@ function SignupContent() {
                 Already have an account?{' '}
                 <Link
                   href="/login"
-                  className="text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                  className="text-[var(--tenant-brand,#2563eb)] underline hover:opacity-80"
                 >
                   Sign in
                 </Link>
@@ -260,13 +260,13 @@ function SignupContent() {
                 onChange={(e) => setTosAccepted(e.target.checked)}
                 disabled={anyLoading}
                 required
-                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-blue-600"
+                className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[var(--tenant-brand,#2563eb)] accent-[var(--tenant-brand,#2563eb)]"
               />
               <label htmlFor="tos" className="text-sm text-zinc-600 dark:text-zinc-400">
                 I agree to the{' '}
                 <Link
                   href="/legal/terms"
-                  className="text-blue-600 hover:underline dark:text-blue-400"
+                  className="text-[var(--tenant-brand,#2563eb)] hover:underline"
                   target="_blank"
                 >
                   Terms of Service
@@ -274,7 +274,7 @@ function SignupContent() {
                 and{' '}
                 <Link
                   href="/legal/privacy"
-                  className="text-blue-600 hover:underline dark:text-blue-400"
+                  className="text-[var(--tenant-brand,#2563eb)] hover:underline"
                   target="_blank"
                 >
                   Privacy Policy

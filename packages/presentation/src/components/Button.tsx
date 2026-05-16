@@ -27,7 +27,7 @@ const buttonVariants = cva(
         ghost: 'hover:bg-card hover:text-accent-foreground',
         link: 'text-primary items-start justify-start underline-offset-4 hover:underline',
         outline:
-          'border border-border bg-background hover:bg-card hover:text-accent-foreground shadow-sm',
+          'border border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 bg-background hover:bg-card hover:text-accent-foreground shadow-sm',
         primary: primaryButtonClasses,
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
       },

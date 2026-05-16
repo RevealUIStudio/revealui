@@ -226,7 +226,7 @@ Some numbers on what's actually shipped:
 
 - **31 workspaces** across the monorepo (5 apps + 26 packages)
 - **86 database tables** via Drizzle ORM
-- **58 UI components** in the presentation layer (zero external UI dependencies  -  just Tailwind v4, clsx, and CVA)
+- **59 UI components** in the presentation layer (zero external UI dependencies  -  just Tailwind v4, clsx, and CVA)
 - **Extensive test coverage** across unit, integration, and E2E layers
 - **Full OpenAPI spec** with Swagger UI at `/docs`
 - **Session auth** with bcrypt, rate limiting, brute force protection, and OAuth
