@@ -45,7 +45,7 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 - **bcryptjs** v2.4.3 - Password hashing library
 - **react** v19.0.0 - A JavaScript library for building user interfaces
 - **react-dom** v19.0.0 - React package for working with the DOM
-- **tailwind-merge** v2.5.4 - Merge Tailwind CSS classes without style conflicts
+- **tailwind-merge** v3.3.1 - Merge Tailwind CSS classes without style conflicts (used by @revealui/presentation cn() to resolve Tailwind utility conflicts)
 - **tailwindcss** v4.1.14 - A utility-first CSS framework
 - **typescript** v5.7.3 - TypeScript is a language for application scale JavaScript development
 - **revealui** v1.0.0 - Like Next.js / Nuxt but as do-one-thing-do-it-well Vite plugin

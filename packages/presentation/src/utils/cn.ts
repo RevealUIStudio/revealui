@@ -1,7 +1,11 @@
+import { twMerge } from 'tailwind-merge';
+
 /**
  * Utility function for conditionally joining classNames together.
  * Drop-in replacement for clsx  -  supports strings, numbers, booleans,
- * objects, and arbitrarily nested arrays.
+ * objects, and arbitrarily nested arrays. Output is run through
+ * tailwind-merge so conflicting Tailwind utilities resolve deterministically
+ * (last-wins per utility category).
  */
 type ClassValue =
   | string
@@ -35,7 +39,7 @@ export function cn(...inputs: ClassValue[]): string {
     }
   }
 
-  return classes.join(' ').trim();
+  return twMerge(classes.join(' ').trim());
 }
 
 /**
