@@ -1647,6 +1647,32 @@ app.openapi(stripeWebhookRoute, async (c) => {
         break;
       }
 
+      case 'customer.updated': {
+        const updatedCustomer = event.data.object as Stripe.Customer;
+        const updatedCustomerId = updatedCustomer.id;
+        const newEmail = updatedCustomer.email;
+
+        if (!newEmail) {
+          logger.info('customer.updated: no email on customer object, skipping users.email sync', {
+            customerId: updatedCustomerId,
+          });
+          break;
+        }
+
+        await db
+          .update(users)
+          .set({ email: newEmail, updatedAt: new Date() })
+          .where(eq(users.stripeCustomerId, updatedCustomerId));
+
+        logger.info('customer.updated: synced users.email from Stripe', {
+          customerId: updatedCustomerId,
+        });
+        auditLicenseEvent(db, 'customer.email.synced', 'info', {
+          customerId: updatedCustomerId,
+        });
+        break;
+      }
+
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = resolveCustomerId(subscription.customer);
