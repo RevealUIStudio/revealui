@@ -50,6 +50,21 @@ async function seed(): Promise<void> {
 
   for (const post of posts) {
     try {
+      // Idempotency: skip if a post with this slug already exists. Lets
+      // users re-run `pnpm db:seed` after a failed first attempt without
+      // duplicating rows or tripping UNIQUE constraints.
+      const existing = await fetch(
+        `${API_URL}/api/posts?where[slug][equals]=${encodeURIComponent(post.slug)}`,
+      );
+      if (existing.ok) {
+        const json = (await existing.json()) as { docs?: unknown[] } | unknown[];
+        const docs = Array.isArray(json) ? json : (json.docs ?? []);
+        if (docs.length > 0) {
+          log(`  Exists (skipped): ${post.title}`);
+          continue;
+        }
+      }
+
       const res = await fetch(`${API_URL}/api/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,6 +73,9 @@ async function seed(): Promise<void> {
 
       if (res.ok) {
         log(`  Created: ${post.title}`);
+      } else if (res.status === 409) {
+        // Defensive: API returned a conflict (e.g. concurrent seed run).
+        log(`  Exists (409 conflict): ${post.title}`);
       } else {
         const error = await res.text();
         logErr(`  Failed to create "${post.title}": ${error}`);

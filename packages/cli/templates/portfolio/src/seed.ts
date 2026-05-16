@@ -50,6 +50,21 @@ async function seed(): Promise<void> {
 
   for (const project of projects) {
     try {
+      // Idempotency: skip if a project with this slug already exists. Lets
+      // users re-run `pnpm db:seed` after a failed first attempt without
+      // duplicating rows or tripping UNIQUE constraints.
+      const existing = await fetch(
+        `${API_URL}/api/projects?where[slug][equals]=${encodeURIComponent(project.slug)}`,
+      );
+      if (existing.ok) {
+        const json = (await existing.json()) as { docs?: unknown[] } | unknown[];
+        const docs = Array.isArray(json) ? json : (json.docs ?? []);
+        if (docs.length > 0) {
+          log(`  Exists (skipped): ${project.title}`);
+          continue;
+        }
+      }
+
       const res = await fetch(`${API_URL}/api/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,6 +73,8 @@ async function seed(): Promise<void> {
 
       if (res.ok) {
         log(`  Created: ${project.title}`);
+      } else if (res.status === 409) {
+        log(`  Exists (409 conflict): ${project.title}`);
       } else {
         const error = await res.text();
         logErr(`  Failed to create "${project.title}": ${error}`);
