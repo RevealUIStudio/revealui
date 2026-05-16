@@ -19,5 +19,12 @@
     "limit": "400 KB",
     "webpack": false,
     "gzip": true
+  },
+  {
+    "name": "@revealui/presentation - Total Bundle",
+    "path": "packages/presentation/dist/**/*.js",
+    "limit": "100 KB",
+    "webpack": false,
+    "gzip": true
   }
 ]

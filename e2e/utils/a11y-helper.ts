@@ -2,7 +2,7 @@
  * Accessibility Testing Helper
  *
  * Reusable aXe-core integration for Playwright E2E tests.
- * Runs WCAG 2.1 AA compliance checks with structured violation reporting.
+ * Runs WCAG 2.2 AA compliance checks with structured violation reporting.
  */
 
 import AxeBuilder from '@axe-core/playwright';
@@ -16,7 +16,7 @@ export interface A11yCheckOptions {
   excludeSelectors?: string[];
   /** CSS selectors to include (scopes the scan; default: entire page) */
   includeSelectors?: string[];
-  /** WCAG tags to test against (default: WCAG 2.1 AA) */
+  /** WCAG tags to test against (default: WCAG 2.2 AA) */
   tags?: string[];
 }
 
@@ -37,7 +37,7 @@ export interface FormattedViolation {
   }>;
 }
 
-const DEFAULT_WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
+const DEFAULT_WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'];
 
 /**
  * Build an AxeBuilder instance with the given options.
@@ -103,7 +103,7 @@ function buildViolationReport(formatted: FormattedViolation[]): string {
  * Run aXe accessibility checks on a page and assert zero violations.
  *
  * This is the primary function for use in tests. It fails the test with
- * a detailed violation report if any WCAG 2.1 AA issues are found.
+ * a detailed violation report if any WCAG 2.2 AA issues are found.
  *
  * @example
  * ```ts
