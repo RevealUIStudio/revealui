@@ -1,5 +1,14 @@
 # @revealui/cli
 
+## 0.7.1
+
+### Patch Changes
+
+- Updated dependencies [37952d2]
+- Updated dependencies [12ef757]
+  - @revealui/config@0.4.1
+  - @revealui/setup@0.4.0
+
 ## 0.7.0
 
 ### Minor Changes

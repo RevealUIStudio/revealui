@@ -1,5 +1,82 @@
 # @revealui/core
 
+## 0.7.0
+
+### Minor Changes
+
+- b0bab95: Fix read-after-write failure in `create()` against pooled PostgreSQL adapters.
+
+  The `create()` operation INSERTs a document, then reads it back via `findByID()` to return the stored shape (with defaults, computed columns, and JSON deserialization applied). Previously, these two queries ran on separate pool checkouts — under the `pg` library each `db.query()` call acquires a fresh client from the pool. Depending on snapshot-acquisition timing, the read-back could execute on a connection whose snapshot predated the INSERT's commit, returning `null` and throwing _"Failed to retrieve created document with id rvl_xxx. Document not found in database."_ even though the row was present.
+
+  The root cause was a comment assuming SQLite same-connection WAL visibility applied to pooled PostgreSQL — it does not. Each pool checkout is independent under autocommit.
+
+  **Fix:**
+
+  - Added optional `transaction<T>(fn)` method to `QueryableDatabaseAdapter` and `DatabaseAdapter` types. Adapters that support it hold a single connection across the callback, wrapping the work in `BEGIN`/`COMMIT` (or `ROLLBACK` on throw).
+  - Implemented `transaction` in `universalPostgresAdapter` for all providers (Neon, Supabase session + transaction pooling, Electric/PGlite, generic PostgreSQL).
+  - `create()` now uses `db.transaction()` when available to run INSERT + `findByID()` on the same connection + snapshot. Adapters without a `transaction` method fall back to the previous sequential-query path for backward compatibility with test mocks.
+
+  Closes revealui#383.
+
+- af12683: Add x402 observability counters + helpers to the core metrics module:
+
+  - `appMetrics.x402PaymentRequiredTotal` — counter, labels `{route, currency}`
+  - `appMetrics.x402PaymentVerifyTotal` — counter, labels `{route, scheme, result}`
+  - `appMetrics.x402PaymentVerifyDuration` — histogram, label `{scheme}`
+  - `appMetrics.x402SafeguardRejectionTotal` — counter, label `{reason}`
+
+  New helper functions for emission at call sites:
+
+  - `trackX402PaymentRequired(route, currency)`
+  - `trackX402PaymentVerify(route, scheme, result, durationMs)`
+  - `trackX402SafeguardRejection(reason)` + exported `X402SafeguardRejectionReason` type
+
+  New subpath export: `@revealui/core/observability/metrics` (mirrors the
+  existing logger subpath). All existing metric helpers continue to work
+  through the parent `@revealui/core/observability` export.
+
+  Counters surface automatically through the existing `/api/metrics`
+  Prometheus endpoint (gated on `METRICS_SECRET`) and `/api/metrics/json`
+  endpoint. No new exposure surface needed.
+
+  Part of GAP-149 PR 5 — wires the metrics into the x402 verify dispatch
+
+  - all five 402-emission call sites in apps/api.
+
+### Patch Changes
+
+- 3ff25bb: Fix the instance-level `create()` method to honor `options.overrideAccess`.
+
+  The low-level `collections/operations/create.ts` already short-circuits its `access.create` check when `overrideAccess: true` is passed, but the instance-level `instance/methods/create.ts` did not — so bootstrap, migrations, and other trusted internal callers would hit _"Access denied: you do not have permission to create in this collection"_ at the instance level _before_ ever reaching the low-level guard. Paired with #382 (which fixed the low-level overrideAccess propagation) and #384 (which fixed the read-after-write transaction wrap), this completes the chain that lets the bootstrap flow create the first admin user against a fresh database.
+
+  Change is a one-line condition in `instance/methods/create.ts`: the access check now only fires when `!options.overrideAccess`. Mirrors the pattern in `collections/operations/create.ts:31`.
+
+  Complementary change in the low-level `collections/operations/create.ts`: the post-INSERT `findByID` read-back now passes `overrideAccess: true`. Without this, the just-created doc would immediately face a second access-control check that had no `req` context (bootstrap has no authenticated user) and would therefore deny.
+
+  Regression tests added in `instance/methods/__tests__/create.test.ts` verify both directions — access denied when `overrideAccess` is unset, check skipped when `overrideAccess: true`. The low-level `collections/operations/__tests__/create.test.ts` assertions on the `findByID` call signature were updated to include the new `overrideAccess: true` parameter.
+
+- Updated dependencies [54557b7]
+- Updated dependencies [6afae69]
+- Updated dependencies [f7ea9b4]
+- Updated dependencies [ad6aa4c]
+- Updated dependencies [0eb3131]
+- Updated dependencies [25dba49]
+- Updated dependencies [9a6ebb3]
+- Updated dependencies [47c75fe]
+- Updated dependencies [a8ca087]
+- Updated dependencies [1f7ae24]
+- Updated dependencies [f56d3d3]
+- Updated dependencies [f8199c8]
+- Updated dependencies [37952d2]
+- Updated dependencies [dbf405a]
+- Updated dependencies [3d09425]
+- Updated dependencies [2eb63dc]
+- Updated dependencies [5479d59]
+  - @revealui/contracts@0.5.0
+  - @revealui/utils@0.3.5
+  - @revealui/security@0.3.1
+  - @revealui/cache@0.1.5
+
 ## 0.6.0
 
 ### Minor Changes
