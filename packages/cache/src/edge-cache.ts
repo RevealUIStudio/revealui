@@ -1,18 +1,51 @@
 /**
  * Edge Caching and ISR (Incremental Static Regeneration)
  *
- * Utilities for Next.js edge caching, ISR, and on-demand revalidation
+ * Framework-agnostic helpers for edge caching, ISR-style revalidation, edge
+ * rate limiting, geolocation, A/B testing, personalization, and CDN cache
+ * headers. Works in any runtime that exposes Web-standard `Request` /
+ * `Response` — NextRequest/NextResponse pass via structural typing, Hono's
+ * `c.req.raw` / `c.res` pass directly, Cloudflare Workers Request/Response
+ * pass directly, etc. The package no longer carries a `next` peer dep.
  */
 
 import { getClientIp } from '@revealui/security';
-import type { NextRequest, NextResponse } from 'next/server';
 import { getCacheLogger } from './logger.js';
 
 /**
- * Next.js extends the standard RequestInit with a `next` property
- * for ISR revalidation and cache tags.
+ * Framework-agnostic request shape for edge-cache helpers — compatible with
+ * NextRequest, Hono `c.req.raw`, Cloudflare Workers Request, and any other
+ * Web-standard `Request` subclass that exposes a NextRequest-style `cookies`
+ * map. Narrowed to the read-only subset we actually consume.
+ *
+ * Consumers using a bare Web `Request` (no `cookies` field — e.g., plain
+ * `fetch` requests) must wrap it before calling helpers that read cookies
+ * (`getABTestVariant`, `getPersonalizationConfig`). Helpers that only read
+ * headers (`getGeoLocation`, `EdgeRateLimiter.check` with default key) work
+ * with bare `Request` directly via subtype compatibility.
  */
-interface NextFetchRequestInit extends RequestInit {
+export interface CacheRequest extends Request {
+  readonly cookies: {
+    get(name: string): { readonly value: string } | undefined;
+  };
+}
+
+/**
+ * Framework-agnostic response shape for edge-cache helpers — compatible with
+ * NextResponse, Hono `c.res`, Cloudflare Workers Response, and any other
+ * Web-standard `Response` subclass. Helpers in this file only consume the
+ * standard `headers.set()` surface.
+ */
+export type CacheResponse = Response;
+
+/**
+ * Framework-agnostic ISR-style fetch options. Extends Web-standard
+ * `RequestInit` with a `next` property that mirrors Next.js's ISR
+ * revalidation + cache-tag shape. Runtimes that don't honor the `next`
+ * field (anything outside Next.js) ignore it silently — the helper still
+ * works as a plain `fetch` wrapper.
+ */
+interface CachedFetchRequestInit extends RequestInit {
   next?: {
     revalidate?: number | false;
     tags?: string[];
@@ -268,8 +301,8 @@ export interface EdgeCacheConfig {
  * Create edge cached fetch
  */
 export function createEdgeCachedFetch(config: EdgeCacheConfig = {}) {
-  return async <T>(url: string, options?: NextFetchRequestInit): Promise<T> => {
-    const fetchOptions: NextFetchRequestInit = {
+  return async <T>(url: string, options?: CachedFetchRequestInit): Promise<T> => {
+    const fetchOptions: CachedFetchRequestInit = {
       ...options,
       ...config,
       next: {
@@ -289,7 +322,9 @@ export function createEdgeCachedFetch(config: EdgeCacheConfig = {}) {
 }
 
 /**
- * Unstable cache wrapper (Next.js 14+)
+ * Memoizing cache wrapper for any async function. TTL-based eviction.
+ * Framework-agnostic — does NOT use Next.js's `unstable_cache`; this is
+ * a plain in-memory wrapper that works in any runtime.
  */
 export function createCachedFunction<TArgs extends unknown[], TReturn>(
   fn: (...args: TArgs) => Promise<TReturn>,
@@ -327,7 +362,7 @@ export function createCachedFunction<TArgs extends unknown[], TReturn>(
 export interface EdgeRateLimitConfig {
   limit: number;
   window: number;
-  key?: (request: NextRequest) => string;
+  key?: (request: CacheRequest) => string;
 }
 
 export class EdgeRateLimiter {
@@ -338,7 +373,7 @@ export class EdgeRateLimiter {
   /**
    * Check rate limit
    */
-  check(request: NextRequest): {
+  check(request: CacheRequest): {
     allowed: boolean;
     limit: number;
     remaining: number;
@@ -396,7 +431,7 @@ export interface GeoLocation {
   longitude?: number;
 }
 
-export function getGeoLocation(request: NextRequest): GeoLocation | null {
+export function getGeoLocation(request: CacheRequest): GeoLocation | null {
   // Vercel edge headers
   const country = request.headers.get('x-vercel-ip-country');
   const region = request.headers.get('x-vercel-ip-country-region');
@@ -429,7 +464,7 @@ export function getGeoLocation(request: NextRequest): GeoLocation | null {
  * Edge A/B testing with cache
  */
 export function getABTestVariant(
-  request: NextRequest,
+  request: CacheRequest,
   testName: string,
   variants: string[],
 ): string {
@@ -478,7 +513,7 @@ export interface PersonalizationConfig {
   variant?: string;
 }
 
-export function getPersonalizationConfig(request: NextRequest): PersonalizationConfig {
+export function getPersonalizationConfig(request: CacheRequest): PersonalizationConfig {
   const userAgent = request.headers.get('user-agent') || '';
   const device = getDeviceType(userAgent);
   const location = getGeoLocation(request);
@@ -505,14 +540,14 @@ function getDeviceType(userAgent: string): 'mobile' | 'tablet' | 'desktop' {
  * Edge cache headers helper
  */
 export function setEdgeCacheHeaders(
-  response: NextResponse,
+  response: CacheResponse,
   config: {
     maxAge?: number;
     sMaxAge?: number;
     staleWhileRevalidate?: number;
     tags?: string[];
   },
-): NextResponse {
+): CacheResponse {
   const cacheControl: string[] = [];
 
   if (config.maxAge !== undefined) {
@@ -542,14 +577,14 @@ export function setEdgeCacheHeaders(
  * Preload links for critical resources
  */
 export function addPreloadLinks(
-  response: NextResponse,
+  response: CacheResponse,
   resources: Array<{
     href: string;
     as: string;
     type?: string;
     crossorigin?: boolean;
   }>,
-): NextResponse {
+): CacheResponse {
   const links = resources.map((resource) => {
     const attrs = [`<${resource.href}>`, `rel="preload"`, `as="${resource.as}"`];
 
