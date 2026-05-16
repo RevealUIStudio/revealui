@@ -55,7 +55,11 @@ describe('LinkButton', () => {
           Outlined
         </LinkButton>,
       );
-      expect(screen.getByRole('link')).toHaveClass('border', 'border-border');
+      expect(screen.getByRole('link')).toHaveClass(
+        'border',
+        'border-zinc-300',
+        'dark:border-zinc-700',
+      );
     });
 
     it('merges consumer className with button classes', () => {

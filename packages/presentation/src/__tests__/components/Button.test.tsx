@@ -125,7 +125,7 @@ describe('Button', () => {
     it('applies "outline" variant', () => {
       render(<Button variant="outline">Outline</Button>);
       expect(screen.getByRole('button')).toHaveClass('border');
-      expect(screen.getByRole('button')).toHaveClass('border-border');
+      expect(screen.getByRole('button')).toHaveClass('border-zinc-300', 'dark:border-zinc-700');
     });
 
     it('applies "ghost" variant', () => {
