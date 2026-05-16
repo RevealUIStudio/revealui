@@ -7,8 +7,8 @@
  *   - stripe_get_customer: missing customer_id is rejected; valid customer_id passes.
  */
 
-import { z } from 'zod/v4';
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod/v4';
 import { validateToolArgs } from '../validate-tool-args.js';
 
 // ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-import { z } from 'zod/v4';
+import type { z } from 'zod/v4';
 
 export interface McpToolError {
   content: [{ type: 'text'; text: string }];
@@ -15,7 +15,7 @@ export function validateToolArgs<T>(
     return { ok: true, value: result.data };
   }
   const issues = result.error.issues
-    .map((i) => `${i.path.length > 0 ? i.path.join('.') + ': ' : ''}${i.message}`)
+    .map((i) => `${i.path.length > 0 ? `${i.path.join('.')}: ` : ''}${i.message}`)
     .join('; ');
   return {
     ok: false,
