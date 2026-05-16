@@ -21,7 +21,6 @@ e2e/
 ├── auth.e2e.ts                  # Authentication flows
 ├── user-flows.e2e.ts            # General user journeys
 ├── full-stack-flows.e2e.ts      # Browser → API → Database tests
-├── payment-flows.e2e.ts         # Stripe payment processing
 ├── visual-snapshots.e2e.ts      # Visual regression tests
 ├── error-scenarios.e2e.ts       # Error handling
 ├── global-setup.ts              # Test initialization
@@ -141,32 +140,6 @@ test('should create user in database when signing up', async ({ page }) => {
   await page.screenshot({ path: 'test-results/signup-success.png' })
 })
 ```
-
-### Payment Tests (`payment-flows.e2e.ts`)
-
-Complete Stripe payment integration tests:
-
-```bash
-# Run payment tests
-pnpm playwright test payment-flows.e2e.ts
-
-# Test scenarios:
-# - Checkout flow with Stripe Elements
-# - Successful payment processing
-# - Payment failures and errors
-# - Subscription management
-# - Refunds
-# - Webhook processing
-# - Saved payment methods
-```
-
-**Visual Output:**
-Each payment test generates screenshots at every step:
-- `01-add-to-cart.png`
-- `02-checkout-form-filled.png`
-- `03-stripe-payment-form.png`
-- `04-payment-details-filled.png`
-- `05-payment-success.png`
 
 ### Visual Snapshot Tests (`visual-snapshots.e2e.ts`)
 
