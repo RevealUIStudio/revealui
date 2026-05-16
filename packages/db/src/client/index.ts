@@ -85,16 +85,25 @@ export interface DatabaseConfig {
 // =============================================================================
 
 /**
- * Detects if a connection string targets localhost / 127.0.0.1.
- * Returns true only for local development / test connections.
- * These use node-postgres (pg Pool) because the Neon HTTP driver requires a Neon endpoint.
+ * Returns true when the connection string targets a Postgres endpoint we should
+ * reach with the standard `pg` (node-postgres) driver rather than the Neon HTTP
+ * driver. The Neon HTTP driver speaks a Neon-specific protocol and fails
+ * silently against vanilla Postgres (errors surface as empty `NeonDbError`).
+ *
+ * Default to `pg` for anything that isn't an explicit Neon endpoint. This makes
+ * self-hosted Fleet kits, RDS, Supabase Postgres, docker-compose stacks, and
+ * any other self-hosted Postgres work out of the box. Only `*.neon.tech`
+ * hosts (or `wss://` Neon WebSocket endpoints) route through the Neon driver.
  */
 function isLocalhostConnection(connectionString: string): boolean {
   try {
-    const host = new URL(connectionString).hostname;
-    return host === 'localhost' || host === '127.0.0.1';
+    const url = new URL(connectionString);
+    const host = url.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return true;
+    // Any non-Neon host should use pg — Neon HTTP driver requires a Neon endpoint.
+    return !host.endsWith('.neon.tech') && url.protocol !== 'wss:';
   } catch {
-    return connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+    return !connectionString.includes('.neon.tech') && !connectionString.startsWith('wss://');
   }
 }
 
