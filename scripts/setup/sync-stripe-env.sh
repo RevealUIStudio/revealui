@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # sync-stripe-env.sh — Push Stripe price IDs to RevVault + Vercel
 #
-# Reads .revealui/stripe-env.json (written by pnpm stripe:seed), merges the
-# price IDs into the RevVault stripe vault, and pushes any missing vars to
-# Vercel production.
+# Reads node_modules/.cache/revealui-stripe-env.json (written by pnpm
+# stripe:seed), merges the price IDs into the RevVault stripe vault, and
+# pushes any missing vars to Vercel production.
 #
 # Usage:
 #   pnpm stripe:sync-env                # RevVault + Vercel
@@ -12,7 +12,7 @@
 #   pnpm stripe:sync-env --dry-run      # Preview what would be synced
 #
 # Prerequisites:
-#   - .revealui/stripe-env.json exists (run pnpm stripe:seed first)
+#   - node_modules/.cache/revealui-stripe-env.json exists (run pnpm stripe:seed first)
 #   - revvault binary at ~/.local/bin/revvault
 #   - vercel CLI authenticated (for Vercel sync)
 #   - jq installed
@@ -20,7 +20,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
-CACHE_FILE="$ROOT_DIR/.revealui/stripe-env.json"
+# CACHE_FILE path MUST match scripts/setup/stripe-env-cache-path.ts.
+CACHE_FILE="$ROOT_DIR/node_modules/.cache/revealui-stripe-env.json"
 REVVAULT="$HOME/.local/bin/revvault"
 VAULT_PATH="revealui/env/stripe"
 
