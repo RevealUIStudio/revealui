@@ -127,7 +127,7 @@ vi.mock('../../middleware/task-quota.js', () => ({
   requireTaskQuota: mockRequireTaskQuota,
 }));
 
-vi.mock('@revealui/contracts', async (importOriginal) => {
+vi.mock('@revealui/contracts', async (importOriginal: <T>() => Promise<T>) => {
   const actual = await importOriginal<typeof import('@revealui/contracts')>();
   return {
     ...actual,

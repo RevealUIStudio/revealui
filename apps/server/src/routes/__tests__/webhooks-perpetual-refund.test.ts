@@ -199,8 +199,8 @@ vi.mock('drizzle-orm', () => ({
       join: vi.fn((...args: unknown[]) => args),
     },
   ),
-  inArray: vi.fn((_col, _vals) => `inArray`),
-  notInArray: vi.fn((_col, _vals) => `notInArray`),
+  inArray: vi.fn((_col: unknown, _vals: unknown) => `inArray`),
+  notInArray: vi.fn((_col: unknown, _vals: unknown) => `notInArray`),
   count: vi.fn(() => 'count()'),
   countDistinct: vi.fn((_col: unknown) => `countDistinct(${String(_col)})`),
 }));

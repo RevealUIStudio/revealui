@@ -30,8 +30,8 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
-  desc: vi.fn((_col) => `desc(${String(_col)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
+  desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
   sql: Object.assign((_strings: TemplateStringsArray, ..._values: unknown[]) => 'sql-expression', {
     raw: (_s: string) => 'sql-raw',
   }),

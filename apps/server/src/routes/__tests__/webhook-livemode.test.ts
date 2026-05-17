@@ -91,7 +91,7 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_c, _v) => `eq`),
+  eq: vi.fn((_c: unknown, _v: unknown) => `eq`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   desc: vi.fn(() => 'desc'),
   isNull: vi.fn(() => 'isNull'),
