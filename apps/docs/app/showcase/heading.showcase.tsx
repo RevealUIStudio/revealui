@@ -16,7 +16,7 @@ const story: ShowcaseStory = {
     children: { type: 'text', default: 'Page Title' },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <div>
       <Heading level={Number(props.level) as 1 | 2 | 3 | 4 | 5 | 6}>
         {props.children as string}
@@ -47,7 +47,8 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => `<Heading level={${props.level}}>${props.children}</Heading>`,
+  code: (props: Record<string, unknown>) =>
+    `<Heading level={${props.level}}>${props.children}</Heading>`,
 };
 
 export default story;

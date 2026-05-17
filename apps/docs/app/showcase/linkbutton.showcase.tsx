@@ -26,7 +26,7 @@ const story: ShowcaseStory = {
     children: { type: 'text', default: 'Book a call' },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <LinkButton
       href={props.href as string}
       external={props.external as boolean}
@@ -91,7 +91,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [`href="${props.href}"`];
     if (props.external) attrs.push('external');
     if (props.variant !== 'default') attrs.push(`variant="${props.variant}"`);

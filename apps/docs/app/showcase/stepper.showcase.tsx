@@ -23,7 +23,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const current = props.currentStep as number;
     const steps = [
       { label: 'Account', description: 'Create your account' },
@@ -58,7 +58,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<Stepper
   orientation="${props.orientation}"
   steps={[

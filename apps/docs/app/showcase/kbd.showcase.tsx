@@ -11,7 +11,7 @@ const story: ShowcaseStory = {
     separator: { type: 'text', default: '+' },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <KbdShortcut keys={['Ctrl', 'Shift', 'P']} separator={props.separator as string} />
   ),
 
@@ -48,7 +48,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<KbdShortcut keys={['Ctrl', 'Shift', 'P']}${props.separator !== '+' ? ` separator="${props.separator}"` : ''} />`,
 };
 

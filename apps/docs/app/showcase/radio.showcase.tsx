@@ -28,7 +28,7 @@ const story: ShowcaseStory = {
     disabled: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <RadioGroup defaultValue="option-1" disabled={props.disabled as boolean}>
       {['Option 1', 'Option 2', 'Option 3'].map((label, i) => (
         <RadioField key={label}>
@@ -89,7 +89,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<RadioGroup defaultValue="option-1"${props.disabled ? ' disabled' : ''}>
   <RadioField>
     <Radio color="${props.color}" value="option-1" />

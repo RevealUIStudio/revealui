@@ -11,7 +11,7 @@ const story: ShowcaseStory = {
     soft: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <div className="w-80 space-y-4">
       <p className="text-sm text-(--rvui-color-text)">Content above</p>
       <Divider soft={props.soft as boolean} />
@@ -34,7 +34,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => `<Divider${props.soft ? ' soft' : ''} />`,
+  code: (props: Record<string, unknown>) => `<Divider${props.soft ? ' soft' : ''} />`,
 };
 
 export default story;

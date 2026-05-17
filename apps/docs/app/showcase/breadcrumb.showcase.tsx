@@ -17,7 +17,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const depth = props.depth as number;
     const allItems = [
       { label: 'Home', href: '#' },
@@ -60,7 +60,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const depth = props.depth as number;
     const items = [
       '{ label: "Home", href: "/" }',

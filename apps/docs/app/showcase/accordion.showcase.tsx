@@ -19,7 +19,7 @@ const story: ShowcaseStory = {
     defaultOpen: { type: 'boolean', default: false },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const count = props.items as number;
     const defaultOpen = props.defaultOpen as boolean;
     const items = Array.from({ length: count }, (_, i) => ({
@@ -79,7 +79,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const open = props.defaultOpen ? ' defaultOpen' : '';
     return `<Accordion>
   <AccordionItem title="Section 1"${open}>

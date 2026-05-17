@@ -23,7 +23,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Dropdown>
       <DropdownButton as={Button}>Actions</DropdownButton>
       <DropdownMenu anchor={props.anchor as 'bottom' | 'top'}>
@@ -64,7 +64,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<Dropdown>
   <DropdownButton as={Button}>Actions</DropdownButton>
   <DropdownMenu anchor="${props.anchor}">

@@ -30,7 +30,7 @@ const story: ShowcaseStory = {
     striped: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Table
       bleed={props.bleed as boolean}
       dense={props.dense as boolean}
@@ -119,7 +119,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
     if (props.bleed) attrs.push('bleed');
     if (props.dense) attrs.push('dense');

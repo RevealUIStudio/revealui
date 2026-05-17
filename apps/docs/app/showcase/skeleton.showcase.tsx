@@ -23,7 +23,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const variant = props.variant as string;
 
     if (variant === 'text') {
@@ -69,7 +69,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     if (props.variant === 'text') return `<SkeletonText lines={${props.lines}} />`;
     if (props.variant === 'card') return `<SkeletonCard />`;
     return `<Skeleton className="h-4 w-full rounded" />`;

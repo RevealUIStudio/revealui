@@ -25,7 +25,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <div className="flex items-center justify-center py-12">
       <Tooltip
         content={props.content as string}
@@ -69,7 +69,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [`content="${props.content}"`];
     if (props.side !== 'top') attrs.push(`side="${props.side}"`);
     if (props.delay !== 200) attrs.push(`delay={${props.delay}}`);

@@ -15,7 +15,7 @@ const story: ShowcaseStory = {
     disabled: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <div className="w-72">
       <Slider
         defaultValue={50}
@@ -48,7 +48,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = ['defaultValue={50}'];
     if (props.min !== 0) attrs.push(`min={${props.min}}`);
     if (props.max !== 100) attrs.push(`max={${props.max}}`);

@@ -21,7 +21,7 @@ const story: ShowcaseStory = {
     showIcon: { type: 'boolean', default: true },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <EmptyState
       icon={props.showIcon ? <IconSearch size="lg" /> : undefined}
       title={props.title as string}
@@ -68,7 +68,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
     if (props.showIcon) attrs.push('icon={<IconSearch size="lg" />}');
     attrs.push(`title="${props.title}"`);

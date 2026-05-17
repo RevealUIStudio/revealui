@@ -18,7 +18,7 @@ const story: ShowcaseStory = {
     children: { type: 'text', default: 'This is important information you should know about.' },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Callout variant={props.variant as 'info'} title={props.title as string}>
       {props.children as string}
     </Callout>
@@ -59,7 +59,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
     if (props.variant !== 'info') attrs.push(`variant="${props.variant}"`);
     if (props.title) attrs.push(`title="${props.title}"`);
