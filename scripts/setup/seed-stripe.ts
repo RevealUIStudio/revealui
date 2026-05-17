@@ -705,7 +705,7 @@ async function setupWebhookEndpoint(
   const endpoint = await stripe.webhookEndpoints.create({
     url,
     enabled_events: WEBHOOK_EVENTS,
-    api_version: '2026-01-28.clover',
+    api_version: StripeConstructor.API_VERSION,
   });
 
   log.success(`Created webhook endpoint: ${endpoint.id}`);
