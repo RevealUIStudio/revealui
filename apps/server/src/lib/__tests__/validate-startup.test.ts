@@ -702,7 +702,7 @@ describe('validateStartup — RVUI activation gate + GAP-159 warning', () => {
       }),
     );
 
-    const messages = warnSpy.mock.calls.map((c) => String(c[0] ?? ''));
+    const messages = warnSpy.mock.calls.map((c: unknown[]) => String(c[0] ?? ''));
     const rvuiBanner = messages.find((m) => m.includes('RVUI PAYMENTS'));
     expect(rvuiBanner).toBeDefined();
     expect(rvuiBanner).toMatch(/experimental/i);
@@ -716,7 +716,7 @@ describe('validateStartup — RVUI activation gate + GAP-159 warning', () => {
     const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     validateStartup(validTestProdEnv());
 
-    const messages = warnSpy.mock.calls.map((c) => String(c[0] ?? ''));
+    const messages = warnSpy.mock.calls.map((c: unknown[]) => String(c[0] ?? ''));
     expect(messages.some((m) => m.includes('RVUI PAYMENTS'))).toBe(false);
   });
 
@@ -729,7 +729,7 @@ describe('validateStartup — RVUI activation gate + GAP-159 warning', () => {
       }),
     );
 
-    const messages = warnSpy.mock.calls.map((c) => String(c[0] ?? ''));
+    const messages = warnSpy.mock.calls.map((c: unknown[]) => String(c[0] ?? ''));
     expect(messages.some((m) => m.includes('STRIPE TEST MODE'))).toBe(true);
     expect(messages.some((m) => m.includes('RVUI PAYMENTS'))).toBe(true);
   });
