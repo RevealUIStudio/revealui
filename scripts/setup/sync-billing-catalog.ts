@@ -18,8 +18,9 @@ interface CatalogSeed {
   source: 'env' | 'local-cache';
 }
 
+import { LOCAL_STRIPE_ENV_CACHE_PATH as localStripeEnvCachePath } from './stripe-env-cache-path.js';
+
 const rootDir = resolve(import.meta.dirname, '../..');
-const localStripeEnvCachePath = resolve(rootDir, '.revealui/stripe-env.json');
 for (const envFile of [
   '.env',
   '.env.development.local',
