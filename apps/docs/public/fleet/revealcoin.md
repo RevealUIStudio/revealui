@@ -9,7 +9,7 @@ audience: developer
 
 **Hybrid utility / governance / reward token for the RevealUI ecosystem, built on Solana's Token-2022 program.**
 
-> RevealCoin is a separate RevFleet product. The repo is at [RevealUIStudio/revealcoin](https://github.com/RevealUIStudio/revealcoin). The customer-facing landing page is [revealcoin.revealui.com](https://revealcoin.revealui.com), deployed from `apps/revealcoin` in the RevealUI monorepo.
+> RevealCoin is a separate RevFleet product. The repo is at [RevealUIStudio/revealcoin](https://github.com/RevealUIStudio/revealcoin). The customer-facing landing page is [revealcoin.revealui.com](https://revealcoin.revealui.com), deployed from `apps/dashboard/` in that repo per [ADR 2026-05-17](https://github.com/RevealUIStudio/revealcoin/blob/main/docs/decisions/2026-05-17-dashboard-relocation.md).
 
 ## Token spec
 
