@@ -58,7 +58,12 @@ export function SplitAuthLayout({
         className={cn(
           'flex flex-col items-center justify-center gap-6 px-6 py-12 lg:w-1/2 lg:gap-8 lg:py-16',
           brandBgClass,
-          'text-[var(--tenant-brand-on,white)]',
+          // Foreground falls back to the surface-paired text token (`--rvui-text-0`)
+          // so the no-tenant default keeps WCAG contrast in both light + dark modes
+          // (white-on-surface-3 was 1.18:1 in light mode — failed AA). Customers
+          // should override `--tenant-brand-on` to a value that contrasts with
+          // their `--tenant-brand` — see header docstring.
+          'text-[var(--tenant-brand-on,var(--rvui-text-0))]',
         )}
       >
         {brand}

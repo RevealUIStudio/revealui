@@ -15,8 +15,11 @@ const badgeStyles = cva(
         inline: '',
       },
       colorScheme: {
-        light: 'border-gray-200 bg-white/90 text-gray-500 opacity-75 backdrop-blur-sm',
-        dark: 'border-gray-700 bg-gray-800/80 text-gray-300 opacity-90',
+        // Text + bg opacity raised to clear WCAG 2 AA 4.5:1 for small (10/12px) text.
+        // Previous values (text-gray-300/opacity-90 on bg-gray-800/80) measured 4.41:1.
+        // `transition-opacity hover:opacity-100` on the base still un-dims on interaction.
+        light: 'border-gray-300 bg-white/95 text-gray-700 backdrop-blur-sm',
+        dark: 'border-gray-700 bg-gray-800/95 text-gray-100',
       },
     },
     defaultVariants: {
