@@ -14,7 +14,7 @@ import {
 } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { type FormEvent, Suspense, useState } from 'react';
+import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 
 export type OAuthProvider = 'github' | 'google' | 'vercel' | 'linkedin';
@@ -134,7 +134,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             disabled={anyLoading}
             autoComplete="email"
             required
@@ -150,7 +150,7 @@ function LoginContent({ oauthProviders }: LoginFormProps) {
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               disabled={anyLoading}
               autoComplete="current-password"
               className="pr-10"

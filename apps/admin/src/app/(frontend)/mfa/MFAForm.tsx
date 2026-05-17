@@ -9,7 +9,7 @@ import {
 } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useState } from 'react';
 
 function filterDigits(value: string): string {
   return [...value].filter((c) => c >= '0' && c <= '9').join('');
@@ -74,7 +74,7 @@ export function MFAForm() {
               id="backup-code"
               type="text"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
               disabled={isLoading}
               autoComplete="one-time-code"
               autoFocus
@@ -95,7 +95,7 @@ export function MFAForm() {
               pattern="[0-9]*"
               maxLength={6}
               value={code}
-              onChange={(e) => setCode(filterDigits(e.target.value))}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(filterDigits(e.target.value))}
               disabled={isLoading}
               autoComplete="one-time-code"
               autoFocus

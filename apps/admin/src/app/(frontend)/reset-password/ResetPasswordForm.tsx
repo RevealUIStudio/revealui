@@ -8,7 +8,7 @@ import {
 } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { type FormEvent, Suspense, useState } from 'react';
+import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 
 function ResetPasswordSkeleton() {
@@ -118,7 +118,7 @@ function RequestResetForm() {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             disabled={isLoading}
             autoComplete="email"
             required
@@ -213,7 +213,7 @@ function ResetWithTokenForm({ tokenId, token }: { tokenId: string; token: string
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               disabled={isLoading}
               autoComplete="new-password"
               className="pr-10"
