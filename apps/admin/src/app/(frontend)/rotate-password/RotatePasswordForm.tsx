@@ -7,7 +7,7 @@ import {
   InputCVA as Input,
 } from '@revealui/presentation/server';
 import { useRouter } from 'next/navigation';
-import { type FormEvent, useState } from 'react';
+import { type ChangeEvent, type FormEvent, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -94,7 +94,7 @@ export function RotatePasswordForm() {
               id="current-password"
               type={showCurrentPassword ? 'text' : 'password'}
               value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setCurrentPassword(e.target.value)}
               autoComplete="current-password"
               required
               className="pr-10"
@@ -111,7 +111,7 @@ export function RotatePasswordForm() {
               id="new-password"
               type={showNewPassword ? 'text' : 'password'}
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setNewPassword(e.target.value)}
               autoComplete="new-password"
               required
               className="pr-10"
@@ -131,7 +131,7 @@ export function RotatePasswordForm() {
               id="confirm-password"
               type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
               autoComplete="new-password"
               required
               className="pr-10"
