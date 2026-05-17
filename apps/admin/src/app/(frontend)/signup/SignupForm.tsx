@@ -10,7 +10,7 @@ import {
 } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { type FormEvent, Suspense, useState } from 'react';
+import { type ChangeEvent, type FormEvent, Suspense, useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 
 interface SignupFormProps {
@@ -188,7 +188,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             id="name"
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             disabled={anyLoading}
             autoComplete="name"
             required
@@ -203,7 +203,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             disabled={anyLoading}
             autoComplete="email"
             required
@@ -219,7 +219,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               disabled={anyLoading}
               autoComplete="new-password"
               className="pr-10"
@@ -238,7 +238,7 @@ function SignupContent({ apiUrl }: SignupFormProps) {
             id="tos"
             type="checkbox"
             checked={tosAccepted}
-            onChange={(e) => setTosAccepted(e.target.checked)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setTosAccepted(e.target.checked)}
             disabled={anyLoading}
             required
             className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-[var(--tenant-brand,#2563eb)] accent-[var(--tenant-brand,#2563eb)]"

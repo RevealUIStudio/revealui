@@ -7,7 +7,7 @@ import {
   InputCVA as Input,
 } from '@revealui/presentation/server';
 import { useRouter } from 'next/navigation';
-import type { FormEvent } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
 import { useState } from 'react';
 import { PasswordInput } from '@/lib/components/PasswordInput';
 
@@ -99,7 +99,7 @@ export function SetupForm({ siteName }: SetupFormProps) {
             type="text"
             placeholder="Admin"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             autoComplete="name"
           />
         </div>
@@ -113,7 +113,7 @@ export function SetupForm({ siteName }: SetupFormProps) {
             type="email"
             placeholder="admin@example.com"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             required
             autoComplete="email"
           />
@@ -128,7 +128,7 @@ export function SetupForm({ siteName }: SetupFormProps) {
               id="setup-password"
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               required
               minLength={12}
               autoComplete="new-password"
