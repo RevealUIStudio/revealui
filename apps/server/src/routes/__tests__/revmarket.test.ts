@@ -216,10 +216,10 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => args),
   desc: vi.fn((col) => `desc(${String(col)})`),
-  ilike: vi.fn((_col, _val) => `ilike(${String(_col)},${String(_val)})`),
+  ilike: vi.fn((_col: unknown, _val: unknown) => `ilike(${String(_col)},${String(_val)})`),
   sql: mockSql,
 }));
 

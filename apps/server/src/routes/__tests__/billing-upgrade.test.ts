@@ -107,17 +107,17 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
-  desc: vi.fn((_col) => `desc(${String(_col)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
+  desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
-  gt: vi.fn((_col, _val) => `gt(${String(_col)},${String(_val)})`),
-  gte: vi.fn((_col, _val) => `gte(${String(_col)},${String(_val)})`),
-  lte: vi.fn((_col, _val) => `lte(${String(_col)},${String(_val)})`),
-  lt: vi.fn((_col, _val) => `lt(${String(_col)},${String(_val)})`),
-  isNull: vi.fn((_col) => `isNull(${String(_col)})`),
-  ne: vi.fn((_col, _val) => `ne(${String(_col)},${String(_val)})`),
+  gt: vi.fn((_col: unknown, _val: unknown) => `gt(${String(_col)},${String(_val)})`),
+  gte: vi.fn((_col: unknown, _val: unknown) => `gte(${String(_col)},${String(_val)})`),
+  lte: vi.fn((_col: unknown, _val: unknown) => `lte(${String(_col)},${String(_val)})`),
+  lt: vi.fn((_col: unknown, _val: unknown) => `lt(${String(_col)},${String(_val)})`),
+  isNull: vi.fn((_col: unknown) => `isNull(${String(_col)})`),
+  ne: vi.fn((_col: unknown, _val: unknown) => `ne(${String(_col)},${String(_val)})`),
   count: vi.fn(() => 'count()'),
-  countDistinct: vi.fn((_col) => `countDistinct(${String(_col)})`),
+  countDistinct: vi.fn((_col: unknown) => `countDistinct(${String(_col)})`),
   sql: Object.assign(
     vi.fn((...args: unknown[]) => `sql(${args.join(',')})`),
     {

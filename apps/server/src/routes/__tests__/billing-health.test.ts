@@ -56,13 +56,13 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
-  ne: vi.fn((_col, _val) => `ne(${String(_col)},${String(_val)})`),
-  gt: vi.fn((_col, _val) => `gt(${String(_col)},${String(_val)})`),
-  gte: vi.fn((_col, _val) => `gte(${String(_col)},${String(_val)})`),
-  lt: vi.fn((_col, _val) => `lt(${String(_col)},${String(_val)})`),
-  isNull: vi.fn((_col) => `isNull(${String(_col)})`),
+  ne: vi.fn((_col: unknown, _val: unknown) => `ne(${String(_col)},${String(_val)})`),
+  gt: vi.fn((_col: unknown, _val: unknown) => `gt(${String(_col)},${String(_val)})`),
+  gte: vi.fn((_col: unknown, _val: unknown) => `gte(${String(_col)},${String(_val)})`),
+  lt: vi.fn((_col: unknown, _val: unknown) => `lt(${String(_col)},${String(_val)})`),
+  isNull: vi.fn((_col: unknown) => `isNull(${String(_col)})`),
   count: vi.fn(() => 'count()'),
   sql: vi.fn(),
 }));
