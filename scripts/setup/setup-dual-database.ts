@@ -15,7 +15,7 @@
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
- * - @revealui/db - Database clients (getRestClient, getVectorClient, resetClient)
+ * - @revealui/db - Database clients (getRestClient, resetClient)
  * - node:fs - File system operations (readFileSync)
  * - node:path - Path manipulation utilities
  * - node:url - URL utilities for ES modules
@@ -36,7 +36,7 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { getRestClient, getVectorClient, resetClient } from '@revealui/db';
+import { getRestClient, resetClient } from '@revealui/db';
 import { ErrorCode, ScriptError } from '@revealui/scripts/errors.js';
 import { sql } from 'drizzle-orm';
 
@@ -191,7 +191,7 @@ async function setupVectorDatabase(): Promise<boolean> {
 
   try {
     resetClient();
-    const db = getVectorClient();
+    const db = getRestClient();
 
     // Check current state
     const extensionExists = await checkExtension(db, 'vector');

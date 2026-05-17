@@ -14,7 +14,7 @@
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode enum for exit codes
- * - @revealui/db - Database clients (getRestClient, getVectorClient, resetClient)
+ * - @revealui/db - Database clients (getRestClient, resetClient)
  * - drizzle-orm - SQL query builder (sql)
  *
  * @requires
@@ -23,7 +23,7 @@
  * - Environment: OPENAI_API_KEY (OpenAI API for embeddings)
  */
 
-import { getRestClient, getVectorClient, resetClient } from '@revealui/db';
+import { getRestClient, resetClient } from '@revealui/db';
 import { ErrorCode } from '@revealui/scripts/errors.js';
 import { sql } from 'drizzle-orm';
 
@@ -143,7 +143,7 @@ async function verifyDatabaseConnections() {
   // Test Vector database connection
   try {
     resetClient();
-    const vectorDb = getVectorClient();
+    const vectorDb = getRestClient();
     await vectorDb.execute(sql`SELECT 1 as test`);
     addResult({
       name: 'Vector Database Connection',
@@ -166,7 +166,7 @@ async function verifySupabaseSchema() {
 
   try {
     resetClient();
-    const vectorDb = getVectorClient();
+    const vectorDb = getRestClient();
 
     // Check if agent_memories table exists
     const tableCheck = await vectorDb.execute(
@@ -252,7 +252,7 @@ async function verifyPgVectorExtension() {
 
   try {
     resetClient();
-    const vectorDb = getVectorClient();
+    const vectorDb = getRestClient();
 
     const extensionCheck = await vectorDb.execute(
       sql`SELECT EXISTS (
@@ -311,7 +311,7 @@ async function verifyIndexes() {
 
   try {
     resetClient();
-    const vectorDb = getVectorClient();
+    const vectorDb = getRestClient();
 
     const indexCheck = await vectorDb.execute(
       sql`SELECT indexname, indexdef 
