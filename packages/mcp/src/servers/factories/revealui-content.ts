@@ -43,6 +43,8 @@ import {
   type Resource,
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
+import { z } from 'zod/v4';
+import { validateToolArgs } from '../../validate-tool-args.js';
 
 // ---------------------------------------------------------------------------
 // Credential overrides (set by hypervisor / HTTP launcher)
@@ -107,6 +109,48 @@ async function apiGet(
   }
   return body;
 }
+
+// ---------------------------------------------------------------------------
+// Tool argument schemas (Zod 4)
+// ---------------------------------------------------------------------------
+
+export const ListSitesArgsSchema = z
+  .object({
+    limit: z.number().optional(),
+    page: z.number().optional(),
+  })
+  .strict();
+
+export const ListContentArgsSchema = z
+  .object({
+    site_id: z.string().optional(),
+    collection: z.string().min(1),
+    limit: z.number().optional(),
+    page: z.number().optional(),
+    status: z.string().optional(),
+  })
+  .strict();
+
+export const GetContentArgsSchema = z
+  .object({
+    collection: z.string().min(1),
+    id: z.string().min(1),
+  })
+  .strict();
+
+export const ListUsersArgsSchema = z
+  .object({
+    site_id: z.string().optional(),
+    limit: z.number().optional(),
+    page: z.number().optional(),
+  })
+  .strict();
+
+export const SiteStatsArgsSchema = z
+  .object({
+    site_id: z.string().optional(),
+  })
+  .strict();
 
 // ---------------------------------------------------------------------------
 // Tool definitions
@@ -487,10 +531,9 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
 
       switch (toolName) {
         case 'revealui_list_sites': {
-          const { limit = 20, page = 1 } = request.params.arguments as {
-            limit?: number;
-            page?: number;
-          };
+          const parsed = validateToolArgs(ListSitesArgsSchema, request.params.arguments, toolName);
+          if (!parsed.ok) return parsed.error;
+          const { limit = 20, page = 1 } = parsed.value;
           data = await apiGet(apiUrl, apiKey, '/api/sites', {
             limit: String(limit),
             page: String(page),
@@ -499,19 +542,13 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
         }
 
         case 'revealui_list_content': {
-          const {
-            site_id,
-            collection,
-            limit = 20,
-            page = 1,
-            status,
-          } = request.params.arguments as {
-            site_id?: string;
-            collection: string;
-            limit?: number;
-            page?: number;
-            status?: string;
-          };
+          const parsed = validateToolArgs(
+            ListContentArgsSchema,
+            request.params.arguments,
+            toolName,
+          );
+          if (!parsed.ok) return parsed.error;
+          const { site_id, collection, limit = 20, page = 1, status } = parsed.value;
           const params: Record<string, string> = {
             limit: String(limit),
             page: String(page),
@@ -524,24 +561,17 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
         }
 
         case 'revealui_get_content': {
-          const { collection, id } = request.params.arguments as {
-            collection: string;
-            id: string;
-          };
+          const parsed = validateToolArgs(GetContentArgsSchema, request.params.arguments, toolName);
+          if (!parsed.ok) return parsed.error;
+          const { collection, id } = parsed.value;
           data = await apiGet(apiUrl, apiKey, `/api/${collection}/${id}`);
           break;
         }
 
         case 'revealui_list_users': {
-          const {
-            site_id,
-            limit = 20,
-            page = 1,
-          } = request.params.arguments as {
-            site_id?: string;
-            limit?: number;
-            page?: number;
-          };
+          const parsed = validateToolArgs(ListUsersArgsSchema, request.params.arguments, toolName);
+          if (!parsed.ok) return parsed.error;
+          const { site_id, limit = 20, page = 1 } = parsed.value;
           const params: Record<string, string> = {
             limit: String(limit),
             page: String(page),
@@ -553,7 +583,9 @@ export function createRevealuiContentServer(options?: CreateRevealuiContentServe
         }
 
         case 'revealui_site_stats': {
-          const { site_id } = request.params.arguments as { site_id?: string };
+          const parsed = validateToolArgs(SiteStatsArgsSchema, request.params.arguments, toolName);
+          if (!parsed.ok) return parsed.error;
+          const { site_id } = parsed.value;
           const params: Record<string, string> = {};
           if (site_id) params.siteId = site_id;
 

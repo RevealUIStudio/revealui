@@ -22,7 +22,7 @@ Full cross-fleet rule: see `~/.claude/rules/secrets.md`.
 
 | Category | Examples |
 |---|---|
-| Database credentials | `POSTGRES_URL` (Neon), Supabase direct-connection URL, `DATABASE_URL` |
+| Database credentials | `POSTGRES_URL` (Neon) |
 | Auth | `REVEALUI_SECRET` (JWT / session), OAuth client secrets, session-cookie signing keys |
 | Third-party API keys | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` |
 | Sync infrastructure | `ELECTRIC_SERVICE_URL`, `ELECTRIC_SECRET`, `ELECTRIC_SOURCE_ID` |
@@ -46,9 +46,7 @@ revealui/dev/admin-base-url
 revealui/dev/admin-session-cookie
 revealui/dev/electric/service-url
 revealui/dev/electric/secret
-revealui/dev/neon/postgres-url
-revealui/dev/supabase/direct-url
-revealui/dev/supabase/service-role-key   # service_role key for admin ops
+revealui/dev/db/postgres-url
 revealui/dev/stripe/secret-key           # sk_test_*
 revealui/dev/stripe/webhook-secret
 revealui/dev/stripe/publishable-key      # pk_test_*
@@ -77,9 +75,7 @@ Production (what CI + Vercel pull from when deploying):
 revealui/prod/electric/service-url
 revealui/prod/electric/secret
 revealui/prod/railway/token
-revealui/prod/neon/postgres-url
-revealui/prod/supabase/direct-url
-revealui/prod/supabase/service-role-key
+revealui/prod/db/postgres-url
 revealui/prod/stripe/secret-key          # sk_live_*
 revealui/prod/stripe/webhook-secret
 revealui/prod/stripe/publishable-key     # pk_live_*

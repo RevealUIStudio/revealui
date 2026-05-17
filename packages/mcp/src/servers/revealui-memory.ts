@@ -31,6 +31,8 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '@revealui/core/observability/logger';
+import { z } from 'zod/v4';
+import { validateToolArgs } from '../validate-tool-args.js';
 
 // ---------------------------------------------------------------------------
 // Credential overrides (set by Hypervisor before tool invocations)
@@ -90,6 +92,85 @@ async function apiGet(path: string, params?: Record<string, string>): Promise<un
   }
   return data;
 }
+
+// ---------------------------------------------------------------------------
+// Tool argument schemas (Zod 4)
+// ---------------------------------------------------------------------------
+
+export const PublishFactArgsSchema = z
+  .object({
+    session_id: z.string(),
+    agent_id: z.string(),
+    content: z.string(),
+    fact_type: z.enum(['discovery', 'bug', 'decision', 'warning', 'question', 'answer']),
+    confidence: z.number().optional(),
+    tags: z.array(z.string()).optional(),
+    source_ref: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
+
+export const ListFactsArgsSchema = z
+  .object({
+    session_id: z.string(),
+  })
+  .strict();
+
+export const CreateScratchpadArgsSchema = z
+  .object({
+    document_id: z.string(),
+    agent_id: z.string(),
+    title: z.string().optional(),
+  })
+  .strict();
+
+export const PatchScratchpadArgsSchema = z
+  .object({
+    document_id: z.string(),
+    agent_id: z.string(),
+    patch_type: z.enum(['append_section', 'append_item', 'replace_section', 'set_key']),
+    path: z.string(),
+    content: z.string(),
+  })
+  .strict();
+
+export const ReadScratchpadArgsSchema = z
+  .object({
+    document_id: z.string(),
+  })
+  .strict();
+
+export const ShareMemoryArgsSchema = z
+  .object({
+    session_scope: z.string(),
+    agent_id: z.string(),
+    site_id: z.string(),
+    content: z.string(),
+    type: z.enum([
+      'fact',
+      'preference',
+      'decision',
+      'feedback',
+      'example',
+      'correction',
+      'skill',
+      'warning',
+    ]),
+    source: z.record(z.string(), z.unknown()),
+  })
+  .strict();
+
+export const ListSharedArgsSchema = z
+  .object({
+    session_scope: z.string(),
+  })
+  .strict();
+
+export const ReconcileArgsSchema = z
+  .object({
+    session_id: z.string(),
+    site_id: z.string(),
+  })
+  .strict();
 
 // ---------------------------------------------------------------------------
 // Server
@@ -276,32 +357,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
     switch (toolName) {
       // Layer 1
       case 'memory_publish_fact': {
-        const args = request.params.arguments as {
-          session_id: string;
-          agent_id: string;
-          content: string;
-          fact_type: string;
-          confidence?: number;
-          tags?: string[];
-          source_ref?: Record<string, unknown>;
-        };
-        data = await apiPost('/api/sync/shared-facts', args);
+        const parsed = validateToolArgs(PublishFactArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error;
+        data = await apiPost('/api/sync/shared-facts', parsed.value);
         break;
       }
 
       case 'memory_list_facts': {
-        const { session_id } = request.params.arguments as { session_id: string };
-        data = await apiGet('/api/shapes/shared-facts', { session_id });
+        const parsed = validateToolArgs(ListFactsArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error;
+        data = await apiGet('/api/shapes/shared-facts', { session_id: parsed.value.session_id });
         break;
       }
 
       // Layer 2
       case 'memory_create_scratchpad': {
-        const { document_id, agent_id, title } = request.params.arguments as {
-          document_id: string;
-          agent_id: string;
-          title?: string;
-        };
+        const parsed = validateToolArgs(
+          CreateScratchpadArgsSchema,
+          request.params.arguments,
+          toolName,
+        );
+        if (!parsed.ok) return parsed.error;
+        const { document_id, agent_id, title } = parsed.value;
         data = await apiPost('/api/sync/yjs-document-patches', {
           document_id,
           agent_id,
@@ -313,49 +390,48 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
       }
 
       case 'memory_patch_scratchpad': {
-        const args = request.params.arguments as {
-          document_id: string;
-          agent_id: string;
-          patch_type: string;
-          path: string;
-          content: string;
-        };
-        data = await apiPost('/api/sync/yjs-document-patches', args);
+        const parsed = validateToolArgs(
+          PatchScratchpadArgsSchema,
+          request.params.arguments,
+          toolName,
+        );
+        if (!parsed.ok) return parsed.error;
+        data = await apiPost('/api/sync/yjs-document-patches', parsed.value);
         break;
       }
 
       case 'memory_read_scratchpad': {
-        const { document_id } = request.params.arguments as { document_id: string };
-        data = await apiGet('/api/shapes/yjs-documents', { document_id });
+        const parsed = validateToolArgs(
+          ReadScratchpadArgsSchema,
+          request.params.arguments,
+          toolName,
+        );
+        if (!parsed.ok) return parsed.error;
+        data = await apiGet('/api/shapes/yjs-documents', { document_id: parsed.value.document_id });
         break;
       }
 
       // Layer 3
       case 'memory_share': {
-        const args = request.params.arguments as {
-          session_scope: string;
-          agent_id: string;
-          site_id: string;
-          content: string;
-          type: string;
-          source: Record<string, unknown>;
-        };
-        data = await apiPost('/api/sync/shared-memories', args);
+        const parsed = validateToolArgs(ShareMemoryArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error;
+        data = await apiPost('/api/sync/shared-memories', parsed.value);
         break;
       }
 
       case 'memory_list_shared': {
-        const { session_scope } = request.params.arguments as { session_scope: string };
-        data = await apiGet('/api/shapes/shared-memories', { session_scope });
+        const parsed = validateToolArgs(ListSharedArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error;
+        data = await apiGet('/api/shapes/shared-memories', {
+          session_scope: parsed.value.session_scope,
+        });
         break;
       }
 
       case 'memory_reconcile': {
-        const args = request.params.arguments as {
-          session_id: string;
-          site_id: string;
-        };
-        data = await apiPost('/api/sync/reconcile', args);
+        const parsed = validateToolArgs(ReconcileArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error;
+        data = await apiPost('/api/sync/reconcile', parsed.value);
         break;
       }
 

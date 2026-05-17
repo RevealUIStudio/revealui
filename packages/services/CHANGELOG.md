@@ -1,5 +1,64 @@
 # @revealui/services
 
+## 0.6.0
+
+### Minor Changes
+
+- 7ad9ddb: Remove unused `checkServicesLicense` export. Per the 2026-05-08 charge-readiness
+  audit Phase 2 Path A: the function was declared but never called in any feature
+  code path; Stripe, RevealCoin, and Vercel integrations ran unconditionally.
+
+  License normalized from MIT to FSL-1.1-MIT: a runtime tier check was incoherent
+  with MIT's "use without restriction" grant. LICENSE file added to the package.
+
+- 1841ccd: `verifyRvuiPayment` now runs the safeguards pipeline (replay protection,
+  $500 single-payment cap, wallet rate limit, monthly discount cap, TWAP
+  circuit breaker) and records verified payments to `revealcoinPayments`
+  so future replays of the same `txSignature` are caught by
+  `isDuplicateTransaction`. Closes the GAP-159 replay-attack hole that
+  gated `RVUI_PAYMENTS_ENABLED=true` in any real-money environment.
+
+  Signature change: `verifyRvuiPayment(txSignature, expectedAmountRaw,
+expectedRecipient, safeguards: { userId, amountUsd })` — the new 4th
+  parameter is required because the safeguards pipeline keys on user +
+  USD value. Pre-existing callers in `apps/server/src/middleware/x402.ts`
+  (`verifySolanaPayment`) and four other route surfaces are updated to
+  thread the context.
+
+  USDC verification (Coinbase facilitator) is unaffected — it handles
+  its own replay protection and ignores the new `PaymentContext`.
+
+### Patch Changes
+
+- f31115e: Bump Stripe SDK to ^22.1.0 (latest as of 2026-04-28; default API version `2026-04-22.dahlia`). Replace hardcoded `apiVersion` strings across the codebase with `Stripe.API_VERSION` so future SDK upgrades auto-track the API version in lockstep instead of leaving stale date stamps. Also fixes the CJS import in `scripts/setup/seed-stripe.ts` for SDK 22+ (closes GAP-155).
+- Updated dependencies [54557b7]
+- Updated dependencies [6afae69]
+- Updated dependencies [f7ea9b4]
+- Updated dependencies [ad6aa4c]
+- Updated dependencies [0eb3131]
+- Updated dependencies [25dba49]
+- Updated dependencies [9a6ebb3]
+- Updated dependencies [47c75fe]
+- Updated dependencies [a8ca087]
+- Updated dependencies [1f7ae24]
+- Updated dependencies [f56d3d3]
+- Updated dependencies [f8199c8]
+- Updated dependencies [b0bab95]
+- Updated dependencies [3ff25bb]
+- Updated dependencies [af12683]
+- Updated dependencies [37952d2]
+- Updated dependencies [972b052]
+- Updated dependencies [dbf405a]
+- Updated dependencies [3d09425]
+- Updated dependencies [6ce0d60]
+- Updated dependencies [2eb63dc]
+- Updated dependencies [5479d59]
+  - @revealui/contracts@0.5.0
+  - @revealui/core@0.7.0
+  - @revealui/config@0.4.1
+  - @revealui/utils@0.3.5
+  - @revealui/db@0.5.0
+
 ## 0.4.0
 
 ### Minor Changes

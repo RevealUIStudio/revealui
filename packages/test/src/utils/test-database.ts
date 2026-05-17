@@ -41,9 +41,13 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
       await base.disconnect();
     },
     async query(queryString: string, values: unknown[] = []) {
-      // Convert positional '?' placeholders to $1, $2, ... for PostgreSQL
+      // Convert positional '?' placeholders to $1, $2, ... for PostgreSQL.
+      // Character walker (no regex per fleet no-regex hardline).
       let idx = 0;
-      const converted = queryString.replace(/\?/g, () => `$${++idx}`);
+      let converted = '';
+      for (const ch of queryString) {
+        converted += ch === '?' ? `$${++idx}` : ch;
+      }
       return base.query(converted, values);
     },
     async transaction<T>(fn: (tx: QueryableDatabaseAdapter) => Promise<T>): Promise<T> {
@@ -56,8 +60,12 @@ export async function setupTestDatabase(dbPath?: string): Promise<DatabaseAdapte
       return await base.transaction(async (baseTx) => {
         const tx: QueryableDatabaseAdapter = {
           query: async (queryString: string, values: unknown[] = []) => {
+            // Character walker — no regex per fleet no-regex hardline.
             let idx = 0;
-            const converted = queryString.replace(/\?/g, () => `$${++idx}`);
+            let converted = '';
+            for (const ch of queryString) {
+              converted += ch === '?' ? `$${++idx}` : ch;
+            }
             return baseTx.query(converted, values);
           },
         };
@@ -113,7 +121,13 @@ export async function seedTestData(
       .join(', ');
     const values = Object.values(item);
 
-    await db.query(`INSERT INTO ${tableName} (${columns}) VALUES (${placeholders})`, values);
+    // ON CONFLICT DO NOTHING so re-runs in beforeEach don't trip UNIQUE
+    // constraints. Use db.query(...).onConflictDoNothing() in Drizzle for
+    // per-call control; this default protects naive callers.
+    await db.query(
+      `INSERT INTO ${tableName} (${columns}) VALUES (${placeholders}) ON CONFLICT DO NOTHING`,
+      values,
+    );
   }
 }
 

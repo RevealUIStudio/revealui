@@ -980,7 +980,9 @@ async function main(): Promise<void> {
   if (!skipWebhook) {
     log.header('Webhook Endpoint');
     const apiUrl = webhookUrlFlag ?? process.env.API_URL;
-    const webhookUrl = apiUrl ? `${apiUrl.replace(/\/$/, '')}/api/webhooks/stripe` : undefined;
+    // Trim a single trailing slash without regex (no-regex hardline).
+    const trimmedApiUrl = apiUrl && apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    const webhookUrl = trimmedApiUrl ? `${trimmedApiUrl}/api/webhooks/stripe` : undefined;
 
     if (!webhookUrl) {
       log.warn('No webhook URL  -  set API_URL in .env or pass --webhook-url URL');

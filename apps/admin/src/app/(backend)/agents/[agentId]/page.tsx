@@ -4,6 +4,7 @@ import type { A2AAgentCard } from '@revealui/contracts';
 import { Breadcrumb } from '@revealui/presentation/client';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useState } from 'react';
+import { AgentContexts } from '@/lib/components/agents/agent-contexts';
 import { AgentMemory } from '@/lib/components/agents/agent-memory';
 import { TaskHistory } from '@/lib/components/agents/task-history';
 import { TaskTester } from '@/lib/components/agents/task-tester';
@@ -455,6 +456,14 @@ export default function AgentDetailPage({ params }: PageProps) {
                     Task History
                   </h2>
                   <TaskHistory agentId={agentId} refreshKey={taskRefreshKey} />
+                </div>
+
+                <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+                  <h2 className="mb-4 text-sm font-medium uppercase tracking-wide text-zinc-500">
+                    Agent Contexts
+                    <span className="ml-2 text-xs font-normal normal-case text-zinc-600">live</span>
+                  </h2>
+                  <AgentContexts agentId={agentId} />
                 </div>
               </div>
             </div>

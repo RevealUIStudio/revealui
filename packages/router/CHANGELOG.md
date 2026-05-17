@@ -1,5 +1,12 @@
 # @revealui/router
 
+## 0.3.9
+
+### Patch Changes
+
+- Updated dependencies [37952d2]
+  - @revealui/utils@0.3.5
+
 ## 0.3.8
 
 ### Patch Changes

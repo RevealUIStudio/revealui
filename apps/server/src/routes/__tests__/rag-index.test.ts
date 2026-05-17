@@ -5,7 +5,6 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 // Mock dependencies
 // ---------------------------------------------------------------------------
 vi.mock('@revealui/db/client', () => ({
-  getVectorClient: vi.fn(),
   getRestClient: vi.fn(),
 }));
 
@@ -25,10 +24,10 @@ vi.mock('@revealui/ai/ingestion', () => {
   throw new Error('not available');
 });
 
-import { getVectorClient } from '@revealui/db/client';
+import { getRestClient } from '@revealui/db/client';
 import ragApp from '../rag-index.js';
 
-const mockedGetVectorClient = vi.mocked(getVectorClient);
+const mockedGetRestClient = vi.mocked(getRestClient);
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -229,7 +228,7 @@ describe('rag-index routes', () => {
         { id: 'doc-2', title: 'Test 2', status: 'pending' },
       ];
 
-      mockedGetVectorClient.mockReturnValue({
+      mockedGetRestClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockResolvedValue(mockDocs),
@@ -250,7 +249,7 @@ describe('rag-index routes', () => {
     });
 
     it('returns empty list when no documents', async () => {
-      mockedGetVectorClient.mockReturnValue({
+      mockedGetRestClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockResolvedValue([]),
@@ -269,8 +268,8 @@ describe('rag-index routes', () => {
       expect(body.total).toBe(0);
     });
 
-    it('propagates error when vector DB query throws', async () => {
-      mockedGetVectorClient.mockReturnValue({
+    it('propagates error when DB query throws', async () => {
+      mockedGetRestClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockRejectedValue(new Error('DB connection lost')),
@@ -294,7 +293,7 @@ describe('rag-index routes', () => {
         { id: 'doc-3', title: 'C', status: 'pending' },
       ];
 
-      mockedGetVectorClient.mockReturnValue({
+      mockedGetRestClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockResolvedValue(mockDocs),
@@ -343,7 +342,7 @@ describe('rag-index routes', () => {
 
   describe('GET /rag/workspaces/:workspaceId/status', () => {
     it('returns workspace stats', async () => {
-      mockedGetVectorClient.mockReturnValue({
+      mockedGetRestClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockResolvedValue([{ total: 10 }]),
@@ -365,7 +364,7 @@ describe('rag-index routes', () => {
 
     it('returns all four fields in the status response', async () => {
       // The status route issues 4 queries; return consistent totals for simplicity
-      mockedGetVectorClient.mockReturnValue({
+      mockedGetRestClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockResolvedValue([{ total: 5, lastIndexedAt: null }]),
@@ -389,7 +388,7 @@ describe('rag-index routes', () => {
     });
 
     it('returns zeros and null when workspace has no documents', async () => {
-      mockedGetVectorClient.mockReturnValue({
+      mockedGetRestClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockResolvedValue([]),
@@ -410,8 +409,8 @@ describe('rag-index routes', () => {
       expect(body.lastIndexedAt).toBeNull();
     });
 
-    it('propagates error when vector DB status query throws', async () => {
-      mockedGetVectorClient.mockReturnValue({
+    it('propagates error when DB status query throws', async () => {
+      mockedGetRestClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockRejectedValue(new Error('vector DB unavailable')),
@@ -435,7 +434,6 @@ describe('rag-index routes', () => {
 describe('rag-index routes  -  AI available', () => {
   // biome-ignore lint/suspicious/noExplicitAny: module loaded after vi.resetModules  -  type unavailable at declaration site
   let freshRagApp: any;
-  let freshGetVectorClient: ReturnType<typeof vi.fn>;
   let freshGetRestClient: ReturnType<typeof vi.fn>;
   let mockIngest: ReturnType<typeof vi.fn>;
   let mockDeleteDocument: ReturnType<typeof vi.fn>;
@@ -445,11 +443,9 @@ describe('rag-index routes  -  AI available', () => {
 
     mockIngest = vi.fn();
     mockDeleteDocument = vi.fn();
-    freshGetVectorClient = vi.fn();
     freshGetRestClient = vi.fn();
 
     vi.doMock('@revealui/db/client', () => ({
-      getVectorClient: freshGetVectorClient,
       getRestClient: freshGetRestClient,
     }));
 
@@ -507,7 +503,7 @@ describe('rag-index routes  -  AI available', () => {
         }),
       );
 
-      freshGetVectorClient.mockReturnValue({
+      freshGetRestClient.mockReturnValue({
         select: vi.fn().mockReturnValue({
           from: vi.fn().mockReturnValue({
             where: vi.fn().mockResolvedValue([]),
@@ -547,7 +543,7 @@ describe('rag-index routes  -  AI available', () => {
         }),
       );
 
-      freshGetVectorClient.mockReturnValue({});
+      freshGetRestClient.mockReturnValue({});
       mockIngest.mockResolvedValue({ status: 'indexed' });
 
       const app = createFreshApp();
@@ -580,7 +576,7 @@ describe('rag-index routes  -  AI available', () => {
         }),
       );
 
-      freshGetVectorClient.mockReturnValue({});
+      freshGetRestClient.mockReturnValue({});
       mockIngest
         .mockResolvedValueOnce({ status: 'indexed' })
         .mockResolvedValueOnce({ status: 'failed' })
@@ -610,7 +606,7 @@ describe('rag-index routes  -  AI available', () => {
         }),
       );
 
-      freshGetVectorClient.mockReturnValue({});
+      freshGetRestClient.mockReturnValue({});
       mockIngest.mockResolvedValue({ status: 'indexed' });
 
       const app = createFreshApp();
@@ -643,7 +639,7 @@ describe('rag-index routes  -  AI available', () => {
         }),
       );
 
-      freshGetVectorClient.mockReturnValue({});
+      freshGetRestClient.mockReturnValue({});
       mockIngest.mockResolvedValue({ status: 'indexed' });
 
       const app = createFreshApp();
@@ -666,7 +662,7 @@ describe('rag-index routes  -  AI available', () => {
         }),
       );
 
-      freshGetVectorClient.mockReturnValue({});
+      freshGetRestClient.mockReturnValue({});
 
       const app = createFreshApp();
 
@@ -685,7 +681,7 @@ describe('rag-index routes  -  AI available', () => {
 
   describe('DELETE /rag/workspaces/:workspaceId/documents/:documentId  -  AI available', () => {
     it('returns 200 and deletes the document when AI is available', async () => {
-      freshGetVectorClient.mockReturnValue({});
+      freshGetRestClient.mockReturnValue({});
       mockDeleteDocument.mockResolvedValue(undefined);
 
       const app = createFreshApp();
@@ -701,7 +697,7 @@ describe('rag-index routes  -  AI available', () => {
     });
 
     it('calls deleteDocument with the correct documentId', async () => {
-      freshGetVectorClient.mockReturnValue({});
+      freshGetRestClient.mockReturnValue({});
       mockDeleteDocument.mockResolvedValue(undefined);
 
       const app = createFreshApp();

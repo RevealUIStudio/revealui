@@ -1,12 +1,12 @@
 /**
  * Pro Vector Memory Integration Tests
  *
- * Tests VectorMemoryService with real Supabase database.
+ * Tests VectorMemoryService with real NeonDB database.
  * Verifies embedding storage, retrieval, and similarity search.
  */
 
 import type { AgentMemory } from '@revealui/contracts/agents';
-import { getVectorClient } from '@revealui/db/client';
+import { getRestClient } from '@revealui/db/client';
 import { agentMemories } from '@revealui/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
@@ -25,11 +25,10 @@ describeIfPro('Vector Memory Integration', () => {
   let testMemoryIds: string[] = [];
 
   beforeAll(() => {
-    // Verify DATABASE_URL is set (Supabase connection)
-    if (!process.env.DATABASE_URL) {
+    if (!process.env.POSTGRES_URL) {
       throw new Error(
-        'DATABASE_URL must be set for vector memory integration tests. ' +
-          'This should point to your Supabase database with pgvector enabled.',
+        'POSTGRES_URL must be set for vector memory integration tests. ' +
+          'This should point to your NeonDB instance with pgvector enabled.',
       );
     }
 
@@ -37,8 +36,7 @@ describeIfPro('Vector Memory Integration', () => {
   });
 
   afterEach(async () => {
-    // Cleanup test memories
-    const db = getVectorClient();
+    const db = getRestClient();
     for (const id of testMemoryIds) {
       try {
         await db.delete(agentMemories).where(eq(agentMemories.id, id));
@@ -345,9 +343,8 @@ describeIfPro('Vector Memory Integration', () => {
   });
 
   describe('Database Connection', () => {
-    it('should use vector database client', async () => {
-      // Verify that service uses vector client (not REST client)
-      const db = getVectorClient();
+    it('should use the single database client', async () => {
+      const db = getRestClient();
       const result = await db.execute(sql`SELECT 1 as test`);
 
       expect(result).toBeDefined();

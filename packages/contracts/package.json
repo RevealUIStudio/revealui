@@ -1,6 +1,6 @@
 {
   "name": "@revealui/contracts",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Single source of truth for Zod schemas and TypeScript types shared across packages and apps. Ships with RevealUI.",
   "keywords": [
     "contracts",

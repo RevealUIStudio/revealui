@@ -1,5 +1,7 @@
 'use client';
 
+import type { TaskSubmissionRecord } from '@revealui/sync';
+import { useTaskSubmissions } from '@revealui/sync';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
@@ -7,21 +9,6 @@ import { LicenseGate } from '@/lib/components/LicenseGate';
 // =============================================================================
 // Types
 // =============================================================================
-
-interface TaskSubmission {
-  id: string;
-  agentId: string | null;
-  skillName: string;
-  status: string;
-  priority: number;
-  costUsdc: string | null;
-  output: Record<string, unknown> | null;
-  artifacts: Array<{ name: string; url: string; mimeType: string }>;
-  errorMessage: string | null;
-  executionMeta: Record<string, unknown> | null;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface TaskProgress {
   taskId: string;
@@ -47,32 +34,16 @@ const STATUS_COLORS: Record<string, string> = {
 // =============================================================================
 
 export default function TaskDashboardPage() {
-  const [tasks, setTasks] = useState<TaskSubmission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { submissions, isLoading, error } = useTaskSubmissions();
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
 
   const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
 
-  useEffect(() => {
-    // Fetch all tasks for the current user
-    // The API returns tasks filtered by submitter via auth
-    fetch(`${apiUrl}/api/revmarket/tasks`, { credentials: 'include' })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data: { tasks: TaskSubmission[] }) => {
-        setTasks(data.tasks ?? []);
-      })
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [apiUrl]);
+  const filteredTasks =
+    filter === 'all' ? submissions : submissions.filter((t) => t.status === filter);
 
-  const filteredTasks = filter === 'all' ? tasks : tasks.filter((t) => t.status === filter);
-
-  const statusCounts = tasks.reduce<Record<string, number>>((acc, t) => {
+  const statusCounts = submissions.reduce<Record<string, number>>((acc, t) => {
     acc[t.status] = (acc[t.status] ?? 0) + 1;
     return acc;
   }, {});
@@ -111,7 +82,7 @@ export default function TaskDashboardPage() {
                 'cancelled',
               ] as StatusFilter[]
             ).map((s) => {
-              const count = s === 'all' ? tasks.length : (statusCounts[s] ?? 0);
+              const count = s === 'all' ? submissions.length : (statusCounts[s] ?? 0);
               return (
                 <button
                   key={s}
@@ -132,11 +103,11 @@ export default function TaskDashboardPage() {
 
         {/* Content */}
         <div className="p-6">
-          {loading ? (
+          {isLoading ? (
             <TaskTableSkeleton />
           ) : error ? (
             <div className="rounded-lg border border-red-900 bg-red-950/50 p-4 text-sm text-red-400">
-              Failed to load tasks: {error}
+              Failed to load tasks: {error.message}
             </div>
           ) : filteredTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -160,11 +131,6 @@ export default function TaskDashboardPage() {
                   apiUrl={apiUrl}
                   isExpanded={selectedTask === task.id}
                   onToggle={() => setSelectedTask(selectedTask === task.id ? null : task.id)}
-                  onCancelled={() =>
-                    setTasks((prev) =>
-                      prev.map((t) => (t.id === task.id ? { ...t, status: 'cancelled' } : t)),
-                    )
-                  }
                 />
               ))}
             </div>
@@ -184,18 +150,17 @@ function TaskRow({
   apiUrl,
   isExpanded,
   onToggle,
-  onCancelled,
 }: {
-  task: TaskSubmission;
+  task: TaskSubmissionRecord;
   apiUrl: string;
   isExpanded: boolean;
   onToggle: () => void;
-  onCancelled: () => void;
 }) {
   const [progress, setProgress] = useState<TaskProgress | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Poll progress for running tasks
+  // Poll the transient progress endpoint while the task is running.
+  // The task's status field itself arrives via Electric live sync — no polling needed for that.
   useEffect(() => {
     if (task.status !== 'running') return;
 
@@ -204,7 +169,7 @@ function TaskRow({
         .then((r) => r.json())
         .then((data: TaskProgress) => setProgress(data))
         .catch(() => {
-          /* ignore polling errors */
+          /* ignore transient polling errors */
         });
     }
 
@@ -215,18 +180,6 @@ function TaskRow({
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, [apiUrl, task.id, task.status]);
-
-  async function handleCancel() {
-    try {
-      const res = await fetch(`${apiUrl}/api/revmarket/tasks/${task.id}/cancel`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (res.ok) onCancelled();
-    } catch {
-      /* ignore */
-    }
-  }
 
   const statusClass = STATUS_COLORS[task.status] ?? 'bg-zinc-800 text-zinc-400';
 
@@ -241,11 +194,11 @@ function TaskRow({
         <span className={`rounded px-2.5 py-0.5 text-xs font-medium ${statusClass}`}>
           {task.status}
         </span>
-        <span className="flex-1 text-sm text-white truncate">{task.skillName}</span>
+        <span className="flex-1 text-sm text-white truncate">{task.skill_name}</span>
         <span className="text-xs text-zinc-500">P{task.priority}</span>
-        {task.costUsdc && <span className="text-xs text-zinc-400">${task.costUsdc}</span>}
+        {task.cost_usdc && <span className="text-xs text-zinc-400">${task.cost_usdc}</span>}
         <span className="text-xs text-zinc-600">
-          {new Date(task.createdAt).toLocaleDateString()}
+          {new Date(task.created_at).toLocaleDateString()}
         </span>
         <span className={`text-zinc-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
           ▼
@@ -278,22 +231,22 @@ function TaskRow({
             </div>
             <div>
               <span className="text-zinc-500">Agent:</span>{' '}
-              <span className="text-zinc-300">{task.agentId ?? 'Unassigned'}</span>
+              <span className="text-zinc-300">{task.agent_id ?? 'Unassigned'}</span>
             </div>
             <div>
               <span className="text-zinc-500">Created:</span>{' '}
-              <span className="text-zinc-300">{new Date(task.createdAt).toLocaleString()}</span>
+              <span className="text-zinc-300">{new Date(task.created_at).toLocaleString()}</span>
             </div>
             <div>
               <span className="text-zinc-500">Updated:</span>{' '}
-              <span className="text-zinc-300">{new Date(task.updatedAt).toLocaleString()}</span>
+              <span className="text-zinc-300">{new Date(task.updated_at).toLocaleString()}</span>
             </div>
           </div>
 
           {/* Error message */}
-          {task.errorMessage && (
+          {task.error_message && (
             <div className="rounded border border-red-900 bg-red-950/50 p-3 text-sm text-red-400">
-              {task.errorMessage}
+              {task.error_message}
             </div>
           )}
 
@@ -325,17 +278,6 @@ function TaskRow({
                 ))}
               </div>
             </div>
-          )}
-
-          {/* Cancel button for cancellable tasks */}
-          {(task.status === 'pending' || task.status === 'queued') && (
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="rounded-lg border border-red-900 px-4 py-2 text-sm text-red-400 hover:bg-red-950/50 transition-colors"
-            >
-              Cancel Task
-            </button>
           )}
         </div>
       )}

@@ -2,12 +2,11 @@
  * Single Database Client Tests
  *
  * Tests that getClient('rest') and getClient('vector') both return the same
- * single Neon-primary client, and that getVectorClient() is a deprecated alias
- * for getRestClient().
+ * single Neon-primary client.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getClient, getRestClient, getVectorClient, resetClient } from '../index.js';
+import { getClient, getRestClient, resetClient } from '../index.js';
 
 // Mock the config module to prevent it from providing database URLs
 vi.mock('@revealui/config', () => ({
@@ -29,7 +28,7 @@ vi.mock('drizzle-orm/neon-http', () => ({
   })),
 }));
 
-describe('Single Database Client (post-Supabase removal)', () => {
+describe('Single Database Client', () => {
   beforeEach(() => {
     resetClient();
     process.env.POSTGRES_URL = 'postgresql://rest-db';
@@ -43,15 +42,6 @@ describe('Single Database Client (post-Supabase removal)', () => {
   it('getClient("vector") returns the same client as getClient("rest")', () => {
     const restClient = getClient('rest');
     const vectorClient = getClient('vector');
-
-    expect(restClient).toBeDefined();
-    expect(vectorClient).toBeDefined();
-    expect(restClient).toBe(vectorClient);
-  });
-
-  it('getVectorClient() is a deprecated alias that equals getRestClient()', () => {
-    const restClient = getRestClient();
-    const vectorClient = getVectorClient();
 
     expect(restClient).toBeDefined();
     expect(vectorClient).toBeDefined();
@@ -72,20 +62,12 @@ describe('Single Database Client (post-Supabase removal)', () => {
     expect(defaultClient).toBe(restClient);
   });
 
-  it('throws error if POSTGRES_URL not set for rest client', () => {
+  it('throws error if POSTGRES_URL not set', () => {
     resetClient();
     Reflect.deleteProperty(process.env, 'POSTGRES_URL');
     Reflect.deleteProperty(process.env, 'DATABASE_URL');
 
     expect(() => getRestClient()).toThrow('POSTGRES_URL');
-  });
-
-  it('throws error if POSTGRES_URL not set for vector client (alias of rest)', () => {
-    resetClient();
-    Reflect.deleteProperty(process.env, 'POSTGRES_URL');
-    Reflect.deleteProperty(process.env, 'DATABASE_URL');
-
-    expect(() => getVectorClient()).toThrow('POSTGRES_URL');
   });
 
   it('resets client so a new instance is created after reset', () => {

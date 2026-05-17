@@ -1085,4 +1085,77 @@ describe('POST /stripe webhook', () => {
       expect(mockLogger.error).not.toHaveBeenCalled();
     });
   });
+
+  describe('customer.updated', () => {
+    function makeCustomerUpdatedEvent(id: string, email: string | null) {
+      return {
+        id,
+        type: 'customer.updated',
+        livemode: false,
+        data: {
+          object: {
+            id: 'cus_updated_test',
+            object: 'customer',
+            email,
+          },
+        },
+      };
+    }
+
+    it('updates users.email when Stripe customer email changes', async () => {
+      const event = makeCustomerUpdatedEvent('evt_cust_updated_1', 'newemail@example.com');
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      // idempotency INSERT returns undefined (not duplicate)
+      mockDbInsertChain.values.mockResolvedValueOnce(undefined);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDbUpdateChain.set).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'newemail@example.com' }),
+      );
+    });
+
+    it('skips users.email update when customer has no email', async () => {
+      const event = makeCustomerUpdatedEvent('evt_cust_updated_noemail', null);
+      mockConstructEvent.mockReturnValueOnce(event);
+
+      mockDbInsertChain.values.mockResolvedValueOnce(undefined);
+
+      const app = createApp();
+      const res = await app.request(postStripe(event));
+
+      expect(res.status).toBe(200);
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
+
+    it('is idempotent: duplicate event id returns 200 without re-updating', async () => {
+      const event = makeCustomerUpdatedEvent('evt_cust_updated_idem', 'same@example.com');
+      mockConstructEvent.mockReturnValue(event);
+
+      // First call: idempotency INSERT succeeds (not duplicate)
+      mockDbInsertChain.values.mockResolvedValueOnce(undefined);
+
+      const app = createApp();
+      await app.request(postStripe(event));
+
+      // Second call: idempotency INSERT throws duplicate-key error
+      mockDbInsertChain.values.mockRejectedValueOnce(
+        Object.assign(new Error('duplicate key value violates unique constraint'), {
+          code: '23505',
+        }),
+      );
+
+      const res2 = await app.request(postStripe(event));
+      const body2 = (await res2.json()) as Record<string, unknown>;
+
+      expect(res2.status).toBe(200);
+      expect(body2.duplicate).toBe(true);
+      // update was only called once (first delivery); second is short-circuited
+      expect(mockDb.update).toHaveBeenCalledTimes(1);
+    });
+  });
 });
