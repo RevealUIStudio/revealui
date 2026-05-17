@@ -26,7 +26,7 @@ const story: ShowcaseStory = {
     showFooter: { type: 'boolean', default: true },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Card className="w-[350px]">
       <CardHeader>
         <CardTitle>{props.title as string}</CardTitle>
@@ -84,7 +84,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const lines = [
       '<Card>',
       '  <CardHeader>',

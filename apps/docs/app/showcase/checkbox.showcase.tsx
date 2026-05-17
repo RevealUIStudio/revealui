@@ -13,7 +13,7 @@ const story: ShowcaseStory = {
     disabled: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     // biome-ignore lint/a11y/noLabelWithoutControl: Checkbox uses role="checkbox" (ARIA)
     <label className="flex items-center gap-3">
       <Checkbox checked={props.checked as boolean} disabled={props.disabled as boolean} />
@@ -67,7 +67,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
     if (props.checked) attrs.push('checked');
     if (props.disabled) attrs.push('disabled');

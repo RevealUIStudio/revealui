@@ -114,7 +114,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const size = props.size as (typeof sizes)[number];
     const group = props.group as string;
     const filtered = group === 'All' ? allIcons : allIcons.filter((i) => i.group === group);
@@ -186,7 +186,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `import { IconStar } from '@revealui/presentation/server';
 
 <IconStar size="${props.size}"${props.size === 'md' ? '' : ''} />`,

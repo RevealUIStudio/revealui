@@ -30,7 +30,7 @@ const story: ShowcaseStory = {
     showValue: { type: 'boolean', default: true },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <div className="w-full max-w-md">
       <Progress
         value={props.value as number}
@@ -78,7 +78,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [`value={${props.value}}`];
     if (props.color !== 'blue') attrs.push(`color="${props.color}"`);
     if (props.size !== 'md') attrs.push(`size="${props.size}"`);

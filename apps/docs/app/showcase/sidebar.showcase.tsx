@@ -25,7 +25,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const active = props.activeItem as string;
 
     return (

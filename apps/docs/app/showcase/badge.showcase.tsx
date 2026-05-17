@@ -33,7 +33,9 @@ const story: ShowcaseStory = {
     children: { type: 'text', default: 'Badge' },
   },
 
-  render: (props) => <Badge color={props.color as 'zinc'}>{props.children as string}</Badge>,
+  render: (props: Record<string, unknown>) => (
+    <Badge color={props.color as 'zinc'}>{props.children as string}</Badge>
+  ),
 
   variantGrid: {
     color: badgeColors,
@@ -65,7 +67,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const colorAttr = props.color !== 'zinc' ? ` color="${props.color}"` : '';
     return `<Badge${colorAttr}>${props.children}</Badge>`;
   },

@@ -16,7 +16,7 @@ const story: ShowcaseStory = {
     children: { type: 'text', default: 'The quick brown fox jumps over the lazy dog.' },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const variant = props.variant as string;
     const content = props.children as string;
 
@@ -71,7 +71,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const variant = props.variant as string;
     const content = props.children as string;
     if (variant === 'strong') return `<Text><Strong>${content}</Strong></Text>`;

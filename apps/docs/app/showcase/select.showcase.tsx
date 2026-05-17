@@ -18,7 +18,7 @@ const story: ShowcaseStory = {
     placeholder: { type: 'text', default: 'Choose a fruit...' },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Select>
       <SelectTrigger className="w-64">
         <SelectValue placeholder={props.placeholder as string} />
@@ -51,7 +51,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<Select>
   <SelectTrigger>
     <SelectValue placeholder="${props.placeholder}" />

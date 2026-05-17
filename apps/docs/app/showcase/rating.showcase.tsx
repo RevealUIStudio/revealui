@@ -23,7 +23,7 @@ const story: ShowcaseStory = {
     readOnly: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Rating
       defaultValue={3}
       max={props.max as number}
@@ -55,7 +55,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = ['defaultValue={3}'];
     if (props.max !== 5) attrs.push(`max={${props.max}}`);
     if (props.size !== 'md') attrs.push(`size="${props.size}"`);

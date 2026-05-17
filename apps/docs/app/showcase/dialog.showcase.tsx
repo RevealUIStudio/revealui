@@ -58,7 +58,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => <DialogDemo {...props} />,
+  render: (props: Record<string, unknown>) => <DialogDemo {...props} />,
 
   examples: [
     {
@@ -93,7 +93,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const sizeAttr = props.size !== 'lg' ? ` size="${props.size}"` : '';
     return [
       `<Dialog open={open} onClose={() => setOpen(false)}${sizeAttr}>`,

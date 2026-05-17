@@ -16,7 +16,7 @@ const story: ShowcaseStory = {
     description: { type: 'text', default: 'from last month' },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Stat
       label={props.label as string}
       value={props.value as string}
@@ -62,7 +62,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs = [`label="${props.label}"`, `value="${props.value}"`];
     if (props.change) attrs.push(`change="${props.change}"`);
     if (props.trend !== 'up') attrs.push(`trend="${props.trend}"`);

@@ -102,7 +102,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `const { theme, resolvedTheme, setTheme } = useTheme();
 
 // Current: theme="${props.mode}", resolved to the active mode

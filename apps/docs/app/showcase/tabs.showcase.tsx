@@ -18,7 +18,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const count = props.tabCount as number;
     const tabs = Array.from({ length: count }, (_, i) => ({
       id: `tab-${i + 1}`,
