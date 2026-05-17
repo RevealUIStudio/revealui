@@ -1474,12 +1474,6 @@ const db = getRestClient();
 const posts = await db.select().from(schema.posts);
 ```
 
-### `getVectorClient(): Database`
-
-Returns (or lazily creates) the global Supabase client. Reads `SUPABASE_URL` and `SUPABASE_KEY` from env.
-
-> Only use the vector client in designated modules (`packages/db/src/vector/`, `packages/ai/src/`). See database conventions for boundary rules.
-
 ### `getClient(type?: 'rest' | 'vector' | string): Database`
 
 Unified client getter. Pass `'rest'` or `'vector'`, or a raw connection string for ad-hoc connections.

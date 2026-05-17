@@ -10,7 +10,7 @@
  */
 
 import type { DatabaseClient } from '@revealui/db/client';
-import { getRestClient, getVectorClient } from '@revealui/db/client';
+import { getRestClient } from '@revealui/db/client';
 import { ragDocuments } from '@revealui/db/schema/rag';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
 import { and, count, eq, isNotNull, max } from 'drizzle-orm';
@@ -154,7 +154,7 @@ app.openapi(
       );
     }
 
-    const vectorDb = getVectorClient();
+    const vectorDb = getRestClient();
     const restDb = getRestClient();
     const embeddingFn = async (text: string): Promise<number[]> => {
       const emb = await embeddingsMod.generateEmbedding(text);
@@ -247,7 +247,7 @@ app.openapi(
     const { workspaceId } = c.req.valid('param');
     assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
 
-    const vectorDb = getVectorClient();
+    const vectorDb = getRestClient();
 
     const docs = await vectorDb
       .select()
@@ -313,7 +313,7 @@ app.openapi(
       );
     }
 
-    const vectorDb = getVectorClient();
+    const vectorDb = getRestClient();
     const restDb = getRestClient();
 
     const embeddingFn = async (text: string): Promise<number[]> => {
@@ -370,7 +370,7 @@ app.openapi(
     const { workspaceId } = c.req.valid('param');
     assertWorkspaceAccess(c.get('user'), workspaceId, c.get('tenant'));
 
-    const vectorDb = getVectorClient();
+    const vectorDb = getRestClient();
 
     const [totalRow] = await vectorDb
       .select({ total: count() })

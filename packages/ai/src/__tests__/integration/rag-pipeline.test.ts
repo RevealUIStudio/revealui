@@ -5,7 +5,7 @@
  * Requires:
  *   - Ollama running: `ollama serve`
  *   - nomic-embed-text pulled: `ollama pull nomic-embed-text`
- *   - DATABASE_URL pointing to a Supabase/PostgreSQL instance with pgvector
+ *   - POSTGRES_URL pointing to a NeonDB instance with pgvector
  *
  * Run: pnpm --filter @revealui/ai test:integration
  */
@@ -26,13 +26,13 @@ async function isOllamaAvailable(): Promise<boolean> {
   }
 }
 
-async function hasDatabaseUrl(): Promise<boolean> {
-  return !!process.env.DATABASE_URL;
+async function hasPostgresUrl(): Promise<boolean> {
+  return !!process.env.POSTGRES_URL;
 }
 
 describe('RAG Pipeline integration', async () => {
   const ollamaAvailable = await isOllamaAvailable();
-  const dbAvailable = await hasDatabaseUrl();
+  const dbAvailable = await hasPostgresUrl();
   const canRun = ollamaAvailable && dbAvailable;
 
   describe.skipIf(!ollamaAvailable)(
@@ -68,7 +68,7 @@ describe('RAG Pipeline integration', async () => {
     },
   );
 
-  describe.skipIf(!canRun)('Full pipeline (requires DATABASE_URL + Ollama)', () => {
+  describe.skipIf(!canRun)('Full pipeline (requires POSTGRES_URL + Ollama)', () => {
     // biome-ignore lint/suspicious/noDuplicateTestHooks: sibling describe blocks each need their own setup
     beforeAll(() => {
       vi.stubEnv('LLM_PROVIDER', 'ollama');
@@ -81,20 +81,18 @@ describe('RAG Pipeline integration', async () => {
     });
 
     it('ingests a document and retrieves it via vector search', async () => {
-      const { getVectorClient } = await import('@revealui/db/client');
+      const { getRestClient } = await import('@revealui/db/client');
       const { generateEmbedding } = await import('../../embeddings/index.js');
       const { IngestionPipeline } = await import('../../ingestion/pipeline.js');
       const { RagVectorService } = await import('../../ingestion/rag-vector-service.js');
 
-      const { getRestClient } = await import('@revealui/db/client');
-      const vectorDb = getVectorClient();
-      const restDb = getRestClient();
+      const db = getRestClient();
       const embeddingFn = async (text: string): Promise<number[]> => {
         const emb = await generateEmbedding(text);
         return emb.vector;
       };
 
-      const pipeline = new IngestionPipeline(vectorDb, restDb, embeddingFn);
+      const pipeline = new IngestionPipeline(db, db, embeddingFn);
       const workspaceId = `test-ws-${Date.now()}`;
 
       // Ingest a test document

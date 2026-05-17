@@ -1,8 +1,8 @@
 /**
  * Vector Memory Service
  *
- * Service for managing agent memories in Supabase with vector search capabilities.
- * Uses pgvector for semantic similarity search.
+ * Service for managing agent memories with vector search capabilities.
+ * Uses pgvector for semantic similarity search on the single Neon-primary database.
  *
  * @example
  * ```typescript
@@ -14,7 +14,7 @@
  */
 
 import type { AgentMemory } from '@revealui/contracts/agents';
-import { getRestClient, getVectorClient } from '@revealui/db/client';
+import { getRestClient } from '@revealui/db/client';
 import { agentMemories } from '@revealui/db/schema';
 import { assertCrossDbRefs, safeVectorInsert } from '@revealui/db/validation';
 import { and, eq, type SQL, sql } from 'drizzle-orm';
@@ -37,26 +37,21 @@ export interface VectorSearchResult {
  * Vector Memory Service for semantic search operations.
  */
 export class VectorMemoryService {
-  private _db: ReturnType<typeof getVectorClient> | null = null;
-  private _restDb: ReturnType<typeof getRestClient> | null = null;
+  private _db: ReturnType<typeof getRestClient> | null = null;
 
   /**
    * Lazy-load database client to avoid connection initialization at module import time.
    * This allows the module to be imported in test environments without triggering database connections.
    */
-  private get db(): ReturnType<typeof getVectorClient> {
+  private get db(): ReturnType<typeof getRestClient> {
     if (!this._db) {
-      this._db = getVectorClient();
+      this._db = getRestClient();
     }
     return this._db;
   }
 
-  /** Lazy-load REST client for cross-DB reference validation. */
   private get restDb(): ReturnType<typeof getRestClient> {
-    if (!this._restDb) {
-      this._restDb = getRestClient();
-    }
-    return this._restDb;
+    return this.db;
   }
 
   /**
