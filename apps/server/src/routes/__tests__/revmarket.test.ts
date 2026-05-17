@@ -74,7 +74,7 @@ vi.mock('../../middleware/x402.js', () => ({
   getAdvertisedCurrencyLabel: () => 'usdc-only',
 }));
 
-vi.mock('../../services/revmarket-executor.js', async (importOriginal) => {
+vi.mock('../../services/revmarket-executor.js', async (importOriginal: <T>() => Promise<T>) => {
   const actual = await importOriginal<typeof import('../../services/revmarket-executor.js')>();
   return {
     ...actual,

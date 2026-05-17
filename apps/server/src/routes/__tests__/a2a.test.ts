@@ -112,7 +112,7 @@ vi.mock('../../middleware/license.js', () => ({
 }));
 
 // Contracts  -  real Zod schemas replaced with pass-through mocks
-vi.mock('@revealui/contracts', async (importOriginal) => {
+vi.mock('@revealui/contracts', async (importOriginal: <T>() => Promise<T>) => {
   const actual = await importOriginal<typeof import('@revealui/contracts')>();
   return {
     ...actual,

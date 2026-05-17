@@ -13,7 +13,7 @@ vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-vi.mock('drizzle-orm', async (importOriginal) => {
+vi.mock('drizzle-orm', async (importOriginal: <T>() => Promise<T>) => {
   const actual = await importOriginal<typeof import('drizzle-orm')>();
   return {
     ...actual,

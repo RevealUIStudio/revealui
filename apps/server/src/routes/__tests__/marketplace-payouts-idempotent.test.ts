@@ -66,7 +66,7 @@ vi.mock('drizzle-orm', () => ({
   eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   isNull: vi.fn((_col: unknown) => `isNull(${String(_col)})`),
-  inArray: vi.fn((_col, _vals) => `inArray(${String(_col)})`),
+  inArray: vi.fn((_col: unknown, _vals: unknown) => `inArray(${String(_col)})`),
   sql: Object.assign(
     vi.fn((s: TemplateStringsArray) => String(s)),
     { join: vi.fn() },
