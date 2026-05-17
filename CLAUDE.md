@@ -6,7 +6,7 @@ Agentic business runtime. Users, content, products, payments, and AI  -  pre-wir
 **Phase 5  -  Agent-First Infrastructure** (post-Phase 4). See `docs/MASTER_PLAN.md` for the active 5.x tracks.
 
 ## Stack
-- React 19, Next.js 16 (admin), Vite (docs / marketing / revealcoin), Hono (server), Node 24, TypeScript 6
+- React 19, Next.js 16 (admin), Vite (docs / marketing), Hono (server), Node 24, TypeScript 6
 - pnpm 10, Turborepo, Biome 2, Vitest 4
 - Drizzle ORM (NeonDB), Tailwind CSS v4
 - Lexical (rich text), ElectricSQL (sync), Stripe (payments)
@@ -36,14 +36,13 @@ feature/* ──PR──▶ test ──PR──▶ main
 
 ## Package Map
 
-### Apps (5)
+### Apps (4)
 | App | Port | Framework | Purpose |
 |-----|------|-----------|---------|
 | server | 3004 | Hono | REST API (OpenAPI + Swagger) |
 | admin | 4000 | Next.js 16 | Admin dashboard, content management + system monitoring |
 | docs | 3002 | Vite/React | Documentation site (docs.revealui.com) |
 | marketing | 3000 | Vite/React | Product marketing site (revealui.com) |
-| revealcoin | 3005 | Vite/React | RevealCoin token dashboard |
 
 > Note: the RevealUI Studio agency site (revealuistudio.com) lives in a
 > separate repo. It consumes `@revealui/{router,presentation,core,contracts}`

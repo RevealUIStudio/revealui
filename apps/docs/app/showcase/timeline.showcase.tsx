@@ -17,7 +17,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const count = props.items as number;
     const events = [
       { title: 'Project created', date: 'Jan 1', description: 'Initial repository setup' },

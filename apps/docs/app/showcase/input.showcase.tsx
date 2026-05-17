@@ -17,7 +17,7 @@ const story: ShowcaseStory = {
     disabled: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Input
       type={props.type as string}
       placeholder={props.placeholder as string}
@@ -45,7 +45,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
     if (props.type !== 'text') attrs.push(`type="${props.type}"`);
     if (props.placeholder) attrs.push(`placeholder="${props.placeholder}"`);

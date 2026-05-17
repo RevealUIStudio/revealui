@@ -13,7 +13,7 @@ const story: ShowcaseStory = {
     disabled: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <div className="w-80">
       <Textarea
         placeholder={props.placeholder as string}
@@ -48,7 +48,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
     attrs.push(`placeholder="${props.placeholder}"`);
     if (props.rows !== 4) attrs.push(`rows={${props.rows}}`);

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { type ChangeEvent, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -355,7 +355,9 @@ function StepBasicInfo({
         <input
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+            setName(e.target.value)
+          }
           className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
           placeholder="Code Reviewer Pro"
         />
@@ -366,7 +368,9 @@ function StepBasicInfo({
         <span className="text-sm text-zinc-400">Description</span>
         <textarea
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+            setDescription(e.target.value)
+          }
           rows={3}
           className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
           placeholder="An AI agent that reviews code for best practices, security issues, and performance..."
@@ -380,7 +384,9 @@ function StepBasicInfo({
         <span className="text-sm text-zinc-400">Category</span>
         <select
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+            setCategory(e.target.value)
+          }
           className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
         >
           {CATEGORIES.map((cat) => (
@@ -396,7 +402,9 @@ function StepBasicInfo({
         <input
           type="text"
           value={tags}
-          onChange={(e) => setTags(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+            setTags(e.target.value)
+          }
           className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
           placeholder="typescript, react, code-review"
         />
@@ -461,7 +469,9 @@ function StepConfiguration({
                 name="pricingModel"
                 value={pm.value}
                 checked={pricingModel === pm.value}
-                onChange={(e) => setPricingModel(e.target.value)}
+                onChange={(
+                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                ) => setPricingModel(e.target.value)}
                 className="accent-blue-500"
               />
               <span className="text-sm text-zinc-300">{pm.label}</span>
@@ -475,7 +485,9 @@ function StepConfiguration({
         <input
           type="text"
           value={basePriceUsdc}
-          onChange={(e) => setBasePriceUsdc(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+            setBasePriceUsdc(e.target.value)
+          }
           className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
           placeholder="0.10"
         />
@@ -489,7 +501,9 @@ function StepConfiguration({
         <input
           type="number"
           value={maxExecutionSecs}
-          onChange={(e) => setMaxExecutionSecs(Number(e.target.value))}
+          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+            setMaxExecutionSecs(Number(e.target.value))
+          }
           min={10}
           max={3600}
           className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
@@ -500,7 +514,9 @@ function StepConfiguration({
         <span className="text-sm text-zinc-400">Agent Definition (JSON)</span>
         <textarea
           value={definitionJson}
-          onChange={(e) => setDefinitionJson(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+            setDefinitionJson(e.target.value)
+          }
           rows={8}
           className="mt-1 w-full font-mono rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
         />
@@ -589,7 +605,9 @@ function StepSkills({
             <input
               type="text"
               value={skill.name}
-              onChange={(e) => updateSkill(i, 'name', e.target.value)}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => updateSkill(i, 'name', e.target.value)}
               className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm text-white focus:border-zinc-500 focus:outline-none"
               placeholder="code-review"
             />
@@ -603,7 +621,9 @@ function StepSkills({
             <input
               type="text"
               value={skill.description}
-              onChange={(e) => updateSkill(i, 'description', e.target.value)}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => updateSkill(i, 'description', e.target.value)}
               className="mt-1 w-full rounded border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-sm text-white focus:border-zinc-500 focus:outline-none"
               placeholder="Reviews code for bugs, security issues, and best practices"
             />
@@ -616,7 +636,9 @@ function StepSkills({
             <span className="text-xs text-zinc-500">Input Schema (JSON)</span>
             <textarea
               value={skill.inputSchema}
-              onChange={(e) => updateSkill(i, 'inputSchema', e.target.value)}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => updateSkill(i, 'inputSchema', e.target.value)}
               rows={3}
               className="mt-1 w-full font-mono rounded border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs text-white focus:border-zinc-500 focus:outline-none"
             />
@@ -629,7 +651,9 @@ function StepSkills({
             <span className="text-xs text-zinc-500">Output Schema (JSON)</span>
             <textarea
               value={skill.outputSchema}
-              onChange={(e) => updateSkill(i, 'outputSchema', e.target.value)}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => updateSkill(i, 'outputSchema', e.target.value)}
               rows={3}
               className="mt-1 w-full font-mono rounded border border-zinc-700 bg-zinc-950 px-3 py-1.5 text-xs text-white focus:border-zinc-500 focus:outline-none"
             />

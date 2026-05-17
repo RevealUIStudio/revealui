@@ -143,7 +143,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => {
+  render: (props: Record<string, unknown>) => {
     const demo = props.demo as string;
 
     if (demo === 'presence') return <PresenceDemo />;
@@ -216,7 +216,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     if (props.demo === 'presence') {
       return `const { mounted, present, ref } = usePresence(show, 300);
 

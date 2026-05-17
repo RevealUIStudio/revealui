@@ -23,7 +23,7 @@ const story: ShowcaseStory = {
     disabled: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <div className="w-72">
       <Combobox
         options={frameworks}
@@ -62,7 +62,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<Combobox
   options={items}
   displayValue={(item) => item.name}

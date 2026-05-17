@@ -127,7 +127,7 @@ describe('sendCronFailureAlert', () => {
     // logger.error fires first (step 1), then two logger.warn calls for
     // Sentry + email failure.
     expect(logger.error).toHaveBeenCalled();
-    const warnCalls = vi.mocked(logger.warn).mock.calls.map((c) => String(c[0]));
+    const warnCalls = vi.mocked(logger.warn).mock.calls.map((c: unknown[]) => String(c[0]));
     expect(warnCalls.some((m) => m.includes('Sentry capture failed'))).toBe(true);
     expect(warnCalls.some((m) => m.includes('email delivery failed'))).toBe(true);
   });

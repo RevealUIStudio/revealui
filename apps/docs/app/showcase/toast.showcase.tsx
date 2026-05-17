@@ -90,7 +90,7 @@ const story: ShowcaseStory = {
     description: { type: 'text', default: 'Your settings have been updated.' },
   },
 
-  render: (props) => <ToastDemoWrapper {...props} />,
+  render: (props: Record<string, unknown>) => <ToastDemoWrapper {...props} />,
 
   examples: [
     {
@@ -103,7 +103,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [`title: '${props.title}'`];
     if (props.description) attrs.push(`description: '${props.description}'`);
     if (props.variant !== 'default') attrs.push(`variant: '${props.variant}'`);

@@ -13,7 +13,9 @@ const story: ShowcaseStory = {
     href: { type: 'text', default: '#' },
   },
 
-  render: (props) => <Link href={props.href as string}>{props.children as string}</Link>,
+  render: (props: Record<string, unknown>) => (
+    <Link href={props.href as string}>{props.children as string}</Link>
+  ),
 
   examples: [
     {
@@ -27,7 +29,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => `<Link href="${props.href}">${props.children}</Link>`,
+  code: (props: Record<string, unknown>) => `<Link href="${props.href}">${props.children}</Link>`,
 };
 
 export default story;

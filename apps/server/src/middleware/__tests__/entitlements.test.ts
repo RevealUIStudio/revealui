@@ -33,7 +33,7 @@ vi.mock('@revealui/db/schema', () => ({
 
 vi.mock('drizzle-orm', () => ({
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
 }));
 
 import { entitlementMiddleware, getEntitlementsFromContext } from '../entitlements.js';

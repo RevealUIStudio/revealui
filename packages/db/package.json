@@ -243,15 +243,6 @@
     "dist"
   ],
   "main": "./dist/index.js",
-  "peerDependencies": {
-    "drizzle-orm": "^0.45.2",
-    "drizzle-zod": "^0.8.3"
-  },
-  "peerDependenciesMeta": {
-    "drizzle-zod": {
-      "optional": true
-    }
-  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"

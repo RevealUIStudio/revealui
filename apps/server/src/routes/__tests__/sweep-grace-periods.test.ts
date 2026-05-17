@@ -53,9 +53,9 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => ({ type: 'eq' })),
+  eq: vi.fn((_col: unknown, _val: unknown) => ({ type: 'eq' })),
   and: vi.fn((...args: unknown[]) => ({ type: 'and', args })),
-  lte: vi.fn((_col, _val) => ({ type: 'lte' })),
+  lte: vi.fn((_col: unknown, _val: unknown) => ({ type: 'lte' })),
 }));
 
 import { resetLicenseState } from '@revealui/core/license';

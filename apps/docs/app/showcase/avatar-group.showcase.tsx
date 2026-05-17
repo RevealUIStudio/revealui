@@ -33,7 +33,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <AvatarGroup
       items={teamMembers}
       max={props.max as number}
@@ -59,7 +59,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = ['items={users}'];
     if (props.max !== 5) attrs.push(`max={${props.max}}`);
     if (props.size !== 'md') attrs.push(`size="${props.size}"`);

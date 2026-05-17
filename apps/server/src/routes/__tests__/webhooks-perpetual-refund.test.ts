@@ -181,28 +181,28 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   or: vi.fn((...args: unknown[]) => `or(${args.join(',')})`),
-  desc: vi.fn((_col) => `desc(${String(_col)})`),
-  asc: vi.fn((_col) => `asc(${String(_col)})`),
-  isNull: vi.fn((_col) => `isNull(${String(_col)})`),
-  isNotNull: vi.fn((_col) => `isNotNull(${String(_col)})`),
-  lt: vi.fn((_col, _val) => `lt(${String(_col)},${String(_val)})`),
-  lte: vi.fn((_col, _val) => `lte(${String(_col)},${String(_val)})`),
-  gt: vi.fn((_col, _val) => `gt(${String(_col)},${String(_val)})`),
-  gte: vi.fn((_col, _val) => `gte(${String(_col)},${String(_val)})`),
-  ne: vi.fn((_col, _val) => `ne(${String(_col)},${String(_val)})`),
+  desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
+  asc: vi.fn((_col: unknown) => `asc(${String(_col)})`),
+  isNull: vi.fn((_col: unknown) => `isNull(${String(_col)})`),
+  isNotNull: vi.fn((_col: unknown) => `isNotNull(${String(_col)})`),
+  lt: vi.fn((_col: unknown, _val: unknown) => `lt(${String(_col)},${String(_val)})`),
+  lte: vi.fn((_col: unknown, _val: unknown) => `lte(${String(_col)},${String(_val)})`),
+  gt: vi.fn((_col: unknown, _val: unknown) => `gt(${String(_col)},${String(_val)})`),
+  gte: vi.fn((_col: unknown, _val: unknown) => `gte(${String(_col)},${String(_val)})`),
+  ne: vi.fn((_col: unknown, _val: unknown) => `ne(${String(_col)},${String(_val)})`),
   sql: Object.assign(
     vi.fn((...args: unknown[]) => args),
     {
       join: vi.fn((...args: unknown[]) => args),
     },
   ),
-  inArray: vi.fn((_col, _vals) => `inArray`),
-  notInArray: vi.fn((_col, _vals) => `notInArray`),
+  inArray: vi.fn((_col: unknown, _vals: unknown) => `inArray`),
+  notInArray: vi.fn((_col: unknown, _vals: unknown) => `notInArray`),
   count: vi.fn(() => 'count()'),
-  countDistinct: vi.fn((_col) => `countDistinct(${String(_col)})`),
+  countDistinct: vi.fn((_col: unknown) => `countDistinct(${String(_col)})`),
 }));
 
 const mockSendEmail = vi.fn().mockResolvedValue(undefined);
@@ -321,7 +321,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
 
     expect(mockDb.update).toHaveBeenCalled();
     const updateSetArg = mockDbUpdateChain.set.mock.calls.find(
-      (call) => (call[0] as Record<string, unknown>).status === 'revoked',
+      (call: unknown[]) => (call[0] as Record<string, unknown>).status === 'revoked',
     );
     expect(updateSetArg).toBeDefined();
   });
@@ -344,7 +344,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     const app = createApp();
     await app.request(postStripe(event));
 
-    const emailCall = mockSendEmail.mock.calls.find((call) => {
+    const emailCall = mockSendEmail.mock.calls.find((call: unknown[]) => {
       const opts = call[0] as Record<string, unknown>;
       return (
         opts.to === 'enterprise@example.com' &&
@@ -373,7 +373,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     await app.request(postStripe(event));
 
     const revokeCall = mockDbUpdateChain.set.mock.calls.find(
-      (call) => (call[0] as Record<string, unknown>).status === 'revoked',
+      (call: unknown[]) => (call[0] as Record<string, unknown>).status === 'revoked',
     );
     expect(revokeCall).toBeUndefined();
   });
@@ -398,7 +398,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     expect(res.status).toBe(200);
 
     const revokeCall = mockDbUpdateChain.set.mock.calls.find(
-      (call) => (call[0] as Record<string, unknown>).status === 'revoked',
+      (call: unknown[]) => (call[0] as Record<string, unknown>).status === 'revoked',
     );
     expect(revokeCall).toBeDefined();
   });

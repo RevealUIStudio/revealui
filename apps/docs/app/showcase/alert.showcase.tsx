@@ -54,7 +54,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => <AlertDemo size={props.size as string} />,
+  render: (props: Record<string, unknown>) => <AlertDemo size={props.size as string} />,
 
   examples: [
     {
@@ -86,7 +86,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<Alert open={open} onClose={() => setOpen(false)}${props.size !== 'md' ? ` size="${props.size}"` : ''}>
   <AlertTitle>Confirm Action</AlertTitle>
   <AlertDescription>Are you sure?</AlertDescription>

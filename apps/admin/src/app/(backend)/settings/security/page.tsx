@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@revealui/presentation/client';
 import { QRCodeSVG } from 'qrcode.react';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { type ChangeEvent, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/utils/csrf';
 
 // =============================================================================
@@ -524,7 +524,11 @@ function SecuritySettingsContent() {
                         autoComplete="one-time-code"
                         maxLength={6}
                         value={verifyCode}
-                        onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, ''))}
+                        onChange={(
+                          e: ChangeEvent<
+                            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+                          >,
+                        ) => setVerifyCode(e.target.value.replace(/\D/g, ''))}
                         placeholder="000000"
                         className="w-32 rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
                       />
@@ -578,7 +582,11 @@ function SecuritySettingsContent() {
                               id="mfa-disable-password"
                               type="password"
                               value={disablePassword}
-                              onChange={(e) => setDisablePassword(e.target.value)}
+                              onChange={(
+                                e: ChangeEvent<
+                                  HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+                                >,
+                              ) => setDisablePassword(e.target.value)}
                               placeholder="Password"
                               className="w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none sm:w-48"
                             />
@@ -696,7 +704,11 @@ function SecuritySettingsContent() {
                               <input
                                 type="text"
                                 value={renameValue}
-                                onChange={(e) => setRenameValue(e.target.value)}
+                                onChange={(
+                                  e: ChangeEvent<
+                                    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+                                  >,
+                                ) => setRenameValue(e.target.value)}
                                 onKeyDown={(e) => {
                                   if (e.key === 'Enter') void submitRename(passkey.id);
                                   if (e.key === 'Escape') cancelRename();

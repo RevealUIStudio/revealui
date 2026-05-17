@@ -3,7 +3,7 @@
 import { Breadcrumb } from '@revealui/presentation/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useReducer } from 'react';
+import { type ChangeEvent, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -303,7 +303,9 @@ export default function NewAgentPage() {
                     type="text"
                     required
                     value={name}
-                    onChange={(e) => handleNameChange(e.target.value)}
+                    onChange={(
+                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                    ) => handleNameChange(e.target.value)}
                     placeholder={`e.g. ${tpl?.label ?? 'My Agent'}`}
                     className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
                   />
@@ -333,7 +335,9 @@ export default function NewAgentPage() {
                     id="agent-desc"
                     type="text"
                     value={description}
-                    onChange={(e) => dispatch({ type: 'SET_DESCRIPTION', value: e.target.value })}
+                    onChange={(
+                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                    ) => dispatch({ type: 'SET_DESCRIPTION', value: e.target.value })}
                     placeholder={tpl?.description ?? 'What does this agent do?'}
                     className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
                   />
@@ -351,7 +355,9 @@ export default function NewAgentPage() {
                     id="agent-prompt"
                     rows={6}
                     value={systemPrompt}
-                    onChange={(e) => dispatch({ type: 'SET_SYSTEM_PROMPT', value: e.target.value })}
+                    onChange={(
+                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                    ) => dispatch({ type: 'SET_SYSTEM_PROMPT', value: e.target.value })}
                     placeholder="Describe the agent's role, personality, and constraints..."
                     className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none resize-none"
                   />

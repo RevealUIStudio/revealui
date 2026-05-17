@@ -20,7 +20,7 @@ vi.mock('@revealui/db/client', () => ({
   getClient: vi.fn(),
 }));
 
-vi.mock('drizzle-orm', async (importOriginal) => {
+vi.mock('drizzle-orm', async (importOriginal: <T>() => Promise<T>) => {
   const actual = await importOriginal<typeof import('drizzle-orm')>();
   return actual;
 });

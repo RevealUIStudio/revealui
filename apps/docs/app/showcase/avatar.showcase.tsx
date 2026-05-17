@@ -14,7 +14,7 @@ const story: ShowcaseStory = {
     alt: { type: 'text', default: 'User avatar' },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Avatar
       initials={props.initials as string}
       square={props.square as boolean}
@@ -58,7 +58,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
     if (props.initials) attrs.push(`initials="${props.initials}"`);
     if (props.square) attrs.push('square');

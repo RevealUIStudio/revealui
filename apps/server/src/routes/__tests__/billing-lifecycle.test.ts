@@ -204,10 +204,10 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
-  desc: vi.fn((_col) => `desc(${String(_col)})`),
-  isNull: vi.fn((_col) => `isNull(${String(_col)})`),
+  desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
+  isNull: vi.fn((_col: unknown) => `isNull(${String(_col)})`),
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
@@ -545,7 +545,7 @@ describe('Billing lifecycle integration', () => {
       expect(mockDb.update).toHaveBeenCalled();
       const updateCalls = mockDbUpdateChain.set.mock.calls;
       const hasActiveUpdate = updateCalls.some(
-        (call) => (call[0] as Record<string, unknown>).status === 'active',
+        (call: unknown[]) => (call[0] as Record<string, unknown>).status === 'active',
       );
       expect(hasActiveUpdate).toBe(true);
 
@@ -780,7 +780,7 @@ describe('Billing lifecycle integration', () => {
       // subscriptions.update is called once for license key metadata (from checkout flow),
       // but NOT called with pending_change metadata clearing
       const pendingChangeCalls = mockSubscriptionsUpdate.mock.calls.filter(
-        (call) =>
+        (call: unknown[]) =>
           (call[1] as Record<string, Record<string, string>>)?.metadata?.pending_change === '',
       );
       expect(pendingChangeCalls).toHaveLength(0);

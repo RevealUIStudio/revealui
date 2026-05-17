@@ -20,7 +20,7 @@ const story: ShowcaseStory = {
     disabled: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <div className="w-64">
       <Listbox
         placeholder={props.placeholder as string}
@@ -67,7 +67,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<Listbox placeholder="${props.placeholder}"${props.disabled ? ' disabled' : ''}>
   <ListboxOption value="active">
     <ListboxLabel>Active</ListboxLabel>

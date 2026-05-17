@@ -40,7 +40,7 @@ const story: ShowcaseStory = {
     disabled: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Switch
       color={props.color as (typeof COLORS)[number]}
       defaultChecked={props.defaultChecked as boolean}
@@ -91,7 +91,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
     if (props.color !== 'dark/zinc') attrs.push(`color="${props.color}"`);
     if (props.defaultChecked) attrs.push('defaultChecked');

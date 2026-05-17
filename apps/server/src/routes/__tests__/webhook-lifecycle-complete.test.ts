@@ -208,12 +208,12 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
   or: vi.fn((...args: unknown[]) => `or(${args.join(',')})`),
-  desc: vi.fn((_col) => `desc(${String(_col)})`),
-  isNull: vi.fn((_col) => `isNull(${String(_col)})`),
-  ne: vi.fn((_col, _val) => `ne(${String(_col)},${String(_val)})`),
+  desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
+  isNull: vi.fn((_col: unknown) => `isNull(${String(_col)})`),
+  ne: vi.fn((_col: unknown, _val: unknown) => `ne(${String(_col)},${String(_val)})`),
 }));
 
 // Email mocks  -  track which email functions are called

@@ -13,7 +13,7 @@ const story: ShowcaseStory = {
     showCopy: { type: 'boolean', default: true },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <CodeBlock
       code={`import { Button } from '@revealui/presentation/server';
 
@@ -47,7 +47,7 @@ export function App() {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<CodeBlock
   code="const x = 1;"
   language="${props.language}"${props.filename ? `\n  filename="${props.filename}"` : ''}${!props.showCopy ? '\n  showCopy={false}' : ''}

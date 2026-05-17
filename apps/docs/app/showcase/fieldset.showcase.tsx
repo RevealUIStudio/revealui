@@ -21,7 +21,7 @@ const story: ShowcaseStory = {
     disabled: { type: 'boolean', default: false },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Fieldset disabled={props.disabled as boolean}>
       <Legend>Account Details</Legend>
       <FieldGroup>
@@ -56,7 +56,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) =>
+  code: (props: Record<string, unknown>) =>
     `<Fieldset${props.disabled ? ' disabled' : ''}>
   <Legend>Account Details</Legend>
   <FieldGroup>

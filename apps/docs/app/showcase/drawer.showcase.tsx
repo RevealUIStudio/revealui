@@ -46,7 +46,7 @@ const story: ShowcaseStory = {
     },
   },
 
-  render: (props) => <DrawerDemo {...props} />,
+  render: (props: Record<string, unknown>) => <DrawerDemo {...props} />,
 
   examples: [
     {
@@ -81,7 +81,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const side = props.side !== 'right' ? ` side="${props.side}"` : '';
     return `<Drawer open={open} onClose={() => setOpen(false)}${side}>
   <DrawerHeader onClose={() => setOpen(false)}>Title</DrawerHeader>

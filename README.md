@@ -139,7 +139,6 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | `admin`      | Next.js 16       | Admin dashboard + content management         |
 | `docs`       | Vite + React     | Documentation site                           |
 | `marketing`  | Vite + React     | Marketing site (revealui.com)                |
-| `revealcoin` | Vite + React     | RevealCoin token dashboard                   |
 
 The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/agency](https://github.com/RevealUIStudio/agency) — separate repo, consumes `@revealui/{router,presentation,core,contracts}` via npm.
 
@@ -256,8 +255,7 @@ revealui/
 │   ├── server/     # Hono REST API (port 3004)
 │   ├── admin/      # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
-│   ├── marketing/  # revealui.com marketing site (port 3000)
-│   └── revealcoin/ # RevealCoin token dashboard (port 3005)
+│   └── marketing/  # revealui.com marketing site (port 3000)
 ├── packages/       # 25 OSS + 2 Pro packages
 ├── docs/           # guides + reference
 └── scripts/        # CI gates, release tooling, dev tools

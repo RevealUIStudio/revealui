@@ -24,7 +24,7 @@ const story: ShowcaseStory = {
     children: { type: 'text', default: 'Click me' },
   },
 
-  render: (props) => (
+  render: (props: Record<string, unknown>) => (
     <Button
       variant={props.variant as 'default'}
       size={props.size as 'default'}
@@ -71,7 +71,7 @@ const story: ShowcaseStory = {
     },
   ],
 
-  code: (props) => {
+  code: (props: Record<string, unknown>) => {
     const attrs: string[] = [];
     if (props.variant !== 'default') attrs.push(`variant="${props.variant}"`);
     if (props.size !== 'default') attrs.push(`size="${props.size}"`);

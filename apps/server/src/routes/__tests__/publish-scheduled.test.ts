@@ -10,7 +10,7 @@ vi.mock('@revealui/db/client', () => ({
 }));
 
 // drizzle-orm operators are used directly in the route; stub them to pass-through
-vi.mock('drizzle-orm', async (importOriginal) => {
+vi.mock('drizzle-orm', async (importOriginal: <T>() => Promise<T>) => {
   const actual = await importOriginal<typeof import('drizzle-orm')>();
   return actual;
 });

@@ -2,7 +2,7 @@
 
 const SAVED_FEEDBACK_MS = 2_000;
 
-import { useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { apiFetch } from '@/lib/utils/csrf';
 
@@ -151,7 +151,9 @@ export default function ApiKeysPage() {
                 <select
                   id="provider-select"
                   value={provider}
-                  onChange={(e) => setProvider(e.target.value as Provider)}
+                  onChange={(
+                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                  ) => setProvider(e.target.value as Provider)}
                   className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 focus:border-zinc-500 focus:outline-none"
                 >
                   {PROVIDERS.map((p) => (
@@ -185,7 +187,9 @@ export default function ApiKeysPage() {
                     id="api-key-input"
                     type={showKey ? 'text' : 'password'}
                     value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
+                    onChange={(
+                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                    ) => setApiKey(e.target.value)}
                     placeholder={activeProviderInfo?.placeholder ?? ''}
                     className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 pr-16 text-sm text-zinc-100 placeholder-zinc-600 focus:border-zinc-500 focus:outline-none font-mono"
                   />

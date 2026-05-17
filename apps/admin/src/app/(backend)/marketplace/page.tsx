@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -117,14 +117,18 @@ export default function MarketplacePage() {
               type="text"
               placeholder="Search agents..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => setSearch(e.target.value)}
               className="flex-1 rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white placeholder:text-zinc-500 focus:border-zinc-500 focus:outline-none"
             />
 
             {/* Category filter */}
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => setCategory(e.target.value)}
               className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
             >
               {CATEGORIES.map((cat) => (
@@ -137,7 +141,9 @@ export default function MarketplacePage() {
             {/* Sort */}
             <select
               value={sort}
-              onChange={(e) => setSort(e.target.value as SortOption)}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => setSort(e.target.value as SortOption)}
               className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
             >
               <option value="rating">Highest Rated</option>

@@ -112,7 +112,7 @@ vi.mock('../../middleware/license.js', () => ({
 }));
 
 // Contracts  -  real Zod schemas replaced with pass-through mocks
-vi.mock('@revealui/contracts', async (importOriginal) => {
+vi.mock('@revealui/contracts', async (importOriginal: <T>() => Promise<T>) => {
   const actual = await importOriginal<typeof import('@revealui/contracts')>();
   return {
     ...actual,
@@ -162,7 +162,7 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────

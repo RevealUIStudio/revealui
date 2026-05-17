@@ -30,8 +30,8 @@ note: public snapshot — canonical version at revealui-jv/docs/MASTER_PLAN.md (
 
 - **Codebase:** ~270,000 lines of TypeScript/Rust/Go across apps + packages
 - **History:** 2,400+ commits (Dec 30, 2025 – May 2026), solo developer
-- **Apps:** 5 (server, admin, docs, marketing, revealcoin) — `apps/api` was renamed to `apps/server` in CHIP-4 (revealui#649, 2026-04-28); `marketing` migrated from Next.js to Vite (2026-04-28); the agency site (revealuistudio.com) extracted into a separate repo (2026-04-29)
-- **Packages:** 26 packages + 5 apps = 31 workspaces
+- **Apps:** 4 (server, admin, docs, marketing) — `apps/api` was renamed to `apps/server` in CHIP-4 (revealui#649, 2026-04-28); `marketing` migrated from Next.js to Vite (2026-04-28); the agency site (revealuistudio.com) extracted into a separate repo (2026-04-29); the revealcoin dashboard relocated to RevealUIStudio/revealcoin `apps/dashboard/` (2026-05-17)
+- **Packages:** 26 packages + 4 apps = 30 workspaces
 - **Tests:** extensive test suite across unit, integration, and E2E layers; all workspaces build and typecheck (run `pnpm test` for current count)
 - **Database:** 86 tables (Drizzle ORM on **Neon** — primary). Supabase phase-out is in flight: GAP-129 PR-A/B/D shipped (2026-05-01); PR-C (dual-DB client collapse) is the remaining work. RAG tables (`ragDocuments`, `ragChunks`) and the legacy Supabase MCP server adapter remain in-tree during the transition. 61 CHECK constraints enforced (migration 0001 applied 2026-04-15).
 - **UI Components:** 59 native components (Tailwind v4, zero external UI deps)
