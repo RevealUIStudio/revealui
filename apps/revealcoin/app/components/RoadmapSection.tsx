@@ -1,4 +1,4 @@
-type MilestoneStatus = 'current' | 'upcoming' | 'complete';
+type MilestoneStatus = 'complete' | 'shelved';
 
 interface Milestone {
   phase: string;
@@ -10,58 +10,33 @@ interface Milestone {
 const milestones: Milestone[] = [
   {
     phase: 'Phase 0',
-    title: 'Foundation',
-    status: 'current',
+    title: 'On-chain artifact (deployed)',
+    status: 'complete',
     items: [
-      'Token-2022 mint deployed',
-      'Allocations defined + custody-enforced vesting',
-      'Metadata on Arweave',
-      'On-chain vesting migration (in design)',
-      'Multi-sig on mint authority (pending)',
+      'Token-2022 mint deployed on Solana mainnet-beta',
+      'Allocations distributed to custody accounts (no claims executed)',
+      'Metadata pinned on Arweave',
+      'Freeze authority permanently renounced',
     ],
   },
   {
-    phase: 'Phase 1',
-    title: 'Public Distribution',
-    status: 'upcoming',
+    phase: 'Phase 1+',
+    title: 'All further phases — shelved',
+    status: 'shelved',
     items: [
-      'Gated on: on-chain vesting + multi-sig complete',
-      'Initial liquidity seeding',
-      'Community channels + public communication',
-    ],
-  },
-  {
-    phase: 'Phase 2',
-    title: 'Liquidity & Trading',
-    status: 'upcoming',
-    items: ['Raydium CPMM pool creation', 'Jupiter aggregator listing', 'Price oracle (TWAP)'],
-  },
-  {
-    phase: 'Phase 3',
-    title: 'Marketplace Integration',
-    status: 'upcoming',
-    items: [
-      'RVC payments in RevealUI marketplace',
-      'x402 micropayment protocol',
-      'Creator earnings in RVC',
-    ],
-  },
-  {
-    phase: 'Phase 4',
-    title: 'Governance',
-    status: 'upcoming',
-    items: [
-      'Proposal creation & voting',
-      'Treasury spend visibility',
-      'Multi-sig authority transfer',
+      'Multi-sig migration: scripted but not executed; deferred until revenue allows hardware-wallet operational security',
+      'Public distribution: not planned by RevealUI Studio',
+      'Raydium pool seeding / DEX listing: not planned by RevealUI Studio',
+      'Marketplace RVC payments: not planned in the current scope',
+      'Governance / treasury votes: not planned in the current scope',
+      'Re-activation of any item above requires explicit owner approval, revenue runway, and legal review',
     ],
   },
 ];
 
 const statusStyles = {
   complete: 'bg-emerald-500',
-  current: 'bg-violet-500 animate-pulse',
-  upcoming: 'bg-gray-300',
+  shelved: 'bg-zinc-400',
 };
 
 export function RoadmapSection() {
@@ -69,9 +44,9 @@ export function RoadmapSection() {
     <section className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-violet-600">Roadmap</p>
+          <p className="text-sm font-semibold uppercase tracking-widest text-zinc-600">Status</p>
           <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-            Building in the open
+            What's deployed, what's shelved
           </h2>
         </div>
 

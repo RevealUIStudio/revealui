@@ -5,6 +5,10 @@
 
 ---
 
+> **Document status (2026-05-15): shelved engineering reference.** RVC is deployed on Solana mainnet-beta as an on-chain artifact, but RevealUI Studio is not pursuing the launch, distribution, or trading plans described in this paper. No public sale, no Raydium pool seeding, no vesting claims have been or will be executed by RevealUI Studio. Re-activation of any of the sections that describe forward-looking plans requires explicit owner approval, revenue runway, and legal review — see the [README's shelved-state notice](https://github.com/RevealUIStudio/revealcoin#status-shelved-engineering-artifact-read-first) and the [2026-05-15 shelved-pending-revenue ADR](https://github.com/RevealUIStudio/revealcoin/blob/main/docs/decisions/2026-05-15-shelved-pending-revenue.md). The technical sections (token spec, on-chain artifact references, supply arithmetic) remain accurate as published.
+
+---
+
 ## Abstract
 
 RevealCoin (RVC) is a Solana-based digital token built on the Token-2022 (Token Extensions) program, designed to serve as the native economic layer of the RevealUI ecosystem. RevealUI is a complete business infrastructure platform for software companies  -  providing users, content, products, payments, and AI as composable primitives. RVC unifies three functions within this ecosystem: **utility** (payment for platform services), **governance** (community-driven decision-making), and **rewards** (incentives for contributors and early adopters).
@@ -686,29 +690,11 @@ All allocation wallets are publicly verifiable on Solana Explorer. Balances matc
 | Liquidity Provision | `DzV9wrMaLwWX2bqEuiU9io8btwkSkVY4N8izqt3xBBjv` | 6-mo lockup + 12-mo gradual |
 | Ecosystem Rewards | `9sAQqmaCta7nfwiXHPFQZi5iq1PHQskaf6YwAxp8gHmb` | Front-loaded over 5 years |
 
-### E. Liquidity Pool Plan
+### E. Liquidity Pool — shelved
 
-| Parameter | Value |
-|-----------|-------|
-| DEX | Raydium CPMM |
-| Pool pair | RVC / SOL |
-| Pool seed (RVC) | 589,060,000 RVC (10% of Liquidity Provision allocation) |
-| Pool seed (SOL) | ~1.77 SOL |
-| Initial price | 0.000000003 SOL/RVC (~$0.000000405 USD) |
-| FDV at launch | ~$23,900 USD |
-| Remaining liquidity | 5,301,540,000 RVC (locked in vesting custody) |
+RevealUI Studio has not seeded any liquidity pool for RVC and does not plan to. The Liquidity Provision allocation remains in its custody account (`DzV9wrMaLwWX2bqEuiU9io8btwkSkVY4N8izqt3xBBjv`) with no claims executed. Any $RVC pool, sale, or distribution event on any DEX is not affiliated with RevealUI Studio.
 
-#### Pricing Rationale
-
-The initial price was chosen to balance affordability, credibility, and accessibility:
-
-- **Founder-affordable**: ~$240 USD in SOL required for the pool's SOL side
-- **Credible micro-cap FDV**: ~$24K signals genuine early-stage, not an abandoned token
-- **Early supporter friendly**: 0.1 SOL (~$13.50) buys ~33M RVC  -  a meaningful position
-- **Room for organic price discovery**: low starting point lets the market find fair value as RevealUI launches
-- **Manageable slippage**: a 0.1 SOL trade moves price ~6%, acceptable for initial liquidity depth
-
-The remaining 90% of the Liquidity Provision allocation stays locked in vesting custody (6-month lockup + 12-month gradual release) and can be used to deepen liquidity over time.
+Re-activation of any pool-seeding step requires explicit owner approval and is gated on revenue + legal review per the [2026-05-15 shelved-pending-revenue ADR](https://github.com/RevealUIStudio/revealcoin/blob/main/docs/decisions/2026-05-15-shelved-pending-revenue.md).
 
 ### F. Supply Arithmetic
 
