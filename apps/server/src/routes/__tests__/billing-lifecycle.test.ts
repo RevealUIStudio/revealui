@@ -545,7 +545,7 @@ describe('Billing lifecycle integration', () => {
       expect(mockDb.update).toHaveBeenCalled();
       const updateCalls = mockDbUpdateChain.set.mock.calls;
       const hasActiveUpdate = updateCalls.some(
-        (call) => (call[0] as Record<string, unknown>).status === 'active',
+        (call: unknown[]) => (call[0] as Record<string, unknown>).status === 'active',
       );
       expect(hasActiveUpdate).toBe(true);
 
@@ -780,7 +780,7 @@ describe('Billing lifecycle integration', () => {
       // subscriptions.update is called once for license key metadata (from checkout flow),
       // but NOT called with pending_change metadata clearing
       const pendingChangeCalls = mockSubscriptionsUpdate.mock.calls.filter(
-        (call) =>
+        (call: unknown[]) =>
           (call[1] as Record<string, Record<string, string>>)?.metadata?.pending_change === '',
       );
       expect(pendingChangeCalls).toHaveLength(0);
