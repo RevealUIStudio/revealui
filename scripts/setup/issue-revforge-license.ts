@@ -3,12 +3,12 @@
  * Issue a per-customer RevForge license JWT.
  *
  * Thin CLI wrapper around `@revealui/core/revforge-license`. Reads the studio's
- * RSA keypair from REVEALUI_LICENSE_PRIVATE_KEY / REVEALUI_LICENSE_PUBLIC_KEY,
+ * Ed25519 keypair from REVEALUI_LICENSE_PRIVATE_KEY / REVEALUI_LICENSE_PUBLIC_KEY,
  * parses argv, prints the signed JWT (or full JSON metadata with --json).
  *
  * Required env (source from revvault):
- *   REVEALUI_LICENSE_PRIVATE_KEY   RS256 PEM
- *   REVEALUI_LICENSE_PUBLIC_KEY    RS256 PEM
+ *   REVEALUI_LICENSE_PRIVATE_KEY   Ed25519 PEM
+ *   REVEALUI_LICENSE_PUBLIC_KEY    Ed25519 PEM
  *
  * Usage:
  *   revvault export-env -- pnpm tsx scripts/setup/issue-revforge-license.ts \
@@ -121,8 +121,8 @@ Options:
   -h, --help                Show this help.
 
 Required env (source from revvault):
-  REVEALUI_LICENSE_PRIVATE_KEY  RS256 private key (PEM, may be \\n-encoded).
-  REVEALUI_LICENSE_PUBLIC_KEY   RS256 public key (PEM, may be \\n-encoded).
+  REVEALUI_LICENSE_PRIVATE_KEY  Ed25519 private key (PEM, may be \\n-encoded).
+  REVEALUI_LICENSE_PUBLIC_KEY   Ed25519 public key (PEM, may be \\n-encoded).
 
 Examples:
   # 30-day trial license for Allevia
