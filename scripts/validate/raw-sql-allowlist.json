@@ -85,6 +85,12 @@
       "rules": ["direct-import"],
       "reason": "KEK rotation operational tool (GAP-126 Phase 2). One-off script that performs simple SELECT/UPDATE on the two KEK-encrypted columns (user_api_keys.encrypted_key + users.mfa_secret). Uses raw pg.Pool instead of @revealui/db/client to keep the rotation tool isolated from production DB-client lifecycle (singleton pools, retry policies, observability hooks). Operator-invoked; 2 surfaces, ~3 SQL ops total. Permanent.",
       "migrationPhase": null
+    },
+    {
+      "path": "scripts/setup/backfill-tos-pre-458-bootstrap.ts",
+      "rules": ["direct-import"],
+      "reason": "CR-8 one-shot TOS backfill script (closes #460). Uses pg.Pool directly — same rationale as rotate-kek.ts: operational script that must remain isolated from @revealui/db's singleton pool, retry, and observability lifecycle. The script runs once by the founder, not in the application request path. Permanent.",
+      "migrationPhase": null
     }
   ]
 }

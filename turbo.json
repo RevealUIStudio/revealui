@@ -70,6 +70,9 @@
       "inputs": [
         "src/**/*.ts",
         "src/**/*.tsx",
+        "app/**/*.ts",
+        "app/**/*.tsx",
+        "app/**/*.d.ts",
         "tsconfig.json",
         "tsconfig.*.json",
         "package.json",
