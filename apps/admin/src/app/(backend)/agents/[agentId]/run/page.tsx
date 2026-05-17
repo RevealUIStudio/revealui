@@ -16,7 +16,7 @@
 
 import { Breadcrumb } from '@revealui/presentation/client';
 import Link from 'next/link';
-import { use, useState } from 'react';
+import { type ChangeEvent, use, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 import { ElicitationForm, type ElicitationSchema } from '@/lib/components/mcp/elicitation-form';
 import { type AgentStreamChunk, useAgentStream } from '@/lib/hooks/useAgentStream';
@@ -75,7 +75,9 @@ export default function AgentRunPage({ params }: PageProps) {
           <textarea
             id="instruction"
             value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
+            onChange={(
+              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+            ) => setInstruction(e.target.value)}
             disabled={stream.isStreaming}
             rows={4}
             placeholder="What would you like the agent to do?"
@@ -86,7 +88,9 @@ export default function AgentRunPage({ params }: PageProps) {
               <span>Mode</span>
               <select
                 value={mode}
-                onChange={(e) => setMode(e.target.value as 'admin' | 'coding')}
+                onChange={(
+                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                ) => setMode(e.target.value as 'admin' | 'coding')}
                 disabled={stream.isStreaming}
                 className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1 text-xs text-white focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
               >
