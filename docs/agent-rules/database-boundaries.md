@@ -51,13 +51,20 @@ const db = getRestClient()
 const results = await db.select().from(posts).where(eq(posts.status, 'published'))
 ```
 
-### Supabase (vector/auth only)
+### Vector queries (pgvector on NeonDB)
 ```ts
-// Only in designated modules (packages/db/src/vector/, packages/ai/src/)
-import { getVectorClient } from '@revealui/db'
+// Vector ops run on the same NeonDB client as REST after Supabase removal
+// (see docs/decisions/2026-05-01-supabase-removal.md)
+import { getRestClient } from '@revealui/db'
+import { agentMemories } from '@revealui/db/schema/vector'
+import { sql } from 'drizzle-orm'
 
-const supabase = getVectorClient()
-const { data } = await supabase.rpc('match_documents', { query_embedding: embedding })
+const db = getRestClient()
+const matches = await db
+  .select()
+  .from(agentMemories)
+  .orderBy(sql`embedding <-> ${queryEmbedding}::vector`)
+  .limit(10)
 ```
 
 ## Enforcement

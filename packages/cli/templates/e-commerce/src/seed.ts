@@ -49,6 +49,21 @@ async function seed(): Promise<void> {
 
   for (const product of products) {
     try {
+      // Idempotency: skip if a product with this slug already exists. Lets
+      // users re-run `pnpm db:seed` after a failed first attempt without
+      // duplicating rows or tripping UNIQUE constraints.
+      const existing = await fetch(
+        `${API_URL}/api/products?where[slug][equals]=${encodeURIComponent(product.slug)}`,
+      );
+      if (existing.ok) {
+        const json = (await existing.json()) as { docs?: unknown[] } | unknown[];
+        const docs = Array.isArray(json) ? json : (json.docs ?? []);
+        if (docs.length > 0) {
+          log(`  Exists (skipped): ${product.name}`);
+          continue;
+        }
+      }
+
       const res = await fetch(`${API_URL}/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -57,6 +72,8 @@ async function seed(): Promise<void> {
 
       if (res.ok) {
         log(`  Created: ${product.name}`);
+      } else if (res.status === 409) {
+        log(`  Exists (409 conflict): ${product.name}`);
       } else {
         const error = await res.text();
         logErr(`  Failed to create "${product.name}": ${error}`);

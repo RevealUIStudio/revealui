@@ -334,11 +334,11 @@ export * from "./agents/vector-memories"; // Vector data only
 
 ```typescript
 // packages/ai/src/memory/vector-memory.ts
-import { getVectorClient } from "@revealui/db/client";
+import { getRestClient } from "@revealui/db/client";
 import { agentMemories } from "@revealui/db/schema/vector";
 
 export class VectorMemoryService {
-  private db = getVectorClient(); // Supabase
+  private db = getRestClient();
 
   async searchSimilar(
     queryEmbedding: number[],
@@ -497,13 +497,9 @@ export function getClient(type: DatabaseType = "rest"): Database {
   return restClient;
 }
 
-// Explicit helpers
+// Explicit helper
 export function getRestClient(): Database {
   return getClient("rest");
-}
-
-export function getVectorClient(): Database {
-  return getClient("vector");
 }
 ```
 
@@ -514,9 +510,8 @@ export function getVectorClient(): Database {
 const db = getRestClient();
 const users = await db.query.users.findMany();
 
-// Vector operations
-const vectorDb = getVectorClient();
-const memories = await vectorDb
+// Vector operations run on the same NeonDB client (pgvector extension)
+const memories = await db
   .select()
   .from(agentMemories)
   .orderBy(sql`embedding <-> ${queryEmbedding}::vector`);
@@ -826,13 +821,13 @@ Frontend → Generated Types → API Route → Contract Validation → Type Adap
 ```typescript
 // Server: apps/admin/src/app/api/chat/route.ts
 import { streamText, convertToModelMessages } from 'ai'
-import { getVectorClient } from '@revealui/db/client'
+import { getRestClient } from '@revealui/db/client'
 
 export async function POST(request: NextRequest) {
   const { messages } = await request.json()
 
-  // 1. Search relevant memories from Supabase
-  const vectorDb = getVectorClient()
+  // 1. Search relevant memories via pgvector on NeonDB
+  const vectorDb = getRestClient()
   const queryEmbedding = await generateEmbedding(messages[messages.length - 1].content)
   const relevantMemories = await vectorDb
     .select()
@@ -905,8 +900,8 @@ export async function POST(request: NextRequest) {
 
   switch (procedure) {
     case "memory.search": {
-      // Use Supabase vector search
-      const vectorDb = getVectorClient();
+      // Vector search via pgvector on NeonDB
+      const vectorDb = getRestClient();
       const memories = await vectorDb
         .select()
         .from(agentMemories)
@@ -1370,10 +1365,10 @@ test("user service uses NeonDB", async () => {
   // Mock NeonDB, verify POSTGRES_URL used
 });
 
-// Test vector operations use Supabase
-test("vector memory service uses Supabase", async () => {
-  const db = getVectorClient();
-  // Mock Supabase, verify DATABASE_URL used
+// Test vector operations use NeonDB
+test("vector memory service uses NeonDB", async () => {
+  const db = getRestClient();
+  // Mock NeonDB, verify POSTGRES_URL used
 });
 ```
 
@@ -1466,11 +1461,10 @@ Always use the appropriate database client:
 
 ```typescript
 // ✅ GOOD
-const restDb = getRestClient(); // For REST/relational data
-const vectorDb = getVectorClient(); // For vector operations
+const db = getRestClient(); // REST + vector queries share a single NeonDB client
 
 // ❌ BAD
-// Using wrong database for operation
+// Routing queries through ad-hoc connection strings instead of the shared client
 ```
 
 ### 4. Validate with Contracts
@@ -1585,8 +1579,8 @@ agent_memories      -- Long-term memory with embeddings
 
 **Issue:** Vector search not working
 
-- **Solution:** Verify Supabase connection and pgvector extension
-- **Check:** `getVectorClient()` returns correct database
+- **Solution:** Verify NeonDB connection and pgvector extension
+- **Check:** `getRestClient()` returns correct database
 
 **Issue:** ElectricSQL sync not working
 

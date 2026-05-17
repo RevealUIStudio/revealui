@@ -79,7 +79,7 @@ All gates must pass on the `main` branch before deploy.
 ### External Services
 
 - [ ] NeonDB production database provisioned and accessible **(blocking)**
-- [ ] Supabase project provisioned (vectors, auth) **(blocking)**
+- [ ] pgvector extension enabled on NeonDB (`CREATE EXTENSION IF NOT EXISTS vector`) **(blocking)**
 - [ ] ElectricSQL sync proxy running and connected to NeonDB **(blocking)**
 - [ ] Vercel Blob Storage configured (`BLOB_READ_WRITE_TOKEN`) **(blocking)**
 
@@ -93,10 +93,9 @@ All gates must pass on the `main` branch before deploy.
 - [ ] `pnpm db:seed` populates required initial data (admin user, default site) **(blocking)**
 - [ ] Indexes verified for high-traffic queries **(blocking)**
 - [ ] `circuit_breaker_state` table exists (Stripe resilience) **(blocking)**
-- [ ] Supabase vector tables provisioned and accessible **(blocking)**
+- [ ] `agent_memories` and `rag_chunks` tables exist with pgvector columns **(blocking)**
 - [ ] Database connection pooling configured for production load **(advisory)**
-- [ ] Backup schedule confirmed for NeonDB and Supabase **(advisory)**
-- [ ] Cross-DB cleanup tested: `@revealui/db/cleanup` for orphaned Supabase data **(advisory)**
+- [ ] Backup schedule confirmed for NeonDB **(advisory)**
 
 ---
 
@@ -120,8 +119,9 @@ Refer to `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for the full reference.
 
 - [ ] `REVEALUI_ADMIN_EMAIL` and `REVEALUI_ADMIN_PASSWORD` set for initial admin **(advisory)**
 - [ ] `REVEALUI_CORS_ORIGINS` configured for production domains **(blocking)**
-- [ ] Supabase variables set: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_DATABASE_URI` **(blocking)**
+- [ ] Neon connection verified: `POSTGRES_URL` set and database reachable **(blocking)**
 - [ ] ElectricSQL variables set: `NEXT_PUBLIC_ELECTRIC_SERVICE_URL`, `ELECTRIC_SERVICE_URL` **(blocking)**
+- [ ] ElectricSQL service reachable (liveness probe) **(blocking)**
 - [ ] Sentry variables set: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` **(advisory)**
 
 ### Validation
@@ -300,7 +300,7 @@ Document and test the rollback procedure before launch.
 
 - [ ] NeonDB point-in-time restore tested **(blocking)**
 - [ ] Migration rollback scripts exist for the latest migration **(advisory)**
-- [ ] Supabase backup restore procedure documented **(advisory)**
+- [ ] NeonDB backup restore procedure documented **(advisory)**
 
 ### npm Rollback
 

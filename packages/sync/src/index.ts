@@ -85,5 +85,12 @@ export type {
   UseSharedMemoriesResult,
 } from './hooks/useSharedMemories.js';
 export { useSharedMemories } from './hooks/useSharedMemories.js';
+export type {
+  CreateTaskSubmissionInput,
+  TaskSubmissionRecord,
+  UpdateTaskSubmissionInput,
+  UseTaskSubmissionsResult,
+} from './hooks/useTaskSubmissions.js';
+export { useTaskSubmissions } from './hooks/useTaskSubmissions.js';
 export type { MutationResult } from './mutations.js';
 export { ElectricProvider, useElectricConfig } from './provider/index.js';

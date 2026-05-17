@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useReducer } from 'react';
+import type { CoordinationSessionRecord } from '@revealui/sync';
+import { useCoordinationSessions } from '@revealui/sync';
+import { useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -9,77 +11,16 @@ import { LicenseGate } from '@/lib/components/LicenseGate';
 
 type Scope = 'active' | 'all';
 
-interface SessionRow {
-  id: string;
-  agentId: string;
-  agentName: string | null;
-  env: string | null;
-  task: string;
-  status: 'active' | 'ended' | 'crashed';
-  pid: number | null;
-  startedAt: string;
-  endedAt: string | null;
-  lastSeen: string | null;
-  ageSeconds: number;
-  isStale: boolean;
-  tools: Record<string, number> | null;
+// Seven days in milliseconds — sessions older than this without an end are stale
+const STALE_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000;
+
+function ageSeconds(startedAt: string): number {
+  return Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
 }
 
-interface SessionsResponse {
-  success: true;
-  data: SessionRow[];
-  total: number;
-  limit: number;
-  offset: number;
-  timestamp: string;
-}
-
-interface State {
-  sessions: SessionRow[];
-  total: number;
-  scope: Scope;
-  expandedId: string | null;
-  loading: boolean;
-  error: string | null;
-  lastFetched: string | null;
-}
-
-type Action =
-  | { type: 'FETCH_START' }
-  | { type: 'FETCH_SUCCESS'; sessions: SessionRow[]; total: number; timestamp: string }
-  | { type: 'FETCH_ERROR'; error: string }
-  | { type: 'SET_SCOPE'; scope: Scope }
-  | { type: 'TOGGLE_EXPAND'; id: string };
-
-const initialState: State = {
-  sessions: [],
-  total: 0,
-  scope: 'active',
-  expandedId: null,
-  loading: true,
-  error: null,
-  lastFetched: null,
-};
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'FETCH_START':
-      return { ...state, loading: true, error: null };
-    case 'FETCH_SUCCESS':
-      return {
-        ...state,
-        loading: false,
-        sessions: action.sessions,
-        total: action.total,
-        lastFetched: action.timestamp,
-      };
-    case 'FETCH_ERROR':
-      return { ...state, loading: false, error: action.error };
-    case 'SET_SCOPE':
-      return { ...state, scope: action.scope, expandedId: null };
-    case 'TOGGLE_EXPAND':
-      return { ...state, expandedId: state.expandedId === action.id ? null : action.id };
-  }
+function isStaleSession(record: CoordinationSessionRecord): boolean {
+  if (record.status !== 'active') return false;
+  return Date.now() - new Date(record.started_at).getTime() > STALE_THRESHOLD_MS;
 }
 
 // =============================================================================
@@ -121,66 +62,15 @@ export default function CoordinationPage() {
 }
 
 function CoordinationDashboard() {
-  const [state, dispatch] = useReducer(reducer, initialState);
-  const { sessions, total, scope, expandedId, loading, error, lastFetched } = state;
+  const { sessions, isLoading, error } = useCoordinationSessions();
+  const [scope, setScope] = useState<Scope>('active');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const apiUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://api.revealui.com').trim();
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchSessions() {
-      dispatch({ type: 'FETCH_START' });
-      try {
-        const params = new URLSearchParams();
-        params.set('scope', scope);
-        params.set('limit', '100');
-
-        const res = await fetch(
-          `${apiUrl}/api/v1/admin/coordination/sessions?${params.toString()}`,
-          { credentials: 'include' },
-        );
-
-        if (!res.ok) {
-          const body = (await res.json().catch(() => null)) as { error?: string } | null;
-          throw new Error(body?.error ?? `Failed to load sessions (${res.status})`);
-        }
-
-        const body = (await res.json()) as SessionsResponse;
-        if (!cancelled) {
-          dispatch({
-            type: 'FETCH_SUCCESS',
-            sessions: body.data,
-            total: body.total,
-            timestamp: body.timestamp,
-          });
-        }
-      } catch (e) {
-        if (!cancelled) {
-          dispatch({
-            type: 'FETCH_ERROR',
-            error:
-              e instanceof Error
-                ? e.message
-                : 'Unable to load coordination sessions. Contact support@revealui.com if this persists.',
-          });
-        }
-      }
-    }
-
-    fetchSessions();
-    // 30s auto-refresh — coordination sessions update relatively slowly, daemon
-    // session.update writes are best-effort dual-writes from another machine.
-    const interval = setInterval(fetchSessions, 30_000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, [apiUrl, scope]);
+  const displayed = scope === 'active' ? sessions.filter((s) => s.status === 'active') : sessions;
 
   const activeCount = sessions.filter((s) => s.status === 'active').length;
-  const staleCount = sessions.filter((s) => s.isStale).length;
-  const uniqueAgents = new Set(sessions.map((s) => s.agentId)).size;
+  const staleCount = sessions.filter(isStaleSession).length;
+  const uniqueAgents = new Set(sessions.map((s) => s.agent_id)).size;
 
   return (
     <div className="min-h-screen">
@@ -205,9 +95,6 @@ function CoordinationDashboard() {
             value={staleCount}
             color={staleCount > 0 ? 'amber' : 'zinc'}
           />
-          <span className="ml-auto text-xs text-zinc-600">
-            {lastFetched ? `snapshot ${formatTimestamp(lastFetched)}` : ''}
-          </span>
         </div>
       </div>
 
@@ -218,7 +105,10 @@ function CoordinationDashboard() {
             <button
               key={s}
               type="button"
-              onClick={() => dispatch({ type: 'SET_SCOPE', scope: s })}
+              onClick={() => {
+                setScope(s);
+                setExpandedId(null);
+              }}
               className={`border-b-2 px-4 py-3 text-sm font-medium capitalize transition-colors ${
                 scope === s
                   ? 'border-white text-white'
@@ -226,7 +116,7 @@ function CoordinationDashboard() {
               }`}
             >
               {s === 'active' ? 'Active only' : 'All sessions'}
-              {s === 'active' && total > 0 ? ` (${total})` : ''}
+              {s === 'active' && activeCount > 0 ? ` (${activeCount})` : ''}
             </button>
           ))}
         </nav>
@@ -234,7 +124,7 @@ function CoordinationDashboard() {
 
       {/* Content */}
       <div className="p-6">
-        {loading && sessions.length === 0 ? (
+        {isLoading && sessions.length === 0 ? (
           <div className="flex flex-col gap-2" role="status" aria-label="Loading sessions">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
@@ -255,22 +145,25 @@ function CoordinationDashboard() {
             role="alert"
             className="rounded-lg border border-red-800 bg-red-900/20 p-4 text-sm text-red-400"
           >
-            {error}
+            {error.message}
           </div>
-        ) : sessions.length === 0 ? (
+        ) : displayed.length === 0 ? (
           <EmptyState scope={scope} />
         ) : (
           <>
             <div className="mb-3 text-xs text-zinc-500">
-              Showing {sessions.length} of {total} session{total === 1 ? '' : 's'}
+              Showing {displayed.length} of {sessions.length} session
+              {sessions.length === 1 ? '' : 's'}
             </div>
             <div className="flex flex-col gap-2">
-              {sessions.map((session) => (
+              {displayed.map((session) => (
                 <SessionRow
                   key={session.id}
                   session={session}
                   expanded={expandedId === session.id}
-                  onToggle={() => dispatch({ type: 'TOGGLE_EXPAND', id: session.id })}
+                  onToggle={() =>
+                    setExpandedId((prev) => (prev === session.id ? null : session.id))
+                  }
                 />
               ))}
             </div>
@@ -322,11 +215,12 @@ function SessionRow({
   expanded,
   onToggle,
 }: {
-  session: SessionRow;
+  session: CoordinationSessionRecord;
   expanded: boolean;
   onToggle: () => void;
 }) {
-  const displayName = session.agentName ?? session.agentId;
+  const age = ageSeconds(session.started_at);
+  const stale = isStaleSession(session);
 
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-800/40 transition-colors hover:border-zinc-700">
@@ -338,19 +232,14 @@ function SessionRow({
       >
         <div className="flex items-center gap-3">
           <StatusBadge status={session.status} />
-          <span className="truncate font-mono text-sm text-zinc-300">{displayName}</span>
-          {session.env && (
-            <span className="hidden shrink-0 rounded bg-zinc-800 px-1.5 py-0.5 text-[11px] text-zinc-500 sm:inline">
-              {session.env}
-            </span>
-          )}
+          <span className="truncate font-mono text-sm text-zinc-300">{session.agent_id}</span>
           <span className="ml-auto shrink-0 text-xs text-zinc-500">
             {truncate(session.task, 60)}
           </span>
           <span className="hidden shrink-0 font-mono text-xs text-zinc-600 sm:inline">
-            {formatAge(session.ageSeconds)}
+            {formatAge(age)}
           </span>
-          {session.isStale && (
+          {stale && (
             <span
               title="Session has not ended after 7+ days — likely a stale row"
               className="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400"
@@ -365,15 +254,13 @@ function SessionRow({
       {expanded && (
         <div className="border-t border-zinc-800 px-4 py-3">
           <div className="grid gap-4 text-sm lg:grid-cols-2">
-            <MetaField label="Session / Agent ID" value={session.id} mono />
-            <MetaField label="Agent Name" value={session.agentName ?? '—'} />
-            <MetaField label="Environment" value={session.env ?? '—'} />
+            <MetaField label="Session ID" value={session.id} mono />
+            <MetaField label="Agent ID" value={session.agent_id} mono />
             <MetaField label="Status" value={session.status} />
             <MetaField label="PID" value={session.pid?.toString() ?? '—'} />
-            <MetaField label="Age" value={formatAge(session.ageSeconds)} />
-            <MetaField label="Started" value={formatTimestamp(session.startedAt)} />
-            <MetaField label="Ended" value={formatTimestamp(session.endedAt)} />
-            <MetaField label="Last seen" value={formatTimestamp(session.lastSeen)} />
+            <MetaField label="Age" value={formatAge(age)} />
+            <MetaField label="Started" value={formatTimestamp(session.started_at)} />
+            <MetaField label="Ended" value={formatTimestamp(session.ended_at)} />
             <MetaField label="Task" value={session.task} />
 
             {session.tools && Object.keys(session.tools).length > 0 && (
@@ -425,7 +312,7 @@ function EmptyState({ scope }: { scope: Scope }) {
   const message =
     scope === 'active'
       ? 'No active coordination sessions. The daemon writes here when started with POSTGRES_URL set; sessions appear within seconds of session.register.'
-      : 'No coordination sessions in the last fetch window. Either no daemons have run with POSTGRES_URL set, or all sessions ended more than the listed limit ago.';
+      : 'No coordination sessions found. Either no daemons have run with POSTGRES_URL set, or all sessions have ended.';
 
   return (
     <div className="flex flex-col items-center py-16">

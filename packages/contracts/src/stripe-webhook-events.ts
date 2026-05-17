@@ -36,6 +36,7 @@ export const RELEVANT_STRIPE_WEBHOOK_EVENTS = [
 
   // Customer lifecycle
   'customer.deleted',
+  'customer.updated',
 
   // Subscription lifecycle
   'customer.subscription.created',
@@ -67,4 +68,4 @@ export type RelevantStripeWebhookEvent = (typeof RELEVANT_STRIPE_WEBHOOK_EVENTS)
  * Expected event count — acts as a coarse drift detector for reviewers.
  * If you're adjusting the array above, update this too.
  */
-export const RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT = 14;
+export const RELEVANT_STRIPE_WEBHOOK_EVENT_COUNT = 15;

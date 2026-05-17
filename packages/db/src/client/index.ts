@@ -6,8 +6,8 @@
  * Uses node-postgres (pg Pool) with drizzle-orm/node-postgres for localhost / 127.0.0.1
  * connections (development and test environments).
  *
- * The 'vector' database type is a deprecated alias for 'rest' following Supabase removal
- * per docs/decisions/2026-05-01-supabase-removal.md (GAP-129 PR-C). See getVectorClient().
+ * The 'vector' database type resolves to the same single client as 'rest' following Supabase
+ * removal per docs/decisions/2026-05-01-supabase-removal.md (GAP-129 PR-C).
  *
  * Connection String Format:
  * - NeonDB: postgresql://...@neon.tech/...
@@ -317,22 +317,6 @@ function getClientByType(type: DatabaseType): Database {
  * ```
  */
 export function getRestClient(): Database {
-  return getClient('rest');
-}
-
-/**
- * @deprecated Use getClient('rest') or getRestClient().
- * The 'vector' database type is collapsed in the Supabase removal (GAP-129 PR-C).
- * This alias will be removed after 1-2 release cycles.
- *
- * @example
- * ```typescript
- * // Preferred replacement
- * import { getRestClient } from '@revealui/db/client'
- * const db = getRestClient()
- * ```
- */
-export function getVectorClient(): Database {
   return getClient('rest');
 }
 

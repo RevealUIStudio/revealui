@@ -29,6 +29,8 @@ import {
   type Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { logger } from '@revealui/core/observability/logger';
+import { z } from 'zod/v4';
+import { validateToolArgs } from '../validate-tool-args.js';
 import { type EmailPayload, sendEmail, sendEmailBatch } from './_email-provider.js';
 
 // ---------------------------------------------------------------------------
@@ -44,6 +46,37 @@ let _credentialOverrides: Record<string, string> = {};
 export function setCredentials(creds: Record<string, string>): void {
   _credentialOverrides = creds;
 }
+
+// ---------------------------------------------------------------------------
+// Tool argument schemas (Zod 4)
+// ---------------------------------------------------------------------------
+
+export const EmailSendArgsSchema = z
+  .object({
+    to: z.union([z.string(), z.array(z.string())]),
+    subject: z.string(),
+    html: z.string().optional(),
+    text: z.string().optional(),
+    from: z.string().optional(),
+    reply_to: z.string().optional(),
+  })
+  .strict();
+
+const EmailItemSchema = z
+  .object({
+    to: z.string(),
+    subject: z.string(),
+    html: z.string().optional(),
+    text: z.string().optional(),
+    from: z.string().optional(),
+  })
+  .strict();
+
+export const EmailSendBatchArgsSchema = z
+  .object({
+    emails: z.array(EmailItemSchema).max(100),
+  })
+  .strict();
 
 // ---------------------------------------------------------------------------
 // Server
@@ -135,21 +168,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
 
     switch (toolName) {
       case 'email_send': {
-        const {
-          to,
-          subject,
-          html,
-          text,
-          from = fromAddress,
-          reply_to,
-        } = request.params.arguments as {
-          to: string | string[];
-          subject: string;
-          html?: string;
-          text?: string;
-          from?: string;
-          reply_to?: string;
-        };
+        const parsed = validateToolArgs(EmailSendArgsSchema, request.params.arguments, toolName);
+        if (!parsed.ok) return parsed.error;
+        const { to, subject, html, text, from = fromAddress, reply_to } = parsed.value;
 
         if (!(html ?? text)) {
           return {
@@ -169,22 +190,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
       }
 
       case 'email_send_batch': {
-        const { emails } = request.params.arguments as {
-          emails: Array<{
-            to: string;
-            subject: string;
-            html?: string;
-            text?: string;
-            from?: string;
-          }>;
-        };
-
-        if (emails.length > 100) {
-          return {
-            content: [{ type: 'text', text: 'Error: Batch size cannot exceed 100 emails' }],
-            isError: true,
-          };
-        }
+        const parsed = validateToolArgs(
+          EmailSendBatchArgsSchema,
+          request.params.arguments,
+          toolName,
+        );
+        if (!parsed.ok) return parsed.error;
+        const { emails } = parsed.value;
 
         const payloads: EmailPayload[] = emails.map((e) => {
           const payload: EmailPayload = {

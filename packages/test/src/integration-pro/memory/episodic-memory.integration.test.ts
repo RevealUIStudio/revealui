@@ -9,7 +9,7 @@
  */
 
 import type { AgentMemory } from '@revealui/contracts/agents';
-import { getRestClient, getVectorClient } from '@revealui/db/client';
+import { getRestClient } from '@revealui/db/client';
 import { agentMemories } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
@@ -40,20 +40,15 @@ describeIfPro('EpisodicMemory Integration', () => {
       throw new Error('POSTGRES_URL must be set for EpisodicMemory integration tests');
     }
 
-    if (!process.env.DATABASE_URL) {
-      throw new Error('DATABASE_URL must be set for EpisodicMemory integration tests');
-    }
-
     testUserId = `test-user-${Date.now()}`;
     testNodeId = `test-node-${Date.now()}`;
   });
 
   afterEach(async () => {
-    // Cleanup test memories from vector database
-    const vectorDb = getVectorClient();
+    const db = getRestClient();
     for (const id of testMemoryIds) {
       try {
-        await vectorDb.delete(agentMemories).where(eq(agentMemories.id, id));
+        await db.delete(agentMemories).where(eq(agentMemories.id, id));
       } catch (error) {
         console.warn(`Failed to cleanup memory ${id}:`, error);
       }
@@ -89,9 +84,7 @@ describeIfPro('EpisodicMemory Integration', () => {
 
       expect(tag).toBeDefined();
 
-      // Verify memory was stored in vector database
-      const vectorDb = getVectorClient();
-      const stored = await vectorDb.query.agentMemories.findFirst({
+      const stored = await getRestClient().query.agentMemories.findFirst({
         where: eq(agentMemories.id, agentMemory.id),
       });
 
@@ -158,9 +151,7 @@ describeIfPro('EpisodicMemory Integration', () => {
 
       expect(count).toBeGreaterThan(0);
 
-      // Verify memory was deleted from vector database
-      const vectorDb = getVectorClient();
-      const stored = await vectorDb.query.agentMemories.findFirst({
+      const stored = await getRestClient().query.agentMemories.findFirst({
         where: eq(agentMemories.id, agentMemory.id),
       });
 

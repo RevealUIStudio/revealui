@@ -1,43 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useConversations } from '@revealui/sync';
+import { useState } from 'react';
 import AgentChat from '@/lib/components/Agent';
 import { LicenseGate } from '@/lib/components/LicenseGate';
-import { apiFetch } from '@/lib/utils/csrf';
-
-interface Conversation {
-  id: string;
-  title: string | null;
-  updatedAt: string;
-}
 
 export default function ChatPage() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const {
+    conversations,
+    isLoading: sidebarLoading,
+    error: sidebarError,
+    remove,
+  } = useConversations();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [sidebarLoading, setSidebarLoading] = useState(true);
-  const [sidebarError, setSidebarError] = useState<string | null>(null);
-
-  // Fetch conversation list
-  const loadConversations = async () => {
-    setSidebarLoading(true);
-    setSidebarError(null);
-    try {
-      const res = await fetch('/api/conversations');
-      if (!res.ok) throw new Error('Failed to load conversations');
-      const data = (await res.json()) as { conversations: Conversation[] };
-      setConversations(data.conversations);
-    } catch (e: unknown) {
-      setSidebarError(e instanceof Error ? e.message : 'Unable to load conversations');
-    } finally {
-      setSidebarLoading(false);
-    }
-  };
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional mount-only fetch  -  loadConversations is a plain function that would cause infinite re-fetches if listed
-  useEffect(() => {
-    loadConversations();
-  }, []);
 
   const handleNewChat = () => {
     setActiveId(null);
@@ -49,8 +25,7 @@ export default function ChatPage() {
 
   const handleDeleteConversation = async (id: string) => {
     try {
-      await apiFetch(`/api/conversations/${id}`, { method: 'DELETE' });
-      setConversations((prev) => prev.filter((c) => c.id !== id));
+      await remove(id);
       if (activeId === id) setActiveId(null);
     } catch {
       // Silently fail
@@ -59,7 +34,6 @@ export default function ChatPage() {
 
   const handleConversationCreated = (id: string, _title: string) => {
     setActiveId(id);
-    loadConversations();
   };
 
   return (
@@ -101,14 +75,9 @@ export default function ChatPage() {
               </div>
             ) : sidebarError ? (
               <div className="p-3">
-                <p className="text-center text-xs text-red-400">{sidebarError}</p>
-                <button
-                  type="button"
-                  onClick={() => loadConversations()}
-                  className="mt-2 w-full rounded-md bg-zinc-800 px-2 py-1 text-xs text-zinc-300 hover:bg-zinc-700"
-                >
-                  Retry
-                </button>
+                <p className="text-center text-xs text-red-400">
+                  {sidebarError instanceof Error ? sidebarError.message : String(sidebarError)}
+                </p>
               </div>
             ) : conversations.length === 0 ? (
               <div className="flex flex-col items-center px-3 py-8">

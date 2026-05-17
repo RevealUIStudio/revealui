@@ -1,5 +1,13 @@
 # @revealui/utils
 
+## 0.3.5
+
+### Patch Changes
+
+- 37952d2: Bump `zod` to `^4.4.3` (from `^4.3.6`) via the workspace catalog.
+
+  These packages declare `zod` as a `catalog:` runtime dependency, so the catalog bump changes their published dependency range. No source changes — `zod` 4.4.x is API-compatible for their usage (workspace `typecheck:all` and per-package tests green).
+
 ## 0.3.4
 
 ### Patch Changes

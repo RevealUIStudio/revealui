@@ -1,6 +1,6 @@
 {
   "name": "@revealui/db",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Drizzle ORM schema (86 tables) for RevealUI on NeonDB (Postgres). Ships with RevealUI.",
   "license": "MIT",
   "dependencies": {
