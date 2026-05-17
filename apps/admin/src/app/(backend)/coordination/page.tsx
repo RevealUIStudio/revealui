@@ -66,11 +66,16 @@ function CoordinationDashboard() {
   const [scope, setScope] = useState<Scope>('active');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const displayed = scope === 'active' ? sessions.filter((s) => s.status === 'active') : sessions;
+  const displayed =
+    scope === 'active'
+      ? sessions.filter((s: CoordinationSessionRecord) => s.status === 'active')
+      : sessions;
 
-  const activeCount = sessions.filter((s) => s.status === 'active').length;
+  const activeCount = sessions.filter(
+    (s: CoordinationSessionRecord) => s.status === 'active',
+  ).length;
   const staleCount = sessions.filter(isStaleSession).length;
-  const uniqueAgents = new Set(sessions.map((s) => s.agent_id)).size;
+  const uniqueAgents = new Set(sessions.map((s: CoordinationSessionRecord) => s.agent_id)).size;
 
   return (
     <div className="min-h-screen">
@@ -156,7 +161,7 @@ function CoordinationDashboard() {
               {sessions.length === 1 ? '' : 's'}
             </div>
             <div className="flex flex-col gap-2">
-              {displayed.map((session) => (
+              {displayed.map((session: CoordinationSessionRecord) => (
                 <SessionRow
                   key={session.id}
                   session={session}
