@@ -26,7 +26,18 @@ import { and, count, desc, eq, gte, lte, sql } from 'drizzle-orm';
 let lastSignature: string | null = null;
 
 function getAuditSecret(): string {
-  return process.env.REVEALUI_AUDIT_HMAC_SECRET ?? process.env.REVEALUI_SECRET ?? '';
+  const secret = process.env.REVEALUI_AUDIT_HMAC_SECRET ?? process.env.REVEALUI_SECRET;
+  if (!secret) {
+    throw new Error(
+      'Audit HMAC signing requires REVEALUI_AUDIT_HMAC_SECRET (or REVEALUI_SECRET fallback) ' +
+        'to be set. Audit log integrity is non-optional; missing key fails loud rather than ' +
+        'silently degrading the hash chain. The @revealui/config schema validates REVEALUI_SECRET ' +
+        'at 32+ chars in any environment that boots, so this throw is a defense-in-depth signal ' +
+        'for impossible states (env tampering mid-run, sub-process spawning without env). ' +
+        'See docs/SECRETS.md and packages/config/src/modules/reveal.ts (auditHmacSecret field).',
+    );
+  }
+  return secret;
 }
 
 /**

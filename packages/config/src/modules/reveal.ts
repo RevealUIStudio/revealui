@@ -6,6 +6,7 @@ import type { EnvConfig } from '../schema.js';
 
 export interface RevealConfig {
   secret: string;
+  auditHmacSecret: string;
   serverURL: string;
   publicServerURL: string;
   adminEmail?: string;
@@ -25,6 +26,7 @@ export function getRevealConfig(env: EnvConfig): RevealConfig {
 
   const config: RevealConfig = {
     secret: env.REVEALUI_SECRET,
+    auditHmacSecret: env.REVEALUI_AUDIT_HMAC_SECRET || env.REVEALUI_SECRET,
     serverURL: env.NEXT_PUBLIC_SERVER_URL ?? '',
     publicServerURL: env.REVEALUI_PUBLIC_SERVER_URL ?? '',
     corsOrigins: corsOrigins || [],

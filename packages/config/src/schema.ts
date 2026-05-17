@@ -72,6 +72,14 @@ const optionalSchema = z.object({
   // Cron endpoint authentication
   REVEALUI_CRON_SECRET: secretSchema.optional(),
 
+  // Audit log HMAC signing key (M-2 paired meta-fix for the audit-storage
+  // silent-empty fallback in apps/server/src/lib/postgres-audit-storage.ts).
+  // When set, audit entries chain-sign with HMAC-SHA256 using this key.
+  // When unset, the audit-storage module falls back to REVEALUI_SECRET
+  // (which is schema-required at 32+ chars), so the chain is always signed
+  // in any environment that boots successfully.
+  REVEALUI_AUDIT_HMAC_SECRET: secretSchema.optional(),
+
   // Log retention window for app_logs + error_events (days). Default 90.
   // Privacy policy commits to a concrete window; see docs/security/.
   REVEALUI_LOG_RETENTION_DAYS: z.coerce
