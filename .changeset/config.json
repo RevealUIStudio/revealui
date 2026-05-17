@@ -13,7 +13,6 @@
     "docs",
     "marketing",
     "test",
-    "revealcoin",
     "@revealui/scripts",
     "@revealui/dev"
   ]
