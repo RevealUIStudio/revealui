@@ -32,10 +32,12 @@ export interface SplitAuthLayoutProps {
  * - Brand background pulls from `--tenant-brand` CSS var (set by the consuming app
  *   at the root level — see `apps/admin/src/app/(frontend)/layout.tsx`), with a
  *   neutral `--rvui-surface-3` token fallback when no tenant brand is configured.
- * - Brand text color pulls from `--tenant-brand-on` CSS var (defaults to white).
- *   Customers with light brand colors must set this to a dark value to maintain
- *   WCAG contrast — there is no automatic contrast computation by design (avoids
- *   FOUC + browser-compat issues with color-mix / relative luminance).
+ * - Brand text color pulls from `--tenant-brand-on` CSS var. When unset, falls
+ *   back to `--foreground` (dark in light mode, light in dark mode) so the panel
+ *   is legible regardless of the surface it renders on. Customers with a custom
+ *   brand color SHOULD set `--tenant-brand-on` explicitly to guarantee contrast
+ *   — no automatic luminance computation by design (avoids FOUC + browser-compat
+ *   issues with color-mix / relative luminance).
  * - Form panel uses `--background` token so dark/light mode flips correctly.
  *
  * Companion centered variant: see `AuthLayout` for single-column non-branded shells.
@@ -58,7 +60,7 @@ export function SplitAuthLayout({
         className={cn(
           'flex flex-col items-center justify-center gap-6 px-6 py-12 lg:w-1/2 lg:gap-8 lg:py-16',
           brandBgClass,
-          'text-[var(--tenant-brand-on,white)]',
+          'text-[var(--tenant-brand-on,var(--foreground))]',
         )}
       >
         {brand}
