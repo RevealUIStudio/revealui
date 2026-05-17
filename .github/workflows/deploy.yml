@@ -221,7 +221,7 @@ jobs:
         run: |
           echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
-          ALL_APPS="api admin marketing docs revealcoin"
+          ALL_APPS="api admin marketing docs"
 
           # Manual override: deploy specific apps or all
           if [ -n "$INPUT_APPS" ] && [ "$INPUT_APPS" != "auto" ]; then
@@ -285,7 +285,6 @@ jobs:
               admin)      PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
               marketing)  PID="prj_frTIYlnONVPLNIjKnQpINiGb5lm0" ;;
               docs)       PID="prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1" ;;
-              revealcoin) PID="prj_XDiPXngciRytGA8j0vNIDz7hENRM" ;;
               *) echo "::warning::Unknown app: $app"; continue ;;
             esac
             if [ "$FIRST" = true ]; then FIRST=false; else MATRIX="$MATRIX,"; fi
@@ -450,7 +449,6 @@ jobs:
               admin)      PID="prj_7sEFDg4MH6C26nJPjrukK86QdwfG" ;;
               marketing)  PID="prj_frTIYlnONVPLNIjKnQpINiGb5lm0" ;;
               docs)       PID="prj_OPwr0FrgcK17AOBCyoj4JIilJ9S1" ;;
-              revealcoin) PID="prj_XDiPXngciRytGA8j0vNIDz7hENRM" ;;
               *) continue ;;
             esac
 
