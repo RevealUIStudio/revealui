@@ -7,8 +7,6 @@ audience: enterprise
 
 # RevealUI Fleet — Self-Hosted Deployment
 
-> **Status (as of 2026-05-16): build + publish pipeline shipped, public access pending.** The `docker/` stack, stamp scripts, source tree, and licensing flow are production-ready. The images this guide references (`ghcr.io/revealuistudio/revealui-api`, `ghcr.io/revealuistudio/revealui-admin`) are built via [`.github/workflows/docker.yml`](../.github/workflows/docker.yml) and pushed to GHCR on every `workflow_dispatch` run. Image visibility is currently **PRIVATE** — anonymous `docker pull` will fail with `401 UNAUTHORIZED` until package visibility is flipped to public in [GitHub Packages settings](https://github.com/orgs/RevealUIStudio/packages). Self-hosters using a license-authenticated pull flow will work today; anonymous Fleet trial pulls require the visibility flip.
-
 Customers buy the Enterprise tier of RevealUI; the Fleet kit (produced by RevForge) is what they deploy. Instead of running on `revealui.com`, you deploy the entire stack on your own infrastructure with full domain lock and unlimited users.
 
 RevealUI Fleet is a deployment-level commercial product, distinct from the hosted account-level subscription and metered usage model used for SaaS.
