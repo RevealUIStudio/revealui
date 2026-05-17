@@ -3,7 +3,7 @@
 import type { A2AAgentCard } from '@revealui/contracts';
 import { Breadcrumb } from '@revealui/presentation/client';
 import { useRouter } from 'next/navigation';
-import { use, useEffect, useState } from 'react';
+import { type ChangeEvent, use, useEffect, useState } from 'react';
 import { AgentContexts } from '@/lib/components/agents/agent-contexts';
 import { AgentMemory } from '@/lib/components/agents/agent-memory';
 import { TaskHistory } from '@/lib/components/agents/task-history';
@@ -197,7 +197,11 @@ export default function AgentDetailPage({ params }: PageProps) {
                           id="edit-name"
                           type="text"
                           value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
+                          onChange={(
+                            e: ChangeEvent<
+                              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+                            >,
+                          ) => setEditName(e.target.value)}
                           className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
                         />
                       </div>
@@ -212,7 +216,11 @@ export default function AgentDetailPage({ params }: PageProps) {
                           id="edit-description"
                           type="text"
                           value={editDescription}
-                          onChange={(e) => setEditDescription(e.target.value)}
+                          onChange={(
+                            e: ChangeEvent<
+                              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+                            >,
+                          ) => setEditDescription(e.target.value)}
                           className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none"
                         />
                       </div>
@@ -227,7 +235,11 @@ export default function AgentDetailPage({ params }: PageProps) {
                           id="edit-system-prompt"
                           rows={7}
                           value={editSystemPrompt}
-                          onChange={(e) => setEditSystemPrompt(e.target.value)}
+                          onChange={(
+                            e: ChangeEvent<
+                              HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+                            >,
+                          ) => setEditSystemPrompt(e.target.value)}
                           className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none resize-none"
                         />
                       </div>

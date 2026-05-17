@@ -19,7 +19,7 @@ import {
 } from '@revealui/presentation/server';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { safeStripeRedirect } from '@/lib/utils/safe-stripe-redirect';
 
 interface SubscriptionData {
@@ -333,7 +333,9 @@ export default function LicensePage() {
                     type="text"
                     placeholder="your-github-handle"
                     value={githubUsername}
-                    onChange={(e) => setGithubUsername(e.target.value)}
+                    onChange={(
+                      e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                    ) => setGithubUsername(e.target.value)}
                     className="rounded-md border px-3 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                   />
                   <span className="text-xs text-zinc-600">

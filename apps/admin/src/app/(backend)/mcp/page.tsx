@@ -13,7 +13,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { type ChangeEvent, useCallback, useEffect, useState } from 'react';
 import { McpServerCard, type McpServerInfo } from '@/lib/components/agents/mcp-server-card';
 import { UsageDashboard } from '@/lib/components/mcp/usage-dashboard';
 import type { CollectionMcpSummary } from '@/lib/mcp/collections';
@@ -203,7 +203,9 @@ export default function McpCatalogPage() {
                   name="tenant"
                   type="text"
                   value={tenant}
-                  onChange={(e) => setTenant(e.target.value)}
+                  onChange={(
+                    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                  ) => setTenant(e.target.value)}
                   pattern="[A-Za-z0-9_-]{1,64}"
                   placeholder="acme"
                   className="w-64 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 font-mono text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
