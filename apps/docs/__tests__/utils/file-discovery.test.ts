@@ -149,7 +149,7 @@ describe('discoverFiles', () => {
     // Second call onwards should use HEAD method
     const headCalls = vi
       .mocked(fetch)
-      .mock.calls.filter((call) => typeof call[1] === 'object' && call[1]?.method === 'HEAD');
+      .mock.calls.filter((call: Parameters<typeof fetch>) => call[1]?.method === 'HEAD');
     expect(headCalls.length).toBeGreaterThan(0);
   });
 });

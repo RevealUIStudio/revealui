@@ -321,7 +321,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
 
     expect(mockDb.update).toHaveBeenCalled();
     const updateSetArg = mockDbUpdateChain.set.mock.calls.find(
-      (call) => (call[0] as Record<string, unknown>).status === 'revoked',
+      (call: unknown[]) => (call[0] as Record<string, unknown>).status === 'revoked',
     );
     expect(updateSetArg).toBeDefined();
   });
@@ -344,7 +344,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     const app = createApp();
     await app.request(postStripe(event));
 
-    const emailCall = mockSendEmail.mock.calls.find((call) => {
+    const emailCall = mockSendEmail.mock.calls.find((call: unknown[]) => {
       const opts = call[0] as Record<string, unknown>;
       return (
         opts.to === 'enterprise@example.com' &&
@@ -373,7 +373,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     await app.request(postStripe(event));
 
     const revokeCall = mockDbUpdateChain.set.mock.calls.find(
-      (call) => (call[0] as Record<string, unknown>).status === 'revoked',
+      (call: unknown[]) => (call[0] as Record<string, unknown>).status === 'revoked',
     );
     expect(revokeCall).toBeUndefined();
   });
@@ -398,7 +398,7 @@ describe('charge.refunded — B-1 perpetual license revocation', () => {
     expect(res.status).toBe(200);
 
     const revokeCall = mockDbUpdateChain.set.mock.calls.find(
-      (call) => (call[0] as Record<string, unknown>).status === 'revoked',
+      (call: unknown[]) => (call[0] as Record<string, unknown>).status === 'revoked',
     );
     expect(revokeCall).toBeDefined();
   });

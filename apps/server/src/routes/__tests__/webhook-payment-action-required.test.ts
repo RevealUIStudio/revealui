@@ -461,7 +461,7 @@ describe('POST /stripe webhook  -  invoice.payment_action_required (3DS/SCA)', (
       // DrizzleAuditStore.append is called with a single object:
       //   { id, timestamp, eventType, severity, agentId, payload, policyViolations }
       expect(mockAuditAppend).toHaveBeenCalled();
-      const found = mockAuditAppend.mock.calls.some((call) => {
+      const found = mockAuditAppend.mock.calls.some((call: unknown[]) => {
         const entry = call[0] as { eventType?: string } | undefined;
         return entry?.eventType === 'payment.action_required';
       });
@@ -477,7 +477,7 @@ describe('POST /stripe webhook  -  invoice.payment_action_required (3DS/SCA)', (
       const app = createApp();
       await app.request(postStripe(event));
 
-      const found = mockAuditAppend.mock.calls.some((call) => {
+      const found = mockAuditAppend.mock.calls.some((call: unknown[]) => {
         const entry = call[0] as { payload?: Record<string, unknown> } | undefined;
         return entry?.payload?.hostedInvoiceUrl === 'https://invoice.stripe.com/i/abc123';
       });
@@ -545,7 +545,7 @@ describe('POST /stripe webhook  -  invoice.payment_action_required (3DS/SCA)', (
       const found = vi
         .mocked(loggerModule.logger)
         .info.mock.calls.some(
-          (call) =>
+          (call: unknown[]) =>
             typeof call[0] === 'string' &&
             (call[0].includes('3DS') ||
               call[0].includes('SCA') ||
