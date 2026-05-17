@@ -15,7 +15,7 @@ const badgeStyles = cva(
         inline: '',
       },
       colorScheme: {
-        light: 'border-gray-200 bg-white/90 text-gray-600 opacity-75 backdrop-blur-sm',
+        light: 'border-gray-200 bg-white/90 text-gray-700 opacity-75 backdrop-blur-sm',
         dark: 'border-gray-700 bg-gray-800/80 text-gray-200 opacity-90',
       },
     },
