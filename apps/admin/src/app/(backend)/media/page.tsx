@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { type ChangeEvent, useCallback, useRef, useState } from 'react';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -155,7 +155,7 @@ function DropZone({
         accept="image/jpeg,image/png,image/webp,image/gif"
         multiple
         className="hidden"
-        onChange={(e) => {
+        onChange={(e: ChangeEvent<HTMLInputElement>) => {
           if (e.target.files && e.target.files.length > 0) {
             onFiles(e.target.files);
             e.target.value = '';
@@ -402,7 +402,9 @@ export default function MediaLibraryPage() {
         <div className="flex items-center gap-3">
           <select
             value={filter}
-            onChange={(e) => handleFilterChange(e.target.value)}
+            onChange={(
+              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+            ) => handleFilterChange(e.target.value)}
             className="rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white"
           >
             <option value="">All types</option>

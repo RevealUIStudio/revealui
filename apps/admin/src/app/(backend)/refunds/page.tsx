@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useReducer } from 'react';
+import { type ChangeEvent, useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -324,7 +324,9 @@ function RefundsDashboard() {
                 id="refund-identifier"
                 type="text"
                 value={identifier}
-                onChange={(e) => dispatch({ type: 'SET_IDENTIFIER', value: e.target.value })}
+                onChange={(
+                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                ) => dispatch({ type: 'SET_IDENTIFIER', value: e.target.value })}
                 placeholder="pi_abc123 or ch_abc123"
                 required
                 className="w-full rounded-md border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
@@ -346,7 +348,9 @@ function RefundsDashboard() {
                 id="refund-amount"
                 type="number"
                 value={amountInput}
-                onChange={(e) => dispatch({ type: 'SET_AMOUNT', value: e.target.value })}
+                onChange={(
+                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                ) => dispatch({ type: 'SET_AMOUNT', value: e.target.value })}
                 placeholder="Leave empty for full refund"
                 min="0.01"
                 step="0.01"
@@ -366,7 +370,9 @@ function RefundsDashboard() {
               <select
                 id="refund-reason"
                 value={reason}
-                onChange={(e) =>
+                onChange={(
+                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                ) =>
                   dispatch({
                     type: 'SET_REASON',
                     value: e.target.value as State['reason'],

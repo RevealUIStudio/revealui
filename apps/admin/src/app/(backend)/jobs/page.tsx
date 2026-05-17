@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useReducer } from 'react';
+import { type ChangeEvent, useEffect, useReducer } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -277,7 +277,9 @@ function JobsDashboard() {
             <select
               id="name-filter"
               value={nameFilter}
-              onChange={(e) => dispatch({ type: 'SET_NAME_FILTER', filter: e.target.value })}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => dispatch({ type: 'SET_NAME_FILTER', filter: e.target.value })}
               className="rounded border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-zinc-300 focus:border-zinc-500 focus:outline-none"
             >
               <option value="">All handlers</option>

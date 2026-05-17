@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { type ChangeEvent, useEffect, useState } from 'react';
 import { LicenseGate } from '@/lib/components/LicenseGate';
 
 // =============================================================================
@@ -324,7 +324,9 @@ function ReviewsPanel({
               Comment (optional)
               <textarea
                 value={comment}
-                onChange={(e) => setComment(e.target.value)}
+                onChange={(
+                  e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+                ) => setComment(e.target.value)}
                 rows={3}
                 className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
                 placeholder="Share your experience..."
@@ -461,7 +463,9 @@ function SubmitTaskPanel({
           ) : (
             <select
               value={selectedSkill}
-              onChange={(e) => setSelectedSkill(e.target.value)}
+              onChange={(
+                e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+              ) => setSelectedSkill(e.target.value)}
               className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-white focus:border-zinc-500 focus:outline-none"
             >
               {skills.map((skill) => (
@@ -480,7 +484,9 @@ function SubmitTaskPanel({
           Input (JSON)
           <textarea
             value={inputJson}
-            onChange={(e) => setInputJson(e.target.value)}
+            onChange={(
+              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+            ) => setInputJson(e.target.value)}
             rows={8}
             className="mt-1 w-full font-mono rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
             placeholder='{"key": "value"}'
@@ -497,7 +503,9 @@ function SubmitTaskPanel({
             min={1}
             max={5}
             value={priority}
-            onChange={(e) => setPriority(Number(e.target.value))}
+            onChange={(
+              e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+            ) => setPriority(Number(e.target.value))}
             className="mt-1 w-full"
           />
         </label>
