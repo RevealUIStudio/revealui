@@ -5,7 +5,7 @@
  * Modeled after VectorMemoryService  -  same Drizzle cosine-distance pattern.
  */
 
-import { getVectorClient } from '@revealui/db/client';
+import { getRestClient } from '@revealui/db/client';
 import type { RagChunk, RagDocument } from '@revealui/db/schema/rag';
 import { ragChunks, ragDocuments } from '@revealui/db/schema/rag';
 import { and, asc, eq, type SQL, sql } from 'drizzle-orm';
@@ -27,11 +27,11 @@ export interface RagSearchResult {
 }
 
 export class RagVectorService {
-  private _db: ReturnType<typeof getVectorClient> | null = null;
+  private _db: ReturnType<typeof getRestClient> | null = null;
 
-  private get db(): ReturnType<typeof getVectorClient> {
+  private get db(): ReturnType<typeof getRestClient> {
     if (!this._db) {
-      this._db = getVectorClient();
+      this._db = getRestClient();
     }
     return this._db;
   }

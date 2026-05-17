@@ -5,7 +5,7 @@
  */
 
 import type { AgentMemory } from '@revealui/contracts/agents';
-import { getVectorClient, resetClient } from '@revealui/db/client';
+import { getRestClient, resetClient } from '@revealui/db/client';
 import { agentMemories } from '@revealui/db/schema';
 import { eq } from 'drizzle-orm';
 
@@ -61,7 +61,7 @@ export async function cleanupTestMemories(ids: string[]): Promise<void> {
 
   try {
     resetClient();
-    const db = getVectorClient();
+    const db = getRestClient();
 
     for (const id of ids) {
       try {
@@ -82,7 +82,7 @@ export async function cleanupTestMemories(ids: string[]): Promise<void> {
 export async function verifyMemoryExists(id: string): Promise<boolean> {
   try {
     resetClient();
-    const db = getVectorClient();
+    const db = getRestClient();
 
     const result = await db.query.agentMemories.findFirst({
       where: eq(agentMemories.id, id),
@@ -100,7 +100,7 @@ export async function verifyMemoryExists(id: string): Promise<boolean> {
 export async function getMemoryFromDb(id: string): Promise<AgentMemory | null> {
   try {
     resetClient();
-    const db = getVectorClient();
+    const db = getRestClient();
 
     const result = await db.query.agentMemories.findFirst({
       where: eq(agentMemories.id, id),
