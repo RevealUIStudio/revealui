@@ -153,12 +153,18 @@ async function copyDir(src: string, dest: string): Promise<void> {
 /**
  * Map the CLI template name to the directory name under templates/.
  * All non-starter templates fall back to starter for now.
+ *
+ * `starter-native` is the RevealUI-native variant (Vite + @revealui/router +
+ * no Next.js) — see GAP-194 audit §1.B for the rationale. Customers choose
+ * `starter-native` when they want the framework-not-stack runtime instead of
+ * the default Next.js-based starters.
  */
 function resolveTemplateName(template: ProjectConfig['template']): string {
   const map: Record<ProjectConfig['template'], string> = {
     'basic-blog': 'basic-blog',
     'e-commerce': 'e-commerce',
     portfolio: 'portfolio',
+    'starter-native': 'starter-native',
   };
   return map[template] ?? 'starter';
 }

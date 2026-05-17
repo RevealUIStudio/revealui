@@ -23,12 +23,13 @@
 import { execFileSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { config } from 'dotenv';
 import type Stripe from 'stripe';
 // Relative TS import resolves via tsx at script runtime; avoids adding
 // @revealui/contracts as a root-level dep. Script only; not bundled.
 import { RELEVANT_STRIPE_WEBHOOK_EVENTS } from '../../packages/contracts/src/stripe-webhook-events.js';
+import { LOCAL_STRIPE_ENV_CACHE_PATH } from './stripe-env-cache-path.js';
 
 // Load env from root .env
 config({ path: resolve(import.meta.dirname, '../../.env') });
@@ -41,8 +42,6 @@ config({ path: resolve(import.meta.dirname, '../../.env') });
 const require = createRequire(resolve(import.meta.dirname, '../../packages/services/'));
 const stripeModule = require('stripe') as { default?: typeof Stripe } & typeof Stripe;
 const StripeConstructor = (stripeModule.default ?? stripeModule) as typeof Stripe;
-const rootDir = resolve(import.meta.dirname, '../..');
-const LOCAL_STRIPE_ENV_CACHE_PATH = resolve(rootDir, '.revealui/stripe-env.json');
 
 // ─── Product Catalog ────────────────────────────────────────────────────────
 
@@ -705,7 +704,7 @@ async function setupWebhookEndpoint(
   const endpoint = await stripe.webhookEndpoints.create({
     url,
     enabled_events: WEBHOOK_EVENTS,
-    api_version: '2026-01-28.clover',
+    api_version: StripeConstructor.API_VERSION,
   });
 
   log.success(`Created webhook endpoint: ${endpoint.id}`);
@@ -901,7 +900,7 @@ async function writeLocalStripeEnvCache(
     return;
   }
 
-  await mkdir(resolve(rootDir, '.revealui'), { recursive: true });
+  await mkdir(dirname(LOCAL_STRIPE_ENV_CACHE_PATH), { recursive: true });
   await writeFile(
     LOCAL_STRIPE_ENV_CACHE_PATH,
     JSON.stringify(

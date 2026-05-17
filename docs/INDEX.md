@@ -45,7 +45,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 
 - [Package Reference](./REFERENCE.md): Core, contracts, DB, config, presentation, utils, router, CLI
 - [Core Stability](./CORE_STABILITY.md): API stability tiers, production verification status, version policy
-- [Component Catalog](./COMPONENT_CATALOG.md): 58 native UI components
+- [Component Catalog](./COMPONENT_CATALOG.md): 59 native UI components
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/harnesses`), MCP integration, open-model inference, x402, marketplace
 - [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, RevealCoin, Forge, RevSkills, RevKit) — what each does and how they compose

@@ -46,14 +46,11 @@ export function HeroSection() {
           </div>
         </div>
 
-        <Badge
-          color="violet"
-          className="mb-6 gap-2 rounded-full px-4 py-1.5 ring-1 ring-violet-200/80"
-        >
-          <span className="h-1.5 w-1.5 rounded-full bg-violet-500" />
+        <Badge color="zinc" className="mb-6 gap-2 rounded-full px-4 py-1.5 ring-1 ring-zinc-300/80">
+          <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" />
           {ACTIVE_NETWORK === 'mainnet-beta'
-            ? 'Deployed on Solana Mainnet · Pre-launch'
-            : 'Devnet preview · Mainnet not yet deployed'}
+            ? 'Deployed on Solana Mainnet · Shelved'
+            : 'Devnet preview · Shelved'}
         </Badge>
 
         <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl hero-stagger">
@@ -71,17 +68,15 @@ export function HeroSection() {
           ecosystem rewards — including across the RevealUI platform.
         </p>
 
-        {/* Pre-launch disclaimer — devnet preview only */}
-        <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-left text-sm text-amber-900">
+        {/* Shelved-state banner — see revealcoin/docs/decisions/2026-05-15-shelved-pending-revenue.md */}
+        <div className="mx-auto mt-6 max-w-2xl rounded-lg border border-zinc-300 bg-zinc-50 px-4 py-3 text-left text-sm text-zinc-900">
           <p className="font-semibold">
-            {ACTIVE_NETWORK === 'mainnet-beta'
-              ? 'Public trading is not yet live.'
-              : 'Devnet preview only — no public trading, no real value.'}
+            RVC is a deployed engineering artifact, not a tradable token.
           </p>
           <p className="mt-1 leading-relaxed">
-            {ACTIVE_NETWORK === 'mainnet-beta'
-              ? 'The token is deployed on mainnet, but distribution and Raydium liquidity are gated behind two pre-launch commitments: on-chain vesting migration (replacing the current custodial vesting model) and multi-sig on the mint authority. Watch the roadmap below for progress on both.'
-              : 'The token has not yet been deployed to Solana mainnet. The address shown below is the devnet preview deployment used for development and demo. Mainnet deploy is gated on on-chain vesting migration (replacing the current custodial vesting model), multi-sig on the mint authority, a third-party audit, and securities-counsel sign-off. Watch the roadmap below for progress.'}
+            No public sale is planned. RevealUI Studio will not seed a Raydium pool. No vesting
+            claims have been executed. Any $RVC pool, sale, or distribution event you encounter is
+            not affiliated with RevealUI Studio.
           </p>
         </div>
 

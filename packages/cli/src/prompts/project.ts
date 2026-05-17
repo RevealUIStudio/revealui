@@ -9,10 +9,10 @@ import { isCancel, select, text } from '@clack/prompts';
 export interface ProjectConfig {
   projectName: string;
   projectPath: string;
-  template: 'basic-blog' | 'e-commerce' | 'portfolio';
+  template: 'basic-blog' | 'e-commerce' | 'portfolio' | 'starter-native';
 }
 
-const VALID_TEMPLATES = ['basic-blog', 'e-commerce', 'portfolio'] as const;
+const VALID_TEMPLATES = ['basic-blog', 'e-commerce', 'portfolio', 'starter-native'] as const;
 
 export async function promptProjectConfig(
   defaultName?: string,
@@ -69,6 +69,10 @@ export async function promptProjectConfig(
         { value: 'basic-blog' as const, label: 'Basic Blog - A simple blog with posts and pages' },
         { value: 'e-commerce' as const, label: 'E-commerce - Product catalog with checkout' },
         { value: 'portfolio' as const, label: 'Portfolio - Personal portfolio site' },
+        {
+          value: 'starter-native' as const,
+          label: 'Starter (native) - Vite + @revealui/router, no Next.js',
+        },
       ],
       initialValue: 'basic-blog' as const,
     });

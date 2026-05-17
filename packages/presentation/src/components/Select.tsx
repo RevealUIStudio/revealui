@@ -100,9 +100,20 @@ function SelectTrigger({ children, className, ref, ...props }: SelectTriggerProp
   return (
     <Box
       className={cn(
-        'flex h-10 w-full items-center justify-between rounded border border-input bg-background px-3 py-2 text-inherit ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+        'flex h-10 w-full items-center justify-between border bg-background px-3 py-2 text-inherit',
+        'border-zinc-300 dark:border-zinc-700',
+        'hover:border-zinc-400 dark:hover:border-zinc-600',
+        'focus-visible:outline-none focus-visible:border-[var(--tenant-brand,var(--ring))] focus-visible:ring-2 focus-visible:ring-[var(--tenant-brand,var(--ring))] focus-visible:ring-offset-2',
+        'aria-invalid:border-red-500 aria-invalid:focus-visible:border-red-500 aria-invalid:focus-visible:ring-red-500',
+        'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-zinc-300 dark:disabled:hover:border-zinc-700',
+        'placeholder:text-muted-foreground ring-offset-background [&>span]:line-clamp-1',
         className,
       )}
+      style={{
+        borderRadius: 'var(--rvui-radius-md, 10px)',
+        transition:
+          'border-color var(--rvui-duration-normal, 200ms) var(--rvui-ease, cubic-bezier(0.22, 1, 0.36, 1)), box-shadow var(--rvui-duration-normal, 200ms) var(--rvui-ease, cubic-bezier(0.22, 1, 0.36, 1))',
+      }}
       ref={ref}
       {...props}
     >
@@ -152,7 +163,9 @@ function SelectContent({ children, className, ref, ...props }: SelectContentProp
   return (
     <Box
       className={cn(
-        'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded border bg-card text-popover-foreground shadow-md',
+        // Popover sits above a solid surface; use a lighter neutral than the trigger
+        // (bare `border` was a bug — would fall through to currentColor)
+        'relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded border border-zinc-200 dark:border-zinc-700 bg-card text-popover-foreground shadow-md',
         className,
       )}
       ref={ref}

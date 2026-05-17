@@ -1,8 +1,15 @@
 /**
  * @revealui/cache  -  Caching infrastructure for RevealUI applications.
  *
+ * Framework-agnostic. Works with NextRequest/NextResponse via structural
+ * typing, but the package no longer carries a `next` peer dep. Hono /
+ * Cloudflare Workers / plain Web standard runtimes all consume the same
+ * surface — see the `CacheRequest` / `CacheResponse` types.
+ *
  * - cdn-config: Cache-Control headers, CDN purge, Vercel/Cloudflare config
- * - edge-cache: Next.js ISR presets, revalidation, edge middleware helpers
+ * - edge-cache: ISR-style presets, revalidation, edge rate-limit,
+ *   geolocation, A/B testing, personalization, cache headers
+ * - invalidation-channel: Distributed cache busting
  * - logger: Configurable internal logger (defaults to console)
  */
 
@@ -24,6 +31,8 @@ export {
   warmCDNCache,
 } from './cdn-config.js';
 export type {
+  CacheRequest,
+  CacheResponse,
   EdgeCacheConfig,
   EdgeRateLimitConfig,
   GeoLocation,

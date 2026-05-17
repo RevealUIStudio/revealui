@@ -7,7 +7,7 @@
 
 // Layout Components - Server Safe
 export { AuthLayout, type AuthLayoutProps } from './components/auth-layout.js';
-
+export { BuiltWithRevealUI } from './components/BuiltWithRevealUI.js';
 // CVA Components - Server Safe
 export {
   Button as ButtonCVA,
@@ -47,8 +47,11 @@ export {
   type PricingTableProps,
   type PricingTier,
 } from './components/pricing-table.js';
-
 export { Skeleton, SkeletonCard, SkeletonText } from './components/skeleton.js';
+export {
+  SplitAuthLayout,
+  type SplitAuthLayoutProps,
+} from './components/split-auth-layout.js';
 export { Textarea as TextareaCVA, type TextareaProps } from './components/Textarea.js';
 
 // Note: Checkbox and Select CVA versions use state and are in client.ts
@@ -102,6 +105,15 @@ export {
   IconUsers,
   IconXCircle,
 } from './components/icon.js';
+// OAuth provider + passkey icons - Server Safe
+export {
+  GitHubIcon,
+  GoogleIcon,
+  LinkedInIcon,
+  PasskeyIcon,
+  VercelIcon,
+} from './icons/providers.js';
+
 // Primitives - Server Safe
 export { Box, type BoxProps } from './primitives/Box.js';
 export { Flex, type FlexProps } from './primitives/Flex.js';

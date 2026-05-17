@@ -59,7 +59,7 @@
     "test:auth-e2e": "playwright test src/e2e/auth.spec.ts",
     "test:coverage": "vitest run --coverage --coverage.reporter=json-summary --coverage.reporter=html --coverage.reporter=text",
     "test:coverage:unit": "vitest run --coverage src/units",
-    "test:db:setup": "cd ../.. && pnpm exec tsx packages/test/scripts/setup-dual-database.ts",
+    "test:db:setup": "cd ../.. && pnpm exec tsx scripts/setup/setup-dual-database.ts",
     "test:e2e": "playwright test",
     "test:integration": "vitest run --config vitest.integration.config.ts src/integration",
     "test:integration:pro": "vitest run --config vitest.integration-pro.config.ts",

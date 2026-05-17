@@ -1,17 +1,20 @@
 #!/usr/bin/env node
 
 /**
- * Triple Database Fresh Setup Script
+ * Database Fresh Setup Script
  *
- * Sets up all three database components:
- * 1. Supabase (Vector) - for agent_memories with pgvector
- * 2. NeonDB (REST) - for all REST API tables
- * 3. ElectricSQL - syncs from NeonDB (REST) for real-time sync
+ * Sets up the two runtime database components:
+ * 1. NeonDB (REST) - all REST API tables, plus pgvector (now provided by
+ *    `pnpm db:migrate` rather than a separate Supabase vector store)
+ * 2. ElectricSQL - syncs from NeonDB for real-time sync
  *
- * This is a unified setup script for the triple database architecture.
+ * History: previously included a `setupVectorDatabase()` step that ran
+ * Supabase-side SQL to bootstrap pgvector. That path was retired when
+ * the vector extension moved into the standard Drizzle migration set
+ * (see docs/decisions/2026-05-01-supabase-removal.md).
  *
- * For pre-production: Run this to set up fresh databases.
- * For post-production: Migrations will be added when features are added.
+ * For pre-production: run this to set up fresh databases.
+ * For post-production: migrations are added as features ship.
  *
  * @dependencies
  * - scripts/lib/errors.ts - ErrorCode and ScriptError for validation
@@ -22,14 +25,14 @@
  * - drizzle-orm - ORM utilities (sql)
  *
  * @requires
- * - Environment: POSTGRES_URL (NeonDB), DATABASE_URL (Supabase)
+ * - Environment: POSTGRES_URL (NeonDB)
  *
  * Usage:
- *   pnpm tsx packages/test/scripts/setup-dual-database.ts
+ *   pnpm tsx scripts/setup/setup-dual-database.ts
  *   or
  *   pnpm test:db:setup
  *
- * Note: This script is idempotent - safe to run multiple times.
+ * Note: this script is idempotent - safe to run multiple times.
  * Note: ElectricSQL uses the same database as REST (NeonDB) - it syncs from it.
  */
 
@@ -176,64 +179,6 @@ async function executeSQLFile(db: DbClient, filePath: string, dbName: string): P
 }
 
 // =============================================================================
-// Vector Database (Supabase) Setup
-// =============================================================================
-
-async function setupVectorDatabase(): Promise<boolean> {
-  console.log('🔵 Setting up Vector Database (Supabase)...\n');
-  console.log(`${'='.repeat(50)}\n`);
-
-  if (!process.env.DATABASE_URL) {
-    console.error('❌ DATABASE_URL environment variable is not set');
-    console.error('Please set DATABASE_URL to your Supabase connection string');
-    return false;
-  }
-
-  try {
-    resetClient();
-    const db = getRestClient();
-
-    // Check current state
-    const extensionExists = await checkExtension(db, 'vector');
-    const tableExists = await checkTable(db, 'agent_memories');
-
-    if (extensionExists && tableExists) {
-      console.log('✅ Vector database is already set up!');
-      console.log('   - pgvector extension: Installed');
-      console.log('   - agent_memories table: Exists\n');
-      return true;
-    }
-
-    // Run setup
-    const workspaceRoot = join(__dirname, '../../..');
-    const schemaPath = join(workspaceRoot, 'packages/db/src/supabase/setup-vector-extension.sql');
-
-    const success = await executeSQLFile(db, schemaPath, 'Vector');
-
-    if (!success) {
-      return false;
-    }
-
-    // Verify
-    const verifiedExtension = await checkExtension(db, 'vector');
-    const verifiedTable = await checkTable(db, 'agent_memories');
-
-    if (verifiedExtension && verifiedTable) {
-      console.log('✅ Vector Database Setup Complete!');
-      console.log('   - pgvector extension: Installed');
-      console.log('   - agent_memories table: Exists\n');
-      return true;
-    } else {
-      console.error('❌ Vector database verification failed');
-      return false;
-    }
-  } catch (error) {
-    console.error('❌ Vector database setup failed:', error);
-    return false;
-  }
-}
-
-// =============================================================================
 // REST Database (NeonDB) Setup
 // =============================================================================
 
@@ -368,16 +313,13 @@ async function setupElectricSQL(): Promise<boolean> {
 // =============================================================================
 
 async function main() {
-  console.log('🚀 Triple Database Fresh Setup\n');
+  console.log('🚀 Database Fresh Setup\n');
   console.log(`${'='.repeat(50)}\n`);
-  console.log('This will set up all three database components:');
-  console.log('  🔵 Vector Database (Supabase) - for agent_memories with pgvector');
-  console.log('  🟢 REST Database (NeonDB) - for all REST API tables');
+  console.log('This will set up the two runtime database components:');
+  console.log('  🟢 REST Database (NeonDB) - all REST API tables (incl. pgvector)');
   console.log('  ⚡ ElectricSQL - syncs from REST database for real-time sync\n');
   console.log(`${'='.repeat(50)}\n`);
 
-  // Setup all three components
-  const vectorSuccess = await setupVectorDatabase();
   const restSuccess = await setupRestDatabase();
   const electricSuccess = await setupElectricSQL();
 
@@ -385,8 +327,8 @@ async function main() {
   console.log('='.repeat(50));
   console.log('📊 Setup Summary\n');
 
-  if (vectorSuccess && restSuccess && electricSuccess) {
-    console.log('✅ All three database components set up successfully!');
+  if (restSuccess && electricSuccess) {
+    console.log('✅ Database components set up successfully!');
     console.log('\nNext steps:');
     console.log('  pnpm test:memory:verify  # Verify setup');
     console.log('  pnpm test:memory:all     # Run all memory tests');
@@ -394,9 +336,6 @@ async function main() {
     process.exit(ErrorCode.SUCCESS);
   } else {
     console.error('❌ Setup incomplete:');
-    if (!vectorSuccess) {
-      console.error('   - Vector Database (Supabase): Failed');
-    }
     if (!restSuccess) {
       console.error('   - REST Database (NeonDB): Failed');
     }

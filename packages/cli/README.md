@@ -17,7 +17,7 @@ pnpm create revealui@latest my-project --template basic-blog
 ## Features
 
 - Interactive project setup with guided prompts
-- Multiple templates: basic-blog, e-commerce, portfolio
+- Multiple templates: basic-blog, e-commerce, portfolio, starter-native (Vite + @revealui/router, no Next.js)
 - Automatic environment configuration
 - Database setup (NeonDB, Supabase, or local PostgreSQL)
 - Storage setup (Vercel Blob or Supabase)
@@ -31,11 +31,20 @@ pnpm create revealui@latest my-project --template basic-blog
 Usage: create-revealui [options] [project-name]
 
 Options:
-  -t, --template <name>   Template to use (basic-blog, e-commerce, portfolio)
+  -t, --template <name>   Template to use (basic-blog, e-commerce, portfolio, starter-native)
   --skip-git              Skip git initialization
   --skip-install          Skip dependency installation
   -h, --help             Display help for command
 ```
+
+### Templates
+
+| Template | Stack | Best for |
+|---|---|---|
+| `basic-blog` | Next.js 16 + @revealui/* | Blogs, content sites — Next.js ecosystem |
+| `e-commerce` | Next.js 16 + @revealui/* + Stripe | Online stores with checkout |
+| `portfolio` | Next.js 16 + @revealui/* | Personal portfolio sites |
+| `starter-native` | Vite + @revealui/router + @revealui/* | RevealUI-native runtime — no Next.js dep. Best when you want to dogfood the full RevealUI stack. |
 
 ## Requirements
 

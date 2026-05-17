@@ -37,7 +37,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | PKG-002 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) | npm | Public |
 | PKG-003 | @revealui/db | Drizzle ORM schema (86 tables), dual-DB support | npm | Public |
 | PKG-004 | @revealui/auth | Session auth, password reset, rate limiting | npm | Public |
-| PKG-005 | @revealui/presentation | 58 native UI components (Tailwind v4) | npm | Public |
+| PKG-005 | @revealui/presentation | 59 native UI components (Tailwind v4) | npm | Public |
 | PKG-006 | @revealui/router | Lightweight file-based router with SSR | npm | Public |
 | PKG-007 | @revealui/config | Type-safe env config (Zod + lazy Proxy) | npm | Public |
 | PKG-008 | @revealui/utils | Logger, DB helpers, validation | npm | Public |

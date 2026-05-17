@@ -142,6 +142,10 @@ export {
 export { SidebarLayout } from './sidebar-layout.js';
 export { Skeleton, SkeletonCard, SkeletonText } from './skeleton.js';
 export { Slider } from './slider.js';
+export {
+  SplitAuthLayout,
+  type SplitAuthLayoutProps,
+} from './split-auth-layout.js';
 export { StackedLayout } from './stacked-layout.js';
 export { Stat, StatGroup } from './stat.js';
 export { Stepper, type StepperStep } from './stepper.js';
