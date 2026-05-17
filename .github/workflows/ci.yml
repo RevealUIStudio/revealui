@@ -85,6 +85,9 @@ jobs:
       - name: Empty-catch validation (hard fail)
         run: pnpm validate:empty-catch
 
+      - name: Seed script wiring validation (hard fail)
+        run: pnpm validate:seed-wiring
+
       - name: Changeset validation (hard fail)
         # Catches mixed ignored+non-ignored changeset frontmatter BEFORE
         # merge, instead of discovering the same rejection later inside
