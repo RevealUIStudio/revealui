@@ -204,10 +204,10 @@ vi.mock('@revealui/db/schema', () => ({
 }));
 
 vi.mock('drizzle-orm', () => ({
-  eq: vi.fn((_col, _val) => `eq(${String(_col)},${String(_val)})`),
+  eq: vi.fn((_col: unknown, _val: unknown) => `eq(${String(_col)},${String(_val)})`),
   and: vi.fn((...args: unknown[]) => `and(${args.join(',')})`),
-  desc: vi.fn((_col) => `desc(${String(_col)})`),
-  isNull: vi.fn((_col) => `isNull(${String(_col)})`),
+  desc: vi.fn((_col: unknown) => `desc(${String(_col)})`),
+  isNull: vi.fn((_col: unknown) => `isNull(${String(_col)})`),
 }));
 
 // ─── Import under test (after mocks) ─────────────────────────────────────────
