@@ -315,11 +315,6 @@ async function gate(): Promise<void> {
         args: ['validate:stripe-client'],
       },
       {
-        name: 'Contracts OpenAPI mirror drift (hard fail)',
-        command: 'pnpm',
-        args: ['--filter', '@revealui/openapi', 'check:contracts'],
-      },
-      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],
@@ -443,7 +438,20 @@ async function gate(): Promise<void> {
       ? []
       : [{ name: 'Tests', command: 'pnpm', args: testArgs, timeout: 600000 }];
 
-    const phase3Checks: CheckDef[] = [...testCheck, ...buildCheck];
+    // OpenAPI mirror drift check runs after build because it inspects
+    // @revealui/mcp/dist/, which Phase 3's build step populates. Phase 1
+    // cold-workspace runs would hard-fail with ERR_MODULE_NOT_FOUND (#937).
+    const mirrorCheck: CheckDef[] = noBuild
+      ? []
+      : [
+          {
+            name: 'Contracts OpenAPI mirror drift (hard fail)',
+            command: 'pnpm',
+            args: ['--filter', '@revealui/openapi', 'check:contracts'],
+          },
+        ];
+
+    const phase3Checks: CheckDef[] = [...testCheck, ...buildCheck, ...mirrorCheck];
 
     const results = await runPhaseSerial(phase3Checks);
     allResults.push(...results);
