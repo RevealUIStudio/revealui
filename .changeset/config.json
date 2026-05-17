@@ -7,13 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "server",
-    "admin",
-    "docs",
-    "marketing",
-    "test",
-    "@revealui/scripts",
-    "@revealui/dev"
-  ]
+  "ignore": ["server", "admin", "docs", "marketing", "test", "@revealui/scripts", "@revealui/dev"]
 }
