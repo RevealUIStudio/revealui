@@ -23,13 +23,8 @@ const DEBUG = /\b(docs-copy|\*)\b/.test(process.env.DEBUG ?? '');
 // IMPORTANT: Keep in sync with INTERNAL_FILES in scripts/copy-docs.sh
 const INTERNAL_DOC_FILES = new Set([
   'MASTER_PLAN.md',
-  'GOVERNANCE.md',
   'AI-AGENT-RULES.md',
   'AUTOMATION.md',
-  'CI_ENVIRONMENT.md',
-  'PRICE_COLLECTION.md',
-  'PRODUCT_COLLECTION.md',
-  'SECRETS-MANAGEMENT.md',
   'STANDARDS.md',
 ]);
 
