@@ -4,7 +4,7 @@
   "private": true,
   "description": "Agentic business runtime. Users, content, products, payments, and AI — pre-wired, open source, and ready to deploy.",
   "devDependencies": {
-    "@axe-core/playwright": "^4.11.2",
+    "@axe-core/playwright": "^4.11.3",
     "@biomejs/biome": "catalog:",
     "@changesets/cli": "^2.31.0",
     "@electric-sql/pglite": "^0.4.4",
