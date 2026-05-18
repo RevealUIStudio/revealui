@@ -1268,23 +1268,6 @@ function initAlerting(): void {
   logger.info('Alerting system started (60s interval)');
 }
 
-// RVUI price oracle  -  start polling when Jupiter API key is configured.
-// Runs in both dev and prod. Safe no-op if JUPITER_API_KEY is unset.
-// Uses dynamic import to avoid hard dependency on @revealui/services build.
-function initPriceOracle(): void {
-  import('@revealui/services/revealcoin')
-    .then((mod: Record<string, unknown>) => {
-      if (typeof mod.startPriceOracle === 'function') {
-        (mod.startPriceOracle as () => void)();
-      }
-    })
-    .catch((err: unknown) => {
-      logger.warn('RVUI price oracle not available', {
-        error: err instanceof Error ? err.message : String(err),
-      });
-    });
-}
-
 // For local development (but not in test environment)
 if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
@@ -1313,7 +1296,6 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
       );
       process.exit(1);
     });
-  initPriceOracle();
   initAlerting();
   // Best-effort hydration of per-site LLM provider configs into the
   // in-memory registry. Skipped silently if @revealui/ai not installed or DB
@@ -1367,14 +1349,13 @@ if (process.env.NODE_ENV === 'production') {
       );
       process.exit(1);
     });
-  initPriceOracle();
   initAlerting();
   hydrateInferenceConfigs();
   // Bind the HTTP listener. Mirrors the dev branch shape above so a Fleet
   // Docker container (NODE_ENV=production) actually starts answering
   // requests instead of initializing-everything-but-never-listening.
   // The previous shape ran every initializer (validateLicenseAtStartup,
-  // initPriceOracle, initAlerting, hydrateInferenceConfigs) but never
+  // initAlerting, hydrateInferenceConfigs) but never
   // called serve(), so containers came up, passed liveness, and silently
   // hung pre-listen. Diagnosed in
   // .jv/docs/HANDOFF-2026-05-10-1245Z-strategy-arc-session-archive.md

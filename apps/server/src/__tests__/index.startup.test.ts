@@ -5,8 +5,8 @@
  * carried two near-identical NODE_ENV branches — one for dev (and Fleet
  * docker compose runs) at the top of the module, and one for production
  * (Vercel) lower down. The production branch ran every initializer
- * (validateLicenseAtStartup, initPriceOracle, initAlerting,
- * hydrateInferenceConfigs) but lacked the `serve()` call that actually
+ * (validateLicenseAtStartup, initAlerting, hydrateInferenceConfigs)
+ * but lacked the `serve()` call that actually
  * binds the HTTP listener. Result: NODE_ENV=production containers came up,
  * passed liveness, but never answered traffic — a silent hang.
  *
