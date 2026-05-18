@@ -2,10 +2,10 @@ import { ButtonCVA } from '@revealui/presentation';
 import { useEffect } from 'react';
 import { Footer } from '../components/Footer';
 import {
+  FAIR_SOURCE_CLOCK_SECTION,
   FAIR_SOURCE_CONTRACT_CARDS,
   FAIR_SOURCE_CONTRACT_SECTION,
   FAIR_SOURCE_CTA,
-  FAIR_SOURCE_CLOCK_SECTION,
   FAIR_SOURCE_FAQ_SECTION,
   FAIR_SOURCE_FAQS,
   FAIR_SOURCE_HERO,

@@ -1,10 +1,10 @@
+import { Footer } from '../components/Footer';
+import { PRODUCTS_PRIMITIVES } from '../content/primitives';
 import {
   PRODUCTS_CTA_SECTION,
   PRODUCTS_PAGE_HERO,
   PRODUCTS_STATS_SECTION,
 } from '../content/products';
-import { PRODUCTS_PRIMITIVES } from '../content/primitives';
-import { Footer } from '../components/Footer';
 
 export function ProductsPage() {
   return (

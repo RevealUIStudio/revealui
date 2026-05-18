@@ -19,8 +19,8 @@ import {
   PRICING_NEWSLETTER_LABEL,
   PRICING_TRACK_A_SECTION,
   PRICING_TRACK_C_SECTION,
-  SUBSCRIPTION_TIERS,
   type PricingResponse,
+  SUBSCRIPTION_TIERS,
 } from '../content/pricing';
 import { PRICING_FAQ_SECTION, PRICING_FAQS } from '../content/pricing-faq';
 

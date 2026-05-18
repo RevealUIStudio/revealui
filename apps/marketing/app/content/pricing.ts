@@ -3,8 +3,8 @@
 
 export {
   PERPETUAL_TIERS,
-  SUBSCRIPTION_TIERS,
   type PricingResponse,
+  SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 
 import { SITE } from './site';
