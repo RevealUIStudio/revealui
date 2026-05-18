@@ -193,7 +193,7 @@ For high-volume logs, sample only a percentage at the call site — there is
 no bundled helper; use a small guard to keep it explicit:
 
 ```typescript
-import { logger } from '@revealui/core/observability/logger'
+import { logger } from '@revealui/core/utils/logger'
 
 // Log only 10% of messages
 if (Math.random() < 0.1) {
@@ -305,22 +305,24 @@ This makes logs searchable and parseable by log aggregation tools like:
    authLogger.info('Login attempt') // Includes module: 'auth'
    ```
 
-## ESLint Configuration
+## Biome Configuration
 
-Add this rule to prevent `console.*` usage:
+The `noConsole` rule is enforced in `biome.json` and blocks all `console.*` calls (errors at lint time). This is wired in the root Biome config under `linter.rules.suspicious.noConsole: "error"`, with file-level overrides set to `"off"` for scripts and test helpers that legitimately write to stdout.
 
-```javascript
-// eslint.config.js
-export default [
-  {
-    rules: {
-      'no-console': ['error', {
-        allow: [] // No console methods allowed
-      }]
+```jsonc
+// biome.json (already configured — shown for reference)
+{
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "noConsole": "error"
+      }
     }
   }
-]
+}
 ```
+
+Run `pnpm lint` or `pnpm exec biome check .` to catch any `console.*` calls in your working tree.
 
 ## Testing
 
