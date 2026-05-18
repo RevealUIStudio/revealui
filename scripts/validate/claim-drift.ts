@@ -1086,6 +1086,11 @@ const RVUI_LEAK_ALLOWLIST = new Set<string>([
   // (customer-facing ticker) boundary; it must mention both to fulfil
   // its purpose as the cross-cutting vocabulary source of truth.
   'docs/glossary.md',
+  // MARKETING_METRICS.md is the marketing-overhaul lane's pinned-truth
+  // doc; it documents the `$RVUI` (internal) vs `RVC` (customer-facing)
+  // boundary in §7 so marketing copy stays aligned. Added 2026-05-18 via
+  // marketing-overhaul Phase 2.
+  'docs/MARKETING_METRICS.md',
 ]);
 
 function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {

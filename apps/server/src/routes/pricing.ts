@@ -74,7 +74,12 @@ const HARDCODED_PERPETUAL_PRICES: Record<
     priceNote: 'one-time',
     renewal: '$199/yr for continued support',
   },
-  'Forge Perpetual': {
+  // 'Enterprise Perpetual' is the post-rename canonical name per
+  // brand-naming ADR (2026-05-03-revfleet-rename.md). The contracts file
+  // ships this name; the server fallback now matches. marketing-overhaul
+  // Phase 2.6 (2026-05-18) closed the pre-rename "Forge Perpetual" drift
+  // surfaced by pricing-marketing-drift.test.ts.
+  'Enterprise Perpetual': {
     price: '$1,999',
     priceNote: 'one-time',
     renewal: '$499/yr for continued support',
