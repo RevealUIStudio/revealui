@@ -97,11 +97,11 @@ Honest list of things that are not done, not deployed, or not verified.
 | Metric | Value | Verified |
 |--------|-------|----------|
 | Workspaces (apps + packages) | 30 | Yes |
-| Apps | 5 (`admin`, `api`, `docs`, `marketing`, `revealcoin`) | Yes |
+| Apps | 4 (`admin`, `server`, `docs`, `marketing`) | Yes |
 | OSS packages (MIT) | 22 | Yes |
 | Pro packages (FSL-1.1-MIT) | 3 (`ai`, `harnesses`, `engines`) | Yes |
 | UI components 58 | Yes |
-| Database tables | 85 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
+| Database tables | 86 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
 | MCP servers (`packages/mcp/src/servers/`) | 13 | Yes |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |
