@@ -1,7 +1,9 @@
-// Sourced from: app/components/landing/Proof.tsx (Phase 1c, no copy changes).
-// Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Sourced from: app/components/landing/Proof.tsx (Phase 1c extraction).
+// Phase 3 (2026-05-18) update: "21 of 26 packages MIT" trust card heading now
+// uses METRICS license split (20 MIT). Pre-Phase-3 audit had off-by-one count.
+// Per docs/lanes/marketing-overhaul/plan.md §4.4 + docs/MARKETING_METRICS.md §1.
 
-import { SITE } from './site';
+import { METRICS, SITE } from './site';
 
 export interface StackItem {
   readonly label: string;
@@ -54,10 +56,9 @@ export const PROOF_TRUST = {
   cards: [
     {
       eyebrow: 'In the repo',
-      heading: '21 of 26 packages MIT — forever.',
+      heading: `${METRICS.licenseSplit.mit} of ${METRICS.packages} packages MIT — forever.`,
       body: {
-        prefix:
-          'The 5 Pro packages ship under Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. View the',
+        prefix: `The ${METRICS.licenseSplit.fsl} Pro packages ship under Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. View the`,
         licenseLabel: 'LICENSE',
         licenseHref: SITE.urls.repoLicense,
         middle: 'or the',
