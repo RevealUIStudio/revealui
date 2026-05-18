@@ -44,7 +44,7 @@ UX, plaintext secrets). All three must hold.
       "our team" in marketing copy if it's one person. Buyers who would reject a solo-founder SaaS
       will reject it louder after they discover it post-purchase.
 - [ ] **Subprocessor list** on a public page (`/legal/subprocessors`). Include: Vercel, NeonDB,
-      Supabase, Stripe, the current LLM inference providers, email provider, blob storage.
+      ~~Supabase~~ (Legacy — retiring per ADR `2026-05-01-supabase-removal.md`; remove from list once phase-out completes), Stripe, the current LLM inference providers, email provider, blob storage.
       Update-on-change with a dated changelog. Required for any enterprise sale and enforced by
       most DPAs.
 
@@ -79,7 +79,7 @@ for a lawyer review when you begin collecting payment.
 ### Data handling transparency
 
 - [ ] **Customer data map** — internal document naming every place customer data flows: Neon
-      region, Supabase region, Stripe, inference providers (including whether prompts leave the
+      region, ~~Supabase region~~ (Legacy — retiring per ADR `2026-05-01-supabase-removal.md`), Stripe, inference providers (including whether prompts leave the
       account boundary), blob storage, logs. Surface the externally-relevant parts on the
       Privacy Policy.
 - [ ] **Training-data promise** — explicit public statement of whether customer content is used
@@ -112,7 +112,7 @@ MASTER_PLAN § Current Reality). The remaining work is operational.
       OAuth client secrets, and database credentials in staging end-to-end, timed. Document the
       exact command sequence. If you can't rotate in under an hour today, a compromise
       tomorrow will take days.
-- [ ] **Backup restoration drill** — restore NeonDB and Supabase from backup into a clean
+- [ ] **Backup restoration drill** — restore NeonDB and ~~Supabase~~ (Legacy — retiring per ADR `2026-05-01-supabase-removal.md`) from backup into a clean
       environment. Verify RPO (how much data loss is acceptable) and RTO (how long to restore)
       against what's promised in the SLA / Privacy Policy. Unrestored backups are fiction.
 - [ ] **Separate staging environment** with production-equivalent config but non-production
@@ -121,7 +121,7 @@ MASTER_PLAN § Current Reality). The remaining work is operational.
 
 ### Account + access hygiene
 
-- [ ] **MFA enforced on every critical external account**: Stripe, Vercel, NeonDB, Supabase,
+- [ ] **MFA enforced on every critical external account**: Stripe, Vercel, NeonDB, ~~Supabase~~ (Legacy — retiring per ADR `2026-05-01-supabase-removal.md`),
       GitHub, npm, domain registrar, email provider. Check each one; they each have a separate
       MFA setting.
 - [ ] **Privilege separation** — deploy/CI credentials (read-only push, narrow scope) distinct

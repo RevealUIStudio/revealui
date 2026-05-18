@@ -1181,7 +1181,7 @@ app.route('/api/console-auth', terminalAuthRoute);
 // Auth required: terminal sessions give PTY access to the server
 app.use('/api/terminal/*', writeProtected);
 app.use('/api/terminal/*', routeLimit('terminal-sessions'));
-const terminalWs = createTerminalRoute();
+export const terminalWs = createTerminalRoute();
 app.route('/api/terminal', terminalWs.app);
 
 app.route('', createCollabRoute());
@@ -1242,7 +1242,7 @@ export default app;
 // Runs in both dev and prod. Console channel always active.
 let monitoringInterval: NodeJS.Timeout | undefined;
 
-function initAlerting(): void {
+export function initAlerting(): void {
   alerting.addChannel(consoleChannel);
 
   alerting.registerRule(
@@ -1266,23 +1266,6 @@ function initAlerting(): void {
 
   monitoringInterval = alerting.startMonitoring(60_000);
   logger.info('Alerting system started (60s interval)');
-}
-
-// RVUI price oracle  -  start polling when Jupiter API key is configured.
-// Runs in both dev and prod. Safe no-op if JUPITER_API_KEY is unset.
-// Uses dynamic import to avoid hard dependency on @revealui/services build.
-function initPriceOracle(): void {
-  import('@revealui/services/revealcoin')
-    .then((mod: Record<string, unknown>) => {
-      if (typeof mod.startPriceOracle === 'function') {
-        (mod.startPriceOracle as () => void)();
-      }
-    })
-    .catch((err: unknown) => {
-      logger.warn('RVUI price oracle not available', {
-        error: err instanceof Error ? err.message : String(err),
-      });
-    });
 }
 
 // For local development (but not in test environment)
@@ -1313,7 +1296,6 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
       );
       process.exit(1);
     });
-  initPriceOracle();
   initAlerting();
   // Best-effort hydration of per-site LLM provider configs into the
   // in-memory registry. Skipped silently if @revealui/ai not installed or DB
@@ -1336,53 +1318,11 @@ if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
 // IPs / 'unknown' for everyone.
 configureClientIp({ trustedProxyCount: 1 });
 
-// Also validate in production before accepting traffic
-if (process.env.NODE_ENV === 'production') {
-  // Swap in persistent audit storage (replaces default InMemoryAuditStorage)
-  audit.setStorage(new PostgresAuditStorage());
-  validateStartup();
-  // Forge customer deployments (Docker stack from forge/stamp.sh) reach
-  // here in NODE_ENV=production with a studio-issued JWT in
-  // REVEALUI_LICENSE_KEY but no signing key. validateLicenseAtStartup
-  // throws on invalid/expired/missing license; process.exit(1) makes the
-  // container restart-loop instead of silently degrading to free tier.
-  //
-  // validateBillingCatalogAtStartup runs only in hosted mode with
-  // STRIPE_LIVE_MODE=true. It queries the billing_catalog table and fails
-  // boot if any expected plan is missing or has null stripe_price_id —
-  // preventing the failure mode where a customer checkout 500s
-  // mid-transaction because seed-billing.ts wasn't run after the live-key
-  // flip. Forge mode short-circuits (no Stripe); hosted test mode
-  // short-circuits (catalog can be partial pre-flip).
-  validateLicenseAtStartup()
-    .then(() => validateBillingCatalogAtStartup())
-    .then(() => initializeLicense())
-    .then((tier) => {
-      logger.info(`License tier: ${tier}`);
-    })
-    .catch((err: unknown) => {
-      logger.error(
-        'Startup validation failed; exiting',
-        err instanceof Error ? err : new Error(String(err)),
-      );
-      process.exit(1);
-    });
-  initPriceOracle();
-  initAlerting();
-  hydrateInferenceConfigs();
-  // Bind the HTTP listener. Mirrors the dev branch shape above so a Fleet
-  // Docker container (NODE_ENV=production) actually starts answering
-  // requests instead of initializing-everything-but-never-listening.
-  // The previous shape ran every initializer (validateLicenseAtStartup,
-  // initPriceOracle, initAlerting, hydrateInferenceConfigs) but never
-  // called serve(), so containers came up, passed liveness, and silently
-  // hung pre-listen. Diagnosed in
-  // .jv/docs/HANDOFF-2026-05-10-1245Z-strategy-arc-session-archive.md
-  // §"API startup hang root cause identified".
-  const port = Number(process.env.API_PORT || process.env.PORT) || 3004;
-  const server = serve({ fetch: app.fetch, port });
-  terminalWs.injectWebSocket(server);
-  logger.info(`🚀 API server running on http://localhost:${port}`);
-  logger.info(`📚 API documentation available at http://localhost:${port}/docs`);
-  logger.info(`📄 OpenAPI spec available at http://localhost:${port}/openapi.json`);
-}
+// NODE_ENV === 'production' boot is handled by src/worker.ts (Fly entry).
+// This module is intentionally side-effect-free in production so the Vercel
+// serverless handler (api/index.js → dist/index.js) doesn't kick off
+// long-running side effects (serve(), injectWebSocket, initAlerting,
+// hydrateInferenceConfigs, startExecutor) on every cold start. The dev
+// block above still fires for `pnpm dev:api` because that runs with
+// NODE_ENV=development. See the internal infra-consolidation lane plan
+// (Phase 2) for the extraction history.

@@ -1,108 +1,21 @@
 import { ButtonCVA } from '@revealui/presentation';
 import { useEffect } from 'react';
 import { Footer } from '../components/Footer';
+import {
+  FAIR_SOURCE_CLOCK_SECTION,
+  FAIR_SOURCE_CONTRACT_CARDS,
+  FAIR_SOURCE_CONTRACT_SECTION,
+  FAIR_SOURCE_CTA,
+  FAIR_SOURCE_FAQ_SECTION,
+  FAIR_SOURCE_FAQS,
+  FAIR_SOURCE_HERO,
+  FAIR_SOURCE_PACKAGES,
+  FAIR_SOURCE_PACKAGES_SECTION,
+  FAIR_SOURCE_PAGE_TITLE,
+  FAIR_SOURCE_PEERS,
+  FAIR_SOURCE_PEERS_SECTION,
+} from '../content/fair-source';
 import { buildOgUrl } from '../lib/og';
-
-const PAGE_TITLE = 'Fair Source — RevealUI';
-
-const contractCards = [
-  {
-    kind: 'yes' as const,
-    title: 'Use it commercially',
-    body: 'Ship Fair Source code in your product, charge customers, run it in production. No royalties, no per-seat fees, no usage caps.',
-  },
-  {
-    kind: 'yes' as const,
-    title: 'Read and modify the source',
-    body: 'Every line is on GitHub. Fork it, patch it, audit it for security. The source is the source of truth — there is no closed binary hiding behind it.',
-  },
-  {
-    kind: 'yes' as const,
-    title: 'Self-host on your own infra',
-    body: 'Run it in your VPC, on bare metal, or air-gapped. RevealUI does not phone home and does not depend on a vendor service to function.',
-  },
-  {
-    kind: 'no' as const,
-    title: 'Build a competing developer platform',
-    body: 'You cannot ship a substantially similar developer platform that competes with RevealUI on top of these packages. This is the only restriction. After two years, even this restriction lifts and the release becomes plain MIT.',
-  },
-];
-
-const packages = [
-  {
-    name: '@revealui/ai',
-    purpose: 'AI agents, CRDT memory, LLM provider abstractions, orchestration',
-    license: 'FSL-1.1-MIT',
-    repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/ai',
-    npm: 'https://www.npmjs.com/package/@revealui/ai',
-  },
-  {
-    name: '@revealui/harnesses',
-    purpose: 'AI harness adapters, workboard coordination, JSON-RPC primitives',
-    license: 'FSL-1.1-MIT',
-    repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses',
-    npm: 'https://www.npmjs.com/package/@revealui/harnesses',
-  },
-  {
-    name: '@revealui/mcp',
-    purpose: 'MCP framework — server hypervisor, adapter pattern, tool discovery',
-    license: 'FSL-1.1-MIT',
-    repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/mcp',
-    npm: 'https://www.npmjs.com/package/@revealui/mcp',
-  },
-  {
-    name: '@revealui/services',
-    purpose: 'External service integrations — Stripe, Solana (RVC), Vercel',
-    license: 'FSL-1.1-MIT',
-    repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/services',
-    npm: 'https://www.npmjs.com/package/@revealui/services',
-  },
-];
-
-const peers = [
-  {
-    name: 'Sentry',
-    note: 'Application monitoring; flagship FSL adopter (license they originally co-authored with FOSSA).',
-    url: 'https://blog.sentry.io/introducing-the-functional-source-license-freedom-without-free-riding/',
-  },
-  {
-    name: 'GitButler',
-    note: 'Git client for branch management. FSL across the stack.',
-    url: 'https://gitbutler.com/blog/fair-source',
-  },
-  {
-    name: 'Keygen',
-    note: 'License management infrastructure; FSL on their core engine.',
-    url: 'https://keygen.sh/blog/fair-source/',
-  },
-];
-
-const faqs = [
-  {
-    q: 'Is Fair Source open source?',
-    a: 'Not in the OSI-approved sense — the non-compete clause means it is "source-available" rather than "open source." But for almost every practical purpose (read, modify, deploy, charge for products built on top), the freedoms match what most builders need from open source. After two years per release, the clause lifts and the code becomes plain MIT, which IS OSI open source.',
-  },
-  {
-    q: 'What counts as a "competing developer platform"?',
-    a: 'The license uses the standard FSL definition: a software product with substantially the same functionality as RevealUI that is offered to the same audience as a developer platform. Building a SaaS app for end users that happens to use @revealui/ai under the hood is fine. Building a marketplace for AI-agent tooling on top of @revealui/harnesses and selling it to developers is the case the clause addresses. If you are unsure, email founder@revealui.com — we would rather you ship than worry.',
-  },
-  {
-    q: 'When exactly does each release convert to MIT?',
-    a: "Two years after the publish date of that specific release. So today's 0.4.0 release of @revealui/ai becomes MIT on its 2-year anniversary; a future 0.5.0 starts its own clock from its own publish date. Older releases reach MIT first; this is intentional.",
-  },
-  {
-    q: 'Why not just use plain MIT for everything?',
-    a: 'The Pro packages represent meaningful R&D investment in agent runtimes and harness coordination. Plain MIT lets a competitor fork the entire stack on day one and undercut the project on price, leaving the studio with no path to sustain the work. Fair Source closes that specific risk while keeping every other freedom you need. It is a deliberate middle path between "everything free, no business model" and "closed proprietary."',
-  },
-  {
-    q: 'How is the Pro tier enforced if the source is visible?',
-    a: 'License enforcement is at runtime in the hosted product, not baked into the npm packages. The hosted RevealUI API checks Ed25519-signed license JWTs and gates Pro API routes; the packages themselves ship ungated, so self-hosters run them freely. FSL is the legal protection — the source is visible and you can run it, but shipping a competing developer platform on top of it is exactly what the non-compete clause prohibits, with civil remedies available. Two years after each release, that release becomes plain MIT.',
-  },
-  {
-    q: 'What about the rest of the RevealUI packages?',
-    a: 'Every other RevealUI package is plain MIT — no non-compete clause, no time limit, fully open source. That is the OSS substrate (auth, content, billing primitives, admin UI, presentation system, router, etc.). Fair Source applies to five packages: @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, and @revealui/services.',
-  },
-];
 
 export function FairSourcePage() {
   // Per-page OG tag override. Vite SPAs can update <head> at runtime; the
@@ -110,11 +23,8 @@ export function FairSourcePage() {
   // (Twitterbot, Slackbot, Discordbot, LinkedIn, OpenGraph spec consumers)
   // execute JavaScript and pick up the dynamic OG image.
   useEffect(() => {
-    document.title = PAGE_TITLE;
-    const ogImage = buildOgUrl(
-      'Fair Source',
-      'Source-visible. Commercially usable. MIT in two years.',
-    );
+    document.title = FAIR_SOURCE_PAGE_TITLE;
+    const ogImage = buildOgUrl(FAIR_SOURCE_HERO.ogTitle, FAIR_SOURCE_HERO.ogSubtitle);
     setMetaContent('og:image', ogImage);
     setMetaContent('twitter:image', ogImage);
   }, []);
@@ -135,27 +45,25 @@ export function FairSourcePage() {
         <div className="relative mx-auto max-w-3xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700 mb-6">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle mr-2" />
-            License contract for the Pro packages
+            {FAIR_SOURCE_HERO.eyebrow}
           </p>
           <h1 className="text-5xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl">
-            21 of 26 MIT.
-            <span className="block text-emerald-700">Forever.</span>
+            {FAIR_SOURCE_HERO.headline}
+            <span className="block text-emerald-700">{FAIR_SOURCE_HERO.headlineHighlight}</span>
           </h1>
           <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-gray-600 sm:text-2xl">
-            The 5 commercial packages convert to MIT after 2 years.
+            {FAIR_SOURCE_HERO.subhead}
           </p>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">
             {/* COUNT: packages-fsl = 5, packages-mit = 21 (of 26 total — see /packages/ in repo) */}
-            Twenty-one RevealUI packages ship under plain MIT and stay that way. Five packages ship
-            under{' '}
+            {FAIR_SOURCE_HERO.body.prefix}{' '}
             <a
-              href="https://fsl.software/"
+              href={FAIR_SOURCE_HERO.body.fslHref}
               className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
             >
-              FSL-1.1-MIT
+              {FAIR_SOURCE_HERO.body.fslLabel}
             </a>{' '}
-            &mdash; source-visible, commercially usable, and each release auto-converts to plain MIT
-            two years after publish. Same license model used by Sentry, GitButler, and Keygen.
+            &mdash; {FAIR_SOURCE_HERO.body.suffix}
           </p>
         </div>
       </section>
@@ -165,15 +73,15 @@ export function FairSourcePage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-              The contract, in plain English
+              {FAIR_SOURCE_CONTRACT_SECTION.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-              Three yeses and one no.
+              {FAIR_SOURCE_CONTRACT_SECTION.heading}
             </h2>
           </div>
 
           <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2">
-            {contractCards.map((c) => (
+            {FAIR_SOURCE_CONTRACT_CARDS.map((c) => (
               <div
                 key={c.title}
                 className={`rounded-2xl p-6 ring-1 transition ${
@@ -227,18 +135,18 @@ export function FairSourcePage() {
       <section className="bg-gray-50 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">Scope</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+              {FAIR_SOURCE_PACKAGES_SECTION.eyebrow}
+            </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-              Which RevealUI packages are Fair Source.
+              {FAIR_SOURCE_PACKAGES_SECTION.heading}
             </h2>
             <p className="mt-6 text-base leading-7 text-gray-600">
-              Five packages carry FSL-1.1-MIT — the four published to npm are listed below, plus the
-              private{' '}
+              {FAIR_SOURCE_PACKAGES_SECTION.body.prefix}{' '}
               <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-sm text-gray-900">
-                @revealui/engines
+                {FAIR_SOURCE_PACKAGES_SECTION.body.privatePackage}
               </code>{' '}
-              workspace package. Every other RevealUI package is plain MIT — no non-compete, no time
-              limit, fully open source.
+              {FAIR_SOURCE_PACKAGES_SECTION.body.suffix}
             </p>
           </div>
 
@@ -253,7 +161,7 @@ export function FairSourcePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {packages.map((p) => (
+                {FAIR_SOURCE_PACKAGES.map((p) => (
                   <tr key={p.name}>
                     <td className="px-6 py-4 font-mono text-sm font-semibold text-gray-950">
                       {p.name}
@@ -289,11 +197,11 @@ export function FairSourcePage() {
             </table>
           </div>
           <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-gray-500">
-            Looking for a specific package&rsquo;s license? Run{' '}
+            {FAIR_SOURCE_PACKAGES_SECTION.footer.prefix}{' '}
             <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-700">
-              npm view @revealui/&lt;name&gt; license
+              {FAIR_SOURCE_PACKAGES_SECTION.footer.command}
             </code>{' '}
-            — npm always tells the truth.
+            {FAIR_SOURCE_PACKAGES_SECTION.footer.suffix}
           </p>
         </div>
       </section>
@@ -303,52 +211,31 @@ export function FairSourcePage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-              The two-year clock
+              {FAIR_SOURCE_CLOCK_SECTION.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-              Every release auto-converts to MIT.
+              {FAIR_SOURCE_CLOCK_SECTION.heading}
             </h2>
             <p className="mt-6 text-base leading-7 text-gray-600">
-              The 2-year timer starts on each release&rsquo;s publish date. Older releases reach MIT
-              first; newer releases start their own clock from their own publish date. The clause
-              does not require any action from RevealUI Studio — it is in the license text and
-              self-executing.
+              {FAIR_SOURCE_CLOCK_SECTION.body}
             </p>
           </div>
 
           <div className="mx-auto mt-12 max-w-3xl">
             <ol className="relative border-l-2 border-emerald-200 pl-8">
-              <li className="mb-8 last:mb-0">
-                <span className="absolute -left-2.5 mt-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 ring-4 ring-white">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                </span>
-                <h3 className="font-semibold text-gray-950">Release publishes under FSL-1.1-MIT</h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  Source on GitHub. Installable from npm. The 2-year clock starts ticking the moment
-                  the version tag lands.
-                </p>
-              </li>
-              <li className="mb-8 last:mb-0">
-                <span className="absolute -left-2.5 mt-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-600 ring-4 ring-white">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                </span>
-                <h3 className="font-semibold text-gray-950">Year one and year two</h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  All freedoms apply (use commercially, modify, self-host) except the non-compete
-                  clause. You build on it, you ship products with it, you charge customers for those
-                  products.
-                </p>
-              </li>
-              <li>
-                <span className="absolute -left-2.5 mt-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-600 ring-4 ring-white">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                </span>
-                <h3 className="font-semibold text-gray-950">Two years later: plain MIT</h3>
-                <p className="mt-1 text-sm text-gray-600">
-                  That specific release auto-converts to plain MIT. The non-compete clause lifts;
-                  the license becomes OSI-approved open source.
-                </p>
-              </li>
+              {FAIR_SOURCE_CLOCK_SECTION.steps.map((step) => (
+                <li key={step.title} className="mb-8 last:mb-0">
+                  <span
+                    className={`absolute -left-2.5 mt-1.5 flex h-5 w-5 items-center justify-center rounded-full ring-4 ring-white ${
+                      step.color === 'emerald' ? 'bg-emerald-600' : 'bg-amber-600'
+                    }`}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                  </span>
+                  <h3 className="font-semibold text-gray-950">{step.title}</h3>
+                  <p className="mt-1 text-sm text-gray-600">{step.body}</p>
+                </li>
+              ))}
             </ol>
           </div>
         </div>
@@ -359,15 +246,15 @@ export function FairSourcePage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-              In good company
+              {FAIR_SOURCE_PEERS_SECTION.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-              The same license model used by serious infrastructure projects.
+              {FAIR_SOURCE_PEERS_SECTION.heading}
             </h2>
           </div>
 
           <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-3">
-            {peers.map((p) => (
+            {FAIR_SOURCE_PEERS.map((p) => (
               <a
                 key={p.name}
                 href={p.url}
@@ -389,18 +276,18 @@ export function FairSourcePage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-              Common questions
+              {FAIR_SOURCE_FAQ_SECTION.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-              Detailed answers, not lawyer-speak.
+              {FAIR_SOURCE_FAQ_SECTION.heading}
             </h2>
           </div>
 
           <div className="mx-auto mt-12 max-w-3xl divide-y divide-gray-200">
-            {faqs.map((f) => (
-              <details key={f.q} className="group py-6">
+            {FAIR_SOURCE_FAQS.map((f) => (
+              <details key={f.question} className="group py-6">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left">
-                  <h3 className="text-lg font-semibold leading-7 text-gray-950">{f.q}</h3>
+                  <h3 className="text-lg font-semibold leading-7 text-gray-950">{f.question}</h3>
                   <span className="ml-2 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition group-open:rotate-45 group-open:bg-emerald-50 group-open:text-emerald-700">
                     <svg
                       className="h-4 w-4"
@@ -419,7 +306,7 @@ export function FairSourcePage() {
                     </svg>
                   </span>
                 </summary>
-                <div className="mt-4 pr-9 text-base leading-7 text-gray-600">{f.a}</div>
+                <div className="mt-4 pr-9 text-base leading-7 text-gray-600">{f.answer}</div>
               </details>
             ))}
           </div>
@@ -430,15 +317,12 @@ export function FairSourcePage() {
       <section className="bg-gray-950 py-16 sm:py-24">
         <div className="mx-auto max-w-2xl px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Read the spec yourself.
+            {FAIR_SOURCE_CTA.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-400">
-            FSL-1.1-MIT is short, plain English, and authored by the FOSSA legal team. Two pages.
-            Read it before you ship.
-          </p>
+          <p className="mt-6 text-lg leading-8 text-gray-400">{FAIR_SOURCE_CTA.body}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <ButtonCVA asChild size="lg" className="bg-white text-gray-950 hover:bg-gray-100">
-              <a href="https://fsl.software/FSL-1.1-MIT.template.md">FSL-1.1-MIT spec text</a>
+              <a href={FAIR_SOURCE_CTA.primaryHref}>{FAIR_SOURCE_CTA.primaryLabel}</a>
             </ButtonCVA>
             <ButtonCVA
               asChild
@@ -446,9 +330,7 @@ export function FairSourcePage() {
               size="lg"
               className="border-gray-700 text-gray-300 hover:text-white hover:border-gray-500"
             >
-              <a href="mailto:founder@revealui.com?subject=Fair%20Source%20question">
-                Email a license question
-              </a>
+              <a href={FAIR_SOURCE_CTA.secondaryHref}>{FAIR_SOURCE_CTA.secondaryLabel}</a>
             </ButtonCVA>
           </div>
         </div>

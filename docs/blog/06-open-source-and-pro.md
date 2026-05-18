@@ -4,6 +4,8 @@ RevealUI is open source today; the commercial side is pre-launch. Before we talk
 
 This is a solo-founder project. I don't have a VC board to answer to or a growth team optimizing conversion funnels. I have a business model I believe in, and I'd rather explain it plainly than have you discover the trade-offs later.
 
+> **Status note (updated 2026-05-18):** Two revenue surfaces described later in this post — the **MCP Marketplace** (third-party publishing + 80/20 revenue share) and **agent payments via x402 + RVC** — are **planned, not shipped**. The first-party MCP catalog (13 servers under `packages/mcp/src/servers/`) does ship today; third-party publishing, marketplace discovery UI, billing rails, and developer payouts are unbuilt. RevC (RVC) is on mainnet but pre-launch (legal and multisig gates open). x402 is code-complete behind `X402_ENABLED=false`. See `docs/MARKETING_METRICS.md` §3 for current shipping status of every commercial surface.
+
 ---
 
 ## The MIT Commitment

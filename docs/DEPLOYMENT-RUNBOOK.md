@@ -204,7 +204,7 @@ See [Section 5](#5-database-migration-steps) for details.
 ### Architecture
 
 - **Primary database**: NeonDB (PostgreSQL, Drizzle ORM)
-- **Secondary database**: Supabase (vectors, auth)
+- **Secondary database**: ~~Supabase~~ **Legacy — retired per ADR `2026-05-01-supabase-removal.md`. Current stack: Neon (primary) + ElectricSQL (sync).**
 - **Schema definitions**: `packages/db/src/schema/` (86 tables)
 - **Migration files**: `packages/db/migrations/`
 - **ORM config**: `packages/db/drizzle.config.ts`
@@ -418,7 +418,7 @@ For security incidents, data breaches, or critical production failures, follow t
 
 1. Check Vercel deployment status and function logs.
 2. If a bad deploy caused the issue, roll back immediately (see [Section 4](#4-rollback-procedures)).
-3. If the issue is database-related, check NeonDB and Supabase dashboards.
+3. If the issue is database-related, check NeonDB dashboard. (Supabase dashboard: Legacy — retired per ADR `2026-05-01-supabase-removal.md`.)
 4. If the issue is a security incident, escalate per the Incident Response Plan.
 5. Contact: security@revealui.com (security), founder@revealui.com (general).
 

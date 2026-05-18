@@ -1,6 +1,17 @@
 # Script Management System
 
-Complete guide to the RevealUI Script Management Enhancement System - infrastructure for managing 222+ TypeScript scripts with visibility, type safety, verification, and rollback capabilities.
+Complete guide to the RevealUI Script Management Enhancement System - infrastructure for managing 203 TypeScript scripts with visibility, type safety, verification, and rollback capabilities.
+
+## Status
+
+| Feature | State |
+|---------|-------|
+| Script count (203 `.ts` files under `scripts/`) | SHIPPED |
+| Zod-based runtime validation on script inputs | SHIPPED |
+| `EnhancedCLI` base class | PROPOSED — not yet implemented |
+| PGlite-backed execution catalog | PROPOSED — not yet implemented |
+| `pnpm scripts:list` / `health:check` / `version:list` commands | PROPOSED — not yet implemented |
+| Phase-level profiling + usage analytics | PROPOSED — not yet implemented |
 
 ## Table of Contents
 
@@ -30,7 +41,7 @@ Complete guide to the RevealUI Script Management Enhancement System - infrastruc
 
 The Script Management System provides comprehensive tooling for managing TypeScript scripts across the RevealUI monorepo. It offers:
 
-- **Automatic Discovery**: Scans and catalogs 222+ scripts with metadata
+- **Automatic Discovery**: Scans and catalogs 203 scripts with metadata
 - **Type Safety**: Zod-based runtime validation for all inputs
 - **Audit Trail**: Complete execution history in PGlite database
 - **Performance Insights**: Phase-level profiling with bottleneck detection
@@ -50,7 +61,7 @@ The Script Management System provides comprehensive tooling for managing TypeScr
 
 ### System Statistics
 
-- **Scripts Cataloged**: 222 TypeScript scripts
+- **Scripts Cataloged**: 203 TypeScript scripts
 - **CLI Commands**: 50+ commands across 7 categories
 - **Database Tables**: 6 tables for persistence
 - **Test Coverage**: 19 integration tests

@@ -98,9 +98,10 @@ RevealUI is part of a four-project ecosystem. Each project has features distribu
 | RevVault rotation engine | | Yes | Yes | Yes |
 | RevKit agent coordination protocol | Yes | Yes | Yes | Yes |
 | RevKit environment provisioning | | | Yes | Yes |
-| RevealCoin x402 agent payments | | | | Yes |
 
-The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free forever. Commercial features (desktop app, rotation engine, provisioning, x402 payments) require the corresponding tier.
+> **Deferred — SHELVED 2026-05-15:** RevealCoin x402 agent payments are not on the current roadmap. Mainnet is indefinitely postponed pending revenue + legal review. The `X402_ENABLED=false` flag preserves the code for future resumption.
+
+The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free forever. Commercial features (desktop app, rotation engine, provisioning) require the corresponding tier.
 
 ## Licensing (Fair Source + MIT)
 
