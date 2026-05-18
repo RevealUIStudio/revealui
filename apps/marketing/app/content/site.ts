@@ -3,6 +3,7 @@
 //   app/components/Footer.tsx, app/components/GetStarted.tsx,
 //   app/components/landing/Hero.tsx, app/routes/*.tsx
 // Per docs/lanes/marketing-overhaul/plan.md §4.4 (Phase 1).
+// Phase 1b additions: repoRoadmap, apiDocs, revealcoinReadme.
 
 export const SITE = {
   brand: 'RevealUI',
@@ -13,6 +14,7 @@ export const SITE = {
     docs: 'https://docs.revealui.com',
     docsMcp: 'https://docs.revealui.com/mcp',
     repo: 'https://github.com/RevealUIStudio/revealui',
+    repoRoadmap: 'https://github.com/RevealUIStudio/revealui/blob/main/docs/ROADMAP.md',
     repoDiscussions: 'https://github.com/RevealUIStudio/revealui/discussions',
     repoIssues: 'https://github.com/RevealUIStudio/revealui/issues',
     sponsors: 'https://github.com/sponsors/RevealUIStudio',
@@ -20,6 +22,8 @@ export const SITE = {
     api: 'https://api.revealui.com',
     apiAgent: 'https://api.revealui.com/.well-known/agent.json',
     apiOpenapi: 'https://api.revealui.com/openapi.json',
+    apiDocs: 'https://docs.revealui.com/api',
+    revealcoinReadme: 'https://github.com/RevealUIStudio/revealcoin#pre-launch-risk-disclosure',
     fslSoftware: 'https://fsl.software/',
     fslSpecText: 'https://fsl.software/FSL-1.1-MIT.template.md',
   },
