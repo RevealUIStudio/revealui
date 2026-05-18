@@ -89,9 +89,7 @@ hydrateInferenceConfigs();
 if (process.env.REVMARKET_EXECUTOR_ENABLED === 'true') {
   startExecutor();
 } else {
-  logger.info(
-    'RVMarket executor not started (set REVMARKET_EXECUTOR_ENABLED=true to enable)',
-  );
+  logger.info('RVMarket executor not started (set REVMARKET_EXECUTOR_ENABLED=true to enable)');
 }
 
 const port = Number(process.env.WORKER_PORT || process.env.PORT) || 8080;
@@ -106,9 +104,7 @@ if (process.env.REVEALUI_FORGE === 'true') {
   terminalWs.injectWebSocket(server);
   logger.info('Terminal WebSocket bridge mounted (REVEALUI_FORGE=true)');
 } else {
-  logger.info(
-    'Terminal WebSocket bridge not mounted (REVEALUI_FORGE != "true")',
-  );
+  logger.info('Terminal WebSocket bridge not mounted (REVEALUI_FORGE != "true")');
 }
 
 logger.info(`🚀 Worker running on http://localhost:${port}`);

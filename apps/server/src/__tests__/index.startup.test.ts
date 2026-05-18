@@ -97,10 +97,9 @@ describe('apps/server/src/index.ts — post-Phase-2 invariants', () => {
     const devBlockBody = extractBranchBody(indexSource, DEV_GUARD, STARTUP_BRANCH_MARKER);
     const serveCount = indexSource.split('serve({ fetch: app.fetch, port }').length - 1;
     const devBlockServeCount = devBlockBody.split('serve({ fetch: app.fetch, port }').length - 1;
-    expect(
-      serveCount,
-      'All serve() calls in index.ts must live inside the dev guard',
-    ).toBe(devBlockServeCount);
+    expect(serveCount, 'All serve() calls in index.ts must live inside the dev guard').toBe(
+      devBlockServeCount,
+    );
   });
 
   it('still contains the dev guard with validateLicenseAtStartup (pnpm dev:api boot path)', () => {
@@ -122,10 +121,9 @@ describe('apps/server/src/index.ts — post-Phase-2 invariants', () => {
       indexSource,
       'index.ts must export terminalWs so worker.ts can call injectWebSocket',
     ).toContain('export const terminalWs = createTerminalRoute()');
-    expect(
-      indexSource,
-      'index.ts must export initAlerting so worker.ts can call it',
-    ).toContain('export function initAlerting');
+    expect(indexSource, 'index.ts must export initAlerting so worker.ts can call it').toContain(
+      'export function initAlerting',
+    );
   });
 });
 
