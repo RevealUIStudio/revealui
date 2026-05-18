@@ -1,4 +1,5 @@
 import { ButtonCVA } from '@revealui/presentation';
+import { HOME_GET_STARTED } from '../content/home';
 import { NewsletterSignup } from './NewsletterSignup';
 
 export function GetStarted() {
@@ -7,15 +8,12 @@ export function GetStarted() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Ready to build?
+            {HOME_GET_STARTED.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-400">
-            Users, content, products, payments, and AI, pre-wired. Start building locally in
-            minutes; flip to live mode when you are ready.
-          </p>
+          <p className="mt-6 text-lg leading-8 text-gray-400">{HOME_GET_STARTED.body}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <ButtonCVA asChild size="lg" className="bg-white text-gray-950 hover:bg-gray-100">
-              <a href="https://admin.revealui.com/signup">Get started free</a>
+              <a href={HOME_GET_STARTED.cta.primary.href}>{HOME_GET_STARTED.cta.primary.label}</a>
             </ButtonCVA>
             <ButtonCVA
               asChild
@@ -23,8 +21,8 @@ export function GetStarted() {
               size="lg"
               className="border-gray-700 text-gray-300 hover:text-white hover:border-gray-500"
             >
-              <a href="https://docs.revealui.com">
-                Read the docs
+              <a href={HOME_GET_STARTED.cta.secondary.href}>
+                {HOME_GET_STARTED.cta.secondary.label}
                 <svg
                   className="h-4 w-4 ml-1.5"
                   fill="none"
@@ -46,7 +44,7 @@ export function GetStarted() {
           {/* Newsletter */}
           <div className="mt-16 pt-10 border-t border-gray-800">
             <p className="text-sm font-medium text-gray-400 mb-4">
-              Not ready to start? Get product updates and engineering insights.
+              {HOME_GET_STARTED.newsletter.label}
             </p>
             <NewsletterSignup variant="stacked" />
           </div>

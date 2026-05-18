@@ -1,6 +1,11 @@
 import type { LicenseTierId, PricingResponse } from '@revealui/contracts/pricing';
 import { Button, ButtonCVA } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
+import {
+  PRICING_TEASER_FOOTER,
+  PRICING_TEASER_SECTION,
+  PRICING_TEASER_TIERS,
+} from '../../content/pricing-teaser';
 
 // Fallback used when /api/pricing is unreachable. Mirrors HARDCODED_SUBSCRIPTION_PRICES
 // in apps/server/src/routes/pricing.ts. The billing-readiness cron drift-checks the API
@@ -16,66 +21,6 @@ const TEASER_FALLBACK_PRICE: Record<LicenseTierId, { price: string; period?: str
 const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
-
-interface TeaserTier {
-  id: LicenseTierId;
-  name: string;
-  description: string;
-  features: string[];
-  cta: string;
-  href: string;
-  highlight: boolean;
-}
-
-// Tier copy lives here (curated for the teaser context); pricing comes from the API.
-// The teaser shows three tiers — Free, Pro, Enterprise — instead of the four on /pricing.
-// Max is omitted; the "See full pricing" link surfaces it.
-const TEASER_TIERS: TeaserTier[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    description:
-      '24 of 26 packages MIT — forever. The 2 Pro packages are Fair Source (FSL) and convert to MIT after two years. No telemetry.',
-    features: [
-      'Full primitive stack',
-      'Admin dashboard + API',
-      'Self-host on any infra',
-      'Bring your own model (open-weight default)',
-    ],
-    cta: 'Get started free',
-    href: 'https://admin.revealui.com/signup',
-    highlight: false,
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    description: 'Pro AI primitives, agent task allowance, and priority support.',
-    features: [
-      'Everything in Free',
-      '10,000 agent tasks / month included',
-      'Pro AI features (agents, MCP, memory) — beta in production',
-      'Priority support',
-    ],
-    cta: 'See Pro pricing',
-    href: '/pricing',
-    highlight: true,
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    description:
-      'Audit logs, multi-tenant architecture, and a named contact. Custom plans for high volume; SSO and on-prem on the roadmap.',
-    features: [
-      'Everything in Pro',
-      'Audit logs + compliance reports',
-      'Multi-tenant architecture',
-      'Roadmap: SSO, SCIM, on-prem deploy',
-    ],
-    cta: 'Talk to us',
-    href: '/contact',
-    highlight: false,
-  },
-];
 
 export function PricingTeaser() {
   const [prices, setPrices] = useState(TEASER_FALLBACK_PRICE);
@@ -109,18 +54,17 @@ export function PricingTeaser() {
     <section className="bg-gray-50 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">Pricing</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-            Start free. Pay when you scale.
-          </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            Self-host the open-source stack at no cost. Pay for the AI primitives and priority
-            support when your business needs them.
+          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            {PRICING_TEASER_SECTION.eyebrow}
           </p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            {PRICING_TEASER_SECTION.heading}
+          </h2>
+          <p className="mt-6 text-lg leading-8 text-gray-600">{PRICING_TEASER_SECTION.body}</p>
         </div>
 
         <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
-          {TEASER_TIERS.map((t) => {
+          {PRICING_TEASER_TIERS.map((t) => {
             const { price, period } = prices[t.id];
             return (
               <div
@@ -201,15 +145,15 @@ export function PricingTeaser() {
         </div>
 
         <div className="mt-12 text-center">
-          <Button plain href="/pricing" className="text-sm font-medium">
-            See full pricing &rarr;
+          <Button plain href={PRICING_TEASER_FOOTER.moreHref} className="text-sm font-medium">
+            {PRICING_TEASER_FOOTER.moreLabel}
           </Button>
           <p className="mt-6 text-xs leading-5 text-gray-500">
-            Deploys to Vercel, Cloudflare, Railway, Hetzner, or self-host.{' '}
+            {PRICING_TEASER_FOOTER.caption.prefix}{' '}
             <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700">
-              pnpm build
+              {PRICING_TEASER_FOOTER.caption.code}
             </code>{' '}
-            produces a standard Node bundle &mdash; no vendor-specific edge runtimes.
+            {PRICING_TEASER_FOOTER.caption.suffix}
           </p>
         </div>
       </div>

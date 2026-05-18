@@ -1,54 +1,68 @@
 import { Footer } from '../components/Footer';
+import {
+  SPONSOR_FOOTER_NOTE,
+  SPONSOR_HERO,
+  SPONSOR_SUPPORT_AREAS,
+  SPONSOR_SUPPORT_HEADING,
+  SPONSOR_TIERS,
+  SPONSOR_TIERS_SECTION,
+  type SupportArea,
+} from '../content/sponsor';
 
-const tiers = [
-  {
-    name: 'Supporter',
-    price: '$5',
-    period: '/month',
-    emoji: '☕',
-    description: 'Buy the maintainers a coffee.',
-    benefits: ['Sponsor badge on GitHub profile', 'Shoutout in release notes'],
-  },
-  {
-    name: 'Backer',
-    price: '$25',
-    period: '/month',
-    emoji: '⭐',
-    description: 'Support ongoing development.',
-    benefits: [
-      'All Supporter benefits',
-      'Name listed on sponsors page',
-      'Early access to roadmap updates',
-      'Priority issue responses',
-    ],
-  },
-  {
-    name: 'Gold Sponsor',
-    price: '$100',
-    period: '/month',
-    emoji: '\u{1F3C6}',
-    description: 'Fund a major feature every quarter.',
-    benefits: [
-      'All Backer benefits',
-      'Logo on README and docs site',
-      'Monthly office hours call',
-      'Vote on roadmap priorities',
-    ],
-  },
-  {
-    name: 'Platinum Sponsor',
-    price: '$500',
-    period: '/month',
-    emoji: '\u{1F48E}',
-    description: 'Shape the future of RevealUI.',
-    benefits: [
-      'All Gold Sponsor benefits',
-      'Logo with link on landing page',
-      'Dedicated Discourse channel',
-      'Direct line to the founder for prioritized feature requests — implementation scoped separately via RevealUI Studio engagements',
-    ],
-  },
-];
+function SupportIcon({ iconKey }: { iconKey: SupportArea['iconKey'] }) {
+  if (iconKey === 'development') {
+    return (
+      <svg
+        className="h-8 w-8 text-blue-600"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <title>Development</title>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"
+        />
+      </svg>
+    );
+  }
+  if (iconKey === 'documentation') {
+    return (
+      <svg
+        className="h-8 w-8 text-blue-600"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+      >
+        <title>Documentation</title>
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg
+      className="h-8 w-8 text-blue-600"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+    >
+      <title>Community</title>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
+      />
+    </svg>
+  );
+}
 
 export function SponsorPage() {
   return (
@@ -57,23 +71,22 @@ export function SponsorPage() {
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-            Sponsor
+            {SPONSOR_HERO.brand}
             <span className="block bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              RevealUI
+              {SPONSOR_HERO.brandHighlight}
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            RevealUI is open source and free to use. Your sponsorship helps fund development,
-            documentation, and community support.
+            {SPONSOR_HERO.subhead}
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <a
-              href="https://github.com/sponsors/RevealUIStudio"
+              href={SPONSOR_HERO.cta.href}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-md bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-blue-500 transition-colors"
             >
-              Sponsor on GitHub
+              {SPONSOR_HERO.cta.label}
             </a>
           </div>
         </div>
@@ -84,14 +97,12 @@ export function SponsorPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Sponsorship Tiers
+              {SPONSOR_TIERS_SECTION.heading.title}
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
-              Every contribution matters. Choose the tier that works for you.
-            </p>
+            <p className="mt-4 text-lg text-gray-600">{SPONSOR_TIERS_SECTION.heading.subtitle}</p>
           </div>
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {tiers.map((tier) => (
+            {SPONSOR_TIERS.map((tier) => (
               <div
                 key={tier.name}
                 className="relative rounded-2xl bg-white p-8 shadow-lg ring-1 ring-gray-200 hover:ring-blue-300 transition-all"
@@ -129,12 +140,12 @@ export function SponsorPage() {
           </div>
           <div className="mt-16 text-center">
             <a
-              href="https://github.com/sponsors/RevealUIStudio"
+              href={SPONSOR_TIERS_SECTION.ctaBottom.href}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-md bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-blue-500 transition-colors"
             >
-              Become a Sponsor
+              {SPONSOR_TIERS_SECTION.ctaBottom.label}
             </a>
           </div>
         </div>
@@ -145,96 +156,39 @@ export function SponsorPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-3xl">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl text-center mb-12">
-              Where Your Support Goes
+              {SPONSOR_SUPPORT_HEADING}
             </h2>
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
-              <div className="text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-                  <svg
-                    className="h-8 w-8 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                  >
-                    <title>Development</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"
-                    />
-                  </svg>
+              {SPONSOR_SUPPORT_AREAS.map((area) => (
+                <div key={area.title} className="text-center">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                    <SupportIcon iconKey={area.iconKey} />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-gray-900">{area.title}</h3>
+                  <p className="mt-2 text-sm text-gray-600">{area.description}</p>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">Development</h3>
-                <p className="mt-2 text-sm text-gray-600">
-                  New features, bug fixes, and performance improvements.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-                  <svg
-                    className="h-8 w-8 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                  >
-                    <title>Documentation</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
-                    />
-                  </svg>
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">Documentation</h3>
-                <p className="mt-2 text-sm text-gray-600">
-                  Guides, tutorials, API references, and examples.
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-                  <svg
-                    className="h-8 w-8 text-blue-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                  >
-                    <title>Community</title>
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">Community</h3>
-                <p className="mt-2 text-sm text-gray-600">
-                  Discourse forums, issue triage, code reviews, and mentorship.
-                </p>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       <div className="py-8 text-center text-sm text-gray-500">
-        Looking for the product? See{' '}
+        {SPONSOR_FOOTER_NOTE.prefix}
         <a
-          href="/products"
+          href={SPONSOR_FOOTER_NOTE.productsLink.href}
           className="font-medium text-gray-700 hover:text-gray-900 transition-colors"
         >
-          Products
-        </a>{' '}
-        or{' '}
-        <a
-          href="https://docs.revealui.com"
-          className="font-medium text-gray-700 hover:text-gray-900 transition-colors"
-        >
-          read the docs
+          {SPONSOR_FOOTER_NOTE.productsLink.label}
         </a>
-        .
+        {SPONSOR_FOOTER_NOTE.separator}
+        <a
+          href={SPONSOR_FOOTER_NOTE.docsLink.href}
+          className="font-medium text-gray-700 hover:text-gray-900 transition-colors"
+        >
+          {SPONSOR_FOOTER_NOTE.docsLink.label}
+        </a>
+        {SPONSOR_FOOTER_NOTE.suffix}
       </div>
 
       <Footer />

@@ -1,4 +1,6 @@
 import { BuiltWithRevealUI } from '@revealui/presentation';
+import { FOOTER_COLUMNS, FOOTER_LEGAL, FOOTER_LEGAL_LINKS, FOOTER_TAGLINE } from '../content/nav';
+import { SITE } from '../content/site';
 import { NewsletterSignup } from './NewsletterSignup';
 
 export function Footer() {
@@ -8,11 +10,8 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           <div className="lg:col-span-2">
-            <div className="text-2xl font-bold tracking-tight text-white mb-4">RevealUI</div>
-            <p className="text-gray-400 text-sm leading-6 max-w-sm">
-              Agentic business runtime. Users, content, products, payments, and AI, pre-wired, open
-              source, and ready to deploy.
-            </p>
+            <div className="text-2xl font-bold tracking-tight text-white mb-4">{SITE.brand}</div>
+            <p className="text-gray-400 text-sm leading-6 max-w-sm">{FOOTER_TAGLINE}</p>
             <div className="mt-6">
               <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
                 Stay in the loop
@@ -24,7 +23,7 @@ export function Footer() {
             </div>
             <div className="mt-6 flex gap-4">
               <a
-                href="https://github.com/RevealUIStudio/revealui"
+                href={SITE.urls.repo}
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="GitHub"
               >
@@ -38,7 +37,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://x.com/revealui"
+                href={SITE.urls.x}
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="RevealUI on X"
               >
@@ -48,7 +47,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://www.linkedin.com/company/revealui"
+                href={SITE.urls.linkedin}
                 className="text-gray-400 hover:text-white transition-colors"
                 aria-label="RevealUI on LinkedIn"
               >
@@ -59,124 +58,49 @@ export function Footer() {
               </a>
             </div>
           </div>
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
-              Product
-            </h3>
-            <ul className="space-y-3 text-sm text-gray-400">
-              <li>
-                <a href="/products" className="hover:text-white transition-colors">
-                  Products
-                </a>
-              </li>
-              <li>
-                <a href="/marketplace" className="hover:text-white transition-colors">
-                  Marketplace
-                </a>
-              </li>
-              <li>
-                <a href="/pricing" className="hover:text-white transition-colors">
-                  Pricing
-                </a>
-              </li>
-              <li>
-                <a href="https://docs.revealui.com" className="hover:text-white transition-colors">
-                  Documentation
-                </a>
-              </li>
-              <li>
-                <a href="/blog" className="hover:text-white transition-colors">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="/coming-soon" className="hover:text-white transition-colors">
-                  Roadmap
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
-              Community
-            </h3>
-            <ul className="space-y-3 text-sm text-gray-400">
-              <li>
-                <a
-                  href="https://github.com/RevealUIStudio/revealui"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white transition-colors"
-                >
-                  GitHub
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/RevealUIStudio/revealui/discussions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white transition-colors"
-                >
-                  Discussions
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://revnation.discourse.group"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white transition-colors"
-                >
-                  Forum
-                </a>
-              </li>
-              <li>
-                <a href="/sponsor" className="hover:text-white transition-colors">
-                  Sponsor
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://revealuistudio.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-white transition-colors"
-                >
-                  RevealUI Studio (agency) →
-                </a>
-              </li>
-              <li>
-                <a href="/contact" className="hover:text-white transition-colors">
-                  Contact
-                </a>
-              </li>
-            </ul>
-          </div>
+          {FOOTER_COLUMNS.map((col) => (
+            <div key={col.heading}>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
+                {col.heading}
+              </h3>
+              <ul className="space-y-3 text-sm text-gray-400">
+                {col.links.map(({ label, href, external }) => (
+                  <li key={label}>
+                    <a
+                      href={href}
+                      {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                      className="hover:text-white transition-colors"
+                    >
+                      {label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
         <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-400 text-sm">
           <div className="flex items-center gap-4">
             <p>
               &copy; {currentYear} RevealUI is operated by{' '}
               <a
-                href="https://revealuistudio.com"
+                href={FOOTER_LEGAL.operatorHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-white transition-colors underline-offset-4 hover:underline"
               >
-                REVEALUI STUDIO L.L.C.
+                {FOOTER_LEGAL.operator}
               </a>{' '}
-              (Tennessee). All rights reserved.
+              ({FOOTER_LEGAL.jurisdiction}). All rights reserved.
             </p>
             <BuiltWithRevealUI size="sm" colorScheme="dark" />
           </div>
           <div className="flex gap-6">
-            <a href="/privacy" className="hover:text-white transition-colors">
-              Privacy Policy
-            </a>
-            <a href="/terms" className="hover:text-white transition-colors">
-              Terms of Service
-            </a>
+            {FOOTER_LEGAL_LINKS.map(({ label, href }) => (
+              <a key={label} href={href} className="hover:text-white transition-colors">
+                {label}
+              </a>
+            ))}
           </div>
         </div>
       </div>

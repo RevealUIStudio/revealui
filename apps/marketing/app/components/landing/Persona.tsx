@@ -1,10 +1,4 @@
-const checklist = [
-  'Hash-chained audit log of every action by every human and every agent — provable, not just observable',
-  'One RBAC + ABAC policy plane covering humans, agents, and service accounts',
-  'GDPR consent + deletion + anonymization scaffolded into the data model',
-  'Stripe webhook reconciliation that catches the events most apps lose silently',
-  'Source-visible Pro packages on Fair Source — auditable for procurement and security review',
-];
+import { PERSONA_CARD, PERSONA_SECTION } from '../../content/persona';
 
 export function Persona() {
   return (
@@ -12,26 +6,22 @@ export function Persona() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-            Who it&apos;s for
+            {PERSONA_SECTION.eyebrow}
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-            Founders shipping AI products who need governance from day one.
+            {PERSONA_SECTION.heading}
           </h2>
         </div>
 
         <div className="mx-auto mt-16 max-w-3xl">
           <div className="rounded-2xl bg-white p-10 ring-1 ring-gray-950/5 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
-              What this team needs before they can charge customers
+              {PERSONA_CARD.label}
             </p>
-            <p className="mt-4 text-xl leading-8 italic text-gray-700">
-              You have a working agent demo. Now your first procurement review wants audit trails,
-              identity gates, and a story for who can revoke an agent at 3am &mdash; without
-              rebuilding the runtime to get there.
-            </p>
+            <p className="mt-4 text-xl leading-8 italic text-gray-700">{PERSONA_CARD.quote}</p>
 
             <ul className="mt-10 space-y-4">
-              {checklist.map((item) => (
+              {PERSONA_CARD.checklist.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-base text-gray-700">
                   <svg
                     className="mt-1 h-5 w-5 flex-shrink-0 text-emerald-500"
@@ -52,13 +42,11 @@ export function Persona() {
           </div>
 
           <p className="mt-8 text-center text-sm text-gray-500">
-            Also a fit for{' '}
-            <span className="font-medium text-gray-700">
-              teams escaping backend-platform sprawl
-            </span>{' '}
-            (Convex + Supabase + Clerk + Trigger), and{' '}
-            <span className="font-medium text-gray-700">studios + consultancies</span>{' '}
-            white-labeling one runtime across N customers without re-licensing N SaaS stacks.
+            {PERSONA_CARD.footer.prefix}{' '}
+            <span className="font-medium text-gray-700">{PERSONA_CARD.footer.sprawl}</span>{' '}
+            {PERSONA_CARD.footer.sprawlNote}{' '}
+            <span className="font-medium text-gray-700">{PERSONA_CARD.footer.studios}</span>{' '}
+            {PERSONA_CARD.footer.studiosNote}
           </p>
         </div>
       </div>
