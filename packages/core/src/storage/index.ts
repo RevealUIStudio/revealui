@@ -4,14 +4,14 @@
 // The factory `createStorage(config)` will land in Phase 2a; this file currently
 // only re-exports the types so consumers can start depending on the contract.
 export type {
-  StorageProvider,
-  StorageConfig,
-  PutOptions,
-  PutResult,
+  ListItem,
   ListOptions,
   ListResult,
-  ListItem,
+  PutOptions,
+  PutResult,
   R2Config,
+  StorageConfig,
+  StorageProvider,
   VercelBlobConfig,
 } from './types.js';
 
