@@ -1,0 +1,71 @@
+# apps/server/fly.toml
+#
+# Fly.io configuration for the apps/server long-running worker.
+# Hosts: alerting, Yjs collab WS, agent-collab WS, terminal-ws
+# (Forge-gated), RVMarket executor (flag-gated). Built from
+# dist/worker.js (see apps/server/tsup.config.ts).
+#
+# Region: iad (Ashburn, VA — matches Neon prod region us-east-1 for
+# sub-ms latency on shape queries via the Hono app).
+#
+# Deploy: see docs/deployment/fly.md
+#
+# Dependency: requires apps/server/src/worker.ts (Phase 2 of the
+# infra-consolidation lane, currently in flight as a separate PR). The
+# Dockerfile builds dist/worker.js via tsup's worker entry. Until
+# Phase 2 lands on test, `flyctl deploy` will fail at the build step.
+
+app = 'revealui-worker'
+primary_region = 'iad'
+
+[build]
+  dockerfile = 'Dockerfile.worker'
+
+[env]
+  NODE_ENV = 'production'
+  WORKER_PORT = '8080'
+  # REVMARKET_EXECUTOR_ENABLED defaults to OFF. Flip to 'true' when
+  # the marketplace UI is ready to accept real customer task
+  # submissions. Set via `flyctl secrets set REVMARKET_EXECUTOR_ENABLED=true`
+  # (non-secret values can also live here in [env]; placed in
+  # secrets-style for owner-gated visibility).
+  REVMARKET_EXECUTOR_ENABLED = 'false'
+  # REVEALUI_FORGE defaults to OFF. The Forge stamp pipeline sets
+  # this to 'true' for self-hosted deployments where the harness
+  # daemon Unix socket exists at ~/.local/share/revealui/harness.sock.
+  REVEALUI_FORGE = 'false'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Worker has in-memory state (Yjs collab rooms, executor poll
+  # loop, alerting setInterval). auto_stop_machines = 'off' keeps the
+  # state alive; min_machines_running = 1 ensures always-on. Auto-
+  # start is irrelevant when auto-stop is off — there's nothing to
+  # auto-start FROM since the machine never stops.
+  auto_stop_machines = 'off'
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = 'connections'
+    hard_limit = 250
+    soft_limit = 200
+
+  # Fly health check hits /api/health which is mounted by the Hono
+  # app at apps/server/src/routes/health.ts (worker.ts imports the
+  # full app so the route is available).
+  [[http_service.checks]]
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '10s'
+    method = 'GET'
+    path = '/api/health'
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  # 512 MB is generous for a Node worker with WS rooms + poll loops.
+  # Bump to 1024 if collab room count grows or executor concurrency
+  # increases (config.maxConcurrent in revmarket-executor.ts:508).
+  memory_mb = 512
