@@ -1,75 +1,14 @@
 import { Footer } from '../components/Footer';
-
-interface McpServer {
-  name: string;
-  description: string;
-  category: string;
-}
-
-const mcpServers: McpServer[] = [
-  {
-    name: 'Stripe',
-    description: 'Manage products, prices, subscriptions, and payment intents through MCP.',
-    category: 'Payments',
-  },
-  {
-    name: 'RevealUI Stripe',
-    description:
-      'RevealUI-specific Stripe operations: billing portal, webhook management, tier enforcement.',
-    category: 'Payments',
-  },
-  {
-    name: 'Neon',
-    description: 'Query and manage Neon PostgreSQL databases: branches, roles, and SQL execution.',
-    category: 'Database',
-  },
-  {
-    name: 'Supabase',
-    description: 'Interact with Supabase for vector storage, auth, and real-time subscriptions.',
-    category: 'Database',
-  },
-  {
-    name: 'Vercel',
-    description: 'Deploy, manage environment variables, inspect deployments, and view logs.',
-    category: 'Infrastructure',
-  },
-  {
-    name: 'Playwright',
-    description: 'Run browser automation, take screenshots, and execute end-to-end test flows.',
-    category: 'Testing',
-  },
-  {
-    name: 'Next.js DevTools',
-    description: 'Inspect routes, middleware, server components, and build output in development.',
-    category: 'Development',
-  },
-  {
-    name: 'RevealUI Content',
-    description: 'Create, query, and manage collections and documents through the content API.',
-    category: 'Content',
-  },
-  {
-    name: 'RevealUI Email',
-    description: 'Send transactional emails, manage templates, and track delivery status.',
-    category: 'Communication',
-  },
-  {
-    name: 'Code Validator',
-    description: 'Validate TypeScript, lint with Biome, and run type checks on code snippets.',
-    category: 'Development',
-  },
-  {
-    name: 'RevealUI Memory',
-    description:
-      'Read and write the agent memory store (episodic, semantic, and procedural layers).',
-    category: 'Content',
-  },
-  {
-    name: 'Contracts',
-    description: 'Validate pricing contracts, check OpenAPI mirror drift, and inspect schema.',
-    category: 'Development',
-  },
-];
+import {
+  MARKETPLACE_COMING_SOON,
+  MARKETPLACE_CTA,
+  MARKETPLACE_DISCOVERY_SECTION,
+  MARKETPLACE_DISCOVERY_STEPS,
+  MARKETPLACE_HERO,
+  MARKETPLACE_HERO_NAV_ANCHORS,
+  MARKETPLACE_MCP_SERVERS,
+  MARKETPLACE_SERVERS_SECTION,
+} from '../content/marketplace';
 
 const categoryColors: Record<string, string> = {
   Payments: 'bg-amber-100 text-amber-700',
@@ -95,21 +34,20 @@ export function MarketplacePage() {
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            12 first-party MCP servers, RBAC-scoped and audit-logged. Agents discover tools via MCP.
-            RevealUI implements MCP natively.
+            {MARKETPLACE_HERO.subtitle}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a
-              href="#mcp-servers"
+              href={MARKETPLACE_HERO_NAV_ANCHORS[0].href}
               className="rounded-full bg-violet-100 px-4 py-1.5 text-sm font-medium text-violet-700 hover:bg-violet-200 transition-colors"
             >
-              MCP Servers
+              {MARKETPLACE_HERO_NAV_ANCHORS[0].label}
             </a>
             <a
-              href="#discovery"
+              href={MARKETPLACE_HERO_NAV_ANCHORS[1].href}
               className="rounded-full bg-purple-100 px-4 py-1.5 text-sm font-medium text-purple-700 hover:bg-purple-200 transition-colors"
             >
-              How agents discover tools
+              {MARKETPLACE_HERO_NAV_ANCHORS[1].label}
             </a>
           </div>
         </div>
@@ -120,34 +58,12 @@ export function MarketplacePage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center mb-16">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              How agents discover and use tools
+              {MARKETPLACE_DISCOVERY_SECTION.title}
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
-              MCP (Model Context Protocol) is the open standard for connecting AI agents to tools
-              and data sources. RevealUI implements MCP natively.
-            </p>
+            <p className="mt-4 text-lg text-gray-600">{MARKETPLACE_DISCOVERY_SECTION.subtitle}</p>
           </div>
           <div className="mx-auto max-w-4xl grid grid-cols-1 gap-8 sm:grid-cols-3">
-            {[
-              {
-                step: '1',
-                title: 'Discover',
-                description:
-                  'Agents find available tools through the MCP hypervisor. Each server advertises its capabilities and required permissions.',
-              },
-              {
-                step: '2',
-                title: 'Authenticate',
-                description:
-                  'The agent authenticates using the same RBAC system that governs human users. Permissions are scoped per tenant and per role.',
-              },
-              {
-                step: '3',
-                title: 'Execute',
-                description:
-                  'The agent calls the tool through a standardized JSON-RPC interface. Results are typed, validated, and logged for audit.',
-              },
-            ].map((item) => (
+            {MARKETPLACE_DISCOVERY_STEPS.map((item) => (
               <div key={item.step} className="text-center">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 text-lg font-bold text-violet-700">
                   {item.step}
@@ -165,18 +81,15 @@ export function MarketplacePage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-sm font-semibold tracking-wide text-violet-600 uppercase">
-              Open Source
+              {MARKETPLACE_SERVERS_SECTION.eyebrow}
             </span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              12 First-Party MCP Servers
+              {MARKETPLACE_SERVERS_SECTION.heading}
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
-              MCP servers included with RevealUI. Each server is rate-limited, audited, and governed
-              by RBAC.
-            </p>
+            <p className="mt-4 text-lg text-gray-600">{MARKETPLACE_SERVERS_SECTION.body}</p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mcpServers.map((server) => (
+            {MARKETPLACE_MCP_SERVERS.map((server) => (
               <div
                 key={server.name}
                 className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200"
@@ -207,23 +120,22 @@ export function MarketplacePage() {
         <div className="mx-auto max-w-3xl px-6 lg:px-8">
           <div className="rounded-2xl bg-violet-50 ring-1 ring-violet-200 p-10 text-center">
             <span className="inline-block text-xs font-semibold text-violet-700 bg-violet-100 px-3 py-1 rounded-full ring-1 ring-violet-200 mb-4">
-              Coming after marketplace v1
+              {MARKETPLACE_COMING_SOON.badge}
             </span>
             <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-              Publishing and monetization
+              {MARKETPLACE_COMING_SOON.heading}
             </h2>
             <p className="mt-4 text-base text-gray-600">
-              Third-party MCP server publishing, developer earnings, and marketplace discovery are
-              planned for a future release. See the{' '}
+              {MARKETPLACE_COMING_SOON.body.prefix}{' '}
               <a
-                href="https://github.com/RevealUIStudio/revealui/blob/main/docs/ROADMAP.md"
+                href={MARKETPLACE_COMING_SOON.body.linkHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-violet-700 underline hover:text-violet-600"
               >
-                public roadmap
+                {MARKETPLACE_COMING_SOON.body.linkLabel}
               </a>{' '}
-              for current status — listed under "Agent Marketplace" in the Mid-Term section.
+              {MARKETPLACE_COMING_SOON.body.suffix}
             </p>
           </div>
         </div>
@@ -233,24 +145,21 @@ export function MarketplacePage() {
       <section className="bg-gray-50 py-24 sm:py-32">
         <div className="mx-auto max-w-2xl px-6 text-center lg:px-8">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Start with the MCP server catalog
+            {MARKETPLACE_CTA.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            12 first-party servers ship with every RevealUI install. Read the MCP docs to wire your
-            agents.
-          </p>
+          <p className="mt-6 text-lg leading-8 text-gray-600">{MARKETPLACE_CTA.body}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="https://docs.revealui.com/mcp"
+              href={MARKETPLACE_CTA.primary.href}
               className="rounded-md bg-violet-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-violet-500 transition-colors"
             >
-              MCP Documentation
+              {MARKETPLACE_CTA.primary.label}
             </a>
             <a
-              href="/products"
+              href={MARKETPLACE_CTA.secondary.href}
               className="rounded-md bg-gray-100 px-8 py-4 text-base font-semibold text-gray-900 hover:bg-gray-200 transition-colors"
             >
-              View All Products
+              {MARKETPLACE_CTA.secondary.label}
             </a>
           </div>
         </div>
