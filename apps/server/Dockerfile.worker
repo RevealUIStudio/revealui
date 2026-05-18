@@ -1,0 +1,66 @@
+# apps/server/Dockerfile.worker
+#
+# Builds the apps/server long-running worker for Fly deployment.
+# Entry: dist/worker.js (built via tsup; see apps/server/tsup.config.ts).
+# Companion: apps/server/fly.toml.
+#
+# Build context: MUST be the monorepo root (NOT apps/server) so
+# pnpm-workspace.yaml + packages/* are accessible for workspace
+# symlink resolution. flyctl auto-uses the monorepo root when
+# invoked from there:
+#   cd ~/revfleet/revealui
+#   flyctl deploy --config apps/server/fly.toml \
+#     --dockerfile apps/server/Dockerfile.worker
+#
+# Known gotcha (per memory feedback_pnpm_deploy_optional_peer_dangles):
+# pnpm deploy --legacy leaves @revealui/ai + @revealui/services
+# (optional peers per apps/server/package.json peerDependenciesMeta)
+# as dangling workspace symlinks. The Dockerfile takes the "include
+# the packages in the runtime image" path to avoid the dangle.
+
+# ─────────────────────────────────────────────────────────────────────
+# Stage 1: builder — pnpm install + tsup build
+# ─────────────────────────────────────────────────────────────────────
+FROM node:24-alpine AS builder
+
+# Native build deps for pg (libc6-compat for prebuilt binaries on alpine).
+RUN apk add --no-cache python3 make g++ libc6-compat
+
+WORKDIR /repo
+RUN corepack enable
+
+# Copy workspace plumbing first for layer caching on dep changes.
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+COPY .npmrc* tsconfig.base.json ./
+
+# Copy all workspace packages — needed for workspace:* symlink resolution.
+COPY packages ./packages
+COPY apps/server ./apps/server
+
+# Install + build only the server slice + its dependency closure.
+RUN pnpm install --frozen-lockfile --filter "server..."
+RUN pnpm --filter server build
+
+# ─────────────────────────────────────────────────────────────────────
+# Stage 2: runtime — minimal Node 24 alpine + built worker
+# ─────────────────────────────────────────────────────────────────────
+FROM node:24-alpine
+
+WORKDIR /app
+
+# Copy the built worker + its node_modules tree + workspace packages
+# (symlinks resolve into ./packages from /app).
+COPY --from=builder /repo/apps/server/dist ./apps/server/dist
+COPY --from=builder /repo/apps/server/node_modules ./apps/server/node_modules
+COPY --from=builder /repo/apps/server/package.json ./apps/server/package.json
+COPY --from=builder /repo/packages ./packages
+COPY --from=builder /repo/node_modules ./node_modules
+COPY --from=builder /repo/package.json ./package.json
+COPY --from=builder /repo/pnpm-workspace.yaml ./pnpm-workspace.yaml
+
+ENV NODE_ENV=production
+ENV WORKER_PORT=8080
+EXPOSE 8080
+
+WORKDIR /app/apps/server
+CMD ["node", "dist/worker.js"]
