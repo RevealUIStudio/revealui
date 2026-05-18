@@ -1,25 +1,12 @@
 import { Button } from '@revealui/presentation';
-
-const stack = [
-  { label: 'Vite', kind: 'Marketing + docs frontends' },
-  { label: 'Next.js 16', kind: 'Admin frontend' },
-  { label: 'React 19', kind: 'UI runtime' },
-  { label: 'PostgreSQL', kind: 'Database' },
-  { label: 'Drizzle', kind: 'ORM' },
-  { label: 'Stripe', kind: 'Payments' },
-  { label: 'Hono', kind: 'API + edge' },
-  { label: 'MCP', kind: 'Agent protocol' },
-  { label: 'Tailwind', kind: 'Design system' },
-];
-
-const ciSignals = [
-  'Biome lint + format',
-  'Vitest unit + integration',
-  'Playwright E2E',
-  'CodeQL + Gitleaks',
-  'TypeScript strict, repo-wide',
-  'Affected-only PR gate',
-];
+import {
+  PROOF_CI_SIGNALS,
+  PROOF_REPO_SIGNALS,
+  PROOF_SECTION,
+  PROOF_STACK,
+  PROOF_STACK_PANEL,
+  PROOF_TRUST,
+} from '../../content/proof';
 
 export function Proof() {
   return (
@@ -27,27 +14,26 @@ export function Proof() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
-            The stack so far
+            {PROOF_SECTION.eyebrow}
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-            Built in the open. Verifiable in the repo.
+            {PROOF_SECTION.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            Every package, every PR, every test. Inspect the code before you commit a single line of
-            your own.
-          </p>
+          <p className="mt-6 text-lg leading-8 text-gray-600">{PROOF_SECTION.body}</p>
         </div>
 
         <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Repo signals */}
           <div className="rounded-2xl bg-gray-50 p-8 ring-1 ring-gray-950/5">
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
-              On GitHub
+              {PROOF_REPO_SIGNALS.eyebrow}
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-gray-950">Live signals</h3>
+            <h3 className="mt-2 text-xl font-semibold text-gray-950">
+              {PROOF_REPO_SIGNALS.heading}
+            </h3>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <a
-                href="https://github.com/RevealUIStudio/revealui"
+                href={PROOF_REPO_SIGNALS.repoHref}
                 className="inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:ring-gray-400 transition"
               >
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
@@ -57,7 +43,7 @@ export function Proof() {
                 {/* biome-ignore lint/performance/noImgElement: dynamic shields.io SVG badge, no image optimizer in Vite SPA */}
                 <img
                   alt="GitHub stars"
-                  src="https://img.shields.io/github/stars/RevealUIStudio/revealui?style=flat&label=Stars&color=10b981"
+                  src={`https://img.shields.io/github/stars/RevealUIStudio/revealui?style=flat&label=Stars&color=10b981`}
                   className="h-5"
                 />
               </a>
@@ -83,10 +69,10 @@ export function Proof() {
 
             <div className="mt-6 border-t border-gray-200 pt-6">
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-3">
-                Quality gates that block every PR
+                {PROOF_REPO_SIGNALS.ciLabel}
               </p>
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {ciSignals.map((s) => (
+                {PROOF_CI_SIGNALS.map((s) => (
                   <li key={s} className="flex items-center gap-2 text-sm text-gray-700">
                     <svg
                       className="h-4 w-4 flex-shrink-0 text-emerald-500"
@@ -110,16 +96,13 @@ export function Proof() {
           {/* Stack standards */}
           <div className="rounded-2xl bg-gray-950 p-8 text-white">
             <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
-              No proprietary lock-in
+              {PROOF_STACK_PANEL.eyebrow}
             </p>
-            <h3 className="mt-2 text-xl font-semibold">Standards your team already knows</h3>
-            <p className="mt-3 text-sm leading-6 text-gray-300">
-              No proprietary runtime, no vendor-specific edge functions. Deploys to Vercel,
-              Cloudflare, Railway, Hetzner, or your own infra. Take your data with you.
-            </p>
+            <h3 className="mt-2 text-xl font-semibold">{PROOF_STACK_PANEL.heading}</h3>
+            <p className="mt-3 text-sm leading-6 text-gray-300">{PROOF_STACK_PANEL.body}</p>
 
             <ul className="mt-6 grid grid-cols-2 gap-3">
-              {stack.map((s) => (
+              {PROOF_STACK.map((s) => (
                 <li
                   key={s.label}
                   className="rounded-lg bg-white/5 px-3 py-2.5 ring-1 ring-white/10"
@@ -135,119 +118,111 @@ export function Proof() {
         {/* Trust: verifiable in three places */}
         <div className="mx-auto mt-16 max-w-5xl">
           <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">Trust</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+              {PROOF_TRUST.eyebrow}
+            </p>
             <h3 className="mt-3 text-2xl font-bold tracking-tight text-gray-950 sm:text-3xl">
-              Verifiable in three places.
+              {PROOF_TRUST.heading}
             </h3>
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="rounded-2xl bg-emerald-50/40 p-6 ring-1 ring-emerald-200">
               <p className="text-xs font-semibold uppercase tracking-widest text-emerald-800">
-                In the repo
+                {PROOF_TRUST.cards[0].eyebrow}
               </p>
               <h4 className="mt-3 text-base font-semibold text-gray-950">
-                21 of 26 packages MIT &mdash; forever.
+                {PROOF_TRUST.cards[0].heading}
               </h4>
               <p className="mt-2 text-sm leading-6 text-gray-700">
-                The 5 Pro packages ship under Fair Source (FSL-1.1-MIT) and auto-convert to MIT two
-                years after each release. View the{' '}
+                {PROOF_TRUST.cards[0].body.prefix}{' '}
                 <a
-                  href="https://github.com/RevealUIStudio/revealui/blob/main/LICENSE"
+                  href={PROOF_TRUST.cards[0].body.licenseHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
                 >
-                  LICENSE
+                  {PROOF_TRUST.cards[0].body.licenseLabel}
                 </a>{' '}
-                or the{' '}
+                {PROOF_TRUST.cards[0].body.middle}{' '}
                 <a
-                  href="/fair-source"
+                  href={PROOF_TRUST.cards[0].body.explainerHref}
                   className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
                 >
-                  Fair Source explainer
+                  {PROOF_TRUST.cards[0].body.explainerLabel}
                 </a>
-                .
+                {PROOF_TRUST.cards[0].body.suffix}
               </p>
             </div>
 
             <div className="rounded-2xl bg-gray-950 p-6 ring-1 ring-gray-950/10 text-white">
               <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
-                In the schema
+                {PROOF_TRUST.cards[1].eyebrow}
               </p>
-              <h4 className="mt-3 text-base font-semibold">
-                Every mutation signs into a hash chain.
-              </h4>
+              <h4 className="mt-3 text-base font-semibold">{PROOF_TRUST.cards[1].heading}</h4>
               <pre
                 // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable code region — axe-core scrollable-region-focusable requires tabIndex=0 so keyboard users can scroll horizontally
                 tabIndex={0}
                 className="mt-3 overflow-x-auto rounded-lg bg-black/40 px-3 py-2 font-mono text-[11px] leading-5 text-gray-300 ring-1 ring-white/10"
               >
-                {`signature:        text('signature').notNull(),
-previousSignature: text('previous_signature'),
-hashAlgorithm:    text('hash_algorithm')
-  .notNull().default('sha256-hmac'),`}
+                {PROOF_TRUST.cards[1].codeSnippet}
               </pre>
               <p className="mt-3 text-xs leading-5 text-gray-400">
                 <a
-                  href="https://github.com/RevealUIStudio/revealui/blob/main/packages/db/src/schema/audit-log.ts"
+                  href={PROOF_TRUST.cards[1].fileHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-emerald-400 underline decoration-emerald-700 underline-offset-4 hover:text-emerald-300"
                 >
-                  packages/db/src/schema/audit-log.ts
+                  {PROOF_TRUST.cards[1].fileLabel}
                 </a>{' '}
-                &mdash; tampering breaks the chain.
+                {PROOF_TRUST.cards[1].caption}
               </p>
             </div>
 
             <div className="rounded-2xl bg-emerald-50/40 p-6 ring-1 ring-emerald-200">
               <p className="text-xs font-semibold uppercase tracking-widest text-emerald-800">
-                In production
+                {PROOF_TRUST.cards[2].eyebrow}
               </p>
               <h4 className="mt-3 text-base font-semibold text-gray-950">
-                This site runs on RevealUI.
+                {PROOF_TRUST.cards[2].heading}
               </h4>
               <p className="mt-2 text-sm leading-6 text-gray-700">
-                The marketing site you are reading and the agency site at{' '}
+                {PROOF_TRUST.cards[2].body.prefix}{' '}
                 <a
-                  href="https://revealuistudio.com"
+                  href={PROOF_TRUST.cards[2].body.agencyHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
                 >
-                  revealuistudio.com
+                  {PROOF_TRUST.cards[2].body.agencyLabel}
                 </a>{' '}
-                both run on{' '}
+                {PROOF_TRUST.cards[2].body.middle}{' '}
                 <code className="rounded bg-white px-1 py-0.5 font-mono text-xs text-gray-900 ring-1 ring-emerald-200">
-                  @revealui/router
+                  {PROOF_TRUST.cards[2].body.pkg1}
                 </code>{' '}
-                +{' '}
+                {PROOF_TRUST.cards[2].body.plus}{' '}
                 <code className="rounded bg-white px-1 py-0.5 font-mono text-xs text-gray-900 ring-1 ring-emerald-200">
-                  @revealui/presentation
+                  {PROOF_TRUST.cards[2].body.pkg2}
                 </code>
-                . View the{' '}
+                {PROOF_TRUST.cards[2].body.suffix}{' '}
                 <a
-                  href="https://github.com/RevealUIStudio/revealui/tree/main/apps/marketing"
+                  href={PROOF_TRUST.cards[2].body.sourceHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
                 >
-                  marketing app source
+                  {PROOF_TRUST.cards[2].body.sourceLabel}
                 </a>
-                .
+                {PROOF_TRUST.cards[2].body.end}
               </p>
             </div>
           </div>
         </div>
 
         <div className="mt-12 text-center">
-          <Button
-            plain
-            href="https://github.com/RevealUIStudio/revealui/blob/main/CHANGELOG.md"
-            className="text-sm font-medium"
-          >
-            See what shipped this month &rarr;
+          <Button plain href={PROOF_TRUST.changelogCta.href} className="text-sm font-medium">
+            {PROOF_TRUST.changelogCta.label}
           </Button>
         </div>
       </div>

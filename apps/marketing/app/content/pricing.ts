@@ -87,7 +87,7 @@ export const PRICING_AGENT_A2A = {
 
 export const PRICING_AGENT_X402 = {
   heading: 'x402-Native Payments',
-  body: 'RevealUI implements the HTTP 402 payment protocol. Compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare’s x402 Foundation. Agents pay agents over standard HTTP — no accounts, no subscriptions.',
+  body: "RevealUI implements the HTTP 402 payment protocol. Compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP — no accounts, no subscriptions.",
   footnote: {
     prefix:
       'RevealCoin is one optional Solana implementation — deployed on mainnet but pre-launch (see',
