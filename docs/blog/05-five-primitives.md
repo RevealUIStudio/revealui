@@ -1,5 +1,9 @@
 # The Five Primitives of Business Software
 
+> **Status note (updated 2026-05-18):** Two forward-looking systems mentioned in this post are not transactable in production today: **x402 agent-to-agent payments** (designed and code-complete behind `X402_ENABLED=false`) and **RevealCoin (RVC)** (on mainnet but pre-launch — legal and multisig gates open). Everything else described — auth, content, Stripe billing, MCP wiring, agent primitives — runs today. See `docs/MARKETING_METRICS.md` §3 for the current per-feature shipping status.
+
+---
+
 Every software company ships the same five things: a way to manage users, a way to manage content, a way to sell products, a way to collect payments, and increasingly, a way to run AI. These are not features. They are primitives. And yet every engineering team builds them from scratch, bolting together auth libraries, content engines, payment wrappers, and AI SDKs, spending months on plumbing before writing a single line of differentiated code.
 
 RevealUI is an agentic business runtime. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.

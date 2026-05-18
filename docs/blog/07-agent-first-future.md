@@ -4,6 +4,10 @@
 
 ---
 
+> **Status note (updated 2026-05-18):** This post discusses the **agent-first future** RevealUI is building toward. Specifically: x402 micropayments (USDC on Base) and the per-call MCP server marketplace are **designed but not transactable today**. The x402 endpoints are code-complete behind `X402_ENABLED=false`; the marketplace ships its first-party catalog (13 MCP servers) but third-party publishing, payment proxying, and per-call billing are unbuilt. RevealCoin (RVC) is on mainnet but pre-launch (legal and multisig gates open). The Agent Card endpoint (`/.well-known/agent.json`) ships today; `payment-methods.json` ships with an `X402_ENABLED=false` empty-payments shape. See `docs/MARKETING_METRICS.md` §3 for current shipping status of every system mentioned below.
+
+---
+
 I have been building RevealUI for the past year as an agentic business runtime -- the kind of thing where you get users, content, products, payments, and AI pre-wired, open source, and ready to deploy. The whole point is that you should not have to re-implement billing or auth or an admin every time you start a new software business.
 
 But somewhere around the third month of building, I realized something that changed the architecture fundamentally: **the next wave of customers for software platforms are not human.**
