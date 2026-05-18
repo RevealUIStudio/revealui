@@ -167,7 +167,7 @@ pnpm dev
 - **Not** for CMS admin UI  -  `@revealui/core/admin` provides the admin dashboard
 - **Not** for rich text editing  -  use `@revealui/core/richtext/client` (Lexical-based)
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Sovereign**: Zero external UI library dependencies  -  only clsx and CVA, so you own every component
 - **Orthogonal**: Components, primitives, and hooks are independent subpath exports with no cross-cutting entanglement

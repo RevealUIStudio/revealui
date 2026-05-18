@@ -65,7 +65,7 @@ audience: developer
 
 ## Executive Summary
 
-RevealUI is a Postgres-primary stack with comprehensive type safety, optional sidecars for AI/vector and real-time sync, and Vercel-friendly deployment defaults. Every architectural decision is guided by the **[JOSHUA Stack](./JOSHUA.md)** principles  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
+RevealUI is a Postgres-primary stack with comprehensive type safety, optional sidecars for AI/vector and real-time sync, and Vercel-friendly deployment defaults. Every architectural decision is guided by six **[design principles](./JOSHUA.md)**  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
 
 ### Core Systems
 

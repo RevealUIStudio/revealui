@@ -75,7 +75,7 @@ const breaker = new CircuitBreaker({ failureThreshold: 5, resetTimeout: 30000 })
 const data = await breaker.execute(() => callExternalAPI());
 ```
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Hermetic**: Isolates failure domains  -  one service's outage doesn't cascade to others
 - **Adaptive**: Self-tuning circuit breakers adjust thresholds based on observed error rates
