@@ -1,73 +1,16 @@
 import { Footer } from '../components/Footer';
-
-interface Feature {
-  name: string;
-  description: string;
-  status: string;
-  category: string;
-}
-
-const shipped: Feature[] = [
-  {
-    name: 'Dashboard Agent Chat',
-    description:
-      'Interact with an AI agent directly from the admin dashboard. Create content, query data, manage collections, and automate workflows through natural language, with streaming responses, tool visibility, and conversation history.',
-    status: 'Shipped',
-    category: 'AI',
-  },
-  {
-    name: 'Documentation Site',
-    description:
-      'Documentation site live at docs.revealui.com with quick-start guides, API reference, architecture docs, and package reference. Video walkthroughs and collection cookbook coming soon.',
-    status: 'Shipped',
-    category: 'Docs',
-  },
-];
-
-const upcoming: Feature[] = [
-  {
-    name: 'RevealCoin + x402 Agent Payments',
-    description:
-      'Native cryptocurrency micropayments powered by RevealCoin on the Solana blockchain. Agents discover, authenticate, and pay per task via the HTTP 402 payment protocol. No accounts, no subscriptions.',
-    status: 'In development',
-    category: 'Payments',
-  },
-  {
-    name: 'Perpetual Licenses (Track C)',
-    description:
-      'One-time purchase for lifetime access to Pro, Max, or Enterprise tier features. No subscription required. Includes 1 year of priority support and updates.',
-    status: 'Coming soon',
-    category: 'Billing',
-  },
-  {
-    name: 'MCP Marketplace',
-    description:
-      'A registry where developers publish and discover MCP servers and AI agent capabilities. Revenue share model for developers. Discoverable via Smithery, mcpt, and the RevealUI registry.',
-    status: 'Planned — in design',
-    category: 'AI',
-  },
-  {
-    name: 'Self-Hosted Docker Images (RevealUI Fleet)',
-    description:
-      'Official Docker images published to GitHub Container Registry for fully self-hosted deployment. Domain-locked licensing, air-gap capable.',
-    status: 'Planned — designed, not built',
-    category: 'Infrastructure',
-  },
-  {
-    name: 'Visual Builder',
-    description:
-      'A no-code visual builder for creating RevealUI sites. Drag-and-drop page building, component customization, and one-click deployment.',
-    status: 'Planned — backlog',
-    category: 'Product',
-  },
-  {
-    name: 'Enterprise SSO / SAML',
-    description:
-      'Single sign-on via SAML for enterprise customers. Advanced audit logging, custom RBAC policy editor, and multi-region deployment support.',
-    status: 'Planned — designed, not built',
-    category: 'Enterprise',
-  },
-];
+import {
+  ROADMAP_CTA,
+  ROADMAP_CTA_LINKS,
+  ROADMAP_CTA_PRODUCTS_LINK,
+  ROADMAP_HERO,
+  ROADMAP_HERO_LINK,
+  ROADMAP_SHIPPED,
+  ROADMAP_SHIPPED_SECTION,
+  ROADMAP_UPCOMING,
+  ROADMAP_UPCOMING_SECTION,
+  type RoadmapItem,
+} from '../content/roadmap';
 
 const categoryColors: Record<string, string> = {
   payments: 'bg-amber-100 text-amber-700',
@@ -86,7 +29,7 @@ function statusBadgeClass(status: string): string {
   return 'text-amber-700 bg-amber-50 ring-amber-200';
 }
 
-function FeatureCard({ feature }: { feature: Feature }) {
+function FeatureCard({ feature }: { feature: RoadmapItem }) {
   return (
     <div className="rounded-2xl bg-white p-8 shadow-lg ring-1 ring-gray-200">
       <div className="flex items-center gap-3 mb-4">
@@ -120,14 +63,14 @@ export function ComingSoonPage() {
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            What we have shipped and what we are building next. See our{' '}
+            {ROADMAP_HERO.subtitle} See our{' '}
             <a
-              href="https://github.com/RevealUIStudio/revealui/blob/main/docs/ROADMAP.md"
+              href={ROADMAP_HERO_LINK.href}
               target="_blank"
               rel="noopener noreferrer"
               className="text-amber-700 underline hover:text-amber-600"
             >
-              public roadmap
+              {ROADMAP_HERO_LINK.label}
             </a>{' '}
             for the full timeline.
           </p>
@@ -138,10 +81,10 @@ export function ComingSoonPage() {
       <section className="py-16 sm:py-20 bg-gray-50">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl mb-8">
-            Recently shipped
+            {ROADMAP_SHIPPED_SECTION.title}
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {shipped.map((feature) => (
+            {ROADMAP_SHIPPED.map((feature) => (
               <FeatureCard key={feature.name} feature={feature} />
             ))}
           </div>
@@ -152,10 +95,10 @@ export function ComingSoonPage() {
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl mb-8">
-            Coming next
+            {ROADMAP_UPCOMING_SECTION.title}
           </h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {upcoming.map((feature) => (
+            {ROADMAP_UPCOMING.map((feature) => (
               <FeatureCard key={feature.name} feature={feature} />
             ))}
           </div>
@@ -166,36 +109,34 @@ export function ComingSoonPage() {
       <section className="bg-gray-50 py-16">
         <div className="mx-auto max-w-4xl px-6 text-center lg:px-8">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-            Want to influence what ships next?
+            {ROADMAP_CTA.title}
           </h2>
-          <p className="mt-4 text-lg text-gray-600">
-            We prioritize based on customer impact, product readiness, and community demand.
-          </p>
+          <p className="mt-4 text-lg text-gray-600">{ROADMAP_CTA.subtitle}</p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="https://github.com/RevealUIStudio/revealui/issues"
+              href={ROADMAP_CTA_LINKS.requestFeature.href}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-md bg-gray-900 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 transition-colors"
             >
-              Request a feature
+              {ROADMAP_CTA_LINKS.requestFeature.label}
             </a>
             <a
-              href="https://github.com/RevealUIStudio/revealui/discussions"
+              href={ROADMAP_CTA_LINKS.joinDiscussion.href}
               target="_blank"
               rel="noopener noreferrer"
               className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-300 hover:bg-gray-50 transition-colors"
             >
-              Join the discussion
+              {ROADMAP_CTA_LINKS.joinDiscussion.label}
             </a>
           </div>
           <p className="mt-8 text-sm text-gray-500">
             See what's shipped today &rarr;{' '}
             <a
-              href="/products"
+              href={ROADMAP_CTA_PRODUCTS_LINK.href}
               className="font-medium text-gray-700 hover:text-gray-900 transition-colors"
             >
-              Products
+              {ROADMAP_CTA_PRODUCTS_LINK.label}
             </a>
           </p>
         </div>

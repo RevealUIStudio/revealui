@@ -1,13 +1,6 @@
 import { LinkButton } from '@revealui/presentation';
 import { useState } from 'react';
-
-const navLinks = [
-  { label: 'Products', href: '/products' },
-  { label: 'Marketplace', href: '/marketplace' },
-  { label: 'Pricing', href: '/pricing' },
-  { label: 'Docs', href: 'https://docs.revealui.com' },
-  { label: 'Blog', href: '/blog' },
-];
+import { NAV_AUTH, NAV_LINKS } from '../content/nav';
 
 export function NavBar() {
   const [open, setOpen] = useState(false);
@@ -21,7 +14,7 @@ export function NavBar() {
 
         {/* Desktop links */}
         <div className="hidden sm:flex items-center gap-8 text-sm font-medium text-gray-600">
-          {navLinks.map(({ label, href }) => (
+          {NAV_LINKS.map(({ label, href }) => (
             <a key={label} href={href} className="hover:text-gray-900 transition-colors">
               {label}
             </a>
@@ -46,12 +39,12 @@ export function NavBar() {
 
         <div className="flex items-center gap-3">
           <a
-            href="https://admin.revealui.com/login"
+            href={NAV_AUTH.login.href}
             className="hidden sm:inline-flex text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
           >
-            Log in
+            {NAV_AUTH.login.label}
           </a>
-          <LinkButton href="https://admin.revealui.com/signup">Get started free</LinkButton>
+          <LinkButton href={NAV_AUTH.signup.href}>{NAV_AUTH.signup.label}</LinkButton>
 
           {/* Hamburger - mobile only */}
           <button
@@ -96,7 +89,7 @@ export function NavBar() {
       {open && (
         <div className="sm:hidden border-t border-gray-100 bg-white px-6 py-4">
           <div className="flex flex-col gap-1">
-            {navLinks.map(({ label, href }) => (
+            {NAV_LINKS.map(({ label, href }) => (
               <a
                 key={label}
                 href={href}
@@ -118,18 +111,18 @@ export function NavBar() {
           </div>
           <div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
             <a
-              href="https://admin.revealui.com/login"
+              href={NAV_AUTH.login.href}
               className="rounded-md px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
               onClick={() => setOpen(false)}
             >
-              Log in
+              {NAV_AUTH.login.label}
             </a>
             <LinkButton
-              href="https://admin.revealui.com/signup"
+              href={NAV_AUTH.signup.href}
               onClick={() => setOpen(false)}
               className="w-full"
             >
-              Get started free
+              {NAV_AUTH.signup.label}
             </LinkButton>
           </div>
         </div>

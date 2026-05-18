@@ -1,69 +1,33 @@
-import {
-  PERPETUAL_TIERS,
-  type PricingResponse,
-  SUBSCRIPTION_TIERS,
-} from '@revealui/contracts/pricing';
 import { useEffect, useState } from 'react';
 import { Footer } from '../components/Footer';
 import { NewsletterSignup } from '../components/NewsletterSignup';
+import {
+  PERPETUAL_TIERS,
+  PRICING_AGENCY_SECTION,
+  PRICING_AGENT_A2A,
+  PRICING_AGENT_CTA_LINKS,
+  PRICING_AGENT_MCP,
+  PRICING_AGENT_X402,
+  PRICING_AGENTS_SECTION,
+  PRICING_CFO_PANEL,
+  PRICING_FINAL_CTA,
+  PRICING_FINAL_CTA_LINKS,
+  PRICING_HERO,
+  PRICING_HERO_NAV_ANCHORS,
+  PRICING_HERO_SUBTEXT,
+  PRICING_HIGHLIGHTED_BADGE,
+  PRICING_NEWSLETTER_LABEL,
+  PRICING_TRACK_A_SECTION,
+  PRICING_TRACK_C_SECTION,
+  type PricingResponse,
+  SUBSCRIPTION_TIERS,
+} from '../content/pricing';
+import { PRICING_FAQ_SECTION, PRICING_FAQS } from '../content/pricing-faq';
 
 const ADMIN_URL = import.meta.env.VITE_ADMIN_URL ?? 'https://admin.revealui.com';
 const API_URL =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? 'https://api.revealui.com' : 'http://localhost:3004');
-
-const faqs = [
-  {
-    question: 'Can I use the Free tier for commercial projects?',
-    answer:
-      'Yes! The Free tier is fully open-source (MIT) and can be used for commercial projects. You get full source code access and can deploy it anywhere you like.',
-  },
-  {
-    question: 'What happens after the free trial ends?',
-    answer:
-      "Pro and Max tiers include a 7-day free trial. After the trial ends, you'll be charged the monthly rate. You can cancel anytime during the trial without being charged.",
-  },
-  {
-    question: 'How does agent task billing work?',
-    answer:
-      'Every paid subscription includes generous task allowances. Agent task usage billing is coming soon — for now, all tiers include unlimited agent tasks during early access.',
-  },
-  {
-    question: 'What are perpetual licenses?',
-    answer:
-      'A perpetual license is a one-time purchase that gives you a license key for the corresponding tier, forever, with no monthly subscription required. Support and updates are included for 1 year; after that, renew your support contract or keep using the version you have.',
-  },
-  {
-    question: 'Can I upgrade or downgrade my plan?',
-    answer:
-      "Yes, you can upgrade your plan at any time. You'll be charged the prorated amount immediately. To downgrade, visit your billing portal or contact support@revealui.com.",
-  },
-  {
-    question: 'How does AI inference work?',
-    answer:
-      'Bring your own model. The default ships open-weight (Llama 4, Gemma 3, Qwen 3, DeepSeek R1) via Ollama or Ubuntu Inference Snaps from Canonical (canonical default — Studio lifecycle pending) — your bill does not scale with usage. Switch to Claude, GPT, or any provider in one config line. The runtime is provider-agnostic; the default is sovereignty-friendly.',
-  },
-  {
-    question: 'What does "full source code access" mean?',
-    answer:
-      'You get the complete RevealUI source code — every app and package is published in the public monorepo. Infrastructure packages (@revealui/core, auth, db, contracts, security, utils, config, cache, resilience, openapi, sync, mcp) are MIT-licensed. The two Pro packages (@revealui/ai, @revealui/harnesses) ship under Fair Source (FSL-1.1-MIT): source is visible, commercial use is permitted except for building a directly competing developer platform, and each release automatically converts to plain MIT two years after publication. All paid tiers add runtime entitlements (license validation, feature gates, priority updates) on top of that source access — nothing is hidden behind a closed binary.',
-  },
-  {
-    question: 'What is Fair Source (FSL-1.1-MIT)?',
-    answer:
-      "Fair Source is a middle path between closed commercial and plain open-source. Our Pro packages (@revealui/ai and @revealui/harnesses) are source-visible on GitHub, installable from npm, and legally usable in commercial products — with one non-compete clause: you can't ship a substantially similar developer platform that competes with RevealUI on top of them. Two years after each release, that release automatically converts to MIT. Same license model used by Sentry, GitButler, and Keygen. Source-available under FSL: free for everyone except SaaS competitors. Pro plan = hosted infra + support, not npm-level enforcement. Full explainer at /fair-source.",
-  },
-  {
-    question: 'Do you offer custom pricing for large teams?',
-    answer:
-      'Yes! If you need more than what the Enterprise tier offers, contact us at support@revealui.com to discuss custom pricing and SLAs.',
-  },
-  {
-    question: 'What is RevFleet?',
-    answer:
-      'RevFleet is the RevealUI Studio product family — eight products that compose around the RevealUI runtime. RevealUI is the agentic business runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness for multi-agent coordination across Claude, Cursor, and Copilot (Studio + Console MIT, Daemon Fair Source). RevCon syncs editor configs (MIT). RevSkills is the Claude Code skills library (MIT). RevForge is the operator-side stamping tool that produces white-label trial kits (operator-only). RevKit is the portable WSL dev environment toolkit (Pro). RevealCoin is x402-compatible agent payments — deployed on Solana mainnet but pre-launch (multisig migration + on-chain vesting gating; see RevealCoin README for the open prerequisites). Use RevealUI standalone, or compose what you need.',
-  },
-];
 
 export function PricingPage() {
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
@@ -101,32 +65,30 @@ export function PricingPage() {
             </span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            Subscribe monthly or buy a perpetual license. Start free. Upgrade when you need to.
+            {PRICING_HERO.subtitle}
           </p>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-gray-500">
-            All plans run as self-hosted installations under your license — managed deployment
-            available as a service add-on. Want to deploy a branded version for your own customers?
-            See{' '}
+            {PRICING_HERO_SUBTEXT.prefix}{' '}
             <a
-              href="#track-c"
+              href={PRICING_HERO_SUBTEXT.linkHref}
               className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
             >
-              Agency Perpetual
+              {PRICING_HERO_SUBTEXT.linkLabel}
             </a>{' '}
-            for RevealUI Fleet licensing.
+            {PRICING_HERO_SUBTEXT.suffix}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-medium">
             <a
-              href="#track-a"
+              href={PRICING_HERO_NAV_ANCHORS[0].href}
               className="rounded-full bg-blue-100 px-4 py-1.5 text-blue-700 hover:bg-blue-200 transition-colors"
             >
-              Track A: Subscriptions
+              {PRICING_HERO_NAV_ANCHORS[0].label}
             </a>
             <a
-              href="#track-c"
+              href={PRICING_HERO_NAV_ANCHORS[1].href}
               className="rounded-full bg-emerald-100 px-4 py-1.5 text-emerald-700 hover:bg-emerald-200 transition-colors"
             >
-              Track C: Perpetual Licenses
+              {PRICING_HERO_NAV_ANCHORS[1].label}
             </a>
           </div>
         </div>
@@ -137,75 +99,45 @@ export function PricingPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-sm font-semibold tracking-wide text-blue-600 uppercase">
-              Track A
+              {PRICING_TRACK_A_SECTION.eyebrow}
             </span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Subscription Plans
+              {PRICING_TRACK_A_SECTION.heading}
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
-              Monthly subscriptions with a task allowance included. 7-day free trial on Pro and Max.
-            </p>
+            <p className="mt-4 text-lg text-gray-600">{PRICING_TRACK_A_SECTION.body}</p>
           </div>
 
           {/* CFO comparison panel — replacing-what reframe */}
           <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 p-8 ring-1 ring-blue-200">
             <p className="text-sm font-semibold uppercase tracking-widest text-blue-700">
-              Replacing what?
+              {PRICING_CFO_PANEL.eyebrow}
             </p>
             <h3 className="mt-3 text-2xl font-bold tracking-tight text-gray-950">
-              A typical 5-dev startup pays $800&ndash;$1,000/mo for the backend layer alone.
+              {PRICING_CFO_PANEL.heading}
             </h3>
             <ul className="mt-6 grid grid-cols-1 gap-2 text-sm text-gray-700 sm:grid-cols-2">
-              <li className="flex items-baseline gap-2">
-                <span className="text-gray-500">&bull;</span>
-                <span>
-                  <span className="font-semibold text-gray-900">Convex Team:</span> $125/mo (5 ×
-                  $25)
-                </span>
-              </li>
-              <li className="flex items-baseline gap-2">
-                <span className="text-gray-500">&bull;</span>
-                <span>
-                  <span className="font-semibold text-gray-900">Supabase Team:</span> $599/mo
-                </span>
-              </li>
-              <li className="flex items-baseline gap-2">
-                <span className="text-gray-500">&bull;</span>
-                <span>
-                  <span className="font-semibold text-gray-900">Trigger.dev Pro:</span> $50/mo
-                </span>
-              </li>
-              <li className="flex items-baseline gap-2">
-                <span className="text-gray-500">&bull;</span>
-                <span>
-                  <span className="font-semibold text-gray-900">Clerk Pro:</span> $25/mo
-                </span>
-              </li>
-              <li className="flex items-baseline gap-2 sm:col-span-2">
-                <span className="text-gray-500">&bull;</span>
-                <span>
-                  <span className="font-semibold text-gray-900">Stripe + observability:</span>{' '}
-                  ~$50/mo+
-                </span>
-              </li>
+              {PRICING_CFO_PANEL.lineItems.map((item, i) => (
+                <li
+                  key={item.label}
+                  className={`flex items-baseline gap-2${i === PRICING_CFO_PANEL.lineItems.length - 1 ? ' sm:col-span-2' : ''}`}
+                >
+                  <span className="text-gray-500">&bull;</span>
+                  <span>
+                    <span className="font-semibold text-gray-900">{item.label}</span> {item.amount}
+                  </span>
+                </li>
+              ))}
             </ul>
 
             <div className="mt-6 rounded-xl bg-white p-5 ring-1 ring-blue-200">
-              <p className="text-sm leading-6 text-gray-700">
-                Total backend-platform spend:{' '}
-                <span className="font-semibold">~$800&ndash;$1,000 / mo</span> + per-event API
-                costs.
-              </p>
+              <p className="text-sm leading-6 text-gray-700">{PRICING_CFO_PANEL.totalLine}</p>
               <p className="mt-3 text-base font-semibold text-emerald-800">
-                RevealUI Pro is $49/mo + your own infrastructure. You own the runtime.
+                {PRICING_CFO_PANEL.bottomLine}
               </p>
             </div>
 
             <p className="mt-4 text-xs leading-5 text-gray-600">
-              <em>
-                Deploy targets like Vercel, Cloudflare, Railway, and Hetzner are unchanged &mdash;
-                RevealUI runs on all of them. We replace the backend platforms, not where you ship.
-              </em>
+              <em>{PRICING_CFO_PANEL.footnote}</em>
             </p>
           </div>
 
@@ -219,7 +151,7 @@ export function PricingPage() {
               >
                 {tier.highlighted && (
                   <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 px-3 py-1.5 text-sm font-semibold text-white text-center shadow-lg">
-                    Most Popular
+                    {PRICING_HIGHLIGHTED_BADGE}
                   </div>
                 )}
                 <div className="mb-8">
@@ -274,14 +206,12 @@ export function PricingPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-sm font-semibold tracking-wide text-emerald-700 uppercase">
-              Track C
+              {PRICING_TRACK_C_SECTION.eyebrow}
             </span>
             <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Perpetual Licenses
+              {PRICING_TRACK_C_SECTION.heading}
             </h2>
-            <p className="mt-4 text-lg text-gray-600">
-              Pay once, use forever. No subscription required. Support renewals are optional.
-            </p>
+            <p className="mt-4 text-lg text-gray-600">{PRICING_TRACK_C_SECTION.body}</p>
           </div>
           <div className="mx-auto max-w-5xl grid grid-cols-1 gap-6 sm:grid-cols-3">
             {perpetualTiers.map((tier) => (
@@ -340,16 +270,14 @@ export function PricingPage() {
           <div className="mx-auto max-w-4xl">
             <div className="text-center mb-12">
               <span className="text-sm font-semibold tracking-wide text-emerald-400 uppercase">
-                Agent-Native
+                {PRICING_AGENTS_SECTION.eyebrow}
               </span>
               <h2 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                RevealUI for AI Agents
+                {PRICING_AGENTS_SECTION.heading}
               </h2>
-              <p className="mt-4 text-lg text-gray-400">
-                Agents discover, authenticate, and pay without human intervention.
-              </p>
+              <p className="mt-4 text-lg text-gray-400">{PRICING_AGENTS_SECTION.subhead}</p>
               <span className="mt-3 inline-block text-xs font-semibold text-amber-300 bg-amber-400/10 px-3 py-1 rounded-full ring-1 ring-amber-400/20">
-                Coming soon
+                {PRICING_AGENTS_SECTION.badge}
               </span>
             </div>
 
@@ -371,18 +299,18 @@ export function PricingPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold text-white">A2A Discovery</h3>
+                <h3 className="text-base font-semibold text-white">{PRICING_AGENT_A2A.heading}</h3>
                 <p className="mt-2 text-sm text-gray-400">
-                  Agents find RevealUI via a standard Agent Card at{' '}
+                  {PRICING_AGENT_A2A.body.prefix}{' '}
                   <a
-                    href="https://api.revealui.com/.well-known/agent.json"
+                    href={PRICING_AGENT_A2A.body.linkHref}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-emerald-400 hover:text-emerald-300 underline break-all"
                   >
-                    /.well-known/agent.json
+                    {PRICING_AGENT_A2A.body.linkLabel}
                   </a>
-                  . Capabilities, skills, and pricing all machine-readable.
+                  {PRICING_AGENT_A2A.body.suffix}
                 </p>
               </div>
 
@@ -403,24 +331,19 @@ export function PricingPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold text-white">x402-Native Payments</h3>
-                <p className="mt-2 text-sm text-gray-400">
-                  RevealUI implements the HTTP 402 payment protocol. Compatible with Amazon Bedrock
-                  AgentCore Payments, Coinbase, and Cloudflare&rsquo;s x402 Foundation. Agents pay
-                  agents over standard HTTP &mdash; no accounts, no subscriptions.
-                </p>
+                <h3 className="text-base font-semibold text-white">{PRICING_AGENT_X402.heading}</h3>
+                <p className="mt-2 text-sm text-gray-400">{PRICING_AGENT_X402.body}</p>
                 <p className="mt-3 text-xs text-gray-400">
-                  RevealCoin is one optional Solana implementation &mdash; deployed on mainnet but
-                  pre-launch (see{' '}
+                  {PRICING_AGENT_X402.footnote.prefix}{' '}
                   <a
-                    href="https://github.com/RevealUIStudio/revealcoin#pre-launch-risk-disclosure"
+                    href={PRICING_AGENT_X402.footnote.linkHref}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-400 hover:text-blue-300 underline"
                   >
-                    RevealCoin README
+                    {PRICING_AGENT_X402.footnote.linkLabel}
                   </a>{' '}
-                  for the open prerequisites).
+                  {PRICING_AGENT_X402.footnote.suffix}
                 </p>
               </div>
 
@@ -441,25 +364,20 @@ export function PricingPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold text-white">MCP Servers</h3>
-                <p className="mt-2 text-sm text-gray-400">
-                  {/* COUNT: mcp-servers = 13 (verified at packages/mcp/src/servers/, excluding _-prefixed helpers) */}
-                  13 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright,
-                  Next.js DevTools, content management, and email. Marketplace discovery coming
-                  soon.
-                </p>
+                <h3 className="text-base font-semibold text-white">{PRICING_AGENT_MCP.heading}</h3>
+                <p className="mt-2 text-sm text-gray-400">{PRICING_AGENT_MCP.body}</p>
                 <a
-                  href="https://docs.revealui.com/mcp"
+                  href={PRICING_AGENT_MCP.docsLink.href}
                   className="mt-3 inline-block text-xs font-semibold text-purple-400 hover:text-purple-300"
                 >
-                  MCP docs →
+                  {PRICING_AGENT_MCP.docsLink.label}
                 </a>
               </div>
             </div>
 
             <div className="mt-10 text-center">
               <a
-                href="https://api.revealui.com/openapi.json"
+                href={PRICING_AGENT_CTA_LINKS.openapi.href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-4 py-2 text-sm font-medium text-gray-300 ring-1 ring-white/10 hover:bg-white/10 transition-colors"
@@ -478,13 +396,13 @@ export function PricingPage() {
                     d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"
                   />
                 </svg>
-                OpenAPI spec
+                {PRICING_AGENT_CTA_LINKS.openapi.label}
               </a>
               <a
-                href="https://docs.revealui.com/api"
+                href={PRICING_AGENT_CTA_LINKS.apiDocs.href}
                 className="ml-4 inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600 transition-colors"
               >
-                API docs
+                {PRICING_AGENT_CTA_LINKS.apiDocs.label}
               </a>
             </div>
           </div>
@@ -495,20 +413,17 @@ export function PricingPage() {
       <section className="bg-amber-50/50 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-            Need help adopting RevealUI?
+            {PRICING_AGENCY_SECTION.heading}
           </h2>
-          <p className="mt-4 text-base text-gray-600">
-            Architecture reviews, migrations, and launch support are offered separately by RevealUI
-            Studio (the agency). Engagements are scoped per-project.
-          </p>
+          <p className="mt-4 text-base text-gray-600">{PRICING_AGENCY_SECTION.body}</p>
           <div className="mt-8">
             <a
-              href="https://revealuistudio.com"
+              href={PRICING_AGENCY_SECTION.cta.href}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center rounded-md bg-amber-700 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-amber-600 transition-colors"
             >
-              Visit revealuistudio.com →
+              {PRICING_AGENCY_SECTION.cta.label}
             </a>
           </div>
         </div>
@@ -519,10 +434,10 @@ export function PricingPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-4xl">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl text-center mb-12">
-              Frequently Asked Questions
+              {PRICING_FAQ_SECTION.heading}
             </h2>
             <dl className="space-y-8">
-              {faqs.map((faq) => (
+              {PRICING_FAQS.map((faq) => (
                 <div key={faq.question} className="bg-white rounded-lg p-6 shadow-sm">
                   <dt className="text-lg font-semibold text-gray-900 mb-2">{faq.question}</dt>
                   <dd className="text-base text-gray-600">{faq.answer}</dd>
@@ -537,29 +452,25 @@ export function PricingPage() {
       <section className="bg-gray-950 py-24 sm:py-32">
         <div className="mx-auto max-w-2xl px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            Ready to get started?
+            {PRICING_FINAL_CTA.title}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-400">
-            Start free with full source code access. Upgrade when your business needs it.
-          </p>
+          <p className="mt-6 text-lg leading-8 text-gray-400">{PRICING_FINAL_CTA.subtitle}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href={`${ADMIN_URL}/signup`}
+              href={`${ADMIN_URL}${PRICING_FINAL_CTA_LINKS.getStarted.href}`}
               className="rounded-md bg-white px-8 py-4 text-base font-semibold text-gray-950 shadow-sm hover:bg-gray-100 transition-colors"
             >
-              Get Started Free
+              {PRICING_FINAL_CTA_LINKS.getStarted.label}
             </a>
             <a
-              href="/contact"
+              href={PRICING_FINAL_CTA_LINKS.contactSales.href}
               className="rounded-md border border-gray-700 px-8 py-4 text-base font-semibold text-gray-300 hover:text-white hover:border-gray-500 transition-colors"
             >
-              Contact Sales
+              {PRICING_FINAL_CTA_LINKS.contactSales.label}
             </a>
           </div>
           <div className="mt-16 pt-10 border-t border-gray-800">
-            <p className="text-sm font-medium text-gray-400 mb-4">
-              Not ready yet? Stay in the loop.
-            </p>
+            <p className="text-sm font-medium text-gray-400 mb-4">{PRICING_NEWSLETTER_LABEL}</p>
             <NewsletterSignup variant="stacked" />
           </div>
         </div>
