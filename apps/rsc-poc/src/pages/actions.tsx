@@ -1,5 +1,5 @@
-import { submitMessage } from './actions.server.ts';
 import { ActionForm } from './action-form.tsx';
+import { submitMessage } from './actions.server.ts';
 
 export function ActionsPage(): React.ReactNode {
   return (

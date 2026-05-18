@@ -6,7 +6,7 @@ export function HomePage(): React.ReactNode {
       <h1>Home — Server Component</h1>
       <p>
         Rendered on the server at <code>{new Date().toISOString()}</code> in{' '}
-        <code>{process.env['NODE_ENV']}</code> mode.
+        <code>{process.env.NODE_ENV}</code> mode.
       </p>
       <p>
         The timestamp above is stamped at RSC serialization time, not at request time in the browser

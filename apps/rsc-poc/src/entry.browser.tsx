@@ -1,11 +1,11 @@
 'use client';
 
 import {
-  createFromReadableStream,
   createFromFetch,
-  setServerCallback,
+  createFromReadableStream,
   createTemporaryReferenceSet,
   encodeReply,
+  setServerCallback,
 } from '@vitejs/plugin-rsc/browser';
 import React from 'react';
 import { createRoot, hydrateRoot } from 'react-dom/client';
@@ -18,9 +18,7 @@ async function main(): Promise<void> {
     return createFromFetch<RscPayload>(fetch(url, { headers: { accept: 'text/x-component' } }));
   }
 
-  const rscBase64 = (globalThis as Record<string, unknown>)['__RSC_PAYLOAD__'] as
-    | string
-    | undefined;
+  const rscBase64 = (globalThis as Record<string, unknown>).__RSC_PAYLOAD__ as string | undefined;
 
   let initialPayload: RscPayload;
   if (rscBase64) {
@@ -41,7 +39,7 @@ async function main(): Promise<void> {
 
     React.useEffect(() => {
       setPayload = (v) => React.startTransition(() => setPayload_(v));
-    }, [setPayload_]);
+    }, []);
 
     React.useEffect(() => {
       return listenNavigation(() => {
@@ -100,14 +98,14 @@ function listenNavigation(onNavigation: () => void): () => void {
   window.addEventListener('popstate', onNavigation);
 
   const oldPushState = window.history.pushState.bind(window.history);
-  window.history.pushState = function (...args: Parameters<typeof window.history.pushState>) {
+  window.history.pushState = (...args: Parameters<typeof window.history.pushState>) => {
     const res = oldPushState(...args);
     onNavigation();
     return res;
   };
 
   const oldReplaceState = window.history.replaceState.bind(window.history);
-  window.history.replaceState = function (...args: Parameters<typeof window.history.replaceState>) {
+  window.history.replaceState = (...args: Parameters<typeof window.history.replaceState>) => {
     const res = oldReplaceState(...args);
     onNavigation();
     return res;

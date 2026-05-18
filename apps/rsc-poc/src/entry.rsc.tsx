@@ -1,10 +1,10 @@
 import {
-  renderToReadableStream,
+  createTemporaryReferenceSet,
   decodeAction,
   decodeFormState,
   decodeReply,
   loadServerAction,
-  createTemporaryReferenceSet,
+  renderToReadableStream,
 } from '@vitejs/plugin-rsc/rsc';
 import type { ReactFormState } from 'react-dom/client';
 import { ActionsPage } from './pages/actions.tsx';
