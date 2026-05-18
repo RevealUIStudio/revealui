@@ -3,6 +3,8 @@ title: "Documentation Assessment"
 description: "Audit of documentation completeness and accuracy across all packages"
 category: internal
 audience: maintainer
+archived: 2026-05-18
+archive-reason: "Self-acknowledged stale snapshot; superseded by WHAT_WORKS_TODAY.md and pnpm validate:claims gate"
 ---
 
 # Documentation vs Reality Assessment
