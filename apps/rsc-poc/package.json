@@ -1,0 +1,35 @@
+{
+  "name": "@rsc-poc/app",
+  "version": "0.1.0",
+  "description": "Throwaway POC sandbox for Phase 2.1 RSC spike — validates @vitejs/plugin-rsc + @revealui/router + Hono shape. Removed after Phase 2.1 retrospective.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.13.0"
+  },
+  "scripts": {
+    "build": "vite build && vite build --ssr",
+    "dev": "vite dev",
+    "lint": "biome check .",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.14",
+    "@revealui/router": "workspace:*",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitejs/plugin-rsc": "^0.5.26",
+    "hono": "^4.12.18",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-server-dom-webpack": "^19.2.6"
+  },
+  "devDependencies": {
+    "@revealui/dev": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}
