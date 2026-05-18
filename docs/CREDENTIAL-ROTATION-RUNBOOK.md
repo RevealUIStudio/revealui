@@ -125,7 +125,9 @@ revvault set revealui/env/admin REVEALUI_ADMIN_API_KEY "$NEW_KEY"
 
 **Risk:** Brief downtime if stale connection pools exist. Use rolling deploy.
 
-#### SUPABASE_DATABASE_URI
+#### SUPABASE_DATABASE_URI — Legacy
+
+> **Legacy — retired per ADR `2026-05-01-supabase-removal.md`. Current stack: Neon (primary) + ElectricSQL (sync).** Steps below are preserved for any legacy install that has not yet completed migration.
 
 1. Supabase Dashboard > Project Settings > Database > Reset password
 2. Update connection URI in RevVault
@@ -236,7 +238,7 @@ All secrets are managed through RevVault. Namespace mapping:
 | `revealui/env/core` | REVEALUI_SECRET, REVEALUI_KEK, VERCEL_API_KEY, NEON_API_KEY, BLOB_READ_WRITE_TOKEN |
 | `revealui/env/license` | REVEALUI_LICENSE_PRIVATE_KEY, REVEALUI_LICENSE_PUBLIC_KEY, REVEALUI_LICENSE_ENCRYPTION_KEY |
 | `revealui/env/stripe` | STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PUBLISHABLE_KEY, price IDs |
-| `revealui/env/supabase` | SUPABASE_DATABASE_URI, SUPABASE_SERVICE_ROLE_KEY, anon key |
+| `revealui/env/supabase` | SUPABASE_DATABASE_URI, SUPABASE_SERVICE_ROLE_KEY, anon key — **Legacy** (retired per ADR `2026-05-01-supabase-removal.md`) |
 | `revealui/env/services` | ANTHROPIC_API_KEY, OPENAI_API_KEY, RESEND_API_KEY, Google/GitHub OAuth |
 | `revealui/env/cron` | REVEALUI_CRON_SECRET |
 | `revealui/env/admin` | REVEALUI_ADMIN_API_KEY, REVEALUI_ADMIN_EMAIL |
