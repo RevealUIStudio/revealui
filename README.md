@@ -48,7 +48,7 @@ No assembly required. Define your data once. Humans manage it through the dashbo
 | **Users**        | Session auth, RBAC + ABAC, rate limiting, GDPR compliance        | Same RBAC governs agent access. Every action auditable.      |
 | **Content**      | Collections, rich text (Lexical), media, draft/live, REST API    | Collections auto-exposed as MCP tools. No integration step.  |
 | **Products**     | Product catalog, pricing tiers, usage tracking                   | Feature gates control which agent capabilities unlock.       |
-| **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal         | x402 micropayments via RevealCoin. Agents transact natively. |
+| **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal         | Same Stripe primitives, available to agents.                 |
 | **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 13 MCP servers.                   |
 
 ## The JOSHUA Stack
@@ -75,7 +75,7 @@ RevealUI is the runtime at the center of RevFleet — the RevealUI Studio produc
 | **RevDev**           | AI engineering harness — multi-agent coordination        | MIT (early)       |
 | **RevCon**           | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
 | **RevKit**           | Portable WSL dev environment toolkit                     | Pro               |
-| **RevealCoin**       | Solana Token-2022 for x402 agent micropayments           | Enterprise tier   |
+| **RevealCoin**       | Solana Token-2022 (shelved 2026-05-15 — see [revealcoin README](https://github.com/RevealUIStudio/revealcoin#readme))                          | Shelved           |
 | **RevSkills**        | Claude Code skills library                               | MIT               |
 | **RevealUI Fleet**   | White-label / enterprise deployment kit for RevealUI     | Enterprise tier   |
 
@@ -129,7 +129,7 @@ Pro packages are source-available under the [Functional Source License (FSL-1.1-
 | **Free**       | $0        | Full OSS core: users, content, products, payments, admin             |
 | **Pro**        | $49/mo    | AI agents, MCP framework, open-model inference, advanced sync, RevVault desktop + rotation engine |
 | **Max**        | $149/mo   | Full AI memory, audit log, higher limits, RevKit environment provisioning         |
-| **Enterprise** | $299/mo   | RevealUI Fleet (branded white-label, managed setup via revforge), SSO (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked, RevealCoin x402 agent payments       |
+| **Enterprise** | $299/mo   | RevealUI Fleet (branded white-label, managed setup via revforge), SSO (planned — [#449](https://github.com/RevealUIStudio/revealui/issues/449)), domain-locked                                       |
 
 ## Apps
 
