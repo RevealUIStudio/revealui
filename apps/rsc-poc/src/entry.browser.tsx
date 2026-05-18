@@ -53,14 +53,17 @@ async function main(): Promise<void> {
   setServerCallback(async (id: string, args: unknown[]) => {
     const temporaryReferences = createTemporaryReferenceSet();
     const body = await encodeReply(args, { temporaryReferences });
+    const headers: Record<string, string> = {
+      'x-rsc-action': id,
+      accept: 'text/x-component',
+    };
+    if (typeof body === 'string') {
+      headers['content-type'] = 'text/plain;charset=UTF-8';
+    }
     const payload = await createFromFetch<RscPayload>(
       fetch(window.location.href, {
         method: 'POST',
-        headers: {
-          'x-rsc-action': id,
-          'content-type': typeof body === 'string' ? 'text/plain' : 'application/octet-stream',
-          accept: 'text/x-component',
-        },
+        headers,
         body: body as BodyInit,
       }),
       { temporaryReferences },
