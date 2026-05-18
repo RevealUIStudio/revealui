@@ -70,6 +70,28 @@ export async function POST(request: Request): Promise<NextResponse<BootstrapResu
     seed: parsed.data.seed ?? true,
   });
 
+  if (result.status === 'created') {
+    try {
+      const { hostname } = await import('node:os');
+      const { getClient } = await import('@revealui/db/client');
+      const { auditLog } = await import('@revealui/db/schema');
+      const db = getClient('rest');
+      await db.insert(auditLog).values({
+        event: 'admin.bootstrap.completed',
+        actor: 'web',
+        severity: 'info',
+        meta: {
+          email: parsed.data.email,
+          source: 'web',
+          hostname: hostname(),
+          seeded: parsed.data.seed ?? true,
+        },
+      } as never);
+    } catch {
+      // Non-fatal — audit log may not be available in all environments
+    }
+  }
+
   const statusCode = result.status === 'created' ? 201 : result.status === 'locked' ? 403 : 500;
 
   return NextResponse.json(result, { status: statusCode });
