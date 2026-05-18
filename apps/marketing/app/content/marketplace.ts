@@ -1,6 +1,11 @@
-// Sourced from: app/routes/MarketplacePage.tsx (Phase 1, no copy changes). Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Sourced from: app/routes/MarketplacePage.tsx (Phase 1 extraction).
+// Phase 3 (2026-05-18) updates: bumped MCP server count to canonical 13 per
+// docs/MARKETING_METRICS.md §1 (was 12 — pre-merge audit miscount; validator
+// + packages/mcp/README.md + CHANGELOG 12→13 bump confirm 13). Added the
+// 13th catalog entry (MCP Adapter base class + Vercel/Stripe/Neon concrete
+// adapter subclasses). All numeric references now import from SITE.METRICS.
 
-import { SITE } from './site';
+import { METRICS, SITE } from './site';
 import type { Cta, SectionHeading } from './types';
 
 export interface McpServer {
@@ -17,8 +22,7 @@ export interface DiscoveryStep {
 
 export const MARKETPLACE_HERO: SectionHeading = {
   title: 'MCP server catalog',
-  subtitle:
-    '12 first-party MCP servers, RBAC-scoped and audit-logged. Agents discover tools via MCP. RevealUI implements MCP natively.',
+  subtitle: `${METRICS.mcpServers} first-party MCP servers, RBAC-scoped and audit-logged. Agents discover tools via MCP. RevealUI implements MCP natively.`,
 };
 
 export const MARKETPLACE_HERO_NAV_ANCHORS = [
@@ -55,7 +59,7 @@ export const MARKETPLACE_DISCOVERY_STEPS: readonly DiscoveryStep[] = [
 
 export const MARKETPLACE_SERVERS_SECTION = {
   eyebrow: 'Open Source',
-  heading: '12 First-Party MCP Servers',
+  heading: `${METRICS.mcpServers} First-Party MCP Servers`,
   body: 'MCP servers included with RevealUI. Each server is rate-limited, audited, and governed by RBAC.',
 } as const;
 
@@ -122,6 +126,12 @@ export const MARKETPLACE_MCP_SERVERS: readonly McpServer[] = [
     description: 'Validate pricing contracts, check OpenAPI mirror drift, and inspect schema.',
     category: 'Development',
   },
+  {
+    name: 'MCP Adapter',
+    description:
+      'Base class plus concrete Vercel/Stripe/Neon adapters. Standardizes the MCP server contract — error handling, idempotency, observability — across every first-party server above. Source: packages/mcp/src/servers/adapter.ts.',
+    category: 'Framework',
+  },
 ];
 
 export const MARKETPLACE_COMING_SOON = {
@@ -138,7 +148,7 @@ export const MARKETPLACE_COMING_SOON = {
 
 export const MARKETPLACE_CTA = {
   heading: 'Start with the MCP server catalog',
-  body: '12 first-party servers ship with every RevealUI install. Read the MCP docs to wire your agents.',
+  body: `${METRICS.mcpServers} first-party servers ship with every RevealUI install. Read the MCP docs to wire your agents.`,
   primary: {
     label: 'MCP Documentation',
     href: SITE.urls.docsMcp,

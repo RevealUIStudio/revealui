@@ -1,4 +1,6 @@
-// Sourced from: app/routes/PricingPage.tsx (Phase 1, no copy changes). Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Sourced from: app/routes/PricingPage.tsx (Phase 1 extraction).
+// Phase 3 (2026-05-18) update: agent-section MCP count now references
+// METRICS.mcpServers (canonical 13 per docs/MARKETING_METRICS.md §1).
 // Canonical pricing numbers re-exported from @revealui/contracts/pricing for component convenience.
 
 export {
@@ -7,7 +9,7 @@ export {
   SUBSCRIPTION_TIERS,
 } from '@revealui/contracts/pricing';
 
-import { SITE } from './site';
+import { METRICS, SITE } from './site';
 import type { Cta, SectionHeading } from './types';
 
 export interface CfoLineItem {
@@ -99,8 +101,8 @@ export const PRICING_AGENT_X402 = {
 
 export const PRICING_AGENT_MCP = {
   heading: 'MCP Servers',
-  // COUNT: mcp-servers = 13 (verified at packages/mcp/src/servers/, excluding _-prefixed helpers)
-  body: '13 production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon.',
+  // Count sourced from METRICS.mcpServers (canonical per docs/MARKETING_METRICS.md §1).
+  body: `${METRICS.mcpServers} production MCP servers including Stripe, Neon, Supabase, Vercel, Playwright, Next.js DevTools, content management, and email. Marketplace discovery coming soon.`,
   docsLink: {
     label: 'MCP docs →',
     href: SITE.urls.docsMcp,

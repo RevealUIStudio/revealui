@@ -1,6 +1,12 @@
-// Sourced from: app/routes/FairSourcePage.tsx (Phase 1, no copy changes). Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Sourced from: app/routes/FairSourcePage.tsx (Phase 1 extraction).
+// Phase 3 (2026-05-18) update: hero headline + body math now reference METRICS
+// license split (validator: 20 MIT + 5 FSL + 1 internal = 26). Original "21 of 26
+// MIT" was off-by-one — pre-Phase-3 audit counted create-revealui (MIT, separate
+// workspace) into the 21 but didn't account for the internal-only `test` workspace.
+// New phrasing: "20 of 26 MIT" + explicit accounting in the body prose.
+// Per docs/lanes/marketing-overhaul/plan.md §4.4 + docs/MARKETING_METRICS.md §1.
 
-import { SITE } from './site';
+import { METRICS, SITE } from './site';
 import type { FaqItem } from './types';
 
 export interface ContractCard {
@@ -27,16 +33,14 @@ export const FAIR_SOURCE_PAGE_TITLE = 'Fair Source — RevealUI';
 
 export const FAIR_SOURCE_HERO = {
   eyebrow: 'License contract for the Pro packages',
-  headline: '21 of 26 MIT.',
+  headline: `${METRICS.licenseSplit.mit} of ${METRICS.packages} MIT.`,
   headlineHighlight: 'Forever.',
-  subhead: 'The 5 commercial packages convert to MIT after 2 years.',
+  subhead: `The ${METRICS.licenseSplit.fsl} commercial packages convert to MIT after 2 years.`,
   body: {
-    prefix:
-      'Twenty-one RevealUI packages ship under plain MIT and stay that way. Five packages ship under',
+    prefix: `${METRICS.licenseSplit.mit} RevealUI packages ship under plain MIT and stay that way. ${METRICS.licenseSplit.fsl} packages ship under`,
     fslLabel: 'FSL-1.1-MIT',
     fslHref: SITE.urls.fslSoftware,
-    suffix:
-      '— source-visible, commercially usable, and each release auto-converts to plain MIT two years after publish. Same license model used by Sentry, GitButler, and Keygen.',
+    suffix: `— source-visible, commercially usable, and each release auto-converts to plain MIT two years after publish. Same license model used by Sentry, GitButler, and Keygen. (The remaining ${METRICS.licenseSplit.internal} workspace package is an internal-only test harness, not customer-facing.)`,
   },
   ogTitle: 'Fair Source',
   ogSubtitle: 'Source-visible. Commercially usable. MIT in two years.',

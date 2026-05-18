@@ -4,8 +4,10 @@
 //   - ProductsPrimitive: full forYou/forAgents/together/features deep-dive (used by ProductsPage.tsx)
 //   Both are canonical here. Phase 4 reconciles any copy redundancy.
 // Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Phase 3 (2026-05-18) update: Intelligence primitive MCP count 12→13 per
+// docs/MARKETING_METRICS.md §1. Now uses METRICS.mcpServers.
 
-import { SITE } from './site';
+import { METRICS, SITE } from './site';
 
 // ---------------------------------------------------------------------------
 // Landing (Home) primitives — compact card data
@@ -217,8 +219,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     },
     forAgents: {
       headline: 'A2A protocol, CRDT memory, and MCP servers',
-      description:
-        'Agent-to-agent communication, persistent memory with working, episodic, and vector layers, and 12 production MCP servers. Agents discover capabilities, remember context, and coordinate autonomously.',
+      description: `Agent-to-agent communication, persistent memory with working, episodic, and vector layers, and ${METRICS.mcpServers} production MCP servers. Agents discover capabilities, remember context, and coordinate autonomously.`,
     },
     together: {
       headline: 'Build one business. Agents extend it. Neither locked to any vendor.',
@@ -228,7 +229,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
     features: [
       'Open-model inference (Snaps, Ollama)',
       'CRDT-based agent memory (working + episodic + vector)',
-      '12 production MCP servers',
+      `${METRICS.mcpServers} production MCP servers`,
       'A2A agent-to-agent protocol',
       'Multi-agent coordination and orchestration',
     ],

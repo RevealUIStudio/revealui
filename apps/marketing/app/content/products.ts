@@ -1,9 +1,11 @@
-// Sourced from: app/routes/ProductsPage.tsx (Phase 1c, no copy changes).
-// ProductsPage-specific content: hero, stats bar, CTA section.
-// The 5 primitives data lives in ./primitives.ts (shared with landing).
+// Sourced from: app/routes/ProductsPage.tsx (Phase 1c extraction).
+// Phase 3 (2026-05-18) update: stats bar numbers now reference METRICS from
+// site.ts (single source per docs/MARKETING_METRICS.md §1). MCP count bumped
+// 12→13. "187+ Security tests" replaced with `${METRICS.testFiles}` (912 total
+// test files per validator) — the "187+" claim was unverifiable per plan §3.
 // Per docs/lanes/marketing-overhaul/plan.md §4.4.
 
-import { SITE } from './site';
+import { METRICS, SITE } from './site';
 import type { Cta } from './types';
 
 export const PRODUCTS_PAGE_HERO = {
@@ -21,10 +23,10 @@ export const PRODUCTS_STATS_SECTION = {
   heading: 'Built to production standards',
   body: 'Not a starter template. A complete runtime with tested, documented, and audited code.',
   items: [
-    { stat: '26', label: 'workspace packages' },
-    { stat: '86', label: 'Database tables' },
-    { stat: '187+', label: 'Security tests' },
-    { stat: '12', label: 'first-party MCP servers' },
+    { stat: String(METRICS.packages), label: 'workspace packages' },
+    { stat: String(METRICS.dbTables), label: 'Database tables' },
+    { stat: String(METRICS.testFiles), label: 'test files' },
+    { stat: String(METRICS.mcpServers), label: 'first-party MCP servers' },
   ] as readonly StatItem[],
 } as const;
 

@@ -1,9 +1,14 @@
 // Sourced from: app/components/landing/Hero.tsx, app/components/landing/Problem.tsx,
 //   app/components/landing/Demo.tsx, app/components/landing/Faq.tsx,
-//   app/components/GetStarted.tsx (Phase 1c, no copy changes).
+//   app/components/GetStarted.tsx (Phase 1c extraction).
+// Phase 3 (2026-05-18) update: Hero "What ships today" metrics now reference
+// METRICS from site.ts (single source per docs/MARKETING_METRICS.md §1).
+// FSL package detail rewritten: now states 20 MIT + 5 FSL + 1 internal = 26 total
+// (matches validator licenseSplit; original copy's "21 published + 5 private" math
+// counted 26 by including create-revealui in the 21 — drift caught Phase 3.4).
 // Per docs/lanes/marketing-overhaul/plan.md §4.4.
 
-import { SITE } from './site';
+import { METRICS, SITE } from './site';
 import type { Cta, FaqItem } from './types';
 
 // ---------------------------------------------------------------------------
@@ -35,16 +40,15 @@ export const HOME_HERO = {
     heading: 'What ships today',
     items: [
       {
-        metric: '26 packages',
-        detail:
-          '21 published on npm (20 under @revealui/* plus create-revealui — browse npmjs.com/org/revealui) + 5 private workspace packages. Source at packages/.',
+        metric: `${METRICS.packages} packages`,
+        detail: `${METRICS.licenseSplit.mit} MIT-licensed forever + ${METRICS.licenseSplit.fsl} Fair Source (FSL-1.1-MIT, convert to MIT after 2 years) + ${METRICS.licenseSplit.internal} internal-only test workspace. Source at packages/.`,
       },
       {
-        metric: '86 database tables',
+        metric: `${METRICS.dbTables} database tables`,
         detail: 'Drizzle ORM over NeonDB across 5 schemas. Source at packages/db/src/schema/.',
       },
       {
-        metric: '13 first-party MCP servers',
+        metric: `${METRICS.mcpServers} first-party MCP servers`,
         detail: 'Every one stdio-launchable. Source at packages/mcp/src/servers/.',
       },
       {
@@ -53,7 +57,7 @@ export const HOME_HERO = {
           'Verified every 5 minutes against the license server. Source at packages/core/src/license.ts.',
       },
       {
-        metric: 'FSL-1.1-MIT on 5 Fair Source packages',
+        metric: `FSL-1.1-MIT on ${METRICS.licenseSplit.fsl} Fair Source packages`,
         detail: 'Source-visible, non-compete. Auto-converts to MIT 2 years after each release.',
       },
       {
