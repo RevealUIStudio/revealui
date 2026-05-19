@@ -1,7 +1,5 @@
 import { readFileSync } from 'node:fs';
 
-let _legacyEnvWarningEmitted = false;
-
 /**
  * Type of session detected from the runtime environment.
  *
@@ -15,26 +13,17 @@ export type SessionType = 'claude' | 'codex' | 'zed' | 'cursor' | 'terminal';
  *
  * | Priority | Source                                                          |
  * |----------|-----------------------------------------------------------------|
- * | 1        | PROTOCOL_AGENT_ID env var (legacy fallback: VAUGHN_AGENT_ID)    |
+ * | 1        | PROTOCOL_AGENT_ID env var (explicit override)                   |
  * | 2        | CLAUDE_AGENT_ROLE env var (tool-specific)                       |
- * | 3        | Session cache (/tmp/protocol-session-<ppid>.id, legacy fallback /tmp/vaughn-session-<ppid>.id) |
+ * | 3        | Session cache (/tmp/protocol-session-<ppid>.id)                 |
  * | 4        | Process tree walk (/proc for tool binaries)                     |
  * | 5        | IDE detection (Zed, Cursor)                                     |
  * | 6        | TERM_PROGRAM env var                                            |
  * | 7        | Generic 'terminal' fallback                                     |
  */
 export function detectSessionType(): SessionType {
-  // Tier 1: Explicit PROTOCOL_AGENT_ID override (legacy VAUGHN_AGENT_ID still
-  // read for migration; remove the fallback once consumers have migrated).
-  const protocolAgentId = process.env.PROTOCOL_AGENT_ID;
-  const legacyAgentId = process.env.VAUGHN_AGENT_ID;
-  if (legacyAgentId && !protocolAgentId && !_legacyEnvWarningEmitted) {
-    _legacyEnvWarningEmitted = true;
-    process.stderr.write(
-      '[harnesses] VAUGHN_AGENT_ID is deprecated; rename to PROTOCOL_AGENT_ID. See @revealui/harnesses CHANGELOG 0.4.0.\n',
-    );
-  }
-  const agentId = protocolAgentId ?? legacyAgentId;
+  // Tier 1: Explicit PROTOCOL_AGENT_ID override
+  const agentId = process.env.PROTOCOL_AGENT_ID;
   if (agentId) {
     const tool = agentId.split('-')[0]?.toLowerCase();
     if (tool === 'claude') return 'claude';
@@ -47,20 +36,15 @@ export function detectSessionType(): SessionType {
   // Tier 2: Tool-specific env vars
   if (process.env.CLAUDE_AGENT_ROLE) return 'claude';
 
-  // Tier 3: Session cache (reuse previous detection). Prefer the protocol path;
-  // fall back to the legacy vaughn path during migration.
-  for (const cachePath of [
-    `/tmp/protocol-session-${process.ppid}.id`,
-    `/tmp/vaughn-session-${process.ppid}.id`,
-  ]) {
-    try {
-      const cached = readFileSync(cachePath, 'utf8').trim();
-      if (cached === 'claude' || cached === 'codex' || cached === 'zed' || cached === 'cursor') {
-        return cached;
-      }
-    } catch {
-      // Cache miss or not available.
+  // Tier 3: Session cache (reuse previous detection)
+  try {
+    const cachePath = `/tmp/protocol-session-${process.ppid}.id`;
+    const cached = readFileSync(cachePath, 'utf8').trim();
+    if (cached === 'claude' || cached === 'codex' || cached === 'zed' || cached === 'cursor') {
+      return cached;
     }
+  } catch {
+    // Cache miss or not available.
   }
 
   // Tier 4+5: Process tree walk (tool binaries and IDE detection)

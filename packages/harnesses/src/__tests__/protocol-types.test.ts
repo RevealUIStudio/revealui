@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ALL_KNOWN_PROFILES,
   createDefaultCapabilities,
   createEventEnvelope,
   getDegradationStrategy,
@@ -7,6 +8,7 @@ import {
   PROTOCOL_VERSION,
   protocolEventEnvelopeSchema,
   protocolEventSchema,
+  ROADMAP_PROFILES,
   TOOL_PROFILES,
 } from '../protocol/index.js';
 
@@ -30,40 +32,82 @@ describe('protocol capabilities', () => {
     expect(caps.maxContextTokens).toBe(0);
     expect(caps.lifecycleEvents).toEqual([]);
   });
+});
 
-  it('TOOL_PROFILES has entries for all known tools', () => {
-    expect(TOOL_PROFILES['claude-code']).toBeDefined();
-    expect(TOOL_PROFILES.codex).toBeDefined();
-    expect(TOOL_PROFILES.cursor).toBeDefined();
-    expect(TOOL_PROFILES['revealui-agent']).toBeDefined();
+describe('TOOL_PROFILES (shipped adapters)', () => {
+  it('contains revealui-agent only', () => {
+    expect(Object.keys(TOOL_PROFILES)).toEqual(['revealui-agent']);
   });
 
   it('revealui-agent has full dispatch capabilities', () => {
     const caps = TOOL_PROFILES['revealui-agent'];
+    expect(caps).toBeDefined();
     expect(caps.dispatch.generateCode).toBe(true);
     expect(caps.dispatch.analyzeCode).toBe(true);
     expect(caps.dispatch.applyEdit).toBe(true);
     expect(caps.dispatch.executeCommand).toBe(true);
   });
 
-  it('claude-code does not have dispatch capabilities', () => {
-    const caps = TOOL_PROFILES['claude-code'];
+  it('revealui-agent supports all 10 canonical lifecycle events', () => {
+    const caps = TOOL_PROFILES['revealui-agent'];
+    expect(caps.lifecycleEvents).toHaveLength(10);
+  });
+
+  it('does not contain entries for tools without adapters', () => {
+    expect(TOOL_PROFILES['claude-code']).toBeUndefined();
+    expect(TOOL_PROFILES.codex).toBeUndefined();
+    expect(TOOL_PROFILES.cursor).toBeUndefined();
+  });
+});
+
+describe('ROADMAP_PROFILES (declared, no adapter)', () => {
+  it('contains the three spec-declared tools', () => {
+    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'cursor']);
+  });
+
+  it('claude-code has no dispatch capabilities (interactive tool)', () => {
+    const caps = ROADMAP_PROFILES['claude-code'];
     expect(caps.dispatch.generateCode).toBe(false);
     expect(caps.dispatch.analyzeCode).toBe(false);
   });
 
   it('codex has sandbox support', () => {
-    const caps = TOOL_PROFILES.codex;
+    const caps = ROADMAP_PROFILES.codex;
     expect(caps.sandbox.supported).toBe(true);
     expect(caps.sandbox.modes).toContain('read-only');
   });
 
   it('cursor has minimal capabilities', () => {
-    const caps = TOOL_PROFILES.cursor;
+    const caps = ROADMAP_PROFILES.cursor;
     expect(caps.headless).toBe(false);
     expect(caps.hooks.supported).toBe(false);
     expect(caps.readWorkboard).toBe(false);
     expect(caps.lifecycleEvents).toEqual([]);
+  });
+
+  it('does not overlap with TOOL_PROFILES', () => {
+    for (const id of Object.keys(ROADMAP_PROFILES)) {
+      expect(TOOL_PROFILES[id]).toBeUndefined();
+    }
+  });
+});
+
+describe('ALL_KNOWN_PROFILES (merged view)', () => {
+  it('contains all four declared tools', () => {
+    expect(Object.keys(ALL_KNOWN_PROFILES).sort()).toEqual([
+      'claude-code',
+      'codex',
+      'cursor',
+      'revealui-agent',
+    ]);
+  });
+
+  it('shipped entries take precedence over roadmap entries on key collision', () => {
+    // No collision today (the four IDs are disjoint), but the spread order
+    // (...ROADMAP_PROFILES first, then ...TOOL_PROFILES) guarantees that
+    // a future shipped adapter overrides any roadmap declaration with the
+    // same ID. Verify the shape of revealui-agent matches TOOL_PROFILES.
+    expect(ALL_KNOWN_PROFILES['revealui-agent']).toEqual(TOOL_PROFILES['revealui-agent']);
   });
 });
 

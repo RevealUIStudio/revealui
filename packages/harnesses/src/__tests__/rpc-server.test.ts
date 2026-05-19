@@ -184,51 +184,48 @@ describe('RpcServer (harnesses)', () => {
 
   // -----------------------------------------------------------------------
   // Harness Protocol methods
-  // (Wire-format method names use the historical `vaughn.*` namespace
-  // for backward compatibility with existing consumers — see
-  // docs/HARNESS_PROTOCOL.md §Transports.)
   // -----------------------------------------------------------------------
-  it('vaughn.capabilities returns empty array when no adapters registered', async () => {
-    const res = (await sendRequest(socket, 'vaughn.capabilities')) as {
+  it('protocol.capabilities returns empty array when no adapters registered', async () => {
+    const res = (await sendRequest(socket, 'protocol.capabilities')) as {
       result: unknown[];
     };
     expect(Array.isArray(res.result)).toBe(true);
     expect(res.result).toHaveLength(0);
   });
 
-  it('vaughn.dispatch returns error when dispatch not configured', async () => {
-    const res = (await sendRequest(socket, 'vaughn.dispatch', {
+  it('protocol.dispatch returns error when dispatch not configured', async () => {
+    const res = (await sendRequest(socket, 'protocol.dispatch', {
       description: 'test task',
     })) as { error: { code: number } };
     expect(res.error?.code).toBe(-32603);
   });
 
-  it('vaughn.dispatch returns error when description missing', async () => {
+  it('protocol.dispatch returns error when description missing', async () => {
     server.setProtocolDispatch(() => null);
-    const res = (await sendRequest(socket, 'vaughn.dispatch', {})) as {
+    const res = (await sendRequest(socket, 'protocol.dispatch', {})) as {
       error: { code: number };
     };
     expect(res.error?.code).toBe(-32602);
   });
 
-  it('vaughn.dispatch returns adapterId when configured', async () => {
+  it('protocol.dispatch returns adapterId when configured', async () => {
     server.setProtocolDispatch((_req, _desc) => 'claude-code');
-    const res = (await sendRequest(socket, 'vaughn.dispatch', {
+    const res = (await sendRequest(socket, 'protocol.dispatch', {
       description: 'run tests',
       requirements: { headless: true },
     })) as { result: { adapterId: string } };
     expect(res.result?.adapterId).toBe('claude-code');
   });
 
-  it('vaughn.events returns empty array initially', async () => {
-    const res = (await sendRequest(socket, 'vaughn.events')) as {
+  it('protocol.events returns empty array initially', async () => {
+    const res = (await sendRequest(socket, 'protocol.events')) as {
       result: unknown[];
     };
     expect(Array.isArray(res.result)).toBe(true);
     expect(res.result).toHaveLength(0);
   });
 
-  it('vaughn.events returns pushed events', async () => {
+  it('protocol.events returns pushed events', async () => {
     server.pushProtocolEvent({
       version: '0.1.0',
       event: 'session.start',
@@ -238,14 +235,14 @@ describe('RpcServer (harnesses)', () => {
       sessionId: 'sess-1',
       payload: {},
     });
-    const res = (await sendRequest(socket, 'vaughn.events')) as {
+    const res = (await sendRequest(socket, 'protocol.events')) as {
       result: Array<{ event: string }>;
     };
     expect(res.result).toHaveLength(1);
     expect(res.result[0].event).toBe('session.start');
   });
 
-  it('vaughn.events respects limit parameter', async () => {
+  it('protocol.events respects limit parameter', async () => {
     for (let i = 0; i < 5; i++) {
       server.pushProtocolEvent({
         version: '0.1.0',
@@ -257,20 +254,20 @@ describe('RpcServer (harnesses)', () => {
         payload: { index: i },
       });
     }
-    const res = (await sendRequest(socket, 'vaughn.events', { limit: 2 })) as {
+    const res = (await sendRequest(socket, 'protocol.events', { limit: 2 })) as {
       result: unknown[];
     };
     expect(res.result.length).toBeLessThanOrEqual(2);
   });
 
-  it('vaughn.config.sync returns error when config missing', async () => {
-    const res = (await sendRequest(socket, 'vaughn.config.sync', {})) as {
+  it('protocol.config.sync returns error when config missing', async () => {
+    const res = (await sendRequest(socket, 'protocol.config.sync', {})) as {
       error: { code: number };
     };
     expect(res.error?.code).toBe(-32602);
   });
 
-  it('vaughn.config.sync generates all config files', async () => {
+  it('protocol.config.sync generates all config files', async () => {
     const config = {
       identity: { name: 'Test', email: 'test@test.com' },
       permissions: { autoApprove: [], deny: [] },
@@ -279,7 +276,7 @@ describe('RpcServer (harnesses)', () => {
       skills: [],
       commands: [],
     };
-    const res = (await sendRequest(socket, 'vaughn.config.sync', { config })) as {
+    const res = (await sendRequest(socket, 'protocol.config.sync', { config })) as {
       result: { files: Record<string, string> };
     };
     expect(res.result?.files).toBeDefined();

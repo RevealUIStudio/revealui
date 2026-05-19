@@ -13,6 +13,7 @@ import type { HarnessAdapter } from './types/adapter.js';
 import type { HealthCheckResult } from './types/core.js';
 import type { ProtocolCapabilities } from './protocol/capabilities.js';
 import { TOOL_PROFILES } from './protocol/capabilities.js';
+import { ROADMAP_PROFILES } from './protocol/roadmap-profiles.js';
 import { deriveSessionId, detectSessionType } from './workboard/session-identity.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
@@ -207,7 +208,12 @@ export class HarnessCoordinator {
     const candidates: Array<{ id: string; caps: ProtocolCapabilities }> = [];
 
     for (const id of this.registry.listAll()) {
-      const caps = this.protocolCapabilities.get(id) ?? TOOL_PROFILES[id];
+      // Lookup order: explicit registration > shipped adapter profile > roadmap profile.
+      // The ROADMAP_PROFILES fallback lets coordinators that register stub adapters
+      // for spec'd-but-unimplemented tools (claude-code, codex, cursor) still get
+      // capability data for dispatch decisions.
+      const caps =
+        this.protocolCapabilities.get(id) ?? TOOL_PROFILES[id] ?? ROADMAP_PROFILES[id];
       if (!caps) continue;
       if (this.matchesRequirements(caps, requirements)) {
         candidates.push({ id, caps });
