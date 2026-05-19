@@ -27,8 +27,8 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/resilience": "workspace:*",
-    "lru-cache": "^11.3.6",
-    "zod": "^4.3.6"
+    "lru-cache": "^11.4.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.5",
