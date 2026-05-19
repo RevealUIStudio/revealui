@@ -54,7 +54,7 @@ export function PricingTeaser() {
     <section className="bg-gray-50 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             {PRICING_TEASER_SECTION.eyebrow}
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -84,7 +84,9 @@ export function PricingTeaser() {
                 <div className="mt-4 flex items-baseline gap-2">
                   <span className="text-4xl font-bold tracking-tight">{price}</span>
                   {period && (
-                    <span className={`text-sm ${t.highlight ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <span
+                      className={`text-sm ${t.highlight ? 'text-gray-400' : 'text-muted-foreground'}`}
+                    >
                       {period}
                     </span>
                   )}
@@ -148,7 +150,7 @@ export function PricingTeaser() {
           <Button plain href={PRICING_TEASER_FOOTER.moreHref} className="text-sm font-medium">
             {PRICING_TEASER_FOOTER.moreLabel}
           </Button>
-          <p className="mt-6 text-xs leading-5 text-gray-500">
+          <p className="mt-6 text-xs leading-5 text-muted-foreground">
             {PRICING_TEASER_FOOTER.caption.prefix}{' '}
             <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700">
               {PRICING_TEASER_FOOTER.caption.code}

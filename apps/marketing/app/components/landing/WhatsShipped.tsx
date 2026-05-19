@@ -5,7 +5,7 @@ export function WhatsShipped() {
     <section className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             {CAPABILITIES_SECTION.eyebrow}
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -34,7 +34,7 @@ export function WhatsShipped() {
           ))}
         </div>
 
-        <p className="mx-auto mt-10 max-w-2xl text-center text-xs text-gray-500">
+        <p className="mx-auto mt-10 max-w-2xl text-center text-xs text-muted-foreground">
           {CAPABILITIES_SECTION.footnote}
         </p>
       </div>
