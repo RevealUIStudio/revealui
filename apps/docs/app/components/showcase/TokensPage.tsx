@@ -47,7 +47,7 @@ const colorTokens: TokenGroup[] = [
       { name: '--rvui-success-subtle', description: 'Success background' },
       { name: '--rvui-warning', description: 'Warning state (chip background)' },
       { name: '--rvui-warning-subtle', description: 'Warning background (alpha overlay)' },
-      { name: '--rvui-warning-text', description: 'Warning text — AA-safe on paper (use for text; --rvui-warning is for backgrounds only on light surfaces)' },
+      { name: '--rvui-warning-text', description: 'Warning text — AA-safe on paper' },
       { name: '--rvui-error', description: 'Error state' },
       { name: '--rvui-error-subtle', description: 'Error background' },
       { name: '--rvui-info', description: 'Info state' },
