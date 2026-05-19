@@ -453,7 +453,7 @@ class ProjectHealthCLI extends BaseCLI {
       color: #0ea5e9;
     }
     .healthy {
-      color: #10b981;
+      color: #14b8a6;
     }
     .warning {
       color: #f59e0b;

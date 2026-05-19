@@ -106,12 +106,12 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Surface | Value |
 |---|---|
-| Primary brand color (`--rvui-brand`) | `oklch(0.723 0.177 163.22)` (emerald, dark mode default) |
-| Light mode brand | `oklch(0.55 0.2 163.22)` |
-| Source-of-truth file | `packages/presentation/src/tokens.css:102-104` (dark) + `:180-183` (light) |
-| Memory | `project_fleet_brand_emerald_convergence` |
+| Primary brand color (`--rvui-brand`) | `oklch(0.46 0.180 240)` (cobalt, dark mode default) |
+| Light mode brand | `oklch(0.36 0.190 240)` |
+| Source-of-truth file | `packages/presentation/src/tokens.css:109-116` (dark) + `:198-206` (light) |
+| Memory | `project_fleet_brand_emerald_convergence` (to be renamed post-merge: cobalt landed 2026-05-19) |
 
-Marketing copy may say "emerald" descriptively but the token name is `--rvui-brand`. Do NOT introduce new color variables in marketing CSS — consume the token via Tailwind config + `@revealui/presentation` import.
+Marketing copy may say "cobalt" (or "Electric Verdigris") descriptively but the token name is `--rvui-brand`. Do NOT introduce new color variables in marketing CSS — consume the token via Tailwind config + `@revealui/presentation` import.
 
 ## 5. Fleet product roster (per locked Q3 vocabulary)
 
