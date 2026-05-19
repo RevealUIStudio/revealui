@@ -14,7 +14,7 @@ export const NAV_LINKS: readonly NavLink[] = [
 
 export const NAV_AUTH = {
   login: { label: 'Log in', href: SITE.urls.adminLogin },
-  signup: { label: 'Get started free', href: SITE.urls.signup },
+  signup: { label: 'Start free', href: SITE.urls.signup },
 } as const;
 
 export interface FooterColumn {
