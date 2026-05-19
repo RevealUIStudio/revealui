@@ -1,0 +1,128 @@
+name: backflow-main-into-test
+
+# After main moves (test→main promotion or direct push), automatically
+# open or update a "backflow main into test" PR if test is behind main.
+# Companion to promotion-gate.yml — that workflow REJECTS stale promotions;
+# this one PROACTIVELY heals the staleness gap.
+#
+# Permissions:
+#   contents: write — push to the chore/backflow-main-into-test branch
+#   pull-requests: write — open/update the backflow PR
+#
+# Known limitation: PRs opened by GITHUB_TOKEN don't trigger other
+# workflows (anti-loop guard built into GitHub Actions). The auto-opened
+# backflow PR will have empty CI. Close + reopen via gh CLI (or the web
+# UI button) to fire CI, then merge.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  backflow:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4 (resolved 2026-05-19)
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if test needs backflow
+        id: check
+        run: |
+          if ! git fetch origin test 2>/dev/null; then
+            echo "::warning::No 'test' branch on origin — skipping backflow"
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git merge-base --is-ancestor origin/main origin/test; then
+            echo "test already contains main — no backflow needed ✓"
+            echo "needed=false" >> "$GITHUB_OUTPUT"
+          else
+            behind=$(git rev-list --count origin/test..origin/main)
+            echo "test is $behind commit(s) behind main"
+            echo "needed=true" >> "$GITHUB_OUTPUT"
+            echo "behind=$behind" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Configure git identity
+        if: steps.check.outputs.needed == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Attempt backflow merge
+        if: steps.check.outputs.needed == 'true'
+        id: merge
+        run: |
+          git checkout -B chore/backflow-main-into-test origin/test
+
+          missing=$(git log --oneline origin/test..origin/main | head -20)
+          {
+            echo "Merge main into test"
+            echo ""
+            echo "Auto-opened by .github/workflows/backflow-main-into-test.yml"
+            echo "after main moved forward. Merge commit (no squash) per"
+            echo "feedback_merge_main_into_test_must_use_merge_commit so main's"
+            echo "parentage is preserved and the next promotion-gate check passes."
+            echo ""
+            echo "Missing commits backflowed:"
+            echo "$missing"
+          } > /tmp/merge-msg.txt
+
+          if git merge --no-ff -F /tmp/merge-msg.txt origin/main; then
+            git push origin chore/backflow-main-into-test --force-with-lease
+            echo "merged=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error title=Backflow merge conflict::Auto-backflow hit content conflicts. Resolve manually: git checkout test && git fetch origin && git merge --no-ff origin/main && resolve && git push origin test"
+            exit 1
+          fi
+
+      - name: Open or update backflow PR
+        if: steps.check.outputs.needed == 'true' && steps.merge.outputs.merged == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEHIND: ${{ steps.check.outputs.behind }}
+          REPO: ${{ github.repository }}
+        run: |
+          existing=$(gh pr list --repo "$REPO" --base test --head chore/backflow-main-into-test --json number --jq '.[0].number // empty')
+
+          title="chore(test): backflow main into test ($BEHIND commit(s) behind)"
+          {
+            echo "## Summary"
+            echo ""
+            echo "Auto-opened by \`.github/workflows/backflow-main-into-test.yml\` because \`main\` moved forward and \`test\` is $BEHIND commit(s) behind."
+            echo ""
+            echo "## Why this exists"
+            echo ""
+            echo "Without backflow, the next \`test\` → \`main\` promotion fails the \`promotion-gate\` check (it requires test to contain all of main). This PR catches \`test\` up so the next promotion lands cleanly."
+            echo ""
+            echo "## Merge instructions"
+            echo ""
+            echo "**Merge as a merge commit (NOT squash) per \`feedback_merge_main_into_test_must_use_merge_commit\`:**"
+            echo ""
+            echo '```'
+            echo "gh pr merge <PR#> --merge --delete-branch --repo $REPO"
+            echo '```'
+            echo ""
+            echo "Squash strips \`main\`'s parentage — \`promotion-gate\` will re-flag the same condition on the next push to main, and another backflow PR will auto-open."
+            echo ""
+            echo "## CI on this PR"
+            echo ""
+            echo "GitHub blocks workflows triggered by \`GITHUB_TOKEN\` from triggering other workflows (anti-loop guard). If CI is empty, **close and reopen the PR via the web UI or \`gh pr close <PR#> && gh pr reopen <PR#>\`** to fire CI."
+            echo ""
+            echo "_Per \`feedback_no_auto_merge\`: manual merge only — no \`--auto\`._"
+          } > /tmp/pr-body.md
+
+          if [ -n "$existing" ]; then
+            gh pr edit "$existing" --repo "$REPO" --title "$title" --body-file /tmp/pr-body.md
+            echo "Updated existing backflow PR #$existing"
+          else
+            gh pr create --repo "$REPO" --base test --head chore/backflow-main-into-test --title "$title" --body-file /tmp/pr-body.md
+            echo "Created new backflow PR"
+          fi
