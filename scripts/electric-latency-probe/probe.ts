@@ -502,9 +502,9 @@ ${samples
 
 - Concurrent-write load. This is an unloaded serial measurement.
   Propagation under 50 concurrent agents is unknown.
-- The Vercel→Railway→Supabase cloud path. Allevia's Forge deployment
-  is local-box; cloud measurement would add hops that won't exist on
-  the customer's box.
+- The Vercel→Railway→Supabase cloud path. The first Forge customer's
+  deployment is local-box; cloud measurement would add hops that won't
+  exist on the customer's box.
 `;
 
   mkdirSync(dirname(NOTES_PATH), { recursive: true });

@@ -229,7 +229,7 @@ export const HOME_GET_STARTED = {
   heading: 'Ready to build?',
   body: 'Users, content, products, payments, and AI, pre-wired. Start building locally in minutes; flip to live mode when you are ready.',
   cta: {
-    primary: { label: 'Get started free', href: SITE.urls.signup } satisfies Cta,
+    primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,
   },
   newsletter: {

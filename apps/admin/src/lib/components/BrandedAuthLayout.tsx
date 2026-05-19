@@ -12,7 +12,7 @@ import type React from 'react';
  * Env vars consumed:
  * - `REVEALUI_TENANT_NAME` (or legacy `REVEALUI_BRAND_NAME`) — heading + logo alt text
  * - `REVEALUI_TENANT_HIDE_NAME` — `'true'` hides the visible heading text (useful when
- *   the logo already contains the company wordmark, e.g. "alleviatechnology"); alt
+ *   the logo already contains the company wordmark, e.g. "acmeinc"); alt
  *   text on the logo stays for screen-reader accessibility regardless
  * - `REVEALUI_TENANT_TAGLINE` — optional subline; suppressed if unset
  * - `REVEALUI_BRAND_LOGO_URL` — logo src; defaults to `/logo.webp` (kit-mountable)

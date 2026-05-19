@@ -20,8 +20,7 @@ audience: developer
 | 3 | **RevForge** | Operator-side stamping tool (`RevealUIStudio/revforge`). Produces branded RevealUI Fleet kits per customer. | RevealUI Studio operators |
 | 4 | **RevealUI Fleet** | Customer-facing self-hosted runtime kit — white-label, multi-tenant, domain-locked, produced by RevForge. | Enterprise customers self-hosting |
 | 5 | **Enterprise** | SaaS billing tier label ($299/mo). Hosted alternative to self-hosting a Fleet kit. | Customers on the hosted Enterprise tier |
-| 6 | **AlleviaFleet** | First customer-stamped Fleet instance (Allevia Technology). | Allevia (first customer) |
-| 7 | (future stamps) | Customer-stamped Fleet instances per the Tier 4 model. | Future enterprise customers |
+| 6 | (customer stamps) | Customer-stamped Fleet instances per the Tier 4 model. | Enterprise customers |
 
 **Naming drift to avoid:** "Suite", "RevealUI Studio Fleet", bare "Fleet" → use **RevFleet**. Bare "Forge" is ambiguous — use RevForge (the tool), RevealUI Fleet (the kit), or Enterprise (the tier) per context.
 
@@ -56,7 +55,7 @@ Status: pre-launch (Docker images not yet on GHCR — stack runs from source tod
 
 ### RevealUI Fleet (the self-hosted kit)
 
-A Fleet kit is what an enterprise customer deploys on their own infrastructure. It is produced by RevForge, locked to the customer's domain, and supports unlimited users. AlleviaFleet is the first such instance.
+A Fleet kit is what an enterprise customer deploys on their own infrastructure. It is produced by RevForge, locked to the customer's domain, and supports unlimited users.
 
 The full Fleet deployment guide is at [`docs/FLEET.md`](./FLEET.md).
 
