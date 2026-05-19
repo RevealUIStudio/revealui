@@ -108,7 +108,7 @@ export function BlogIndexPage() {
                   key={post.id}
                   className="rounded-2xl bg-white p-8 shadow-lg ring-1 ring-gray-200 hover:ring-blue-300 transition-all"
                 >
-                  <div className="flex items-center gap-x-4 text-xs text-gray-500">
+                  <div className="flex items-center gap-x-4 text-xs text-muted-foreground">
                     <time dateTime={post.publishedAt ?? post.createdAt}>
                       {formatDate(post.publishedAt ?? post.createdAt)}
                     </time>
