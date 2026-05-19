@@ -3,6 +3,9 @@ import { join } from 'node:path';
 import { CIFeedback } from './coordination/ci-feedback.js';
 import { MergePipeline } from './coordination/merge-pipeline.js';
 import { autoDetectHarnesses } from './detection/auto-detector.js';
+import type { ProtocolCapabilities } from './protocol/capabilities.js';
+import { TOOL_PROFILES } from './protocol/capabilities.js';
+import { ROADMAP_PROFILES } from './protocol/roadmap-profiles.js';
 import { HarnessRegistry } from './registry/harness-registry.js';
 import { HttpGateway } from './server/http-gateway.js';
 import { InferenceService } from './server/inference-service.js';
@@ -11,9 +14,6 @@ import { SpawnerService } from './server/spawner-service.js';
 import { DaemonStore } from './storage/daemon-store.js';
 import type { HarnessAdapter } from './types/adapter.js';
 import type { HealthCheckResult } from './types/core.js';
-import type { ProtocolCapabilities } from './protocol/capabilities.js';
-import { TOOL_PROFILES } from './protocol/capabilities.js';
-import { ROADMAP_PROFILES } from './protocol/roadmap-profiles.js';
 import { deriveSessionId, detectSessionType } from './workboard/session-identity.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
@@ -212,8 +212,7 @@ export class HarnessCoordinator {
       // The ROADMAP_PROFILES fallback lets coordinators that register stub adapters
       // for spec'd-but-unimplemented tools (claude-code, codex, cursor) still get
       // capability data for dispatch decisions.
-      const caps =
-        this.protocolCapabilities.get(id) ?? TOOL_PROFILES[id] ?? ROADMAP_PROFILES[id];
+      const caps = this.protocolCapabilities.get(id) ?? TOOL_PROFILES[id] ?? ROADMAP_PROFILES[id];
       if (!caps) continue;
       if (this.matchesRequirements(caps, requirements)) {
         candidates.push({ id, caps });
@@ -229,7 +228,10 @@ export class HarnessCoordinator {
   }
 
   /** Check whether capabilities satisfy requirements. */
-  private matchesRequirements(caps: ProtocolCapabilities, req: Partial<ProtocolCapabilities>): boolean {
+  private matchesRequirements(
+    caps: ProtocolCapabilities,
+    req: Partial<ProtocolCapabilities>,
+  ): boolean {
     if (req.dispatch) {
       if (req.dispatch.generateCode && !caps.dispatch.generateCode) return false;
       if (req.dispatch.analyzeCode && !caps.dispatch.analyzeCode) return false;

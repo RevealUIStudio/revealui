@@ -29,8 +29,6 @@ export type {
   SandboxMode,
 } from './capabilities.js';
 export { createDefaultCapabilities, TOOL_PROFILES } from './capabilities.js';
-// Roadmap profiles (declared but not implemented)
-export { ALL_KNOWN_PROFILES, ROADMAP_PROFILES } from './roadmap-profiles.js';
 // Config normalization
 export type { ClaudeCodeSettings, ConfigGenerationResult } from './config-normalizer.js';
 export {
@@ -55,3 +53,5 @@ export {
 // Event normalization
 export type { NormalizedEvent } from './event-normalizer.js';
 export { EventNormalizer } from './event-normalizer.js';
+// Roadmap profiles (declared but not implemented)
+export { ALL_KNOWN_PROFILES, ROADMAP_PROFILES } from './roadmap-profiles.js';
