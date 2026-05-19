@@ -61,7 +61,10 @@ function countByGlob(base: string, extensions: string[]): number {
 
 function countDirs(base: string): number {
   try {
-    return fs.readdirSync(base, { withFileTypes: true }).filter((e) => e.isDirectory()).length;
+    return fs
+      .readdirSync(base, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && fs.existsSync(path.join(base, e.name, 'package.json')))
+      .length;
   } catch {
     return 0;
   }
@@ -1425,4 +1428,10 @@ function run(): void {
   }
 }
 
-run();
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+const selfPath = path.resolve(import.meta.dirname, 'claim-drift.ts');
+if (invokedPath === selfPath) {
+  run();
+}
+
+export { countDirs };
