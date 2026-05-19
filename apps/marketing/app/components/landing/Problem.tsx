@@ -23,7 +23,7 @@ export function Problem() {
           >
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="bg-gray-50 text-xs font-semibold uppercase tracking-widest text-gray-500">
+                <tr className="bg-gray-50 text-xs font-semibold uppercase tracking-widest text-gray-600">
                   <th scope="col" className="px-4 py-3 sm:px-6 sm:py-4">
                     {HOME_PROBLEM.columns.capability}
                   </th>
