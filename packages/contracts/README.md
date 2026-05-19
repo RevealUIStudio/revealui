@@ -166,7 +166,7 @@ pnpm build
 - **Not** for database queries  -  use `@revealui/db` with Drizzle ORM
 - **Not** for runtime config validation  -  use `@revealui/config`
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Unified**: One schema drives TypeScript types, runtime validation, API docs, and database bridges across every surface
 - **Hermetic**: Validation at the boundary ensures no unvalidated data crosses layer lines

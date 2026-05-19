@@ -92,7 +92,7 @@ Dependencies: `@revealui/contracts`, `@revealui/utils`
 
 Used by RevDev Studio's terminal view to neutralize malicious output (e.g. cursor hijacking, title injection) before rendering. Consumers must treat all subprocess stdout/stderr as untrusted.
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Hermetic**: Security boundaries are sealed  -  auth checks happen at middleware, never inside business logic
 - **Sovereign**: All security infrastructure runs in your deployment, no external auth service required

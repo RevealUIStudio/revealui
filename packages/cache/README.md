@@ -75,7 +75,7 @@ Optional peer dependency: `next` (>=14.0.0)  -  required for ISR helpers.
 |--------|------|---------|
 | `configureCacheLogger` | Function | Set custom logger (defaults to console) |
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Adaptive**: ISR presets scale from real-time (10s) to immutable (1y) based on content volatility
 - **Unified**: Cache tags follow the same taxonomy as CMS collections  -  invalidation is automatic

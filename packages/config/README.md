@@ -133,7 +133,7 @@ pnpm --filter @revealui/config lint
 - **Not** for runtime feature flags  -  use `@revealui/core/features` instead
 - **Not** for secrets management  -  use your platform's secret store and let this package validate what's loaded
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Unified**: One config loader validates and types all environment variables across every app and package
 - **Hermetic**: Validation runs at load time  -  invalid or missing variables fail fast, never leak into runtime
