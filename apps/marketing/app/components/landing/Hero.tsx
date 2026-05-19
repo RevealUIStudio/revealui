@@ -151,7 +151,7 @@ export function Hero() {
             <span className="text-blue-300">my-app</span>
           </div>
 
-          <p className="mt-4 text-sm text-gray-500">{HOME_HERO.cliCaption}</p>
+          <p className="mt-4 text-sm text-muted-foreground">{HOME_HERO.cliCaption}</p>
 
           <div className="mt-16 border-t border-gray-100 pt-10">
             <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-600 mb-6">
@@ -175,7 +175,7 @@ export function Hero() {
                   </svg>
                   <div>
                     <p className="text-sm font-medium text-gray-900">{item.metric}</p>
-                    <p className="mt-0.5 text-sm text-gray-500">{item.detail}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{item.detail}</p>
                   </div>
                 </li>
               ))}
