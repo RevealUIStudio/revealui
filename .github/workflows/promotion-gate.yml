@@ -1,0 +1,63 @@
+name: promotion-gate
+
+# Fires on PRs targeting main. Enforces:
+#   1. Head branch is 'test' (no feature → main promotion).
+#   2. test contains all of main (covers "test behind main" and
+#      "main was squash-merged into test instead of merge-committed").
+#
+# Pairs with branch protection requiring this check to pass on
+# public repos. On private repos (free plan), enforcement is by
+# convention — the visible red X surfaces the gap.
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  promotion-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify head branch is 'test'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if [ "$HEAD_REF" != "test" ]; then
+            echo "::error title=Wrong head branch::Promotion PRs to main must come from 'test'. Got: '$HEAD_REF'."
+            echo ""
+            echo "Feature branches must merge to 'test' first, then 'test' promotes to 'main'."
+            exit 1
+          fi
+
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4 (resolved 2026-05-19)
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify test contains all of main
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git fetch origin "$BASE_REF" --depth=200
+          base_sha=$(git rev-parse "origin/$BASE_REF")
+
+          if git merge-base --is-ancestor "$base_sha" HEAD; then
+            echo "test contains all of $BASE_REF ✓"
+            exit 0
+          fi
+
+          behind=$(git rev-list --count "HEAD..origin/$BASE_REF")
+          echo "::error title=test is behind main::test is $behind commit(s) behind '$BASE_REF'. Backflow main into test using a merge commit (NOT squash):"
+          echo ""
+          echo "  git checkout test"
+          echo "  git fetch origin"
+          echo "  git merge --no-ff origin/$BASE_REF"
+          echo "  git push origin test"
+          echo ""
+          echo "Squash-merging main into test produces the same red X — main's parentage isn't preserved."
+          echo ""
+          echo "Missing commits:"
+          git log --oneline -20 "HEAD..origin/$BASE_REF"
+          exit 1

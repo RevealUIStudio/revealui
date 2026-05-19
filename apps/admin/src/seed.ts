@@ -93,7 +93,7 @@ const pages = [
               ),
               heading('Get Started', 'h3'),
               paragraph(
-                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 24 of 26 packages are MIT - forever; the 2 Pro packages convert to MIT after 2 years.',
+                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 21 of 26 packages are MIT - forever; the 5 Pro packages convert to MIT after 2 years.',
               ),
             ),
           },
