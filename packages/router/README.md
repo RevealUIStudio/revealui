@@ -352,7 +352,7 @@ const route: Route = {
 - **Not** for Next.js apps  -  Next.js has its own App Router
 - **Not** for API-only services  -  use Hono's native routing directly
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Orthogonal**: Routing, data loading, and SSR are cleanly separated  -  loaders run independently of components
 - **Hermetic**: SSR hydration uses a sealed data channel (`__REVEALUI_DATA__`) with no implicit global state

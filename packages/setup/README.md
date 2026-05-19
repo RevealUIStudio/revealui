@@ -309,7 +309,7 @@ pnpm test:coverage
 - **Not** for runtime config access  -  use `@revealui/config` after setup is complete
 - **Not** for end-user-facing logging  -  use `@revealui/utils/logger` in application code
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Justifiable**: Every utility exists because `@revealui/cli` and setup scripts need it  -  no speculative abstractions
 - **Hermetic**: Validation catches missing or malformed variables before they propagate into runtime

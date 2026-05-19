@@ -242,7 +242,7 @@ pnpm --filter test test:coverage
 - **Not** for unit tests in a single package  -  co-locate tests with the package using Vitest directly
 - **Not** for testing non-RevealUI projects  -  the fixtures and mocks are RevealUI-specific
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Unified**: One test infrastructure package provides fixtures, mocks, E2E page objects, and load tests for the entire monorepo
 - **Orthogonal**: Unit, integration, E2E, and load tests are cleanly separated directories with independent tooling

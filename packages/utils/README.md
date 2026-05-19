@@ -105,7 +105,7 @@ pnpm dev
 - **Not** for setup-time logging with progress bars  -  use `@revealui/setup/utils`
 - **Not** for Zod validation schemas  -  use `@revealui/contracts`
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Orthogonal**: Zero dependencies  -  sits at the bottom of the dependency graph so core, db, and contracts can all import without cycles
 - **Unified**: One logger API with child loggers and pluggable handlers replaces ad-hoc `console.*` across the entire codebase
