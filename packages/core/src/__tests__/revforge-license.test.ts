@@ -138,17 +138,11 @@ describe('issueRevForgeLicense', () => {
 
   it('rejects non-positive maxSites / maxUsers', async () => {
     await expect(
-      issueRevForgeLicense(
-        { slug: 'acme', tier: 'pro', maxSites: 0 },
-        { privateKey, publicKey },
-      ),
+      issueRevForgeLicense({ slug: 'acme', tier: 'pro', maxSites: 0 }, { privateKey, publicKey }),
     ).rejects.toThrow(/--max-sites/);
 
     await expect(
-      issueRevForgeLicense(
-        { slug: 'acme', tier: 'pro', maxUsers: -5 },
-        { privateKey, publicKey },
-      ),
+      issueRevForgeLicense({ slug: 'acme', tier: 'pro', maxUsers: -5 }, { privateKey, publicKey }),
     ).rejects.toThrow(/--max-users/);
   });
 
