@@ -130,7 +130,7 @@ export function ComingSoonPage() {
               {ROADMAP_CTA_LINKS.joinDiscussion.label}
             </a>
           </div>
-          <p className="mt-8 text-sm text-gray-500">
+          <p className="mt-8 text-sm text-muted-foreground">
             See what's shipped today &rarr;{' '}
             <a
               href={ROADMAP_CTA_PRODUCTS_LINK.href}

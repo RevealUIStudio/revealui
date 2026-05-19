@@ -186,7 +186,7 @@ export function ProductsPage() {
                         {product.status}
                       </span>
                       {product.version ? (
-                        <span className="font-mono text-[0.7rem] text-gray-500">
+                        <span className="font-mono text-[0.7rem] text-muted-foreground">
                           {product.version}
                         </span>
                       ) : null}
