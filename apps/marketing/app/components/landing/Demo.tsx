@@ -6,7 +6,7 @@ export function Demo() {
     <section id="demo" className="bg-gray-50 py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             {HOME_DEMO.eyebrow}
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -21,7 +21,7 @@ export function Demo() {
               <ProductMockup />
             </div>
           </div>
-          <p className="mt-3 text-center text-xs text-gray-500">
+          <p className="mt-3 text-center text-xs text-muted-foreground">
             {HOME_DEMO.mockupCaption.prefix}{' '}
             <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700">
               {HOME_DEMO.mockupCaption.code}
