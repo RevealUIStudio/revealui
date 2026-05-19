@@ -7,6 +7,11 @@
  * directly. This is RevealUI's own coding agent.
  */
 
+import type { GeneratedFiles, ProtocolConfig } from '../protocol/adapter.js';
+import type { ProtocolCapabilities } from '../protocol/capabilities.js';
+import { TOOL_PROFILES } from '../protocol/capabilities.js';
+import type { ProtocolEventEnvelope } from '../protocol/event-envelope.js';
+import { EventNormalizer } from '../protocol/event-normalizer.js';
 import type { HarnessAdapter } from '../types/adapter.js';
 import type {
   HarnessCapabilities,
@@ -15,11 +20,6 @@ import type {
   HarnessEvent,
   HarnessInfo,
 } from '../types/core.js';
-import type { GeneratedFiles, VaughnConfig } from '../vaughn/adapter.js';
-import type { VaughnCapabilities } from '../vaughn/capabilities.js';
-import { TOOL_PROFILES } from '../vaughn/capabilities.js';
-import type { VaughnEventEnvelope } from '../vaughn/event-envelope.js';
-import { VaughnEventNormalizer } from '../vaughn/event-normalizer.js';
 
 /**
  * Configuration for the RevealUI Agent Adapter.
@@ -60,8 +60,8 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
 
   private readonly config: RevealUIAgentConfig;
   private readonly eventHandlers = new Set<(event: HarnessEvent) => void>();
-  private readonly vaughnEventHandlers = new Set<(event: VaughnEventEnvelope) => void>();
-  private vaughnNormalizer: VaughnEventNormalizer | null = null;
+  private readonly protocolEventHandlers = new Set<(event: ProtocolEventEnvelope) => void>();
+  private protocolNormalizer: EventNormalizer | null = null;
 
   constructor(config?: RevealUIAgentConfig) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -89,33 +89,33 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
     };
   }
 
-  /** Get the VAUGHN capability profile for this adapter. */
-  getVaughnCapabilities(): VaughnCapabilities {
+  /** Get the Harness Protocol capability profile for this adapter. */
+  getProtocolCapabilities(): ProtocolCapabilities {
     // revealui-agent is always defined in TOOL_PROFILES
-    return TOOL_PROFILES['revealui-agent'] as VaughnCapabilities;
+    return TOOL_PROFILES['revealui-agent'] as ProtocolCapabilities;
   }
 
-  /** Subscribe to VAUGHN-normalized events. */
-  onVaughnEvent(handler: (event: VaughnEventEnvelope) => void): () => void {
-    this.vaughnEventHandlers.add(handler);
-    if (!this.vaughnNormalizer) {
-      this.vaughnNormalizer = new VaughnEventNormalizer(
+  /** Subscribe to protocol-normalized events. */
+  onProtocolEvent(handler: (event: ProtocolEventEnvelope) => void): () => void {
+    this.protocolEventHandlers.add(handler);
+    if (!this.protocolNormalizer) {
+      this.protocolNormalizer = new EventNormalizer(
         'revealui-agent',
         this.id,
         `session-${Date.now()}`,
       );
     }
-    return () => this.vaughnEventHandlers.delete(handler);
+    return () => this.protocolEventHandlers.delete(handler);
   }
 
-  /** Generate tool-native config files from canonical VAUGHN config (stub). */
-  async generateConfig(_config: VaughnConfig): Promise<GeneratedFiles> {
+  /** Generate tool-native config files from canonical protocol config (stub). */
+  async generateConfig(_config: ProtocolConfig): Promise<GeneratedFiles> {
     // RevealUI agent uses the content layer directly, not settings files.
     return { files: new Map() };
   }
 
   /** Read tool-native config into canonical form (stub). */
-  async readConfig(): Promise<Partial<VaughnConfig>> {
+  async readConfig(): Promise<Partial<ProtocolConfig>> {
     // RevealUI agent gets config from content layer, not a settings file.
     return {};
   }
@@ -405,8 +405,8 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
 
   async dispose(): Promise<void> {
     this.eventHandlers.clear();
-    this.vaughnEventHandlers.clear();
-    this.vaughnNormalizer = null;
+    this.protocolEventHandlers.clear();
+    this.protocolNormalizer = null;
   }
 
   private emit(event: HarnessEvent): void {
@@ -418,11 +418,11 @@ export class RevealUIAgentAdapter implements HarnessAdapter {
       }
     }
 
-    // Emit VAUGHN-normalized event if subscribers exist
-    if (this.vaughnNormalizer && this.vaughnEventHandlers.size > 0) {
-      const envelope = this.vaughnNormalizer.normalizeToEnvelope(event);
+    // Emit protocol-normalized event if subscribers exist
+    if (this.protocolNormalizer && this.protocolEventHandlers.size > 0) {
+      const envelope = this.protocolNormalizer.normalizeToEnvelope(event);
       if (envelope) {
-        for (const handler of this.vaughnEventHandlers) {
+        for (const handler of this.protocolEventHandlers) {
           try {
             handler(envelope);
           } catch {

@@ -6,7 +6,7 @@
  * Used by the markdown resolver to translate flat URLs
  * (docs.revealui.com/admin-guide) into file fetches
  * (/admin-guide.md served from public/).
- * Generated: 111 entries.
+ * Generated: 112 entries.
  */
 
 export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
@@ -39,11 +39,6 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'architecture/x402': 'architecture/x402.md',
   'audit-status': 'AUDIT_STATUS.md',
   auth: 'AUTH.md',
-  'blog-drafts/01-why-we-built-revealui': 'blog-drafts/01-why-we-built-revealui.md',
-  'blog-drafts/02-five-primitives': 'blog-drafts/02-five-primitives.md',
-  'blog-drafts/03-open-source-and-pro': 'blog-drafts/03-open-source-and-pro.md',
-  'blog-drafts/04-agent-first-future': 'blog-drafts/04-agent-first-future.md',
-  'blog-drafts/05-getting-started': 'blog-drafts/05-getting-started.md',
   'blog/01-why-we-built-revealui': 'blog/01-why-we-built-revealui.md',
   'blog/02-http-402-payments': 'blog/02-http-402-payments.md',
   'blog/03-multi-agent-coordination': 'blog/03-multi-agent-coordination.md',
@@ -60,11 +55,12 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'core-stability': 'CORE_STABILITY.md',
   'credential-rotation-runbook': 'CREDENTIAL-ROTATION-RUNBOOK.md',
   database: 'DATABASE.md',
+  'decisions/2026-05-01-supabase-removal': 'decisions/2026-05-01-supabase-removal.md',
   'decisions/2026-05-08-deployment-target-vercel-not-k8s':
     'decisions/2026-05-08-deployment-target-vercel-not-k8s.md',
   'decisions/licensing-platform-evaluation': 'decisions/licensing-platform-evaluation.md',
   'deployment-runbook': 'DEPLOYMENT-RUNBOOK.md',
-  'documentation-assessment': 'DOCUMENTATION_ASSESSMENT.md',
+  'deployment/fly': 'deployment/fly.md',
   'environment-variables-guide': 'ENVIRONMENT-VARIABLES-GUIDE.md',
   examples: 'EXAMPLES.md',
   'fair-source': 'FAIR_SOURCE.md',
@@ -83,12 +79,14 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'guides/deployment': 'guides/deployment.md',
   'guides/quick-start': 'guides/quick-start.md',
   'guides/readme': 'guides/README.md',
+  'harness-protocol': 'HARNESS_PROTOCOL.md',
   index: 'INDEX.md',
   joshua: 'JOSHUA.md',
   'launch-checklist': 'LAUNCH-CHECKLIST.md',
   'linting-rules': 'LINTING_RULES.md',
   'local-first': 'LOCAL_FIRST.md',
   logging: 'LOGGING.md',
+  'marketing-metrics': 'MARKETING_METRICS.md',
   marketplace: 'MARKETPLACE.md',
   methodology: 'methodology.md',
   performance: 'PERFORMANCE.md',
@@ -99,7 +97,9 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   revfleet: 'REVFLEET.md',
   roadmap: 'ROADMAP.md',
   'runbook-agent-dispatch-flag': 'runbook-agent-dispatch-flag.md',
+  'runbooks/checkout-smoke-production': 'runbooks/checkout-smoke-production.md',
   'runbooks/gitleaks': 'runbooks/gitleaks.md',
+  'runbooks/stripe-post-flip-72h-monitor': 'runbooks/stripe-post-flip-72h-monitor.md',
   'runbooks/vercel-env-sync': 'runbooks/vercel-env-sync.md',
   'script-management': 'SCRIPT_MANAGEMENT.md',
   secrets: 'SECRETS.md',
@@ -109,9 +109,11 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'security/change-management-policy': 'security/CHANGE_MANAGEMENT_POLICY.md',
   'security/incident-response': 'security/INCIDENT_RESPONSE.md',
   'security/information-security-policy': 'security/INFORMATION_SECURITY_POLICY.md',
+  'security/limitations': 'security/LIMITATIONS.md',
   'security/security-training': 'security/SECURITY_TRAINING.md',
   'security/soc2-audit-track': 'security/SOC2_AUDIT_TRACK.md',
   'security/templates/pentest-rfp': 'security/templates/pentest-rfp.md',
+  'security/threat-model': 'security/THREAT_MODEL.md',
   'security/vendor-risk-assessments': 'security/VENDOR_RISK_ASSESSMENTS.md',
   'submodules/policy': 'submodules/POLICY.md',
   'system-tune/crash-postmortems': 'system-tune/CRASH-POSTMORTEMS.md',
@@ -120,7 +122,6 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'third-party-licenses': 'THIRD_PARTY_LICENSES.md',
   troubleshooting: 'TROUBLESHOOTING.md',
   'type-system-rules': 'TYPE-SYSTEM-RULES.md',
-  vaughn: 'VAUGHN.md',
   'what-works-today': 'WHAT_WORKS_TODAY.md',
 });
 
@@ -128,9 +129,18 @@ export const PATH_TO_SLUG: Readonly<Record<string, string>> = Object.freeze(
   Object.fromEntries(Object.entries(SLUG_TO_PATH).map(([slug, path]) => [path, slug])),
 );
 
-/** Resolve a slug to its docs/ file path, or null if unknown. */
+/**
+ * Legacy slug aliases preserved for backward-compat inbound links.
+ * Each value points to a path also present in SLUG_TO_PATH; reverse
+ * lookups via PATH_TO_SLUG always return the canonical slug.
+ */
+export const LEGACY_SLUG_ALIASES: Readonly<Record<string, string>> = Object.freeze({
+  vaughn: 'HARNESS_PROTOCOL.md',
+});
+
+/** Resolve a slug to its docs/ file path, or null if unknown. Falls back to LEGACY_SLUG_ALIASES. */
 export function slugToPath(slug: string): string | null {
-  return SLUG_TO_PATH[slug] ?? null;
+  return SLUG_TO_PATH[slug] ?? LEGACY_SLUG_ALIASES[slug] ?? null;
 }
 
 /** Resolve a docs/ file path to its slug, or null if unknown. */

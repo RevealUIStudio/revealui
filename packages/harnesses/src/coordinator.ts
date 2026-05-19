@@ -3,6 +3,9 @@ import { join } from 'node:path';
 import { CIFeedback } from './coordination/ci-feedback.js';
 import { MergePipeline } from './coordination/merge-pipeline.js';
 import { autoDetectHarnesses } from './detection/auto-detector.js';
+import type { ProtocolCapabilities } from './protocol/capabilities.js';
+import { TOOL_PROFILES } from './protocol/capabilities.js';
+import { ROADMAP_PROFILES } from './protocol/roadmap-profiles.js';
 import { HarnessRegistry } from './registry/harness-registry.js';
 import { HttpGateway } from './server/http-gateway.js';
 import { InferenceService } from './server/inference-service.js';
@@ -11,8 +14,6 @@ import { SpawnerService } from './server/spawner-service.js';
 import { DaemonStore } from './storage/daemon-store.js';
 import type { HarnessAdapter } from './types/adapter.js';
 import type { HealthCheckResult } from './types/core.js';
-import type { VaughnCapabilities } from './vaughn/capabilities.js';
-import { TOOL_PROFILES } from './vaughn/capabilities.js';
 import { deriveSessionId, detectSessionType } from './workboard/session-identity.js';
 import { WorkboardManager } from './workboard/workboard-manager.js';
 
@@ -46,7 +47,7 @@ export interface CoordinatorOptions {
  */
 export class HarnessCoordinator {
   private readonly registry = new HarnessRegistry();
-  private readonly vaughnCapabilities = new Map<string, VaughnCapabilities>();
+  private readonly protocolCapabilities = new Map<string, ProtocolCapabilities>();
   private rpcServer: RpcServer | null = null;
   private httpGateway: HttpGateway | null = null;
   private store: DaemonStore | null = null;
@@ -100,7 +101,7 @@ export class HarnessCoordinator {
 
     this.rpcServer = new RpcServer(this.registry, socketPath, this.store);
     this.rpcServer.setHealthCheck(() => this.healthCheck());
-    this.rpcServer.setVaughnDispatch((req, desc) => this.dispatchTask(req, desc));
+    this.rpcServer.setProtocolDispatch((req, desc) => this.dispatchTask(req, desc));
 
     // 4b. Wire agent spawner and inference engine services into RPC
     this.spawner = new SpawnerService();
@@ -192,22 +193,26 @@ export class HarnessCoordinator {
     this.registry.register(adapter);
   }
 
-  /** Register explicit VAUGHN capabilities for an adapter. */
-  registerVaughnCapabilities(adapterId: string, capabilities: VaughnCapabilities): void {
-    this.vaughnCapabilities.set(adapterId, capabilities);
+  /** Register explicit Harness Protocol capabilities for an adapter. */
+  registerProtocolCapabilities(adapterId: string, capabilities: ProtocolCapabilities): void {
+    this.protocolCapabilities.set(adapterId, capabilities);
   }
 
   /**
-   * Dispatch a task to the best-matching adapter based on VAUGHN capability requirements.
+   * Dispatch a task to the best-matching adapter based on Harness Protocol capability requirements.
    *
    * Returns the selected adapter ID, or null if no adapter matches.
    * Prefers adapters with hooks.canBlock for safety-critical dispatch.
    */
-  dispatchTask(requirements: Partial<VaughnCapabilities>, _description: string): string | null {
-    const candidates: Array<{ id: string; caps: VaughnCapabilities }> = [];
+  dispatchTask(requirements: Partial<ProtocolCapabilities>, _description: string): string | null {
+    const candidates: Array<{ id: string; caps: ProtocolCapabilities }> = [];
 
     for (const id of this.registry.listAll()) {
-      const caps = this.vaughnCapabilities.get(id) ?? TOOL_PROFILES[id];
+      // Lookup order: explicit registration > shipped adapter profile > roadmap profile.
+      // The ROADMAP_PROFILES fallback lets coordinators that register stub adapters
+      // for spec'd-but-unimplemented tools (claude-code, codex, cursor) still get
+      // capability data for dispatch decisions.
+      const caps = this.protocolCapabilities.get(id) ?? TOOL_PROFILES[id] ?? ROADMAP_PROFILES[id];
       if (!caps) continue;
       if (this.matchesRequirements(caps, requirements)) {
         candidates.push({ id, caps });
@@ -223,7 +228,10 @@ export class HarnessCoordinator {
   }
 
   /** Check whether capabilities satisfy requirements. */
-  private matchesRequirements(caps: VaughnCapabilities, req: Partial<VaughnCapabilities>): boolean {
+  private matchesRequirements(
+    caps: ProtocolCapabilities,
+    req: Partial<ProtocolCapabilities>,
+  ): boolean {
     if (req.dispatch) {
       if (req.dispatch.generateCode && !caps.dispatch.generateCode) return false;
       if (req.dispatch.analyzeCode && !caps.dispatch.analyzeCode) return false;

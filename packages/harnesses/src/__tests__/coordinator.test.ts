@@ -36,6 +36,8 @@ vi.mock('@electric-sql/pglite', () => ({
 }));
 
 import { HarnessCoordinator } from '../coordinator.js';
+import { TOOL_PROFILES } from '../protocol/capabilities.js';
+import { ALL_KNOWN_PROFILES } from '../protocol/roadmap-profiles.js';
 import type { HarnessAdapter } from '../types/adapter.js';
 import type {
   HarnessCapabilities,
@@ -44,7 +46,6 @@ import type {
   HarnessEvent,
   HarnessInfo,
 } from '../types/core.js';
-import { TOOL_PROFILES } from '../vaughn/capabilities.js';
 import { WorkboardManager } from '../workboard/workboard-manager.js';
 
 describe('HarnessCoordinator', () => {
@@ -219,7 +220,10 @@ describe('HarnessCoordinator', () => {
       const result = coord.dispatchTask({ headless: true }, 'safety-critical');
       // codex also has canBlock, so first match with canBlock wins
       expect(result).not.toBeNull();
-      const caps = TOOL_PROFILES[result!];
+      // claude-code and codex live in ROADMAP_PROFILES (no shipped adapter);
+      // ALL_KNOWN_PROFILES merges TOOL_PROFILES + ROADMAP_PROFILES so this
+      // assertion covers both shipped and roadmap profiles uniformly.
+      const caps = ALL_KNOWN_PROFILES[result!];
       expect(caps.hooks.canBlock).toBe(true);
     });
 
@@ -242,14 +246,14 @@ describe('HarnessCoordinator', () => {
       expect(result).toBe('revealui-agent');
     });
 
-    it('uses explicit VAUGHN capabilities over TOOL_PROFILES', () => {
+    it('uses explicit Protocol capabilities over TOOL_PROFILES', () => {
       const coord = new HarnessCoordinator({ projectRoot, socketPath });
       coord.registerAdapter(createMockAdapter('custom-agent'));
       // custom-agent is not in TOOL_PROFILES, so dispatch returns null
       expect(coord.dispatchTask({ headless: true }, 'test')).toBeNull();
 
       // Register explicit capabilities
-      coord.registerVaughnCapabilities('custom-agent', {
+      coord.registerProtocolCapabilities('custom-agent', {
         ...TOOL_PROFILES['revealui-agent'],
         headless: true,
       });

@@ -909,8 +909,8 @@ interface FleetProductMatch {
  *
  * Wider coverage (INDEX.md, PRO.md, MARKETPLACE.md, docs-pro/index,
  * docs-pro/{ai,inference,editors}/index.md, ROADMAP.md, blog posts,
- * VAUGHN.md, SECRETS.md, REST API reference) is queued for follow-up
- * PRs after the remaining attribution in those files is tightened.
+ * HARNESS_PROTOCOL.md, SECRETS.md, REST API reference) is queued for
+ * follow-up PRs after the remaining attribution in those files is tightened.
  * The honesty audit at `~/revfleet/.jv/docs/audits/docs-claims-2026-04-26.md`
  * tracks the coverage queue.
  */

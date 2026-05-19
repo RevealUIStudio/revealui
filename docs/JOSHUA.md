@@ -135,6 +135,6 @@ Remember: these are starting coordinates, not a cage. These six principles give 
 
 These principles are not just documentation  -  they are actively enforced and embodied in RevealUI's systems:
 
-- **[The VAUGHN Protocol](./VAUGHN.md)**  -  Multi-agent coordination that embodies Orthogonal (clean agent boundaries), Hermetic (sealed coordination contracts), and Adaptive (new tools join without rebuilding)
+- **[Harness Protocol](./HARNESS_PROTOCOL.md)**  -  Agent-tool coordination that embodies Orthogonal (clean agent boundaries), Hermetic (sealed coordination contracts), and Adaptive (new adapters join without rebuilding)
 - **[Architecture](./ARCHITECTURE.md)**  -  System design guided by all six principles
 - **[@revealui/contracts](./REFERENCE.md)**  -  The Unified principle in code: one Zod schema, shared everywhere

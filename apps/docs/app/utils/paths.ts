@@ -2,7 +2,7 @@
  * Path resolution and sanitization utilities for documentation routes
  */
 
-import { SLUG_TO_PATH } from '../lib/slug-manifest';
+import { slugToPath } from '../lib/slug-manifest';
 
 /**
  * Type-safe documentation section paths
@@ -145,7 +145,7 @@ export function resolveDocPath(options: ResolveDocPathOptions): ResolvedDocPath 
   // Resolve via the slug manifest to recover the original filename.
   if (section === 'docs') {
     const slugKey = sanitized.replace(/\.(md|mdx)$/, '');
-    const original = SLUG_TO_PATH[slugKey];
+    const original = slugToPath(slugKey);
     if (original) {
       return {
         markdownPath: `/${original}`,
