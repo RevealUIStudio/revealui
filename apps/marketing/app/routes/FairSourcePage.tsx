@@ -72,7 +72,7 @@ export function FairSourcePage() {
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_CONTRACT_SECTION.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -135,7 +135,7 @@ export function FairSourcePage() {
       <section className="bg-gray-50 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_PACKAGES_SECTION.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -152,7 +152,7 @@ export function FairSourcePage() {
 
           <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-2xl bg-white ring-1 ring-gray-950/5">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-100 text-xs font-semibold uppercase tracking-widest text-gray-500">
+              <thead className="bg-gray-100 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 <tr>
                   <th className="px-6 py-3">Package</th>
                   <th className="px-6 py-3">Purpose</th>
@@ -196,7 +196,7 @@ export function FairSourcePage() {
               </tbody>
             </table>
           </div>
-          <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-gray-500">
+          <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-muted-foreground">
             {FAIR_SOURCE_PACKAGES_SECTION.footer.prefix}{' '}
             <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-700">
               {FAIR_SOURCE_PACKAGES_SECTION.footer.command}
@@ -210,7 +210,7 @@ export function FairSourcePage() {
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_CLOCK_SECTION.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -245,7 +245,7 @@ export function FairSourcePage() {
       <section className="bg-gray-50 py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_PEERS_SECTION.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -275,7 +275,7 @@ export function FairSourcePage() {
       <section className="bg-white py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_FAQ_SECTION.eyebrow}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">

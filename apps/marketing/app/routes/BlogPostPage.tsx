@@ -79,7 +79,9 @@ export function BlogPostPage() {
   if (loading && !post) {
     return (
       <div className="min-h-screen bg-white">
-        <div className="mx-auto max-w-3xl px-6 py-32 text-center text-gray-500">Loading…</div>
+        <div className="mx-auto max-w-3xl px-6 py-32 text-center text-muted-foreground">
+          Loading…
+        </div>
         <Footer />
       </div>
     );
@@ -122,7 +124,7 @@ export function BlogPostPage() {
 
           {/* Header */}
           <header className="mb-12">
-            <div className="flex items-center gap-x-4 text-sm text-gray-500">
+            <div className="flex items-center gap-x-4 text-sm text-muted-foreground">
               <time dateTime={post.publishedAt ?? post.createdAt}>
                 {formatDate(post.publishedAt ?? post.createdAt)}
               </time>
@@ -140,7 +142,7 @@ export function BlogPostPage() {
             ) : typeof post.content === 'string' ? (
               <Markdown>{post.content}</Markdown>
             ) : (
-              <p className="text-gray-500 italic">Content rendering coming soon.</p>
+              <p className="text-muted-foreground italic">Content rendering coming soon.</p>
             )}
           </div>
         </div>

@@ -67,7 +67,7 @@ export function PricingPage() {
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
             {PRICING_HERO.subtitle}
           </p>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-gray-500">
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
             {PRICING_HERO_SUBTEXT.prefix}{' '}
             <a
               href={PRICING_HERO_SUBTEXT.linkHref}
@@ -121,7 +121,7 @@ export function PricingPage() {
                   key={item.label}
                   className={`flex items-baseline gap-2${i === PRICING_CFO_PANEL.lineItems.length - 1 ? ' sm:col-span-2' : ''}`}
                 >
-                  <span className="text-gray-500">&bull;</span>
+                  <span className="text-muted-foreground">&bull;</span>
                   <span>
                     <span className="font-semibold text-gray-900">{item.label}</span> {item.amount}
                   </span>
@@ -227,12 +227,12 @@ export function PricingPage() {
                   </div>
                 )}
                 <h3 className="text-lg font-bold text-gray-900">{tier.name}</h3>
-                <p className="mt-1 text-sm text-gray-500">{tier.description}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{tier.description}</p>
                 <p className="mt-4 flex items-baseline gap-x-1">
                   <span className="text-4xl font-bold text-gray-900">{tier.price ?? ' - '}</span>
-                  <span className="text-sm text-gray-500">{tier.priceNote ?? ''}</span>
+                  <span className="text-sm text-muted-foreground">{tier.priceNote ?? ''}</span>
                 </p>
-                <p className="mt-1 text-xs text-gray-500">{tier.renewal ?? ' - '}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{tier.renewal ?? ' - '}</p>
                 <ul className="mt-6 mb-8 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
