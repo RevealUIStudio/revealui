@@ -45,6 +45,14 @@ else
 fi
 echo ""
 
+# Design-context drift check: run only when tokens.css or design-context/ files are staged
+STAGED=$(git diff --cached --name-only)
+DESIGN_CONTEXT_TOUCHED=$(printf '%s\n' "$STAGED" | grep -F "packages/presentation/src/tokens.css" || true)
+DESIGN_CONTEXT_TOUCHED="${DESIGN_CONTEXT_TOUCHED}$(printf '%s\n' "$STAGED" | grep -F "packages/presentation/design-context/" || true)"
+if [ -n "$DESIGN_CONTEXT_TOUCHED" ]; then
+  pnpm tsx scripts/validate/design-context-drift.ts || exit 1
+fi
+
 # Check if schema files changed
 SCHEMA_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "packages/db/src/schema/.*\.ts$" || true)
 
