@@ -13,7 +13,7 @@ export function Proof() {
     <section className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+          <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             {PROOF_SECTION.eyebrow}
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
@@ -25,7 +25,7 @@ export function Proof() {
         <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Repo signals */}
           <div className="rounded-2xl bg-gray-50 p-8 ring-1 ring-gray-950/5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               {PROOF_REPO_SIGNALS.eyebrow}
             </p>
             <h3 className="mt-2 text-xl font-semibold text-gray-950">
@@ -68,7 +68,7 @@ export function Proof() {
             </div>
 
             <div className="mt-6 border-t border-gray-200 pt-6">
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-3">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
                 {PROOF_REPO_SIGNALS.ciLabel}
               </p>
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -118,7 +118,7 @@ export function Proof() {
         {/* Trust: verifiable in three places */}
         <div className="mx-auto mt-16 max-w-5xl">
           <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {PROOF_TRUST.eyebrow}
             </p>
             <h3 className="mt-3 text-2xl font-bold tracking-tight text-gray-950 sm:text-3xl">

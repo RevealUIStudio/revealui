@@ -106,14 +106,18 @@
  * DARK MODE — :root default (dark-first design)
  * ═══════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Brand · Cobalt (Electric Verdigris) ── */
-  --rvui-brand:         oklch(0.46 0.180 240);
-  --rvui-brand-hover:   oklch(0.52 0.170 240);
+  /* ── Brand · Cobalt (Electric Verdigris) ──
+   * Dark-mode brand lifted to cobalt-300 (L=0.58) for WCAG AA on midnight.
+   * Prior dark brand at L=0.46 tested at 2.80:1 (FAIL); lifted value tests at 4.73:1.
+   * Source: design-system/Assessment · Contrast & Accessibility.html
+   */
+  --rvui-brand:         oklch(0.58 0.150 240);
+  --rvui-brand-hover:   oklch(0.65 0.130 240);
   --rvui-brand-strong:  oklch(0.36 0.190 240);
-  --rvui-brand-soft:    oklch(0.46 0.180 240 / 0.16);
-  --rvui-brand-subtle:  oklch(0.46 0.180 240 / 0.10);
+  --rvui-brand-soft:    oklch(0.58 0.150 240 / 0.16);
+  --rvui-brand-subtle:  oklch(0.58 0.150 240 / 0.10);
   --rvui-brand-text:    oklch(0.78 0.100 240);
-  --rvui-brand-glow:    oklch(0.46 0.180 240 / 0.42);
+  --rvui-brand-glow:    oklch(0.58 0.150 240 / 0.42);
 
   /* ── Accent · Solar Amber (honey-gold complement) ── */
   --rvui-accent:        oklch(0.80 0.165 85);
