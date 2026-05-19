@@ -256,7 +256,7 @@ revealui/
 │   ├── admin/      # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
 │   └── marketing/  # revealui.com marketing site (port 3000)
-├── packages/       # 25 OSS + 2 Pro packages
+├── packages/       # 21 OSS + 5 Pro packages
 ├── docs/           # guides + reference
 └── scripts/        # CI gates, release tooling, dev tools
 ```
