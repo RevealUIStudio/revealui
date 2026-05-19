@@ -1,10 +1,10 @@
 # =============================================================================
-# RevealUI Forge — Self-Hosted Production Stack
+# RevealUI Fleet — Self-Hosted Production Stack
 # =============================================================================
 # For enterprise customers running RevealUI on their own infrastructure.
 #
 # Prerequisites:
-#   1. An active Forge (enterprise) license key from https://revealui.com/pricing
+#   1. An active RevealUI Fleet (enterprise) license key from https://revealui.com/pricing
 #   2. Docker + Docker Compose v2 installed
 #   3. A .env.forge file with the variables listed below
 #

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
+  /* Cobalt brand accent — override via your own --color-accent. */
+  --color-accent: oklch(0.36 0.190 240);
+  --color-accent-hover: oklch(0.43 0.180 240);
 }

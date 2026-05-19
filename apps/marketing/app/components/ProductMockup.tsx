@@ -91,7 +91,7 @@ export function ProductMockup() {
             <div className="h-3 w-3 rounded-full bg-green-400" />
           </div>
           <div className="flex-1 mx-4">
-            <div className="flex items-center gap-2 bg-white rounded-md px-3 py-1 text-xs text-gray-500 ring-1 ring-gray-200">
+            <div className="flex items-center gap-2 bg-white rounded-md px-3 py-1 text-xs text-gray-600 ring-1 ring-gray-200">
               <svg
                 className="h-3 w-3 text-gray-400"
                 fill="none"
@@ -121,7 +121,7 @@ export function ProductMockup() {
               className={`px-2.5 py-1 rounded text-xs whitespace-nowrap transition-colors ${
                 i === activeTab
                   ? 'bg-white text-gray-900 font-medium shadow-sm ring-1 ring-gray-200'
-                  : 'text-gray-500 hover:text-gray-700'
+                  : 'text-gray-600 hover:text-gray-800'
               }`}
             >
               {s.label}

@@ -8,7 +8,7 @@ Public marketing site for RevealUI — homepage, blog, pricing, fair-source, con
 - `@revealui/router` (file-based routing + SSR-capable, currently SPA mode)
 - `@revealui/presentation` (UI primitives + design tokens)
 - Tailwind CSS v4
-- Geist + Geist Mono via `@fontsource-variable`
+- Inter + Inter Tight + JetBrains Mono via `@fontsource-variable`
 - `react-markdown` + `remark-gfm` for blog post rendering
 - `@vercel/speed-insights` (client-side runtime)
 - Cross-origin form posts to `apps/server` (no marketing-side API routes)

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# RevealUI Forge — Admin (Next.js standalone)
+# RevealUI Fleet — Admin (Next.js standalone)
 
 # Build stage
 FROM node:24-alpine AS base

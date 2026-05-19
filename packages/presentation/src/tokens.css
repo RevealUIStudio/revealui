@@ -1,22 +1,30 @@
 /*
- * RevealUI Design Tokens
- * ──────────────────────
- * Single source of truth for the RevealUI design language.
- * Import this file in any app to get the full token system:
+ * RevealUI Design Tokens — Cobalt (v4, May 2026)
+ * ────────────────────────────────────────────────
+ * Canonical token set for the RevealUI design language.
+ * Drop-in replacement for the previous emerald token file.
  *
  *   @import "@revealui/presentation/tokens.css";
  *
+ * Brand: Electric Verdigris ("Cobalt"), OKLCH 0.36 0.190 240.
+ * Accent: Solar Amber, OKLCH 0.80 0.165 85 (honey-gold).
+ *
  * Dark-first: dark mode is the :root default.
  * Light mode activates via:
- *   1. System preference (prefers-color-scheme: light) — automatic
- *   2. Explicit attribute [data-theme="light"] — manual toggle
+ *   1. System preference (prefers-color-scheme: light)
+ *   2. Explicit attribute [data-theme="light"]
  *
  * Color space: OKLCH (perceptually uniform, wide-gamut).
  * Namespace: --rvui-* (avoids collisions with Tailwind/shadcn).
  *
- * Backward compatibility: bridges to shadcn/ui semantic names
- * (--background, --foreground, --primary, etc.) so existing
- * components work without modification during migration.
+ * Migration notes:
+ *   - brand hue moves from oklch(0.723 0.177 163.22) [emerald]
+ *                       to oklch(0.36 0.190 240)     [cobalt]
+ *   - new --rvui-accent ladder (amber) for premium, warning, attention
+ *   - shadcn bridge unchanged — components reading --primary/--ring/etc
+ *     pick up the new hue with zero edits
+ *   - status: success migrates from emerald-adjacent to teal-green so it
+ *     stays visually distinct from the new brand
  */
 
 /* ═══════════════════════════════════════════════════════════════
@@ -47,7 +55,7 @@
   /* ── Typography ── */
   --rvui-font-sans: 'Inter', system-ui, sans-serif;
   --rvui-font-mono: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
-  --rvui-font-display: 'Mona Sans', 'Inter', system-ui, sans-serif;
+  --rvui-font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
 
   --rvui-text-xs: 0.75rem;
   --rvui-text-sm: 0.875rem;
@@ -64,7 +72,7 @@
 
   --rvui-tracking-tight: -0.02em;
   --rvui-tracking-normal: 0em;
-  --rvui-tracking-wide: 0.04em;
+  --rvui-tracking-wide: 0.20em;
 
   /* ── Spacing (4px base) ── */
   --rvui-space-0: 0px;
@@ -98,49 +106,61 @@
  * DARK MODE — :root default (dark-first design)
  * ═══════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Brand ── */
-  --rvui-brand: oklch(0.723 0.177 163.22);
-  --rvui-brand-subtle: oklch(0.723 0.177 163.22 / 0.12);
-  --rvui-brand-strong: oklch(0.65 0.2 163.22);
-  --rvui-brand-text: oklch(0.82 0.14 163.22);
+  /* ── Brand · Cobalt (Electric Verdigris) ── */
+  --rvui-brand:         oklch(0.46 0.180 240);
+  --rvui-brand-hover:   oklch(0.52 0.170 240);
+  --rvui-brand-strong:  oklch(0.36 0.190 240);
+  --rvui-brand-soft:    oklch(0.46 0.180 240 / 0.16);
+  --rvui-brand-subtle:  oklch(0.46 0.180 240 / 0.10);
+  --rvui-brand-text:    oklch(0.78 0.100 240);
+  --rvui-brand-glow:    oklch(0.46 0.180 240 / 0.42);
 
-  /* ── Surfaces (layered depth) ── */
-  --rvui-surface-0: oklch(0.13 0.004 228);
-  --rvui-surface-1: oklch(0.18 0.006 225);
-  --rvui-surface-2: oklch(0.22 0.008 222);
-  --rvui-surface-3: oklch(0.26 0.01 220);
+  /* ── Accent · Solar Amber (honey-gold complement) ── */
+  --rvui-accent:        oklch(0.80 0.165 85);
+  --rvui-accent-hover:  oklch(0.87 0.150 85);
+  --rvui-accent-strong: oklch(0.70 0.165 80);
+  --rvui-accent-soft:   oklch(0.80 0.165 85 / 0.14);
+  --rvui-accent-glow:   oklch(0.80 0.165 85 / 0.36);
+
+  /* ── Surfaces (layered depth, cool slate, blue-tinted) ── */
+  --rvui-surface-0: oklch(0.16 0.030 260);  /* midnight  · page bg */
+  --rvui-surface-1: oklch(0.22 0.025 258);  /* aubergine · card */
+  --rvui-surface-2: oklch(0.28 0.028 256);  /* plum      · muted */
+  --rvui-surface-3: oklch(0.34 0.030 254);  /* plum-light · overlay */
 
   /* ── Borders ── */
-  --rvui-border: oklch(0.32 0.008 220 / 0.6);
-  --rvui-border-subtle: oklch(0.28 0.006 222 / 0.4);
-  --rvui-border-strong: oklch(0.45 0.01 218 / 0.7);
+  --rvui-border:         oklch(0.83 0.015 245 / 0.12);
+  --rvui-border-subtle:  oklch(0.83 0.015 245 / 0.06);
+  --rvui-border-strong:  oklch(0.83 0.015 245 / 0.22);
 
   /* ── Text ── */
-  --rvui-text-0: oklch(0.95 0.002 210);
-  --rvui-text-1: oklch(0.75 0.01 215);
-  --rvui-text-2: oklch(0.55 0.012 218);
+  --rvui-text-0: oklch(0.985 0.005 250);   /* paper white */
+  --rvui-text-1: oklch(0.83 0.015 245);    /* smoke-200 */
+  --rvui-text-2: oklch(0.65 0.025 250);    /* smoke-300 */
+  --rvui-text-on-brand:  oklch(0.985 0.005 250);
+  --rvui-text-on-accent: oklch(0.18 0.040 75);  /* ink on amber, AAA */
 
   /* ── Status ── */
-  --rvui-success: oklch(0.72 0.17 155);
-  --rvui-success-subtle: oklch(0.72 0.17 155 / 0.12);
-  --rvui-warning: oklch(0.8 0.16 75);
-  --rvui-warning-subtle: oklch(0.8 0.16 75 / 0.12);
-  --rvui-error: oklch(0.65 0.2 25);
-  --rvui-error-subtle: oklch(0.65 0.2 25 / 0.12);
-  --rvui-info: oklch(0.7 0.14 240);
-  --rvui-info-subtle: oklch(0.7 0.14 240 / 0.12);
+  --rvui-success:         oklch(0.55 0.130 165);
+  --rvui-success-subtle:  oklch(0.55 0.130 165 / 0.12);
+  --rvui-warning:         oklch(0.70 0.165 80);
+  --rvui-warning-subtle:  oklch(0.70 0.165 80 / 0.12);
+  --rvui-error:           oklch(0.52 0.200 15);
+  --rvui-error-subtle:    oklch(0.52 0.200 15 / 0.12);
+  --rvui-info:            var(--rvui-brand);
+  --rvui-info-subtle:     var(--rvui-brand-subtle);
 
   /* ── Shadows ── */
-  --rvui-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.2), 0 1px 2px oklch(0 0 0 / 0.15);
-  --rvui-shadow-md: 0 4px 12px oklch(0 0 0 / 0.25), 0 2px 4px oklch(0 0 0 / 0.15);
-  --rvui-shadow-lg: 0 12px 40px oklch(0 0 0 / 0.35), 0 4px 12px oklch(0 0 0 / 0.2);
-  --rvui-shadow-glow: 0 0 20px oklch(0.723 0.177 163.22 / 0.25);
+  --rvui-shadow-sm:    0 1px 3px oklch(0 0 0 / 0.40);
+  --rvui-shadow-md:    0 6px 18px oklch(0 0 0 / 0.45), 0 2px 4px oklch(0 0 0 / 0.25);
+  --rvui-shadow-lg:    0 18px 50px oklch(0 0 0 / 0.55), 0 6px 16px oklch(0 0 0 / 0.35);
+  --rvui-shadow-glow:        0 0 32px var(--rvui-brand-glow);
+  --rvui-shadow-glow-accent: 0 0 28px var(--rvui-accent-glow);
 
   /* ─── shadcn/ui Backward Compatibility Bridge ───
    * Maps --rvui-* tokens to the semantic names that existing
    * presentation components reference (bg-primary, text-muted-foreground, etc.).
-   * Bridge aliases update automatically when --rvui-* values change
-   * (light mode overrides propagate through var() references). */
+   * Bridge aliases update automatically when --rvui-* values change. */
   --background: var(--rvui-surface-0);
   --foreground: var(--rvui-text-0);
   --card: var(--rvui-surface-1);
@@ -148,13 +168,13 @@
   --popover: var(--rvui-surface-1);
   --popover-foreground: var(--rvui-text-0);
   --primary: var(--rvui-brand);
-  --primary-foreground: oklch(0.13 0.004 228);
+  --primary-foreground: var(--rvui-text-on-brand);
   --secondary: var(--rvui-surface-2);
   --secondary-foreground: var(--rvui-text-0);
   --muted: var(--rvui-surface-2);
   --muted-foreground: var(--rvui-text-2);
-  --accent: var(--rvui-surface-2);
-  --accent-foreground: var(--rvui-text-0);
+  --accent: var(--rvui-accent);
+  --accent-foreground: var(--rvui-text-on-accent);
   --destructive: var(--rvui-error);
   --destructive-foreground: var(--rvui-text-0);
   --border: var(--rvui-border);
@@ -171,95 +191,100 @@
  * LIGHT MODE — activates via system preference or explicit attr
  *
  * Selector precedence:
- *   [data-theme="light"]  — explicit toggle (highest priority)
- *   @media + :not(.dark)  — system preference (auto)
- *   .dark                 — explicit dark override
+ *   [data-theme="light"]       — explicit toggle (highest priority)
+ *   @media + :not([data-theme]) — system preference (auto)
+ *   .dark / [data-theme="dark"] — explicit dark override
  * ═══════════════════════════════════════════════════════════════ */
 [data-theme="light"] {
-  /* ── Brand ── */
-  --rvui-brand: oklch(0.55 0.2 163.22);
-  --rvui-brand-subtle: oklch(0.55 0.2 163.22 / 0.08);
-  --rvui-brand-strong: oklch(0.48 0.22 163.22);
-  --rvui-brand-text: oklch(0.4 0.16 163.22);
+  /* ── Brand · Cobalt (light-mode lift for AA contrast on paper) ── */
+  --rvui-brand:        oklch(0.36 0.190 240);   /* primary CTA */
+  --rvui-brand-hover:  oklch(0.43 0.180 240);   /* hover */
+  --rvui-brand-strong: oklch(0.20 0.130 263);   /* press / ink */
+  --rvui-brand-soft:   oklch(0.36 0.190 240 / 0.10);
+  --rvui-brand-subtle: oklch(0.36 0.190 240 / 0.06);
+  --rvui-brand-text:   oklch(0.30 0.180 244);
+  --rvui-brand-glow:   oklch(0.36 0.190 240 / 0.24);
 
-  /* ── Surfaces ── */
-  --rvui-surface-0: oklch(0.985 0.002 210);
-  --rvui-surface-1: oklch(1 0 0);
-  --rvui-surface-2: oklch(0.97 0.003 215);
-  --rvui-surface-3: oklch(0.94 0.005 218);
+  /* ── Accent · Solar Amber (same hue, slightly deepened on paper) ── */
+  --rvui-accent:        oklch(0.78 0.165 85);
+  --rvui-accent-hover:  oklch(0.85 0.150 85);
+  --rvui-accent-strong: oklch(0.65 0.165 80);
+  --rvui-accent-soft:   oklch(0.78 0.165 85 / 0.14);
+  --rvui-accent-glow:   oklch(0.78 0.165 85 / 0.24);
+
+  /* ── Surfaces · cool paper ── */
+  --rvui-surface-0: oklch(0.985 0.005 250);  /* paper · page bg */
+  --rvui-surface-1: oklch(1.000 0     0);     /* white · card */
+  --rvui-surface-2: oklch(0.965 0.006 248);  /* cream-soft · muted */
+  --rvui-surface-3: oklch(0.930 0.010 245);  /* cream · overlay */
 
   /* ── Borders ── */
-  --rvui-border: oklch(0.88 0.005 220 / 0.7);
-  --rvui-border-subtle: oklch(0.92 0.003 222 / 0.5);
-  --rvui-border-strong: oklch(0.78 0.008 218 / 0.8);
+  --rvui-border:        oklch(0.16 0.030 260 / 0.08);
+  --rvui-border-subtle: oklch(0.16 0.030 260 / 0.04);
+  --rvui-border-strong: oklch(0.16 0.030 260 / 0.16);
 
   /* ── Text ── */
-  --rvui-text-0: oklch(0.15 0.01 225);
-  --rvui-text-1: oklch(0.4 0.015 220);
-  --rvui-text-2: oklch(0.55 0.012 218);
+  --rvui-text-0: oklch(0.16 0.030 260);     /* midnight ink */
+  --rvui-text-1: oklch(0.34 0.030 250);     /* smoke-700 */
+  --rvui-text-2: oklch(0.50 0.030 250);     /* smoke-500 */
 
   /* ── Status ── */
-  --rvui-success: oklch(0.55 0.2 155);
-  --rvui-success-subtle: oklch(0.55 0.2 155 / 0.08);
-  --rvui-warning: oklch(0.7 0.18 75);
-  --rvui-warning-subtle: oklch(0.7 0.18 75 / 0.08);
-  --rvui-error: oklch(0.55 0.22 25);
-  --rvui-error-subtle: oklch(0.55 0.22 25 / 0.08);
-  --rvui-info: oklch(0.55 0.18 240);
-  --rvui-info-subtle: oklch(0.55 0.18 240 / 0.08);
+  --rvui-success:        oklch(0.48 0.135 165);
+  --rvui-success-subtle: oklch(0.48 0.135 165 / 0.10);
+  --rvui-warning:        oklch(0.65 0.165 80);
+  --rvui-warning-subtle: oklch(0.65 0.165 80 / 0.10);
+  --rvui-error:          oklch(0.50 0.200 15);
+  --rvui-error-subtle:   oklch(0.50 0.200 15 / 0.10);
 
   /* ── Shadows ── */
-  --rvui-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04);
-  --rvui-shadow-md: 0 4px 12px oklch(0 0 0 / 0.08), 0 2px 4px oklch(0 0 0 / 0.04);
-  --rvui-shadow-lg: 0 12px 40px oklch(0 0 0 / 0.12), 0 4px 12px oklch(0 0 0 / 0.06);
-  --rvui-shadow-glow: 0 0 20px oklch(0.55 0.2 163.22 / 0.15);
-
-  /* ── Bridge override ── */
-  --primary-foreground: oklch(0.985 0.002 210);
+  --rvui-shadow-sm:    0 1px 3px oklch(0.16 0.030 260 / 0.06);
+  --rvui-shadow-md:    0 6px 18px oklch(0.16 0.030 260 / 0.10), 0 2px 4px oklch(0.16 0.030 260 / 0.05);
+  --rvui-shadow-lg:    0 18px 50px oklch(0.16 0.030 260 / 0.16), 0 6px 16px oklch(0.16 0.030 260 / 0.08);
+  --rvui-shadow-glow:        0 0 28px var(--rvui-brand-glow);
+  --rvui-shadow-glow-accent: 0 0 24px var(--rvui-accent-glow);
 }
 
 /* System-preference auto-detection (no explicit theme attr) */
 @media (prefers-color-scheme: light) {
   :root:not(.dark):not([data-theme="dark"]):not([data-theme="light"]) {
-    /* ── Brand ── */
-    --rvui-brand: oklch(0.55 0.2 163.22);
-    --rvui-brand-subtle: oklch(0.55 0.2 163.22 / 0.08);
-    --rvui-brand-strong: oklch(0.48 0.22 163.22);
-    --rvui-brand-text: oklch(0.4 0.16 163.22);
+    --rvui-brand:        oklch(0.36 0.190 240);
+    --rvui-brand-hover:  oklch(0.43 0.180 240);
+    --rvui-brand-strong: oklch(0.20 0.130 263);
+    --rvui-brand-soft:   oklch(0.36 0.190 240 / 0.10);
+    --rvui-brand-subtle: oklch(0.36 0.190 240 / 0.06);
+    --rvui-brand-text:   oklch(0.30 0.180 244);
+    --rvui-brand-glow:   oklch(0.36 0.190 240 / 0.24);
 
-    /* ── Surfaces ── */
-    --rvui-surface-0: oklch(0.985 0.002 210);
-    --rvui-surface-1: oklch(1 0 0);
-    --rvui-surface-2: oklch(0.97 0.003 215);
-    --rvui-surface-3: oklch(0.94 0.005 218);
+    --rvui-accent:        oklch(0.78 0.165 85);
+    --rvui-accent-hover:  oklch(0.85 0.150 85);
+    --rvui-accent-strong: oklch(0.65 0.165 80);
+    --rvui-accent-soft:   oklch(0.78 0.165 85 / 0.14);
+    --rvui-accent-glow:   oklch(0.78 0.165 85 / 0.24);
 
-    /* ── Borders ── */
-    --rvui-border: oklch(0.88 0.005 220 / 0.7);
-    --rvui-border-subtle: oklch(0.92 0.003 222 / 0.5);
-    --rvui-border-strong: oklch(0.78 0.008 218 / 0.8);
+    --rvui-surface-0: oklch(0.985 0.005 250);
+    --rvui-surface-1: oklch(1.000 0     0);
+    --rvui-surface-2: oklch(0.965 0.006 248);
+    --rvui-surface-3: oklch(0.930 0.010 245);
 
-    /* ── Text ── */
-    --rvui-text-0: oklch(0.15 0.01 225);
-    --rvui-text-1: oklch(0.4 0.015 220);
-    --rvui-text-2: oklch(0.55 0.012 218);
+    --rvui-border:        oklch(0.16 0.030 260 / 0.08);
+    --rvui-border-subtle: oklch(0.16 0.030 260 / 0.04);
+    --rvui-border-strong: oklch(0.16 0.030 260 / 0.16);
 
-    /* ── Status ── */
-    --rvui-success: oklch(0.55 0.2 155);
-    --rvui-success-subtle: oklch(0.55 0.2 155 / 0.08);
-    --rvui-warning: oklch(0.7 0.18 75);
-    --rvui-warning-subtle: oklch(0.7 0.18 75 / 0.08);
-    --rvui-error: oklch(0.55 0.22 25);
-    --rvui-error-subtle: oklch(0.55 0.22 25 / 0.08);
-    --rvui-info: oklch(0.55 0.18 240);
-    --rvui-info-subtle: oklch(0.55 0.18 240 / 0.08);
+    --rvui-text-0: oklch(0.16 0.030 260);
+    --rvui-text-1: oklch(0.34 0.030 250);
+    --rvui-text-2: oklch(0.50 0.030 250);
 
-    /* ── Shadows ── */
-    --rvui-shadow-sm: 0 1px 3px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04);
-    --rvui-shadow-md: 0 4px 12px oklch(0 0 0 / 0.08), 0 2px 4px oklch(0 0 0 / 0.04);
-    --rvui-shadow-lg: 0 12px 40px oklch(0 0 0 / 0.12), 0 4px 12px oklch(0 0 0 / 0.06);
-    --rvui-shadow-glow: 0 0 20px oklch(0.55 0.2 163.22 / 0.15);
+    --rvui-success:        oklch(0.48 0.135 165);
+    --rvui-success-subtle: oklch(0.48 0.135 165 / 0.10);
+    --rvui-warning:        oklch(0.65 0.165 80);
+    --rvui-warning-subtle: oklch(0.65 0.165 80 / 0.10);
+    --rvui-error:          oklch(0.50 0.200 15);
+    --rvui-error-subtle:   oklch(0.50 0.200 15 / 0.10);
 
-    /* ── Bridge override ── */
-    --primary-foreground: oklch(0.985 0.002 210);
+    --rvui-shadow-sm:    0 1px 3px oklch(0.16 0.030 260 / 0.06);
+    --rvui-shadow-md:    0 6px 18px oklch(0.16 0.030 260 / 0.10), 0 2px 4px oklch(0.16 0.030 260 / 0.05);
+    --rvui-shadow-lg:    0 18px 50px oklch(0.16 0.030 260 / 0.16), 0 6px 16px oklch(0.16 0.030 260 / 0.08);
+    --rvui-shadow-glow:        0 0 28px var(--rvui-brand-glow);
+    --rvui-shadow-glow-accent: 0 0 24px var(--rvui-accent-glow);
   }
 }

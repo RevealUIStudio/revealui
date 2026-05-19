@@ -30,12 +30,8 @@ vi.mock('@resvg/resvg-wasm/index_bg.wasm', () => ({
   default: new Uint8Array([0x00, 0x61, 0x73, 0x6d]), // wasm magic bytes
 }));
 
-vi.mock('../../assets/fonts/Geist-Regular.ttf', () => ({
+vi.mock('../../assets/fonts/InterTight-Variable.ttf', () => ({
   default: new Uint8Array([0x00, 0x01, 0x00, 0x00]), // ttf magic bytes
-}));
-
-vi.mock('../../assets/fonts/Geist-Bold.ttf', () => ({
-  default: new Uint8Array([0x00, 0x01, 0x00, 0x00]),
 }));
 
 import ogApp from '../og.js';

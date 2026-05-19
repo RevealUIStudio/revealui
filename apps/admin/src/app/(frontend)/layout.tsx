@@ -1,7 +1,5 @@
 import { logger } from '@revealui/utils/logger';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { GeistMono } from 'geist/font/mono';
-import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
 import { draftMode } from 'next/headers';
 import type React from 'react';
@@ -30,10 +28,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     );
   }
 
-  function cn(...classNames: (string | undefined)[]): string {
-    return classNames.filter(Boolean).join(' ');
-  }
-
   const primaryColor =
     process.env.REVEALUI_BRAND_PRIMARY_COLOR ?? process.env.REVEALUI_TENANT_BRAND;
   // Foreground color to use ON the brand color (e.g. for text in a brand-coloured panel).
@@ -41,7 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // to maintain WCAG contrast — there is no automatic contrast computation by design.
   const brandOnColor = process.env.REVEALUI_TENANT_BRAND_ON ?? 'white';
   // Optional tenant font family — must already be loaded as a stylesheet (see <link> tags below).
-  // Built-in supported values today: 'Inter', 'Mona Sans', 'Geist'. Unset → falls back to Geist.
+  // Built-in supported values today: 'Inter', 'Inter Tight'. Unset → falls back to Inter Tight.
   const tenantFont = process.env.REVEALUI_TENANT_FONT?.trim();
   // Fleet kits hide the RevealUI-branded Header/Footer by default. Customer-side
   // navigation/footer is out of scope for v1; future work can expose a tenant
@@ -50,11 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   try {
     return (
-      <html
-        className={cn(GeistSans.variable, GeistMono.variable)}
-        lang="en"
-        suppressHydrationWarning
-      >
+      <html lang="en" suppressHydrationWarning>
         <head>
           <InitTheme />
           <link href="/favicon.ico" rel="icon" sizes="32x32" />
@@ -63,7 +53,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
           <link
-            href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wdth,wght@0,112.5,200..900;1,112.5,200..900&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap"
             rel="stylesheet"
           />
           <link
