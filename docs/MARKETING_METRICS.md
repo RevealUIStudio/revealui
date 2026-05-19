@@ -120,14 +120,14 @@ Marketing copy may say "cobalt" (or "Electric Verdigris") descriptively but the 
 | RevealUI | Shipped | Beta — no paying users yet | The core runtime |
 | RevDev | Shipped (Studio + Console + Daemon all shipping) | Alpha | Dev harness; dogfooded via studio-dogfood lane |
 | RevVault | Shipped | Beta (MIT CLI + Pro desktop app) | Secret management |
-| RevForge | Shipped | Beta (operator-only stamping tool) | Produces customer brands like AlleviaFleet |
+| RevForge | Shipped | Beta (operator-only stamping tool) | Produces customer-stamped Fleet kits |
 | RevCon | Shipped | Alpha (MIT) | Editor config sync |
 | RevSkills | Shipped | Active (MIT) | Claude Code skills library |
 | RevKit | Planned | Pro (planned) | Portable WSL dev env |
 | RevMarket | Planned | Code-complete, dormant | MCP marketplace; X402_ENABLED=false |
 | RevealCoin | **Pre-launch** (only on /roadmap) | Mainnet deployed but pre-launch | Shelved 2026-05-15; legal + multisig gates open |
 
-**AlleviaFleet** is NOT a fleet product — it's a customer brand stamped via RevForge. Memory `project_alleviafleet_is_stamped_revforge`.
+Customer-stamped Fleet kits are NOT fleet products — they are per-customer brand instances produced via RevForge.
 
 ## 6. Open-weight inference defaults (per memory)
 

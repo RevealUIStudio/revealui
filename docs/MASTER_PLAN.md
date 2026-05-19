@@ -711,7 +711,7 @@ Phase D  -  Agent publisher tools (agent):
 
 ### Phase 7: Crucible  -  Business Bundle Generator (post-Phase 5, new product)
 
-**Origin:** Extracted from the Allevia Technology pitch kit workflow. Building the Allevia trial kit
+**Origin:** Extracted from the first enterprise pitch-kit workflow. Building the trial kit
 revealed a repeatable pattern worth productizing.
 
 **What it is:** A workflow and pipeline engine that takes a product/prototype and outputs a
@@ -728,15 +728,15 @@ structured "boardroom-ready business bundle"  -  a complete sales deliverable pa
 **Positioning:** "Your boardroom super pack  -  generated." For agencies, consultants, and SaaS
 companies pitching to enterprise or mid-market clients.
 
-**Seed artifact:** `~/projects/allevia-pitch-kit/`  -  the Allevia trial kit hand-assembled for
-RevealUI's first Forge prospect. The workflow to build it is the proto-Crucible pipeline.
+**Seed artifact:** an enterprise pitch kit hand-assembled for RevealUI's first Forge prospect.
+The workflow to build it is the proto-Crucible pipeline.
 
 **When to start:** After Phase 5 ships and RevealUI has recurring revenue. Crucible is a separate
 product, not an extension of RevealUI.
 
 - [ ] Define Crucible product spec (target customer, bundle types, delivery formats)
 - [ ] Bootstrap as new project (`~/revfleet/crucible`)
-- [ ] Extract Allevia kit workflow into repeatable pipeline steps
+- [ ] Extract first-customer kit workflow into repeatable pipeline steps
 - [ ] Build template library (pitch deck, SOW, install guide, pricing sheet)
 - [ ] Build bundle assembly CLI / UI
 
