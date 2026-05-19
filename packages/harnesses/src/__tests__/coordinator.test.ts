@@ -37,6 +37,7 @@ vi.mock('@electric-sql/pglite', () => ({
 
 import { HarnessCoordinator } from '../coordinator.js';
 import { TOOL_PROFILES } from '../protocol/capabilities.js';
+import { ALL_KNOWN_PROFILES } from '../protocol/roadmap-profiles.js';
 import type { HarnessAdapter } from '../types/adapter.js';
 import type {
   HarnessCapabilities,
@@ -219,7 +220,10 @@ describe('HarnessCoordinator', () => {
       const result = coord.dispatchTask({ headless: true }, 'safety-critical');
       // codex also has canBlock, so first match with canBlock wins
       expect(result).not.toBeNull();
-      const caps = TOOL_PROFILES[result!];
+      // claude-code and codex live in ROADMAP_PROFILES (no shipped adapter);
+      // ALL_KNOWN_PROFILES merges TOOL_PROFILES + ROADMAP_PROFILES so this
+      // assertion covers both shipped and roadmap profiles uniformly.
+      const caps = ALL_KNOWN_PROFILES[result!];
       expect(caps.hooks.canBlock).toBe(true);
     });
 
