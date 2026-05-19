@@ -1530,8 +1530,8 @@ importers:
         specifier: ^0.2.117
         version: 0.2.117
       ws:
-        specifier: ^8.20.0
-        version: 8.20.0(bufferutil@4.1.0)(utf-8-validate@6.0.6)
+        specifier: ^8.20.1
+        version: 8.20.1(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       y-protocols:
         specifier: ^1.0.7
         version: 1.0.7(yjs@13.6.30)
