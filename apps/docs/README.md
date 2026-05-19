@@ -7,7 +7,7 @@ Public documentation site for RevealUI  -  built with Vite and React.
 ## Features
 
 - **Markdown Rendering**  -  Renders project documentation as styled HTML (react-markdown + remark-gfm)
-- **Content Pipeline**  -  `scripts/copy-docs.sh` copies user-facing docs from the monorepo root into `public/docs/` at build time
+- **Content Pipeline**  -  `scripts/copy-docs.sh` copies user-facing docs from the monorepo root into `public/` at build time (flat URL space per CHIP-3 D5a — `docs.revealui.com/admin-guide` resolves to `public/ADMIN_GUIDE.md`)
 - **Security Filtering**  -  Internal docs (MASTER_PLAN, GOVERNANCE, AI-AGENT-RULES, etc.) are excluded from the public build
 - **SPA Routing**  -  Client-side routing via @revealui/router with Vercel SPA rewrite
 
@@ -39,7 +39,7 @@ pnpm test
 
 ## Content Pipeline
 
-The docs app doesn't have its own source content. Instead, `scripts/copy-docs.sh` copies markdown files from the monorepo `docs/` directory into `public/docs/` before each build. Internal-only documents are filtered out.
+The docs app doesn't have its own source content. Instead, `scripts/copy-docs.sh` copies markdown files from the monorepo `docs/` directory into `public/` (root, not a `public/docs/` subdirectory) before each build. Internal-only documents are filtered out. See the `CHIP-3 D5a` note in `scripts/copy-docs.sh` for why the target is flat.
 
 To add new public documentation, add markdown files to the monorepo `docs/` directory. To exclude a file from the public build, add it to the exclusion list in `scripts/copy-docs.sh`.
 
