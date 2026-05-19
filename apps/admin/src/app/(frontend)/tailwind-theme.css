@@ -37,6 +37,7 @@
   --color-ring: hsl(var(--ring));
   --color-success: hsl(var(--success));
   --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
   --color-error: hsl(var(--error));
   --radius: var(--radius);
 }
