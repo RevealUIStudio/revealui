@@ -16,10 +16,6 @@ Synonyms in older copy: *AI assistant*, *model*, *task runner*, *bot*. Use **age
 
 The protocol agents use to discover and call each other. RevealUI's marketplace exposes A2A discovery alongside MCP tool invocation; the two together let an agent find the right specialist agent AND the right tools in one place. See [`docs/AI`](./AI.md).
 
-## AlleviaFleet
-
-The customer-stamped instance of [RevealUI Fleet](#revealui-fleet) deployed for Allevia Technology. Produced by the [RevForge](#revforge) stamping tool. Formerly *AlleviaForge* per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 6 (supersedes 2026-05-01-forge-naming Phase 3).
-
 ## Customer
 
 External party who deploys a RevealUI runtime — either via the hosted service at `revealui.com` (SaaS tier) or via a self-hosted [RevealUI Fleet](#revealui-fleet) instance (Enterprise tier). Distinct from a *user* (who logs in to a deployed instance) and an *operator* (who runs the deployment).
@@ -89,7 +85,7 @@ A RevealUI agent's permanent named identity, formatted as **`Rev [Surname]`** (e
 
 ## RevealUI Fleet
 
-The white-label self-hosted runtime kit — Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances (e.g., [AlleviaFleet](#alleviafleet) for Allevia Technology). Formerly *RevealUI Forge* per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 4. **Status:** preview — Docker images not yet on GHCR; stack runs from source today. See [`./FORGE`](./FORGE.md) (page name preserved as redirect; content reflects "RevealUI Fleet" terminology).
+The white-label self-hosted runtime kit — Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances. Formerly *RevealUI Forge* per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 4. **Status:** preview — Docker images not yet on GHCR; stack runs from source today. See [`./FORGE`](./FORGE.md) (page name preserved as redirect; content reflects "RevealUI Fleet" terminology).
 
 ## RevForge
 

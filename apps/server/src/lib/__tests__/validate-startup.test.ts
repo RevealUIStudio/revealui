@@ -399,7 +399,7 @@ describe('validateLicenseAtStartup', () => {
 
   it('throws when the JWT was signed with a different key', async () => {
     const jwt = await generateLicenseKey(
-      { tier: 'enterprise', customerId: 'allevia' },
+      { tier: 'enterprise', customerId: 'acme' },
       testPrivateKey,
       30 * 24 * 60 * 60,
       testPublicKey,
@@ -432,7 +432,7 @@ describe('validateLicenseAtStartup', () => {
 
   it('passes for a valid Forge license JWT', async () => {
     const jwt = await generateLicenseKey(
-      { tier: 'enterprise', customerId: 'allevia' },
+      { tier: 'enterprise', customerId: 'acme' },
       testPrivateKey,
       30 * 24 * 60 * 60,
       testPublicKey,

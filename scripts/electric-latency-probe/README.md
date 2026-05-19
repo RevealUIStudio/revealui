@@ -8,9 +8,9 @@ in a meeting, with a header that identifies which backend was measured.
 
 ## Why local, not prod
 
-- Allevia's Forge deployment is local-box, not cloud. The honest
+- The first Forge customer's deployment is local-box, not cloud. The honest
   number is the local number; the cloud path adds Vercel→Railway
-  and Railway→Supabase hops that Allevia won't experience.
+  and Railway→Supabase hops that the customer won't experience.
 - Avoids writing 50 POSTs into a prod shape other subscribers read.
 - Secrets posture: the script pulls from revvault rather than
   env-vars you have to paste anywhere.

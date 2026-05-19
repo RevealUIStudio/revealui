@@ -12,7 +12,7 @@
  *
  * Usage:
  *   revvault export-env -- pnpm tsx scripts/setup/issue-revforge-license.ts \
- *     --slug allevia --tier enterprise --expires-in-days 30
+ *     --slug acme --tier enterprise --expires-in-days 30
  *
  *   # Perpetual (one-time purchase), full JSON output
  *   ... --slug bigcorp --tier enterprise --perpetual --json
@@ -125,9 +125,9 @@ Required env (source from revvault):
   REVEALUI_LICENSE_PUBLIC_KEY   Ed25519 public key (PEM, may be \\n-encoded).
 
 Examples:
-  # 30-day trial license for Allevia
+  # 30-day trial license
   revvault export-env -- pnpm tsx scripts/setup/issue-revforge-license.ts \\
-    --slug allevia --tier enterprise --expires-in-days 30
+    --slug acme --tier enterprise --expires-in-days 30
 
   # Perpetual enterprise license, full JSON output
   revvault export-env -- pnpm tsx scripts/setup/issue-revforge-license.ts \\
