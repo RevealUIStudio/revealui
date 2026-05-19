@@ -777,22 +777,22 @@ Rotate all credentials exposed during the Revvault plaintext migration (the old 
 
 ## §5.20: RevHolster  -  Agent Coordination System (Sessions 137-140, 2026-03-30)
 
-**Status:** VAUGHN protocol spec complete. Holster v2 foundation operational. Implementation next.
+**Status:** Harness Protocol spec shipped (renamed from VAUGHN 2026-05-18, see `docs/HARNESS_PROTOCOL.md`). Holster v2 foundation operational. Multi-tool adapters remain a roadmap item — only the RevealUI Agent adapter is wired today.
 
-RevHolster is the combined agent coordination system: **Holster** (workboard-based task state) + **VAUGHN** (normalization layer for heterogeneous AI coding tools). Together they manage multiple agents across all RevealUI surfaces  -  WSL, Windows, Zed, Studio desktop, and mobile.
+RevHolster is the combined agent coordination system: **Holster** (workboard-based task state) + the **Harness Protocol** (normalization layer for heterogeneous AI coding tools). Together they manage multiple agents across all RevealUI surfaces  -  WSL, Windows, Zed, Studio desktop, and mobile.
 
 ### Protocol Stack
 
 ```
-A2A:     "Here are the agents available and what they can do"
-MCP:     "Here are the tools available and how to call them"
-VAUGHN:  "Here is how agents coordinate to use tools safely together"
-Holster: "Here is the shared state where coordination happens"
+A2A:              "Here are the agents available and what they can do"
+MCP:              "Here are the tools available and how to call them"
+Harness Protocol: "Here is how agents coordinate to use tools safely together"
+Holster:          "Here is the shared state where coordination happens"
 ```
 
 - **Holster** = workboard format, task claiming, file locking, session lifecycle
-- **VAUGHN** = adapter interface, capability model, event normalization, config sync
-- Spec: [`vaughn-protocol.md`](vaughn-protocol.md) | Workboard spec: [`holster-protocol.md`](holster-protocol.md)
+- **Harness Protocol** = adapter interface, capability model, event normalization, config sync
+- Spec: [`HARNESS_PROTOCOL.md`](HARNESS_PROTOCOL.md) | Workboard spec: [`holster-protocol.md`](holster-protocol.md)
 
 ### What Exists (v2 foundation)
 
@@ -806,19 +806,19 @@ Holster: "Here is the shared state where coordination happens"
 - Session identity detection (6-tier cascade)
 - Coordination rules in `.claude/rules/coordination.md`
 
-### VAUGHN Implementation Roadmap
+### Harness Protocol Implementation Roadmap
 
-**Phase 2  -  VAUGHN Core (complete):**
-- [x] Define `VaughnAdapter` interface in `@revealui/harnesses`
-- [x] Implement native `VaughnAdapter` (replaces removed vendor adapters)
-- [x] Event normalization layer (tool events → VAUGHN events)
+**Phase 2  -  Protocol Core (complete; landed as VAUGHN, renamed to Harness Protocol 2026-05-18):**
+- [x] Define `ProtocolAdapter` interface in `@revealui/harnesses` (was `VaughnAdapter`)
+- [x] Implement native `ProtocolAdapter` (replaces removed vendor adapters)
+- [x] Event normalization layer (tool events → canonical protocol events)
 - [x] Capability-aware task dispatch in coordinator
 - [x] Config normalization (JSON ↔ TOML ↔ Markdown)
-- [x] VAUGHN identity cascade (7-tier, extending Holster's 6-tier)
+- [x] Protocol identity cascade (7-tier, extending Holster's 6-tier)
 
 **Phase 3  -  Interop:**
 - [ ] MCP tool reservation (prevent concurrent conflicting calls)
-- [ ] A2A agent card generation with VAUGHN capabilities
+- [ ] A2A agent card generation with Harness Protocol capabilities
 - [ ] HTTP transport for Studio desktop
 - [ ] Cross-tool config sync (Claude ↔ Codex bidirectional)
 

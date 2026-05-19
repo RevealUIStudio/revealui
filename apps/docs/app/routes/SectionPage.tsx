@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { LoadingSkeleton } from '../components/LoadingSkeleton';
 import { useWildcardPath } from '../hooks/useWildcardPath';
-import { SLUG_TO_PATH } from '../lib/slug-manifest';
+import { slugToPath } from '../lib/slug-manifest';
 import { loadMarkdownFile, renderMarkdown } from '../utils/markdown';
 import type { DocSection } from '../utils/paths';
 import { resolveDocPath } from '../utils/paths';
@@ -77,7 +77,7 @@ Document not found at \`${resolved.markdownPath}\`.
   // Resolve it back to the original filename via the manifest so the
   // GitHub edit link points at the real source file (e.g. ADMIN_GUIDE.md).
   const slugKey = (path ?? '').replace(/\.(md|mdx)$/, '');
-  const sourceFile = SLUG_TO_PATH[slugKey] ?? (slugKey ? `${slugKey}.md` : 'INDEX.md');
+  const sourceFile = slugToPath(slugKey) ?? (slugKey ? `${slugKey}.md` : 'INDEX.md');
   const githubUrl = `https://github.com/RevealUIStudio/revealui/blob/main/docs/${sourceFile}`;
 
   return (

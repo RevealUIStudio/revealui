@@ -1,17 +1,22 @@
 /**
- * VAUGHN Lifecycle Events (Section 5 of VAUGHN.md)
+ * Harness Protocol Lifecycle Events
  *
  * Defines the 10 canonical lifecycle events, the event envelope,
  * Zod schemas for runtime validation, and a factory function.
+ *
+ * Note: of the 10 canonical events, 5 currently have emit paths from
+ * HarnessEvent in the event normalizer (session.start, session.stop,
+ * tool.before, tool.after, session.crash). The remaining 5 are defined
+ * here for future emit paths and for adapters that produce them directly.
  */
 
 import { z } from 'zod';
 
 /** Protocol version. */
-export const VAUGHN_VERSION = '0.1.0' as const;
+export const PROTOCOL_VERSION = '0.1.0' as const;
 
-/** The 10 canonical VAUGHN lifecycle events. */
-export type VaughnEvent =
+/** The 10 canonical protocol lifecycle events. */
+export type ProtocolEvent =
   | 'session.start'
   | 'session.stop'
   | 'session.crash'
@@ -24,7 +29,7 @@ export type VaughnEvent =
   | 'agent.heartbeat';
 
 /** All valid event names as a readonly array. */
-export const VAUGHN_EVENTS: readonly VaughnEvent[] = [
+export const PROTOCOL_EVENTS: readonly ProtocolEvent[] = [
   'session.start',
   'session.stop',
   'session.crash',
@@ -37,10 +42,10 @@ export const VAUGHN_EVENTS: readonly VaughnEvent[] = [
   'agent.heartbeat',
 ] as const;
 
-/** Standard envelope wrapping every VAUGHN event (Section 5.4). */
-export interface VaughnEventEnvelope {
-  version: typeof VAUGHN_VERSION;
-  event: VaughnEvent;
+/** Standard envelope wrapping every protocol event. */
+export interface ProtocolEventEnvelope {
+  version: typeof PROTOCOL_VERSION;
+  event: ProtocolEvent;
   timestamp: string;
   agentId: string;
   toolName: string;
@@ -49,7 +54,7 @@ export interface VaughnEventEnvelope {
 }
 
 /** Zod schema for runtime validation of event envelopes. */
-export const vaughnEventSchema = z.enum([
+export const protocolEventSchema = z.enum([
   'session.start',
   'session.stop',
   'session.crash',
@@ -62,9 +67,9 @@ export const vaughnEventSchema = z.enum([
   'agent.heartbeat',
 ]);
 
-export const vaughnEventEnvelopeSchema = z.object({
-  version: z.literal(VAUGHN_VERSION),
-  event: vaughnEventSchema,
+export const protocolEventEnvelopeSchema = z.object({
+  version: z.literal(PROTOCOL_VERSION),
+  event: protocolEventSchema,
   timestamp: z.string().min(1),
   agentId: z.string().min(1),
   toolName: z.string().min(1),
@@ -72,16 +77,16 @@ export const vaughnEventEnvelopeSchema = z.object({
   payload: z.record(z.string(), z.unknown()),
 });
 
-/** Creates a VaughnEventEnvelope with the current timestamp. */
+/** Creates a ProtocolEventEnvelope with the current timestamp. */
 export function createEventEnvelope(
-  event: VaughnEvent,
+  event: ProtocolEvent,
   agentId: string,
   toolName: string,
   sessionId: string,
   payload: Record<string, unknown> = {},
-): VaughnEventEnvelope {
+): ProtocolEventEnvelope {
   return {
-    version: VAUGHN_VERSION,
+    version: PROTOCOL_VERSION,
     event,
     timestamp: new Date().toISOString(),
     agentId,

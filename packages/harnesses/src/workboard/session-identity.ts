@@ -3,29 +3,29 @@ import { readFileSync } from 'node:fs';
 /**
  * Type of session detected from the runtime environment.
  *
- * Extended in VAUGHN Phase 2a to support tool-prefixed identifiers
- * (e.g. 'claude', 'codex') alongside the original IDE-based types.
+ * Supports tool-prefixed identifiers ('claude', 'codex') alongside
+ * IDE-based types ('zed', 'cursor') and a generic 'terminal' fallback.
  */
 export type SessionType = 'claude' | 'codex' | 'zed' | 'cursor' | 'terminal';
 
 /**
- * Detects the session type using a 7-tier VAUGHN identity cascade.
+ * Detects the session type using a 7-tier identity cascade.
  *
- * | Priority | Source                                            |
- * |----------|---------------------------------------------------|
- * | 1        | VAUGHN_AGENT_ID env var (explicit override)        |
- * | 2        | CLAUDE_AGENT_ROLE env var (tool-specific)           |
- * | 3        | Session cache (/tmp/vaughn-session-<ppid>.id)       |
- * | 4        | Process tree walk (/proc for tool binaries)         |
- * | 5        | IDE detection (Zed, Cursor)                         |
- * | 6        | TERM_PROGRAM env var                                |
- * | 7        | Generic 'terminal' fallback                         |
+ * | Priority | Source                                                          |
+ * |----------|-----------------------------------------------------------------|
+ * | 1        | PROTOCOL_AGENT_ID env var (explicit override)                   |
+ * | 2        | CLAUDE_AGENT_ROLE env var (tool-specific)                       |
+ * | 3        | Session cache (/tmp/protocol-session-<ppid>.id)                 |
+ * | 4        | Process tree walk (/proc for tool binaries)                     |
+ * | 5        | IDE detection (Zed, Cursor)                                     |
+ * | 6        | TERM_PROGRAM env var                                            |
+ * | 7        | Generic 'terminal' fallback                                     |
  */
 export function detectSessionType(): SessionType {
-  // Tier 1: Explicit VAUGHN_AGENT_ID override
-  const vaughnId = process.env.VAUGHN_AGENT_ID;
-  if (vaughnId) {
-    const tool = vaughnId.split('-')[0]?.toLowerCase();
+  // Tier 1: Explicit PROTOCOL_AGENT_ID override
+  const agentId = process.env.PROTOCOL_AGENT_ID;
+  if (agentId) {
+    const tool = agentId.split('-')[0]?.toLowerCase();
     if (tool === 'claude') return 'claude';
     if (tool === 'codex') return 'codex';
     if (tool === 'cursor') return 'cursor';
@@ -38,7 +38,7 @@ export function detectSessionType(): SessionType {
 
   // Tier 3: Session cache (reuse previous detection)
   try {
-    const cachePath = `/tmp/vaughn-session-${process.ppid}.id`;
+    const cachePath = `/tmp/protocol-session-${process.ppid}.id`;
     const cached = readFileSync(cachePath, 'utf8').trim();
     if (cached === 'claude' || cached === 'codex' || cached === 'zed' || cached === 'cursor') {
       return cached;

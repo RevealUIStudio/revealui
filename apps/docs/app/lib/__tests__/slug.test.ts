@@ -8,7 +8,13 @@
 
 import { describe, expect, it } from 'vitest';
 import { filenameToSlug, pathToSlug } from '../slug.js';
-import { PATH_TO_SLUG, pathToSlugLookup, SLUG_TO_PATH, slugToPath } from '../slug-manifest.js';
+import {
+  LEGACY_SLUG_ALIASES,
+  PATH_TO_SLUG,
+  pathToSlugLookup,
+  SLUG_TO_PATH,
+  slugToPath,
+} from '../slug-manifest.js';
 
 describe('filenameToSlug', () => {
   it('lowercases and kebab-cases SCREAMING_SNAKE_CASE', () => {
@@ -167,5 +173,46 @@ describe('slugToPath / pathToSlugLookup', () => {
   it('returns null for an unknown file path', () => {
     expect(pathToSlugLookup('NONEXISTENT.md')).toBeNull();
     expect(pathToSlugLookup('')).toBeNull();
+  });
+});
+
+describe('LEGACY_SLUG_ALIASES', () => {
+  it('each alias target is present in SLUG_TO_PATH', () => {
+    const knownPaths = new Set(Object.values(SLUG_TO_PATH));
+    for (const [alias, target] of Object.entries(LEGACY_SLUG_ALIASES)) {
+      expect(knownPaths.has(target), `alias '${alias}' -> '${target}' not in SLUG_TO_PATH`).toBe(
+        true,
+      );
+    }
+  });
+
+  it('no alias key collides with a canonical slug in SLUG_TO_PATH', () => {
+    const canonicalSlugs = new Set(Object.keys(SLUG_TO_PATH));
+    for (const alias of Object.keys(LEGACY_SLUG_ALIASES)) {
+      expect(canonicalSlugs.has(alias), `alias '${alias}' collides with canonical slug`).toBe(
+        false,
+      );
+    }
+  });
+
+  it('slugToPath() falls back to LEGACY_SLUG_ALIASES for legacy slugs', () => {
+    for (const [alias, target] of Object.entries(LEGACY_SLUG_ALIASES)) {
+      expect(slugToPath(alias)).toBe(target);
+    }
+  });
+
+  it('PATH_TO_SLUG returns canonical slug for paths reachable via alias (no leak)', () => {
+    // For each alias target, pathToSlugLookup must return the canonical slug,
+    // never the alias — ensures reverse lookups never leak legacy names.
+    for (const [alias, target] of Object.entries(LEGACY_SLUG_ALIASES)) {
+      expect(pathToSlugLookup(target)).not.toBe(alias);
+    }
+  });
+
+  it('vaughn -> HARNESS_PROTOCOL.md (smoke test)', () => {
+    // Locked alias for the VAUGHN protocol -> Harness Protocol rename.
+    expect(LEGACY_SLUG_ALIASES.vaughn).toBe('HARNESS_PROTOCOL.md');
+    expect(slugToPath('vaughn')).toBe('HARNESS_PROTOCOL.md');
+    expect(SLUG_TO_PATH['harness-protocol']).toBe('HARNESS_PROTOCOL.md');
   });
 });

@@ -1,11 +1,11 @@
 /**
- * VAUGHN Degradation Model (Section 5.3 of VAUGHN.md)
+ * Degradation Model
  *
- * When a tool does not emit a native event for a VAUGHN event,
+ * When a tool does not emit a native event for a canonical protocol event,
  * the adapter applies one of three strategies.
  */
 
-import type { VaughnEvent } from './event-envelope.js';
+import type { ProtocolEvent } from './event-envelope.js';
 
 /**
  * Degradation strategy applied when a tool lacks native support for an event.
@@ -23,7 +23,7 @@ export type DegradationStrategy = 'polyfill' | 'degrade' | 'absent';
  * Only entries where the tool does NOT natively support the event are listed.
  * If a tool natively supports an event, it is not degraded.
  */
-const DEGRADATION_TABLE: Record<string, Partial<Record<VaughnEvent, DegradationStrategy>>> = {
+const DEGRADATION_TABLE: Record<string, Partial<Record<ProtocolEvent, DegradationStrategy>>> = {
   'claude-code': {
     'session.crash': 'polyfill',
     'task.claimed': 'polyfill',
@@ -62,7 +62,7 @@ const DEGRADATION_TABLE: Record<string, Partial<Record<VaughnEvent, DegradationS
  */
 export function getDegradationStrategy(
   toolName: string,
-  event: VaughnEvent,
+  event: ProtocolEvent,
 ): DegradationStrategy | undefined {
   const toolDegradations = DEGRADATION_TABLE[toolName];
 

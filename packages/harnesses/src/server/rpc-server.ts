@@ -4,14 +4,14 @@ import { diffConfig, syncConfig } from '../config/config-sync.js';
 import type { CIFeedback } from '../coordination/ci-feedback.js';
 import type { MergePipeline } from '../coordination/merge-pipeline.js';
 import { findHarnessProcesses } from '../detection/process-detector.js';
+import type { ProtocolConfig } from '../protocol/adapter.js';
+import type { ProtocolCapabilities } from '../protocol/capabilities.js';
+import { TOOL_PROFILES } from '../protocol/capabilities.js';
+import { generateAllConfigs } from '../protocol/config-normalizer.js';
+import type { ProtocolEventEnvelope } from '../protocol/event-envelope.js';
 import type { HarnessRegistry } from '../registry/harness-registry.js';
 import type { DaemonStore } from '../storage/daemon-store.js';
 import type { ConfigSyncDirection } from '../types/core.js';
-import type { VaughnConfig } from '../vaughn/adapter.js';
-import type { VaughnCapabilities } from '../vaughn/capabilities.js';
-import { TOOL_PROFILES } from '../vaughn/capabilities.js';
-import { generateAllConfigs } from '../vaughn/config-normalizer.js';
-import type { VaughnEventEnvelope } from '../vaughn/event-envelope.js';
 import type { InferenceService } from './inference-service.js';
 import type { SharedMemoryClient } from './shared-memory-client.js';
 import type { SpawnerService } from './spawner-service.js';
@@ -89,10 +89,10 @@ const ERR_INTERNAL = -32603;
  *   merge.resolve             → MergeResult
  *   merge.list                → MergeRequest[]
  *   ci.report                 → CIFeedbackResult
- *   vaughn.capabilities       → VaughnAdapterCapability[]
- *   vaughn.dispatch           → { adapterId: string | null }
- *   vaughn.events             → VaughnEventEnvelope[]
- *   vaughn.config.sync        → { files: Record<string, string> }
+ *   protocol.capabilities     → Array<{ id, capabilities: ProtocolCapabilities }>
+ *   protocol.dispatch         → { adapterId: string | null }
+ *   protocol.events           → ProtocolEventEnvelope[]
+ *   protocol.config.sync      → { files: Record<string, string> }
  *   shared.facts.publish      → SharedFact
  *   shared.memory.store       → SharedMemory
  *   shared.scratchpad.patch   → YjsPatch
@@ -106,11 +106,11 @@ export class RpcServer {
   private mergePipeline: MergePipeline | null = null;
   private ciFeedback: CIFeedback | null = null;
   private sharedMemory: SharedMemoryClient | null = null;
-  private vaughnDispatchFn:
-    | ((requirements: Partial<VaughnCapabilities>, description: string) => string | null)
+  private protocolDispatchFn:
+    | ((requirements: Partial<ProtocolCapabilities>, description: string) => string | null)
     | null = null;
-  private readonly vaughnEventQueue: VaughnEventEnvelope[] = [];
-  private static readonly MAX_VAUGHN_EVENTS = 100;
+  private readonly protocolEventQueue: ProtocolEventEnvelope[] = [];
+  private static readonly MAX_PROTOCOL_EVENTS = 100;
 
   constructor(
     private readonly registry: HarnessRegistry,
@@ -744,10 +744,10 @@ export class RpcServer {
       }
 
       // -----------------------------------------------------------------------
-      // VAUGHN Protocol
+      // Harness Protocol
       // -----------------------------------------------------------------------
-      case 'vaughn.capabilities': {
-        const result: Array<{ id: string; capabilities: VaughnCapabilities }> = [];
+      case 'protocol.capabilities': {
+        const result: Array<{ id: string; capabilities: ProtocolCapabilities }> = [];
         for (const adapterId of this.registry.listAll()) {
           const caps = TOOL_PROFILES[adapterId];
           if (caps) result.push({ id: adapterId, capabilities: caps });
@@ -755,23 +755,23 @@ export class RpcServer {
         return { jsonrpc: '2.0', id, result };
       }
 
-      case 'vaughn.dispatch': {
-        if (!this.vaughnDispatchFn) return this.noService(id, 'vaughn-dispatch');
+      case 'protocol.dispatch': {
+        if (!this.protocolDispatchFn) return this.noService(id, 'protocol-dispatch');
         const description = p.description as string | undefined;
         if (!description) return this.missingParam(id, 'description');
-        const requirements = (p.requirements ?? {}) as Partial<VaughnCapabilities>;
-        const adapterId = this.vaughnDispatchFn(requirements, description);
+        const requirements = (p.requirements ?? {}) as Partial<ProtocolCapabilities>;
+        const adapterId = this.protocolDispatchFn(requirements, description);
         return { jsonrpc: '2.0', id, result: { adapterId } };
       }
 
-      case 'vaughn.events': {
+      case 'protocol.events': {
         const limit = (p.limit as number | undefined) ?? 50;
-        const events = this.vaughnEventQueue.slice(-limit);
+        const events = this.protocolEventQueue.slice(-limit);
         return { jsonrpc: '2.0', id, result: events };
       }
 
-      case 'vaughn.config.sync': {
-        const config = p.config as VaughnConfig | undefined;
+      case 'protocol.config.sync': {
+        const config = p.config as ProtocolConfig | undefined;
         if (!config) return this.missingParam(id, 'config');
         const generated = generateAllConfigs(config);
         const files: Record<string, string> = {};
@@ -952,18 +952,18 @@ export class RpcServer {
     this.sharedMemory = client;
   }
 
-  /** Attach the VAUGHN dispatch function (called by coordinator after construction). */
-  setVaughnDispatch(
-    fn: (requirements: Partial<VaughnCapabilities>, description: string) => string | null,
+  /** Attach the Harness Protocol dispatch function (called by coordinator after construction). */
+  setProtocolDispatch(
+    fn: (requirements: Partial<ProtocolCapabilities>, description: string) => string | null,
   ): void {
-    this.vaughnDispatchFn = fn;
+    this.protocolDispatchFn = fn;
   }
 
-  /** Push a VAUGHN event into the recent event queue (capped at 100). */
-  pushVaughnEvent(event: VaughnEventEnvelope): void {
-    this.vaughnEventQueue.push(event);
-    if (this.vaughnEventQueue.length > RpcServer.MAX_VAUGHN_EVENTS) {
-      this.vaughnEventQueue.shift();
+  /** Push a protocol event into the recent event queue (capped at 100). */
+  pushProtocolEvent(event: ProtocolEventEnvelope): void {
+    this.protocolEventQueue.push(event);
+    if (this.protocolEventQueue.length > RpcServer.MAX_PROTOCOL_EVENTS) {
+      this.protocolEventQueue.shift();
     }
   }
 

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { EventNormalizer } from '../protocol/event-normalizer.js';
 import type { HarnessEvent } from '../types/core.js';
-import { VaughnEventNormalizer } from '../vaughn/event-normalizer.js';
 
-describe('VaughnEventNormalizer', () => {
-  const normalizer = new VaughnEventNormalizer('claude-code', 'claude-root', 'sess-1');
+describe('EventNormalizer', () => {
+  const normalizer = new EventNormalizer('claude-code', 'claude-root', 'sess-1');
 
   describe('harness-connected -> session.start', () => {
     it('normalizes to session.start', () => {
@@ -100,7 +100,7 @@ describe('VaughnEventNormalizer', () => {
   });
 
   describe('cursor degradation (absent events)', () => {
-    const cursorNormalizer = new VaughnEventNormalizer('cursor', 'cursor-1', 'sess-c');
+    const cursorNormalizer = new EventNormalizer('cursor', 'cursor-1', 'sess-c');
 
     it('returns null for absent events', () => {
       const event: HarnessEvent = { type: 'harness-connected', harnessId: 'cursor' };
@@ -123,7 +123,7 @@ describe('VaughnEventNormalizer', () => {
   });
 
   describe('revealui-agent (no degradation)', () => {
-    const agentNormalizer = new VaughnEventNormalizer('revealui-agent', 'agent-1', 'sess-a');
+    const agentNormalizer = new EventNormalizer('revealui-agent', 'agent-1', 'sess-a');
 
     it('normalizes all events without degradation', () => {
       const events: HarnessEvent[] = [

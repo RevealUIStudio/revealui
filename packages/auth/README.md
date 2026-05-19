@@ -98,7 +98,7 @@ pnpm test
 - **Not** for OAuth-only flows  -  use a dedicated OAuth provider and wire tokens through this package
 - **Not** for stateless JWT auth  -  this package uses database sessions by design
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Sovereign**: Sessions live in your PostgreSQL database, not a third-party auth service
 - **Hermetic**: HTTP-only, SameSite cookies and SHA-256 token hashing prevent cross-boundary leaks

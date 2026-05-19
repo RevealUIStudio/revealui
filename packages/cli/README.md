@@ -97,7 +97,7 @@ pnpm dev
 - You want Dev Container or Devbox configuration generated automatically
 - **Not** for adding RevealUI to an existing project  -  install individual packages instead
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Justifiable**: Every prompt earns its place  -  template, database, storage, and payment choices all map to real config decisions
 - **Adaptive**: Multiple templates (blog, e-commerce, portfolio) and environment options (DevContainer, Devbox) adapt to your workflow

@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ALL_KNOWN_PROFILES,
   createDefaultCapabilities,
   createEventEnvelope,
   getDegradationStrategy,
+  PROTOCOL_EVENTS,
+  PROTOCOL_VERSION,
+  protocolEventEnvelopeSchema,
+  protocolEventSchema,
+  ROADMAP_PROFILES,
   TOOL_PROFILES,
-  VAUGHN_EVENTS,
-  VAUGHN_VERSION,
-  vaughnEventEnvelopeSchema,
-  vaughnEventSchema,
-} from '../vaughn/index.js';
+} from '../protocol/index.js';
 
-describe('VAUGHN capabilities', () => {
+describe('protocol capabilities', () => {
   it('createDefaultCapabilities returns all-false defaults', () => {
     const caps = createDefaultCapabilities();
     expect(caps.dispatch.generateCode).toBe(false);
@@ -30,65 +32,107 @@ describe('VAUGHN capabilities', () => {
     expect(caps.maxContextTokens).toBe(0);
     expect(caps.lifecycleEvents).toEqual([]);
   });
+});
 
-  it('TOOL_PROFILES has entries for all known tools', () => {
-    expect(TOOL_PROFILES['claude-code']).toBeDefined();
-    expect(TOOL_PROFILES.codex).toBeDefined();
-    expect(TOOL_PROFILES.cursor).toBeDefined();
-    expect(TOOL_PROFILES['revealui-agent']).toBeDefined();
+describe('TOOL_PROFILES (shipped adapters)', () => {
+  it('contains revealui-agent only', () => {
+    expect(Object.keys(TOOL_PROFILES)).toEqual(['revealui-agent']);
   });
 
   it('revealui-agent has full dispatch capabilities', () => {
     const caps = TOOL_PROFILES['revealui-agent'];
+    expect(caps).toBeDefined();
     expect(caps.dispatch.generateCode).toBe(true);
     expect(caps.dispatch.analyzeCode).toBe(true);
     expect(caps.dispatch.applyEdit).toBe(true);
     expect(caps.dispatch.executeCommand).toBe(true);
   });
 
-  it('claude-code does not have dispatch capabilities', () => {
-    const caps = TOOL_PROFILES['claude-code'];
+  it('revealui-agent supports all 10 canonical lifecycle events', () => {
+    const caps = TOOL_PROFILES['revealui-agent'];
+    expect(caps.lifecycleEvents).toHaveLength(10);
+  });
+
+  it('does not contain entries for tools without adapters', () => {
+    expect(TOOL_PROFILES['claude-code']).toBeUndefined();
+    expect(TOOL_PROFILES.codex).toBeUndefined();
+    expect(TOOL_PROFILES.cursor).toBeUndefined();
+  });
+});
+
+describe('ROADMAP_PROFILES (declared, no adapter)', () => {
+  it('contains the three spec-declared tools', () => {
+    expect(Object.keys(ROADMAP_PROFILES).sort()).toEqual(['claude-code', 'codex', 'cursor']);
+  });
+
+  it('claude-code has no dispatch capabilities (interactive tool)', () => {
+    const caps = ROADMAP_PROFILES['claude-code'];
     expect(caps.dispatch.generateCode).toBe(false);
     expect(caps.dispatch.analyzeCode).toBe(false);
   });
 
   it('codex has sandbox support', () => {
-    const caps = TOOL_PROFILES.codex;
+    const caps = ROADMAP_PROFILES.codex;
     expect(caps.sandbox.supported).toBe(true);
     expect(caps.sandbox.modes).toContain('read-only');
   });
 
   it('cursor has minimal capabilities', () => {
-    const caps = TOOL_PROFILES.cursor;
+    const caps = ROADMAP_PROFILES.cursor;
     expect(caps.headless).toBe(false);
     expect(caps.hooks.supported).toBe(false);
     expect(caps.readWorkboard).toBe(false);
     expect(caps.lifecycleEvents).toEqual([]);
   });
-});
 
-describe('VAUGHN events', () => {
-  it('VAUGHN_EVENTS contains exactly 10 canonical events', () => {
-    expect(VAUGHN_EVENTS).toHaveLength(10);
-  });
-
-  it('VAUGHN_VERSION is 0.1.0', () => {
-    expect(VAUGHN_VERSION).toBe('0.1.0');
-  });
-
-  it('vaughnEventSchema validates valid events', () => {
-    expect(vaughnEventSchema.parse('session.start')).toBe('session.start');
-    expect(vaughnEventSchema.parse('tool.blocked')).toBe('tool.blocked');
-    expect(vaughnEventSchema.parse('agent.heartbeat')).toBe('agent.heartbeat');
-  });
-
-  it('vaughnEventSchema rejects invalid events', () => {
-    expect(() => vaughnEventSchema.parse('invalid.event')).toThrow();
-    expect(() => vaughnEventSchema.parse('')).toThrow();
+  it('does not overlap with TOOL_PROFILES', () => {
+    for (const id of Object.keys(ROADMAP_PROFILES)) {
+      expect(TOOL_PROFILES[id]).toBeUndefined();
+    }
   });
 });
 
-describe('VaughnEventEnvelope', () => {
+describe('ALL_KNOWN_PROFILES (merged view)', () => {
+  it('contains all four declared tools', () => {
+    expect(Object.keys(ALL_KNOWN_PROFILES).sort()).toEqual([
+      'claude-code',
+      'codex',
+      'cursor',
+      'revealui-agent',
+    ]);
+  });
+
+  it('shipped entries take precedence over roadmap entries on key collision', () => {
+    // No collision today (the four IDs are disjoint), but the spread order
+    // (...ROADMAP_PROFILES first, then ...TOOL_PROFILES) guarantees that
+    // a future shipped adapter overrides any roadmap declaration with the
+    // same ID. Verify the shape of revealui-agent matches TOOL_PROFILES.
+    expect(ALL_KNOWN_PROFILES['revealui-agent']).toEqual(TOOL_PROFILES['revealui-agent']);
+  });
+});
+
+describe('protocol events', () => {
+  it('PROTOCOL_EVENTS contains exactly 10 canonical events', () => {
+    expect(PROTOCOL_EVENTS).toHaveLength(10);
+  });
+
+  it('PROTOCOL_VERSION is 0.1.0', () => {
+    expect(PROTOCOL_VERSION).toBe('0.1.0');
+  });
+
+  it('protocolEventSchema validates valid events', () => {
+    expect(protocolEventSchema.parse('session.start')).toBe('session.start');
+    expect(protocolEventSchema.parse('tool.blocked')).toBe('tool.blocked');
+    expect(protocolEventSchema.parse('agent.heartbeat')).toBe('agent.heartbeat');
+  });
+
+  it('protocolEventSchema rejects invalid events', () => {
+    expect(() => protocolEventSchema.parse('invalid.event')).toThrow();
+    expect(() => protocolEventSchema.parse('')).toThrow();
+  });
+});
+
+describe('ProtocolEventEnvelope', () => {
   it('createEventEnvelope produces a valid envelope', () => {
     const envelope = createEventEnvelope('session.start', 'claude-root', 'claude-code', 'sess-1', {
       workdir: '/home/user/project',
@@ -108,15 +152,15 @@ describe('VaughnEventEnvelope', () => {
     expect(envelope.payload).toEqual({});
   });
 
-  it('vaughnEventEnvelopeSchema validates valid envelopes', () => {
+  it('protocolEventEnvelopeSchema validates valid envelopes', () => {
     const envelope = createEventEnvelope('tool.before', 'agent-1', 'claude-code', 'sess-1', {
       tool: 'Bash',
     });
-    const result = vaughnEventEnvelopeSchema.safeParse(envelope);
+    const result = protocolEventEnvelopeSchema.safeParse(envelope);
     expect(result.success).toBe(true);
   });
 
-  it('vaughnEventEnvelopeSchema rejects invalid version', () => {
+  it('protocolEventEnvelopeSchema rejects invalid version', () => {
     const bad = {
       version: '0.0.1',
       event: 'session.start',
@@ -126,11 +170,11 @@ describe('VaughnEventEnvelope', () => {
       sessionId: 'z',
       payload: {},
     };
-    const result = vaughnEventEnvelopeSchema.safeParse(bad);
+    const result = protocolEventEnvelopeSchema.safeParse(bad);
     expect(result.success).toBe(false);
   });
 
-  it('vaughnEventEnvelopeSchema rejects empty agentId', () => {
+  it('protocolEventEnvelopeSchema rejects empty agentId', () => {
     const bad = {
       version: '0.1.0',
       event: 'session.start',
@@ -140,12 +184,12 @@ describe('VaughnEventEnvelope', () => {
       sessionId: 'sess-1',
       payload: {},
     };
-    const result = vaughnEventEnvelopeSchema.safeParse(bad);
+    const result = protocolEventEnvelopeSchema.safeParse(bad);
     expect(result.success).toBe(false);
   });
 });
 
-describe('VAUGHN degradation strategies', () => {
+describe('degradation strategies', () => {
   it('returns undefined for natively supported events', () => {
     expect(getDegradationStrategy('claude-code', 'session.start')).toBeUndefined();
     expect(getDegradationStrategy('claude-code', 'tool.before')).toBeUndefined();
@@ -174,7 +218,7 @@ describe('VAUGHN degradation strategies', () => {
   });
 
   it('revealui-agent has no degradation for any event', () => {
-    for (const event of VAUGHN_EVENTS) {
+    for (const event of PROTOCOL_EVENTS) {
       expect(getDegradationStrategy('revealui-agent', event)).toBeUndefined();
     }
   });

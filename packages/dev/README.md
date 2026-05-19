@@ -141,7 +141,7 @@ This package is named `dev` (unscoped) in the monorepo workspace. Use `dev/...` 
 - **Not** for runtime configuration  -  use `@revealui/config` for environment variables
 - **Not** for editor-specific settings  -  see [RevCon](https://github.com/RevealUIStudio/revcon) (separate fleet repo) for VS Code, Zed, and Cursor configs
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Unified**: One package defines formatting, linting, and TypeScript rules for every workspace in the monorepo
 - **Orthogonal**: Biome, Tailwind, Vite, and TypeScript configs are independent subpath exports  -  change one without affecting the others

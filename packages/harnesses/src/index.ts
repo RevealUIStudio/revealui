@@ -53,6 +53,46 @@ export {
   findHarnessProcesses,
   findProcesses,
 } from './detection/process-detector.js';
+// Harness Protocol (was VAUGHN until 2026-05-18; see docs/HARNESS_PROTOCOL.md)
+export type {
+  ClaudeCodeSettings,
+  ConfigGenerationResult,
+  DegradationStrategy,
+  GeneratedFiles,
+  HookGranularity,
+  McpServerConfig,
+  MemoryBackend,
+  NormalizedEvent,
+  ProtocolAdapter,
+  ProtocolAdapterInfo,
+  ProtocolCapabilities,
+  ProtocolCommand,
+  ProtocolCommandResult,
+  ProtocolConfig,
+  ProtocolError,
+  ProtocolErrorCode,
+  ProtocolEvent,
+  ProtocolEventEnvelope,
+  ProtocolRule,
+  ProtocolSkill,
+  SandboxMode,
+} from './protocol/index.js';
+export {
+  claudeSettingsToProtocolConfig,
+  createDefaultCapabilities,
+  createEventEnvelope,
+  EventNormalizer,
+  generateAllConfigs,
+  getDegradationStrategy,
+  PROTOCOL_EVENTS,
+  PROTOCOL_VERSION,
+  protocolConfigToAgentsMd,
+  protocolConfigToClaudeSettings,
+  protocolConfigToCursorrules,
+  protocolEventEnvelopeSchema,
+  protocolEventSchema,
+  TOOL_PROFILES,
+} from './protocol/index.js';
 // Registry
 export { HarnessRegistry } from './registry/harness-registry.js';
 // Server
@@ -90,46 +130,6 @@ export type {
   HarnessProcessInfo,
   HealthCheckResult,
 } from './types/core.js';
-// VAUGHN Protocol (Phase 2a: Type Foundation + Phase 2b: Runtime Wiring)
-export type {
-  ClaudeCodeSettings,
-  ConfigGenerationResult,
-  DegradationStrategy,
-  GeneratedFiles,
-  HookGranularity,
-  McpServerConfig,
-  MemoryBackend,
-  NormalizedEvent,
-  SandboxMode,
-  VaughnAdapter,
-  VaughnAdapterInfo,
-  VaughnCapabilities,
-  VaughnCommand,
-  VaughnCommandResult,
-  VaughnConfig,
-  VaughnError,
-  VaughnErrorCode,
-  VaughnEvent,
-  VaughnEventEnvelope,
-  VaughnRule,
-  VaughnSkill,
-} from './vaughn/index.js';
-export {
-  claudeSettingsToVaughnConfig,
-  createDefaultCapabilities,
-  createEventEnvelope,
-  generateAllConfigs,
-  getDegradationStrategy,
-  TOOL_PROFILES,
-  VAUGHN_EVENTS,
-  VAUGHN_VERSION,
-  VaughnEventNormalizer,
-  vaughnConfigToAgentsMd,
-  vaughnConfigToClaudeSettings,
-  vaughnConfigToCursorrules,
-  vaughnEventEnvelopeSchema,
-  vaughnEventSchema,
-} from './vaughn/index.js';
 // Workboard
 export {
   acquireLock,

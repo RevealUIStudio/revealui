@@ -1,16 +1,17 @@
 /**
- * VAUGHN Adapter Interface (Section 7 of VAUGHN.md)
+ * Harness Protocol Adapter Interface
  *
  * The adapter is the boundary between a tool's native interface and the
- * VAUGHN protocol. This extends the existing HarnessAdapter with full
- * VAUGHN capabilities.
+ * Harness Protocol. This extends the existing HarnessAdapter with full
+ * protocol capabilities (capability declaration, normalized events,
+ * config generation, optional workboard access).
  */
 
 import type { WorkboardState } from '../workboard/workboard-protocol.js';
-import type { VaughnCapabilities } from './capabilities.js';
-import type { VaughnEventEnvelope } from './event-envelope.js';
+import type { ProtocolCapabilities } from './capabilities.js';
+import type { ProtocolEventEnvelope } from './event-envelope.js';
 
-// ── Configuration Types (Section 6.1) ─────────────────────────────────────
+// ── Configuration Types ───────────────────────────────────────────────────
 
 /** MCP server configuration entry. */
 export interface McpServerConfig {
@@ -20,8 +21,8 @@ export interface McpServerConfig {
   env?: Record<string, string>;
 }
 
-/** Canonical configuration schema (Section 6.1). */
-export interface VaughnConfig {
+/** Canonical configuration schema. */
+export interface ProtocolConfig {
   identity: {
     name: string;
     email: string;
@@ -36,13 +37,13 @@ export interface VaughnConfig {
     variables: Record<string, string>;
     mcpServers: McpServerConfig[];
   };
-  rules: VaughnRule[];
-  skills: VaughnSkill[];
-  commands: VaughnCommand[];
+  rules: ProtocolRule[];
+  skills: ProtocolSkill[];
+  commands: ProtocolCommand[];
 }
 
-/** Tool-agnostic rule definition (Section 6.3). */
-export interface VaughnRule {
+/** Tool-agnostic rule definition. */
+export interface ProtocolRule {
   id: string;
   description: string;
   content: string;
@@ -51,7 +52,7 @@ export interface VaughnRule {
 }
 
 /** Tool-agnostic skill definition. */
-export interface VaughnSkill {
+export interface ProtocolSkill {
   id: string;
   name: string;
   description: string;
@@ -59,7 +60,7 @@ export interface VaughnSkill {
 }
 
 /** Tool-agnostic command definition. */
-export interface VaughnCommand {
+export interface ProtocolCommand {
   id: string;
   name: string;
   description: string;
@@ -75,17 +76,17 @@ export interface GeneratedFiles {
 
 // ── Command Result ────────────────────────────────────────────────────────
 
-/** Result of executing a VAUGHN command. */
-export interface VaughnCommandResult {
+/** Result of executing a protocol command. */
+export interface ProtocolCommandResult {
   success: boolean;
   message?: string;
   data?: unknown;
 }
 
-// ── Error Types (Section 11) ──────────────────────────────────────────────
+// ── Error Types ───────────────────────────────────────────────────────────
 
-/** VAUGHN error codes (Section 11.1). */
-export type VaughnErrorCode =
+/** Protocol error codes. */
+export type ProtocolErrorCode =
   | 'ADAPTER_UNAVAILABLE'
   | 'CAPABILITY_MISSING'
   | 'TASK_ALREADY_CLAIMED'
@@ -99,9 +100,9 @@ export type VaughnErrorCode =
   | 'WORKBOARD_LOCKED'
   | 'IDENTITY_CONFLICT';
 
-/** Structured error envelope (Section 11.2). */
-export interface VaughnError {
-  code: VaughnErrorCode;
+/** Structured error envelope. */
+export interface ProtocolError {
+  code: ProtocolErrorCode;
   message: string;
   agentId?: string;
   details?: Record<string, unknown>;
@@ -110,27 +111,27 @@ export interface VaughnError {
 // ── Adapter Info ──────────────────────────────────────────────────────────
 
 /** Summary information about a registered adapter. */
-export interface VaughnAdapterInfo {
+export interface ProtocolAdapterInfo {
   id: string;
   available: boolean;
   version: string | null;
-  capabilities: VaughnCapabilities;
+  capabilities: ProtocolCapabilities;
 }
 
-// ── Adapter Interface (Section 7.1) ───────────────────────────────────────
+// ── Adapter Interface ─────────────────────────────────────────────────────
 
 /**
- * Contract for a VAUGHN adapter.
+ * Contract for a Harness Protocol adapter.
  *
- * This is the full VAUGHN interface. Existing HarnessAdapters can be
+ * This is the full protocol interface. Existing HarnessAdapters can be
  * wrapped to implement this interface incrementally.
  */
-export interface VaughnAdapter {
+export interface ProtocolAdapter {
   /** Unique stable identifier, e.g. 'claude-code', 'codex', 'revealui-agent' */
   readonly id: string;
 
   /** Full capability declaration */
-  readonly capabilities: VaughnCapabilities;
+  readonly capabilities: ProtocolCapabilities;
 
   /** Initialize the adapter (connect to tool, set up event listeners) */
   initialize(): Promise<void>;
@@ -144,17 +145,17 @@ export interface VaughnAdapter {
   /** Tool version string, or null if unavailable */
   getVersion(): Promise<string | null>;
 
-  /** Subscribe to VAUGHN-normalized events (adapter -> coordinator) */
-  onEvent(handler: (event: VaughnEventEnvelope) => void): void;
+  /** Subscribe to normalized protocol events (adapter -> coordinator) */
+  onEvent(handler: (event: ProtocolEventEnvelope) => void): void;
 
   /** Execute a typed command against this tool (coordinator -> adapter) */
-  execute?(command: VaughnCommand): Promise<VaughnCommandResult>;
+  execute?(command: ProtocolCommand): Promise<ProtocolCommandResult>;
 
-  /** Generate tool-native config files from canonical VAUGHN config */
-  generateConfig(config: VaughnConfig): Promise<GeneratedFiles>;
+  /** Generate tool-native config files from canonical ProtocolConfig */
+  generateConfig(config: ProtocolConfig): Promise<GeneratedFiles>;
 
   /** Read tool-native config and parse into canonical form (optional) */
-  readConfig?(): Promise<Partial<VaughnConfig>>;
+  readConfig?(): Promise<Partial<ProtocolConfig>>;
 
   /** Read workboard state through the tool's native interface (if capable) */
   readWorkboard?(): Promise<WorkboardState>;

@@ -9,7 +9,7 @@ audience: developer
 
 Agentic business runtime. Five primitives for humans and agents: users, content, products, payments, and intelligence.
 
-Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive. Six engineering principles that govern every architectural decision.
+Six **[design principles](./JOSHUA.md)** govern every architectural decision: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
 
 ## Getting Started
 
@@ -20,7 +20,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 
 ## Core Guides
 
-- [The JOSHUA Stack](./JOSHUA.md): Six engineering principles: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive
+- [Design Principles](./JOSHUA.md): Six engineering principles: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive
 - [Architecture](./ARCHITECTURE.md): System design, dual database, multi-tenant patterns
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
@@ -52,7 +52,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 
 ## Agent Coordination
 
-- [The VAUGHN Protocol](./VAUGHN.md): Agent normalization, capability model, lifecycle events, and multi-tool coordination
+- [Harness Protocol](./HARNESS_PROTOCOL.md): Agent normalization, capability model, lifecycle events, and the adapter/coordinator surface shipped in `@revealui/harnesses`
 - [Blog: Three AI Agents, One Codebase](./blog/03-multi-agent-coordination.md): The problem that led to the Holster
 
 ## Pro & Enterprise
