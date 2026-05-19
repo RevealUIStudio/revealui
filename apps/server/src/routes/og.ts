@@ -2,9 +2,9 @@
  * OG image generation endpoint.
  *
  * Renders a 1200×630 PNG with a title + description via satori (JSX → SVG)
- * and @resvg/resvg-wasm (SVG → PNG). Geist Regular + Bold are inlined into
- * the bundle via tsup's binary loader; the resvg WASM is read at runtime
- * from node_modules.
+ * and @resvg/resvg-wasm (SVG → PNG). The Inter Tight variable font is inlined
+ * into the bundle via tsup's binary loader; satori extracts 400 + 700 weights
+ * from the same buffer. The resvg WASM is read at runtime from node_modules.
  *
  * Used by marketing + (future) blog post OG meta tags:
  *   <meta property="og:image"
@@ -20,8 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import { Hono } from 'hono';
 import satori from 'satori';
-import GeistBold from '../assets/fonts/Geist-Bold.ttf';
-import GeistRegular from '../assets/fonts/Geist-Regular.ttf';
+import InterTightVariable from '../assets/fonts/InterTight-Variable.ttf';
 
 // One-time WASM init for resvg. The same serverless instance reuses the
 // initialised module across requests; the shared promise makes concurrent
@@ -81,7 +80,7 @@ function buildNode(title: string, description: string): SatoriNode {
         justifyContent: 'center',
         backgroundColor: '#09090b',
         padding: '60px',
-        fontFamily: 'Geist',
+        fontFamily: 'Inter Tight',
       },
       children: {
         type: 'div',
@@ -162,8 +161,8 @@ app.get('/', async (c) => {
     // Buffer.from gives satori the Buffer<ArrayBufferLike> shape it expects
     // without copying the underlying memory.
     fonts: [
-      { name: 'Geist', data: Buffer.from(GeistRegular), weight: 400, style: 'normal' },
-      { name: 'Geist', data: Buffer.from(GeistBold), weight: 700, style: 'normal' },
+      { name: 'Inter Tight', data: Buffer.from(InterTightVariable), weight: 400, style: 'normal' },
+      { name: 'Inter Tight', data: Buffer.from(InterTightVariable), weight: 700, style: 'normal' },
     ],
   });
 

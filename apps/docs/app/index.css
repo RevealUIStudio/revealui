@@ -13,9 +13,9 @@
   --color-text-primary: #1a1a2e;
   --color-text-secondary: #5f6368;
   --color-text-muted: #9aa0a6;
-  --color-accent: #10b981;
-  --color-accent-hover: #059669;
-  --color-accent-bg: #ecfdf5;
+  --color-accent: var(--rvui-brand);
+  --color-accent-hover: var(--rvui-brand-hover);
+  --color-accent-bg: var(--rvui-brand-soft);
   --color-code-bg: #f4f5f7;
   --color-code-block: #1a1a2e;
   --color-ink: #0a0a0a;

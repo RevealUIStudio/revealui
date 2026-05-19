@@ -1,5 +1,6 @@
-import '@fontsource-variable/geist';
-import '@fontsource-variable/geist-mono';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/inter-tight';
+import '@fontsource-variable/jetbrains-mono';
 import './index.css';
 
 import { Router, RouterProvider } from '@revealui/router';

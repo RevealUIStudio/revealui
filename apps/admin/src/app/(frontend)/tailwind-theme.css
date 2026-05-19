@@ -67,8 +67,7 @@
   --color-mist-950: oklch(14.8% 0.004 228.8);
 
   /* RevealUI Theme - Typography */
-  --font-display: 'Mona Sans', sans-serif;
-  --font-display--font-variation-settings: 'wdth' 112.5;
+  --font-display: 'Inter Tight', 'Inter', system-ui, sans-serif;
   --font-sans: 'Inter', system-ui, sans-serif;
 
   /* Custom Colors (Keep existing for compatibility) */
