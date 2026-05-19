@@ -227,3 +227,7 @@ apps/terminal/.ssh/
 # editor-configs (symlinked)
 .cursor/
 .zed/
+
+# Local design canvas — HTML mockups + drag-from-host design assets.
+# Not a source directory; promote to revskills/skills/<name>/ if/when committed.
+design-system/
