@@ -8,10 +8,10 @@ audience: developer
 # Harness Protocol
 
 > **Version:** 0.1.0  (Active — Phase 1 + 2 shipped; multi-tool adapters and full coordinator surface remain on the roadmap.)
-> **Package:** [`@revealui/harnesses`](../packages/harnesses) at v0.4.0+
+> **Package:** [`@revealui/harnesses`](../packages/harnesses) at v0.5.0+
 > **Renamed:** 2026-05-18, from the original "VAUGHN" backronym. See [§Why "Harness Protocol"](#why-harness-protocol) at the end.
 
-A protocol for normalizing agent capabilities, lifecycle events, and configuration across AI coding tools, so a single coordinator can dispatch work to whichever adapter is available. Ships today with **one working adapter** (the RevealUI Agent) plus static capability profiles and degradation-strategy data for Claude Code / Codex / Cursor; adapters for those three tools are roadmap items.
+A protocol for normalizing agent capabilities, lifecycle events, and configuration across AI coding tools, so a single coordinator can dispatch work to whichever adapter is available. Ships today with **one working adapter** (the RevealUI Agent — in `TOOL_PROFILES`) plus declared-but-unimplemented profiles for Claude Code / Codex / Cursor (in `ROADMAP_PROFILES`); adapters for those three tools are roadmap items.
 
 This doc describes what's in the package today. Items in the [Roadmap](#roadmap) section are deferred work, not current behavior.
 
@@ -22,7 +22,8 @@ This doc describes what's in the package today. Items in the [Roadmap](#roadmap)
 | Surface | Status | Location |
 |---|---|---|
 | Protocol type foundation | ✓ | [packages/harnesses/src/protocol/](../packages/harnesses/src/protocol) |
-| Capability profiles (4 tools, static data) | ✓ | [protocol/capabilities.ts](../packages/harnesses/src/protocol/capabilities.ts) |
+| Capability profiles for shipped adapters (`TOOL_PROFILES`) | ✓ — revealui-agent only | [protocol/capabilities.ts](../packages/harnesses/src/protocol/capabilities.ts) |
+| Capability profiles for unimplemented tools (`ROADMAP_PROFILES`) | ✓ — claude-code, codex, cursor | [protocol/roadmap-profiles.ts](../packages/harnesses/src/protocol/roadmap-profiles.ts) |
 | 10 canonical lifecycle events + Zod schemas | ✓ | [protocol/event-envelope.ts](../packages/harnesses/src/protocol/event-envelope.ts) |
 | Event normalization (HarnessEvent → ProtocolEventEnvelope) | ✓ partial — 5 of 10 events have emit paths today | [protocol/event-normalizer.ts](../packages/harnesses/src/protocol/event-normalizer.ts) |
 | Degradation strategy lookup | ✓ | [protocol/degradation-strategies.ts](../packages/harnesses/src/protocol/degradation-strategies.ts) |
@@ -31,7 +32,7 @@ This doc describes what's in the package today. Items in the [Roadmap](#roadmap)
 | Config normalization: `AGENTS.md` (write-only) | ✓ | same |
 | Config normalization: `.claude/rules/*.md` (per-rule, write-only) | ✓ | same |
 | Coordinator: start / stop / registerAdapter / dispatchTask / healthCheck | ✓ | [coordinator.ts](../packages/harnesses/src/coordinator.ts) |
-| JSON-RPC server with `vaughn.*` methods | ✓ (historical wire-format names) | [server/rpc-server.ts](../packages/harnesses/src/server/rpc-server.ts) |
+| JSON-RPC server with `protocol.*` methods | ✓ | [server/rpc-server.ts](../packages/harnesses/src/server/rpc-server.ts) |
 | HTTP gateway (optional, off by default) | ✓ existence; security audit pending | [server/http-gateway.ts](../packages/harnesses/src/server/http-gateway.ts) |
 | **RevealUI Agent adapter** | ✓ working | [adapters/revealui-agent-adapter.ts](../packages/harnesses/src/adapters/revealui-agent-adapter.ts) |
 | Workboard manager + PGlite daemon store | ✓ | [workboard/](../packages/harnesses/src/workboard), [storage/](../packages/harnesses/src/storage) |
@@ -72,9 +73,15 @@ export interface ProtocolAdapter {
 
 ### Capability profiles
 
-[`TOOL_PROFILES`](../packages/harnesses/src/protocol/capabilities.ts) is static reference data describing what each tool *would* support if an adapter wrapped it. Only `revealui-agent` has a working adapter today; the other three profiles inform the degradation table and future adapter work.
+Capability data is split across two named exports to make the spec-vs-shipped gap structurally visible:
 
-| Capability | Claude Code | Codex CLI | Cursor | **RevealUI Agent (shipped)** |
+- [`TOOL_PROFILES`](../packages/harnesses/src/protocol/capabilities.ts) — profiles for tools that have working adapters in this package. **One entry today: `revealui-agent`.**
+- [`ROADMAP_PROFILES`](../packages/harnesses/src/protocol/roadmap-profiles.ts) — declared profiles for tools the spec targets but where no adapter is implemented yet. **Three entries today: `claude-code`, `codex`, `cursor`.**
+- [`ALL_KNOWN_PROFILES`](../packages/harnesses/src/protocol/roadmap-profiles.ts) — merged view for callers that want capability data for any known tool ID. Shipped entries take precedence on key collision.
+
+`HarnessCoordinator.dispatchTask` consults explicit registered capabilities first, then `TOOL_PROFILES`, then `ROADMAP_PROFILES` — so coordinators that register stub adapters for spec'd-but-unimplemented tools still get capability data for dispatch decisions.
+
+| Capability | Claude Code _(roadmap)_ | Codex CLI _(roadmap)_ | Cursor _(roadmap)_ | **RevealUI Agent (shipped)** |
 |---|---|---|---|---|
 | dispatch.generateCode / analyzeCode / applyEdit / executeCommand | false × 4 | false × 4 | false × 4 | **true × 4** |
 | readWorkboard / writeWorkboard | true / true | true / true | false / false | **true / true** |
@@ -170,16 +177,16 @@ All adapters can coordinate through `.claude/workboard.md` directly. No daemon r
 
 ### JSON-RPC transport (Unix domain socket)
 
-`@revealui/harnesses` ships a JSON-RPC 2.0 server. Method names use the historical `vaughn.*` namespace — the protocol was renamed 2026-05-18; method names are preserved for wire-format stability with existing consumers (notably the [revdev daemon](https://github.com/RevealUIStudio/revdev) which talks to this socket).
+`@revealui/harnesses` ships a JSON-RPC 2.0 server.
 
 | Method | Returns | Purpose |
 |---|---|---|
-| `vaughn.capabilities` | `Array<{ id, capabilities: ProtocolCapabilities }>` | List registered adapters + capability profiles |
-| `vaughn.dispatch` | `{ adapterId: string \| null }` | Pick best adapter for capability requirements |
-| `vaughn.events` | `ProtocolEventEnvelope[]` | Last 100 events from the queue |
-| `vaughn.config.sync` | `{ files: Record<string, string> }` | Generate all configs from a `ProtocolConfig` |
+| `protocol.capabilities` | `Array<{ id, capabilities: ProtocolCapabilities }>` | List registered adapters + capability profiles (shipped only — `TOOL_PROFILES`) |
+| `protocol.dispatch` | `{ adapterId: string \| null }` | Pick best adapter for capability requirements |
+| `protocol.events` | `ProtocolEventEnvelope[]` | Last 100 events from the queue |
+| `protocol.config.sync` | `{ files: Record<string, string> }` | Generate all configs from a `ProtocolConfig` |
 
-Renaming these methods to `protocol.*` is tracked as a coordinated migration with the daemon consumer; see [Roadmap](#roadmap).
+> 0.5.0 renamed these methods from the historical `vaughn.*` namespace. A pre-publish audit confirmed no external consumers (the revdev daemon was never wired into these methods), so the rename is a clean break with no backward-compat alias.
 
 ### HTTP transport (optional, off by default)
 
@@ -191,7 +198,7 @@ Renaming these methods to `protocol.*` is tracked as a coordinated migration wit
 
 Session type detection in [`workboard/session-identity.ts`](../packages/harnesses/src/workboard/session-identity.ts) resolves to one of `'claude' | 'codex' | 'zed' | 'cursor' | 'terminal'` via this cascade:
 
-1. Explicit `PROTOCOL_AGENT_ID` env var (legacy fallback: `VAUGHN_AGENT_ID`)
+1. Explicit `PROTOCOL_AGENT_ID` env var
 2. Tool-specific env var (`CLAUDE_AGENT_ROLE`)
 3. Session cache (`/tmp/protocol-session-<ppid>.id`)
 4. Process tree walk
@@ -215,7 +222,6 @@ Items defined in the original spec but not implemented today:
 - **7-tier identity cascade** with structured identity formats.
 - **MCP tool reservation** (concurrency control across adapters calling the same MCP tool).
 - **HTTP transport security:** bearer-token auth enforcement, TLS, rate limiting, sandbox-mode-aware dispatch — audit before non-localhost exposure.
-- **RPC method rename** from `vaughn.*` to `protocol.*` (coordinated with the daemon consumer).
 - **Cross-machine coordination** (distributed lock for HTTP transport).
 
 These are tracked in [docs/MASTER_PLAN.md](./MASTER_PLAN.md) under harness-related lanes.
@@ -231,10 +237,8 @@ This protocol was originally named VAUGHN — a backronym (Versioned Agent Unifi
 
 Renamed 2026-05-18 to **Harness Protocol** — descriptive, matching the existing `@revealui/harnesses` package name and the existing `HarnessAdapter` / `HarnessCoordinator` types. The protocol describes how an adapter wraps a tool ("harnesses" it) and how the coordinator orchestrates work across registered adapters.
 
-The previous name survives in three places, intentionally:
+0.4.0 (the rename release) left three transitional carry-overs in place — `vaughn.*` RPC method aliases, a `VAUGHN_AGENT_ID` env-var fallback with deprecation warning, and a `/tmp/vaughn-session-<ppid>.id` cache-file fallback. A 0.5.0 audit confirmed none of those had any external consumer (no shell config, hook, script, or repo in the fleet referenced them), so the deprecation pattern was protecting phantoms. 0.5.0 removed the aliases and fallbacks for a clean final state.
 
-- **RPC method namespace** (`vaughn.capabilities`, etc.) — kept for wire-format stability with the daemon consumer
-- **`CHANGELOG.md` entries** — history is history
-- **Legacy env var alias** (`VAUGHN_AGENT_ID` still read as a fallback after `PROTOCOL_AGENT_ID`)
+The previous name now survives only in `CHANGELOG.md` entries — history is history.
 
 The principles, not the name, do the work.

@@ -89,10 +89,10 @@ const ERR_INTERNAL = -32603;
  *   merge.resolve             → MergeResult
  *   merge.list                → MergeRequest[]
  *   ci.report                 → CIFeedbackResult
- *   vaughn.capabilities       → ProtocolAdapterInfo[]   (Harness Protocol; wire name kept for compat)
- *   vaughn.dispatch           → { adapterId: string | null }
- *   vaughn.events             → ProtocolEventEnvelope[]
- *   vaughn.config.sync        → { files: Record<string, string> }
+ *   protocol.capabilities     → Array<{ id, capabilities: ProtocolCapabilities }>
+ *   protocol.dispatch         → { adapterId: string | null }
+ *   protocol.events           → ProtocolEventEnvelope[]
+ *   protocol.config.sync      → { files: Record<string, string> }
  *   shared.facts.publish      → SharedFact
  *   shared.memory.store       → SharedMemory
  *   shared.scratchpad.patch   → YjsPatch
@@ -744,11 +744,9 @@ export class RpcServer {
       }
 
       // -----------------------------------------------------------------------
-      // Harness Protocol  (wire-format method names use the historical
-      // `vaughn.*` namespace for backward compatibility with existing
-      // consumers — see docs/HARNESS_PROTOCOL.md §Transports.)
+      // Harness Protocol
       // -----------------------------------------------------------------------
-      case 'vaughn.capabilities': {
+      case 'protocol.capabilities': {
         const result: Array<{ id: string; capabilities: ProtocolCapabilities }> = [];
         for (const adapterId of this.registry.listAll()) {
           const caps = TOOL_PROFILES[adapterId];
@@ -757,7 +755,7 @@ export class RpcServer {
         return { jsonrpc: '2.0', id, result };
       }
 
-      case 'vaughn.dispatch': {
+      case 'protocol.dispatch': {
         if (!this.protocolDispatchFn) return this.noService(id, 'protocol-dispatch');
         const description = p.description as string | undefined;
         if (!description) return this.missingParam(id, 'description');
@@ -766,13 +764,13 @@ export class RpcServer {
         return { jsonrpc: '2.0', id, result: { adapterId } };
       }
 
-      case 'vaughn.events': {
+      case 'protocol.events': {
         const limit = (p.limit as number | undefined) ?? 50;
         const events = this.protocolEventQueue.slice(-limit);
         return { jsonrpc: '2.0', id, result: events };
       }
 
-      case 'vaughn.config.sync': {
+      case 'protocol.config.sync': {
         const config = p.config as ProtocolConfig | undefined;
         if (!config) return this.missingParam(id, 'config');
         const generated = generateAllConfigs(config);

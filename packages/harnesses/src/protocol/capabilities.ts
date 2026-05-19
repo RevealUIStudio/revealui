@@ -101,103 +101,18 @@ export function createDefaultCapabilities(): ProtocolCapabilities {
 }
 
 /**
- * Known capability profiles for supported tools.
- * These are reference profiles; actual adapters may override.
+ * Capability profiles for tools that have working adapters in this package.
  *
- * Note: only 'revealui-agent' has a working adapter today. The other three
- * entries describe what those tools support natively, for use by future
- * adapters and the degradation table.
+ * Only `revealui-agent` ships an adapter today. Profile data for tools
+ * that are spec'd but have no adapter implementation lives in
+ * `./roadmap-profiles.ts` to make the spec-vs-shipped gap structurally
+ * visible.
+ *
+ * If you're looking for the previous full set (claude-code, codex,
+ * cursor, revealui-agent), import `ALL_KNOWN_PROFILES` from
+ * `./roadmap-profiles.ts` which merges both.
  */
 export const TOOL_PROFILES: Record<string, ProtocolCapabilities> = {
-  'claude-code': {
-    dispatch: {
-      generateCode: false,
-      analyzeCode: false,
-      applyEdit: false,
-      executeCommand: false,
-    },
-    readWorkboard: true,
-    writeWorkboard: true,
-    claimTasks: true,
-    reportConflicts: true,
-    headless: true,
-    resumable: false,
-    forkable: false,
-    backgroundable: true,
-    hooks: { supported: true, granularity: 'all-tools', canBlock: true },
-    sandbox: { supported: false, modes: [] },
-    supportsWorktrees: true,
-    supportsSkills: true,
-    supportsMcp: true,
-    memory: { supported: false, backend: 'none' },
-    maxContextTokens: 200_000,
-    lifecycleEvents: [
-      'session.start',
-      'session.stop',
-      'prompt.submit',
-      'tool.before',
-      'tool.after',
-      'tool.blocked',
-    ],
-  },
-
-  codex: {
-    dispatch: {
-      generateCode: false,
-      analyzeCode: false,
-      applyEdit: false,
-      executeCommand: false,
-    },
-    readWorkboard: true,
-    writeWorkboard: true,
-    claimTasks: true,
-    reportConflicts: false,
-    headless: true,
-    resumable: true,
-    forkable: true,
-    backgroundable: true,
-    hooks: { supported: true, granularity: 'bash-only', canBlock: true },
-    sandbox: { supported: true, modes: ['read-only', 'workspace-write', 'full-access'] },
-    supportsWorktrees: false,
-    supportsSkills: true,
-    supportsMcp: true,
-    memory: { supported: true, backend: 'sqlite' },
-    maxContextTokens: 200_000,
-    lifecycleEvents: [
-      'session.start',
-      'session.stop',
-      'prompt.submit',
-      'tool.before',
-      'tool.after',
-      'tool.blocked',
-    ],
-  },
-
-  cursor: {
-    dispatch: {
-      generateCode: false,
-      analyzeCode: false,
-      applyEdit: false,
-      executeCommand: false,
-    },
-    readWorkboard: false,
-    writeWorkboard: false,
-    claimTasks: false,
-    reportConflicts: false,
-    headless: false,
-    resumable: false,
-    forkable: false,
-    backgroundable: false,
-    hooks: { supported: false, granularity: 'none', canBlock: false },
-    sandbox: { supported: false, modes: [] },
-    supportsWorktrees: false,
-    supportsSkills: false,
-    supportsMcp: false,
-    memory: { supported: false, backend: 'none' },
-    maxContextTokens: 128_000,
-    lifecycleEvents: [],
-  },
-
   'revealui-agent': {
     dispatch: {
       generateCode: true,

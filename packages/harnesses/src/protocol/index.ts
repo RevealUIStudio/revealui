@@ -4,8 +4,7 @@
  * Re-exports all protocol types, schemas, factories, and utilities.
  *
  * Historical note: this protocol was originally named VAUGHN. Renamed
- * 2026-05-18; see docs/HARNESS_PROTOCOL.md for context. RPC method
- * names (`vaughn.*`) are preserved for wire-format stability.
+ * 2026-05-18; see docs/HARNESS_PROTOCOL.md for context.
  */
 
 // Adapter
@@ -22,7 +21,7 @@ export type {
   ProtocolRule,
   ProtocolSkill,
 } from './adapter.js';
-// Capabilities
+// Capabilities (shipped adapters only)
 export type {
   HookGranularity,
   MemoryBackend,
@@ -30,6 +29,8 @@ export type {
   SandboxMode,
 } from './capabilities.js';
 export { createDefaultCapabilities, TOOL_PROFILES } from './capabilities.js';
+// Roadmap profiles (declared but not implemented)
+export { ALL_KNOWN_PROFILES, ROADMAP_PROFILES } from './roadmap-profiles.js';
 // Config normalization
 export type { ClaudeCodeSettings, ConfigGenerationResult } from './config-normalizer.js';
 export {

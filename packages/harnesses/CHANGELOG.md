@@ -1,5 +1,38 @@
 # @revealui/harnesses
 
+## 0.5.0
+
+### Minor Changes
+
+- Finish the VAUGHN → Harness Protocol rename: drop transitional aliases (no external consumers) and split adapter-less profiles into `ROADMAP_PROFILES` for structural visibility.
+
+  **Audit finding behind this release:** 0.4.0 (the rename release) left three transitional carry-overs in place to protect against a phantom daemon consumer — `vaughn.*` RPC method names, a `VAUGHN_AGENT_ID` env-var fallback with deprecation warning, and a `/tmp/vaughn-session-<ppid>.id` cache-file fallback. A post-publish audit (`grep` across the entire fleet, including revdev, hooks, shell configs, `.jv/`) confirmed **none of those had any external consumer**. The deprecation pattern was carrying weight for nothing. 0.5.0 removes the aliases for a clean final state.
+
+  **Breaking — RPC method names** (`@revealui/harnesses/server/rpc-server`):
+
+  - `vaughn.capabilities` → `protocol.capabilities`
+  - `vaughn.dispatch` → `protocol.dispatch`
+  - `vaughn.events` → `protocol.events`
+  - `vaughn.config.sync` → `protocol.config.sync`
+
+  **Breaking — env var:** `VAUGHN_AGENT_ID` is no longer read. Use `PROTOCOL_AGENT_ID`.
+
+  **Breaking — session cache file:** `/tmp/vaughn-session-<ppid>.id` is no longer read. The new path `/tmp/protocol-session-<ppid>.id` is used exclusively.
+
+  **Breaking — `TOOL_PROFILES` shape:** previously contained four entries (`claude-code`, `codex`, `cursor`, `revealui-agent`). Now contains only `revealui-agent` — the only tool with a working adapter in this package. The three adapter-less entries moved to a new export `ROADMAP_PROFILES` from `@revealui/harnesses/protocol`. A merged view `ALL_KNOWN_PROFILES` is also exported for callers that want capability data for any known tool ID regardless of adapter status.
+
+  - `TOOL_PROFILES` → shipped adapters only (revealui-agent)
+  - `ROADMAP_PROFILES` → declared but unimplemented (claude-code, codex, cursor)
+  - `ALL_KNOWN_PROFILES` → merged view (shipped entries take precedence on key collision)
+
+  `HarnessCoordinator.dispatchTask` consults explicit registered capabilities first, then `TOOL_PROFILES`, then `ROADMAP_PROFILES` — so coordinators that register stub adapters for spec'd-but-unimplemented tools still get capability data for dispatch decisions.
+
+  **Migration:**
+
+  - If you call the harnesses RPC server: rename your method strings from `vaughn.*` to `protocol.*`.
+  - If you set `VAUGHN_AGENT_ID` in any environment: rename to `PROTOCOL_AGENT_ID`.
+  - If you import `TOOL_PROFILES['claude-code']` / `['codex']` / `['cursor']`: import `ROADMAP_PROFILES` (or `ALL_KNOWN_PROFILES`) from `@revealui/harnesses/protocol` instead.
+
 ## 0.4.0
 
 ### Minor Changes
