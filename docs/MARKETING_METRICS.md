@@ -106,7 +106,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Surface | Value |
 |---|---|
-| Primary brand color (`--rvui-brand`) | `oklch(0.46 0.180 240)` (cobalt, dark mode default) |
+| Primary brand color (`--rvui-brand`) | `oklch(0.58 0.150 240)` (cobalt-300, dark mode default — AA-lifted 2026-05-19) |
 | Light mode brand | `oklch(0.36 0.190 240)` |
 | Source-of-truth file | `packages/presentation/src/tokens.css:109-116` (dark) + `:198-206` (light) |
 | Memory | `project_fleet_brand_emerald_convergence` (to be renamed post-merge: cobalt landed 2026-05-19) |
