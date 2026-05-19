@@ -35,6 +35,22 @@
       "types": "./dist/servers/adapter.d.ts",
       "import": "./dist/servers/adapter.js"
     },
+    "./author": {
+      "types": "./dist/author/index.d.ts",
+      "import": "./dist/author/index.js"
+    },
+    "./author/scaffold": {
+      "types": "./dist/author/scaffold.d.ts",
+      "import": "./dist/author/scaffold.js"
+    },
+    "./author/test": {
+      "types": "./dist/author/test.d.ts",
+      "import": "./dist/author/test.js"
+    },
+    "./author/publish": {
+      "types": "./dist/author/publish.d.ts",
+      "import": "./dist/author/publish.js"
+    },
     "./contracts": {
       "types": "./dist/contracts.d.ts",
       "import": "./dist/contracts.js"
