@@ -159,7 +159,7 @@ export function BlogPostPage() {
               href="https://admin.revealui.com/signup"
               className="rounded-md bg-gray-950 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 transition-colors"
             >
-              Get started free
+              Start free
             </a>
             <a
               href="https://docs.revealui.com"
