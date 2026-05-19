@@ -51,7 +51,7 @@ No assembly required. Define your data once. Humans manage it through the dashbo
 | **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal         | Same Stripe primitives, available to agents.                 |
 | **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 13 MCP servers.                   |
 
-## The JOSHUA Stack
+## Design principles
 
 Six principles that give you a tested starting point for every architectural decision. Not the only way, a way that works. Evolve it as you grow:
 
@@ -265,7 +265,7 @@ revealui/
 
 - **[Build Your Business](docs/BUILD_YOUR_BUSINESS.md):** End-to-end tutorial: scaffold, collections, pricing, billing, deploy
 - **[Quick Start](docs/QUICK_START.md):** From zero to running app
-- **[The JOSHUA Stack](docs/JOSHUA.md):** Six engineering principles and the evidence behind them
+- **[Design Principles](docs/JOSHUA.md):** Six engineering principles  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive  -  and the evidence behind each
 - **[Architecture](docs/ARCHITECTURE.md):** How the pieces fit together
 - **[The VAUGHN Protocol](docs/VAUGHN.md):** Multi-agent coordination across heterogeneous AI tools
 - **[Pro](docs/PRO.md):** AI features, MCP, marketplace, and trust controls

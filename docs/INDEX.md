@@ -9,7 +9,7 @@ audience: developer
 
 Agentic business runtime. Five primitives for humans and agents: users, content, products, payments, and intelligence.
 
-Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive. Six engineering principles that govern every architectural decision.
+Six **[design principles](./JOSHUA.md)** govern every architectural decision: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive.
 
 ## Getting Started
 
@@ -20,7 +20,7 @@ Built on the **[JOSHUA Stack](./JOSHUA.md)**: Justifiable, Orthogonal, Sovereign
 
 ## Core Guides
 
-- [The JOSHUA Stack](./JOSHUA.md): Six engineering principles: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive
+- [Design Principles](./JOSHUA.md): Six engineering principles: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive
 - [Architecture](./ARCHITECTURE.md): System design, dual database, multi-tenant patterns
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy

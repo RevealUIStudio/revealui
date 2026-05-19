@@ -57,7 +57,7 @@ const app = new OpenAPIHono();
 app.openapi(route, (c) => c.json({ id: '1', name: 'test' }, 201));
 ```
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Unified**: Single schema definition drives validation, types, and OpenAPI spec
 - **Orthogonal**: Decoupled from business logic  -  validates at the boundary, not inside handlers

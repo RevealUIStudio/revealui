@@ -190,7 +190,7 @@ pnpm --filter @revealui/sync typecheck  # Type check
 - **Not** for batch data loading or static pages  -  use server components with `@revealui/db` directly
 - **Not** for offline-first mobile apps  -  ElectricSQL targets web clients with persistent connections
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Adaptive**: Shape subscriptions dynamically sync only the data your component needs  -  scales from one user to many
 - **Sovereign**: Sync runs through your own CMS proxy and PostgreSQL  -  no third-party real-time service required

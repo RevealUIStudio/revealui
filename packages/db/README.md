@@ -130,7 +130,7 @@ await db.insert(users).values({
 - **Not** for validation logic  -  use `@revealui/contracts` for Zod schemas
 - **Not** for direct SQL  -  use Drizzle's query builder or `db.execute()` for raw queries
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Unified**: One schema definition (81 tables) drives types, queries, and migrations across all apps
 - **Orthogonal**: Schema files are cleanly separated by domain (cms, users, agents, vector, crdt) with no cross-domain entanglement

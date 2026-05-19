@@ -44,9 +44,9 @@ The fundamental issue is that these tools were designed in isolation. They don't
 
 ## The RevealUI approach
 
-RevealUI treats those five primitives as a single, cohesive system. The architecture follows what I call the **JOSHUA Stack**  -  six engineering principles that govern every decision: **Justifiable** (every default earns its place), **Orthogonal** (clean separation between packages), **Sovereign** (you own everything, deploy anywhere), **Hermetic** (sealed boundaries between concerns), **Unified** (one schema, zero drift), and **Adaptive** (AI and extensibility built into the foundation, not bolted on).
+RevealUI treats those five primitives as a single, cohesive system. The architecture follows six engineering principles that govern every decision: **Justifiable** (every default earns its place), **Orthogonal** (clean separation between packages), **Sovereign** (you own everything, deploy anywhere), **Hermetic** (sealed boundaries between concerns), **Unified** (one schema, zero drift), and **Adaptive** (AI and extensibility built into the foundation, not bolted on).
 
-I want to be clear about something: I'm not claiming this is the only way to build software. I'm saying it's *a* way  -  one that I've tested across three companies and thousands of decisions. If you're staring at a blank repo wondering which ORM, which auth strategy, which deployment model, the JOSHUA Stack gives you a defensible answer for each one. Start here. Evolve from here. The principles are starting coordinates, not a cage.
+I want to be clear about something: I'm not claiming this is the only way to build software. I'm saying it's *a* way  -  one that I've tested across three companies and thousands of decisions. If you're staring at a blank repo wondering which ORM, which auth strategy, which deployment model, these six principles give you a defensible answer for each one. Start here. Evolve from here. The principles are starting coordinates, not a cage.
 
 Here's what that looks like in practice.
 
@@ -216,7 +216,7 @@ I also open-sourced the MCP framework (hypervisor, adapter base classes, and dat
 
 ## What makes RevealUI different
 
-RevealUI is not an admin with plugins bolted on. It's not a boilerplate you clone and hack. It's a cohesive system designed from the ground up so that every primitive knows about every other primitive. This is the JOSHUA Stack's **Unified** and **Hermetic** principles in practice  -  one schema shared across every layer, but with sealed boundaries between concerns so auth never leaks into billing and content never tangles with payments.
+RevealUI is not an admin with plugins bolted on. It's not a boilerplate you clone and hack. It's a cohesive system designed from the ground up so that every primitive knows about every other primitive. This is the **Unified** and **Hermetic** design principles in practice  -  one schema shared across every layer, but with sealed boundaries between concerns so auth never leaks into billing and content never tangles with payments.
 
 When a user signs up, the auth system creates their session, assigns their default role, and checks their license tier. When they access content, the collection's `access.read` function can reference their tier, their role, or any custom claim. When they upgrade via Stripe, the webhook handler updates their license, which updates their feature flags, which unlocks gated content and capabilities  -  all in the same request cycle.
 

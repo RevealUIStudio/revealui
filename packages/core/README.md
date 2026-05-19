@@ -159,7 +159,7 @@ pnpm dev
 - **Not** for standalone UI components  -  use `@revealui/presentation`
 - **Not** for raw database queries  -  use `@revealui/db` directly
 
-## JOSHUA Alignment
+## Design Principles
 
 - **Sovereign**: Self-hosted runtime engine  -  no vendor dependency for content management, auth, or storage
 - **Unified**: One `buildConfig()` call wires collections, globals, plugins, security, and feature gates into a single configuration
