@@ -1,0 +1,98 @@
+name: Dependabot Catalog Lockfile Auto-Fix
+
+# When Dependabot bumps a catalog-managed dependency, it sometimes replaces
+# `specifier: 'catalog:'` in the pnpm-lock.yaml importer block with the
+# resolved version (e.g. `specifier: 8.21.0`), even though
+# `pnpm-workspace.yaml`'s catalog was correctly bumped. The resulting
+# importer entry no longer matches the manifest, so
+# `pnpm install --frozen-lockfile` rejects it with
+# ERR_PNPM_OUTDATED_LOCKFILE — breaking every Quality / Security / CodeQL
+# job until a human checks out the branch and runs `pnpm install`.
+#
+# This workflow runs that one-line fix automatically:
+#   1. Triggers only on Dependabot PRs that touched pnpm-lock.yaml.
+#   2. Checks out the PR head branch.
+#   3. Runs `pnpm install --lockfile-only --ignore-scripts`, which
+#      regenerates importer specifiers back to 'catalog:' against the
+#      already-correct workspace catalog.
+#   4. If the lockfile drifted, commits the fix as github-actions[bot]
+#      and pushes to the PR head.
+#
+# Push-loop guard: the workflow only runs when `github.actor` is
+# dependabot[bot]. The auto-fix commit is authored by
+# github-actions[bot], so the resulting push event will re-trigger the
+# workflow but the actor check will short-circuit the job.
+#
+# Security: `pull_request_target` runs with the BASE branch's workflow
+# definition, so a PR can't modify this workflow to escalate privileges.
+# `pnpm install --ignore-scripts` skips lifecycle scripts so a malicious
+# package.json change can't execute arbitrary code.
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'pnpm-lock.yaml'
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: dependabot-catalog-autofix-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "24"
+  PNPM_VERSION: "10.28.2"
+
+jobs:
+  autofix:
+    if: github.actor == 'dependabot[bot]'
+    name: Restore catalog specifiers in lockfile
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout PR head branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Regenerate lockfile entries from manifests
+        run: pnpm install --lockfile-only --ignore-scripts
+
+      - name: Detect lockfile drift
+        id: drift
+        run: |
+          if git diff --quiet pnpm-lock.yaml; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Lockfile already matches manifests — no fix needed"
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Lockfile drift detected — committing fix"
+            git --no-pager diff --stat pnpm-lock.yaml
+          fi
+
+      - name: Commit + push catalog specifier fix
+        if: steps.drift.outputs.drifted == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          git -c core.fileMode=false commit -m "fix(deps): restore catalog specifiers in pnpm-lock.yaml"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          echo "::notice::Pushed catalog-specifier fix to ${{ github.event.pull_request.head.ref }}"
