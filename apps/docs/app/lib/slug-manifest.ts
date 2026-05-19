@@ -78,6 +78,7 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   forge: 'FORGE.md',
   glossary: 'glossary.md',
   'guides/authentication': 'guides/authentication.md',
+  'harness-protocol': 'HARNESS_PROTOCOL.md',
   'guides/billing': 'guides/billing.md',
   'guides/collections': 'guides/collections.md',
   'guides/deployment': 'guides/deployment.md',
@@ -120,7 +121,8 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   'third-party-licenses': 'THIRD_PARTY_LICENSES.md',
   troubleshooting: 'TROUBLESHOOTING.md',
   'type-system-rules': 'TYPE-SYSTEM-RULES.md',
-  vaughn: 'VAUGHN.md',
+  // Legacy slug kept so existing inbound links resolve; canonical slug is 'harness-protocol'.
+  vaughn: 'HARNESS_PROTOCOL.md',
   'what-works-today': 'WHAT_WORKS_TODAY.md',
 });
 

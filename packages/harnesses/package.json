@@ -1,6 +1,6 @@
 {
   "name": "@revealui/harnesses",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "AI harness integration — adapters, daemon, workboard coordination, JSON-RPC server.",
   "repository": {
     "type": "git",
@@ -47,9 +47,9 @@
       "types": "./dist/storage/index.d.ts",
       "import": "./dist/storage/index.js"
     },
-    "./vaughn": {
-      "types": "./dist/vaughn/index.d.ts",
-      "import": "./dist/vaughn/index.js"
+    "./protocol": {
+      "types": "./dist/protocol/index.d.ts",
+      "import": "./dist/protocol/index.js"
     }
   },
   "files": [

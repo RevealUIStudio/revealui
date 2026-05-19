@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { VaughnConfig } from '../vaughn/adapter.js';
+import type { ProtocolConfig } from '../protocol/adapter.js';
 import {
-  claudeSettingsToVaughnConfig,
+  claudeSettingsToProtocolConfig,
   generateAllConfigs,
-  vaughnConfigToAgentsMd,
-  vaughnConfigToClaudeSettings,
-  vaughnConfigToCursorrules,
-} from '../vaughn/config-normalizer.js';
+  protocolConfigToAgentsMd,
+  protocolConfigToClaudeSettings,
+  protocolConfigToCursorrules,
+} from '../protocol/config-normalizer.js';
 
-function createTestConfig(overrides: Partial<VaughnConfig> = {}): VaughnConfig {
+function createTestConfig(overrides: Partial<ProtocolConfig> = {}): ProtocolConfig {
   return {
     identity: { name: 'Test Agent', email: 'test@example.com', role: 'builder' },
     permissions: { autoApprove: ['Read', 'Glob'], deny: ['Write'] },
@@ -52,23 +52,23 @@ function createTestConfig(overrides: Partial<VaughnConfig> = {}): VaughnConfig {
   };
 }
 
-describe('vaughnConfigToClaudeSettings', () => {
+describe('protocolConfigToClaudeSettings', () => {
   it('converts permissions', () => {
     const config = createTestConfig();
-    const settings = vaughnConfigToClaudeSettings(config);
+    const settings = protocolConfigToClaudeSettings(config);
     expect(settings.permissions?.allow).toEqual(['Read', 'Glob']);
     expect(settings.permissions?.deny).toEqual(['Write']);
   });
 
   it('converts environment variables', () => {
     const config = createTestConfig();
-    const settings = vaughnConfigToClaudeSettings(config);
+    const settings = protocolConfigToClaudeSettings(config);
     expect(settings.env?.NODE_ENV).toBe('development');
   });
 
   it('converts MCP servers', () => {
     const config = createTestConfig();
-    const settings = vaughnConfigToClaudeSettings(config);
+    const settings = protocolConfigToClaudeSettings(config);
     expect(settings.mcpServers?.github).toBeDefined();
     expect(settings.mcpServers?.github.command).toBe('npx');
     expect(settings.mcpServers?.github.args).toEqual(['-y', '@modelcontextprotocol/server-github']);
@@ -80,7 +80,7 @@ describe('vaughnConfigToClaudeSettings', () => {
       permissions: { autoApprove: [], deny: [] },
       environment: { variables: {}, mcpServers: [] },
     });
-    const settings = vaughnConfigToClaudeSettings(config);
+    const settings = protocolConfigToClaudeSettings(config);
     expect(settings.permissions).toBeUndefined();
     expect(settings.env).toBeUndefined();
     expect(settings.mcpServers).toBeUndefined();
@@ -101,7 +101,7 @@ describe('vaughnConfigToClaudeSettings', () => {
         ],
       },
     });
-    const settings = vaughnConfigToClaudeSettings(config);
+    const settings = protocolConfigToClaudeSettings(config);
     expect(Object.keys(settings.mcpServers ?? {})).toEqual(['github']);
     // Confirm no prototype pollution: Object.prototype remains untouched
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
@@ -114,17 +114,17 @@ describe('vaughnConfigToClaudeSettings', () => {
         mcpServers: [{ name: '__proto__', command: 'npx' }],
       },
     });
-    const settings = vaughnConfigToClaudeSettings(config);
+    const settings = protocolConfigToClaudeSettings(config);
     expect(settings.mcpServers).toBeUndefined();
   });
 });
 
-describe('claudeSettingsToVaughnConfig', () => {
+describe('claudeSettingsToProtocolConfig', () => {
   it('parses permissions', () => {
     const settings = {
       permissions: { allow: ['Read'], deny: ['Bash'] },
     };
-    const config = claudeSettingsToVaughnConfig(settings);
+    const config = claudeSettingsToProtocolConfig(settings);
     expect(config.permissions?.autoApprove).toEqual(['Read']);
     expect(config.permissions?.deny).toEqual(['Bash']);
   });
@@ -135,14 +135,14 @@ describe('claudeSettingsToVaughnConfig', () => {
         github: { command: 'npx', args: ['-y', 'gh-server'], env: { TOKEN: 'x' } },
       },
     };
-    const config = claudeSettingsToVaughnConfig(settings);
+    const config = claudeSettingsToProtocolConfig(settings);
     expect(config.environment?.mcpServers).toHaveLength(1);
     expect(config.environment?.mcpServers[0].name).toBe('github');
     expect(config.environment?.mcpServers[0].command).toBe('npx');
   });
 
   it('handles empty settings', () => {
-    const config = claudeSettingsToVaughnConfig({});
+    const config = claudeSettingsToProtocolConfig({});
     expect(config.environment?.variables).toEqual({});
     expect(config.environment?.mcpServers).toEqual([]);
   });
@@ -155,24 +155,24 @@ describe('claudeSettingsToVaughnConfig', () => {
         github: { command: 'npx' },
       } as Record<string, { command: string }>,
     };
-    const config = claudeSettingsToVaughnConfig(settings);
+    const config = claudeSettingsToProtocolConfig(settings);
     expect(config.environment?.mcpServers).toHaveLength(1);
     expect(config.environment?.mcpServers[0].name).toBe('github');
   });
 
   it('round-trips permissions through Claude settings', () => {
     const original = createTestConfig();
-    const settings = vaughnConfigToClaudeSettings(original);
-    const parsed = claudeSettingsToVaughnConfig(settings);
+    const settings = protocolConfigToClaudeSettings(original);
+    const parsed = claudeSettingsToProtocolConfig(settings);
     expect(parsed.permissions?.autoApprove).toEqual(original.permissions.autoApprove);
     expect(parsed.permissions?.deny).toEqual(original.permissions.deny);
   });
 });
 
-describe('vaughnConfigToCursorrules', () => {
+describe('protocolConfigToCursorrules', () => {
   it('includes identity', () => {
     const config = createTestConfig();
-    const md = vaughnConfigToCursorrules(config);
+    const md = protocolConfigToCursorrules(config);
     expect(md).toContain('# Project Rules');
     expect(md).toContain('- Name: Test Agent');
     expect(md).toContain('- Role: builder');
@@ -180,57 +180,57 @@ describe('vaughnConfigToCursorrules', () => {
 
   it('includes rules with variable substitution', () => {
     const config = createTestConfig();
-    const md = vaughnConfigToCursorrules(config);
+    const md = protocolConfigToCursorrules(config);
     expect(md).toContain('### biome');
     expect(md).toContain('Format with biome.');
   });
 
   it('includes skills', () => {
     const config = createTestConfig();
-    const md = vaughnConfigToCursorrules(config);
+    const md = protocolConfigToCursorrules(config);
     expect(md).toContain('### TDD Workflow');
     expect(md).toContain('Write tests first');
   });
 
   it('omits role when not set', () => {
     const config = createTestConfig({ identity: { name: 'X', email: 'x@y.com' } });
-    const md = vaughnConfigToCursorrules(config);
+    const md = protocolConfigToCursorrules(config);
     expect(md).not.toContain('- Role:');
   });
 });
 
-describe('vaughnConfigToAgentsMd', () => {
+describe('protocolConfigToAgentsMd', () => {
   it('includes header and version', () => {
     const config = createTestConfig();
-    const md = vaughnConfigToAgentsMd(config);
+    const md = protocolConfigToAgentsMd(config);
     expect(md).toContain('# AGENTS.md');
-    expect(md).toContain('VAUGHN protocol v0.1.0');
+    expect(md).toContain('Harness Protocol v0.1.0');
   });
 
   it('includes identity', () => {
     const config = createTestConfig();
-    const md = vaughnConfigToAgentsMd(config);
+    const md = protocolConfigToAgentsMd(config);
     expect(md).toContain('- Name: Test Agent');
     expect(md).toContain('- Email: test@example.com');
   });
 
   it('includes denied operations', () => {
     const config = createTestConfig();
-    const md = vaughnConfigToAgentsMd(config);
+    const md = protocolConfigToAgentsMd(config);
     expect(md).toContain('## Denied Operations');
     expect(md).toContain('- Write');
   });
 
   it('includes rules with appliesTo', () => {
     const config = createTestConfig();
-    const md = vaughnConfigToAgentsMd(config);
+    const md = protocolConfigToAgentsMd(config);
     expect(md).toContain('### biome');
     expect(md).toContain('Applies to: *.ts, *.tsx');
   });
 
   it('includes commands with steps', () => {
     const config = createTestConfig();
-    const md = vaughnConfigToAgentsMd(config);
+    const md = protocolConfigToAgentsMd(config);
     expect(md).toContain('### /gate');
     expect(md).toContain('1. Run lint');
     expect(md).toContain('2. Run typecheck');

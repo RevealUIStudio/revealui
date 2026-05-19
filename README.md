@@ -267,7 +267,7 @@ revealui/
 - **[Quick Start](docs/QUICK_START.md):** From zero to running app
 - **[Design Principles](docs/JOSHUA.md):** Six engineering principles  -  Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive  -  and the evidence behind each
 - **[Architecture](docs/ARCHITECTURE.md):** How the pieces fit together
-- **[The VAUGHN Protocol](docs/VAUGHN.md):** Multi-agent coordination across heterogeneous AI tools
+- **[Harness Protocol](docs/HARNESS_PROTOCOL.md):** Agent-tool coordination layer shipped in `@revealui/harnesses`
 - **[Pro](docs/PRO.md):** AI features, MCP, marketplace, and trust controls
 - **[Database Guide](docs/DATABASE.md):** Schema, migrations, queries
 - **[Auth Guide](docs/AUTH.md):** Authentication, sessions, RBAC

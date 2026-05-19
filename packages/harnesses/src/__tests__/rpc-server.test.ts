@@ -183,7 +183,10 @@ describe('RpcServer (harnesses)', () => {
   });
 
   // -----------------------------------------------------------------------
-  // VAUGHN Protocol methods
+  // Harness Protocol methods
+  // (Wire-format method names use the historical `vaughn.*` namespace
+  // for backward compatibility with existing consumers — see
+  // docs/HARNESS_PROTOCOL.md §Transports.)
   // -----------------------------------------------------------------------
   it('vaughn.capabilities returns empty array when no adapters registered', async () => {
     const res = (await sendRequest(socket, 'vaughn.capabilities')) as {
@@ -201,7 +204,7 @@ describe('RpcServer (harnesses)', () => {
   });
 
   it('vaughn.dispatch returns error when description missing', async () => {
-    server.setVaughnDispatch(() => null);
+    server.setProtocolDispatch(() => null);
     const res = (await sendRequest(socket, 'vaughn.dispatch', {})) as {
       error: { code: number };
     };
@@ -209,7 +212,7 @@ describe('RpcServer (harnesses)', () => {
   });
 
   it('vaughn.dispatch returns adapterId when configured', async () => {
-    server.setVaughnDispatch((_req, _desc) => 'claude-code');
+    server.setProtocolDispatch((_req, _desc) => 'claude-code');
     const res = (await sendRequest(socket, 'vaughn.dispatch', {
       description: 'run tests',
       requirements: { headless: true },
@@ -226,7 +229,7 @@ describe('RpcServer (harnesses)', () => {
   });
 
   it('vaughn.events returns pushed events', async () => {
-    server.pushVaughnEvent({
+    server.pushProtocolEvent({
       version: '0.1.0',
       event: 'session.start',
       timestamp: new Date().toISOString(),
@@ -244,7 +247,7 @@ describe('RpcServer (harnesses)', () => {
 
   it('vaughn.events respects limit parameter', async () => {
     for (let i = 0; i < 5; i++) {
-      server.pushVaughnEvent({
+      server.pushProtocolEvent({
         version: '0.1.0',
         event: 'agent.heartbeat',
         timestamp: new Date().toISOString(),

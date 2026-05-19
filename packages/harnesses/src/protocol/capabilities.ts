@@ -1,5 +1,5 @@
 /**
- * VAUGHN Capability Model (Section 4 of VAUGHN.md)
+ * Harness Protocol Capability Model
  *
  * Defines the full superset of capabilities an adapter can declare.
  * Adapters degrade gracefully when a tool lacks a feature.
@@ -15,10 +15,10 @@ export type HookGranularity = 'none' | 'bash-only' | 'all-tools';
 export type MemoryBackend = 'none' | 'sqlite' | 'crdt' | 'file';
 
 /**
- * Full capability declaration for a VAUGHN adapter.
+ * Full capability declaration for a protocol adapter.
  * Each adapter declares this statically at registration time.
  */
-export interface VaughnCapabilities {
+export interface ProtocolCapabilities {
   /** Dispatch operations: can the adapter programmatically invoke these? */
   dispatch: {
     /** Adapter can send a prompt and get code back */
@@ -73,7 +73,7 @@ export interface VaughnCapabilities {
 }
 
 /** Creates a default capabilities object with all features disabled. */
-export function createDefaultCapabilities(): VaughnCapabilities {
+export function createDefaultCapabilities(): ProtocolCapabilities {
   return {
     dispatch: {
       generateCode: false,
@@ -101,10 +101,14 @@ export function createDefaultCapabilities(): VaughnCapabilities {
 }
 
 /**
- * Known capability profiles for supported tools (Section 4.2).
+ * Known capability profiles for supported tools.
  * These are reference profiles; actual adapters may override.
+ *
+ * Note: only 'revealui-agent' has a working adapter today. The other three
+ * entries describe what those tools support natively, for use by future
+ * adapters and the degradation table.
  */
-export const TOOL_PROFILES: Record<string, VaughnCapabilities> = {
+export const TOOL_PROFILES: Record<string, ProtocolCapabilities> = {
   'claude-code': {
     dispatch: {
       generateCode: false,

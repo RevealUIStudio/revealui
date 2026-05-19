@@ -52,7 +52,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 
 ## Agent Coordination
 
-- [The VAUGHN Protocol](./VAUGHN.md): Agent normalization, capability model, lifecycle events, and multi-tool coordination
+- [Harness Protocol](./HARNESS_PROTOCOL.md): Agent normalization, capability model, lifecycle events, and the adapter/coordinator surface shipped in `@revealui/harnesses`
 - [Blog: Three AI Agents, One Codebase](./blog/03-multi-agent-coordination.md): The problem that led to the Holster
 
 ## Pro & Enterprise
