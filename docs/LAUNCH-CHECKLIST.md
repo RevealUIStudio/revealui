@@ -1,7 +1,7 @@
 ---
 title: "Launch Checklist"
 description: "Pre-launch verification checklist for RevealUI open-core monorepo production deployment"
-last-updated: 2026-04-12
+last-updated: 2026-05-19
 status: pre-launch
 ---
 
@@ -234,11 +234,11 @@ Verify each package is ready for its initial publish:
 - [ ] `@revealui/router` **(blocking)**
 - [ ] `@revealui/config` **(blocking)**
 - [ ] `@revealui/utils` **(blocking)**
-- [ ] `@revealui/cli` (already published @0.3.4) **(blocking)**
+- [ ] `@revealui/cli` (already published @0.7.0) **(blocking)**
 - [ ] `@revealui/setup` **(blocking)**
 - [ ] `@revealui/sync` **(blocking)**
 - [ ] `@revealui/dev` **(blocking)**
-- [ ] `create-revealui` (already published @0.3.4) **(blocking)**
+- [ ] `create-revealui` (already published @0.5.5) **(blocking)**
 
 ### Post-publish
 

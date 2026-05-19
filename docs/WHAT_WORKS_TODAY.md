@@ -1,6 +1,6 @@
 # What Works Today
 
-> Last verified: 2026-04-26
+> Last verified: 2026-05-19
 
 This page is an honest account of what RevealUI can and can't do right now.
 If you're evaluating RevealUI for a project, read this before the marketing page.
@@ -16,7 +16,7 @@ Full content management engine with collections, access control, hooks, field ty
 and a REST API. The heart of RevealUI and the most mature part of the codebase.
 
 ### UI component library
-**59 native React components** in `packages/presentation/src/components/`, built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
+**59 native React components in `@revealui/presentation`** (80 total with `@revealui/core` admin/richtext), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
 **86 PostgreSQL tables** with Drizzle ORM, **61 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
@@ -100,7 +100,7 @@ Honest list of things that are not done, not deployed, or not verified.
 | Apps | 4 (`admin`, `server`, `docs`, `marketing`) | Yes |
 | OSS packages (MIT) | 22 | Yes |
 | Pro packages (FSL-1.1-MIT) | 3 (`ai`, `harnesses`, `engines`) | Yes |
-| UI components 58 | Yes |
+| UI components | 59 in `@revealui/presentation` (80 with `@revealui/core`) | Yes |
 | Database tables | 86 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
 | MCP servers (`packages/mcp/src/servers/`) | 13 | Yes |
 | Test cases | run `pnpm test` for current count | Reproducible |

@@ -1,7 +1,7 @@
 ---
 title: "Commercial Readiness Handoff"
 description: "The trust-layer gap between shipping code and charging a user — moral, secure, effective."
-last-updated: 2026-04-16
+last-updated: 2026-05-19
 status: active-handoff
 owner: RevealUI Studio
 ---
@@ -206,10 +206,10 @@ MASTER_PLAN § Current Reality). The remaining work is operational.
 
 These are owner-only actions; nothing here ships in the repo.
 
-- [ ] **Business entity formed** (LLC or C-corp depending on fundraising plans) with EIN /
-      equivalent.
-- [ ] **Business bank account** separate from personal.
-- [ ] **Stripe account verified** and in live mode, linked to the business entity.
+- [x] **Business entity formed** (LLC or C-corp depending on fundraising plans) with EIN /
+      equivalent. _Done 2026-04-28: REVEALUI STUDIO L.L.C. (Tennessee); EIN issued._
+- [x] **Business bank account** separate from personal. _Done 2026-05-10: Mercury Business account._
+- [ ] **Stripe account verified** and in live mode, linked to the business entity. _LLC Stripe account exists (2026-05-10); live-mode flip remains owner-gated on internal pre-flip verification._
 - [ ] **Business insurance quote obtained** — cyber liability + E&O coverage at minimum.
       Premiums for a pre-revenue solo SaaS are cheap; activate coverage before the first paid
       customer.
