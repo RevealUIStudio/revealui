@@ -33,7 +33,7 @@ export const PRICING_TEASER_TIERS: readonly TeaserTier[] = [
       'Self-host on any infra',
       'Bring your own model (open-weight default)',
     ],
-    cta: 'Get started free',
+    cta: 'Start free',
     href: SITE.urls.signup,
     highlight: false,
   },

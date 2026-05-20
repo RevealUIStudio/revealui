@@ -106,7 +106,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 
 | Surface | Value |
 |---|---|
-| Primary brand color (`--rvui-brand`) | `oklch(0.46 0.180 240)` (cobalt, dark mode default) |
+| Primary brand color (`--rvui-brand`) | `oklch(0.58 0.150 240)` (cobalt-300, dark mode default — AA-lifted 2026-05-19) |
 | Light mode brand | `oklch(0.36 0.190 240)` |
 | Source-of-truth file | `packages/presentation/src/tokens.css:109-116` (dark) + `:198-206` (light) |
 | Memory | `project_fleet_brand_emerald_convergence` (to be renamed post-merge: cobalt landed 2026-05-19) |
@@ -120,14 +120,14 @@ Marketing copy may say "cobalt" (or "Electric Verdigris") descriptively but the 
 | RevealUI | Shipped | Beta — no paying users yet | The core runtime |
 | RevDev | Shipped (Studio + Console + Daemon all shipping) | Alpha | Dev harness; dogfooded via studio-dogfood lane |
 | RevVault | Shipped | Beta (MIT CLI + Pro desktop app) | Secret management |
-| RevForge | Shipped | Beta (operator-only stamping tool) | Produces customer brands like AlleviaFleet |
+| RevForge | Shipped | Beta (operator-only stamping tool) | Produces customer-stamped Fleet kits |
 | RevCon | Shipped | Alpha (MIT) | Editor config sync |
 | RevSkills | Shipped | Active (MIT) | Claude Code skills library |
 | RevKit | Planned | Pro (planned) | Portable WSL dev env |
 | RevMarket | Planned | Code-complete, dormant | MCP marketplace; X402_ENABLED=false |
 | RevealCoin | **Pre-launch** (only on /roadmap) | Mainnet deployed but pre-launch | Shelved 2026-05-15; legal + multisig gates open |
 
-**AlleviaFleet** is NOT a fleet product — it's a customer brand stamped via RevForge. Memory `project_alleviafleet_is_stamped_revforge`.
+Customer-stamped Fleet kits are NOT fleet products — they are per-customer brand instances produced via RevForge.
 
 ## 6. Open-weight inference defaults (per memory)
 

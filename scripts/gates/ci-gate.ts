@@ -295,6 +295,16 @@ async function gate(): Promise<void> {
         args: ['validate:claims'],
       },
       {
+        name: 'Design-context drift (hard fail)',
+        command: 'pnpm',
+        args: ['validate:design-context'],
+      },
+      {
+        name: 'Brand bridge (hard fail)',
+        command: 'pnpm',
+        args: ['validate:brand-bridge'],
+      },
+      {
         name: 'Migration journal',
         command: 'pnpm',
         args: ['validate:migrations'],

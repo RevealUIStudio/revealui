@@ -6,7 +6,7 @@ export function PrivacyPage() {
     <div className="min-h-screen bg-white">
       <article className="mx-auto max-w-3xl px-6 py-24 lg:px-8 prose prose-gray">
         <h1>{PRIVACY_META.title}</h1>
-        <p className="text-sm text-gray-500">Last updated: {PRIVACY_META.lastUpdated}</p>
+        <p className="text-sm text-muted-foreground">Last updated: {PRIVACY_META.lastUpdated}</p>
 
         <p>{PRIVACY_META.intro}</p>
 

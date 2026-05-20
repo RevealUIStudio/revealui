@@ -18,17 +18,17 @@ beforeAll(() => {
 describe('issueRevForgeLicense', () => {
   it('issues a JWT with the expected shape and metadata', async () => {
     const result = await issueRevForgeLicense(
-      { slug: 'allevia', tier: 'pro' },
+      { slug: 'acme', tier: 'pro' },
       { privateKey, publicKey },
     );
 
     expect(result.licenseKey).toMatch(/^eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\..+/);
-    expect(result.customerId).toBe('allevia');
+    expect(result.customerId).toBe('acme');
     expect(result.tier).toBe('pro');
     expect(result.perpetual).toBe(false);
     expect(result.expiresAt).not.toBeNull();
     expect(result.payload.tier).toBe('pro');
-    expect(result.payload.customerId).toBe('allevia');
+    expect(result.payload.customerId).toBe('acme');
   });
 
   it('round-trips: issued JWT validates back to the same payload', async () => {
@@ -105,7 +105,7 @@ describe('issueRevForgeLicense', () => {
     await expect(
       issueRevForgeLicense(
         // biome-ignore lint/suspicious/noExplicitAny: invalid tier on purpose
-        { slug: 'allevia', tier: 'free' as any },
+        { slug: 'acme', tier: 'free' as any },
         { privateKey, publicKey },
       ),
     ).rejects.toThrow(/Invalid --tier/);
@@ -114,7 +114,7 @@ describe('issueRevForgeLicense', () => {
   it('rejects perpetual + expiresInDays combined', async () => {
     await expect(
       issueRevForgeLicense(
-        { slug: 'allevia', tier: 'pro', perpetual: true, expiresInDays: 30 },
+        { slug: 'acme', tier: 'pro', perpetual: true, expiresInDays: 30 },
         { privateKey, publicKey },
       ),
     ).rejects.toThrow(/mutually exclusive/);
@@ -123,14 +123,14 @@ describe('issueRevForgeLicense', () => {
   it('rejects non-positive expiresInDays', async () => {
     await expect(
       issueRevForgeLicense(
-        { slug: 'allevia', tier: 'pro', expiresInDays: 0 },
+        { slug: 'acme', tier: 'pro', expiresInDays: 0 },
         { privateKey, publicKey },
       ),
     ).rejects.toThrow(/positive integer/);
 
     await expect(
       issueRevForgeLicense(
-        { slug: 'allevia', tier: 'pro', expiresInDays: -1 },
+        { slug: 'acme', tier: 'pro', expiresInDays: -1 },
         { privateKey, publicKey },
       ),
     ).rejects.toThrow(/positive integer/);
@@ -138,17 +138,11 @@ describe('issueRevForgeLicense', () => {
 
   it('rejects non-positive maxSites / maxUsers', async () => {
     await expect(
-      issueRevForgeLicense(
-        { slug: 'allevia', tier: 'pro', maxSites: 0 },
-        { privateKey, publicKey },
-      ),
+      issueRevForgeLicense({ slug: 'acme', tier: 'pro', maxSites: 0 }, { privateKey, publicKey }),
     ).rejects.toThrow(/--max-sites/);
 
     await expect(
-      issueRevForgeLicense(
-        { slug: 'allevia', tier: 'pro', maxUsers: -5 },
-        { privateKey, publicKey },
-      ),
+      issueRevForgeLicense({ slug: 'acme', tier: 'pro', maxUsers: -5 }, { privateKey, publicKey }),
     ).rejects.toThrow(/--max-users/);
   });
 

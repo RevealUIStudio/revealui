@@ -26,6 +26,7 @@
     "cross-env": "^10.1.0",
     "@revealui/dev": "workspace:*",
     "jsdom": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plugin-dts": "^4.5.4",
@@ -79,7 +80,8 @@
     "registry": "https://registry.npmjs.org"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production vite build && cp src/tokens.css dist/tokens.css",
+    "build": "cross-env NODE_ENV=production vite build && cp src/tokens.css dist/tokens.css && pnpm gen:design-context",
+    "gen:design-context": "tsx scripts/build-design-context.ts",
     "clean": "rm -rf dist",
     "dev": "vite build --watch --mode development",
     "lint": "biome check .",

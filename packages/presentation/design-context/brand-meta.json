@@ -1,0 +1,17 @@
+{
+  "brand": {
+    "name": "Cobalt",
+    "formal-name": "Electric Verdigris",
+    "hue": 240,
+    "rvui-brand-light": "oklch(0.36 0.190 240)",
+    "rvui-brand-dark": "oklch(0.58 0.150 240)"
+  },
+  "type": {
+    "font-sans": "'Inter', system-ui, sans-serif",
+    "font-mono": "'JetBrains Mono', 'Fira Code', ui-monospace, monospace",
+    "font-display": "'Inter Tight', 'Inter', system-ui, sans-serif"
+  },
+  "voice": {
+    "note": "Voice/headline rules consolidation deferred to lane Phase 3 (DS-V1). Canonical voice corpus: .jv messaging-funnel-audit/voice-and-headline-rules.md"
+  }
+}

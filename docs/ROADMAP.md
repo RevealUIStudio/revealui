@@ -11,13 +11,13 @@ audience: developer
 
 This roadmap reflects our current priorities and planned direction. It is updated regularly and may shift based on community feedback and business needs.
 
-**Last updated:** 2026-04-10
+**Last updated:** 2026-05-19
 
 ---
 
 ## RevFleet Product Maturity
 
-Honest labels for every product in the RevealUI ecosystem. Updated 2026-04-10.
+Honest labels for every product in the RevealUI ecosystem. Updated 2026-05-19.
 
 | Product | Maturity | Notes |
 |---------|----------|-------|
@@ -27,7 +27,7 @@ Honest labels for every product in the RevealUI ecosystem. Updated 2026-04-10.
 | **Studio** (desktop) | Alpha | Tauri 2 + React 19, agent coordination UI. No published binaries. |
 | **Terminal** (TUI) | Alpha | Go SSH server + Bubble Tea. Functional, not deployed. |
 | **RevCon** (configs) | Alpha | Editor config sync tooling. Functional, undocumented. |
-| **RevealCoin** (token) | Alpha | Solana devnet proof-of-concept. Not on mainnet. |
+| **RevealCoin** (token) | Shelved | Solana devnet proof-of-concept. Mainnet launch shelved 2026-05-15 pending revenue + counsel review. |
 | **RevSkills** (skills) | Alpha | 6 Claude Code skills on GitHub. No tests. |
 | **RevDev** (dev tools) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Harness infrastructure exists. Not a standalone product yet. |
 | **RevMarket** (marketplace) | Planned — [#451](https://github.com/RevealUIStudio/revealui/issues/451) | Database schema defined. No API routes or UI. |
@@ -45,7 +45,7 @@ Alpha = functional, not deployed/published. Planned = design or schema only.
 - **Auth system**  -  Session-based auth with bcrypt, RBAC/ABAC, rate limiting, brute-force protection, TOTP 2FA _(infrastructure built, not yet wired into sign-in flow)_, WebAuthn passkeys, magic link recovery, OAuth (GitHub, Google, Vercel) _(note: sessions are not currently bound to IP/UA)_
 - **Content engine**  -  Schema-first collections, Lexical rich text, media handling, draft/live lifecycle, REST API with OpenAPI spec
 - **Billing stack**  -  Stripe checkout, subscriptions, webhooks, license keys, billing portal, tier enforcement (free/pro/max/enterprise)
-- **UI components**  -  57 native React 19 components (Tailwind v4, zero external UI deps)
+- **UI components**  -  59 native React 19 components in `@revealui/presentation` (80 with `@revealui/core` admin/richtext); Tailwind v4, zero external UI deps
 - **Real-time sync**  -  ElectricSQL integration for editor/client/agent sync _(experimental  -  basic shape subscriptions, no offline-first)_
 - **Database**  -  86 tables via Drizzle ORM. Neon (primary) + ElectricSQL (sync). Supabase retired per ADR `2026-05-01-supabase-removal.md`.
 - **CLI**  -  `npx create-revealui my-app` scaffolds a full project from npm
@@ -75,9 +75,9 @@ RevealUI is the runtime at the center of a four-project ecosystem. Each project 
 | **RevealUI** | Agentic business runtime (this repo) | MIT (core) + Commercial (Pro) |
 | **[RevVault](https://github.com/RevealUIStudio/revvault)** | Age-encrypted secret vault  -  Rust CLI, rotation engine, Tauri desktop app | MIT (CLI) + Pro (desktop, rotation) |
 | **[RevKit](https://github.com/RevealUIStudio/revkit)** | Portable dev environment toolkit  -  WSL provisioning, agent coordination protocol | MIT (agent coordination) + Max (provisioning) |
-| **RevealCoin** | Solana token for x402 agent micropayments  -  agents pay per task via HTTP 402 | Enterprise |
+| **RevealCoin** | Solana token for x402 agent micropayments  -  agents pay per task via HTTP 402 | Enterprise (shelved 2026-05-15 — see Maturity table) |
 
-**Dependency direction:** RevVault depends on nothing. RevKit integrates RevVault via its secret bridge. RevealUI consumes environment variables however they arrive. RevealCoin powers the agent payment layer.
+**Dependency direction:** RevVault depends on nothing. RevKit integrates RevVault via its secret bridge. RevealUI consumes environment variables however they arrive.
 
 ---
 
@@ -157,8 +157,8 @@ A no-code visual builder for creating RevealUI sites. Drag-and-drop page buildin
 #### SOC2 Type II Compliance — [#516](https://github.com/RevealUIStudio/revealui/issues/516)
 RevealUI Fleet security certification for teams that require it.
 
-#### RevealCoin + x402 Agent Payments
-Native cryptocurrency micropayments powered by RevealCoin on the Solana blockchain. Agents discover, authenticate, and pay per task via the HTTP 402 payment protocol  -  no accounts, no subscriptions.
+#### RevealCoin + x402 Agent Payments _(deferred)_
+Native cryptocurrency micropayments powered by RevealCoin on the Solana blockchain. Agents discover, authenticate, and pay per task via the HTTP 402 payment protocol  -  no accounts, no subscriptions. **Shelved 2026-05-15** pending revenue + counsel review; design preserved for future re-evaluation.
 
 ---
 
@@ -173,7 +173,7 @@ RevealUI offers four ways to pay:
 | **C  -  Perpetual** | One-time | $299 / $799 / $1,999 (1 year support included, renewable) |
 | **D  -  Professional Services** | Per-engagement | Architecture review, migration assist, launch package, consulting hours |
 
-Ecosystem features by tier: RevVault desktop app + rotation engine (Pro), RevKit environment provisioning (Max), RevealCoin x402 agent payments (Enterprise).
+Ecosystem features by tier: RevVault desktop app + rotation engine (Pro), RevKit environment provisioning (Max). RevealCoin x402 agent payments are shelved 2026-05-15 (see "RevFleet Product Maturity" table).
 
 See [revealui.com/pricing](https://revealui.com/pricing) for details.
 
