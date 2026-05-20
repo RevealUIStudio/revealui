@@ -77,4 +77,6 @@ USER hono
 
 EXPOSE 3004
 
-CMD ["node", "dist/index.js"]
+# Prod entry: index.ts is side-effect-free in production (it's the Vercel
+# serverless handler); worker.ts is the long-running entry that calls serve().
+CMD ["node", "dist/worker.js"]
