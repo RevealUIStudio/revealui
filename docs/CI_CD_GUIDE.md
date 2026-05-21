@@ -18,7 +18,7 @@ audience: maintainer
 ```
 feature/* ──PR──▶ test ──PR──▶ main
                     │              │
-              CI + canary     production deploy
+                   CI         production deploy
 ```
 
 | Branch | Environment | CI gate | Deploy |
@@ -30,7 +30,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 - Default branch: `test` (PRs target it by default).
 - Production deploys: `deploy.yml` on push to `main` only — Vercel Git Integration is disabled.
 - Test previews: `deploy-test.yml` is `workflow_dispatch`-only; produces Vercel preview URLs (Hobby-tier deploy quota).
-- Canary npm releases: `release-canary.yml` on push to `test` (snapshot versions like `0.0.0-canary-<ts>`).
+- npm releases: manual dispatch via `release.yml` (OIDC, SLSA B2 provenance).
 
 Source: [`CLAUDE.md`](../CLAUDE.md) §Branch Pipeline.
 
@@ -47,7 +47,6 @@ All workflows live in [`.github/workflows/`](../.github/workflows/).
 | [`deploy.yml`](../.github/workflows/deploy.yml) | push to `main`, workflow_dispatch | Production deploy: validate → migrate → detect-affected → matrix deploy → smoke test → auto-rollback on failure |
 | [`deploy-test.yml`](../.github/workflows/deploy-test.yml) | workflow_dispatch | On-demand QA preview deploys (Vercel preview env, manual only) |
 | [`release.yml`](../.github/workflows/release.yml) | workflow_dispatch | OSS npm publish via OIDC trusted publishing (SLSA Build Level 2 provenance) |
-| [`release-canary.yml`](../.github/workflows/release-canary.yml) | push to `test` | Canary npm snapshot releases (Changesets snapshot mode, ephemeral) |
 | [`docker.yml`](../.github/workflows/docker.yml) | workflow_dispatch | Build & push Fleet self-hosted Docker images (`server` + `admin`) to GHCR |
 | [`db-backup.yml`](../.github/workflows/db-backup.yml) | scheduled | NeonDB-side backup hooks (PITR coordination) |
 | [`reconciliation-crons.yml`](../.github/workflows/reconciliation-crons.yml) | scheduled | Stripe + RVC reconciliation jobs |
@@ -340,7 +339,7 @@ pnpm release:dry-run               # preview without publishing
 pnpm release:status
 ```
 
-The `release.yml` workflow is the canonical npm publisher (OIDC, SLSA B2 provenance). `release-canary.yml` publishes ephemeral `0.0.0-canary-<ts>` snapshots on every push to `test`.
+The `release.yml` workflow is the canonical npm publisher (OIDC, SLSA B2 provenance). Triggered manually from the GitHub Actions UI.
 
 ---
 
