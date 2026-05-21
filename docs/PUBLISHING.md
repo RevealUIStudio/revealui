@@ -33,10 +33,8 @@ Commit the changeset file along with your code changes. Changesets are reviewed 
 
 | Workflow | Trigger | Versions | npm Tag |
 |----------|---------|----------|---------|
-| `release-canary.yml` | Push to `test` | `0.0.0-canary-<timestamp>` | `canary` |
 | `release.yml` | Manual dispatch on `main` | Real semver from changesets | `latest` |
 
-- **Canary**: Automatic on every push to `test` that includes changeset files. Ephemeral  -  no git tags, no GitHub releases.
 - **Release**: Manual trigger from GitHub Actions UI. Creates git tags and GitHub releases.
 
 ### 4. Useful commands
@@ -63,7 +61,7 @@ Prerequisites (one-time setup per package on npmjs.org):
 2. Add GitHub Actions with:
    - Repository owner: `RevealUIStudio`
    - Repository name: `revealui`
-   - Workflow: `release.yml` (and `release-canary.yml` for canaries)
+   - Workflow: `release.yml`
    - Environment: `npm-publish`
 
 Packages that need this configured:
@@ -106,7 +104,7 @@ pnpm validate:artifacts     # Check all packages have correct dist/ or bin/ outp
 ```
 
 This is run automatically by:
-- `release.yml` and `release-canary.yml` (after `pnpm build`)
+- `release.yml` (after `pnpm build`)
 - `pnpm gate` phase 3 (after build step)
 
 The validation script (`scripts/validate/build-artifacts.ts`) checks:
@@ -117,17 +115,17 @@ The validation script (`scripts/validate/build-artifacts.ts`) checks:
 
 ## Troubleshooting
 
-### Canary publish fails with E404
+### Publish fails with E404
 
 OIDC trusted publishing is not configured for the failing package on npm.org. Follow the steps in the Authentication section above.
 
-### "No changesets found  -  skipping canary release"
+### "No changesets found  -  skipping release"
 
 No `.changeset/*.md` files exist (excluding README). Create one with `pnpm changeset`.
 
-### Package not included in canary
+### Package not included in release
 
-Only packages with changesets get new canary versions. Other packages show "is not being published because version X.Y.Z is already published on npm"  -  this is expected.
+Only packages with changesets get new versions. Other packages show "is not being published because version X.Y.Z is already published on npm"  -  this is expected.
 
 ### Build artifacts validation fails
 

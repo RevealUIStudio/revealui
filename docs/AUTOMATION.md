@@ -9,7 +9,7 @@ audience: maintainer
 
 Narrow scope: this doc covers the parts of the RevealUI automation surface that don't have a more authoritative home. The bulk of automation lives in:
 
-- **CI** — [`docs/CI_CD_GUIDE.md`](./CI_CD_GUIDE.md) and the workflow files in `.github/workflows/` (`ci.yml`, `deploy.yml`, `deploy-test.yml`, `release.yml`, `release-canary.yml`, `security.yml`, `db-backup.yml`).
+- **CI** — [`docs/CI_CD_GUIDE.md`](./CI_CD_GUIDE.md) and the workflow files in `.github/workflows/` (`ci.yml`, `deploy.yml`, `deploy-test.yml`, `release.yml`, `security.yml`, `db-backup.yml`).
 - **Deployment** — [`docs/guides/deployment.md`](./guides/deployment.md) (Vercel, Docker Compose, self-hosted Node.js).
 - **Branch pipeline + commands** — top-level [`CLAUDE.md`](../CLAUDE.md) (canonical package map, `pnpm gate`, `pnpm dev`, etc.).
 - **Skills + commands** — `~/revfleet/revskills/` (fleet-level Claude Code skills). The `pnpm skills` CLI mentioned in older drafts of this file does not exist in this repo.

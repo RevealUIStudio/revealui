@@ -5,7 +5,7 @@
  *
  * Ensures all publishable packages have correct dist/ output after build.
  * Run locally with: pnpm validate:artifacts
- * Also used by release-canary.yml to replace inline bash validation.
+ * Also used by release.yml to replace inline bash validation.
  *
  * Packages that don't compile (e.g. create-revealui  -  thin bin/ wrapper)
  * are excluded from the dist/ check but validated for their bin/ entry.

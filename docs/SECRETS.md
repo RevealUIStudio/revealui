@@ -153,7 +153,7 @@ revealcoin/solana-rpc-url               # RPC endpoint
 ### CI / publishing
 
 ```
-credentials/npm/token                   # npm package publishing
+credentials/npm/token   # RETIRED 2026-05-20 — canary publish dropped; main release uses OIDC (no token)
 credentials/sentry/auth-token           # error tracking (CI + runtime)
 ```
 

@@ -72,7 +72,6 @@ All gates must pass on the `main` branch before deploy.
 - [ ] `deploy.yml` triggers on push to `main` **(blocking)**
 - [ ] `security.yml` runs on push, PR, and weekly schedule **(blocking)**
 - [ ] `release.yml` configured for manual dispatch on `main` **(blocking)**
-- [ ] `release-canary.yml` configured for push to `test` **(advisory)**
 - [ ] Branch protection rules enforced on `main` and `test` **(blocking)**
 - [ ] Required status checks configured (CI must pass before merge) **(blocking)**
 
@@ -245,7 +244,7 @@ Verify each package is ready for its initial publish:
 - [ ] Verify packages appear on npmjs.org with correct versions **(blocking)**
 - [ ] Provenance attestations present (SLSA Build Level 2) **(blocking)**
 - [ ] `npm install @revealui/core` works in a clean project **(blocking)**
-- [ ] Canary releases tested via `release-canary.yml` before stable publish **(advisory)**
+- [ ] Dry-run release via `pnpm release:dry-run` before stable publish **(advisory)**
 
 ---
 

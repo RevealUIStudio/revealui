@@ -120,7 +120,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | SEC-002 | GitHub Actions (Deploy) | Deployment | Push to main, manual dispatch | `deploy.yml` | Production deployment to Vercel |
 | SEC-003 | GitHub Actions (Deploy Test) | Deployment | Manual dispatch | `deploy-test.yml` | Staging preview deployments |
 | SEC-004 | GitHub Actions (Release) | Package Publishing | Manual dispatch | `release.yml` | npm OIDC publish with SLSA B2 provenance |
-| SEC-005 | GitHub Actions (Release Canary) | Canary Publishing | Push to test | `release-canary.yml` | npm snapshot versions for testing |
+| SEC-005 | GitHub Actions (Release Canary) | Canary Publishing | Push to test | `release-canary.yml` | **DECOMMISSIONED 2026-05-20** — canary publish dropped, 2FA-bypass NPM_TOKEN retired |
 | SEC-006 | GitHub Actions (Security) | Security Scanning | Push/PR to test, main; weekly cron | `security.yml` | Consolidated security scanning |
 | SEC-007 | GitHub Actions (Docker) | Container Build | As configured | `docker.yml` | Docker image builds |
 

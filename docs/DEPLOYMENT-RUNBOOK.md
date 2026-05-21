@@ -63,13 +63,13 @@ The standard flow promotes code from `test` to `main`, which triggers automatic 
 ```
 feature/* --PR--> test --PR--> main
                    |             |
-             CI + canary    production deploy (auto)
+                  CI        production deploy (auto)
 ```
 
 ### Step-by-Step
 
 1. **Merge feature branch into test.**
-   Open a PR from `feature/*` to `test`. CI runs automatically (quality, typecheck, tests, build). Canary npm packages are published on merge via `release-canary.yml`.
+   Open a PR from `feature/*` to `test`. CI runs automatically (quality, typecheck, tests, build).
 
 2. **Verify on test branch.**
    After CI passes on `test`, optionally trigger a preview deploy:
@@ -254,20 +254,6 @@ pnpm db:reset      # Reset and re-seed (destructive)
 
 All `@revealui/*` packages are published through CI. There is no local npm publishing.
 
-### Canary Releases (Automatic)
-
-Triggered on every push to `test` that includes changeset files.
-
-- Workflow: `release-canary.yml`
-- Versions: `0.0.0-canary-<timestamp>`
-- npm tag: `canary`
-- No git tags or GitHub releases
-
-```bash
-# Install a canary version
-pnpm add @revealui/core@canary
-```
-
 ### Production Releases (Manual)
 
 Triggered manually from the GitHub Actions UI.
@@ -431,6 +417,5 @@ For security incidents, data breaches, or critical production failures, follow t
 | CI | `ci.yml` | Push/PR to test, main | Quality gate (lint, typecheck, test, build) |
 | Deploy | `deploy.yml` | Push to main, manual | Production deployment to Vercel |
 | Deploy Test | `deploy-test.yml` | Manual (workflow_dispatch) | Preview deployment for QA |
-| Release Canary | `release-canary.yml` | Push to test | Canary npm packages (`@canary` tag) |
 | Release OSS | `release.yml` | Manual (workflow_dispatch) | Production npm publish with provenance |
 | Security | `security.yml` | Scheduled, manual | CodeQL, Gitleaks, dependency audit |
