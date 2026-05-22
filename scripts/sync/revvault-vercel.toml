@@ -154,6 +154,10 @@ NEON_API_KEY  = "revealui/prod/db/neon-api-key"
 REVEALUI_LICENSE_PRIVATE_KEY = "revealui/prod/license/private-key"
 REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/prod/license/public-key"
 REVEALUI_SECRET              = "revealui/prod/secret"
+# REVEALUI_KEK — required by admin prod env-validation at boot (parity with the
+# api project above). Was absent from this block, so sync did not manage it on
+# the admin project; tracked here so it stays populated.
+REVEALUI_KEK                 = "revealui/prod/kek"
 
 # Cron + alerting (parity with api)
 REVEALUI_CRON_SECRET = "revealui/prod/cron-secret"
