@@ -379,7 +379,7 @@ describe('GET /.well-known/mcp.json', () => {
       );
       expect(server.transport).toBe('stdio');
       expect(server.modulePath).toContain('@revealui/mcp');
-      expect(server.license).toBe('MIT');
+      expect(server.license).toBe('FSL-1.1-MIT');
       expect(typeof server.proGated).toBe('boolean');
       expect(typeof server.requiresCredentials).toBe('boolean');
     }

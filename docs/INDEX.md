@@ -47,7 +47,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Core Stability](./CORE_STABILITY.md): API stability tiers, production verification status, version policy
 - [Component Catalog](./COMPONENT_CATALOG.md): 59 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
-- [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/harnesses`), MCP integration, open-model inference, x402, marketplace
+- [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`), MCP integration, open-model inference, x402, marketplace
 - [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, RevealCoin, Forge, RevSkills, RevKit) — what each does and how they compose
 
 ## Agent Coordination

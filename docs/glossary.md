@@ -36,7 +36,7 @@ The umbrella brand for the eight-product RevealUI Studio family — RevealUI (ru
 
 ## Free / Pro / Max / Enterprise
 
-The four customer-facing pricing tiers, ordered by capability. Free is OSS-only (no Pro packages). Pro / Max / Enterprise unlock progressively more Pro packages (`@revealui/ai`, `@revealui/harnesses`, `@revealui/engines`) plus ecosystem features (RevVault desktop app, RevKit provisioning, RevealCoin x402 micropayments at Enterprise). See [`./PRO`](./PRO.md) for the Pro feature matrix.
+The four customer-facing pricing tiers, ordered by capability. Free is OSS-only (no Pro packages). Pro / Max / Enterprise unlock progressively more Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) plus ecosystem features (RevVault desktop app, RevKit provisioning, RevealCoin x402 micropayments at Enterprise). See [`./PRO`](./PRO.md) for the Pro feature matrix.
 
 ## Harness
 
@@ -77,7 +77,7 @@ A human or agent running a deployed RevealUI instance — distinct from a *user*
 
 ## Pro
 
-See [Free / Pro / Max / Enterprise](#free--pro--max--enterprise). Also: the **Pro packages** are the FSL-1.1-MIT subset (`@revealui/ai`, `@revealui/harnesses`, `@revealui/engines`) — source-visible, JWT-gated, auto-converts to MIT after 2 years. See [`./FAIR_SOURCE`](./FAIR_SOURCE.md) for what FSL-1.1-MIT means in practice.
+See [Free / Pro / Max / Enterprise](#free--pro--max--enterprise). Also: the **Pro packages** are the FSL-1.1-MIT subset (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) — source-visible, JWT-gated, auto-converts to MIT after 2 years. See [`./FAIR_SOURCE`](./FAIR_SOURCE.md) for what FSL-1.1-MIT means in practice.
 
 ## Rev
 

@@ -64,7 +64,7 @@ export const TERMS_SECTIONS: readonly LegalSection[] = [
   {
     heading: '5. Commercial License',
     paragraphs: [
-      'Pro packages (@revealui/ai and @revealui/harnesses) are commercially licensed. The license is granted per-subscription and is non-transferable. See LICENSE.commercial in the repository for full terms.',
+      'Pro packages (@revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services) are commercially licensed. The license is granted per-subscription and is non-transferable. See LICENSE.commercial in the repository for full terms.',
     ],
   },
   {

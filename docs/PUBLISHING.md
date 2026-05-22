@@ -85,7 +85,7 @@ npm login    # Interactive, writes to ~/.npmrc
 
 ## Pro Packages
 
-`@revealui/ai` and `@revealui/harnesses` are **Fair Source** (FSL-1.1-MIT). They:
+`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, and `@revealui/services` are **Fair Source** (FSL-1.1-MIT). They:
 
 - Live in the public repo under `packages/ai/` and `packages/harnesses/`
 - Are published through the standard changeset release workflow
