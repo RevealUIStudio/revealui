@@ -4,7 +4,7 @@
  * Renders a 1200×630 PNG with a title + description via satori (JSX → SVG)
  * and @resvg/resvg-wasm (SVG → PNG). The Inter Tight variable font is inlined
  * into the bundle via tsup's binary loader; satori extracts 400 + 700 weights
- * from the same buffer. The resvg WASM is read at runtime from node_modules.
+ * from the same buffer. The resvg WASM ships beside the built bundle (copy-resvg-wasm) and is read at runtime.
  *
  * Used by marketing + (future) blog post OG meta tags:
  *   <meta property="og:image"
@@ -16,6 +16,7 @@
  */
 
 import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import { Hono } from 'hono';
@@ -26,24 +27,42 @@ import InterTightVariable from '../assets/fonts/InterTight-Variable.ttf';
 // initialised module across requests; the shared promise makes concurrent
 // first-requests safe.
 //
-// The WASM bytes are read at runtime from `@resvg/resvg-wasm/index_bg.wasm`
-// in node_modules and compiled via `WebAssembly.compile`. The earlier
-// approach of `import resvgWasm from '...wasm'` (inlined via tsup's binary
-// loader) works in Vercel Edge / Cloudflare Workers because WASM imports
-// are first-class there — but crashes in Node, where the experimental WASM
-// ESM loader tries to resolve the wasm-bindgen `wbg` glue from the .wasm's
-// import section and fails (no `wbg` npm package; it's expected to be the
-// companion `index_bg.js` glue, which is unreachable when the .wasm is
-// imported directly). Reading the bytes manually bypasses that path;
-// `initWasm` supplies the `wbg` bindings internally.
+// The WASM bytes are read at runtime (not imported as an ES module) and
+// compiled via `WebAssembly.compile`. The earlier approach of `import resvgWasm
+// from '...wasm'` (inlined via tsup's binary loader) works in Vercel Edge /
+// Cloudflare Workers because WASM imports are first-class there — but crashes
+// in Node, where the experimental WASM ESM loader tries to resolve the
+// wasm-bindgen `wbg` glue from the .wasm's import section and fails (no `wbg`
+// npm package; it's expected to be the companion `index_bg.js` glue, which is
+// unreachable when the .wasm is imported directly). Reading the bytes manually
+// bypasses that path; `initWasm` supplies the `wbg` bindings internally.
 //
-// `import.meta.resolve` is sync in Node 20.6+ (engines requires >=24.13).
+// Resolution order: prefer the copy emitted next to the built bundle by the
+// `copy-resvg-wasm` build step (dist/index_bg.wasm). That colocated file is the
+// one shipped on Vercel — its `@vercel/nft` tracer can't follow a dynamic
+// `import.meta.resolve` into node_modules, which left `/api/og` throwing ENOENT
+// in production; `vercel.json` `includeFiles` ships the colocated copy into the
+// function. In dev (tsx, running from src/) the colocated file does not exist,
+// so fall back to the node_modules copy. `import.meta.resolve` is sync in
+// Node 20.6+ (engines requires >=24.13).
+function readResvgWasm(): Buffer {
+  // Prefer the copy emitted next to the built bundle by copy-resvg-wasm
+  // (dist/index_bg.wasm). Fall back to the node_modules copy in dev (tsx from
+  // src/). Read with try/catch rather than an existsSync probe to avoid a
+  // check-then-read race.
+  const colocated = join(dirname(fileURLToPath(import.meta.url)), 'index_bg.wasm');
+  try {
+    return readFileSync(colocated);
+  } catch {
+    const fromModules = fileURLToPath(import.meta.resolve('@resvg/resvg-wasm/index_bg.wasm'));
+    return readFileSync(fromModules);
+  }
+}
+
 let wasmInitPromise: Promise<void> | null = null;
 function ensureWasm(): Promise<void> {
   if (!wasmInitPromise) {
-    const wasmUrl = import.meta.resolve('@resvg/resvg-wasm/index_bg.wasm');
-    const wasmBytes = readFileSync(fileURLToPath(wasmUrl));
-    wasmInitPromise = initWasm(WebAssembly.compile(wasmBytes));
+    wasmInitPromise = initWasm(WebAssembly.compile(readResvgWasm()));
   }
   return wasmInitPromise;
 }
