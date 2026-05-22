@@ -16,7 +16,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Quick Start](./QUICK_START.md): get a local dev stack running
 - [Build Your Business](./BUILD_YOUR_BUSINESS.md): End-to-end tutorial: scaffold to deploy
 - [Examples](./EXAMPLES.md): Blog, subscription starter, storefront
-- [Glossary](./glossary.md): Canonical vocabulary across RevFleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, RVC, x402. Single source of truth for cross-cutting terminology.
+- [Glossary](./glossary.md): Canonical vocabulary across RevFleet — agent, runtime, tier, harness, license, MCP, Rev, Revfleet, x402. Single source of truth for cross-cutting terminology.
 
 ## Core Guides
 
@@ -48,7 +48,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Component Catalog](./COMPONENT_CATALOG.md): 59 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`), MCP integration, open-model inference, x402, marketplace
-- [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, RevealCoin, Forge, RevSkills, RevKit) — what each does and how they compose
+- [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, Forge, RevSkills, RevKit) — what each does and how they compose
 
 ## Agent Coordination
 
@@ -67,7 +67,6 @@ RevealUI is one product in a fleet of eight that compose into an agent-first SDL
 - [RevDev](./fleet/revdev.md) — Studio (Tauri 2 desktop) + Console (Go SSH TUI) + harness daemon
 - [RevVault](./fleet/revvault.md) — age-encrypted secret vault, source of truth for every RevFleet secret
 - [RevCon](./fleet/revcon.md) — editor + agent-rule sync via symlinks (`link.sh`)
-- [RevealCoin](./fleet/revealcoin.md) — `RVC` token on Solana Token-2022, mainnet mint deployed
 - [RevealUI Fleet](./FLEET.md) — self-hosted enterprise deployment kit
 - [RevSkills](./fleet/revskills.md) — curated Agent Skills for Claude Code / Cursor
 - [RevKit](./fleet/revkit.md) — portable WSL workstation toolkit

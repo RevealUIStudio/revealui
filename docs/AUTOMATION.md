@@ -63,7 +63,7 @@ Per-repo required-check sets vary and are listed in each `<repo>.json` declarati
 - `revcon` (main)
 - `revskills` (main)
 
-Repos with CI but no protection currently: `revforge`, `revkit`, `revealcoin` (private repos require GitHub Pro for branch protection — tracked separately), and `status` (deploy-only check-runs need workflow inspection before declaring).
+Repos with CI but no protection currently: `revforge`, `revkit` (private repos require GitHub Pro for branch protection — tracked separately), and `status` (deploy-only check-runs need workflow inspection before declaring).
 
 ### Audit access
 
