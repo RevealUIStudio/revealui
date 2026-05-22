@@ -287,7 +287,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Written report delivered within 5 business days',
     cta: 'Book a Discovery Call',
-    ctaHref: 'https://cal.com/revealuistudio/revealui-discovery-call',
+    ctaHref: 'https://cal.com/revealuistudio/discovery',
   },
   {
     id: 'launch-package',
@@ -305,7 +305,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Production-ready deployment within 2-4 weeks',
     cta: 'Book a Discovery Call',
-    ctaHref: 'https://cal.com/revealuistudio/revealui-discovery-call',
+    ctaHref: 'https://cal.com/revealuistudio/discovery',
   },
   {
     id: 'migration-assist',
@@ -323,7 +323,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Working migration with verified data integrity',
     cta: 'Get an Estimate',
-    ctaHref: 'https://cal.com/revealuistudio/revealui-discovery-call',
+    ctaHref: 'https://cal.com/revealuistudio/discovery',
   },
   {
     id: 'consulting-hour',
@@ -339,7 +339,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Session recording and written follow-up notes',
     cta: 'Book a Session',
-    ctaHref: 'https://cal.com/revealuistudio/revealui-discovery-call',
+    ctaHref: 'https://cal.com/revealuistudio/discovery',
   },
 ];
 
