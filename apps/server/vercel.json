@@ -5,7 +5,8 @@
   "functions": {
     "api/**": {
       "memory": 512,
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": "dist/index_bg.wasm"
     }
   },
   "crons": [{ "path": "/api/cron/dispatch", "schedule": "0 6 * * *" }],

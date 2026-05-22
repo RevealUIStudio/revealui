@@ -1,0 +1,54 @@
+# revvault → Fly secrets sync manifest
+#
+# Drives `revvault sync fly --manifest scripts/sync/revvault-fly.toml [--apply]`
+# (the Fly counterpart of revvault-vercel.toml — see that file for the Vercel
+# side and the shared schema notes).
+#
+# Schema (parsed by revvault-cli, commands/sync.rs::FlyManifest):
+#   - [fly-apps.<logical>]       — one block per Fly app
+#   - app                         — Fly app name (used as the GraphQL appId)
+#   - skip                        — secret names sync never touches (optional)
+#   - [fly-apps.<logical>.vars]   — secret name → vault path (bare string), or
+#                                   { path = "...", shape = "..." } to add shape
+#                                   validation. Unlike the Vercel manifest there
+#                                   is NO prefix-scan: every managed secret must
+#                                   be listed explicitly. A worker's secret set
+#                                   is a curated subset, not "everything under a
+#                                   prefix".
+#
+# Fly hides secret VALUES (its API returns only names + digest), so sync cannot
+# value-match: a present name is re-Set, an absent one Added. Orphans (set on
+# Fly but absent here) are surfaced, never deleted.
+#
+# Auth: FLY_API_TOKEN env var or `--token`. A live `--apply` is owner-gated:
+# it needs that token vaulted (see docs/SECRETS.md) and the Fly app to exist
+# (drop-railway lane Phase 3). Never inline secret values here — revvault is
+# the source of truth; this manifest carries only vault *paths*.
+
+# ── revealui-worker ───────────────────────────────────────────────────────────
+# Long-running apps/server subset on Fly (alerting, Yjs + agent collab WS,
+# terminal-ws Forge-gated, RVMarket executor flag-gated). Secret subset mirrors
+# the worker bootstrap block in docs/deployment/fly.md (drop-railway Phase 4).
+[fly-apps.revealui-worker]
+app = "revealui-worker"
+
+[fly-apps.revealui-worker.vars]
+# Database (Neon)
+POSTGRES_URL = "revealui/prod/db/postgres-url"
+
+# Core signing / session + license validation
+REVEALUI_SECRET              = "revealui/prod/secret"
+REVEALUI_LICENSE_PRIVATE_KEY = "revealui/prod/license/private-key"
+REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/prod/license/public-key"
+
+# Stripe (billing path exercised by the executor + alerting)
+STRIPE_SECRET_KEY     = "revealui/prod/stripe/secret-key"
+STRIPE_WEBHOOK_SECRET = "revealui/prod/stripe/webhook-secret"
+
+# Observability
+SENTRY_DSN = "revealui/prod/sentry/dsn"
+
+# Electric (real-time sync). The service URL flips to the Fly-hosted Electric
+# during Phase 5 cutover; the vault path itself is unchanged.
+ELECTRIC_SERVICE_URL = "revealui/prod/electric/service-url"
+ELECTRIC_SECRET      = "revealui/prod/electric/secret"
