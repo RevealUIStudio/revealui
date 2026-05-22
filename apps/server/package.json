@@ -55,8 +55,9 @@
     }
   },
   "scripts": {
-    "build": "tsup && pnpm run copy-sandbox-runner",
+    "build": "tsup && pnpm run copy-sandbox-runner && pnpm run copy-resvg-wasm",
     "copy-sandbox-runner": "mkdir -p dist && cp src/services/revmarket-sandbox/revmarket-task-runner.mjs dist/",
+    "copy-resvg-wasm": "node scripts/copy-resvg-wasm.mjs",
     "dev": "tsx watch src/index.ts",
     "lint": "biome check .",
     "start": "node dist/index.js",
