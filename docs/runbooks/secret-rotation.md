@@ -40,10 +40,10 @@ updating revvault **and** the GitHub secret, or CI and runtime drift apart.
 
 ```bash
 # Vercel → Settings → Tokens: revoke the old token, create a new one (scope: revealuistudio team)
-revvault set revealui/prod/vercel/api-token --force          # paste new token at the prompt
-revvault --json get revealui/prod/vercel/api-token | jq -r .value | \
+revvault set revealui/prod/api-keys/vercel-token --force          # paste new token at the prompt
+revvault --json get revealui/prod/api-keys/vercel-token | jq -r .value | \
   gh secret set VERCEL_TOKEN --repo RevealUIStudio/revealui   # mirror to CI (deploy.yml)
-export VERCEL_TOKEN=$(revvault --json get revealui/prod/vercel/api-token | jq -r .value)
+export VERCEL_TOKEN=$(revvault --json get revealui/prod/api-keys/vercel-token | jq -r .value)
 pnpm vercel:sync                                             # dry-run MUST auth (no 403) before continuing
 ```
 

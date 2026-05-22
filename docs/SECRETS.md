@@ -24,9 +24,9 @@ Full cross-fleet rule: see `~/.claude/rules/secrets.md`.
 |---|---|
 | Database credentials | `POSTGRES_URL` (Neon) |
 | Auth | `REVEALUI_SECRET` (JWT / session), OAuth client secrets, session-cookie signing keys |
-| Third-party API keys | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `ANTHROPIC_API_KEY` |
-| Sync infrastructure | `ELECTRIC_SERVICE_URL`, `ELECTRIC_SECRET`, `ELECTRIC_SOURCE_ID` |
-| Deployment | Vercel token, Railway token, Cloudflare token |
+| Third-party API keys | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY` |
+| Sync infrastructure | `ELECTRIC_SERVICE_URL`, `ELECTRIC_SECRET` |
+| Deployment | Vercel token |
 | Blockchain | RevealCoin Solana keypairs (mint authority, allocations, vesting custody) |
 | Licenses | `REVEALUI_LICENSE_KEY`, RVUI-format keys |
 | SSH / signing | Age identity, SSH keys, PGP/GPG keys, code-signing certs |
@@ -39,66 +39,200 @@ Paths are lower-kebab, grouped by project, then by subsystem.
 
 ### Revealui
 
-Local development (for running `pnpm dev:admin`, probes, scripts):
+#### Local development
+
+The vault holds a small set of dev paths used for running `pnpm dev:admin`,
+probes, and scripts. Local dev otherwise reads from `.env.local` populated
+via `revvault export-env` at session start — those values are NOT stored as
+individual dev paths.
+
+Paths that actually exist in the vault:
 
 ```
 revealui/dev/admin-base-url
+revealui/dev/admin-email
+revealui/dev/admin-password
 revealui/dev/admin-session-cookie
 revealui/dev/electric/service-url
-revealui/dev/electric/secret
-revealui/dev/db/postgres-url
-revealui/dev/stripe/secret-key           # sk_test_*
-revealui/dev/stripe/webhook-secret
-revealui/dev/stripe/publishable-key      # pk_test_*
-revealui/dev/revealui-secret             # JWT/session, ≥32 chars
-revealui/dev/revealui-admin-api-key      # API admin auth
-revealui/dev/founder-license-key         # RVUI-<tier>-<32hex>; founder dev license consumed by revdev daemon (revdev/packages/daemon/src/license.ts)
-revealui/dev/blob/read-write-token       # Vercel Blob file uploads
-revealui/dev/google/client-id            # OAuth SSO
-revealui/dev/google/client-secret
-revealui/dev/google/service-account-email # Gmail API email provider (service account)
-revealui/dev/google/service-account-from # From address (Workspace user w/ domain-wide delegation)
-revealui/dev/google/private-key          # Gmail API service-account PKCS8 PEM
-revealui/dev/github/client-id            # OAuth SSO
-revealui/dev/github/client-secret
-revealui/dev/admin/bootstrap/email       # CLI admin bootstrap
-revealui/dev/admin/bootstrap/password    # CLI admin bootstrap (≥12 chars)
-revealui/dev/admin/bootstrap/name        # optional, defaults to "Super Admin"
-revealui/dev/admin/bootstrap/force-rotate # optional, default true
-revealui/dev/x402/receiving-address      # Sepolia EVM USDC receiving wallet (testnet) — X402_RECEIVING_ADDRESS
-revealui/dev/rvui/receiving-wallet       # Solana devnet RVC receiving wallet — RVUI_RECEIVING_WALLET
+revealui/dev/founder-license-key    # RVUI-<tier>-<32hex>; founder dev license consumed by revdev daemon
 ```
 
-Production (what CI + Vercel pull from when deploying):
+#### Production runtime
+
+These paths are the canonical source for Vercel sync
+(`scripts/sync/revvault-vercel.toml`) and CI secrets.
+
+**Core app secrets**
 
 ```
-revealui/prod/electric/service-url
-revealui/prod/electric/secret
-revealui/prod/railway/token
-revealui/prod/db/postgres-url
-revealui/prod/stripe/secret-key          # sk_live_*
-revealui/prod/stripe/webhook-secret
-revealui/prod/stripe/publishable-key     # pk_live_*
-revealui/prod/vercel/api-token
-revealui/prod/revealui-secret
-revealui/prod/revealui-cron-secret
-revealui/prod/revealui-admin-api-key
-revealui/prod/blob/read-write-token
-revealui/prod/google/client-id           # OAuth SSO
-revealui/prod/google/client-secret
-revealui/prod/google/service-account-email # Gmail API email provider (service account)
-revealui/prod/google/service-account-from # From address (Workspace user w/ domain-wide delegation)
-revealui/prod/google/private-key         # Gmail API service-account PKCS8 PEM
-revealui/prod/github/client-id
-revealui/prod/github/client-secret
-revealui/prod/sentry/dsn                 # server SENTRY_DSN (apps/server, Hono); required by validate-startup.ts in REQUIRED_IN_PRODUCTION_HOSTED
-revealui/prod/sentry/dsn-admin           # admin NEXT_PUBLIC_SENTRY_DSN (apps/admin, Next.js); enables withSentryConfig wrapper
-revealui/prod/sentry/auth-token          # CI/CD source-map upload (admin build) + error tracking
-revealui/prod/sentry/org                 # Sentry org slug, e.g. revealui-studio (SENTRY_ORG)
-revealui/prod/sentry/project-server      # server project slug, e.g. revealui-server
-revealui/prod/sentry/project-admin       # admin project slug, e.g. revealui-admin (SENTRY_PROJECT)
-revealui/prod/x402/receiving-address     # Base mainnet EVM USDC receiving wallet — X402_RECEIVING_ADDRESS
-revealui/prod/rvui/receiving-wallet      # Solana mainnet RVC receiving wallet (post-launch) — RVUI_RECEIVING_WALLET
+revealui/prod/secret                 # REVEALUI_SECRET — JWT/session signing, ≥32 chars
+revealui/prod/cron-secret            # REVEALUI_CRON_SECRET — cron endpoint auth
+revealui/prod/kek                    # REVEALUI_KEK — envelope encryption key; see rotation landmines
+revealui/prod/audit-hmac-secret      # REVEALUI_AUDIT_HMAC_SECRET — audit-log HMAC; rotating breaks prior log verification
+revealui/prod/cors-origin            # CORS_ORIGIN — allowed origin for the API
+revealui/prod/session-cookie-domain  # SESSION_COOKIE_DOMAIN
+revealui/prod/alert-email            # REVEALUI_ALERT_EMAIL — required at prod boot; apps/api refuses to start without it
+revealui/prod/marketplace-connect-return-url  # MARKETPLACE_CONNECT_RETURN_URL
+```
+
+**Admin subsystem**
+
+```
+revealui/prod/admin/api-key          # REVEALUI_ADMIN_API_KEY
+revealui/prod/admin/email            # REVEALUI_ADMIN_EMAIL
+revealui/prod/admin/password         # REVEALUI_ADMIN_PASSWORD
+revealui/prod/admin/revalidation-key # REVEALUI_REVALIDATION_KEY
+revealui/prod/admin/draft-secret     # REVEALUI_PUBLIC_DRAFT_SECRET
+```
+
+**Database**
+
+```
+revealui/prod/db/postgres-url        # POSTGRES_URL + DATABASE_URL — canonical Neon pooled connection string
+revealui/prod/db/neon-api-key        # NEON_API_KEY — Neon control-plane API (admin + migrations)
+```
+
+> **Stale duplicate:** `revealui/prod/neon/postgres-url` exists in the vault as a leftover
+> from an earlier naming scheme. The manifest and all consuming code use `revealui/prod/db/postgres-url`.
+> The `neon/postgres-url` entry is slated for deletion by the owner — do not add new consumers.
+
+**Electric (real-time sync)**
+
+```
+revealui/prod/electric/service-url   # ELECTRIC_SERVICE_URL
+revealui/prod/electric/secret        # ELECTRIC_SECRET — rotating also requires updating the Electric service
+```
+
+**Stripe**
+
+```
+revealui/prod/stripe/secret-key               # STRIPE_SECRET_KEY — sk_live_*
+revealui/prod/stripe/publishable-key          # NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY — pk_live_*
+revealui/prod/stripe/webhook-secret           # STRIPE_WEBHOOK_SECRET
+revealui/prod/stripe/webhook-secret-live      # STRIPE_WEBHOOK_SECRET_LIVE (live endpoint duplicate)
+revealui/prod/stripe/agent-meter-event-name   # STRIPE_AGENT_METER_EVENT_NAME
+revealui/prod/stripe/agent-overage-price-id
+revealui/prod/stripe/pro-price-id
+revealui/prod/stripe/max-price-id
+revealui/prod/stripe/max-annual-price-id
+revealui/prod/stripe/enterprise-price-id
+revealui/prod/stripe/perpetual-pro-price-id
+revealui/prod/stripe/perpetual-max-price-id
+revealui/prod/stripe/perpetual-enterprise-price-id
+revealui/prod/stripe/credits-starter-price-id
+revealui/prod/stripe/credits-standard-price-id
+revealui/prod/stripe/credits-scale-price-id
+```
+
+**Email transport (Gmail service account)**
+
+```
+revealui/prod/google/service-account-email   # GOOGLE_SERVICE_ACCOUNT_EMAIL
+revealui/prod/google/private-key             # GOOGLE_PRIVATE_KEY — PKCS8 PEM
+revealui/prod/email/from                     # EMAIL_FROM — sending address (Workspace user with domain-wide delegation)
+revealui/prod/email/reply-to                 # EMAIL_REPLY_TO
+```
+
+**License signing (Ed25519)**
+
+```
+revealui/prod/license/private-key   # REVEALUI_LICENSE_PRIVATE_KEY — migrated RS256 → Ed25519 (CR8-P0-01 Phase D 2026-05-04)
+revealui/prod/license/public-key    # REVEALUI_LICENSE_PUBLIC_KEY — rotating invalidates all issued customer licenses
+```
+
+**Passkeys**
+
+```
+revealui/prod/passkey/origin    # PASSKEY_ORIGIN
+revealui/prod/passkey/rp-id     # PASSKEY_RP_ID
+revealui/prod/passkey/rp-name   # PASSKEY_RP_NAME
+```
+
+**CMS**
+
+```
+revealui/prod/cms/admin-email     # CMS_ADMIN_EMAIL
+revealui/prod/cms/admin-password  # CMS_ADMIN_PASSWORD
+```
+
+**Observability (Sentry)**
+
+```
+revealui/prod/sentry/dsn           # SENTRY_DSN — server (Hono); required by validate-startup.ts in REQUIRED_IN_PRODUCTION_HOSTED
+revealui/prod/sentry/dsn-admin     # NEXT_PUBLIC_SENTRY_DSN — admin (Next.js); enables withSentryConfig wrapper
+revealui/prod/sentry/auth-token    # SENTRY_AUTH_TOKEN — CI/CD source-map upload
+revealui/prod/sentry/org           # SENTRY_ORG — org slug
+revealui/prod/sentry/project-server  # SENTRY_PROJECT for apps/server
+revealui/prod/sentry/project-admin   # SENTRY_PROJECT for apps/admin
+```
+
+**Storage**
+
+```
+revealui/prod/blob/read-write-token  # BLOB_READ_WRITE_TOKEN — Vercel Blob file uploads
+```
+
+**Billing**
+
+```
+revealui/prod/billing/portal-config-id  # Stripe customer-portal configuration ID
+```
+
+**Public / non-secret config (kept canonical for reproducibility)**
+
+```
+revealui/prod/public/api-url     # NEXT_PUBLIC_API_URL + REVEALUI_API_URL
+revealui/prod/public/server-url  # NEXT_PUBLIC_SERVER_URL + REVEALUI_PUBLIC_SERVER_URL
+revealui/prod/public/is-live     # NEXT_PUBLIC_IS_LIVE — feature-flag: Stripe live mode
+```
+
+**Deployment tokens (prod)**
+
+```
+revealui/prod/api-keys/vercel-token         # VERCEL_TOKEN — Vercel API token for sync + deploy; also mirrored to GH secret VERCEL_TOKEN
+revealui/prod/api-keys/npm-automation-token # REVEALUI_NPM_TOKEN — npm publish automation (scope to actual need)
+```
+
+#### API keys namespace
+
+Workspace-scoped keys for inference and services (not project-specific prod runtime):
+
+```
+revealui/api-keys/ai-gateway
+revealui/api-keys/github-pat
+revealui/api-keys/huggingface
+revealui/api-keys/mcp
+revealui/api-keys/npm-automation-token   # workspace-level; prod mirror at revealui/prod/api-keys/npm-automation-token
+revealui/api-keys/openai-codex
+revealui/api-keys/openai-reveal-framework
+revealui/api-keys/openai-test
+revealui/api-keys/resend
+revealui/api-keys/vultr
+revealui/api-keys/vultr-new
+revealui/api-keys/vultr-revealui-infer
+```
+
+#### Env bundles (local dev, exported via `revvault export-env`)
+
+These are multi-var bundles consumed by `.envrc`:
+
+```
+revealui/env/ai
+revealui/env/backup
+revealui/env/cms-url
+revealui/env/core
+revealui/env/cron
+revealui/env/license        # REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY
+revealui/env/npm
+revealui/env/services
+revealui/env/stripe
+revealui/env/stripe/STRIPE_CREDITS_SCALE_PRICE_ID
+revealui/env/stripe/STRIPE_CREDITS_SCALE_PRODUCT_ID
+revealui/env/stripe/STRIPE_CREDITS_STANDARD_PRICE_ID
+revealui/env/stripe/STRIPE_CREDITS_STANDARD_PRODUCT_ID
+revealui/env/stripe/STRIPE_CREDITS_STARTER_PRICE_ID
+revealui/env/stripe/STRIPE_CREDITS_STARTER_PRODUCT_ID
+revealui/env/supabase
 ```
 
 ### Revealcoin
@@ -129,8 +263,8 @@ revdev/github-token                      # perpetual license GitHub provisioning
 
 ```
 revealui/env/license                     # Multi-key bundle for local dev: REVEALUI_LICENSE_PRIVATE_KEY + REVEALUI_LICENSE_PUBLIC_KEY (consumed by ~/revfleet/revealui/.envrc via `revvault export-env`)
-revealui/prod/license/private-key        # Ed25519 license signing key (production; mirrored to Vercel `revealui-api` + `revealui-admin`) — migrated RS256 → Ed25519 via CR8-P0-01 Phase D 2026-05-04
-revealui/prod/license/public-key         # Ed25519 license verification key (production; mirrored to Vercel `revealui-api` + `revealui-admin`) — migrated RS256 → Ed25519 via CR8-P0-01 Phase D 2026-05-04
+revealui/prod/license/private-key        # Ed25519 license signing key (production; mirrored to Vercel `revealui-api` + `revealui-admin`)
+revealui/prod/license/public-key         # Ed25519 license verification key (production; mirrored to Vercel `revealui-api` + `revealui-admin`)
 ```
 
 ### LLM / AI providers
@@ -174,7 +308,7 @@ credentials/ssh/github                   # if distinct from system SSH
 import { spawnSync } from 'node:child_process';
 
 function revvault(path: string): string {
-  const bin = process.env.REVVAULT ?? `${process.env.HOME}/suite/revvault/target/release/revvault`;
+  const bin = process.env.REVVAULT ?? `${process.env.HOME}/.cargo/bin/revvault`;
   const r = spawnSync(bin, ['get', '--full', path], { encoding: 'utf8' });
   if (r.status !== 0) {
     throw new Error(`revvault path '${path}' missing; set with: echo <val> | revvault set ${path}`);
@@ -200,8 +334,9 @@ Env vars are populated from revvault at deploy time via a mirror step,
 not hand-typed in the Vercel UI:
 
 ```bash
-# One-off mirror (or automate as a deploy step):
-revvault export-env --prefix revealui/prod | vercel env import --environment production
+# Driven by the Vercel sync manifest (scripts/sync/revvault-vercel.toml):
+pnpm vercel:sync          # dry-run — review diffs
+pnpm vercel:sync:apply    # apply to Vercel production
 ```
 
 ## Writing a new secret
@@ -223,7 +358,7 @@ revvault export-env --prefix revealui/prod | vercel env import --environment pro
 
 1. Generate the new value.
 2. `revvault set --force <path>` — overwrite.
-3. Redeploy long-lived consumers (Vercel, Railway). They pick up the
+3. Redeploy long-lived consumers (Vercel). They pick up the
    new env on next invocation.
 4. Log the rotation in `docs/SECURITY.md` or the relevant security log.
 5. If the old value was leaked: `revvault delete <path>` after
