@@ -16,7 +16,7 @@ audience: developer
 - **Encrypted at rest.** Secrets stored as `.age` files using x25519 key exchange. The age identity (`~/.age-identity/keys.txt` by convention) gates every secret in the vault.
 - **CLI**: `revvault get`, `set`, `list`, `search`, `delete`, `edit`, `export-env`. Implemented in Rust (workspace under `crates/`).
 - **Desktop app**: Tauri 2 + React 19. Search, browse, create, reveal, copy, delete, with secret-shape detection.
-- **Namespaces**: secrets organized by first path segment — `credentials/`, `ssh/`, `revealui/`, `revealcoin/`, etc.
+- **Namespaces**: secrets organized by first path segment — `credentials/`, `ssh/`, `revealui/`, etc.
 - **Fuzzy search**: find secrets by partial path match.
 - **Import**: migrate plaintext secret files with automatic categorisation.
 - **Path validation**: directory traversal and injection attacks blocked at the API layer.

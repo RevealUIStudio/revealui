@@ -27,7 +27,7 @@ RevealUI has two deployment paths. Kubernetes is not one of them.
 
 | Path | Workflow | Surface |
 |------|----------|---------|
-| Hosted SaaS | [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) — Vercel CLI, per-app project IDs, validate → migrate → matrix-deploy → smoke → auto-rollback | 5 apps: `api`, `admin`, `marketing`, `docs`, `revealcoin` |
+| Hosted SaaS | [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) — Vercel CLI, per-app project IDs, validate → migrate → matrix-deploy → smoke → auto-rollback | 4 apps: `api`, `admin`, `marketing`, `docs` |
 | Self-hosted enterprise (Forge) | [`.github/workflows/docker.yml`](../../.github/workflows/docker.yml) — builds `apps/{server,admin}/Dockerfile.forge`, pushes to `ghcr.io/revealuistudio` | Customers run [`docker-compose.forge.yml`](../../docker-compose.forge.yml) with their own license key |
 
 The Forge stack handles its own reverse-proxy / TLS / observability concerns at the customer's deployment perimeter — RevealUI does not ship nginx configs, prometheus configs, or kubectl manifests.
