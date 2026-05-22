@@ -91,9 +91,11 @@ pnpm test:coverage
 
 ### License
 
-| Method | Path                | Purpose                                      |
-| ------ | ------------------- | -------------------------------------------- |
-| GET    | `/license/validate` | Validate perpetual or deployment license key |
+| Method | Path                    | Purpose                                        |
+| ------ | ----------------------- | ---------------------------------------------- |
+| POST   | `/api/license/verify`   | Verify a license key (returns tier + features) |
+| POST   | `/api/license/generate` | Generate a signed license key (admin only)     |
+| GET    | `/api/license/features` | Feature flags available at each tier           |
 
 ### Observability
 
