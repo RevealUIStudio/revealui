@@ -45,7 +45,7 @@ import InterTightVariable from '../assets/fonts/InterTight-Variable.ttf';
 // function. In dev (tsx, running from src/) the colocated file does not exist,
 // so fall back to the node_modules copy. `import.meta.resolve` is sync in
 // Node 20.6+ (engines requires >=24.13).
-function readResvgWasm(): Buffer {
+function readResvgWasm() {
   // Prefer the copy emitted next to the built bundle by copy-resvg-wasm
   // (dist/index_bg.wasm). Fall back to the node_modules copy in dev (tsx from
   // src/). Read with try/catch rather than an existsSync probe to avoid a
