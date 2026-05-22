@@ -151,6 +151,10 @@ POSTGRES_URL  = "revealui/prod/db/postgres-url"
 NEON_API_KEY  = "revealui/prod/db/neon-api-key"
 
 # Encryption + signing (parity with api — same license keypair + session secret)
+# REVEALUI_KEK - field-level encryption key (AES-256-GCM; packages/db/src/crypto.ts).
+# admin's production instrumentation hard-requires it (apps/admin/src/lib/utils/env-validation.ts);
+# leaving it untracked here is what let it go missing when the prod env was rebuilt (regression #928).
+REVEALUI_KEK                 = "revealui/prod/kek"
 REVEALUI_LICENSE_PRIVATE_KEY = "revealui/prod/license/private-key"
 REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/prod/license/public-key"
 REVEALUI_SECRET              = "revealui/prod/secret"
