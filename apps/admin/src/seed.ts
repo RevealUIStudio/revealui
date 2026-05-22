@@ -93,7 +93,7 @@ const pages = [
               ),
               heading('Get Started', 'h3'),
               paragraph(
-                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 21 of 26 packages are MIT - forever; the 5 Pro packages convert to MIT after 2 years.',
+                'Run npx create-revealui to scaffold a new project. Visit /admin to manage content, create pages, and configure your application. 20 of 26 packages are MIT - forever; the 5 Pro packages convert to MIT after 2 years.',
               ),
             ),
           },
@@ -121,7 +121,7 @@ const pages = [
               ),
               heading('Open Source + Pro', 'h3'),
               paragraph(
-                'The core runtime is MIT-licensed. AI agents and harnesses are Fair Source (FSL-1.1-MIT), free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
+                'The core runtime is MIT-licensed. The 5 Pro packages (ai, engines, harnesses, mcp, services) are Fair Source (FSL-1.1-MIT), free for single-product use, commercially licensed for platforms, converting to MIT after two years.',
               ),
             ),
           },
@@ -236,7 +236,7 @@ const sampleContent = {
         { label: 'Packages', value: '26' },
         { label: 'MCP Servers', value: '13' },
         { label: 'UI Components', value: '58' },
-        { label: 'MIT', value: '24/26' },
+        { label: 'MIT', value: '20/26' },
       ],
     },
   ],

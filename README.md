@@ -163,8 +163,6 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/resilience`](packages/resilience)           | Circuit breaker, retry, bulkhead patterns         |
 | [`@revealui/security`](packages/security)               | Headers, CORS, RBAC/ABAC, encryption, audit       |
 | [`@revealui/dev`](packages/dev)                         | Shared configs (Biome, TypeScript, Tailwind)      |
-| [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery |
-| [`@revealui/services`](packages/services)               | Stripe + Supabase integrations                    |
 | [`@revealui/test`](packages/test)                       | E2E specs, integration tests, fixtures, mocks     |
 | [`create-revealui`](packages/create-revealui)           | `npm create revealui` initializer                 |
 
@@ -173,7 +171,10 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
 | [`@revealui/ai`](packages/ai)                           | AI agents, CRDT memory, LLM providers             |
+| [`@revealui/engines`](packages/engines)                 | Unified entry point for the five primitives (private) |
 | [`@revealui/harnesses`](packages/harnesses)             | AI harness adapters and workboard coordination    |
+| [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery |
+| [`@revealui/services`](packages/services)               | Stripe, Solana (RVC), Vercel integrations         |
 
 ## Tech stack
 
@@ -255,7 +256,7 @@ revealui/
 │   ├── admin/      # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
 │   └── marketing/  # revealui.com marketing site (port 3000)
-├── packages/       # 21 OSS + 5 Pro packages
+├── packages/       # 20 OSS + 5 Pro packages
 ├── docs/           # guides + reference
 └── scripts/        # CI gates, release tooling, dev tools
 ```
@@ -306,7 +307,7 @@ RevealUI is MIT-licensed and free to use. Sponsorship funds development, documen
 This repository is dual-licensed:
 
 - **OSS packages** (most of the repo, including every `@revealui/*` package without its own in-package `LICENSE` file): MIT — see [LICENSE](LICENSE).
-- **Pro packages** (`@revealui/ai`, `@revealui/harnesses`): Functional Source License v1.1 with MIT Future License (FSL-1.1-MIT) — source-available for non-competing use, automatically converts to MIT on each package's Change Date (~2 years from first FSL publish). See [LICENSE.commercial](LICENSE.commercial) for the dual-license explainer and each Pro package's `LICENSE` file for canonical terms.
+- **Pro packages** (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`): Functional Source License v1.1 with MIT Future License (FSL-1.1-MIT) — source-available for non-competing use, automatically converts to MIT on each package's Change Date (~2 years from first FSL publish). See [LICENSE.commercial](LICENSE.commercial) for the dual-license explainer and each Pro package's `LICENSE` file for canonical terms.
 
 For commercial licensing alternatives or licensing questions: founder@revealui.com.
 
