@@ -3,7 +3,7 @@
 //   app/components/Footer.tsx, app/components/GetStarted.tsx,
 //   app/components/landing/Hero.tsx, app/routes/*.tsx
 // Per docs/lanes/marketing-overhaul/plan.md §4.4 (Phase 1).
-// Phase 1b additions: repoRoadmap, apiDocs, revealcoinReadme.
+// Phase 1b additions: repoRoadmap, apiDocs.
 // Phase 1c additions: adminLogin, x, linkedin, forum, repoChangelog, repoLicense.
 // Phase 3 addition: METRICS export — canonical numbers from docs/MARKETING_METRICS.md §1
 //   (validated by `pnpm tsx scripts/validate/claim-drift.ts`). All content/* files
@@ -69,7 +69,6 @@ export const SITE = {
     apiAgent: 'https://api.revealui.com/.well-known/agent.json',
     apiOpenapi: 'https://api.revealui.com/openapi.json',
     apiDocs: 'https://docs.revealui.com/api',
-    revealcoinReadme: 'https://github.com/RevealUIStudio/revealcoin#pre-launch-risk-disclosure',
     fslSoftware: 'https://fsl.software/',
     fslSpecText: 'https://fsl.software/FSL-1.1-MIT.template.md',
     adminLogin: 'https://admin.revealui.com/login',

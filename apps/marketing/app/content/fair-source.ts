@@ -115,7 +115,7 @@ export const FAIR_SOURCE_PACKAGES: readonly FslPackage[] = [
   },
   {
     name: '@revealui/services',
-    purpose: 'External service integrations — Stripe, Solana (RVC), Vercel',
+    purpose: 'External service integrations — Stripe, Solana, Vercel',
     license: 'FSL-1.1-MIT',
     repo: 'https://github.com/RevealUIStudio/revealui/tree/main/packages/services',
     npm: 'https://www.npmjs.com/package/@revealui/services',
