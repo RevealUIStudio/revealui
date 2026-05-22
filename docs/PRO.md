@@ -99,8 +99,6 @@ RevealUI is part of a four-project ecosystem. Each project has features distribu
 | RevKit agent coordination protocol | Yes | Yes | Yes | Yes |
 | RevKit environment provisioning | | | Yes | Yes |
 
-> **Deferred — SHELVED 2026-05-15:** RevealCoin x402 agent payments are not on the current roadmap. Mainnet is indefinitely postponed pending revenue + legal review. The `X402_ENABLED=false` flag preserves the code for future resumption.
-
 The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free forever. Commercial features (desktop app, rotation engine, provisioning) require the corresponding tier.
 
 ## Licensing (Fair Source + MIT)
@@ -1161,7 +1159,7 @@ Stripe payment processing for RevealUI Pro.
 
 ## Overview
 
-`@revealui/services` provides pre-wired Stripe integrations with auth-aware clients, webhook handlers, and billing flow helpers. Also exports Solana (RevealCoin / RVC) and Vercel (deploy + DNS) helpers.
+`@revealui/services` provides pre-wired Stripe integrations with auth-aware clients, webhook handlers, and billing flow helpers. Also exports Vercel (deploy + DNS) helpers.
 
 **Requires a Pro or Enterprise license** (`isFeatureEnabled('payments')`).
 

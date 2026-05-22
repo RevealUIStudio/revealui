@@ -80,7 +80,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 | @revealui/engines | Unified entry point for the five business primitives (private workspace package) |
 | @revealui/harnesses | AI harness adapters, workboard coordination, JSON-RPC |
 | @revealui/mcp | MCP hypervisor, adapter framework, tool discovery |
-| @revealui/services | Stripe (billing + circuit breaker), Solana (RVC), Vercel (deploy + DNS) |
+| @revealui/services | Stripe (billing + circuit breaker), Vercel (deploy + DNS) |
 
 ## Common Commands
 
@@ -185,7 +185,7 @@ Key postures — full definitions in `docs/methodology.md`.
 - **Revvault-first (M4):** all secrets live in `revvault`. No `.env` primary. No plaintext on disk. See `docs/SECRETS.md`.
 - **Per-session beacons + note.js (M9):** `session-note` SKILL + `note.js` CLI provide handoff continuity across Claude Code sessions. Context beacon written on stop.
 - **Workboard automation (M10):** `workboard-check.js` (read-only drift detector, fires on session-start) + `workboard-sweep.js` (idempotent cleanup, agent reviews diff + commits manually). Hooks never write to the workboard by design.
-- **Charge-readiness (M11):** subscription billing 3 days from live; Stripe LIVE_MODE owner-gated. RevealCoin parked until 2026-Q4. Pro-package gates being removed via Path A (FSL-1.1-MIT normalization).
+- **Charge-readiness (M11):** subscription billing 3 days from live; Stripe LIVE_MODE owner-gated. Pro-package gates being removed via Path A (FSL-1.1-MIT normalization).
 
 ## Build & Security Status
 - All workspaces build and typecheck clean (run `pnpm build` and `pnpm typecheck:all`)

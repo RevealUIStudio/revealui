@@ -72,7 +72,6 @@ Hooks architecture detail: `~/.claude/rules/hooks-architecture.md` (private).
 ## Charge-readiness state (M11)
 
 - Subscription billing is 3 days from live; Stripe LIVE_MODE is owner-gated.
-- RevealCoin / RVUI is parked until 2026-Q4. Preconditions: Anchor program + security audit + legal counsel + hardware-wallet custody.
 - Pro-package gates are being removed via Path A: drop fake `checkXLicense` calls; normalize to FSL-1.1-MIT. Customers pay for hosted infra + support, not enforcement. Tracked in `docs/MASTER_PLAN.md`.
 
 ---
@@ -102,4 +101,4 @@ Hooks architecture detail: `~/.claude/rules/hooks-architecture.md` (private).
 | Secrets (M4) | `~/.claude/rules/secrets.md` + `docs/SECRETS.md` |
 | Hooks architecture (M8/M9/M10) | `~/.claude/rules/hooks-architecture.md` (private) |
 | 7-tier rename glossary (M1) | `RevealUIStudio/revealui-jv/docs/glossary.md` (private) |
-| Charge-readiness detail (M11) | `docs/MASTER_PLAN.md` §Billing + §RevealCoin |
+| Charge-readiness detail (M11) | `docs/MASTER_PLAN.md` §Billing |
