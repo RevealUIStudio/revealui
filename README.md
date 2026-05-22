@@ -75,7 +75,6 @@ RevealUI is the runtime at the center of RevFleet — the RevealUI Studio produc
 | **RevDev**           | AI engineering harness — multi-agent coordination        | MIT (early)       |
 | **RevCon**           | Editor config sync (Zed, VS Code, Cursor, Antigravity)   | MIT               |
 | **RevKit**           | Portable WSL dev environment toolkit                     | Pro               |
-| **RevealCoin**       | Solana Token-2022 (shelved 2026-05-15 — see [revealcoin README](https://github.com/RevealUIStudio/revealcoin#readme))                          | Shelved           |
 | **RevSkills**        | Claude Code skills library                               | MIT               |
 | **RevealUI Fleet**   | White-label / enterprise deployment kit for RevealUI     | Enterprise tier   |
 
