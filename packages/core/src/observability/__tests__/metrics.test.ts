@@ -14,7 +14,6 @@ import {
   trackHTTPRequest,
   trackX402PaymentRequired,
   trackX402PaymentVerify,
-  trackX402SafeguardRejection,
   updateActiveConnections,
   updateMemoryUsage,
 } from '../metrics.js';
@@ -796,44 +795,6 @@ describe('Helper functions', () => {
           result: 'invalid',
         }),
       ).toBe(beforeInvalid + 1);
-    });
-  });
-
-  describe('trackX402SafeguardRejection', () => {
-    it('increments rejection counter with the matching reason label', () => {
-      const before = appMetrics.x402SafeguardRejectionTotal.get({ reason: 'duplicate-tx' });
-
-      trackX402SafeguardRejection('duplicate-tx');
-
-      expect(appMetrics.x402SafeguardRejectionTotal.get({ reason: 'duplicate-tx' })).toBe(
-        before + 1,
-      );
-    });
-
-    it('keeps each rejection reason separately countable', () => {
-      const beforeReplay = appMetrics.x402SafeguardRejectionTotal.get({ reason: 'duplicate-tx' });
-      const beforeCap = appMetrics.x402SafeguardRejectionTotal.get({
-        reason: 'single-payment-cap',
-      });
-      const beforeRate = appMetrics.x402SafeguardRejectionTotal.get({
-        reason: 'wallet-rate-limit',
-      });
-
-      trackX402SafeguardRejection('duplicate-tx');
-      trackX402SafeguardRejection('single-payment-cap');
-      trackX402SafeguardRejection('wallet-rate-limit');
-      trackX402SafeguardRejection('discount-cap');
-      trackX402SafeguardRejection('circuit-breaker');
-
-      expect(appMetrics.x402SafeguardRejectionTotal.get({ reason: 'duplicate-tx' })).toBe(
-        beforeReplay + 1,
-      );
-      expect(appMetrics.x402SafeguardRejectionTotal.get({ reason: 'single-payment-cap' })).toBe(
-        beforeCap + 1,
-      );
-      expect(appMetrics.x402SafeguardRejectionTotal.get({ reason: 'wallet-rate-limit' })).toBe(
-        beforeRate + 1,
-      );
     });
   });
 });

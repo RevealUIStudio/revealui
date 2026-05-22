@@ -706,12 +706,7 @@ app.openapi(
         );
       }
 
-      const verification = await verifyPayment(
-        paymentHeader,
-        resource,
-        { userId: user.id, amountUsd: costUsdc },
-        'revmarket-task',
-      );
+      const verification = await verifyPayment(paymentHeader, resource, 'revmarket-task');
       if (!verification.valid) {
         return c.json({ error: `Payment verification failed: ${verification.error}` }, 402);
       }

@@ -32,14 +32,14 @@ export const SECRETS_SCHEMA_VERSION = 1;
  *
  * Forward-slash separated, lower-kebab segments. Each segment matches
  * `[a-z][a-z0-9-]*`. The final segment may end in a file extension
- * `.<ext>` (typical for keypairs: `revealcoin/mint-authority.json`).
+ * `.<ext>` (typical for keypairs: `revealui/prod/keys/signing-key.json`).
  *
  * Minimum 2 segments; no fixed maximum (revvault doesn't enforce one).
  *
  * Examples (canonical paths from `~/.claude/rules/secrets.md`):
  * - `revealui/dev/electric/service-url`
  * - `revealui/prod/stripe/secret-key`
- * - `revealcoin/mint-authority.json`
+ * - `revealui/prod/keys/signing-key.json`
  * - `revdev/license-signing-key`
  * - `credentials/github/anthropic-api-key`
  */
@@ -49,7 +49,7 @@ export const SecretPathSchema = z
   .max(200)
   .regex(/^[a-z][a-z0-9-]*(?:\/[a-z][a-z0-9-]*)+(?:\.[a-z]+)?$/, {
     message:
-      'Secret path must be 2+ lower-kebab segments separated by /, e.g. "revealui/prod/stripe/secret-key" or "revealcoin/mint-authority.json"',
+      'Secret path must be 2+ lower-kebab segments separated by /, e.g. "revealui/prod/stripe/secret-key" or "revealui/prod/keys/signing-key.json"',
   });
 
 export type SecretPath = z.infer<typeof SecretPathSchema>;

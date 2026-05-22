@@ -331,37 +331,6 @@ describe('@revealui/engines', () => {
       expect(typeof products.getTiersFromCurrent).toBe('function');
     });
 
-    it('exports RevealCoin token config', async () => {
-      const { products } = await import('../index.js');
-
-      expect(products.RVUI_TOKEN_CONFIG).toBeDefined();
-      expect(products.RVUI_TOKEN_CONFIG.symbol).toBe('RVUI');
-      expect(typeof products.RVUI_TOKEN_CONFIG.decimals).toBe('number');
-      expect(products.RVUI_MINT_ADDRESSES).toBeDefined();
-      expect(products.RVUI_ALLOCATIONS).toBeDefined();
-      expect(products.RVUI_DISCOUNT_RATES).toBeDefined();
-    });
-
-    it('exports RevealCoin utility functions', async () => {
-      const { products } = await import('../index.js');
-
-      expect(typeof products.getRvuiMintAddress).toBe('function');
-      expect(typeof products.formatRvuiAmount).toBe('function');
-      expect(typeof products.parseRvuiAmount).toBe('function');
-    });
-
-    it('round-trips RVUI amount formatting', async () => {
-      const { products } = await import('../index.js');
-
-      const amount = 1_000_000n;
-      const formatted = products.formatRvuiAmount(amount);
-      expect(typeof formatted).toBe('string');
-      expect(formatted.length).toBeGreaterThan(0);
-
-      const parsed = products.parseRvuiAmount(formatted);
-      expect(parsed).toBe(amount);
-    });
-
     it('exports credit bundles', async () => {
       const { products } = await import('../index.js');
 
@@ -410,33 +379,6 @@ describe('@revealui/engines', () => {
       expect(payments.accountMemberships).toBeDefined();
       expect(payments.accountEntitlements).toBeDefined();
       expect(payments.usageMeters).toBeDefined();
-    });
-
-    it('exports RevealCoin payment functions', async () => {
-      const { payments } = await import('../index.js');
-
-      expect(typeof payments.configureRevealCoin).toBe('function');
-      expect(typeof payments.getRevealCoinConfig).toBe('function');
-      expect(typeof payments.getRvuiBalance).toBe('function');
-      expect(typeof payments.fetchRvuiPrice).toBe('function');
-      expect(typeof payments.rvuiToUsd).toBe('function');
-      expect(typeof payments.usdToRvui).toBe('function');
-      expect(typeof payments.verifyRvuiPayment).toBe('function');
-    });
-
-    it('exports price oracle functions', async () => {
-      const { payments } = await import('../index.js');
-
-      expect(typeof payments.configurePriceOracle).toBe('function');
-      expect(typeof payments.startPriceOracle).toBe('function');
-      expect(typeof payments.stopPriceOracle).toBe('function');
-    });
-
-    it('exports service safeguard functions', async () => {
-      const { payments } = await import('../index.js');
-
-      expect(typeof payments.configureSafeguards).toBe('function');
-      expect(typeof payments.validatePayment).toBe('function');
     });
   });
 

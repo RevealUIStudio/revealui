@@ -171,7 +171,6 @@ export {
   createContractsServer,
   getContractsCatalog,
   REGISTERED_CATEGORIES,
-  REVEALCOIN_TOKEN_DEFAULT,
   validatePayload,
 } from './servers/factories/contracts.js';
 // First-party server factories (Stage 1 PR-1.2 — dual-mode template)

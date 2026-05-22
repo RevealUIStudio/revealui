@@ -480,15 +480,9 @@ export const appMetrics = {
 
   x402PaymentVerifyDuration: metrics.histogram(
     'x402_payment_verify_duration_seconds',
-    'x402 payment verification latency (Coinbase facilitator round-trip for USDC; Solana RPC + safeguards for RVUI)',
+    'x402 payment verification latency (Coinbase facilitator round-trip for USDC)',
     [0.05, 0.1, 0.5, 1, 5, 10, 30],
     ['scheme'],
-  ),
-
-  x402SafeguardRejectionTotal: metrics.counter(
-    'x402_safeguard_rejection_total',
-    'RVUI safeguards pipeline rejections by reason (replay / cap / rate-limit / discount-cap / circuit-breaker)',
-    ['reason'],
   ),
 };
 
@@ -542,45 +536,26 @@ export function updateActiveConnections(type: string, delta: number): void {
 
 /**
  * Track an x402 HTTP 402 emission at a route. Call when the route returns
- * 402 with `X-PAYMENT-REQUIRED`. `currency` is `'usdc-rvui'` when both are
- * advertised (RVUI_PAYMENTS_ENABLED + receiving wallet set) and `'usdc-only'`
- * otherwise.
+ * 402 with `X-PAYMENT-REQUIRED`. `currency` is always `'usdc-only'` — USDC on
+ * Base is the sole settlement currency.
  */
-export function trackX402PaymentRequired(route: string, currency: 'usdc-only' | 'usdc-rvui'): void {
+export function trackX402PaymentRequired(route: string, currency: 'usdc-only'): void {
   appMetrics.x402PaymentRequiredTotal.inc(1, { route, currency });
 }
 
 /**
  * Track an x402 payment verification. Increments the result counter and
- * observes the duration histogram (latency includes Coinbase facilitator
- * round-trip for USDC OR Solana RPC + safeguards pipeline for RVUI).
+ * observes the duration histogram (latency = Coinbase facilitator round-trip
+ * for USDC).
  */
 export function trackX402PaymentVerify(
   route: string,
-  scheme: 'exact' | 'solana-spl',
+  scheme: 'exact',
   result: 'valid' | 'invalid',
   durationMs: number,
 ): void {
   appMetrics.x402PaymentVerifyTotal.inc(1, { route, scheme, result });
   appMetrics.x402PaymentVerifyDuration.observe(durationMs / 1000, { scheme });
-}
-
-/**
- * Track an RVUI safeguards pipeline rejection. Called from
- * `verifyRvuiPayment` when `validatePayment` returns disallowed. Reasons
- * are mapped from the safeguard's free-text reason at the call site to
- * keep wording coupling low.
- */
-export type X402SafeguardRejectionReason =
-  | 'duplicate-tx'
-  | 'circuit-breaker'
-  | 'single-payment-cap'
-  | 'wallet-rate-limit'
-  | 'discount-cap'
-  | 'unknown';
-
-export function trackX402SafeguardRejection(reason: X402SafeguardRejectionReason): void {
-  appMetrics.x402SafeguardRejectionTotal.inc(1, { reason });
 }
 
 /**

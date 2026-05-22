@@ -85,7 +85,6 @@ import apiKeysRoute from './routes/api-keys.js';
 import authRoute from './routes/auth.js';
 import billingRoute from './routes/billing.js';
 import provenanceRoute from './routes/code-provenance.js';
-import coinRoute from './routes/coin.js';
 import { createCollabRoute } from './routes/collab.js';
 import contactRoute from './routes/contact.js';
 import contentRoute from './routes/content/index.js';
@@ -146,16 +145,6 @@ async function gracefulShutdown(signal: string): Promise<void> {
     clearInterval(monitoringInterval);
   }
 
-  // Stop RVUI price oracle polling
-  try {
-    const mod = (await import('@revealui/services/revealcoin')) as Record<string, unknown>;
-    if (typeof mod.stopPriceOracle === 'function') {
-      (mod.stopPriceOracle as () => void)();
-    }
-  } catch {
-    // @revealui/services not available  -  ignore
-  }
-
   // Close database pools
   try {
     await closeAllPools();
@@ -196,7 +185,6 @@ const PRODUCTION_ORIGINS = [
   'https://revealui.com',
   'https://www.revealui.com',
   'https://marketing.revealui.com',
-  'https://revealcoin.revealui.com',
 ];
 
 export function getCorsOrigins(): string[] {
@@ -443,7 +431,6 @@ const DEFAULT_RATE_LIMITS: RateLimitsConfig = {
     'billing-checkout-perpetual': { maxRequests: 5, windowMs: ONE_MINUTE },
     'billing-portal': { maxRequests: 10, windowMs: ONE_MINUTE },
     'billing-refund': { maxRequests: 3, windowMs: ONE_MINUTE },
-    'billing-rvui-payment': { maxRequests: 5, windowMs: ONE_MINUTE },
     'billing-checkout-credits': { maxRequests: 5, windowMs: ONE_MINUTE },
     'billing-checkout-support-renewal': { maxRequests: 5, windowMs: ONE_MINUTE },
     'billing-subscription': { maxRequests: 30, windowMs: ONE_MINUTE },
@@ -551,8 +538,6 @@ app.use('/api/billing/portal', routeLimit('billing-portal'));
 app.use('/api/v1/billing/portal', routeLimit('billing-portal'));
 app.use('/api/billing/refund', routeLimit('billing-refund'));
 app.use('/api/v1/billing/refund', routeLimit('billing-refund'));
-app.use('/api/billing/rvui-payment', routeLimit('billing-rvui-payment'));
-app.use('/api/v1/billing/rvui-payment', routeLimit('billing-rvui-payment'));
 app.use('/api/billing/checkout-credits', routeLimit('billing-checkout-credits'));
 app.use('/api/v1/billing/checkout-credits', routeLimit('billing-checkout-credits'));
 app.use('/api/billing/checkout-support-renewal', routeLimit('billing-checkout-support-renewal'));
@@ -1121,7 +1106,6 @@ app.route('/api/logs', logsRoute);
 app.route('/api/license', licenseRoute);
 app.route('/api/auth', authRoute);
 app.route('/api/billing', billingRoute);
-app.route('/api/coin', coinRoute);
 app.route('/api/contact', contactRoute);
 app.route('/api/v1/contact', contactRoute);
 // Webhooks are rate-limited to prevent replay abuse and resource exhaustion.
@@ -1195,7 +1179,6 @@ app.route('/api/v1/logs', logsRoute);
 app.route('/api/v1/license', licenseRoute);
 app.route('/api/v1/auth', authRoute);
 app.route('/api/v1/billing', billingRoute);
-app.route('/api/v1/coin', coinRoute);
 app.use('/api/v1/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
 app.route('/api/v1/webhooks', webhooksRoute);
 app.route('/api/v1/provenance', provenanceRoute);

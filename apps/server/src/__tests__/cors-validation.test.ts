@@ -19,7 +19,6 @@ const HARDCODED_PRODUCTION_ORIGINS = [
   'https://revealui.com',
   'https://www.revealui.com',
   'https://marketing.revealui.com',
-  'https://revealcoin.revealui.com',
 ];
 
 const DEV_ORIGINS = [

@@ -3,7 +3,7 @@
  *
  * `accountMemberships.role` scopes platform-level authorization at the account
  * boundary. Billing actions (checkout, upgrade, downgrade, pause, resume,
- * perpetual/credit/support-renewal checkouts, RVUI payment) mutate the
+ * perpetual/credit/support-renewal checkouts) mutate the
  * subscription, credits, and license attached to the account — all of which
  * can land real charges on the owner's card or disable access for every other
  * member. Only the account owner should be able to trigger them.

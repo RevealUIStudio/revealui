@@ -176,12 +176,7 @@ export async function requireTaskQuota(
 
       if (payloadHeader) {
         // Verify the payment proof the agent sent
-        const result = await verifyPayment(
-          payloadHeader,
-          resource,
-          { userId: user.id, amountUsd: x402.pricePerTask },
-          'task-quota',
-        );
+        const result = await verifyPayment(payloadHeader, resource, 'task-quota');
 
         if (result.valid) {
           logger.info('x402 payment accepted  -  task quota bypassed', {

@@ -77,7 +77,6 @@ describe('emit-from-mcp / buildContractsOpenApi', () => {
       'generated_usersInsert',
       'providers_providerId',
       'representation_dualEntity',
-      'revealcoin_tokenConfig',
       'secrets_secretActor',
       'security_securityRule',
       'stripe_webhook_events_eventType',
@@ -195,6 +194,5 @@ describe('emit-from-mcp / regression: PR #731 contracts schemas surface', () => 
     expect(spec.components.schemas).toHaveProperty('providers_providerId');
     expect(spec.components.schemas).toHaveProperty('stripe_webhook_events_eventType');
     expect(spec.components.schemas).toHaveProperty('content_validation_config');
-    expect(spec.components.schemas).toHaveProperty('revealcoin_tokenConfig');
   });
 });

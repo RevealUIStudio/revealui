@@ -412,23 +412,6 @@ export function validateStartup(
     }
   }
 
-  // ── RVUI payment activation (mode-agnostic, gated on GAP-159) ────
-  // RVUI verification skips the safeguards pipeline (validatePayment +
-  // recordPayment + isDuplicateTransaction) — same on-chain signature can
-  // be replayed N times. Boot warns loudly when RVUI is enabled so the
-  // posture is unmistakable in runtime logs. The hard fix is GAP-159 in
-  // revealui-jv (wires safeguards into x402.verifySolanaPayment).
-  if (env.RVUI_PAYMENTS_ENABLED === 'true') {
-    const rvuiReceivingWallet = env.RVUI_RECEIVING_WALLET ?? '';
-    if (!rvuiReceivingWallet) {
-      errors.push(
-        'RVUI_PAYMENTS_ENABLED=true requires RVUI_RECEIVING_WALLET (Solana wallet) to be set. ' +
-          'See docs/architecture/x402.md for activation steps.',
-      );
-    }
-    emitRvuiSafeguardsWarning();
-  }
-
   if (errors.length > 0) {
     throw new Error(`STARTUP VALIDATION FAILED:\n  - ${errors.join('\n  - ')}`);
   }
@@ -622,37 +605,5 @@ export function emitStripeTestModeWarning(): void {
   // the project's noConsole lint rule. Semantically this is a warning,
   // and stderr is the canonical destination — Vercel captures it as a
   // runtime log identically to a higher-level warning facade.
-  process.stderr.write(banner);
-}
-
-/**
- * Emitted once per cold start when running with `RVUI_PAYMENTS_ENABLED=true`.
- * RVUI is treated as an experimental discount currency — the safeguards
- * pipeline is wired (replay protection + caps + circuit breaker) but
- * mainnet activation still requires the on-chain unlock per
- * `project_revealcoin_pre_launch_gates`. The warning keeps the experimental
- * posture visible in runtime logs.
- *
- * History: pre-#648 this banner warned about a replay-attack hole in the
- * verify path (GAP-159). #648 closed the hole; the wording was relaxed in
- * #651 once safeguards were wired.
- */
-export function emitRvuiSafeguardsWarning(): void {
-  const banner = [
-    '',
-    '⚠️  ╔══════════════════════════════════════════════════════════════════╗',
-    '⚠️  ║  RVUI PAYMENTS — experimental discount currency                  ║',
-    '⚠️  ║                                                                  ║',
-    '⚠️  ║  RVUI_PAYMENTS_ENABLED=true. Replay protection + caps + circuit ║',
-    '⚠️  ║  breaker are wired into the verify path (GAP-159 closed via     ║',
-    '⚠️  ║  revealui#648).                                                  ║',
-    '⚠️  ║                                                                  ║',
-    '⚠️  ║  Mainnet activation still gated on the pre-launch unlock        ║',
-    '⚠️  ║  (multi-sig + on-chain vesting); devnet/staging is the          ║',
-    '⚠️  ║  recommended environment until that lands.                       ║',
-    '⚠️  ╚══════════════════════════════════════════════════════════════════╝',
-    '',
-    '',
-  ].join('\n');
   process.stderr.write(banner);
 }

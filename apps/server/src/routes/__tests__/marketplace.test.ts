@@ -950,7 +950,6 @@ describe('POST /servers/:id/invoke -- x402 payment flow', () => {
     expect(mockVerifyPayment).toHaveBeenCalledWith(
       'my-payment-payload-value',
       expect.stringContaining('/servers/mcp_abcdef123456/invoke'),
-      expect.objectContaining({ userId: expect.any(String), amountUsd: expect.any(String) }),
       'marketplace-invoke',
     );
   });
