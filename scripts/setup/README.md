@@ -25,7 +25,7 @@ revealui dev up --include mcp
 | `database.ts`            | `pnpm db:init`    | Initialize database schema and tables          |
 | `reset-database.ts`      | `pnpm db:reset`   | Drop all tables and reinitialize (DESTRUCTIVE) |
 | `migrations.ts`          | `pnpm db:migrate` | Run pending database migrations                |
-| `seed-sample-content.ts` | `pnpm db:seed`    | Populate database with sample data             |
+| `seed-billing.ts`        | `pnpm db:seed:billing` | Seed the Stripe billing catalog (`pnpm db:seed` runs this plus the admin + fleet-marketing seeders) |
 
 ### Advanced Database Scripts
 
