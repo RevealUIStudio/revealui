@@ -24,7 +24,7 @@ A **non-monorepo, non-published convention bundle** that ships:
 ./link.sh --target ~/revfleet/revealui --profile revealui
 
 # Link base configs only (no profile)
-./link.sh --target ~/revfleet/revvault
+./link.sh --target ~/projects/RevealCoin
 
 # Link a single editor
 ./link.sh --target ~/revfleet/revealui --profile revealui --editor zed
@@ -42,7 +42,7 @@ A **non-monorepo, non-published convention bundle** that ships:
 ## How it composes with RevealUI
 
 - **New contributor flow**: clone RevealUI, then `pnpm dlx revcon sync` (or run RevCon's `link.sh` against the checkout). They get the team's editing posture, agent rules, and convention files. No drift.
-- **Cross-fleet consistency**: the same RevCon profile installs Claude Code rules into RevealUI, RevDev, RevVault, and RevForge. One source of truth for *"how do agents behave in our codebases."*
+- **Cross-fleet consistency**: the same RevCon profile installs Claude Code rules into RevealUI, RevDev, RevVault, RevealCoin, and RevForge. One source of truth for *"how do agents behave in our codebases."*
 - **Symlinks, not copies**: edits to RevCon master files propagate to every linked project on filesystem refresh — no per-repo PRs to keep configs in sync.
 
 ## Important: not gated by Pro license
