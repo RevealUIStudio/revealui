@@ -29,21 +29,5 @@ export {
   licenses,
   usageMeters,
 } from '@revealui/db';
-// ── Services: Stripe + RevealCoin payments ──────────────────────────────────
-export {
-  configurePriceOracle,
-  configureRevealCoin,
-  configureSafeguards,
-  createPaymentIntent,
-  fetchRvuiPrice,
-  getRevealCoinConfig,
-  getRvuiBalance,
-  getStripe,
-  protectedStripe,
-  rvuiToUsd,
-  startPriceOracle,
-  stopPriceOracle,
-  usdToRvui,
-  validatePayment,
-  verifyRvuiPayment,
-} from '@revealui/services';
+// ── Services: Stripe payments ────────────────────────────────────────────────
+export { createPaymentIntent, getStripe, protectedStripe } from '@revealui/services';

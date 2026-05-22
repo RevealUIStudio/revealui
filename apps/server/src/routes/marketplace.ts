@@ -643,18 +643,11 @@ app.openapi(
       );
     }
 
-    // Resolve caller identity up-front so verifyPayment can run the RVUI
-    // safeguards pipeline (replay protection + caps) keyed on user + price.
-    // USDC verification ignores the context.
+    // Caller identity, recorded on the pending transaction below.
     const callerId = (c.get('user') as UserContext | undefined)?.id ?? null;
 
     // Verify the payment proof against the facilitator
-    const verification = await verifyPayment(
-      paymentHeader,
-      resource,
-      { userId: callerId ?? '', amountUsd: server.pricePerCallUsdc },
-      'marketplace-invoke',
-    );
+    const verification = await verifyPayment(paymentHeader, resource, 'marketplace-invoke');
     if (!verification.valid) {
       return c.json({ error: `Payment verification failed: ${verification.error}` }, 402);
     }

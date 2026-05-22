@@ -70,7 +70,6 @@ import {
   DEVKIT_PROFILES,
   LLM_PROVIDERS,
   RELEVANT_STRIPE_WEBHOOK_EVENTS,
-  RVUI_TOKEN_CONFIG,
 } from '@revealui/contracts';
 import {
   A2AAgentCardSchema,
@@ -205,14 +204,6 @@ const StripeWebhookEventSchema = z.enum(
 const ContentValidationConfigSchema = z.object({
   maxDepth: z.number().int().positive(),
   maxSizeBytes: z.number().int().positive(),
-});
-
-const RvuiTokenConfigSchema = z.object({
-  name: z.string(),
-  symbol: z.string(),
-  decimals: z.number().int().nonnegative(),
-  totalSupply: z.bigint().or(z.string()),
-  description: z.string(),
 });
 
 // ---------------------------------------------------------------------------
@@ -419,14 +410,6 @@ const SCHEMA_REGISTRY = {
       agentRelation: AgentRelationSchema,
     },
   },
-  revealcoin: {
-    primary: 'tokenConfig',
-    description:
-      'RevealCoin (RVC on chain, RVUI internal codename) token config schema lifted from the TS interface.',
-    schemas: {
-      tokenConfig: RvuiTokenConfigSchema,
-    },
-  },
   secrets: {
     primary: 'secretActor',
     description:
@@ -477,7 +460,6 @@ const CATEGORIES = Object.keys(SCHEMA_REGISTRY) as CategoryName[];
 // Constant exports for tests + runtime introspection.
 // biome-ignore lint/suspicious/noExplicitAny: ZodTypeAny convenience for tests.
 export const REGISTERED_CATEGORIES = CATEGORIES as readonly string[];
-export const REVEALCOIN_TOKEN_DEFAULT = RVUI_TOKEN_CONFIG;
 
 // ---------------------------------------------------------------------------
 // JSON Schema cache (computed once at server creation)

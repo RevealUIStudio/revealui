@@ -558,23 +558,13 @@ export const AgentDefinitionSchema = z.object({
    * tier and quota apply instead). See GAP-149.
    *
    * String values to avoid float precision loss; consumers convert to
-   * atomic units (USDC = 6 decimals, RVUI = 6 decimals) at the x402
-   * emission boundary in `apps/server/src/middleware/x402.ts`.
+   * atomic units (USDC = 6 decimals) at the x402 emission boundary in
+   * `apps/server/src/middleware/x402.ts`.
    */
   pricing: z
     .object({
       /** USDC dollar amount per task invocation (e.g. "0.05"). */
       usdc: z.string(),
-
-      /**
-       * Optional RVUI dollar-equivalent price per task invocation. When
-       * set, x402 emission advertises RVUI as an alternative settlement
-       * currency. Subject to the `RVUI_PAYMENTS_ENABLED` env flag plus
-       * the multi-sig + vesting unlock per the project_revealcoin_pre_
-       * launch_gates posture; in pre-launch this stays unset in prod and
-       * is exercised only on devnet/staging.
-       */
-      rvui: z.string().optional(),
     })
     .optional(),
 });

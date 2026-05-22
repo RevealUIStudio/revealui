@@ -611,8 +611,7 @@ describe('validateStartup — forge mode', () => {
   });
 });
 
-// ─── x402 + RVUI activation gates (mode-agnostic) ──────────────────────
-import { emitRvuiSafeguardsWarning } from '../validate-startup.js';
+// ─── x402 activation gate (mode-agnostic) ──────────────────────
 
 describe('validateStartup — x402 activation gate', () => {
   const validUsdcAddr = `0x${'a'.repeat(40)}`;
@@ -674,101 +673,6 @@ describe('validateStartup — x402 activation gate', () => {
     expect(() => validateStartup(validForgeProdEnv({ X402_ENABLED: 'true' }))).toThrow(
       /X402_RECEIVING_ADDRESS/,
     );
-  });
-});
-
-describe('validateStartup — RVUI activation gate + GAP-159 warning', () => {
-  const validUsdcAddr = `0x${'a'.repeat(40)}`;
-  const validRvuiWallet = 'EFvaPJL7HpFvzG7g7CKyP1u4LpY9Wn8sBprS1Pw7tJM6'; // base58 placeholder
-
-  it('passes when RVUI_PAYMENTS_ENABLED is unset', () => {
-    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    expect(() => validateStartup(validTestProdEnv())).not.toThrow();
-  });
-
-  it('throws when RVUI_PAYMENTS_ENABLED=true but RVUI_RECEIVING_WALLET is missing', () => {
-    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    expect(() => validateStartup(validTestProdEnv({ RVUI_PAYMENTS_ENABLED: 'true' }))).toThrow(
-      /RVUI_RECEIVING_WALLET/,
-    );
-  });
-
-  it('emits the RVUI experimental banner when RVUI_PAYMENTS_ENABLED=true and wallet is set', () => {
-    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    validateStartup(
-      validTestProdEnv({
-        RVUI_PAYMENTS_ENABLED: 'true',
-        RVUI_RECEIVING_WALLET: validRvuiWallet,
-      }),
-    );
-
-    const messages = warnSpy.mock.calls.map((c: unknown[]) => String(c[0] ?? ''));
-    const rvuiBanner = messages.find((m) => m.includes('RVUI PAYMENTS'));
-    expect(rvuiBanner).toBeDefined();
-    expect(rvuiBanner).toMatch(/experimental/i);
-    // GAP-159 is referenced as historical closure context, not as an
-    // active gate (closed via revealui#648).
-    expect(rvuiBanner).toMatch(/GAP-159/);
-    expect(rvuiBanner).toMatch(/devnet/i);
-  });
-
-  it('does NOT emit the RVUI experimental banner when RVUI_PAYMENTS_ENABLED is unset', () => {
-    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    validateStartup(validTestProdEnv());
-
-    const messages = warnSpy.mock.calls.map((c: unknown[]) => String(c[0] ?? ''));
-    expect(messages.some((m) => m.includes('RVUI PAYMENTS'))).toBe(false);
-  });
-
-  it('emits both Stripe test-mode AND RVUI experimental banners when both apply', () => {
-    const warnSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    validateStartup(
-      validTestProdEnv({
-        RVUI_PAYMENTS_ENABLED: 'true',
-        RVUI_RECEIVING_WALLET: validRvuiWallet,
-      }),
-    );
-
-    const messages = warnSpy.mock.calls.map((c: unknown[]) => String(c[0] ?? ''));
-    expect(messages.some((m) => m.includes('STRIPE TEST MODE'))).toBe(true);
-    expect(messages.some((m) => m.includes('RVUI PAYMENTS'))).toBe(true);
-  });
-
-  it('also enforces the RVUI gate in forge mode', () => {
-    expect(() => validateStartup(validForgeProdEnv({ RVUI_PAYMENTS_ENABLED: 'true' }))).toThrow(
-      /RVUI_RECEIVING_WALLET/,
-    );
-  });
-
-  it('combines x402 + RVUI activation gates without conflict', () => {
-    vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    expect(() =>
-      validateStartup(
-        validTestProdEnv({
-          X402_ENABLED: 'true',
-          X402_RECEIVING_ADDRESS: validUsdcAddr,
-          RVUI_PAYMENTS_ENABLED: 'true',
-          RVUI_RECEIVING_WALLET: validRvuiWallet,
-        }),
-      ),
-    ).not.toThrow();
-  });
-});
-
-describe('emitRvuiSafeguardsWarning', () => {
-  it('writes a single banner naming RVUI as experimental with safeguards wired', () => {
-    const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-    emitRvuiSafeguardsWarning();
-
-    expect(writeSpy).toHaveBeenCalledTimes(1);
-    const message = String(writeSpy.mock.calls[0]?.[0] ?? '');
-    expect(message).toMatch(/RVUI PAYMENTS/);
-    expect(message).toMatch(/experimental/i);
-    expect(message).toMatch(/RVUI_PAYMENTS_ENABLED/);
-    // Historical closure context — banner names GAP-159 + the PR that closed it
-    // so an operator reading runtime logs can trace the safety story.
-    expect(message).toMatch(/GAP-159/);
-    expect(message).toMatch(/devnet/i);
   });
 });
 

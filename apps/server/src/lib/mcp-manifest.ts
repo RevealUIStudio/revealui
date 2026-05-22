@@ -79,7 +79,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     id: 'contracts',
     name: 'Contracts Introspection',
     description:
-      'Read-only resources and validators for every @revealui/contracts category (entities, agents, A2A, admin, billing, pricing, RevealCoin, security, content, etc.). Public — not Pro-gated. Phase 1 of the protocol-pyramid ADR.',
+      'Read-only resources and validators for every @revealui/contracts category (entities, agents, A2A, admin, billing, pricing, security, content, etc.). Public — not Pro-gated. Phase 1 of the protocol-pyramid ADR.',
     category: 'introspection',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/contracts.js',

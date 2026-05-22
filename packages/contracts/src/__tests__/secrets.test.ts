@@ -40,7 +40,7 @@ describe('Secret Schemas', () => {
     });
 
     it('accepts a path with a file extension on the final segment', () => {
-      expect(SecretPathSchema.safeParse('revealcoin/mint-authority.json').success).toBe(true);
+      expect(SecretPathSchema.safeParse('keystore/signing-key.json').success).toBe(true);
     });
 
     it('accepts deep credential paths', () => {
@@ -105,10 +105,10 @@ describe('Secret Schemas', () => {
     });
 
     it('preserves the file extension on the name', () => {
-      const parsed = parseSecretPath('revealcoin/mint-authority.json');
-      expect(parsed.project).toBe('revealcoin');
+      const parsed = parseSecretPath('keystore/signing-key.json');
+      expect(parsed.project).toBe('keystore');
       expect(parsed.subsystems).toEqual([]);
-      expect(parsed.name).toBe('mint-authority.json');
+      expect(parsed.name).toBe('signing-key.json');
     });
 
     it('throws on invalid input', () => {

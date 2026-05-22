@@ -72,8 +72,6 @@ import type {
   ragWorkspaces,
   rateLimits,
   registeredAgents,
-  revealcoinPayments,
-  revealcoinPriceSnapshots,
   sessions,
   sharedFacts,
   siteCollaborators,
@@ -416,16 +414,6 @@ export type RegisteredAgentsRow = typeof registeredAgents.$inferSelect
 export type RegisteredAgentsInsert = typeof registeredAgents.$inferInsert
 export type RegisteredAgentsUpdate = Partial<RegisteredAgentsInsert>
 
-// Revealcoin Payments
-export type RevealcoinPaymentsRow = typeof revealcoinPayments.$inferSelect
-export type RevealcoinPaymentsInsert = typeof revealcoinPayments.$inferInsert
-export type RevealcoinPaymentsUpdate = Partial<RevealcoinPaymentsInsert>
-
-// Revealcoin Price Snapshots
-export type RevealcoinPriceSnapshotsRow = typeof revealcoinPriceSnapshots.$inferSelect
-export type RevealcoinPriceSnapshotsInsert = typeof revealcoinPriceSnapshots.$inferInsert
-export type RevealcoinPriceSnapshotsUpdate = Partial<RevealcoinPriceSnapshotsInsert>
-
 // Sessions
 export type SessionsRow = typeof sessions.$inferSelect
 export type SessionsInsert = typeof sessions.$inferInsert
@@ -618,8 +606,6 @@ export type DatabaseRelationships = {
   ragWorkspaces: Relationship[]
   rateLimits: Relationship[]
   registeredAgents: Relationship[]
-  revealcoinPayments: Relationship[]
-  revealcoinPriceSnapshots: Relationship[]
   sessions: Relationship[]
   sharedFacts: Relationship[]
   siteCollaborators: Relationship[]
@@ -892,12 +878,6 @@ export const rateLimitsRelationships: readonly Relationship[] = []
 
 // RegisteredAgents relationships
 export const registeredAgentsRelationships: readonly Relationship[] = []
-
-// RevealcoinPayments relationships
-export const revealcoinPaymentsRelationships: readonly Relationship[] = []
-
-// RevealcoinPriceSnapshots relationships
-export const revealcoinPriceSnapshotsRelationships: readonly Relationship[] = []
 
 // Sessions relationships
 export const sessionsRelationships = [
@@ -1407,18 +1387,6 @@ export type Database = {
         Insert: RegisteredAgentsInsert
         Update: RegisteredAgentsUpdate
         Relationships: typeof registeredAgentsRelationships
-      }
-      revealcoin_payments: {
-        Row: RevealcoinPaymentsRow
-        Insert: RevealcoinPaymentsInsert
-        Update: RevealcoinPaymentsUpdate
-        Relationships: typeof revealcoinPaymentsRelationships
-      }
-      revealcoin_price_snapshots: {
-        Row: RevealcoinPriceSnapshotsRow
-        Insert: RevealcoinPriceSnapshotsInsert
-        Update: RevealcoinPriceSnapshotsUpdate
-        Relationships: typeof revealcoinPriceSnapshotsRelationships
       }
       sessions: {
         Row: SessionsRow

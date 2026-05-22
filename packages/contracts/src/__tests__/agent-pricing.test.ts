@@ -6,7 +6,7 @@ import { AgentDefinitionSchema } from '../agents/index.js';
 /**
  * Schema-only PR for GAP-149 (x402 A2A wiring). Adds:
  *   - `pending-payment` state to A2ATaskStateSchema
- *   - optional `pricing: { usdc, rvui? }` field to AgentDefinitionSchema
+ *   - optional `pricing: { usdc }` field to AgentDefinitionSchema
  *
  * Pinned here so the schema contracts are exercised in isolation. PR 2 of
  * the gap will exercise the runtime wiring (handler emission + proof
@@ -67,28 +67,14 @@ describe('AgentDefinitionSchema — pricing field (GAP-149 PR 1)', () => {
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.pricing?.usdc).toBe('0.05');
-      expect(result.data.pricing?.rvui).toBeUndefined();
     }
   });
 
-  it('parses an agent with USDC + RVUI pricing (dual-currency advertisement)', () => {
+  it('rejects pricing with no usdc field (usdc is the mandatory settlement currency)', () => {
+    // USDC is the mandatory settlement currency per Phase 1 decision #1.
     const result = AgentDefinitionSchema.safeParse({
       ...VALID_AGENT,
-      pricing: { usdc: '0.10', rvui: '0.08' },
-    });
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(result.data.pricing).toEqual({ usdc: '0.10', rvui: '0.08' });
-    }
-  });
-
-  it('rejects pricing with no usdc field (RVUI alone is not a valid configuration)', () => {
-    // USDC is the mandatory settlement currency per Phase 1 decision #1
-    // (currency negotiation: USDC always available, RVUI is the optional
-    // discount alternative).
-    const result = AgentDefinitionSchema.safeParse({
-      ...VALID_AGENT,
-      pricing: { rvui: '0.08' },
+      pricing: { someOtherField: '0.08' },
     });
     expect(result.success).toBe(false);
   });

@@ -13,13 +13,6 @@
       "policy": "sameRange"
     },
     {
-      "label": "External @revealui/* packages from cross-repo (use ^x.y.z, not workspace:*)",
-      "packages": ["**"],
-      "dependencies": ["@revealui/revealcoin-manifest"],
-      "dependencyTypes": ["prod", "dev"],
-      "policy": "sameRange"
-    },
-    {
       "label": "Use workspace protocol for internal (OSS) packages",
       "packages": ["**"],
       "dependencies": ["@revealui/**", "dev"],
@@ -49,13 +42,6 @@
     }
   ],
   "semverGroups": [
-    {
-      "label": "External @revealui/* packages use caret ranges (cross-repo, not workspace)",
-      "packages": ["**"],
-      "dependencies": ["@revealui/revealcoin-manifest"],
-      "dependencyTypes": ["prod", "dev"],
-      "range": "^"
-    },
     {
       "label": "Workspace packages use workspace:* protocol",
       "packages": ["**"],

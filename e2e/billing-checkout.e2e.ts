@@ -234,30 +234,6 @@ test.describe('Billing Checkout E2E', { tag: '@billing' }, () => {
     }
   });
 
-  test('RVUI payment returns 501 (disabled)', async ({ page }) => {
-    test.skip(!hasCredentials, 'Requires ADMIN_EMAIL + ADMIN_PASSWORD');
-    const sessionCookie = await getSessionCookie(page);
-    test.skip(!sessionCookie, 'No valid session  -  authentication failed');
-
-    const response = await page.request.post(`${ApiBase}/api/billing/rvui-payment`, {
-      data: {
-        txSignature: 'test_sig_placeholder',
-        tier: 'Pro',
-        walletAddress: 'test_wallet_placeholder',
-        network: 'devnet',
-      },
-      headers: {
-        'Content-Type': 'application/json',
-        cookie: sessionCookie?.split(';')[0],
-      },
-    });
-
-    expect(response.status()).toBe(501);
-    const body = (await response.json()) as { success: boolean; message: string };
-    expect(body.success).toBe(false);
-    expect(body.message).toContain('not yet available');
-  });
-
   // ─── Full browser checkout flow ────────────────────────────────────────────
 
   test('Full subscription checkout with test card', async ({ page }) => {

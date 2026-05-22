@@ -27,7 +27,6 @@ Full cross-fleet rule: see `~/.claude/rules/secrets.md`.
 | Third-party API keys | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY` |
 | Sync infrastructure | `ELECTRIC_SERVICE_URL`, `ELECTRIC_SECRET` |
 | Deployment | Vercel token |
-| Blockchain | RevealCoin Solana keypairs (mint authority, allocations, vesting custody) |
 | Licenses | `REVEALUI_LICENSE_KEY`, RVUI-format keys |
 | SSH / signing | Age identity, SSH keys, PGP/GPG keys, code-signing certs |
 
@@ -235,22 +234,6 @@ revealui/env/stripe/STRIPE_CREDITS_STARTER_PRODUCT_ID
 revealui/env/supabase
 ```
 
-### Revealcoin
-
-```
-revealcoin/community-governance.json
-revealcoin/ecosystem-rewards.json
-revealcoin/liquidity-provision.json
-revealcoin/mint-authority.json
-revealcoin/mint.json
-revealcoin/protocol-treasury.json
-revealcoin/public-distribution.json
-revealcoin/strategic-partners.json
-revealcoin/team-founders.json
-revealcoin/vesting/*.json
-revealcoin/devnet-addresses              # operational, not a keypair
-```
-
 ### RevDev
 
 ```
@@ -275,13 +258,6 @@ credentials/groq/api-key                # Groq inference
 credentials/huggingface/token           # HF model access
 credentials/tavily/api-key              # Tavily search
 credentials/exa/api-key                 # Exa search
-```
-
-### Solana / RevealCoin infrastructure
-
-```
-revealcoin/jupiter/api-key              # Jupiter aggregator
-revealcoin/solana-rpc-url               # RPC endpoint
 ```
 
 ### CI / publishing

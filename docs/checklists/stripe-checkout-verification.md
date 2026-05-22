@@ -150,16 +150,7 @@ Use Stripe test card: `4242 4242 4242 4242` (any future expiry, any CVC).
 
 ---
 
-## 8. RevealCoin (RVC) Payment (Disabled)
-
-> The route slug `rvui-payment` is an internal code constant; `RVC` is the customer-facing on-chain ticker for [RevealCoin](https://github.com/RevealUIStudio/revealcoin) (Solana Token-2022). Public messaging uses `RVC`.
-
-- [ ] Hit `POST /api/billing/rvui-payment`
-- [ ] Verify: returns 501 "RVC payment is not yet available"
-
----
-
-## 9. Edge Cases
+## 8. Edge Cases
 
 - [ ] Duplicate subscription prevention: try checkout when already subscribed
 - [ ] Duplicate perpetual prevention: try perpetual checkout when already purchased

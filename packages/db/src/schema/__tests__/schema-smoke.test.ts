@@ -65,7 +65,6 @@ import { passwordResetTokens } from '../password-reset-tokens.js';
 import { orders, products } from '../products.js';
 import { ragChunks, ragDocuments, ragWorkspaces } from '../rag.js';
 import { failedAttempts, rateLimits } from '../rate-limits.js';
-import { revealcoinPayments, revealcoinPriceSnapshots } from '../revealcoin.js';
 import { agentReviews, agentSkills, marketplaceAgents, taskSubmissions } from '../revmarket.js';
 import { siteCollaborators, sites } from '../sites.js';
 import { tenants } from '../tenants.js';
@@ -173,9 +172,6 @@ const allTables = [
   // rate-limits.ts
   { table: rateLimits, name: 'rate_limits' },
   { table: failedAttempts, name: 'failed_attempts' },
-  // revealcoin.ts
-  { table: revealcoinPayments, name: 'revealcoin_payments' },
-  { table: revealcoinPriceSnapshots, name: 'revealcoin_price_snapshots' },
   // revmarket.ts
   { table: marketplaceAgents, name: 'marketplace_agents' },
   { table: agentSkills, name: 'agent_skills' },

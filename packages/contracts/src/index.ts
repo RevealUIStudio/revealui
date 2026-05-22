@@ -549,26 +549,6 @@ export {
 } from './stripe-webhook-events.js';
 
 // =============================================================================
-// RevealCoin (RVUI)
-// =============================================================================
-
-export {
-  formatRvuiAmount,
-  getRvuiMintAddress,
-  parseRvuiAmount,
-  RVUI_ALLOCATIONS,
-  RVUI_DISCOUNT_RATES,
-  RVUI_MINT_ADDRESSES,
-  RVUI_MINT_AUTHORITY,
-  RVUI_TOKEN_CONFIG,
-  RVUI_TOKEN_PROGRAM,
-  type RvuiAllocation,
-  type RvuiDiscountRate,
-  type RvuiTokenConfig,
-  type SolanaNetwork,
-} from './revealcoin.js';
-
-// =============================================================================
 // Content Validation
 // =============================================================================
 

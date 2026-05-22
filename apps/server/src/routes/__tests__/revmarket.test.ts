@@ -492,7 +492,6 @@ describe('POST /tasks  -  x402 payment gate (X402_ENABLED=true)', () => {
     expect(mockVerifyPayment).toHaveBeenCalledWith(
       'valid-base64-proof',
       expect.any(String),
-      expect.objectContaining({ userId: testUser.id, amountUsd: '0.50' }),
       'revmarket-task',
     );
   });

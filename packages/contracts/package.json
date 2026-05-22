@@ -12,7 +12,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@revealui/revealcoin-manifest": "^0.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {

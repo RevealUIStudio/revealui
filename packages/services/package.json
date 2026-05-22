@@ -1,7 +1,7 @@
 {
   "name": "@revealui/services",
   "version": "0.6.0",
-  "description": "External service integrations — Stripe (billing + circuit breaker), Solana (RVC token), Vercel (deploy + DNS). Ships with RevealUI.",
+  "description": "External service integrations — Stripe (billing + circuit breaker), Vercel (deploy + DNS). Ships with RevealUI.",
   "repository": {
     "type": "git",
     "url": "https://github.com/RevealUIStudio/revealui.git",
@@ -14,7 +14,6 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@solana/kit": "^6.9.0",
     "@vercel/node": "^5.7.12",
     "drizzle-orm": "catalog:",
     "jose": "^6.2.3",
@@ -54,10 +53,6 @@
     "./stripe/payment-intent": {
       "types": "./dist/stripe/payment-intent.d.ts",
       "import": "./dist/stripe/payment-intent.js"
-    },
-    "./revealcoin": {
-      "types": "./dist/revealcoin/index.d.ts",
-      "import": "./dist/revealcoin/index.js"
     },
     "./stripe/stripeClient": {
       "types": "./dist/stripe/stripeClient.d.ts",
@@ -111,8 +106,6 @@
     "revealui",
     "services",
     "stripe",
-    "solana",
-    "revealcoin",
     "vercel",
     "gmail",
     "integrations"

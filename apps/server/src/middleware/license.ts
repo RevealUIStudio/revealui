@@ -125,13 +125,7 @@ export const requireFeature = (
         const paymentHeader = c.req.header('x-payment-payload');
         if (paymentHeader) {
           const resource = new URL(c.req.url).pathname;
-          const userId = (c.get('user') as { id?: string } | undefined)?.id ?? '';
-          const result = await verifyPayment(
-            paymentHeader,
-            resource,
-            { userId, amountUsd: x402.pricePerTask },
-            'license-feature',
-          );
+          const result = await verifyPayment(paymentHeader, resource, 'license-feature');
           if (result.valid) {
             await next();
             return;
@@ -367,13 +361,7 @@ export const requireAIAccess = (options: FeatureGateOptions = {}): MiddlewareHan
       const paymentHeader = c.req.header('x-payment-payload');
       if (paymentHeader) {
         const resource = new URL(c.req.url).pathname;
-        const userId = (c.get('user') as { id?: string } | undefined)?.id ?? '';
-        const result = await verifyPayment(
-          paymentHeader,
-          resource,
-          { userId, amountUsd: x402.pricePerTask },
-          'license-ai',
-        );
+        const result = await verifyPayment(paymentHeader, resource, 'license-ai');
         if (result.valid) {
           await next();
           return;
