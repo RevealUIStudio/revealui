@@ -32,12 +32,18 @@ flyctl auth login
 # 2. Create the Fly app (one-time per environment)
 flyctl apps create revealui-worker --org revealui-studio
 
-# 3. Mirror prod secrets from revvault → Fly. The revvault-sync
-#    pipeline (Phase 4 of the lane) automates this; before that
-#    lands, set them manually:
+# 3. Mirror prod secrets from revvault → Fly. Preferred — via the
+#    revvault `fly` sync target (revvault sync fly), driven by the
+#    manifest at scripts/sync/revvault-fly.toml:
+#
+#      revvault sync fly --manifest scripts/sync/revvault-fly.toml            # dry-run
+#      FLY_API_TOKEN="$(revvault --json get revealui/prod/fly/api-token | jq -r .value)" \
+#        revvault sync fly --manifest scripts/sync/revvault-fly.toml --apply
+#
+#    Or set them manually with flyctl:
 flyctl secrets set --app revealui-worker \
   POSTGRES_URL="$(revvault --json get revealui/prod/db/postgres-url | jq -r .value)" \
-  REVEALUI_SECRET="$(revvault --json get revealui/prod/revealui-secret | jq -r .value)" \
+  REVEALUI_SECRET="$(revvault --json get revealui/prod/secret | jq -r .value)" \
   STRIPE_SECRET_KEY="$(revvault --json get revealui/prod/stripe/secret-key | jq -r .value)" \
   STRIPE_WEBHOOK_SECRET="$(revvault --json get revealui/prod/stripe/webhook-secret | jq -r .value)" \
   SENTRY_DSN="$(revvault --json get revealui/prod/sentry/dsn | jq -r .value)" \
@@ -77,8 +83,10 @@ Automated deploys via GitHub Actions land in a future phase
 ## Secrets
 
 All secrets live in revvault per [`docs/SECRETS.md`](../SECRETS.md).
-The mirror to Fly happens via `revvault-sync` (Phase 4 of the
-infra-consolidation lane) or manually via `flyctl secrets set` as
+The mirror to Fly happens via the revvault `fly` sync target —
+`revvault sync fly --manifest scripts/sync/revvault-fly.toml --apply`
+(the Fly counterpart of the Vercel env sync; the manifest lists the
+worker's secret subset) — or manually via `flyctl secrets set` as
 shown above.
 
 **Never** paste secrets into `apps/server/fly.toml` — that file is
