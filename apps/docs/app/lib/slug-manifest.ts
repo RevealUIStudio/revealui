@@ -67,7 +67,6 @@ export const SLUG_TO_PATH: Readonly<Record<string, string>> = Object.freeze({
   fleet: 'FLEET.md',
   'fleet/revcon': 'fleet/revcon.md',
   'fleet/revdev': 'fleet/revdev.md',
-  'fleet/revealcoin': 'fleet/revealcoin.md',
   'fleet/revkit': 'fleet/revkit.md',
   'fleet/revskills': 'fleet/revskills.md',
   'fleet/revvault': 'fleet/revvault.md',
