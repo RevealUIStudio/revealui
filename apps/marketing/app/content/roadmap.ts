@@ -48,13 +48,6 @@ export const ROADMAP_UPCOMING_SECTION: SectionHeading = {
 
 export const ROADMAP_UPCOMING: readonly RoadmapItem[] = [
   {
-    name: 'RevealCoin + x402 Agent Payments',
-    description:
-      'Native cryptocurrency micropayments powered by RevealCoin on the Solana blockchain. Agents discover, authenticate, and pay per task via the HTTP 402 payment protocol. No accounts, no subscriptions.',
-    status: 'In development',
-    category: 'Payments',
-  },
-  {
     name: 'Perpetual Licenses (Track C)',
     description:
       'One-time purchase for lifetime access to Pro, Max, or Enterprise tier features. No subscription required. Includes 1 year of priority support and updates.',

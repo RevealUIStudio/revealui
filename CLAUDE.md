@@ -18,7 +18,7 @@ RevealUI Studio <founder@revealui.com>
 ```
 feature/* ──PR──▶ test ──PR──▶ main
                     │              │
-              CI + canary     production deploy
+              CI              production deploy
 ```
 
 | Branch | Environment | CI | Deploy |
@@ -32,7 +32,6 @@ feature/* ──PR──▶ test ──PR──▶ main
 - **Test previews:** `deploy-test.yml` manual trigger  -  Vercel preview URLs, not production
 - **Pre-push gate:** `main`/`test` = full gate, `feature/*` = quality-only (phase 1)
 - **CI:** Triggers on push/PR to `test` or `main`
-- **Canary releases:** `release-canary.yml` on push to `test` (npm snapshot versions)
 
 ## Package Map
 

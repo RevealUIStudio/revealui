@@ -189,9 +189,9 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
         'Stripe checkout, subscription management, webhooks, and a customer billing portal. Products, prices, and webhooks are wired up. You configure your Stripe keys and start charging.',
     },
     forAgents: {
-      headline: 'x402 protocol design — coming with RevealCoin mainnet',
+      headline: 'x402 protocol design — agent-native HTTP payments',
       description:
-        'The x402 design routes agent payments via HTTP 402 using RevealCoin on Solana. This is in development and gated on RevealCoin mainnet launch. See the roadmap for current status.',
+        'The x402 design routes agent payments over HTTP 402 — aligned with the Coinbase / Cloudflare x402 Foundation. This is in development. See the roadmap for current status.',
     },
     together: {
       headline: 'Humans monetize. Agents transact. One billing infrastructure.',
@@ -203,7 +203,6 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
       'Webhook handling and event processing',
       'Customer billing portal',
       'x402 agent payments (in development)',
-      'RevealCoin on Solana (pre-launch)',
     ],
   },
   {

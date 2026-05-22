@@ -40,7 +40,7 @@ All standard changes follow the branch pipeline:
 ```
 feature/* ──PR──> test ──PR──> main
                    |            |
-             CI + canary    production deploy
+                  CI        production deploy
 ```
 
 | Branch | Environment | CI Gate | Deploy |
@@ -147,11 +147,7 @@ Staging (preview) deployments are manually triggered for the `test` branch:
 
 ### 6.3 Canary Releases
 
-npm canary releases are automatically published on pushes to `test`:
-
-1. Push to `test` triggers `release-canary.yml`.
-2. Snapshot versions are published (e.g., `0.0.0-canary-20260412T1234`).
-3. Canary packages can be tested by early adopters before production release.
+**DECOMMISSIONED 2026-05-20.** The `release-canary.yml` workflow and its associated `NPM_TOKEN` secret have been retired. No `@canary`-tagged npm packages are published from this pipeline. npm releases use `release.yml` (OIDC trusted publishing, no long-lived token).
 
 ## 7. Rollback Procedures
 

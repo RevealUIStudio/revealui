@@ -333,18 +333,6 @@ export function PricingPage() {
                 </div>
                 <h3 className="text-base font-semibold text-white">{PRICING_AGENT_X402.heading}</h3>
                 <p className="mt-2 text-sm text-gray-400">{PRICING_AGENT_X402.body}</p>
-                <p className="mt-3 text-xs text-gray-400">
-                  {PRICING_AGENT_X402.footnote.prefix}{' '}
-                  <a
-                    href={PRICING_AGENT_X402.footnote.linkHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 underline"
-                  >
-                    {PRICING_AGENT_X402.footnote.linkLabel}
-                  </a>{' '}
-                  {PRICING_AGENT_X402.footnote.suffix}
-                </p>
               </div>
 
               <div className="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-6">

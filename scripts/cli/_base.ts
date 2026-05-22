@@ -551,7 +551,7 @@ export abstract class ExecutingCLI extends BaseCLI {
  *
  *   protected commandMap = {
  *     'fix-imports': 'scripts/commands/fix/fix-import-extensions.ts',
- *     'db:seed': 'scripts/setup/seed-sample-content.ts',
+ *     'db:seed:billing': 'scripts/setup/seed-billing.ts',
  *   }
  *
  *   defineCommands(): CommandDefinition[] {

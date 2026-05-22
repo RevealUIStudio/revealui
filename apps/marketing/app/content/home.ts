@@ -206,7 +206,7 @@ export const HOME_FAQ = {
     {
       question: "What's the rest of RevFleet?",
       answer:
-        'RevFleet is the umbrella. RevealUI is the runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness (multi-agent coordination across Claude / Cursor / Copilot). RevCon syncs editor configs. RevSkills is the skills library. RevForge is the operator-side stamping tool that produces white-label trial kits. RevealCoin is x402-compatible payments — deployed on Solana mainnet but pre-launch (see RevealCoin README for blockers). RevKit is the portable WSL dev environment. Use RevealUI standalone, or compose what you need.',
+        'RevFleet is the umbrella. RevealUI is the runtime. RevVault encrypts secrets (CLI MIT, desktop Pro). RevDev is the engineering harness (multi-agent coordination across Claude / Cursor / Copilot). RevCon syncs editor configs. RevSkills is the skills library. RevForge is the operator-side stamping tool that produces white-label trial kits. RevKit is the portable WSL dev environment. Use RevealUI standalone, or compose what you need.',
     },
     {
       question: 'How does AI inference work?',
@@ -216,7 +216,7 @@ export const HOME_FAQ = {
     {
       question: 'How do agent payments work?',
       answer:
-        "x402-native. RevealUI implements the HTTP 402 payment protocol — compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP. RevealCoin is one optional Solana implementation; the protocol is what is load-bearing. RevealCoin itself is pre-launch — see the RevealCoin README for the open prerequisites.",
+        "x402-native. RevealUI implements the HTTP 402 payment protocol — compatible with Amazon Bedrock AgentCore Payments, Coinbase, and Cloudflare's x402 Foundation. Agents pay agents over standard HTTP. The protocol is the load-bearing piece; the agent-payment rails are in development.",
     },
   ] as readonly FaqItem[],
 } as const;
