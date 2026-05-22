@@ -66,7 +66,10 @@ The older `pnpm db:*` scripts still exist and remain useful as lower-level build
 | `pnpm db:init`       | Initialize database connection and verify setup | `scripts/setup/database.ts`            | `POSTGRES_URL`, `DATABASE_URL`, or `SUPABASE_DATABASE_URI` |
 | `pnpm db:migrate`    | Run Drizzle migrations                          | `scripts/setup/migrations.ts`          | `POSTGRES_URL` or `DATABASE_URL`                           |
 | `pnpm db:reset`      | Drop all tables and recreate schema             | `scripts/setup/reset-database.ts`      | Same as init                                               |
-| `pnpm db:seed`       | Seed database with sample data                  | `scripts/setup/seed-sample-content.ts` | Same as init                                               |
+| `pnpm db:seed`       | Seed the database — composite of the three seeders below | `apps/admin/src/seed.ts`, `scripts/seed-fleet-marketing-site.ts`, `scripts/setup/seed-billing.ts` | Same as init                          |
+| `pnpm db:seed:admin` | Seed admin pages + content + cards + heros + events + banners | `apps/admin/src/seed.ts`               | Same as init                                               |
+| `pnpm db:seed:fleet-marketing` | Seed the fleet-marketing `sites` row              | `scripts/seed-fleet-marketing-site.ts` | Same as init                                               |
+| `pnpm db:seed:billing` | Seed the Stripe billing catalog (9 plans)       | `scripts/setup/seed-billing.ts`        | Same as init                                               |
 | `pnpm db:backup`     | Create JSON backup of all tables                | `scripts/commands/database/backup.ts`  | Same as init                                               |
 | `pnpm db:restore`    | Restore from backup file                        | `scripts/commands/database/restore.ts` | Same as init                                               |
 | `pnpm db:status`     | Check database connection and table count       | `scripts/commands/database/status.ts`  | Same as init                                               |
