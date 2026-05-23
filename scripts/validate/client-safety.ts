@@ -14,11 +14,13 @@
  * re-exports it). This validator keeps it that way. Two rules, both hard-fail:
  *
  *   Rule 1 — client-reachable source must not statically import a server-only
- *   entry (`@revealui/security/server`, `@revealui/core/security`) or a `node:*`
- *   builtin. "Client-reachable" = declared client roots (richtext exports,
- *   presentation, the Vite SPA `app/` trees) PLUS any file carrying a
- *   `'use client'` directive. Type-only imports (erased at build) and dynamic
- *   `import()` (code-split into its own chunk) are allowed.
+ *   entry or a `node:*` builtin. Server-only entries are AUTO-DERIVED: every
+ *   `@revealui/*` package whose `.` barrel statically reaches a `node:` import
+ *   (ai, cli, config, harnesses, mcp, resilience, …) plus the explicit
+ *   server-only subpaths (`@revealui/security/server`, `@revealui/core/security`).
+ *   "Client-reachable" = declared client roots (richtext exports, presentation,
+ *   the Vite SPA `app/` trees) PLUS any file with a `'use client'` directive.
+ *   Type-only imports (erased) and dynamic `import()` (code-split) are allowed.
  *
  *   Rule 2 — every declared client-safe package entry (`@revealui/security` and
  *   `@revealui/security/sanitize`) must be free of STATIC `node:*` imports across
@@ -57,15 +59,14 @@ const ROOT = resolve(import.meta.dirname, '../..');
 const ALLOWLIST_PATH = join(ROOT, 'scripts/validate/client-safety-allowlist.json');
 
 /**
- * Module specifiers that pull a `node:*` graph in transitively and must never
- * appear in a client bundle. `@revealui/security/server` is the package's
- * server-only entry (auth/gdpr/audit → node:crypto, ssrf → node:dns);
- * `@revealui/core/security` re-exports it, so it is server-only too. The bare
- * `@revealui/security` barrel and `@revealui/security/sanitize` are client-safe
- * and are intentionally NOT listed. Add new server-only entries here as they
- * are created.
+ * Server-only SUBPATH entries that the barrel auto-derivation (see
+ * `deriveServerOnlySpecifiers`) won't surface, because they aren't a package's
+ * `.` barrel: `@revealui/security/server` (the security package's node:-bearing
+ * entry) and `@revealui/core/security` (which re-exports it). Package `.`
+ * barrels that reach `node:` (ai, cli, config, harnesses, mcp, resilience, …)
+ * are derived automatically, so they are NOT listed here.
  */
-const SERVER_ONLY_SPECIFIERS = new Set<string>([
+const EXPLICIT_SERVER_ONLY = new Set<string>([
   '@revealui/security/server',
   '@revealui/core/security',
 ]);
@@ -333,7 +334,10 @@ function isAllowlisted(allowlist: Map<string, Set<RuleId>>, rel: string, rule: R
 // Rule 1 — client-reachable source must not import server-only barrels / node:
 // =============================================================================
 
-function checkClientReachable(allowlist: Map<string, Set<RuleId>>): ClientSafetyIssue[] {
+function checkClientReachable(
+  allowlist: Map<string, Set<RuleId>>,
+  serverOnly: ReadonlySet<string>,
+): ClientSafetyIssue[] {
   const issues: ClientSafetyIssue[] = [];
 
   for (const root of SCAN_ROOTS) {
@@ -361,7 +365,7 @@ function checkClientReachable(allowlist: Map<string, Set<RuleId>>): ClientSafety
         // this gate guards against. The static import that crashed in #1046 IS
         // flagged. (A lazy `await import('node:…')` is the bundle-safe escape.)
         if (ref.kind === 'dynamic') continue;
-        if (SERVER_ONLY_SPECIFIERS.has(ref.specifier)) {
+        if (serverOnly.has(ref.specifier)) {
           if (isAllowlisted(allowlist, file.rel, 'client-barrel-import')) continue;
           issues.push({
             rule: 'client-barrel-import',
@@ -426,7 +430,7 @@ function resolveRelativeImport(fromFileAbs: string, specifier: string): string |
   return null;
 }
 
-function checkClientSafeEntries(): ClientSafetyIssue[] {
+function checkClientSafeEntries(serverOnly: ReadonlySet<string>): ClientSafetyIssue[] {
   const issues: ClientSafetyIssue[] = [];
 
   for (const { specifier, entry } of CLIENT_SAFE_ENTRIES) {
@@ -473,7 +477,7 @@ function checkClientSafeEntries(): ClientSafetyIssue[] {
           });
           continue;
         }
-        if (SERVER_ONLY_SPECIFIERS.has(ref.specifier)) {
+        if (serverOnly.has(ref.specifier)) {
           issues.push({
             rule: 'client-safe-entry-node',
             file: rel,
@@ -502,12 +506,122 @@ function checkClientSafeEntries(): ClientSafetyIssue[] {
 }
 
 // =============================================================================
+// Server-only specifier derivation (auto-derived, not hand-maintained)
+// =============================================================================
+
+/** Reverse-map a package's `.` export (`./dist/X.js`) to its source barrel (`src/X.ts`). */
+export function packageBarrelSource(
+  pkgDir: string,
+): { specifier: string; entryAbs: string } | null {
+  let pkg: { name?: string; exports?: Record<string, unknown> };
+  try {
+    pkg = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8'));
+  } catch {
+    return null;
+  }
+  const dot = pkg.exports?.['.'];
+  let distImport: string | undefined;
+  if (typeof dot === 'string') {
+    distImport = dot;
+  } else if (dot && typeof dot === 'object' && 'import' in dot && typeof dot.import === 'string') {
+    distImport = dot.import;
+  }
+  if (!(pkg.name && distImport?.startsWith('./dist/') && distImport.endsWith('.js'))) {
+    return null;
+  }
+  const stem = distImport.slice('./dist/'.length, -'.js'.length);
+  for (const ext of ['.ts', '.tsx']) {
+    const abs = join(pkgDir, 'src', `${stem}${ext}`);
+    if (existsSync(abs)) return { specifier: pkg.name, entryAbs: abs };
+  }
+  return null;
+}
+
+/**
+ * Cheap pre-filter: does any non-test source file in the package statically
+ * import `node:`? A package with none cannot have a node:-bearing barrel, so we
+ * skip the (costlier) AST closure walk for pure client-safe packages.
+ */
+function packageStaticallyUsesNode(pkgDir: string): boolean {
+  for (const file of collectSourceFiles(join(pkgDir, 'src'))) {
+    if (isTestPath(file.rel)) continue;
+    let content: string;
+    try {
+      content = readFileSync(file.abs, 'utf8');
+    } catch {
+      continue;
+    }
+    if (content.includes("from 'node:") || content.includes('from "node:')) return true;
+  }
+  return false;
+}
+
+/** True if the package `.` barrel reaches a STATIC `node:` import in its within-package closure. */
+export function barrelReachesNodeBuiltin(entryAbs: string, pkgDirAbs: string): boolean {
+  const containingRoot = toPosix(pkgDirAbs);
+  const visited = new Set<string>([entryAbs]);
+  const queue: string[] = [entryAbs];
+  while (queue.length > 0) {
+    const current = queue.pop() as string;
+    let content: string;
+    try {
+      content = readFileSync(current, 'utf8');
+    } catch {
+      continue;
+    }
+    for (const ref of runtimeModuleRefs(parseSource(current, content))) {
+      if (ref.kind === 'dynamic') continue; // lazy import() is code-split — bundle-safe
+      if (isNodeBuiltinSpecifier(ref.specifier)) return true;
+      if (ref.specifier.startsWith('.')) {
+        const target = resolveRelativeImport(current, ref.specifier);
+        if (target && toPosix(target).startsWith(`${containingRoot}/`) && !visited.has(target)) {
+          visited.add(target);
+          queue.push(target);
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Auto-derive the server-only specifier set: every `@revealui/*` package whose
+ * `.` barrel statically reaches a `node:*` import, UNIONed with the explicit
+ * server-only subpaths. No hand-maintained denylist — a package that adds (or
+ * removes) a node: import reachable from its barrel is reclassified on the next
+ * gate run.
+ */
+export function deriveServerOnlySpecifiers(): Set<string> {
+  const set = new Set<string>(EXPLICIT_SERVER_ONLY);
+  const packagesDir = join(ROOT, 'packages');
+  let entries: import('node:fs').Dirent[];
+  try {
+    entries = readdirSync(packagesDir, { withFileTypes: true });
+  } catch {
+    return set;
+  }
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const pkgDir = join(packagesDir, entry.name);
+    if (!packageStaticallyUsesNode(pkgDir)) continue; // pre-filter: no node: anywhere -> safe
+    const barrel = packageBarrelSource(pkgDir);
+    if (!barrel) continue;
+    if (barrelReachesNodeBuiltin(barrel.entryAbs, pkgDir)) {
+      set.add(barrel.specifier);
+    }
+  }
+  return set;
+}
+
+// =============================================================================
 // Public API + CLI
 // =============================================================================
 
-export function findClientSafetyIssues(): ClientSafetyIssue[] {
+export function findClientSafetyIssues(
+  serverOnly: ReadonlySet<string> = deriveServerOnlySpecifiers(),
+): ClientSafetyIssue[] {
   const allowlist = loadAllowlist();
-  return [...checkClientReachable(allowlist), ...checkClientSafeEntries()];
+  return [...checkClientReachable(allowlist, serverOnly), ...checkClientSafeEntries(serverOnly)];
 }
 
 function run(): void {
@@ -515,11 +629,14 @@ function run(): void {
   console.log(`\n${sep}`);
   console.log('Client-Bundle Safety Validator');
   console.log(sep);
-  console.log(`\n  Server-only entries guarded: ${[...SERVER_ONLY_SPECIFIERS].join(', ')}`);
+  const serverOnly = deriveServerOnlySpecifiers();
+  console.log(
+    `\n  Server-only entries guarded (auto-derived): ${[...serverOnly].sort().join(', ')}`,
+  );
   console.log(`  Client roots: ${CLIENT_ROOTS.join(', ')}`);
   console.log(`  Client-safe entries: ${CLIENT_SAFE_ENTRIES.map((e) => e.specifier).join(', ')}`);
 
-  const issues = findClientSafetyIssues();
+  const issues = findClientSafetyIssues(serverOnly);
 
   if (issues.length === 0) {
     console.log(`\n  ✓ clean — no client-bundle-safety violations`);
@@ -539,9 +656,9 @@ function run(): void {
   console.log(`\n${sep}`);
   console.log(`Result: FAIL (${issues.length} violation${issues.length === 1 ? '' : 's'})`);
   console.log('');
-  console.log('  Why this matters: @revealui/security/server (+ @revealui/core/security,');
-  console.log('  which re-exports it) pull node:crypto + node:dns. Importing them from');
-  console.log('  client-reachable code crashes the browser bundle silently (PR #1046).');
+  console.log('  Why this matters: a node:-bearing @revealui/* barrel/entry pulled into a');
+  console.log('  client bundle drags the node: graph in and crashes the browser silently');
+  console.log('  (the PR #1046 class). The server-only set is auto-derived from the barrels.');
   console.log('');
   console.log('  Fix options:');
   console.log("    1. Import the client-safe '@revealui/security' barrel or '/sanitize'.");
