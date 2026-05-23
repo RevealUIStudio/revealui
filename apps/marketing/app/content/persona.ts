@@ -1,21 +1,24 @@
-// Sourced from: app/components/landing/Persona.tsx (Phase 1c, no copy changes).
+// Sourced from: app/components/landing/Persona.tsx (Phase 1c extraction).
 // Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// 2026-05-23: founder-first plain-language rewrite of section heading + card
+//   copy (owner-directed). Jargon (procurement review, identity gates, RBAC +
+//   ABAC, hash-chained, runtime) translated into outcomes founders recognize.
 
 export const PERSONA_SECTION = {
   eyebrow: "Who it's for",
-  heading: 'Founders shipping AI products who need governance from day one.',
+  heading: 'For founders who need to ship fast — and still pass a security review.',
 } as const;
 
 export const PERSONA_CARD = {
   label: 'What this team needs before they can charge customers',
   quote:
-    'You have a working agent demo. Now your first procurement review wants audit trails, identity gates, and a story for who can revoke an agent at 3am — without rebuilding the runtime to get there.',
+    'You’ve got a working AI demo. Then your first serious customer asks the hard questions — who can see this data, who can shut an agent down at 3am, and can you prove everything it did? You need answers before you can charge them, and you shouldn’t have to rebuild what you’ve already shipped to get there.',
   checklist: [
-    'Hash-chained audit log of every action by every human and every agent — provable, not just observable',
-    'One RBAC + ABAC policy plane covering humans, agents, and service accounts',
-    'GDPR consent + deletion + anonymization scaffolded into the data model',
-    'Stripe webhook reconciliation that catches the events most apps lose silently',
-    'Source-visible Pro packages on Fair Source — auditable for procurement and security review',
+    'An audit trail of every action — by people and by agents — that you can prove was not edited after the fact',
+    'One set of permission rules covering your team, your agents, and your service accounts',
+    'GDPR consent, deletion, and anonymization built into the data model',
+    'Stripe billing that catches the payment events most apps quietly drop',
+    'Source-visible code your customer’s security team can actually read and review',
   ],
   footer: {
     prefix: 'Also a fit for',
