@@ -27,6 +27,7 @@ import {
   McpOAuthProvider,
   type OAuthClientMetadata,
 } from '@revealui/mcp/oauth';
+import { assertPublicUrl } from '@revealui/security';
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 
@@ -75,13 +76,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch {
     return NextResponse.json({ error: 'serverUrl is not a valid URL' }, { status: 400 });
   }
-  if (
-    serverUrl.protocol !== 'https:' &&
-    serverUrl.hostname !== 'localhost' &&
-    serverUrl.hostname !== '127.0.0.1'
-  ) {
+  if (serverUrl.protocol !== 'https:') {
+    return NextResponse.json({ error: 'serverUrl must use https:' }, { status: 400 });
+  }
+  // SSRF guard: reject targets that resolve to private/reserved IPs (cloud
+  // metadata, loopback, RFC1918, link-local). Replaces the prior
+  // https-or-localhost check, which allowed loopback SSRF against co-located
+  // internal services. No localhost bypass — durable, no hardcoded exception.
+  try {
+    await assertPublicUrl(serverUrl);
+  } catch (err) {
     return NextResponse.json(
-      { error: 'serverUrl must use https: (localhost allowed for development)' },
+      { error: err instanceof Error ? err.message : 'serverUrl failed SSRF validation' },
       { status: 400 },
     );
   }

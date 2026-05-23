@@ -20,6 +20,7 @@
  * duplicating admin code.
  */
 
+import { assertPublicUrl, createSafeFetch } from '@revealui/security';
 import { type ElicitationHandler, McpClient, type SamplingHandler } from './client.js';
 import {
   createRevvaultVault,
@@ -139,6 +140,14 @@ export interface BuiltRemoteMcpClient {
 }
 
 /**
+ * Shared SSRF-safe fetch for remote MCP server connections. Validates the
+ * target resolves to a public IP and pins the connection to it (rebind-safe);
+ * refuses redirects. Module-level so connections pool across calls; its guard
+ * is hostname-agnostic, so one instance safely serves every server.
+ */
+const safeFetch = createSafeFetch();
+
+/**
  * Load OAuth credentials + server URL and return a configured `McpClient`.
  * Throws {@link RemoteServerNotConnectedError} if no meta record exists for
  * the `(tenant, server)` pair.
@@ -153,6 +162,12 @@ export async function buildRemoteMcpClient(
   const rawMeta = await vault.get(metaPath);
   if (!rawMeta) throw new RemoteServerNotConnectedError(tenant, server);
   const meta = parseMeta(rawMeta);
+
+  // SSRF guard: the server URL is operator/tenant-supplied. Reject any URL that
+  // resolves to a private/reserved IP before constructing a transport that will
+  // connect to it. The pinned `safeFetch` below additionally re-validates at
+  // dial time (DNS-rebind protection) and refuses redirects.
+  await assertPublicUrl(meta.serverUrl);
 
   const provider = new McpOAuthProvider({
     tenant,
@@ -171,6 +186,7 @@ export async function buildRemoteMcpClient(
       kind: 'streamable-http',
       url: meta.serverUrl,
       authProvider: provider,
+      fetch: safeFetch,
     },
     ...(options.elicitationHandler ? { elicitationHandler: options.elicitationHandler } : {}),
     ...(options.samplingHandler ? { samplingHandler: options.samplingHandler } : {}),
