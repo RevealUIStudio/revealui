@@ -345,8 +345,8 @@ describe('POST /stripe webhook', () => {
       const body2 = (await res2.json()) as Record<string, unknown>;
       expect(body2.duplicate).toBe(true);
 
-      // DB update called only once (first request)
-      expect(mockDb.update).toHaveBeenCalledTimes(1);
+      // DB update called twice (first request: license update + markCompleted bookkeeping update on processed_webhook_events)
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
   });
 
@@ -361,7 +361,7 @@ describe('POST /stripe webhook', () => {
       const body = (await res.json()) as Record<string, unknown>;
       expect(body.received).toBe(true);
 
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('revoked');
     });
@@ -396,7 +396,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
       expect(res.status).toBe(200);
 
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('expired');
     });
@@ -438,7 +438,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
       expect(res.status).toBe(200);
 
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('active');
     });
@@ -786,7 +786,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('active');
     });
@@ -804,7 +804,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('active');
     });
@@ -822,7 +822,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
 
     it('skips when no active subscription is found after payment', async () => {
@@ -835,7 +835,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
 
     it('re-activates hosted entitlements even when no legacy license row exists', async () => {
@@ -868,7 +868,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledTimes(2);
+      expect(mockDb.update).toHaveBeenCalledTimes(3); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<
         string,
         unknown
@@ -910,7 +910,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledTimes(2);
+      expect(mockDb.update).toHaveBeenCalledTimes(3); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<
         string,
         unknown
@@ -952,7 +952,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledTimes(1);
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       expect(mockDb.insert).toHaveBeenCalledTimes(2);
       const accountSubscriptionUpdate = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<
         string,
@@ -1129,7 +1129,7 @@ describe('POST /stripe webhook', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
 
     it('is idempotent: duplicate event id returns 200 without re-updating', async () => {
@@ -1154,8 +1154,8 @@ describe('POST /stripe webhook', () => {
 
       expect(res2.status).toBe(200);
       expect(body2.duplicate).toBe(true);
-      // update was only called once (first delivery); second is short-circuited
-      expect(mockDb.update).toHaveBeenCalledTimes(1);
+      // update was called twice on first delivery (customer email update + markCompleted bookkeeping); second is short-circuited
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
   });
 });

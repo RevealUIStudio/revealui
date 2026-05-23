@@ -33,7 +33,7 @@ note: public snapshot — canonical version at revealui-jv/docs/MASTER_PLAN.md (
 - **Apps:** 4 (server, admin, docs, marketing) — `apps/api` was renamed to `apps/server` in CHIP-4 (revealui#649, 2026-04-28); `marketing` migrated from Next.js to Vite (2026-04-28); the agency site (revealuistudio.com) extracted into a separate repo (2026-04-29); the revealcoin dashboard relocated to RevealUIStudio/revealcoin `apps/dashboard/` (2026-05-17)
 - **Packages:** 26 packages + 4 apps = 30 workspaces
 - **Tests:** extensive test suite across unit, integration, and E2E layers; all workspaces build and typecheck (run `pnpm test` for current count)
-- **Database:** 84 tables (Drizzle ORM on **Neon** — primary). Supabase phase-out is in flight: GAP-129 PR-A/B/D shipped (2026-05-01); PR-C dual-DB client collapse shipped 2026-05-11 ([#800](https://github.com/RevealUIStudio/revealui/pull/800)). RAG tables (`ragDocuments`, `ragChunks`) and the legacy Supabase MCP server adapter remain in-tree during the transition. 61 CHECK constraints enforced (migration 0001 applied 2026-04-15).
+- **Database:** 85 tables (Drizzle ORM on **Neon** — primary). Supabase phase-out is in flight: GAP-129 PR-A/B/D shipped (2026-05-01); PR-C dual-DB client collapse shipped 2026-05-11 ([#800](https://github.com/RevealUIStudio/revealui/pull/800)). RAG tables (`ragDocuments`, `ragChunks`) and the legacy Supabase MCP server adapter remain in-tree during the transition. 61 CHECK constraints enforced (migration 0001 applied 2026-04-15).
 - **UI Components:** 59 native components (Tailwind v4, zero external UI deps)
 - **Branch pipeline:** `feature/* → test → main` — `test` is the default PR target; production deploys are auto on push to `main` only.
 - **CI:** GitHub Actions (ci.yml with E2E smoke, release.yml, release-pro.yml, security.yml, system-tune-snapshot.yml), 3-phase CI gate + E2E + CodeQL + Gitleaks
@@ -49,7 +49,7 @@ note: public snapshot — canonical version at revealui-jv/docs/MASTER_PLAN.md (
 | admin engine (core) | Built | High  -  237 files, deep implementation |
 | AI agent system | Built | Medium  -  untested in production |
 | UI components (58) | Built | High  -  native hooks, no external deps |
-| Database schema (84 tables) | Built | High  -  migration 0001 applied, 61 CHECK constraints enforced |
+| Database schema (85 tables) | Built | High  -  migration 0001 applied, 61 CHECK constraints enforced |
 | Auth (sessions, rate limiting) | Built | Medium  -  code exists, no production verification |
 | Stripe integration | Built | Medium  -  DB-backed circuit breaker (circuit_breaker_state table) |
 | Lexical rich text | Built | Medium  -  recently integrated |
