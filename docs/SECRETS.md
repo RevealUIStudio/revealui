@@ -189,7 +189,6 @@ revealui/prod/public/is-live     # NEXT_PUBLIC_IS_LIVE — feature-flag: Stripe 
 
 ```
 revealui/prod/api-keys/vercel-token         # VERCEL_TOKEN — Vercel API token for sync + deploy; also mirrored to GH secret VERCEL_TOKEN
-revealui/prod/api-keys/npm-automation-token # REVEALUI_NPM_TOKEN — npm publish automation (scope to actual need)
 ```
 
 #### API keys namespace
@@ -201,7 +200,6 @@ revealui/api-keys/ai-gateway
 revealui/api-keys/github-pat
 revealui/api-keys/huggingface
 revealui/api-keys/mcp
-revealui/api-keys/npm-automation-token   # workspace-level; prod mirror at revealui/prod/api-keys/npm-automation-token
 revealui/api-keys/openai-codex
 revealui/api-keys/openai-reveal-framework
 revealui/api-keys/openai-test
@@ -263,7 +261,9 @@ credentials/exa/api-key                 # Exa search
 ### CI / publishing
 
 ```
-credentials/npm/token   # RETIRED 2026-05-20 — canary publish dropped; main release uses OIDC (no token)
+# npm publish: OIDC trusted publishing only (no token). The 2FA-bypass automation token at
+# revealui/api-keys/npm-automation-token (+ prod mirror) was revoked on npm.org + removed from
+# the vault 2026-05-23 — see revealui#1016. (The credentials/npm/token path never existed.)
 credentials/sentry/auth-token           # error tracking (CI + runtime)
 ```
 
