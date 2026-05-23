@@ -13,6 +13,7 @@ Adopt the **Functional Source License 1.1 (FSL-1.1-MIT)** for Pro packages:
 
 - **OSS packages** (20+): MIT license. Fully open.
 - **Pro packages** (ai, harnesses): FSL-1.1-MIT. Source-visible, non-compete clause, automatically converts to MIT after 2 years.
+  - _Update 2026-05-21: the Pro/FSL set has since expanded to five — `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`. `docs/FAIR_SOURCE.md` is the canonical list._
 
 All source code lives in the public repo. No gitignored packages. No private repo sync.
 

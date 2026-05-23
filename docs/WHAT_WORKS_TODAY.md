@@ -19,7 +19,7 @@ and a REST API. The heart of RevealUI and the most mature part of the codebase.
 **59 native React components in `@revealui/presentation`** (80 total with `@revealui/core` admin/richtext), built on Tailwind CSS v4. No external UI dependencies (no Radix, no Headless UI, no shadcn) — just React hooks, clsx, and CVA. Buttons, forms, modals, tables, toasts, navigation, data display, and layout primitives.
 
 ### Database schema
-**86 PostgreSQL tables** with Drizzle ORM, **61 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
+**84 PostgreSQL tables** with Drizzle ORM, **61 CHECK constraints** enforced at the database level. NeonDB is the primary database (REST + agent memories via pgvector). Supabase is an optional sidecar today (RAG chunks + a legacy duplicate billing copy); Phase 7 in the roadmap consolidates RAG onto NeonDB pgvector and retires the Supabase dependency. ElectricSQL is an optional sync layer (off by default).
 
 ### Rich text editing
 Lexical-based rich text editor with custom nodes, serialization, and a plugin system.
@@ -56,7 +56,7 @@ Hono-based API with OpenAPI spec generation, Swagger docs, authentication middle
 rate limiting, CSRF protection, and 120+ route files. Serves the admin dashboard. Deployed to `api.revealui.com`. **Has not handled production traffic from paying users.**
 
 ### AI agent system
-LLM provider abstraction (default: Ollama; opt-in: Groq, HuggingFace, OpenAI-compatible), CRDT-based memory (`WorkingMemory`, `EpisodicMemory`, `SemanticMemory`, `ProceduralMemory`), tool registry, streaming runtime, and orchestration layer. Embeddings default to Ollama `nomic-embed-text` (768 dim). Pro packages (`@revealui/ai`, `@revealui/harnesses`) are Fair Source / FSL-1.1-MIT.
+LLM provider abstraction (default: Ollama; opt-in: Groq, HuggingFace, OpenAI-compatible), CRDT-based memory (`WorkingMemory`, `EpisodicMemory`, `SemanticMemory`, `ProceduralMemory`), tool registry, streaming runtime, and orchestration layer. Embeddings default to Ollama `nomic-embed-text` (768 dim). Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) are Fair Source / FSL-1.1-MIT.
 **Untested in production. The agent system works in development; not yet stress-tested with real workloads or paying users.**
 
 ### Security
@@ -99,7 +99,7 @@ Honest list of things that are not done, not deployed, or not verified.
 | Workspaces (apps + packages) | 30 | Yes |
 | Apps | 4 (`admin`, `server`, `docs`, `marketing`) | Yes |
 | OSS packages (MIT) | 22 | Yes |
-| Pro packages (FSL-1.1-MIT) | 3 (`ai`, `harnesses`, `engines`) | Yes |
+| Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
 | UI components | 59 in `@revealui/presentation` (80 with `@revealui/core`) | Yes |
 | Database tables | 86 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
 | MCP servers (`packages/mcp/src/servers/`) | 13 | Yes |

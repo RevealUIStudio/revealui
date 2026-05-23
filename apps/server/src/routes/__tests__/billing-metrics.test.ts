@@ -1,5 +1,5 @@
 /**
- * Billing Metrics & RVUI Payment Tests
+ * Billing Metrics Tests
  *
  * Covers:
  * - GET /metrics  -  admin-only revenue metrics endpoint
@@ -7,7 +7,6 @@
  *   - Date range validation (invalid, future, reversed, >365d)
  *   - Response shape (subscription counts, tier breakdown, MRR, events)
  *   - MRR fallback pricing when catalog is empty
- * - POST /rvui-payment  -  disabled endpoint (501)
  */
 
 import { Hono } from 'hono';
@@ -265,14 +264,6 @@ function get(path: string) {
   return new Request(`http://localhost${path}`, { method: 'GET' });
 }
 
-function post(path: string, body: unknown) {
-  return new Request(`http://localhost${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-}
-
 // ─── DB chain helpers ────────────────────────────────────────────────────────
 
 let _selectResult: unknown[] = [];
@@ -361,7 +352,7 @@ function queueMetricsResults(opts: {
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('Billing Metrics & RVUI Payment', { timeout: 60_000 }, () => {
+describe('Billing Metrics', { timeout: 60_000 }, () => {
   // ──────────────────────────────────────────────────────────────────────────
   // Section A: GET /metrics  -  Auth & Access Control
   // ──────────────────────────────────────────────────────────────────────────
@@ -673,56 +664,4 @@ describe('Billing Metrics & RVUI Payment', { timeout: 60_000 }, () => {
   // ──────────────────────────────────────────────────────────────────────────
   // Section D: POST /rvui-payment  -  Disabled Endpoint
   // ──────────────────────────────────────────────────────────────────────────
-
-  describe('POST /rvui-payment', () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-      resetChains();
-    });
-
-    it('returns 501 Not Implemented', async () => {
-      const app = createBillingApp(ADMIN_USER);
-      const res = await app.request(
-        post('/rvui-payment', {
-          txSignature: 'abc123',
-          tier: 'Pro',
-          walletAddress: 'wallet123',
-          network: 'devnet',
-        }),
-      );
-
-      expect(res.status).toBe(501);
-    });
-
-    it('response indicates feature is unavailable', async () => {
-      const app = createBillingApp(ADMIN_USER);
-      const res = await app.request(
-        post('/rvui-payment', {
-          txSignature: 'abc123',
-          tier: 'Pro',
-          walletAddress: 'wallet123',
-          network: 'devnet',
-        }),
-      );
-
-      const body = await res.json();
-      expect(body.success).toBe(false);
-      expect(body.tier).toBe('none');
-      expect(body.message).toMatch(/not yet available/i);
-    });
-
-    it('returns 501 regardless of auth state', async () => {
-      const app = createBillingApp(REGULAR_USER);
-      const res = await app.request(
-        post('/rvui-payment', {
-          txSignature: 'sig',
-          tier: 'Max',
-          walletAddress: 'wallet',
-          network: 'devnet',
-        }),
-      );
-
-      expect(res.status).toBe(501);
-    });
-  });
 });

@@ -28,7 +28,7 @@ Formerly displayed as **"Forge"** or **"Forge (Enterprise)"** — renamed 2026-0
 
 ## RevFleet
 
-The umbrella brand for the eight-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), RevealCoin (RVC token), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) — the RevFleet architecture & 7-tier integration guide. Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
+The umbrella brand for the seven-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) — the RevFleet architecture & 7-tier integration guide. Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
 
 ## Forge
 
@@ -36,7 +36,7 @@ The umbrella brand for the eight-product RevealUI Studio family — RevealUI (ru
 
 ## Free / Pro / Max / Enterprise
 
-The four customer-facing pricing tiers, ordered by capability. Free is OSS-only (no Pro packages). Pro / Max / Enterprise unlock progressively more Pro packages (`@revealui/ai`, `@revealui/harnesses`, `@revealui/engines`) plus ecosystem features (RevVault desktop app, RevKit provisioning, RevealCoin x402 micropayments at Enterprise). See [`./PRO`](./PRO.md) for the Pro feature matrix.
+The four customer-facing pricing tiers, ordered by capability. Free is OSS-only (no Pro packages). Pro / Max / Enterprise unlock progressively more Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) plus ecosystem features (RevVault desktop app, RevKit provisioning). See [`./PRO`](./PRO.md) for the Pro feature matrix.
 
 ## Harness
 
@@ -54,10 +54,6 @@ Used in two distinct contexts. **Do not conflate**:
 2. **Session cookies:** RevealUI uses **session-only auth** (bcrypt 12 rounds, sameSite=lax, httpOnly). **No JWT for user-facing auth** per ADR-004. The cookie is a session id, not a JWT.
 
 If a doc says "JWT" without qualifying which one, default to the license JWT.
-
-## Keypair
-
-A Solana Token-2022 keypair used by [RevealCoin](#revealcoin). Stored in [RevVault](#revvault) under the `revealcoin/` namespace; materialized to tmpfs by `scripts/keys-restore.sh` for the duration of a command, then shredded. **Never** committed to source control. See `~/revfleet/revealcoin/README.md` for the full key-management policy.
 
 ## License
 
@@ -77,7 +73,7 @@ A human or agent running a deployed RevealUI instance — distinct from a *user*
 
 ## Pro
 
-See [Free / Pro / Max / Enterprise](#free--pro--max--enterprise). Also: the **Pro packages** are the FSL-1.1-MIT subset (`@revealui/ai`, `@revealui/harnesses`, `@revealui/engines`) — source-visible, JWT-gated, auto-converts to MIT after 2 years. See [`./FAIR_SOURCE`](./FAIR_SOURCE.md) for what FSL-1.1-MIT means in practice.
+See [Free / Pro / Max / Enterprise](#free--pro--max--enterprise). Also: the **Pro packages** are the FSL-1.1-MIT subset (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) — source-visible, JWT-gated, auto-converts to MIT after 2 years. See [`./FAIR_SOURCE`](./FAIR_SOURCE.md) for what FSL-1.1-MIT means in practice.
 
 ## Rev
 
@@ -90,14 +86,6 @@ The white-label self-hosted runtime kit — Docker Compose stack + domain lock +
 ## RevForge
 
 The stamping tool repo at [`RevealUIStudio/revforge`](https://github.com/RevealUIStudio/revforge) (GitHub repo renamed from `RevealUIStudio/forge` 2026-05-03 via Phase B PR-B1 + operator action; local clone path `~/revfleet/forge/` until Phase A filesystem rename `~/revfleet/` → `~/revfleet/`). Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) deployment by substituting `{{COMPANY_NAME}}` / `{{SLUG}}` template tokens, generating per-customer secrets, issuing a license JWT (via `@revealui/core/revforge-license`), writing secrets to revvault under `forge/customers/<slug>/` (revvault path stays until operator-side rotation — see `secrets.md`), and outputting a self-contained customer kit. Operator-only; never customer-facing. Per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 3.
-
-## RVC
-
-**The customer-facing on-chain ticker** for the [RevealCoin](#revealcoin) Token-2022 mint on Solana. 6 decimals, 58.906 B fixed supply, freeze authority renounced. Use **RVC** in all customer-facing copy. See `~/revfleet/revealcoin/README.md` for the canonical risk-disclosure block.
-
-## RevealCoin
-
-The on-chain token product. Hybrid utility/governance/reward token. Built on Solana Token-2022. Customer-facing ticker is [RVC](#rvc) (NOT `$RVUI` — see [Internal-only codenames](#internal-only-codenames) below).
 
 ## RevVault
 
@@ -144,7 +132,7 @@ A person or agent who logs in to a deployed RevealUI runtime. Distinct from a *c
 
 ## x402
 
-The HTTP 402 ("Payment Required") protocol for agent-to-agent micropayments. RevealUI's MCP marketplace prices each tool call in [RVC](#rvc) via x402. **Status:** code-complete in `apps/server/src/routes/marketplace.ts`; deferred from staging activation per memory `project_x402_deferred_until_stripe_live` until Stripe billing flips from test to live mode.
+The HTTP 402 ("Payment Required") protocol for agent-to-agent micropayments. RevealUI's MCP marketplace can price each tool call via x402 (USDC on Base). **Status:** code-complete in `apps/server/src/routes/marketplace.ts`; deferred from staging activation per memory `project_x402_deferred_until_stripe_live` until Stripe billing flips from test to live mode.
 
 ---
 
@@ -154,7 +142,6 @@ These appear only in internal documentation and source code. **Never use these i
 
 | Codename | Customer-facing equivalent |
 |---|---|
-| `$RVUI` | [RVC](#rvc) (for the on-chain ticker) |
 | Foundry | (no public name yet — autonomous agent engine, internal) |
 | Crown | (no public name yet — token economics layer, internal) |
 | Vault | [RevVault](#revvault) |

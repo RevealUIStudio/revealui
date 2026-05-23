@@ -37,13 +37,12 @@ Each of the eight products in RevFleet ships in its own repo. The table below or
 | **RevDev** | [revdev](https://github.com/RevealUIStudio/revdev) | Native developer tools: Studio (Tauri 2 desktop AI editor + agent dashboard) and Console (Go SSH TUI). Both talk to a shared harness daemon that coordinates agents and routes tools to the RevealUI API. | per-product LICENSE |
 | **RevVault** | [revvault](https://github.com/RevealUIStudio/revvault) | Age-encrypted secret vault. CLI + Tauri 2 desktop app. 100% passage-compatible. Source of truth for every secret in RevFleet per the fleet-wide secrets rule. | per-product LICENSE |
 | **RevCon** | [revcon](https://github.com/RevealUIStudio/revcon) | Centralized editor configs (Zed, VS Code, Cursor) + agent-rule sync. Symlinked into target projects via `link.sh`; edits propagate instantly. Not gated by the RevealUI Pro license. | per-product LICENSE |
-| **RevealCoin** | [revealcoin](https://github.com/RevealUIStudio/revealcoin) | Hybrid utility/governance/reward token on Solana Token-2022. Customer-facing ticker: `RVC` (6 decimals, 58.906B supply, freeze authority renounced). Devnet preview. **SHELVED 2026-05-15 — mainnet indefinitely postponed pending revenue + legal review. Code lives in `RevealUIStudio/revealcoin` repo for resumption.** | per-product LICENSE |
 | **RevSkills** | [revskills](https://github.com/RevealUIStudio/revskills) | Curated Agent Skills (`SKILL.md` format) for modern web development. Compatible with Claude Code, Cursor, and any tool supporting the Agent Skills standard. | per-product LICENSE |
 | **RevKit** | [revkit](https://github.com/RevealUIStudio/revkit) | Portable WSL development environment toolkit. Profile presets, bootstrap scripts, shell config, boot optimization, RevStation PowerShell module. | per-product LICENSE |
 
 ### RevealUI (the runtime)
 
-RevealUI is the agentic business runtime. Five primitives — users, content, products, payments, AI — are pre-wired in the monorepo. OSS packages ship MIT; Pro packages (`@revealui/ai`, `@revealui/harnesses`) are Fair Source FSL-1.1-MIT (source-visible, non-compete, auto-converts to MIT after 2 years).
+RevealUI is the agentic business runtime. Five primitives — users, content, products, payments, AI — are pre-wired in the monorepo. OSS packages ship MIT; Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) are Fair Source FSL-1.1-MIT (source-visible, non-compete, auto-converts to MIT after 2 years).
 
 Status: pre-launch (0 paying customers). Enterprise tier at $299/mo hosted; RevealUI Fleet for self-hosting via RevForge.
 
@@ -70,10 +69,6 @@ The fleet-wide secrets rule is: every secret lives in RevVault, encrypted by an 
 ### RevCon (editor + agent-rule sync)
 
 RevCon is not gated by Pro. Any contributor can run `./link.sh --target ~/revfleet/revealui --profile revealui` and get the team's editing posture, agent rules, and convention files. No `@revealui/editors` package exists in the monorepo — the canonical product is RevCon.
-
-### RevealCoin (RVC)
-
-`RVC` is the customer-facing on-chain ticker; `$RVUI` is the internal codename used in code constants and route paths. Public-facing copy always uses `RVC`. Devnet preview. **SHELVED 2026-05-15 — mainnet indefinitely postponed pending revenue + legal review. Code lives in `RevealUIStudio/revealcoin` repo for resumption.**
 
 ---
 

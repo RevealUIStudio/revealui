@@ -14,7 +14,7 @@
  * MUST be updated alongside any addition or removal in
  * `packages/mcp/src/servers/`.
  *
- * License model: every server is MIT-licensed (per @revealui/mcp's
+ * License model: every server is FSL-1.1-MIT (Fair Source — per @revealui/mcp's
  * package.json). The `proGated` field reflects whether the server's
  * runtime calls `checkMcpLicense()` at startup, not the source license
  * itself; the `contracts` server is the public exception
@@ -43,12 +43,12 @@ export interface McpServerEntry {
   transport: McpServerTransport;
   /** Module path for stdio invocation (matches the @revealui/mcp dist layout) */
   modulePath: string;
-  /** SPDX license identifier of the server's source */
-  license: 'MIT';
+  /** License identifier of the server's source (matches @revealui/mcp's package.json) */
+  license: 'FSL-1.1-MIT';
   /**
    * Whether the server's runtime gates on a Pro/Enterprise license check.
-   * Source license is always MIT; this reflects runtime activation, not
-   * source visibility.
+   * Source license is FSL-1.1-MIT (Fair Source); this reflects runtime
+   * activation, not source visibility.
    */
   proGated: boolean;
   /** Whether the server requires external API credentials to function */
@@ -79,11 +79,11 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     id: 'contracts',
     name: 'Contracts Introspection',
     description:
-      'Read-only resources and validators for every @revealui/contracts category (entities, agents, A2A, admin, billing, pricing, RevealCoin, security, content, etc.). Public — not Pro-gated. Phase 1 of the protocol-pyramid ADR.',
+      'Read-only resources and validators for every @revealui/contracts category (entities, agents, A2A, admin, billing, pricing, security, content, etc.). Public — not Pro-gated. Phase 1 of the protocol-pyramid ADR.',
     category: 'introspection',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/contracts.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: false,
     requiresCredentials: false,
   },
@@ -95,7 +95,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'platform',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/revealui-content.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: false,
   },
@@ -106,7 +106,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'platform',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/revealui-email.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: true,
   },
@@ -118,7 +118,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'platform',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/revealui-memory.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: false,
   },
@@ -130,7 +130,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'platform',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/revealui-stripe.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: true,
   },
@@ -141,7 +141,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'integration',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/neon.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: true,
   },
@@ -153,7 +153,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'integration',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/stripe.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: true,
   },
@@ -165,7 +165,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'integration',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/supabase.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: true,
   },
@@ -176,7 +176,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'integration',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/vercel.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: true,
   },
@@ -188,7 +188,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'development',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/code-validator.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: false,
   },
@@ -199,7 +199,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'development',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/next-devtools.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: false,
   },
@@ -210,7 +210,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'development',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/playwright.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: false,
   },
@@ -222,7 +222,7 @@ export const MCP_SERVERS: readonly McpServerEntry[] = [
     category: 'helper',
     transport: 'stdio',
     modulePath: '@revealui/mcp/dist/servers/_email-provider.js',
-    license: 'MIT',
+    license: 'FSL-1.1-MIT',
     proGated: true,
     requiresCredentials: true,
   },

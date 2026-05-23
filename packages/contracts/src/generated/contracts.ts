@@ -1653,58 +1653,6 @@ export const RegisteredAgentsInsertContract = createContract({
 })
 
 // =============================================================================
-// RevealcoinPayments Contracts
-// =============================================================================
-
-/**
- * Contract for revealcoinPayments row (Select)
- * Database table: revealcoin_payments
- */
-export const RevealcoinPaymentsRowContract = createContract({
-  name: 'RevealcoinPaymentsRow',
-  version: '1',
-  description: 'Database row contract for revealcoin_payments table',
-  schema: Schemas.RevealcoinPaymentsSelectSchema,
-})
-
-/**
- * Contract for revealcoinPayments insert
- * Database table: revealcoin_payments
- */
-export const RevealcoinPaymentsInsertContract = createContract({
-  name: 'RevealcoinPaymentsInsert',
-  version: '1',
-  description: 'Database insert contract for revealcoin_payments table',
-  schema: Schemas.RevealcoinPaymentsInsertSchema,
-})
-
-// =============================================================================
-// RevealcoinPriceSnapshots Contracts
-// =============================================================================
-
-/**
- * Contract for revealcoinPriceSnapshots row (Select)
- * Database table: revealcoin_price_snapshots
- */
-export const RevealcoinPriceSnapshotsRowContract = createContract({
-  name: 'RevealcoinPriceSnapshotsRow',
-  version: '1',
-  description: 'Database row contract for revealcoin_price_snapshots table',
-  schema: Schemas.RevealcoinPriceSnapshotsSelectSchema,
-})
-
-/**
- * Contract for revealcoinPriceSnapshots insert
- * Database table: revealcoin_price_snapshots
- */
-export const RevealcoinPriceSnapshotsInsertContract = createContract({
-  name: 'RevealcoinPriceSnapshotsInsert',
-  version: '1',
-  description: 'Database insert contract for revealcoin_price_snapshots table',
-  schema: Schemas.RevealcoinPriceSnapshotsInsertSchema,
-})
-
-// =============================================================================
 // Sessions Contracts
 // =============================================================================
 

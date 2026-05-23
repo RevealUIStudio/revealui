@@ -66,7 +66,6 @@ export * from './passkeys.js';
 export * from './password-reset-tokens.js';
 export * from './products.js';
 export * from './rate-limits.js';
-export * from './revealcoin.js';
 export * from './revmarket.js';
 export * from './shared-facts.js';
 export * from './sites.js';

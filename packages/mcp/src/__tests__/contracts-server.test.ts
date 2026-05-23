@@ -25,7 +25,6 @@ import { describe, expect, it } from 'vitest';
 import {
   createContractsServer,
   REGISTERED_CATEGORIES,
-  REVEALCOIN_TOKEN_DEFAULT,
   validatePayload,
 } from '../servers/factories/contracts.js';
 
@@ -207,14 +206,6 @@ const HAPPY_FIXTURES: Record<string, HappyFixture> = {
       generatedAt: new Date().toISOString(),
     },
   },
-  // revealcoin primary = tokenConfig. Reuse the canonical default.
-  revealcoin: {
-    data: {
-      ...REVEALCOIN_TOKEN_DEFAULT,
-      // Cast bigint-or-string union: serialize as string for portability.
-      totalSupply: String(REVEALCOIN_TOKEN_DEFAULT.totalSupply),
-    },
-  },
   // secrets primary = secretActor.
   secrets: { data: { type: 'user', id: 'u-1' } },
   // security primary = securityRule. Use severity (z.enum).
@@ -254,8 +245,8 @@ describe('createContractsServer — factory + structure', () => {
     expect(internal._requestHandlers.has('resources/read')).toBe(true);
   });
 
-  it('REGISTERED_CATEGORIES exposes ≥17 categories', () => {
-    expect(REGISTERED_CATEGORIES.length).toBeGreaterThanOrEqual(17);
+  it('REGISTERED_CATEGORIES exposes ≥16 categories', () => {
+    expect(REGISTERED_CATEGORIES.length).toBeGreaterThanOrEqual(16);
   });
 
   it('every registered category has a happy fixture defined', () => {
@@ -390,7 +381,6 @@ describe('createContractsServer — resources/read', () => {
     'generated',
     'providers',
     'representation',
-    'revealcoin',
     'secrets',
     'security',
     'stripe_webhook_events',

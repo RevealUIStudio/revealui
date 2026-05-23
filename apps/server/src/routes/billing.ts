@@ -2211,67 +2211,6 @@ app.openapi(refundRoute, async (c) => {
   );
 });
 
-// =============================================================================
-// RVUI Payment  -  RevealCoin subscription payment with on-chain verification
-// =============================================================================
-
-const rvuiPaymentRoute = createRoute({
-  method: 'post',
-  path: '/rvui-payment',
-  tags: ['billing'],
-  summary: 'Pay for subscription with RevealCoin',
-  description:
-    'Verifies an on-chain RVUI payment transaction and activates the subscription tier. ' +
-    'Applies the 15% RVUI discount. Requires wallet address and transaction signature.',
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: z.object({
-            txSignature: z.string().min(1, 'Transaction signature required'),
-            tier: z.enum(['Pro', 'Max']),
-            walletAddress: z.string().min(1, 'Wallet address required'),
-            network: z.enum(['devnet', 'mainnet-beta']).default('devnet'),
-          }),
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Payment verified and subscription activated',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.boolean(),
-            tier: z.string(),
-            message: z.string(),
-          }),
-        },
-      },
-    },
-    400: { description: 'Validation failed' },
-    401: { description: 'Authentication required' },
-    403: { description: 'Payment rejected by safeguards' },
-  },
-});
-
-app.openapi(rvuiPaymentRoute, async (c) => {
-  // DISABLED (B-01): RVUI/RevealCoin payment is disabled until real pricing is
-  // implemented. The on-chain verification used a hardcoded minimum of 1 token
-  // (1n), which would allow any 1-token payment to activate Pro/Max for free.
-  // Re-enable once TWAP-based pricing and proper amount calculation are in place.
-  // See: GAP-100, git history for the full handler implementation.
-  return c.json(
-    {
-      success: false,
-      tier: 'none',
-      message: 'RVUI payment is not yet available. Please use Stripe for subscription payments.',
-    },
-    501,
-  );
-});
-
 // ─── Admin Revenue Metrics ────────────────────────────────────────────────────
 
 /**

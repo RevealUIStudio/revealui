@@ -24,7 +24,7 @@ Source: `pnpm tsx scripts/validate/claim-drift.ts` on `origin/test` 2026-05-18 (
 | Metric | Canonical value | Source of truth (script ref) | Notes |
 |---|---|---|---|
 | Packages in `packages/` | **26** | `countPackages()` — `.ts`-bearing dir | Stale memory `reference_npm_account_topology` ("36") superseded by this. |
-| Apps in `apps/` | **4** | `countApps()` | admin / server / docs / marketing. Was 5 (revealcoin removed per PR #936 + #946 + #947). |
+| Apps in `apps/` | **4** | `countApps()` | admin / server / docs / marketing. Was 5 (one app removed per PR #936 + #946 + #947). |
 | Workspaces (monorepo total) | **30** | `countWorkspaces()` (= 26 packages + 4 apps) | |
 | Test files | **912** | `countTestFiles()` — `*.test.ts` / `*.spec.ts` walking | Marketing copy should say "900+ tests" or quote the exact ground-truth number, never "20,000+" (the stale claim). |
 | UI components in `packages/presentation/` | **59** | `countUIComponents()` | Marketing copy says "59 native React components" or similar. |
@@ -93,8 +93,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Stripe live payments | **In flight** | 3 of 5 pre-flip gates remain (Cat C heal + stripe:seed re-run + owner flip directive). Marketing copy may NOT claim "live payments today" / "accept payments immediately" — only "Stripe billing wired; live keys in flight." |
 | Dashboard Agent Chat | **Shipped** | Live at admin.revealui.com. |
 | Documentation Site | **Shipped** | docs.revealui.com. |
-| RevealCoin (RVC) | **Pre-launch** (special label) | SHELVED 2026-05-15 per memory + plan. Per locked Q2: roadmap-only single line ("RVC: pre-launch — legal + multisig gates open. See revealcoin/README."). Stripped from all other surfaces. |
-| x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant. "Designed; gated on Stripe live + RevealCoin unshelve." |
+| x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant. "Designed; gated on Stripe live." |
 | MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (13 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
 | Perpetual Licenses (Track C) | **Planned** | `comingSoon: true` in contracts. |
 | Self-Hosted Docker Images (RevealUI Fleet) | **Planned** | Designed, not built. |
@@ -125,7 +124,6 @@ Marketing copy may say "cobalt" (or "Electric Verdigris") descriptively but the 
 | RevSkills | Shipped | Active (MIT) | Claude Code skills library |
 | RevKit | Planned | Pro (planned) | Portable WSL dev env |
 | RevMarket | Planned | Code-complete, dormant | MCP marketplace; X402_ENABLED=false |
-| RevealCoin | **Pre-launch** (only on /roadmap) | Mainnet deployed but pre-launch | Shelved 2026-05-15; legal + multisig gates open |
 
 Customer-stamped Fleet kits are NOT fleet products — they are per-customer brand instances produced via RevForge.
 
@@ -138,9 +136,7 @@ Canonical defaults (when "open-model AI" is mentioned in marketing): Gemma 4, Ph
 ## 7. Brand language guardrails (per `brand-naming.md` + locked Q1)
 
 - **RevealUI** = the framework/runtime (customer-facing).
-- **RevFleet** = the umbrella product family (8 active products + RVC pre-launch).
-- **`RVC`** = the on-chain Token-2022 symbol (NOT `$RVUI`).
-- **`$RVUI`** = INTERNAL codename only; NEVER customer-facing.
+- **RevFleet** = the umbrella product family (8 active products).
 - **`RevForge`** = the stamping tool (NOT bare `Forge`).
 - **"Studio"** alone is ambiguous (collides with RevDev Studio app + RevealUI Studio agency); always qualify as "RevealUI Studio" or "RevDev Studio."
 - **Positioning (Q1 lock-in):** `shifts.md` primary + secondary —

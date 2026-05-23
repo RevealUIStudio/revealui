@@ -2,7 +2,7 @@
 
 MCP (Model Context Protocol) servers for RevealUI. Connect your AI agents to Stripe, Supabase, Neon, Vercel, Playwright, and more via standardized tool interfaces.
 
-> **License: MIT (OSS).** `@revealui/mcp` is part of the open-source RevealUI surface — no Pro license required to use it. Pro packages (`@revealui/ai`, `@revealui/harnesses`) are Fair Source / FSL-1.1-MIT; this package is plain MIT.
+> **License: Fair Source (FSL-1.1-MIT).** `@revealui/mcp` is one of the five Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`) — source-visible in the public repo, free to use commercially under the FSL non-compete, and converting to plain MIT two years after each release.
 
 ## Overview
 

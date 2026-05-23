@@ -113,6 +113,13 @@
       "when": 1777425244909,
       "tag": "0015_users_stripe_deletion_status",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1779431687726,
+      "tag": "0016_drop_revealcoin_tables",
+      "breakpoints": true
     }
   ]
 }

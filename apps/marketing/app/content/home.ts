@@ -16,11 +16,11 @@ import type { Cta, FaqItem } from './types';
 // ---------------------------------------------------------------------------
 
 export const HOME_HERO = {
-  eyebrow: 'Open-source. Self-hostable. Audit-grade.',
-  h1: 'The open runtime for AI-native businesses.',
+  eyebrow: 'Open source. Self-hostable. Audit-ready.',
+  h1: 'Launch your AI product on a foundation that’s already built.',
   subtitle: {
-    strong: 'Yours to install. Ours to build for you.',
-    body: 'Auth, content, products, payments, and intelligence — five primitives, one policy plane, one hash-chained audit log. For founders shipping AI products who need audit trails and unified governance from day one — whether you build with',
+    strong: 'Auth, billing, content, and AI, wired together from day one.',
+    body: 'Spin up a working app — users, Stripe payments, an admin dashboard, and an AI agent layer, all sharing one login and one audit trail. Build it yourself',
     cliSuffix: 'or hire',
     agencyLabel: 'RevealUI Studio',
     agencyHref: SITE.urls.agency,
@@ -32,7 +32,7 @@ export const HOME_HERO = {
   },
   agencyCta: {
     prefix: 'Want it built for you?',
-    label: 'RevealUI Studio builds AI businesses on RevealUI →',
+    label: 'RevealUI Studio builds your AI product on RevealUI →',
     href: SITE.urls.agency,
   },
   cliCaption: 'Local dev stack in 60 seconds. No credit card.',
@@ -186,7 +186,7 @@ export const HOME_FAQ = {
     {
       question: 'Can I self-host?',
       answer:
-        'Yes. 21 of 26 packages are MIT and stay MIT — forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infra at any tier — no vendor-specific edge runtimes, no proprietary database.',
+        'Yes. 20 of 26 packages are MIT and stay MIT — forever. The 5 Pro packages are Fair Source (FSL-1.1-MIT) and auto-convert to MIT two years after each release. Self-host the entire stack on your own infra at any tier — no vendor-specific edge runtimes, no proprietary database.',
     },
     {
       question: 'What does "agent-native" actually mean in code?',
@@ -227,7 +227,7 @@ export const HOME_FAQ = {
 
 export const HOME_GET_STARTED = {
   heading: 'Ready to build?',
-  body: 'Users, content, products, payments, and AI, pre-wired. Start building locally in minutes; flip to live mode when you are ready.',
+  body: 'Auth, billing, content, and AI — already wired together. Build on your machine in minutes, then flip to live mode when you’re ready to charge real customers.',
   cta: {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,

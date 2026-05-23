@@ -27,7 +27,6 @@ Full cross-fleet rule: see `~/.claude/rules/secrets.md`.
 | Third-party API keys | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY` |
 | Sync infrastructure | `ELECTRIC_SERVICE_URL`, `ELECTRIC_SECRET` |
 | Deployment | Vercel token |
-| Blockchain | RevealCoin Solana keypairs (mint authority, allocations, vesting custody) |
 | Licenses | `REVEALUI_LICENSE_KEY`, RVUI-format keys |
 | SSH / signing | Age identity, SSH keys, PGP/GPG keys, code-signing certs |
 
@@ -190,7 +189,6 @@ revealui/prod/public/is-live     # NEXT_PUBLIC_IS_LIVE — feature-flag: Stripe 
 
 ```
 revealui/prod/api-keys/vercel-token         # VERCEL_TOKEN — Vercel API token for sync + deploy; also mirrored to GH secret VERCEL_TOKEN
-revealui/prod/api-keys/npm-automation-token # REVEALUI_NPM_TOKEN — npm publish automation (scope to actual need)
 ```
 
 #### API keys namespace
@@ -202,7 +200,6 @@ revealui/api-keys/ai-gateway
 revealui/api-keys/github-pat
 revealui/api-keys/huggingface
 revealui/api-keys/mcp
-revealui/api-keys/npm-automation-token   # workspace-level; prod mirror at revealui/prod/api-keys/npm-automation-token
 revealui/api-keys/openai-codex
 revealui/api-keys/openai-reveal-framework
 revealui/api-keys/openai-test
@@ -235,22 +232,6 @@ revealui/env/stripe/STRIPE_CREDITS_STARTER_PRODUCT_ID
 revealui/env/supabase
 ```
 
-### Revealcoin
-
-```
-revealcoin/community-governance.json
-revealcoin/ecosystem-rewards.json
-revealcoin/liquidity-provision.json
-revealcoin/mint-authority.json
-revealcoin/mint.json
-revealcoin/protocol-treasury.json
-revealcoin/public-distribution.json
-revealcoin/strategic-partners.json
-revealcoin/team-founders.json
-revealcoin/vesting/*.json
-revealcoin/devnet-addresses              # operational, not a keypair
-```
-
 ### RevDev
 
 ```
@@ -277,17 +258,12 @@ credentials/tavily/api-key              # Tavily search
 credentials/exa/api-key                 # Exa search
 ```
 
-### Solana / RevealCoin infrastructure
-
-```
-revealcoin/jupiter/api-key              # Jupiter aggregator
-revealcoin/solana-rpc-url               # RPC endpoint
-```
-
 ### CI / publishing
 
 ```
-credentials/npm/token   # RETIRED 2026-05-20 — canary publish dropped; main release uses OIDC (no token)
+# npm publish: OIDC trusted publishing only (no token). The 2FA-bypass automation token at
+# revealui/api-keys/npm-automation-token (+ prod mirror) was revoked on npm.org + removed from
+# the vault 2026-05-23 — see revealui#1016. (The credentials/npm/token path never existed.)
 credentials/sentry/auth-token           # error tracking (CI + runtime)
 ```
 

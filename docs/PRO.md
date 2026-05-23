@@ -72,7 +72,7 @@ RevealUI Pro is the commercial layer that runs *inside* the RevealUI runtime —
 
 **In the RevealUI runtime (this monorepo):**
 
-- Pro packages (Fair Source / FSL-1.1-MIT): `@revealui/ai`, `@revealui/harnesses`
+- Pro packages (Fair Source / FSL-1.1-MIT): `@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`
 - MCP servers and developer tooling
 - Open-model inference configuration per deployment
 - Stripe service integrations
@@ -99,8 +99,6 @@ RevealUI is part of a four-project ecosystem. Each project has features distribu
 | RevKit agent coordination protocol | Yes | Yes | Yes | Yes |
 | RevKit environment provisioning | | | Yes | Yes |
 
-> **Deferred — SHELVED 2026-05-15:** RevealCoin x402 agent payments are not on the current roadmap. Mainnet is indefinitely postponed pending revenue + legal review. The `X402_ENABLED=false` flag preserves the code for future resumption.
-
 The MIT-licensed components (RevVault CLI, RevKit agent coordination) are free forever. Commercial features (desktop app, rotation engine, provisioning) require the corresponding tier.
 
 ## Licensing (Fair Source + MIT)
@@ -118,7 +116,7 @@ RevealUI publishes every package to npm from the same public repo. There are two
 
 The Pro tier gate isn't enforced by the license — it's enforced at runtime by license validation (`initializeLicense()`, 6-layer middleware, `checkAIFeatureGate()` at every Pro API entry point). The license JWTs are Ed25519-signed; the check can't be bypassed by forking the source. FSL is the legal backstop; runtime enforcement is the real protection.
 
-For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-003-fair-source-licensing.md). The root `LICENSE` file (MIT) and per-package `LICENSE` files inside `packages/ai/`, `packages/harnesses/`, and `packages/engines/` (FSL-1.1-MIT) describe the terms verbatim.
+For full decision context: [ADR-003: Fair Source Licensing](./architecture/ADR-003-fair-source-licensing.md). The root `LICENSE` file (MIT) and per-package `LICENSE` files inside `packages/ai/`, `packages/engines/`, `packages/harnesses/`, `packages/mcp/`, and `packages/services/` (FSL-1.1-MIT) describe the terms verbatim.
 
 ## MCP Setup
 
@@ -1161,7 +1159,7 @@ Stripe payment processing for RevealUI Pro.
 
 ## Overview
 
-`@revealui/services` provides pre-wired Stripe integrations with auth-aware clients, webhook handlers, and billing flow helpers. Also exports Solana (RevealCoin / RVC) and Vercel (deploy + DNS) helpers.
+`@revealui/services` provides pre-wired Stripe integrations with auth-aware clients, webhook handlers, and billing flow helpers. Also exports Vercel (deploy + DNS) helpers.
 
 **Requires a Pro or Enterprise license** (`isFeatureEnabled('payments')`).
 

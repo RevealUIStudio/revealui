@@ -429,8 +429,9 @@ const FSL_LABEL_PATTERN =
 function scanForLicenseMembershipDrift(map: PackageLicenseMap): MembershipMatch[] {
   const matches: MembershipMatch[] = [];
   walkLicenseScanFiles((filePath, rel) => {
-    // Skip the validator itself — its own pattern definitions are not claims
-    if (rel === 'scripts/validate/claim-drift.ts') return;
+    // Skip the validator + its test fixtures — their pattern strings are not claims
+    if (rel === 'scripts/validate/claim-drift.ts' || rel.startsWith('scripts/validate/__tests__/'))
+      return;
     let content: string;
     try {
       content = fs.readFileSync(filePath, 'utf8');
@@ -463,6 +464,107 @@ function scanForLicenseMembershipDrift(map: PackageLicenseMap): MembershipMatch[
             text: line.trim(),
           });
         }
+      }
+    }
+  });
+  return matches;
+}
+
+// ---------------------------------------------------------------------------
+// Incomplete-Pro-list detector (added 2026-05-22)
+//
+// Catches the drift class where a doc presents an INCOMPLETE Pro/FSL package
+// list as if it were the full set — e.g. "Pro packages (`@revealui/ai`,
+// `@revealui/harnesses`)" when the canonical FSL set has five members. The
+// membership detector above only flags a *wrong* license for a named package;
+// it cannot see that a list of correctly-FSL packages is missing members.
+//
+// Conservative gate (keep false positives low): fires only when a line is a
+// Pro/FSL-list context AND names a 2+-member STRICT subset of the canonical
+// FSL set AND names no MIT package (a mixed list is explanatory prose, not a
+// Pro-set enumeration). Single-package mentions are never flagged.
+//
+// No authored regex — string token scan + Set membership, per the fleet
+// no-regex rule.
+// ---------------------------------------------------------------------------
+
+interface IncompleteProMatch {
+  file: string;
+  line: number;
+  named: string[];
+  total: number;
+  text: string;
+}
+
+/** Extract `@revealui/<name>` tokens from a line (no regex). Exported for tests. */
+export function extractRevealuiPackages(line: string): string[] {
+  const out: string[] = [];
+  const token = '@revealui/';
+  let idx = line.indexOf(token);
+  while (idx !== -1) {
+    let end = idx + token.length;
+    while (end < line.length) {
+      const ch = line[end];
+      if (!((ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch === '-')) break;
+      end++;
+    }
+    if (end > idx + token.length) out.push(line.slice(idx, end));
+    idx = line.indexOf(token, end);
+  }
+  return out;
+}
+
+/** True when `line` is a markdown ATX heading (1-6 `#` then a space). */
+function isMarkdownHeading(line: string): boolean {
+  const t = line.trimStart();
+  let h = 0;
+  while (h < t.length && t[h] === '#') h++;
+  return h >= 1 && h <= 6 && t[h] === ' ';
+}
+
+/**
+ * When `line` enumerates an INCOMPLETE Pro/FSL package list, return the named
+ * FSL packages; otherwise null. Pure + exported for unit testing.
+ */
+export function findIncompleteProList(
+  line: string,
+  fslSet: ReadonlySet<string>,
+  mitSet: ReadonlySet<string>,
+): string[] | null {
+  const lower = line.toLowerCase();
+  // Require the explicit "Pro package(s)" enumeration phrase. Broader context
+  // words ("Fair Source" / "FSL") fire on feature prose that merely mentions a
+  // couple of Pro packages — false positives are unacceptable on a hard-fail
+  // gate, so we accept missing loose prose (a false negative) instead.
+  if (!lower.includes('pro package')) return null;
+  const fslNamed = new Set<string>();
+  let namesMitPkg = false;
+  for (const pkg of extractRevealuiPackages(line)) {
+    if (fslSet.has(pkg)) fslNamed.add(pkg);
+    else if (mitSet.has(pkg)) namesMitPkg = true;
+  }
+  if (namesMitPkg) return null; // mixed list -> explanatory prose, not an enumeration
+  if (fslNamed.size >= 2 && fslNamed.size < fslSet.size) return [...fslNamed];
+  return null;
+}
+
+function scanForIncompleteProList(map: PackageLicenseMap): IncompleteProMatch[] {
+  const matches: IncompleteProMatch[] = [];
+  walkLicenseScanFiles((filePath, rel) => {
+    if (rel === 'scripts/validate/claim-drift.ts' || rel.startsWith('scripts/validate/__tests__/'))
+      return; // skip self + test fixtures
+    let content: string;
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+    } catch {
+      return;
+    }
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      if (isMarkdownHeading(lines[i])) continue;
+      const named = findIncompleteProList(lines[i], map.fsl, map.mit);
+      if (named) {
+        matches.push({ file: rel, line: i + 1, named, total: map.fsl.size, text: lines[i].trim() });
       }
     }
   });
@@ -1305,6 +1407,7 @@ function run(): void {
   const pkgMap = buildPackageLicenseMap();
   const phantomMatches = scanForPhantomPackages();
   const membershipMatches = scanForLicenseMembershipDrift(pkgMap);
+  const incompleteProMatches = scanForIncompleteProList(pkgMap);
 
   console.log('====================');
   console.log(`Claims scanned: ${claims.length}`);
@@ -1317,6 +1420,7 @@ function run(): void {
   console.log(`Internal $RVUI ticker leaks: ${rvuiLeaks.length}`);
   console.log(`Phantom-package mentions: ${phantomMatches.length}`);
   console.log(`License-membership mismatches: ${membershipMatches.length}`);
+  console.log(`Incomplete Pro-list claims: ${incompleteProMatches.length}`);
 
   if (futureClaims.length > 0) {
     console.log('\nUnlinked future-tense claims (convention: CONTRIBUTING.md):');
@@ -1386,6 +1490,21 @@ function run(): void {
     );
   }
 
+  if (incompleteProMatches.length > 0) {
+    console.log(
+      '\nIncomplete Pro-package lists (a strict subset of the FSL set, read as the full set):',
+    );
+    for (const c of incompleteProMatches) {
+      console.log(
+        `  ${c.file}:${c.line}  names ${c.named.length} of ${c.total} Pro packages: ${c.named.join(', ')}`,
+      );
+      console.log(`    ${c.text.substring(0, 140)}`);
+    }
+    console.log(
+      '\nA line that enumerates the Pro/FSL packages must list all of them (see docs/FAIR_SOURCE.md), name only one, or be rephrased so it does not read as the complete set.',
+    );
+  }
+
   const anyFailures =
     mismatches > 0 ||
     futureClaims.length > 0 ||
@@ -1393,7 +1512,8 @@ function run(): void {
     fleetLeaks.length > 0 ||
     rvuiLeaks.length > 0 ||
     phantomMatches.length > 0 ||
-    membershipMatches.length > 0;
+    membershipMatches.length > 0 ||
+    incompleteProMatches.length > 0;
 
   if (anyFailures) {
     if (mismatches > 0) {
@@ -1419,6 +1539,9 @@ function run(): void {
     }
     if (membershipMatches.length > 0) {
       console.log('\nFailed: license-membership mismatches in docs.');
+    }
+    if (incompleteProMatches.length > 0) {
+      console.log('\nFailed: incomplete Pro-package lists in docs.');
     }
     process.exit(1);
   } else {

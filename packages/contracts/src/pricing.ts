@@ -111,8 +111,6 @@ export interface SubscriptionTier {
   cta: string;
   ctaHref: string;
   highlighted: boolean;
-  /** Discount percentage when paying with RevealCoin (RVUI). */
-  rvuiDiscount?: number;
 }
 
 export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
@@ -157,7 +155,6 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     cta: 'Join the waitlist',
     ctaHref: 'https://revealui.com/contact',
     highlighted: true,
-    rvuiDiscount: 15,
   },
   {
     id: 'max',
@@ -178,7 +175,6 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     cta: 'Join the waitlist',
     ctaHref: 'https://revealui.com/contact',
     highlighted: false,
-    rvuiDiscount: 15,
   },
   {
     id: 'enterprise',
@@ -190,7 +186,7 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
       'Unlimited users/editors',
       'Session-based auth + OAuth (SSO/SAML coming soon)',
       'Full inference suite (all open models)',
-      'RevealCoin x402 agent payments',
+      'x402 agent payments (USDC)',
       'RevealUI Fleet license — branded white-label deployment for your own customers (managed setup)',
       'Unlimited agent tasks',
       'Slack support (4h SLA)',
@@ -287,7 +283,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Written report delivered within 5 business days',
     cta: 'Book a Discovery Call',
-    ctaHref: 'https://cal.com/revealuistudio/revealui-discovery-call',
+    ctaHref: 'https://cal.com/revealuistudio/discovery',
   },
   {
     id: 'launch-package',
@@ -305,7 +301,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Production-ready deployment within 2-4 weeks',
     cta: 'Book a Discovery Call',
-    ctaHref: 'https://cal.com/revealuistudio/revealui-discovery-call',
+    ctaHref: 'https://cal.com/revealuistudio/discovery',
   },
   {
     id: 'migration-assist',
@@ -323,7 +319,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Working migration with verified data integrity',
     cta: 'Get an Estimate',
-    ctaHref: 'https://cal.com/revealuistudio/revealui-discovery-call',
+    ctaHref: 'https://cal.com/revealuistudio/discovery',
   },
   {
     id: 'consulting-hour',
@@ -339,7 +335,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
     ],
     deliverable: 'Session recording and written follow-up notes',
     cta: 'Book a Session',
-    ctaHref: 'https://cal.com/revealuistudio/revealui-discovery-call',
+    ctaHref: 'https://cal.com/revealuistudio/discovery',
   },
 ];
 
