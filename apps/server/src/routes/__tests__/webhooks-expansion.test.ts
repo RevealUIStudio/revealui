@@ -293,7 +293,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const app = createApp();
       await app.request(postStripe(event));
 
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
   });
 
@@ -318,7 +318,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('revoked');
     });
@@ -371,7 +371,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const app = createApp();
       await app.request(postStripe(event));
 
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
   });
 
@@ -408,7 +408,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('revoked');
     });
@@ -517,7 +517,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('revoked');
     });
@@ -530,7 +530,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
 
     it('logs partial refund info without revoking', async () => {
@@ -577,7 +577,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
   });
 
@@ -634,7 +634,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const app = createApp();
       await app.request(postStripe(event));
 
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
   });
 
@@ -798,7 +798,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
   });
 
@@ -831,7 +831,7 @@ describe('POST /stripe webhook  -  expansion events', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
       expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
         'Dispute charge has no customer  -  cannot revoke license',
         expect.objectContaining({ chargeId: 'ch_no_cust' }),

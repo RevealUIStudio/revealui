@@ -426,7 +426,7 @@ describe('POST /stripe webhook  -  invoice.payment_action_required (3DS/SCA)', (
       // CRITICAL: payment_action_required is NOT a failure.
       // The customer is in an SCA flow; downgrading them prematurely
       // would be a customer-experience regression.
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
 
     it('does not insert any new rows beyond the idempotency marker', async () => {

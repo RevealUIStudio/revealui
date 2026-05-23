@@ -558,7 +558,7 @@ describe('POST /stripe webhook  -  handler tests', () => {
       expect(res.status).toBe(200);
       // cancel_at_period_end=true + cancel_at=null: no license update needed
       // (the cancel_at branch requires cancel_at, the active-sync branch requires !cancel_at_period_end)
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
   });
 
@@ -693,7 +693,7 @@ describe('POST /stripe webhook  -  handler tests', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
 
     it('skips when customer is null', async () => {
@@ -710,7 +710,7 @@ describe('POST /stripe webhook  -  handler tests', () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
   });
 
