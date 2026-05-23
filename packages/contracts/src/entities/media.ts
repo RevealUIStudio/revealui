@@ -23,14 +23,18 @@ import { z } from 'zod/v4';
 
 export const MEDIA_SCHEMA_VERSION = 1;
 
-// Supported MIME types
+// Supported MIME types.
+//
+// NOTE: image/svg+xml is intentionally excluded. SVG is text/markup with no
+// magic-byte signature and can carry inline <script> / on* handlers — storing
+// raw SVG and serving it inline is a stored-XSS vector. Re-introduce it only
+// behind server-side sanitization (e.g. DOMPurify) that strips scripts/handlers.
 export const IMAGE_MIME_TYPES = [
   'image/jpeg',
   'image/jpg',
   'image/png',
   'image/gif',
   'image/webp',
-  'image/svg+xml',
 ] as const;
 
 export const VIDEO_MIME_TYPES = ['video/mp4', 'video/webm', 'video/ogg'] as const;
@@ -269,7 +273,6 @@ export function getMimeTypeFromExtension(extension: string): string | null {
     png: 'image/png',
     gif: 'image/gif',
     webp: 'image/webp',
-    svg: 'image/svg+xml',
     mp4: 'video/mp4',
     webm: 'video/webm',
     ogg: 'video/ogg',
@@ -786,3 +789,102 @@ export const MediaAgentSchema = MediaSchema.and(
     }),
   }),
 );
+
+// =============================================================================
+// Upload Validation (server-side)
+// =============================================================================
+
+/**
+ * Verify a file's leading bytes match its declared MIME type (magic-byte
+ * sniffing). The multipart Content-Type is client-controlled, so trusting it
+ * lets an attacker store active content (HTML/JS) under an image type, or a
+ * polyglot. Pass at least the first 16 bytes. Returns false for types we cannot
+ * verify, so callers fail closed.
+ */
+export function verifyMagicBytes(mimeType: string, bytes: Uint8Array): boolean {
+  const matches = (sig: number[], offset = 0): boolean =>
+    sig.every((b, i) => bytes[offset + i] === b);
+  const ascii = (text: string, offset = 0): boolean =>
+    matches(
+      [...text].map((ch) => ch.charCodeAt(0)),
+      offset,
+    );
+
+  switch (mimeType) {
+    case 'image/jpeg':
+    case 'image/jpg':
+      return matches([0xff, 0xd8, 0xff]);
+    case 'image/png':
+      return matches([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    case 'image/gif':
+      return ascii('GIF87a') || ascii('GIF89a');
+    case 'image/webp':
+      return ascii('RIFF') && ascii('WEBP', 8);
+    case 'video/mp4':
+      return ascii('ftyp', 4);
+    case 'video/webm':
+      return matches([0x1a, 0x45, 0xdf, 0xa3]);
+    case 'video/ogg':
+    case 'audio/ogg':
+      return ascii('OggS');
+    case 'audio/mpeg':
+    case 'audio/mp3':
+      // ID3-tagged, or a raw MPEG frame sync (11 set bits at the start).
+      return ascii('ID3') || (bytes[0] === 0xff && ((bytes[1] ?? 0) & 0xe0) === 0xe0);
+    case 'audio/wav':
+      return ascii('RIFF') && ascii('WAVE', 8);
+    case 'application/pdf':
+      return ascii('%PDF-');
+    case 'application/msword':
+    case 'application/vnd.ms-excel':
+      // Legacy OLE compound-document container.
+      return matches([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+    case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      // OOXML is a ZIP container (PK\x03\x04, or PK\x05\x06 for an empty archive).
+      return matches([0x50, 0x4b, 0x03, 0x04]) || matches([0x50, 0x4b, 0x05, 0x06]);
+    default:
+      return false;
+  }
+}
+
+const MIME_TO_EXTENSION: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'video/mp4': 'mp4',
+  'video/webm': 'webm',
+  'video/ogg': 'ogv',
+  'audio/mpeg': 'mp3',
+  'audio/mp3': 'mp3',
+  'audio/wav': 'wav',
+  'audio/ogg': 'oga',
+  'application/pdf': 'pdf',
+  'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  'application/vnd.ms-excel': 'xls',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
+};
+
+/**
+ * Safe storage extension derived from the VERIFIED MIME type — never from the
+ * user-supplied filename (which governs neither the content nor the type).
+ */
+export function extensionForMimeType(mimeType: string): string {
+  return MIME_TO_EXTENSION[mimeType] ?? 'bin';
+}
+
+/**
+ * Sanitize a user-supplied filename for storage as metadata: strip path
+ * separators and control characters, clamp length. No regex (fleet rule).
+ */
+export function sanitizeFilename(name: string): string {
+  const cleaned = [...name]
+    .filter((ch) => ch !== '/' && ch !== '\\' && ch.charCodeAt(0) >= 0x20)
+    .join('')
+    .trim()
+    .slice(0, 255);
+  return cleaned.length > 0 ? cleaned : 'upload';
+}
