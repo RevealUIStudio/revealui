@@ -198,7 +198,7 @@ export function ProductsPage() {
                   <div className="mt-6">
                     <a
                       href={product.primaryCta.href}
-                      className="inline-flex items-center text-sm font-semibold text-emerald-700 transition-colors hover:text-emerald-800"
+                      className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-700 transition-colors hover:text-emerald-800"
                       {...(product.primaryCta.external
                         ? { target: '_blank', rel: 'noreferrer' }
                         : {})}

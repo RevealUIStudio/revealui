@@ -1,4 +1,4 @@
-import { Button } from '@revealui/presentation';
+import { ButtonCVA } from '@revealui/presentation';
 import {
   PROOF_CI_SIGNALS,
   PROOF_REPO_SIGNALS,
@@ -221,9 +221,14 @@ export function Proof() {
         </div>
 
         <div className="mt-12 text-center">
-          <Button plain href={PROOF_TRUST.changelogCta.href} className="text-sm font-medium">
-            {PROOF_TRUST.changelogCta.label}
-          </Button>
+          <ButtonCVA
+            asChild
+            variant="link"
+            size="default"
+            className="items-center justify-center text-sm font-medium"
+          >
+            <a href={PROOF_TRUST.changelogCta.href}>{PROOF_TRUST.changelogCta.label}</a>
+          </ButtonCVA>
         </div>
       </div>
     </section>
