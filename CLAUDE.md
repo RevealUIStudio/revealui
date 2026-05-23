@@ -9,6 +9,7 @@ Agentic business runtime. Users, content, products, payments, and AI  -  pre-wir
 - React 19, Next.js 16 (admin), Vite (docs / marketing), Hono (server), Node 24, TypeScript 6
 - pnpm 10, Turborepo, Biome 2, Vitest 4
 - Drizzle ORM (NeonDB), Tailwind CSS v4
+- Cloudflare R2 (S3-compatible object storage; replacing Vercel Blob)
 - Lexical (rich text), ElectricSQL (sync), Stripe (payments)
 
 ## Git Identity
@@ -53,7 +54,7 @@ feature/* ──PR──▶ test ──PR──▶ main
 |---------|---------|
 | @revealui/core | admin engine, REST API, auth, rich text, admin UI, plugins |
 | @revealui/contracts | Zod schemas + TypeScript types (single source of truth) |
-| @revealui/db | Drizzle ORM schema (84 tables) on NeonDB (Postgres) — legacy Supabase code remains in tree during phase-out |
+| @revealui/db | Drizzle ORM schema (85 tables) on NeonDB (Postgres) — legacy Supabase code remains in tree during phase-out |
 | @revealui/auth | Session auth, password reset, rate limiting |
 | @revealui/presentation | Native UI components in `packages/presentation/src/components/` (Tailwind v4, zero external UI deps  -  only clsx + CVA) |
 | @revealui/router | Lightweight file-based router with SSR |

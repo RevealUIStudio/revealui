@@ -11,9 +11,11 @@ import type {
   RevealCollectionConfig,
   RevealDocument,
   RevealRequest,
+  RevealWhere,
   SanitizedCollectionConfig,
 } from '../../types/index.js';
 import { deserializeJsonFields } from '../../utils/json-parsing.js';
+import { find } from './find.js';
 import { selectByIdQuery } from './sqlAdapter.js';
 
 export async function findByID(
@@ -50,9 +52,23 @@ export async function findByID(
 
       if (result === false) return null;
 
-      // If result is a WhereClause (row-level filter), we fetch the doc first then verify.
-      // For findByID, we check after fetch whether the doc matches the access filter.
-      // Boolean true = allow, WhereClause = post-fetch filter (handled below after query).
+      if (result !== true) {
+        // Row-level access: a WhereClause means "allowed only for rows matching
+        // this filter". Confirm THIS row matches before returning it — otherwise
+        // findByID hands back rows the ownership rule was meant to scope out
+        // (cross-tenant / unpublished-draft leakage). Reuse find()'s AND-merge so
+        // the filter runs through the same proven path the list view uses (both
+        // storage adapters); overrideAccess skips re-evaluating the rule.
+        const scoped = await find(config, db, {
+          where: { and: [{ id: { equals: id } }, result as RevealWhere] },
+          limit: 1,
+          depth,
+          req,
+          ...(populateOption !== undefined ? { populate: populateOption } : {}),
+          overrideAccess: true,
+        });
+        return scoped.docs[0] ?? null;
+      }
     }
   }
 

@@ -120,6 +120,13 @@
       "when": 1779431687726,
       "tag": "0016_drop_revealcoin_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1779518599221,
+      "tag": "0017_webhook_idempotency_state",
+      "breakpoints": true
     }
   ]
 }

@@ -1,17 +1,18 @@
 /**
  * MCP OAuth route tests (Stage 2 PR-2.2).
  *
- * Exercises the full initiate → callback round-trip end-to-end against a
- * hermetic mock authorization server. The revvault-backed vault is swapped
- * for a shared in-memory vault via `vi.mock` so we can:
- *   - confirm the initiate handler stores a pending record keyed by state
- *   - confirm the callback handler resolves + deletes that record
- *   - confirm tokens land at `mcp/<tenant>/<server>/tokens` after the flow
+ * Exercises the initiate → callback route plumbing. The revvault-backed vault
+ * is swapped for a shared in-memory vault and the SDK's auth() orchestrator is
+ * mocked (see below) so the tests are hermetic — no real authorization server.
+ * The real discovery/DCR/PKCE/token-exchange round trip is covered at the
+ * provider layer by packages/mcp/__tests__/oauth-integration.test.ts. Here we
+ * confirm the routes:
+ *   - store a pending record keyed by state on initiate
+ *   - resolve + delete that record on callback
+ *   - land tokens at `mcp/<tenant>/<server>/tokens` after the flow
  */
 
-import { createServer as createHttpServer } from 'node:http';
-import type { AddressInfo } from 'node:net';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // -- Shared in-memory vault swapped in for the revvault-backed default --
 
@@ -45,144 +46,60 @@ vi.mock('@/lib/utils/request-context', () => ({
   extractRequestContext: () => ({ userAgent: undefined, ipAddress: undefined }),
 }));
 
-// -- Hermetic mock authorization server (same shape as packages/mcp tests) --
-
-type AuthCodeGrant = {
-  code: string;
-  clientId: string;
-  redirectUri: string;
-  codeChallenge: string;
-  codeChallengeMethod: string;
-  state: string;
-};
-
-interface MockAsState {
-  clients: Map<string, { client_id: string; redirect_uris: string[] }>;
-  issuedCodes: Map<string, AuthCodeGrant>;
-  validRefreshTokens: Set<string>;
-  nextAccessToken: number;
-  nextRefreshToken: number;
-}
-
-type RunningAs = {
-  url: string;
-  state: MockAsState;
-  close(): Promise<void>;
-};
-
-const teardowns: Array<() => Promise<void>> = [];
-
-async function readBody(req: import('node:http').IncomingMessage): Promise<string> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(chunk as Buffer);
-  return Buffer.concat(chunks).toString('utf8');
-}
-
-function parseForm(body: string): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [k, v] of new URLSearchParams(body)) out[k] = v;
-  return out;
-}
-
-async function sha256Base64Url(input: string): Promise<string> {
-  const { subtle } = await import('node:crypto');
-  const digest = await subtle.digest('SHA-256', new TextEncoder().encode(input));
-  return Buffer.from(digest)
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
-
-async function startMockAs(): Promise<RunningAs> {
-  const state: MockAsState = {
-    clients: new Map(),
-    issuedCodes: new Map(),
-    validRefreshTokens: new Set(),
-    nextAccessToken: 1,
-    nextRefreshToken: 1,
+// The initiate route SSRF-guards the server URL via assertPublicUrl, which does
+// a real DNS lookup that fails in the network-less CI. Stub it so these flow
+// tests reach the OAuth logic; the guard is covered by @revealui/security's
+// ssrf.test.ts.
+vi.mock('@revealui/security/server', async () => {
+  const actual = await vi.importActual<typeof import('@revealui/security/server')>(
+    '@revealui/security/server',
+  );
+  return {
+    ...actual,
+    assertPublicUrl: vi.fn().mockResolvedValue(undefined),
   };
+});
 
-  const server = createHttpServer(async (req, res) => {
-    const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
-    const baseUrl = `http://${req.headers.host}`;
-    const send = (status: number, body: unknown): void => {
-      res.statusCode = status;
-      res.setHeader('content-type', 'application/json');
-      res.end(JSON.stringify(body));
-    };
-
-    try {
-      if (req.method === 'GET' && url.pathname === '/.well-known/oauth-protected-resource') {
-        return send(200, { resource: baseUrl, authorization_servers: [baseUrl] });
-      }
-      if (req.method === 'GET' && url.pathname === '/.well-known/oauth-authorization-server') {
-        return send(200, {
-          issuer: baseUrl,
-          authorization_endpoint: `${baseUrl}/authorize`,
-          token_endpoint: `${baseUrl}/token`,
-          registration_endpoint: `${baseUrl}/register`,
-          response_types_supported: ['code'],
-          grant_types_supported: ['authorization_code', 'refresh_token'],
-          code_challenge_methods_supported: ['S256'],
-          token_endpoint_auth_methods_supported: ['none'],
-        });
-      }
-      if (req.method === 'POST' && url.pathname === '/register') {
-        const body = await readBody(req);
-        const metadata = JSON.parse(body) as { redirect_uris: string[]; client_name?: string };
-        const clientId = `client-${state.clients.size + 1}`;
-        state.clients.set(clientId, {
-          client_id: clientId,
-          redirect_uris: metadata.redirect_uris,
-        });
-        return send(201, {
-          client_id: clientId,
-          client_id_issued_at: Math.floor(Date.now() / 1000),
-          ...metadata,
-        });
-      }
-      if (req.method === 'POST' && url.pathname === '/token') {
-        const form = parseForm(await readBody(req));
-        if (form.grant_type === 'authorization_code') {
-          const code = form.code ?? '';
-          const grant = state.issuedCodes.get(code);
-          if (!grant) return send(400, { error: 'invalid_grant' });
-          const expectedChallenge = await sha256Base64Url(form.code_verifier ?? '');
-          if (
-            grant.codeChallengeMethod !== 'S256' ||
-            expectedChallenge !== grant.codeChallenge ||
-            grant.clientId !== form.client_id
-          ) {
-            return send(400, { error: 'invalid_grant' });
-          }
-          state.issuedCodes.delete(code);
-          const access = `access-${state.nextAccessToken++}`;
-          const refresh = `refresh-${state.nextRefreshToken++}`;
-          state.validRefreshTokens.add(refresh);
-          return send(200, {
-            access_token: access,
-            token_type: 'Bearer',
-            expires_in: 3600,
-            refresh_token: refresh,
-          });
-        }
-        return send(400, { error: 'unsupported_grant_type' });
-      }
-      return send(404, { error: 'not_found' });
-    } catch (err) {
-      return send(500, { error: String(err) });
-    }
-  });
-
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
-  const { port } = server.address() as AddressInfo;
-  const url = `http://127.0.0.1:${port}`;
-  const close = () =>
-    new Promise<void>((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
-  teardowns.push(close);
-  return { url, state, close };
+// Mock the SDK's auth() orchestrator so these route tests are hermetic — no
+// real authorization server. The real discovery/DCR/PKCE/token-exchange round
+// trip is covered at the provider layer by packages/mcp/oauth-integration.test.
+// auth() drives the REAL McpOAuthProvider exactly as the SDK would:
+//   - initiate leg (no code): build an authorization URL and hand it to
+//     redirectToAuthorization(), so provider.lastAuthorizationUrl is set.
+//   - callback leg (code present): persist tokens via saveTokens().
+interface FakeOAuthProvider {
+  state(): string | Promise<string>;
+  redirectToAuthorization(url: URL): Promise<void>;
+  saveTokens(tokens: Record<string, unknown>): Promise<void>;
 }
+vi.mock('@modelcontextprotocol/sdk/client/auth.js', () => ({
+  auth: vi.fn(
+    async (
+      provider: FakeOAuthProvider,
+      opts: { serverUrl: string | URL; authorizationCode?: string },
+    ): Promise<'REDIRECT' | 'AUTHORIZED'> => {
+      if (opts.authorizationCode) {
+        await provider.saveTokens({
+          access_token: 'access-test-token',
+          token_type: 'Bearer',
+          refresh_token: 'refresh-test-token',
+          expires_in: 3600,
+        });
+        return 'AUTHORIZED';
+      }
+      const base = typeof opts.serverUrl === 'string' ? opts.serverUrl : opts.serverUrl.toString();
+      const authUrl = new URL('/authorize', base);
+      authUrl.searchParams.set('response_type', 'code');
+      authUrl.searchParams.set('code_challenge_method', 'S256');
+      authUrl.searchParams.set('code_challenge', 'test-code-challenge');
+      authUrl.searchParams.set('client_id', 'test-client-id');
+      authUrl.searchParams.set('redirect_uri', 'http://admin.test/api/mcp/oauth/callback');
+      authUrl.searchParams.set('state', String(await provider.state()));
+      await provider.redirectToAuthorization(authUrl);
+      return 'REDIRECT';
+    },
+  ),
+}));
 
 function makeRequest(url: string): Request {
   return new Request(url, { headers: { cookie: 'session=test' } });
@@ -193,13 +110,6 @@ function makeRequest(url: string): Request {
 beforeEach(() => {
   vaultStore.clear();
   mockGetSession.mockReset();
-});
-
-afterEach(async () => {
-  while (teardowns.length) {
-    const fn = teardowns.pop();
-    if (fn) await fn().catch(() => undefined);
-  }
 });
 
 describe('GET /api/mcp/oauth/initiate', () => {
@@ -254,14 +164,14 @@ describe('GET /api/mcp/oauth/initiate', () => {
     expect(res.status).toBe(400);
   });
 
-  it('runs discovery + DCR and redirects to the authorization URL', async () => {
+  it('redirects to the authorization URL and writes the pending record', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'admin-1', role: 'admin' } });
-    const as = await startMockAs();
+    const serverUrl = 'https://mcp.example.com';
 
     const { GET } = await import('../initiate/route.js');
     const res = await GET(
       makeRequest(
-        `http://admin.test/api/mcp/oauth/initiate?tenant=acme&server=linear&serverUrl=${encodeURIComponent(as.url)}`,
+        `http://admin.test/api/mcp/oauth/initiate?tenant=acme&server=linear&serverUrl=${encodeURIComponent(serverUrl)}`,
       ) as never,
     );
 
@@ -269,7 +179,7 @@ describe('GET /api/mcp/oauth/initiate', () => {
     const location = res.headers.get('location');
     expect(location).toBeTruthy();
     const loc = new URL(location as string);
-    expect(loc.origin).toBe(as.url);
+    expect(loc.origin).toBe(serverUrl);
     expect(loc.pathname).toBe('/authorize');
     expect(loc.searchParams.get('response_type')).toBe('code');
     expect(loc.searchParams.get('code_challenge_method')).toBe('S256');
@@ -283,10 +193,7 @@ describe('GET /api/mcp/oauth/initiate', () => {
     expect(pending.tenant).toBe('acme');
     expect(pending.server).toBe('linear');
     expect(pending.userId).toBe('admin-1');
-    expect(pending.serverUrl).toBe(`${as.url}/`);
-
-    // DCR ran against the mock AS.
-    expect(as.state.clients.size).toBe(1);
+    expect(pending.serverUrl).toBe(`${serverUrl}/`);
   });
 });
 
@@ -371,38 +278,27 @@ describe('GET /api/mcp/oauth/callback', () => {
 
   it('full round-trip: initiate then callback lands tokens in the vault', async () => {
     mockGetSession.mockResolvedValue({ user: { id: 'admin-1', role: 'admin' } });
-    const as = await startMockAs();
+    const serverUrl = 'https://mcp.example.com';
 
-    // 1. Initiate — runs DCR + builds authorization URL + writes pending record.
+    // 1. Initiate — builds the authorization URL + writes the pending record.
     const { GET: initiateGET } = await import('../initiate/route.js');
     const initRes = await initiateGET(
       makeRequest(
-        `http://admin.test/api/mcp/oauth/initiate?tenant=acme&server=linear&serverUrl=${encodeURIComponent(as.url)}`,
+        `http://admin.test/api/mcp/oauth/initiate?tenant=acme&server=linear&serverUrl=${encodeURIComponent(serverUrl)}`,
       ) as never,
     );
     expect(initRes.status).toBe(302);
     const authUrl = new URL(initRes.headers.get('location') as string);
     const state = authUrl.searchParams.get('state') as string;
-    const codeChallenge = authUrl.searchParams.get('code_challenge') as string;
-    const clientId = authUrl.searchParams.get('client_id') as string;
-    const redirectUri = authUrl.searchParams.get('redirect_uri') as string;
+    expect(state).toBeTruthy();
 
-    // 2. Simulate the AS issuing an authorization code after user consent.
-    const authCode = 'auth-code-12345';
-    as.state.issuedCodes.set(authCode, {
-      code: authCode,
-      clientId,
-      redirectUri,
-      codeChallenge,
-      codeChallengeMethod: 'S256',
-      state,
-    });
-
-    // 3. Callback — exchanges code for tokens, clears pending record, 302 to result page.
+    // 2. Callback — the AS redirected back with a code; the route exchanges it
+    // for tokens (via the mocked auth()), clears the pending record, and 302s
+    // to the result page.
     const { GET: callbackGET } = await import('../callback/route.js');
     const cbRes = await callbackGET(
       makeRequest(
-        `http://admin.test/api/mcp/oauth/callback?code=${authCode}&state=${state}`,
+        `http://admin.test/api/mcp/oauth/callback?code=auth-code-12345&state=${state}`,
       ) as never,
     );
     expect(cbRes.status).toBe(302);
@@ -410,12 +306,12 @@ describe('GET /api/mcp/oauth/callback', () => {
     expect(result.pathname).toBe('/mcp/connect');
     expect(result.searchParams.get('connected')).toBe('linear');
 
-    // Tokens landed under the documented layout.
+    // Tokens landed under the documented layout (values from the mocked auth()).
     const tokensRaw = vaultStore.get('mcp/acme/linear/tokens');
     expect(tokensRaw).toBeTruthy();
     const tokens = JSON.parse(tokensRaw as string);
-    expect(tokens.access_token).toMatch(/^access-/);
-    expect(tokens.refresh_token).toMatch(/^refresh-/);
+    expect(tokens.access_token).toBe('access-test-token');
+    expect(tokens.refresh_token).toBe('refresh-test-token');
 
     // Pending record deleted (one-shot).
     expect(vaultStore.get(`mcp/oauth/pending/${state}`)).toBeUndefined();

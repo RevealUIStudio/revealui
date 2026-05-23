@@ -225,7 +225,7 @@ This is the part that's genuinely hard to replicate by stitching services togeth
 Some numbers on what's actually shipped:
 
 - **30 workspaces** across the monorepo (4 apps + 26 packages)
-- **84 database tables** via Drizzle ORM
+- **85 database tables** via Drizzle ORM
 - **59 UI components** in the presentation layer (zero external UI dependencies  -  just Tailwind v4, clsx, and CVA)
 - **Extensive test coverage** across unit, integration, and E2E layers
 - **Full OpenAPI spec** with Swagger UI at `/docs`

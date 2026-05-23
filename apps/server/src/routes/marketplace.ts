@@ -25,6 +25,7 @@ import {
   type NewMarketplaceTransaction,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
+import { createSafeFetch } from '@revealui/security/server';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';
@@ -36,6 +37,13 @@ import {
   getX402Config,
   verifyPayment,
 } from '../middleware/x402.js';
+
+/**
+ * SSRF-safe fetch for proxying calls to community-registered MCP server URLs.
+ * Validates the target resolves to a public IP, pins the connection to it
+ * (rebind-safe), and refuses redirects. Module-level so connections pool.
+ */
+const safeFetch = createSafeFetch();
 
 // =============================================================================
 // Helpers
@@ -690,7 +698,7 @@ app.openapi(
     // Proxy the request to the MCP server with a 30-second timeout
     let proxyResponse: Response;
     try {
-      proxyResponse = await fetch(server.url, {
+      proxyResponse = await safeFetch(server.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

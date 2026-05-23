@@ -24,7 +24,7 @@ The unit does NOT enable auto-start. Drizzle Studio is on-demand — prod DB acc
 bash packages/db/systemd/start-prod.sh
 ```
 
-Fetches `POSTGRES_URL` from revvault (path: `revealui/prod/neon/postgres-url`), writes it to the env file at mode 0600, starts the service.
+Fetches `POSTGRES_URL` from revvault (path: `revealui/prod/db/postgres-url`), writes it to the env file at mode 0600, starts the service.
 
 Open `https://local.drizzle.studio` in your browser. Studio's hosted frontend connects back to `127.0.0.1:4983` where the systemd-user unit is bound.
 
