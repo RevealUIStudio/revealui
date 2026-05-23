@@ -1389,6 +1389,9 @@ importers:
       parse5:
         specifier: ^8.0.1
         version: 8.0.1
+      undici:
+        specifier: '>=7.24.0 <8'
+        version: 7.25.0
     devDependencies:
       '@revealui/dev':
         specifier: workspace:*
