@@ -6,7 +6,7 @@
  * and failure details.
  */
 
-import { execSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod/v4';
@@ -165,6 +165,80 @@ function parseGenericOutput(output: string): TestSummary {
   };
 }
 
+interface RunResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+  timedOut: boolean;
+}
+
+/**
+ * Run a shell command with a hard timeout, killing the ENTIRE process tree on
+ * timeout — not just the direct child.
+ *
+ * `execSync`'s timeout sends its kill signal only to the immediate child (the
+ * shell), so a grandchild (e.g. `pnpm test` → `node …`) is orphaned and keeps
+ * running. For a test runner that an agent points at a hanging suite, that
+ * leaks a process on every timeout. Spawning detached gives the child its own
+ * process group; killing the negative pid (`-pgid`) reaps the whole tree.
+ */
+function runCommand(
+  command: string,
+  opts: { cwd: string; timeoutMs: number; maxBuffer: number; env: NodeJS.ProcessEnv },
+): Promise<RunResult> {
+  return new Promise<RunResult>((resolve) => {
+    const child = spawn(command, {
+      cwd: opts.cwd,
+      env: opts.env,
+      shell: true,
+      detached: true, // own process group so the whole tree is killable
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stdout = '';
+    let stderr = '';
+    let stdoutBytes = 0;
+    let stderrBytes = 0;
+    let timedOut = false;
+    let settled = false;
+
+    const killTree = (signal: NodeJS.Signals): void => {
+      if (child.pid === undefined) return;
+      try {
+        // Negative pid targets the process group (created by `detached: true`).
+        process.kill(-child.pid, signal);
+      } catch {
+        // Group already exited — nothing to kill.
+      }
+    };
+
+    const timer = setTimeout(() => {
+      timedOut = true;
+      killTree('SIGKILL');
+    }, opts.timeoutMs);
+
+    child.stdout?.on('data', (chunk: Buffer) => {
+      stdoutBytes += chunk.length;
+      if (stdoutBytes <= opts.maxBuffer) stdout += chunk.toString('utf8');
+    });
+    child.stderr?.on('data', (chunk: Buffer) => {
+      stderrBytes += chunk.length;
+      if (stderrBytes <= opts.maxBuffer) stderr += chunk.toString('utf8');
+    });
+
+    const finish = (exitCode: number): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve({ stdout, stderr, exitCode, timedOut });
+    };
+
+    // `error` fires when the command can't be spawned (e.g. binary not found).
+    child.on('error', () => finish(127));
+    child.on('close', (code) => finish(code ?? 0));
+  });
+}
+
 export const testRunnerTool: Tool = {
   name: 'test_runner',
   label: 'Run Tests',
@@ -194,49 +268,29 @@ export const testRunnerTool: Tool = {
     const framework = detectFramework(config.projectRoot);
     const command = buildCommand(framework, file, grep);
 
-    let stdout = '';
-    let stderr = '';
-    let exitCode = 0;
+    const { stdout, stderr, exitCode, timedOut } = await runCommand(command, {
+      cwd: config.projectRoot,
+      timeoutMs,
+      maxBuffer: MAX_OUTPUT_BYTES,
+      env: {
+        ...process.env,
+        CI: 'true',
+        FORCE_COLOR: '0',
+        NODE_OPTIONS: '--experimental-vm-modules',
+      },
+    });
 
-    try {
-      stdout = execSync(command, {
-        cwd: config.projectRoot,
-        timeout: timeoutMs,
-        maxBuffer: MAX_OUTPUT_BYTES,
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-        env: {
-          ...process.env,
-          CI: 'true',
-          FORCE_COLOR: '0',
-          NODE_OPTIONS: '--experimental-vm-modules',
+    if (timedOut) {
+      return {
+        success: false,
+        error: `Tests timed out after ${timeoutMs}ms`,
+        data: {
+          framework,
+          command,
+          exitCode: -1,
+          summary: { passed: 0, failed: 0, skipped: 0, total: 0, failures: [] },
         },
-      });
-    } catch (err) {
-      const execErr = err as {
-        status?: number | null;
-        stdout?: string;
-        stderr?: string;
-        killed?: boolean;
-        signal?: string;
       };
-
-      if (execErr.killed || execErr.signal === 'SIGTERM') {
-        return {
-          success: false,
-          error: `Tests timed out after ${timeoutMs}ms`,
-          data: {
-            framework,
-            command,
-            exitCode: -1,
-            summary: { passed: 0, failed: 0, skipped: 0, total: 0, failures: [] },
-          },
-        };
-      }
-
-      exitCode = execErr.status ?? 1;
-      stdout = (execErr.stdout ?? '').toString();
-      stderr = (execErr.stderr ?? '').toString();
     }
 
     const combined = [stdout, stderr].filter(Boolean).join('\n');

@@ -6,7 +6,13 @@
  * GET|PATCH|DELETE /media/:id
  */
 
-import { ALL_MIME_TYPES, getSizeLimit } from '@revealui/contracts/entities';
+import {
+  ALL_MIME_TYPES,
+  extensionForMimeType,
+  getSizeLimit,
+  sanitizeFilename,
+  verifyMagicBytes,
+} from '@revealui/contracts/entities';
 import { logger } from '@revealui/core/observability/logger';
 import * as mediaQueries from '@revealui/db/queries/media';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
@@ -110,8 +116,19 @@ app.openapi(
       });
     }
 
-    // Generate a unique filename with original extension
-    const ext = file.name.split('.').pop() ?? 'bin';
+    // Verify the file's leading bytes match its declared type. The multipart
+    // Content-Type is client-controlled; trusting it lets an attacker store
+    // active content (e.g. an HTML/JS or SVG payload) under an image type.
+    const header = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    if (!verifyMagicBytes(file.type, header)) {
+      throw new HTTPException(400, {
+        message: `File content does not match its declared type (${file.type}).`,
+      });
+    }
+
+    // Unique filename; extension derived from the VERIFIED type, never the
+    // user-supplied filename.
+    const ext = extensionForMimeType(file.type);
     const filename = `${crypto.randomUUID()}.${ext}`;
 
     // Upload to Vercel Blob storage  -  returns a public CDN URL
@@ -137,7 +154,7 @@ app.openapi(
 
     const item = await mediaQueries.createMedia(db, {
       id: crypto.randomUUID(),
-      filename: file.name,
+      filename: sanitizeFilename(file.name),
       mimeType: file.type,
       filesize: file.size,
       url,

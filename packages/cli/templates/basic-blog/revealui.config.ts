@@ -1,6 +1,5 @@
 import config from '@revealui/config';
 import { buildConfig, universalPostgresAdapter } from '@revealui/core';
-import sharp from 'sharp';
 import { Posts } from './src/collections/Posts';
 
 export default buildConfig({
@@ -15,5 +14,4 @@ export default buildConfig({
   collections: [Posts],
   globals: [],
   plugins: [],
-  sharp,
 });

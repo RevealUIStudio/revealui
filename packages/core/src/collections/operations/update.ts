@@ -13,10 +13,12 @@ import type {
   RevealRequest,
   RevealUIField,
   RevealUpdateOptions,
+  RevealWhere,
 } from '../../types/index.js';
 import { collectJsonFields, serializeValueForDatabase } from '../../utils/json-parsing.js';
 import { flattenFields, isJsonFieldType } from '../../utils/type-guards.js';
 import { runBeforeFieldHooks } from './fieldHooks.js';
+import { find } from './find.js';
 import { findByID } from './findById.js';
 import {
   checkExistsByIdQuery,
@@ -64,7 +66,7 @@ function deepMergeJson(
 async function evaluateUpdateAccess(
   config: RevealCollectionConfig,
   options: RevealUpdateOptions,
-): Promise<boolean> {
+): Promise<true | false | RevealWhere> {
   if (options.overrideAccess) return true;
 
   const accessConfig = (
@@ -89,9 +91,10 @@ async function evaluateUpdateAccess(
   const result = await updateAccess({ req, id: options.id, data: options.data });
 
   if (result === false) return false;
+  if (result === true) return true;
 
-  // Any truthy result (true, WhereClause) = allowed for single-document operations
-  return !!result;
+  // A WhereClause = row-level access: allowed only for rows matching the filter.
+  return result as RevealWhere;
 }
 
 export async function update(
@@ -102,9 +105,23 @@ export async function update(
   const { id, data } = options;
 
   // --- Access control enforcement ---
-  const allowed = await evaluateUpdateAccess(config, options);
-  if (!allowed) {
+  const access = await evaluateUpdateAccess(config, options);
+  if (access === false) {
     throw new Error('Access denied: insufficient permissions to update this document');
+  }
+  if (access !== true) {
+    // Row-level access: confirm the target row matches the ownership filter
+    // before mutating, so update() cannot modify a row outside the caller's
+    // scope. Reuse find()'s AND-merge; overrideAccess skips re-evaluation.
+    const scoped = await find(config, db, {
+      where: { and: [{ id: { equals: options.id } }, access] },
+      limit: 1,
+      req: options.req,
+      overrideAccess: true,
+    });
+    if (scoped.docs.length === 0) {
+      throw new Error('Access denied: insufficient permissions to update this document');
+    }
   }
 
   // Run beforeValidate field hooks before validation so they can transform values.

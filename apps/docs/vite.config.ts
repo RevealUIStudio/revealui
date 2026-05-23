@@ -27,7 +27,23 @@ const INTERNAL_DOC_FILES = new Set([
   'AUTOMATION.md',
   'STANDARDS.md',
   'SECRETS.md', // revvault secret-path inventory — must never be served publicly
+  // Internal ops / business docs — not for the public docs site
+  'AUDIT_STATUS.md',
+  'COMMERCIAL_READINESS.md',
+  'CREDENTIAL-ROTATION-RUNBOOK.md',
+  'DEPLOYMENT-RUNBOOK.md',
+  'LAUNCH-CHECKLIST.md',
+  'runbook-agent-dispatch-flag.md',
+  // audience: maintainer (operating RevealUI Studio's own infra/release, not framework-user docs)
+  'CI_CD_GUIDE.md',
+  'MARKETING_METRICS.md',
+  'PERFORMANCE.md',
+  'PUBLISHING.md',
 ]);
+
+// Internal-only docs/ subdirectories that must never be served publicly.
+// IMPORTANT: Keep in sync with INTERNAL_DIRS in scripts/copy-docs.sh
+const INTERNAL_DOC_DIRS = ['runbooks', 'security', 'checklists', 'system-tune', 'deployment'];
 
 function docsCopyPlugin() {
   const docsSource = path.resolve(import.meta.dirname, '../../docs');
@@ -150,7 +166,7 @@ function docsCopyPlugin() {
 
     // Skip ignored directories
     const parts = relativePath.split(path.sep);
-    const ignoreDirs = ['node_modules', '.next', 'dist', 'archive'];
+    const ignoreDirs = ['node_modules', '.next', 'dist', 'archive', ...INTERNAL_DOC_DIRS];
     if (parts.some((part) => ignoreDirs.includes(part))) {
       return;
     }
@@ -252,6 +268,7 @@ function docsCopyPlugin() {
         '.next',
         'dist',
         'archive', // Skip archive in public - too large
+        ...INTERNAL_DOC_DIRS,
       ]);
 
       if (DEBUG)

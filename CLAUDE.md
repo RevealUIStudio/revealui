@@ -9,6 +9,7 @@ Agentic business runtime. Users, content, products, payments, and AI  -  pre-wir
 - React 19, Next.js 16 (admin), Vite (docs / marketing), Hono (server), Node 24, TypeScript 6
 - pnpm 10, Turborepo, Biome 2, Vitest 4
 - Drizzle ORM (NeonDB), Tailwind CSS v4
+- Cloudflare R2 (S3-compatible object storage; replacing Vercel Blob)
 - Lexical (rich text), ElectricSQL (sync), Stripe (payments)
 
 ## Git Identity
