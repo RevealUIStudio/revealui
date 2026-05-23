@@ -2,22 +2,22 @@
  * Security Event Bridge  -  Connects auth events to the audit trail.
  *
  * Each function wraps an auth operation with structured audit logging
- * via the AuditSystem from @revealui/security. Uses lazy import to
+ * via the AuditSystem from @revealui/security/server. Uses lazy import to
  * avoid circular dependency issues at module load time.
  */
 
-import type { AuditEvent, AuditSystem } from '@revealui/security';
+import type { AuditEvent, AuditSystem } from '@revealui/security/server';
 
 type AuditEventInput = Omit<AuditEvent, 'id' | 'timestamp'>;
 
 /**
- * Lazily resolve the global audit system from @revealui/security.
+ * Lazily resolve the global audit system from @revealui/security/server.
  * Returns null if the module cannot be loaded (e.g. in test environments
- * where @revealui/security is not available).
+ * where @revealui/security/server is not available).
  */
 async function getAudit(): Promise<AuditSystem | null> {
   try {
-    const { audit } = await import('@revealui/security');
+    const { audit } = await import('@revealui/security/server');
     return audit;
   } catch {
     return null;

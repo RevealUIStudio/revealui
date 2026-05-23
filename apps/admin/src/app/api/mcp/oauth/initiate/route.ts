@@ -27,7 +27,7 @@ import {
   McpOAuthProvider,
   type OAuthClientMetadata,
 } from '@revealui/mcp/oauth';
-import { assertPublicUrl } from '@revealui/security';
+import { assertPublicUrl } from '@revealui/security/server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { extractRequestContext } from '@/lib/utils/request-context';
 

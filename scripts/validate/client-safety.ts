@@ -2,29 +2,30 @@
 /**
  * Client-Bundle Safety Validator
  *
- * Prevents the `node:crypto` client-bundle crash class fixed by PR #1046 from
- * silently returning. That bug: `@revealui/core/richtext/rsc` imported
- * `isSafeUrl`/`sanitizeUrl` from the `@revealui/security` barrel, which
- * statically re-exports auth.ts + gdpr.ts (top-level `node:crypto`) and
- * ssrf.ts (top-level `node:dns/promises`). Pulling the barrel into a browser /
- * RSC client bundle dragged the node: graph in and blanked the rendered route
- * (e.g. marketing /blog). The point fix routed that one file through the
- * client-safe `@revealui/security/sanitize` subpath — but the barrel itself is
- * still not client-safe, so any FUTURE client-path import of it re-detonates
- * the same crash, silently, until someone hits the affected route.
+ * Prevents the `node:crypto` client-bundle crash class (PR #1046) from silently
+ * (re)appearing. Origin: `@revealui/core/richtext/rsc` imported URL helpers from
+ * the `@revealui/security` barrel, which used to statically re-export auth.ts +
+ * gdpr.ts (`node:crypto`) and ssrf.ts (`node:dns`). Pulling that into a browser /
+ * RSC bundle dragged the node: graph in and blanked the route (e.g. marketing
+ * /blog).
  *
- * This validator is the durable guard. Two rules, both hard-fail:
+ * The barrel is now client-safe: server-only modules live behind the explicit
+ * `@revealui/security/server` subpath (and `@revealui/core/security`, which
+ * re-exports it). This validator keeps it that way. Two rules, both hard-fail:
  *
- *   Rule 1 — client-reachable source must not import a server-only barrel or a
- *   `node:*` builtin (as a runtime/value import). "Client-reachable" =
- *   declared client roots (richtext exports, presentation, the Vite SPA
- *   `app/` trees) PLUS any file carrying a `'use client'` directive. Type-only
- *   imports are erased at build and are allowed.
+ *   Rule 1 — client-reachable source must not statically import a server-only
+ *   entry (`@revealui/security/server`, `@revealui/core/security`) or a `node:*`
+ *   builtin. "Client-reachable" = declared client roots (richtext exports,
+ *   presentation, the Vite SPA `app/` trees) PLUS any file carrying a
+ *   `'use client'` directive. Type-only imports (erased at build) and dynamic
+ *   `import()` (code-split into its own chunk) are allowed.
  *
- *   Rule 2 — every declared client-safe package entry (e.g.
- *   `@revealui/security/sanitize`) must be free of `node:*` imports across its
- *   within-package relative-import closure. Catches the providing package
- *   silently regressing a client-safe entry.
+ *   Rule 2 — every declared client-safe package entry (`@revealui/security` and
+ *   `@revealui/security/sanitize`) must be free of STATIC `node:*` imports across
+ *   its within-package eager (static) import closure. Catches the providing
+ *   package silently regressing a client-safe entry (e.g. re-introducing a static
+ *   node: import into the barrel). Lazy `await import('node:…')` is bundle-safe
+ *   and allowed.
  *
  * No authored regex (fleet no-regex rule, M2): import detection uses the
  * TypeScript compiler API (AST), client-reachability uses path-prefix +
@@ -57,13 +58,17 @@ const ALLOWLIST_PATH = join(ROOT, 'scripts/validate/client-safety-allowlist.json
 
 /**
  * Module specifiers that pull a `node:*` graph in transitively and must never
- * appear in a client bundle. The `@revealui/security` barrel (the bare `.`
- * export) statically re-exports auth.ts/gdpr.ts (node:crypto) + ssrf.ts
- * (node:dns). Subpaths such as `@revealui/security/sanitize` are client-safe
- * and are intentionally NOT listed. Add new server-only barrels here as they
+ * appear in a client bundle. `@revealui/security/server` is the package's
+ * server-only entry (auth/gdpr/audit → node:crypto, ssrf → node:dns);
+ * `@revealui/core/security` re-exports it, so it is server-only too. The bare
+ * `@revealui/security` barrel and `@revealui/security/sanitize` are client-safe
+ * and are intentionally NOT listed. Add new server-only entries here as they
  * are created.
  */
-const SERVER_ONLY_SPECIFIERS = new Set<string>(['@revealui/security']);
+const SERVER_ONLY_SPECIFIERS = new Set<string>([
+  '@revealui/security/server',
+  '@revealui/core/security',
+]);
 
 /**
  * Directory trees that are bundled for the browser (Vite SPAs) or the RSC
@@ -87,6 +92,7 @@ const CLIENT_ROOTS = [
  * imports. Extend as packages declare more client-safe subpaths.
  */
 const CLIENT_SAFE_ENTRIES: { specifier: string; entry: string }[] = [
+  { specifier: '@revealui/security', entry: 'packages/security/src/index.ts' },
   { specifier: '@revealui/security/sanitize', entry: 'packages/security/src/sanitize.ts' },
 ];
 
@@ -350,6 +356,11 @@ function checkClientReachable(allowlist: Map<string, Set<RuleId>>): ClientSafety
       if (!inScope) continue;
 
       for (const ref of runtimeModuleRefs(sourceFile)) {
+        // A dynamic import() is code-split into its own chunk — it is not pulled
+        // into the eager client bundle, so it cannot cause the load-time crash
+        // this gate guards against. The static import that crashed in #1046 IS
+        // flagged. (A lazy `await import('node:…')` is the bundle-safe escape.)
+        if (ref.kind === 'dynamic') continue;
         if (SERVER_ONLY_SPECIFIERS.has(ref.specifier)) {
           if (isAllowlisted(allowlist, file.rel, 'client-barrel-import')) continue;
           issues.push({
@@ -357,7 +368,7 @@ function checkClientReachable(allowlist: Map<string, Set<RuleId>>): ClientSafety
             file: file.rel,
             line: ref.line,
             specifier: ref.specifier,
-            detail: `${ref.kind} of server-only barrel '${ref.specifier}' (pulls node:crypto/node:dns into the client bundle — use a client-safe subpath, e.g. '${ref.specifier}/sanitize')`,
+            detail: `${ref.kind} of server-only '${ref.specifier}' (pulls node:crypto/node:dns into the client bundle — import the client-safe '@revealui/security' barrel or '@revealui/security/sanitize' instead)`,
           });
         } else if (isNodeBuiltinSpecifier(ref.specifier)) {
           if (isAllowlisted(allowlist, file.rel, 'client-node-builtin')) continue;
@@ -447,6 +458,11 @@ function checkClientSafeEntries(): ClientSafetyIssue[] {
       const sourceFile = parseSource(current, content);
 
       for (const ref of runtimeModuleRefs(sourceFile)) {
+        // Dynamic import() is code-split into a separate chunk: it neither pulls
+        // node: into the entry's eager bundle nor extends the eager closure.
+        // audit.ts's `await import('node:crypto')` is the canonical bundle-safe
+        // example — flagging it (or following it) would be a false positive.
+        if (ref.kind === 'dynamic') continue;
         if (isNodeBuiltinSpecifier(ref.specifier)) {
           issues.push({
             rule: 'client-safe-entry-node',
@@ -463,7 +479,7 @@ function checkClientSafeEntries(): ClientSafetyIssue[] {
             file: rel,
             line: ref.line,
             specifier: ref.specifier,
-            detail: `server-only barrel '${ref.specifier}' is reachable from the client-safe entry '${specifier}'`,
+            detail: `server-only entry '${ref.specifier}' is reachable from the client-safe entry '${specifier}'`,
           });
           continue;
         }
@@ -499,7 +515,7 @@ function run(): void {
   console.log(`\n${sep}`);
   console.log('Client-Bundle Safety Validator');
   console.log(sep);
-  console.log(`\n  Server-only barrels guarded: ${[...SERVER_ONLY_SPECIFIERS].join(', ')}`);
+  console.log(`\n  Server-only entries guarded: ${[...SERVER_ONLY_SPECIFIERS].join(', ')}`);
   console.log(`  Client roots: ${CLIENT_ROOTS.join(', ')}`);
   console.log(`  Client-safe entries: ${CLIENT_SAFE_ENTRIES.map((e) => e.specifier).join(', ')}`);
 
@@ -523,12 +539,12 @@ function run(): void {
   console.log(`\n${sep}`);
   console.log(`Result: FAIL (${issues.length} violation${issues.length === 1 ? '' : 's'})`);
   console.log('');
-  console.log('  Why this matters: the @revealui/security barrel re-exports node:crypto');
-  console.log('  (auth.ts/gdpr.ts) + node:dns (ssrf.ts). Importing it from client-reachable');
-  console.log('  code crashes the browser bundle silently (PR #1046).');
+  console.log('  Why this matters: @revealui/security/server (+ @revealui/core/security,');
+  console.log('  which re-exports it) pull node:crypto + node:dns. Importing them from');
+  console.log('  client-reachable code crashes the browser bundle silently (PR #1046).');
   console.log('');
   console.log('  Fix options:');
-  console.log("    1. Import the client-safe subpath (e.g. '@revealui/security/sanitize').");
+  console.log("    1. Import the client-safe '@revealui/security' barrel or '/sanitize'.");
   console.log('    2. Move the code to a genuinely server-only module.');
   console.log('    3. If the file is server-only but lives under a scanned tree, add an');
   console.log('       entry to scripts/validate/client-safety-allowlist.json with a reason.');
