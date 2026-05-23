@@ -260,6 +260,7 @@ vi.mock('@revealui/core/error-handling', async () => {
 // ─── Import under test (after mocks) ─────────────────────────────────────────
 
 import * as loggerModule from '@revealui/core/observability/logger';
+import { licenses } from '@revealui/db/schema';
 import billingApp from '../billing.js';
 import webhooksApp from '../webhooks.js';
 
@@ -569,7 +570,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
 
       expect(res.status).toBe(200);
       // Should restore license to 'active'
-      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledWith(licenses);
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('active');
     });
@@ -601,7 +602,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
 
       expect(res.status).toBe(200);
       // Should revoke license
-      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledWith(licenses);
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('revoked');
       // Should log warning about chargeback
@@ -635,8 +636,9 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      // Should not call update for non-terminal dispute statuses
-      expect(mockDb.update).not.toHaveBeenCalled();
+      // License table must not be updated for non-terminal dispute statuses.
+      // (The idempotency markCompleted write on processedWebhookEvents is expected.)
+      expect(mockDb.update).not.toHaveBeenCalledWith(licenses);
     });
   });
 
@@ -686,7 +688,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
 
       expect(res.status).toBe(200);
       // Should revoke license
-      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledWith(licenses);
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('revoked');
       // Should log warning
@@ -722,8 +724,9 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      // Should NOT revoke license  -  only idempotency insert, no update
-      expect(mockDb.update).not.toHaveBeenCalled();
+      // License table must not be updated (the idempotency claim + markCompleted
+      // writes on processedWebhookEvents are expected).
+      expect(mockDb.update).not.toHaveBeenCalledWith(licenses);
       // Should log info about partial refund
       expect(vi.mocked(loggerModule.logger).info).toHaveBeenCalledWith(
         'Partial refund issued  -  license retained',
@@ -755,8 +758,8 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
       const res = await app.request(postStripe(event));
 
       expect(res.status).toBe(200);
-      // Should not attempt any DB update
-      expect(mockDb.update).not.toHaveBeenCalled();
+      // License table must not be updated (idempotency bookkeeping aside).
+      expect(mockDb.update).not.toHaveBeenCalledWith(licenses);
     });
   });
 
@@ -834,7 +837,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
 
       expect(res.status).toBe(200);
       // Should NOT call update (no license revocation)
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).not.toHaveBeenCalledWith(licenses);
     });
   });
 
@@ -882,7 +885,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
 
       expect(res.status).toBe(200);
       // Should revoke the license
-      expect(mockDb.update).toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledWith(licenses);
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('revoked');
       // Should audit the revocation
@@ -932,7 +935,7 @@ describe('Billing Coverage Gaps', { timeout: 60_000 }, () => {
 
       expect(res.status).toBe(200);
       // Should NOT revoke license
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).not.toHaveBeenCalledWith(licenses);
       // Should log a warning
       expect(vi.mocked(loggerModule.logger).warn).toHaveBeenCalledWith(
         'Subscription in incomplete state  -  awaiting payment confirmation',
