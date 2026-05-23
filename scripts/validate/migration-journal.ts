@@ -58,7 +58,14 @@ export interface CheckResult {
  * fresh database. NOT a place to silence the lint for new migrations —
  * additions here require a code-review justification.
  */
-const IDEMPOTENCY_LINT_ALLOWLIST = new Set(['0000_init', '0001_special_logan']);
+const IDEMPOTENCY_LINT_ALLOWLIST = new Set([
+  '0000_init',
+  '0001_special_logan',
+  // Already applied to prod (revealcoin tables dropped 2026-05-23) and tracked;
+  // it pre-dates the DROP TABLE idempotency check below and never re-runs.
+  // Editing committed-and-applied migration SQL would break drizzle's hash.
+  '0016_drop_revealcoin_tables',
+]);
 
 export function loadJournal(): Journal {
   return JSON.parse(readFileSync(JOURNAL_PATH, 'utf-8'));
@@ -218,13 +225,52 @@ export function checkCustomManifestShape(manifest: CustomManifest, journal: Jour
 }
 
 /**
+ * Collapse every ASCII-whitespace run to a single space and uppercase, so DDL
+ * keyword sequences can be matched by plain substring scanning. Regex-free
+ * (fleet M2 no-regex rule): tokenize on whitespace, rejoin with one space.
+ */
+export function normalizeSqlWhitespace(sql: string): string {
+  const tokens: string[] = [];
+  let cur = '';
+  for (const ch of sql) {
+    if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r' || ch === '\f' || ch === '\v') {
+      if (cur) {
+        tokens.push(cur);
+        cur = '';
+      }
+    } else {
+      cur += ch;
+    }
+  }
+  if (cur) tokens.push(cur);
+  return tokens.join(' ').toUpperCase();
+}
+
+/**
+ * True if `normalized` (from normalizeSqlWhitespace) contains a `DROP <obj>`
+ * not immediately guarded by `IF EXISTS`. Regex-free substring scan.
+ */
+export function hasUnguardedDrop(normalized: string, obj: 'TABLE' | 'INDEX'): boolean {
+  const needle = `DROP ${obj} `;
+  let idx = normalized.indexOf(needle);
+  while (idx !== -1) {
+    if (!normalized.slice(idx + needle.length).startsWith('IF EXISTS')) return true;
+    idx = normalized.indexOf(needle, idx + needle.length);
+  }
+  return false;
+}
+
+/**
  * Lints SQL for non-idempotent DDL that breaks re-application against an
- * environment where the object already exists.
+ * environment where the object already exists (or is already gone).
  *
  * - `ALTER TABLE ... ADD CONSTRAINT` must be wrapped in
  *   `DO $$ BEGIN ... EXCEPTION WHEN duplicate_object THEN NULL; END $$`
  *   (no `ADD CONSTRAINT IF NOT EXISTS` exists in Postgres).
  * - `ALTER TABLE ... DROP CONSTRAINT` must use `IF EXISTS`.
+ * - `DROP TABLE` / `DROP INDEX` must use `IF EXISTS` — a re-apply against an
+ *   environment where the object is already gone otherwise errors `does not
+ *   exist` (the 2026-05-23 0016_drop_revealcoin_tables non-idempotency gap).
  *
  * Caught the 2026-04-19 incident's first bug (unguarded ADD CONSTRAINT in
  * 0005 against a prod that already had the constraint).
@@ -246,6 +292,15 @@ export function lintIdempotency(tag: string, sql: string): CheckResult {
 
   if (/DROP\s+CONSTRAINT(?!\s+IF\s+EXISTS)/i.test(stripped)) {
     errors.push(`${tag}.sql: DROP CONSTRAINT must use IF EXISTS.`);
+  }
+
+  // DROP TABLE / DROP INDEX must guard with IF EXISTS (regex-free per M2; the
+  // CONSTRAINT checks above are pre-existing regex debt, not extended here).
+  const normalized = normalizeSqlWhitespace(stripped);
+  for (const obj of ['TABLE', 'INDEX'] as const) {
+    if (hasUnguardedDrop(normalized, obj)) {
+      errors.push(`${tag}.sql: DROP ${obj} must use IF EXISTS.`);
+    }
   }
 
   if (errors.length === 0) return { ok: true, errors: [] };

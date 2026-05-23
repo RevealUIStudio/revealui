@@ -15,7 +15,7 @@
 set -euo pipefail
 
 ENV_FILE="$HOME/.config/drizzle-studio/env"
-REVVAULT_PATH="${REVVAULT_PATH:-revealui/prod/neon/postgres-url}"
+REVVAULT_PATH="${REVVAULT_PATH:-revealui/prod/db/postgres-url}"
 
 # Locate revvault — required because this script may be invoked from a
 # non-interactive shell where ~/.cargo/bin is not on PATH (systemctl,

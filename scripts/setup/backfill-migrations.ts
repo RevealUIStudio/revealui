@@ -68,6 +68,62 @@ function getPostgresUrl(): string {
   return url;
 }
 
+/**
+ * Classify prod's tracking rows against the journal. drizzle records
+ * `created_at` = each migration's journal `when`, so we match by that
+ * timestamp — NOT row count. Count alone can't tell a benign new migration
+ * (which a forward deploy SHOULD apply) apart from the 2026-04-20
+ * out-of-band-applied-but-untracked drift class.
+ *
+ *  - synced  : journal and tracking agree.
+ *  - pending : the only un-tracked entries are NEWER than every applied
+ *              migration — a contiguous tail of new migrations drizzle-kit
+ *              migrate will apply forward. SAFE; do NOT block the deploy.
+ *  - drift   : a tracking row is missing for a migration OLDER than the newest
+ *              applied, or tracking has a row with no journal entry. Re-running
+ *              migrate risks re-applying already-applied SQL. BLOCK.
+ *
+ * Pure + exported for unit testing.
+ */
+export type DriftClassification =
+  | { kind: 'synced' }
+  | { kind: 'pending'; pendingTags: string[] }
+  | { kind: 'drift'; detail: string };
+
+export function classifyMigrationDrift(
+  trackedCreatedAt: number[],
+  journalEntries: Array<{ tag: string; when: number }>,
+): DriftClassification {
+  const trackedSet = new Set(trackedCreatedAt);
+  const journalWhenSet = new Set(journalEntries.map((e) => e.when));
+  const missing = journalEntries.filter((e) => !trackedSet.has(e.when));
+  const orphans = trackedCreatedAt.filter((c) => !journalWhenSet.has(c));
+
+  if (missing.length === 0 && orphans.length === 0) return { kind: 'synced' };
+
+  if (orphans.length > 0) {
+    return {
+      kind: 'drift',
+      detail: `tracking has ${orphans.length} row(s) with no journal entry (created_at=${orphans.join(', ')})`,
+    };
+  }
+
+  const maxTracked = trackedCreatedAt.length
+    ? Math.max(...trackedCreatedAt)
+    : Number.NEGATIVE_INFINITY;
+  const olderMissing = missing.filter((e) => e.when <= maxTracked);
+
+  if (olderMissing.length === 0) {
+    return { kind: 'pending', pendingTags: missing.map((e) => e.tag) };
+  }
+  return {
+    kind: 'drift',
+    detail: `missing tracking rows for already-passed migration(s): ${olderMissing
+      .map((e) => e.tag)
+      .join(', ')} (older than the newest applied row)`,
+  };
+}
+
 async function main(): Promise<void> {
   const journal = loadJournal();
   const expected = journal.entries.length;
@@ -100,20 +156,37 @@ async function main(): Promise<void> {
     );
     const tracked = trackingRes.rows;
 
-    // Synced state: counts match. Drizzle's hash-based dedupe handles the
-    // exact mapping; if counts match and migrate didn't fail in any prior
-    // run, we trust the state.
-    if (tracked.length === expected) {
+    // Match by created_at (= journal `when`), not row count: a benign new
+    // migration and the 2026-04-20 out-of-band-untracked drift both show
+    // tracked.length < expected, but only the latter must block the deploy.
+    const classification = classifyMigrationDrift(
+      tracked.map((r) => Number(r.created_at)),
+      journal.entries,
+    );
+
+    if (classification.kind === 'synced') {
       process.stdout.write(
         `✓ ${tracked.length} tracking rows match ${expected} journal entries; no backfill needed\n`,
       );
       process.exit(0);
     }
 
-    // Drift detected. Surface the diagnostic.
+    if (classification.kind === 'pending') {
+      // Benign forward case: the only un-tracked entries are NEWER than every
+      // applied migration — a contiguous tail drizzle-kit migrate will apply
+      // next. NOT the 2026-04-20 drift class; do not block the deploy.
+      process.stdout.write(
+        `✓ ${classification.pendingTags.length} new migration(s) pending; drizzle-kit migrate ` +
+          `will apply them: ${classification.pendingTags.join(', ')}\n`,
+      );
+      process.exit(0);
+    }
+
+    // classification.kind === 'drift' — dangerous. Surface the diagnostic.
     process.stderr.write(
       `✗ Drift detected: ${tracked.length} tracking rows vs ${expected} journal entries\n`,
     );
+    process.stderr.write(`  ${classification.detail}\n`);
     process.stderr.write('\nJournal entries (expected applied set):\n');
     for (const e of journal.entries) {
       process.stderr.write(`  [idx=${e.idx}] ${e.tag} (when=${e.when})\n`);
@@ -145,8 +218,12 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  const msg = err instanceof Error ? err.message : String(err);
-  process.stderr.write(`✗ backfill-migrations failed: ${msg}\n`);
-  process.exit(2);
-});
+// Run when invoked directly (not when imported by tests).
+const isMainModule = process.argv[1] ? import.meta.url === `file://${process.argv[1]}` : false;
+if (isMainModule) {
+  main().catch((err) => {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`✗ backfill-migrations failed: ${msg}\n`);
+    process.exit(2);
+  });
+}

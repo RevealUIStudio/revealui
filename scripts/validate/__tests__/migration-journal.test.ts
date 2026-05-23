@@ -121,6 +121,31 @@ describe('lintIdempotency', () => {
     expect(lintIdempotency('0099_test', sql).ok).toBe(true);
   });
 
+  it('fails DROP TABLE without IF EXISTS (the 2026-05-23 0016 bug)', () => {
+    const sql = `DROP TABLE "revealcoin_payments" CASCADE;`;
+    const result = lintIdempotency('0099_test', sql);
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toContain('DROP TABLE must use IF EXISTS');
+  });
+
+  it('passes DROP TABLE IF EXISTS', () => {
+    expect(lintIdempotency('0099_test', `DROP TABLE IF EXISTS "x" CASCADE;`).ok).toBe(true);
+  });
+
+  it('fails DROP INDEX without IF EXISTS', () => {
+    const result = lintIdempotency('0099_test', `DROP INDEX "x_idx";`);
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toContain('DROP INDEX must use IF EXISTS');
+  });
+
+  it('passes DROP INDEX IF EXISTS', () => {
+    expect(lintIdempotency('0099_test', `DROP INDEX IF EXISTS "x_idx";`).ok).toBe(true);
+  });
+
+  it('normalizes lowercase + multiline DROP TABLE before matching', () => {
+    expect(lintIdempotency('0099_test', `drop\n  table\n  "x" cascade;`).ok).toBe(false);
+  });
+
   it('passes mixed file when only the ADD CONSTRAINT is wrapped', () => {
     const sql = `
       ALTER TABLE "x" ADD COLUMN IF NOT EXISTS "scope" text;
