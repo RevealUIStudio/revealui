@@ -33,22 +33,51 @@ function mockRequest(overrides: Partial<RevealRequest> = {}): RevealRequest {
   };
 }
 
+/**
+ * Minimal in-memory WhereClause matcher for the mock storage. Supports the
+ * shapes these tests exercise (and/or + equals/not_equals/in) so the mock's
+ * find() actually scopes rows by the access filter — letting us prove that
+ * findByID/update/delete ENFORCE row-level access rather than re-ratify the
+ * old allow-all coercion.
+ */
+function matchesWhere(doc: Record<string, unknown>, where: unknown): boolean {
+  if (!where || typeof where !== 'object') return true;
+  const w = where as Record<string, unknown>;
+  if (Array.isArray(w.and)) return w.and.every((sub) => matchesWhere(doc, sub));
+  if (Array.isArray(w.or)) return w.or.some((sub) => matchesWhere(doc, sub));
+  return Object.entries(w).every(([field, cond]) => {
+    if (field === 'and' || field === 'or') return true;
+    if (!cond || typeof cond !== 'object') return true;
+    const c = cond as Record<string, unknown>;
+    const actual = doc[field];
+    if ('equals' in c) return actual === c.equals;
+    if ('not_equals' in c) return actual !== c.not_equals;
+    if ('in' in c && Array.isArray(c.in)) return c.in.includes(actual);
+    return true;
+  });
+}
+
 function createMockDbWithCollectionStorage(docs: Record<string, unknown>[] = []) {
   return {
     query: vi.fn(),
     collectionStorage: {
-      find: vi.fn().mockResolvedValue({
-        docs,
-        totalDocs: docs.length,
-        limit: 10,
-        totalPages: docs.length > 0 ? 1 : 0,
-        page: 1,
-        pagingCounter: docs.length > 0 ? 1 : 0,
-        hasPrevPage: false,
-        hasNextPage: false,
-        prevPage: null,
-        nextPage: null,
-      }),
+      find: vi
+        .fn()
+        .mockImplementation((_config: RevealCollectionConfig, opts: { where?: unknown } = {}) => {
+          const filtered = docs.filter((d) => matchesWhere(d, opts.where));
+          return Promise.resolve({
+            docs: filtered,
+            totalDocs: filtered.length,
+            limit: 10,
+            totalPages: filtered.length > 0 ? 1 : 0,
+            page: 1,
+            pagingCounter: filtered.length > 0 ? 1 : 0,
+            hasPrevPage: false,
+            hasNextPage: false,
+            prevPage: null,
+            nextPage: null,
+          });
+        }),
       findByID: vi
         .fn()
         .mockImplementation((_config: RevealCollectionConfig, opts: { id: string | number }) => {
@@ -356,9 +385,10 @@ describe('access control enforcement', () => {
       expect(result).toEqual({ id: '1', title: 'Public Post', status: 'published' });
     });
 
-    it('allows access when access.read returns a WhereClause (constraint-based)', async () => {
-      // For findByID, a Where clause means "allowed with constraints"  -
-      // the access function evaluated the user's permission for this specific ID
+    it('enforces a WhereClause: denies a row that does not match the filter', async () => {
+      // access.read returns an ownership filter; doc '1' has no `author`, so it
+      // does NOT match { author: { equals: 'user-1' } } and must be withheld.
+      // (Previously findByID coerced any WhereClause to "allow" and leaked it.)
       const accessReadSpy = vi.fn().mockReturnValue({ author: { equals: 'user-1' } });
       const config: RevealCollectionConfig = {
         ...baseConfig,
@@ -369,9 +399,27 @@ describe('access control enforcement', () => {
 
       const result = await findByID(config, db as never, { id: '1', req });
 
-      // Should proceed with the fetch since the access function returned a truthy value
-      expect(result).toEqual({ id: '1', title: 'Public Post', status: 'published' });
+      expect(result).toBeNull();
       expect(accessReadSpy).toHaveBeenCalledWith(expect.objectContaining({ req, id: '1' }));
+    });
+
+    it('enforces a WhereClause: returns a row the caller owns, withholds others', async () => {
+      const ownedDocs = [
+        { id: '1', title: 'Public Post', status: 'published' },
+        { id: '9', title: 'Mine', status: 'draft', author: 'user-1' },
+      ];
+      const accessReadSpy = vi.fn().mockReturnValue({ author: { equals: 'user-1' } });
+      const config: RevealCollectionConfig = {
+        ...baseConfig,
+        access: { read: accessReadSpy },
+      };
+      const db = createMockDbWithCollectionStorage(ownedDocs);
+      const req = mockRequest();
+
+      // Owned row → returned.
+      expect(await findByID(config, db as never, { id: '9', req })).toEqual(ownedDocs[1]);
+      // Another user's row → withheld even though it exists.
+      expect(await findByID(config, db as never, { id: '1', req })).toBeNull();
     });
 
     it('passes req to the access function for user-based decisions', async () => {
@@ -752,5 +800,84 @@ describe('access control enforcement', () => {
       });
       expect(result).toEqual({ status: 'draft', id: '1' });
     });
+  });
+});
+
+// ===========================================================================
+// Row-level (WhereClause) enforcement for update() + delete()
+//
+// A WhereClause from access.update/delete means "allowed only for rows matching
+// this filter". These prove the mutation operations confirm ownership before
+// writing — previously they coerced any WhereClause to `true` and mutated any
+// id (cross-tenant / IDOR).
+// ===========================================================================
+
+describe('row-level access (WhereClause) enforcement', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('update(): denies a row the caller does not own (no DB write)', async () => {
+    const config: RevealCollectionConfig = {
+      ...baseConfig,
+      access: { update: vi.fn().mockReturnValue({ author: { equals: 'user-1' } }) },
+    };
+    const db = createMockDbWithCollectionStorage(testDocs); // doc '1' has no author
+    const req = mockRequest();
+
+    await expect(
+      update(config, db as never, { id: '1', data: { title: 'New' }, req }),
+    ).rejects.toThrow('Access denied');
+    expect(db.query).not.toHaveBeenCalled();
+  });
+
+  it('update(): allows a row the caller owns', async () => {
+    const ownedDocs = [{ id: '9', title: 'Mine', status: 'draft', author: 'user-1' }];
+    const config: RevealCollectionConfig = {
+      ...baseConfig,
+      access: { update: vi.fn().mockReturnValue({ author: { equals: 'user-1' } }) },
+    };
+    const db = createMockDbWithCollectionStorage(ownedDocs);
+    // Existence-check + UPDATE return shapes for the db.query write path.
+    db.query.mockResolvedValue({ rows: [{ id: '9' }], rowCount: 1 } as never);
+    const req = mockRequest();
+
+    const result = await update(config, db as never, {
+      id: '9',
+      data: { title: 'Renamed' },
+      req,
+    });
+
+    expect(result).toEqual(ownedDocs[0]); // re-fetched via collectionStorage.findByID
+    expect(db.query).toHaveBeenCalled();
+  });
+
+  it('delete(): denies a row the caller does not own (no DB write)', async () => {
+    const config: RevealCollectionConfig = {
+      ...baseConfig,
+      access: { delete: vi.fn().mockReturnValue({ author: { equals: 'user-1' } }) },
+    };
+    const db = createMockDbWithCollectionStorage(testDocs);
+    const req = mockRequest();
+
+    await expect(deleteDocument(config, db as never, { id: '1', req })).rejects.toThrow(
+      'Access denied',
+    );
+    expect(db.query).not.toHaveBeenCalled();
+  });
+
+  it('delete(): allows a row the caller owns', async () => {
+    const ownedDocs = [{ id: '9', title: 'Mine', status: 'draft', author: 'user-1' }];
+    const config: RevealCollectionConfig = {
+      ...baseConfig,
+      access: { delete: vi.fn().mockReturnValue({ author: { equals: 'user-1' } }) },
+    };
+    const db = createMockDbWithCollectionStorage(ownedDocs);
+    const req = mockRequest();
+
+    const result = await deleteDocument(config, db as never, { id: '9', req });
+
+    expect(result).toEqual({ id: '9' });
+    expect(db.query).toHaveBeenCalled();
   });
 });
