@@ -30,18 +30,17 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: ['node_modules/**', '**/*.test.ts', '**/*.spec.ts', 'dist/**', '**/__tests__/**'],
       thresholds: {
-        // Recalibrated 2026-05-23 after #1032 removed the revealcoin module
-        // and its 4 test files (1,656 lines: client/config/oracle/safeguards),
-        // which had been inflating package-wide totals. Remaining uncovered
-        // code is src/email/index.ts (lines 114–345, retry/error paths) and
-        // src/stripe/payment-intent.ts (lines 41–140) — pre-existing gaps
-        // surfaced by the removal. Floors set to current actuals minus a 7%
-        // regression buffer. Restore higher thresholds when those modules
-        // gain failure-path tests (see GAP-211).
-        statements: 40,
-        branches: 22,
-        functions: 60,
-        lines: 40,
+        // Honest bar restored 2026-05-23. #1032 removed the revealcoin module +
+        // its 1,656 lines of tests, which had masked pre-existing gaps in
+        // src/email/index.ts and src/stripe/payment-intent.ts; #1043 had
+        // temporarily lowered the floors to current-actuals as a stopgap. This
+        // PR adds payment-intent + email-service failure-path tests, bringing
+        // package coverage to ~87.5/82.8/79/87.9 — so the pre-#1032 bar is
+        // restored rather than left lowered (closes GAP-211).
+        statements: 65,
+        branches: 50,
+        functions: 70,
+        lines: 65,
       },
     },
   },
