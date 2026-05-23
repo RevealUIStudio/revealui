@@ -101,6 +101,24 @@ vi.mock('@revealui/services', () => ({
   },
 }));
 
+// The route proxies the upstream via createSafeFetch() (undici dispatcher with
+// DNS pinning), which bypasses the per-test globalThis.fetch stubs below. Mock
+// it to delegate to globalThis.fetch at call time so the existing fetch stubs
+// drive the proxy; stub assertPublicUrl too (it does a real DNS lookup that
+// fails in the network-less CI). The guard is covered by ssrf.test.ts.
+vi.mock('@revealui/security', async () => {
+  const actual = await vi.importActual<typeof import('@revealui/security')>('@revealui/security');
+  return {
+    ...actual,
+    createSafeFetch: vi.fn(
+      () =>
+        (...args: Parameters<typeof fetch>) =>
+          globalThis.fetch(...args),
+    ),
+    assertPublicUrl: vi.fn().mockResolvedValue(undefined),
+  };
+});
+
 // ─── Drizzle mock with per-query result queue ───────────────────────────────
 
 /** Queue of results  -  each db.select() call shifts the next result from here. */
