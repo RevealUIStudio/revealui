@@ -1,12 +1,15 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  // src/sanitize.ts is built as a separate, client-safe entry: it imports only
-  // parse5 (no node:crypto), so consumers in a browser/RSC client bundle (e.g.
-  // @revealui/core/richtext/rsc) can pull isSafeUrl/sanitizeUrl via the
-  // ./sanitize subpath WITHOUT dragging in auth.ts/gdpr.ts top-level node:crypto
-  // imports through the barrel (which crashes the client bundle).
-  entry: ['src/index.ts', 'src/sanitize.ts'],
+  // The default barrel (src/index.ts) is client-bundle-safe: it re-exports only
+  // modules free of `node:` built-ins. Server-only modules that pull node:crypto
+  // (auth/gdpr/audit) or node:dns (ssrf) are isolated in src/server.ts behind the
+  // ./server subpath. src/sanitize.ts is the minimal client-safe surface for
+  // URL/HTML helpers (parse5 only). Separate entries mean a browser/RSC bundle
+  // importing '.' or './sanitize' never drags the node: graph in (the crash
+  // class fixed by #1046); '@revealui/security/server' is the only node:-bearing
+  // entry.
+  entry: ['src/index.ts', 'src/server.ts', 'src/sanitize.ts'],
   format: ['esm'],
   dts: true,
   sourcemap: false,

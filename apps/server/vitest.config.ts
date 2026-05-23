@@ -7,6 +7,18 @@ export default defineConfig({
       { find: '@', replacement: path.resolve(__dirname, './src') },
       // Resolve workspace packages from source to avoid Vite SSR export* re-export breakage.
       // Classes lose constructor identity when passed through export * chains in SSR mode.
+      // Subpath aliases MUST precede the bare '@revealui/security' alias: Vite's
+      // string `find` is a prefix match, so the bare alias would rewrite
+      // '@revealui/security/server' to '.../src/index.ts/server' (ENOTDIR). Map
+      // each published subpath to its own source entry.
+      {
+        find: '@revealui/security/server',
+        replacement: path.resolve(__dirname, '../../packages/security/src/server.ts'),
+      },
+      {
+        find: '@revealui/security/sanitize',
+        replacement: path.resolve(__dirname, '../../packages/security/src/sanitize.ts'),
+      },
       {
         find: '@revealui/security',
         replacement: path.resolve(__dirname, '../../packages/security/src/index.ts'),

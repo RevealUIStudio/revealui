@@ -1,8 +1,18 @@
 /**
- * Security & Compliance
+ * Security & Compliance — client-safe barrel.
  *
- * Security infrastructure for authentication, authorization,
- * encryption, audit logging, GDPR compliance, and secure headers.
+ * The default entry (`.`) re-exports only modules free of `node:` built-ins, so
+ * it is safe in any bundle (browser, RSC, server): alerting, authorization,
+ * encryption (Web Crypto), GDPR storage, headers, logger, request-IP, and input
+ * sanitization.
+ *
+ * Server-only modules that pull `node:` built-ins — authentication (node:crypto),
+ * GDPR managers (node:crypto), audit logging (node:crypto), and SSRF/DNS
+ * (node:dns) — live behind the explicit `@revealui/security/server` subpath so a
+ * client/RSC bundle never drags the node: graph in (the crash class fixed by
+ * #1046). `@revealui/core/security` re-exports both this barrel and `./server`,
+ * so server consumers that go through core are unaffected. The `./sanitize`
+ * subpath remains the minimal client-safe surface for URL/HTML helpers.
  *
  * @packageDocumentation
  */
@@ -21,34 +31,6 @@ export {
   SecurityAlertService,
   WebhookAlertHandler,
 } from './alerting.js';
-export type {
-  AuditEvent,
-  AuditEventType,
-  AuditQuery,
-  AuditSeverity,
-  AuditStorage,
-} from './audit.js';
-// Audit logging
-export {
-  AuditReportGenerator,
-  AuditSystem,
-  AuditTrail,
-  audit,
-  createAuditMiddleware,
-  InMemoryAuditStorage,
-  signAuditEntry,
-  verifyAuditEntry,
-} from './audit.js';
-export type {
-  OAuthConfig,
-  User,
-} from './auth.js';
-// Authentication
-export {
-  OAuthClient,
-  OAuthProviders,
-  TwoFactorAuth,
-} from './auth.js';
 export type {
   AuthorizationContext,
   Permission,
@@ -75,7 +57,7 @@ export type {
   EncryptedData,
   EncryptionConfig,
 } from './encryption.js';
-// Encryption
+// Encryption (Web Crypto — no node: built-ins)
 export {
   DataMasking,
   EncryptionSystem,
@@ -85,32 +67,6 @@ export {
   KeyRotationManager,
   TokenGenerator,
 } from './encryption.js';
-export type {
-  ConsentRecord,
-  ConsentType,
-  CookieConsentConfig,
-  DataBreach,
-  DataCategory,
-  DataDeletionRequest,
-  DataProcessingPurpose,
-  PersonalDataExport,
-} from './gdpr.js';
-// GDPR compliance
-export {
-  ConsentManager,
-  CookieConsentManager,
-  cookieConsentManager,
-  createConsentManager,
-  createDataBreachManager,
-  createDataDeletionSystem,
-  DataAnonymization,
-  DataBreachManager,
-  DataDeletionSystem,
-  DataExportSystem,
-  dataExportSystem,
-  PrivacyPolicyManager,
-  privacyPolicyManager,
-} from './gdpr.js';
 export type { BreachStorage, GDPRStorage } from './gdpr-storage.js';
 // GDPR storage abstraction
 export { InMemoryBreachStorage, InMemoryGDPRStorage } from './gdpr-storage.js';
@@ -154,12 +110,3 @@ export {
   sanitizeUrl,
   type UrlContext,
 } from './sanitize.js';
-// SSRF protection
-export {
-  assertPublicUrl,
-  createSafeFetch,
-  isPrivateIp,
-  isPrivateIpv4,
-  isPrivateIpv6,
-  type SafeFetchOptions,
-} from './ssrf.js';
