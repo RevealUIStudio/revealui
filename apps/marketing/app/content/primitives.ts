@@ -21,9 +21,9 @@ export interface HomePrimitive {
 }
 
 export const HOME_PRIMITIVES_SECTION = {
-  eyebrow: 'Five primitives. One audit log. One policy plane.',
+  eyebrow: 'Five primitives. One login. One audit trail.',
   heading: "Everything a business needs. Nothing you don't.",
-  body: 'Auth, content, products, payments, and intelligence — every action by every human and agent is RBAC-gated, ABAC-checked, and signed into a tamper-evident audit chain.',
+  body: 'Users, content, products, payments, and intelligence — the five things every product needs. Every action, whether it comes from a person or an AI agent, follows the same permission rules and lands in an audit trail you can prove was not tampered with.',
   docsLink: { label: 'See the primitive reference →', href: SITE.urls.docs },
 } as const;
 

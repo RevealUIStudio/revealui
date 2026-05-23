@@ -28,7 +28,16 @@
   --color-secondary: var(--rvui-surface-2);
   --color-secondary-foreground: var(--rvui-text-0);
   --color-muted: var(--rvui-surface-2);
-  --color-muted-foreground: var(--rvui-text-2);
+  /* Secondary / muted text — deterministic deep cobalt-ink (brand hue ~248).
+   * Replaces var(--rvui-text-2): the token file is dark-first (:root = dark),
+   * so --rvui-text-2 resolved to a silvery oklch(0.65 …) that washed out and
+   * failed WCAG AA on this site's bg-white / bg-gray-50 sections. This fixed
+   * value tests ~5.8:1 on white (AA pass) and reads as intentional brand ink,
+   * not gray — every text-muted-foreground (eyebrows, captions, footnotes)
+   * picks it up with no per-component edits. Marketing uses muted text only on
+   * light surfaces, so a single fixed value is safe (dark panels use explicit
+   * text-gray-300/400 utilities, untouched). */
+  --color-muted-foreground: oklch(0.48 0.085 248);
   --color-accent: var(--rvui-accent);
   --color-accent-foreground: var(--rvui-text-on-accent);
   --color-destructive: var(--rvui-error);

@@ -24,6 +24,19 @@ INTERNAL_FILES=(
   "AI-AGENT-RULES.md"
   "AUTOMATION.md"
   "STANDARDS.md"
+  "SECRETS.md" # revvault secret-path inventory — must never be served publicly
+  # Internal ops / business docs — not for the public docs site
+  "AUDIT_STATUS.md"
+  "COMMERCIAL_READINESS.md"
+  "CREDENTIAL-ROTATION-RUNBOOK.md"
+  "DEPLOYMENT-RUNBOOK.md"
+  "LAUNCH-CHECKLIST.md"
+  "runbook-agent-dispatch-flag.md"
+  # audience: maintainer (operating RevealUI Studio's own infra/release, not framework-user docs)
+  "CI_CD_GUIDE.md"
+  "MARKETING_METRICS.md"
+  "PERFORMANCE.md"
+  "PUBLISHING.md"
 )
 
 # Clean previously-copied docs.
@@ -58,6 +71,16 @@ cp -r "$SOURCE_DOCS"/. "$TARGET_DOCS"/
 if [ -d "$TARGET_DOCS/archive" ]; then
   rm -rf "$TARGET_DOCS/archive"
 fi
+
+# Remove internal-only subdirectories (ops / security / business docs, never public).
+# IMPORTANT: Keep in sync with INTERNAL_DOC_DIRS in vite.config.ts
+INTERNAL_DIRS=( runbooks security checklists system-tune deployment )
+for d in "${INTERNAL_DIRS[@]}"; do
+  if [ -d "$TARGET_DOCS/$d" ]; then
+    rm -rf "$TARGET_DOCS/$d"
+    echo "   Excluded dir: $d/"
+  fi
+done
 
 # Remove internal-only files from the public directory
 echo "   Removing internal docs..."

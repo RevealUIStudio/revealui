@@ -1,5 +1,5 @@
 import type { LicenseTierId, PricingResponse } from '@revealui/contracts/pricing';
-import { Button, ButtonCVA } from '@revealui/presentation';
+import { ButtonCVA } from '@revealui/presentation';
 import { useEffect, useState } from 'react';
 import {
   PRICING_TEASER_FOOTER,
@@ -147,9 +147,14 @@ export function PricingTeaser() {
         </div>
 
         <div className="mt-12 text-center">
-          <Button plain href={PRICING_TEASER_FOOTER.moreHref} className="text-sm font-medium">
-            {PRICING_TEASER_FOOTER.moreLabel}
-          </Button>
+          <ButtonCVA
+            asChild
+            variant="link"
+            size="default"
+            className="items-center justify-center text-sm font-medium"
+          >
+            <a href={PRICING_TEASER_FOOTER.moreHref}>{PRICING_TEASER_FOOTER.moreLabel}</a>
+          </ButtonCVA>
           <p className="mt-6 text-xs leading-5 text-muted-foreground">
             {PRICING_TEASER_FOOTER.caption.prefix}{' '}
             <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700">
