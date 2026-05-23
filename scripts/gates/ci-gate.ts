@@ -325,6 +325,11 @@ async function gate(): Promise<void> {
         args: ['validate:stripe-client'],
       },
       {
+        name: 'Client-bundle safety (hard fail)',
+        command: 'pnpm',
+        args: ['validate:client-safety'],
+      },
+      {
         name: 'Security audit',
         command: 'pnpm',
         args: ['gate:security'],
