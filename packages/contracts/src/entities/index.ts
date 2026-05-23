@@ -131,6 +131,7 @@ export {
   calculateScaledDimensions,
   createMediaInsert,
   DOCUMENT_MIME_TYPES,
+  extensionForMimeType,
   FILE_SIZE_LIMITS,
   FOCAL_POINT_LIMITS,
   type FocalPoint,
@@ -187,8 +188,10 @@ export {
   mediaToAgent,
   mediaToHuman,
   pixelsToFocalPoint,
+  sanitizeFilename,
   updateMedia,
   VIDEO_MIME_TYPES,
+  verifyMagicBytes,
 } from './media.js';
 export {
   type CreatePageInput,
