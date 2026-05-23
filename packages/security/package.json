@@ -6,7 +6,8 @@
   "dependencies": {
     "@revealui/contracts": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "parse5": "^8.0.1"
+    "parse5": "^8.0.1",
+    "undici": "^7.25.0"
   },
   "devDependencies": {
     "@types/node": "catalog:",

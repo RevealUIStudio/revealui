@@ -36,7 +36,6 @@ import { sites, users } from '@revealui/db/schema';
 import { OpenAPIHono } from '@revealui/openapi';
 import { configureClientIp } from '@revealui/security';
 import { sql } from 'drizzle-orm';
-import { bodyLimit } from 'hono/body-limit';
 import { createMiddleware } from 'hono/factory';
 import { logger as honoLogger } from 'hono/logger';
 // Side-effect import: registers durable-queue handlers at module top
@@ -54,6 +53,7 @@ import {
 import { auditMiddleware } from './middleware/audit.js';
 import { authMiddleware } from './middleware/auth.js';
 import { requirePermission } from './middleware/authorization.js';
+import { bodyLimitGate } from './middleware/body-limits.js';
 import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { dbMiddleware } from './middleware/db.js';
@@ -262,31 +262,12 @@ const securityHeaders = new SecurityHeaders(securityPreset);
 // Global middleware
 app.use('*', domainLockMiddleware()); // Forge: reject requests from unlicensed domains
 app.use('*', requestIdMiddleware());
-// Media upload routes need a higher body limit
-app.use(
-  '/api/content/media/*',
-  bodyLimit({
-    maxSize: 100 * 1024 * 1024,
-    onError: (c) =>
-      c.json({ success: false, error: 'File too large. Maximum size is 100MB.' }, 413),
-  }),
-);
-app.use(
-  '/api/v1/content/media/*',
-  bodyLimit({
-    maxSize: 100 * 1024 * 1024,
-    onError: (c) =>
-      c.json({ success: false, error: 'File too large. Maximum size is 100MB.' }, 413),
-  }),
-);
-app.use(
-  '*',
-  bodyLimit({
-    maxSize: 1024 * 1024,
-    onError: (c) =>
-      c.json({ success: false, error: 'Request body too large. Maximum size is 1MB.' }, 413),
-  }),
-);
+// Body-size gate: media uploads (POST) get the per-type image ceiling (10MB);
+// every other route gets 1MB. A single path-aware middleware avoids the prior
+// bug where a global '*' 1MB limit registered after the media-specific limit ran
+// second in Hono's chain and rejected all media uploads >1MB (the 100MB media
+// limit was dead code). See ./middleware/body-limits.ts.
+app.use('*', bodyLimitGate());
 app.use('*', honoLogger());
 /** Check if origin matches Vercel preview URL pattern: https://revealui*-revealuistudios-projects.vercel.app */
 function isVercelPreviewOrigin(origin: string): boolean {

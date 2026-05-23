@@ -1,5 +1,11 @@
-import { describe, expect, it } from 'vitest';
-import { assertPublicUrl, isPrivateIp, isPrivateIpv4, isPrivateIpv6 } from '../ssrf.js';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  assertPublicUrl,
+  createSafeFetch,
+  isPrivateIp,
+  isPrivateIpv4,
+  isPrivateIpv6,
+} from '../ssrf.js';
 
 describe('isPrivateIpv4', () => {
   const privateIps = [
@@ -62,8 +68,10 @@ describe('isPrivateIpv6', () => {
   const privateIps = [
     '::',
     '::1',
-    '::ffff:127.0.0.1', // IPv4-mapped loopback
+    '::ffff:127.0.0.1', // IPv4-mapped loopback (dotted)
+    '::ffff:7f00:1', // IPv4-mapped loopback (hex form — bypassed the old regex)
     '::ffff:10.0.0.1', // IPv4-mapped private
+    '::ffff:a9fe:1', // IPv4-mapped link-local 169.254.0.1 (hex form)
     '::ffff:192.168.1.1', // IPv4-mapped private
     'fe80::1', // link-local
     'fe80::abcd:1234:5678:9abc',
@@ -114,15 +122,21 @@ describe('assertPublicUrl', () => {
   });
 
   it('rejects IP literal pointing to private range', async () => {
-    await expect(assertPublicUrl('http://127.0.0.1/')).rejects.toThrow('private IP');
-    await expect(assertPublicUrl('http://10.0.0.1:8080/path')).rejects.toThrow('private IP');
-    await expect(assertPublicUrl('http://192.168.1.1/')).rejects.toThrow('private IP');
-    await expect(assertPublicUrl('http://0.0.0.0/')).rejects.toThrow('private IP');
+    await expect(assertPublicUrl('http://127.0.0.1/')).rejects.toThrow('private');
+    await expect(assertPublicUrl('http://10.0.0.1:8080/path')).rejects.toThrow('private');
+    await expect(assertPublicUrl('http://192.168.1.1/')).rejects.toThrow('private');
+    await expect(assertPublicUrl('http://0.0.0.0/')).rejects.toThrow('private');
+    await expect(assertPublicUrl('http://169.254.169.254/')).rejects.toThrow('private');
   });
 
-  it('allows public IP literals', async () => {
-    await expect(assertPublicUrl('https://1.1.1.1/')).resolves.toBeUndefined();
-    await expect(assertPublicUrl('https://8.8.8.8/dns-query')).resolves.toBeUndefined();
+  it('rejects IPv6 literal pointing to private range', async () => {
+    await expect(assertPublicUrl('http://[::1]/')).rejects.toThrow('private');
+    await expect(assertPublicUrl('http://[fc00::1]/')).rejects.toThrow('private');
+  });
+
+  it('allows public IP literals and returns them', async () => {
+    await expect(assertPublicUrl('https://1.1.1.1/')).resolves.toEqual(['1.1.1.1']);
+    await expect(assertPublicUrl('https://8.8.8.8/dns-query')).resolves.toEqual(['8.8.8.8']);
   });
 
   it('rejects invalid URLs', async () => {
@@ -139,5 +153,52 @@ describe('assertPublicUrl', () => {
         throw e; // actual SSRF rejection = bug
       }
     }
+  });
+});
+
+describe('createSafeFetch', () => {
+  const stubDispatcher = async (): Promise<unknown> => ({ stub: true });
+
+  it('rejects a private/metadata target before opening a connection', async () => {
+    const baseFetch = vi.fn();
+    const safeFetch = createSafeFetch({
+      baseFetch: baseFetch as unknown as typeof fetch,
+      dispatcherFactory: stubDispatcher,
+    });
+    await expect(safeFetch('http://169.254.169.254/latest/meta-data/')).rejects.toThrow('SSRF');
+    await expect(safeFetch('http://127.0.0.1/')).rejects.toThrow('SSRF');
+    await expect(safeFetch('http://[::1]/')).rejects.toThrow('SSRF');
+    expect(baseFetch).not.toHaveBeenCalled();
+  });
+
+  it('dials a public target with the pinned dispatcher and manual redirect', async () => {
+    const dispatcher = { sentinel: true };
+    const okResponse = new Response('ok', { status: 200 });
+    const baseFetch = vi.fn().mockResolvedValue(okResponse);
+    const safeFetch = createSafeFetch({
+      baseFetch: baseFetch as unknown as typeof fetch,
+      dispatcherFactory: async () => dispatcher,
+    });
+
+    const res = await safeFetch('https://1.1.1.1/path');
+
+    expect(res).toBe(okResponse);
+    expect(baseFetch).toHaveBeenCalledTimes(1);
+    const init = baseFetch.mock.calls[0]?.[1] as RequestInit & { dispatcher: unknown };
+    expect(init.redirect).toBe('manual');
+    expect(init.dispatcher).toBe(dispatcher);
+  });
+
+  it('refuses to follow redirects (SSRF-guard bypass)', async () => {
+    const redirect = new Response(null, {
+      status: 302,
+      headers: { location: 'http://169.254.169.254/' },
+    });
+    const baseFetch = vi.fn().mockResolvedValue(redirect);
+    const safeFetch = createSafeFetch({
+      baseFetch: baseFetch as unknown as typeof fetch,
+      dispatcherFactory: stubDispatcher,
+    });
+    await expect(safeFetch('https://1.1.1.1/')).rejects.toThrow('refusing to follow redirect');
   });
 });
