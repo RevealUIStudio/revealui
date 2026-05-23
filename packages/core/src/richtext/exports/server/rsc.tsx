@@ -5,7 +5,12 @@
  * Converts Lexical JSON state to React elements without requiring a browser.
  */
 
-import { isSafeUrl, sanitizeUrl } from '@revealui/security';
+// Import from the client-safe ./sanitize subpath, NOT the @revealui/security
+// barrel: the barrel statically re-exports auth.ts/gdpr.ts, whose top-level
+// `import 'node:crypto'` crashes this module's client/RSC bundle (blank render
+// on routes that load rich text, e.g. marketing /blog). ./sanitize imports only
+// parse5 and is browser-safe.
+import { isSafeUrl, sanitizeUrl } from '@revealui/security/sanitize';
 import type { SerializedEditorState, SerializedLexicalNode } from 'lexical';
 import { Fragment, type JSX } from 'react';
 
