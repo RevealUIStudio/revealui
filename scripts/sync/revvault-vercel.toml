@@ -85,7 +85,8 @@ REVEALUI_ALERT_EMAIL = "revealui/prod/alert-email"
 
 # Storage + CI tokens
 BLOB_READ_WRITE_TOKEN = "revealui/prod/blob/read-write-token"
-REVEALUI_NPM_TOKEN    = "revealui/prod/api-keys/npm-automation-token"
+# REVEALUI_NPM_TOKEN dropped 2026-05-23: 2FA-bypass npm automation token retired
+# (revealui#1016); release.yml publishes via OIDC trusted publishing — no token.
 
 # Email transport (Gmail SA)
 GOOGLE_SERVICE_ACCOUNT_EMAIL = "revealui/prod/google/service-account-email"

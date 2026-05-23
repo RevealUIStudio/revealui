@@ -60,7 +60,6 @@ revvault set revealui/prod/stripe/publishable-key --force
 # Other providers
 revvault set revealui/prod/sentry/auth-token --force          # Sentry → Auth Tokens (DSN is semi-public, optional)
 revvault set revealui/prod/blob/read-write-token --force      # Vercel → Storage → Blob
-revvault set revealui/prod/api-keys/npm-automation-token --force  # npm runtime token (scope to actual need; likely read-only)
 revvault set revealui/prod/google/private-key --force         # GCP IAM → SA → new key → paste private_key
 revvault set revealui/prod/db/neon-api-key --force            # Neon → API keys
 ```
