@@ -2,25 +2,26 @@
 dist/
 .vinxi/
 
-# CHIP-3 D5a: docs from suite-root /docs/ are copied into public/ at
-# build time (replaces the prior public/docs/ subdir convention).
-# Top-level .md files are docs entries.
+# CHIP-3 D5a: the repo-root /docs tree is copied into public/ at build time —
+# by apps/docs/scripts/copy-docs.sh (full copy) and the vite docs-copy plugin
+# (markdown only). Everything they emit is a generated build artifact and must
+# NOT be committed: tracking the copies forces a sync-commit on every /docs edit
+# and trips CI's generated-in-sync git-diff gate (see PR #1033). Edit /docs/,
+# never public/.
+#
+# Every subdirectory under public/ is copied from /docs, so ignore them all;
+# with the top-level markdown rule this covers the whole artifact set (including
+# non-markdown like features/*.yml) and stays correct as /docs gains subdirs.
 public/*.md
-# Subdirectories from suite-root docs/ get copied as-is.
-public/agent-rules/
-public/ai/
-public/api/
-public/architecture/
-public/blog/
-public/blog-drafts/
-public/checklists/
-public/decisions/
-public/features/
-public/guides/
-public/security/
-public/submodules/
-public/suite/
-public/system-tune/
+public/*/
+
+# Hand-authored content that lives in public/ and is NOT copied from /docs —
+# keep it tracked. docs-pro/ is canonical Pro documentation served by
+# app/routes/ProPage.tsx and validated by scripts/validate/claim-drift.ts.
+# (favicons, logos, robots.txt, sitemap.xml, llms.txt, .gitkeep are top-level
+#  non-markdown files matched by neither rule above, so they stay tracked.)
+!public/docs-pro/
+!public/docs-pro/**
 
 # Dependencies
 node_modules/

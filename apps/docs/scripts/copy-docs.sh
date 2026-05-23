@@ -24,6 +24,7 @@ INTERNAL_FILES=(
   "AI-AGENT-RULES.md"
   "AUTOMATION.md"
   "STANDARDS.md"
+  "SECRETS.md" # revvault secret-path inventory — must never be served publicly
 )
 
 # Clean previously-copied docs.
