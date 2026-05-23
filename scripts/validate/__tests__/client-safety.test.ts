@@ -1,5 +1,14 @@
-import { describe, expect, it } from 'vitest';
-import { hasUseClientDirective, parseSource, runtimeModuleRefs } from '../client-safety.ts';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+  barrelReachesNodeBuiltin,
+  hasUseClientDirective,
+  packageBarrelSource,
+  parseSource,
+  runtimeModuleRefs,
+} from '../client-safety.ts';
 
 /** Convenience: parse + collapse refs to `kind:specifier` tokens. */
 function refs(code: string, file = 'sample.tsx'): string[] {
@@ -104,5 +113,82 @@ describe('hasUseClientDirective', () => {
 
   it('returns false when absent', () => {
     expect(has('export const C = () => null;')).toBe(false);
+  });
+});
+
+describe('barrelReachesNodeBuiltin (auto-derive within-package walk)', () => {
+  let tmp: string;
+  beforeEach(() => {
+    tmp = mkdtempSync(join(tmpdir(), 'cs-derive-'));
+    mkdirSync(join(tmp, 'src'), { recursive: true });
+  });
+  afterEach(() => rmSync(tmp, { recursive: true, force: true }));
+
+  const writeSrc = (rel: string, body: string): void => writeFileSync(join(tmp, 'src', rel), body);
+  const reaches = (): boolean => barrelReachesNodeBuiltin(join(tmp, 'src', 'index.ts'), tmp);
+
+  it('true when the barrel statically reaches node: transitively (index -> a -> node:crypto)', () => {
+    writeSrc('index.ts', "export { a } from './a.js';");
+    writeSrc('a.ts', "import { createHmac } from 'node:crypto';\nexport const a = createHmac;");
+    expect(reaches()).toBe(true);
+  });
+
+  it('true when the barrel imports a node: builtin directly', () => {
+    writeSrc(
+      'index.ts',
+      "import { resolve4 } from 'node:dns/promises';\nexport const x = resolve4;",
+    );
+    expect(reaches()).toBe(true);
+  });
+
+  it('false for a client-safe barrel (only relative + external imports, no node:)', () => {
+    writeSrc('index.ts', "export { a } from './a.js';\nexport { b } from './b.js';");
+    writeSrc('a.ts', "import { parse } from 'parse5';\nexport const a = parse;");
+    writeSrc('b.ts', 'export const b = 1;');
+    expect(reaches()).toBe(false);
+  });
+
+  it('false when node: is only behind a dynamic import (code-split, bundle-safe)', () => {
+    writeSrc('index.ts', "export { a } from './a.js';");
+    writeSrc('a.ts', "export async function a() {\n  return import('node:crypto');\n}");
+    expect(reaches()).toBe(false);
+  });
+
+  it('does not descend into files outside the package root', () => {
+    writeFileSync(join(tmp, 'outside.ts'), "import 'node:crypto';\nexport const o = 1;");
+    writeSrc('index.ts', "export { o } from '../outside.js';");
+    // pkgDirAbs is tmp/src, so ../outside.ts is outside the package and not followed.
+    expect(barrelReachesNodeBuiltin(join(tmp, 'src', 'index.ts'), join(tmp, 'src'))).toBe(false);
+  });
+});
+
+describe('packageBarrelSource', () => {
+  let tmp: string;
+  beforeEach(() => {
+    tmp = mkdtempSync(join(tmpdir(), 'cs-barrel-'));
+    mkdirSync(join(tmp, 'src'), { recursive: true });
+  });
+  afterEach(() => rmSync(tmp, { recursive: true, force: true }));
+
+  it("maps a package's '.' export (dist/index.js) to src/index.ts", () => {
+    writeFileSync(
+      join(tmp, 'package.json'),
+      JSON.stringify({ name: '@revealui/sample', exports: { '.': { import: './dist/index.js' } } }),
+    );
+    writeFileSync(join(tmp, 'src', 'index.ts'), 'export const x = 1;');
+    const got = packageBarrelSource(tmp);
+    expect(got?.specifier).toBe('@revealui/sample');
+    expect(got?.entryAbs).toBe(join(tmp, 'src', 'index.ts'));
+  });
+
+  it('returns null when the package has no "." export', () => {
+    writeFileSync(
+      join(tmp, 'package.json'),
+      JSON.stringify({
+        name: '@revealui/sub-only',
+        exports: { './server': { import: './dist/server.js' } },
+      }),
+    );
+    expect(packageBarrelSource(tmp)).toBeNull();
   });
 });
