@@ -50,8 +50,10 @@ vi.mock('@/lib/utils/request-context', () => ({
 // a real DNS lookup that fails in the network-less CI. Stub it so these flow
 // tests reach the OAuth logic; the guard is covered by @revealui/security's
 // ssrf.test.ts.
-vi.mock('@revealui/security', async () => {
-  const actual = await vi.importActual<typeof import('@revealui/security')>('@revealui/security');
+vi.mock('@revealui/security/server', async () => {
+  const actual = await vi.importActual<typeof import('@revealui/security/server')>(
+    '@revealui/security/server',
+  );
   return {
     ...actual,
     assertPublicUrl: vi.fn().mockResolvedValue(undefined),

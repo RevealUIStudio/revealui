@@ -114,8 +114,10 @@ vi.mock('@revealui/services', () => ({
 // it to delegate to globalThis.fetch at call time so the existing fetch stubs
 // drive the proxy; stub assertPublicUrl too (it does a real DNS lookup that
 // fails in the network-less CI). The guard is covered by ssrf.test.ts.
-vi.mock('@revealui/security', async () => {
-  const actual = await vi.importActual<typeof import('@revealui/security')>('@revealui/security');
+vi.mock('@revealui/security/server', async () => {
+  const actual = await vi.importActual<typeof import('@revealui/security/server')>(
+    '@revealui/security/server',
+  );
   return {
     ...actual,
     createSafeFetch: vi.fn(

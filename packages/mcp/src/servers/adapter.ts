@@ -14,7 +14,7 @@
 import { randomBytes } from 'node:crypto';
 import { registerCleanupHandler } from '@revealui/core/monitoring';
 import { logger as coreLogger } from '@revealui/core/observability/logger';
-import { assertPublicUrl } from '@revealui/security';
+import { assertPublicUrl } from '@revealui/security/server';
 
 export enum McpErrorCode {
   VALIDATION_ERROR = 'VALIDATION_ERROR',

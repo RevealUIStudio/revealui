@@ -24,6 +24,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
     "./sanitize": {
       "types": "./dist/sanitize.d.ts",
       "import": "./dist/sanitize.js"

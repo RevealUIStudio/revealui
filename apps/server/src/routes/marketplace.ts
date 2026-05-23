@@ -25,7 +25,7 @@ import {
   type NewMarketplaceTransaction,
 } from '@revealui/db/schema';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { createSafeFetch } from '@revealui/security';
+import { createSafeFetch } from '@revealui/security/server';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { HTTPException } from 'hono/http-exception';
 import { getServices, type ProtectedStripe } from '../lib/services-loader.js';

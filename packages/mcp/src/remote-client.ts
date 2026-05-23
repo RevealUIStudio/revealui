@@ -20,7 +20,7 @@
  * duplicating admin code.
  */
 
-import { assertPublicUrl, createSafeFetch } from '@revealui/security';
+import { assertPublicUrl, createSafeFetch } from '@revealui/security/server';
 import { type ElicitationHandler, McpClient, type SamplingHandler } from './client.js';
 import {
   createRevvaultVault,
