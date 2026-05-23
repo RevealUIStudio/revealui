@@ -108,6 +108,23 @@ function makeMediaRecord(overrides: Partial<Record<string, unknown>> = {}) {
   };
 }
 
+// Magic-byte signatures the upload route validates (verifyMagicBytes). The route
+// reads the first 16 bytes and rejects (400) any file whose leading bytes don't
+// match its declared MIME type — so success-path fixtures must lead with a real
+// signature, not arbitrary string content.
+const MAGIC_BYTES: Record<string, number[]> = {
+  'image/png': [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+  'image/jpeg': [0xff, 0xd8, 0xff],
+  'application/pdf': [0x25, 0x50, 0x44, 0x46, 0x2d], // "%PDF-"
+};
+
+/** Build an upload File whose leading bytes are a valid signature for `type`. */
+function makeFile(name: string, type: string): File {
+  const sig = MAGIC_BYTES[type] ?? [];
+  const bytes = new Uint8Array([...sig, 0x00, 0x00, 0x00, 0x00]);
+  return new File([bytes], name, { type });
+}
+
 // ─── POST /media  -  Upload ────────────────────────────────────────────────────
 
 describe('POST /media  -  upload', () => {
@@ -146,14 +163,14 @@ describe('POST /media  -  upload', () => {
 
   it('accepts valid image MIME types', async () => {
     const app = createApp(USER_A);
-    const file = new File(['data'], 'photo.jpeg', { type: 'image/jpeg' });
+    const file = makeFile('photo.jpeg', 'image/jpeg');
     const res = await app.request('/media', makeUploadRequest(file));
     expect(res.status).toBe(201);
   });
 
   it('accepts valid document MIME types', async () => {
     const app = createApp(USER_A);
-    const file = new File(['data'], 'report.pdf', { type: 'application/pdf' });
+    const file = makeFile('report.pdf', 'application/pdf');
     const res = await app.request('/media', makeUploadRequest(file));
     expect(res.status).toBe(201);
   });
@@ -171,7 +188,7 @@ describe('POST /media  -  upload', () => {
 
   it('uploads to Vercel Blob with correct path', async () => {
     const app = createApp(USER_A);
-    const file = new File(['pixels'], 'photo.png', { type: 'image/png' });
+    const file = makeFile('photo.png', 'image/png');
     await app.request('/media', makeUploadRequest(file));
     expect(mockBlobPut).toHaveBeenCalledWith(
       expect.stringMatching(/^media\/[a-f0-9-]+\.png$/),
@@ -182,7 +199,7 @@ describe('POST /media  -  upload', () => {
 
   it('creates DB record with user as uploader', async () => {
     const app = createApp(USER_A);
-    const file = new File(['pixels'], 'photo.png', { type: 'image/png' });
+    const file = makeFile('photo.png', 'image/png');
     await app.request('/media', makeUploadRequest(file));
     expect(mockMediaQueries.createMedia).toHaveBeenCalledWith(
       expect.anything(),
@@ -192,7 +209,7 @@ describe('POST /media  -  upload', () => {
 
   it('passes alt text to DB record', async () => {
     const app = createApp(USER_A);
-    const file = new File(['pixels'], 'photo.png', { type: 'image/png' });
+    const file = makeFile('photo.png', 'image/png');
     await app.request('/media', makeUploadRequest(file, 'A sunset'));
     expect(mockMediaQueries.createMedia).toHaveBeenCalledWith(
       expect.anything(),
@@ -203,7 +220,7 @@ describe('POST /media  -  upload', () => {
   it('returns 502 when Vercel Blob upload fails', async () => {
     mockBlobPut.mockRejectedValue(new Error('Blob storage unavailable'));
     const app = createApp(USER_A);
-    const file = new File(['pixels'], 'photo.png', { type: 'image/png' });
+    const file = makeFile('photo.png', 'image/png');
     const res = await app.request('/media', makeUploadRequest(file));
     expect(res.status).toBe(502);
     const body = await res.json();
@@ -212,7 +229,7 @@ describe('POST /media  -  upload', () => {
 
   it('returns 201 with media data on success', async () => {
     const app = createApp(USER_A);
-    const file = new File(['pixels'], 'photo.png', { type: 'image/png' });
+    const file = makeFile('photo.png', 'image/png');
     const res = await app.request('/media', makeUploadRequest(file));
     expect(res.status).toBe(201);
     const body = await res.json();
