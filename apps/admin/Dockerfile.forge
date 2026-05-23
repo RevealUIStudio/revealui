@@ -67,6 +67,13 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+# GAP-214: run the engine's onInit (first-admin seeder) at runtime, not build.
+# `next build` sets NEXT_PHASE so the build still correctly skips onInit; this
+# only flips the *running* container out of RevealUIInstance's build-time guard
+# (NODE_ENV=production && !RUNTIME_INIT). Without it a fresh kit boots healthy
+# but never seeds an admin, so login is impossible (signup is closed in fleet
+# mode). Paired with the deterministic boot init in src/instrumentation-node.ts.
+ENV RUNTIME_INIT=1
 
 WORKDIR /app
 
