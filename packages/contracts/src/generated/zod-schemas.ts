@@ -196,6 +196,32 @@ export type AgentCreditBalanceRow = z.infer<typeof AgentCreditBalanceSelectSchem
 export type AgentCreditBalanceInsert = z.infer<typeof AgentCreditBalanceInsertSchema>
 
 // =============================================================================
+// AgentCreditEvents Schemas
+// =============================================================================
+
+/**
+ * Zod schema for selecting agentCreditEvents rows from database
+ * Generated from Drizzle table definition: tables.agentCreditEvents
+ */
+export const AgentCreditEventsSelectSchema = createSelectSchema(tables.agentCreditEvents)
+
+/**
+ * Zod schema for inserting agentCreditEvents rows to database
+ * Generated from Drizzle table definition: tables.agentCreditEvents
+ */
+export const AgentCreditEventsInsertSchema = createInsertSchema(tables.agentCreditEvents)
+
+/**
+ * TypeScript type for agentCreditEvents row (Select)
+ */
+export type AgentCreditEventsRow = z.infer<typeof AgentCreditEventsSelectSchema>
+
+/**
+ * TypeScript type for agentCreditEvents insert
+ */
+export type AgentCreditEventsInsert = z.infer<typeof AgentCreditEventsInsertSchema>
+
+// =============================================================================
 // AgentMemories Schemas
 // =============================================================================
 

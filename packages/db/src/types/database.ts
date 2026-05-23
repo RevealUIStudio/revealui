@@ -16,6 +16,7 @@ import type {
   agentActions,
   agentContexts,
   agentCreditBalance,
+  agentCreditEvents,
   agentMemories,
   agentReviews,
   agentSkills,
@@ -133,6 +134,11 @@ export type AgentContextsUpdate = Partial<AgentContextsInsert>
 export type AgentCreditBalanceRow = typeof agentCreditBalance.$inferSelect
 export type AgentCreditBalanceInsert = typeof agentCreditBalance.$inferInsert
 export type AgentCreditBalanceUpdate = Partial<AgentCreditBalanceInsert>
+
+// Agent Credit Events
+export type AgentCreditEventsRow = typeof agentCreditEvents.$inferSelect
+export type AgentCreditEventsInsert = typeof agentCreditEvents.$inferInsert
+export type AgentCreditEventsUpdate = Partial<AgentCreditEventsInsert>
 
 // Agent Memories
 export type AgentMemoriesRow = typeof agentMemories.$inferSelect
@@ -550,6 +556,7 @@ export type DatabaseRelationships = {
   agentActions: Relationship[]
   agentContexts: Relationship[]
   agentCreditBalance: Relationship[]
+  agentCreditEvents: Relationship[]
   agentMemories: Relationship[]
   agentReviews: Relationship[]
   agentSkills: Relationship[]
@@ -658,6 +665,9 @@ export const agentContextsRelationships: readonly Relationship[] = []
 
 // AgentCreditBalance relationships
 export const agentCreditBalanceRelationships: readonly Relationship[] = []
+
+// AgentCreditEvents relationships
+export const agentCreditEventsRelationships: readonly Relationship[] = []
 
 // AgentMemories relationships
 export const agentMemoriesRelationships = [
@@ -1051,6 +1061,12 @@ export type Database = {
         Insert: AgentCreditBalanceInsert
         Update: AgentCreditBalanceUpdate
         Relationships: typeof agentCreditBalanceRelationships
+      }
+      agent_credit_events: {
+        Row: AgentCreditEventsRow
+        Insert: AgentCreditEventsInsert
+        Update: AgentCreditEventsUpdate
+        Relationships: typeof agentCreditEventsRelationships
       }
       agent_memories: {
         Row: AgentMemoriesRow

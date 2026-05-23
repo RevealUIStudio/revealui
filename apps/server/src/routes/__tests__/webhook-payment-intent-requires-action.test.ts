@@ -387,7 +387,7 @@ describe('POST /stripe webhook  -  payment_intent.requires_action (3DS/SCA, one-
       // the payment failed. The purchase has not completed; there is no
       // entitlement to freeze. The eventual succeeded/failed event will
       // drive any state change.
-      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.update).toHaveBeenCalledTimes(1); // +1 = markCompleted bookkeeping update on processed_webhook_events
     });
 
     it('does not insert any new rows beyond the idempotency marker', async () => {

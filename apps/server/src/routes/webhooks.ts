@@ -22,6 +22,7 @@ import {
   accountSubscriptions,
   accounts,
   agentCreditBalance,
+  agentCreditEvents,
   licenses,
   processedWebhookEvents,
   unreconciledWebhooks,
@@ -114,26 +115,46 @@ function getWebhookSecret(): { primary: string; secondary?: string } {
 }
 
 /**
- * DB-backed idempotency check. Returns true if the event was already processed.
- * Uses INSERT with ON CONFLICT to atomically check + mark in one query.
+ * A 'processing' row older than this is treated as a crashed prior attempt and
+ * may be reclaimed + retried. Must comfortably exceed the worst-case handler
+ * runtime (Stripe API round-trips) so a slow-but-live attempt is never reclaimed
+ * out from under itself, yet sit well under Stripe's ~72h retry horizon so a
+ * crashed event is reclaimed on a later delivery.
  */
-async function checkAndMarkProcessed(
-  db: Database,
-  eventId: string,
-  eventType: string,
-): Promise<boolean> {
+const WEBHOOK_RECLAIM_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+type ClaimResult = 'claimed' | 'duplicate';
+
+/**
+ * Claim a Stripe event for processing (claim/complete idempotency).
+ *
+ * - New event → insert a 'processing' row → 'claimed'.
+ * - Existing 'completed' → genuine duplicate → 'duplicate'.
+ * - Existing 'processing' + recent → another delivery is in flight → 'duplicate'
+ *   (don't double-process concurrently; a later retry reclaims it if it crashed).
+ * - Existing 'processing' + stale (older than the reclaim window) → the prior
+ *   attempt crashed before completing → atomically re-claim → 'claimed'.
+ *
+ * Replaces the legacy mark-first design, where an uncaught crash/timeout after
+ * the marker INSERT but before side effects left a permanent dedup marker that
+ * silently dropped a paid event. Pairs with markCompleted() and idempotent
+ * side-effect handlers so a reclaimed reprocess never double-issues.
+ */
+async function claimEvent(db: Database, eventId: string, eventType: string): Promise<ClaimResult> {
+  const now = new Date();
   try {
     await db.insert(processedWebhookEvents).values({
       id: eventId,
       eventType,
-      processedAt: new Date(),
+      status: 'processing',
+      claimedAt: now,
+      processedAt: now,
     });
-    return false; // Not a duplicate  -  insert succeeded
+    return 'claimed';
   } catch (err) {
-    // Unique constraint violation = already processed.
-    // Check PostgreSQL error code '23505' (stable across all pg drivers) in addition
-    // to the message, since NeonDB's HTTP driver may format the message differently.
-    // Drizzle wraps driver errors in DrizzleQueryError  -  check both err and err.cause.
+    // Check PostgreSQL '23505' (stable across drivers) plus the message, since
+    // NeonDB's HTTP driver formats messages differently. Drizzle wraps driver
+    // errors  -  check both err and err.cause.
     const pgCode =
       (err as { code?: string }).code ?? (err as { cause?: { code?: string } }).cause?.code;
     const errMsg = err instanceof Error ? err.message : '';
@@ -141,21 +162,73 @@ async function checkAndMarkProcessed(
       (err as { cause?: Error }).cause instanceof Error
         ? (err as { cause: Error }).cause.message
         : '';
-    if (
-      pgCode === '23505' ||
-      errMsg.includes('duplicate key') ||
-      causeMsg.includes('duplicate key')
-    ) {
-      return true;
+    const isConflict =
+      pgCode === '23505' || errMsg.includes('duplicate key') || causeMsg.includes('duplicate key');
+    if (!isConflict) {
+      // Unexpected DB error  -  throw so the caller returns 500 and Stripe retries.
+      logger.error('Idempotency claim failed  -  returning 500 to force Stripe retry', undefined, {
+        eventId,
+        detail: errMsg || 'unknown',
+      });
+      throw err;
     }
-    // Any other DB error is unexpected  -  throw so the caller returns 500 to Stripe.
-    // Stripe will retry the event, which is safe because our INSERT is idempotent.
-    logger.error('Idempotency check failed  -  returning 500 to force Stripe retry', undefined, {
-      eventId,
-      detail: err instanceof Error ? err.message : 'unknown',
-    });
-    throw err;
+
+    // A row already exists  -  decide based on its state.
+    const [existing] = await db
+      .select({
+        status: processedWebhookEvents.status,
+        claimedAt: processedWebhookEvents.claimedAt,
+      })
+      .from(processedWebhookEvents)
+      .where(eq(processedWebhookEvents.id, eventId))
+      .limit(1);
+
+    if (!existing || existing.status === 'completed') {
+      return 'duplicate';
+    }
+
+    const staleBefore = new Date(now.getTime() - WEBHOOK_RECLAIM_WINDOW_MS);
+    if (existing.claimedAt > staleBefore) {
+      // Recent 'processing'  -  another delivery is in flight; don't reprocess now.
+      return 'duplicate';
+    }
+
+    // Stale 'processing'  -  the prior attempt crashed. Atomically reclaim so
+    // only one concurrent delivery wins the conditional update.
+    const reclaimed = await db
+      .update(processedWebhookEvents)
+      .set({ claimedAt: now })
+      .where(
+        and(
+          eq(processedWebhookEvents.id, eventId),
+          eq(processedWebhookEvents.status, 'processing'),
+          lt(processedWebhookEvents.claimedAt, staleBefore),
+        ),
+      )
+      .returning();
+
+    if (reclaimed.length > 0) {
+      logger.warn('Reclaimed a stale in-progress webhook (prior attempt likely crashed)', {
+        eventId,
+        eventType,
+      });
+      return 'claimed';
+    }
+    // Another instance reclaimed it first.
+    return 'duplicate';
   }
+}
+
+/**
+ * Mark a claimed event 'completed' once ALL side effects have run. Until this
+ * commits, the row stays 'processing' and an uncaught crash/timeout leaves it
+ * reclaimable rather than a permanent dedup marker.
+ */
+async function markCompleted(db: Database, eventId: string): Promise<void> {
+  await db
+    .update(processedWebhookEvents)
+    .set({ status: 'completed', processedAt: new Date() })
+    .where(eq(processedWebhookEvents.id, eventId));
 }
 
 /**
@@ -864,8 +937,8 @@ app.openapi(stripeWebhookRoute, async (c) => {
 
   const db = getClient();
 
-  // DB-backed idempotency check
-  if (await checkAndMarkProcessed(db, event.id, event.type)) {
+  // DB-backed idempotency: claim the event (claim/complete state machine).
+  if ((await claimEvent(db, event.id, event.type)) === 'duplicate') {
     return c.json({ received: true as const, duplicate: true }, 200);
   }
 
@@ -899,6 +972,27 @@ app.openapi(stripeWebhookRoute, async (c) => {
                 bundle,
                 tasks,
                 sessionId: session.id,
+              });
+              break;
+            }
+
+            // Idempotent credit application: record this event in the per-event
+            // ledger first; apply the balance increment ONLY when this event
+            // created the ledger row, so a replay/reclaim of the same event
+            // cannot double-credit (the bare `balance + tasks` increment is not
+            // itself idempotent).
+            const creditLedger = await db
+              .insert(agentCreditEvents)
+              .values({ eventId: event.id, userId: resolvedCreditUserId, tasks })
+              .onConflictDoNothing()
+              .returning();
+
+            if (creditLedger.length === 0) {
+              logger.info('Credit bundle event already applied  -  idempotent replay skipped', {
+                bundle,
+                tasks,
+                userId: resolvedCreditUserId,
+                eventId: event.id,
               });
               break;
             }
@@ -3383,6 +3477,12 @@ app.openapi(stripeWebhookRoute, async (c) => {
         break;
       }
     }
+
+    // Side effects completed without throwing  -  mark the claim done. Until
+    // here the row is 'processing'; an uncaught crash/timeout before this point
+    // leaves it reclaimable (a later Stripe retry re-runs the handler) instead
+    // of a permanent dedup marker that silently drops a paid event.
+    await markCompleted(db, event.id);
   } catch (err) {
     const cleanedUp = await unmarkProcessed(db, event.id);
     const msg = err instanceof Error ? err.message : 'Unknown error';

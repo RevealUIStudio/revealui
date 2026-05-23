@@ -476,6 +476,25 @@ export const agentCreditBalance = pgTable(
 export type AgentCreditBalance = typeof agentCreditBalance.$inferSelect;
 export type NewAgentCreditBalance = typeof agentCreditBalance.$inferInsert;
 
+/**
+ * Per-event credit ledger. The Stripe event id is the primary key, so a credit
+ * purchase applies to the balance exactly once even if the webhook is replayed
+ * or reclaimed after a crash. Insert ON CONFLICT DO NOTHING, then apply the
+ * balance increment only when the insert created a row.
+ */
+export const agentCreditEvents = pgTable('agent_credit_events', {
+  /** Stripe event id (evt_...). */
+  eventId: text('event_id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  tasks: integer('tasks').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+
+export type AgentCreditEvent = typeof agentCreditEvents.$inferSelect;
+export type NewAgentCreditEvent = typeof agentCreditEvents.$inferInsert;
+
 export type AgentContext = typeof agentContexts.$inferSelect;
 export type NewAgentContext = typeof agentContexts.$inferInsert;
 export type AgentMemory = typeof agentMemories.$inferSelect;

@@ -197,6 +197,32 @@ export const AgentCreditBalanceInsertContract = createContract({
 })
 
 // =============================================================================
+// AgentCreditEvents Contracts
+// =============================================================================
+
+/**
+ * Contract for agentCreditEvents row (Select)
+ * Database table: agent_credit_events
+ */
+export const AgentCreditEventsRowContract = createContract({
+  name: 'AgentCreditEventsRow',
+  version: '1',
+  description: 'Database row contract for agent_credit_events table',
+  schema: Schemas.AgentCreditEventsSelectSchema,
+})
+
+/**
+ * Contract for agentCreditEvents insert
+ * Database table: agent_credit_events
+ */
+export const AgentCreditEventsInsertContract = createContract({
+  name: 'AgentCreditEventsInsert',
+  version: '1',
+  description: 'Database insert contract for agent_credit_events table',
+  schema: Schemas.AgentCreditEventsInsertSchema,
+})
+
+// =============================================================================
 // AgentMemories Contracts
 // =============================================================================
 
