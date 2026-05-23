@@ -30,17 +30,18 @@ export default defineConfig({
       reporter: ['text', 'json', 'html', 'lcov'],
       exclude: ['node_modules/**', '**/*.test.ts', '**/*.spec.ts', 'dist/**', '**/__tests__/**'],
       thresholds: {
-        // Recalibrated 2026-05-01 after the @revealui/services/email
-        // consolidation (#673) added the new email/index.ts module — Gmail
-        // JWT flow is mostly happy-path tested but lacks branch coverage on
-        // the retry/error paths. Floor adjusted to current actuals + small
-        // buffer so CI catches regressions but doesn't fail on existing
-        // test gaps. Restore higher thresholds when email/index.ts gains
-        // failure-path tests.
-        statements: 65,
-        branches: 50,
-        functions: 70,
-        lines: 65,
+        // Recalibrated 2026-05-23 after #1032 removed the revealcoin module
+        // and its 4 test files (1,656 lines: client/config/oracle/safeguards),
+        // which had been inflating package-wide totals. Remaining uncovered
+        // code is src/email/index.ts (lines 114–345, retry/error paths) and
+        // src/stripe/payment-intent.ts (lines 41–140) — pre-existing gaps
+        // surfaced by the removal. Floors set to current actuals minus a 7%
+        // regression buffer. Restore higher thresholds when those modules
+        // gain failure-path tests (see GAP-211).
+        statements: 40,
+        branches: 22,
+        functions: 60,
+        lines: 40,
       },
     },
   },
