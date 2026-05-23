@@ -1,4 +1,4 @@
-import { Button } from '@revealui/presentation';
+import { ButtonCVA } from '@revealui/presentation';
 import { HOME_PRIMITIVES, HOME_PRIMITIVES_SECTION } from '../../content/primitives';
 
 const accentBg: Record<string, string> = {
@@ -50,13 +50,16 @@ export function Primitives() {
         </div>
 
         <div className="mt-12 text-center">
-          <Button
-            plain
-            href={HOME_PRIMITIVES_SECTION.docsLink.href}
-            className="text-sm font-medium"
+          <ButtonCVA
+            asChild
+            variant="link"
+            size="default"
+            className="items-center justify-center text-sm font-medium"
           >
-            {HOME_PRIMITIVES_SECTION.docsLink.label}
-          </Button>
+            <a href={HOME_PRIMITIVES_SECTION.docsLink.href}>
+              {HOME_PRIMITIVES_SECTION.docsLink.label}
+            </a>
+          </ButtonCVA>
         </div>
       </div>
     </section>

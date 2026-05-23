@@ -54,7 +54,7 @@ export function Hero() {
       {/* Brand background: warm wash + radial spotlight + faint primitive symbols */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/40 via-white to-white" />
-        <div className="absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(16,185,129,0.18),rgba(16,185,129,0.04)_60%,transparent_80%)] blur-2xl" />
+        <div className="absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,oklch(0.55_0.18_245/0.18),oklch(0.55_0.18_245/0.04)_60%,transparent_80%)] blur-2xl" />
         {backgroundPrimitives.map((p) => (
           <svg
             key={p.path}
