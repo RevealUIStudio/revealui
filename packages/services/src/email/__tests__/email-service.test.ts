@@ -98,8 +98,8 @@ describe('GmailProvider', () => {
 
     expect(res).toEqual({ success: true });
     expect(fetchFn).toHaveBeenCalledTimes(2);
-    expect(String(fetchFn.mock.calls[0][0])).toContain('oauth2.googleapis.com');
-    expect(String(fetchFn.mock.calls[1][0])).toContain('gmail.googleapis.com');
+    expect(String(fetchFn.mock.calls[0]?.[0])).toContain('oauth2.googleapis.com');
+    expect(String(fetchFn.mock.calls[1]?.[0])).toContain('gmail.googleapis.com');
   });
 
   it('builds a message without optional text/replyTo', async () => {
