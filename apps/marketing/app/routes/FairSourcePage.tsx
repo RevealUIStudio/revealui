@@ -39,7 +39,7 @@ export function FairSourcePage() {
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[600px] w-[1000px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(16,185,129,0.18),rgba(16,185,129,0.04)_60%,transparent_80%)] blur-2xl"
+          className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[600px] w-[1000px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,oklch(0.55_0.18_245/0.18),oklch(0.55_0.18_245/0.04)_60%,transparent_80%)] blur-2xl"
         />
 
         <div className="relative mx-auto max-w-3xl text-center">
