@@ -19,7 +19,7 @@ This runbook covers the **per-deploy verification smoke**. For ongoing first-72h
 | Stripe webhook secret | `revealui/prod/stripe/webhook-secret` | Vercel `STRIPE_WEBHOOK_SECRET` |
 | Cron auth secret | `revealui/prod/stripe/cron-secret` | Vercel `REVEALUI_CRON_SECRET` |
 | License signing key (Ed25519 PKCS8) | `revealui/prod/license/signing-key` | Vercel `REVEALUI_LICENSE_PRIVATE_KEY` |
-| Postgres URL | `revealui/prod/neon/postgres-url` | Vercel `DATABASE_URL` |
+| Postgres URL | `revealui/prod/db/postgres-url` | Vercel `DATABASE_URL` |
 | Sentry DSN | `revealui/prod/sentry/dsn` | Vercel `SENTRY_DSN` |
 | Alert email destination | `revealui/prod/alerts/email` | Vercel `REVEALUI_ALERT_EMAIL` |
 

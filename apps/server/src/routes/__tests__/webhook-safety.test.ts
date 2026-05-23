@@ -667,7 +667,7 @@ describe('Webhook Safety  -  money-critical paths', () => {
       const app = createApp();
       await app.request(postStripe(event));
 
-      // No license updates should happen
+      // No license updates should happen (duplicate path returns before markCompleted)
       expect(mockDb.update).not.toHaveBeenCalled();
       // No audit entries should be written
       expect(mockAuditAppend).not.toHaveBeenCalled();
@@ -709,7 +709,7 @@ describe('Webhook Safety  -  money-critical paths', () => {
       await app.request(postStripe(event));
 
       expect(vi.mocked(loggerModule.logger).error).toHaveBeenCalledWith(
-        expect.stringContaining('Idempotency check failed'),
+        expect.stringContaining('Idempotency claim failed'),
         undefined,
         expect.objectContaining({ eventId: 'evt_safety_idem_log' }),
       );

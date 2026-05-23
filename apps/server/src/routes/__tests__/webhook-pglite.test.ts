@@ -197,6 +197,7 @@ afterEach(async () => {
   await testDb.drizzle.execute(sql.raw('DELETE FROM "account_memberships"'));
   await testDb.drizzle.execute(sql.raw('DELETE FROM "account_entitlements"'));
   await testDb.drizzle.execute(sql.raw('DELETE FROM "accounts"'));
+  await testDb.drizzle.execute(sql.raw('DELETE FROM "agent_credit_events"'));
   await testDb.drizzle.execute(sql.raw('DELETE FROM "agent_credit_balance"'));
   await testDb.drizzle.execute(sql.raw('DELETE FROM "users"'));
 });
@@ -758,5 +759,158 @@ describe('webhook integration  -  charge.refunded (Surface 6 fix-train)', () => 
       invoice_now: false,
       prorate: false,
     });
+  });
+});
+
+// PR3: claim/complete idempotency state machine + per-event credit ledger.
+describe('webhook integration  -  claim/complete idempotency (PR3)', () => {
+  it('reclaims and reprocesses a stale in-progress event (crash recovery)', async () => {
+    await seedTestUser(testDb.drizzle, { id: 'user-stale', email: 'stale@example.com' });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_stale' })
+      .where(eq(users.id, 'user-stale'));
+
+    // Simulate a prior attempt that claimed the event then crashed before
+    // completing: a 'processing' row with claimedAt older than the reclaim window.
+    const eventId = 'evt_stale_reclaim';
+    const stale = new Date(Date.now() - 30 * 60 * 1000); // 30 min ago (> 10 min window)
+    await testDb.drizzle.insert(processedWebhookEvents).values({
+      id: eventId,
+      eventType: 'checkout.session.completed',
+      status: 'processing',
+      claimedAt: stale,
+      processedAt: stale,
+    });
+
+    const event = {
+      id: eventId,
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_stale',
+          mode: 'subscription',
+          customer: 'cus_stale',
+          subscription: 'sub_stale',
+          metadata: { tier: 'pro', revealui_user_id: 'user-stale' },
+        },
+      },
+      created: Math.floor(Date.now() / 1000),
+      livemode: false,
+    };
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+
+    // Reprocessed: a license now exists and the row was marked completed.
+    const lic = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.customerId, 'cus_stale'));
+    expect(lic).toHaveLength(1);
+    const row = await testDb.drizzle
+      .select()
+      .from(processedWebhookEvents)
+      .where(eq(processedWebhookEvents.id, eventId));
+    expect(row[0].status).toBe('completed');
+  });
+
+  it('treats a recent in-progress event as duplicate (no concurrent reprocess)', async () => {
+    await seedTestUser(testDb.drizzle, { id: 'user-recent', email: 'recent@example.com' });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_recent' })
+      .where(eq(users.id, 'user-recent'));
+
+    // A recent 'processing' row = another delivery is in flight right now.
+    const eventId = 'evt_recent_inflight';
+    await testDb.drizzle.insert(processedWebhookEvents).values({
+      id: eventId,
+      eventType: 'checkout.session.completed',
+      status: 'processing',
+      claimedAt: new Date(),
+      processedAt: new Date(),
+    });
+
+    const event = {
+      id: eventId,
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_recent',
+          mode: 'subscription',
+          customer: 'cus_recent',
+          subscription: 'sub_recent',
+          metadata: { tier: 'pro', revealui_user_id: 'user-recent' },
+        },
+      },
+      created: Math.floor(Date.now() / 1000),
+      livemode: false,
+    };
+
+    const res = await postWebhook(event);
+    expect(res.status).toBe(200);
+    expect((await res.json()).duplicate).toBe(true);
+
+    // Not reprocessed by this delivery: no license created.
+    const lic = await testDb.drizzle
+      .select()
+      .from(licenses)
+      .where(eq(licenses.customerId, 'cus_recent'));
+    expect(lic).toHaveLength(0);
+  });
+
+  it('credits a bundle exactly once even when the event is reprocessed (ledger)', async () => {
+    await seedTestUser(testDb.drizzle, {
+      id: 'user-credit-idem',
+      email: 'creditidem@example.com',
+    });
+    await testDb.drizzle
+      .update(users)
+      .set({ stripeCustomerId: 'cus_credit_idem' })
+      .where(eq(users.id, 'user-credit-idem'));
+
+    const eventId = 'evt_credit_idem';
+    const creditEvent = {
+      id: eventId,
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_credit_idem',
+          mode: 'payment',
+          customer: 'cus_credit_idem',
+          metadata: {
+            credits_bundle: 'starter',
+            credits_tasks: '500',
+            revealui_user_id: 'user-credit-idem',
+          },
+        },
+      },
+      created: Math.floor(Date.now() / 1000),
+      livemode: false,
+    };
+
+    // First delivery → credited.
+    expect((await postWebhook(creditEvent)).status).toBe(200);
+    let bal = await testDb.drizzle
+      .select()
+      .from(agentCreditBalance)
+      .where(eq(agentCreditBalance.userId, 'user-credit-idem'));
+    expect(bal[0].balance).toBe(500);
+
+    // Force a crash-recovery reclaim (stale 'processing'), then redeliver. The
+    // handler reprocesses, but the per-event credit ledger prevents a second
+    // increment.
+    await testDb.drizzle
+      .update(processedWebhookEvents)
+      .set({ status: 'processing', claimedAt: new Date(Date.now() - 30 * 60 * 1000) })
+      .where(eq(processedWebhookEvents.id, eventId));
+
+    expect((await postWebhook(creditEvent)).status).toBe(200);
+    bal = await testDb.drizzle
+      .select()
+      .from(agentCreditBalance)
+      .where(eq(agentCreditBalance.userId, 'user-credit-idem'));
+    expect(bal[0].balance).toBe(500); // not 1000
   });
 });

@@ -155,4 +155,11 @@ export {
   type UrlContext,
 } from './sanitize.js';
 // SSRF protection
-export { assertPublicUrl, isPrivateIp, isPrivateIpv4, isPrivateIpv6 } from './ssrf.js';
+export {
+  assertPublicUrl,
+  createSafeFetch,
+  isPrivateIp,
+  isPrivateIpv4,
+  isPrivateIpv6,
+  type SafeFetchOptions,
+} from './ssrf.js';

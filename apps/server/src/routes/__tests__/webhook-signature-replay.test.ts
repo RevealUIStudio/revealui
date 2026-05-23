@@ -676,7 +676,7 @@ describe('POST /stripe webhook  -  signature timing & replay protection', () => 
       // Handler should still attempt revocation  -  update sets status=revoked
       // for all licenses matching the customer, which is a no-op if none exist
       expect(res.status).toBe(200);
-      expect(mockDb.update).toHaveBeenCalledOnce();
+      expect(mockDb.update).toHaveBeenCalledTimes(2); // +1 = markCompleted bookkeeping update on processed_webhook_events
       const setCall = mockDbUpdateChain.set.mock.calls[0]?.[0] as Record<string, unknown>;
       expect(setCall.status).toBe('revoked');
     });

@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "_comment": "Files that are genuinely server-only yet live under a tree scanned by scripts/validate/client-safety.ts. Each entry needs a non-empty reason. This is NOT a way to ship a real client leak — prefer importing a client-safe subpath (e.g. @revealui/security/sanitize) or moving the code to a server module. Schema: { path, rules: [client-barrel-import|client-node-builtin|client-safe-entry-node], reason }.",
+  "entries": []
+}

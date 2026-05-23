@@ -20,6 +20,17 @@ vi.mock('../src/client.js', async () => {
   };
 });
 
+// Stub the SSRF guard: assertPublicUrl does a real DNS lookup, which throws in
+// the hermetic test environment (no network) before the McpClient is ever
+// constructed. These tests exercise the options→McpClient plumbing, not the
+// guard — the guard itself is covered by @revealui/security's ssrf.test.ts.
+// remote-client.ts is the only consumer of @revealui/security in this test's
+// module graph, and it imports just these two symbols.
+vi.mock('@revealui/security', () => ({
+  assertPublicUrl: vi.fn().mockResolvedValue(undefined),
+  createSafeFetch: vi.fn(() => globalThis.fetch),
+}));
+
 describe('listConnectedMcpServers', () => {
   it('returns sorted unique server ids from tokens paths', async () => {
     const vault = createMemoryVault({

@@ -76,7 +76,7 @@ The real pipeline is six stages, all defined in [`deploy.yml`](../.github/workfl
 |--------|---------|-----------------|
 | `VERCEL_TOKEN` | every Vercel-touching job | revvault `revealui/prod/vercel/api-token` |
 | `VERCEL_ORG_ID` | env var | revvault |
-| `PROD_POSTGRES_URL` | `migrate` job (mirrored from Vercel `api` project's `POSTGRES_URL` because `vercel env pull` returns empty string for Sensitive vars) | revvault `revealui/prod/neon/postgres-url` |
+| `PROD_POSTGRES_URL` | `migrate` job (mirrored from Vercel `api` project's `POSTGRES_URL` because `vercel env pull` returns empty string for Sensitive vars) | revvault `revealui/prod/db/postgres-url` |
 | `TURBO_TOKEN` | turbo remote cache (falls back to `VERCEL_TOKEN`) | revvault |
 | `GITHUB_TOKEN` | provided automatically; used by `docker.yml` to push to GHCR | n/a |
 

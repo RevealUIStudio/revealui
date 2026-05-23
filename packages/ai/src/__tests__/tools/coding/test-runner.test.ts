@@ -131,7 +131,11 @@ describe('test_runner tool', () => {
   it('reports timeout when command exceeds limit', async () => {
     // Create a standalone pnpm workspace so pnpm runs locally
     writeFileSync(join(ROOT, 'pnpm-workspace.yaml'), 'packages: []\n');
-    writeFileSync(join(ROOT, 'block.js'), 'setInterval(() => {}, 1000);\n');
+    // Block well past the 4s tool timeout, but self-exit after 30s so an
+    // orphaned process (if the kill ever misses) can't leak indefinitely.
+    // The tool kills the whole process group on timeout, so this normally
+    // dies at ~4s; the self-exit is a belt-and-suspenders safety net.
+    writeFileSync(join(ROOT, 'block.js'), 'setTimeout(() => process.exit(0), 30000);\n');
     writeFileSync(
       join(ROOT, 'package.json'),
       JSON.stringify({

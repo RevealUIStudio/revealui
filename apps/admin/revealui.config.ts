@@ -22,7 +22,6 @@ import {
   vercelBlobStorage,
 } from '@revealui/core';
 import { en } from '@revealui/core/admin/i18n/en';
-import sharp from 'sharp';
 import { allCollections } from '@/lib/collections/registry';
 import Users from '@/lib/collections/Users';
 import { createTypedCollectionStorage } from '@/lib/db/typedCollectionStorage';
@@ -166,8 +165,9 @@ export default buildConfig({
     },
   }),
 
-  sharp,
-
+  // sharp is intentionally not injected here: the RevealUI engine does not decode
+  // images in-process — resizing is delegated to next/image. (sharp stays in
+  // dependencies only for Next.js's own image optimization.)
   plugins: [
     vercelBlobStorage({
       enabled: !!process.env.BLOB_READ_WRITE_TOKEN,
