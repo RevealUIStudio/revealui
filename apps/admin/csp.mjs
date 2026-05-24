@@ -15,13 +15,17 @@ if (serverUrl) {
   connectOrigins.push(serverUrl);
 }
 
-// Build dynamic script-src origins
-// Both 'unsafe-inline' and 'unsafe-eval' are required only for Next.js/Turbopack HMR in dev.
-// Stripe.js and Lexical do not require either in production builds.
+// Build dynamic script-src origins.
+// Next.js App Router emits inline hydration/bootstrap scripts (e.g. self.__next_f)
+// that require either 'unsafe-inline' or a per-request nonce. We keep 'unsafe-inline'
+// in production for that reason — gating it to dev-only (without a nonce) breaks
+// hydration on prod (the admin login page). A per-request nonce is a tracked
+// follow-up that will let us drop 'unsafe-inline'. 'unsafe-eval' is dev/HMR-only.
 const isProduction = process.env.VERCEL_ENV === 'production';
 const scriptOrigins = [
   "'self'",
-  ...(isProduction ? [] : ["'unsafe-inline'", "'unsafe-eval'"]),
+  "'unsafe-inline'",
+  ...(isProduction ? [] : ["'unsafe-eval'"]),
   'https://checkout.stripe.com',
   'https://js.stripe.com',
   'https://maps.googleapis.com',
