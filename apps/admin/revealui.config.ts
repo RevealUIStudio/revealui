@@ -246,6 +246,10 @@ export default buildConfig({
         collection: 'users',
         limit: 1,
         depth: 0,
+        // Trusted env-driven bootstrap (guarded by totalDocs === 0 below):
+        // bypass access control so the first-admin seed works on a fresh Fleet
+        // kit, where no authenticated user exists yet to satisfy collection access.
+        overrideAccess: true,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -292,6 +296,10 @@ export default buildConfig({
       try {
         await revealui.create({
           collection: 'users',
+          // See the find() above: this first-admin bootstrap runs before any
+          // user exists, so core create()'s access enforcement would otherwise
+          // deny it ("Access denied: insufficient permissions to create").
+          overrideAccess: true,
           data: {
             name: 'Admin User',
             email: adminEmail,
