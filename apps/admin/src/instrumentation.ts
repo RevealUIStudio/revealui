@@ -228,6 +228,34 @@ export async function register() {
   } catch (error) {
     void error;
   }
+
+  // ── GAP-214: deterministic boot-time engine init (self-hosted Forge kits) ──
+  // The first-admin seeder (config.onInit in apps/admin/revealui.config.ts) only
+  // fires when the engine is initialized AND RevealUIInstance treats this as
+  // runtime rather than build-time. On a Forge kit (NODE_ENV=production) the
+  // engine is otherwise initialized lazily on the first request that needs it —
+  // too unreliable for seeding the kit's only admin account. Trigger it once,
+  // explicitly, at boot instead.
+  //
+  // getRevealUIInstance → @revealui/core/nextjs → @revealui/db is Node-only, so
+  // it lives in a separate module imported ONLY behind NEXT_RUNTIME==='nodejs'.
+  // That keeps @revealui/db out of the Edge bundle — the same reason the
+  // telemetry transport above uses fetch() instead of importing @revealui/db
+  // directly. The dispatch is wrapped so it can never throw out of
+  // instrumentation (which would kill the runtime); the eager init itself is
+  // gated on RUNTIME_INIT, so hosted/Vercel boot is unchanged.
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    try {
+      const { initEngineAtBoot } = await import('./instrumentation-node');
+      await initEngineAtBoot();
+    } catch (err) {
+      process.stderr.write(
+        `Boot-time engine init dispatch failed (non-fatal): ${
+          err instanceof Error ? err.message : String(err)
+        }\n`,
+      );
+    }
+  }
 }
 
 // Auto-capture server-side request errors (server actions, RSC, route
