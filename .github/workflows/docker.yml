@@ -42,6 +42,13 @@ jobs:
           - app: admin
             dockerfile: apps/admin/Dockerfile.forge
             image: revealui-admin
+          # One-shot DB migrate image for self-hosted kits (built from the
+          # `migrate` stage of the server Dockerfile). The kit compose runs it
+          # once before api+admin so a fresh volume gets its schema.
+          - app: migrate
+            dockerfile: apps/server/Dockerfile.forge
+            target: migrate
+            image: revealui-migrate
 
     steps:
       - name: Checkout
@@ -72,6 +79,9 @@ jobs:
         with:
           context: .
           file: ${{ matrix.dockerfile }}
+          # Empty for server/admin (builds the final `runner` stage); `migrate`
+          # for the one-shot migrate image. Empty target = final stage.
+          target: ${{ matrix.target }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
