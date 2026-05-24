@@ -48,6 +48,25 @@ RUN pnpm turbo run build --filter=server...
 RUN pnpm --filter server deploy /app/server-deploy --prod --legacy
 
 # ---------------------------------------------------------------------------
+# Migrate stage — one-shot `drizzle-kit migrate` for self-hosted Fleet kits.
+# ---------------------------------------------------------------------------
+# Reuses the build stage, which already carries drizzle-kit (a @revealui/db
+# devDependency, installed by the non-prod `pnpm install` above), the journalled
+# SQL in packages/db/migrations/, and drizzle.config.ts. Published as
+# ghcr.io/revealuistudio/revealui-migrate and run ONCE by the kit compose
+# `migrate` service (gated service_completed_successfully) BEFORE api + admin
+# start, so a freshly-stamped kit volume gets its schema. A fresh kit otherwise
+# boots with zero tables: migrations never run at app boot, only via this step.
+# Idempotent — drizzle records applied migrations in drizzle.__drizzle_migrations,
+# so re-running is a no-op. KIT-ONLY; hosted/Vercel migrates via deploy.yml CI.
+FROM build AS migrate
+WORKDIR /app/packages/db
+ENV NODE_ENV=production
+# drizzle-kit reads drizzle.config.ts (out=./migrations; dbCredentials.url from
+# POSTGRES_URL, supplied by the compose migrate service).
+CMD ["pnpm", "exec", "drizzle-kit", "migrate"]
+
+# ---------------------------------------------------------------------------
 # Runtime stage — minimal image, production only
 # ---------------------------------------------------------------------------
 FROM node:24-alpine AS runner
