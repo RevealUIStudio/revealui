@@ -30,6 +30,9 @@ jobs:
     timeout-minutes: 3
     env:
       GITLEAKS_VERSION: "8.30.0"
+      # SHA256 of gitleaks_<ver>_linux_x64.tar.gz (from gitleaks_<ver>_checksums.txt);
+      # verified before install to close the curl|tar supply-chain gap. Bump with VERSION.
+      GITLEAKS_SHA256: "79a3ab579b53f71efd634f3aaf7e04a0fa0cf206b7ed434638d1547a2470a66e"
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -40,8 +43,10 @@ jobs:
       - name: Install gitleaks
         run: |
           set -euo pipefail
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
-            | tar -xz -C /tmp gitleaks
+          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${tarball}" -o "/tmp/${tarball}"
+          echo "${GITLEAKS_SHA256}  /tmp/${tarball}" | sha256sum -c -
+          tar -xzf "/tmp/${tarball}" -C /tmp gitleaks
           sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
           gitleaks version
 
