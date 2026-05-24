@@ -5,31 +5,33 @@ name: backflow-main-into-test
 # Companion to promotion-gate.yml — that workflow REJECTS stale promotions;
 # this one PROACTIVELY heals the staleness gap.
 #
-# Permissions:
-#   contents: write — push to the chore/backflow-main-into-test branch
-#   pull-requests: write — open/update the backflow PR
-#
-# Known limitation: PRs opened by GITHUB_TOKEN don't trigger other
-# workflows (anti-loop guard built into GitHub Actions). The auto-opened
-# backflow PR will have empty CI. Close + reopen via gh CLI (or the web
-# UI button) to fire CI, then merge.
+# Auth: uses a GitHub App installation token (actions/create-github-app-token)
+# instead of GITHUB_TOKEN, because (1) org policy blocks GITHUB_TOKEN from
+# creating pull requests, and (2) App-token-created PRs DO trigger CI (no
+# anti-loop guard), so the backflow PR runs the gate normally. App creds come
+# from the BACKFLOW_APP_ID / BACKFLOW_APP_PRIVATE_KEY secrets; the App needs
+# Contents + Pull requests (read & write) on this repo.
 
 on:
   push:
     branches: [main]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read # all writes go through the App token, not GITHUB_TOKEN
 
 jobs:
   backflow:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.BACKFLOW_APP_ID }}
+          private-key: ${{ secrets.BACKFLOW_APP_PRIVATE_KEY }}
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4 (resolved 2026-05-19)
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Check if test needs backflow
         id: check
@@ -86,7 +88,7 @@ jobs:
       - name: Open or update backflow PR
         if: steps.check.outputs.needed == 'true' && steps.merge.outputs.merged == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           BEHIND: ${{ steps.check.outputs.behind }}
           REPO: ${{ github.repository }}
         run: |
@@ -112,11 +114,7 @@ jobs:
             echo ""
             echo "Squash strips \`main\`'s parentage — \`promotion-gate\` will re-flag the same condition on the next push to main, and another backflow PR will auto-open."
             echo ""
-            echo "## CI on this PR"
-            echo ""
-            echo "GitHub blocks workflows triggered by \`GITHUB_TOKEN\` from triggering other workflows (anti-loop guard). If CI is empty, **close and reopen the PR via the web UI or \`gh pr close <PR#> && gh pr reopen <PR#>\`** to fire CI."
-            echo ""
-            echo "_Per \`feedback_no_auto_merge\`: manual merge only — no \`--auto\`._"
+            echo "_Opened via a GitHub App token, so CI runs normally on this PR. Per \`feedback_no_auto_merge\`: manual merge only — no \`--auto\`._"
           } > /tmp/pr-body.md
 
           if [ -n "$existing" ]; then
