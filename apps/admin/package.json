@@ -20,7 +20,7 @@
     "@revealui/utils": "workspace:*",
     "@sentry/nextjs": "^10.53.1",
     "@simplewebauthn/browser": "^13.3.0",
-    "@vercel/blob": "^2.3.3",
+    "@vercel/blob": "^2.4.0",
     "@vercel/speed-insights": "^2.0.0",
     "cross-env": "^10.1.0",
     "drizzle-orm": "catalog:",
