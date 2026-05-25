@@ -1,7 +1,7 @@
 import { logger } from '@revealui/utils/logger';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
-import { draftMode } from 'next/headers';
+import { draftMode, headers } from 'next/headers';
 import type React from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AdminBar } from '@/lib/components/AdminBar';
@@ -42,11 +42,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // header-block + footer-block via env or admin settings.
   const isFleetMode = process.env.REVEALUI_FLEET_MODE === 'true';
 
+  // CSP nonce (set by the proxy in src/proxy.ts) — thread it to the inline theme
+  // <Script> so it survives the nonce-based script-src (no 'unsafe-inline' in prod).
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+
   try {
     return (
       <html lang="en" suppressHydrationWarning>
         <head>
-          <InitTheme />
+          <InitTheme nonce={nonce} />
           <link href="/favicon.ico" rel="icon" sizes="32x32" />
           <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
           {/* RevealUI Theme Fonts */}
