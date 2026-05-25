@@ -186,11 +186,11 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
         required: true,
       },
       {
-        name: 'firstName',
+        name: 'first_name',
         type: 'text',
       },
       {
-        name: 'lastName',
+        name: 'last_name',
         type: 'text',
       },
       {
