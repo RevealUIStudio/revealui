@@ -2,9 +2,13 @@
  * OG image generation endpoint.
  *
  * Renders a 1200×630 PNG with a title + description via satori (JSX → SVG)
- * and @resvg/resvg-wasm (SVG → PNG). The Inter Tight variable font is inlined
- * into the bundle via tsup's binary loader; satori extracts 400 + 700 weights
- * from the same buffer. The resvg WASM ships beside the built bundle (copy-resvg-wasm) and is read at runtime.
+ * and @resvg/resvg-wasm (SVG → PNG). Two STATIC Inter Tight instances (weights
+ * 400 + 700) are inlined into the bundle via tsup's binary loader. satori's
+ * font parser (@shuding/opentype.js) cannot read a variable font's `fvar`
+ * table — it throws "Cannot read properties of undefined" at parseFvarAxis — so
+ * we ship single-weight static instances rather than the variable master.
+ * Regenerate them from the variable source via apps/server/scripts/regen-og-fonts.sh.
+ * The resvg WASM ships beside the built bundle (copy-resvg-wasm) and is read at runtime.
  *
  * Used by marketing + (future) blog post OG meta tags:
  *   <meta property="og:image"
@@ -21,7 +25,8 @@ import { fileURLToPath } from 'node:url';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import { Hono } from 'hono';
 import satori from 'satori';
-import InterTightVariable from '../assets/fonts/InterTight-Variable.ttf';
+import InterTightBold from '../assets/fonts/InterTight-Bold.ttf';
+import InterTightRegular from '../assets/fonts/InterTight-Regular.ttf';
 
 // One-time WASM init for resvg. The same serverless instance reuses the
 // initialised module across requests; the shared promise makes concurrent
@@ -180,8 +185,8 @@ app.get('/', async (c) => {
     // Buffer.from gives satori the Buffer<ArrayBufferLike> shape it expects
     // without copying the underlying memory.
     fonts: [
-      { name: 'Inter Tight', data: Buffer.from(InterTightVariable), weight: 400, style: 'normal' },
-      { name: 'Inter Tight', data: Buffer.from(InterTightVariable), weight: 700, style: 'normal' },
+      { name: 'Inter Tight', data: Buffer.from(InterTightRegular), weight: 400, style: 'normal' },
+      { name: 'Inter Tight', data: Buffer.from(InterTightBold), weight: 700, style: 'normal' },
     ],
   });
 

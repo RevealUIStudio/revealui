@@ -30,9 +30,9 @@ vi.mock('@resvg/resvg-wasm/index_bg.wasm', () => ({
   default: new Uint8Array([0x00, 0x61, 0x73, 0x6d]), // wasm magic bytes
 }));
 
-vi.mock('../../assets/fonts/InterTight-Variable.ttf', () => ({
-  default: new Uint8Array([0x00, 0x01, 0x00, 0x00]), // ttf magic bytes
-}));
+// `.ttf` imports resolve to __tests__/binary-stub.ts via the vitest config
+// alias — no per-font mock is needed here. Real font parsing is exercised
+// separately in og-fonts.test.ts (which does not mock satori).
 
 import ogApp from '../og.js';
 
