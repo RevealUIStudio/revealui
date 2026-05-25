@@ -677,8 +677,12 @@ jobs:
           POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
           DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
 
-      - name: Run @revealui/test integration suite
-        run: pnpm --filter @revealui/test test:integration
+      # NOTE: packages/test's manifest name is the unscoped "test" (not
+      # "@revealui/test"). `--filter @revealui/test` matches zero packages and
+      # pnpm exits 0 — a false green. Filter by the real name. (Caught by the
+      # first CI run on this PR: "No projects matched the filters".)
+      - name: Run packages/test integration suite
+        run: pnpm --filter test run test:integration
         env:
           SKIP_ENV_VALIDATION: "true"
           DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
