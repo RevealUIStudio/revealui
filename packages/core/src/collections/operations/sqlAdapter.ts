@@ -104,7 +104,13 @@ export function insertDocumentQuery(configSlug: string, columns: string[]): stri
 }
 
 export function selectJsonByIdQuery(configSlug: string): string {
-  return `SELECT _json FROM ${collectionTable(configSlug)} WHERE id = $1 LIMIT 1`;
+  // `id` MUST be in the projection. Query results pass through
+  // safeParseRevealDocuments, which drops any row lacking an `id`. A bare
+  // `SELECT _json` row has no `id`, so it gets filtered to empty — making
+  // update() wrongly throw "Document not found" for every JSON-field
+  // collection. Keep `_json` first so existing `sql.includes('SELECT _json')`
+  // matchers still recognize this query.
+  return `SELECT _json, id FROM ${collectionTable(configSlug)} WHERE id = $1 LIMIT 1`;
 }
 
 export function checkExistsByIdQuery(configSlug: string): string {
