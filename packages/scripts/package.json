@@ -9,7 +9,7 @@
     "ret": "^0.5.0"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.4.5"
+    "@electric-sql/pglite": "^0.4.6"
   },
   "exports": {
     ".": "./index.ts",
