@@ -142,7 +142,7 @@ describe('update operation', () => {
     expect(result).toEqual(mockUpdatedDoc);
     // Verify _json was fetched and merged
     expect(mockDb.query).toHaveBeenCalledWith(
-      'SELECT _json FROM "test-collection" WHERE id = $1 LIMIT 1',
+      'SELECT _json, id FROM "test-collection" WHERE id = $1 LIMIT 1',
       ['test-id'],
     );
   });
