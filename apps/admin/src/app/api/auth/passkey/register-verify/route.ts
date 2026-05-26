@@ -297,7 +297,10 @@ async function registerVerifyHandler(request: NextRequest): Promise<NextResponse
 
     return response;
   } catch (error) {
-    logger.error('Error verifying passkey registration', { error });
+    logger.error(
+      'Error verifying passkey registration',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return createErrorResponse(error, {
       endpoint: '/api/auth/passkey/register-verify',
       operation: 'passkey_register_verify',

@@ -1,6 +1,6 @@
 # What Works Today
 
-> Last verified: 2026-05-19
+> Last verified: 2026-05-26
 
 This page is an honest account of what RevealUI can and can't do right now.
 If you're evaluating RevealUI for a project, read this before the marketing page.
@@ -27,10 +27,10 @@ Integrated into the admin content management flow.
 
 ### Real-time sync (optional)
 ElectricSQL integration for real-time data synchronization. Proxy, auth, and shapes
-have been verified working between Railway and NeonDB. Off by default — opt-in via env vars when you want it.
+have been verified working between Fly and NeonDB. Off by default — opt-in via env vars when you want it.
 
 ### CLI scaffolding
-**`create-revealui` published to npm at v0.5.5**. `@revealui/cli` is at v0.7.0. Bootstraps a new RevealUI project with working config, database setup, and development server.
+**`create-revealui` published to npm at v0.5.6**. `@revealui/cli` is at v0.7.1. Bootstraps a new RevealUI project with working config, database setup, and development server.
 
 ### CI and code quality
 3-phase CI gate (lint, typecheck, test, build) with an extensive test suite across
@@ -77,7 +77,7 @@ Honest list of things that are not done, not deployed, or not verified.
 - **Zero paying customers.** Pre-launch posture. The admin account exists for the studio's own use.
 - **Marketing site is live but external traffic is near-zero.** Deployed at [revealui.com](https://revealui.com); near-zero outside-the-team traffic to date.
 - **Docs site is live but external traffic is near-zero.** Deployed at [docs.revealui.com](https://docs.revealui.com); same caveat.
-- **No managed hosting service.** RevealUI Studio's own marketing site runs on Vercel; we do not (today) offer to host customer instances. Self-host (Vercel, Cloudflare, Railway, Hetzner, Docker, Fleet kit when GHCR images publish) is the path. Vercel and Cloudflare are friendly deploy targets, not competitors.
+- **No managed hosting service.** RevealUI Studio's own marketing site runs on Vercel; we do not (today) offer to host customer instances. Self-host (Vercel, Cloudflare, Fly, Hetzner, Docker, Fleet kit when GHCR images publish) is the path. Vercel and Cloudflare are friendly deploy targets, not competitors.
 - **Fleet Docker images not yet published to GHCR.** The `docker/` stack and stamp scripts are production-ready, but the images at `ghcr.io/revealuistudio/revealui-{api,admin}` have not yet been published. Until then, Fleet customers build from source.
 - **Stripe is in TEST MODE in production.** No real money has been processed. The live-mode flip is gated on the billing-readiness audit (GAP-124) closing.
 - **REVEALUI_KEK rotation tooling is not yet built** (GAP-126 open). KEK rotation requires a coordinated maintenance window with manual data re-encryption today.
@@ -98,10 +98,11 @@ Honest list of things that are not done, not deployed, or not verified.
 |--------|-------|----------|
 | Workspaces (apps + packages) | 30 | Yes |
 | Apps | 4 (`admin`, `server`, `docs`, `marketing`) | Yes |
-| OSS packages (MIT) | 22 | Yes |
+| OSS packages (MIT) | 20 | Yes |
 | Pro packages (FSL-1.1-MIT) | 5 (`ai`, `engines`, `harnesses`, `mcp`, `services`) | Yes |
+| Internal packages | 1 (`@revealui/scripts`, unlicensed build tooling) | Yes |
 | UI components | 59 in `@revealui/presentation` (80 with `@revealui/core`) | Yes |
-| Database tables | 86 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
+| Database tables | 85 | Yes (run `grep -h 'pgTable(' packages/db/src/schema/*.ts \| wc -l`) |
 | MCP servers (`packages/mcp/src/servers/`) | 13 | Yes |
 | Test cases | run `pnpm test` for current count | Reproducible |
 | Test files | run `find . -name "*.test.ts*" -not -path "*/node_modules/*"` | Reproducible |

@@ -48,11 +48,17 @@ function resolveEnv(args: string[]): string {
 // Revvault integration
 // ---------------------------------------------------------------------------
 
-function revvaultGet(path: string): string | null {
+function revvaultGet(path: string, opts: { optional?: boolean } = {}): string | null {
   try {
     const result = execFileSync('revvault', ['get', '--full', path], {
       encoding: 'utf-8',
       timeout: 10_000,
+      // Lookups are non-interactive (stdin ignored). For optional secrets,
+      // discard revvault's stderr so a legitimately-absent secret does not
+      // print a misleading "secret not found" line. Required secrets keep
+      // stderr visible so a genuine vault failure (locked store, missing age
+      // identity) surfaces alongside this script's own guidance below.
+      stdio: ['ignore', 'pipe', opts.optional ? 'ignore' : 'inherit'],
     });
     return result.trim() || null;
   } catch {
@@ -97,8 +103,11 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const name = revvaultGet(`revealui/${env}/admin/bootstrap/name`) ?? 'Super Admin';
-  const forceRotateRaw = revvaultGet(`revealui/${env}/admin/bootstrap/force-rotate`);
+  const name =
+    revvaultGet(`revealui/${env}/admin/bootstrap/name`, { optional: true }) ?? 'Super Admin';
+  const forceRotateRaw = revvaultGet(`revealui/${env}/admin/bootstrap/force-rotate`, {
+    optional: true,
+  });
   const forceRotate = forceRotateRaw !== 'false'; // default true
 
   // Import bootstrap (deferred to avoid top-level DB connection)
@@ -107,7 +116,7 @@ async function main(): Promise<void> {
   // Build a minimal RevealUI-like instance using the DB client directly
   const { getClient } = await import('@revealui/db/client');
   const { users } = await import('@revealui/db/schema');
-  const { eq } = await import('drizzle-orm');
+  const { eq } = await import('@revealui/db/orm');
 
   const db = getClient('rest');
 

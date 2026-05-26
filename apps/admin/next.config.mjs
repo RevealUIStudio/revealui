@@ -85,6 +85,12 @@ const nextConfig = {
     '@libsql/client-wasm',
     '@revealui/ai',
     '@revealui/services',
+    // @simplewebauthn/server (+ its @peculiar/asn1-* / cbor deps) is ESM- and
+    // crypto-heavy and breaks at runtime when bundled into the standalone server
+    // output — fine in `next dev`, throws in the prod build. It reaches the bundle
+    // via @revealui/auth (transpilePackages). Externalize so it loads from
+    // node_modules at runtime. Fixes the prod passkey-options 500 (GAP-220).
+    '@simplewebauthn/server',
   ],
   // Transpile workspace packages - all now use bundler module resolution with extensionless imports
   // This works with Turbopack since we changed from NodeNext to bundler resolution

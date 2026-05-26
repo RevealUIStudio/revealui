@@ -304,7 +304,11 @@ export default buildConfig({
             name: 'Admin User',
             email: adminEmail,
             password: adminPassword,
-            role: 'super-admin',
+            // DB `role` column is CHECK-constrained to the Drizzle enum
+            // (owner/admin/editor/viewer/agent/contributor); the app-level
+            // 'super-admin' lives in `roles`. Mirrors @revealui/setup bootstrap()
+            // — 'super-admin' here violates users_role_check and the create fails.
+            role: 'owner',
             roles: ['super-admin'],
           },
         });

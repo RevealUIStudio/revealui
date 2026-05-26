@@ -37,7 +37,7 @@ The RevSkills repo organises skills by surface area. Representative entries (the
 
 ### Framework + app patterns
 
-- **`next-best-practices`** — Next.js 15+ App Router (RSC, PPR, caching, server actions, metadata)
+- **`next-best-practices`** — Next.js 16+ App Router (RSC, PPR, caching, server actions, metadata)
 - **`tailwind-v4`** — Tailwind CSS v4 (`@theme`, CSS-first config, CVA, migration from v3)
 - **`security-hardening`** — OWASP Top 10 (CSP, CORS, auth, rate limiting, XSS, CSRF)
 

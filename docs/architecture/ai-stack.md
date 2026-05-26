@@ -112,7 +112,7 @@ Memory integration is optional  -  agents degrade gracefully without it. Require
 - **Hybrid search**: BM25 (keyword) + vector (semantic) with reranking
 - **admin indexer**: Auto-indexes admin content for agent context
 
-Embeddings stored in Supabase (pgvector). Search queries use the dual-database pattern: NeonDB for metadata, Supabase for vectors.
+Embeddings stored in Postgres via pgvector. NeonDB is the canonical store for both metadata and vectors; legacy Supabase-backed vector storage is being phased out (RAG consolidates onto Neon pgvector).
 
 ## Caching Layers
 
@@ -164,4 +164,4 @@ aiInference:     max      Open-model inference configuration (snaps, harness)
 | `OLLAMA_BASE_URL` | No | Ollama server URL (default: `http://localhost:11434/v1`) |
 | `LLM_PROVIDER` | No | Force specific inference path (overrides auto-detection) |
 | `LLM_MODEL` | No | Override default model for the selected inference path |
-| `X402_ENABLED` | No | Enable x402 payments (USDC + optional RVUI). Activates 402 emission on quota exhaust + per-agent pricing. See [x402.md](./x402.md) for the full activation flow. |
+| `X402_ENABLED` | No | Enable x402 payments (USDC on Base). Activates 402 emission on quota exhaust + per-agent pricing. See [x402.md](./x402.md) for the full activation flow. |
