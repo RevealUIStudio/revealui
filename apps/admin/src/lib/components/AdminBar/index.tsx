@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
+import { usePathname, useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import React, { useState } from 'react';
 
 // Local type definitions for RevealUI admin
@@ -83,9 +83,24 @@ const collectionLabels = {
 
 const Title = () => <span>Dashboard</span>;
 
+// Auth-flow pages live in the (frontend) route group alongside content pages, and the
+// AdminBar is mounted in that group's layout. The bar is only meaningful on content pages an
+// authenticated admin is browsing — never on the login/signup/setup screens. Without this
+// guard, an admin who still holds a valid session and lands on /signup sees the bar there.
+const AUTH_ROUTES = new Set([
+  '/login',
+  '/signup',
+  '/setup',
+  '/mfa',
+  '/rotate-password',
+  '/forgot-password',
+  '/reset-password',
+]);
+
 export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
   const { adminBarProps } = props || {};
   const segments = useSelectedLayoutSegments();
+  const pathname = usePathname();
   const [show, setShow] = useState(false);
   const segmentKey = segments?.[1] as keyof typeof collectionLabels | undefined;
   const collection = segmentKey && collectionLabels[segmentKey] ? segmentKey : 'pages';
@@ -95,6 +110,13 @@ export const AdminBar = (props: { adminBarProps?: RevealUIAdminBarProps }) => {
   const onAuthChange = React.useCallback((user: RevealUIMeUser) => {
     setShow(Boolean(user?.id));
   }, []);
+
+  // All hooks above run unconditionally (Rules of Hooks). On auth-flow pages the bar must
+  // never render — bail out before mounting RevealUIAdminBar so its /api/auth/me probe is
+  // skipped too.
+  if (AUTH_ROUTES.has(pathname)) {
+    return null;
+  }
 
   function cn(
     baseClasses: string,
