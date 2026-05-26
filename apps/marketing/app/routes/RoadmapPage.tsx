@@ -55,7 +55,7 @@ export function RoadmapPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-amber-50 via-background to-orange-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-background to-orange-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Product

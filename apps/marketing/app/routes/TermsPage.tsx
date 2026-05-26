@@ -3,7 +3,7 @@ import { TERMS_META, TERMS_SECTIONS } from '../content/legal/terms';
 
 export function TermsPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <article className="mx-auto max-w-3xl px-6 py-24 lg:px-8 prose prose-gray">
         <h1>{TERMS_META.title}</h1>
         <p className="text-sm text-muted-foreground">Last updated: {TERMS_META.lastUpdated}</p>
