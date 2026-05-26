@@ -1,5 +1,5 @@
-// Sourced from: app/routes/ComingSoonPage.tsx (Phase 1, no copy changes). Per docs/lanes/marketing-overhaul/plan.md §4.4.
-// File named roadmap.ts per Phase 4 /roadmap rename plan; route stays ComingSoonPage.tsx for now.
+// Sourced from: app/routes/RoadmapPage.tsx (Phase 1, no copy changes). Per docs/lanes/marketing-overhaul/plan.md §4.4.
+// Phase 4 complete: page renders at /roadmap via RoadmapPage.tsx; /coming-soon 308-redirects in vercel.json.
 
 import { SITE } from './site';
 import type { Cta, SectionHeading } from './types';

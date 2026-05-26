@@ -1,5 +1,47 @@
 # @revealui/security
 
+## 0.4.0
+
+### Minor Changes
+
+- 198e56a: Add a client-safe `@revealui/security/sanitize` subpath and route rich-text RSC rendering through it — fixes a `node:crypto` client-bundle crash.
+
+  `@revealui/core/richtext/rsc` imported `isSafeUrl` / `sanitizeUrl` from the `@revealui/security` barrel, which statically re-exports `auth.ts` and `gdpr.ts`. Both modules have a top-level `import { ... } from 'node:crypto'`, so the entire crypto graph was pulled into every client/RSC bundle that rendered rich text. In the browser `node:crypto` is unavailable, which crashed the bundle and blanked any route loading rich-text content (e.g. the marketing `/blog` route, on `main`/production).
+
+  - `@revealui/security`: new `./sanitize` export (built as a separate tsup entry). It bundles only `src/sanitize.ts` + `parse5` — no `node:crypto` — so it is safe to import from a browser/RSC client path. The barrel is unchanged for server consumers.
+  - `@revealui/core`: `richtext/exports/server/rsc.tsx` now imports the URL helpers from `@revealui/security/sanitize` instead of the barrel. No public API change; existing re-exports of `isSafeUrl` / `sanitizeUrl` are preserved.
+
+  The sync `totpHmac` (TOTP) usage in `auth.ts` is intentionally left as a static import — converting it to a lazy `await import('node:crypto')` would force an async signature change rippling to all TOTP callers. Isolating the client path via the subpath avoids that blast radius entirely.
+
+- 1d5a9e4: Split server-only modules behind `@revealui/security/server` so the default `@revealui/security` barrel is client-bundle-safe.
+
+  `auth`, `gdpr`, `audit` (`node:crypto`) and `ssrf` (`node:dns`) now export from the new `@revealui/security/server` subpath. The default barrel re-exports only client-safe modules — alerting, authorization, encryption (Web Crypto), GDPR storage, headers, logger, request-IP, and input sanitization — so a browser/RSC bundle that imports `@revealui/security` no longer drags the `node:` graph in (the crash class fixed in the previous release for richtext RSC).
+
+  `@revealui/core/security` re-exports both the barrel and `./server`, so server consumers that import via `@revealui/core/security` are unaffected. Code that imported the moved symbols (`TwoFactorAuth`, `OAuthClient`, the GDPR managers, `AuditSystem`/`audit`, `assertPublicUrl`, etc.) directly from the `@revealui/security` barrel must switch to `@revealui/security/server`, which is server-only.
+
+- 0f2906c: Harden server-side fetches of user/tenant-supplied URLs against SSRF.
+
+  `@revealui/security` gains `createSafeFetch()` — a `fetch` that validates the
+  target resolves to a public IP and pins the connection to that IP via an undici
+  dispatcher whose lookup re-validates at dial time (closing the DNS-rebinding
+  TOCTOU that a bare `assertPublicUrl` + `fetch` leaves open), and refuses
+  redirects (a classic SSRF-guard bypass). `assertPublicUrl()` now returns the
+  validated public IPs and additionally blocks bracketed-IPv6 literals and
+  hex-form IPv4-mapped loopback/private literals (e.g. `::ffff:7f00:1`) that the
+  prior check missed.
+
+  `@revealui/mcp` routes every remote MCP server connection through this guard in
+  `buildRemoteMcpClient` (validating the stored server URL and pinning the
+  transport's fetch). The API marketplace proxy and the admin MCP OAuth initiate
+  flow now reject private/metadata/loopback targets instead of connecting to them.
+
+### Patch Changes
+
+- Updated dependencies [9ec7c07]
+- Updated dependencies [363d4b5]
+- Updated dependencies [e4a3779]
+  - @revealui/contracts@0.6.0
+
 ## 0.3.1
 
 ### Patch Changes

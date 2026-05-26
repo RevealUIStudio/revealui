@@ -4792,7 +4792,7 @@ Admin-only bulk export endpoint. Supported collections: posts, pages, users, sit
 
 **Clean up orphaned vector data (internal cron)**
 
-Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.
+Removes orphaned legacy-Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Relevant during the Supabase phase-out; retires once vectors consolidate onto Neon. Protected by X-Cron-Secret.
 
 **Responses**
 
@@ -4806,7 +4806,7 @@ Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks
 
 **Clean up orphaned vector data (internal cron)**
 
-Removes orphaned Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Protected by X-Cron-Secret.
+Removes orphaned legacy-Supabase vector data (agent memories, RAG documents, RAG chunks) for sites that have been soft-deleted in NeonDB. Relevant during the Supabase phase-out; retires once vectors consolidate onto Neon. Protected by X-Cron-Secret.
 
 **Responses**
 

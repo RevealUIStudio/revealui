@@ -110,7 +110,12 @@ async function signInHandler(request: NextRequest): Promise<NextResponse> {
     // Set role hint cookie for proxy.ts admin gate (defense-in-depth, not the security boundary).
     // The real enforcement is at the API level via collection access.read checks.
     const userRole = result.user.role ?? 'user';
-    const isAdminRole = ['admin', 'super-admin', 'admin', 'super-admin'].includes(userRole);
+    // 'owner' is the highest DB role (the bootstrap assigns it to the first user) and must
+    // count as admin; 'super-admin' is an app-layer roles[] value, kept for forward-compat.
+    // (Pre-fix this list was the deduped wreckage of the #306 role-rename — ['admin',
+    // 'super-admin','admin','super-admin'] — which omitted 'owner' and locked the bootstrap
+    // admin out of /admin via proxy.ts's revealui-role gate.)
+    const isAdminRole = ['owner', 'admin', 'super-admin'].includes(userRole);
     response.cookies.set('revealui-role', isAdminRole ? 'admin' : 'user', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

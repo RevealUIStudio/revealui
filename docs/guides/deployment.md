@@ -1,6 +1,8 @@
 # Deployment
 
-RevealUI supports three deployment targets: Vercel (recommended), Docker Compose, and self-hosted Node.js. This guide covers each option and the environment configuration required for production.
+RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, and self-hosted Node.js. This guide covers each option and the environment configuration required for production.
+
+> RevealUI Studio's own production runs on **Vercel (HTTP) + Fly (long-running `apps/server` subset + ElectricSQL) + Neon (Postgres)** — three vendors (Railway was dropped; Kubernetes is not a target). A `fly.toml` ships at `apps/server/fly.toml`.
 
 ---
 
@@ -8,7 +10,8 @@ RevealUI supports three deployment targets: Vercel (recommended), Docker Compose
 
 | Target | Best For | Services Included |
 |--------|----------|-------------------|
-| Vercel | SaaS, serverless | admin, API, Marketing, Docs |
+| Vercel | SaaS, serverless (HTTP) | admin, API, Marketing, Docs |
+| Fly | Long-running services | Persistent `apps/server` subset + ElectricSQL sync |
 | Docker Compose | Self-hosted, on-prem | All apps in containers |
 | Node.js | Custom infrastructure | Manual process management |
 
@@ -292,7 +295,7 @@ server {
 
 | Variable | Description | Required For |
 |----------|-------------|-------------|
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token | Media uploads |
+| `BLOB_READ_WRITE_TOKEN` | Legacy Vercel Blob token (storage is migrating to Cloudflare R2) | Media uploads |
 | `STRIPE_SECRET_KEY` | Stripe secret key | Billing |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | Checkout UI |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Webhook verification |
@@ -356,6 +359,5 @@ RevealUI uses a structured logger (`@revealui/utils`). In production, logs are w
 
 ## Related Documentation
 
-- [CI/CD Guide](../CI_CD_GUIDE.md) -- Pipeline configuration and rollback procedures
 - [Environment Variables](../ENVIRONMENT-VARIABLES-GUIDE.md) -- Full configuration reference
 - [Architecture](../ARCHITECTURE.md) -- System design and infrastructure

@@ -166,9 +166,9 @@ Plugin API shape is stable. The set of bundled plugins may expand.
 
 | Import | Stability | Notes |
 |--------|-----------|-------|
-| `@revealui/core/storage` | **Beta** | File/media upload handlers, Vercel Blob adapter. |
+| `@revealui/core/storage` | **Beta** | File/media upload handlers, Cloudflare R2 (S3-compatible) adapter. |
 
-Vercel Blob integration is the primary adapter. The storage adapter interface is designed for extensibility but is not yet fully documented.
+Cloudflare R2 (S3-compatible) is the canonical storage backend; the legacy Vercel Blob adapter is being retired. The storage adapter interface is designed for extensibility but is not yet fully documented.
 
 #### Authentication Helpers
 
@@ -226,7 +226,7 @@ import { ... } from '@revealui/core/security'
 
 ## Production Verification Status
 
-This table reflects what has been exercised against production infrastructure (admin.revealui.com, revealui-api.vercel.app, NeonDB production, Electric on Railway).
+This table reflects what has been exercised against production infrastructure (admin.revealui.com, revealui-api.vercel.app, NeonDB production, Electric on Fly).
 
 | Feature | Verified in Production | Notes |
 |---------|----------------------|-------|
@@ -240,7 +240,7 @@ This table reflects what has been exercised against production infrastructure (a
 | Webhook idempotency | ✅ Yes | Stripe webhook double-processing prevented (idempotency key) |
 | REST API (Hono, `/v1/`) | ✅ Yes | API deployed and serving |
 | Rich text (Lexical) | ⚠️ Partial | Integration tested, no production content authored yet |
-| Storage (Vercel Blob) | ⚠️ Partial | Code deployed, no production uploads yet |
+| Storage (Cloudflare R2) | ⚠️ Partial | Code deployed, no production uploads yet |
 | Monitoring / health checks | ⚠️ Partial | Health endpoints return live data; alert pipeline not wired |
 | AI agents | ❌ Not yet | Pro-only; no production traffic yet |
 
@@ -317,7 +317,7 @@ Changelogs are published via [Changesets](https://github.com/changesets/changese
 | `zod` | `^4.x` | Schema validation. Zod 4 is a major revision; no Zod 3 compatibility. |
 | `jose` | `^6.x` | JWT/JOSE. API stable. |
 | `bcryptjs` | `^3.x` | Password hashing. API stable. |
-| `@vercel/blob` | `^2.x` | Vercel Blob storage SDK. |
+| `@vercel/blob` | `^2.x` | Legacy Vercel Blob storage SDK; being retired in favor of the Cloudflare R2 (S3-compatible) backend. |
 | `yjs` | `^13.x` | CRDT for collaborative editing. Peer dep for real-time use cases. |
 | `pg` | `^8.x` | PostgreSQL client. Used internally; not re-exported. |
 
@@ -329,5 +329,5 @@ Peer dependencies: React 18/19 and Next.js 14/15/16 are both supported.
 
 - [Package Reference](./REFERENCE.md)  -  full API documentation for all @revealui/* packages
 - [Auth & Security](./AUTH.md)  -  authentication system, RBAC, security policy
-- [Architecture](./ARCHITECTURE.md)  -  system design, dual-database, multi-tenant patterns
+- [Architecture](./ARCHITECTURE.md)  -  system design, NeonDB data layer, multi-tenant patterns
 - [Admin Guide](./ADMIN_GUIDE.md)  -  collections, content management, admin dashboard

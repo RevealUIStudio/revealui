@@ -1443,6 +1443,4 @@ class MyScript extends EnhancedCLI {
 
 ---
 
-For programmatic API usage, see [API_REFERENCE.md](./API_REFERENCE.md).
-
-For version history and changelog, see [CHANGELOG_SCRIPT_MANAGEMENT.md](./CHANGELOG_SCRIPT_MANAGEMENT.md).
+This guide is the canonical reference for script management; programmatic usage and version history are documented inline above.
