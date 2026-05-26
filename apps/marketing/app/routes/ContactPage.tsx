@@ -4,14 +4,14 @@ import { CONTACT_HERO, CONTACT_METHODS } from '../content/contact';
 
 export function ContactPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+    <div className="min-h-screen bg-background">
+      <section className="relative overflow-hidden bg-gradient-to-br from-secondary via-background to-secondary px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-2xl">
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               {CONTACT_HERO.title}
             </h1>
-            <p className="mt-6 text-lg leading-8 text-gray-600">{CONTACT_HERO.subtitle}</p>
+            <p className="mt-6 text-lg leading-8 text-muted-foreground">{CONTACT_HERO.subtitle}</p>
           </div>
 
           <ContactForm />
@@ -19,8 +19,8 @@ export function ContactPage() {
           <div className="mt-16 grid grid-cols-1 gap-8 sm:grid-cols-3 text-center">
             {CONTACT_METHODS.map((method) => (
               <div key={method.title}>
-                <h3 className="text-sm font-semibold text-gray-900">{method.title}</h3>
-                <p className="mt-2 text-sm text-gray-600">
+                <h3 className="text-sm font-semibold text-foreground">{method.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">
                   {method.body ? <>{method.body} </> : null}
                   <a
                     href={method.href}

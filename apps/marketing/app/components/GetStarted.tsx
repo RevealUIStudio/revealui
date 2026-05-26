@@ -4,23 +4,18 @@ import { NewsletterSignup } from './NewsletterSignup';
 
 export function GetStarted() {
   return (
-    <section className="py-24 bg-gray-950 sm:py-32">
+    <section className="py-24 bg-card sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {HOME_GET_STARTED.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-400">{HOME_GET_STARTED.body}</p>
+          <p className="mt-6 text-lg leading-8 text-muted-foreground">{HOME_GET_STARTED.body}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg" className="bg-white text-gray-950 hover:bg-gray-100">
+            <ButtonCVA asChild size="lg" variant="primary">
               <a href={HOME_GET_STARTED.cta.primary.href}>{HOME_GET_STARTED.cta.primary.label}</a>
             </ButtonCVA>
-            <ButtonCVA
-              asChild
-              variant="outline"
-              size="lg"
-              className="border-gray-700 text-gray-300 hover:text-white hover:border-gray-500"
-            >
+            <ButtonCVA asChild variant="outline" size="lg">
               <a href={HOME_GET_STARTED.cta.secondary.href}>
                 {HOME_GET_STARTED.cta.secondary.label}
                 <svg
@@ -42,8 +37,8 @@ export function GetStarted() {
           </div>
 
           {/* Newsletter */}
-          <div className="mt-16 pt-10 border-t border-gray-800">
-            <p className="text-sm font-medium text-gray-400 mb-4">
+          <div className="mt-16 pt-10 border-t border-border">
+            <p className="text-sm font-medium text-muted-foreground mb-4">
               {HOME_GET_STARTED.newsletter.label}
             </p>
             <NewsletterSignup variant="stacked" />
