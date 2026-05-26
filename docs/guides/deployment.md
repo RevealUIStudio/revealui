@@ -68,7 +68,13 @@ REVEALUI_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 NEXT_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
 
-# Storage (required for media uploads)
+# Storage (required for media uploads) — Cloudflare R2 is canonical (S3-compatible).
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=revealui-media
+R2_PUBLIC_BASE_URL=https://media.yourdomain.com
+# Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset.
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
 
 # Billing (required for payments)
@@ -139,6 +145,12 @@ services:
       - POSTGRES_URL=${POSTGRES_URL}
       - REVEALUI_PUBLIC_SERVER_URL=${REVEALUI_PUBLIC_SERVER_URL}
       - NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
+      # Object storage — Cloudflare R2 (canonical); BLOB_READ_WRITE_TOKEN is the legacy fallback.
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET=${R2_BUCKET}
+      - R2_PUBLIC_BASE_URL=${R2_PUBLIC_BASE_URL}
       - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
     depends_on:
       - api
@@ -295,7 +307,8 @@ server {
 
 | Variable | Description | Required For |
 |----------|-------------|-------------|
-| `BLOB_READ_WRITE_TOKEN` | Legacy Vercel Blob token (storage is migrating to Cloudflare R2) | Media uploads |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL` | Cloudflare R2 (canonical, S3-compatible object storage) | Media uploads |
+| `BLOB_READ_WRITE_TOKEN` | Legacy Vercel Blob token — optional fallback, used only when the R2_* vars are unset | Media uploads |
 | `STRIPE_SECRET_KEY` | Stripe secret key | Billing |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | Checkout UI |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Webhook verification |

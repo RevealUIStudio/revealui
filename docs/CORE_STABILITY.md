@@ -240,7 +240,7 @@ This table reflects what has been exercised against production infrastructure (a
 | Webhook idempotency | ✅ Yes | Stripe webhook double-processing prevented (idempotency key) |
 | REST API (Hono, `/v1/`) | ✅ Yes | API deployed and serving |
 | Rich text (Lexical) | ⚠️ Partial | Integration tested, no production content authored yet |
-| Storage (Cloudflare R2) | ⚠️ Partial | Code deployed, no production uploads yet |
+| Storage (Cloudflare R2) | ⚠️ Partial | R2 canonical across admin + API (provider abstraction; legacy Blob plugin removed); no production uploads verified yet |
 | Monitoring / health checks | ⚠️ Partial | Health endpoints return live data; alert pipeline not wired |
 | AI agents | ❌ Not yet | Pro-only; no production traffic yet |
 

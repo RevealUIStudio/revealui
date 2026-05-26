@@ -85,7 +85,7 @@ pnpm dev
 |----------|-----------|-------------------|
 | **Must have** | `REVEALUI_SECRET`, `REVEALUI_PUBLIC_SERVER_URL`, `NEXT_PUBLIC_SERVER_URL`, `POSTGRES_URL` | Always, for any local dev |
 | **For payments** | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | When testing checkout, subscriptions, or billing |
-| **For uploads** | `BLOB_READ_WRITE_TOKEN` | When testing media uploads |
+| **For uploads** | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL` (canonical Cloudflare R2) — or legacy `BLOB_READ_WRITE_TOKEN` | When testing media uploads |
 | **For AI** | `LLM_PROVIDER`, `OLLAMA_BASE_URL` or `INFERENCE_SNAPS_BASE_URL` | When testing AI agent features |
 | **For email** | `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `EMAIL_FROM` | When testing password reset or waitlist emails (Gmail API via Google Workspace service account) |
 | **For sync** | `NEXT_PUBLIC_ELECTRIC_SERVICE_URL`, `ELECTRIC_SERVICE_URL` | When testing real-time sync features |
@@ -150,9 +150,16 @@ During Next.js builds, set `SKIP_ENV_VALIDATION=true` to defer validation to run
 
 ### Storage
 
+Cloudflare R2 (S3-compatible) is the **canonical** object-storage backend (GAP-208). The five `R2_*` vars are resolved together — set all of them, or none. The legacy `BLOB_READ_WRITE_TOKEN` is an optional fallback, used only when the `R2_*` vars are unset. With no backend configured, media uploads fail fast with a clear error (admin still boots; only the upload action errors).
+
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
-| `BLOB_READ_WRITE_TOKEN` | For uploads | None | Vercel Blob read/write token — the legacy object-storage backend, being retired in favor of Cloudflare R2 (canonical, GAP-208). Required for media uploads until the R2 cutover completes. Get from Vercel Dashboard → Storage → Blob → Create Token. | HIGH (server-only) | admin |
+| `R2_ACCOUNT_ID` | For uploads | None | Cloudflare R2 account ID — the canonical object-storage backend. Set all five `R2_*` vars together. From the Cloudflare dashboard → R2. | HIGH (server-only) | admin, server |
+| `R2_ACCESS_KEY_ID` | For uploads | None | Cloudflare R2 API token Access Key ID (R2 → Manage API Tokens). | HIGH (server-only) | admin, server |
+| `R2_SECRET_ACCESS_KEY` | For uploads | None | Cloudflare R2 API token Secret Access Key (paired with the access key ID). | HIGH (server-only) | admin, server |
+| `R2_BUCKET` | For uploads | None | Cloudflare R2 bucket name. | LOW | admin, server |
+| `R2_PUBLIC_BASE_URL` | For uploads | None | Public base URL for stored objects — a bound custom domain (e.g. `https://media.revealui.com`) or the R2 dev URL. Required by the R2 provider (no presigned-URL fallback). | LOW | admin, server |
+| `BLOB_READ_WRITE_TOKEN` | Optional | None | Legacy Vercel Blob read/write token — fallback backend, used **only when the `R2_*` vars are unset** (being retired, GAP-208). Get from Vercel Dashboard → Storage → Blob → Create Token. | HIGH (server-only) | admin, server |
 
 ---
 
@@ -422,7 +429,12 @@ REVEALUI_PUBLIC_SERVER_URL=http://localhost:4000
 NEXT_PUBLIC_SERVER_URL=http://localhost:4000
 POSTGRES_URL=postgresql://test:test@localhost:5432/test_revealui
 DATABASE_URL=postgresql://test:test@localhost:5432/test_revealui
-BLOB_READ_WRITE_TOKEN=test-blob-token
+# Object storage — canonical Cloudflare R2 (optional in tests; only needed when testing media uploads)
+R2_ACCOUNT_ID=test-account
+R2_ACCESS_KEY_ID=test-key-id
+R2_SECRET_ACCESS_KEY=test-secret
+R2_BUCKET=test-bucket
+R2_PUBLIC_BASE_URL=https://test.example.com
 STRIPE_SECRET_KEY=sk_test_your_test_key_here
 STRIPE_WEBHOOK_SECRET=whsec_your_test_secret_here
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_test_key_here
@@ -709,9 +721,9 @@ You set `SKIP_ENV_VALIDATION=true` outside a build or test context. This is a se
 
 ### Media Uploads Fail
 
-1. Verify `BLOB_READ_WRITE_TOKEN` is set and the token has Read and Write permissions.
-2. Check that the token is not expired in the Vercel Dashboard.
-3. For local development without Vercel Blob, you can skip upload features. They degrade gracefully.
+1. Verify a storage backend is configured: either the five `R2_*` vars (canonical Cloudflare R2) or the legacy `BLOB_READ_WRITE_TOKEN`. With none set, uploads fail fast with a clear "no backend configured" error.
+2. For R2, confirm the API token has object read/write on the bucket and `R2_PUBLIC_BASE_URL` points at a bound public domain (or the R2 dev URL). For Vercel Blob, confirm the token is not expired.
+3. Media uploads are optional for local development — if you are not testing uploads, leave the storage vars unset and avoid the upload UI.
 
 ### Stripe Webhooks Fail Signature Verification
 

@@ -12,7 +12,12 @@ import type { StorageConfig, StorageProvider } from './types.js';
 import { createVercelBlobProvider } from './vercel-blob-provider.js';
 
 export { createMockProvider } from './mock.js';
-
+export type { ObjectStorageConfig } from './object-storage.js';
+// Provider-agnostic Payload-style upload plugin — adapts any StorageProvider
+// (R2 canonical, Vercel Blob fallback, mock) to the engine's collection upload
+// adapter. Used by apps/admin/revealui.config.ts. GAP-208 Phase 4 replaced the
+// provider-specific `vercelBlobStorage` plugin with this.
+export { objectStorage } from './object-storage.js';
 // Provider factories — exported so callers can construct a provider directly
 // when they already know which one they want (skipping the discriminated-union
 // factory below).
@@ -28,9 +33,6 @@ export type {
   StorageProvider,
   VercelBlobConfig,
 } from './types.js';
-// Legacy Payload-style plugin — kept during GAP-208 migration so existing
-// `apps/admin/revealui.config.ts` keeps working. Dropped in Phase 4 cleanup.
-export { vercelBlobStorage } from './vercel-blob.js';
 export { createVercelBlobProvider } from './vercel-blob-provider.js';
 
 /**
@@ -40,8 +42,8 @@ export { createVercelBlobProvider } from './vercel-blob-provider.js';
  * tags throw with a clear message; no silent fallback.
  *
  * Supported tags: 'r2' (canonical), 'vercel-blob' (legacy migration-window
- * fallback), and 'mock' (tests). The legacy `vercelBlobStorage` Payload plugin
- * (vercel-blob.ts) remains separately for apps/admin's revealui.config.ts.
+ * fallback), and 'mock' (tests). The provider-agnostic `objectStorage` Payload
+ * plugin (object-storage.ts) adapts any of these to apps/admin's upload path.
  */
 export function createStorage(config: StorageConfig): StorageProvider {
   switch (config.provider) {
