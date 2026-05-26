@@ -1,4 +1,4 @@
-# The Air-Gap Capable Business Stack
+# The Air-Gap-Capable Business Runtime
 
 *By Joshua Vaughn  -  RevealUI Studio*
 
@@ -17,9 +17,9 @@ RevealUI's local-first story comes from four independent pieces that happen to c
 | Layer | Technology | What it does |
 |-------|-----------|-------------|
 | **Secrets** | RevVault (age encryption) | Credentials stay on your machine, encrypted at rest |
-| **AI inference (default)** | Inference snaps / Ollama (open models) | Local LLM inference. Cloud-compatible providers (Groq, Vultr, HuggingFace, OpenAI-compatible, Anthropic) are pluggable via env vars but opt-in. |
+| **AI inference (default)** | Inference snaps / Ollama (open models) | Local LLM inference. Cloud-compatible providers (Groq, HuggingFace, OpenAI-compatible, Anthropic) are pluggable via env vars but opt-in. |
 | **Dev environment** | Nix flakes + direnv | Reproducible environment, zero manual tool installs |
-| **Business logic** | RevealUI Pro | Auth, content, payments, AI agents  -  all wired |
+| **Business logic** | RevealUI | Auth, content, payments, AI agents  -  all wired |
 
 Each layer independently solves a real problem. Together, they give you something genuinely unusual: a full AI-powered business software stack that can run without a network connection.
 
@@ -108,7 +108,7 @@ The entire AI-powered business stack  -  auth, content, products, payments, agen
 
 ## Who this is for
 
-The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, planned recommended) and Ollama (any open source GGUF model, default local). Cloud-compatible providers — Groq, Vultr, HuggingFace, OpenAI-compatible endpoints, and Anthropic for prompt caching — are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.
+The "local-first" configuration is one of several inference paths. RevealUI supports Ubuntu Inference Snaps (Canonical's managed runtime, planned recommended) and Ollama (any open source GGUF model, default local). Cloud-compatible providers — Groq, HuggingFace, OpenAI-compatible endpoints, and Anthropic for prompt caching — are pluggable but opt-in via env vars. Pick the path that fits your trust + cost profile; there is no vendor lock-in.
 
 But there's a real and growing audience for whom those concerns matter:
 
@@ -126,7 +126,7 @@ Running locally doesn't mean running poorly. The RevealUI agent stack has the sa
 
 - **Planning and tools**  -  agents can create todos, read and write files, execute shell commands
 - **Memory**  -  episodic memory, working memory, CRDT-based persistence across sessions
-- **MCP integrations**  -  12 first-party tool servers (Stripe, Supabase, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, plus RevealUI-internal Content / Email / Memory / Stripe servers, and the adapter base class)
+- **MCP integrations**  -  13 first-party MCP servers (Stripe, Supabase, Neon, Vercel, Playwright, Code Validator, Next.js DevTools, plus RevealUI-internal Content / Email / Memory / Stripe servers, the contracts introspection server, and the adapter base class)
 - **Orchestration**  -  multi-agent coordination, sub-agent spawning, streaming
 
 What you do give up: the raw capability of a 70B+ cloud model. Smaller local models like Gemma 4 are excellent for structured tasks  -  code generation, data processing, form filling, API orchestration  -  but won't match a frontier model on open-ended reasoning. For most business automation use cases, that's an acceptable trade.
