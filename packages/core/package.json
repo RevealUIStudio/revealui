@@ -4,7 +4,7 @@
   "description": "RevealUI's runtime engine — admin UI, REST API, auth, rich text, plugin system, and access control. The heart of the open-source platform.",
   "license": "MIT",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1049.0",
+    "@aws-sdk/client-s3": "^3.1053.0",
     "@electric-sql/pglite": "^0.4.5",
     "@lexical/clipboard": "^0.44.0",
     "@lexical/code": "^0.44.0",
