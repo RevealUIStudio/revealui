@@ -6,6 +6,15 @@ import { generateCsrfToken, validateCsrfToken } from './lib/utils/csrf-token';
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 const CSRF_EXEMPT_PREFIXES = [
+  // Pre-auth endpoints are hit before a session exists, so they must not be CSRF-gated.
+  // The gate below keys on session-cookie PRESENCE (not validity), so a STALE/invalid
+  // `revealui-session` cookie — e.g. one left over after a secret rotation invalidated old
+  // sessions — would otherwise demand a CSRF token the login form never sends, producing a
+  // spurious "CSRF token missing" 403 that blocks sign-in until the user clears cookies.
+  // (`/api/auth/password-reset` below is already exempt for the same reason.)
+  '/api/auth/sign-in',
+  '/api/auth/sign-up',
+  '/api/auth/passkey/authenticate',
   '/api/webhooks/',
   '/api/cron/',
   '/api/health',
