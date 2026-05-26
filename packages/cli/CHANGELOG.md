@@ -1,5 +1,14 @@
 # @revealui/cli
 
+## 0.7.2
+
+### Patch Changes
+
+- a111b7b: Project templates no longer pass an unused `sharp` instance to `buildConfig`.
+  The RevealUI engine does not decode images in-process (resizing is delegated to
+  `next/image`), so the injection was a no-op. `sharp` remains available for
+  Next.js image optimization in generated projects.
+
 ## 0.7.1
 
 ### Patch Changes
