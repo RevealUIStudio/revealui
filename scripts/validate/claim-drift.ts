@@ -1252,6 +1252,84 @@ function scanForRvuiTickerLeaks(): RvuiLeakMatch[] {
 }
 
 // ---------------------------------------------------------------------------
+// Marketing METRICS drift (Phase 6 — marketing-overhaul lane)
+//
+// apps/marketing/app/content/site.ts exports a METRICS object that every
+// marketing content/* file imports instead of hardcoding integers. Those
+// values are `key: value` shaped (the number FOLLOWS the metric word), so the
+// prose claim-scanner above never matches them — `dbTables: 86` / `mcpServers:
+// 13` slip past the "N tables" / "N MCP servers" patterns. This check reads the
+// METRICS block directly and asserts each value equals the canonical count this
+// validator computes, so a stale METRICS integer fails CI.
+//
+// No authored regex (fleet no-regex rule): indexOf + Number.parseInt only.
+// ---------------------------------------------------------------------------
+
+const MARKETING_SITE_FILE = 'apps/marketing/app/content/site.ts';
+
+interface MarketingMetricCheck {
+  /** METRICS field name in site.ts (e.g. "dbTables", "mcpServers"). */
+  key: string;
+  /** Canonical count this validator computed from the codebase. */
+  actual: number;
+  /** Allowed |declared - actual| drift. Test files churn, so they get slack. */
+  tolerance?: number;
+}
+
+interface MarketingMetricDrift {
+  key: string;
+  /** null = key missing from the METRICS block. */
+  declared: number | null;
+  actual: number;
+}
+
+/**
+ * Parse a flat integer `<key>: <n>` out of the METRICS block. `Number.parseInt`
+ * skips leading whitespace and stops at the first non-digit, so the value in
+ * `dbTables: 85,` parses to 85. Returns null when the key is absent.
+ */
+function readDeclaredMetric(metricsBlock: string, key: string): number | null {
+  const token = `${key}:`;
+  const idx = metricsBlock.indexOf(token);
+  if (idx === -1) return null;
+  const parsed = Number.parseInt(metricsBlock.slice(idx + token.length), 10);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function checkMarketingMetrics(checks: MarketingMetricCheck[]): MarketingMetricDrift[] {
+  const full = path.join(ROOT, MARKETING_SITE_FILE);
+  let src: string;
+  try {
+    src = fs.readFileSync(full, 'utf8');
+  } catch {
+    throw new Error(
+      `claim-drift: cannot read ${MARKETING_SITE_FILE}. If apps/marketing moved, ` +
+        'update MARKETING_SITE_FILE in scripts/validate/claim-drift.ts.',
+    );
+  }
+  // Scope the parse to the METRICS object so SITE.urls etc. cannot collide.
+  const start = src.indexOf('export const METRICS');
+  if (start === -1) {
+    throw new Error(`claim-drift: METRICS export not found in ${MARKETING_SITE_FILE}.`);
+  }
+  const end = src.indexOf('export const SITE');
+  const block = src.slice(start, end === -1 ? undefined : end);
+
+  const drifts: MarketingMetricDrift[] = [];
+  for (const check of checks) {
+    const declared = readDeclaredMetric(block, check.key);
+    if (declared === null) {
+      drifts.push({ key: check.key, declared: null, actual: check.actual });
+      continue;
+    }
+    if (Math.abs(declared - check.actual) > (check.tolerance ?? 0)) {
+      drifts.push({ key: check.key, declared, actual: check.actual });
+    }
+  }
+  return drifts;
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -1409,6 +1487,20 @@ function run(): void {
   const membershipMatches = scanForLicenseMembershipDrift(pkgMap);
   const incompleteProMatches = scanForIncompleteProList(pkgMap);
 
+  // Marketing METRICS drift (Phase 6) — site.ts METRICS vs canonical counts
+  const marketingMetricDrifts = checkMarketingMetrics([
+    { key: 'packages', actual: packages },
+    { key: 'apps', actual: apps },
+    { key: 'workspaces', actual: workspaces },
+    { key: 'uiComponents', actual: uiComponents },
+    { key: 'mcpServers', actual: mcpServers },
+    { key: 'dbTables', actual: dbTables },
+    { key: 'testFiles', actual: testFiles, tolerance: 100 },
+    { key: 'mit', actual: licenseSplit.mit },
+    { key: 'fsl', actual: licenseSplit.fsl },
+    { key: 'internal', actual: licenseSplit.internal },
+  ]);
+
   console.log('====================');
   console.log(`Claims scanned: ${claims.length}`);
   console.log(`Mismatches:     ${mismatches}`);
@@ -1421,6 +1513,7 @@ function run(): void {
   console.log(`Phantom-package mentions: ${phantomMatches.length}`);
   console.log(`License-membership mismatches: ${membershipMatches.length}`);
   console.log(`Incomplete Pro-list claims: ${incompleteProMatches.length}`);
+  console.log(`Marketing METRICS drift (site.ts): ${marketingMetricDrifts.length}`);
 
   if (futureClaims.length > 0) {
     console.log('\nUnlinked future-tense claims (convention: CONTRIBUTING.md):');
@@ -1505,6 +1598,19 @@ function run(): void {
     );
   }
 
+  if (marketingMetricDrifts.length > 0) {
+    console.log(
+      '\nMarketing METRICS drift — apps/marketing/app/content/site.ts out of sync with codebase:',
+    );
+    for (const d of marketingMetricDrifts) {
+      const declaredStr = d.declared === null ? 'MISSING' : String(d.declared);
+      console.log(`  METRICS.${d.key}: declares ${declaredStr}, actual ${d.actual}`);
+    }
+    console.log(
+      '\nUpdate METRICS in apps/marketing/app/content/site.ts (and docs/MARKETING_METRICS.md §1) to match the codebase counts above.',
+    );
+  }
+
   const anyFailures =
     mismatches > 0 ||
     futureClaims.length > 0 ||
@@ -1513,7 +1619,8 @@ function run(): void {
     rvuiLeaks.length > 0 ||
     phantomMatches.length > 0 ||
     membershipMatches.length > 0 ||
-    incompleteProMatches.length > 0;
+    incompleteProMatches.length > 0 ||
+    marketingMetricDrifts.length > 0;
 
   if (anyFailures) {
     if (mismatches > 0) {
@@ -1542,6 +1649,9 @@ function run(): void {
     }
     if (incompleteProMatches.length > 0) {
       console.log('\nFailed: incomplete Pro-package lists in docs.');
+    }
+    if (marketingMetricDrifts.length > 0) {
+      console.log('\nFailed: marketing METRICS out of sync with codebase counts.');
     }
     process.exit(1);
   } else {

@@ -13,11 +13,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // ============================================================================
 
 const mockPoolEnd = vi.fn().mockResolvedValue(undefined);
+const mockPoolOn = vi.fn();
 const mockPoolInstance = {
   totalCount: 5,
   idleCount: 3,
   waitingCount: 0,
   end: mockPoolEnd,
+  on: mockPoolOn,
 };
 
 vi.mock('pg', () => {
@@ -26,6 +28,7 @@ vi.mock('pg', () => {
     idleCount = mockPoolInstance.idleCount;
     waitingCount = mockPoolInstance.waitingCount;
     end = mockPoolInstance.end;
+    on = mockPoolInstance.on;
   }
   return { Pool: MockPool };
 });
@@ -144,6 +147,16 @@ describe('client/index  -  pool management', () => {
       });
 
       expect(db).toBeDefined();
+    });
+
+    it("registers an 'error' handler on the pg Pool to prevent idle-client crashes", () => {
+      createClient({
+        connectionString: 'postgresql://user:pass@localhost:5432/testdb',
+      });
+
+      // pg Pool is an EventEmitter; an unhandled 'error' event (e.g. a dropped idle
+      // connection) would otherwise crash the process. See onClientPoolError.
+      expect(mockPoolOn).toHaveBeenCalledWith('error', expect.any(Function));
     });
 
     it('passes logger option through to Drizzle', () => {
