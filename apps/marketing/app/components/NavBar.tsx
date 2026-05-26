@@ -6,16 +6,16 @@ export function NavBar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-950/5">
+    <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <nav className="mx-auto max-w-7xl px-6 lg:px-8 flex items-center justify-between h-16">
-        <a href="/" className="text-xl font-bold tracking-tight text-gray-950">
+        <a href="/" className="text-xl font-bold tracking-tight text-foreground">
           RevealUI
         </a>
 
         {/* Desktop links */}
-        <div className="hidden sm:flex items-center gap-8 text-sm font-medium text-gray-600">
+        <div className="hidden sm:flex items-center gap-8 text-sm font-medium text-muted-foreground">
           {NAV_LINKS.map(({ label, href }) => (
-            <a key={label} href={href} className="hover:text-gray-900 transition-colors">
+            <a key={label} href={href} className="hover:text-foreground transition-colors">
               {label}
             </a>
           ))}
@@ -23,7 +23,7 @@ export function NavBar() {
             href="https://github.com/RevealUIStudio/revealui"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-gray-900 transition-colors"
+            className="hover:text-foreground transition-colors"
             aria-label="GitHub"
           >
             <span className="sr-only">GitHub</span>
@@ -40,7 +40,7 @@ export function NavBar() {
         <div className="flex items-center gap-3">
           <a
             href={NAV_AUTH.login.href}
-            className="hidden sm:inline-flex text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+            className="hidden sm:inline-flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             {NAV_AUTH.login.label}
           </a>
@@ -49,7 +49,7 @@ export function NavBar() {
           {/* Hamburger - mobile only */}
           <button
             type="button"
-            className="sm:hidden -mr-1 flex h-9 w-9 items-center justify-center rounded-md text-gray-600 hover:bg-gray-100 transition-colors"
+            className="sm:hidden -mr-1 flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted transition-colors"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
             onClick={() => setOpen((o) => !o)}
@@ -87,13 +87,13 @@ export function NavBar() {
 
       {/* Mobile menu */}
       {open && (
-        <div className="sm:hidden border-t border-gray-100 bg-white px-6 py-4">
+        <div className="sm:hidden border-t border-border bg-background px-6 py-4">
           <div className="flex flex-col gap-1">
             {NAV_LINKS.map(({ label, href }) => (
               <a
                 key={label}
                 href={href}
-                className="rounded-md px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                 onClick={() => setOpen(false)}
               >
                 {label}
@@ -103,16 +103,16 @@ export function NavBar() {
               href="https://github.com/RevealUIStudio/revealui"
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-md px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               onClick={() => setOpen(false)}
             >
               GitHub
             </a>
           </div>
-          <div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
+          <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
             <a
               href={NAV_AUTH.login.href}
-              className="rounded-md px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               onClick={() => setOpen(false)}
             >
               {NAV_AUTH.login.label}

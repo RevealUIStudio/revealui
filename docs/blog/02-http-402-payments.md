@@ -4,7 +4,7 @@ _By Joshua Vaughn  -  RevealUI Studio_
 
 ---
 
-> **Status note (updated 2026-05-18):** The x402 integration in RevealUI is **designed and code-complete but dormant** today. The feature flag `X402_ENABLED=false` is the default; the endpoints exist but won't transact. Live agent payments are gated on (a) the Stripe live-keys flip (3 of 5 pre-flip gates remain open) and (b) the RevealCoin (RVC) unshelve decision (RVC is on mainnet but pre-launch — see `docs/MARKETING_METRICS.md` §3 for current shipping status). This post explains the design and how to wire it; it does not claim x402 payments are currently transactable through RevealUI in production.
+> **Status note (updated 2026-05-26):** The x402 integration in RevealUI is **designed and code-complete but dormant** today. The feature flag `X402_ENABLED=false` is the default; the endpoints exist but won't transact. Live agent payments are gated on the Stripe live-keys flip and the billing-readiness audit — see [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status). This post explains the design and how to wire it; it does not claim x402 payments are currently transactable through RevealUI in production.
 
 ---
 
@@ -260,4 +260,4 @@ The important constraint is ethical billing: failed or replayed calls should not
 
 ---
 
-_RevealUI is an open-source business runtime for software companies. [revealui.com](https://revealui.com)_
+_RevealUI is the open runtime for AI-native businesses. [revealui.com](https://revealui.com)_
