@@ -142,7 +142,7 @@ describe('Persistence Regression Tests', () => {
           email: testEmail,
           password: 'TestPassword123!',
           roles: ['admin'],
-          firstName: 'John',
+          first_name: 'John',
         },
       });
 
@@ -153,14 +153,14 @@ describe('Persistence Regression Tests', () => {
         collection: 'users',
         id: created.id,
         data: {
-          firstName: 'Jane',
-          lastName: 'Doe',
+          first_name: 'Jane',
+          last_name: 'Doe',
         },
       });
 
       // Verify update persisted
-      expect(updated.firstName).toBe('Jane');
-      expect(updated.lastName).toBe('Doe');
+      expect(updated.first_name).toBe('Jane');
+      expect(updated.last_name).toBe('Doe');
       expect(updated.email).toBe(testEmail); // Original field should remain
 
       // Query document and verify update persisted
@@ -169,8 +169,8 @@ describe('Persistence Regression Tests', () => {
         id: created.id,
       });
 
-      expect(retrieved?.firstName).toBe('Jane');
-      expect(retrieved?.lastName).toBe('Doe');
+      expect(retrieved?.first_name).toBe('Jane');
+      expect(retrieved?.last_name).toBe('Doe');
       expect(retrieved?.email).toBe(testEmail);
     });
 
@@ -507,7 +507,7 @@ describe('Persistence Regression Tests', () => {
         data: {
           email: testEmail,
           password: 'TestPassword123!',
-          firstName: specialFirstName,
+          first_name: specialFirstName,
           roles: ['admin'],
         },
       });
@@ -519,7 +519,7 @@ describe('Persistence Regression Tests', () => {
         id: user.id,
       });
 
-      expect(retrieved?.firstName).toBe(specialFirstName);
+      expect(retrieved?.first_name).toBe(specialFirstName);
     });
 
     it('should handle null/undefined values in JSON fields', async () => {

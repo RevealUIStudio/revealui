@@ -52,15 +52,15 @@ describe('Users Integration', () => {
           email: testEmail,
           password: 'TestPassword123!',
           roles: ['admin'],
-          firstName: 'John',
-          lastName: 'Doe',
+          first_name: 'John',
+          last_name: 'Doe',
         },
       });
 
       trackTestData('users', String(user.id));
 
-      expect(user.firstName).toBe('John');
-      expect(user.lastName).toBe('Doe');
+      expect(user.first_name).toBe('John');
+      expect(user.last_name).toBe('Doe');
     });
   });
 
@@ -158,17 +158,17 @@ describe('Users Integration', () => {
 
       // Update method should preserve all fields and only update specified ones
       // SQL UPDATE only changes specified columns, others remain unchanged
-      // Update with firstName (now in schema) and verify email is preserved
+      // Update with first_name (now in schema) and verify email is preserved
       const updated = await revealui.update({
         collection: 'users',
         id: created.id,
         data: {
-          firstName: 'Jane',
+          first_name: 'Jane',
         },
       });
 
       // The update method calls findByID which should return the full document
-      expect(updated.firstName).toBe('Jane');
+      expect(updated.first_name).toBe('Jane');
       // Email should be preserved from original document (SQL UPDATE preserves unchanged columns)
       expect(updated.email).toBe(testEmail);
     });

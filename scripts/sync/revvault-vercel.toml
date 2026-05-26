@@ -106,6 +106,9 @@ CORS_ORIGIN            = "revealui/prod/cors-origin"
 # Marketplace
 MARKETPLACE_CONNECT_RETURN_URL = "revealui/prod/marketplace-connect-return-url"
 
+# Billing (Stripe customer-portal config id; consumed by apps/server/src/routes/billing.ts)
+REVEALUI_BILLING_PORTAL_CONFIG_ID = "revealui/prod/billing/portal-config-id"
+
 # Electric (real-time sync)
 ELECTRIC_SERVICE_URL = "revealui/prod/electric/service-url"
 ELECTRIC_SECRET      = "revealui/prod/electric/secret"
