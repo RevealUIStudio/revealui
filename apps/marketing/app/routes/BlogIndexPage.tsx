@@ -79,14 +79,14 @@ export function BlogIndexPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-background to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Blog
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
             Updates, guides, and insights from the RevealUI team.
           </p>
         </div>
@@ -97,7 +97,7 @@ export function BlogIndexPage() {
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           {posts.length === 0 ? (
             <div className="mx-auto max-w-2xl text-center">
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-muted-foreground">
                 No posts yet. Check back soon for updates from the RevealUI team.
               </p>
             </div>
@@ -106,7 +106,7 @@ export function BlogIndexPage() {
               {posts.map((post) => (
                 <article
                   key={post.id}
-                  className="rounded-2xl bg-white p-8 shadow-lg ring-1 ring-gray-200 hover:ring-blue-300 transition-all"
+                  className="rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border hover:ring-blue-300 transition-all"
                 >
                   <div className="flex items-center gap-x-4 text-xs text-muted-foreground">
                     <time dateTime={post.publishedAt ?? post.createdAt}>
@@ -114,7 +114,7 @@ export function BlogIndexPage() {
                     </time>
                     {post.author && <span>{post.author}</span>}
                   </div>
-                  <h3 className="mt-3 text-xl font-bold tracking-tight text-gray-900">
+                  <h3 className="mt-3 text-xl font-bold tracking-tight text-foreground">
                     <a
                       href={`/blog/${post.slug}`}
                       className="hover:text-blue-600 transition-colors"
@@ -122,7 +122,7 @@ export function BlogIndexPage() {
                       {post.title}
                     </a>
                   </h3>
-                  <p className="mt-4 text-sm leading-6 text-gray-600">
+                  <p className="mt-4 text-sm leading-6 text-muted-foreground">
                     {post.excerpt ?? getExcerpt(post.content)}
                   </p>
                   <a
@@ -137,9 +137,9 @@ export function BlogIndexPage() {
           )}
 
           {/* Newsletter capture */}
-          <div className="mx-auto mt-16 max-w-2xl rounded-2xl bg-gray-50 p-8 text-center ring-1 ring-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Get notified when we publish</h3>
-            <p className="mt-2 text-sm text-gray-600 mb-6">
+          <div className="mx-auto mt-16 max-w-2xl rounded-2xl bg-secondary p-8 text-center ring-1 ring-border">
+            <h3 className="text-lg font-semibold text-foreground">Get notified when we publish</h3>
+            <p className="mt-2 text-sm text-muted-foreground mb-6">
               Engineering insights, product updates, and launch announcements. No spam.
             </p>
             <NewsletterSignup variant="stacked" />
