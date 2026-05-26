@@ -147,7 +147,7 @@ export function PricingPage() {
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               {PRICING_VALUE_BAND.body}
             </p>
-            <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {PRICING_VALUE_BAND.points.map((point) => (
                 <li key={point} className="flex items-start gap-2 text-sm text-gray-700">
                   <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
