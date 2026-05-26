@@ -372,7 +372,7 @@ For single-node deployments, the Docker Compose stack is sufficient. For high av
 
 ### Database
 
-Use a managed PostgreSQL service (NeonDB, AWS RDS, Supabase) instead of the bundled `postgres:16-alpine`:
+Use a managed PostgreSQL service (NeonDB, Fly Postgres, AWS RDS) instead of the bundled `postgres:16-alpine`:
 
 ```bash
 # In .env.forge, point to your managed database

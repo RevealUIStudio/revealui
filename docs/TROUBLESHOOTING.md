@@ -55,7 +55,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    psql "postgresql://user:password@host/db?sslmode=require"
    ```
 
-4. **Check IP allowlist** (Supabase only)
+4. **Check IP allowlist** (legacy Supabase path only — NeonDB has no IP allowlist)
    - Go to Supabase Dashboard → Settings → Database → Network
    - Add your IP address or use connection pooling (port 6543)
 
@@ -201,7 +201,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Check `pnpm-workspace.yaml` is correct
    - Ensure all packages are listed
 
-**See Also**: [CI/CD Guide - Troubleshooting](./CI_CD_GUIDE.md#troubleshooting)
+**See Also**: [Deployment Guide](./guides/deployment.md)
 
 ---
 
@@ -226,7 +226,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    pnpm build
    ```
 
-**See Also**: [Standards - TypeScript](./STANDARDS.md#typescript)
+**See Also**: [Type System Rules](./TYPE-SYSTEM-RULES.md)
 
 ---
 
@@ -248,7 +248,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Ensure Vercel uses Node.js 24.13.0
    - Set in `package.json` or Vercel settings
 
-**See Also**: [CI/CD Guide - Vercel Deployment](./CI_CD_GUIDE.md#vercel-deployment)
+**See Also**: [Deployment Guide](./guides/deployment.md)
 
 ---
 
@@ -408,7 +408,7 @@ Comprehensive troubleshooting guide for common RevealUI issues.
    - Add database indexes
    - Use query batching
 
-**See Also**: [Performance Guide](./PERFORMANCE.md)
+**See Also**: [Architecture](./ARCHITECTURE.md) (Performance & Scaling)
 
 ---
 
@@ -508,8 +508,8 @@ Comprehensive troubleshooting guide for common RevealUI issues.
 - [Quick Start Guide](./QUICK_START.md) - Initial setup
 - [Environment Variables Guide](./ENVIRONMENT-VARIABLES-GUIDE.md) - Configuration
 - [Database Guide](./DATABASE.md) - Database setup and management
-- [CI/CD Guide](./CI_CD_GUIDE.md) - Deployment troubleshooting
-- [Standards Guide](./STANDARDS.md) - Code standards and best practices
+- [Deployment Guide](./guides/deployment.md) - Deployment troubleshooting
+- [Linting Rules](./LINTING_RULES.md) - Code standards and lint rules
 
 ---
 

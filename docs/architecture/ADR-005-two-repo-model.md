@@ -1,7 +1,9 @@
 # ADR-005: Two-Repo Model (Public + Private Coordination Hub)
 
 **Date:** 2026-04-08
-**Status:** Accepted
+**Status:** Superseded by the four-repo model (2026-05-18) — see note below
+
+> **⚠️ Superseded — preserved for history.** The two-repo split has since expanded into a **four-repo model**: **revealui** (public framework — OSS MIT + Pro FSL-1.1-MIT), **agency** (public marketing site, `revealuistudio.com`), **revmarket** (transactional MCP-marketplace venue — a separate trust boundary; staged inside `revealui/packages/marketplace-*` until its own repo is created), and **revealui-jv** (private coordination hub). The framework-vs-venue split is an owner-locked architecture decision (2026-05-18). The public-framework + private-coordination rationale below still holds for the revealui ↔ revealui-jv pair.
 
 ## Context
 

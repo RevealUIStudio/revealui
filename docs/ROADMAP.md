@@ -145,7 +145,7 @@ Real-time multi-user editing powered by ElectricSQL. Currently basic shape subsc
 - SLA guarantees
 
 #### Self-Hosted (RevealUI Fleet) — [#515](https://github.com/RevealUIStudio/revealui/issues/515)
-Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap capable. _Currently: Docker Compose stack and K8s manifests exist as infrastructure skeletons. SSO, white-label theming, and deployment guide are not yet implemented._
+Docker images for fully self-hosted deployment. Domain-locked licensing, air-gap capable. _Currently: the Docker Compose stack (the RevealUI Fleet kit) exists as an infrastructure skeleton. SSO, white-label theming, and the deployment guide are not yet implemented._
 
 ### Long-Term (Q4 2026+)
 

@@ -50,7 +50,7 @@ function FeatureCard({ feature }: { feature: RoadmapItem }) {
   );
 }
 
-export function ComingSoonPage() {
+export function RoadmapPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}

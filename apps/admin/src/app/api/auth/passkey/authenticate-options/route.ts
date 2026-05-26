@@ -44,7 +44,10 @@ async function authenticateOptionsHandler(_request: NextRequest): Promise<NextRe
 
     return response;
   } catch (error) {
-    logger.error('Error generating passkey authentication options', { error });
+    logger.error(
+      'Error generating passkey authentication options',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return createErrorResponse(error, {
       endpoint: '/api/auth/passkey/authenticate-options',
       operation: 'passkey_authenticate_options',

@@ -159,7 +159,7 @@ export const PRODUCTS_PRIMITIVES: readonly ProductsPrimitive[] = [
         'Define products, pricing tiers, and feature gates in one place. License enforcement and upgrade prompts are built in. Subscription billing via Stripe with perpetual license support.',
     },
     forAgents: {
-      headline: 'Feature gates control which agent capabilities unlock per tier',
+      headline: 'Feature gates control which agent capabilities are enabled per tier',
       description:
         'Agent capabilities are gated by the same tier system that governs human features. When a customer upgrades, their agents automatically gain access to more tools and higher task limits.',
     },

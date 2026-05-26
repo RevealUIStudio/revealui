@@ -23,6 +23,7 @@ import { neon } from '@neondatabase/serverless';
 // Direct ESM import - the Proxy ensures no validation occurs until properties are accessed
 import configModule from '@revealui/config';
 import { getSSLConfig } from '@revealui/utils/database';
+import { logger } from '@revealui/utils/logger';
 import { drizzle as drizzleNeon, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import { drizzle as drizzlePg, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
@@ -103,8 +104,23 @@ function isLocalhostConnection(connectionString: string): boolean {
     // Any non-Neon host should use pg — Neon HTTP driver requires a Neon endpoint.
     return !host.endsWith('.neon.tech') && url.protocol !== 'wss:';
   } catch {
-    return !connectionString.includes('.neon.tech') && !connectionString.startsWith('wss://');
+    return !(connectionString.includes('.neon.tech') || connectionString.startsWith('wss://'));
   }
+}
+
+/**
+ * Logs an unexpected error emitted by an idle pg pool client.
+ *
+ * pg `Pool` is an EventEmitter: an unhandled `'error'` event — emitted when an
+ * idle connection is dropped by the server (admin termination, autosuspend,
+ * network blip) — throws and crashes the process. Attaching a listener keeps the
+ * pool alive and surfaces the error instead. Mirrors `onPoolError` in `../pool.ts`.
+ */
+function onClientPoolError(err: unknown): void {
+  logger.error(
+    'Unexpected error on idle database pool client',
+    err instanceof Error ? err : new Error(String(err)),
+  );
 }
 
 /**
@@ -148,6 +164,8 @@ export function createClient(
       idleTimeoutMillis: poolIdleTimeout,
       connectionTimeoutMillis: 10_000, // 10 seconds
     });
+    // Prevent an idle-client error from crashing the process (unhandled 'error' event).
+    pool.on('error', onClientPoolError);
 
     // Track pool and register cleanup
     const poolId = `pool-${activePools.size + 1}`;
@@ -287,6 +305,8 @@ function getClientByType(type: DatabaseType): Database {
         idleTimeoutMillis: poolIdleTimeout,
         connectionTimeoutMillis: 10_000,
       });
+      // Prevent an idle-client error from crashing the process (unhandled 'error' event).
+      pool.on('error', onClientPoolError);
       restPool = pool;
       const poolId = `rest-pool`;
       activePools.set(poolId, pool);
