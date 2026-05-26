@@ -26,7 +26,7 @@ export function ContactPage() {
                     href={method.href}
                     target={method.external ? '_blank' : undefined}
                     rel={method.external ? 'noopener noreferrer' : undefined}
-                    className="text-blue-600 hover:text-blue-500 underline"
+                    className="text-primary hover:text-primary/80 underline"
                   >
                     {method.linkLabel}
                   </a>
