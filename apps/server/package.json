@@ -20,7 +20,7 @@
     "@sentry/node": "^10.53.1",
     "@vercel/blob": "^2.3.3",
     "drizzle-orm": "catalog:",
-    "hono": "4.12.19",
+    "hono": "4.12.23",
     "jose": "^6.2.3",
     "lib0": "^0.2.117",
     "pg": "catalog:",
