@@ -1,6 +1,6 @@
 # Decision: Licensing Platform Evaluation
 
-> **SUPERSEDED 2026-05-04 by [`docs/specs/cr8-p0-01-api-ed25519-migration.md`](../specs/cr8-p0-01-api-ed25519-migration.md) (private repo).** The platform-evaluation decision recorded below selected RS256 at the time of writing. The 2026-05-04 charge-readiness re-audit surfaced an issuer/daemon-verifier format mismatch that required revisiting the algorithm choice; Owner approved migration to Ed25519 (Option α — preserve rich JWT payload, swap algorithm). The original decision-record is preserved verbatim below for SOC2-audit decision lineage.
+> **SUPERSEDED 2026-05-04 by the private-repo spec `docs/specs/cr8-p0-01-api-ed25519-migration.md` (Ed25519 migration).** The platform-evaluation decision recorded below selected RS256 at the time of writing. The 2026-05-04 charge-readiness re-audit surfaced an issuer/daemon-verifier format mismatch that required revisiting the algorithm choice; Owner approved migration to Ed25519 (Option α — preserve rich JWT payload, swap algorithm). The original decision-record is preserved verbatim below for SOC2-audit decision lineage.
 
 **Date:** 2026-03-31
 **Status:** Superseded
