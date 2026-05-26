@@ -67,11 +67,21 @@ function buildEnvLocal(cfg: CreateProjectConfig): string {
     lines.push('POSTGRES_URL=postgresql://postgres:postgres@localhost:5432/revealui');
   }
 
-  lines.push('', '# Storage (Vercel Blob)');
-  if (cfg.storage.provider === 'vercel-blob' && cfg.storage.blobToken) {
+  lines.push('', '# Storage (Cloudflare R2 — canonical; Vercel Blob is legacy)');
+  if (cfg.storage.provider === 'r2') {
+    lines.push(`R2_ACCOUNT_ID=${cfg.storage.r2AccountId ?? ''}`);
+    lines.push(`R2_ACCESS_KEY_ID=${cfg.storage.r2AccessKeyId ?? ''}`);
+    lines.push(`R2_SECRET_ACCESS_KEY=${cfg.storage.r2SecretAccessKey ?? ''}`);
+    lines.push(`R2_BUCKET=${cfg.storage.r2Bucket ?? ''}`);
+    lines.push(`R2_PUBLIC_BASE_URL=${cfg.storage.r2PublicBaseUrl ?? ''}`);
+  } else if (cfg.storage.provider === 'vercel-blob' && cfg.storage.blobToken) {
     lines.push(`BLOB_READ_WRITE_TOKEN=${cfg.storage.blobToken}`);
   } else {
-    lines.push('BLOB_READ_WRITE_TOKEN=vercel_blob_rw_placeholder');
+    lines.push('# Cloudflare R2 (recommended): set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID,');
+    lines.push('# R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_BASE_URL.');
+    lines.push(
+      '# Legacy alternative (being retired): BLOB_READ_WRITE_TOKEN=vercel_blob_rw_placeholder',
+    );
   }
 
   lines.push('', '# Stripe');
