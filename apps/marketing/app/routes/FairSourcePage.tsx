@@ -30,12 +30,12 @@ export function FairSourcePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="relative isolate overflow-hidden bg-white px-6 pt-20 pb-16 sm:pt-28 sm:pb-20 lg:px-8">
+      <section className="relative isolate overflow-hidden bg-background px-6 pt-20 pb-16 sm:pt-28 sm:pb-20 lg:px-8">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-emerald-50/40 via-white to-white"
+          className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background"
         />
         <div
           aria-hidden="true"
@@ -43,23 +43,23 @@ export function FairSourcePage() {
         />
 
         <div className="relative mx-auto max-w-3xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700 mb-6">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle mr-2" />
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary mb-6">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle mr-2" />
             {FAIR_SOURCE_HERO.eyebrow}
           </p>
-          <h1 className="text-5xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl">
+          <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
             {FAIR_SOURCE_HERO.headline}
-            <span className="block text-emerald-700">{FAIR_SOURCE_HERO.headlineHighlight}</span>
+            <span className="block text-primary">{FAIR_SOURCE_HERO.headlineHighlight}</span>
           </h1>
-          <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-gray-600 sm:text-2xl">
+          <p className="mx-auto mt-8 max-w-2xl text-xl leading-8 text-muted-foreground sm:text-2xl">
             {FAIR_SOURCE_HERO.subhead}
           </p>
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">
+          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground">
             {/* COUNT: packages-fsl = 5, packages-mit = 21 (of 26 total — see /packages/ in repo) */}
             {FAIR_SOURCE_HERO.body.prefix}{' '}
             <a
               href={FAIR_SOURCE_HERO.body.fslHref}
-              className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+              className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
             >
               {FAIR_SOURCE_HERO.body.fslLabel}
             </a>{' '}
@@ -69,13 +69,13 @@ export function FairSourcePage() {
       </section>
 
       {/* The contract */}
-      <section className="bg-white py-16 sm:py-24">
+      <section className="bg-background py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_CONTRACT_SECTION.eyebrow}
             </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {FAIR_SOURCE_CONTRACT_SECTION.heading}
             </h2>
           </div>
@@ -86,14 +86,14 @@ export function FairSourcePage() {
                 key={c.title}
                 className={`rounded-2xl p-6 ring-1 transition ${
                   c.kind === 'yes'
-                    ? 'bg-emerald-50/40 ring-emerald-200'
+                    ? 'bg-primary/10 ring-primary/20'
                     : 'bg-amber-50/40 ring-amber-200'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   {c.kind === 'yes' ? (
                     <svg
-                      className="mt-0.5 h-6 w-6 flex-shrink-0 text-emerald-600"
+                      className="mt-0.5 h-6 w-6 flex-shrink-0 text-primary"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                       aria-hidden="true"
@@ -121,8 +121,8 @@ export function FairSourcePage() {
                     </svg>
                   )}
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-950">{c.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-gray-700">{c.body}</p>
+                    <h3 className="text-lg font-semibold text-foreground">{c.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{c.body}</p>
                   </div>
                 </div>
               </div>
@@ -132,27 +132,27 @@ export function FairSourcePage() {
       </section>
 
       {/* Which packages */}
-      <section className="bg-gray-50 py-16 sm:py-24">
+      <section className="bg-secondary py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_PACKAGES_SECTION.eyebrow}
             </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {FAIR_SOURCE_PACKAGES_SECTION.heading}
             </h2>
-            <p className="mt-6 text-base leading-7 text-gray-600">
+            <p className="mt-6 text-base leading-7 text-muted-foreground">
               {FAIR_SOURCE_PACKAGES_SECTION.body.prefix}{' '}
-              <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-sm text-gray-900">
+              <code className="rounded bg-muted px-1 py-0.5 font-mono text-sm text-foreground">
                 {FAIR_SOURCE_PACKAGES_SECTION.body.privatePackage}
               </code>{' '}
               {FAIR_SOURCE_PACKAGES_SECTION.body.suffix}
             </p>
           </div>
 
-          <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-2xl bg-white ring-1 ring-gray-950/5">
+          <div className="mx-auto mt-12 max-w-4xl overflow-hidden rounded-2xl bg-card ring-1 ring-border">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-100 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              <thead className="bg-muted text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 <tr>
                   <th className="px-6 py-3">Package</th>
                   <th className="px-6 py-3">Purpose</th>
@@ -160,13 +160,13 @@ export function FairSourcePage() {
                   <th className="px-6 py-3">Source</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {FAIR_SOURCE_PACKAGES.map((p) => (
                   <tr key={p.name}>
-                    <td className="px-6 py-4 font-mono text-sm font-semibold text-gray-950">
+                    <td className="px-6 py-4 font-mono text-sm font-semibold text-foreground">
                       {p.name}
                     </td>
-                    <td className="px-6 py-4 text-gray-700">{p.purpose}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{p.purpose}</td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-amber-200">
                         {p.license}
@@ -177,16 +177,16 @@ export function FairSourcePage() {
                         href={p.repo}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-emerald-700 hover:text-emerald-800"
+                        className="text-primary hover:text-primary/80"
                       >
                         GitHub
                       </a>
-                      <span className="px-2 text-gray-300">·</span>
+                      <span className="px-2 text-muted-foreground/40">·</span>
                       <a
                         href={p.npm}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-emerald-700 hover:text-emerald-800"
+                        className="text-primary hover:text-primary/80"
                       >
                         npm
                       </a>
@@ -198,7 +198,7 @@ export function FairSourcePage() {
           </div>
           <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-muted-foreground">
             {FAIR_SOURCE_PACKAGES_SECTION.footer.prefix}{' '}
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-700">
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
               {FAIR_SOURCE_PACKAGES_SECTION.footer.command}
             </code>{' '}
             {FAIR_SOURCE_PACKAGES_SECTION.footer.suffix}
@@ -207,33 +207,33 @@ export function FairSourcePage() {
       </section>
 
       {/* The two-year clock */}
-      <section className="bg-white py-16 sm:py-24">
+      <section className="bg-background py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_CLOCK_SECTION.eyebrow}
             </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {FAIR_SOURCE_CLOCK_SECTION.heading}
             </h2>
-            <p className="mt-6 text-base leading-7 text-gray-600">
+            <p className="mt-6 text-base leading-7 text-muted-foreground">
               {FAIR_SOURCE_CLOCK_SECTION.body}
             </p>
           </div>
 
           <div className="mx-auto mt-12 max-w-3xl">
-            <ol className="relative border-l-2 border-emerald-200 pl-8">
+            <ol className="relative border-l-2 border-primary/20 pl-8">
               {FAIR_SOURCE_CLOCK_SECTION.steps.map((step) => (
                 <li key={step.title} className="mb-8 last:mb-0">
                   <span
-                    className={`absolute -left-2.5 mt-1.5 flex h-5 w-5 items-center justify-center rounded-full ring-4 ring-white ${
-                      step.color === 'emerald' ? 'bg-emerald-600' : 'bg-amber-600'
+                    className={`absolute -left-2.5 mt-1.5 flex h-5 w-5 items-center justify-center rounded-full ring-4 ring-background ${
+                      step.color === 'emerald' ? 'bg-primary' : 'bg-amber-600'
                     }`}
                   >
                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                   </span>
-                  <h3 className="font-semibold text-gray-950">{step.title}</h3>
-                  <p className="mt-1 text-sm text-gray-600">{step.body}</p>
+                  <h3 className="font-semibold text-foreground">{step.title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{step.body}</p>
                 </li>
               ))}
             </ol>
@@ -242,13 +242,13 @@ export function FairSourcePage() {
       </section>
 
       {/* In good company */}
-      <section className="bg-gray-50 py-16 sm:py-24">
+      <section className="bg-secondary py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_PEERS_SECTION.eyebrow}
             </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {FAIR_SOURCE_PEERS_SECTION.heading}
             </h2>
           </div>
@@ -260,11 +260,11 @@ export function FairSourcePage() {
                 href={p.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-2xl bg-white p-6 ring-1 ring-gray-950/5 no-underline transition hover:ring-gray-950/10"
+                className="rounded-2xl bg-card p-6 ring-1 ring-border no-underline transition hover:ring-border/60"
               >
-                <h3 className="text-lg font-semibold text-gray-950">{p.name}</h3>
-                <p className="mt-2 text-sm leading-6 text-gray-600">{p.note}</p>
-                <p className="mt-3 text-xs font-medium text-emerald-700">Read their post &rarr;</p>
+                <h3 className="text-lg font-semibold text-foreground">{p.name}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{p.note}</p>
+                <p className="mt-3 text-xs font-medium text-primary">Read their post &rarr;</p>
               </a>
             ))}
           </div>
@@ -272,23 +272,23 @@ export function FairSourcePage() {
       </section>
 
       {/* FAQ */}
-      <section className="bg-white py-16 sm:py-24">
+      <section className="bg-background py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {FAIR_SOURCE_FAQ_SECTION.eyebrow}
             </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {FAIR_SOURCE_FAQ_SECTION.heading}
             </h2>
           </div>
 
-          <div className="mx-auto mt-12 max-w-3xl divide-y divide-gray-200">
+          <div className="mx-auto mt-12 max-w-3xl divide-y divide-border">
             {FAIR_SOURCE_FAQS.map((f) => (
               <details key={f.question} className="group py-6">
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-left">
-                  <h3 className="text-lg font-semibold leading-7 text-gray-950">{f.question}</h3>
-                  <span className="ml-2 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-700 transition group-open:rotate-45 group-open:bg-emerald-50 group-open:text-emerald-700">
+                  <h3 className="text-lg font-semibold leading-7 text-foreground">{f.question}</h3>
+                  <span className="ml-2 mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition group-open:rotate-45 group-open:bg-primary/10 group-open:text-primary">
                     <svg
                       className="h-4 w-4"
                       fill="none"
@@ -306,7 +306,9 @@ export function FairSourcePage() {
                     </svg>
                   </span>
                 </summary>
-                <div className="mt-4 pr-9 text-base leading-7 text-gray-600">{f.answer}</div>
+                <div className="mt-4 pr-9 text-base leading-7 text-muted-foreground">
+                  {f.answer}
+                </div>
               </details>
             ))}
           </div>
@@ -314,22 +316,17 @@ export function FairSourcePage() {
       </section>
 
       {/* CTA */}
-      <section className="bg-gray-950 py-16 sm:py-24">
+      <section className="bg-card py-16 sm:py-24">
         <div className="mx-auto max-w-2xl px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {FAIR_SOURCE_CTA.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-400">{FAIR_SOURCE_CTA.body}</p>
+          <p className="mt-6 text-lg leading-8 text-muted-foreground">{FAIR_SOURCE_CTA.body}</p>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <ButtonCVA asChild size="lg" className="bg-white text-gray-950 hover:bg-gray-100">
+            <ButtonCVA asChild size="lg" variant="primary">
               <a href={FAIR_SOURCE_CTA.primaryHref}>{FAIR_SOURCE_CTA.primaryLabel}</a>
             </ButtonCVA>
-            <ButtonCVA
-              asChild
-              variant="outline"
-              size="lg"
-              className="border-gray-700 text-gray-300 hover:text-white hover:border-gray-500"
-            >
+            <ButtonCVA asChild variant="outline" size="lg">
               <a href={FAIR_SOURCE_CTA.secondaryHref}>{FAIR_SOURCE_CTA.secondaryLabel}</a>
             </ButtonCVA>
           </div>
