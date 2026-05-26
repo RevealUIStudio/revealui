@@ -26,7 +26,7 @@
     "@vitest/coverage-v8": "^4.1.5",
     "@revealui/dev": "workspace:*",
     "dotenv": "catalog:",
-    "postcss": "^8.5.11",
+    "postcss": "^8.5.15",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "tailwindcss": "^4.3.0",
