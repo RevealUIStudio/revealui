@@ -1,3 +1,4 @@
+import { ButtonCVA } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 import {
   SPONSOR_FOOTER_NOTE,
@@ -80,14 +81,11 @@ export function SponsorPage() {
             {SPONSOR_HERO.subhead}
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
-            <a
-              href={SPONSOR_HERO.cta.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-md bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-blue-500 transition-colors"
-            >
-              {SPONSOR_HERO.cta.label}
-            </a>
+            <ButtonCVA asChild size="lg" variant="primary">
+              <a href={SPONSOR_HERO.cta.href} target="_blank" rel="noopener noreferrer">
+                {SPONSOR_HERO.cta.label}
+              </a>
+            </ButtonCVA>
           </div>
         </div>
       </section>
@@ -107,7 +105,7 @@ export function SponsorPage() {
             {SPONSOR_TIERS.map((tier) => (
               <div
                 key={tier.name}
-                className="relative rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border hover:ring-blue-300 transition-all"
+                className="relative rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border hover:ring-primary/40 transition-all"
               >
                 <div className="text-4xl mb-4">{tier.emoji}</div>
                 <h3 className="text-xl font-bold tracking-tight text-foreground">{tier.name}</h3>
@@ -141,14 +139,15 @@ export function SponsorPage() {
             ))}
           </div>
           <div className="mt-16 text-center">
-            <a
-              href={SPONSOR_TIERS_SECTION.ctaBottom.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-md bg-blue-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-blue-500 transition-colors"
-            >
-              {SPONSOR_TIERS_SECTION.ctaBottom.label}
-            </a>
+            <ButtonCVA asChild size="lg" variant="primary">
+              <a
+                href={SPONSOR_TIERS_SECTION.ctaBottom.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {SPONSOR_TIERS_SECTION.ctaBottom.label}
+              </a>
+            </ButtonCVA>
           </div>
         </div>
       </section>

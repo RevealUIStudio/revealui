@@ -1,3 +1,4 @@
+import { ButtonCVA } from '@revealui/presentation';
 import { Footer } from '../components/Footer';
 import {
   ROADMAP_CTA,
@@ -113,22 +114,24 @@ export function RoadmapPage() {
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">{ROADMAP_CTA.subtitle}</p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href={ROADMAP_CTA_LINKS.requestFeature.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-md bg-foreground px-6 py-3 text-sm font-semibold text-background shadow-sm hover:bg-foreground/80 transition-colors"
-            >
-              {ROADMAP_CTA_LINKS.requestFeature.label}
-            </a>
-            <a
-              href={ROADMAP_CTA_LINKS.joinDiscussion.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-md bg-card px-6 py-3 text-sm font-semibold text-foreground shadow-sm ring-1 ring-border hover:bg-muted transition-colors"
-            >
-              {ROADMAP_CTA_LINKS.joinDiscussion.label}
-            </a>
+            <ButtonCVA asChild size="lg" variant="primary">
+              <a
+                href={ROADMAP_CTA_LINKS.requestFeature.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {ROADMAP_CTA_LINKS.requestFeature.label}
+              </a>
+            </ButtonCVA>
+            <ButtonCVA asChild size="lg" variant="outline">
+              <a
+                href={ROADMAP_CTA_LINKS.joinDiscussion.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {ROADMAP_CTA_LINKS.joinDiscussion.label}
+              </a>
+            </ButtonCVA>
           </div>
           <p className="mt-8 text-sm text-muted-foreground">
             See what's shipped today &rarr;{' '}

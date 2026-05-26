@@ -106,7 +106,7 @@ export function BlogIndexPage() {
               {posts.map((post) => (
                 <article
                   key={post.id}
-                  className="rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border hover:ring-blue-300 transition-all"
+                  className="rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border hover:ring-primary/40 transition-all"
                 >
                   <div className="flex items-center gap-x-4 text-xs text-muted-foreground">
                     <time dateTime={post.publishedAt ?? post.createdAt}>
@@ -115,10 +115,7 @@ export function BlogIndexPage() {
                     {post.author && <span>{post.author}</span>}
                   </div>
                   <h3 className="mt-3 text-xl font-bold tracking-tight text-foreground">
-                    <a
-                      href={`/blog/${post.slug}`}
-                      className="hover:text-blue-600 transition-colors"
-                    >
+                    <a href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
                       {post.title}
                     </a>
                   </h3>
@@ -127,7 +124,7 @@ export function BlogIndexPage() {
                   </p>
                   <a
                     href={`/blog/${post.slug}`}
-                    className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-500 transition-colors"
+                    className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
                   >
                     Read more &rarr;
                   </a>
