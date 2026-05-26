@@ -52,6 +52,7 @@ export const PRICING_VALUE_BAND = {
     'One runtime, not five separate SaaS subscriptions',
     'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
     'Full source code access on every tier',
+    "Open-weight AI by default — your bill doesn't scale with usage",
   ],
 } as const;
 
@@ -108,7 +109,7 @@ export const PRICING_AGENT_CTA_LINKS = {
 } as const;
 
 export const PRICING_AGENCY_SECTION = {
-  heading: 'Need help adopting RevealUI?',
+  heading: 'Adoption help from RevealUI Studio',
   body: 'Architecture reviews, migrations, and launch support are offered separately by RevealUI Studio (the agency). Engagements are scoped per-project.',
   cta: {
     label: 'Visit revealuistudio.com →',
@@ -118,8 +119,8 @@ export const PRICING_AGENCY_SECTION = {
 } as const;
 
 export const PRICING_FINAL_CTA: SectionHeading = {
-  title: 'Ready to get started?',
-  subtitle: 'Start free with full source code access. Upgrade when your business needs it.',
+  title: 'Start free with full source access.',
+  subtitle: 'Every tier ships the complete source. Upgrade when your business needs Pro features.',
 };
 
 export const PRICING_FINAL_CTA_LINKS = {
@@ -133,4 +134,4 @@ export const PRICING_FINAL_CTA_LINKS = {
   } satisfies Cta,
 } as const;
 
-export const PRICING_NEWSLETTER_LABEL = 'Not ready yet? Stay in the loop.' as const;
+export const PRICING_NEWSLETTER_LABEL = 'Not ready yet? Get release updates by email.' as const;
