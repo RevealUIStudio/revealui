@@ -27,7 +27,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/resilience": "workspace:*",
-    "lru-cache": "^11.4.0",
+    "lru-cache": "^11.5.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
