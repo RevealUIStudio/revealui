@@ -81,7 +81,7 @@ export function BlogIndexPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-background to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-500/10 via-background to-indigo-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Blog
