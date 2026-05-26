@@ -84,7 +84,7 @@ export const SPONSOR_TIERS: readonly SponsorTier[] = [
     price: '$500',
     period: '/month',
     emoji: '\u{1F48E}',
-    description: 'Shape the future of RevealUI.',
+    description: 'Fund a release and help shape the roadmap.',
     benefits: [
       'All Gold Sponsor benefits',
       'Logo with link on landing page',
