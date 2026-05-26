@@ -4,7 +4,7 @@ RevealUI is open source today; the commercial side is pre-launch. Before we talk
 
 This is a solo-founder project. I don't have a VC board to answer to or a growth team optimizing conversion funnels. I have a business model I believe in, and I'd rather explain it plainly than have you discover the trade-offs later.
 
-> **Status note (updated 2026-05-18):** Two revenue surfaces described later in this post — the **MCP Marketplace** (third-party publishing + 80/20 revenue share) and **agent payments via x402 + RVC** — are **planned, not shipped**. The first-party MCP catalog (13 servers under `packages/mcp/src/servers/`) does ship today; third-party publishing, marketplace discovery UI, billing rails, and developer payouts are unbuilt. RevC (RVC) is on mainnet but pre-launch (legal and multisig gates open). x402 is code-complete behind `X402_ENABLED=false`. See `docs/MARKETING_METRICS.md` §3 for current shipping status of every commercial surface.
+> **Status note (updated 2026-05-26):** Two revenue surfaces described later in this post — the **MCP Marketplace** (third-party publishing + 80/20 revenue share) and **x402 agent payments** — are **planned, not shipped**. The first-party MCP catalog (13 servers under `packages/mcp/src/servers/`) does ship today; third-party publishing, marketplace discovery UI, billing rails, and developer payouts are unbuilt. x402 is designed and code-complete behind `X402_ENABLED=false`. Stripe runs in test mode until a billing-readiness audit closes. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current shipping status of every commercial surface.
 
 ---
 
@@ -18,9 +18,9 @@ This wasn't a naive decision. I'm aware of the arguments for more restrictive li
 
 I understand that risk. I accept it. Here's why.
 
-RevealUI is an agentic business runtime. The four business primitives that make it useful -- Users, Content, Products, Payments -- are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
+RevealUI is an open runtime for AI-native businesses. The four business primitives that make it useful -- Users, Content, Products, Payments -- are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
 
-Our MCP servers are MIT too. We open-sourced them intentionally. MCP servers are distribution infrastructure -- the more people who use them, build on them, and extend them, the more valuable the ecosystem becomes. Restricting MCP servers to paying customers would be optimizing for short-term revenue at the cost of long-term reach.
+The MCP framework is the one piece worth naming carefully: `@revealui/mcp` — the hypervisor, the 13 first-party servers, and the adapter base class — is one of the five Pro packages, Fair Source under FSL-1.1-MIT, not MIT. It's source-visible and converts to MIT two years after each release, but MCP integration is a paid capability today. I'd rather state that plainly than imply the AI tooling is free when it isn't.
 
 What MIT means practically: you can take RevealUI, strip the branding, deploy it on your own infrastructure, and run your entire business on it without ever creating an account with us. You don't owe us attribution, revenue share, or even a thank-you. The code is yours.
 
@@ -39,12 +39,13 @@ RevealUI Pro includes:
 - **LLM orchestration** -- open-model inference via Ubuntu Inference Snaps and Ollama
 - **Editor integrations** -- daemon adapters for Zed, VS Code, and Neovim
 - **Harness coordination** -- workboard-based agent orchestration, JSON-RPC communication, daemon management
+- **MCP framework** -- the hypervisor, 13 first-party servers, and the adapter base class that connect agents to tools
 
 These features are commercially licensed. The source code is available (you can read the compiled output on npm), but the license restricts redistribution and commercial use without a key.
 
 Why AI specifically? Three reasons.
 
-**It's the highest-value part of the stack.** AI agents that can manage your content, process payments, handle support tickets, and coordinate across services are genuinely transformative. This is where RevealUI stops being "another framework" and starts being an agentic business runtime.
+**It's the highest-value part of the stack.** AI agents that can manage your content, process payments, handle support tickets, and coordinate across services are genuinely transformative. This is where RevealUI stops being "another framework" and starts being an open runtime for AI-native businesses.
 
 **It's the most expensive to maintain.** Open-model inference evolves rapidly. Model formats change, quantization techniques improve, context windows expand, and new inference backends emerge. Maintaining reliable integrations across inference paths -- with memory systems, CRDT synchronization, and multi-agent coordination -- is a full-time job. Pro revenue funds this work directly.
 
@@ -58,15 +59,16 @@ Pro packages are published to npm as compiled distributions. You can install the
 
 | | Free (OSS) | Pro | Max | Enterprise |
 |---|---|---|---|---|
-| **Price** | $0 | $49/mo | $149/mo | $299/mo |
+| **Price** | Free forever | Waitlist | Waitlist | Contact sales |
 | **Sites** | 1 | 5 | 15 | Unlimited |
 | **Users/editors** | 3 | 25 | 100 | Unlimited |
 | **Agent tasks/mo** | 1,000 | 10,000 | 50,000 | Unlimited |
 | **API rate limit** | 200 req/min | 300 req/min | 600 req/min | 1,000 req/min |
-| **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + SSO/SAML (planned, see [#509](https://github.com/RevealUIStudio/revealui/issues/509)) |
+| **Auth** | Session + OAuth (GitHub / Google / Vercel) | Same | Same | Session + OAuth + SSO/SAML (planned) |
 | **admin collections** | Unlimited | Unlimited | Unlimited | Unlimited |
 | **Real-time sync** | Basic | Full | Full | Full |
-| **AI agents (open-model)** | -- | Yes | Yes | Yes |
+| **Local AI inference (Snaps / Ollama)** | Yes | Yes | Yes | Yes |
+| **AI agents (orchestration)** | -- | Yes | Yes | Yes |
 | **AI memory** | -- | -- | Full (working + episodic + vector) | Full |
 | **Advanced inference config** | -- | -- | Yes | Yes |
 | **Stripe payments** | -- | Built-in | Built-in | Built-in |
@@ -80,7 +82,7 @@ Pro packages are published to npm as compiled distributions. You can install the
 
 A few things worth noting about this table.
 
-**The free tier is genuinely useful.** Unlimited admin collections, session-based auth, basic real-time sync, 1,000 agent tasks per month, and full source code access. You can build and run a real product on the free tier. I don't want "free" to mean "demo."
+**The free tier is genuinely useful.** Unlimited admin collections, session-based auth, basic real-time sync, local AI inference (Inference Snaps / Ollama), and full source code access. You can build and run a real product on the free tier. I don't want "free" to mean "demo."
 
 **All four business primitives work on free.** Users, Content, Products, Payments -- the MIT core -- are fully functional at every tier. Free doesn't cripple the business stack to pressure upgrades. The tier boundaries are about scale (more sites, more users, higher rate limits) and AI capabilities.
 
@@ -128,9 +130,9 @@ I'm not going to share revenue projections here. That's not the point. The point
 
 ## The Ecosystem Play
 
-RevealUI isn't just a framework you install. It's an agentic business runtime with an ecosystem strategy.
+RevealUI isn't just a framework you install. It's an open runtime for AI-native businesses with an ecosystem strategy.
 
-**MCP Marketplace.** Developers can publish MCP servers -- tools that AI agents use to interact with external services -- with per-call pricing via the x402 payment protocol. Server authors earn 80% of revenue. We handle discovery, billing, and the agent routing infrastructure. The goal is a self-sustaining marketplace where developers build specialized integrations and get paid for their work.
+**MCP Marketplace (in preview).** Developers will be able to publish MCP servers -- tools that AI agents use to interact with external services -- with per-call pricing via the x402 payment protocol. Server authors earn 80% of revenue. The publish/list/invoke/onboard endpoints are wired today; payouts open with the billing-readiness audit. We handle discovery, billing, and the agent routing infrastructure. The goal is a self-sustaining marketplace where developers build specialized integrations and get paid for their work.
 
 **"Built with RevealUI" badge.** Completely opt-in. If you display the badge, you get 500 bonus agent tasks per month. If you don't want it, don't use it. We will never require attribution. MIT means MIT.
 
@@ -176,4 +178,4 @@ Build something.
 
 ---
 
-*RevealUI is an agentic business runtime. Learn more at [revealui.com](https://revealui.com) or read the [docs](https://docs.revealui.com).*
+*RevealUI is the open runtime for AI-native businesses. Learn more at [revealui.com](https://revealui.com) or read the [docs](https://docs.revealui.com).*

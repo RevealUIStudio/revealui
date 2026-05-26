@@ -6,7 +6,7 @@
 
 Every software company ships the same five things: a way to manage users, a way to manage content, a way to sell products, a way to collect payments, and increasingly, a way to run AI. These are not features. They are primitives. And yet every engineering team builds them from scratch, bolting together auth libraries, content engines, payment wrappers, and AI SDKs, spending months on plumbing before writing a single line of differentiated code.
 
-RevealUI is an agentic business runtime. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.
+RevealUI is the open runtime for AI-native businesses. Its thesis is simple: these five primitives should be pre-wired, open source, and ready to deploy. You bring your business logic. We bring the infrastructure.
 
 This post is a deep technical walkthrough of all five. Not marketing copy. Real code, real architecture decisions, real trade-offs.
 
@@ -229,15 +229,23 @@ The feature gate is a simple function: given a feature name, check if the curren
 ```typescript
 // packages/core/src/features.ts
 const featureTierMap: Record<keyof FeatureFlags, LicenseTier> = {
+  aiLocal: 'free',          // local inference ships at every tier
   ai: 'pro',
   mcp: 'pro',
   payments: 'pro',
   advancedSync: 'pro',
+  dashboard: 'pro',
+  customDomain: 'pro',
+  analytics: 'pro',
+  vaultDesktop: 'pro',
+  vaultRotation: 'pro',
   aiMemory: 'max',
   aiInference: 'max',
+  auditLog: 'max',
+  devkitProfiles: 'max',
   multiTenant: 'enterprise',
-  whiteLabel: 'enterprise',
-  sso: 'enterprise',
+  whiteLabel: 'enterprise', // planned — forced false until shipped
+  sso: 'enterprise',        // planned — forced false until shipped
 };
 
 export function isFeatureEnabled(feature: keyof FeatureFlags): boolean {
@@ -253,7 +261,7 @@ This is used as middleware in the API. AI routes check `requireFeature('ai')`. M
 RevealUI supports three billing models simultaneously:
 
 1. **Subscriptions** -- Monthly recurring charges via Stripe. Standard for SaaS.
-2. **Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Enterprise is unlimited. Overage is reported to Stripe Billing Meters.
+2. **Agent credits** -- Usage-based metering for AI tasks. Pro tier gets 10,000 tasks/month, Max gets 50,000, Enterprise is unlimited. Reporting overage to Stripe Billing Meters is in development — during early access, usage is tracked but not billed.
 3. **Perpetual licenses** -- One-time purchase, own forever, with an optional annual support renewal. The license JWT has no expiration, and the system tracks `supportExpiresAt` separately from the license validity.
 
 ### License verification API
@@ -262,7 +270,7 @@ RevealUI supports three billing models simultaneously:
 POST /api/license/verify
 Content-Type: application/json
 
-{ "licenseKey": "eyJhbGciOiJSUzI1NiIs..." } // gitleaks:allow
+{ "licenseKey": "eyJhbGciOiJFZERTQSIs..." } // gitleaks:allow
 ```
 
 ```json
@@ -363,7 +371,7 @@ The webhook handler covers the full subscription lifecycle:
 
 ### x402 for agent-to-agent commerce
 
-RevealUI supports the x402 payment protocol for machine-to-machine payments. Agents can discover payment methods via `/.well-known/payment-methods.json` and pay per-task in USDC on Base. This enables an economy where AI agents can purchase compute, data, and services from other agents without human intervention.
+RevealUI implements the x402 payment protocol for machine-to-machine payments — designed and code-complete, behind the `X402_ENABLED=false` flag (see the status note above). Agents discover payment methods via `/.well-known/payment-methods.json` and pay per-task in USDC on Base. This enables an economy where AI agents can purchase compute, data, and services from other agents without human intervention.
 
 ### How Payments connects to everything else
 
@@ -416,7 +424,7 @@ The `@revealui/ai` package is loaded dynamically. If the license is free, the im
 
 ### Open-Model Inference
 
-RevealUI runs AI on open models only  -  no proprietary cloud APIs, no vendor lock-in, no API bills. The inference path is auto-detected from environment variables:
+RevealUI defaults to open-weight models — no API key, no cloud bill, no vendor lock-in. Cloud providers (Groq, HuggingFace, OpenAI-compatible, and Anthropic for prompt caching) are opt-in via environment variables. The inference path is auto-detected:
 
 1. **Ubuntu Inference Snaps** (recommended)  -  Canonical snap runtime (Gemma3, DeepSeek-R1, Qwen-VL, Nemotron-Nano)
 2. **Ollama** (fallback)  -  Any open source GGUF model (chat: `gemma4:e2b`, embeddings: `nomic-embed-text`)
@@ -434,7 +442,7 @@ Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict r
 
 ### MCP servers
 
-RevealUI ships **13 MCP (Model Context Protocol) servers**, open source under MIT. The most commonly used:
+RevealUI ships **13 first-party MCP (Model Context Protocol) servers** in `@revealui/mcp` (Fair Source, FSL-1.1-MIT — source-visible, converts to MIT two years after release). The most commonly used:
 
 | Server | Purpose |
 |--------|---------|
@@ -472,7 +480,7 @@ AI is not free. RevealUI tracks task usage per billing cycle:
 | Max | 50,000 tasks |
 | Enterprise | Unlimited |
 
-Overage beyond the quota is tracked in the `agent_task_usage` table and reported to Stripe Billing Meters at the end of each cycle via a cron job. This enables usage-based pricing without blocking execution in real-time.
+Usage beyond the quota is tracked in the `agent_task_usage` table. Reporting that overage to Stripe Billing Meters is in development — during early access, usage is recorded but not billed, so execution is never blocked on a meter.
 
 ### How Intelligence connects to everything else
 
@@ -504,4 +512,4 @@ Build your business, not your boilerplate.
 
 ---
 
-*RevealUI is an agentic business runtime. The core framework -- Users, Content, Products, and Payments -- is MIT licensed and free forever. Intelligence (AI agents, memory, MCP servers) is available with a Pro license. Learn more at [revealui.com](https://revealui.com).*
+*RevealUI is the open runtime for AI-native businesses. The core — Users, Content, Products, and Payments — is MIT licensed and free forever. Intelligence (AI agents, memory, the MCP framework) is Fair Source (FSL-1.1-MIT), available with a Pro license. Learn more at [revealui.com](https://revealui.com).*
