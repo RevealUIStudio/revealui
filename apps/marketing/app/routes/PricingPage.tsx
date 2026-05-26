@@ -86,13 +86,13 @@ export function PricingPage() {
   const perpetualTiers = pricing?.perpetual ?? PERPETUAL_TIERS;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-emerald-50/40 via-white to-white px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             Two ways to use{' '}
-            <span className="block bg-gradient-to-r from-emerald-700 to-emerald-500 bg-clip-text text-transparent">
+            <span className="block bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
               RevealUI
             </span>
           </h1>
@@ -103,7 +103,7 @@ export function PricingPage() {
             {PRICING_HERO_SUBTEXT.prefix}{' '}
             <a
               href={PRICING_HERO_SUBTEXT.linkHref}
-              className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+              className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
             >
               {PRICING_HERO_SUBTEXT.linkLabel}
             </a>{' '}
@@ -112,13 +112,13 @@ export function PricingPage() {
           <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-medium">
             <a
               href={PRICING_HERO_NAV_ANCHORS[0].href}
-              className="rounded-full bg-emerald-50 px-4 py-1.5 text-emerald-700 ring-1 ring-emerald-600/20 transition-colors hover:bg-emerald-100"
+              className="rounded-full bg-primary/10 px-4 py-1.5 text-primary ring-1 ring-primary/20 transition-colors hover:bg-primary/15"
             >
               {PRICING_HERO_NAV_ANCHORS[0].label}
             </a>
             <a
               href={PRICING_HERO_NAV_ANCHORS[1].href}
-              className="rounded-full bg-emerald-50 px-4 py-1.5 text-emerald-700 ring-1 ring-emerald-600/20 transition-colors hover:bg-emerald-100"
+              className="rounded-full bg-primary/10 px-4 py-1.5 text-primary ring-1 ring-primary/20 transition-colors hover:bg-primary/15"
             >
               {PRICING_HERO_NAV_ANCHORS[1].label}
             </a>
@@ -130,18 +130,18 @@ export function PricingPage() {
       <section id="subscriptions" className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mb-12 text-center">
-            <span className="text-sm font-semibold uppercase tracking-widest text-emerald-700">
+            <span className="text-sm font-semibold uppercase tracking-widest text-primary">
               {PRICING_TRACK_A_SECTION.eyebrow}
             </span>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {PRICING_TRACK_A_SECTION.heading}
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">{PRICING_TRACK_A_SECTION.body}</p>
           </div>
 
           {/* Value band — you own the runtime (no competitor prices) */}
-          <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-emerald-50 to-white p-8 ring-1 ring-emerald-600/15">
-            <h3 className="text-2xl font-bold tracking-tight text-gray-950">
+          <div className="mx-auto mb-16 max-w-4xl rounded-2xl bg-gradient-to-br from-primary/5 to-card p-8 ring-1 ring-primary/15">
+            <h3 className="text-2xl font-bold tracking-tight text-foreground">
               {PRICING_VALUE_BAND.heading}
             </h3>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -149,8 +149,8 @@ export function PricingPage() {
             </p>
             <ul className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {PRICING_VALUE_BAND.points.map((point) => (
-                <li key={point} className="flex items-start gap-2 text-sm text-gray-700">
-                  <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <li key={point} className="flex items-start gap-2 text-sm text-muted-foreground">
+                  <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                   <span>{point}</span>
                 </li>
               ))}
@@ -161,20 +161,20 @@ export function PricingPage() {
             {tiers.map((tier) => (
               <div
                 key={tier.id}
-                className={`relative flex flex-col rounded-2xl bg-white p-8 shadow-lg ${
-                  tier.highlighted ? 'ring-2 ring-emerald-600' : 'ring-1 ring-gray-200'
+                className={`relative flex flex-col rounded-2xl bg-card p-8 shadow-lg ${
+                  tier.highlighted ? 'ring-2 ring-primary' : 'ring-1 ring-border'
                 }`}
               >
                 {tier.highlighted && (
-                  <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-emerald-700 px-3 py-1.5 text-center text-sm font-semibold text-white shadow-lg">
+                  <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-primary px-3 py-1.5 text-center text-sm font-semibold text-primary-foreground shadow-lg">
                     {PRICING_HIGHLIGHTED_BADGE}
                   </div>
                 )}
                 <div className="mb-8">
-                  <h3 className="text-xl font-bold tracking-tight text-gray-950">{tier.name}</h3>
+                  <h3 className="text-xl font-bold tracking-tight text-foreground">{tier.name}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">{tier.description}</p>
                   <p className="mt-6 flex items-baseline gap-x-1">
-                    <span className="text-4xl font-bold tracking-tight text-gray-950">
+                    <span className="text-4xl font-bold tracking-tight text-foreground">
                       {tier.price ?? 'Contact us'}
                     </span>
                     {tier.period && (
@@ -185,8 +185,8 @@ export function PricingPage() {
                 <ul className="mb-8 flex-1 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
-                      <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-                      <span className="text-sm text-gray-700">{feature}</span>
+                      <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                      <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -218,13 +218,13 @@ export function PricingPage() {
       </section>
 
       {/* Perpetual licenses */}
-      <section id="perpetual" className="bg-gray-50 py-24 sm:py-32">
+      <section id="perpetual" className="bg-secondary py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mb-12 text-center">
-            <span className="text-sm font-semibold uppercase tracking-widest text-emerald-700">
+            <span className="text-sm font-semibold uppercase tracking-widest text-primary">
               {PRICING_TRACK_C_SECTION.eyebrow}
             </span>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {PRICING_TRACK_C_SECTION.heading}
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">{PRICING_TRACK_C_SECTION.body}</p>
@@ -233,26 +233,28 @@ export function PricingPage() {
             {perpetualTiers.map((tier) => (
               <div
                 key={tier.name}
-                className="relative flex flex-col rounded-2xl bg-white p-8 shadow-lg ring-1 ring-gray-200"
+                className="relative flex flex-col rounded-2xl bg-card p-8 shadow-lg ring-1 ring-border"
               >
                 {tier.comingSoon && (
                   <div className="absolute right-4 top-4">
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600">
                       Coming soon
                     </span>
                   </div>
                 )}
-                <h3 className="text-lg font-bold text-gray-950">{tier.name}</h3>
+                <h3 className="text-lg font-bold text-foreground">{tier.name}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">{tier.description}</p>
                 {tier.price ? (
                   <p className="mt-4 flex items-baseline gap-x-1">
-                    <span className="text-4xl font-bold text-gray-950">{tier.price}</span>
+                    <span className="text-4xl font-bold text-foreground">{tier.price}</span>
                     {tier.priceNote && (
                       <span className="text-sm text-muted-foreground">{tier.priceNote}</span>
                     )}
                   </p>
                 ) : (
-                  <p className="mt-4 text-base font-semibold text-gray-950">Contact for pricing</p>
+                  <p className="mt-4 text-base font-semibold text-foreground">
+                    Contact for pricing
+                  </p>
                 )}
                 {tier.renewal && (
                   <p className="mt-1 text-xs text-muted-foreground">{tier.renewal}</p>
@@ -260,8 +262,8 @@ export function PricingPage() {
                 <ul className="mb-8 mt-6 flex-1 space-y-3">
                   {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-x-3">
-                      <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-                      <span className="text-sm text-gray-700">{feature}</span>
+                      <CheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                      <span className="text-sm text-muted-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -275,27 +277,27 @@ export function PricingPage() {
       </section>
 
       {/* For AI Agents */}
-      <section id="for-agents" className="bg-gray-950 py-24 sm:py-32">
+      <section id="for-agents" className="bg-secondary py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-4xl">
             <div className="mb-12 text-center">
-              <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
+              <span className="text-sm font-semibold uppercase tracking-widest text-primary">
                 {PRICING_AGENTS_SECTION.eyebrow}
               </span>
-              <h2 className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                 {PRICING_AGENTS_SECTION.heading}
               </h2>
-              <p className="mt-4 text-lg text-gray-400">{PRICING_AGENTS_SECTION.subhead}</p>
-              <span className="mt-3 inline-block rounded-full bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-300 ring-1 ring-amber-400/20">
+              <p className="mt-4 text-lg text-muted-foreground">{PRICING_AGENTS_SECTION.subhead}</p>
+              <span className="mt-3 inline-block rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-600 ring-1 ring-amber-500/30">
                 {PRICING_AGENTS_SECTION.badge}
               </span>
             </div>
 
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
-              <div className="rounded-2xl bg-gray-900 p-6 ring-1 ring-white/10">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 ring-1 ring-emerald-500/20">
+              <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/20">
                   <svg
-                    className="h-5 w-5 text-emerald-400"
+                    className="h-5 w-5 text-primary"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
@@ -310,14 +312,16 @@ export function PricingPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold text-white">{PRICING_AGENT_A2A.heading}</h3>
-                <p className="mt-2 text-sm text-gray-400">
+                <h3 className="text-base font-semibold text-foreground">
+                  {PRICING_AGENT_A2A.heading}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">
                   {PRICING_AGENT_A2A.body.prefix}{' '}
                   <a
                     href={PRICING_AGENT_A2A.body.linkHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="break-all text-emerald-400 underline hover:text-emerald-300"
+                    className="break-all text-primary underline hover:text-primary/80"
                   >
                     {PRICING_AGENT_A2A.body.linkLabel}
                   </a>
@@ -325,10 +329,10 @@ export function PricingPage() {
                 </p>
               </div>
 
-              <div className="rounded-2xl bg-gray-900 p-6 ring-1 ring-white/10">
+              <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 ring-1 ring-blue-500/20">
                   <svg
-                    className="h-5 w-5 text-blue-400"
+                    className="h-5 w-5 text-blue-600"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
@@ -343,14 +347,16 @@ export function PricingPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold text-white">{PRICING_AGENT_X402.heading}</h3>
-                <p className="mt-2 text-sm text-gray-400">{PRICING_AGENT_X402.body}</p>
+                <h3 className="text-base font-semibold text-foreground">
+                  {PRICING_AGENT_X402.heading}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">{PRICING_AGENT_X402.body}</p>
               </div>
 
-              <div className="rounded-2xl bg-gray-900 p-6 ring-1 ring-white/10">
+              <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-violet-500/10 ring-1 ring-violet-500/20">
                   <svg
-                    className="h-5 w-5 text-violet-400"
+                    className="h-5 w-5 text-violet-600"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
@@ -365,11 +371,13 @@ export function PricingPage() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-base font-semibold text-white">{PRICING_AGENT_MCP.heading}</h3>
-                <p className="mt-2 text-sm text-gray-400">{PRICING_AGENT_MCP.body}</p>
+                <h3 className="text-base font-semibold text-foreground">
+                  {PRICING_AGENT_MCP.heading}
+                </h3>
+                <p className="mt-2 text-sm text-muted-foreground">{PRICING_AGENT_MCP.body}</p>
                 <a
                   href={PRICING_AGENT_MCP.docsLink.href}
-                  className="mt-3 inline-block text-xs font-semibold text-violet-400 hover:text-violet-300"
+                  className="mt-3 inline-block text-xs font-semibold text-violet-600 hover:text-violet-700"
                 >
                   {PRICING_AGENT_MCP.docsLink.label}
                 </a>
@@ -381,7 +389,7 @@ export function PricingPage() {
                 href={PRICING_AGENT_CTA_LINKS.openapi.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg bg-white/5 px-4 py-2 text-sm font-medium text-gray-300 ring-1 ring-white/10 transition-colors hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-lg bg-card px-4 py-2 text-sm font-medium text-muted-foreground ring-1 ring-border transition-colors hover:bg-muted"
               >
                 <svg
                   className="h-4 w-4"
@@ -402,7 +410,7 @@ export function PricingPage() {
               </a>
               <a
                 href={PRICING_AGENT_CTA_LINKS.apiDocs.href}
-                className="ml-4 inline-flex items-center gap-2 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-600"
+                className="ml-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 {PRICING_AGENT_CTA_LINKS.apiDocs.label}
               </a>
@@ -412,9 +420,9 @@ export function PricingPage() {
       </section>
 
       {/* Need implementation help? Hand off to the agency. */}
-      <section className="bg-emerald-50/40 py-16 sm:py-20">
+      <section className="bg-primary/5 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-6 text-center lg:px-8">
-          <h2 className="text-2xl font-bold tracking-tight text-gray-950 sm:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {PRICING_AGENCY_SECTION.heading}
           </h2>
           <p className="mt-4 text-base text-muted-foreground">{PRICING_AGENCY_SECTION.body}</p>
@@ -429,16 +437,16 @@ export function PricingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="bg-white py-24 sm:py-32">
+      <section className="bg-background py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-4xl">
-            <h2 className="mb-12 text-center text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            <h2 className="mb-12 text-center text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {PRICING_FAQ_SECTION.heading}
             </h2>
             <dl className="space-y-8">
               {PRICING_FAQS.map((faq) => (
-                <div key={faq.question} className="rounded-lg bg-gray-50 p-6 ring-1 ring-gray-200">
-                  <dt className="mb-2 text-lg font-semibold text-gray-950">{faq.question}</dt>
+                <div key={faq.question} className="rounded-lg bg-secondary p-6 ring-1 ring-border">
+                  <dt className="mb-2 text-lg font-semibold text-foreground">{faq.question}</dt>
                   <dd className="text-base text-muted-foreground">{faq.answer}</dd>
                 </div>
               ))}
@@ -448,35 +456,30 @@ export function PricingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-gray-950 py-24 sm:py-32">
+      <section className="bg-secondary py-24 sm:py-32">
         <div className="mx-auto max-w-2xl px-6 text-center lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {PRICING_FINAL_CTA.title}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-400">{PRICING_FINAL_CTA.subtitle}</p>
+          <p className="mt-6 text-lg leading-8 text-muted-foreground">
+            {PRICING_FINAL_CTA.subtitle}
+          </p>
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <ButtonCVA
-              asChild
-              size="lg"
-              className="w-full bg-white text-gray-950 hover:bg-gray-100 sm:w-auto"
-            >
+            <ButtonCVA asChild size="lg" className="w-full sm:w-auto">
               <a href={`${ADMIN_URL}${PRICING_FINAL_CTA_LINKS.getStarted.href}`}>
                 {PRICING_FINAL_CTA_LINKS.getStarted.label}
               </a>
             </ButtonCVA>
-            <ButtonCVA
-              asChild
-              variant="outline"
-              size="lg"
-              className="w-full border-gray-700 text-gray-200 hover:border-gray-500 hover:bg-white/10 hover:text-white sm:w-auto"
-            >
+            <ButtonCVA asChild variant="outline" size="lg" className="w-full sm:w-auto">
               <a href={PRICING_FINAL_CTA_LINKS.contactSales.href}>
                 {PRICING_FINAL_CTA_LINKS.contactSales.label}
               </a>
             </ButtonCVA>
           </div>
-          <div className="mt-16 border-t border-gray-800 pt-10">
-            <p className="mb-4 text-sm font-medium text-gray-400">{PRICING_NEWSLETTER_LABEL}</p>
+          <div className="mt-16 border-t border-border pt-10">
+            <p className="mb-4 text-sm font-medium text-muted-foreground">
+              {PRICING_NEWSLETTER_LABEL}
+            </p>
             <NewsletterSignup variant="stacked" />
           </div>
         </div>
