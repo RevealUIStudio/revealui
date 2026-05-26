@@ -1,5 +1,56 @@
 # @revealui/core
 
+## 0.8.0
+
+### Minor Changes
+
+- 198fc08: Enforce row-level access (`WhereClause`) in `findByID`, `update`, and `delete`.
+
+  When a collection's `access.read/update/delete` returns a `WhereClause` (the
+  documented row-ownership mechanism, e.g. `{ author: { equals: user.id } }`),
+  these operations previously coerced it to "allow" and acted on any id —
+  returning, updating, or deleting rows the filter was meant to scope out. They
+  now confirm the target row matches the filter (reusing the same AND-merge
+  `find` uses, across both storage adapters) before returning or mutating it, and
+  deny otherwise. `find` was already correct; boolean access rules are unaffected.
+
+- 363d4b5: Remove the RevealCoin (RVUI) on-chain payment integration. RevealCoin is a separate pre-launch product; this drops its wiring from the framework while leaving x402 micropayments (USDC on Base) fully intact.
+
+  - **@revealui/contracts**: removed the RevealCoin module exports (token config, mint addresses, allocations, amount helpers) and the `rvuiDiscount` pricing field; the agent `pricing` schema is now USDC-only.
+  - **@revealui/db**: dropped the `revealcoin_payments` and `revealcoin_price_snapshots` tables (migration `0016`) and their generated types.
+  - **@revealui/services**: removed the `./revealcoin` entry point (on-chain client, price oracle, payment safeguards).
+  - **@revealui/core**: x402 observability is USDC-only — removed the safeguard-rejection counter and narrowed the payment-metric currency/scheme labels.
+  - **@revealui/mcp**: removed the `revealcoin` contracts-introspection category.
+
+  Breaking for any consumer importing the removed symbols (minor bumps under pre-1.0 SemVer).
+
+### Patch Changes
+
+- 198e56a: Add a client-safe `@revealui/security/sanitize` subpath and route rich-text RSC rendering through it — fixes a `node:crypto` client-bundle crash.
+
+  `@revealui/core/richtext/rsc` imported `isSafeUrl` / `sanitizeUrl` from the `@revealui/security` barrel, which statically re-exports `auth.ts` and `gdpr.ts`. Both modules have a top-level `import { ... } from 'node:crypto'`, so the entire crypto graph was pulled into every client/RSC bundle that rendered rich text. In the browser `node:crypto` is unavailable, which crashed the bundle and blanked any route loading rich-text content (e.g. the marketing `/blog` route, on `main`/production).
+
+  - `@revealui/security`: new `./sanitize` export (built as a separate tsup entry). It bundles only `src/sanitize.ts` + `parse5` — no `node:crypto` — so it is safe to import from a browser/RSC client path. The barrel is unchanged for server consumers.
+  - `@revealui/core`: `richtext/exports/server/rsc.tsx` now imports the URL helpers from `@revealui/security/sanitize` instead of the barrel. No public API change; existing re-exports of `isSafeUrl` / `sanitizeUrl` are preserved.
+
+  The sync `totpHmac` (TOTP) usage in `auth.ts` is intentionally left as a static import — converting it to a lazy `await import('node:crypto')` would force an async signature change rippling to all TOTP callers. Isolating the client path via the subpath avoids that blast radius entirely.
+
+- 1d5a9e4: Split server-only modules behind `@revealui/security/server` so the default `@revealui/security` barrel is client-bundle-safe.
+
+  `auth`, `gdpr`, `audit` (`node:crypto`) and `ssrf` (`node:dns`) now export from the new `@revealui/security/server` subpath. The default barrel re-exports only client-safe modules — alerting, authorization, encryption (Web Crypto), GDPR storage, headers, logger, request-IP, and input sanitization — so a browser/RSC bundle that imports `@revealui/security` no longer drags the `node:` graph in (the crash class fixed in the previous release for richtext RSC).
+
+  `@revealui/core/security` re-exports both the barrel and `./server`, so server consumers that import via `@revealui/core/security` are unaffected. Code that imported the moved symbols (`TwoFactorAuth`, `OAuthClient`, the GDPR managers, `AuditSystem`/`audit`, `assertPublicUrl`, etc.) directly from the `@revealui/security` barrel must switch to `@revealui/security/server`, which is server-only.
+
+- Updated dependencies [9ec7c07]
+- Updated dependencies [363d4b5]
+- Updated dependencies [198e56a]
+- Updated dependencies [1d5a9e4]
+- Updated dependencies [0f2906c]
+- Updated dependencies [e4a3779]
+  - @revealui/contracts@0.6.0
+  - @revealui/security@0.4.0
+  - @revealui/cache@0.2.1
+
 ## 0.7.0
 
 ### Minor Changes

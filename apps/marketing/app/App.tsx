@@ -4,7 +4,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { RootLayout } from './layouts/RootLayout';
 import { BlogIndexPage } from './routes/BlogIndexPage';
 import { BlogPostPage } from './routes/BlogPostPage';
-import { ComingSoonPage } from './routes/ComingSoonPage';
 import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
 import { HomePage } from './routes/HomePage';
@@ -13,6 +12,7 @@ import { NotFoundPage } from './routes/NotFoundPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
+import { RoadmapPage } from './routes/RoadmapPage';
 import { SponsorPage } from './routes/SponsorPage';
 import { TermsPage } from './routes/TermsPage';
 
@@ -41,11 +41,7 @@ export function App() {
         component: FairSourcePage,
         meta: { title: 'Fair Source — RevealUI' },
       },
-      {
-        path: '/coming-soon',
-        component: ComingSoonPage,
-        meta: { title: 'Roadmap — RevealUI' },
-      },
+      { path: '/roadmap', component: RoadmapPage, meta: { title: 'Roadmap — RevealUI' } },
       { path: '/sponsor', component: SponsorPage, meta: { title: 'Sponsor — RevealUI' } },
       { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy — RevealUI' } },
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service — RevealUI' } },

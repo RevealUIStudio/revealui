@@ -163,6 +163,13 @@ REVEALUI_LICENSE_PRIVATE_KEY = "revealui/prod/license/private-key"
 REVEALUI_LICENSE_PUBLIC_KEY  = "revealui/prod/license/public-key"
 REVEALUI_SECRET              = "revealui/prod/secret"
 
+# Auth — passkey / WebAuthn (admin serves the passkey ceremony at admin.revealui.com)
+# rp-id=revealui.com is the registrable parent of admin.revealui.com; origin must match the admin origin.
+# Required in prod: packages/auth/src/server/passkey.ts asserts rpId!=='localhost' and 500s without these.
+PASSKEY_ORIGIN         = "revealui/prod/passkey/origin"
+PASSKEY_RP_ID          = "revealui/prod/passkey/rp-id"
+PASSKEY_RP_NAME        = "revealui/prod/passkey/rp-name"
+
 # Cron + alerting (parity with api)
 REVEALUI_CRON_SECRET = "revealui/prod/cron-secret"
 

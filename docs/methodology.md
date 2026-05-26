@@ -71,7 +71,7 @@ Hooks architecture detail: `~/.claude/rules/hooks-architecture.md` (private).
 
 ## Charge-readiness state (M11)
 
-- Subscription billing is 3 days from live; Stripe LIVE_MODE is owner-gated.
+- Production runs Stripe in TEST mode; the `STRIPE_LIVE_MODE` flip is owner-gated on the billing-readiness audit closing.
 - Pro-package gates are being removed via Path A: drop fake `checkXLicense` calls; normalize to FSL-1.1-MIT. Customers pay for hosted infra + support, not enforcement. Tracked in `docs/MASTER_PLAN.md`.
 
 ---

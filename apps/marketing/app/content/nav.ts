@@ -31,7 +31,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { label: 'Pricing', href: '/pricing' },
       { label: 'Documentation', href: SITE.urls.docs },
       { label: 'Blog', href: '/blog' },
-      { label: 'Roadmap', href: '/coming-soon' },
+      { label: 'Roadmap', href: '/roadmap' },
     ],
   },
   {

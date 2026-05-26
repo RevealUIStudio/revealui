@@ -1,10 +1,20 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { buildAdminCsp, generateNonce } from './lib/security/csp';
 import { generateCsrfToken, validateCsrfToken } from './lib/utils/csrf-token';
 
 const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
 const CSRF_EXEMPT_PREFIXES = [
+  // Pre-auth endpoints are hit before a session exists, so they must not be CSRF-gated.
+  // The gate below keys on session-cookie PRESENCE (not validity), so a STALE/invalid
+  // `revealui-session` cookie — e.g. one left over after a secret rotation invalidated old
+  // sessions — would otherwise demand a CSRF token the login form never sends, producing a
+  // spurious "CSRF token missing" 403 that blocks sign-in until the user clears cookies.
+  // (`/api/auth/password-reset` below is already exempt for the same reason.)
+  '/api/auth/sign-in',
+  '/api/auth/sign-up',
+  '/api/auth/passkey/authenticate',
   '/api/webhooks/',
   '/api/cron/',
   '/api/health',
@@ -50,6 +60,25 @@ const LEGACY_ADMIN_PREFIX = '/admin';
 // (Drizzle ORM, pg driver, etc.) required by the rate limit storage layer.
 export default async function proxy(request: NextRequest): Promise<NextResponse | Response> {
   const { pathname } = request.nextUrl;
+
+  // Per-request CSP nonce. Next.js reads the nonce from the request's
+  // Content-Security-Policy header and applies it to its framework, bundle, and
+  // inline bootstrap scripts — which lets us drop 'unsafe-inline' from script-src.
+  // The same policy is set on the response for both page and /api routes, so the
+  // CSP has a single source (this proxy) rather than also being set statically in
+  // next.config.mjs. See ./lib/security/csp.ts.
+  const nonce = generateNonce();
+  const cspValue = buildAdminCsp({
+    nonce,
+    isDev: process.env.NODE_ENV === 'development',
+    isVercel: Boolean(process.env.VERCEL),
+    isVercelProd: process.env.VERCEL_ENV === 'production',
+    apiUrl: (process.env.NEXT_PUBLIC_API_URL || 'https://api.revealui.com').trim(),
+    serverUrl: (process.env.NEXT_PUBLIC_SERVER_URL || '').trim(),
+  });
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', cspValue);
 
   // RevForge domain-lock: when REVFORGE_LICENSED_DOMAIN is set, reject requests from
   // unlicensed domains. Skipped entirely when not running in RevForge mode.
@@ -144,7 +173,9 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
   if (pathname.startsWith('/api') && request.nextUrl.searchParams.has('overrideAccess')) {
     const url = request.nextUrl.clone();
     url.searchParams.delete('overrideAccess');
-    return NextResponse.rewrite(url);
+    const rewriteResponse = NextResponse.rewrite(url);
+    rewriteResponse.headers.set('Content-Security-Policy', cspValue);
+    return rewriteResponse;
   }
 
   // CORS Handling and Security Headers for API requests
@@ -177,23 +208,9 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
       );
     }
 
-    // Content Security Policy (CSP)
-    const cspHeader = [
-      "default-src 'self'",
-      `script-src 'self'${process.env.NODE_ENV === 'development' ? " 'unsafe-inline' 'unsafe-eval'" : ''} https://js.stripe.com https://cdn.vercel-insights.com`,
-      `style-src 'self'${process.env.NODE_ENV === 'development' ? " 'unsafe-inline'" : ''}`,
-      "img-src 'self' data: blob: https:",
-      "font-src 'self' data:",
-      "connect-src 'self' https://*.supabase.co https://api.stripe.com",
-      "frame-src 'self' https://js.stripe.com",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "frame-ancestors 'none'",
-      'upgrade-insecure-requests',
-    ].join('; ');
-
-    response.headers.set('Content-Security-Policy', cspHeader);
+    // Content Security Policy — unified per-request policy (see ./lib/security/csp.ts);
+    // the single CSP source for both page and /api responses.
+    response.headers.set('Content-Security-Policy', cspValue);
 
     // Handle preflight (OPTIONS) requests
     if (request.method === 'OPTIONS') {
@@ -231,7 +248,11 @@ export default async function proxy(request: NextRequest): Promise<NextResponse 
     return response;
   }
 
-  return NextResponse.next();
+  // Page routes: thread the nonce via request headers so Next.js applies it to
+  // its inline bootstrap scripts, and set the matching CSP on the response.
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set('Content-Security-Policy', cspValue);
+  return response;
 }
 
 // Define matcher configuration for Next.js proxy

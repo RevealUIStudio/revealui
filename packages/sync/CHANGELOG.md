@@ -1,5 +1,18 @@
 # @revealui/sync
 
+## 0.3.10
+
+### Patch Changes
+
+- 9e5f3ae: Make `useConversations(_userId?)` param optional — it was kept for API compat but unused (filtering enforced server-side in the proxy). Backwards-compatible.
+- Updated dependencies [9ec7c07]
+- Updated dependencies [363d4b5]
+- Updated dependencies [e4a3779]
+- Updated dependencies [6643d0b]
+  - @revealui/contracts@0.6.0
+  - @revealui/db@0.6.0
+  - @revealui/cache@0.2.1
+
 ## 0.3.9
 
 ### Patch Changes
