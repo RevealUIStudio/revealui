@@ -7,7 +7,6 @@ import { BlogPostPage } from '../routes/BlogPostPage';
 import { ContactPage } from '../routes/ContactPage';
 import { FairSourcePage } from '../routes/FairSourcePage';
 import { HomePage } from '../routes/HomePage';
-import { MarketplacePage } from '../routes/MarketplacePage';
 import { NotFoundPage } from '../routes/NotFoundPage';
 import { PricingPage } from '../routes/PricingPage';
 import { PrivacyPage } from '../routes/PrivacyPage';
@@ -22,7 +21,6 @@ describe('marketing route registry', () => {
     router.registerRoutes([
       { path: '/', component: HomePage },
       { path: '/products', component: ProductsPage },
-      { path: '/marketplace', component: MarketplacePage },
       { path: '/pricing', component: PricingPage },
       { path: '/blog', component: BlogIndexPage },
       { path: '/blog/:slug', component: BlogPostPage },
@@ -41,7 +39,6 @@ describe('marketing route registry', () => {
     const advertisedPaths = [
       '/',
       '/products',
-      '/marketplace',
       '/pricing',
       '/blog',
       '/blog/getting-started',
@@ -81,6 +78,20 @@ describe('marketing route registry', () => {
     ) as { redirects?: Array<{ source: string; destination: string; permanent?: boolean }> };
     const redirect = vercelConfig.redirects?.find((entry) => entry.source === '/coming-soon');
     expect(redirect, 'the /coming-soon → /roadmap redirect must survive the rename').toBeDefined();
+    expect(redirect?.destination).toBe('/roadmap');
+    expect(redirect?.permanent).toBe(true);
+  });
+
+  it('redirects the removed /marketplace path to /roadmap', () => {
+    // /marketplace was removed as a standalone page (marketplace-reframe ADR).
+    // The transactional venue moves to revmarket; the marketing site points at
+    // /roadmap where RevMarket is listed as planned. A permanent 308 edge
+    // redirect (vercel.json) preserves indexed links and bookmarks.
+    const vercelConfig = JSON.parse(
+      readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
+    ) as { redirects?: Array<{ source: string; destination: string; permanent?: boolean }> };
+    const redirect = vercelConfig.redirects?.find((entry) => entry.source === '/marketplace');
+    expect(redirect, 'the /marketplace → /roadmap redirect must be present').toBeDefined();
     expect(redirect?.destination).toBe('/roadmap');
     expect(redirect?.permanent).toBe(true);
   });

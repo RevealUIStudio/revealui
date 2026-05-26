@@ -42,6 +42,7 @@
     },
     { "source": "/pro", "destination": "/pricing", "permanent": false },
     { "source": "/coming-soon", "destination": "/roadmap", "permanent": true },
+    { "source": "/marketplace", "destination": "/roadmap", "permanent": true },
     {
       "source": "/community",
       "destination": "https://revnation.discourse.group",

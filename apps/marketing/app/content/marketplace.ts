@@ -1,3 +1,9 @@
+// PRESERVED SEED DATA — revmarket extraction
+// This MCP-server catalog is preserved as the seed for the future `revmarket`
+// repo's public discovery UI (per the marketplace-extraction ADR). The
+// standalone marketing /marketplace page has been removed; /marketplace now
+// 308-redirects to /roadmap, where RevMarket is listed as planned.
+//
 // Sourced from: app/routes/MarketplacePage.tsx (Phase 1 extraction).
 // Phase 3 (2026-05-18) updates: bumped MCP server count to canonical 13 per
 // docs/MARKETING_METRICS.md §1 (was 12 — pre-merge audit miscount; validator
