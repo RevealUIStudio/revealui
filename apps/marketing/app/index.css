@@ -34,16 +34,13 @@
   --color-secondary: var(--rvui-surface-2);
   --color-secondary-foreground: var(--rvui-text-0);
   --color-muted: var(--rvui-surface-2);
-  /* Secondary / muted text — deterministic deep cobalt-ink (brand hue ~248).
-   * Replaces var(--rvui-text-2): the token file is dark-first (:root = dark),
-   * so --rvui-text-2 resolved to a silvery oklch(0.65 …) that washed out and
-   * failed WCAG AA on this site's bg-white / bg-gray-50 sections. This fixed
-   * value tests ~5.8:1 on white (AA pass) and reads as intentional brand ink,
-   * not gray — every text-muted-foreground (eyebrows, captions, footnotes)
-   * picks it up with no per-component edits. Marketing uses muted text only on
-   * light surfaces, so a single fixed value is safe (dark panels use explicit
-   * text-gray-300/400 utilities, untouched). */
-  --color-muted-foreground: oklch(0.48 0.085 248);
+  /* Secondary / muted text — adaptive (dark-first, mirrors the token system).
+   * Dark default here (smoke-300 oklch(0.65), AA on midnight surfaces); the
+   * light value (deep cobalt-ink oklch(0.48), ~5.8:1 on paper) is applied by the
+   * [data-theme="light"] + prefers-color-scheme overrides below the @theme
+   * block. Kept as a dedicated light value rather than --rvui-text-2's light 0.50
+   * (which tests ~4.4:1, borderline AA on white). */
+  --color-muted-foreground: oklch(0.65 0.025 250);
   --color-accent: var(--rvui-accent);
   --color-accent-foreground: var(--rvui-text-on-accent);
   --color-destructive: var(--rvui-error);
@@ -66,6 +63,19 @@
    * Bump the utility so every section eyebrow flips at once
    * without editing components. */
   --tracking-widest: 0.20em;
+}
+
+/* ── Muted-foreground light overrides ──
+ * Dark default lives in the @theme inline block above. These restore the
+ * AA-on-paper cobalt-ink value when the visitor is in light mode (explicit
+ * attr or system preference), mirroring tokens.css's selector precedence. */
+[data-theme="light"] {
+  --color-muted-foreground: oklch(0.48 0.085 248);
+}
+@media (prefers-color-scheme: light) {
+  :root:not(.dark):not([data-theme="dark"]):not([data-theme="light"]) {
+    --color-muted-foreground: oklch(0.48 0.085 248);
+  }
 }
 
 /* ── Palette remap: emerald → cobalt, gray → cool smoke ──
