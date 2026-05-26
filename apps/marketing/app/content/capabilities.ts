@@ -48,7 +48,7 @@ export const CAPABILITIES: readonly Capability[] = [
   },
   {
     title: 'Circuit breakers + retry + bulkhead',
-    body: 'Production-grade resilience patterns wired into the runtime — adaptive timeouts, retry budgets, and bulkhead isolation that early-stage SaaS usually skips.',
+    body: 'Production resilience patterns wired into the runtime — adaptive timeouts, retry budgets, and bulkhead isolation that early-stage SaaS usually skips.',
     path: 'packages/resilience/src/circuit-breaker.ts',
     href: `${REPO_ROOT}/packages/resilience/src/circuit-breaker.ts`,
   },
