@@ -69,7 +69,7 @@ export function SponsorPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-background to-indigo-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-500/10 via-background to-indigo-500/10 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             {SPONSOR_HERO.brand}
@@ -162,7 +162,7 @@ export function SponsorPage() {
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
               {SPONSOR_SUPPORT_AREAS.map((area) => (
                 <div key={area.title} className="text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10">
                     <SupportIcon iconKey={area.iconKey} />
                   </div>
                   <h3 className="mt-4 text-lg font-semibold text-foreground">{area.title}</h3>

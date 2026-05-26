@@ -12,7 +12,7 @@ import { WhatsShipped } from '../components/landing/WhatsShipped';
 
 export function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Hero />
       <Problem />
       <Demo />
