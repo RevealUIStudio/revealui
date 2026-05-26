@@ -21,11 +21,11 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 ## Core Guides
 
 - [Design Principles](./JOSHUA.md): Six engineering principles: Justifiable, Orthogonal, Sovereign, Hermetic, Unified, Adaptive
-- [Architecture](./ARCHITECTURE.md): System design, dual database, multi-tenant patterns
+- [Architecture](./ARCHITECTURE.md): System design, NeonDB data layer, multi-tenant patterns
 - [Admin Guide](./ADMIN_GUIDE.md): Collections, content management, admin dashboard
 - [Auth & Security](./AUTH.md): Authentication, sessions, RBAC, security policy
 - [Database](./DATABASE.md): Management scripts, optimization, Drizzle ORM
-- [CI/CD & Deployment](./CI_CD_GUIDE.md): Pipelines, Vercel deployment, staging
+- [Deployment](./guides/deployment.md): Deploy to Vercel + Fly, environment setup
 - [Environment Variables](./ENVIRONMENT-VARIABLES-GUIDE.md): Configuration reference
 
 ## Pricing & Commerce
@@ -38,7 +38,6 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 ## Development
 
 - [Testing](./TESTING.md): Unit, integration, E2E, component testing
-- [Performance](./PERFORMANCE.md): API, bundle, turbo optimization, caching strategy
 - [Troubleshooting](./TROUBLESHOOTING.md): Common issues and solutions
 
 ## Reference
@@ -48,7 +47,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 - [Component Catalog](./COMPONENT_CATALOG.md): 59 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [AI](./AI.md): AI package overview, prompt/response/semantic caching
 - [Pro](./PRO.md): Pro packages (`@revealui/ai`, `@revealui/engines`, `@revealui/harnesses`, `@revealui/mcp`, `@revealui/services`), MCP integration, open-model inference, x402, marketplace
-- [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, Forge, RevSkills, RevKit) — what each does and how they compose
+- [RevFleet](./REVFLEET.md): Companion products (RevDev, RevVault, RevCon, RevForge, RevSkills, RevKit) — what each does and how they compose
 
 ## Agent Coordination
 
@@ -62,7 +61,7 @@ Six **[design principles](./JOSHUA.md)** govern every architectural decision: Ju
 
 ## RevFleet
 
-RevealUI is one product in a fleet of eight that compose into an agent-first SDLC platform. See [RevFleet overview](./REVFLEET.md) for the full table and composition story.
+RevealUI is one product in a fleet of seven that compose into an agent-first SDLC platform. See [RevFleet overview](./REVFLEET.md) for the full table and composition story.
 
 - [RevDev](./fleet/revdev.md) — Studio (Tauri 2 desktop) + Console (Go SSH TUI) + harness daemon
 - [RevVault](./fleet/revvault.md) — age-encrypted secret vault, source of truth for every RevFleet secret

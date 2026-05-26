@@ -1,6 +1,6 @@
 ---
 title: "Database Management"
-description: "Drizzle ORM schema, migrations, dual-database setup (NeonDB + Supabase), and seeding"
+description: "Drizzle ORM schema, migrations, NeonDB setup (with optional legacy Supabase RAG sidecar), and seeding"
 category: guide
 audience: developer
 ---
@@ -197,7 +197,7 @@ CI=true pnpm db:migrate
 - `--no-backup` - Skip backup creation
 - `--seed` - Seed sample data after reset
 - `--database=rest` - Reset only REST database (Neon)
-- `--database=vector` - Reset only Vector database (Supabase)
+- `--database=vector` - Reset only the vector database (optional Supabase RAG sidecar)
 - `--force` - Allow in CI environment
 
 **Safety Features:**
@@ -322,7 +322,7 @@ postgresql://user:password@host:port/database
 # Neon (serverless)
 postgresql://user:password@host.neon.tech/database?sslmode=require
 
-# Supabase (connection pooling)
+# Supabase (optional RAG sidecar — legacy, being retired; connection pooling)
 postgresql://postgres:password@db.project.supabase.co:5432/postgres
 ```
 
@@ -750,7 +750,7 @@ pnpm db:restore backup.json
 
 ## Related Documentation
 
-- [CI/CD Guide](./CI_CD_GUIDE.md) - CI/CD pipeline and deployment
+- [Deployment Guide](./guides/deployment.md) - Deployment and environment setup
 - [Architecture](./ARCHITECTURE.md) - System architecture overview
 
 ---
@@ -1323,4 +1323,4 @@ setInterval(() => {
 ---
 
 **Last Updated**: 2026-04-26
-**Version**: 0.2 (working draft — pre-1.0 per the fleet-wide [versioning convention](../CONTRIBUTING.md#versioning))
+**Version**: 0.2 (working draft — pre-1.0 per the fleet-wide [versioning convention](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md#versioning))
