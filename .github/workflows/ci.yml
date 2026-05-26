@@ -618,6 +618,85 @@ jobs:
           retention-days: 7
 
   # ---------------------------------------------------------------------------
+  # Phase 6.5: Extended integration suite (PRs + main) — TRIAGE, not yet required
+  #
+  # The required "Integration Tests" job runs only @revealui/auth via
+  # scripts/dev-tools/run-integration-tests.ts. The large DB-backed
+  # @revealui/test integration suite (packages/test/src/integration — ~30
+  # files across api/, auth/, database/, router/, sync/, services/) was
+  # authored but wired into NO CI job. This job runs it against a real
+  # pgvector Postgres (full schema applied) so we can see what is green
+  # before promoting it to a required status check.
+  #
+  # Deliberately does NOT set RUN_INTEGRATION or STRIPE_SECRET_KEY: the Stripe
+  # contract test (services/stripe.integration.test.ts) self-skips without a
+  # test-mode key (describe.skipIf), and setting RUN_INTEGRATION without a key
+  # makes it throw. A test-mode key must be provisioned from revvault by the
+  # owner before billing integration can gate CI; until then this stays
+  # advisory (not added to branch-protection required_status_checks).
+  # ---------------------------------------------------------------------------
+  test-integration-extended:
+    name: Integration Tests (extended)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+
+    services:
+      postgres:
+        # pgvector image: migration 0000 does CREATE EXTENSION vector, which
+        # vanilla postgres:16 cannot satisfy (mirrors the db-migrations job).
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: revealui_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install ${{ env.PNPM_INSTALL_FLAGS }}
+
+      - name: Build packages (integration tests import real dist/)
+        run: pnpm --filter './packages/*' build
+        env:
+          SKIP_ENV_VALIDATION: "true"
+
+      - name: Apply migrations to test Postgres (full schema)
+        run: pnpm --filter @revealui/db db:migrate
+        env:
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
+          DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
+
+      # NOTE: packages/test's manifest name is the unscoped "test" (not
+      # "@revealui/test"). `--filter @revealui/test` matches zero packages and
+      # pnpm exits 0 — a false green. Filter by the real name. (Caught by the
+      # first CI run on this PR: "No projects matched the filters".)
+      - name: Run packages/test integration suite
+        run: pnpm --filter test run test:integration
+        env:
+          SKIP_ENV_VALIDATION: "true"
+          DATABASE_URL: "postgresql://test:test@localhost:5432/revealui_test"
+          POSTGRES_URL: "postgresql://test:test@localhost:5432/revealui_test"
+
+  # ---------------------------------------------------------------------------
   # CI Feedback — notify harness daemon of CI results
   # ---------------------------------------------------------------------------
   ci-feedback:
