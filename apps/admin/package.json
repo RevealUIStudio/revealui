@@ -5,7 +5,7 @@
   "description": "RevealUI admin dashboard",
   "license": "MIT",
   "dependencies": {
-    "@electric-sql/client": "^1.5.18",
+    "@electric-sql/client": "^1.5.19",
     "@revealui/auth": "workspace:*",
     "@revealui/config": "workspace:*",
     "@revealui/contracts": "workspace:*",
