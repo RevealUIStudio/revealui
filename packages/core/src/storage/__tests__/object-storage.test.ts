@@ -1,25 +1,31 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { StorageProvider } from '../types.js';
 
 // ---------------------------------------------------------------------------
 // Mock dependencies
 // ---------------------------------------------------------------------------
 const mockPut = vi.fn();
 const mockDel = vi.fn();
-
-vi.mock('@vercel/blob', () => ({
-  put: (...args: unknown[]) => mockPut(...args),
-  del: (...args: unknown[]) => mockDel(...args),
-}));
+const mockList = vi.fn();
 
 vi.mock('../../instance/logger.js', () => ({
   defaultLogger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-import { vercelBlobStorage } from '../vercel-blob.js';
+import { objectStorage } from '../object-storage.js';
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+function createMockProvider(tag = 'mock'): StorageProvider {
+  return {
+    provider: tag,
+    put: (...args: unknown[]) => mockPut(...args),
+    del: (...args: unknown[]) => mockDel(...args),
+    list: (...args: unknown[]) => mockList(...args),
+  } as unknown as StorageProvider;
+}
+
 // biome-ignore lint/suspicious/noExplicitAny: test helper  -  minimal config shape
 function createBaseConfig(collections: any[] = []) {
   // biome-ignore lint/suspicious/noExplicitAny: test helper
@@ -33,12 +39,12 @@ function createCollection(slug: string) {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
-describe('vercelBlobStorage', () => {
+describe('objectStorage', () => {
   describe('plugin configuration', () => {
     it('adds upload config to targeted collections', () => {
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'test-token',
+        resolveProvider: () => createMockProvider(),
       });
       const config = createBaseConfig([createCollection('media')]);
 
@@ -49,9 +55,9 @@ describe('vercelBlobStorage', () => {
     });
 
     it('does not modify untargeted collections', () => {
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'test-token',
+        resolveProvider: () => createMockProvider(),
       });
       const config = createBaseConfig([createCollection('posts')]);
 
@@ -62,10 +68,10 @@ describe('vercelBlobStorage', () => {
     });
 
     it('returns config unchanged when enabled is false', () => {
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         enabled: false,
         collections: { media: true },
-        token: 'test-token',
+        resolveProvider: () => createMockProvider(),
       });
       const config = createBaseConfig([createCollection('media')]);
 
@@ -76,9 +82,9 @@ describe('vercelBlobStorage', () => {
     });
 
     it('skips disabled collections', () => {
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         collections: { media: false },
-        token: 'test-token',
+        resolveProvider: () => createMockProvider(),
       });
       const config = createBaseConfig([createCollection('media')]);
 
@@ -89,9 +95,9 @@ describe('vercelBlobStorage', () => {
     });
 
     it('sets correct MIME types', () => {
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'test-token',
+        resolveProvider: () => createMockProvider(),
       });
       const config = createBaseConfig([createCollection('media')]);
 
@@ -102,9 +108,9 @@ describe('vercelBlobStorage', () => {
     });
 
     it('uses custom prefix', () => {
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'test-token',
+        resolveProvider: () => createMockProvider(),
         prefix: 'assets',
       });
       const config = createBaseConfig([createCollection('media')]);
@@ -117,9 +123,9 @@ describe('vercelBlobStorage', () => {
     });
 
     it('uses default prefix', () => {
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'test-token',
+        resolveProvider: () => createMockProvider(),
       });
       const config = createBaseConfig([createCollection('media')]);
 
@@ -131,13 +137,57 @@ describe('vercelBlobStorage', () => {
     });
   });
 
-  describe('upload adapter', () => {
-    it('uploads file with correct parameters', async () => {
-      mockPut.mockResolvedValue({ url: 'https://blob.vercel.dev/test.jpg' });
+  describe('lazy provider resolution', () => {
+    it('does not resolve the provider at config-build time', () => {
+      const resolveProvider = vi.fn(() => createMockProvider());
+      const plugin = objectStorage({ collections: { media: true }, resolveProvider });
+      const config = createBaseConfig([createCollection('media')]);
 
-      const plugin = vercelBlobStorage({
+      plugin(config);
+
+      expect(resolveProvider).not.toHaveBeenCalled();
+    });
+
+    it('resolves the provider once (memoized) across multiple operations', async () => {
+      mockPut.mockResolvedValue({
+        key: 'k',
+        url: 'https://cdn.example/k',
+        size: 1,
+        provider: 'mock',
+      });
+      mockDel.mockResolvedValue(undefined);
+      const resolveProvider = vi.fn(() => createMockProvider());
+      const plugin = objectStorage({ collections: { media: true }, resolveProvider });
+      const config = createBaseConfig([createCollection('media')]);
+      plugin(config);
+
+      const media = config.collections.find((c: { slug: string }) => c.slug === 'media');
+      const adapter = media.upload.adapters[0].adapter;
+
+      await adapter.upload({
+        name: 'a.jpg',
+        data: Buffer.from('a'),
+        size: 1,
+        mimetype: 'image/jpeg',
+      });
+      await adapter.delete('https://cdn.example/k');
+
+      expect(resolveProvider).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('upload adapter', () => {
+    it('uploads via the provider with a prefixed key and maps the result', async () => {
+      mockPut.mockResolvedValue({
+        key: 'uploads/media/123-test.jpg',
+        url: 'https://cdn.example/uploads/media/123-test.jpg',
+        size: 1024,
+        provider: 'r2',
+      });
+
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'my-token',
+        resolveProvider: () => createMockProvider('r2'),
       });
       const config = createBaseConfig([createCollection('media')]);
       plugin(config);
@@ -154,7 +204,7 @@ describe('vercelBlobStorage', () => {
         height: 600,
       });
 
-      expect(result.url).toBe('https://blob.vercel.dev/test.jpg');
+      expect(result.url).toBe('https://cdn.example/uploads/media/123-test.jpg');
       expect(result.filename).toBe('test.jpg');
       expect(result.filesize).toBe(1024);
       expect(result.mimeType).toBe('image/jpeg');
@@ -164,36 +214,16 @@ describe('vercelBlobStorage', () => {
       expect(mockPut).toHaveBeenCalledWith(
         expect.stringContaining('uploads/media/'),
         expect.any(Buffer),
-        { access: 'public', token: 'my-token', addRandomSuffix: false },
+        { access: 'public', contentType: 'image/jpeg' },
       );
-    });
-
-    it('throws when token is not configured', async () => {
-      const plugin = vercelBlobStorage({
-        collections: { media: true },
-      });
-      const config = createBaseConfig([createCollection('media')]);
-      plugin(config);
-
-      const media = config.collections.find((c: { slug: string }) => c.slug === 'media');
-      const adapter = media.upload.adapters[0].adapter;
-
-      await expect(
-        adapter.upload({
-          name: 'test.jpg',
-          data: Buffer.from('data'),
-          size: 100,
-          mimetype: 'image/jpeg',
-        }),
-      ).rejects.toThrow('Vercel blob token is required');
     });
 
     it('rethrows upload errors', async () => {
       mockPut.mockRejectedValue(new Error('Network error'));
 
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'token',
+        resolveProvider: () => createMockProvider(),
       });
       const config = createBaseConfig([createCollection('media')]);
       plugin(config);
@@ -210,15 +240,13 @@ describe('vercelBlobStorage', () => {
         }),
       ).rejects.toThrow('Network error');
     });
-  });
 
-  describe('delete adapter', () => {
-    it('deletes file by URL', async () => {
-      mockDel.mockResolvedValue(undefined);
-
-      const plugin = vercelBlobStorage({
+    it('propagates a resolveProvider throw (no backend configured)', async () => {
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'token',
+        resolveProvider: () => {
+          throw new Error('No object-storage backend configured');
+        },
       });
       const config = createBaseConfig([createCollection('media')]);
       plugin(config);
@@ -226,17 +254,42 @@ describe('vercelBlobStorage', () => {
       const media = config.collections.find((c: { slug: string }) => c.slug === 'media');
       const adapter = media.upload.adapters[0].adapter;
 
-      await adapter.delete('https://blob.vercel.dev/test.jpg');
-
-      expect(mockDel).toHaveBeenCalledWith('https://blob.vercel.dev/test.jpg');
+      await expect(
+        adapter.upload({
+          name: 'test.jpg',
+          data: Buffer.from('data'),
+          size: 100,
+          mimetype: 'image/jpeg',
+        }),
+      ).rejects.toThrow('No object-storage backend configured');
     });
+  });
 
-    it('constructs path for non-URL filenames', async () => {
+  describe('delete adapter', () => {
+    it('deletes by URL (passed through to the provider)', async () => {
       mockDel.mockResolvedValue(undefined);
 
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'token',
+        resolveProvider: () => createMockProvider(),
+      });
+      const config = createBaseConfig([createCollection('media')]);
+      plugin(config);
+
+      const media = config.collections.find((c: { slug: string }) => c.slug === 'media');
+      const adapter = media.upload.adapters[0].adapter;
+
+      await adapter.delete('https://cdn.example/uploads/media/test.jpg');
+
+      expect(mockDel).toHaveBeenCalledWith('https://cdn.example/uploads/media/test.jpg');
+    });
+
+    it('prefixes non-URL filenames before delete', async () => {
+      mockDel.mockResolvedValue(undefined);
+
+      const plugin = objectStorage({
+        collections: { media: true },
+        resolveProvider: () => createMockProvider(),
       });
       const config = createBaseConfig([createCollection('media')]);
       plugin(config);
@@ -252,9 +305,9 @@ describe('vercelBlobStorage', () => {
     it('rethrows delete errors', async () => {
       mockDel.mockRejectedValue(new Error('Not found'));
 
-      const plugin = vercelBlobStorage({
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'token',
+        resolveProvider: () => createMockProvider(),
       });
       const config = createBaseConfig([createCollection('media')]);
       plugin(config);
@@ -267,10 +320,10 @@ describe('vercelBlobStorage', () => {
   });
 
   describe('generateFileURL', () => {
-    it('generates correct file URL with collection slug', () => {
-      const plugin = vercelBlobStorage({
+    it('generates a file URL that includes the collection slug', () => {
+      const plugin = objectStorage({
         collections: { media: true },
-        token: 'token',
+        resolveProvider: () => createMockProvider(),
         prefix: 'files',
       });
       const config = createBaseConfig([createCollection('media')]);
