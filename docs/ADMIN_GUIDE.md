@@ -1120,7 +1120,7 @@ Image: [Link uploaded media]
 **Solutions**:
 
 1. Verify media uploaded to Media collection
-2. Check Vercel Blob storage is configured
+2. Check object storage (Cloudflare R2) is configured
 3. Ensure image URLs are correct
 4. Check CORS settings
 

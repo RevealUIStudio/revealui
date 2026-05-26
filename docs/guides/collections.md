@@ -125,7 +125,7 @@ RevealUI supports these field types, with schemas defined in `@revealui/contract
 | `radio` | Radio button group | Priority level |
 | `checkbox` | Boolean toggle | Featured, active |
 | `date` | Date/datetime picker | Published date, expiry |
-| `upload` | File upload (Vercel Blob) | Image, document |
+| `upload` | File upload (Cloudflare R2) | Image, document |
 | `relationship` | Reference to another collection | Author, categories |
 | `array` | Repeatable group of fields | Gallery items, FAQ entries |
 | `group` | Named group of fields | SEO metadata, address |

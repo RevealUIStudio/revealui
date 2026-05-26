@@ -433,10 +433,9 @@ const temp: { id: string } = getTempData()
 
 ## Related Documentation
 
-- [Contracts System Overview](../packages/contracts/README.md)
+- [Contracts System Overview](https://github.com/RevealUIStudio/revealui/tree/main/packages/contracts)
 - [Linting Rules](./LINTING_RULES.md)
-- [Code Standards](./CODE_STANDARDS.md)
-- [Contributing Guidelines](../CONTRIBUTING.md)
+- [Contributing Guidelines](https://github.com/RevealUIStudio/revealui/blob/main/CONTRIBUTING.md)
 
 ---
 
