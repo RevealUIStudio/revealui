@@ -94,6 +94,14 @@ jobs:
         # release pipeline (release.yml) on main.
         run: pnpm validate:changesets
 
+      - name: Docs link validation (hard fail)
+        # Fails when any served doc (apps/docs/public/ after copy-docs.sh)
+        # links to a relative .md target that 404s on the public site —
+        # internal-excluded, missing, or outside-root. Guards against the
+        # broken-link class fixed manually in #1096. See
+        # apps/docs/scripts/check-links.ts.
+        run: pnpm --filter docs check:links
+
   # ---------------------------------------------------------------------------
   # Phase 1.5: Drizzle migration apply (all branches)
   #

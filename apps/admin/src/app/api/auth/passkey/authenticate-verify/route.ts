@@ -189,7 +189,10 @@ async function authenticateVerifyHandler(request: NextRequest): Promise<NextResp
 
     return response;
   } catch (error) {
-    logger.error('Error verifying passkey authentication', { error });
+    logger.error(
+      'Error verifying passkey authentication',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return createErrorResponse(error, {
       endpoint: '/api/auth/passkey/authenticate-verify',
       operation: 'passkey_authenticate_verify',
