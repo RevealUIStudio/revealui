@@ -135,15 +135,15 @@ The session-start hook prunes stale rows before registering the new session:
 
 ```typescript
 function detectStale(sessions: Session[]): Session[] {
-  const fourHoursAgo = Date.now() - 4 * 60 * 60 * 1000
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
   return sessions.filter(s => {
     const updatedAt = new Date(s.updated).getTime()
-    return updatedAt < fourHoursAgo
+    return updatedAt < sevenDaysAgo
   })
 }
 ```
 
-Sessions that haven't written to the workboard in four hours are considered dead and pruned. Their file claims are released.
+Sessions that haven't written to the workboard in seven days are considered dead and pruned. Their file claims are released. (We started at four hours; vacation-length absences pushed it to seven days.)
 
 ---
 
@@ -164,6 +164,8 @@ It doesn't solve everything:
 ## The `@revealui/harnesses` Package
 
 We extracted the workboard protocol into a proper package: [`@revealui/harnesses`](https://github.com/RevealUIStudio/revealui/tree/main/packages/harnesses).
+
+> **How this evolved.** RevealUI's own coordination has matured past the exact hooks above: today the Claude Code hooks *read and warn* rather than write the workboard, agents maintain it directly, and a coordination daemon tracks live session state over RPC. The file-based workboard stays the durable, greppable, git-committed archive layer — which is the part that mattered most. `@revealui/harnesses` ships the productized version.
 
 ```typescript
 import { WorkboardManager, HarnessCoordinator } from '@revealui/harnesses'
@@ -220,4 +222,4 @@ The `@revealui/harnesses` package is part of RevealUI Pro. The protocol itself  
 
 ---
 
-*RevealUI is an open-source business runtime for software companies. [revealui.com](https://revealui.com)*
+*RevealUI is the open runtime for AI-native businesses. [revealui.com](https://revealui.com)*
