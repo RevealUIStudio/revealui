@@ -1,5 +1,32 @@
 # @revealui/services
 
+## 0.7.0
+
+### Minor Changes
+
+- 363d4b5: Remove the RevealCoin (RVUI) on-chain payment integration. RevealCoin is a separate pre-launch product; this drops its wiring from the framework while leaving x402 micropayments (USDC on Base) fully intact.
+
+  - **@revealui/contracts**: removed the RevealCoin module exports (token config, mint addresses, allocations, amount helpers) and the `rvuiDiscount` pricing field; the agent `pricing` schema is now USDC-only.
+  - **@revealui/db**: dropped the `revealcoin_payments` and `revealcoin_price_snapshots` tables (migration `0016`) and their generated types.
+  - **@revealui/services**: removed the `./revealcoin` entry point (on-chain client, price oracle, payment safeguards).
+  - **@revealui/core**: x402 observability is USDC-only — removed the safeguard-rejection counter and narrowed the payment-metric currency/scheme labels.
+  - **@revealui/mcp**: removed the `revealcoin` contracts-introspection category.
+
+  Breaking for any consumer importing the removed symbols (minor bumps under pre-1.0 SemVer).
+
+### Patch Changes
+
+- Updated dependencies [198fc08]
+- Updated dependencies [9ec7c07]
+- Updated dependencies [363d4b5]
+- Updated dependencies [198e56a]
+- Updated dependencies [1d5a9e4]
+- Updated dependencies [e4a3779]
+- Updated dependencies [6643d0b]
+  - @revealui/core@0.8.0
+  - @revealui/contracts@0.6.0
+  - @revealui/db@0.6.0
+
 ## 0.6.0
 
 ### Minor Changes
