@@ -19,6 +19,12 @@
 @import "tailwindcss";
 @import "@revealui/presentation/tokens.css";
 
+/* Tailwind v4 does not scan node_modules by default. Without this, the utility
+ * classes baked into @revealui/presentation components (ButtonCVA's bg-primary,
+ * Input / Callout / FormField styles, etc.) are never generated and the native
+ * components render unstyled. Mirrors the agency site's @source directive. */
+@source "../node_modules/@revealui/presentation/dist/**/*.js";
+
 /* ── Bridge --rvui-* tokens into Tailwind's @theme namespace ── */
 @theme inline {
   --color-background: var(--rvui-surface-0);

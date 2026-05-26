@@ -6,25 +6,27 @@ import { NewsletterSignup } from './NewsletterSignup';
 export function Footer() {
   const currentYear = new Date().getFullYear();
   return (
-    <footer className="bg-gray-950 border-t border-gray-800 py-12">
+    <footer className="bg-muted border-t border-border py-12">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           <div className="lg:col-span-2">
-            <div className="text-2xl font-bold tracking-tight text-white mb-4">{SITE.brand}</div>
-            <p className="text-gray-400 text-sm leading-6 max-w-sm">{FOOTER_TAGLINE}</p>
+            <div className="text-2xl font-bold tracking-tight text-foreground mb-4">
+              {SITE.brand}
+            </div>
+            <p className="text-muted-foreground text-sm leading-6 max-w-sm">{FOOTER_TAGLINE}</p>
             <div className="mt-6">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
                 Stay in the loop
               </p>
               <NewsletterSignup />
-              <p className="mt-2 text-xs text-gray-400">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Product updates and engineering insights. No spam.
               </p>
             </div>
             <div className="mt-6 flex gap-4">
               <a
                 href={SITE.urls.repo}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="GitHub"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -38,7 +40,7 @@ export function Footer() {
               </a>
               <a
                 href={SITE.urls.x}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="RevealUI on X"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -48,7 +50,7 @@ export function Footer() {
               </a>
               <a
                 href={SITE.urls.linkedin}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="RevealUI on LinkedIn"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -60,16 +62,16 @@ export function Footer() {
           </div>
           {FOOTER_COLUMNS.map((col) => (
             <div key={col.heading}>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">
                 {col.heading}
               </h3>
-              <ul className="space-y-3 text-sm text-gray-400">
+              <ul className="space-y-3 text-sm text-muted-foreground">
                 {col.links.map(({ label, href, external }) => (
                   <li key={label}>
                     <a
                       href={href}
                       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                      className="hover:text-white transition-colors"
+                      className="hover:text-foreground transition-colors"
                     >
                       {label}
                     </a>
@@ -79,7 +81,7 @@ export function Footer() {
             </div>
           ))}
         </div>
-        <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-gray-400 text-sm">
+        <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-muted-foreground text-sm">
           <div className="flex items-center gap-4">
             <p>
               &copy; {currentYear} RevealUI is operated by{' '}
@@ -87,17 +89,17 @@ export function Footer() {
                 href={FOOTER_LEGAL.operatorHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white transition-colors underline-offset-4 hover:underline"
+                className="hover:text-foreground transition-colors underline-offset-4 hover:underline"
               >
                 {FOOTER_LEGAL.operator}
               </a>{' '}
               ({FOOTER_LEGAL.jurisdiction}). All rights reserved.
             </p>
-            <BuiltWithRevealUI size="sm" colorScheme="dark" />
+            <BuiltWithRevealUI size="sm" />
           </div>
           <div className="flex gap-6">
             {FOOTER_LEGAL_LINKS.map(({ label, href }) => (
-              <a key={label} href={href} className="hover:text-white transition-colors">
+              <a key={label} href={href} className="hover:text-foreground transition-colors">
                 {label}
               </a>
             ))}
