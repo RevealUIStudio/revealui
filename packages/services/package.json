@@ -14,7 +14,7 @@
     "@revealui/core": "workspace:*",
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
-    "@vercel/node": "^5.7.12",
+    "@vercel/node": "^5.8.4",
     "drizzle-orm": "catalog:",
     "jose": "^6.2.3",
     "stripe": "^22.1.1"
