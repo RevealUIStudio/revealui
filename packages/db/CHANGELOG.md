@@ -1,5 +1,30 @@
 # @revealui/db
 
+## 0.6.0
+
+### Minor Changes
+
+- 363d4b5: Remove the RevealCoin (RVUI) on-chain payment integration. RevealCoin is a separate pre-launch product; this drops its wiring from the framework while leaving x402 micropayments (USDC on Base) fully intact.
+
+  - **@revealui/contracts**: removed the RevealCoin module exports (token config, mint addresses, allocations, amount helpers) and the `rvuiDiscount` pricing field; the agent `pricing` schema is now USDC-only.
+  - **@revealui/db**: dropped the `revealcoin_payments` and `revealcoin_price_snapshots` tables (migration `0016`) and their generated types.
+  - **@revealui/services**: removed the `./revealcoin` entry point (on-chain client, price oracle, payment safeguards).
+  - **@revealui/core**: x402 observability is USDC-only — removed the safeguard-rejection counter and narrowed the payment-metric currency/scheme labels.
+  - **@revealui/mcp**: removed the `revealcoin` contracts-introspection category.
+
+  Breaking for any consumer importing the removed symbols (minor bumps under pre-1.0 SemVer).
+
+- 6643d0b: Add a claim/complete idempotency state to `processed_webhook_events` (`status` +
+  `claimed_at`) and a per-event `agent_credit_events` ledger, with migration 0017.
+
+  Enables crash-safe Stripe webhook processing: an event is claimed as
+  `processing` and only marked `completed` after its side effects run, so an
+  uncaught crash/timeout leaves the event reclaimable (a later retry re-runs it)
+  rather than a permanent dedup marker that silently drops a paid event. The
+  credit ledger makes credit-bundle application idempotent on replay. Existing
+  rows migrate as `completed` (default), preserving dedup of already-processed
+  events.
+
 ## 0.5.0
 
 ### Minor Changes
