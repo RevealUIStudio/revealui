@@ -32,9 +32,9 @@ interface PostMeta {
 const POST_METADATA: PostMeta[] = [
   {
     slug: 'getting-started',
-    title: 'From Zero to Production in 10 Minutes',
+    title: 'From Zero to Production in About 30 Minutes',
     excerpt:
-      'Build a complete business application with auth, content, and payments, faster than you can order lunch.',
+      'Build a complete business application with auth, content, and payments — from zero to deployed in about 30 minutes.',
     publishedAt: '2026-03-27T12:00:00.000Z',
     author: 'RevealUI Team',
     file: '08-getting-started.md',
@@ -68,7 +68,7 @@ const POST_METADATA: PostMeta[] = [
   },
   {
     slug: 'local-first-ai-stack',
-    title: 'The Air-Gap Capable Business Stack',
+    title: 'The Air-Gap-Capable Business Runtime',
     excerpt:
       'Your secrets in your own vault, your AI running locally, your dev environment reproducible from a single command.',
     publishedAt: '2026-03-23T12:00:00.000Z',
@@ -95,7 +95,7 @@ const POST_METADATA: PostMeta[] = [
   },
   {
     slug: 'why-we-built-revealui',
-    title: 'Why We Built RevealUI',
+    title: 'Why I Built RevealUI',
     excerpt: 'The origin story: why another business runtime, and what makes RevealUI different.',
     publishedAt: '2026-03-20T12:00:00.000Z',
     author: 'RevealUI Team',
