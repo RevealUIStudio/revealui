@@ -10,31 +10,31 @@ import {
 
 export function Proof() {
   return (
-    <section className="bg-white py-24 sm:py-32">
+    <section className="bg-background py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             {PROOF_SECTION.eyebrow}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {PROOF_SECTION.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-600">{PROOF_SECTION.body}</p>
+          <p className="mt-6 text-lg leading-8 text-muted-foreground">{PROOF_SECTION.body}</p>
         </div>
 
         <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Repo signals */}
-          <div className="rounded-2xl bg-gray-50 p-8 ring-1 ring-gray-950/5">
+          <div className="rounded-2xl bg-secondary p-8 ring-1 ring-border">
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               {PROOF_REPO_SIGNALS.eyebrow}
             </p>
-            <h3 className="mt-2 text-xl font-semibold text-gray-950">
+            <h3 className="mt-2 text-xl font-semibold text-foreground">
               {PROOF_REPO_SIGNALS.heading}
             </h3>
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <a
                 href={PROOF_REPO_SIGNALS.repoHref}
-                className="inline-flex items-center gap-2 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-gray-700 ring-1 ring-gray-300 hover:ring-gray-400 transition"
+                className="inline-flex items-center gap-2 rounded-md bg-card px-3 py-1.5 text-sm font-medium text-foreground ring-1 ring-border hover:ring-border/80 transition"
               >
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                   <title>GitHub</title>
@@ -51,31 +51,31 @@ export function Proof() {
               <img
                 alt="Contributors"
                 src="https://img.shields.io/github/contributors/RevealUIStudio/revealui?style=flat&label=Contributors&color=10b981"
-                className="h-7 rounded-md ring-1 ring-gray-300"
+                className="h-7 rounded-md ring-1 ring-border"
               />
               {/* biome-ignore lint/performance/noImgElement: dynamic shields.io SVG badge, no image optimizer in Vite SPA */}
               <img
                 alt="Last commit"
                 src="https://img.shields.io/github/last-commit/RevealUIStudio/revealui?style=flat&label=Last%20commit&color=10b981"
-                className="h-7 rounded-md ring-1 ring-gray-300"
+                className="h-7 rounded-md ring-1 ring-border"
               />
               {/* biome-ignore lint/performance/noImgElement: dynamic shields.io SVG badge, no image optimizer in Vite SPA */}
               <img
                 alt="License"
                 src="https://img.shields.io/github/license/RevealUIStudio/revealui?style=flat&color=10b981"
-                className="h-7 rounded-md ring-1 ring-gray-300"
+                className="h-7 rounded-md ring-1 ring-border"
               />
             </div>
 
-            <div className="mt-6 border-t border-gray-200 pt-6">
+            <div className="mt-6 border-t border-border pt-6">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3">
                 {PROOF_REPO_SIGNALS.ciLabel}
               </p>
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {PROOF_CI_SIGNALS.map((s) => (
-                  <li key={s} className="flex items-center gap-2 text-sm text-gray-700">
+                  <li key={s} className="flex items-center gap-2 text-sm text-foreground">
                     <svg
-                      className="h-4 w-4 flex-shrink-0 text-emerald-500"
+                      className="h-4 w-4 flex-shrink-0 text-primary"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -94,21 +94,23 @@ export function Proof() {
           </div>
 
           {/* Stack standards */}
-          <div className="rounded-2xl bg-gray-950 p-8 text-white">
-            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
+          <div className="rounded-2xl bg-card p-8">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary">
               {PROOF_STACK_PANEL.eyebrow}
             </p>
-            <h3 className="mt-2 text-xl font-semibold">{PROOF_STACK_PANEL.heading}</h3>
-            <p className="mt-3 text-sm leading-6 text-gray-300">{PROOF_STACK_PANEL.body}</p>
+            <h3 className="mt-2 text-xl font-semibold text-foreground">
+              {PROOF_STACK_PANEL.heading}
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{PROOF_STACK_PANEL.body}</p>
 
             <ul className="mt-6 grid grid-cols-2 gap-3">
               {PROOF_STACK.map((s) => (
                 <li
                   key={s.label}
-                  className="rounded-lg bg-white/5 px-3 py-2.5 ring-1 ring-white/10"
+                  className="rounded-lg bg-secondary px-3 py-2.5 ring-1 ring-border"
                 >
-                  <div className="text-sm font-semibold text-white">{s.label}</div>
-                  <div className="text-xs text-gray-400">{s.kind}</div>
+                  <div className="text-sm font-semibold text-foreground">{s.label}</div>
+                  <div className="text-xs text-muted-foreground">{s.kind}</div>
                 </li>
               ))}
             </ul>
@@ -121,33 +123,33 @@ export function Proof() {
             <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
               {PROOF_TRUST.eyebrow}
             </p>
-            <h3 className="mt-3 text-2xl font-bold tracking-tight text-gray-950 sm:text-3xl">
+            <h3 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {PROOF_TRUST.heading}
             </h3>
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <div className="rounded-2xl bg-emerald-50/40 p-6 ring-1 ring-emerald-200">
-              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-800">
+            <div className="rounded-2xl bg-primary/10 p-6 ring-1 ring-primary/20">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary">
                 {PROOF_TRUST.cards[0].eyebrow}
               </p>
-              <h4 className="mt-3 text-base font-semibold text-gray-950">
+              <h4 className="mt-3 text-base font-semibold text-foreground">
                 {PROOF_TRUST.cards[0].heading}
               </h4>
-              <p className="mt-2 text-sm leading-6 text-gray-700">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 {PROOF_TRUST.cards[0].body.prefix}{' '}
                 <a
                   href={PROOF_TRUST.cards[0].body.licenseHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
                 >
                   {PROOF_TRUST.cards[0].body.licenseLabel}
                 </a>{' '}
                 {PROOF_TRUST.cards[0].body.middle}{' '}
                 <a
                   href={PROOF_TRUST.cards[0].body.explainerHref}
-                  className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
                 >
                   {PROOF_TRUST.cards[0].body.explainerLabel}
                 </a>
@@ -155,24 +157,26 @@ export function Proof() {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-gray-950 p-6 ring-1 ring-gray-950/10 text-white">
-              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-400">
+            <div className="rounded-2xl bg-card p-6 ring-1 ring-border">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary">
                 {PROOF_TRUST.cards[1].eyebrow}
               </p>
-              <h4 className="mt-3 text-base font-semibold">{PROOF_TRUST.cards[1].heading}</h4>
+              <h4 className="mt-3 text-base font-semibold text-foreground">
+                {PROOF_TRUST.cards[1].heading}
+              </h4>
               <pre
                 // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable code region — axe-core scrollable-region-focusable requires tabIndex=0 so keyboard users can scroll horizontally
                 tabIndex={0}
-                className="mt-3 overflow-x-auto rounded-lg bg-black/40 px-3 py-2 font-mono text-[11px] leading-5 text-gray-300 ring-1 ring-white/10"
+                className="mt-3 overflow-x-auto rounded-lg bg-secondary px-3 py-2 font-mono text-[11px] leading-5 text-muted-foreground ring-1 ring-border"
               >
                 {PROOF_TRUST.cards[1].codeSnippet}
               </pre>
-              <p className="mt-3 text-xs leading-5 text-gray-400">
+              <p className="mt-3 text-xs leading-5 text-muted-foreground">
                 <a
                   href={PROOF_TRUST.cards[1].fileHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-emerald-400 underline decoration-emerald-700 underline-offset-4 hover:text-emerald-300"
+                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
                 >
                   {PROOF_TRUST.cards[1].fileLabel}
                 </a>{' '}
@@ -180,29 +184,29 @@ export function Proof() {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-emerald-50/40 p-6 ring-1 ring-emerald-200">
-              <p className="text-xs font-semibold uppercase tracking-widest text-emerald-800">
+            <div className="rounded-2xl bg-primary/10 p-6 ring-1 ring-primary/20">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary">
                 {PROOF_TRUST.cards[2].eyebrow}
               </p>
-              <h4 className="mt-3 text-base font-semibold text-gray-950">
+              <h4 className="mt-3 text-base font-semibold text-foreground">
                 {PROOF_TRUST.cards[2].heading}
               </h4>
-              <p className="mt-2 text-sm leading-6 text-gray-700">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 {PROOF_TRUST.cards[2].body.prefix}{' '}
                 <a
                   href={PROOF_TRUST.cards[2].body.agencyHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
                 >
                   {PROOF_TRUST.cards[2].body.agencyLabel}
                 </a>{' '}
                 {PROOF_TRUST.cards[2].body.middle}{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-xs text-gray-900 ring-1 ring-emerald-200">
+                <code className="rounded bg-card px-1 py-0.5 font-mono text-xs text-foreground ring-1 ring-primary/20">
                   {PROOF_TRUST.cards[2].body.pkg1}
                 </code>{' '}
                 {PROOF_TRUST.cards[2].body.plus}{' '}
-                <code className="rounded bg-white px-1 py-0.5 font-mono text-xs text-gray-900 ring-1 ring-emerald-200">
+                <code className="rounded bg-card px-1 py-0.5 font-mono text-xs text-foreground ring-1 ring-primary/20">
                   {PROOF_TRUST.cards[2].body.pkg2}
                 </code>
                 {PROOF_TRUST.cards[2].body.suffix}{' '}
@@ -210,7 +214,7 @@ export function Proof() {
                   href={PROOF_TRUST.cards[2].body.sourceHref}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-800"
+                  className="font-medium text-primary underline decoration-primary/40 underline-offset-4 hover:text-primary/80"
                 >
                   {PROOF_TRUST.cards[2].body.sourceLabel}
                 </a>
