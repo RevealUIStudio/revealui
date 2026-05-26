@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { Router } from '@revealui/router';
 import { describe, expect, it } from 'vitest';
 import { BlogIndexPage } from '../routes/BlogIndexPage';
@@ -73,8 +74,10 @@ describe('marketing route registry', () => {
   it('redirects the legacy /coming-soon path to /roadmap', () => {
     // /coming-soon was the route's path before the Phase 4 rename. A permanent
     // edge redirect (vercel.json) keeps old bookmarks and indexed links alive.
+    // Resolve from cwd (the marketing package root under vitest), not
+    // import.meta.url — vitest's module URL is not a file: scheme in CI.
     const vercelConfig = JSON.parse(
-      readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'),
+      readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
     ) as { redirects?: Array<{ source: string; destination: string; permanent?: boolean }> };
     const redirect = vercelConfig.redirects?.find((entry) => entry.source === '/coming-soon');
     expect(redirect, 'the /coming-soon → /roadmap redirect must survive the rename').toBeDefined();
