@@ -7,7 +7,6 @@ import { BlogPostPage } from './routes/BlogPostPage';
 import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
 import { HomePage } from './routes/HomePage';
-import { MarketplacePage } from './routes/MarketplacePage';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
@@ -27,11 +26,6 @@ export function App() {
     router.registerRoutes([
       { path: '/', component: HomePage, meta: { title: 'RevealUI' } },
       { path: '/products', component: ProductsPage, meta: { title: 'Products — RevealUI' } },
-      {
-        path: '/marketplace',
-        component: MarketplacePage,
-        meta: { title: 'Marketplace — RevealUI' },
-      },
       { path: '/pricing', component: PricingPage, meta: { title: 'Pricing — RevealUI' } },
       { path: '/blog', component: BlogIndexPage, meta: { title: 'Blog — RevealUI' } },
       { path: '/blog/:slug', component: BlogPostPage, meta: { title: 'Blog — RevealUI' } },

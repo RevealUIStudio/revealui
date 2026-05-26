@@ -1,4 +1,5 @@
 import { RichTextContent, type SerializedEditorState } from '@revealui/core/richtext/rsc';
+import { ButtonCVA } from '@revealui/presentation';
 import { useParams } from '@revealui/router';
 import { useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
@@ -78,7 +79,7 @@ export function BlogPostPage() {
 
   if (loading && !post) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-3xl px-6 py-32 text-center text-muted-foreground">
           Loading…
         </div>
@@ -89,21 +90,18 @@ export function BlogPostPage() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-background">
         <section className="flex flex-col items-center justify-center px-6 py-32 text-center">
-          <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">404</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+          <p className="text-sm font-semibold uppercase tracking-widest text-primary">404</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Post not found
           </h1>
-          <p className="mt-4 max-w-md text-base text-gray-600">
+          <p className="mt-4 max-w-md text-base text-muted-foreground">
             That blog post does not exist or has been removed.
           </p>
-          <a
-            href="/blog"
-            className="mt-8 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-500"
-          >
-            Back to Blog
-          </a>
+          <ButtonCVA asChild variant="primary" className="mt-8">
+            <a href="/blog">Back to Blog</a>
+          </ButtonCVA>
         </section>
         <Footer />
       </div>
@@ -111,13 +109,13 @@ export function BlogPostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <article className="py-24 sm:py-32">
         <div className="mx-auto max-w-3xl px-6 lg:px-8">
           {/* Back link */}
           <a
             href="/blog"
-            className="inline-flex items-center gap-x-1 text-sm font-semibold text-blue-600 hover:text-blue-500 transition-colors mb-8"
+            className="inline-flex items-center gap-x-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mb-8"
           >
             &larr; Back to Blog
           </a>
@@ -130,7 +128,7 @@ export function BlogPostPage() {
               </time>
               {post.author && <span>{post.author}</span>}
             </div>
-            <h1 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+            <h1 className="mt-2 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
               {post.title}
             </h1>
           </header>
@@ -148,27 +146,21 @@ export function BlogPostPage() {
         </div>
       </article>
 
-      <section className="border-t border-gray-100 bg-gray-50 py-16 sm:py-20">
+      <section className="border-t border-border bg-secondary py-16 sm:py-20">
         <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-gray-950 sm:text-3xl">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Ready to build?
           </h2>
-          <p className="mt-4 text-base leading-7 text-gray-600">
+          <p className="mt-4 text-base leading-7 text-muted-foreground">
             Users, content, products, payments, and AI, pre-wired. Start locally in minutes.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="https://admin.revealui.com/signup"
-              className="rounded-md bg-gray-950 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-gray-800 transition-colors"
-            >
-              Start free
-            </a>
-            <a
-              href="https://docs.revealui.com"
-              className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              Read the docs
-            </a>
+            <ButtonCVA asChild size="lg" variant="primary">
+              <a href="https://admin.revealui.com/signup">Start free</a>
+            </ButtonCVA>
+            <ButtonCVA asChild size="lg" variant="outline">
+              <a href="https://docs.revealui.com">Read the docs</a>
+            </ButtonCVA>
           </div>
         </div>
       </section>

@@ -12,11 +12,6 @@ export {
 import { METRICS, SITE } from './site';
 import type { Cta, SectionHeading } from './types';
 
-export interface CfoLineItem {
-  readonly label: string;
-  readonly amount: string;
-}
-
 export interface AgentFeatureCard {
   readonly heading: string;
   readonly body: string;
@@ -31,41 +26,40 @@ export const PRICING_HERO_SUBTEXT = {
   prefix:
     'All plans run as self-hosted installations under your license — managed deployment available as a service add-on. Want to deploy a branded version for your own customers? See',
   linkLabel: 'Agency Perpetual',
-  linkHref: '#track-c',
+  linkHref: '#perpetual',
   suffix: 'for RevealUI Fleet licensing.',
 } as const;
 
 export const PRICING_HERO_NAV_ANCHORS = [
-  { label: 'Track A: Subscriptions', href: '#track-a' },
-  { label: 'Track C: Perpetual Licenses', href: '#track-c' },
+  { label: 'Monthly plans', href: '#subscriptions' },
+  { label: 'Perpetual licenses', href: '#perpetual' },
 ] as const;
 
 export const PRICING_TRACK_A_SECTION = {
-  eyebrow: 'Track A',
-  heading: 'Subscription Plans',
+  eyebrow: 'Subscriptions',
+  heading: 'Subscribe monthly',
   body: 'Monthly subscriptions with a task allowance included. 7-day free trial on Pro and Max.',
 } as const;
 
-export const PRICING_CFO_PANEL = {
-  eyebrow: 'Replacing what?',
-  heading: 'A typical 5-dev startup pays $800–1,000/mo for the backend layer alone.',
-  lineItems: [
-    { label: 'Convex Team:', amount: '$125/mo (5 × $25)' },
-    { label: 'Supabase Team:', amount: '$599/mo' },
-    { label: 'Trigger.dev Pro:', amount: '$50/mo' },
-    { label: 'Clerk Pro:', amount: '$25/mo' },
-    { label: 'Stripe + observability:', amount: '~$50/mo+' },
-  ] as readonly CfoLineItem[],
-  totalLine: 'Total backend-platform spend: ~$800–1,000 / mo + per-event API costs.',
-  bottomLine: 'RevealUI Pro is $49/mo + your own infrastructure. You own the runtime.',
-  footnote:
-    'Deploy targets like Vercel, Cloudflare, Railway, and Hetzner are unchanged — RevealUI runs on all of them. We replace the backend platforms, not where you ship.',
+// Replaces the former CFO competitor-comparison panel (which named Convex / Supabase /
+// Clerk / Trigger.dev prices), cut 2026-05-26 per owner directive. This value framing
+// names no third-party prices. Deploy targets follow the drop-railway-for-fly ADR
+// (Vercel / Cloudflare / Fly / Hetzner — Railway dropped).
+export const PRICING_VALUE_BAND = {
+  heading: 'You own the runtime.',
+  body: 'Most backend platforms rent you auth, content, jobs, and payments as separate per-seat subscriptions you never stop paying. RevealUI ships them as one runtime you self-host under your own license.',
+  points: [
+    'One runtime, not five separate SaaS subscriptions',
+    'Self-host on Vercel, Cloudflare, Fly, Hetzner, or your own metal',
+    'Full source code access on every tier',
+    "Open-weight AI by default — your bill doesn't scale with usage",
+  ],
 } as const;
 
 export const PRICING_HIGHLIGHTED_BADGE = 'Most Popular' as const;
 
 export const PRICING_TRACK_C_SECTION = {
-  eyebrow: 'Track C',
+  eyebrow: 'Perpetual',
   heading: 'Perpetual Licenses',
   body: 'Pay once, use forever. No subscription required. Support renewals are optional.',
 } as const;
@@ -115,7 +109,7 @@ export const PRICING_AGENT_CTA_LINKS = {
 } as const;
 
 export const PRICING_AGENCY_SECTION = {
-  heading: 'Need help adopting RevealUI?',
+  heading: 'Adoption help from RevealUI Studio',
   body: 'Architecture reviews, migrations, and launch support are offered separately by RevealUI Studio (the agency). Engagements are scoped per-project.',
   cta: {
     label: 'Visit revealuistudio.com →',
@@ -125,8 +119,8 @@ export const PRICING_AGENCY_SECTION = {
 } as const;
 
 export const PRICING_FINAL_CTA: SectionHeading = {
-  title: 'Ready to get started?',
-  subtitle: 'Start free with full source code access. Upgrade when your business needs it.',
+  title: 'Start free with full source access.',
+  subtitle: 'Every tier ships the complete source. Upgrade when your business needs Pro features.',
 };
 
 export const PRICING_FINAL_CTA_LINKS = {
@@ -140,4 +134,4 @@ export const PRICING_FINAL_CTA_LINKS = {
   } satisfies Cta,
 } as const;
 
-export const PRICING_NEWSLETTER_LABEL = 'Not ready yet? Stay in the loop.' as const;
+export const PRICING_NEWSLETTER_LABEL = 'Not ready yet? Get release updates by email.' as const;

@@ -15,14 +15,14 @@ const ALL_PRODUCT_ANCHORS = [
 
 export function ProductsPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-blue-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-blue-50 px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
         <div className="mx-auto max-w-4xl text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             {PRODUCTS_PAGE_HERO.h1}
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
             {PRODUCTS_PAGE_HERO.subtitle}
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-2 text-sm font-medium">
@@ -30,7 +30,7 @@ export function ProductsPage() {
               <a
                 key={anchor.slug}
                 href={`#${anchor.slug}`}
-                className="rounded-full bg-white px-4 py-1.5 text-gray-700 ring-1 ring-gray-200 transition-colors hover:bg-emerald-50 hover:text-emerald-700 hover:ring-emerald-300"
+                className="rounded-full bg-card px-4 py-1.5 text-muted-foreground ring-1 ring-border transition-colors hover:bg-primary/10 hover:text-primary hover:ring-primary/30"
               >
                 {anchor.name}
               </a>
@@ -42,8 +42,8 @@ export function ProductsPage() {
       {/* Flagship — RevealUI featured card */}
       <section id={PRODUCTS_FLAGSHIP.slug} className="py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-900 p-10 shadow-2xl ring-1 ring-emerald-900/20 sm:p-14">
-            <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-10 shadow-2xl ring-1 ring-primary/20 sm:p-14">
+            <div className="absolute -right-16 -top-16 h-72 w-72 rounded-full bg-primary-foreground/10 blur-3xl" />
             <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-blue-500/15 blur-3xl" />
             <div className="relative">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -65,7 +65,7 @@ export function ProductsPage() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-100/90">
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-foreground/90">
                       {PRODUCTS_FLAGSHIP.eyebrow}
                     </p>
                     <h2 className="mt-1 text-3xl font-bold tracking-tight text-white sm:text-4xl">
@@ -83,10 +83,10 @@ export function ProductsPage() {
                 </div>
               </div>
 
-              <p className="mt-6 max-w-3xl text-xl font-medium leading-8 text-emerald-50">
+              <p className="mt-6 max-w-3xl text-xl font-medium leading-8 text-primary-foreground">
                 {PRODUCTS_FLAGSHIP.tagline}
               </p>
-              <p className="mt-3 max-w-3xl text-base leading-7 text-emerald-100/90">
+              <p className="mt-3 max-w-3xl text-base leading-7 text-primary-foreground/90">
                 {PRODUCTS_FLAGSHIP.body}
               </p>
 
@@ -96,7 +96,7 @@ export function ProductsPage() {
                     key={fact.label}
                     className="rounded-xl bg-white/10 px-4 py-3 ring-1 ring-white/20 backdrop-blur"
                   >
-                    <dt className="text-xs uppercase tracking-wide text-emerald-100/80">
+                    <dt className="text-xs uppercase tracking-wide text-primary-foreground/80">
                       {fact.label}
                     </dt>
                     <dd className="mt-1 text-2xl font-bold tracking-tight text-white">
@@ -109,13 +109,13 @@ export function ProductsPage() {
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <a
                   href={PRODUCTS_FLAGSHIP.ctas.docs.href}
-                  className="rounded-md bg-white px-6 py-3 text-sm font-semibold text-emerald-800 shadow-sm transition-colors hover:bg-emerald-50"
+                  className="rounded-md bg-primary-foreground px-6 py-3 text-sm font-semibold text-primary shadow-sm transition-colors hover:bg-primary-foreground/90"
                 >
                   {PRODUCTS_FLAGSHIP.ctas.docs.label}
                 </a>
                 <a
                   href={PRODUCTS_FLAGSHIP.ctas.pricing.href}
-                  className="rounded-md bg-emerald-900/40 px-6 py-3 text-sm font-semibold text-white ring-1 ring-white/30 transition-colors hover:bg-emerald-900/60"
+                  className="rounded-md bg-primary-foreground/15 px-6 py-3 text-sm font-semibold text-primary-foreground ring-1 ring-primary-foreground/30 transition-colors hover:bg-primary-foreground/25"
                 >
                   {PRODUCTS_FLAGSHIP.ctas.pricing.label}
                 </a>
@@ -135,13 +135,13 @@ export function ProductsPage() {
       </section>
 
       {/* Sister products — uniform card grid */}
-      <section className="bg-gray-50 py-20 sm:py-24">
+      <section className="bg-secondary py-20 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               And the rest of the fleet
             </h2>
-            <p className="mt-4 text-lg leading-7 text-gray-600">
+            <p className="mt-4 text-lg leading-7 text-muted-foreground">
               Sister products that extend the runtime — secrets, dev tooling, white-labeling,
               skills, and the agent tool catalog.
             </p>
@@ -154,13 +154,13 @@ export function ProductsPage() {
                 <li
                   key={product.slug}
                   id={product.slug}
-                  className="group relative flex flex-col rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200 transition-shadow hover:shadow-lg"
+                  className="group relative flex flex-col rounded-2xl bg-card p-8 shadow-sm ring-1 ring-border transition-shadow hover:shadow-lg"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-50 ring-1 ring-gray-200">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary ring-1 ring-border">
                         <svg
-                          className="h-6 w-6 text-gray-700"
+                          className="h-6 w-6 text-muted-foreground"
                           fill="none"
                           viewBox="0 0 24 24"
                           strokeWidth={1.5}
@@ -171,10 +171,10 @@ export function ProductsPage() {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold tracking-tight text-gray-900">
+                        <h3 className="text-xl font-bold tracking-tight text-foreground">
                           {product.name}
                         </h3>
-                        <p className="mt-0.5 text-sm font-medium text-gray-600">
+                        <p className="mt-0.5 text-sm font-medium text-muted-foreground">
                           {product.tagline}
                         </p>
                       </div>
@@ -193,12 +193,14 @@ export function ProductsPage() {
                     </div>
                   </div>
 
-                  <p className="mt-5 grow text-sm leading-6 text-gray-600">{product.body}</p>
+                  <p className="mt-5 grow text-sm leading-6 text-muted-foreground">
+                    {product.body}
+                  </p>
 
                   <div className="mt-6">
                     <a
                       href={product.primaryCta.href}
-                      className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-700 transition-colors hover:text-emerald-800"
+                      className="inline-flex min-h-11 items-center text-sm font-semibold text-primary transition-colors hover:text-primary/80"
                       {...(product.primaryCta.external
                         ? { target: '_blank', rel: 'noreferrer' }
                         : {})}
@@ -214,21 +216,21 @@ export function ProductsPage() {
       </section>
 
       {/* Stats — production credibility */}
-      <section className="bg-gray-950 py-24 sm:py-32">
+      <section className="bg-card py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {PRODUCTS_STATS_SECTION.heading}
             </h2>
-            <p className="mt-4 text-lg text-gray-400">{PRODUCTS_STATS_SECTION.body}</p>
+            <p className="mt-4 text-lg text-muted-foreground">{PRODUCTS_STATS_SECTION.body}</p>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {PRODUCTS_STATS_SECTION.items.map((item) => (
               <div key={item.label} className="text-center">
-                <p className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
+                <p className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
                   {item.stat}
                 </p>
-                <p className="mt-2 text-sm text-gray-400">{item.label}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{item.label}</p>
               </div>
             ))}
           </div>
@@ -238,23 +240,25 @@ export function ProductsPage() {
       {/* CTA */}
       <section className="py-24 sm:py-32">
         <div className="mx-auto max-w-2xl px-6 text-center lg:px-8">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {PRODUCTS_CTA_SECTION.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-600">{PRODUCTS_CTA_SECTION.body}</p>
-          <div className="mt-8 rounded-lg bg-gray-950 px-6 py-4 text-left font-mono text-sm text-gray-300">
-            <span className="text-gray-500">$</span> {PRODUCTS_CTA_SECTION.cliSnippet}
+          <p className="mt-6 text-lg leading-8 text-muted-foreground">
+            {PRODUCTS_CTA_SECTION.body}
+          </p>
+          <div className="mt-8 rounded-lg bg-foreground px-6 py-4 text-left font-mono text-sm text-background">
+            <span className="text-background/50">$</span> {PRODUCTS_CTA_SECTION.cliSnippet}
           </div>
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
               href={PRODUCTS_CTA_SECTION.cta.docs.href}
-              className="rounded-md bg-emerald-600 px-8 py-4 text-base font-semibold text-white shadow-sm hover:bg-emerald-500 transition-colors"
+              className="rounded-md bg-primary px-8 py-4 text-base font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
             >
               {PRODUCTS_CTA_SECTION.cta.docs.label}
             </a>
             <a
               href={PRODUCTS_CTA_SECTION.cta.pricing.href}
-              className="rounded-md bg-gray-100 px-8 py-4 text-base font-semibold text-gray-900 hover:bg-gray-200 transition-colors"
+              className="rounded-md bg-secondary px-8 py-4 text-base font-semibold text-foreground hover:bg-muted transition-colors"
             >
               {PRODUCTS_CTA_SECTION.cta.pricing.label}
             </a>
