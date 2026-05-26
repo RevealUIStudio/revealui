@@ -38,7 +38,7 @@ Each CLI can also be accessed directly:
 ```bash
 pnpm audit:any
 pnpm ops fix-imports
-pnpm release:preview
+pnpm release:dry-run
 ```
 
 ---
@@ -147,9 +147,7 @@ Direct audit commands for code quality checks.
 
 ```bash
 pnpm audit:any              # Find 'any' type usage
-pnpm audit:any:json         # Find 'any' types (JSON output)
 pnpm audit:console          # Find console statements
-pnpm audit:console:json     # Find console statements (JSON output)
 ```
 
 ---
@@ -196,35 +194,25 @@ pnpm revealui maintain audit-scripts --json
 Version bumping and package publishing.
 
 ```bash
-pnpm release <command> [options]
-
-Commands:
-  version          Bump version (major|minor|patch)
-  preview          Preview release changes
-  changelog        Generate changelog
-  publish          Publish to npm
-  tag              Create git tag
-  dry-run          Simulate release
+pnpm release <subcommand>    # Entry point at scripts/cli/release.ts
 ```
 
 **Examples:**
 
 ```bash
-pnpm release:preview
-pnpm release:version patch
-pnpm release:changelog --output CHANGELOG.md
-pnpm release:publish --tag beta
-pnpm release:dry-run
+pnpm release:oss          # OSS publish flow
+pnpm release:pro          # Pro publish flow
+pnpm release:dry-run      # Simulate release (no changes)
+pnpm release:status       # Check pending changesets
 ```
 
 **Package.json scripts:**
 
-- `release:preview`
-- `release:version`
-- `release:changelog`
-- `release:publish`
-- `release:tag`
-- `release:dry-run`
+- `release` — `tsx scripts/cli/release.ts`
+- `release:dry-run` — simulate release
+- `release:oss` — publish OSS packages
+- `release:pro` — publish Pro packages
+- `release:status` — show pending changeset status
 
 ---
 
@@ -274,10 +262,16 @@ pnpm revealui dev up     # Bootstrap local dev environment
 Validation gates and checks.
 
 ```bash
-pnpm validate:env            # Validate environment
-pnpm validate:docs           # Validate documentation
-pnpm validate:console        # Check for console statements
-pnpm validate:pre-launch     # Pre-launch checks
+pnpm validate:boundary       # Package boundary enforcement
+pnpm validate:artifacts      # Build artifact validation
+pnpm validate:structure      # Project structure check
+pnpm validate:claims         # Claim-drift validation
+pnpm validate:catalog        # Changeset catalog check
+pnpm validate:versions       # Version policy enforcement
+pnpm validate:migrations     # Migration journal integrity
+pnpm validate:prod-env       # Production env validation
+pnpm validate:stripe-client  # Stripe client-safety check
+pnpm preflight               # Full pre-launch checklist (15 checks)
 ```
 
 ---
@@ -321,9 +315,6 @@ pnpm db:setup-test
 # Run integration tests
 pnpm test:integration
 
-# Teardown test database
-tsx scripts/dev-tools/teardown-test-database.ts
-
 # Verify test setup
 tsx scripts/dev-tools/verify-test-setup.ts
 ```
@@ -331,7 +322,6 @@ tsx scripts/dev-tools/verify-test-setup.ts
 ### Test Database Scripts
 
 - `test-database.ts` - Setup test PostgreSQL database
-- `teardown-test-database.ts` - Clean up test databases
 - `test-neon-connection.ts` - Test Neon connectivity
 - `run-integration-tests.ts` - Run integration test suite
 - `run-memory-tests.ts` - Run tests with memory profiling
@@ -346,17 +336,11 @@ See [dev-tools/README.md](./dev-tools/README.md) for detailed documentation.
 ### Code Quality & Analysis
 
 ```bash
-# Analyze code quality
-pnpm analyze:quality
+# Audit for 'any' types
+pnpm audit:any
 
 # Find console statements
-pnpm analyze:console
-
-# Check TypeScript types
-pnpm analyze:types
-
-# Audit for 'any' types
-pnpm analyze:audit-any
+pnpm audit:console
 ```
 
 ### Fixing Issues
@@ -410,17 +394,17 @@ pnpm db:setup-test
 ### Release Management
 
 ```bash
-# Preview what would be released
-pnpm release:preview
-
-# Bump version
-pnpm release:version minor
-
 # Dry run (no changes)
 pnpm release:dry-run
 
-# Publish packages
-pnpm release:publish
+# Check pending changesets
+pnpm release:status
+
+# Publish OSS packages
+pnpm release:oss
+
+# Publish Pro packages
+pnpm release:pro
 ```
 
 ---

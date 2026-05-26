@@ -117,7 +117,9 @@ const router = new Router(options)
 - `navigate(url: string, options?)` - Client-side navigation
 - `back()` / `forward()` - Browser history navigation
 - `subscribe(listener)` - Subscribe to route changes
-- `initClient()` - Initialize client-side routing
+- `initClient()` - Initialize client-side routing (popstate + link-click listeners)
+- `dispose()` - Remove client-side event listeners (call before unmounting or on HMR teardown)
+- `use(...middleware)` - Add global middleware (runs before all route middleware)
 
 ### Components
 
@@ -202,16 +204,32 @@ const navigate = useNavigate()
 navigate('/about', { replace: true })
 ```
 
+#### `useLocation()`
+
+Get current location (pathname, search, hash):
+
+```typescript
+const { pathname, search, hash } = useLocation()
+```
+
+#### `useSearchParams()`
+
+Get parsed query string parameters:
+
+```typescript
+const params = useSearchParams()
+params.get('page') // '2'
+```
+
 ## Route Patterns
 
-Supports path-to-regexp patterns:
+Uses a hand-rolled path matcher (no `path-to-regexp`). Supported syntax:
 
 ```typescript
 '/posts/:id'           // Named parameter
-'/posts/:id?'          // Optional parameter
-'/posts/:id(\\d+)'     // Parameter with regex
-'/posts/*'             // Wildcard
-'/posts/:path*'        // Wildcard with name
+'/posts/*path'         // Wildcard with name
+'/posts/*'             // Anonymous wildcard
+'{/optional}'          // Optional segment (curly-brace syntax)
 ```
 
 ## Data Loading

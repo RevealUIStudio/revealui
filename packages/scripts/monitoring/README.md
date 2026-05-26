@@ -125,7 +125,7 @@ All handlers execute in priority order with a 30-second timeout.
 ### Start Monitoring
 
 ```typescript
-import { startDevMonitoring } from '@/scripts/lib/monitoring'
+import { startDevMonitoring } from '@revealui/scripts/monitoring'
 
 startDevMonitoring()
 ```
@@ -133,7 +133,7 @@ startDevMonitoring()
 ### Get Status
 
 ```typescript
-import { getMonitoringStatus } from '@/scripts/lib/monitoring'
+import { getMonitoringStatus } from '@revealui/scripts/monitoring'
 
 const status = getMonitoringStatus()
 console.log(`Running processes: ${status.processes.running}`)
@@ -144,7 +144,7 @@ console.log(`Active alerts: ${status.alerts}`)
 ### Display Summary
 
 ```typescript
-import { displayMonitoringSummary } from '@/scripts/lib/monitoring'
+import { displayMonitoringSummary } from '@revealui/scripts/monitoring'
 
 // On exit
 process.on('exit', () => {

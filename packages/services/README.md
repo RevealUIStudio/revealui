@@ -3,14 +3,12 @@
 > **Commercial package**  -  requires a [RevealUI Pro license](https://revealui.com/pro). Free to install and evaluate; a license key is required for production use.
 
 
-External service integrations for RevealUI  -  Stripe (billing + circuit breaker), Solana (RVC token), Vercel (deploy + DNS), and Gmail API (transactional email).
+External service integrations for RevealUI  -  Stripe (billing + circuit breaker) and Gmail API (transactional email).
 
 ## Features
 
 - **Stripe Integration**: Payment processing and billing operations with circuit breaker
-- **Solana / RevealCoin (RVC)**: Token-2022 helpers for the customer-facing on-chain ticker
-- **Vercel Integration**: Deploy + DNS helpers
-- **Gmail API**: Transactional email via Google Workspace
+- **Email**: Transactional email helpers
 - **Type-safe**: Full TypeScript support
 - **Server & Client**: Separate exports for server-side and client-side usage
 
@@ -36,10 +34,11 @@ const customer = await stripeClient.customers.create({
 
 Server-side integrations (Node.js / Hono routes):
 
+- Root (`@revealui/services`) — re-exports Stripe + email
+- Server alias (`./server`) — same as root
 - Stripe client (`./stripe/stripeClient`)
 - Stripe payment intents (`./stripe/payment-intent`)
-- RevealCoin / Solana helpers (`./revealcoin`)
-- Gmail API helpers (`./email`)
+- Email helpers (`./email`)
 
 ## Stripe Integration
 
@@ -74,15 +73,6 @@ Required environment variables:
 # Stripe
 STRIPE_SECRET_KEY=sk_test_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-
-# Supabase
-SUPABASE_URL=https://....supabase.co
-SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-
-# Vercel
-VERCEL_API_KEY=vercel_...
-BLOB_READ_WRITE_TOKEN=vercel_blob_...
 ```
 
 ## Development
@@ -121,4 +111,4 @@ pnpm --filter @revealui/services test:coverage
 
 ## License
 
-Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)
+FSL-1.1-MIT (Fair Source — converts to MIT after 2 years). See [LICENSE](../../LICENSE).

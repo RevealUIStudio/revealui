@@ -21,22 +21,6 @@ Environment:
 - Uses `infrastructure/docker-compose/services/test.yml`
 - Creates database at `postgresql://test:test@localhost:5433/test_revealui`
 
-### teardown-test-database.ts
-**Purpose**: Clean up test databases after tests complete
-
-Supports:
-- Docker PostgreSQL (stop container)
-- NeonDB (delete branch, if auto-provisioned)
-- Existing POSTGRES_URL (no cleanup)
-
-Usage:
-```bash
-pnpm tsx scripts/dev-tools/teardown-test-database.ts
-
-# Or specify type
-TEST_DB_TYPE=docker pnpm tsx scripts/dev-tools/teardown-test-database.ts
-```
-
 ### test-neon-connection.ts
 **Purpose**: Verify Neon database connectivity
 
@@ -72,29 +56,16 @@ Checks:
 
 ## Sync & Data Testing
 
-### test-sync-data.ts
-**Purpose**: Test data synchronization functionality
-
-Validates Electric-SQL sync engine with test data.
-
 ### test-electric-sync.ts
 **Purpose**: Test Electric-SQL synchronization
 
 Tests Electric sync configuration and connectivity.
-
-### test-cycle-fix.ts
-**Purpose**: Test circular dependency fixes
-
-Validates that circular dependency issues in imports are resolved.
 
 ## Troubleshooting
 
 ### Test Database Issues
 
 ```bash
-# Clean up test databases
-pnpm tsx scripts/dev-tools/teardown-test-database.ts
-
 # Verify test setup
 pnpm tsx scripts/dev-tools/verify-test-setup.ts
 

@@ -20,7 +20,7 @@ Centralized backend API server for RevealUI  -  built with Hono.
 ## Stack
 
 - **Framework**: Hono + `@hono/node-server`
-- **Validation**: Zod + `@hono/zod-validator`
+- **Validation**: Zod + `@revealui/openapi` (`@hono/zod-openapi` wrapper)
 - **Database**: Drizzle ORM (`@revealui/db`) on NeonDB
 - **Auth**: `@revealui/auth` (session validation)
 - **AI**: Optional Pro integration via `@revealui/ai` (agent dispatch, A2A protocol)

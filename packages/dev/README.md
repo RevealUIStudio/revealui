@@ -1,9 +1,9 @@
-# dev
+# @revealui/dev
 
 Shared development tooling and configuration for the RevealUI Framework monorepo.
 
-**Package Name**: `dev` (unscoped workspace package)
-**Import Format**: `dev/...` (e.g., `dev/tailwind/create-config`)
+**Package Name**: `@revealui/dev` (private, not published to npm)
+**Import Format**: `@revealui/dev/...` (e.g., `@revealui/dev/tailwind/create-config`) within the monorepo via workspace resolution
 
 ## Overview
 
@@ -17,7 +17,7 @@ This package provides centralized configuration files for:
 
 ### Biome Config
 ```ts
-import { biomeConfig } from 'dev/biome'
+import { biomeConfig } from '@revealui/dev/biome'
 ```
 
 Comprehensive Biome configuration for formatting and linting.
@@ -26,14 +26,14 @@ Comprehensive Biome configuration for formatting and linting.
 
 ### Tailwind Config
 ```ts
-import tailwindConfig from 'dev/tailwind'
+import tailwindConfig from '@revealui/dev/tailwind'
 ```
 
 Shared Tailwind CSS configuration with plugins and theme extensions.
 
 ### Vite Config
 ```ts
-import viteConfig from 'dev/vite'
+import viteConfig from '@revealui/dev/vite'
 ```
 
 Shared Vite configuration with common aliases and build settings.
@@ -62,7 +62,7 @@ Available configs (use relative paths):
 Most packages should use the root `biome.json`, but you can extend the shared config:
 
 ```ts
-import { biomeConfig } from 'dev/biome'
+import { biomeConfig } from '@revealui/dev/biome'
 
 export default {
   ...biomeConfig,
@@ -73,7 +73,7 @@ export default {
 ### Tailwind Configuration
 ```ts
 // tailwind.config.ts
-import { createTailwindConfig } from 'dev/tailwind/create-config'
+import { createTailwindConfig } from '@revealui/dev/tailwind/create-config'
 
 export default createTailwindConfig({
   content: ['./src/**/*.{ts,tsx}'],
@@ -89,7 +89,7 @@ export default createTailwindConfig({
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite'
-import sharedViteConfig from 'dev/vite'
+import sharedViteConfig from '@revealui/dev/vite'
 
 export default defineConfig({
   ...sharedViteConfig,
@@ -126,12 +126,12 @@ export default defineConfig({
 
 ## Package Naming
 
-This package is named `dev` (unscoped) in the monorepo workspace. Use `dev/...` import paths:
+This package is named `@revealui/dev` in the monorepo workspace. Use `@revealui/dev/...` import paths:
 
-- ✅ `import x from 'dev/tailwind/create-config'`
-- ✅ `import x from 'dev/postcss'`
-- ✅ `import x from 'dev/vite'`
-- ❌ `import x from '@revealui/dev/...'` (incorrect)
+- ✅ `import x from '@revealui/dev/tailwind/create-config'`
+- ✅ `import x from '@revealui/dev/postcss'`
+- ✅ `import x from '@revealui/dev/vite'`
+- ❌ `import x from 'dev/...'` (incorrect — package name is scoped)
 
 ## When to Use This
 

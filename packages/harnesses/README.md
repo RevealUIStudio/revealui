@@ -80,9 +80,12 @@ await manager.registerSession({
 
 | Subpath | Contents |
 |---------|----------|
-| `@revealui/harnesses` | Full API: adapters, registry, coordinator, detection, config |
+| `@revealui/harnesses` | Full API: adapters, registry, coordinator, detection, config, protocol |
 | `@revealui/harnesses/types` | Type definitions: HarnessAdapter, commands, events, capabilities |
-| `@revealui/harnesses/workboard` | WorkboardManager, deriveSessionId, detectSessionType |
+| `@revealui/harnesses/workboard` | WorkboardManager, deriveSessionId, detectSessionType, file-locking |
+| `@revealui/harnesses/content` | Content definitions, manifest builders, generators |
+| `@revealui/harnesses/storage` | DaemonStore (PGlite-backed daemon state), schema |
+| `@revealui/harnesses/protocol` | Protocol adapter types, config generators, event normalizer |
 
 ## Development
 
@@ -105,4 +108,4 @@ pnpm --filter @revealui/harnesses build
 
 ## License
 
-Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)
+FSL-1.1-MIT (Fair Source — converts to MIT after 2 years). See [LICENSE](../../LICENSE).
