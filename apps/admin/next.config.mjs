@@ -9,7 +9,6 @@ import sentryModule from '@sentry/nextjs'
 // The runtime barrel intentionally omits it so `node:fs` doesn't get traced
 // into route bundles via NFT.
 import { withRevealUI } from '@revealui/core/nextjs/withRevealUI'
-import ContentSecurityPolicy from './csp.mjs'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -147,11 +146,11 @@ const nextConfig = {
     return [
       {
         source: '/(.*)',
+        // Content-Security-Policy is set per-request (with a nonce) in
+        // src/proxy.ts — a static next.config header cannot carry a per-request
+        // nonce, so the proxy is the single CSP source. The other security
+        // headers below stay here (they need no nonce).
         headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: ContentSecurityPolicy,
-          },
           {
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN',

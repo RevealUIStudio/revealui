@@ -1,8 +1,9 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { Router } from '@revealui/router';
 import { describe, expect, it } from 'vitest';
 import { BlogIndexPage } from '../routes/BlogIndexPage';
 import { BlogPostPage } from '../routes/BlogPostPage';
-import { ComingSoonPage } from '../routes/ComingSoonPage';
 import { ContactPage } from '../routes/ContactPage';
 import { FairSourcePage } from '../routes/FairSourcePage';
 import { HomePage } from '../routes/HomePage';
@@ -11,6 +12,7 @@ import { NotFoundPage } from '../routes/NotFoundPage';
 import { PricingPage } from '../routes/PricingPage';
 import { PrivacyPage } from '../routes/PrivacyPage';
 import { ProductsPage } from '../routes/ProductsPage';
+import { RoadmapPage } from '../routes/RoadmapPage';
 import { SponsorPage } from '../routes/SponsorPage';
 import { TermsPage } from '../routes/TermsPage';
 
@@ -26,7 +28,7 @@ describe('marketing route registry', () => {
       { path: '/blog/:slug', component: BlogPostPage },
       { path: '/contact', component: ContactPage },
       { path: '/fair-source', component: FairSourcePage },
-      { path: '/coming-soon', component: ComingSoonPage },
+      { path: '/roadmap', component: RoadmapPage },
       { path: '/sponsor', component: SponsorPage },
       { path: '/privacy', component: PrivacyPage },
       { path: '/terms', component: TermsPage },
@@ -45,7 +47,7 @@ describe('marketing route registry', () => {
       '/blog/getting-started',
       '/contact',
       '/fair-source',
-      '/coming-soon',
+      '/roadmap',
       '/sponsor',
       '/privacy',
       '/terms',
@@ -67,5 +69,19 @@ describe('marketing route registry', () => {
     const match = router.match('/nonexistent-path');
     expect(match).not.toBeNull();
     expect(match?.route.component).toBe(NotFoundPage);
+  });
+
+  it('redirects the legacy /coming-soon path to /roadmap', () => {
+    // /coming-soon was the route's path before the Phase 4 rename. A permanent
+    // edge redirect (vercel.json) keeps old bookmarks and indexed links alive.
+    // Resolve from cwd (the marketing package root under vitest), not
+    // import.meta.url — vitest's module URL is not a file: scheme in CI.
+    const vercelConfig = JSON.parse(
+      readFileSync(path.resolve(process.cwd(), 'vercel.json'), 'utf8'),
+    ) as { redirects?: Array<{ source: string; destination: string; permanent?: boolean }> };
+    const redirect = vercelConfig.redirects?.find((entry) => entry.source === '/coming-soon');
+    expect(redirect, 'the /coming-soon → /roadmap redirect must survive the rename').toBeDefined();
+    expect(redirect?.destination).toBe('/roadmap');
+    expect(redirect?.permanent).toBe(true);
   });
 });

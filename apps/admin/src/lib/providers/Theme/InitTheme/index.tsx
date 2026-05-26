@@ -1,8 +1,9 @@
 import Script from 'next/script';
 
-export const InitTheme = () => {
+export const InitTheme = ({ nonce }: { nonce?: string }) => {
   return (
     <Script
+      nonce={nonce}
       // biome-ignore lint/security/noDangerouslySetInnerHtml: inline theme init required before render
       dangerouslySetInnerHTML={{
         __html: `
