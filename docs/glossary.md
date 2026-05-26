@@ -28,11 +28,11 @@ Formerly displayed as **"Forge"** or **"Forge (Enterprise)"** — renamed 2026-0
 
 ## RevFleet
 
-The umbrella brand for the seven-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) — the RevFleet architecture & 7-tier integration guide. Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
+The umbrella brand for the seven-product RevealUI Studio family — RevealUI (runtime), RevDev (dev tools), RevVault (secrets), RevCon (configs), [RevealUI Fleet](#revealui-fleet) (self-host runtime kit, produced by [RevForge](#revforge)), RevSkills (skills), RevKit (WSL toolkit). Formerly *Suite* / *RevealUI Studio Fleet*; canonical "RevFleet" naming codified in ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 2. See [`./REVFLEET`](./REVFLEET.md) — the RevFleet architecture & 7-tier integration guide. Casual prose may use bare *the Fleet* where context resolves ambiguity; the rev-prefixed form is canonical.
 
 ## Forge
 
-**Deprecated as a single-name catchall.** The historical "Forge" referenced four distinct things — a drive (renamed `/mnt/sandbox` Phase 1, shipped 2026-05-02 via revkit#13), a stamping tool repo (renamed [RevForge](#revforge), Phase B pending), a self-hosted runtime kit (renamed [RevealUI Fleet](#revealui-fleet), Phase C pending), and a SaaS pricing tier (renamed [Enterprise](#enterprise-tier), shipping via revealui#719/#721). The 7-tier vocabulary split is codified in ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) (supersedes 2026-05-01-forge-naming).
+**Deprecated as a single-name catchall.** The historical "Forge" referenced four distinct things — a drive (renamed `/mnt/sandbox` Phase 1, shipped 2026-05-02 via revkit#13), a stamping tool repo (renamed [RevForge](#revforge), Phase B pending), a self-hosted runtime kit (renamed [RevealUI Fleet](#revealui-fleet), Phase C pending), and a SaaS pricing tier (renamed [Enterprise](#enterprise-tier), shipping via revealui#719/#721). The 7-tier vocabulary split is codified in ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) (supersedes 2026-05-01-forge-naming).
 
 ## Free / Pro / Max / Enterprise
 
@@ -81,11 +81,11 @@ A RevealUI agent's permanent named identity, formatted as **`Rev [Surname]`** (e
 
 ## RevealUI Fleet
 
-The white-label self-hosted runtime kit — Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances. Formerly *RevealUI Forge* per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 4. **Status:** preview — Docker images not yet on GHCR; stack runs from source today. See [`./FORGE`](./FORGE.md) (page name preserved as redirect; content reflects "RevealUI Fleet" terminology).
+The white-label self-hosted runtime kit — Docker Compose stack + domain lock + unlimited users. Customers on the [Enterprise](#enterprise-tier) tier typically deploy a RevealUI Fleet instance on their own infrastructure. Produced by the [RevForge](#revforge) stamping tool, which yields per-customer instances. Formerly *RevealUI Forge* per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 4. **Status:** preview — Docker images not yet on GHCR; stack runs from source today. See [`./FORGE`](./FORGE.md) (page name preserved as redirect; content reflects "RevealUI Fleet" terminology).
 
 ## RevForge
 
-The stamping tool repo at [`RevealUIStudio/revforge`](https://github.com/RevealUIStudio/revforge) (GitHub repo renamed from `RevealUIStudio/forge` 2026-05-03 via Phase B PR-B1 + operator action; local clone path `~/revfleet/forge/` until Phase A filesystem rename `~/revfleet/` → `~/revfleet/`). Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) deployment by substituting `{{COMPANY_NAME}}` / `{{SLUG}}` template tokens, generating per-customer secrets, issuing a license JWT (via `@revealui/core/revforge-license`), writing secrets to revvault under `forge/customers/<slug>/` (revvault path stays until operator-side rotation — see `secrets.md`), and outputting a self-contained customer kit. Operator-only; never customer-facing. Per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 3.
+The stamping tool repo at [`RevealUIStudio/revforge`](https://github.com/RevealUIStudio/revforge) (GitHub repo renamed from `RevealUIStudio/forge` 2026-05-03 via Phase B PR-B1 + operator action; local clone path `~/revfleet/forge/` until Phase A filesystem rename `~/revfleet/` → `~/revfleet/`). Takes a config (company, slug, brand color, output) and produces a per-customer [RevealUI Fleet](#revealui-fleet) deployment by substituting `{{COMPANY_NAME}}` / `{{SLUG}}` template tokens, generating per-customer secrets, issuing a license JWT (via `@revealui/core/revforge-license`), writing secrets to revvault under `forge/customers/<slug>/` (revvault path stays until operator-side rotation — see `secrets.md`), and outputting a self-contained customer kit. Operator-only; never customer-facing. Per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 3.
 
 ## RevVault
 
@@ -116,7 +116,7 @@ When writing docs, lead with the qualifier (*"the RevDev Studio app"* or *"the R
 
 ## Suite
 
-**Deprecated as the umbrella name.** Renamed [RevFleet](#revfleet) per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md) Tier 2 (originally directed 2026-05-02). References to "Suite" / "RevealUI Studio Fleet" / interim "Fleet" in older copy mean the same thing as the current "RevFleet."
+**Deprecated as the umbrella name.** Renamed [RevFleet](#revfleet) per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md) Tier 2 (originally directed 2026-05-02). References to "Suite" / "RevealUI Studio Fleet" / interim "Fleet" in older copy mean the same thing as the current "RevFleet."
 
 ## Tenant
 
@@ -158,6 +158,6 @@ These appear only in internal documentation and source code. **Never use these i
 
 ## Last updated
 
-2026-05-03 — split `## Revfleet` entry into `## RevealUI Fleet` (runtime kit, Tier 4) + `## RevForge` (stamping tool, Tier 3); rename `## Fleet` → `## RevFleet` (umbrella, Tier 2); update Suite + Forge cross-references per ADR [`2026-05-03-revfleet-rename.md`](./decisions/2026-05-03-revfleet-rename.md). Single source of truth; if you find a term used inconsistently elsewhere in the docs, update the inconsistent doc rather than this glossary.
+2026-05-03 — split `## Revfleet` entry into `## RevealUI Fleet` (runtime kit, Tier 4) + `## RevForge` (stamping tool, Tier 3); rename `## Fleet` → `## RevFleet` (umbrella, Tier 2); update Suite + Forge cross-references per ADR [`2026-05-03-revfleet-rename.md`](./REVFLEET.md). Single source of truth; if you find a term used inconsistently elsewhere in the docs, update the inconsistent doc rather than this glossary.
 
 2026-05-02 — initial draft.

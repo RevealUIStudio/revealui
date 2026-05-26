@@ -15,7 +15,7 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 
 **License Distribution**:
 - MIT: 45+ packages (90%+)
-- Apache-2.0: 3+ packages
+- Apache-2.0: 4+ packages
 - ISC: 1+ packages
 - 0BSD: 1+ packages
 
@@ -36,12 +36,12 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 - **@types/node** v22.10.2 - TypeScript definitions for Node.js
 - **@types/react** v18.3.12 - TypeScript definitions for React
 - **@types/react-dom** v18.3.1 - TypeScript definitions for React DOM
-- **@vercel/blob** v0.25.0 - Vercel Blob storage client
+- **@vercel/blob** v0.25.0 - Vercel Blob storage client (legacy; being retired in favor of Cloudflare R2)
 - **@vercel/postgres** v0.12.0 - Vercel Postgres client
 - **class-variance-authority** v0.7.1 - Utility for creating variant-based component APIs
 - **clsx** v2.1.1 - Utility for constructing className strings conditionally
 - **lucide-react** v0.468.0 - Beautiful & consistent icon toolkit
-- **next** v15.5.5 - The React Framework for Production
+- **next** v16.2.6 - The React Framework for Production
 - **bcryptjs** v2.4.3 - Password hashing library
 - **react** v19.0.0 - A JavaScript library for building user interfaces
 - **react-dom** v19.0.0 - React package for working with the DOM
@@ -53,6 +53,7 @@ This document lists all third-party dependencies used in the RevealUI Framework 
 - **zod** v3.24.1 - TypeScript-first schema validation
 
 ### Apache-2.0 Licensed
+- **@aws-sdk/client-s3** v3.1049.0 - AWS SDK v3 S3 client (used for the canonical Cloudflare R2 object-storage backend, which is S3-compatible)
 - **@vercel/analytics** v1.3.1 - Vercel Analytics
 - **@vercel/speed-insights** v1.1.0 - Vercel Speed Insights
 - **@vercel/web-vitals** v1.0.0 - Vercel Web Vitals
@@ -92,5 +93,5 @@ The full text of each license can be found in the respective package's `node_mod
 
 ---
 
-**Last Updated**: 2026-03-05
+**Last Updated**: 2026-05-26
 **Audit Command**: `pnpm licenses list --prod --json`

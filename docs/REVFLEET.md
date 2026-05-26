@@ -28,7 +28,7 @@ audience: developer
 
 ## Products in detail
 
-Each of the eight products in RevFleet ships in its own repo. The table below orients new contributors and customer engineers; per-product pages live under [`/docs/fleet/`](./fleet/).
+Each of the seven products in RevFleet ships in its own repo. The table below orients new contributors and customer engineers; per-product pages live under [`/docs/fleet/`](./fleet/).
 
 | Product | Repo | What it is | License |
 |---|---|---|---|

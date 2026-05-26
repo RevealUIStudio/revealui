@@ -1,13 +1,13 @@
 # Database Conventions
 
-## Dual-Database Architecture
+## Database Architecture (NeonDB primary; Supabase being retired)
 
-RevealUI uses **two databases with strictly separated responsibilities**:
+> **Status:** per ADR [`2026-05-01-supabase-removal`](../decisions/2026-05-01-supabase-removal.md), the canonical stack is **NeonDB primary + ElectricSQL sync, no Supabase**. NeonDB holds everything, including vector embeddings and `agent_memories` (via `pgvector`). Supabase is a legacy, optional sidecar being phased out (Phase 7). The import boundary below remains **enforced during the phase-out** so no new code couples to Supabase.
 
 | Database | Client | Purpose |
 |----------|--------|---------|
-| **NeonDB** (PostgreSQL) | `@neondatabase/serverless` | REST content: collections, users, sessions, orders, products |
-| **Supabase** | `@supabase/supabase-js` | Vector embeddings, real-time auth, AI memory storage |
+| **NeonDB** (PostgreSQL) | `@neondatabase/serverless` | Primary store: collections, users, sessions, orders, products, **plus vector embeddings + `agent_memories` via `pgvector`** |
+| **Supabase** (legacy, being retired) | `@supabase/supabase-js` | Optional RAG-chunk sidecar only; import-restricted during the phase-out |
 
 ## Boundary Rule
 
@@ -36,8 +36,8 @@ packages/db/src/schema/
 ├── users/          # NeonDB: user management
 ├── commerce/       # NeonDB: products, orders, pricing
 ├── sessions/       # NeonDB: auth sessions
-├── vector/         # Supabase: embeddings, similarity search
-└── auth/           # Supabase: auth state
+├── vector/         # NeonDB pgvector: embeddings, similarity search
+└── auth/           # NeonDB: session-based auth state
 ```
 
 ## Query Patterns
@@ -80,6 +80,6 @@ pnpm validate:structure
 ## Migration Guidance
 
 When adding new features:
-1. **Content/REST data** → add to `packages/db/src/schema/` + use Drizzle
-2. **AI/vector data** → add to `packages/db/src/vector/` + use Supabase client
-3. **Never mix** both DB clients in the same module
+1. **All data (content, REST, AI/vector)** → add to `packages/db/src/schema/` + use Drizzle on NeonDB (vectors via `pgvector`)
+2. **Do not add new Supabase-coupled code** — Supabase is being retired (ADR 2026-05-01). Net-new features must target NeonDB.
+3. The optional Supabase RAG sidecar, where still wired, stays behind the import boundary above.
