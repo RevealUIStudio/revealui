@@ -4,7 +4,7 @@ import { SITE } from '../../content/site';
 
 const backgroundPrimitives = [
   {
-    color: 'text-emerald-500',
+    color: 'text-primary',
     style: { left: '4%', top: '8%', transform: 'rotate(-14deg)', width: '200px', height: '200px' },
     path: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
   },
@@ -50,10 +50,10 @@ const backgroundPrimitives = [
 
 export function Hero() {
   return (
-    <section className="relative isolate overflow-hidden bg-white px-6 pt-20 pb-20 sm:px-6 sm:pt-28 sm:pb-28 lg:px-8">
+    <section className="relative isolate overflow-hidden bg-background px-6 pt-20 pb-20 sm:px-6 sm:pt-28 sm:pb-28 lg:px-8">
       {/* Brand background: warm wash + radial spotlight + faint primitive symbols */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/40 via-white to-white" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
         <div className="absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,oklch(0.55_0.18_245/0.18),oklch(0.55_0.18_245/0.04)_60%,transparent_80%)] blur-2xl" />
         {backgroundPrimitives.map((p) => (
           <svg
@@ -73,19 +73,19 @@ export function Hero() {
 
       <div className="relative mx-auto max-w-7xl">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700 mb-6">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 align-middle mr-2 animate-pulse" />
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary mb-6">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle mr-2 animate-pulse" />
             {HOME_HERO.eyebrow}
           </p>
 
-          <h1 className="text-5xl font-bold tracking-tight text-gray-950 sm:text-6xl lg:text-7xl">
+          <h1 className="text-5xl font-bold tracking-tight text-foreground sm:text-6xl lg:text-7xl">
             {HOME_HERO.h1}
           </h1>
 
-          <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
-            <strong className="text-gray-900">{HOME_HERO.subtitle.strong}</strong>{' '}
+          <p className="mx-auto mt-8 max-w-2xl text-lg leading-8 text-muted-foreground sm:text-xl">
+            <strong className="text-foreground">{HOME_HERO.subtitle.strong}</strong>{' '}
             {HOME_HERO.subtitle.body} &mdash;{' '}
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-base text-gray-900">
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-base text-foreground">
               {SITE.cli.create}
             </code>{' '}
             {HOME_HERO.subtitle.cliSuffix}{' '}
@@ -93,7 +93,7 @@ export function Hero() {
               href={HOME_HERO.subtitle.agencyHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-emerald-700 hover:underline"
+              className="font-medium text-primary hover:underline"
             >
               {HOME_HERO.subtitle.agencyLabel}
             </a>{' '}
@@ -132,36 +132,36 @@ export function Hero() {
             </ButtonCVA>
           </div>
 
-          <p className="mt-6 text-sm text-gray-600">
+          <p className="mt-6 text-sm text-muted-foreground">
             {HOME_HERO.agencyCta.prefix}{' '}
             <a
               href={HOME_HERO.agencyCta.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-emerald-700 hover:underline"
+              className="font-medium text-primary hover:underline"
             >
               {HOME_HERO.agencyCta.label}
             </a>
           </p>
 
-          <div className="mt-10 inline-flex items-center gap-3 rounded-xl bg-gray-950 px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-white/10">
-            <span className="select-none text-gray-400">$</span>
-            <span className="text-emerald-400">npx</span>
-            <span className="text-white">create-revealui@latest</span>
+          <div className="mt-10 inline-flex items-center gap-3 rounded-xl bg-foreground px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-background/10">
+            <span className="select-none text-background/50">$</span>
+            <span className="text-primary">npx</span>
+            <span className="text-background">create-revealui@latest</span>
             <span className="text-blue-300">my-app</span>
           </div>
 
           <p className="mt-4 text-sm text-muted-foreground">{HOME_HERO.cliCaption}</p>
 
-          <div className="mt-16 border-t border-gray-100 pt-10">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-600 mb-6">
+          <div className="mt-16 border-t border-border pt-10">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mb-6">
               {HOME_HERO.shipsToday.heading}
             </h2>
             <ul className="grid grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-3 list-none">
               {HOME_HERO.shipsToday.items.map((item) => (
                 <li key={item.metric} className="flex gap-3">
                   <svg
-                    className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
+                    className="mt-0.5 h-4 w-4 shrink-0 text-primary"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                     aria-hidden="true"
@@ -174,7 +174,7 @@ export function Hero() {
                     />
                   </svg>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{item.metric}</p>
+                    <p className="text-sm font-medium text-foreground">{item.metric}</p>
                     <p className="mt-0.5 text-sm text-muted-foreground">{item.detail}</p>
                   </div>
                 </li>
