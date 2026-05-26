@@ -74,7 +74,7 @@ Standard Vitest tests. Each package has its own test suite. Run with `pnpm --fil
 
 ### Integration Tests
 
-Tests that exercise real infrastructure (PostgreSQL, Stripe, Supabase). These run separately from unit tests because they require service credentials.
+Tests that exercise real infrastructure (PostgreSQL, Stripe). These run separately from unit tests because they require service credentials.
 
 ```bash
 # Run integration tests (requires POSTGRES_URL)

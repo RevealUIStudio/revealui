@@ -67,7 +67,7 @@ What stays under `infrastructure/`:
 
 - [`scripts/validate/structure.ts`](../../scripts/validate/structure.ts): drops the `infrastructure/docker` + `infrastructure/k8s` `required: true` rules and the `RequiredInfrastructureSubdirs` runtime check. The `infrastructure/` directory itself remains required (the live ElectricSQL + test compose configs live there).
 - [`docker-compose.yml`](../../docker-compose.yml): removes the commented-out optional nginx reverse-proxy service block (lines 124–146 pre-cut), since the `infrastructure/docker/nginx/` files it referenced no longer exist.
-- [`docs/CI_CD_GUIDE.md`](../CI_CD_GUIDE.md): the §"Aspirational scaffolding (NOT live)" section is replaced with a forward-looking pointer to this ADR.
+- `docs/CI_CD_GUIDE.md` (maintainer-internal): the §"Aspirational scaffolding (NOT live)" section is replaced with a forward-looking pointer to this ADR.
 
 ## If a future Kubernetes pivot becomes necessary
 
@@ -94,4 +94,4 @@ The newer starting point would not be the historical scaffolding regardless. For
 - [`.github/workflows/deploy.yml`](../../.github/workflows/deploy.yml) — Vercel production pipeline (validate → migrate → matrix-deploy → smoke → auto-rollback)
 - [`.github/workflows/docker.yml`](../../.github/workflows/docker.yml) — Forge Docker image build + GHCR push
 - [`docker-compose.forge.yml`](../../docker-compose.forge.yml) — Forge self-hosted stack with license enforcement
-- [`docs/CI_CD_GUIDE.md`](../CI_CD_GUIDE.md) — canonical CI/CD reference (post-shrink)
+- `docs/CI_CD_GUIDE.md` (maintainer-internal) — canonical CI/CD reference (post-shrink)

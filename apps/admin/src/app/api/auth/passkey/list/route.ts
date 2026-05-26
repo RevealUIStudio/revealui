@@ -27,7 +27,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ passkeys: userPasskeys });
   } catch (error) {
-    logger.error('Error listing passkeys', { error });
+    logger.error(
+      'Error listing passkeys',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return createErrorResponse(error, {
       endpoint: '/api/auth/passkey/list',
       operation: 'passkey_list',

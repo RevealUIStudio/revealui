@@ -146,7 +146,10 @@ async function registerOptionsHandler(request: NextRequest): Promise<NextRespons
 
     return response;
   } catch (error) {
-    logger.error('Error generating passkey registration options', { error });
+    logger.error(
+      'Error generating passkey registration options',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return createErrorResponse(error, {
       endpoint: '/api/auth/passkey/register-options',
       operation: 'passkey_register_options',

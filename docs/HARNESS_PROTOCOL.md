@@ -224,7 +224,7 @@ Items defined in the original spec but not implemented today:
 - **HTTP transport security:** bearer-token auth enforcement, TLS, rate limiting, sandbox-mode-aware dispatch — audit before non-localhost exposure.
 - **Cross-machine coordination** (distributed lock for HTTP transport).
 
-These are tracked in [docs/MASTER_PLAN.md](./MASTER_PLAN.md) under harness-related lanes.
+These are tracked in the internal master plan under harness-related lanes.
 
 ---
 

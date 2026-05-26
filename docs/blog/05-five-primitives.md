@@ -1,6 +1,6 @@
 # The Five Primitives of Business Software
 
-> **Status note (updated 2026-05-18):** Two forward-looking systems mentioned in this post are not transactable in production today: **x402 agent-to-agent payments** (designed and code-complete behind `X402_ENABLED=false`) and **RevealCoin (RVC)** (on mainnet but pre-launch — legal and multisig gates open). Everything else described — auth, content, Stripe billing, MCP wiring, agent primitives — runs today. See `docs/MARKETING_METRICS.md` §3 for the current per-feature shipping status.
+> **Status note (updated 2026-05-26):** One forward-looking system mentioned in this post is not transactable in production today: **x402 agent-to-agent payments** (designed and code-complete behind `X402_ENABLED=false`). Everything else described — auth, content, Stripe billing, MCP wiring, agent primitives — runs today. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current per-feature shipping status.
 
 ---
 
@@ -427,7 +427,7 @@ The AI memory system uses four memory types, modeled on cognitive science:
 
 - **Episodic** -- Records of past interactions and their outcomes. "What happened the last time we ran this task?"
 - **Working** -- Short-term context for the current task. Cleared between sessions.
-- **Semantic** -- Long-term knowledge stored as vector embeddings in Supabase. Enables retrieval-augmented generation without external vector databases.
+- **Semantic** -- Long-term knowledge stored as vector embeddings in Postgres (Neon pgvector). Enables retrieval-augmented generation without external vector databases.
 - **Procedural** -- Learned procedures and workflows. "How do we deploy to production?"
 
 Memory operations use CRDTs (Conflict-free Replicated Data Types) for conflict resolution, so multiple agents can write to the same memory space without coordination locks.

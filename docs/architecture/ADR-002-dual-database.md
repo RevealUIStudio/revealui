@@ -1,7 +1,9 @@
 # ADR-002: Dual-Database Architecture (NeonDB + Supabase)
 
 **Date:** 2026-04-08
-**Status:** Accepted
+**Status:** Superseded by [2026-05-01-supabase-removal](../decisions/2026-05-01-supabase-removal.md) on 2026-05-01
+
+> **⚠️ Superseded — preserved for history.** The dual-database model was reversed by ADR [`2026-05-01-supabase-removal`](../decisions/2026-05-01-supabase-removal.md): the canonical stack is now **NeonDB primary + ElectricSQL sync**, with Supabase as an optional, being-retired RAG sidecar (Phase 7 consolidates it onto NeonDB `pgvector`). `agent_memories` live in NeonDB, not Supabase. The boundary enforcement described below still applies during the phase-out; do not build net-new features on Supabase-specific behavior.
 
 ## Context
 
