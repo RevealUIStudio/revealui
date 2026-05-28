@@ -121,7 +121,7 @@ Refer to `docs/ENVIRONMENT-VARIABLES-GUIDE.md` for the full reference.
 - [ ] Neon connection verified: `POSTGRES_URL` set and database reachable **(blocking)**
 - [ ] ElectricSQL variables set: `NEXT_PUBLIC_ELECTRIC_SERVICE_URL`, `ELECTRIC_SERVICE_URL` **(blocking)**
 - [ ] ElectricSQL service reachable (liveness probe) **(blocking)**
-- [ ] Sentry variables set: `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` **(advisory)**
+- [ ] Sentry variables set: `NEXT_PUBLIC_SENTRY_DSN` (admin client), `VITE_SENTRY_DSN` (marketing client), `SENTRY_DSN` (server runtime), `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` **(advisory)** — when these are absent the SDKs no-op; the server validator hard-fails prod boot without `SENTRY_DSN`.
 
 ### Validation
 

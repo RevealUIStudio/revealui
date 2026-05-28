@@ -8,6 +8,10 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { initSentry } from './lib/sentry';
+
+// Initialise Sentry before mounting. No-op if VITE_SENTRY_DSN is absent.
+initSentry();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
