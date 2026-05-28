@@ -63,6 +63,47 @@ describe('GET /  -  liveness probe', () => {
     const body = await parseBody(res);
     expect(body.service).toBe('RevealUI API');
   });
+
+  it('white-labels the service name from REVEALUI_TENANT_NAME', async () => {
+    const prev = process.env.REVEALUI_TENANT_NAME;
+    process.env.REVEALUI_TENANT_NAME = 'Acme';
+    try {
+      const app = createApp();
+      const res = await app.request('/');
+      const body = await parseBody(res);
+      expect(body.service).toBe('Acme API');
+    } finally {
+      if (prev === undefined) {
+        delete process.env.REVEALUI_TENANT_NAME;
+      } else {
+        process.env.REVEALUI_TENANT_NAME = prev;
+      }
+    }
+  });
+
+  it('white-labels the service name from REVEALUI_BRAND_NAME (takes precedence over TENANT_NAME)', async () => {
+    const prevBrand = process.env.REVEALUI_BRAND_NAME;
+    const prevTenant = process.env.REVEALUI_TENANT_NAME;
+    process.env.REVEALUI_BRAND_NAME = 'BrandWins';
+    process.env.REVEALUI_TENANT_NAME = 'Tenant';
+    try {
+      const app = createApp();
+      const res = await app.request('/');
+      const body = await parseBody(res);
+      expect(body.service).toBe('BrandWins API');
+    } finally {
+      if (prevBrand === undefined) {
+        delete process.env.REVEALUI_BRAND_NAME;
+      } else {
+        process.env.REVEALUI_BRAND_NAME = prevBrand;
+      }
+      if (prevTenant === undefined) {
+        delete process.env.REVEALUI_TENANT_NAME;
+      } else {
+        process.env.REVEALUI_TENANT_NAME = prevTenant;
+      }
+    }
+  });
 });
 
 describe('GET /ready  -  readiness probe', () => {
