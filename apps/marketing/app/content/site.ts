@@ -81,6 +81,7 @@ export const SITE = {
   emails: {
     support: 'support@revealui.com',
     founder: 'founder@revealui.com',
+    security: 'security@revealui.com',
   },
   cli: {
     create: 'npx create-revealui@latest my-app',

@@ -1,0 +1,13 @@
+# Security policy for revealui.com (RFC 9116).
+# Plain-text version: https://revealui.com/security
+
+Contact: mailto:security@revealui.com
+Contact: mailto:founder@revealui.com
+Expires: 2027-05-28T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://revealui.com/.well-known/security.txt
+Policy: https://revealui.com/security
+
+# We do not currently publish a PGP key. If you need encrypted communication
+# for a sensitive report, email security@revealui.com first and we will
+# arrange a channel.
