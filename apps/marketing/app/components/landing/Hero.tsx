@@ -146,7 +146,7 @@ export function Hero() {
 
           <div className="mt-10 inline-flex items-center gap-3 rounded-xl bg-foreground px-5 py-3 font-mono text-sm shadow-lg ring-1 ring-background/10">
             <span className="select-none text-background/50">$</span>
-            <span className="text-primary">npx</span>
+            <span className="text-emerald-400">npx</span>
             <span className="text-background">create-revealui@latest</span>
             <span className="text-blue-300">my-app</span>
           </div>
