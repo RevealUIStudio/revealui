@@ -18,13 +18,6 @@ Template for Claude Code / Claude Desktop
 
 3. Enable desired servers by setting `"enabled": true`
 
-### `vscode-template.json`
-Template for VS Code
-
-**Installation:**
-1. Copy to `.vscode/mcp.json` in repo root
-2. Replace `<REPO_PATH>` with absolute path
-3. Enable desired servers
 
 ## Available MCP Servers
 

@@ -4,19 +4,24 @@ This directory contains k6 load testing scripts for the RevealUI Framework.
 
 ## Prerequisites
 
-Autocannon is automatically installed via the project's package.json:
+Install k6:
 ```bash
-pnpm install
+# macOS
+brew install k6
+
+# Linux — see https://k6.io/docs/getting-started/installation/
+
+# Or use Docker
+docker pull grafana/k6
 ```
 
-Verify installation:
-```bash
-pnpm dlx autocannon --version
-```
+An `endpoints.json` file in this directory also supports autocannon-based performance
+baseline testing via `pnpm test:perf:dry-run` / `pnpm test:perf:analyze`.
 
 ## Test Configuration
 
-Load tests are configured in `endpoints.json` and organized by functional area:
+Load tests are k6 scripts organized by functional area. Endpoint configuration for
+the autocannon baseline runner is in `endpoints.json`:
 
 ### Authentication Tests
 
@@ -41,14 +46,22 @@ Load tests are configured in `endpoints.json` and organized by functional area:
 
 ## Running Tests
 
-Tests are run via the performance baseline script which uses autocannon:
+k6 scripts run directly or via package.json scripts:
 
 ```bash
-# Run all performance tests
-pnpm test:performance
+# Run auth load tests (sign-in, sign-up, rate-limiting)
+pnpm test:perf:auth
 
-# Run in dry-run mode (no actual requests)
-DRY_RUN=true pnpm test:performance
+# Run individual auth tests
+pnpm test:perf:auth:signin
+pnpm test:perf:auth:signup
+pnpm test:perf:auth:session
+pnpm test:perf:auth:ratelimit
+pnpm test:perf:auth:stress
+
+# Autocannon baseline (dry-run or analyze)
+DRY_RUN=true pnpm test:perf:dry-run
+pnpm test:perf:analyze
 ```
 
 ## Performance Targets
@@ -61,15 +74,15 @@ DRY_RUN=true pnpm test:performance
 ## Running All Tests
 
 ```bash
-# Using pnpm script from project root (recommended)
-pnpm --filter test test:load:all
+# Run all auth load tests
+pnpm test:perf:auth
 
-# Or manually from packages/test directory
-for category in load-tests/*/; do
-  for test in "$category"*.js; do
-    k6 run "$test"
-  done
-done
+# Or run individual k6 scripts manually from packages/test directory
+k6 run load-tests/auth/auth-sign-in.js
+k6 run load-tests/auth/auth-sign-up.js
+k6 run load-tests/auth/auth-session-validation.js
+k6 run load-tests/auth/auth-rate-limiting.js
+k6 run load-tests/auth/auth-stress.js
 ```
 
 ## Environment Variables
@@ -92,7 +105,7 @@ The performance baseline script outputs key metrics:
 - Requests per second
 - Average latency
 
-Results are saved to `baseline.json` and compared against budgets in `performance-regression.ts`.
+For autocannon baseline tests, results are saved to `baseline.json` and compared against budgets in `performance-regression.ts`.
 
 ## Configuration
 
@@ -103,9 +116,5 @@ Test endpoints and parameters are configured in `endpoints.json`. Each endpoint 
 
 ## CI/CD Integration
 
-Performance tests run automatically in:
-- `.github/workflows/performance-tests.yml` (PR validation)
-- `.github/workflows/staging-performance.yml` (staging deployment validation)
-
-Tests fail if performance degrades beyond budget thresholds.
+Load tests are not currently wired into CI workflows. Run them manually against staging or local environments before major releases.
 

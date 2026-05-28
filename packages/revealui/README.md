@@ -2,29 +2,25 @@
 
 Meta-installer for [RevealUI](https://revealui.com) — the open-source agentic business runtime.
 
-This package is a thin alias around [`create-revealui`](https://www.npmjs.com/package/create-revealui). Running `revealui` invokes the same scaffolder under the hood.
+This package is a thin alias around [`create-revealui`](https://www.npmjs.com/package/create-revealui). Running the local `revealui` bin invokes the same scaffolder under the hood.
+
+> **Not published to npm.** npm rejects the bare name `revealui` as too similar to `reveal-ui`. Use `create-revealui` directly instead.
 
 ## Use
 
-Three equivalent ways to scaffold a new RevealUI project:
+The canonical way to scaffold a new RevealUI project:
 
 ```bash
-# One-shot, no install
-npx revealui my-business
-
-# Install once, run anywhere
-npm install -g revealui
-revealui my-business
-
 # npm-create convention (uses create-revealui directly)
 npm create revealui my-business
-```
 
-All three produce the same scaffold.
+# or with pnpm
+pnpm create revealui my-business
+```
 
 ## Why this package exists
 
-`create-revealui` is the canonical scaffolder. This `revealui` package exists so that `npm install revealui` and `npx revealui` also work — letting the install command match the brand name people actually search for, and reserving the unscoped name in the public npm registry.
+`create-revealui` is the canonical scaffolder. This `revealui` package is a local monorepo alias wired to the same `bin/revealui.js` entry, kept in case the npm name registration succeeds in future. Currently `"private": true` — not published.
 
 ## Documentation
 

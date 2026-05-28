@@ -6,10 +6,10 @@ Essential scripts for initializing and configuring RevealUI development and prod
 
 ```bash
 # First-time setup (most common)
-pnpm setup:env        # Configure environment variables
-pnpm setup:node       # Ensure correct Node.js version
-pnpm revealui doctor  # Check local workspace health
-pnpm revealui dev up  # Bootstrap local dev environment
+pnpm tsx scripts/setup/environment.ts   # Configure environment variables
+pnpm tsx scripts/setup/setup-node-version.ts  # Ensure correct Node.js version
+pnpm revealui doctor                    # Check local workspace health
+pnpm dev:up                             # Bootstrap local dev environment
 
 # For MCP server development
 pnpm setup:mcp        # Validate MCP credentials and setup
@@ -20,12 +20,13 @@ revealui dev up --include mcp
 
 ### Core Database Scripts
 
-| Script                   | Command           | Description                                    |
-| ------------------------ | ----------------- | ---------------------------------------------- |
-| `database.ts`            | `pnpm db:init`    | Initialize database schema and tables          |
-| `reset-database.ts`      | `pnpm db:reset`   | Drop all tables and reinitialize (DESTRUCTIVE) |
-| `migrations.ts`          | `pnpm db:migrate` | Run pending database migrations                |
-| `seed-billing.ts`        | `pnpm db:seed:billing` | Seed the Stripe billing catalog (`pnpm db:seed` runs this plus the admin + fleet-marketing seeders) |
+| Script                   | Command                 | Description                                    |
+| ------------------------ | ----------------------- | ---------------------------------------------- |
+| `database.ts`                | `pnpm db:init`                       | Initialize database schema and tables          |
+| `reset-database.ts`          | `pnpm db:reset`                      | Drop all tables and reinitialize (DESTRUCTIVE) |
+| `seed-billing.ts`            | `pnpm db:seed:billing`               | Seed the Stripe billing catalog (`pnpm db:seed` runs this plus admin + fleet-marketing seeders) |
+| `assert-migration-count.ts`  | `pnpm db:assert-migration-count`     | Assert migration journal matches applied-row count |
+| `backfill-migrations.ts`     | `pnpm db:backfill-migrations`        | Detect/fix missing migration tracking rows before drizzle-kit runs |
 
 ### Advanced Database Scripts
 
@@ -33,23 +34,14 @@ revealui dev up --include mcp
 | ------------------------ | ---------------------------------------- |
 | `setup-dual-database.ts` | Configure both REST and Vector databases |
 
-**Note**: Test database utilities have been moved to `scripts/dev-tools/`. Earlier `setup-vector-database.ts` and `migrate-vector-data.ts` scripts were Supabase-vector-specific and were removed during the GAP-129 Supabase phase-out — Postgres-native vector setup runs through the standard `pnpm db:migrate` path against Neon's `pgvector` extension.
-
-### Database Maintenance
-
-| Script                   | Purpose                                |
-| ------------------------ | -------------------------------------- |
-| `cleanup-rate-limits.ts` | Clear rate limit records from database |
-| `cleanup-sessions.ts`    | Remove expired session data            |
+**Note**: Test database utilities have been moved to `scripts/dev-tools/`. `migrations.ts` has been removed — database migrations run via `pnpm db:migrate` (forwarded to `pnpm --filter @revealui/db db:migrate`). Earlier `setup-vector-database.ts` and `migrate-vector-data.ts` scripts were Supabase-vector-specific and were removed during the GAP-129 Supabase phase-out — Postgres-native vector setup runs through the standard `pnpm db:migrate` path against Neon's `pgvector` extension.
 
 ## Environment Configuration
 
-| Script                     | Command             | Description                            |
-| -------------------------- | ------------------- | -------------------------------------- |
-| `environment.ts`           | `pnpm setup:env`    | Interactive environment variable setup |
-| `validate-env.ts`          | `pnpm validate:env` | Verify all required env vars are set   |
-| `sync-env-to-dev-local.ts` | -                   | Sync env vars between files            |
-| `generate-secret.ts`       | -                   | Generate cryptographic secrets         |
+| Script                     | Command                                   | Description                            |
+| -------------------------- | ----------------------------------------- | -------------------------------------- |
+| `environment.ts`           | `pnpm tsx scripts/setup/environment.ts`   | Interactive environment variable setup |
+| `validate-env.ts`          | `pnpm tsx scripts/setup/validate-env.ts`  | Verify all required env vars are set   |
 
 ### Environment Variables Required
 
@@ -70,20 +62,18 @@ VERCEL_TOKEN=...               # For deployment
 
 ## Development Tools
 
-| Script                  | Command           | Description                                   |
-| ----------------------- | ----------------- | --------------------------------------------- |
-| `setup-node-version.ts` | `pnpm setup:node` | Ensure correct Node.js version (via `.nvmrc`) |
-| `setup-mcp.ts`          | `pnpm setup:mcp`  | Validate MCP credentials for AI development   |
-| `setup-docker-wsl2.ts`  | -                 | Configure Docker on WSL2 (Windows only)       |
-| `install-clean.ts`      | -                 | Clean install of all dependencies             |
+| Script                  | Command              | Description                                   |
+| ----------------------- | -------------------- | --------------------------------------------- |
+| `setup-node-version.ts` | `pnpm tsx scripts/setup/setup-node-version.ts` | Ensure correct Node.js version |
+| `setup-mcp.ts`          | `pnpm setup:mcp`     | Validate MCP credentials for AI development   |
 
 ## Development & Testing Tools
 
-Development and testing utilities have been moved to `scripts/dev-tools/`:
+Development and testing utilities live in `scripts/dev-tools/`:
 
 - `test-database.ts` - Test database management
-- `teardown-test-database.ts` - Clean up test databases
 - `test-neon-connection.ts` - Verify Neon connectivity
+- `test-electric-sync.ts` - Test Electric-SQL synchronization
 - `run-integration-tests.ts` - Execute integration tests
 - `run-memory-tests.ts` - Run tests with memory profiling
 - `verify-test-setup.ts` - Verify test environment setup
@@ -91,13 +81,6 @@ Development and testing utilities have been moved to `scripts/dev-tools/`:
 See `scripts/dev-tools/README.md` for details.
 
 ## Advanced Setup
-
-### Docker & WSL2
-
-```bash
-# Windows developers using WSL2
-pnpm tsx scripts/setup/setup-docker-wsl2.ts
-```
 
 ### MCP Server Development
 
@@ -140,10 +123,7 @@ pnpm tsx scripts/setup/setup-dual-database.ts
 
 ## Maintenance Scripts
 
-| Script                       | When to Use                             |
-| ---------------------------- | --------------------------------------- |
-| `cleanup-failed-attempts.ts` | After failed migration attempts         |
-| `test-cycle-fix.ts`          | Fix circular dependency issues in tests |
+No dedicated maintenance scripts currently exist in `scripts/setup/`. Database cleanup operations (rate limits, sessions) are handled directly via SQL or through the database CLI.
 
 ## Troubleshooting
 
@@ -151,7 +131,7 @@ pnpm tsx scripts/setup/setup-dual-database.ts
 
 ```bash
 # Verify database connectivity
-pnpm tsx scripts/setup/test-neon-connection.ts
+pnpm tsx scripts/dev-tools/test-neon-connection.ts
 
 # Check database status
 pnpm revealui doctor
@@ -161,10 +141,10 @@ pnpm revealui doctor
 
 ```bash
 # Validate all required variables are set
-pnpm validate:env
+pnpm tsx scripts/setup/validate-env.ts
 
 # Regenerate environment file
-pnpm setup:env --force
+pnpm tsx scripts/setup/environment.ts --force
 ```
 
 ### Test Database Issues
@@ -175,13 +155,6 @@ pnpm tsx scripts/dev-tools/teardown-test-database.ts
 
 # Verify test setup
 pnpm tsx scripts/dev-tools/verify-test-setup.ts
-```
-
-### Clean Reinstall
-
-```bash
-# Nuclear option: clean everything and reinstall
-pnpm tsx scripts/setup/install-clean.ts
 ```
 
 ## Common Workflows
@@ -197,13 +170,13 @@ cd revealui
 pnpm install
 
 # 3. Configure environment
-pnpm setup:env
+pnpm tsx scripts/setup/environment.ts
 
 # 4. Verify Node version
-pnpm setup:node
+pnpm tsx scripts/setup/setup-node-version.ts
 
 # 5. Bootstrap local development
-pnpm revealui dev up
+pnpm dev:up
 
 # 6. Seed sample data (optional)
 pnpm db:seed
@@ -220,7 +193,7 @@ export DATABASE_URL="postgresql://..."
 export REVEALUI_SECRET="..."
 
 # Validate environment
-pnpm validate:env --strict
+pnpm tsx scripts/setup/validate-env.ts --strict
 
 # Run integration tests
 pnpm test:integration

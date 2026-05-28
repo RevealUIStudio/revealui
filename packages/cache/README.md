@@ -18,7 +18,7 @@ If you're caching in-memory data within a single request, use standard `Map` or 
 pnpm add @revealui/cache
 ```
 
-Optional peer dependency: `next` (>=14.0.0)  -  required for ISR helpers.
+No peer dependencies. ISR helpers use structural typing compatible with `NextRequest`/`NextResponse`, Hono, and Cloudflare Workers  -  no `next` package required.
 
 ## API Reference
 
@@ -69,11 +69,24 @@ Optional peer dependency: `next` (>=14.0.0)  -  required for ISR helpers.
 | `getABTestVariant` | Function | Deterministic A/B test variant assignment |
 | `getPersonalizationConfig` | Function | Edge personalization based on geo/device |
 
+### Invalidation Channel
+
+| Export | Type | Purpose |
+|--------|------|---------|
+| `CacheInvalidationChannel` | Class | Distributed cache busting via pub/sub channel |
+
 ### Configuration
 
 | Export | Type | Purpose |
 |--------|------|---------|
 | `configureCacheLogger` | Function | Set custom logger (defaults to console) |
+
+### Subpath Exports
+
+| Subpath | Contents |
+|---------|----------|
+| `@revealui/cache` | All cache utilities |
+| `@revealui/cache/adapters` | `CacheStore` interface + implementations (for custom backends) |
 
 ## Design Principles
 

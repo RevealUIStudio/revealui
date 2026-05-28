@@ -18,7 +18,7 @@ Admin dashboard with content, account billing, and system monitoring  -  powered
 - **Styling**: Tailwind CSS v4
 - **Database**: Drizzle ORM (NeonDB)
 - **Auth**: `@revealui/auth` (bcrypt, sessions, rate limiting)
-- **UI Components**: `@revealui/presentation` (57 native components)
+- **UI Components**: `@revealui/presentation` (60 native components)
 - **Rich Text**: Lexical editor
 - **Payments**: Stripe (checkout, billing portal, webhooks)
 - **Monitoring**: Sentry

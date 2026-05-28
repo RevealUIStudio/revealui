@@ -34,6 +34,10 @@ Zero runtime dependencies.
 | `withCircuitBreaker` | Function | Wrap any async function with a circuit breaker |
 | `createResilientFunction` | Function | Combine circuit breaker + retry in one wrapper |
 | `ResilientOperation` | Class | Composable resilience pipeline |
+| `CircuitBreakerOpenError` | Error class | Thrown when a circuit breaker rejects a call (open state) |
+| `circuitBreakerRegistry` | Singleton | Default shared `CircuitBreakerRegistry` instance |
+| `InMemoryCircuitBreakerStore` | Class | In-memory circuit state store |
+| `PGliteCircuitBreakerStore` | Class | PGlite-backed circuit state store (persistent across restarts) |
 
 ### Retry
 
@@ -51,6 +55,8 @@ Zero runtime dependencies.
 | `RetryableOperation` | Class | Stateful retry with event hooks |
 | `createRetryMiddleware` | Function | Hono middleware for automatic request retry |
 | `fetchWithRetry` | Function | Fetch wrapper with retry |
+| `calculateDelay` | Function | Compute the next backoff delay from a retry config + attempt number |
+| `sleep` | Function | Promise-based delay (used internally; exported for custom retry loops) |
 
 ### Configuration
 

@@ -103,8 +103,7 @@ For **GitHub Codespaces**, set secrets in:
 
 The container automatically runs:
 ```bash
-# Note: corepack enable removed - pnpm 10+ manages its own version
-pnpm install
+CI=true pnpm install
 ```
 
 To complete setup, run:

@@ -7,7 +7,7 @@ Shared PostCSS configuration for the RevealUI Framework.
 Import the shared PostCSS config in your `postcss.config.ts`:
 
 ```ts
-import postcssConfig from 'dev/postcss'
+import postcssConfig from '@revealui/dev/postcss'
 
 export default postcssConfig
 ```
@@ -15,24 +15,20 @@ export default postcssConfig
 ## Plugins
 
 The config includes:
-- `postcss-import` - Import CSS files with `@import`
-- `@tailwindcss/postcss` - Tailwind CSS 4.0 PostCSS plugin
-- `autoprefixer` - Automatic vendor prefixes
+- `@tailwindcss/postcss` - Tailwind CSS v4 PostCSS plugin (handles imports and auto-prefixing natively; no separate `postcss-import` or `autoprefixer` needed)
 
 ## Configuration
 
-The config sets `postcss-import` to look for files in the `src` directory. If you need to customize this, you can extend the config:
+The config is minimal — Tailwind CSS v4 handles everything via its own PostCSS plugin. To extend:
 
 ```ts
-import postcssConfig from 'dev/postcss'
+import postcssConfig from '@revealui/dev/postcss'
 
 export default {
   ...postcssConfig,
   plugins: {
     ...postcssConfig.plugins,
-    'postcss-import': {
-      path: ['src', 'styles'], // Add additional paths
-    },
+    // add project-specific plugins here
   },
 }
 ```

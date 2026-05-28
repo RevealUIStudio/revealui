@@ -19,7 +19,15 @@ If you only need session auth (login/logout/password reset), use `@revealui/auth
 pnpm add @revealui/security
 ```
 
-Dependencies: `@revealui/contracts`, `@revealui/utils`
+Runtime dependencies: `@revealui/contracts`, `@revealui/utils`, `parse5` (HTML sanitization), `undici` (SSRF/DNS checks in server subpath).
+
+**Subpath exports:**
+
+| Subpath | Contents |
+|---------|----------|
+| `@revealui/security` | Client-safe barrel — headers, CORS, authorization, encryption (Web Crypto), GDPR storage, alerting, request-IP, sanitization |
+| `@revealui/security/server` | Server-only modules using `node:` built-ins — auth, GDPR managers, audit logging, SSRF/DNS checks |
+| `@revealui/security/sanitize` | Minimal client-safe URL/HTML sanitize surface |
 
 ## API Reference
 
@@ -60,7 +68,18 @@ Dependencies: `@revealui/contracts`, `@revealui/utils`
 | `DataMasking` | Class | Mask sensitive data for display (email, phone, SSN) |
 | `TokenGenerator` | Class | Secure random token generation |
 
+### Security Alerting
+
+| Export | Type | Purpose |
+|--------|------|---------|
+| `SecurityAlertService` | Class | Emit and route security alerts via pluggable handlers |
+| `AuditAlertHandler` | Class | Route alerts to the audit log |
+| `LogAlertHandler` | Class | Route alerts to the logger |
+| `WebhookAlertHandler` | Class | POST alerts to a webhook URL |
+
 ### Audit Logging
+
+Server-only (`@revealui/security/server`).
 
 | Export | Type | Purpose |
 |--------|------|---------|
@@ -88,9 +107,24 @@ Dependencies: `@revealui/contracts`, `@revealui/utils`
 
 | Export | Type | Purpose |
 |--------|------|---------|
-| `sanitizeTerminalLine` | Function | Strip ANSI escape sequences from untrusted terminal output; preserves SGR color codes, removes CSI/OSC/DCS sequences and C0/C1 control chars |
+| `sanitizeTerminalLine` | Function | Strip ANSI escape sequences; preserves SGR color codes, removes CSI/OSC/DCS and C0/C1 control chars |
+| `sanitizeHtml` | Function | Strip dangerous HTML (parse5-based); removes script/style/event-handler attributes |
+| `sanitizeUrl` | Function | Validate and sanitize URLs; blocks `javascript:`, `vbscript:`, `data:` schemes |
+| `isSafeUrl` | Function | Boolean check — true for http/https/relative/anchor URLs |
+| `escapeShellArg` | Function | Quote a value for safe use as a shell argument |
+| `escapeSqlIdentifier` | Function | Quote an identifier for safe use in SQL (double-quote, escape internal quotes) |
+| `redactLogContext` | Function | Redact sensitive keys in a log context object |
+| `redactLogField` | Function | Redact a single field value |
+| `redactSecretsInString` | Function | Scan a string and replace credential-shaped substrings with `[REDACTED]` |
+| `isSensitiveLogKey` | Function | Heuristic check whether a log key name looks like a secret |
 
-Used by RevDev Studio's terminal view to neutralize malicious output (e.g. cursor hijacking, title injection) before rendering. Consumers must treat all subprocess stdout/stderr as untrusted.
+### Configuration & Utilities
+
+| Export | Type | Purpose |
+|--------|------|---------|
+| `configureSecurityLogger` | Function | Set custom logger (defaults to console) |
+| `configureClientIp` | Function | Configure trusted-proxy settings for IP extraction |
+| `getClientIp` | Function | Extract client IP from a request (proxy-aware) |
 
 ## Design Principles
 

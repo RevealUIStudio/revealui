@@ -322,10 +322,8 @@ Agent runtime and execution engine for autonomous agents.
 
 ```typescript
 import { AgentRuntime } from '@revealui/ai/orchestration/runtime'
-import { AgentOrchestrator } from '@revealui/ai/orchestration/orchestrator'
 
 const runtime = new AgentRuntime()
-const orchestrator = new AgentOrchestrator()
 ```
 
 ### Tools
@@ -334,10 +332,8 @@ Tool registry and execution system with MCP integration.
 
 ```typescript
 import { ToolRegistry } from '@revealui/ai/tools/registry'
-import { registerMCPTools } from '@revealui/ai/tools/mcp-adapter'
 
 const registry = new ToolRegistry()
-await registerMCPTools(mcpClient, registry)
 ```
 
 ## Performance Considerations
@@ -477,13 +473,13 @@ Potential optimizations (not yet implemented):
 
 ## Requirements
 
-- Node.js 18+
+- Node.js 24.13.0 or higher
 - PostgreSQL with pgvector extension
 - Neon Postgres (for production) or compatible database
 
 ## License
 
-Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)
+FSL-1.1-MIT (Fair Source — converts to MIT after 2 years). See [LICENSE](../../LICENSE).
 
 ---
 

@@ -22,33 +22,46 @@ pnpm add @revealui/config
 ### Load Environment Configuration
 
 ```typescript
-import { loadConfig } from '@revealui/config'
+import { getConfig } from '@revealui/config'
 
-// Load and validate environment variables
-const config = loadConfig()
+// Get validated config (cached after first call)
+const config = getConfig()
 
 // Access validated config
 console.log(config.database.url) // Type-safe access
 console.log(config.stripe.secretKey)
-console.log(config.vercel.token)
+console.log(config.storage.blobToken)
 ```
 
-### RevealUI Configuration
+The package also exports a lazy-proxy default export that validates on first property access:
 
 ```typescript
-import { getRevealUIConfig } from '@revealui/config/revealui'
+import config from '@revealui/config'
+// Validation runs on first property access, not on import
+console.log(config.database.url)
+```
 
-const config = getRevealUIConfig()
-// Returns validated RevealUI configuration
+### RevealUI Shared Configuration
+
+The `./revealui` subpath provides shared framework config for apps in the monorepo:
+
+```typescript
+import { getSharedCMSConfig, getSharedWebConfig } from '@revealui/config/revealui'
+
+// In apps/admin revealui.config.ts
+export default buildConfig({ ...getSharedCMSConfig(), /* app overrides */ })
+
+// In Vite-based apps
+const config = { ...getSharedWebConfig(), /* app overrides */ }
 ```
 
 ### MCP Configuration
 
 ```typescript
-import { getMCPConfig } from '@revealui/config/mcp'
+import { getMcpConfig } from '@revealui/config/mcp'
 
-const mcpConfig = getMCPConfig()
-// Returns MCP server configuration
+const mcpConfig = getMcpConfig()
+// Returns: { persistenceDriver, electricDatabaseUrl, electricApiKey, metricsMode, pgvectorEnabled }
 ```
 
 ## Environment Variables

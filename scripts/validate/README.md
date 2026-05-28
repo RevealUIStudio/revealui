@@ -19,22 +19,16 @@ The documentation validation system automatically checks all documentation files
 ### Local Development
 
 ```bash
-# Run full validation (human-readable output)
-pnpm validate:docs
+# Run the comprehensive docs validator directly
+tsx scripts/validate/validate-docs-comprehensive.ts
 
-# Get JSON output for parsing
-pnpm validate:docs:json
-
-# Run without failing build (useful for testing)
-pnpm validate:docs --exit-zero
+# JSON output
+tsx scripts/validate/validate-docs-comprehensive.ts --json
 ```
 
 ### CI/CD Integration
 
-The validation runs automatically on:
-- Pull requests that modify documentation
-- Pushes to main/master branch
-- Manual workflow triggers
+Documentation validation is integrated into the CI `quality` job via `pnpm --filter docs check:links`. A standalone `validate-docs.yml` workflow does not currently exist.
 
 **Critical issues will fail the build.**
 
@@ -309,22 +303,9 @@ Then call it in `validateFile()`:
 issues.push(...(await validateYourCheck(content, filePath)))
 ```
 
-## GitHub Actions Integration
+## CI Integration
 
-The workflow (`.github/workflows/validate-docs.yml`):
-
-1. Runs on documentation changes
-2. Generates validation report
-3. Uploads results as artifact
-4. Comments on PR with critical issues
-5. Fails build if critical issues found
-
-### Workflow Artifacts
-
-Download full validation results from workflow artifacts:
-- Artifact name: `documentation-validation-results`
-- File: `validation-results.json`
-- Retention: 30 days
+Documentation link checking runs via `pnpm --filter docs check:links` in the CI `quality` job. The comprehensive `validate-docs-comprehensive.ts` validator is available to run locally but is not currently a required CI step.
 
 ## Best Practices
 

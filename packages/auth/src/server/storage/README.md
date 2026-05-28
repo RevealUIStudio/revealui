@@ -58,7 +58,7 @@ Storage Abstraction
 ✅ **COMPLETE** - Storage abstraction implemented and migrated:
 - ✅ Rate limiting uses storage abstraction
 - ✅ Brute force protection uses storage abstraction
-- ✅ Database tables created (migration: `0003_create_rate_limits_tables.sql`)
+- ✅ Database tables created (see `packages/db/migrations/` for current migration files)
 - ✅ Cleanup jobs created
 - ✅ Automatic backend selection
 
