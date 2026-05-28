@@ -16,7 +16,7 @@
 export { createRESTHandlers, handleRESTRequest } from '../api/rest.js';
 // Server-only database/storage
 export { universalPostgresAdapter } from '../database/universal-postgres.js';
-export { vercelBlobStorage } from '../storage/vercel-blob.js';
+export { objectStorage } from '../storage/object-storage.js';
 export type { LogContext, Logger, LogLevel } from '../utils/logger-server.js';
 // Server-only logger with request context
 export { createLogger, logger } from '../utils/logger-server.js';

@@ -26,9 +26,10 @@ export const Media: CollectionConfig = {
       }),
     },
   ],
-  // Upload config is applied by the vercelBlobStorage plugin in revealui.config.ts.
-  // Originals are stored in Vercel Blob; on-demand resizing is handled by next/image
-  // (Vercel Image Optimization)  -  no pre-generated size variants needed.
+  // Upload config is applied by the objectStorage plugin in revealui.config.ts.
+  // Originals are stored in the configured object-storage backend (Cloudflare R2
+  // is canonical); on-demand resizing is handled by next/image  -  no
+  // pre-generated size variants needed.
   upload: {
     mimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'],
   },
