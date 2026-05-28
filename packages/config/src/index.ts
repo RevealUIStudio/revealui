@@ -44,7 +44,7 @@ import {
   type SentryConfig,
 } from './modules/optional.js';
 import { getRevealConfig, type RevealConfig } from './modules/reveal.js';
-import { getStorageConfig, type StorageConfig } from './modules/storage.js';
+import { getStorageConfig, type R2StorageConfig, type StorageConfig } from './modules/storage.js';
 import { getStripeConfig, type StripeConfig } from './modules/stripe.js';
 import type { EnvConfig } from './schema.js';
 import { formatValidationErrors, validateAndThrow, validateEnvVars } from './validator.js';
@@ -339,6 +339,7 @@ export type {
   DevToolsConfig,
   EnvConfig,
   OptionalConfig,
+  R2StorageConfig,
   RevealConfig,
   SentryConfig,
   StorageConfig,

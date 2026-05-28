@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
-const { mockMediaQueries, mockBlobPut, mockBlobDel } = vi.hoisted(() => ({
+const { mockMediaQueries, mockStorage } = vi.hoisted(() => ({
   mockMediaQueries: {
     getAllMedia: vi.fn(),
     createMedia: vi.fn(),
@@ -19,12 +19,19 @@ const { mockMediaQueries, mockBlobPut, mockBlobDel } = vi.hoisted(() => ({
     updateMedia: vi.fn(),
     deleteMedia: vi.fn(),
   },
-  mockBlobPut: vi.fn(),
-  mockBlobDel: vi.fn(),
+  // Stand-in StorageProvider. media.ts depends only on the provider interface
+  // (via getMediaStorage), so the concrete backend (R2 / Vercel Blob) is
+  // irrelevant to these route tests.
+  mockStorage: {
+    provider: 'mock' as const,
+    put: vi.fn(),
+    del: vi.fn(),
+    list: vi.fn(),
+  },
 }));
 
 vi.mock('@revealui/db/queries/media', () => mockMediaQueries);
-vi.mock('@vercel/blob', () => ({ put: mockBlobPut, del: mockBlobDel }));
+vi.mock('../../lib/storage.js', () => ({ getMediaStorage: () => mockStorage }));
 vi.mock('@revealui/core/observability/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
@@ -130,7 +137,12 @@ function makeFile(name: string, type: string): File {
 describe('POST /media  -  upload', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockBlobPut.mockResolvedValue({ url: 'https://abc.blob.vercel-storage.com/media/uuid.png' });
+    mockStorage.put.mockResolvedValue({
+      key: 'media/uuid.png',
+      url: 'https://abc.blob.vercel-storage.com/media/uuid.png',
+      size: 12,
+      provider: 'mock',
+    });
     mockMediaQueries.createMedia.mockResolvedValue(makeMediaRecord());
   });
 
@@ -186,11 +198,11 @@ describe('POST /media  -  upload', () => {
     expect(body.error).toMatch(/file too large/i);
   });
 
-  it('uploads to Vercel Blob with correct path', async () => {
+  it('uploads to object storage with a unique media key', async () => {
     const app = createApp(USER_A);
     const file = makeFile('photo.png', 'image/png');
     await app.request('/media', makeUploadRequest(file));
-    expect(mockBlobPut).toHaveBeenCalledWith(
+    expect(mockStorage.put).toHaveBeenCalledWith(
       expect.stringMatching(/^media\/[a-f0-9-]+\.png$/),
       expect.any(File),
       expect.objectContaining({ access: 'public', contentType: 'image/png' }),
@@ -217,8 +229,8 @@ describe('POST /media  -  upload', () => {
     );
   });
 
-  it('returns 502 when Vercel Blob upload fails', async () => {
-    mockBlobPut.mockRejectedValue(new Error('Blob storage unavailable'));
+  it('returns 502 when the storage upload fails', async () => {
+    mockStorage.put.mockRejectedValue(new Error('storage unavailable'));
     const app = createApp(USER_A);
     const file = makeFile('photo.png', 'image/png');
     const res = await app.request('/media', makeUploadRequest(file));
@@ -285,32 +297,36 @@ describe('GET /media  -  list scoping', () => {
 
 // ─── DELETE /media  -  Blob cleanup ────────────────────────────────────────────
 
-describe('DELETE /media/:id  -  blob cleanup', () => {
+describe('DELETE /media/:id  -  object cleanup', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMediaQueries.deleteMedia.mockResolvedValue(undefined);
-    mockBlobDel.mockResolvedValue(undefined);
+    mockStorage.del.mockResolvedValue(undefined);
   });
 
-  it('calls blob del for Vercel Blob URLs', async () => {
+  it('deletes the stored object via the provider', async () => {
     mockMediaQueries.getMediaById.mockResolvedValue(makeMediaRecord({ uploadedBy: USER_A.id }));
     const app = createApp(USER_A);
     const res = await app.request('/media/media-1', { method: 'DELETE' });
     expect(res.status).toBe(200);
-    expect(mockBlobDel).toHaveBeenCalledWith('https://abc.blob.vercel-storage.com/media/uuid.png');
+    expect(mockStorage.del).toHaveBeenCalledWith(
+      'https://abc.blob.vercel-storage.com/media/uuid.png',
+    );
   });
 
-  it('does not call blob del for non-Vercel URLs', async () => {
+  it('delegates key extraction to the provider regardless of URL host', async () => {
+    // The provider owns mapping a stored URL back to its key, so the route no
+    // longer special-cases Vercel Blob hostnames (unlike the pre-R2 code).
     mockMediaQueries.getMediaById.mockResolvedValue(
-      makeMediaRecord({ url: 'https://cdn.example.com/image.png', uploadedBy: USER_A.id }),
+      makeMediaRecord({ url: 'https://media.revealui.com/media/uuid.png', uploadedBy: USER_A.id }),
     );
     const app = createApp(USER_A);
     await app.request('/media/media-1', { method: 'DELETE' });
-    expect(mockBlobDel).not.toHaveBeenCalled();
+    expect(mockStorage.del).toHaveBeenCalledWith('https://media.revealui.com/media/uuid.png');
   });
 
-  it('still deletes DB record even if blob del fails', async () => {
-    mockBlobDel.mockRejectedValue(new Error('blob error'));
+  it('still deletes the DB record even if the storage delete fails', async () => {
+    mockStorage.del.mockRejectedValue(new Error('storage error'));
     mockMediaQueries.getMediaById.mockResolvedValue(makeMediaRecord({ uploadedBy: USER_A.id }));
     const app = createApp(USER_A);
     const res = await app.request('/media/media-1', { method: 'DELETE' });
@@ -466,7 +482,7 @@ describe('DELETE /media/:id  -  auth and access control', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMediaQueries.deleteMedia.mockResolvedValue(undefined);
-    mockBlobDel.mockResolvedValue(undefined);
+    mockStorage.del.mockResolvedValue(undefined);
   });
 
   it('returns 401 without authentication', async () => {

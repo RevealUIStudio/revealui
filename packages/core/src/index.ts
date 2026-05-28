@@ -152,7 +152,7 @@ export {
   UnderlineFeature,
 } from './richtext/index.js';
 // Storage adapters
-export { vercelBlobStorage } from './storage/vercel-blob.js';
+export { objectStorage } from './storage/object-storage.js';
 // Note: Logger class is exported from ./revealui.ts (instance/logger.js), not from utils/logger.js
 export { LRUCache, type LRUCacheOptions } from './utils/cache.js';
 // Deep clone utility

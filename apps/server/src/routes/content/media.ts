@@ -16,8 +16,8 @@ import {
 import { logger } from '@revealui/core/observability/logger';
 import * as mediaQueries from '@revealui/db/queries/media';
 import { createRoute, OpenAPIHono, z } from '@revealui/openapi';
-import { del, put } from '@vercel/blob';
 import { HTTPException } from 'hono/http-exception';
+import { getMediaStorage } from '../../lib/storage.js';
 import { ErrorSchema, IdParam } from '../_helpers/content-schemas.js';
 import { PaginationQuery } from '../_helpers/pagination.js';
 import type { ContentVariables } from './index.js';
@@ -131,17 +131,17 @@ app.openapi(
     const ext = extensionForMimeType(file.type);
     const filename = `${crypto.randomUUID()}.${ext}`;
 
-    // Upload to Vercel Blob storage  -  returns a public CDN URL
+    // Upload to the configured object-storage backend — Cloudflare R2
+    // (canonical) or the legacy Vercel Blob fallback — returns a public CDN URL.
     let url: string;
     try {
-      const blob = await put(`media/${filename}`, file, {
+      const result = await getMediaStorage().put(`media/${filename}`, file, {
         access: 'public',
         contentType: file.type,
-        addRandomSuffix: false,
       });
-      url = blob.url;
+      url = result.url;
     } catch (uploadError) {
-      logger.error('Failed to upload media to Vercel Blob', undefined, {
+      logger.error('Failed to upload media to object storage', undefined, {
         filename,
         mimeType: file.type,
         filesize: file.size,
@@ -338,23 +338,21 @@ app.openapi(
     if (user.role !== 'admin' && existing.uploadedBy !== user.id) {
       throw new HTTPException(403, { message: 'Forbidden' });
     }
-    // Delete from Vercel Blob storage (best-effort  -  DB record takes priority)
-    const isVercelBlob = (() => {
+    // Delete the stored object (best-effort  -  the DB record takes priority).
+    // The configured provider extracts the storage key from the URL. Objects
+    // written to the legacy Vercel Blob store during the R2 migration are
+    // reclaimed when that store is decommissioned (GAP-208), so a same-provider
+    // best-effort delete is sufficient.
+    if (existing.url) {
       try {
-        const parsed = new URL(existing.url ?? '');
-        return parsed.hostname.endsWith('.blob.vercel-storage.com');
-      } catch {
-        return false;
-      }
-    })();
-    if (isVercelBlob) {
-      del(existing.url).catch((blobErr) => {
-        logger.warn('Failed to delete media from Vercel Blob  -  orphaned blob', {
+        await getMediaStorage().del(existing.url);
+      } catch (storageErr) {
+        logger.warn('Failed to delete media object from storage  -  orphaned object', {
           mediaId: id,
           url: existing.url,
-          error: blobErr instanceof Error ? blobErr.message : 'unknown',
+          error: storageErr instanceof Error ? storageErr.message : 'unknown',
         });
-      });
+      }
     }
     await mediaQueries.deleteMedia(db, id);
     return c.json({ success: true as const, message: 'Media deleted' }, 200);

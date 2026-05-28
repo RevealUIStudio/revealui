@@ -65,6 +65,60 @@ export function validateSupabaseUrl(url: string): CredentialValidation {
   }
 }
 
+// =============================================================================
+// Cloudflare R2 (canonical object-storage backend)
+// =============================================================================
+
+/**
+ * Validates the R2 public base URL — the address objects are served from
+ * (a bound custom domain like https://media.example.com, or the dev URL
+ * https://<account-id>.r2.cloudflarestorage.com/<bucket>). Required by the
+ * R2 storage provider, so this is the credential most worth checking.
+ */
+export function validateR2PublicBaseUrl(url: string): CredentialValidation {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return { valid: false, message: 'R2 public base URL must use http:// or https://' };
+    }
+    return { valid: true };
+  } catch {
+    return {
+      valid: false,
+      message:
+        'R2 public base URL must be a valid URL (e.g. https://media.example.com or ' +
+        'https://<account-id>.r2.cloudflarestorage.com/<bucket>)',
+    };
+  }
+}
+
+// Allowed characters in an S3/R2 bucket name. Set lookup keeps this regex-free
+// per the fleet no-regex rule.
+const R2_BUCKET_CHARS = new Set('abcdefghijklmnopqrstuvwxyz0123456789-.');
+
+/**
+ * Validates an R2 (S3-compatible) bucket name: 3–63 chars, lowercase letters,
+ * digits, hyphens, and dots, starting and ending with a letter or digit.
+ */
+export function validateR2BucketName(name: string): CredentialValidation {
+  const value = name.trim();
+  if (value.length < 3 || value.length > 63) {
+    return { valid: false, message: 'R2 bucket name must be 3–63 characters' };
+  }
+  if (![...value].every((char) => R2_BUCKET_CHARS.has(char))) {
+    return {
+      valid: false,
+      message: 'R2 bucket name may contain only lowercase letters, digits, hyphens, and dots',
+    };
+  }
+  const first = value[0];
+  const last = value[value.length - 1];
+  if (first === '-' || first === '.' || last === '-' || last === '.') {
+    return { valid: false, message: 'R2 bucket name must start and end with a letter or digit' };
+  }
+  return { valid: true };
+}
+
 export function validateNpmToken(token: string): CredentialValidation {
   if (!token.startsWith('npm_')) {
     return {

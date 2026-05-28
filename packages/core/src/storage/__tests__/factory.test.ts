@@ -42,23 +42,22 @@ describe('createStorage', () => {
     });
   });
 
-  describe('vercel-blob deferral', () => {
-    it('throws with a Phase 2b reference for { provider: "vercel-blob" }', () => {
-      expect(() =>
-        createStorage({
-          provider: 'vercel-blob',
-          vercelBlob: { token: 'vercel_blob_rw_test' },
-        }),
-      ).toThrow(/Phase 2b/);
+  describe('vercel-blob (legacy migration-window backend)', () => {
+    it('returns a vercel-blob provider for { provider: "vercel-blob", vercelBlob: {...} }', () => {
+      const provider = createStorage({
+        provider: 'vercel-blob',
+        vercelBlob: { token: 'vercel_blob_rw_test' },
+      });
+      expect(provider.provider).toBe('vercel-blob');
     });
 
-    it('mentions the legacy vercelBlobStorage plugin in the error', () => {
+    it('propagates the missing-token validation error', () => {
       expect(() =>
         createStorage({
           provider: 'vercel-blob',
-          vercelBlob: { token: 'tok' },
+          vercelBlob: { token: '' },
         }),
-      ).toThrow(/vercelBlobStorage/);
+      ).toThrow(/requires VercelBlobConfig.token/);
     });
   });
 

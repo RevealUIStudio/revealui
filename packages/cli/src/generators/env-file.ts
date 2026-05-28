@@ -51,19 +51,26 @@ export async function generateEnvFile(projectPath: string, config: EnvConfig): P
   lines.push('# =============================================================================');
   lines.push('');
 
-  // Storage configuration
-  if (config.storage.provider === 'vercel-blob' && config.storage.blobToken) {
+  // Storage configuration — Cloudflare R2 is the canonical backend; Vercel Blob
+  // is the legacy fallback (being retired, GAP-208).
+  if (config.storage.provider === 'r2') {
+    lines.push(`R2_ACCOUNT_ID=${config.storage.r2AccountId ?? ''}`);
+    lines.push(`R2_ACCESS_KEY_ID=${config.storage.r2AccessKeyId ?? ''}`);
+    lines.push(`R2_SECRET_ACCESS_KEY=${config.storage.r2SecretAccessKey ?? ''}`);
+    lines.push(`R2_BUCKET=${config.storage.r2Bucket ?? ''}`);
+    lines.push(`R2_PUBLIC_BASE_URL=${config.storage.r2PublicBaseUrl ?? ''}`);
+  } else if (config.storage.provider === 'vercel-blob' && config.storage.blobToken) {
+    lines.push('# Cloudflare R2 is the canonical backend; Vercel Blob is legacy (being retired).');
     lines.push(`BLOB_READ_WRITE_TOKEN=${config.storage.blobToken}`);
-  } else if (config.storage.provider === 'supabase') {
-    if (config.storage.supabaseUrl) {
-      lines.push(`NEXT_PUBLIC_SUPABASE_URL=${config.storage.supabaseUrl}`);
-    }
-    if (config.storage.supabasePublishableKey) {
-      lines.push(`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${config.storage.supabasePublishableKey}`);
-    }
   } else {
-    lines.push('# BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-    lines.push('# Configure your Vercel Blob token');
+    lines.push('# Cloudflare R2 (recommended, S3-compatible). Create a bucket + API token in');
+    lines.push('# the Cloudflare dashboard (R2 > Manage R2 API Tokens), then set all five:');
+    lines.push('# R2_ACCOUNT_ID=your-cloudflare-account-id');
+    lines.push('# R2_ACCESS_KEY_ID=your-r2-access-key-id');
+    lines.push('# R2_SECRET_ACCESS_KEY=your-r2-secret-access-key');
+    lines.push('# R2_BUCKET=your-bucket-name');
+    lines.push('# R2_PUBLIC_BASE_URL=https://<account-id>.r2.cloudflarestorage.com/<bucket>');
+    lines.push('# Legacy alternative (being retired): BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...');
   }
 
   lines.push('');

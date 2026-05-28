@@ -194,14 +194,52 @@ describe('config modules', () => {
   });
 
   describe('getStorageConfig', () => {
+    const fullR2 = {
+      R2_ACCOUNT_ID: 'acct-123',
+      R2_ACCESS_KEY_ID: 'AKIA-TEST',
+      R2_SECRET_ACCESS_KEY: 'secret-test',
+      R2_BUCKET: 'media',
+      R2_PUBLIC_BASE_URL: 'https://media.revealui.com',
+    } as const;
+
     it('returns blob token when set', () => {
       const config = getStorageConfig(makeEnv({ BLOB_READ_WRITE_TOKEN: 'vercel_blob_xyz' }));
       expect(config.blobToken).toBe('vercel_blob_xyz');
     });
 
-    it('returns undefined when not set', () => {
+    it('returns undefined blobToken when not set', () => {
       const config = getStorageConfig(makeEnv());
       expect(config.blobToken).toBeUndefined();
+    });
+
+    it('resolves r2 config when all five R2 vars are set', () => {
+      const config = getStorageConfig(makeEnv(fullR2));
+      expect(config.r2).toEqual({
+        accountId: 'acct-123',
+        accessKeyId: 'AKIA-TEST',
+        secretAccessKey: 'secret-test',
+        bucket: 'media',
+        publicBaseUrl: 'https://media.revealui.com',
+      });
+    });
+
+    it('returns undefined r2 when no R2 vars are set', () => {
+      const config = getStorageConfig(makeEnv());
+      expect(config.r2).toBeUndefined();
+    });
+
+    it('returns undefined r2 when R2 config is partial (missing bucket)', () => {
+      const { R2_BUCKET: _omitted, ...partial } = fullR2;
+      const config = getStorageConfig(makeEnv(partial));
+      expect(config.r2).toBeUndefined();
+    });
+
+    it('resolves both r2 and blobToken independently when both are set', () => {
+      const config = getStorageConfig(
+        makeEnv({ ...fullR2, BLOB_READ_WRITE_TOKEN: 'vercel_blob_xyz' }),
+      );
+      expect(config.r2?.bucket).toBe('media');
+      expect(config.blobToken).toBe('vercel_blob_xyz');
     });
   });
 

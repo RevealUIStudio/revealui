@@ -10,10 +10,12 @@ vi.mock('@clack/prompts', () => ({
 
 // Mock validators
 vi.mock('../../validators/credentials.js', () => ({
-  validateNeonUrl: vi.fn().mockResolvedValue({ valid: true }),
-  validateStripeKey: vi.fn().mockResolvedValue({ valid: true }),
-  validateSupabaseUrl: vi.fn().mockResolvedValue({ valid: true }),
-  validateVercelToken: vi.fn().mockResolvedValue({ valid: true }),
+  validateNeonUrl: vi.fn().mockReturnValue({ valid: true }),
+  validateStripeKey: vi.fn().mockReturnValue({ valid: true }),
+  validateSupabaseUrl: vi.fn().mockReturnValue({ valid: true }),
+  validateVercelToken: vi.fn().mockReturnValue({ valid: true }),
+  validateR2BucketName: vi.fn().mockReturnValue({ valid: true }),
+  validateR2PublicBaseUrl: vi.fn().mockReturnValue({ valid: true }),
 }));
 
 // Mock node:fs (for project.ts)
@@ -228,7 +230,37 @@ describe('promptStorageConfig', () => {
     expect(mockText).not.toHaveBeenCalled();
   });
 
-  it('returns vercel-blob config with token', async () => {
+  it('returns r2 config with all five fields', async () => {
+    mockSelect.mockResolvedValueOnce('r2');
+    mockText.mockResolvedValueOnce('acct-123');
+    mockText.mockResolvedValueOnce('AKIA-TEST');
+    mockText.mockResolvedValueOnce('secret-test');
+    mockText.mockResolvedValueOnce('media');
+    mockText.mockResolvedValueOnce('https://media.example.com');
+    const result = await promptStorageConfig();
+    expect(result).toEqual({
+      provider: 'r2',
+      r2AccountId: 'acct-123',
+      r2AccessKeyId: 'AKIA-TEST',
+      r2SecretAccessKey: 'secret-test',
+      r2Bucket: 'media',
+      r2PublicBaseUrl: 'https://media.example.com',
+    });
+  });
+
+  it('calls select + 5 text prompts for r2', async () => {
+    mockSelect.mockResolvedValueOnce('r2');
+    mockText.mockResolvedValueOnce('acct-123');
+    mockText.mockResolvedValueOnce('AKIA-TEST');
+    mockText.mockResolvedValueOnce('secret-test');
+    mockText.mockResolvedValueOnce('media');
+    mockText.mockResolvedValueOnce('https://media.example.com');
+    await promptStorageConfig();
+    expect(mockSelect).toHaveBeenCalledOnce();
+    expect(mockText).toHaveBeenCalledTimes(5);
+  });
+
+  it('returns vercel-blob config with token (legacy option)', async () => {
     mockSelect.mockResolvedValueOnce('vercel-blob');
     mockText.mockResolvedValueOnce('vercel_blob_rw_abc123');
     const result = await promptStorageConfig();
@@ -238,32 +270,11 @@ describe('promptStorageConfig', () => {
     });
   });
 
-  it('returns supabase config with url and key', async () => {
-    mockSelect.mockResolvedValueOnce('supabase');
-    mockText.mockResolvedValueOnce('https://abc.supabase.co');
-    mockText.mockResolvedValueOnce('eyJ...');
-    const result = await promptStorageConfig();
-    expect(result).toEqual({
-      provider: 'supabase',
-      supabaseUrl: 'https://abc.supabase.co',
-      supabasePublishableKey: 'eyJ...',
-    });
-  });
-
   it('calls select + text for vercel-blob', async () => {
     mockSelect.mockResolvedValueOnce('vercel-blob');
     mockText.mockResolvedValueOnce('token');
     await promptStorageConfig();
     expect(mockSelect).toHaveBeenCalledOnce();
     expect(mockText).toHaveBeenCalledOnce();
-  });
-
-  it('calls select + 2 text for supabase', async () => {
-    mockSelect.mockResolvedValueOnce('supabase');
-    mockText.mockResolvedValueOnce('https://abc.supabase.co');
-    mockText.mockResolvedValueOnce('key');
-    await promptStorageConfig();
-    expect(mockSelect).toHaveBeenCalledOnce();
-    expect(mockText).toHaveBeenCalledTimes(2);
   });
 });

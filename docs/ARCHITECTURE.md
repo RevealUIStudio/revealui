@@ -936,31 +936,24 @@ const memories = await rpc.call("memory.search", { queryEmbedding });
 
 **Role:** Scalable media and file storage for admin content.
 
-Object storage uses a pluggable backend. **Cloudflare R2 (S3-compatible, via `@aws-sdk/client-s3`) is the canonical backend** (`packages/core/src/storage/r2.ts`). A legacy Vercel Blob backend (`packages/core/src/storage/vercel-blob.ts`) remains wired during the R2 consumer cutover (tracked as GAP-208).
+Object storage uses a pluggable backend exposed through a slim `StorageProvider` interface (`packages/core/src/storage/types.ts`). **Cloudflare R2 (S3-compatible, via `@aws-sdk/client-s3`) is the canonical backend** (`packages/core/src/storage/r2.ts`) and the default everywhere. A Vercel Blob provider (`packages/core/src/storage/vercel-blob-provider.ts`) remains available as a config-selected fallback for the migration window (GAP-208). Both the API media route and the admin upload path resolve their backend from `@revealui/config`'s `config.storage` — R2 when the five `R2_*` vars are set, otherwise the legacy `BLOB_READ_WRITE_TOKEN`.
 
-**Legacy Vercel Blob adapter (being retired):**
+The admin app attaches uploads to media collections through the provider-agnostic `objectStorage` Payload plugin (`packages/core/src/storage/object-storage.ts`), which adapts any `StorageProvider` to the engine's upload-adapter interface and resolves the backend lazily on first upload:
 
 ```typescript
-// packages/core/src/storage/vercel-blob.ts
-import { put, del } from "@vercel/blob";
+// apps/admin/revealui.config.ts
+import config from "@revealui/config";
+import { createR2Provider, createVercelBlobProvider, objectStorage } from "@revealui/core/storage";
 
-export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
-  // Configure upload adapters for media collections
-  collection.upload = {
-    adapters: [
-      {
-        upload: async (file) => {
-          const blob = await put(filePath, file.data, {
-            access: "public",
-            token: config.token, // BLOB_READ_WRITE_TOKEN
-          });
-          return { url: blob.url, filename: file.name };
-        },
-        delete: async (blobUrl) => await del(blobUrl),
-      },
-    ],
-  };
-}
+objectStorage({
+  collections: { media: true },
+  resolveProvider: () => {
+    const { r2, blobToken } = config.storage;
+    if (r2) return createR2Provider(r2); // Cloudflare R2 — canonical
+    if (blobToken) return createVercelBlobProvider({ token: blobToken }); // legacy fallback
+    throw new Error("No object-storage backend configured (set R2_* or BLOB_READ_WRITE_TOKEN).");
+  },
+});
 ```
 
 **Data Flow:**
@@ -1509,7 +1502,13 @@ ELECTRIC_SERVICE_URL=http://localhost:5133
 NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 
 # Object storage — Cloudflare R2 is the canonical backend (GAP-208).
-# The Vercel Blob token below is the legacy default until the R2 cutover completes.
+# Set all five R2_* vars for media uploads (R2 is S3-compatible, via @aws-sdk/client-s3).
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=revealui-media
+R2_PUBLIC_BASE_URL=https://media.revealui.com
+# Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset.
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
 # AI Inference — open-model only (Ubuntu Inference Snaps, Ollama)
