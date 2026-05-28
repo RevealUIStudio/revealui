@@ -280,8 +280,9 @@ Each quarter, test at least one data store from the rotation schedule below. Ove
 
 4. Verify the rollback by checking the production URL responds correctly:
    ```bash
-   curl -s -o /dev/null -w "%{http_code}" https://revealui.com/api/health
+   curl -s -o /dev/null -w "%{http_code}" https://api.revealui.com/health
    ```
+   (The Hono API serves the health route at `/health`, not at `/api/health`. The Next.js admin uses `https://admin.revealui.com/api/health` separately.)
 
 5. Restore the original deployment:
    ```bash
