@@ -116,7 +116,7 @@ function checkFile(filePath: string): Violation[] {
         }
       }
 
-      if (braceDepth <= 0 && inThemeInline) {
+      if (braceDepth <= 0) {
         inThemeInline = false;
       }
     }
