@@ -1,7 +1,5 @@
 ---
 '@revealui/core': minor
-'admin': minor
-'server': patch
 ---
 
 Complete the Vercel Blob → Cloudflare R2 object-storage cutover so the legacy Vercel Blob store can be decommissioned.
