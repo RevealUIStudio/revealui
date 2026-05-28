@@ -260,8 +260,9 @@ Set up within the first 24 hours after launch.
 
 ### Uptime and Health
 
-- [ ] Health check endpoint live: `GET /api/health` returns 200 **(blocking)**
-- [ ] Uptime monitoring configured (e.g., Vercel Checks, external ping) **(blocking)**
+- [ ] API health check endpoint live: `GET https://api.revealui.com/health` returns 200 **(blocking)** — note: served by the Hono API at root `/health` (and `/health/ready` for readiness); **not** at `/api/health` (that path 404s on the API). Code: [`apps/server/src/routes/health.ts`](../apps/server/src/routes/health.ts).
+- [ ] Admin health check endpoint live: `GET https://admin.revealui.com/api/health` returns 200 **(blocking)** — served by the Next.js admin at the `/api/health` route. Code: [`apps/admin/src/app/api/health/route.ts`](../apps/admin/src/app/api/health/route.ts).
+- [ ] Uptime monitoring configured (e.g., Vercel Checks, external ping) pointed at the **correct** paths above **(blocking)**
 - [ ] Database connection health monitored **(advisory)**
 - [ ] ElectricSQL sync proxy health monitored **(advisory)**
 
