@@ -4,12 +4,30 @@ This directory contains versioned SQL migrations managed by Drizzle Kit.
 
 ## Current Migrations
 
-| Migration | Tables | Description |
-|-----------|--------|-------------|
-| `0000_unique_red_hulk.sql` | 24 | Initial schema: users, sessions, sites, pages, agents, CMS, todos |
-| `0001_long_maximus.sql` | 1 | Add waitlist table for landing page signups |
+18 migrations applied (0000–0017). See `meta/_journal.json` for the canonical list.
 
-**Total Tables:** 25
+| Migration tag | Description |
+|---------------|-------------|
+| `0000_init` | Initial schema |
+| `0001_special_logan` | Schema additions |
+| `0002_triggers_search_vectors` | Search vector triggers |
+| `0003_shared_facts` | Shared facts table |
+| `0004_yjs_document_patches` | YJS document patches |
+| `0005_shared_memory_scope` | Shared memory scope |
+| `0006_must_rotate_password` | Password rotation flag |
+| `0007_account_membership_seat_limit` | Account membership seat limit |
+| `0008_jobs_visibility_timeout` | Jobs visibility timeout |
+| `0009_mcp_document_operations` | MCP document operations |
+| `0010_unreconciled_webhooks` | Webhook reconciliation |
+| `0011_usage_meters_duration_ms` | Usage meters duration |
+| `0012_living_stone_men` | Schema additions |
+| `0013_zippy_quentin_quire` | Schema additions |
+| `0014_licenses_userid_set_null` | Licenses userId nullable |
+| `0015_users_stripe_deletion_status` | Users Stripe deletion status |
+| `0016_drop_revealcoin_tables` | Drop RevealCoin tables |
+| `0017_webhook_idempotency_state` | Webhook idempotency state |
+
+**Total Tables:** 85 (see `packages/db/package.json` description)
 
 ## Migration Strategy
 
@@ -38,20 +56,6 @@ DATABASE_URL="postgresql://..." pnpm db:migrate
 ## Migration Files
 
 All migrations are tracked in `meta/_journal.json` and applied in order.
-
-### Tables by Migration
-
-**0000_unique_red_hulk.sql (Initial Schema):**
-- **Auth:** users, sessions, password_reset_tokens, failed_attempts
-- **Sites:** sites, site_collaborators, pages, page_revisions
-- **Agents:** agent_actions, agent_contexts, agent_memories, conversations, messages
-- **CMS:** posts, media, global_header, global_footer, global_settings
-- **Sync:** sync_metadata, user_devices, crdt_operations, node_id_mappings
-- **Rate Limiting:** rate_limits
-- **App:** todos
-
-**0001_long_maximus.sql:**
-- **Landing:** waitlist (email signups with source tracking)
 
 ## Rollback Strategy
 

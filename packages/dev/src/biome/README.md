@@ -16,10 +16,10 @@ Biome is the sole linter and formatter for the RevealUI monorepo:
 
 ## Configuration
 
-The shared Biome config is exported from `dev/biome`:
+The shared Biome config is exported from `@revealui/dev/biome`:
 
 ```typescript
-import { biomeConfig } from 'dev/biome'
+import { biomeConfig } from '@revealui/dev/biome'
 ```
 
 However, most packages should use the root `biome.json` which extends this configuration.

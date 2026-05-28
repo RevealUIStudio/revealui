@@ -17,11 +17,12 @@ Use for: Most packages under `packages/` that export TypeScript code
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
+    "format": "biome format --write .",
     "clean": "rm -rf dist"
   }
 }
@@ -32,21 +33,20 @@ Use for: Applications under `apps/` (Next.js or Vite-based)
 
 **Frameworks:** Next.js or Vite
 **Test Framework:** Vitest
-**Examples:** `admin`, `docs`, `landing`, `web`
+**Examples:** `admin`, `docs`, `marketing`
 
 **Next.js variant:**
 ```json
 {
   "scripts": {
-    "dev": "next dev --port 3000",
+    "dev": "next dev --port <PORT>",
     "build": "next build",
-    "start": "next start --port 3000",
+    "start": "next start --port <PORT>",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf .next .turbo"
+    "clean": "rm -rf .next dist .turbo"
   }
 }
 ```
@@ -59,7 +59,6 @@ Use for: Applications under `apps/` (Next.js or Vite-based)
     "build": "vite build",
     "start": "vite preview",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -81,10 +80,11 @@ Use for: Command-line tools and utilities
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "biome check .",
-    "lint:eslint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "format": "biome format --write .",
     "clean": "rm -rf dist"
   }
 }
@@ -99,7 +99,6 @@ Use for: Command-line tools and utilities
 
 ### Quality Scripts (Required)
 - **`lint`** - Run Biome linter
-- **`lint:eslint`** - Run ESLint
 - **`typecheck`** - TypeScript type checking without emit
 
 ### Testing Scripts (Required)

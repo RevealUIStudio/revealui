@@ -29,8 +29,8 @@ import { UserContract, PageContract, SiteContract } from '@revealui/contracts/en
 // Content (blocks)
 import { BlockSchema, createTextBlock } from '@revealui/contracts/content'
 
-// CMS (configuration contracts)
-import { ConfigContract, CollectionContract } from '@revealui/contracts/cms'
+// Admin (configuration contracts)
+import { ConfigContract, CollectionContract } from '@revealui/contracts/admin'
 
 // Agents (memory, context, conversations)
 import { AgentMemorySchema, AgentContextSchema } from '@revealui/contracts/agents'
@@ -105,10 +105,10 @@ if (!result.success) {
 }
 ```
 
-### CMS Configuration
+### Admin / CMS Configuration
 
 ```typescript
-import { ConfigContract, validateConfigStructure } from '@revealui/contracts/cms'
+import { ConfigContract, validateConfigStructure } from '@revealui/contracts/admin'
 
 const result = validateConfigStructure(userConfig)
 if (result.success) {
@@ -124,7 +124,7 @@ This package follows a unified contract system:
 2. **Representation** - Dual representation (human/agent)
 3. **Entities** - Domain entities (User, Site, Page)
 4. **Content** - Content blocks
-5. **CMS** - CMS configuration contracts
+5. **Admin** - CMS/admin configuration contracts (`@revealui/contracts/admin`)
 6. **Agents** - Agent memory/context contracts
 7. **Database** - DB ↔ Contract bridges
 8. **Actions** - Action validation layer
@@ -142,7 +142,7 @@ import { ConfigContract } from '@revealui/schema/core/contracts'
 
 // After (contracts package)
 import { PageSchema } from '@revealui/contracts'
-import { ConfigContract } from '@revealui/contracts/cms'
+import { ConfigContract } from '@revealui/contracts/admin'
 ```
 
 ## Development
