@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <!--
-  data-theme="light" locks the marketing site to light mode. The brand token
-  set (@revealui/presentation/tokens.css) is dark-first (:root = dark), but
-  every marketing section paints explicit light backgrounds (bg-white /
-  bg-gray-50). Without this lock, semantic tokens (e.g. text-muted-foreground →
-  --rvui-text-2) resolved to their dark-mode silver values on white, both
-  washing the copy out and failing WCAG AA. Lock makes color deterministic.
+  System-adaptive: the marketing site follows the visitor's OS color scheme via
+  @revealui/presentation/tokens.css (dark-first :root + prefers-color-scheme:light
+  media query). Every section now uses adaptive semantic tokens (bg-background,
+  text-foreground, text-muted-foreground, …), so no data-theme lock is needed.
 -->
-<html lang="en" data-theme="light">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

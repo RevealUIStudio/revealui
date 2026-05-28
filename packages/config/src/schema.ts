@@ -32,7 +32,16 @@ const requiredSchema = z.object({
   // Database
   POSTGRES_URL: postgresUrlSchema,
 
-  // Storage (optional  -  not all apps use Blob storage)
+  // Storage — Cloudflare R2 is the canonical object-storage backend (GAP-208).
+  // All five R2 vars must be set together for the R2 provider to activate;
+  // partial config falls back to Vercel Blob (the legacy backend below).
+  R2_ACCOUNT_ID: z.string().min(1, 'R2 account ID is required').optional(),
+  R2_ACCESS_KEY_ID: z.string().min(1, 'R2 access key ID is required').optional(),
+  R2_SECRET_ACCESS_KEY: z.string().min(1, 'R2 secret access key is required').optional(),
+  R2_BUCKET: z.string().min(1, 'R2 bucket name is required').optional(),
+  R2_PUBLIC_BASE_URL: z.string().min(1, 'R2 public base URL is required').optional(),
+
+  // Storage — legacy Vercel Blob (being retired in favor of R2; optional).
   BLOB_READ_WRITE_TOKEN: z.string().min(1, 'Blob token is required').optional(),
 
   // Stripe (optional  -  not all apps have checkout)

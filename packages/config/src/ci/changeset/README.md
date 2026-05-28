@@ -43,10 +43,10 @@ Add new `useTheme` hook for theme management
 ## Release Process
 
 1. Create changesets for your changes
-2. When ready to release, run `pnpm changeset version` to update versions
+2. When ready to release, run `pnpm changeset:version` to update versions (also regenerates the lockfile)
 3. Review the generated changelog
 4. Commit the changes
-5. Run `pnpm publish:stable` or `pnpm publish:beta` to publish
+5. Run `pnpm changeset:publish` to publish to npm
 
 ## More Information
 

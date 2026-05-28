@@ -27,7 +27,7 @@ RevealUI's [secrets convention](https://github.com/RevealUIStudio/revealui/blob/
 
 > Every secret RevFleet depends on lives in RevVault. Full stop.
 
-That includes API keys, database URLs, webhook secrets, JWT/session secrets, signing keys, Solana keypairs, license keys, Vercel tokens, Railway tokens, Supabase credentials, Stripe keys, OAuth client secrets, age identities, SSH keys — anything else.
+That includes API keys, database URLs, webhook secrets, JWT/session secrets, signing keys, Solana keypairs, license keys, Vercel tokens, Fly tokens, Supabase credentials, Stripe keys, OAuth client secrets, age identities, SSH keys — anything else.
 
 In practice:
 

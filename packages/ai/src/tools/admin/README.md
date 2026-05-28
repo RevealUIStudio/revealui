@@ -1,6 +1,6 @@
-# CMS Tools Package
+# Admin Tools Package
 
-AI-powered tools for managing RevealUI CMS through natural language.
+AI-powered tools for managing the RevealUI admin through natural language.
 
 ## Overview
 
@@ -18,12 +18,12 @@ This package provides a complete set of tools that allow AI agents to perform CM
 ### 1. Create CMS Tools with API Client
 
 ```typescript
-import { createCMSTools } from '@revealui/ai/tools/cms'
+import { createAdminTools } from '@revealui/ai/tools/admin'
 import { apiClient } from '@revealui/core/admin/utils/apiClient'
 import config from './revealui.config'
 
 // Create functional tools with API client injected
-const cmsTools = createCMSTools({
+const adminTools = createAdminTools({
   apiClient,
   collections: config.collections,
   globals: config.globals,
@@ -40,8 +40,8 @@ const cmsTools = createCMSTools({
 ```typescript
 import { globalToolRegistry } from '@revealui/ai/tools/registry'
 
-// Register all CMS tools
-cmsTools.forEach(tool => {
+// Register all admin tools
+adminTools.forEach(tool => {
   globalToolRegistry.register(tool)
 })
 ```
@@ -395,12 +395,12 @@ upload_media({
 ## Architecture
 
 ```
-packages/ai/src/tools/cms/
+packages/ai/src/tools/admin/
 ├── collection-tools.ts   # Document CRUD operations
 ├── global-tools.ts       # Global settings management
 ├── media-tools.ts        # Media file operations
 ├── user-tools.ts         # User management
-├── factory.ts            # Tool creation with API injection
+├── factory.ts            # Tool creation with API injection (createAdminTools)
 ├── index.ts              # Public exports
 └── README.md             # This file
 ```

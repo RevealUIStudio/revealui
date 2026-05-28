@@ -1,5 +1,7 @@
 # @revealui/sync
 
+> **Experimental** (`"experimental": true` in package.json). Public API may change between minor versions.
+
 ElectricSQL sync utilities for RevealUI  -  real-time data synchronization with local-first architecture.
 
 ## Features
@@ -90,9 +92,30 @@ function CreateContext() {
 
 ## Available Hooks
 
-### `useAgentContexts()`
+### Shape Subscription Hooks
 
-Subscribe to agent contexts (task context, working memory).
+Each hook subscribes to an ElectricSQL shape and returns `{ data, isLoading, error, create, update, remove }`.
+
+| Hook | Shape |
+|------|-------|
+| `useAgentContexts()` | Agent task context + working memory |
+| `useAgentMemory(agentId)` | Agent episodic/semantic/working memory filtered by agent |
+| `useConversations(userId)` | Conversation history (server-side row-level filtering) |
+| `useCoordinationSessions()` | Active agent coordination sessions |
+| `useCoordinationWorkItems()` | Work items tracked across agent sessions |
+| `useSharedFacts()` | Shared knowledge facts visible to all agents |
+| `useSharedMemories()` | Shared memory entries across agents |
+| `useTaskSubmissions()` | Task submission records |
+
+### Utility Hooks
+
+| Hook | Purpose |
+|------|---------|
+| `useOfflineCache()` | Access the offline mutation queue |
+| `useOnlineStatus()` | Track network online/offline state |
+| `useShapeCacheInvalidation()` | Trigger shape cache invalidation |
+
+### Example: `useAgentContexts()`
 
 ```typescript
 const {
@@ -105,42 +128,24 @@ const {
 } = useAgentContexts()
 ```
 
-### `useAgentMemory(agentId)`
-
-Subscribe to agent memory (episodic, semantic, working) filtered by agent ID.
-
-```typescript
-const {
-  memories,    // AgentMemoryRecord[]
-  isLoading,   // boolean
-  error,       // Error | null
-  create,      // (data: CreateAgentMemoryInput) => Promise<MutationResult>
-  update,      // (id: string, data: UpdateAgentMemoryInput) => Promise<MutationResult>
-  remove,      // (id: string) => Promise<MutationResult>
-} = useAgentMemory('assistant')
-```
-
-### `useConversations(userId)`
-
-Subscribe to conversation history. Server-side proxy enforces row-level filtering by session  -  the `userId` parameter is for API compatibility but filtering is handled server-side.
-
-```typescript
-const {
-  conversations,  // ConversationRecord[]
-  isLoading,      // boolean
-  error,          // Error | null
-  create,         // (data: CreateConversationInput) => Promise<MutationResult>
-  update,         // (id: string, data: UpdateConversationInput) => Promise<MutationResult>
-  remove,         // (id: string) => Promise<MutationResult>
-} = useConversations(userId)
-```
-
 ## How It Works
 
 1. **Reads**: ElectricSQL shape subscriptions via authenticated CMS proxy (`/api/shapes/*`)
 2. **Writes**: REST mutations via CMS API (`/api/sync/*`) → Postgres → ElectricSQL replication
 3. **Real-time**: Database changes propagate to all shape subscribers automatically
 4. **Auth**: All endpoints require a valid session cookie
+
+## Conflict Resolution
+
+Offline mutation replay with configurable conflict strategies:
+
+```typescript
+import { resolveConflict, coalesceMutations, replayMutations } from '@revealui/sync'
+```
+
+- `resolveConflict(conflict, strategy)` — resolve a detected conflict using `last-write-wins`, `merge`, or `reject`
+- `coalesceMutations(mutations)` — deduplicate and squash offline mutations before replay
+- `replayMutations(mutations, executor)` — replay a queue of offline mutations against the server
 
 ## Collaboration (Yjs)
 

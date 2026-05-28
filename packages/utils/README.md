@@ -1,6 +1,6 @@
 # @revealui/utils
 
-Zero-dependency shared utilities for RevealUI  -  structured logging, database helpers, and validation.
+Shared utilities for RevealUI  -  structured logging, database helpers, and validation. Single runtime dependency: `zod` (used by the validation module).
 
 ## Why This Package Exists
 
@@ -107,7 +107,7 @@ pnpm dev
 
 ## Design Principles
 
-- **Orthogonal**: Zero dependencies  -  sits at the bottom of the dependency graph so core, db, and contracts can all import without cycles
+- **Orthogonal**: Minimal dependencies (`zod` only)  -  sits at the bottom of the dependency graph so core, db, and contracts can all import without cycles
 - **Unified**: One logger API with child loggers and pluggable handlers replaces ad-hoc `console.*` across the entire codebase
 - **Justifiable**: Every export exists to break a real circular dependency  -  no speculative utilities
 

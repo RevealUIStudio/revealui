@@ -1067,7 +1067,7 @@ If you have not been running such a legacy fork, no migration is required — th
 ### What's still ahead
 
 1. **Integration tests** — currently not running in CI (need a `DATABASE_URL` test fixture).
-2. **Performance baseline** — no production traffic to measure against. Targets are documented in [PERFORMANCE.md](./PERFORMANCE.md) but treat them as proposed budgets.
+2. **Performance baseline** — no production traffic to measure against. Performance targets are tracked internally; treat them as proposed budgets.
 3. **MFA** — `apps/admin/src/app/api/auth/mfa/` ships; verify your admin flow surfaces it before relying on it for compliance.
 
 ### Production Deployment

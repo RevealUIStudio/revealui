@@ -1,6 +1,6 @@
 # @revealui/presentation
 
-57 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. Zero external UI library dependencies.
+57 native UI components for RevealUI  -  built with React 19 and Tailwind CSS v4. No external UI library dependencies (ships its own `cn`/`cva`; only `tailwind-merge` is a runtime dep).
 
 ## Features
 
@@ -109,7 +109,7 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 | Text | Text content |
 | Slot | Component composition utility |
 
-## Hooks (14)
+## Hooks (16)
 
 | Hook | Purpose |
 |------|---------|
@@ -121,9 +121,11 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 | useFieldContext | Form field context (label, error, description) |
 | useFocusTrap | Trap focus within an element |
 | useLayoutAnimation | Animated layout transitions |
+| useLinkBehavior | Pluggable link behavior (custom router integration) |
 | usePopover | Popover positioning |
 | useRovingTabindex | Keyboard navigation in groups |
 | useScrollLock | Prevent body scroll |
+| useTheme | Theme detection (light/dark/system) |
 | useToggle | Boolean toggle state |
 | useTransition | CSS transitions |
 | useTypeAhead | Type-ahead search in lists |
@@ -138,6 +140,8 @@ import { useClickOutside, useFocusTrap } from '@revealui/presentation/hooks'
 | `@revealui/presentation/components` | Components only |
 | `@revealui/presentation/primitives` | Primitives only |
 | `@revealui/presentation/hooks` | Hooks only |
+| `@revealui/presentation/animations` | Animation utilities |
+| `@revealui/presentation/tokens.css` | Design token CSS file |
 
 ## Development
 
@@ -169,7 +173,7 @@ pnpm dev
 
 ## Design Principles
 
-- **Sovereign**: Zero external UI library dependencies  -  only clsx and CVA, so you own every component
+- **Sovereign**: No external UI library dependencies (no Radix, no shadcn). Ships its own `cn` + `cva` implementations; only `tailwind-merge` is a runtime dep for class conflict resolution
 - **Orthogonal**: Components, primitives, and hooks are independent subpath exports with no cross-cutting entanglement
 - **Justifiable**: Every component ships headless and styled variants because different contexts need different levels of control
 

@@ -51,16 +51,18 @@ export function PricingTeaser() {
   }, []);
 
   return (
-    <section className="bg-gray-50 py-24 sm:py-32">
+    <section className="bg-secondary py-24 sm:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             {PRICING_TEASER_SECTION.eyebrow}
           </p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {PRICING_TEASER_SECTION.heading}
           </h2>
-          <p className="mt-6 text-lg leading-8 text-gray-600">{PRICING_TEASER_SECTION.body}</p>
+          <p className="mt-6 text-lg leading-8 text-muted-foreground">
+            {PRICING_TEASER_SECTION.body}
+          </p>
         </div>
 
         <div className="mx-auto mt-16 grid max-w-5xl grid-cols-1 gap-6 lg:grid-cols-3">
@@ -71,12 +73,12 @@ export function PricingTeaser() {
                 key={t.id}
                 className={`relative flex flex-col rounded-2xl p-8 ring-1 transition ${
                   t.highlight
-                    ? 'bg-gray-950 text-white ring-gray-950 shadow-xl'
-                    : 'bg-white text-gray-950 ring-gray-950/10 hover:ring-gray-950/20'
+                    ? 'bg-foreground text-background ring-foreground shadow-xl'
+                    : 'bg-card text-foreground ring-border hover:ring-border/80'
                 }`}
               >
                 {t.highlight && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-700 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary-foreground">
                     Most popular
                   </div>
                 )}
@@ -85,7 +87,7 @@ export function PricingTeaser() {
                   <span className="text-4xl font-bold tracking-tight">{price}</span>
                   {period && (
                     <span
-                      className={`text-sm ${t.highlight ? 'text-gray-400' : 'text-muted-foreground'}`}
+                      className={`text-sm ${t.highlight ? 'text-background/60' : 'text-muted-foreground'}`}
                     >
                       {period}
                     </span>
@@ -93,7 +95,7 @@ export function PricingTeaser() {
                 </div>
                 <p
                   className={`mt-4 text-sm leading-6 ${
-                    t.highlight ? 'text-gray-300' : 'text-gray-600'
+                    t.highlight ? 'text-background/70' : 'text-muted-foreground'
                   }`}
                 >
                   {t.description}
@@ -104,12 +106,12 @@ export function PricingTeaser() {
                     <li
                       key={f}
                       className={`flex items-start gap-2 text-sm ${
-                        t.highlight ? 'text-gray-200' : 'text-gray-700'
+                        t.highlight ? 'text-background/80' : 'text-foreground'
                       }`}
                     >
                       <svg
                         className={`mt-0.5 h-4 w-4 flex-shrink-0 ${
-                          t.highlight ? 'text-emerald-400' : 'text-emerald-500'
+                          t.highlight ? 'text-primary' : 'text-primary'
                         }`}
                         fill="currentColor"
                         viewBox="0 0 20 20"
@@ -131,7 +133,7 @@ export function PricingTeaser() {
                     <ButtonCVA
                       asChild
                       size="default"
-                      className="w-full bg-white text-gray-950 hover:bg-gray-100"
+                      className="w-full bg-background text-foreground hover:bg-secondary"
                     >
                       <a href={t.href}>{t.cta}</a>
                     </ButtonCVA>
@@ -157,7 +159,7 @@ export function PricingTeaser() {
           </ButtonCVA>
           <p className="mt-6 text-xs leading-5 text-muted-foreground">
             {PRICING_TEASER_FOOTER.caption.prefix}{' '}
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-700">
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">
               {PRICING_TEASER_FOOTER.caption.code}
             </code>{' '}
             {PRICING_TEASER_FOOTER.caption.suffix}

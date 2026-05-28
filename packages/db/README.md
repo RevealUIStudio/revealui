@@ -74,7 +74,7 @@ await db.insert(users).values({
 - `@revealui/db/schema/agents` - Agent-related tables
 - `@revealui/db/schema/cms` - CMS tables (posts, pages, media)
 - `@revealui/db/schema/users` - User and authentication tables
-- `@revealui/db/schema/vector` - Vector memory tables
+- `@revealui/db/schema/vector` - Vector-capable table re-exports (agent memories + RAG; all live in NeonDB)
 - `@revealui/db/schema/crdt-operations` - CRDT operation log
 - `@revealui/db/schema/node-ids` - Node ID mapping
 - `@revealui/db/schema/rate-limits` - Rate limiting tables
@@ -126,13 +126,13 @@ await db.insert(users).values({
 
 - You need type-safe database queries against the RevealUI schema (users, posts, agents, vectors)
 - You're running migrations or generating types from the Drizzle schema
-- You want a pre-configured client for Neon, Supabase, or Vercel Postgres
+- You want a pre-configured client for NeonDB (Postgres)
 - **Not** for validation logic  -  use `@revealui/contracts` for Zod schemas
 - **Not** for direct SQL  -  use Drizzle's query builder or `db.execute()` for raw queries
 
 ## Design Principles
 
-- **Unified**: One schema definition (81 tables) drives types, queries, and migrations across all apps
+- **Unified**: One schema definition (85 tables) drives types, queries, and migrations across all apps
 - **Orthogonal**: Schema files are cleanly separated by domain (cms, users, agents, vector, crdt) with no cross-domain entanglement
 - **Sovereign**: Your database, your schema, your migrations  -  no hosted schema service in the loop
 

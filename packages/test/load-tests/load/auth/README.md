@@ -81,10 +81,17 @@ k6 run load-tests/auth/auth-stress.js
 ## Running All Tests
 
 ```bash
-# From packages/test directory
+# From packages/test directory — runs sign-in, sign-up, rate-limiting
 pnpm test:perf:auth
 
-# Or individually
+# Individual scripts via package.json shortcuts
+pnpm test:perf:auth:signin
+pnpm test:perf:auth:signup
+pnpm test:perf:auth:session
+pnpm test:perf:auth:ratelimit
+pnpm test:perf:auth:stress
+
+# Or call k6 directly
 k6 run load-tests/auth/auth-sign-in.js
 k6 run load-tests/auth/auth-sign-up.js
 k6 run load-tests/auth/auth-session-validation.js
@@ -148,26 +155,7 @@ vus............................: 50      min=10      max=50
 
 ## Continuous Performance Testing
 
-Add to CI/CD pipeline:
-
-```yaml
-# .github/workflows/performance.yml
-name: Performance Tests
-
-on:
-  schedule:
-    - cron: '0 2 * * 0'  # Weekly
-  workflow_dispatch:
-
-jobs:
-  performance:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: grafana/k6-action@v0.3.1
-        with:
-          filename: packages/test/load-tests/auth/auth-sign-in.js
-```
+Auth load tests are not currently wired into CI. Run them manually against a staging or local environment. To add to CI, create a workflow that uses `grafana/k6-action` with the scripts under `packages/test/load-tests/auth/`.
 
 ## Troubleshooting
 

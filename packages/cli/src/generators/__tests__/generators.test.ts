@@ -294,29 +294,35 @@ describe('generateEnvFile', () => {
     expect(content).toContain('BLOB_READ_WRITE_TOKEN=FAKE_BLOB_TOKEN_FOR_TESTS');
   });
 
-  it('includes Supabase keys when storage is supabase', async () => {
+  it('includes all five R2 vars when storage is r2', async () => {
     const config: EnvConfig = {
       ...baseEnvConfig,
       storage: {
-        provider: 'supabase',
-        supabaseUrl: 'https://abc.supabase.co',
-        supabasePublishableKey: 'sb_publishable_test',
+        provider: 'r2',
+        r2AccountId: 'acct-123',
+        r2AccessKeyId: 'AKIA-TEST',
+        r2SecretAccessKey: 'secret-test',
+        r2Bucket: 'media',
+        r2PublicBaseUrl: 'https://media.example.com',
       },
     };
     await generateEnvFile('/tmp/my-app', config);
     const content = mockWriteFile.mock.calls[0][1] as string;
-    expect(content).toContain('NEXT_PUBLIC_SUPABASE_URL=https://abc.supabase.co');
-    expect(content).toContain('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_test');
+    expect(content).toContain('R2_ACCOUNT_ID=acct-123');
+    expect(content).toContain('R2_ACCESS_KEY_ID=AKIA-TEST');
+    expect(content).toContain('R2_SECRET_ACCESS_KEY=secret-test');
+    expect(content).toContain('R2_BUCKET=media');
+    expect(content).toContain('R2_PUBLIC_BASE_URL=https://media.example.com');
   });
 
-  it('comments out storage when provider is not configured', async () => {
+  it('comments out R2 storage when provider is not configured', async () => {
     const config: EnvConfig = {
       ...baseEnvConfig,
       storage: { provider: 'skip' },
     };
     await generateEnvFile('/tmp/my-app', config);
     const content = mockWriteFile.mock.calls[0][1] as string;
-    expect(content).toContain('# BLOB_READ_WRITE_TOKEN=');
+    expect(content).toContain('# R2_ACCOUNT_ID=');
   });
 
   it('includes all Stripe keys when payments are enabled', async () => {

@@ -12,7 +12,7 @@
     "@revealui/db": "workspace:*",
     "@revealui/utils": "workspace:*",
     "drizzle-orm": "catalog:",
-    "hono": "4.12.19",
+    "hono": "4.12.23",
     "stripe": "^22.1.1",
     "zod": "catalog:"
   },

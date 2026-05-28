@@ -7,7 +7,7 @@ audience: developer
 
 # RevealUI System Architecture
 
-**Last Updated:** 2026-04-26
+**Last Updated:** 2026-05-26
 **Status:** Working draft (architectural target — not all systems are live in default deployments)
 **Version:** 0.2
 
@@ -18,7 +18,7 @@ audience: developer
 1. [Executive Summary](#executive-summary)
 2. [Architecture Overview](#architecture-overview)
 3. [Database Architecture](#database-architecture)
-   - [Triple Database Design](#triple-database-design)
+   - [Postgres-primary with optional sidecars](#postgres-primary-with-optional-sidecars)
    - [NeonDB (Primary Database)](#neondb-primary-database)
    - [Supabase (Vector Database)](#supabase-vector-database)
    - [ElectricSQL (Sync Layer)](#electricsql-sync-layer)
@@ -36,7 +36,7 @@ audience: developer
 6. [Vercel Platform Integration](#vercel-platform-integration)
    - [Vercel AI SDK](#vercel-ai-sdk)
    - [Remote Procedure Calls (RPC)](#remote-procedure-calls-rpc)
-   - [Vercel Blob Storage](#vercel-blob-storage)
+   - [Object Storage (Cloudflare R2)](#object-storage-cloudflare-r2)
    - [Analytics & Monitoring](#analytics--monitoring)
 7. [Build System](#build-system)
    - [Turbopack Configuration](#turbopack-configuration)
@@ -73,7 +73,7 @@ RevealUI is a Postgres-primary stack with comprehensive type safety, optional si
 2. **Supabase (SUPABASE_DATABASE_URL — optional RAG sidecar)**: Hosts `rag_chunks` and related embedding tables when an Ollama/cloud RAG path is wired. Phase 7 (in roadmap) consolidates RAG embeddings onto NeonDB pgvector and retires the Supabase sidecar; current usage is minimal.
 3. **ElectricSQL (optional sync layer)**: Real-time synchronization for agent contexts and conversations when enabled (env vars are off by default).
 4. **Vercel AI SDK**: Streaming AI completions with React hooks
-5. **Vercel Blob Storage**: Media and file storage
+5. **Cloudflare R2 (S3-compatible)**: Media and file storage — canonical object-storage backend (the legacy Vercel Blob backend is being retired, GAP-208)
 6. **Remote Procedure Calls (RPC)**: Type-safe API calls
 7. **Vercel Analytics & Speed Insights**: Performance monitoring
 
@@ -159,8 +159,8 @@ That last exception is temporary, not a preferred pattern. It exists because the
 └───────┬────────┘   └───────┬────────┘   └───────┬────────┘
         │                     │                     │
 ┌───────▼────────┐   ┌───────▼────────┐   ┌───────▼────────┐
-│   NeonDB       │   │   Supabase     │   │ Vercel Blob    │
-│  (Relational)  │   │   (Vectors)    │   │   (Storage)    │
+│   NeonDB       │   │   Supabase     │   │ Cloudflare R2  │
+│  (Relational)  │   │  (opt. vectors)│   │   (Storage)    │
 └───────┬────────┘   └────────────────┘   └────────────────┘
         │
 ┌───────▼────────┐
@@ -259,7 +259,7 @@ Transactional REST API + Real-time Sync Source
 
 **NOT Stored:**
 
-- ❌ Agent memories with embeddings (moved to Supabase)
+- ⚠️ RAG document chunks (`rag_chunks`) — only when the optional Supabase sidecar is enabled. Everything else, including `agent_memories` (via `pgvector`), lives in NeonDB.
 
 ### Characteristics
 
@@ -289,45 +289,40 @@ export * from "./agents/actions";
 
 ---
 
-## Supabase (Vector Database)
+## Supabase (Optional RAG Sidecar)
+
+> **Status:** optional and being retired. Per ADR [`2026-05-01-supabase-removal`](./decisions/2026-05-01-supabase-removal.md), the canonical stack is **NeonDB primary + ElectricSQL sync, no Supabase**. The sidecar below is legacy; Phase 7 consolidates it onto NeonDB `pgvector`. New features must not depend on Supabase-specific behavior.
 
 ### Role
 
-AI/Vector Operations + Semantic Search
+Optional retrieval-augmented-generation (RAG) sidecar for embedding-heavy document corpora. **Off by default** — the application runs end-to-end against NeonDB alone.
 
 ### Stores
 
-**Agent Memories with Embeddings:**
+**RAG chunk embeddings (only when enabled):**
 
-- `agent_memories` - Long-term memory with `vector(1536)` embeddings
-- Vector similarity search optimized
+- `rag_chunks` and related embedding tables for document retrieval
 - HNSW indexes for fast semantic retrieval
+
+> **Note:** `agent_memories` do **not** live in Supabase — they live in **NeonDB** (`pgvector`), because of FK constraints on `sites` / `users`. The historical "vector database" framing predates that move.
 
 ### Characteristics
 
-- CPU-optimized for vector operations
-- Large embedding storage capacity
-- Optimized for similarity search
 - Isolated from transactional workloads
+- Optional — enable only for large RAG corpora
 
 ### Connection
 
 ```env
+# Optional — set only when the RAG sidecar is enabled
 SUPABASE_DATABASE_URL=postgresql://...@db.supabase.co/...
 ```
-
-### Why Separate
-
-1. Vector similarity searches are CPU/memory intensive
-2. Heavy vector queries don't affect REST API latency
-3. Independent scaling for vector workloads
-4. Better cost optimization
 
 ### Schema Organization
 
 ```typescript
-// packages/db/src/core/vector.ts (Supabase schema)
-export * from "./agents/vector-memories"; // Vector data only
+// packages/db/src/schema/vector.ts — pgvector schema (lives in NeonDB)
+export * from "./agents/vector-memories"; // agent_memories: NeonDB pgvector
 ```
 
 ### Vector Memory Service
@@ -937,39 +932,34 @@ const memories = await rpc.call("memory.search", { queryEmbedding });
 // TypeScript knows memories is AgentMemory[]
 ```
 
-### Vercel Blob Storage
+### Object Storage (Cloudflare R2)
 
-**Role:** Scalable media and file storage for admin content
+**Role:** Scalable media and file storage for admin content.
 
-**Implementation:**
+Object storage uses a pluggable backend exposed through a slim `StorageProvider` interface (`packages/core/src/storage/types.ts`). **Cloudflare R2 (S3-compatible, via `@aws-sdk/client-s3`) is the canonical backend** (`packages/core/src/storage/r2.ts`) and the default everywhere. A Vercel Blob provider (`packages/core/src/storage/vercel-blob-provider.ts`) remains available as a config-selected fallback for the migration window (GAP-208). Both the API media route and the admin upload path resolve their backend from `@revealui/config`'s `config.storage` — R2 when the five `R2_*` vars are set, otherwise the legacy `BLOB_READ_WRITE_TOKEN`.
+
+The admin app attaches uploads to media collections through the provider-agnostic `objectStorage` Payload plugin (`packages/core/src/storage/object-storage.ts`), which adapts any `StorageProvider` to the engine's upload-adapter interface and resolves the backend lazily on first upload:
 
 ```typescript
-// packages/core/src/core/storage/vercel-blob.ts
-import { put, del } from "@vercel/blob";
+// apps/admin/revealui.config.ts
+import config from "@revealui/config";
+import { createR2Provider, createVercelBlobProvider, objectStorage } from "@revealui/core/storage";
 
-export function vercelBlobStorage(config: VercelBlobStorageConfig): Plugin {
-  // Configure upload adapters for media collections
-  collection.upload = {
-    adapters: [
-      {
-        upload: async (file) => {
-          const blob = await put(filePath, file.data, {
-            access: "public",
-            token: config.token, // BLOB_READ_WRITE_TOKEN
-          });
-          return { url: blob.url, filename: file.name };
-        },
-        delete: async (blobUrl) => await del(blobUrl),
-      },
-    ],
-  };
-}
+objectStorage({
+  collections: { media: true },
+  resolveProvider: () => {
+    const { r2, blobToken } = config.storage;
+    if (r2) return createR2Provider(r2); // Cloudflare R2 — canonical
+    if (blobToken) return createVercelBlobProvider({ token: blobToken }); // legacy fallback
+    throw new Error("No object-storage backend configured (set R2_* or BLOB_READ_WRITE_TOKEN).");
+  },
+});
 ```
 
 **Data Flow:**
 
 ```
-Media Upload → Next.js API → Vercel Blob Storage → Store URL in NeonDB
+Media Upload → API → Object Storage (Cloudflare R2) → Store URL in NeonDB
 ```
 
 ### Analytics & Monitoring
@@ -1220,14 +1210,14 @@ Customer-facing meters should map to business activity rather than upstream infr
 
 ### Access Control Layers
 
-**REST API services:** Access to NeonDB only
-**AI Agent services:** Access to Supabase only
+**REST API + AI Agent services:** Access to NeonDB (primary store, including `agent_memories` via `pgvector`)
+**RAG ingest/query paths:** Access to the optional Supabase sidecar only when it is enabled
 **Admin services:** Access to both (for migrations, monitoring)
 
 ### Network Security
 
 - Use VPC/private networking where possible
-- Restrict Supabase access to AI agent IPs
+- Restrict the optional Supabase RAG sidecar to RAG-service IPs (when enabled)
 - Use different API keys/permissions
 
 ### Tenant Security
@@ -1392,8 +1382,8 @@ test('memory references user from NeonDB', async () => {
   // Create user in NeonDB
   const user = await createUserInNeonDB()
 
-  // Create memory in Supabase with user ID
-  const memory = await createMemoryInSupabase({ userId: user.id })
+  // Create agent memory in NeonDB (same primary store as users)
+  const memory = await createMemoryInNeonDB({ userId: user.id })
 
   // Verify reference works
   const retrieved = await getMemoryWithUser(memory.id)
@@ -1504,14 +1494,21 @@ await vectorDb.insert(agentMemories).values({
 # NeonDB (REST + ElectricSQL source)
 POSTGRES_URL=postgresql://...@neon.tech/...
 
-# Supabase (Vector database)
+# Supabase (optional RAG sidecar — legacy, being retired per ADR 2026-05-01)
 SUPABASE_DATABASE_URL=postgresql://...@db.supabase.co/...
 
 # ElectricSQL Service
 ELECTRIC_SERVICE_URL=http://localhost:5133
 NEXT_PUBLIC_ELECTRIC_SERVICE_URL=http://localhost:5133
 
-# Vercel Blob Storage
+# Object storage — Cloudflare R2 is the canonical backend (GAP-208).
+# Set all five R2_* vars for media uploads (R2 is S3-compatible, via @aws-sdk/client-s3).
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=revealui-media
+R2_PUBLIC_BASE_URL=https://media.revealui.com
+# Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset.
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
 # AI Inference — open-model only (Ubuntu Inference Snaps, Ollama)
@@ -2370,9 +2367,8 @@ To extend this mapping:
 
 ### Documentation
 
-- [Supabase Vector Database Guide](https://supabase.com/modules/vector)
-- [Supabase pgvector Extension](https://supabase.com/docs/guides/database/extensions/pgvector)
 - [Neon Serverless Postgres](https://neon.tech)
+- [Neon pgvector Guide](https://neon.tech/docs/extensions/pgvector)
 - [ElectricSQL Documentation](https://electric-sql.com/docs)
 - [Drizzle ORM Documentation](https://orm.drizzle.team)
 - [Vercel AI SDK](https://sdk.vercel.ai/docs)

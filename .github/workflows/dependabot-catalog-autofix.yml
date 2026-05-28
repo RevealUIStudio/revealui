@@ -15,18 +15,33 @@ name: Dependabot Catalog Lockfile Auto-Fix
 #   3. Runs `pnpm install --lockfile-only --ignore-scripts`, which
 #      regenerates importer specifiers back to 'catalog:' against the
 #      already-correct workspace catalog.
-#   4. If the lockfile drifted, commits the fix as github-actions[bot]
-#      and pushes to the PR head.
+#   4. If the lockfile drifted, commits the fix (authored by
+#      github-actions[bot]) and pushes to the PR head using a GitHub App
+#      installation token (the revfleet-backflow App), NOT GITHUB_TOKEN.
 #
-# Push-loop guard: the workflow only runs when `github.actor` is
-# dependabot[bot]. The auto-fix commit is authored by
-# github-actions[bot], so the resulting push event will re-trigger the
-# workflow but the actor check will short-circuit the job.
+# Why a GitHub App token instead of GITHUB_TOKEN: a push made with the
+# default GITHUB_TOKEN does NOT trigger `pull_request` /
+# `pull_request_target` workflows (GitHub loop-prevention). A GITHUB_TOKEN
+# push therefore left the corrected lockfile permanently "stale red" —
+# ci.yml never re-ran on the fix, so the PR kept showing the pre-fix
+# failure (or "no checks reported on the branch") and needed a manual
+# nudge (close/reopen, empty commit) to validate. Pushing with the App
+# installation token fires the `synchronize` event normally, so ci.yml
+# re-runs and the PR gets a real green check on the autofixed head.
+#
+# Push-loop guard: the App-token push DOES re-trigger this workflow, but
+# the re-triggered run's `github.actor` is the App's bot identity (not
+# dependabot[bot]), so the `if: github.actor == 'dependabot[bot]'` job
+# guard short-circuits it — no second fix, no loop. That same push re-runs
+# ci.yml under a non-dependabot actor, which is exactly the CI run we want.
 #
 # Security: `pull_request_target` runs with the BASE branch's workflow
 # definition, so a PR can't modify this workflow to escalate privileges.
-# `pnpm install --ignore-scripts` skips lifecycle scripts so a malicious
-# package.json change can't execute arbitrary code.
+# The job only runs for the dependabot[bot] actor (which an external PR
+# cannot spoof), and `pnpm install --ignore-scripts` skips lifecycle
+# scripts so a malicious package.json change can't execute arbitrary code.
+# The App token is minted per-run, scoped to `contents: write` on this
+# repo only, and expires within ~1h.
 
 on:
   pull_request_target:
@@ -34,9 +49,10 @@ on:
     paths:
       - 'pnpm-lock.yaml'
 
+# GITHUB_TOKEN stays read-only: every write (the lockfile-fix push) goes
+# through the scoped, short-lived App installation token minted in the job.
 permissions:
-  contents: write
-  pull-requests: read
+  contents: read
 
 concurrency:
   group: dependabot-catalog-autofix-${{ github.event.pull_request.number }}
@@ -54,12 +70,26 @@ jobs:
     timeout-minutes: 8
 
     steps:
+      # Mint a GitHub App installation token so the lockfile-fix push
+      # re-fires CI (a GITHUB_TOKEN push would be loop-suppressed — see the
+      # header comment). Scoped to contents:write on this repo only. The
+      # BACKFLOW_APP_ID / BACKFLOW_APP_PRIVATE_KEY secrets + the
+      # revfleet-backflow App installation are shared with
+      # backflow-main-into-test.yml.
+      - name: Mint backflow App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.BACKFLOW_APP_ID }}
+          private-key: ${{ secrets.BACKFLOW_APP_PRIVATE_KEY }}
+          permission-contents: write
+
       - name: Checkout PR head branch
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           persist-credentials: true
           fetch-depth: 0
 

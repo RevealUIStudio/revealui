@@ -66,8 +66,14 @@ POSTGRES_URL=postgresql://user:password@host/database?sslmode=require
 These are optional for local development  -  you can skip them and add them later:
 
 ```env
-# Optional: Vercel Blob (needed for media uploads)
-BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXX
+# Optional: media uploads. Cloudflare R2 is the canonical, S3-compatible storage
+# backend. Set all five (or skip for local dev and add them later):
+R2_ACCOUNT_ID=your-cloudflare-account-id
+R2_ACCESS_KEY_ID=your-r2-access-key-id
+R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+R2_BUCKET=your-bucket-name
+R2_PUBLIC_BASE_URL=https://<account-id>.r2.cloudflarestorage.com/<bucket>
+# Legacy alternative (being retired): BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXX
 
 # Optional: Stripe (needed for billing flows)
 STRIPE_SECRET_KEY=sk_test_XXXXX
@@ -172,7 +178,7 @@ For more → [Troubleshooting Guide](./TROUBLESHOOTING.md)
 - [Full documentation](./INDEX.md)
 - [Component catalog](./COMPONENT_CATALOG.md)  -  59 native UI components in `@revealui/presentation` (80 total with `@revealui/core` admin/richtext)
 - [Example projects](./EXAMPLES.md)  -  blog, subscription starter, storefront
-- [Deployment guide](./CI_CD_GUIDE.md)  -  Vercel, environment variables, production checklist
+- [Deployment guide](./guides/deployment.md)  -  Vercel + Fly, environment variables, production checklist
 - [AI agents](./AI.md)  -  agent orchestration, open-model inference, MCP framework (Pro)
 
 ---

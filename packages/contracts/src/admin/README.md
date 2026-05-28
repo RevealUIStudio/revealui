@@ -57,7 +57,7 @@ const UserContract = createContract({
 ### Usage
 
 ```typescript
-import { ConfigContract, validateConfigStructure } from '@revealui/contracts/cms'
+import { ConfigContract, validateConfigStructure } from '@revealui/contracts/admin'
 
 // Validate a config
 const result = validateConfigStructure(userConfig)
@@ -83,7 +83,7 @@ const validatedConfig = ConfigContract.parse(userConfig)
 The contract system uses `ConfigValidationError` for structured error reporting:
 
 ```typescript
-import { ConfigValidationError } from '@revealui/contracts/cms'
+import { ConfigValidationError } from '@revealui/contracts/admin'
 
 try {
   const config = ConfigContract.parse(invalidConfig)
@@ -119,7 +119,7 @@ validateConfig(config) // Throws generic Error
 
 **After:**
 ```typescript
-import { validateConfigStructure, ConfigValidationError } from '@revealui/contracts/cms'
+import { validateConfigStructure, ConfigValidationError } from '@revealui/contracts/admin'
 
 const result = validateConfigStructure(config)
 if (!result.success) {

@@ -23,6 +23,7 @@ vi.mock('pg', () => {
     idleCount = 3;
     waitingCount = 0;
     end = mockPoolEnd;
+    on = vi.fn();
   }
   return { Pool: MockPool };
 });

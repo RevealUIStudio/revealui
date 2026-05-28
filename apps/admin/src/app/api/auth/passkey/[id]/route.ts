@@ -62,7 +62,10 @@ export async function PATCH(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Error renaming passkey', { error });
+    logger.error(
+      'Error renaming passkey',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return createErrorResponse(error, {
       endpoint: '/api/auth/passkey/[id]',
       operation: 'passkey_rename',
@@ -101,7 +104,10 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Error deleting passkey', { error });
+    logger.error(
+      'Error deleting passkey',
+      error instanceof Error ? error : new Error(String(error)),
+    );
     return createErrorResponse(error, {
       endpoint: '/api/auth/passkey/[id]',
       operation: 'passkey_delete',

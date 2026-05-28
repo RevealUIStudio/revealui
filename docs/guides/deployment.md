@@ -1,6 +1,8 @@
 # Deployment
 
-RevealUI supports three deployment targets: Vercel (recommended), Docker Compose, and self-hosted Node.js. This guide covers each option and the environment configuration required for production.
+RevealUI supports several deployment targets: Vercel (recommended for the HTTP apps), Fly (for long-running services like the ElectricSQL sync layer), Docker Compose, and self-hosted Node.js. This guide covers each option and the environment configuration required for production.
+
+> RevealUI Studio's own production runs on **Vercel (HTTP) + Fly (long-running `apps/server` subset + ElectricSQL) + Neon (Postgres)** — three vendors (Railway was dropped; Kubernetes is not a target). A `fly.toml` ships at `apps/server/fly.toml`.
 
 ---
 
@@ -8,7 +10,8 @@ RevealUI supports three deployment targets: Vercel (recommended), Docker Compose
 
 | Target | Best For | Services Included |
 |--------|----------|-------------------|
-| Vercel | SaaS, serverless | admin, API, Marketing, Docs |
+| Vercel | SaaS, serverless (HTTP) | admin, API, Marketing, Docs |
+| Fly | Long-running services | Persistent `apps/server` subset + ElectricSQL sync |
 | Docker Compose | Self-hosted, on-prem | All apps in containers |
 | Node.js | Custom infrastructure | Manual process management |
 
@@ -65,7 +68,13 @@ REVEALUI_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 NEXT_PUBLIC_SERVER_URL=https://admin.yourdomain.com
 POSTGRES_URL=postgresql://user:pass@host/db?sslmode=require
 
-# Storage (required for media uploads)
+# Storage (required for media uploads) — Cloudflare R2 is canonical (S3-compatible).
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=revealui-media
+R2_PUBLIC_BASE_URL=https://media.yourdomain.com
+# Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset.
 BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
 
 # Billing (required for payments)
@@ -136,6 +145,12 @@ services:
       - POSTGRES_URL=${POSTGRES_URL}
       - REVEALUI_PUBLIC_SERVER_URL=${REVEALUI_PUBLIC_SERVER_URL}
       - NEXT_PUBLIC_SERVER_URL=${NEXT_PUBLIC_SERVER_URL}
+      # Object storage — Cloudflare R2 (canonical); BLOB_READ_WRITE_TOKEN is the legacy fallback.
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_BUCKET=${R2_BUCKET}
+      - R2_PUBLIC_BASE_URL=${R2_PUBLIC_BASE_URL}
       - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN}
     depends_on:
       - api
@@ -292,7 +307,8 @@ server {
 
 | Variable | Description | Required For |
 |----------|-------------|-------------|
-| `BLOB_READ_WRITE_TOKEN` | Vercel Blob token | Media uploads |
+| `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `R2_PUBLIC_BASE_URL` | Cloudflare R2 (canonical, S3-compatible object storage) | Media uploads |
+| `BLOB_READ_WRITE_TOKEN` | Legacy Vercel Blob token — optional fallback, used only when the R2_* vars are unset | Media uploads |
 | `STRIPE_SECRET_KEY` | Stripe secret key | Billing |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key | Checkout UI |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret | Webhook verification |
@@ -356,6 +372,5 @@ RevealUI uses a structured logger (`@revealui/utils`). In production, logs are w
 
 ## Related Documentation
 
-- [CI/CD Guide](../CI_CD_GUIDE.md) -- Pipeline configuration and rollback procedures
 - [Environment Variables](../ENVIRONMENT-VARIABLES-GUIDE.md) -- Full configuration reference
 - [Architecture](../ARCHITECTURE.md) -- System design and infrastructure

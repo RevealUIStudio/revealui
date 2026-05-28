@@ -164,7 +164,10 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/security`](packages/security)               | Headers, CORS, RBAC/ABAC, encryption, audit       |
 | [`@revealui/dev`](packages/dev)                         | Shared configs (Biome, TypeScript, Tailwind)      |
 | [`@revealui/test`](packages/test)                       | E2E specs, integration tests, fixtures, mocks     |
+| [`@revealui/paywall`](packages/paywall)                 | Runtime license enforcement, feature gating, upgrade UI |
+| [`@revealui/scripts`](packages/scripts)                 | Shared monorepo script utilities (internal)       |
 | [`create-revealui`](packages/create-revealui)           | `npm create revealui` initializer                 |
+| [`revealui`](packages/revealui)                         | Meta-installer (proxies to `create-revealui`; unpublished) |
 
 ### Pro (Commercial)
 
@@ -174,7 +177,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/engines`](packages/engines)                 | Unified entry point for the five primitives (private) |
 | [`@revealui/harnesses`](packages/harnesses)             | AI harness adapters and workboard coordination    |
 | [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery |
-| [`@revealui/services`](packages/services)               | Stripe, Solana (RVC), Vercel integrations         |
+| [`@revealui/services`](packages/services)               | Stripe (billing + circuit breaker), transactional email (Gmail API) |
 
 ## Tech stack
 
@@ -256,7 +259,7 @@ revealui/
 │   ├── admin/      # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
 │   └── marketing/  # revealui.com marketing site (port 3000)
-├── packages/       # 20 OSS + 5 Pro packages
+├── packages/       # 21 OSS + 5 Pro packages
 ├── docs/           # guides + reference
 └── scripts/        # CI gates, release tooling, dev tools
 ```

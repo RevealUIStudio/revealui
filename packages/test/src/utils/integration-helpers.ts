@@ -165,12 +165,14 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
     auth: {
       useAPIKey: true,
     },
-    access: {
-      create: () => true, // Allow creation in tests
-      read: () => true,
-      update: () => true,
-      delete: () => true,
-    },
+    // No access block on purpose. These integration tests drive the local API
+    // with no `req` (no auth context) for data setup. Defining an access rule
+    // here — even an allow-all `() => true` — trips the "no request context =
+    // deny (safe default)" gate in evaluateCreateAccess (core create.ts), which
+    // short-circuits before the rule runs. Omitting the block takes the
+    // documented "no rule defined = allow all" path, which is the intent for
+    // test-data setup. Access-control enforcement is covered by core's own
+    // access-enforcement tests, not here.
     fields: [
       {
         name: 'email',
@@ -184,11 +186,11 @@ export async function createTestAPI(): Promise<RevealUIInstance> {
         required: true,
       },
       {
-        name: 'firstName',
+        name: 'first_name',
         type: 'text',
       },
       {
-        name: 'lastName',
+        name: 'last_name',
         type: 'text',
       },
       {

@@ -11,7 +11,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'Can I use the Free tier for commercial projects?',
     answer:
-      'Yes! The Free tier is fully open-source (MIT) and can be used for commercial projects. You get full source code access and can deploy it anywhere you like.',
+      'Yes. The Free tier is fully open-source (MIT) and can be used for commercial projects. You get full source code access and can deploy it anywhere you like.',
   },
   {
     question: 'What happens after the free trial ends?',
@@ -21,7 +21,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   {
     question: 'How does agent task billing work?',
     answer:
-      'Every paid subscription includes generous task allowances. Agent task usage billing is coming soon — for now, all tiers include unlimited agent tasks during early access.',
+      'Every paid subscription includes a monthly task allowance. Agent task usage billing is coming soon — for now, all tiers include unlimited agent tasks during early access.',
   },
   {
     question: 'What are perpetual licenses?',
@@ -48,7 +48,7 @@ export const PRICING_FAQS: readonly FaqItem[] = [
   },
   {
     question: 'Do you offer custom pricing for large teams?',
-    answer: `Yes! If you need more than what the Enterprise tier offers, contact us at ${SITE.emails.support} to discuss custom pricing and SLAs.`,
+    answer: `Yes. If you need more than what the Enterprise tier offers, contact us at ${SITE.emails.support} to discuss custom pricing and SLAs.`,
   },
   {
     question: 'What is RevFleet?',

@@ -19,6 +19,12 @@
 @import "tailwindcss";
 @import "@revealui/presentation/tokens.css";
 
+/* Tailwind v4 does not scan node_modules by default. Without this, the utility
+ * classes baked into @revealui/presentation components (ButtonCVA's bg-primary,
+ * Input / Callout / FormField styles, etc.) are never generated and the native
+ * components render unstyled. Mirrors the agency site's @source directive. */
+@source "../node_modules/@revealui/presentation/dist/**/*.js";
+
 /* ── Bridge --rvui-* tokens into Tailwind's @theme namespace ── */
 @theme inline {
   --color-background: var(--rvui-surface-0);
@@ -28,16 +34,14 @@
   --color-secondary: var(--rvui-surface-2);
   --color-secondary-foreground: var(--rvui-text-0);
   --color-muted: var(--rvui-surface-2);
-  /* Secondary / muted text — deterministic deep cobalt-ink (brand hue ~248).
-   * Replaces var(--rvui-text-2): the token file is dark-first (:root = dark),
-   * so --rvui-text-2 resolved to a silvery oklch(0.65 …) that washed out and
-   * failed WCAG AA on this site's bg-white / bg-gray-50 sections. This fixed
-   * value tests ~5.8:1 on white (AA pass) and reads as intentional brand ink,
-   * not gray — every text-muted-foreground (eyebrows, captions, footnotes)
-   * picks it up with no per-component edits. Marketing uses muted text only on
-   * light surfaces, so a single fixed value is safe (dark panels use explicit
-   * text-gray-300/400 utilities, untouched). */
-  --color-muted-foreground: oklch(0.48 0.085 248);
+  /* Secondary / muted text — adaptive via tokens.css's --rvui-text-2
+   * (dark 0.65 smoke-300 / light 0.50 smoke-500). Must use var() inside
+   * @theme inline because literal values are inlined into the generated
+   * utilities at build time and become un-themeable — overrides via
+   * [data-theme="light"] or @media (prefers-color-scheme: light) do NOT
+   * apply to inlined literals. Every other --color-* line uses var() for
+   * exactly this reason. */
+  --color-muted-foreground: var(--rvui-text-2);
   --color-accent: var(--rvui-accent);
   --color-accent-foreground: var(--rvui-text-on-accent);
   --color-destructive: var(--rvui-error);
@@ -61,6 +65,7 @@
    * without editing components. */
   --tracking-widest: 0.20em;
 }
+
 
 /* ── Palette remap: emerald → cobalt, gray → cool smoke ──
  *

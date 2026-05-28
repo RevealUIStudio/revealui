@@ -17,8 +17,8 @@ This package contains everything MCP-related:
 - **Documentation** - Complete guides and per-server docs
 - **Database Migrations** - MCP-related schema
 
-> **Pro Package**  -  `@revealui/mcp` is available to RevealUI Pro subscribers via GitHub Packages.
-> Install: `pnpm add @revealui/mcp --registry https://npm.pkg.github.com`
+> **Pro Package**  -  `@revealui/mcp` is published to the public npm registry under the RevealUI Pro license (FSL-1.1-MIT).
+> Install: `pnpm add @revealui/mcp`
 
 ## Quick Start
 
@@ -29,7 +29,7 @@ This package contains everything MCP-related:
 pnpm install
 
 # As an external Pro subscriber:
-pnpm add @revealui/mcp --registry https://npm.pkg.github.com
+pnpm add @revealui/mcp
 ```
 
 ### 2. Configure MCP Client
@@ -259,7 +259,7 @@ This package consolidates MCP code from multiple locations:
 
 ## License
 
-Commercial  -  see [LICENSE.commercial](../../LICENSE.commercial)
+FSL-1.1-MIT (Fair Source — converts to MIT after 2 years). See [LICENSE](../../LICENSE).
 
 ---
 

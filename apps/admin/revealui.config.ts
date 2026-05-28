@@ -2,6 +2,7 @@
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import config from '@revealui/config';
 import { getSharedCMSConfig } from '@revealui/config/revealui';
 import type { Field } from '@revealui/contracts/admin';
 import type { RevealUIField, RevealUIInstance } from '@revealui/core';
@@ -19,9 +20,9 @@ import {
   TreeViewFeature,
   UnderlineFeature,
   universalPostgresAdapter,
-  vercelBlobStorage,
 } from '@revealui/core';
 import { en } from '@revealui/core/admin/i18n/en';
+import { createR2Provider, createVercelBlobProvider, objectStorage } from '@revealui/core/storage';
 import { allCollections } from '@/lib/collections/registry';
 import Users from '@/lib/collections/Users';
 import { createTypedCollectionStorage } from '@/lib/db/typedCollectionStorage';
@@ -169,12 +170,25 @@ export default buildConfig({
   // images in-process — resizing is delegated to next/image. (sharp stays in
   // dependencies only for Next.js's own image optimization.)
   plugins: [
-    vercelBlobStorage({
-      enabled: !!process.env.BLOB_READ_WRITE_TOKEN,
+    objectStorage({
       collections: {
         media: true,
       },
-      token: process.env.BLOB_READ_WRITE_TOKEN || '',
+      // Resolve the storage backend lazily (on first upload), not at config-build
+      // time, so admin boots/builds without forcing storage env validation.
+      // Cloudflare R2 is canonical; the legacy Vercel Blob token is the
+      // migration-window fallback — mirrors apps/server getMediaStorage().
+      resolveProvider: () => {
+        const { r2, blobToken } = config.storage;
+        if (r2) return createR2Provider(r2);
+        if (blobToken) return createVercelBlobProvider({ token: blobToken });
+        throw new Error(
+          'No object-storage backend configured for admin media uploads. Set ' +
+            'Cloudflare R2 (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, ' +
+            'R2_BUCKET, R2_PUBLIC_BASE_URL) — the canonical backend — or the legacy ' +
+            'BLOB_READ_WRITE_TOKEN. See docs/guides/deployment.md.',
+        );
+      },
     }),
     nestedDocsPlugin({
       collections: ['categories'],
@@ -304,7 +318,11 @@ export default buildConfig({
             name: 'Admin User',
             email: adminEmail,
             password: adminPassword,
-            role: 'super-admin',
+            // DB `role` column is CHECK-constrained to the Drizzle enum
+            // (owner/admin/editor/viewer/agent/contributor); the app-level
+            // 'super-admin' lives in `roles`. Mirrors @revealui/setup bootstrap()
+            // — 'super-admin' here violates users_role_check and the create fails.
+            role: 'owner',
             roles: ['super-admin'],
           },
         });

@@ -8,16 +8,22 @@
 
 Mirrors the local `pnpm gate` — same hard-fail/warn policy:
 
-| Check                       | When                 | Fail policy |
-| --------------------------- | -------------------- | ----------- |
-| Biome lint                  | all                  | Hard fail   |
-| Boundary validation         | all                  | Hard fail   |
-| Typecheck                   | all (affected on PRs)| Hard fail   |
-| Build                       | all (affected on PRs)| Hard fail   |
-| Unit tests                  | all                  | Hard fail   |
-| Integration tests           | main/test only       | Hard fail   |
-| E2E smoke + accessibility   | after build          | Warn-only   |
-| Audits, structure           | all                  | Warn-only   |
+| Check                       | When                              | Fail policy |
+| --------------------------- | --------------------------------- | ----------- |
+| Biome lint                  | all                               | Hard fail   |
+| Boundary / claim-drift      | all                               | Hard fail   |
+| Migration apply (Postgres)  | all                               | Hard fail   |
+| Typecheck                   | all (affected on PRs)             | Hard fail   |
+| Build                       | all (affected on PRs)             | Hard fail   |
+| Unit tests                  | all                               | Hard fail   |
+| Integration tests           | PRs + push to main                | Hard fail   |
+| Integration tests (extended)| PRs + push to main (advisory)     | Hard fail   |
+| Coverage                    | main and PRs targeting main       | Hard fail   |
+| E2E smoke                   | main and PRs targeting main       | Hard fail   |
+| Accessibility (E2E)         | main and PRs targeting main       | Hard fail   |
+| Visual regression (E2E)     | main and PRs targeting main       | Hard fail   |
+| Audits (any / console)      | all (quality job)                 | Hard fail   |
+| Structure / version policy  | all (quality job)                 | Hard fail   |
 
 **Optimizations:**
 - **Turbo remote cache**: build artifacts shared across jobs via `TURBO_TOKEN`
@@ -35,7 +41,7 @@ Generates **SLSA Build Level 2 provenance attestations** via `--provenance`.
 Steps:
 
 1. Install + build all packages (`SKIP_ENV_VALIDATION=true`)
-2. `pnpm changeset publish --provenance` — publishes packages that have pending changesets
+2. `pnpm changeset publish` with `NPM_CONFIG_PROVENANCE=true` — publishes packages that have pending changesets
 3. Push git tags
 4. Create GitHub releases for each published package
 
@@ -44,31 +50,25 @@ Steps:
 
 **Changesets must be applied before running** — run `pnpm changeset version` locally and commit first.
 
-### `release-pro.yml` — Release Pro Packages (Legacy)
+### `release-pro.yml` — Release Pro Packages (Removed)
 
-**Status:** No longer needed. Pro packages are now Fair Source (FSL-1.1-MIT) in the
+**Status:** File no longer exists. Pro packages are now Fair Source (FSL-1.1-MIT) in the
 public repo and publish through the normal changeset flow via `release.yml`.
 
 ### `deploy.yml` — Unified Deploy
 
 **Triggers:** Push to `main`/`test`, manual `workflow_dispatch`
 
-Deploys all 5 apps in parallel via matrix strategy. Branch→environment mapping:
+Deploys all 4 apps (api, admin, marketing, docs) in parallel via matrix strategy. Branch→environment mapping:
 - `main` → production (`*.revealui.com`)
 - `test` → test (`test.*.revealui.com`)
 
 Each app: `vercel pull` → `vercel build` → `vercel deploy --prebuilt` → alias to stable domain.
 Smoke tests (health checks) run on production and test deploys.
 
-## Disabled Workflows
+## Disabled / Removed Workflows
 
-Legacy workflows in `.github/workflows-disabled/` are superseded by `deploy.yml`:
-
-| File                    | Purpose                                           | Superseded by   |
-| ----------------------- | ------------------------------------------------- | ---------------- |
-| `deploy-staging.yml`    | Auto-deploy admin to Vercel staging on push to main | `deploy.yml`     |
-| `deploy-production.yml` | Manual production deploy via `workflow_dispatch`  | `deploy.yml`     |
-| `preview-pr.yml`        | Preview deploys on PRs                            | Vercel auto-preview |
+The `.github/workflows-disabled/` directory no longer exists. The legacy staging and production deploy workflows have been removed entirely; all deployment is handled by `deploy.yml`.
 
 ## Local Release (Primary Flow)
 

@@ -9,7 +9,7 @@ Shared Tailwind CSS configuration for the RevealUI Framework.
 For basic usage, import and extend the shared config:
 
 ```ts
-import tailwindConfig from 'dev/tailwind'
+import tailwindConfig from '@revealui/dev/tailwind'
 
 export default {
   ...tailwindConfig,
@@ -22,7 +22,7 @@ export default {
 For apps that need to extend the theme, use the `createTailwindConfig` helper:
 
 ```ts
-import { createTailwindConfig } from 'dev/tailwind/create-config'
+import { createTailwindConfig } from '@revealui/dev/tailwind/create-config'
 
 export default createTailwindConfig({
   content: ['./src/**/*.{ts,tsx}'],
@@ -63,7 +63,7 @@ The `createTailwindConfig` helper:
 ## Example: App with Custom Colors
 
 ```ts
-import { createTailwindConfig } from 'dev/tailwind/create-config'
+import { createTailwindConfig } from '@revealui/dev/tailwind/create-config'
 
 export default createTailwindConfig({
   content: ['./src/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],

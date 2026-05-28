@@ -827,19 +827,30 @@ buildConfig({
 });
 ```
 
-### `vercelBlobStorage()`
+### `objectStorage()`
 
-Storage adapter for Vercel Blob. Set `BLOB_READ_WRITE_TOKEN` in env.
+Provider-agnostic object-storage upload plugin. Adapts any `StorageProvider` — Cloudflare R2 (canonical), Vercel Blob, or mock — to a collection's upload-adapter interface. The backend is resolved lazily on first upload via `resolveProvider`, so reading validated config never forces env validation at config-build time. Cloudflare R2 (S3-compatible) is the canonical backend; the legacy `BLOB_READ_WRITE_TOKEN` is a migration-window fallback.
 
 ```ts
-import { vercelBlobStorage } from "@revealui/core";
+import config from "@revealui/config";
+import { createR2Provider, createVercelBlobProvider, objectStorage } from "@revealui/core/storage";
 
 buildConfig({
   upload: {
     useTempFiles: true,
     tempFileDir: "/tmp",
   },
-  plugins: [vercelBlobStorage({ collections: { media: true } })],
+  plugins: [
+    objectStorage({
+      collections: { media: true },
+      resolveProvider: () => {
+        const { r2, blobToken } = config.storage;
+        if (r2) return createR2Provider(r2); // Cloudflare R2 — canonical
+        if (blobToken) return createVercelBlobProvider({ token: blobToken }); // legacy fallback
+        throw new Error("No object-storage backend configured (set R2_* or BLOB_READ_WRITE_TOKEN).");
+      },
+    }),
+  ],
 });
 ```
 
@@ -1415,7 +1426,7 @@ Registers a named validation rule that can be referenced in field definitions.
 
 # @revealui/db
 
-Drizzle ORM schema, database clients, migrations, and encryption utilities. Supports two databases: NeonDB (REST content) and Supabase (vectors/auth).
+Drizzle ORM schema, database clients, migrations, and encryption utilities. NeonDB (Postgres) is the primary, canonical database. A legacy Supabase sidecar (vectors/RAG) is being phased out — new features must not depend on Supabase-specific behavior.
 
 ```bash
 npm install @revealui/db
@@ -1457,7 +1468,7 @@ const db = createClient({
 **Driver selection:**
 
 - Neon HTTP driver (`@neondatabase/serverless`)  -  for `neon.tech` connection strings
-- node-postgres (`pg`)  -  for Supabase, localhost, and other Postgres hosts
+- node-postgres (`pg`)  -  for localhost, the legacy Supabase sidecar, and other Postgres hosts
 
 Returns `NeonHttpDatabase | NodePgDatabase` depending on the connection string.
 
@@ -1503,7 +1514,7 @@ const result = await withTransaction(db, async (tx) => {
 })
 ```
 
-> **Important:** Transactions only work with node-postgres (Supabase/localhost). The Neon HTTP driver does not support multi-statement transactions.
+> **Important:** Transactions only work with node-postgres (localhost / other Postgres hosts, including the legacy Supabase sidecar). The Neon HTTP driver does not support multi-statement transactions.
 
 ---
 
@@ -1808,7 +1819,18 @@ File upload storage.
 
 ```ts
 interface StorageConfig {
-  blobToken: string; // BLOB_READ_WRITE_TOKEN — Vercel Blob
+  // Cloudflare R2 (canonical) — populated only when all five R2_* vars are set, else undefined.
+  r2: R2StorageConfig | undefined;
+  // BLOB_READ_WRITE_TOKEN — legacy Vercel Blob fallback (being retired), used only when r2 is undefined.
+  blobToken: string | undefined;
+}
+
+interface R2StorageConfig {
+  accountId: string; // R2_ACCOUNT_ID
+  accessKeyId: string; // R2_ACCESS_KEY_ID
+  secretAccessKey: string; // R2_SECRET_ACCESS_KEY
+  bucket: string; // R2_BUCKET
+  publicBaseUrl: string; // R2_PUBLIC_BASE_URL
 }
 ```
 
@@ -1960,11 +1982,18 @@ STRIPE_SECRET_KEY=sk_live_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
-# Storage
+# Storage — Cloudflare R2 (canonical, S3-compatible). Set all five R2_* vars.
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=revealui-media
+R2_PUBLIC_BASE_URL=https://media.revealui.com
+# Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset:
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 
 # Optional
 SENTRY_DSN=https://...@sentry.io/...
+# Legacy Supabase sidecar (being phased out):
 NEXT_PUBLIC_SUPABASE_URL=https://...supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 ```
@@ -4010,11 +4039,11 @@ The CLI walks through five configuration steps:
 
 ### 2. Database
 
-- **Database URL**  -  Postgres connection string (NeonDB, Supabase, or any Postgres)
+- **Database URL**  -  Postgres connection string (NeonDB recommended, or any Postgres)
 
 ### 3. Storage
 
-- **Storage provider**  -  Vercel Blob (default) or local filesystem
+- **Storage provider**  -  Cloudflare R2 (S3-compatible, default) or local filesystem (legacy Vercel Blob is being retired)
 
 ### 4. Payments
 
@@ -4077,7 +4106,13 @@ STRIPE_SECRET_KEY=sk_live_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
-# Storage
+# Storage — Cloudflare R2 (canonical, S3-compatible). Set all five R2_* vars.
+R2_ACCOUNT_ID=...
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
+R2_BUCKET=revealui-media
+R2_PUBLIC_BASE_URL=https://media.revealui.com
+# Legacy Vercel Blob — optional fallback, used only when the R2_* vars are unset:
 BLOB_READ_WRITE_TOKEN=vercel_blob_...
 ```
 
@@ -4330,7 +4365,12 @@ Pre-defined list of required environment variables for RevealUI projects.
 | ------------------------------------ | --------------------------------- | ---------------------- |
 | `REVEALUI_SECRET`                    | Secret key for session encryption | `minLength(32)`        |
 | `POSTGRES_URL`                       | PostgreSQL connection string      | `postgresUrl`          |
-| `BLOB_READ_WRITE_TOKEN`              | Vercel Blob storage token         |  -                       |
+| `R2_ACCOUNT_ID`                      | Cloudflare R2 account ID (canonical object storage) | `minLength(1)` (optional) |
+| `R2_ACCESS_KEY_ID`                   | Cloudflare R2 access key ID       | `minLength(1)` (optional) |
+| `R2_SECRET_ACCESS_KEY`               | Cloudflare R2 secret access key   | `minLength(1)` (optional) |
+| `R2_BUCKET`                          | Cloudflare R2 bucket name         | `minLength(1)` (optional) |
+| `R2_PUBLIC_BASE_URL`                 | Public base URL for R2 objects    | `minLength(1)` (optional) |
+| `BLOB_READ_WRITE_TOKEN`              | Legacy Vercel Blob token — optional fallback when the R2_* vars are unset |  -                       |
 | `STRIPE_SECRET_KEY`                  | Stripe secret key                 | `stripeSecretKey`      |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key            | `stripePublishableKey` |
 
@@ -4341,8 +4381,8 @@ Pre-defined list of optional environment variables.
 | Variable                        | Description            | Validator       |
 | ------------------------------- | ---------------------- | --------------- |
 | `STRIPE_WEBHOOK_SECRET`         | Stripe webhook secret  |  -                |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL   | `url`           |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key |  -                |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase project URL (legacy sidecar, being phased out) | `url`           |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key (legacy sidecar, being phased out) |  -                |
 | `REVEALUI_ADMIN_EMAIL`          | Initial admin email    | `email`         |
 | `REVEALUI_ADMIN_PASSWORD`       | Initial admin password | `minLength(12)` |
 
