@@ -237,7 +237,7 @@ export function PricingPage() {
               >
                 {tier.comingSoon && (
                   <div className="absolute right-4 top-4">
-                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-600">
+                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-700">
                       Coming soon
                     </span>
                   </div>
@@ -288,7 +288,7 @@ export function PricingPage() {
                 {PRICING_AGENTS_SECTION.heading}
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">{PRICING_AGENTS_SECTION.subhead}</p>
-              <span className="mt-3 inline-block rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-600 ring-1 ring-amber-500/30">
+              <span className="mt-3 inline-block rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-700 ring-1 ring-amber-500/30">
                 {PRICING_AGENTS_SECTION.badge}
               </span>
             </div>
