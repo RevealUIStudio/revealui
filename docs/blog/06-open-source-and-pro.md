@@ -4,7 +4,7 @@ RevealUI is open source today; the commercial side is pre-launch. Before we talk
 
 This is a solo-founder project. I don't have a VC board to answer to or a growth team optimizing conversion funnels. I have a business model I believe in, and I'd rather explain it plainly than have you discover the trade-offs later.
 
-> **Status note (updated 2026-05-26):** Two revenue surfaces described later in this post — the **MCP Marketplace** (third-party publishing + 80/20 revenue share) and **x402 agent payments** — are **planned, not shipped**. The first-party MCP catalog (13 servers under `packages/mcp/src/servers/`) does ship today; third-party publishing, marketplace discovery UI, billing rails, and developer payouts are unbuilt. x402 is designed and code-complete behind `X402_ENABLED=false`. Stripe runs in test mode until a billing-readiness audit closes. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current shipping status of every commercial surface.
+> **Status note (updated 2026-05-26):** Two revenue surfaces described later in this post — the **MCP Marketplace** (third-party publishing + 80/20 revenue share) and **x402 agent payments** — are **planned, not shipped**. The first-party MCP catalog (14 servers under `packages/mcp/src/servers/`) does ship today; third-party publishing, marketplace discovery UI, billing rails, and developer payouts are unbuilt. x402 is designed and code-complete behind `X402_ENABLED=false`. Stripe runs in test mode until a billing-readiness audit closes. See [What Works Today](../WHAT_WORKS_TODAY.md) for the current shipping status of every commercial surface.
 
 ---
 
@@ -20,7 +20,7 @@ I understand that risk. I accept it. Here's why.
 
 RevealUI is an open runtime for AI-native businesses. The four business primitives that make it useful -- Users, Content, Products, Payments -- are MIT licensed and will stay MIT forever. These are table stakes. Every business needs auth, a content system, a product catalog, and payment processing. Making these proprietary would limit adoption without meaningfully protecting revenue. The value isn't in the code; it's in the integration, the maintenance, and the roadmap.
 
-The MCP framework is the one piece worth naming carefully: `@revealui/mcp` — the hypervisor, the 13 first-party servers, and the adapter base class — is one of the five Pro packages, Fair Source under FSL-1.1-MIT, not MIT. It's source-visible and converts to MIT two years after each release, but MCP integration is a paid capability today. I'd rather state that plainly than imply the AI tooling is free when it isn't.
+The MCP framework is the one piece worth naming carefully: `@revealui/mcp` — the hypervisor, the 14 first-party servers, and the adapter base class — is one of the five Pro packages, Fair Source under FSL-1.1-MIT, not MIT. It's source-visible and converts to MIT two years after each release, but MCP integration is a paid capability today. I'd rather state that plainly than imply the AI tooling is free when it isn't.
 
 What MIT means practically: you can take RevealUI, strip the branding, deploy it on your own infrastructure, and run your entire business on it without ever creating an account with us. You don't owe us attribution, revenue share, or even a thank-you. The code is yours.
 
@@ -39,7 +39,7 @@ RevealUI Pro includes:
 - **LLM orchestration** -- open-model inference via Ubuntu Inference Snaps and Ollama
 - **Editor integrations** -- daemon adapters for Zed, VS Code, and Neovim
 - **Harness coordination** -- workboard-based agent orchestration, JSON-RPC communication, daemon management
-- **MCP framework** -- the hypervisor, 13 first-party servers, and the adapter base class that connect agents to tools
+- **MCP framework** -- the hypervisor, 14 first-party servers, and the adapter base class that connect agents to tools
 
 These features are commercially licensed. The source code is available (you can read the compiled output on npm), but the license restricts redistribution and commercial use without a key.
 
