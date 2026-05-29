@@ -40,8 +40,9 @@ Full details in `docs/PRO.md`.
 
 ## License
 
-- **OSS (MIT):** core, contracts, db, auth, presentation, router, config, utils, cli, setup, sync, cache, resilience, security, mcp, services
-- **Commercial (source-available):** ai, editors, harnesses
+- **OSS (MIT):** @revealui/auth, @revealui/cache, @revealui/cli, @revealui/config, @revealui/contracts, @revealui/core, @revealui/db, @revealui/dev, @revealui/openapi, @revealui/paywall, @revealui/presentation, @revealui/resilience, @revealui/router, @revealui/security, @revealui/setup, @revealui/sync, @revealui/utils, plus create-revealui, revealui, and test
+- **Pro packages (FSL-1.1-MIT, source-available):** @revealui/ai, @revealui/engines, @revealui/harnesses, @revealui/mcp, @revealui/services
+- **Internal (no published license):** @revealui/scripts
 
 ## Pricing Tiers
 
