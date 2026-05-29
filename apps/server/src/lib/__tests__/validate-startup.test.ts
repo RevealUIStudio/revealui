@@ -476,6 +476,70 @@ describe('validateLicenseAtStartup', () => {
       }),
     ).resolves.toBeUndefined();
   });
+
+  // ── JWT-derived domain binding (the boot-time half of the domain-lock) ──
+  it('passes when the licensed domain covers REVEALUI_PUBLIC_SERVER_URL host', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        REVEALUI_PUBLIC_SERVER_URL: 'https://admin.acme.com',
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('throws when the licensed domain does NOT cover REVEALUI_PUBLIC_SERVER_URL host', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        REVEALUI_PUBLIC_SERVER_URL: 'https://evil.com',
+      }),
+    ).rejects.toThrow(/restricted to/);
+  });
+
+  it('allows a localhost public URL under a domain-restricted license (trial-kit default)', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+        REVEALUI_PUBLIC_SERVER_URL: 'http://localhost:4000',
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('skips the domain check when no public URL is set (presence enforced by validateStartup)', async () => {
+    const jwt = await generateLicenseKey(
+      { tier: 'enterprise', customerId: 'acme', domains: ['acme.com'] },
+      testPrivateKey,
+      30 * 24 * 60 * 60,
+      testPublicKey,
+    );
+    await expect(
+      validateLicenseAtStartup({
+        REVEALUI_LICENSE_KEY: jwt,
+        REVEALUI_LICENSE_PUBLIC_KEY: testPublicKey,
+      }),
+    ).resolves.toBeUndefined();
+  });
 });
 
 // ─── Forge mode (validateStartup) ──────────────────────────────────────
