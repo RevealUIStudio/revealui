@@ -128,6 +128,15 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 export async function generateMetadata(): Promise<Metadata> {
   const name = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
   const adminLabel = `${name} admin`;
+  // White-label: REVEALUI_BRAND_TWITTER lets a kit set its own Twitter/X
+  // handle (e.g. '@AcmeCorp'); when unset, fall back to the canonical
+  // RevealUI handle ONLY if no brand override is in effect. A branded kit
+  // with no Twitter handle gets no `creator` meta — better than leaking
+  // the framework's account on customer share cards.
+  const brandOverridden =
+    Boolean(process.env.REVEALUI_BRAND_NAME) || Boolean(process.env.REVEALUI_TENANT_NAME);
+  const twitterCreator =
+    process.env.REVEALUI_BRAND_TWITTER ?? (brandOverridden ? undefined : '@RevealUI');
   return {
     title: {
       default: adminLabel,
@@ -137,7 +146,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: mergeOpenGraph(),
     twitter: {
       card: 'summary_large_image',
-      creator: '@RevealUI',
+      ...(twitterCreator ? { creator: twitterCreator } : {}),
     },
   };
 }
