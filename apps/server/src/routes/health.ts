@@ -78,12 +78,25 @@ const livenessRoute = createRoute({
   },
 });
 
+/**
+ * Service identity for the liveness payload.
+ *
+ * White-label deployments (Forge customer kits) override the brand name via
+ * REVEALUI_BRAND_NAME or REVEALUI_TENANT_NAME — uptime monitors / status
+ * pages then show the operator's brand instead of the framework name.
+ * Hosted SaaS (no overrides) keeps the canonical "RevealUI API" identity.
+ */
+function getServiceName(): string {
+  const name = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
+  return `${name} API`;
+}
+
 function livenessResponse() {
   return {
     status: 'ok' as const,
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version ?? '1.0.0',
-    service: 'RevealUI API',
+    service: getServiceName(),
     uptime: healthCheck.getUptime(),
   };
 }
