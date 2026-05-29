@@ -1,5 +1,19 @@
 # @revealui/mcp
 
+## 0.6.0
+
+### Minor Changes
+
+- 239a642: Add the `revealui-docs` MCP server — first-party dependency intelligence. Resolves `@revealui/*` library names and serves curated docs (README + package metadata + public export subpaths) from the monorepo, exported via `@revealui/mcp/docs-server` with a stdio launcher at `servers/docs.ts`. Phase 1 covers first-party packages only; npm/third-party source via `opensrc` is a later phase.
+
+### Patch Changes
+
+- Updated dependencies [f8c74e6]
+- Updated dependencies [ba61b20]
+- Updated dependencies [6545491]
+  - @revealui/core@0.9.0
+  - @revealui/contracts@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes

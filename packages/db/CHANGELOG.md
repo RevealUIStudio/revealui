@@ -1,5 +1,17 @@
 # @revealui/db
 
+## 0.7.0
+
+### Minor Changes
+
+- 96b1049: Add `@revealui/db/orm` subpath that re-exports Drizzle ORM query helpers (`eq`, `and`, `or`, `sql`, `inArray`, `desc`, `count`, ...).
+
+  Worker scripts and apps should depend on Drizzle through this subpath instead of importing the bare `drizzle-orm` package. Under pnpm's isolated linker, `drizzle-orm` is materialized only inside the `node_modules` of packages that declare it (such as `@revealui/db`), not at the repo root — so a bare `import('drizzle-orm')` from repo-root `scripts/` fails with `ERR_MODULE_NOT_FOUND`. Importing through `@revealui/db/orm` resolves from any workspace location and guarantees the operators come from the same Drizzle instance as the db client and schema.
+
+### Patch Changes
+
+- e08adbe: Attach an `'error'` event handler to the pg pools created by the database client (localhost / self-hosted Postgres path). A pg `Pool` is an EventEmitter, and an unhandled `'error'` event — emitted when an idle connection is dropped by the server (admin termination, autosuspend, network blip) — throws and crashes the process. The handler logs the error and keeps the pool alive, matching the existing behavior in `pool.ts` (Neon-backed deployments use the HTTP driver and are unaffected).
+
 ## 0.6.0
 
 ### Minor Changes
