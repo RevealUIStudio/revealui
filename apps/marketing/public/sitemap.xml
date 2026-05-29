@@ -56,6 +56,26 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://revealui.com/security</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://revealui.com/support</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revealui.com/status</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://revealui.com/legal/subprocessors</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
     <loc>https://revealui.com/blog/getting-started</loc>
     <lastmod>2026-03-27</lastmod>
     <changefreq>monthly</changefreq>
