@@ -4,9 +4,23 @@ name: backflow-main-into-test
 #   RevealUIStudio/.github/.github/workflows/backflow-reusable.yml
 # Requires the BACKFLOW_APP_ID / BACKFLOW_APP_PRIVATE_KEY secrets + the
 # revfleet-backflow App installed on this repo (Contents + Pull requests r/w).
+# Triggers on push to BOTH main and test:
+#   - push:main — main moved forward; open a backflow PR so test catches up.
+#   - push:test — self-heal: if a backflow PR was squash-merged (which strips
+#     main's parentage and leaves `test` not containing `main`), the next push
+#     to test re-detects the broken ancestry and re-opens a correct --no-ff
+#     backflow, instead of the gap lurking until the next promotion (where
+#     promotion-gate would then block it). The reusable no-ops when test already
+#     contains main, so the push:test path is a cheap guard.
 on:
   push:
-    branches: [main]
+    branches: [main, test]
+
+# Serialize backflow runs so the two triggers (and rapid pushes) can't race on
+# the force-push / PR open-or-update.
+concurrency:
+  group: backflow-main-into-test
+  cancel-in-progress: false
 
 jobs:
   backflow:
