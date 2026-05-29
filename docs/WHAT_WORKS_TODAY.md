@@ -83,7 +83,7 @@ Honest list of things that are not done, not deployed, or not verified.
 - **REVEALUI_KEK rotation tooling is not yet built** (GAP-126 open). KEK rotation requires a coordinated maintenance window with manual data re-encryption today.
 - **No status page publicly advertised.** Uptime monitoring is configured.
 - **No public support channel.** There is no public support email, chat, or ticketing system yet.
-- **No Terms of Service or Privacy Policy.** Legal documents are pending lawyer review.
+- **Terms of Service and Privacy Policy are live, but not yet lawyer-reviewed.** Drafted in good faith by RevealUI Studio and published at [/terms](https://revealui.com/terms) and [/privacy](https://revealui.com/privacy). Each page carries an explicit "draft pending counsel review" banner — we disclose this rather than hide it. Counsel review is scheduled post-first-revenue. Subscription prices are referenced as "published at /pricing at the time of purchase" rather than hardcoded, so the pricing page is the single source of truth.
 - **No SOC2 or ISO 27001.** Security certifications are planned for Phase 6, not current.
 - **MCP marketplace is preview, not live.** Publish/list/invoke/onboard endpoints are wired; payouts open with the billing-readiness audit.
 - **No SSO / SCIM in code.** Roadmap items.
