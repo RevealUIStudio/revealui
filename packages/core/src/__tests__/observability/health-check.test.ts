@@ -18,6 +18,7 @@ vi.mock('node:util', () => ({
 }));
 
 import { execFile } from 'node:child_process';
+import { getHeapStatistics } from 'node:v8';
 import {
   createAPIHealthCheck,
   createCustomHealthCheck,
@@ -320,10 +321,10 @@ describe('createMemoryHealthCheck', () => {
   });
 
   it('returns degraded when memory exceeds 80% of threshold', async () => {
-    // This is tricky since we can't control actual memory usage
-    // Use a threshold that is above actual usage but whose 80% is below
+    // Mirror the source denominator (heap_size_limit, not heapTotal) when
+    // choosing a threshold that lands actual usage in the "high" (degraded) band.
     const usage = process.memoryUsage();
-    const usedPercent = (usage.heapUsed / usage.heapTotal) * 100;
+    const usedPercent = (usage.heapUsed / getHeapStatistics().heap_size_limit) * 100;
 
     // Pick a threshold where usedPercent > threshold * 0.8 but usedPercent <= threshold
     const threshold = usedPercent + 1;
