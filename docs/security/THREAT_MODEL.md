@@ -1,7 +1,7 @@
 ---
 title: Threat Model
 description: STRIDE-style threat model for the RevealUI security stack across four trust boundaries — Human↔App, App↔External services, Agent↔Tool (MCP), Agent↔Agent (RevDev daemon).
-last-updated: 2026-05-16
+last-updated: 2026-05-29
 ---
 
 # Threat Model
@@ -38,7 +38,7 @@ It is a working document. Comprehensive coverage will accrete over multiple sess
 | Application secrets | Database URLs, Stripe keys, OAuth client secrets, webhook signing secrets | Revvault (canonical), Vercel env vars (mirror) |
 | Audit trail | Append-only tamper-evident log of agent and admin actions | NeonDB `audit_log` table, HMAC chain |
 | Content | User-published content under their RevealUI-powered site | NeonDB `content_*` tables |
-| RevealCoin (RVC) keypairs | Mint authority, treasury, vesting wallets | Revvault `revealcoin/*` paths (encrypted) |
+| ~~RevealCoin (RVC) keypairs~~ | Project cancelled 2026-05-29; keypairs rotated-and-destroyed via revvault `_decommissioned/revealcoin-2026-05-29/` namespace. No live custody. | (decommissioned) |
 | npm packages | OSS + Pro packages published under `@revealui/*` | npm registry; build artifacts in GitHub Actions |
 | Source code | The monorepo itself | GitHub `RevealUIStudio/revealui`, branch protection on `main` and `test` |
 

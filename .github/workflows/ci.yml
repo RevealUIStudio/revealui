@@ -731,20 +731,27 @@ jobs:
           fi
 
       - name: Post to harness daemon
-        if: vars.HARNESS_GATEWAY_URL != ''
+        # Defense-in-depth: only same-repo PRs with a configured gateway reach this step (fork PRs never do).
+        if: vars.HARNESS_GATEWAY_URL != '' && github.event.pull_request.head.repo.full_name == github.repository
         continue-on-error: true
+        # github.head_ref is attacker-controlled on PRs. All ${{ }} values flow through env (never
+        # interpolated into the shell) and jq encodes them into JSON — so no value can break out and
+        # inject shell.
+        env:
+          GATEWAY_URL: ${{ vars.HARNESS_GATEWAY_URL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REF: ${{ github.head_ref }}
+          CI_SUCCESS: ${{ steps.result.outputs.success }}
+          FAILED_JOB: ${{ steps.result.outputs.failed_job }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          curl -sf -X POST "${{ vars.HARNESS_GATEWAY_URL }}/rpc" \
+          payload="$(jq -n \
+            --argjson prNumber "${PR_NUMBER:-0}" \
+            --arg branch "$HEAD_REF" \
+            --argjson success "${CI_SUCCESS:-false}" \
+            --arg failedJob "$FAILED_JOB" \
+            --arg runUrl "$RUN_URL" \
+            '{jsonrpc: "2.0", id: 1, method: "ci.report", params: {prNumber: $prNumber, branch: $branch, success: $success, failedJob: $failedJob, runUrl: $runUrl}}')"
+          curl -sf --max-time 10 -X POST "$GATEWAY_URL/rpc" \
             -H "Content-Type: application/json" \
-            -d '{
-              "jsonrpc": "2.0",
-              "id": 1,
-              "method": "ci.report",
-              "params": {
-                "prNumber": ${{ github.event.pull_request.number }},
-                "branch": "${{ github.head_ref }}",
-                "success": ${{ steps.result.outputs.success }},
-                "failedJob": "${{ steps.result.outputs.failed_job }}",
-                "runUrl": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-              }
-            }'
+            -d "$payload"

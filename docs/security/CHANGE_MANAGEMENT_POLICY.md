@@ -1,7 +1,7 @@
 ---
 title: Change Management Policy
 description: Formal change management procedures covering code review, deployment approvals, rollback, and emergency changes for SOC 2 compliance.
-last-updated: 2026-04-12
+last-updated: 2026-05-29
 review-cadence: annually
 owner: RevealUI Studio <founder@revealui.com>
 classification: internal
@@ -12,6 +12,8 @@ classification: internal
 ## 1. Purpose
 
 This policy formalizes the change management procedures for all modifications to RevealUI source code, infrastructure, and configuration. It ensures that changes are reviewed, tested, approved, and deployed in a controlled manner with appropriate rollback capabilities.
+
+> **Infrastructure-in-transition note (2026-05-29).** The Supabase secondary store is *legacy* and phasing out (ADR 2026-05-01). Its rollback reference below remains valid while Supabase is in service; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative transition status.
 
 ## 2. Scope
 

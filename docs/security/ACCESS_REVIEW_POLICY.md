@@ -1,7 +1,7 @@
 ---
 title: Access Review Policy
 description: Quarterly access review cadence, review template, and audit records for SOC 2 compliance.
-last-updated: 2026-04-12
+last-updated: 2026-05-29
 review-cadence: quarterly
 owner: RevealUI Studio <founder@revealui.com>
 classification: internal
@@ -12,6 +12,8 @@ classification: internal
 ## 1. Purpose
 
 This policy establishes the cadence, process, and documentation requirements for periodic access reviews across all RevealUI systems and services. Access reviews ensure that permissions remain appropriate, accounts are active, and the principle of least privilege is maintained.
+
+> **Infrastructure-in-transition note (2026-05-29).** Supabase is a *legacy secondary* store being phased out (ADR 2026-05-01; new features must not depend on it) and the ElectricSQL host is migrating Railway → Fly.io (ADR 2026-05-18, phases 4–6 pending). Supabase/Railway references below remain in force **while those systems are in service**; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for the authoritative transition status.
 
 ## 2. Scope
 

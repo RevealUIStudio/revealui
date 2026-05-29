@@ -26,7 +26,7 @@ Every artifact starts at `0.1.0`. `1.0.0` is a public contract claim — "consum
 
 Inside `0.x`: breaking changes bump minor (not major). Promotion to `1.0` requires real external consumers + stable contract for ≥1 release cycle.
 
-Exception: `@revealui/contracts` is grandfathered at `1.x` — documented in `docs/decisions/`.
+(`@revealui/contracts` was briefly published on the `1.x` line, then demoted to `0.x` to follow this rule — see the contracts-demotion ADR in `docs/decisions/`. It is now pre-1.0 like everything else.)
 
 ### Open-model AI runtime (M3)
 
