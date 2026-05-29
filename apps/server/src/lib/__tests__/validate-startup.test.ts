@@ -143,6 +143,21 @@ describe('validateStartup — production format checks (live mode)', () => {
     );
   });
 
+  it('rejects STRIPE_WEBHOOK_SECRET_LIVE without whsec_ prefix when set', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ STRIPE_WEBHOOK_SECRET_LIVE: 'not-a-secret' })),
+    ).toThrow('STRIPE_WEBHOOK_SECRET_LIVE');
+  });
+
+  it('accepts a valid or unset STRIPE_WEBHOOK_SECRET_LIVE', () => {
+    expect(() =>
+      validateStartup(validLiveProdEnv({ STRIPE_WEBHOOK_SECRET_LIVE: 'whsec_livedeadbeef' })),
+    ).not.toThrow();
+    expect(() =>
+      validateStartup(validLiveProdEnv({ STRIPE_WEBHOOK_SECRET_LIVE: '' })),
+    ).not.toThrow();
+  });
+
   it('rejects non-HTTPS REVEALUI_PUBLIC_SERVER_URL', () => {
     expect(() =>
       validateStartup(
