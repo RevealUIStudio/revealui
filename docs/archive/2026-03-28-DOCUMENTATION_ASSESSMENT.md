@@ -137,7 +137,7 @@ Note: `npx create-revealui` scaffolds a working basic-blog from npm templates  -
 | Package | Docs claim | Actual state | Completeness |
 |---------|-----------|--------------|-------------|
 | `@revealui/ai` | AI agents, memory, LLM orchestration | 40+ files, 18 import subpaths, real agents | ~80% |
-| `@revealui/mcp` | 13 MCP servers | **13 server files** (plus adapters/utils) | ~90% |
+| `@revealui/mcp` | 14 MCP servers | **14 server files** (plus adapters/utils) | ~90% |
 | `@revealui/harnesses` | AI coordination, workboard | 196 tests, JSON-RPC 2.0, content layer | ~95% |
 | `@revealui/services` | Stripe + Supabase integrations | 354 tests passing | ~85% |
 

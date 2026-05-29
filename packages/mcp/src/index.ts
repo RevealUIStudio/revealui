@@ -173,6 +173,18 @@ export {
   REGISTERED_CATEGORIES,
   validatePayload,
 } from './servers/factories/contracts.js';
+// Docs server (dependency intelligence — first-party @revealui/* package docs)
+export {
+  type CreateDocsServerOptions,
+  createDocsServer,
+  enumeratePackages,
+  getLibraryDoc,
+  type LibraryDoc,
+  listLibraries,
+  type PackageEntry,
+  type ResolveResult,
+  resolveLibrary,
+} from './servers/factories/docs.js';
 // First-party server factories (Stage 1 PR-1.2 — dual-mode template)
 export {
   createRevealuiContentServer,
