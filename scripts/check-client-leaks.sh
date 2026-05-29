@@ -3,7 +3,7 @@
 #
 # Scans the repo for any reference to a specific RevealUI Studio client,
 # prospect, or warm-intro contact. Customer/prospect names belong in the
-# private revealui-jv repo only — never in this public surface, ever.
+# private internal repo only — never in this public surface, ever.
 #
 # Exit 0 on clean. Exit 1 on any violation. Exit 2 on tool/setup error.
 #
@@ -45,8 +45,8 @@ unset _path
 # the same PR that introduces them to the operator's pipeline.
 PATTERNS=(
   # --- Allevia Technology (Tier-6 first customer; owner directive 2026-05-21:
-  #     no public Allevia anywhere; .jv private OK; never public repos. See
-  #     revealui-jv/.claude/memory/project_allevia_internal_only_until_owner_lifts.md)
+  #     no public Allevia anywhere; internal coordination repo OK; never
+  #     public repos. See the project_allevia_internal_only memory entry.)
   "client-allevia|Allevia|customer name (Allevia)"
   "client-allevia-lower|allevia|customer slug (allevia)"
   "client-alleviafleet|AlleviaFleet|customer brand instance (AlleviaFleet)"
@@ -69,6 +69,11 @@ EXCLUDE_DIRS=(node_modules .git dist build .next .turbo .pnpm coverage target .d
 EXCLUDE_FILES=(
   pnpm-lock.yaml package-lock.json yarn.lock Cargo.lock
   check-client-leaks.sh
+  # Companion gitleaks rule file. By design it carries the same names
+  # as detection keywords (boundary-config per the no-regex rule's
+  # third-party-config exception); the bash scanner must NOT count
+  # those keywords as violations of itself. Scanner-self-pattern.
+  .gitleaks.issues.toml
   CHANGELOG.md
   '*.png' '*.jpg' '*.jpeg' '*.gif' '*.webp' '*.pdf' '*.zip' '*.tar.gz' '*.tgz'
   '*.ico' '*.woff' '*.woff2' '*.ttf' '*.otf'
@@ -134,7 +139,7 @@ if (( violations > 0 )); then
     echo "[client-leak] FAIL — $violations violation(s)." >&2
     echo "" >&2
     echo "Customer / prospect names must NEVER appear in this public-facing repo." >&2
-    echo "Move the content to the private revealui-jv repo (or genericize with a" >&2
+    echo "Move the content to the private internal repo (or genericize with a" >&2
     echo "placeholder like 'Acme Corp' / 'acme' / 'first customer')." >&2
     echo "" >&2
     echo "If a new client onboards and their name needs scanner coverage, add" >&2
