@@ -6,6 +6,7 @@ import { BlogIndexPage } from './routes/BlogIndexPage';
 import { BlogPostPage } from './routes/BlogPostPage';
 import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
+import { ForOperatorsPage } from './routes/ForOperatorsPage';
 import { HomePage } from './routes/HomePage';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { PricingPage } from './routes/PricingPage';
@@ -15,6 +16,7 @@ import { RoadmapPage } from './routes/RoadmapPage';
 import { SecurityPage } from './routes/SecurityPage';
 import { SponsorPage } from './routes/SponsorPage';
 import { StatusPage } from './routes/StatusPage';
+import { SubprocessorsPage } from './routes/SubprocessorsPage';
 import { SupportPage } from './routes/SupportPage';
 import { TermsPage } from './routes/TermsPage';
 
@@ -38,6 +40,11 @@ export function App() {
         component: FairSourcePage,
         meta: { title: 'Fair Source — RevealUI' },
       },
+      {
+        path: '/for-operators',
+        component: ForOperatorsPage,
+        meta: { title: 'For Operators — RevealUI Studio' },
+      },
       { path: '/roadmap', component: RoadmapPage, meta: { title: 'Roadmap — RevealUI' } },
       { path: '/sponsor', component: SponsorPage, meta: { title: 'Sponsor — RevealUI' } },
       { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy — RevealUI' } },
@@ -45,6 +52,11 @@ export function App() {
       { path: '/security', component: SecurityPage, meta: { title: 'Security — RevealUI' } },
       { path: '/support', component: SupportPage, meta: { title: 'Support — RevealUI' } },
       { path: '/status', component: StatusPage, meta: { title: 'Status — RevealUI' } },
+      {
+        path: '/legal/subprocessors',
+        component: SubprocessorsPage,
+        meta: { title: 'Subprocessors — RevealUI' },
+      },
       { path: '/*notfound', component: NotFoundPage, meta: { title: '404 — RevealUI' } },
     ]);
     registered.current = true;
