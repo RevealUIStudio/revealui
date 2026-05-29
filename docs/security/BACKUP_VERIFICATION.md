@@ -1,7 +1,7 @@
 ---
 title: Backup Restore Verification Procedure
 description: Quarterly restore drill procedures, RTO/RPO targets, and verification checklists for all RevealUI data stores. Supports SOC2 compliance (CC6.1, CC7.5, A1.2, A1.3).
-last-updated: 2026-04-12
+last-updated: 2026-05-29
 status: active
 ---
 
@@ -10,6 +10,8 @@ status: active
 ## 1. Purpose
 
 This document defines the backup inventory, restore drill procedures, and verification criteria for all RevealUI data stores. It ensures that backups are functional, recovery objectives are achievable, and audit evidence is collected for SOC2 compliance (specifically CC6.1, CC7.5, A1.2, and A1.3).
+
+> **Infrastructure-in-transition note (2026-05-29).** The Supabase secondary store is *legacy* and phasing out (ADR 2026-05-01 → NeonDB pgvector); its restore drill below remains valid **while Supabase is in service**. The ElectricSQL host is migrating Railway → Fly.io (ADR 2026-05-18) but holds no persistent data, so it is out of backup scope either way. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative transition status.
 
 Restore drills are conducted quarterly. Each drill validates at least one data store end to end, with a full rotation across all stores every 12 months.
 
