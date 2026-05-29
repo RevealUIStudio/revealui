@@ -175,7 +175,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revskills',
     name: 'RevSkills',
     tagline: 'Claude Code skills library',
-    body: 'Reusable agent skills for Next.js, Tailwind, Drizzle, ElectricSQL, MCP, and testing patterns. Free, open, importable.',
+    body: 'Skills your AI agents lean on to ship features faster — auth flows, schema patterns, test scaffolds. Free, open, importable.',
     status: 'Active (MIT)',
     iconPath:
       'M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5',
@@ -203,7 +203,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     slug: 'revmarket',
     name: 'RevMarket',
     tagline: 'Agent tool marketplace',
-    body: `First-party catalog of ${METRICS.mcpServers} production MCP servers (code-validator, Stripe, Neon, Vercel, Next.js, and more). Third-party publishing is planned, not shipped.`,
+    body: `First-party catalog of ${METRICS.mcpServers} integrations your agents call out-of-the-box — Stripe, Neon, Vercel, Next.js, and more. Third-party publishing planned.`,
     status: 'Planned',
     iconPath:
       'M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.015a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72m-13.5 8.65h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .415.336.75.75.75Z',
