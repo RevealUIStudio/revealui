@@ -168,7 +168,12 @@ revealui/prod/sentry/project-admin   # SENTRY_PROJECT for apps/admin
 **Storage**
 
 ```
-revealui/prod/blob/read-write-token  # BLOB_READ_WRITE_TOKEN — Vercel Blob file uploads
+revealui/prod/r2/account-id          # R2_ACCOUNT_ID — Cloudflare R2 account ID (canonical object-storage backend)
+revealui/prod/r2/access-key-id       # R2_ACCESS_KEY_ID — R2 API token Access Key ID
+revealui/prod/r2/secret-access-key   # R2_SECRET_ACCESS_KEY — R2 API token Secret Access Key
+revealui/prod/r2/bucket              # R2_BUCKET — R2 bucket name (canonical: revealui-media)
+revealui/prod/r2/public-base-url     # R2_PUBLIC_BASE_URL — public-read base; sticky (baked into stored media URLs)
+revealui/prod/blob/read-write-token  # BLOB_READ_WRITE_TOKEN — legacy Vercel Blob fallback (retiring once R2 verified)
 ```
 
 **Billing**

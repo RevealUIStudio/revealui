@@ -6,6 +6,7 @@
 
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { getHeapStatistics } from 'node:v8';
 import { logger } from './logger.js';
 
 const execFileAsync = promisify(execFile);
@@ -190,7 +191,12 @@ export function createMemoryHealthCheck(thresholdPercent: number = 90): HealthCh
       }
 
       const usage = process.memoryUsage();
-      const usedPercent = (usage.heapUsed / usage.heapTotal) * 100;
+      // heapTotal is V8's currently-committed heap, not the ceiling — it sits
+      // just above heapUsed and grows on demand toward heap_size_limit
+      // (--max-old-space-size), so heapUsed/heapTotal reads ~90%+ during normal
+      // operation. heap_size_limit is the real OOM-proximity denominator.
+      const heapLimit = getHeapStatistics().heap_size_limit;
+      const usedPercent = (usage.heapUsed / heapLimit) * 100;
 
       let status: HealthStatus = 'healthy';
       let message = 'Memory usage normal';
@@ -209,6 +215,7 @@ export function createMemoryHealthCheck(thresholdPercent: number = 90): HealthCh
         details: {
           heapUsed: usage.heapUsed,
           heapTotal: usage.heapTotal,
+          heapLimit,
           usedPercent: usedPercent.toFixed(2),
           external: usage.external,
           rss: usage.rss,

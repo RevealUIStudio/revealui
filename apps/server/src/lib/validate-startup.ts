@@ -321,6 +321,18 @@ export function validateStartup(
       errors.push('STRIPE_WEBHOOK_SECRET must start with "whsec_" in production.');
     }
 
+    // Live-mode webhook signing secret. The webhook handler PREFERS this over
+    // STRIPE_WEBHOOK_SECRET when set, so a malformed value boots clean and then
+    // silently 400s every live webhook (no boot signal — the alert path is
+    // post-verification). Validate format when set; empty = handler falls back
+    // to STRIPE_WEBHOOK_SECRET, so this is not required.
+    const liveWebhookSecret = (env.STRIPE_WEBHOOK_SECRET_LIVE ?? '').trim();
+    if (liveWebhookSecret && !liveWebhookSecret.startsWith('whsec_')) {
+      errors.push(
+        'STRIPE_WEBHOOK_SECRET_LIVE must start with "whsec_" when set (preferred by the webhook handler in live mode).',
+      );
+    }
+
     // Optional dual-secret rotation transition (GAP-144). Only validated when
     // present — empty/unset is the steady state. When set, must be a valid
     // whsec_ secret since the webhook handler will use it as a fallback verifier.
