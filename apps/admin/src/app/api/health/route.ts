@@ -143,11 +143,17 @@ export async function GET(request: Request) {
   // Determine HTTP status code
   const httpStatus = overallStatus === 'healthy' ? 200 : 503;
 
+  // White-label: RevForge customer kits override the brand identity via
+  // REVEALUI_BRAND_NAME or REVEALUI_TENANT_NAME so uptime monitors / status
+  // pages show the operator's brand instead of the framework name.
+  const brandName =
+    process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
+
   return NextResponse.json(
     {
       status: overallStatus,
       timestamp: new Date().toISOString(),
-      service: 'RevealUI Admin',
+      service: `${brandName} Admin`,
       version: process.env.npm_package_version || 'unknown',
       checks,
       metrics,

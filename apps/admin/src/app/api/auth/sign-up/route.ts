@@ -26,8 +26,39 @@ import {
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+/**
+ * Early signup-closed gate.
+ *
+ * Returns true when the deployment has signup globally closed and no
+ * whitelist is in effect — in that case we can 403 the request before
+ * even parsing the body. Saves a body-validation round-trip for
+ * RevForge customer kits (which run with both env vars unset, the
+ * default-closed posture) and keeps the kit's auth surface from
+ * leaking its schema to anonymous probes.
+ *
+ * When REVEALUI_SIGNUP_WHITELIST is set, signups MAY be allowed for
+ * specific emails — we have to read the body to know. Those still
+ * land in the deeper `isSignupAllowed(email)` check below.
+ */
+function isSignupGloballyClosed(): boolean {
+  const open = process.env.REVEALUI_SIGNUP_OPEN === 'true';
+  const whitelisted = Boolean(process.env.REVEALUI_SIGNUP_WHITELIST);
+  return !open && !whitelisted;
+}
+
 async function signUpHandler(request: NextRequest): Promise<NextResponse> {
   try {
+    // White-label / fleet-mode: fail fast before body parse when signup is
+    // globally closed (default posture for RevForge kits). Returns a stable
+    // 403 with no schema leakage.
+    if (isSignupGloballyClosed()) {
+      return createApplicationErrorResponse(
+        'Signups are currently restricted. Contact the administrator for access.',
+        'SIGNUP_RESTRICTED',
+        403,
+      );
+    }
+
     let body: unknown;
     try {
       body = await request.json();

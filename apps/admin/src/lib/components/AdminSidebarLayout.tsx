@@ -145,7 +145,7 @@ const bottomItems: NavItem[] = [
   },
 ];
 
-function AdminSidebarContent() {
+function AdminSidebarContent({ siteName }: { siteName: string }) {
   const pathname = usePathname();
 
   const isCurrent = (href: string) => {
@@ -201,15 +201,27 @@ function AdminSidebarContent() {
         </SidebarSection>
       </SidebarBody>
       <SidebarFooter>
-        <p className="text-xs text-zinc-500">RevealUI Admin</p>
+        <p className="text-xs text-zinc-500">{siteName} Admin</p>
       </SidebarFooter>
     </Sidebar>
   );
 }
 
-export function AdminSidebarLayout({ children }: { children: React.ReactNode }) {
+export function AdminSidebarLayout({
+  children,
+  siteName = 'RevealUI',
+}: {
+  children: React.ReactNode;
+  /**
+   * Resolved tenant name for the admin shell footer. Read by the parent
+   * server component from REVEALUI_BRAND_NAME / REVEALUI_TENANT_NAME and
+   * passed down — `process.env` references in this client file would be
+   * inlined at framework build time and miss the kit's stamped value.
+   */
+  siteName?: string;
+}) {
   return (
-    <SidebarLayout navbar={<span />} sidebar={<AdminSidebarContent />}>
+    <SidebarLayout navbar={<span />} sidebar={<AdminSidebarContent siteName={siteName} />}>
       {children}
     </SidebarLayout>
   );
