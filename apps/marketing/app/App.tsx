@@ -6,6 +6,8 @@ import { BlogIndexPage } from './routes/BlogIndexPage';
 import { BlogPostPage } from './routes/BlogPostPage';
 import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
+import { ForOperatorsHowItWorksPage } from './routes/ForOperatorsHowItWorksPage';
+import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
 import { ForOperatorsPage } from './routes/ForOperatorsPage';
 import { HomePage } from './routes/HomePage';
 import { NotFoundPage } from './routes/NotFoundPage';
@@ -44,6 +46,16 @@ export function App() {
         path: '/for-operators',
         component: ForOperatorsPage,
         meta: { title: 'For Operators — RevealUI Studio' },
+      },
+      {
+        path: '/for-operators/how-it-works',
+        component: ForOperatorsHowItWorksPage,
+        meta: { title: 'How it works — RevealUI Studio' },
+      },
+      {
+        path: '/for-operators/managed',
+        component: ForOperatorsManagedPage,
+        meta: { title: 'RevealUI Cloud (roadmap) — RevealUI Studio' },
       },
       { path: '/roadmap', component: RoadmapPage, meta: { title: 'Roadmap — RevealUI' } },
       { path: '/sponsor', component: SponsorPage, meta: { title: 'Sponsor — RevealUI' } },
