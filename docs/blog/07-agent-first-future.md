@@ -4,7 +4,7 @@
 
 ---
 
-> **Status note (updated 2026-05-18):** This post discusses the **agent-first future** RevealUI is building toward. Specifically: x402 micropayments (USDC on Base) and the per-call MCP server marketplace are **designed but not transactable today**. The x402 endpoints are code-complete behind `X402_ENABLED=false`; the marketplace ships its first-party catalog (13 MCP servers) but third-party publishing, payment proxying, and per-call billing are unbuilt. The Agent Card endpoint (`/.well-known/agent.json`) ships today; `payment-methods.json` ships with an `X402_ENABLED=false` empty-payments shape. See [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status of every system mentioned below.
+> **Status note (updated 2026-05-18):** This post discusses the **agent-first future** RevealUI is building toward. Specifically: x402 micropayments (USDC on Base) and the per-call MCP server marketplace are **designed but not transactable today**. The x402 endpoints are code-complete behind `X402_ENABLED=false`; the marketplace ships its first-party catalog (14 MCP servers) but third-party publishing, payment proxying, and per-call billing are unbuilt. The Agent Card endpoint (`/.well-known/agent.json`) ships today; `payment-methods.json` ships with an `X402_ENABLED=false` empty-payments shape. See [What Works Today](../WHAT_WORKS_TODAY.md) for current shipping status of every system mentioned below.
 
 ---
 
