@@ -6,13 +6,20 @@ import { BlogIndexPage } from './routes/BlogIndexPage';
 import { BlogPostPage } from './routes/BlogPostPage';
 import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
+import { ForOperatorsHowItWorksPage } from './routes/ForOperatorsHowItWorksPage';
+import { ForOperatorsManagedPage } from './routes/ForOperatorsManagedPage';
+import { ForOperatorsPage } from './routes/ForOperatorsPage';
 import { HomePage } from './routes/HomePage';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
 import { RoadmapPage } from './routes/RoadmapPage';
+import { SecurityPage } from './routes/SecurityPage';
 import { SponsorPage } from './routes/SponsorPage';
+import { StatusPage } from './routes/StatusPage';
+import { SubprocessorsPage } from './routes/SubprocessorsPage';
+import { SupportPage } from './routes/SupportPage';
 import { TermsPage } from './routes/TermsPage';
 
 export function App() {
@@ -35,10 +42,33 @@ export function App() {
         component: FairSourcePage,
         meta: { title: 'Fair Source — RevealUI' },
       },
+      {
+        path: '/for-operators',
+        component: ForOperatorsPage,
+        meta: { title: 'For Operators — RevealUI Studio' },
+      },
+      {
+        path: '/for-operators/how-it-works',
+        component: ForOperatorsHowItWorksPage,
+        meta: { title: 'How it works — RevealUI Studio' },
+      },
+      {
+        path: '/for-operators/managed',
+        component: ForOperatorsManagedPage,
+        meta: { title: 'RevealUI Cloud (roadmap) — RevealUI Studio' },
+      },
       { path: '/roadmap', component: RoadmapPage, meta: { title: 'Roadmap — RevealUI' } },
       { path: '/sponsor', component: SponsorPage, meta: { title: 'Sponsor — RevealUI' } },
       { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy — RevealUI' } },
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service — RevealUI' } },
+      { path: '/security', component: SecurityPage, meta: { title: 'Security — RevealUI' } },
+      { path: '/support', component: SupportPage, meta: { title: 'Support — RevealUI' } },
+      { path: '/status', component: StatusPage, meta: { title: 'Status — RevealUI' } },
+      {
+        path: '/legal/subprocessors',
+        component: SubprocessorsPage,
+        meta: { title: 'Subprocessors — RevealUI' },
+      },
       { path: '/*notfound', component: NotFoundPage, meta: { title: '404 — RevealUI' } },
     ]);
     registered.current = true;
