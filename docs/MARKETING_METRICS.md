@@ -94,7 +94,7 @@ Server fallback (when Stripe unreachable): `apps/server/src/routes/pricing.ts:50
 | Dashboard Agent Chat | **Shipped** | Live at admin.revealui.com. |
 | Documentation Site | **Shipped** | docs.revealui.com. |
 | x402 Agent Payments | **Planned** | `X402_ENABLED=false` default; code-complete but dormant. "Designed; gated on Stripe live." |
-| MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (13 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
+| MCP Marketplace (third-party publishing) | **Planned** | First-party catalog (14 servers) shipped; third-party publishing + revenue share not built. NO "80/20 revenue share" claims. |
 | Perpetual Licenses (Track C) | **Planned** | `comingSoon: true` in contracts. |
 | Self-Hosted Docker Images (RevealUI Fleet) | **Planned** | Designed, not built. |
 | Visual Builder | **Planned** | Backlog. |
@@ -148,7 +148,7 @@ Canonical defaults (when "open-model AI" is mentioned in marketing): Gemma 4, Ph
 Five testable rules — Phase 5 audits every page against these:
 
 1. **Lead with what ships today.** Every page's first sentence under H1 names a capability with a verifiable artifact.
-2. **Specifics over adjectives.** "Fast" → "13 first-party MCP servers." "Secure" → "Ed25519-signed license JWTs."
+2. **Specifics over adjectives.** "Fast" → "14 first-party MCP servers." "Secure" → "Ed25519-signed license JWTs."
 3. **Identify the reader by their stack, not job title.**
 4. **Surface the trade-off, don't bury it.** "Three yeses and one no" pattern.
 5. **No marketing-speak, no emojis, no exclamation points.** Banned adjective table in `voice-and-headline-rules.md` §1.
