@@ -1,7 +1,7 @@
 ---
 title: Asset Inventory
 description: Formal inventory of all services, data stores, third-party processors, and security tooling for SOC 2 compliance.
-last-updated: 2026-04-12
+last-updated: 2026-05-29
 review-cadence: quarterly
 owner: RevealUI Studio <founder@revealui.com>
 classification: internal
@@ -15,6 +15,14 @@ This document provides a comprehensive inventory of all assets managed under the
 
 This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair Source Pro packages) and all associated infrastructure.
 
+> **Infrastructure-in-transition note (added 2026-05-29).** Several entries below are mid-migration and their status is **transitional**, not steady-state:
+> - **Supabase (DS-002, TP-006)** is a *legacy secondary* store being phased out — target is NeonDB-primary + ElectricSQL; new features must not depend on Supabase (ADR [`2026-05-01-supabase-removal`](https://github.com/RevealUIStudio/revealui/blob/main/docs/decisions/2026-05-01-supabase-removal.md)). The retained Supabase MCP adapter is a customer-facing integration, separate from internal usage.
+> - The **ElectricSQL sync host (DS-003, TP-007)** is migrating **Railway → Fly.io** (infrastructure ADR dated 2026-05-18; migration phases 0–3 shipped, 4–6 pending). "Railway" rows reflect the current host until the cutover completes.
+> - **Storage** is Cloudflare R2 (S3-compatible); the legacy Vercel Blob backend is being retired (GAP-208).
+> - **RevealCoin (SVC-007)** was cancelled 2026-05-29 (repo private+archived, keys destroyed).
+>
+> Rows are retained (not deleted) until each migration completes, so the inventory stays a faithful map of what is *currently* deployed. Each migration's completion will flip the corresponding rows.
+
 ## 2. Service Inventory
 
 ### 2.1 Deployed Applications
@@ -27,7 +35,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | SVC-004 | docs | Documentation | Vite + React | 3002 | Vercel | Production | Founder | Public | Active |
 | SVC-005 | studio | Desktop Application | Tauri 2 + React 19 | N/A | Local distribution | User device | Founder | Internal | Active |
 | SVC-006 | terminal | CLI Tool | Go (Bubble Tea) | N/A | Local distribution | User device | Founder | Internal | Active |
-| SVC-007 | revealcoin | Token Service | N/A | N/A | TBD | N/A | Founder | Internal | Active |
+| ~~SVC-007~~ | ~~revealcoin~~ | (CANCELLED 2026-05-29 — project ended; repo private+archived; keys destroyed via revvault rotate-and-destroy) | N/A | N/A | N/A | N/A | N/A | N/A | Decommissioned |
 
 ### 2.2 OSS Packages (MIT License)
 
@@ -65,8 +73,8 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | ID | Store | Type | Provider | Location | Data Classification | Encryption at Rest | Encryption in Transit | Backup Policy | Recovery Objective |
 |----|-------|------|----------|----------|---------------------|--------------------|-----------------------|---------------|-------------------|
 | DS-001 | NeonDB (Primary) | Managed PostgreSQL | Neon | Cloud (provider-managed) | Confidential | AES-256 (provider-managed) | TLS 1.2+ | Continuous (provider PITR) | RPO: near-zero; RTO: minutes |
-| DS-002 | Supabase (Secondary) | Managed PostgreSQL + pgvector | Supabase | Cloud (provider-managed) | Confidential | AES-256 (provider-managed) | TLS 1.2+ | Daily snapshots (provider) | RPO: 24 hours; RTO: hours |
-| DS-003 | ElectricSQL Proxy | Real-time sync proxy | Railway | Cloud (Railway) | Internal | Provider-managed | TLS 1.2+ | N/A (stateless proxy) | N/A |
+| DS-002 | Supabase (Secondary — **legacy, phasing out**) | Managed PostgreSQL + pgvector | Supabase | Cloud (provider-managed) | Confidential | AES-256 (provider-managed) | TLS 1.2+ | Daily snapshots (provider) | RPO: 24 hours; RTO: hours |
+| DS-003 | ElectricSQL Proxy | Real-time sync proxy | Railway (**migrating → Fly.io**, ADR 2026-05-18) | Cloud | Internal | Provider-managed | TLS 1.2+ | N/A (stateless proxy) | N/A |
 | DS-004 | PGlite (Browser/Test) | In-memory PostgreSQL | Local | Browser or CI runner | Internal | N/A (ephemeral) | N/A (local) | N/A (ephemeral) | N/A |
 
 ### 3.1 Data Categories by Store
@@ -81,7 +89,7 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 - GDPR consent and anonymization records
 - AI agent coordination data, CRDT operations
 
-**Supabase (DS-002):** Vector embeddings, secondary auth, and specialized workloads.
+**Supabase (DS-002 — legacy, phasing out):** Vector embeddings, secondary auth, and specialized workloads. Being consolidated onto NeonDB pgvector; new features must not depend on Supabase.
 - Vector embeddings for RAG (pgvector)
 - OAuth account linkage
 - Supabase Auth sessions (where used)
@@ -100,15 +108,15 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
 | TP-003 | GitHub | Source code hosting, CI/CD, package registry, security advisories | Source code, CI logs, secrets (encrypted), security alerts | GitHub DPA in effect | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
 | TP-004 | npm (GitHub) | Package distribution (public OSS packages) | Published package source, package metadata | Covered by GitHub DPA | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
 | TP-005 | Neon | Managed PostgreSQL (primary database) | All relational data (users, content, payments metadata, sessions) | Neon DPA in effect | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
-| TP-006 | Supabase | Managed PostgreSQL + vectors, secondary auth | Vector embeddings, OAuth linkage, secondary auth sessions | Supabase DPA in effect | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
-| TP-007 | Railway | ElectricSQL proxy hosting | Sync protocol traffic (encrypted in transit, no persistent storage) | Railway ToS | Review pending | 2026-04-12 | 2026-07-12 |
+| TP-006 | Supabase (**legacy, phasing out**) | Managed PostgreSQL + vectors, secondary auth | Vector embeddings, OAuth linkage, secondary auth sessions | Supabase DPA in effect | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
+| TP-007 | Railway (**migrating → Fly.io**, ADR 2026-05-18) | ElectricSQL proxy hosting | Sync protocol traffic (encrypted in transit, no persistent storage) | Railway ToS | Review pending | 2026-04-12 | 2026-07-12 |
 | TP-008 | Google Workspace | Email (Gmail API for transactional email) | Recipient email addresses, email content | Google Workspace DPA | SOC 2 Type II | 2026-04-12 | 2026-07-12 |
 
 ### 4.1 Subprocessor Notes
 
 - **Stripe** is a PCI DSS Level 1 service provider. RevealUI never stores, processes, or transmits cardholder data. Only Stripe customer IDs, subscription IDs, and webhook event metadata are persisted in NeonDB.
 - **npm** provenance attestations (SLSA Build Level 2) are generated via OIDC trusted publishing in the release workflow. No long-lived NPM_TOKEN is required.
-- **Railway** hosts the ElectricSQL sync proxy, which is stateless. Data passes through encrypted in transit but is not persisted on Railway infrastructure.
+- **Railway** currently hosts the ElectricSQL sync proxy, which is stateless. Data passes through encrypted in transit but is not persisted on the proxy host. This host is migrating Railway → Fly.io per ADR 2026-05-18 (phases 4–6 pending); the stateless property is unchanged by the move.
 
 ## 5. Security Tooling Inventory
 
@@ -193,9 +201,10 @@ This inventory covers the RevealUI open-core monorepo (MIT core packages + Fair 
                                              |
                                              v
                                      +---------------+
-                                     | Railway       |
+                                     | Railway→Fly.io|
                                      | (TP-007)      |
                                      | Sync Hosting  |
+                                     | (migrating)   |
                                      +---------------+
 
               +------------------+    +------------------+

@@ -184,6 +184,35 @@ That last exception is temporary, not a preferred pattern. It exists because the
 
 ---
 
+## Frontend Choices
+
+RevealUI uses two frontend frameworks for two distinct surfaces. The choice is intentional: different surfaces have different constraints.
+
+### Customer-facing surfaces — Vite + `@revealui/router`
+
+`apps/marketing` (revealui.com) and `apps/docs` (docs.revealui.com) run on Vite + `@revealui/router` (the first-party file-based router). The reasoning:
+
+- **Static-heavy content.** Marketing and docs are mostly pre-rendered pages. RSC's request-time rendering buys nothing here; build-time output is fine.
+- **No vendor edge runtime.** Vite produces a standard Node bundle. The site runs on Vercel, Fly, Cloudflare, Hetzner, or self-hosted — the deploy contract is plain HTTP, not platform-specific.
+- **First-party router.** `@revealui/router` is a workspace package owned by the framework. Upgrade cadence and URL contract are not dictated by a third-party community router.
+- **Hot-reload speed.** Vite's dev server outperforms full Next.js dev for content-heavy SPAs without RSC.
+
+### Admin surface — Next.js 16 + Turbopack
+
+`apps/admin` (admin.revealui.com) runs on Next.js 16 with Turbopack. The reasoning:
+
+- **React Server Components.** The admin engine renders heavy, data-bound forms and tables where RSC eliminates client-side data fetching and shrinks the bundle.
+- **Mature plugin ecosystem.** The Payload-derived admin engine integrates with Next.js conventions for file-based routing, dynamic imports, and image optimization.
+- **Migration in flight.** An internal admin-platform ADR commits the admin app to migrate off Next.js onto `@revealui/router` + Vite + Hono SSR (Waku-style RSC). The migration is multi-phase; the current Next.js implementation stays in place while the migration ships.
+
+### Shared frontend layer
+
+Both surfaces share `@revealui/presentation` (59 native UI components, Tailwind v4, zero external UI deps), `@revealui/auth` (session auth), and `@revealui/contracts` (Zod schemas + types). The framework split is at the framework boundary; the component library and contracts are unified.
+
+For the full library + rationale, see [`guides/technology-stack.md`](./guides/technology-stack.md).
+
+---
+
 ## Database Architecture
 
 ### Postgres-primary with optional sidecars

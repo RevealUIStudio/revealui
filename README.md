@@ -36,7 +36,7 @@ You have:
 - **Billing:** Stripe checkout, subscriptions, trials, webhooks, grace periods, and a billing portal
 - **Admin dashboard:** manage users, content, billing, and settings out of the box
 - **59 UI components:** built with Tailwind CSS v4, zero external UI dependencies
-- **13 MCP servers:** agents discover and use your business data through the same API humans use
+- **14 MCP servers:** agents discover and use your business data through the same API humans use
 - **Type-safe throughout:** Zod schemas shared between client, server, database, and agent tools
 
 No assembly required. Define your data once. Humans manage it through the dashboard, agents operate on it through MCP. Same permissions, same audit trail.
@@ -49,7 +49,17 @@ No assembly required. Define your data once. Humans manage it through the dashbo
 | **Content**      | Collections, rich text (Lexical), media, draft/live, REST API    | Collections auto-exposed as MCP tools. No integration step.  |
 | **Products**     | Product catalog, pricing tiers, usage tracking                   | Feature gates control which agent capabilities unlock.       |
 | **Payments**     | Stripe checkout, subscriptions, webhooks, billing portal         | Same Stripe primitives, available to agents.                 |
-| **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 13 MCP servers.                   |
+| **Intelligence** | AI agents, open-model inference, task history _(Pro)_            | A2A protocol, CRDT memory, 14 MCP servers.                   |
+
+## Open-model first
+
+The Intelligence primitive ships with open-model defaults. No proprietary API keys required, no API bill that scales with usage.
+
+- **Ollama** — local model runner; the standard developer-machine path.
+- **Ubuntu Inference Snaps** — Apache-2.0-preferred model runtimes for production. `sudo snap install gemma3` (or `deepseek-r1`, `qwen-vl`, `nemotron-3-nano`, `nemotron-3-nano-omni`).
+- **Pluggable provider adapters** — Claude, OpenAI, and others available as opt-in adapters. The fleet runtime never imports any provider SDK by default; you wire whichever model you want.
+
+Verifiable: `git grep -l "@anthropic-ai/sdk" packages/` returns nothing inside `@revealui/*` packages. The runtime is provider-agnostic by contract.
 
 ## Design principles
 
@@ -143,7 +153,7 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 
 ## Packages
 
-### OSS (MIT)
+### OSS Packages (MIT) — 20
 
 | Package                                                 | Purpose                                           |
 | ------------------------------------------------------- | ------------------------------------------------- |
@@ -165,7 +175,6 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/dev`](packages/dev)                         | Shared configs (Biome, TypeScript, Tailwind)      |
 | [`@revealui/test`](packages/test)                       | E2E specs, integration tests, fixtures, mocks     |
 | [`@revealui/paywall`](packages/paywall)                 | Runtime license enforcement, feature gating, upgrade UI |
-| [`@revealui/scripts`](packages/scripts)                 | Shared monorepo script utilities (internal)       |
 | [`create-revealui`](packages/create-revealui)           | `npm create revealui` initializer                 |
 | [`revealui`](packages/revealui)                         | Meta-installer (proxies to `create-revealui`; unpublished) |
 
@@ -178,6 +187,12 @@ The RevealUI Studio agency site (revealuistudio.com) lives in [RevealUIStudio/ag
 | [`@revealui/harnesses`](packages/harnesses)             | AI harness adapters and workboard coordination    |
 | [`@revealui/mcp`](packages/mcp)                         | MCP hypervisor, adapter framework, tool discovery |
 | [`@revealui/services`](packages/services)               | Stripe (billing + circuit breaker), transactional email (Gmail API) |
+
+### Internal Package (no license, build tooling) — 1
+
+| Package                                                 | Purpose                                           |
+| ------------------------------------------------------- | ------------------------------------------------- |
+| [`@revealui/scripts`](packages/scripts)                 | Shared monorepo script utilities — build tooling, not for external consumption |
 
 ## Tech stack
 
@@ -259,7 +274,7 @@ revealui/
 │   ├── admin/      # Admin dashboard + content management (port 4000)
 │   ├── docs/       # Documentation site (port 3002)
 │   └── marketing/  # revealui.com marketing site (port 3000)
-├── packages/       # 21 OSS + 5 Pro packages
+├── packages/       # 20 OSS + 5 Pro + 1 internal = 26 packages
 ├── docs/           # guides + reference
 └── scripts/        # CI gates, release tooling, dev tools
 ```
@@ -276,7 +291,7 @@ revealui/
 - **[Auth Guide](docs/AUTH.md):** Authentication, sessions, RBAC
 - **[Admin Guide](docs/ADMIN_GUIDE.md):** Collections, fields, access control
 - **[Testing](docs/TESTING.md):** Vitest, Playwright, coverage
-- **[Deployment](docs/CI_CD_GUIDE.md):** Vercel, Railway, or self-host
+- **[Deployment](docs/guides/deployment.md):** Vercel, Fly, or self-host
 - **[All docs](docs/INDEX.md):** Full index (25 guides)
 
 ## Contributing

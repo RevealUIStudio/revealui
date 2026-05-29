@@ -1,7 +1,7 @@
 ---
 title: Incident Response Plan
 description: Procedures for detecting, responding to, and recovering from security incidents in the RevealUI project.
-last-updated: 2026-04-12
+last-updated: 2026-05-29
 ---
 
 # Incident Response Plan
@@ -9,6 +9,8 @@ last-updated: 2026-04-12
 ## 1. Purpose
 
 This document defines how RevealUI detects, responds to, and recovers from security incidents. It covers the production infrastructure (Vercel, NeonDB, Supabase, Stripe) and the open-source supply chain (npm, GitHub).
+
+> **Infrastructure-in-transition note (2026-05-29).** Supabase is a *legacy secondary* store phasing out (ADR 2026-05-01) and the ElectricSQL host is migrating Railway → Fly.io (ADR 2026-05-18). The Supabase/Railway key-rotation and log-review steps below remain valid **while those systems are in service**; see [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative transition status.
 
 ## 2. Contacts
 

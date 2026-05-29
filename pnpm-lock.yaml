@@ -486,6 +486,9 @@ importers:
       '@revealui/router':
         specifier: workspace:*
         version: link:../../packages/router
+      '@sentry/react':
+        specifier: ^10.53.1
+        version: 10.53.1(react@19.2.6)
       '@vercel/speed-insights':
         specifier: ^2.0.0
         version: 2.0.0(next@16.2.6(@opentelemetry/api@1.9.1)(@playwright/test@1.60.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6))(react@19.2.6)
