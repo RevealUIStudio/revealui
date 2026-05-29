@@ -6,6 +6,7 @@ import { BlogIndexPage } from './routes/BlogIndexPage';
 import { BlogPostPage } from './routes/BlogPostPage';
 import { ContactPage } from './routes/ContactPage';
 import { FairSourcePage } from './routes/FairSourcePage';
+import { ForOperatorsPage } from './routes/ForOperatorsPage';
 import { HomePage } from './routes/HomePage';
 import { NotFoundPage } from './routes/NotFoundPage';
 import { PricingPage } from './routes/PricingPage';
@@ -35,6 +36,11 @@ export function App() {
         path: '/fair-source',
         component: FairSourcePage,
         meta: { title: 'Fair Source — RevealUI' },
+      },
+      {
+        path: '/for-operators',
+        component: ForOperatorsPage,
+        meta: { title: 'For Operators — RevealUI Studio' },
       },
       { path: '/roadmap', component: RoadmapPage, meta: { title: 'Roadmap — RevealUI' } },
       { path: '/sponsor', component: SponsorPage, meta: { title: 'Sponsor — RevealUI' } },
