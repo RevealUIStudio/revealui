@@ -8,6 +8,13 @@
 // (PRODUCTS_PRIMITIVES in content/primitives.ts) stays exported for future
 // relocation to a /concepts or /platform page per lane owner's discretion.
 //
+// Status re-verified 2026-05-29 (owner directive: reflect what's completed vs.
+// soon-to-complete). RevKit promoted Planned → Active (MIT): the §2.1 table
+// flagged it "cross-check revkit/README.md", and that README confirms a working
+// MIT toolkit (bootstrap + render engine + 4 tier profiles) in active studio
+// use — not an unshipped/planned item. Hero subtitle sharpened to state what
+// ships today vs. what's on the way (RevMarket, the agent marketplace).
+//
 // Status semantics:
 //   Beta         — production-ready code, limited paying users / dogfooded
 //   Alpha        — development-preview quality; works, ships, may break
@@ -20,7 +27,7 @@ import type { Cta } from './types';
 export const PRODUCTS_PAGE_HERO = {
   h1: 'The RevFleet product family',
   subtitle:
-    'Start with the runtime, add the rest as you grow. Eight products on one foundation — each ships today or ships soon, all built and operated by RevealUI Studio.',
+    'Start with the runtime, add the rest as you grow. Eight products on one foundation, all built and operated by RevealUI Studio — every one shipping today except the agent marketplace, which is on the way.',
 } as const;
 
 export type ProductStatus = 'Beta' | 'Alpha' | 'Active (MIT)' | 'Planned';
@@ -190,7 +197,7 @@ export const PRODUCTS_SISTERS: readonly SisterProduct[] = [
     name: 'RevKit',
     tagline: 'Portable WSL dev environment',
     body: 'Profile-based WSL bootstrap with parameterized templates and tier-aware resource configs. Reproducible developer machines.',
-    status: 'Planned',
+    status: 'Active (MIT)',
     iconPath:
       'M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z',
     primaryCta: {
