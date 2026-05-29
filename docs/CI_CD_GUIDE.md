@@ -49,7 +49,7 @@ All workflows live in [`.github/workflows/`](../.github/workflows/).
 | [`release.yml`](../.github/workflows/release.yml) | workflow_dispatch | OSS npm publish via OIDC trusted publishing (SLSA Build Level 2 provenance) |
 | [`docker.yml`](../.github/workflows/docker.yml) | workflow_dispatch | Build & push Fleet self-hosted Docker images (`server` + `admin`) to GHCR |
 | [`db-backup.yml`](../.github/workflows/db-backup.yml) | scheduled | NeonDB-side backup hooks (PITR coordination) |
-| [`reconciliation-crons.yml`](../.github/workflows/reconciliation-crons.yml) | scheduled | Stripe + RVC reconciliation jobs |
+| [`reconciliation-crons.yml`](../.github/workflows/reconciliation-crons.yml) | scheduled | Stripe reconciliation jobs (RVC retired 2026-05-29) |
 | [`webhook-reconciliation.yml`](../.github/workflows/webhook-reconciliation.yml) | scheduled | Stripe webhook event-replay safety net |
 | [`regen-visual-snapshots.yml`](../.github/workflows/regen-visual-snapshots.yml) | workflow_dispatch | Regenerate Playwright visual-regression snapshots |
 | [`system-tune-snapshot.yml`](../.github/workflows/system-tune-snapshot.yml) | scheduled | Performance-baseline snapshot |
@@ -65,7 +65,7 @@ The real pipeline is six stages, all defined in [`deploy.yml`](../.github/workfl
 
 1. **`validate`** — install, build `@revealui/db`, run `drizzle-kit generate` to detect uncommitted schema drift; pull Vercel `production` env for the `api` project; run `pnpm validate:prod-env` (mirrors `validateStartup` in [`apps/server/src/lib/validate-startup.ts`](../apps/server/src/lib/validate-startup.ts) — presence + format checks for every required var, including the `sk_test_` / live-mode mismatch trap and the `REVEALUI_CRON_SECRET ≥ 32 chars` rule that closed GAP-125).
 2. **`migrate`** — run `pnpm db:backfill-migrations` (defense against half-applied state), then `pnpm --filter @revealui/db db:migrate` (drizzle-kit), then `pnpm db:assert-migration-count` (post-migrate row-count assertion). Output forced to non-color and tee'd through `tr '\r' '\n'` so drizzle-kit's spinner doesn't eat the trailing error message on failure.
-3. **`detect`** — diff `HEAD~1..HEAD` to compute the affected-app list. Apps known to the matrix: `api`, `admin`, `marketing`, `docs`, `revealcoin`. Shared package or root config change → all apps. Workflow `inputs.apps` allows manual override (`all`, comma-list, or `auto`).
+3. **`detect`** — diff `HEAD~1..HEAD` to compute the affected-app list. Apps known to the matrix: `api`, `admin`, `marketing`, `docs`. Shared package or root config change → all apps. Workflow `inputs.apps` allows manual override (`all`, comma-list, or `auto`). (Pre-2026-05-29 the matrix also included `revealcoin`; removed when the dashboard was retired and the project cancelled.)
 4. **`deploy`** — fan-out matrix; each app pulls its own Vercel project env, builds via `vercel build --prod`, and publishes via `vercel deploy --prebuilt --prod`. Project IDs are hardcoded in the workflow (one per app).
 5. **`smoke-test`** — poll `${API_URL}/health/ready` (12 × 10 s) and `${ADMIN_URL}` for HTTP 200. The api `/health/ready` checks DB + memory + config (see [`apps/server/src/routes/health.ts`](../apps/server/src/routes/health.ts) and [`apps/admin/src/app/api/health/ready/route.ts`](../apps/admin/src/app/api/health/ready/route.ts)).
 6. **`smoke-test` failure path** — auto-rollback. Per-app: `vercel ls --prod` → take 2nd-most-recent ready URL → `vercel rollback <url>` → re-poll `vercel ls` to confirm the alias moved (GAP-128: `vercel rollback` with no URL is a status query, not an action — the URL must be passed). On any rollback failure, the workflow exits non-zero so the broken-deploy-still-live signal surfaces immediately.
@@ -126,7 +126,7 @@ Each app is a separate Vercel project (own project ID, own env scope). Build com
 pnpm vercel-build   # = "cd ../.. && pnpm turbo build --filter=<app>"
 ```
 
-Each app's `vercel-build` script lives in `apps/<app>/package.json`. Output directory is the standard Next.js `.next` (admin) or Vite `dist` (docs / marketing / revealcoin).
+Each app's `vercel-build` script lives in `apps/<app>/package.json`. Output directory is the standard Next.js `.next` (admin) or Vite `dist` (docs / marketing).
 
 ### Standalone output (admin)
 
@@ -141,7 +141,7 @@ vercel inspect <deployment-url>                     # deployment metadata
 vercel rollback <previous-good-url> --token=...     # alias swap (the rollback path used by deploy.yml)
 ```
 
-Hardcoded Vercel project IDs are stored in [`deploy.yml`](../.github/workflows/deploy.yml) (one per app: `api`, `admin`, `marketing`, `docs`, `revealcoin`).
+Hardcoded Vercel project IDs are stored in [`deploy.yml`](../.github/workflows/deploy.yml) (one per app: `api`, `admin`, `marketing`, `docs`).
 
 ---
 

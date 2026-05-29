@@ -20,6 +20,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 import { readFileSync } from 'node:fs';
+import { getHeapStatistics } from 'node:v8';
 import { serve } from '@hono/node-server';
 import { initializeLicense } from '@revealui/core/license';
 import {
@@ -118,6 +119,7 @@ import studioAuthRoute from './routes/studio-auth.js';
 import terminalAuthRoute from './routes/terminal-auth.js';
 import { createTerminalRoute } from './routes/terminal-ws.js';
 import ticketsRoute from './routes/tickets/index.js';
+import waitlistRoute from './routes/waitlist.js';
 import webhooksRoute from './routes/webhooks.js';
 
 // Ship warn+ logs to NeonDB in production
@@ -612,6 +614,15 @@ const contactLimit = rateLimitMiddleware({
 app.use('/api/contact', contactLimit);
 app.use('/api/v1/contact', contactLimit);
 
+// Public waitlist / email capture  -  same tight limit (unauthenticated, DB write)
+const waitlistLimit = rateLimitMiddleware({
+  maxRequests: 5,
+  windowMs: 15 * 60_000,
+  keyPrefix: 'waitlist',
+});
+app.use('/api/waitlist', waitlistLimit);
+app.use('/api/v1/waitlist', waitlistLimit);
+
 // Populate session if present (non-blocking  -  sets user context for all API routes)
 const optionalAuth = authMiddleware({ required: false });
 app.use('/api/*', optionalAuth);
@@ -1089,6 +1100,8 @@ app.route('/api/auth', authRoute);
 app.route('/api/billing', billingRoute);
 app.route('/api/contact', contactRoute);
 app.route('/api/v1/contact', contactRoute);
+app.route('/api/waitlist', waitlistRoute);
+app.route('/api/v1/waitlist', waitlistRoute);
 // Webhooks are rate-limited to prevent replay abuse and resource exhaustion.
 // Stripe's DB-backed idempotency handles dedup; this limits request volume.
 app.use('/api/webhooks/*', rateLimitMiddleware(rateLimitsConfig.routes.webhook));
@@ -1212,7 +1225,7 @@ export function initAlerting(): void {
   alerting.registerRule(
     createMemoryUsageAlert(() => {
       const mem = process.memoryUsage();
-      return Math.round((mem.heapUsed / mem.heapTotal) * 100);
+      return Math.round((mem.heapUsed / getHeapStatistics().heap_size_limit) * 100);
     }, 85),
   );
 

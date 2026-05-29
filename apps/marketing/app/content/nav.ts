@@ -9,6 +9,7 @@ export const NAV_LINKS: readonly NavLink[] = [
   { label: 'Pricing', href: '/pricing' },
   { label: 'Docs', href: SITE.urls.docs },
   { label: 'Blog', href: '/blog' },
+  { label: 'For Operators', href: '/for-operators' },
 ] as const;
 
 export const NAV_AUTH = {
@@ -43,10 +44,22 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { label: 'Contact', href: '/contact' },
     ],
   },
+  {
+    heading: 'Trust',
+    links: [
+      { label: 'Status', href: '/status' },
+      { label: 'Support', href: '/support' },
+      { label: 'Security', href: '/security' },
+      { label: 'Subprocessors', href: '/legal/subprocessors' },
+    ],
+  },
 ] as const;
 
 export const FOOTER_TAGLINE =
   'Agentic business runtime. Users, content, products, payments, and AI, pre-wired, open source, and ready to deploy.' as const;
+
+export const FOOTER_SOLO_OPERATOR_NOTE =
+  'Built by one engineer in Tennessee. See Support for response SLAs.' as const;
 
 export const FOOTER_LEGAL = {
   operator: 'REVEALUI STUDIO L.L.C.',
@@ -55,6 +68,8 @@ export const FOOTER_LEGAL = {
 } as const;
 
 export const FOOTER_LEGAL_LINKS: readonly NavLink[] = [
-  { label: 'Privacy Policy', href: '/privacy' },
-  { label: 'Terms of Service', href: '/terms' },
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Terms', href: '/terms' },
+  { label: 'Security', href: '/security' },
+  { label: 'Subprocessors', href: '/legal/subprocessors' },
 ] as const;

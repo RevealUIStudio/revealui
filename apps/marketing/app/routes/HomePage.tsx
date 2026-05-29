@@ -2,6 +2,7 @@ import { Footer } from '../components/Footer';
 import { GetStarted } from '../components/GetStarted';
 import { Demo } from '../components/landing/Demo';
 import { Faq } from '../components/landing/Faq';
+import { Fork } from '../components/landing/Fork';
 import { Hero } from '../components/landing/Hero';
 import { Persona } from '../components/landing/Persona';
 import { PricingTeaser } from '../components/landing/PricingTeaser';
@@ -14,6 +15,7 @@ export function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Hero />
+      <Fork />
       <Problem />
       <Demo />
       <Primitives />
