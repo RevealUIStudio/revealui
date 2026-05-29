@@ -89,8 +89,12 @@ Query parameters for list endpoints:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/health` | Health check |
+| GET | `/health` | Basic health check (returns 200 + JSON when the API is up) |
+| GET | `/health/ready` | Readiness probe (200 when DB + dependencies are reachable, 503 otherwise) |
+| GET | `/health/live` | Liveness probe (200 when the process is up) |
 | GET | `/api/logs` | Application logs (admin only) |
+
+> **Note on paths:** the Hono API serves the health-check family at the root (`/health`, `/health/ready`, `/health/live`) — **not** under `/api/*`. Most other endpoints listed in this reference use the `/api/*` prefix. The admin Next.js app at `admin.revealui.com` separately exposes its own health route at `/api/health` — that is a different surface from the Hono API documented here.
 
 ### Agent and Collaboration
 
