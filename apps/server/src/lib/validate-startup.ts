@@ -1,4 +1,4 @@
-import { validateLicenseKey } from '@revealui/core/license';
+import { hostMatchesLicensedDomains, validateLicenseKey } from '@revealui/core/license';
 import { getClient } from '@revealui/db/client';
 import { billingCatalog } from '@revealui/db/schema';
 
@@ -488,6 +488,34 @@ export async function validateLicenseAtStartup(env: EnvMap = process.env as EnvM
         'customerId does not match REVEALUI_LICENSED_CUSTOMER_ID (if set). ' +
         'Contact the operator who stamped this kit to re-issue the license.',
     );
+  }
+
+  // Domain binding: when the license restricts domains, the configured public
+  // server URL must resolve to a licensed host. The allowed domains come from
+  // the signed JWT `domains` claim (cryptographically bound), so this cannot
+  // be bypassed by editing an env var. REVEALUI_PUBLIC_SERVER_URL presence is
+  // enforced separately in validateStartup's forge-mode REQUIRED list (prod);
+  // when it is absent here (e.g. dev), skip — request-time `requireDomain` is
+  // the per-request gate. localhost/127.0.0.1 pass via the shared matcher so a
+  // trial kit on its default http://localhost still boots.
+  if (payload.domains && payload.domains.length > 0) {
+    const publicUrl = (env.REVEALUI_PUBLIC_SERVER_URL ?? env.NEXT_PUBLIC_SERVER_URL ?? '').trim();
+    if (publicUrl) {
+      let host = '';
+      try {
+        host = new URL(publicUrl).hostname;
+      } catch {
+        host = '';
+      }
+      if (!hostMatchesLicensedDomains(host, payload.domains)) {
+        throw new Error(
+          'LICENSE VALIDATION FAILED: this license is restricted to ' +
+            `[${payload.domains.join(', ')}], but REVEALUI_PUBLIC_SERVER_URL host ` +
+            `"${host || '(unparseable)'}" is not among them. Set REVEALUI_PUBLIC_SERVER_URL ` +
+            'to a licensed domain, or contact the operator who stamped this kit.',
+        );
+      }
+    }
   }
 }
 
