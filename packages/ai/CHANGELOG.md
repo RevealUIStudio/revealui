@@ -1,5 +1,18 @@
 # @revealui/ai
 
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [96b1049]
+- Updated dependencies [e08adbe]
+- Updated dependencies [f8c74e6]
+- Updated dependencies [ba61b20]
+- Updated dependencies [6545491]
+  - @revealui/db@0.7.0
+  - @revealui/core@0.9.0
+  - @revealui/contracts@0.6.0
+
 ## 0.5.1
 
 ### Patch Changes
