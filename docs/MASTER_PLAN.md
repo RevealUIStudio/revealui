@@ -40,7 +40,7 @@ note: public snapshot — canonical version at revealui-jv/docs/MASTER_PLAN.md (
 - **Infrastructure:** Nix flakes, direnv, Biome 2 (sole linter), Turborepo, pnpm 10
 - **Security:** 7 audit rounds complete. 0 CodeQL alerts, 0 Dependabot alerts, 0 avoidable `any` types, 0 production console statements. AES-256-GCM encryption, bcrypt passwords, RBAC+ABAC, timing-safe TOTP. AST-based code-pattern analyzer (execSync injection, TOCTOU, ReDoS). Pre-push gate runs affected tests on protected branches. SOC2 audit track documented with pentest RFP template.
 - **Entity:** REVEALUI STUDIO L.L.C. (Tennessee, formed 2026-04-28; EIN issued). DE flip deferred until SoloFounders acceptance or first outside raise.
-- **On-chain token:** Token-2022 symbol `RVC` (customer-facing).
+- **On-chain payments:** USDC settlement on Base via x402 (dormant until Stripe live-mode flip). RevealCoin (RVC) was cancelled 2026-05-29; the on-chain Token-2022 artifact at mint `4Ysb1gkz21FD2B9P8P5Pm8bHh4CAMKYU1L528e1MigPo` is dormant and authority keys destroyed. No RVC future-launch is planned.
 
 ### What Works
 
@@ -521,7 +521,7 @@ Phase E  -  Remote access gateway (agent + owner):
 | MCP Marketplace | Phase 5.5 (`packages/mcp`) | Agent/tool discovery, tenant scoping |
 | A2A Discovery | `apps/studio/src/lib/a2a-api.ts` | Cloud agent cards with skills/capabilities |
 | Agent Task Metering | Phase 5.1 (Stripe Billing Meter) | Per-task usage billing |
-| x402 Payments | Phase 5.2 (RevealCoin) | Per-task crypto payment |
+| x402 Payments | Phase 5.2 (USDC on Base) | Per-task crypto payment |
 | SpawnerPanel | `apps/studio/src/components/agent/` | Agent spawn with backend/model/prompt |
 | Harness Adapters | `packages/harnesses/src/adapters/` | Multi-tool agent adapters (stubs) |
 
@@ -552,7 +552,7 @@ Phase D  -  Agent publisher tools (agent):
 - [x] Version management (publish new versions, rollback)  -  version field in schema, draft→published flow  -  2026-04-07
 - [x] Analytics (usage, revenue, error rates)  -  /admin/marketplace/analytics with metrics table  -  2026-04-07
 
-**Exit criteria:** Users can browse agents by skill, submit tasks, and receive results without writing code. Agent publishers can list, price, and monitor their agents. Billing works via both Stripe metering and x402 RevealCoin. Task execution is sandboxed with audit trail.
+**Exit criteria:** Users can browse agents by skill, submit tasks, and receive results without writing code. Agent publishers can list, price, and monitor their agents. Billing works via both Stripe metering and x402 USDC settlement on Base. Task execution is sandboxed with audit trail.
 
 #### 5.17 Hardware-Aware Auto-Config (cross-platform, Fleet-wide)
 
