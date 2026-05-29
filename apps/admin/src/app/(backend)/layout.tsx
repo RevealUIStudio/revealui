@@ -14,11 +14,16 @@ type Args = {
   children: React.ReactNode;
 };
 
+// White-label: read tenant identity in the server component and prop-drill
+// to the client sidebar (env vars in `'use client'` files get inlined at
+// framework build time, missing the kit's stamped value at runtime).
+const siteName = process.env.REVEALUI_BRAND_NAME ?? process.env.REVEALUI_TENANT_NAME ?? 'RevealUI';
+
 const Layout = ({ children }: Args) => (
   <RootLayout config={config} importMap={importMap}>
     <LicenseProvider>
       <ErrorBoundary>
-        <AdminSidebarLayout>{children}</AdminSidebarLayout>
+        <AdminSidebarLayout siteName={siteName}>{children}</AdminSidebarLayout>
       </ErrorBoundary>
     </LicenseProvider>
   </RootLayout>
