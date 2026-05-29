@@ -229,8 +229,8 @@ export const HOME_FAQ = {
 // ---------------------------------------------------------------------------
 
 export const HOME_GET_STARTED = {
-  heading: 'Ready to build?',
-  body: 'Auth, billing, content, and AI — already wired together. Build on your machine in minutes, then flip to live mode when you’re ready to charge real customers.',
+  heading: 'Build your business today.',
+  body: 'The business logic, pre-wired. Spin up on your machine in minutes, then flip to live mode when you’re ready to charge real customers.',
   cta: {
     primary: { label: 'Start free', href: SITE.urls.signup } satisfies Cta,
     secondary: { label: 'Read the docs', href: SITE.urls.docs } satisfies Cta,
