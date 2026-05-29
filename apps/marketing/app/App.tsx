@@ -15,6 +15,7 @@ import { RoadmapPage } from './routes/RoadmapPage';
 import { SecurityPage } from './routes/SecurityPage';
 import { SponsorPage } from './routes/SponsorPage';
 import { StatusPage } from './routes/StatusPage';
+import { SubprocessorsPage } from './routes/SubprocessorsPage';
 import { SupportPage } from './routes/SupportPage';
 import { TermsPage } from './routes/TermsPage';
 
@@ -45,6 +46,11 @@ export function App() {
       { path: '/security', component: SecurityPage, meta: { title: 'Security — RevealUI' } },
       { path: '/support', component: SupportPage, meta: { title: 'Support — RevealUI' } },
       { path: '/status', component: StatusPage, meta: { title: 'Status — RevealUI' } },
+      {
+        path: '/legal/subprocessors',
+        component: SubprocessorsPage,
+        meta: { title: 'Subprocessors — RevealUI' },
+      },
       { path: '/*notfound', component: NotFoundPage, meta: { title: '404 — RevealUI' } },
     ]);
     registered.current = true;
