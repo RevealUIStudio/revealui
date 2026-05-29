@@ -12,6 +12,7 @@ import { PricingPage } from './routes/PricingPage';
 import { PrivacyPage } from './routes/PrivacyPage';
 import { ProductsPage } from './routes/ProductsPage';
 import { RoadmapPage } from './routes/RoadmapPage';
+import { SecurityPage } from './routes/SecurityPage';
 import { SponsorPage } from './routes/SponsorPage';
 import { TermsPage } from './routes/TermsPage';
 
@@ -39,6 +40,7 @@ export function App() {
       { path: '/sponsor', component: SponsorPage, meta: { title: 'Sponsor — RevealUI' } },
       { path: '/privacy', component: PrivacyPage, meta: { title: 'Privacy Policy — RevealUI' } },
       { path: '/terms', component: TermsPage, meta: { title: 'Terms of Service — RevealUI' } },
+      { path: '/security', component: SecurityPage, meta: { title: 'Security — RevealUI' } },
       { path: '/*notfound', component: NotFoundPage, meta: { title: '404 — RevealUI' } },
     ]);
     registered.current = true;
