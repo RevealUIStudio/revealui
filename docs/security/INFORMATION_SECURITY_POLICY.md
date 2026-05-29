@@ -1,7 +1,7 @@
 ---
 title: Information Security Policy
 description: Security policies governing the RevealUI open-source project, covering data protection, access control, encryption, and compliance.
-last-updated: 2026-04-12
+last-updated: 2026-05-29
 ---
 
 # Information Security Policy
@@ -9,6 +9,8 @@ last-updated: 2026-04-12
 ## 1. Purpose
 
 This policy defines how RevealUI protects user data, application secrets, and infrastructure across its open-core monorepo (MIT core + Fair Source Pro packages). It applies to all code, services, and data managed under the RevealUI project.
+
+> **Infrastructure-in-transition note (2026-05-29).** Supabase is a *legacy secondary* store phasing out (ADR 2026-05-01 → NeonDB-primary). Supabase references below remain in force while it is in service; new features must not add Supabase dependencies. See [ASSET_INVENTORY.md](./ASSET_INVENTORY.md) for authoritative transition status.
 
 ## 2. Scope
 

@@ -20,6 +20,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 import { readFileSync } from 'node:fs';
+import { getHeapStatistics } from 'node:v8';
 import { serve } from '@hono/node-server';
 import { initializeLicense } from '@revealui/core/license';
 import {
@@ -57,7 +58,6 @@ import { bodyLimitGate } from './middleware/body-limits.js';
 import { noCacheCacheMiddleware, noStoreCacheMiddleware } from './middleware/cache-control.js';
 import { csrfMiddleware } from './middleware/csrf.js';
 import { dbMiddleware } from './middleware/db.js';
-import { domainLockMiddleware, validateRevForgeConfig } from './middleware/domain-lock.js';
 import { entitlementMiddleware } from './middleware/entitlements.js';
 import { errorHandler } from './middleware/error.js';
 import {
@@ -162,9 +162,6 @@ async function gracefulShutdown(signal: string): Promise<void> {
 process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Validate RevForge config at startup  -  exits if REVFORGE_* env vars are inconsistent
-validateRevForgeConfig();
-
 // Validate durable-dispatch flag config (CR8-P2-01 phase C) — if the
 // flag is on, the wake secret must be set, or every dispatch silently
 // falls back to the daily cron cadence.
@@ -261,7 +258,11 @@ const securityPreset =
 const securityHeaders = new SecurityHeaders(securityPreset);
 
 // Global middleware
-app.use('*', domainLockMiddleware()); // Forge: reject requests from unlicensed domains
+// License domain-lock: reject any request whose Host isn't covered by the
+// license's signed JWT `domains` claim. No-op when the license carries no
+// domains claim (free tier / unrestricted kits). Cryptographically bound —
+// the allowed domains come from the verified JWT, not a spoofable env var.
+app.use('*', requireDomain());
 app.use('*', requestIdMiddleware());
 // Body-size gate: media uploads (POST) get the per-type image ceiling (10MB);
 // every other route gets 1MB. A single path-aware middleware avoids the prior
@@ -645,11 +646,6 @@ const licenseStatusCheck = checkLicenseStatus(async (customerId) => {
 });
 app.use('/api/*', licenseStatusCheck);
 app.use('/api/v1/*', licenseStatusCheck);
-
-// Domain restriction enforcement  -  validates the request origin against the license's
-// allowed domains. Skips validation when no domain restrictions exist (most licenses).
-app.use('/api/*', requireDomain());
-app.use('/api/v1/*', requireDomain());
 
 // Perpetual license support expiry enforcement  -  downgrades premium features to free
 // when the annual support contract has expired. Basic admin access remains perpetual.
@@ -1224,7 +1220,7 @@ export function initAlerting(): void {
   alerting.registerRule(
     createMemoryUsageAlert(() => {
       const mem = process.memoryUsage();
-      return Math.round((mem.heapUsed / mem.heapTotal) * 100);
+      return Math.round((mem.heapUsed / getHeapStatistics().heap_size_limit) * 100);
     }, 85),
   );
 

@@ -380,6 +380,35 @@ export function getLicensePayload(): LicensePayload | null {
 }
 
 /**
+ * Returns true when `host` is covered by the license's `domains` claim.
+ *
+ * The single matching primitive for RevForge/Fleet domain-lock — consumed by
+ * the API's `requireDomain` middleware, the admin boot check, and
+ * `validateLicenseAtStartup`. Because the allowed domains come from the signed
+ * JWT `domains` claim (not a separate env var), the lock is cryptographically
+ * bound: it cannot be spoofed by editing an env file.
+ *
+ * Matching rules (no authored regex, per the fleet no-regex rule):
+ * - `host` is lower-cased and stripped of any `:port` suffix
+ * - `localhost` / `127.0.0.1` are always allowed, so a trial kit boots and
+ *   serves on its default `http://localhost` regardless of the licensed domain
+ * - otherwise `host` must equal a licensed domain OR be a subdomain of one
+ *   (`app.example.com` matches `example.com`)
+ *
+ * @param host    raw Host header value or URL hostname (a `:port` suffix is tolerated)
+ * @param domains the license payload's `domains` claim
+ */
+export function hostMatchesLicensedDomains(host: string, domains: readonly string[]): boolean {
+  const normalized = (host.trim().toLowerCase().split(':')[0] ?? '').trim();
+  if (!normalized) return false;
+  if (normalized === 'localhost' || normalized === '127.0.0.1') return true;
+  return domains.some((domain) => {
+    const d = domain.trim().toLowerCase();
+    return d.length > 0 && (normalized === d || normalized.endsWith(`.${d}`));
+  });
+}
+
+/**
  * Checks whether the current license is at least the given tier.
  * Also validates that the license has not expired (checks JWT exp claim).
  *
