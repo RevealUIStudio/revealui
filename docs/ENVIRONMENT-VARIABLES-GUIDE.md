@@ -89,7 +89,7 @@ pnpm dev
 | **For AI** | `LLM_PROVIDER`, `OLLAMA_BASE_URL` or `INFERENCE_SNAPS_BASE_URL` | When testing AI agent features |
 | **For email** | `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_PRIVATE_KEY`, `EMAIL_FROM` | When testing password reset or waitlist emails (Gmail API via Google Workspace service account) |
 | **For sync** | `NEXT_PUBLIC_ELECTRIC_SERVICE_URL`, `ELECTRIC_SERVICE_URL` | When testing real-time sync features |
-| **For monitoring** | `NEXT_PUBLIC_SENTRY_DSN` | Recommended for staging and production |
+| **For monitoring** | `NEXT_PUBLIC_SENTRY_DSN` (admin), `VITE_SENTRY_DSN` (marketing), `SENTRY_DSN` (server) | Recommended for staging and production; server is **required** in hosted prod |
 
 ### Validation
 
@@ -366,7 +366,9 @@ Phase 5.5. Required only when operating the RevealUI MCP marketplace.
 
 | Variable | Required | Default | Description | Security | Used By |
 |----------|----------|---------|-------------|----------|---------|
-| `NEXT_PUBLIC_SENTRY_DSN` | No | None | Sentry DSN for error tracking. Recommended for staging and production. | LOW (client-safe) | admin |
+| `NEXT_PUBLIC_SENTRY_DSN` | No | None | Sentry DSN for the **admin** Next.js client. Recommended for staging and production. | LOW (client-safe) | admin |
+| `VITE_SENTRY_DSN` | No | None | Sentry DSN for the **marketing** Vite client. SDK no-ops when absent so dev builds stay quiet. | LOW (client-safe) | marketing |
+| `SENTRY_DSN` | Prod only | None | Sentry DSN for the **server** runtime. Server startup validator hard-fails prod boot without it. | LOW (server-only) | server |
 | `SENTRY_AUTH_TOKEN` | No | None | Sentry auth token for source map uploads in CI/CD. | HIGH (server-only) | CI |
 | `SENTRY_ORG` | No | None | Sentry organization slug. | LOW | CI |
 | `SENTRY_PROJECT` | No | None | Sentry project slug. | LOW | CI |
